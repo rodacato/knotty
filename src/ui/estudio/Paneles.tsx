@@ -1,4 +1,4 @@
-import { Info, Wrench, X } from '@phosphor-icons/react'
+import { Wrench, X } from '@phosphor-icons/react'
 import type { Diseno, TipoUnion } from '../../domain/diseno/esquema'
 import { medidasCara, type Geometria } from '../../domain/diseno/resolver'
 import type { Hallazgo } from '../../domain/estructura/hallazgo'
@@ -53,9 +53,6 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
           </li>
         ))}
       </ul>
-      <p className="flex items-start gap-2 text-xs text-grafito-2">
-        <Info className="mt-0.5 shrink-0" /> El cálculo de hojas a comprar y el acomodo llegan en la fase de materiales.
-      </p>
     </div>
   )
 }

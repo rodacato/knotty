@@ -34,6 +34,7 @@ export const Catalogo = z.object({
   materiales: z.array(MaterialTablero).min(1),
   herrajes: z.array(Herraje),
   acomodo: Acomodo,
+  notaPrecios: z.string().nullable().default(null),
 })
 export type Catalogo = z.infer<typeof Catalogo>
 
@@ -44,3 +45,16 @@ export const hojaUtil = (catalogo: Catalogo, material: MaterialTablero) => ({
   largo: material.hoja.largo - 2 * catalogo.acomodo.refilado,
   ancho: material.hoja.ancho - 2 * catalogo.acomodo.refilado,
 })
+
+/** Lo que el usuario cambia del catálogo en su dispositivo: precios de su tienda y parámetros de corte. */
+export interface AjustesCatalogo {
+  precios: Record<string, number | null>
+  acomodo: Acomodo | null
+}
+
+export const SIN_AJUSTES: AjustesCatalogo = { precios: {}, acomodo: null }
+
+export function aplicarAjustes(c: Catalogo, a: AjustesCatalogo): Catalogo {
+  const precio = <T extends { id: string; precio: number | null }>(x: T): T => (x.id in a.precios ? { ...x, precio: a.precios[x.id] } : x)
+  return { ...c, materiales: c.materiales.map(precio), herrajes: c.herrajes.map(precio), acomodo: a.acomodo ?? c.acomodo }
+}
