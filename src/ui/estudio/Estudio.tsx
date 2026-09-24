@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowCounterClockwise, ArrowsIn, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analizar } from '../../domain/analisis'
 import { diferencias } from '../../domain/diseno/diff'
@@ -145,6 +145,8 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   }, [propuesta, actual, analisisActual, analisisMostrado])
 
   const hallazgos = analisisActual.valido ? analisisActual.hallazgos : []
+  const porConfirmar = actual.piezas.filter((p) => p.confianza === 'baja')
+  const seleccionar = useTienda((s) => s.seleccionar)
   const criticos = hallazgos.filter((h) => h.severidad === 'critico').length + incumplidos.length
 
   const escena = (
@@ -157,6 +159,15 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />
         {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">Viendo la propuesta sin aplicar</span>}
+        {porConfirmar.length > 0 && versionVista === null && !propuesta && (
+          <button
+            type="button"
+            onClick={() => seleccionar(porConfirmar[0].id)}
+            className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full border border-grafito/30 bg-[#f4ede1] px-3 py-1 text-xs font-medium text-grafito shadow-sm"
+          >
+            <PencilSimpleLine /> {porConfirmar.length === 1 ? `${porConfirmar[0].nombre} por confirmar` : `${porConfirmar.length} piezas por confirmar`}
+          </button>
+        )}
         {versionVista !== null && (
           <span className="animate-aparecer pointer-events-auto flex items-center gap-1 rounded-full bg-grafito py-1 pr-1 pl-3 text-xs font-medium text-hueso shadow">
             Viendo v{versionVista}

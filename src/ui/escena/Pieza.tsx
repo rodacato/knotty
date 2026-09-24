@@ -22,6 +22,13 @@ const CAIDA = 0.35
 
 function texturasDeCaras(p: TPieza, caja: Caja, tono: Tono): Texture[] {
   const m = { x: caja.x1 - caja.x0, y: caja.y1 - caja.y0, z: caja.z1 - caja.z0 }
+  if (p.confianza === 'baja')
+    return CARAS.map((cara) => {
+      const t = textura('boceto', tono).clone()
+      t.repeat.set(Math.max(0.2, (m[cara.u] * MM) / 0.25), Math.max(0.2, (m[cara.v] * MM) / 0.25))
+      t.needsUpdate = true
+      return t
+    })
   const [a, b] = (['x', 'y', 'z'] as Eje[]).filter((e) => e !== p.normal)
   const largo = m[a] >= m[b] ? a : b
   const vetaEn = p.veta === 'ancho' ? (largo === a ? b : a) : largo
@@ -60,7 +67,8 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
   const centro: [number, number, number] = [((caja.x0 + caja.x1) / 2) * MM, ((caja.y0 + caja.y1) / 2) * MM, ((caja.z0 + caja.z1) / 2) * MM]
   const mapas = useMemo(() => texturasDeCaras(pieza, caja, tono), [pieza, caja, tono])
 
-  const opacidadFinal = atenuada ? 0.12 : fantasma ? 0.55 : pieza.confianza === 'baja' ? 0.6 : 1
+  const boceto = pieza.confianza === 'baja'
+  const opacidadFinal = atenuada ? 0.12 : fantasma ? 0.55 : boceto ? 0.92 : 1
   const destino: [number, number, number] = [centro[0] + desplazamiento[0], centro[1] + desplazamiento[1], centro[2] + desplazamiento[2]]
   const { posicion, escala } = useSpring({
     from: nueva ? { posicion: [destino[0], destino[1] + CAIDA, destino[2]], escala: tamano.map((t) => t * 0.92) } : { posicion: destino, escala: tamano },
@@ -118,7 +126,13 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
           emissive="#d98a2b"
         />
       ))}
-      <Edges threshold={15} color={seleccionada || fantasma || marcada ? '#d98a2b' : '#2b2825'} lineWidth={seleccionada ? 2.5 : marcada ? 1.8 : 1} transparent opacity={atenuada ? 0.15 : seleccionada || marcada ? 1 : 0.45} />
+      <Edges
+        threshold={15}
+        color={seleccionada || fantasma || marcada ? '#d98a2b' : '#2b2825'}
+        lineWidth={seleccionada ? 2.5 : marcada || boceto ? 1.8 : 1}
+        transparent
+        opacity={atenuada ? 0.15 : seleccionada || marcada || boceto ? 1 : 0.45}
+      />
     </animated.mesh>
   )
 }

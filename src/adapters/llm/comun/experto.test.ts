@@ -43,7 +43,7 @@ describe('crearExperto', () => {
     const { experto, llamadas } = falso({ explicacion: 'x', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [] })
     const r = await experto.reconstruir({ medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: 'para libros', catalogo, correccion: null }, new AbortController().signal)
     expect(r.valor.diseno.nombre).toBe('Librero')
-    expect(r.origen.promptId).toBe('sistema@2+reconstruccion@1')
+    expect(r.origen.promptId).toBe('sistema@2+reconstruccion@2')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { tipo: 'texto', texto: 'Medidas del mueble: ancho 600 mm, alto 1800 mm, fondo 300 mm.\nNotas de la persona: para libros' },
@@ -54,7 +54,7 @@ describe('crearExperto', () => {
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {
     const { experto } = falso({ explicacion: 'x', operaciones: [{ op: 'volar' }] })
-    const promesa = experto.proponerAjuste({ contexto: '', peticion: 'x', diseno: librero, propuesta: null, catalogo, correccion: null }, new AbortController().signal)
+    const promesa = experto.proponerAjuste({ contexto: '', peticion: 'x', diseno: librero, propuesta: null, fotos: [], catalogo, correccion: null }, new AbortController().signal)
     await expect(promesa).rejects.toBeInstanceOf(RespuestaInvalida)
     await expect(promesa).rejects.toMatchObject({ problemas: expect.stringContaining('resumen') })
   })

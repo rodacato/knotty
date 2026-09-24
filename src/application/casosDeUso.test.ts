@@ -39,7 +39,8 @@ describe('reconstruir', () => {
     const estado = await c.reconstruir({ medidas: MEDIDAS_LIBRERO, fotos: [], miniaturas: [], notas: '' }, senal(), (e) => etapas.push(e))
     expect(estado.versiones).toHaveLength(1)
     expect(disenoActual(estado).nombre).toBe('Librero')
-    expect(estado.chat[0].preguntas[0].opciones).toContain('Libros')
+    expect(estado.chat[0].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
+    expect(estado.chat[0].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
     expect(etapas).toEqual(['mirando-fotos', 'revisando', 'estructura'])
     expect(c.repositorio.estado).toEqual(estado)
   })
@@ -91,6 +92,7 @@ describe('ajustar', () => {
       resumen: 'Sacar lateral',
       operaciones: [{ op: 'mover', id: 'lat-izq', eje: 'x', cota: { tipo: 'mm', mm: -50 } }],
       preguntas: [],
+      fotosSolicitadas: [],
       requisitos: { agregar: [], quitar: [] },
       decisiones: [],
       aceptaRiesgo: [],
@@ -140,11 +142,37 @@ describe('ajustar', () => {
     expect(estado.chat.at(-1)).toMatchObject({ texto: 'La API key no es válida.', error: true })
   })
 
+  it('una foto que pidió el experto viaja al LLM, confirma la pieza y queda como miniatura', async () => {
+    const vistas: number[] = []
+    const simulado = crearSimulado(0)
+    const llm: LLMProvider = { ...simulado, proponerAjuste: (s, signal) => (vistas.push(s.fotos.length), simulado.proponerAjuste(s, signal)) }
+    const c = casos(llm)
+    const inicial = await libreroInicial(c)
+    expect(disenoActual(inicial).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('baja')
+    const foto = { angulo: 'interior', base64: 'AAA', miniatura: 'data:image/jpeg;base64,AAA' }
+    const estado = await c.ajustar(inicial, 'Te mando la foto: interior', senal(), undefined, `${inicial.chat[0].id}#f:interior`, foto)
+    expect(estado.chat[0]).toMatchObject({ respuestas: ['f:interior'], respondida: false })
+    expect(vistas).toEqual([1])
+    expect(disenoActual(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
+    expect(estado.miniaturas.map((m) => m.angulo)).toContain('interior')
+    expect(estado.chat.at(-2)?.miniatura).toBe(foto.miniatura)
+  })
+
+  it('confirmar a mano una pieza en boceto crea una versión', async () => {
+    const c = casos()
+    const estado = c.confirmarPieza(await libreroInicial(c), 'trasera')
+    expect(disenoActual(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
+    expect(estado.versiones.at(-1)?.resumen).toBe('Confirmar trasera')
+    expect(c.confirmarPieza(estado, 'trasera')).toBe(estado)
+  })
+
   it('responder una pregunta la marca como respondida', async () => {
     const c = casos()
     const inicial = await libreroInicial(c)
     const estado = await c.ajustar(inicial, 'Libros', senal(), undefined, inicial.chat[0].id)
     expect(estado.chat[0].respondida).toBe(true)
+    const porPartes = await c.ajustar(inicial, 'Libros', senal(), undefined, `${inicial.chat[0].id}#p1`)
+    expect(porPartes.chat[0]).toMatchObject({ respuestas: ['p1'], respondida: false })
     expect(estado.requisitos.map((r) => r.id)).toContain('carga-libros')
   })
 })

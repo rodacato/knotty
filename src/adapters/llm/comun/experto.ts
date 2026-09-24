@@ -44,7 +44,13 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
       return { valor: validar(RespuestaReconstruccion, json), origen: { promptId: idPrompt(RECONSTRUCCION), proveedor: t.proveedor, modelo: t.modelo }, consumo }
     },
     async proponerAjuste(s: SolicitudAjuste, signal) {
-      const contenido: Contenido[] = [{ tipo: 'texto', texto: `${s.contexto}\n\n## Pedido de la persona\n${s.peticion}` }]
+      const contenido: Contenido[] = [
+        { tipo: 'texto', texto: `${s.contexto}\n\n## Pedido de la persona\n${s.peticion}` },
+        ...s.fotos.flatMap((f): Contenido[] => [
+          { tipo: 'texto', texto: `Foto que manda la persona: ${f.angulo}` },
+          { tipo: 'imagen', base64: f.base64 },
+        ]),
+      ]
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores))
       const { json, consumo } = await t.completarJSON(sistemaPara(AJUSTE, s.catalogo), contenido, ESQUEMA_AJUSTE, 'ajuste', signal)
       return { valor: validar(RespuestaAjuste, json), origen: { promptId: idPrompt(AJUSTE), proveedor: t.proveedor, modelo: t.modelo }, consumo }

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import type { Etapa } from '../application/casosDeUso'
+import type { Etapa, FotoEnviada } from '../application/casosDeUso'
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno, Pieza } from '../domain/diseno/esquema'
 import type { Caja } from '../domain/diseno/resolver'
 import { diferencias } from '../domain/diseno/diff'
-import { disenoActual, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
+import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
 import type { EstadoBoveda } from '../ports/Preferencias'
 import { SIN_AJUSTES, type AjustesCatalogo } from '../domain/materiales/catalogo'
@@ -44,7 +44,7 @@ interface Tienda {
   empezarCaptura(): void
   desdeEjemplo(diseno: Diseno): void
   reconstruir(entrada: { medidas: Dimensiones; fotos: Foto[]; miniaturas: Miniatura[]; notas: string }): Promise<void>
-  ajustar(peticion: string, respondeA?: string | null): Promise<void>
+  ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
   aplicarPropuesta(): void
   descartarPropuesta(): void
@@ -62,6 +62,7 @@ interface Tienda {
   refrescarBoveda(): void
   verVersion(n: number | null): void
   volverAVersion(n: number): void
+  confirmarPieza(id: string): void
   agregarNota(texto: string): void
   quitarNota(id: string): void
   quitarDecision(tema: string): void
@@ -148,14 +149,14 @@ export const useTienda = create<Tienda>((set, get) => ({
     }
   },
 
-  async ajustar(peticion, respondeA = null) {
+  async ajustar(peticion, respondeA = null, foto = null) {
     const { servicios, estado, pensando } = get()
     if (!servicios || !estado || pensando || !peticion.trim()) return
     const controlador = new AbortController()
-    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false }
-    const optimista = { ...estado, chat: [...estado.chat.map((m) => (m.id === respondeA ? { ...m, respondida: true } : m)), pendiente] }
+    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [] }
+    const optimista = { ...estado, chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
     set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
-    const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA)
+    const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA, foto)
     set((s) => ({
       estado: nuevo,
       pensando: false,
@@ -232,6 +233,13 @@ export const useTienda = create<Tienda>((set, get) => ({
     const nuevo = servicios.casos.volverAVersion(estado, n)
     const antes = versionVista !== null ? (estado.versiones.find((v) => v.n === versionVista)?.diseno ?? mostrado(estado)) : mostrado(estado)
     set((s) => ({ estado: nuevo, versionVista: null, cambios: transicion(antes, mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
+  },
+
+  confirmarPieza(id) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return
+    const nuevo = servicios.casos.confirmarPieza(estado, id)
+    set((s) => ({ estado: nuevo, cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
   },
 
   agregarNota(texto) {

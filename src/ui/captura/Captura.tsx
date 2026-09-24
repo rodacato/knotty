@@ -1,10 +1,12 @@
-import { ArrowLeft, ArrowRight, Camera, Images, Key, Trash, Warning } from '@phosphor-icons/react'
-import { useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, Key, Trash, Warning } from '@phosphor-icons/react'
+import { useState } from 'react'
 import type { Dimensiones } from '../../domain/diseno/esquema'
 import { faltante } from '../../ports/Preferencias'
 import { useServicios } from '../servicios'
 import { Boton, cm, Titulo } from '../sistema/componentes'
+import { TomarFoto } from '../sistema/TomarFoto'
 import { useTienda } from '../tienda'
+import { Silueta } from './Siluetas'
 
 const ANGULOS = [
   { id: 'frente', nombre: 'Frente', pista: 'De frente, a media altura', requerida: true },
@@ -61,43 +63,32 @@ function CampoMedida({ nombre, valor, min, max, onCambio }: { nombre: string; va
 }
 
 function Ranura({ angulo, foto, onFoto, onQuitar, procesando }: { angulo: (typeof ANGULOS)[number]; foto?: FotoTomada; onFoto: (f: File) => void; onQuitar: () => void; procesando: boolean }) {
-  const camara = useRef<HTMLInputElement>(null)
-  const galeria = useRef<HTMLInputElement>(null)
-  const elegir = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const archivo = e.target.files?.[0]
-    if (archivo) onFoto(archivo)
-    e.target.value = ''
-  }
   return (
-    <div className={`animate-aparecer relative flex aspect-[4/5] flex-col overflow-hidden rounded-2xl border ${foto ? 'border-transparent' : 'border-dashed border-grafito/25 bg-hueso/60'}`}>
+    <div className={`animate-aparecer relative flex min-h-60 flex-col overflow-hidden rounded-2xl border ${foto ? 'border-transparent' : 'border-dashed border-grafito/25 bg-hueso/60'}`}>
       {foto ? (
         <>
-          <img src={foto.miniatura} alt={`Foto ${angulo.nombre}`} className="h-full w-full object-cover" />
+          <img src={foto.miniatura} alt={`Foto ${angulo.nombre}`} className="absolute inset-0 h-full w-full object-cover" />
           <span className="absolute top-2 left-2 rounded-full bg-grafito/80 px-2 py-0.5 text-xs font-medium text-hueso">{angulo.nombre}</span>
           <button type="button" onClick={onQuitar} aria-label={`Quitar foto ${angulo.nombre}`} className="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-hueso/90 text-grafito shadow">
             <Trash />
           </button>
         </>
       ) : (
-        <div className="flex h-full flex-col justify-between p-3">
+        <div className="flex h-full flex-col justify-between gap-1 p-3">
           <div>
             <p className="font-medium">
               {angulo.nombre} {angulo.requerida && <span className="text-ambar">•</span>}
             </p>
             <p className="text-xs leading-snug text-grafito-2">{angulo.pista}</p>
           </div>
+          <div className="grid flex-1 place-items-center">
+            <Silueta angulo={angulo.id} />
+          </div>
           <div className="flex gap-1.5">
-            <Boton variante="primario" className="min-h-9 flex-1 px-2 text-xs" onClick={() => camara.current?.click()} disabled={procesando} aria-label={`Tomar foto ${angulo.nombre}`}>
-              <Camera weight="bold" />
-            </Boton>
-            <Boton variante="secundario" className="min-h-9 flex-1 px-2 text-xs" onClick={() => galeria.current?.click()} disabled={procesando} aria-label={`Elegir de la galería: ${angulo.nombre}`}>
-              <Images weight="bold" />
-            </Boton>
+            <TomarFoto alElegir={onFoto} deshabilitado={procesando} compacto />
           </div>
         </div>
       )}
-      <input ref={camara} type="file" accept="image/*" capture="environment" hidden onChange={elegir} />
-      <input ref={galeria} type="file" accept="image/*" hidden onChange={elegir} />
     </div>
   )
 }
