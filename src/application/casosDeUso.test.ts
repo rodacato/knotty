@@ -65,6 +65,18 @@ describe('ajustar', () => {
     expect(conDivisor.chat.at(-1)?.version).toBe(3)
   })
 
+  it('ante un crítico sin opciones del experto, ofrece las alternativas del motor; elegir una resuelve todo junto', async () => {
+    const c = casos()
+    const pendiente = await c.ajustar(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal())
+    const opciones = pendiente.chat.at(-1)!.preguntas[0].opciones!
+    expect(opciones).toContain('Agregar un divisor vertical al centro')
+    const resuelto = await c.ajustar(pendiente, opciones[0], senal(), undefined, pendiente.chat.at(-1)!.id)
+    expect(resuelto.propuesta).toBeNull()
+    expect(disenoActual(resuelto).dimensiones.ancho).toBe(900)
+    expect(disenoActual(resuelto).piezas.map((p) => p.id)).toEqual(expect.arrayContaining(['divisor', 'apoyo-piso', 'entrepano-1-der']))
+    expect(resuelto.versiones.at(-1)?.resumen).toBe('Ensanchar con divisor al centro')
+  })
+
   it('un cambio sin críticos crea una versión nueva', async () => {
     const c = casos()
     const estado = await c.ajustar(await libreroInicial(c), 'Refuerza la base', senal())

@@ -45,6 +45,16 @@ function opsDivisor(d: Diseno): Operacion[] {
     { op: 'agregarUnion', union: union('u-div-techo', 'techo', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
     { op: 'agregarUnion', union: union('u-div-trasera', 'trasera', 'divisor', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
   ]
+  if (d.piezas.some((p) => p.id === 'zoclo'))
+    ops.push(
+      {
+        op: 'agregarPieza',
+        pieza: pieza({ id: 'apoyo-piso', nombre: 'Apoyo central del piso', rol: 'refuerzo', material: 'T18', normal: 'x', x: desde(entre('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: tramo(ref('mueble.y0'), ref('piso.y0')), z: tramo(ref('trasera.z1'), ref('zoclo.z0')) }),
+      },
+      { op: 'agregarUnion', union: union('u-apoyo-piso', 'piso', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+      { op: 'agregarUnion', union: union('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: 2 }]) },
+      { op: 'agregarUnion', union: union('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
+    )
   for (const e of entrepanos(d)) {
     const der = `${e.id}-der`
     ops.push(
@@ -59,16 +69,16 @@ function opsDivisor(d: Diseno): Operacion[] {
   return ops
 }
 
-function proponer(peticion: string, d: Diseno): RespuestaAjuste {
+function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null): RespuestaAjuste {
   const texto = peticion.toLowerCase()
   const cm = /(\d+(?:[.,]\d+)?)\s*(cm|mm)/.exec(texto)
   const medida = cm ? Number(cm[1].replace(',', '.')) * (cm[2] === 'cm' ? 10 : 1) : null
 
-  if (/divisor/.test(texto) && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.id === 'divisor'))
+  if (/divisor|apoyo/.test(texto) && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.id === 'divisor'))
     return ajuste({
-      explicacion: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada entrepaño en dos. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
-      resumen: 'Agregar divisor al centro',
-      operaciones: opsDivisor(d),
+      explicacion: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada entrepaño en dos; abajo agrego un apoyo central para el piso. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
+      resumen: pendientes ? 'Ensanchar con divisor al centro' : 'Agregar divisor al centro',
+      operaciones: [...(pendientes ?? []), ...opsDivisor(d)],
       decisiones: [{ tema: 'divisor', texto: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
     })
 
@@ -143,7 +153,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
     },
     async proponerAjuste(s, signal) {
       await espera(retraso, signal)
-      return respuesta(proponer(s.peticion, s.diseno))
+      return respuesta(proponer(s.peticion, s.diseno, s.propuesta))
     },
   }
 }

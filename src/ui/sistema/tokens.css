@@ -1,0 +1,109 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme {
+  --font-titulo: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --color-hueso: var(--hueso);
+  --color-kraft: var(--kraft);
+  --color-kraft-2: var(--kraft-2);
+  --color-grafito: var(--grafito);
+  --color-grafito-2: var(--grafito-2);
+  --color-linea: var(--linea);
+  --color-ambar: var(--ambar);
+  --color-ambar-suave: var(--ambar-suave);
+  --color-oxido: var(--oxido);
+  --color-pizarra: var(--pizarra);
+  --color-abedul: #e2c9a2;
+  --color-pino: #d9b27c;
+  --color-nogal: #6b4a2e;
+
+  --animate-trazo: trazo 2.4s ease-in-out infinite;
+  --animate-aparecer: aparecer 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+:root {
+  --hueso: #f5f0e8;
+  --kraft: #ede3d3;
+  --kraft-2: #e3d5bf;
+  --grafito: #2b2825;
+  --grafito-2: #6a6158;
+  --linea: rgb(43 40 37 / 0.12);
+  --ambar: #d98a2b;
+  --ambar-suave: rgb(217 138 43 / 0.14);
+  --oxido: #b4452f;
+  --pizarra: #56697a;
+  --fondo-escena: #efe7da;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hueso: #1d1a17;
+    --kraft: #27231f;
+    --kraft-2: #332d27;
+    --grafito: #efe7da;
+    --grafito-2: #b3a896;
+    --linea: rgb(239 231 218 / 0.12);
+    --ambar-suave: rgb(217 138 43 / 0.2);
+    --oxido: #d9674f;
+    --pizarra: #8aa0b3;
+    --fondo-escena: #221e1a;
+    color-scheme: dark;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--hueso);
+  /* Textura de papel apenas perceptible. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--grafito);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+.cifras {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes trazo {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  55%,
+  75% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

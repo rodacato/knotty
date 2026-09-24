@@ -54,7 +54,7 @@ describe('crearExperto', () => {
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {
     const { experto } = falso({ explicacion: 'x', operaciones: [{ op: 'volar' }] })
-    const promesa = experto.proponerAjuste({ contexto: '', peticion: 'x', diseno: librero, catalogo, correccion: null }, new AbortController().signal)
+    const promesa = experto.proponerAjuste({ contexto: '', peticion: 'x', diseno: librero, propuesta: null, catalogo, correccion: null }, new AbortController().signal)
     await expect(promesa).rejects.toBeInstanceOf(RespuestaInvalida)
     await expect(promesa).rejects.toMatchObject({ problemas: expect.stringContaining('resumen') })
   })

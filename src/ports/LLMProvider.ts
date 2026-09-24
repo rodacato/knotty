@@ -50,6 +50,8 @@ export interface SolicitudAjuste {
   peticion: string
   /** El diseño vigente, para quien necesite leerlo sin parsear el contexto (el simulado). */
   diseno: Diseno
+  /** Operaciones de la propuesta sin aplicar, si la hay; también van descritas en el contexto. */
+  propuesta: Operacion[] | null
   catalogo: Catalogo
   correccion: { respuestaAnterior: unknown; errores: string } | null
 }

@@ -51,7 +51,7 @@ function claroLibre(id: string, caja: Caja, ctx: Parameters<Regla>[0]) {
   return claro > 0 ? claro : null
 }
 
-function alternativas(claro: number, fondo: number, espesor: number, carga: Carga, moduloE: number, catalogo: Catalogo): Alternativa[] {
+function alternativas(p: Pieza, claro: number, fondo: number, espesor: number, carga: Carga, moduloE: number, catalogo: Catalogo): Alternativa[] {
   const lista: Alternativa[] = []
   const siguiente = catalogo.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > espesor).sort((a, b) => a.espesor - b.espesor)[0]
   if (siguiente)
@@ -63,7 +63,7 @@ function alternativas(claro: number, fondo: number, espesor: number, carga: Carg
   const mitad = (claro - espesor) / 2
   lista.push({
     clave: 'divisor-al-centro',
-    descripcion: 'Agregar un divisor vertical al centro',
+    descripcion: p.rol === 'piso' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
     datos: { claro: redondear(mitad, 0), flecha: redondear(flecha(mitad, fondo, espesor, carga, moduloE)) },
   })
   lista.push({ clave: 'claro-maximo', descripcion: `Claro máximo con ${espesor} mm`, datos: { claro: redondear(claroMaximo(fondo, espesor, carga, moduloE), 0) } })
@@ -90,7 +90,7 @@ export const reglaFlecha: Regla = (ctx) =>
         piezas: [p.id],
         mensaje: `${p.nombre} se pandearía ~${redondear(delta)} mm con ${NOMBRE_CARGA[p.carga]} en un claro de ${redondear(claro, 0)} mm (lo aceptable es hasta ${redondear(limite)} mm).`,
         datos: { claro: redondear(claro, 0), fondo: redondear(fondo, 0), espesor, carga: p.carga, flecha: redondear(delta), limite: redondear(limite), moduloE },
-        alternativas: alternativas(claro, fondo, espesor, p.carga, moduloE, ctx.catalogo),
+        alternativas: alternativas(p, claro, fondo, espesor, p.carga, moduloE, ctx.catalogo),
       },
     ]
   })

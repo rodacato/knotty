@@ -28,6 +28,12 @@ export interface Dependencias {
 const INTENTOS = 3
 const listarErrores = (errores: ErrorDiseno[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
 
+/** Si el experto no ofreció opciones ante un crítico, se ofrecen las alternativas que calculó el motor. */
+function preguntaDeAlternativas(criticos: Hallazgo[]): Pregunta[] {
+  const opciones = [...new Set(criticos.flatMap((h) => h.alternativas.filter((a) => a.clave !== 'claro-maximo').map((a) => a.descripcion)))].slice(0, 3)
+  return opciones.length ? [{ texto: '¿Cómo lo resolvemos?', opciones }] : []
+}
+
 /** El experto no logró algo y lo dice; el mensaje es para el usuario. */
 export class ErrorExperto extends Error {}
 
@@ -128,7 +134,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         alAvanzar(intento ? 'corrigiendo' : 'proponiendo', intento)
         let respuesta
         try {
-          respuesta = await llm.proponerAjuste({ contexto, peticion, diseno, catalogo, correccion }, signal)
+          respuesta = await llm.proponerAjuste({ contexto, peticion, diseno, propuesta: conPeticion.propuesta?.operaciones ?? null, catalogo, correccion }, signal)
         } catch (e) {
           if (!(e instanceof RespuestaInvalida)) throw e
           correccion = { respuestaAnterior: e.respuesta, errores: e.problemas }
@@ -181,7 +187,7 @@ export function crearCasosDeUso(deps: Dependencias) {
             origen: respuesta.origen,
           }
           const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
-          return responder(r.explicacion, { preguntas: r.preguntas, propuesta: 'pendiente' }, pendiente)
+          return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
         }
 
         const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen })
@@ -220,6 +226,21 @@ export function crearCasosDeUso(deps: Dependencias) {
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Regresé al diseño de la v${n} (${destino.resumen}).`, { version: conCambio.actual })] })
   }
 
+  /** Empieza desde un diseño ya hecho (los ejemplos), sin gastar una llamada al LLM. */
+  function desdeEjemplo(diseno: Diseno): EstadoDiseno {
+    return guardar({
+      formato: 1,
+      medidas: diseno.dimensiones,
+      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null }],
+      actual: 1,
+      requisitos: [],
+      decisiones: [],
+      chat: [mensaje('experto', `Aquí tienes un ${diseno.nombre.toLowerCase()} de ejemplo. ${diseno.observaciones} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
+      miniaturas: [],
+      propuesta: null,
+    })
+  }
+
   function nuevoDiseno() {
     repositorio.borrar()
   }
@@ -228,7 +249,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
   const preguntasPendientes = (estado: EstadoDiseno): Pregunta[] => estado.chat.filter((m) => !m.respondida).flatMap((m) => m.preguntas)
 
-  return { reconstruir, ajustar, aplicarPropuesta, descartarPropuesta, volverAVersion, nuevoDiseno, cargar, preguntasPendientes }
+  return { reconstruir, ajustar, aplicarPropuesta, descartarPropuesta, volverAVersion, desdeEjemplo, nuevoDiseno, cargar, preguntasPendientes }
 }
 
 export type CasosDeUso = ReturnType<typeof crearCasosDeUso>
