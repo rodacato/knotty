@@ -1,0 +1,17 @@
+{
+  "name": "Despiece · Knotty",
+  "short_name": "Despiece",
+  "description": "De fotos de un mueble a un diseño de triplay que ajustas platicando con un carpintero experto.",
+  "lang": "es-MX",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F5F0E8",
+  "theme_color": "#2B2825",
+  "icons": [
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

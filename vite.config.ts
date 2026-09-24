@@ -12,6 +12,7 @@ const CSP = [
   // https: y loopback abiertos para SheLLM, que corre donde el usuario quiera.
   "connect-src 'self' https: http://localhost:* http://127.0.0.1:*",
   "worker-src 'self' blob:",
+  "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'none'",

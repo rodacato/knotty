@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+import type Anthropic from '@anthropic-ai/sdk'
 import type { LLMProvider } from '../../ports/LLMProvider'
 import { crearExperto, type Contenido, type Transporte } from './comun/experto'
 import { ErrorProveedor } from './comun/errores'
@@ -6,7 +6,11 @@ import { ErrorProveedor } from './comun/errores'
 // Los modelos que rechazan a veces por clasificadores de seguridad: la API reintenta sola en otro modelo.
 const CON_RESPALDO = ['claude-opus-5', 'claude-fable-5-1']
 
-const cliente = (apiKey: string) => new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 300_000 })
+/** El SDK pesa: se carga la primera vez que se usa Claude. */
+async function cliente(apiKey: string) {
+  const { default: Anthropic } = await import('@anthropic-ai/sdk')
+  return new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 300_000 })
+}
 
 const bloque = (c: Contenido): Anthropic.Beta.BetaContentBlockParam =>
   c.tipo === 'texto' ? { type: 'text', text: c.texto } : { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.base64 } }
@@ -17,7 +21,7 @@ export function crearAnthropic(apiKey: string, modelo: string): LLMProvider {
     modelo,
     async completarJSON(sistema, contenido, esquema, _nombre, signal) {
       try {
-        const stream = cliente(apiKey).beta.messages.stream(
+        const stream = (await cliente(apiKey)).beta.messages.stream(
           {
             model: modelo,
             max_tokens: 32000,
@@ -45,7 +49,7 @@ export function crearAnthropic(apiKey: string, modelo: string): LLMProvider {
 export async function modelosAnthropic(apiKey: string): Promise<string[]> {
   try {
     const ids: string[] = []
-    for await (const m of cliente(apiKey).models.list({ limit: 100 })) ids.push(m.id)
+    for await (const m of (await cliente(apiKey)).models.list({ limit: 100 })) ids.push(m.id)
     return ids
   } catch (e) {
     throw new ErrorProveedor(e)

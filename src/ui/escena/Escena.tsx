@@ -10,6 +10,7 @@ import { Cotas } from './Cotas'
 import { Aserrin } from './Aserrin'
 import { Pieza } from './Pieza'
 import { Saliente } from './Saliente'
+import { useMovimientoReducido, useOscuro, useTactil } from './preferencias'
 
 const MM = 0.001
 
@@ -54,7 +55,7 @@ function desplazamientos(geo: Geometria, diseno: Diseno, activo: boolean) {
   return { empujes, alto: tope * MM }
 }
 
-function Camara({ diseno, altoVisible }: { diseno: Diseno; altoVisible: number }) {
+function Camara({ diseno, altoVisible, reducido }: { diseno: Diseno; altoVisible: number; reducido: boolean }) {
   const controles = useRef<CameraControls>(null)
   const vista = useTienda((s) => s.vista)
   const explosion = useTienda((s) => s.explosion)
@@ -74,22 +75,10 @@ function Camara({ diseno, altoVisible }: { diseno: Diseno; altoVisible: number }
       arriba: [0, d + h, 0.001],
     }
     const [x, y, z] = posiciones[vista.nombre]
-    void c.setLookAt(x, y, z, 0, h / 2, 0, true)
-  }, [vista, ancho, alto, fondo, explosion, altoVisible])
+    void c.setLookAt(x, y, z, 0, h / 2, 0, !reducido)
+  }, [vista, ancho, alto, fondo, explosion, altoVisible, reducido])
 
   return <CameraControls ref={controles} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
-}
-
-function useOscuro() {
-  const consulta = '(prefers-color-scheme: dark)'
-  const [oscuro, setOscuro] = useState(() => matchMedia(consulta).matches)
-  useEffect(() => {
-    const m = matchMedia(consulta)
-    const cambio = () => setOscuro(m.matches)
-    m.addEventListener('change', cambio)
-    return () => m.removeEventListener('change', cambio)
-  }, [])
-  return oscuro
 }
 
 export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEscena) {
@@ -99,7 +88,9 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
   const cambios = useTienda((s) => s.cambios)
   const revelado = useTienda((s) => s.revelado)
   const seleccionar = useTienda((s) => s.seleccionar)
-  const [calidad, setCalidad] = useState(true)
+  const tactil = useTactil()
+  const reducido = useMovimientoReducido()
+  const [calidad, setCalidad] = useState(!tactil)
   const oscuro = useOscuro()
 
   const { empujes, alto: altoVisible } = useMemo(() => desplazamientos(geo, diseno, explosion), [geo, diseno, explosion])
@@ -107,11 +98,11 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
   const orden = useMemo(() => [...diseno.piezas].sort((a, b) => geo.cajas.get(a.id)!.y0 - geo.cajas.get(b.id)!.y0).map((p) => p.id), [diseno, geo])
 
   return (
-    <Canvas shadows dpr={[1, calidad ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => seleccionar(null)}>
+    <Canvas frameloop="demand" shadows dpr={[1, tactil ? 1.5 : calidad ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => seleccionar(null)}>
       <PerformanceMonitor onDecline={() => setCalidad(false)} onIncline={() => setCalidad(true)} />
-      <Camara diseno={diseno} altoVisible={altoVisible} />
+      <Camara diseno={diseno} altoVisible={altoVisible} reducido={reducido} />
       <hemisphereLight args={[oscuro ? '#6b5f52' : '#fff6e8', oscuro ? '#1a1612' : '#b89a78', oscuro ? 0.5 : 0.8]} />
-      <directionalLight position={[2.5, 4.5, 3.2]} intensity={oscuro ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0004}>
+      <directionalLight position={[2.5, 4.5, 3.2]} intensity={oscuro ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={tactil ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
       </directionalLight>
       <Environment resolution={256} frames={1}>
@@ -134,21 +125,22 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
             marcada={marcadas.includes(p.id)}
             resaltar={cambios.modificadas.includes(p.id) ? cambios.vez : 0}
             nueva={cambios.agregadas.includes(p.id)}
+            reducido={reducido}
             retraso={cambios.agregadas.includes(p.id) ? 0 : orden.indexOf(p.id) * 70}
             onSeleccionar={seleccionar}
           />
         ))}
-        {cambios.eliminadas.map(({ pieza, caja }) => (
+        {cambios.eliminadas.filter(() => !reducido).map(({ pieza, caja }) => (
           <Saliente key={`${pieza.id}-${cambios.vez}`} caja={caja} />
         ))}
         {cambios.agregadas
-          .filter((id) => geo.cajas.has(id))
+          .filter((id) => !reducido && geo.cajas.has(id))
           .map((id) => {
             const c = geo.cajas.get(id)!
             const [dx, dy, dz] = empujes.get(id) ?? [0, 0, 0]
             return <Aserrin key={`${id}-${cambios.vez}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {cotas && !explosion && <Cotas dimensiones={diseno.dimensiones} />}
+        {cotas && !explosion && <Cotas dimensiones={diseno.dimensiones} oscuro={oscuro} />}
       </group>
 
       <ContactShadows position={[0, 0.0005, 0]} opacity={oscuro ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />

@@ -8,6 +8,7 @@ import { verificarRequisitos } from '../../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
 import { etiquetaActiva } from '../../ports/Preferencias'
 import { Chat } from '../chat/Chat'
+import { BordeEscena } from '../escena/BordeEscena'
 import { Escena } from '../escena/Escena'
 import { useServicios } from '../servicios'
 import { Boton, cm } from '../sistema/componentes'
@@ -105,11 +106,11 @@ function Encabezado({ estado }: { estado: EstadoDiseno }) {
           {alto} × {ancho} × {fondo} mm · {cm(ancho)} de ancho
         </p>
       </div>
-      <Boton variante="fantasma" className="min-h-9 px-3 text-xs" onClick={() => abrirAjustes(true)}>
+      <Boton variante="fantasma" className="min-h-9 px-3 text-xs" onClick={() => abrirAjustes(true)} aria-label={`El experto: ${etiqueta}`}>
         <GearSix /> <span className="hidden sm:inline">{etiqueta}</span>
       </Boton>
       <ConfirmarNuevo>
-        <Boton variante="secundario" className="min-h-9 px-3 text-xs">
+        <Boton variante="secundario" className="min-h-9 px-3 text-xs" aria-label="Nuevo diseño">
           <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
         </Boton>
       </ConfirmarNuevo>
@@ -127,6 +128,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const [panelAlto, setPanelAlto] = useState(false)
   const [pestana, setPestana] = useState('chat')
   const ajustar = useTienda((s) => s.ajustar)
+  const seleccionarPieza = useTienda((s) => s.seleccionar)
   const pedir = (texto: string) => {
     setPestana('chat')
     void ajustar(texto)
@@ -144,6 +146,14 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
     return diferencias(actual, analisisActual.geo.cajas, propuesta, analisisMostrado.geo.cajas)
   }, [propuesta, actual, analisisActual, analisisMostrado])
 
+  useEffect(() => {
+    const alTeclear = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') seleccionarPieza(null)
+    }
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [seleccionarPieza])
+
   const hallazgos = analisisActual.valido ? analisisActual.hallazgos : []
   const porConfirmar = actual.piezas.filter((p) => p.confianza === 'baja')
   const seleccionar = useTienda((s) => s.seleccionar)
@@ -152,7 +162,11 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const escena = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
       {analisisMostrado.valido ? (
-        <Escena diseno={mostrado} geo={analisisMostrado.geo} catalogo={catalogo} fantasmas={cambios.agregadas} marcadas={cambios.modificadas} />
+        <div className="h-full" role="img" aria-label={`${mostrado.nombre} en 3D: ${mostrado.dimensiones.alto} × ${mostrado.dimensiones.ancho} × ${mostrado.dimensiones.fondo} mm, ${mostrado.piezas.length} piezas. La lista completa está en Materiales.`}>
+          <BordeEscena>
+            <Escena diseno={mostrado} geo={analisisMostrado.geo} catalogo={catalogo} fantasmas={cambios.agregadas} marcadas={cambios.modificadas} />
+          </BordeEscena>
+        </div>
       ) : (
         <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {analisisMostrado.errores[0]?.mensaje}</div>
       )}
@@ -163,7 +177,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           <button
             type="button"
             onClick={() => seleccionar(porConfirmar[0].id)}
-            className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full border border-grafito/30 bg-[#f4ede1] px-3 py-1 text-xs font-medium text-grafito shadow-sm"
+            className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full border border-grafito/30 bg-papel px-3 py-1 text-xs font-medium text-grafito shadow-sm"
           >
             <PencilSimpleLine /> {porConfirmar.length === 1 ? `${porConfirmar[0].nombre} por confirmar` : `${porConfirmar.length} piezas por confirmar`}
           </button>

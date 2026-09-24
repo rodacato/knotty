@@ -56,12 +56,14 @@ export interface PropsPieza {
   resaltar: number
   /** Pieza recién agregada: cae a su lugar. */
   nueva: boolean
+  /** Sin animaciones: la persona pidió reducir el movimiento. */
+  reducido: boolean
   /** Retraso de la aparición del boceto a la madera; el padre remonta la pieza para repetirla. */
   retraso: number
   onSeleccionar: (id: string) => void
 }
 
-export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, resaltar, nueva, retraso, onSeleccionar }: PropsPieza) {
+export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, resaltar, nueva, reducido, retraso, onSeleccionar }: PropsPieza) {
   const [sobre, setSobre] = useState(false)
   const tamano: [number, number, number] = [(caja.x1 - caja.x0) * MM, (caja.y1 - caja.y0) * MM, (caja.z1 - caja.z0) * MM]
   const centro: [number, number, number] = [((caja.x0 + caja.x1) / 2) * MM, ((caja.y0 + caja.y1) / 2) * MM, ((caja.z0 + caja.z1) / 2) * MM]
@@ -74,13 +76,15 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
     from: nueva ? { posicion: [destino[0], destino[1] + CAIDA, destino[2]], escala: tamano.map((t) => t * 0.92) } : { posicion: destino, escala: tamano },
     to: { posicion: destino, escala: tamano },
     config: nueva ? { mass: 1.2, tension: 260, friction: 13 } : { mass: 1, tension: 170, friction: 16 },
+    immediate: reducido,
   })
-  const { opacidad } = useSpring({ from: { opacidad: 0 }, to: { opacidad: opacidadFinal }, delay: retraso, config: { tension: 120, friction: 20 } })
+  const { opacidad } = useSpring({ from: { opacidad: reducido ? opacidadFinal : 0 }, to: { opacidad: opacidadFinal }, delay: reducido ? 0 : retraso, immediate: reducido, config: { tension: 120, friction: 20 } })
   const [{ brillo }] = useSpring(() => ({ from: { brillo: resaltar ? 1 : 0 }, to: { brillo: 0 }, config: { duration: 1800 }, reset: true }), [resaltar])
 
   const materiales = useRef<(MeshStandardMaterial | null)[]>([])
   useEffect(() => () => mapas.forEach((m) => m.dispose()), [mapas])
-  useFrame(() => {
+  useFrame(({ invalidate }) => {
+    if (opacidad.isAnimating || brillo.isAnimating) invalidate()
     const o = opacidad.get()
     const e = brillo.get() * 0.55 + (sobre && !seleccionada ? 0.08 : 0)
     for (const m of materiales.current) {

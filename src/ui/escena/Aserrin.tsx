@@ -23,10 +23,11 @@ export function Aserrin({ en, retraso = 0.28 }: { en: [number, number, number]; 
     return { geometria, velocidades }
   }, [])
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, invalidate }) => {
     inicio.current ??= clock.elapsedTime + retraso
     const t = clock.elapsedTime - inicio.current
     if (!material.current) return
+    if (t <= DURACION) invalidate()
     if (t < 0 || t > DURACION) {
       material.current.opacity = 0
       return
