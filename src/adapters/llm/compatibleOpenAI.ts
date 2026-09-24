@@ -89,11 +89,14 @@ export function crearCompatible(c: ConexionCompatible): LLMProvider {
           const eleccion = r.choices?.[0]
           if (eleccion?.message?.refusal) throw new Error(`El modelo se negó: ${eleccion.message.refusal}`)
           if (eleccion?.finish_reason === 'length') throw new Error('La respuesta se cortó por el límite de tokens.')
-          return { json: extraerJSON(eleccion?.message?.content ?? ''), consumo: { tokensEntrada: r.usage?.prompt_tokens, tokensSalida: r.usage?.completion_tokens } }
+          const avisos = !imagenes && fotos ? [`${c.etiqueta.split(' · ')[0]} no aceptó las fotos, así que el experto trabajó sin verlas: con tus medidas, notas y respuestas.`] : undefined
+          return { json: extraerJSON(eleccion?.message?.content ?? ''), consumo: { tokensEntrada: r.usage?.prompt_tokens, tokensSalida: r.usage?.completion_tokens }, avisos }
         } catch (e) {
-          if (!(e instanceof Rechazo) || e.status !== 400) throw e
-          if (conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
-          else if (imagenes && fotos && /image/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), imagenes: false })
+          if (!(e instanceof Rechazo)) throw e
+          // Un 413 es el cuerpo completo demasiado grande: con fotos, casi siempre son ellas.
+          const porImagenes = (e.status === 400 && /image/i.test(e.cuerpo)) || e.status === 413
+          if (e.status === 400 && conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
+          else if (imagenes && fotos && porImagenes) capacidades.set(clave, { ...puede(), imagenes: false })
           else throw e
         }
       }

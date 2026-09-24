@@ -5,7 +5,10 @@ import { crearCompatible } from './compatibleOpenAI'
 
 const respuesta = { explicacion: 'Veo un librero', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
-const rechazo = (texto: string) => new Response(texto, { status: 400 })
+const rechazo = (texto: string, status = 400) => new Response(texto, { status })
+const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: librero.dimensiones, fotos, notas: '', catalogo, correccion: null })
+let host = 0
+const nueva = () => crearCompatible({ proveedor: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', etiqueta: 'SheLLM · claude' })
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -32,6 +35,45 @@ describe('crearCompatible', () => {
 
     await experto.reconstruir(solicitud, new AbortController().signal)
     expect(cuerpos).toHaveLength(4)
+  })
+
+  it('arma la petición: texto e imagen intercalados en orden, data URL JPEG y json_schema estricto', async () => {
+    let cuerpo: { messages: { role: string; content: { type: string; text?: string; image_url?: { url: string } }[] }[]; response_format: { type: string; json_schema: { name: string; strict: boolean } } } | null = null
+    vi.stubGlobal('fetch', async (_: string, init: RequestInit) => ((cuerpo = JSON.parse(init.body as string)), ok(respuesta)))
+    await nueva().reconstruir(solicitud([{ angulo: 'frente', base64: 'AAA' }, { angulo: '3/4', base64: 'BBB' }]), new AbortController().signal)
+    const partes = cuerpo!.messages[1].content
+    expect(partes.map((p) => p.text ?? p.image_url?.url)).toEqual([
+      expect.stringContaining('Medidas del mueble'),
+      'Foto 1: frente',
+      'data:image/jpeg;base64,AAA',
+      'Foto 2: 3/4',
+      'data:image/jpeg;base64,BBB',
+    ])
+    expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruccion', strict: true } })
+  })
+
+  it('un 413 con fotos se reintenta sin ellas y avisa a la persona', async () => {
+    const tipos: boolean[] = []
+    vi.stubGlobal('fetch', async (_: string, init: RequestInit) => {
+      const conImagen = (init.body as string).includes('image_url')
+      tipos.push(conImagen)
+      return conImagen ? rechazo('Payload Too Large', 413) : ok(respuesta)
+    })
+    const r = await nueva().reconstruir(solicitud(), new AbortController().signal)
+    expect(tipos).toEqual([true, false])
+    expect(r.avisos).toEqual([expect.stringContaining('SheLLM no aceptó las fotos')])
+  })
+
+  it('un 400 que no habla de response_format ni de imágenes no degrada: se reporta', async () => {
+    const fetch = vi.fn(async () => rechazo('Field "model" is required'))
+    vi.stubGlobal('fetch', fetch)
+    await expect(nueva().reconstruir(solicitud(), new AbortController().signal)).rejects.toThrow('Field "model" is required')
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('un 413 sin fotos no se puede resolver quitándolas: se reporta', async () => {
+    vi.stubGlobal('fetch', async () => rechazo('Payload Too Large', 413))
+    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow('413')
   })
 
   it('manda la llave solo si hay', async () => {

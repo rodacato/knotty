@@ -115,7 +115,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         actual: 1,
         requisitos: r.requisitos,
         decisiones: [],
-        chat: [mensaje('experto', r.explicacion, { preguntas: r.preguntas.slice(0, 3), fotosPedidas: r.fotosSolicitadas.slice(0, 2), version: 1 })],
+        chat: [mensaje('experto', [r.explicacion, ...(respuesta.avisos ?? [])].join('\n\n'), { preguntas: r.preguntas.slice(0, 3), fotosPedidas: r.fotosSolicitadas.slice(0, 2), version: 1 })],
         miniaturas: entrada.miniaturas,
         propuesta: null,
       })
@@ -158,7 +158,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           ultimoError = 'la respuesta no tenía el formato esperado'
           continue
         }
-        const r = respuesta.valor
+        const r = { ...respuesta.valor, explicacion: [respuesta.valor.explicacion, ...(respuesta.avisos ?? [])].join('\n\n') }
         const requisitos = actualizarRequisitos(conPeticion.requisitos, r.requisitos)
         const decisiones = actualizarDecisiones(conPeticion.decisiones, r.decisiones)
         const base = { ...conPeticion, requisitos, decisiones }

@@ -46,6 +46,16 @@ describe('reconstruir', () => {
   })
 })
 
+describe('avisos del proveedor', () => {
+  it('llegan al chat junto con la explicación del experto', async () => {
+    const simulado = crearSimulado(0)
+    const aviso = 'SheLLM no aceptó las fotos, así que el experto trabajó sin verlas.'
+    const llm: LLMProvider = { ...simulado, reconstruir: async (s, signal) => ({ ...(await simulado.reconstruir(s, signal)), avisos: [aviso] }) }
+    const estado = await libreroInicial(casos(llm))
+    expect(estado.chat[0].texto).toContain(aviso)
+  })
+})
+
 describe('ajustar', () => {
   it('"hazlo de 90 cm" queda como propuesta pendiente por la flecha, y "divisor" la resuelve', async () => {
     const c = casos()
