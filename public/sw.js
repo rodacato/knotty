@@ -1,11 +1,11 @@
 // La app abre sin conexión: el HTML se pide a la red primero y los archivos con hash se sirven del caché.
 // Nunca se guardan llamadas a otros orígenes (proveedores de LLM, SheLLM).
 
-const CACHE = 'despiece-v1'
+const CACHE = 'knotty-v1'
 const BASE = new URL('./', self.location).pathname
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalogo/catalogo.json`, `${BASE}favicon.svg`])))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalogo/catalogo.json`, `${BASE}favicon.svg`, `${BASE}icono-192.png`])))
   self.skipWaiting()
 })
 

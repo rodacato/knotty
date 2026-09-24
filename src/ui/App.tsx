@@ -6,14 +6,18 @@ import { Captura } from './captura/Captura'
 import { Inicio } from './captura/Inicio'
 import { ContextoServicios, type Servicios } from './servicios'
 import { Lapiz } from './sistema/componentes'
+import { Nudo } from './sistema/Marca'
 import { useTienda } from './tienda'
 
 // El 3D pesa: se carga hasta que hay un mueble que mostrar.
 const Estudio = lazy(() => import('./estudio/Estudio').then((m) => ({ default: m.Estudio })))
 
 const Cargando = () => (
-  <div className="grid h-full place-items-center text-ambar">
-    <Lapiz className="h-8 w-20" />
+  <div className="grid h-full place-items-center">
+    <div className="flex flex-col items-center gap-3 text-ambar">
+      <Nudo className="size-12 animate-pulse" />
+      <Lapiz className="h-6 w-16" />
+    </div>
   </div>
 )
 

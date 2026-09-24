@@ -1,0 +1,13 @@
+<g fill="none" stroke="#7A5230" stroke-linecap="round">
+  <path d="M-2 7.5C14 6.5 22 8.5 34 7.5S54 6.5 66 7.5" stroke-width="1.7" opacity=".45"/>
+  <path d="M-2 15C14 15 18 12 31 12S48 15 66 15" stroke-width="1.8" opacity=".6"/>
+  <path d="M-2 23C12 23 16 18.5 31 18.5S50 23 66 23" stroke-width="2" opacity=".75"/>
+  <path d="M-2 41C12 41 16 45.5 31 45.5S50 41 66 41" stroke-width="2" opacity=".75"/>
+  <path d="M-2 49C14 49 18 52 31 52S48 49 66 49" stroke-width="1.8" opacity=".6"/>
+  <path d="M-2 56.5C14 57.5 22 55.5 34 56.5S54 57.5 66 56.5" stroke-width="1.7" opacity=".45"/>
+  <g transform="rotate(-8 31 32)">
+    <ellipse cx="31" cy="32" rx="16.5" ry="9.5" stroke-width="2" opacity=".85"/>
+    <ellipse cx="31" cy="32" rx="11" ry="6" stroke="#5A3A20" stroke-width="2.2"/>
+  </g>
+</g>
+<ellipse cx="31" cy="32" rx="6.4" ry="3.3" transform="rotate(-8 31 32)" fill="#4A2F1A"/>

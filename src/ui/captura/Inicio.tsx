@@ -3,6 +3,7 @@ import { alacena } from '../../domain/fixtures/alacena'
 import { buro } from '../../domain/fixtures/buro'
 import { librero } from '../../domain/fixtures/librero'
 import { Boton } from '../sistema/componentes'
+import { Logotipo, Simbolo } from '../sistema/Marca'
 import { useTienda } from '../tienda'
 
 /** Un mueble en vista explosionada, dibujado como boceto. */
@@ -34,10 +35,15 @@ export function Inicio() {
   return (
     <main className="mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-12 md:flex-row md:gap-16">
       <div className="flex max-w-md flex-col gap-6">
-        <p className="cifras text-xs uppercase tracking-[0.2em] text-grafito-2">Triplay · Home Depot MX</p>
-        <h1 className="font-titulo text-5xl leading-[1.02] font-semibold tracking-tight [font-variation-settings:'opsz'_96] md:text-6xl">Despiece</h1>
+        <div className="flex items-center gap-3">
+          <Simbolo className="size-10 shadow-[0_8px_20px_-10px_rgba(43,40,37,.6)]" />
+          <p className="cifras text-xs uppercase tracking-[0.2em] text-grafito-2">Muebles de triplay · DIY</p>
+        </div>
+        <h1 className="text-6xl leading-[0.95] md:text-7xl">
+          <Logotipo />
+        </h1>
         <p className="text-lg leading-relaxed text-grafito-2">
-          Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay que puedes explorar, ajustar platicando y armar tú mismo.
+          Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay que puedes explorar, ajustar platicando y armar tú mismo. Al final sabes cómo se arma y cuántas hojas comprar.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Boton variante="primario" className="min-h-12 px-6 text-base" onClick={empezarCaptura}>

@@ -1,6 +1,12 @@
-# Knotty
+<p align="center"><img src="public/icono-192.png" width="96" alt="" /></p>
 
-*Naughty knots.* Fotos de un mueble → diseño 3D de triplay que se ajusta conversando con un carpintero experto (un LLM), para saber cómo se arma y cuántas hojas comprar.
+<h1 align="center">Knotty</h1>
+
+<p align="center"><em>Naughty knots.</em> De unas fotos a un mueble de triplay que ajustas platicando con un carpintero experto (un LLM): diseño 3D, cómo se arma y cuántas hojas comprar.</p>
+
+<p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Abrir la app</strong></a></p>
+
+![Knotty](public/compartir.png)
 
 La propuesta, las decisiones y el estado viven en [docs/PROPUESTA.md](docs/PROPUESTA.md).
 
@@ -28,3 +34,11 @@ Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("h
 - `public/catalogo/catalogo.json`: materiales, herrajes y parámetros de acomodo; se edita sin tocar código.
 
 `src/arquitectura.test.ts` verifica que ninguna capa importe lo que no debe.
+
+## Marca
+
+Los SVG de la marca viven en `scripts/marca/`. Para regenerar el favicon, los íconos de la PWA y la imagen para compartir (`public/compartir.png`) hace falta `rsvg-convert` (`brew install librsvg`) y Google Chrome:
+
+```bash
+./scripts/marca/generar.sh
+```

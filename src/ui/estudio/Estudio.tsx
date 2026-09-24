@@ -12,6 +12,7 @@ import { BordeEscena } from '../escena/BordeEscena'
 import { Escena } from '../escena/Escena'
 import { useServicios } from '../servicios'
 import { Boton, cm } from '../sistema/componentes'
+import { Simbolo } from '../sistema/Marca'
 import { disenoVisible, useTienda, type Vista } from '../tienda'
 import { Historial } from './Historial'
 import { Materiales } from './Materiales'
@@ -99,7 +100,7 @@ function Encabezado({ estado }: { estado: EstadoDiseno }) {
   const etiqueta = useMemo(() => etiquetaActiva(preferencias.cargar()), [preferencias, ajustesAbiertos])
   return (
     <header className="flex items-center gap-3 border-b border-linea bg-hueso/80 px-3 py-2 backdrop-blur md:px-5">
-      <img src="./favicon.svg" alt="" className="size-8" />
+      <Simbolo className="size-8" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-titulo text-lg leading-tight font-semibold">{diseno.nombre}</p>
         <p className="cifras truncate text-[11px] text-grafito-2">
