@@ -33,3 +33,11 @@ export function contactos(cajas: Map<string, Caja>): Contacto[] {
 }
 
 export const mismoPar = (c: { a: string; b: string }, a: string, b: string) => (c.a === a && c.b === b) || (c.a === b && c.b === a)
+
+/** Largo de la junta entre dos piezas que se tocan: el lado mayor del rectángulo de contacto. */
+export function largoDeJunta(a: Caja, b: Caja): number {
+  const contacto = contactoEntre('a', a, 'b', b)
+  if (!contacto) return 0
+  const lados = EJES.filter((e) => e !== contacto.eje).map((e) => traslape(a, b, e))
+  return Math.max(0, ...lados)
+}

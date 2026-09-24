@@ -28,6 +28,24 @@ export const SUPUESTOS = {
   penetracion: { recomendacion: 1 / 3, critico: 1 / 2 },
   /** Hasta este espesor, una pieza solo se clava o va en canal o rebaje. */
   espesorDeClavar: 3,
+  tornillos: {
+    /** Lo mínimo que el tornillo entra en la pieza que lo recibe. */
+    penetracionMinima: 25,
+    /** Distancia mínima del tornillo al extremo de la junta, para no rajar el canto. */
+    distanciaExtremo: 25,
+    /** Tornillo de bolsillo que no se asoma, según el espesor de la pieza con el bolsillo (tabla de Kreg). */
+    bolsilloMaximo: [
+      { hasta: 13, largo: 25.4 },
+      { hasta: 16, largo: 25.4 },
+      { hasta: 19, largo: 31.75 },
+    ],
+  },
+  vuelco: { relacionRecomendacion: 3, relacionCritica: 4, altoCritico: 1200 },
+  puertas: { bisagras: [{ hasta: 900, n: 2 }, { hasta: 1500, n: 3 }, { hasta: Infinity, n: 4 }], anchoMaximo: 600 },
+  /** Claro máximo de un piso sin apoyo intermedio cuando no descansa en el suelo. */
+  claroPiso: 800,
 } as const
+
+export const bisagrasPara = (alto: number) => SUPUESTOS.puertas.bisagras.find((b) => alto <= b.hasta)!.n
 
 export const UNIONES_RIGIDAS: TipoUnion[] = ['bolsillo', 'tarugo', 'minifix', 'canal', 'rebaje', 'escuadra']

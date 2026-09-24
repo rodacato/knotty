@@ -1,10 +1,9 @@
-import { Wrench, X } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
 import type { Diseno, TipoUnion } from '../../domain/diseno/esquema'
 import { medidasCara, type Geometria } from '../../domain/diseno/resolver'
-import type { Hallazgo } from '../../domain/estructura/hallazgo'
 import type { Catalogo } from '../../domain/materiales/catalogo'
 import { despiece } from '../../domain/materiales/despiece'
-import { Boton, cm, Sello } from '../sistema/componentes'
+import { cm } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
 const UNIONES: Record<TipoUnion, string> = {
@@ -54,46 +53,6 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
         ))}
       </ul>
     </div>
-  )
-}
-
-export function Revision({ hallazgos, incumplidos }: { hallazgos: Hallazgo[]; incumplidos: string[] }) {
-  const ajustar = useTienda((s) => s.ajustar)
-  const pensando = useTienda((s) => s.pensando)
-  if (!hallazgos.length && !incumplidos.length)
-    return (
-      <div className="flex flex-col items-center gap-2 p-8 text-center text-grafito-2">
-        <Wrench size={28} weight="duotone" className="text-ambar" />
-        <p className="font-medium text-grafito">Sin observaciones</p>
-        <p className="text-sm">Flecha de entrepaños, espesores por unión y escuadrado están bien.</p>
-      </div>
-    )
-  return (
-    <ul className="flex flex-col gap-3 p-4">
-      {incumplidos.map((m) => (
-        <li key={m} className="animate-aparecer flex flex-col gap-2 rounded-2xl border border-oxido/30 bg-oxido/5 p-4">
-          <Sello severidad="critico" />
-          <p className="text-[15px] leading-snug">{m}</p>
-          <Boton variante="secundario" className="min-h-9 self-start text-xs" disabled={pensando} onClick={() => void ajustar(`Ajusta el diseño para cumplir esto: ${m}`)}>
-            Pedir al experto que lo ajuste
-          </Boton>
-        </li>
-      ))}
-      {hallazgos.map((h, i) => (
-        <li key={i} className="animate-aparecer flex flex-col gap-2 rounded-2xl border border-linea bg-hueso p-4">
-          <Sello severidad={h.severidad} />
-          <p className="text-[15px] leading-snug">{h.mensaje}</p>
-          {h.alternativas.length > 0 && (
-            <p className="text-xs text-grafito-2">
-              Opciones: {h.alternativas.map((a) => a.descripcion + (a.datos.flecha !== undefined ? ` (~${a.datos.flecha} mm)` : a.datos.claro !== undefined && a.clave === 'claro-maximo' ? ` (${a.datos.claro} mm)` : '')).join(' · ')}
-            </p>
-          )}
-          <Boton variante="secundario" className="min-h-9 self-start text-xs" disabled={pensando} onClick={() => void ajustar(`Corrige esto: ${h.mensaje}`)}>
-            Pedir al experto que lo corrija
-          </Boton>
-        </li>
-      ))}
-    </ul>
   )
 }
 

@@ -453,6 +453,12 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 - Herrajes sin cantidad se calculan por separación a lo largo de la junta; bisagras según el alto de la puerta.
 - Precios editables por renglón y ajustes de corte, guardados en el dispositivo.
 
+### Fase 4 — implementada (2026-09-24)
+
+- Reglas nuevas: R3 tornillos (penetración ≥ 25 mm, tornillo de bolsillo según espesor, juntas cortas), R4 vuelco, R6 puertas (bisagras por alto, ancho máximo), R7 base (piso elevado sin apoyo) y R8 veta. Supuestos en `supuestos.ts`; largo de tornillos en el catálogo.
+- Revisión como reporte: conteo por severidad, hallazgos de la misma regla agrupados con sus piezas (tocables), alternativas como botones que mandan el pedido al experto, y «que el experto decida».
+- Prompt del sistema a `sistema@2` con las reglas nuevas; el simulado entiende «anclar al muro».
+
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
 - La calidad de la reconstrucción desde fotos reales y de los 5 ajustes guionizados (criterios de éxito de la fase).

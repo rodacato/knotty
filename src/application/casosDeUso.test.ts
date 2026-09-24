@@ -191,7 +191,7 @@ describe('versiones', () => {
     const descartada = c.descartarPropuesta(pendiente)
     expect(descartada.propuesta).toBeNull()
     expect(descartada.versiones).toHaveLength(1)
-    expect(descartada.chat.at(-1)?.propuesta).toBe('descartada')
+    expect(descartada.chat.at(-1)).toMatchObject({ propuesta: 'descartada', respondida: true })
   })
 })
 

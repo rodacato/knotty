@@ -63,7 +63,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   function conVersion(estado: EstadoDiseno, diseno: Diseno, datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null }): EstadoDiseno {
     const n = Math.max(...estado.versiones.map((v) => v.n)) + 1
     const versiones = podarVersiones([...estado.versiones, { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones }])
-    return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const } : m)) }
+    return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const, respondida: true } : m)) }
   }
 
   const hallazgosDe = (diseno: Diseno, requisitos: Requisito[]): Hallazgo[] => {
@@ -209,14 +209,14 @@ export function crearCasosDeUso(deps: Dependencias) {
     return guardar({
       ...conCambio,
       chat: [
-        ...estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'aplicada' as const } : m)),
+        ...estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'aplicada' as const, respondida: true } : m)),
         mensaje('experto', `Listo, apliqué "${p.resumen}" como lo pediste. Los puntos críticos siguen marcados en la revisión.`, { version: conCambio.actual }),
       ],
     })
   }
 
   function descartarPropuesta(estado: EstadoDiseno): EstadoDiseno {
-    return guardar({ ...estado, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const } : m)) })
+    return guardar({ ...estado, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const, respondida: true } : m)) })
   }
 
   function volverAVersion(estado: EstadoDiseno, n: number): EstadoDiseno {

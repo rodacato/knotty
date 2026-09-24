@@ -1,6 +1,7 @@
 import { EJES, type Diseno, type Eje, type Union } from '../diseno/esquema'
 import { redondear, type Geometria } from '../diseno/resolver'
-import { contactoEntre } from '../validacion/contacto'
+import { largoDeJunta } from '../validacion/contacto'
+import { bisagrasPara } from '../estructura/supuestos'
 import { acomodar, type AcomodoMaterial } from './acomodo'
 import type { Catalogo, Herraje, MaterialTablero } from './catalogo'
 
@@ -36,20 +37,11 @@ export interface Compra {
   costo: { total: number; faltanPrecios: string[] }
 }
 
-/** Largo de la junta entre dos piezas: el lado mayor del rectángulo donde se tocan. */
-function largoDeJunta(u: Union, geo: Geometria) {
-  const a = geo.cajas.get(u.a)
-  const b = geo.cajas.get(u.b)
-  if (!a || !b) return 0
-  const contacto = contactoEntre(u.a, a, u.b, b)
-  if (!contacto) return 0
-  const lados = EJES.filter((e) => e !== contacto.eje).map((e) => Math.min(a[`${e}1`], b[`${e}1`]) - Math.max(a[`${e}0`], b[`${e}0`]))
-  return Math.max(0, ...lados)
-}
-
 /** Cuántos herrajes lleva una unión cuando el modelo no lo dice: por separación a lo largo de la junta. */
 export function cantidadPorUnion(u: Union, geo: Geometria): number {
-  const largo = largoDeJunta(u, geo)
+  const a = geo.cajas.get(u.a)
+  const b = geo.cajas.get(u.b)
+  const largo = a && b ? largoDeJunta(a, b) : 0
   const porSeparacion = (sep: number, minimo: number) => Math.max(minimo, Math.ceil((largo - 2 * MARGEN_EXTREMO) / sep) + 1)
   switch (u.tipo) {
     case 'tope-tornillo':
@@ -65,7 +57,7 @@ export function cantidadPorUnion(u: Union, geo: Geometria): number {
     case 'bisagra-cazoleta': {
       const puerta = geo.cajas.get(u.a)
       const alto = puerta ? puerta.y1 - puerta.y0 : 0
-      return alto <= 900 ? 2 : alto <= 1500 ? 3 : 4
+      return bisagrasPara(alto)
     }
     case 'escuadra':
       return 2

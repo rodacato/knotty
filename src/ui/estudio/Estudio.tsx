@@ -14,7 +14,8 @@ import { Boton, cm } from '../sistema/componentes'
 import { disenoVisible, useTienda, type Vista } from '../tienda'
 import { Historial } from './Historial'
 import { Materiales } from './Materiales'
-import { FichaPieza, Revision } from './Paneles'
+import { FichaPieza } from './Paneles'
+import { Revision } from './Revision'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
   { id: 'frente', nombre: 'Frente' },
@@ -125,6 +126,11 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const escritorio = useEscritorio()
   const [panelAlto, setPanelAlto] = useState(false)
   const [pestana, setPestana] = useState('chat')
+  const ajustar = useTienda((s) => s.ajustar)
+  const pedir = (texto: string) => {
+    setPestana('chat')
+    void ajustar(texto)
+  }
 
   const actual = disenoActual(estado)
   // Los requisitos no bloquean el dibujo: si el diseño vigente no los cumple, se avisa en la revisión.
@@ -203,7 +209,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         {analisisActual.valido && <Materiales diseno={actual} geo={analisisActual.geo} catalogo={catalogo} />}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
-        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} />
+        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} diseno={actual} alPedir={pedir} />
       </Tabs.Content>
       <Tabs.Content value="historial" className="min-h-0 flex-1 overflow-y-auto">
         <Historial estado={estado} />

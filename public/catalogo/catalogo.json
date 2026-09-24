@@ -68,7 +68,8 @@
       "unidad": "pieza",
       "porPaquete": 50,
       "sku": null,
-      "precio": 65
+      "precio": 65,
+      "largo": 31.75
     },
     {
       "id": "tornillo-8x1-1/2",
@@ -76,7 +77,8 @@
       "unidad": "pieza",
       "porPaquete": 50,
       "sku": null,
-      "precio": 75
+      "precio": 75,
+      "largo": 38.1
     },
     {
       "id": "tornillo-8x2",
@@ -84,7 +86,8 @@
       "unidad": "pieza",
       "porPaquete": 50,
       "sku": null,
-      "precio": 85
+      "precio": 85,
+      "largo": 50.8
     },
     {
       "id": "tornillo-bolsillo-1-1/4",
@@ -92,7 +95,8 @@
       "unidad": "pieza",
       "porPaquete": 100,
       "sku": null,
-      "precio": 180
+      "precio": 180,
+      "largo": 31.75
     },
     {
       "id": "tarugo-8x40",
@@ -100,7 +104,8 @@
       "unidad": "pieza",
       "porPaquete": 50,
       "sku": null,
-      "precio": 45
+      "precio": 45,
+      "largo": null
     },
     {
       "id": "minifix-15",
@@ -108,7 +113,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 12
+      "precio": 12,
+      "largo": null
     },
     {
       "id": "soporte-repisa-5",
@@ -116,7 +122,8 @@
       "unidad": "pieza",
       "porPaquete": 20,
       "sku": null,
-      "precio": 55
+      "precio": 55,
+      "largo": null
     },
     {
       "id": "bisagra-cazoleta-35-recta",
@@ -124,7 +131,8 @@
       "unidad": "pieza",
       "porPaquete": 2,
       "sku": null,
-      "precio": 95
+      "precio": 95,
+      "largo": null
     },
     {
       "id": "bisagra-cazoleta-35-codo",
@@ -132,7 +140,8 @@
       "unidad": "pieza",
       "porPaquete": 2,
       "sku": null,
-      "precio": 95
+      "precio": 95,
+      "largo": null
     },
     {
       "id": "bisagra-cazoleta-35-supercodo",
@@ -140,7 +149,8 @@
       "unidad": "pieza",
       "porPaquete": 2,
       "sku": null,
-      "precio": 95
+      "precio": 95,
+      "largo": null
     },
     {
       "id": "corredera-telescopica-40",
@@ -148,7 +158,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 220
+      "precio": 220,
+      "largo": null
     },
     {
       "id": "escuadra-1-1/2",
@@ -156,7 +167,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 12
+      "precio": 12,
+      "largo": null
     },
     {
       "id": "clavo-sin-cabeza-1",
@@ -164,7 +176,8 @@
       "unidad": "pieza",
       "porPaquete": 100,
       "sku": null,
-      "precio": 35
+      "precio": 35,
+      "largo": null
     },
     {
       "id": "pegamento-blanco",
@@ -172,7 +185,8 @@
       "unidad": "frasco",
       "porPaquete": null,
       "sku": null,
-      "precio": 110
+      "precio": 110,
+      "largo": null
     },
     {
       "id": "cubrecanto-19",
@@ -180,7 +194,8 @@
       "unidad": "metro",
       "porPaquete": null,
       "sku": null,
-      "precio": 12
+      "precio": 12,
+      "largo": null
     },
     {
       "id": "pata-niveladora",
@@ -188,7 +203,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 28
+      "precio": 28,
+      "largo": null
     },
     {
       "id": "jaladera",
@@ -196,7 +212,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 45
+      "precio": 45,
+      "largo": null
     },
     {
       "id": "kit-antivuelco",
@@ -204,7 +221,8 @@
       "unidad": "pieza",
       "porPaquete": null,
       "sku": null,
-      "precio": 90
+      "precio": 90,
+      "largo": null
     }
   ],
   "acomodo": {
