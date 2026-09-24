@@ -1,6 +1,6 @@
-# Despiece
+# Knotty
 
-Fotos de un mueble → diseño 3D de triplay que se ajusta conversando con un carpintero experto (un LLM), para saber cómo se arma y cuántas hojas comprar.
+*Naughty knots.* Fotos de un mueble → diseño 3D de triplay que se ajusta conversando con un carpintero experto (un LLM), para saber cómo se arma y cuántas hojas comprar.
 
 La propuesta, las decisiones y el estado viven en [docs/PROPUESTA.md](docs/PROPUESTA.md).
 
