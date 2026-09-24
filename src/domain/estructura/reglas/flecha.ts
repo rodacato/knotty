@@ -33,7 +33,7 @@ function moduloSegunVeta(p: Pieza, caja: Caja) {
 }
 
 /** El claro libre más largo entre apoyos verticales: los que tocan sus extremos o la sostienen desde abajo. */
-function claroLibre(id: string, caja: Caja, ctx: Parameters<Regla>[0]) {
+export function claroLibre(id: string, caja: Caja, ctx: Parameters<Regla>[0]) {
   const apoyos = ctx.contactos
     .filter((c) => c.a === id || c.b === id)
     .map((c) => (c.a === id ? c.b : c.a))

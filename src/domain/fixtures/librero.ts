@@ -42,7 +42,7 @@ export const librero: Diseno = {
     union('u-techo-der', 'lat-der', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]),
     union('u-zoclo-izq', 'zoclo', 'lat-izq', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]),
     union('u-zoclo-der', 'zoclo', 'lat-der', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]),
-    union('u-zoclo-piso', 'piso', 'zoclo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x1-1/2', cantidad: null }]),
+    union('u-zoclo-piso', 'piso', 'zoclo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]),
     ...['lat-izq', 'lat-der', 'piso', 'techo'].map((b) => union(`u-trasera-${b}`, 'trasera', b, 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }])),
     ...entrepanos.flatMap((e) =>
       ['lat-izq', 'lat-der'].map((lat) => union(`u-${e.id}-${lat}`, e.id, lat, 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }])),

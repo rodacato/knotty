@@ -1,9 +1,11 @@
 import { claveHallazgo, type Contexto, type Hallazgo, type Regla } from './hallazgo'
 import { reglaEscuadrado } from './reglas/escuadrado'
 import { reglaFlecha } from './reglas/flecha'
+import { reglaTornillos } from './reglas/tornillos'
 import { reglaEspesorUnion } from './reglas/uniones'
+import { reglaBase, reglaPuertas, reglaVeta, reglaVuelco } from './reglas/uso'
 
-const REGLAS: Regla[] = [reglaFlecha, reglaEspesorUnion, reglaEscuadrado]
+const REGLAS: Regla[] = [reglaFlecha, reglaEspesorUnion, reglaTornillos, reglaVuelco, reglaEscuadrado, reglaPuertas, reglaBase, reglaVeta]
 const ORDEN = { critico: 0, recomendacion: 1, detalle: 2 }
 
 export const revisarEstructura = (ctx: Contexto): Hallazgo[] => REGLAS.flatMap((r) => r(ctx)).sort((a, b) => ORDEN[a.severidad] - ORDEN[b.severidad])

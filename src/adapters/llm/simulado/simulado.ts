@@ -98,6 +98,14 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null): 
       requisitos: { agregar: [{ id: 'carga-libros', texto: 'Va a cargar libros', tipo: 'carga', eje: null, min: null, max: null }], quitar: [] },
     })
 
+  if (/muro|ancla|vuelco/.test(texto) && !d.anclajeMuro)
+    return ajuste({
+      explicacion: 'Lo marco para ir anclado al muro: con un kit antivuelco atornillado a la pared ya no se va de frente aunque lo jalen.',
+      resumen: 'Anclar al muro',
+      operaciones: [{ op: 'cambiarAnclajeMuro', valor: true }],
+      decisiones: [{ tema: 'anclaje', texto: 'Anclado al muro con kit antivuelco por ser alto y poco profundo' }],
+    })
+
   const primero = entrepanos(d)[0]
   if (/baja|sube/.test(texto) && primero) {
     const delta = (medida ?? 100) * (/baja/.test(texto) ? -1 : 1)
@@ -122,7 +130,7 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null): 
         },
         { op: 'agregarUnion', union: union('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
         { op: 'agregarUnion', union: union('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
-        { op: 'agregarUnion', union: union('u-refuerzo-piso', 'piso', 'refuerzo-base', 'tope-tornillo', [{ herrajeId: 'tornillo-8x1-1/2', cantidad: null }]) },
+        { op: 'agregarUnion', union: union('u-refuerzo-piso', 'piso', 'refuerzo-base', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
         { op: 'agregarUnion', union: union('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
       ],
       decisiones: [{ tema: 'base', texto: 'Travesaño trasero bajo el piso además del zoclo' }],
