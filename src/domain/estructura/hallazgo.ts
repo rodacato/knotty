@@ -4,7 +4,7 @@ import type { Catalogo } from '../materiales/catalogo'
 import type { Contacto } from '../validacion/contacto'
 
 export type Severidad = 'critico' | 'recomendacion' | 'detalle'
-export type CodigoRegla = 'R1_FLECHA' | 'R2_ESPESOR_UNION' | 'R3_TORNILLOS' | 'R4_VUELCO' | 'R5_ESCUADRADO' | 'R6_PUERTAS' | 'R7_BASE' | 'R8_VETA'
+export type CodigoRegla = 'R1_FLECHA' | 'R2_ESPESOR_UNION' | 'R3_TORNILLOS' | 'R4_VUELCO' | 'R5_ESCUADRADO' | 'R6_PUERTAS' | 'R7_BASE' | 'R8_VETA' | 'R9_CAJONES'
 
 export interface Alternativa {
   clave: string

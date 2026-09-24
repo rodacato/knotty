@@ -4,6 +4,7 @@ import { parseCara, resolver, type Geometria } from '../diseno/resolver'
 import { materialPorId, type Catalogo } from '../materiales/catalogo'
 import { contactoEntre } from '../validacion/contacto'
 import { error, exito, fallo, type AvisoDiseno, type ErrorDiseno, type Resultado } from '../validacion/errores'
+import { expandirCajon } from './cajon'
 import type { Operacion } from './esquema'
 
 export interface Aplicado {
@@ -170,6 +171,15 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       case 'cambiarAnclajeMuro':
         diseno.anclajeMuro = op.valor
         return
+      case 'agregarCajon': {
+        if (diseno.piezas.some((p) => p.grupo === op.grupo)) throw invalida('E_ID_DUPLICADO', `Ya existe un cajón "${op.grupo}".`, { grupo: op.grupo })
+        const cajon = expandirCajon(op, geometria(), catalogo)
+        if ('codigo' in cajon) throw new OperacionInvalida(cajon)
+        for (const p of cajon.piezas) idLibre(p.id)
+        diseno.piezas.push(...cajon.piezas)
+        diseno.uniones.push(...cajon.uniones)
+        return
+      }
     }
   }
 

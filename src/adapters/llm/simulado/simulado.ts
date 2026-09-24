@@ -42,7 +42,7 @@ function opsDivisor(d: Diseno): Operacion[] {
       op: 'agregarPieza',
       pieza: pieza({ id: 'divisor', nombre: 'Divisor', rol: 'divisor', material: 'T18', normal: 'x', x: desde(entre('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: tramo(ref('piso.y1'), ref('techo.y0')), z: tramo(ref('trasera.z1'), ref('mueble.z1')) }),
     },
-    { op: 'agregarUnion', union: union('u-div-piso', 'divisor', 'piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+    { op: 'agregarUnion', union: union('u-div-piso', 'piso', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
     { op: 'agregarUnion', union: union('u-div-techo', 'techo', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
     { op: 'agregarUnion', union: union('u-div-trasera', 'trasera', 'divisor', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
   ]
@@ -98,6 +98,41 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
       operaciones: [...(pendientes ?? []), ...opsDivisor(d)],
       decisiones: [{ tema: 'divisor', texto: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
     })
+
+  if (/fondo|profund/.test(texto) && medida && !/caj[oó]n/.test(texto))
+    return ajuste({
+      explicacion: `Cambio el fondo a ${medida / 10} cm. Laterales, piso, techo y entrepaños se alargan hacia el frente.`,
+      resumen: `Fondo de ${medida / 10} cm`,
+      operaciones: [{ op: 'cambiarDimensionGlobal', eje: 'z', valor: medida, regla: 'estirar' }],
+    })
+
+  const hueco = ['piso', ...entrepanos(d).map((p) => p.id)]
+  if (/caj[oó]n/.test(texto) && hueco.length > 1 && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.rol === 'puerta')) {
+    const n = new Set(d.piezas.filter((p) => p.grupo?.startsWith('cajon-')).map((p) => p.grupo)).size + 1
+    const abajo = n === 1 ? 'piso' : hueco[n - 1]
+    const arriba = hueco[n]
+    if (arriba)
+      return ajuste({
+        explicacion: `Pongo un cajón ${abajo === 'piso' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
+        resumen: `Agregar cajón ${n}`,
+        operaciones: [
+          {
+            op: 'agregarCajon',
+            grupo: `cajon-${n}`,
+            nombre: `Cajón ${n}`,
+            izquierda: 'lat-izq.x1',
+            derecha: 'lat-der.x0',
+            abajo: `${abajo}.y1`,
+            arriba: `${arriba}.y0`,
+            frente: 'mueble.z1',
+            fondo: 'trasera.z1',
+            material: 'T15',
+            materialFondo: 'TR6',
+          },
+        ],
+        decisiones: [{ tema: 'cajones', texto: 'Cajones con frente embutido y correderas telescópicas; caja de 15 mm' }],
+      })
+  }
 
   if (/ancho|anch|espacio/.test(texto) && medida)
     return ajuste({
@@ -156,7 +191,7 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
   return ajuste({
     explicacion: 'En modo simulado solo entiendo algunos pedidos. Prueba con uno de estos:',
     resumen: 'Sin cambios',
-    preguntas: [{ texto: 'Pedidos de ejemplo', opciones: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Agrega un divisor al centro'] }],
+    preguntas: [{ texto: 'Pedidos de ejemplo', opciones: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Hazlo de 50 cm de fondo', 'Agrega un cajón abajo'] }],
   })
 }
 

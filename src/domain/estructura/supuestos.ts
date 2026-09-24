@@ -44,6 +44,13 @@ export const SUPUESTOS = {
   puertas: { bisagras: [{ hasta: 900, n: 2 }, { hasta: 1500, n: 3 }, { hasta: Infinity, n: 4 }], anchoMaximo: 600 },
   /** Claro máximo de un piso sin apoyo intermedio cuando no descansa en el suelo. */
   claroPiso: 800,
+  cajones: {
+    /** Cuánto puede variar el hueco de la corredera respecto a lo que pide el fabricante. */
+    toleranciaCorredera: 1,
+    fondoMinimo: 6,
+    /** Arriba de este ancho, un fondo más delgado que el mínimo se vence. */
+    anchoFondoDelgado: 450,
+  },
 } as const
 
 export const bisagrasPara = (alto: number) => SUPUESTOS.puertas.bisagras.find((b) => alto <= b.hasta)!.n

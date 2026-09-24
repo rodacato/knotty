@@ -30,8 +30,17 @@ function desplazamientos(geo: Geometria, diseno: Diseno, activo: boolean) {
   const { ancho, alto, fondo } = diseno.dimensiones
   const centro = { x: ancho / 2, y: alto / 2, z: fondo / 2 }
   const escala = Math.max(ancho, fondo, alto * 0.5)
+  // Los cajones salen enteros hacia el frente, como si se abrieran, en lugar de desarmarse.
+  const cajones = new Map<string, number>()
+  for (const p of diseno.piezas)
+    if (p.grupo && p.rol === 'costado-cajon' && p.normal === 'x') {
+      const c = geo.cajas.get(p.id)!
+      cajones.set(p.grupo, (c.z1 - c.z0) * 0.75)
+    }
   const crudos = diseno.piezas.map((p) => {
     const c = geo.cajas.get(p.id)!
+    const salida = p.grupo ? cajones.get(p.grupo) : undefined
+    if (salida !== undefined) return { id: p.id, c, empuje: { x: 0, y: 0, z: salida } }
     const d = { x: (c.x0 + c.x1) / 2 - centro.x, y: (c.y0 + c.y1) / 2 - centro.y, z: (c.z0 + c.z1) / 2 - centro.z }
     const n = p.normal
     const lado = Math.sign(d[n]) || (n === 'z' ? -1 : 1)

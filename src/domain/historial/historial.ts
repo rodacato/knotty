@@ -56,6 +56,8 @@ export function abreviar(op: Operacion): string {
       return `${op.eje}→${op.valor} ${op.regla}`
     case 'cambiarAnclajeMuro':
       return `anclaje ${op.valor ? 'sí' : 'no'}`
+    case 'agregarCajon':
+      return `+cajón ${op.grupo}`
   }
 }
 

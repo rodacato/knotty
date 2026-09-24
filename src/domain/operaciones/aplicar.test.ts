@@ -54,7 +54,7 @@ describe('aplicar', () => {
   it('divisor completo: partir entrepaños en dos con uniones, y queda válido', () => {
     const ops: Operacion[] = [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }, { op: 'agregarPieza', pieza: divisor }]
     ops.push(
-      { op: 'agregarUnion', union: union('u-div-piso', 'divisor', 'piso', 'tope-tornillo') },
+      { op: 'agregarUnion', union: union('u-div-piso', 'piso', 'divisor', 'tope-tornillo') },
       { op: 'agregarUnion', union: union('u-div-techo', 'techo', 'divisor', 'tope-tornillo') },
     )
     for (let i = 1; i <= 4; i++) {

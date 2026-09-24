@@ -31,6 +31,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D19 | SheLLM como proveedor, compatible con OpenAI; si el host no acepta esquema estricto o imágenes, la app se degrada sola y lo recuerda | Funciona con el SheLLM de hoy y aprovecha lo nuevo sin cambios |
 | D21 | Las decisiones de diseño se guardan con cada versión y se restauran al volver a ella; los requisitos no | Las decisiones describen el diseño; los requisitos, el mundo del usuario |
 | D22 | Precios del catálogo estimados (no consultados en tienda) y editables en la app; los cambios de precio y de parámetros de corte viven en el dispositivo | Hay costo desde el día uno sin fingir precisión; el usuario los corrige con su tienda |
+| D23 | Los cajones se piden con una operación compuesta (`agregarCajon`): el LLM da el hueco y el dominio arma las seis piezas, las uniones y elige la corredera | Colocar seis piezas con holguras de corredera a mano es frágil para un LLM; así el cajón siempre sale correcto y paramétrico |
 | D20 | Llaves: no guardarlas, en la pestaña, o cifradas con frase (bóveda de ai-town). Al llegar, un aviso pide la frase o la llave que falte | Los pendientes de BYOK de ai-town `REVIEW-1.0.md` §3, adelantados de la fase 7 |
 
 ---
@@ -466,6 +467,14 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 - El experto puede pedir fotos al reconstruir y durante los ajustes; se toman desde el chat, viajan al LLM con el siguiente mensaje y quedan como miniatura (también en «Tus fotos» del historial).
 - Cada pregunta y foto de un mensaje se responde por separado.
 - Prompts `reconstruccion@2` y `ajuste@2`: política de confianza (alta, media, baja), cuándo pedir fotos y cómo preguntar. `cambiarPropiedades` acepta `confianza`.
+
+### Fase 6 — implementada (2026-09-24)
+
+- `agregarCajon`: frente embutido con 2 mm de holgura, caja de cuatro lados atornillada, fondo clavado y correderas telescópicas (30 a 50 cm); elige la más larga que cabe en el fondo. Todo referido a las caras del hueco: si el mueble cambia, el cajón se ajusta. `eliminarGrupo` lo quita.
+- La validación acepta la corredera como unión con hueco (hasta 20 mm a lo ancho) y como apoyo contra piezas flotantes.
+- R9 cajones: holgura exacta de la corredera (crítico si no entra o queda flojo), fondo delgado en cajones anchos, frente que roza.
+- R3 distingue tornillo por el canto (penetración ≥ 25 mm) de tornillo por la cara (que no se asome); corrigió la dirección de la unión del divisor con el piso en el simulado. Nuevo tornillo #8 × 1".
+- En la vista de armado los cajones salen enteros hacia el frente. Prompt `ajuste@3` con la operación; el simulado entiende «fondo de N cm» y «agrega un cajón».
 
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
