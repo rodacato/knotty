@@ -60,10 +60,10 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
   )
 }
 
-export function Revision({ hallazgos }: { hallazgos: Hallazgo[] }) {
+export function Revision({ hallazgos, incumplidos }: { hallazgos: Hallazgo[]; incumplidos: string[] }) {
   const ajustar = useTienda((s) => s.ajustar)
   const pensando = useTienda((s) => s.pensando)
-  if (!hallazgos.length)
+  if (!hallazgos.length && !incumplidos.length)
     return (
       <div className="flex flex-col items-center gap-2 p-8 text-center text-grafito-2">
         <Wrench size={28} weight="duotone" className="text-ambar" />
@@ -73,6 +73,15 @@ export function Revision({ hallazgos }: { hallazgos: Hallazgo[] }) {
     )
   return (
     <ul className="flex flex-col gap-3 p-4">
+      {incumplidos.map((m) => (
+        <li key={m} className="animate-aparecer flex flex-col gap-2 rounded-2xl border border-oxido/30 bg-oxido/5 p-4">
+          <Sello severidad="critico" />
+          <p className="text-[15px] leading-snug">{m}</p>
+          <Boton variante="secundario" className="min-h-9 self-start text-xs" disabled={pensando} onClick={() => void ajustar(`Ajusta el diseño para cumplir esto: ${m}`)}>
+            Pedir al experto que lo ajuste
+          </Boton>
+        </li>
+      ))}
       {hallazgos.map((h, i) => (
         <li key={i} className="animate-aparecer flex flex-col gap-2 rounded-2xl border border-linea bg-hueso p-4">
           <Sello severidad={h.severidad} />

@@ -158,6 +158,33 @@ describe('versiones', () => {
     expect(disenoActual(tres)).toEqual(tres.versiones[0].diseno)
   })
 
+  it('volver a una versión restaura sus decisiones pero no toca los requisitos', async () => {
+    const c = casos()
+    const conNota = c.agregarRequisito(await libreroInicial(c), 'Lo voy a pintar')
+    const dos = await c.ajustar(conNota, 'Refuerza la base', senal())
+    expect(dos.decisiones).toHaveLength(1)
+    const tres = c.volverAVersion(dos, 1)
+    expect(tres.decisiones).toEqual([])
+    expect(tres.requisitos.map((r) => r.texto)).toEqual(['Lo voy a pintar'])
+    expect(c.volverAVersion(tres, 2).decisiones.map((d) => d.tema)).toEqual(['base'])
+  })
+
+  it('volver a la versión actual no hace nada', async () => {
+    const c = casos()
+    const uno = await libreroInicial(c)
+    expect(c.volverAVersion(uno, 1)).toBe(uno)
+  })
+
+  it('las notas del usuario y las decisiones se pueden agregar y quitar', async () => {
+    const c = casos()
+    const conNota = c.agregarRequisito(await libreroInicial(c), '  Lo voy a pintar de blanco ')
+    expect(conNota.requisitos).toEqual([expect.objectContaining({ texto: 'Lo voy a pintar de blanco', tipo: 'otro' })])
+    expect(c.quitarRequisito(conNota, conNota.requisitos[0].id).requisitos).toEqual([])
+    const conDecision = await c.ajustar(conNota, 'Refuerza la base', senal())
+    expect(conDecision.decisiones.map((d) => d.tema)).toEqual(['base'])
+    expect(c.quitarDecision(conDecision, 'base').decisiones).toEqual([])
+  })
+
   it('descartar una propuesta no crea versión', async () => {
     const c = casos()
     const pendiente = await c.ajustar(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal())

@@ -7,7 +7,9 @@ import type { Geometria } from '../../domain/diseno/resolver'
 import type { Catalogo } from '../../domain/materiales/catalogo'
 import { useTienda, type Vista } from '../tienda'
 import { Cotas } from './Cotas'
+import { Aserrin } from './Aserrin'
 import { Pieza } from './Pieza'
+import { Saliente } from './Saliente'
 
 const MM = 0.001
 
@@ -85,7 +87,7 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
   const seleccion = useTienda((s) => s.seleccion)
   const explosion = useTienda((s) => s.explosion)
   const cotas = useTienda((s) => s.cotas)
-  const resaltadas = useTienda((s) => s.resaltadas)
+  const cambios = useTienda((s) => s.cambios)
   const revelado = useTienda((s) => s.revelado)
   const seleccionar = useTienda((s) => s.seleccionar)
   const [calidad, setCalidad] = useState(true)
@@ -121,11 +123,22 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
             atenuada={!!seleccion && seleccion !== p.id}
             fantasma={fantasmas.includes(p.id)}
             marcada={marcadas.includes(p.id)}
-            resaltar={resaltadas.ids.includes(p.id) ? resaltadas.vez : 0}
-            retraso={orden.indexOf(p.id) * 70}
+            resaltar={cambios.modificadas.includes(p.id) ? cambios.vez : 0}
+            nueva={cambios.agregadas.includes(p.id)}
+            retraso={cambios.agregadas.includes(p.id) ? 0 : orden.indexOf(p.id) * 70}
             onSeleccionar={seleccionar}
           />
         ))}
+        {cambios.eliminadas.map(({ pieza, caja }) => (
+          <Saliente key={`${pieza.id}-${cambios.vez}`} caja={caja} />
+        ))}
+        {cambios.agregadas
+          .filter((id) => geo.cajas.has(id))
+          .map((id) => {
+            const c = geo.cajas.get(id)!
+            const [dx, dy, dz] = empujes.get(id) ?? [0, 0, 0]
+            return <Aserrin key={`${id}-${cambios.vez}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
+          })}
         {cotas && !explosion && <Cotas dimensiones={diseno.dimensiones} />}
       </group>
 

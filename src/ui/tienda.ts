@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import type { Etapa } from '../application/casosDeUso'
 import { analizar } from '../domain/analisis'
-import type { Dimensiones, Diseno } from '../domain/diseno/esquema'
+import type { Dimensiones, Diseno, Pieza } from '../domain/diseno/esquema'
+import type { Caja } from '../domain/diseno/resolver'
 import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
@@ -24,7 +25,10 @@ interface Tienda {
   cotas: boolean
   vista: { nombre: Vista; vez: number }
   verPropuesta: boolean
-  resaltadas: { ids: string[]; vez: number }
+  /** Lo que cambió en la última transición, para animarlo: nuevas caen, modificadas brillan, eliminadas se desvanecen. */
+  cambios: Cambios
+  /** Versión anterior que se está viendo sin restaurarla. */
+  versionVista: number | null
   /** Sube cada vez que el diseño aparece desde cero, para animar del boceto a la madera. */
   revelado: number
   ajustesAbiertos: boolean
@@ -53,16 +57,37 @@ interface Tienda {
   cerrarPuerta(): void
   /** Tras guardar ajustes, la bóveda pudo cambiar. */
   refrescarBoveda(): void
+  verVersion(n: number | null): void
+  volverAVersion(n: number): void
+  agregarNota(texto: string): void
+  quitarNota(id: string): void
+  quitarDecision(tema: string): void
 }
 
-function cambiadas(antes: EstadoDiseno, despues: EstadoDiseno, catalogo: Servicios['catalogo']) {
-  const a = disenoActual(antes)
-  const b = despues.propuesta?.diseno ?? disenoActual(despues)
-  const ga = analizar(a, catalogo)
-  const gb = analizar(b, catalogo)
-  if (!ga.valido || !gb.valido) return []
-  const d = diferencias(a, ga.geo.cajas, b, gb.geo.cajas)
-  return [...d.agregadas, ...d.modificadas]
+export interface Cambios {
+  agregadas: string[]
+  modificadas: string[]
+  eliminadas: { pieza: Pieza; caja: Caja }[]
+  vez: number
+}
+
+const mostrado = (e: EstadoDiseno) => e.propuesta?.diseno ?? disenoActual(e)
+
+/** Lo que la escena muestra: una versión anterior, la propuesta o el diseño vigente. */
+export function disenoVisible(s: Pick<Tienda, 'estado' | 'versionVista' | 'verPropuesta'>): Diseno | null {
+  if (!s.estado) return null
+  if (s.versionVista !== null) return s.estado.versiones.find((v) => v.n === s.versionVista)?.diseno ?? disenoActual(s.estado)
+  return s.estado.propuesta && s.verPropuesta ? s.estado.propuesta.diseno : disenoActual(s.estado)
+}
+
+/** Qué cambia al pasar de un diseño a otro, con la caja de lo que desaparece para dibujar su fantasma. */
+function transicion(antes: Diseno, despues: Diseno, catalogo: Servicios['catalogo'], vez: number): Cambios {
+  const ga = analizar(antes, catalogo)
+  const gb = analizar(despues, catalogo)
+  if (!ga.valido || !gb.valido) return { agregadas: [], modificadas: [], eliminadas: [], vez }
+  const d = diferencias(antes, ga.geo.cajas, despues, gb.geo.cajas)
+  const eliminadas = d.eliminadas.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.cajas.get(id)! }))
+  return { agregadas: d.agregadas, modificadas: d.modificadas, eliminadas, vez }
 }
 
 export const useTienda = create<Tienda>((set, get) => ({
@@ -78,7 +103,8 @@ export const useTienda = create<Tienda>((set, get) => ({
   cotas: true,
   vista: { nombre: 'tres-cuartos', vez: 0 },
   verPropuesta: true,
-  resaltadas: { ids: [], vez: 0 },
+  cambios: { agregadas: [], modificadas: [], eliminadas: [], vez: 0 },
+  versionVista: null,
   revelado: 0,
   ajustesAbiertos: false,
   boveda: 'sin-boveda',
@@ -125,8 +151,15 @@ export const useTienda = create<Tienda>((set, get) => ({
     const optimista = { ...estado, chat: [...estado.chat.map((m) => (m.id === respondeA ? { ...m, respondida: true } : m)), pendiente] }
     set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
     const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA)
-    const ids = cambiadas(estado, nuevo, servicios.catalogo)
-    set((s) => ({ estado: nuevo, pensando: false, etapa: null, controlador: null, verPropuesta: true, resaltadas: { ids, vez: s.resaltadas.vez + 1 } }))
+    set((s) => ({
+      estado: nuevo,
+      pensando: false,
+      etapa: null,
+      controlador: null,
+      verPropuesta: true,
+      versionVista: null,
+      cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1),
+    }))
   },
 
   cancelar: () => get().controlador?.abort(),
@@ -134,20 +167,27 @@ export const useTienda = create<Tienda>((set, get) => ({
   aplicarPropuesta() {
     const { servicios, estado } = get()
     if (!servicios || !estado) return
-    set({ estado: servicios.casos.aplicarPropuesta(estado) })
+    set({ estado: servicios.casos.aplicarPropuesta(estado), versionVista: null })
   },
 
   descartarPropuesta() {
     const { servicios, estado } = get()
     if (!servicios || !estado) return
-    set({ estado: servicios.casos.descartarPropuesta(estado) })
+    const nuevo = servicios.casos.descartarPropuesta(estado)
+    set((s) => ({ estado: nuevo, cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
   },
 
   seleccionar: (id) => set((s) => ({ seleccion: s.seleccion === id ? null : id })),
   alternarExplosion: () => set((s) => ({ explosion: !s.explosion })),
   alternarCotas: () => set((s) => ({ cotas: !s.cotas })),
   verDesde: (nombre) => set((s) => ({ vista: { nombre, vez: s.vista.vez + 1 } })),
-  alternarPropuesta: () => set((s) => ({ verPropuesta: !s.verPropuesta })),
+  alternarPropuesta() {
+    const antes = disenoVisible(get())
+    set((s) => ({ verPropuesta: !s.verPropuesta }))
+    const despues = disenoVisible(get())
+    const { servicios } = get()
+    if (servicios && antes && despues) set((s) => ({ cambios: transicion(antes, despues, servicios.catalogo, s.cambios.vez + 1) }))
+  },
   abrirAjustes: (ajustesAbiertos) => set({ ajustesAbiertos }),
 
   async desbloquear(frase) {
@@ -172,6 +212,37 @@ export const useTienda = create<Tienda>((set, get) => ({
   },
 
   cerrarPuerta: () => set({ puertaCerrada: true }),
+
+  verVersion(versionVista) {
+    const antes = disenoVisible(get())
+    set({ versionVista, seleccion: null })
+    const despues = disenoVisible(get())
+    const { servicios } = get()
+    if (servicios && antes && despues && antes !== despues) set((s) => ({ cambios: transicion(antes, despues, servicios.catalogo, s.cambios.vez + 1) }))
+  },
+
+  volverAVersion(n) {
+    const { servicios, estado, versionVista } = get()
+    if (!servicios || !estado) return
+    const nuevo = servicios.casos.volverAVersion(estado, n)
+    const antes = versionVista !== null ? (estado.versiones.find((v) => v.n === versionVista)?.diseno ?? mostrado(estado)) : mostrado(estado)
+    set((s) => ({ estado: nuevo, versionVista: null, cambios: transicion(antes, mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
+  },
+
+  agregarNota(texto) {
+    const { servicios, estado } = get()
+    if (servicios && estado) set({ estado: servicios.casos.agregarRequisito(estado, texto) })
+  },
+
+  quitarNota(id) {
+    const { servicios, estado } = get()
+    if (servicios && estado) set({ estado: servicios.casos.quitarRequisito(estado, id) })
+  },
+
+  quitarDecision(tema) {
+    const { servicios, estado } = get()
+    if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
 
   refrescarBoveda() {
     const { servicios } = get()
