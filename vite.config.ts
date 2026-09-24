@@ -2,14 +2,15 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// Sin scripts de terceros ni eval: un script inyectado no puede correr ni leer las llaves. Solo se conecta a los dos proveedores.
+// Sin scripts de terceros ni eval: un script inyectado no puede correr ni leer las llaves.
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
-  "connect-src 'self' https://api.anthropic.com https://api.openai.com",
+  // https: y loopback abiertos para SheLLM, que corre donde el usuario quiera.
+  "connect-src 'self' https: http://localhost:* http://127.0.0.1:*",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",

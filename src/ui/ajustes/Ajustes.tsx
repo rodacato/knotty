@@ -1,12 +1,19 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, Eye, EyeSlash, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { PRESETS, type ConfiguracionLLM, type Proveedor } from '../../ports/Preferencias'
+import { FRASE_MINIMA, PRESETS, SHELLM_URL, type ConfiguracionLLM, type Conexion, type GuardadoLlaves, type Proveedor } from '../../ports/Preferencias'
+import { Desbloquear } from './Llaves'
 import { useServicios } from '../servicios'
 import { Boton, Titulo } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-const PROVEEDORES: Proveedor[] = ['simulado', 'anthropic', 'openai']
+const PROVEEDORES: Proveedor[] = ['simulado', 'anthropic', 'openai', 'shellm']
+
+const GUARDADOS: { id: GuardadoLlaves; nombre: string; detalle: string }[] = [
+  { id: 'cifrada', nombre: 'Cifradas en este navegador', detalle: 'Con una frase que te pido al volver. Recomendado.' },
+  { id: 'pestana', nombre: 'Solo en esta pestaña', detalle: 'Sobreviven a recargar; se borran al cerrarla.' },
+  { id: 'memoria', nombre: 'No guardarlas', detalle: 'Se pierden al recargar.' },
+]
 
 type EstadoModelos = { tipo: 'nada' | 'cargando' } | { tipo: 'listo'; modelos: string[] } | { tipo: 'error'; mensaje: string }
 
@@ -17,30 +24,48 @@ export function Ajustes() {
   const [borrador, setBorrador] = useState<ConfiguracionLLM>(preferencias.cargar())
   const [verLlave, setVerLlave] = useState(false)
   const [modelos, setModelos] = useState<EstadoModelos>({ tipo: 'nada' })
+  const [frase, setFrase] = useState('')
+  const [error, setError] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const boveda = useTienda((s) => s.boveda)
+  const refrescarBoveda = useTienda((s) => s.refrescarBoveda)
 
   useEffect(() => {
-    if (abierto) setBorrador(preferencias.cargar())
-  }, [abierto, preferencias])
+    if (!abierto) return
+    setBorrador(preferencias.cargar())
+    setFrase('')
+    setError('')
+  }, [abierto, preferencias, boveda])
   useEffect(() => setModelos({ tipo: 'nada' }), [borrador.activo])
 
   const activo = borrador.activo
   const conexion = activo === 'simulado' ? null : borrador.conexiones[activo]
-  const cambiar = (patch: Partial<{ modelo: string; apiKey: string }>) => {
+  const cambiar = (patch: Partial<Conexion>) => {
     if (activo === 'simulado') return
     setBorrador((b) => ({ ...b, conexiones: { ...b.conexiones, [activo]: { ...b.conexiones[activo], ...patch } } }))
   }
   const cargarModelos = async () => {
-    if (activo === 'simulado' || !conexion?.apiKey) return
+    if (activo === 'simulado' || !conexion || (PRESETS[activo].pideLlave && !conexion.apiKey)) return
     setModelos({ tipo: 'cargando' })
     try {
-      setModelos({ tipo: 'listo', modelos: await preferencias.modelos(activo, conexion.apiKey) })
+      setModelos({ tipo: 'listo', modelos: await preferencias.modelos(activo, conexion) })
     } catch (e) {
       setModelos({ tipo: 'error', mensaje: e instanceof Error ? e.message : 'No se pudo cargar la lista.' })
     }
   }
-  const guardar = () => {
-    preferencias.guardar(borrador)
-    abrir(false)
+  const bloqueada = boveda === 'bloqueada'
+  const pideFrase = borrador.guardado === 'cifrada' && boveda === 'sin-boveda'
+  const guardar = async () => {
+    setGuardando(true)
+    setError('')
+    try {
+      await preferencias.guardar(borrador, frase)
+      refrescarBoveda()
+      abrir(false)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar.')
+    }
+    setGuardando(false)
   }
 
   return (
@@ -60,6 +85,8 @@ export function Ajustes() {
             Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
           </Dialog.Description>
 
+          {bloqueada && <Desbloquear />}
+
           <div role="radiogroup" className="grid gap-2">
             {PROVEEDORES.map((p) => (
               <button
@@ -67,6 +94,7 @@ export function Ajustes() {
                 type="button"
                 role="radio"
                 aria-checked={activo === p}
+                aria-label={PRESETS[p].etiqueta}
                 onClick={() => setBorrador((b) => ({ ...b, activo: p }))}
                 className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${activo === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
               >
@@ -76,10 +104,12 @@ export function Ajustes() {
             ))}
           </div>
 
+          {activo === 'shellm' && conexion && <SheLLM host={conexion.host} onHost={(host) => cambiar({ host: host.trim() })} />}
+
           {conexion && activo !== 'simulado' && (
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">API key</span>
+                <span className="text-sm font-medium">API key{!PRESETS[activo].pideLlave && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
                 <span className="flex items-center gap-2 rounded-xl border border-linea bg-hueso px-3 focus-within:border-ambar">
                   <input
                     type={verLlave ? 'text' : 'password'}
@@ -87,7 +117,7 @@ export function Ajustes() {
                     spellCheck={false}
                     value={conexion.apiKey}
                     onChange={(e) => cambiar({ apiKey: e.target.value.trim() })}
-                    placeholder={activo === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
+                    placeholder={activo === 'anthropic' ? 'sk-ant-…' : activo === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
                     className="cifras min-h-11 flex-1 bg-transparent text-sm outline-none"
                   />
                   <button type="button" onClick={() => setVerLlave((v) => !v)} aria-label={verLlave ? 'Ocultar' : 'Mostrar'} className="text-grafito-2">
@@ -98,7 +128,7 @@ export function Ajustes() {
               <label className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between text-sm font-medium">
                   Modelo
-                  <button type="button" onClick={() => void cargarModelos()} disabled={!conexion.apiKey || modelos.tipo === 'cargando'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
+                  <button type="button" onClick={() => void cargarModelos()} disabled={(PRESETS[activo].pideLlave && !conexion.apiKey) || modelos.tipo === 'cargando'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
                     <ArrowCounterClockwise /> {modelos.tipo === 'cargando' ? 'Cargando…' : 'Cargar lista'}
                   </button>
                 </span>
@@ -119,26 +149,86 @@ export function Ajustes() {
                 )}
                 {modelos.tipo === 'error' && <span className="text-xs text-oxido">{modelos.mensaje}</span>}
               </label>
-              <label className="flex items-start gap-3 text-sm">
-                <input type="checkbox" checked={borrador.recordarEnPestana} onChange={(e) => setBorrador((b) => ({ ...b, recordarEnPestana: e.target.checked }))} className="mt-1 accent-ambar" />
-                <span>
-                  Recordar la llave en esta pestaña
-                  <span className="block text-xs text-grafito-2">Sobrevive a recargar, se borra al cerrar la pestaña. Si no, vive solo en memoria.</span>
-                </span>
-              </label>
+              <fieldset className="flex flex-col gap-2" disabled={bloqueada}>
+                <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
+                {boveda === 'abierta' && borrador.guardado === 'cifrada' ? (
+                  <p className="text-xs text-grafito-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
+                ) : bloqueada ? (
+                  <p className="text-xs text-oxido">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
+                ) : null}
+                <div className="grid gap-1.5">
+                  {GUARDADOS.map((g) => (
+                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${borrador.guardado === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
+                      <input type="radio" name="guardado" checked={borrador.guardado === g.id} onChange={() => setBorrador((b) => ({ ...b, guardado: g.id }))} className="mt-1 accent-ambar" />
+                      <span>
+                        {g.nombre}
+                        <span className="block text-xs text-grafito-2">{g.detalle}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {pideFrase && (
+                  <input
+                    type="password"
+                    value={frase}
+                    onChange={(e) => setFrase(e.target.value)}
+                    placeholder={`Frase secreta (${FRASE_MINIMA} caracteres o más); te la pediré al volver`}
+                    autoComplete="new-password"
+                    aria-label="Frase para cifrar las llaves"
+                    className="min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
+                  />
+                )}
+                <p className="text-xs text-grafito-2">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+              </fieldset>
             </div>
           )}
 
+          {error && <p className="text-sm text-oxido">{error}</p>}
           <div className="flex justify-end gap-2">
             <Dialog.Close asChild>
               <Boton variante="fantasma">Cancelar</Boton>
             </Dialog.Close>
-            <Boton variante="primario" onClick={guardar}>
-              Guardar
+            <Boton variante="primario" onClick={() => void guardar()} disabled={guardando || (pideFrase && frase.length < FRASE_MINIMA)}>
+              {guardando ? 'Guardando…' : 'Guardar'}
             </Boton>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+/** SheLLM corre en la máquina del usuario: se explica qué es y cómo dejar que esta página le hable. */
+function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void }) {
+  const [copiado, setCopiado] = useState(false)
+  const origen = location.origin
+  const linea = `SHELLM_CORS_ORIGINS=${origen}`
+  const copiar = async () => {
+    await navigator.clipboard.writeText(linea)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 1500)
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-ambar/40 bg-ambar-suave p-4 text-sm">
+      <p>
+        <span className="font-medium">SheLLM</span> convierte tu suscripción de Claude Code o Codex en una API local, así el experto no gasta créditos de API.{' '}
+        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline decoration-ambar underline-offset-2">
+          Conoce SheLLM <ArrowSquareOut />
+        </a>
+      </p>
+      <label className="flex flex-col gap-1.5">
+        <span className="font-medium">Dirección</span>
+        <input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar" />
+      </label>
+      <div className="flex flex-col gap-1.5">
+        <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
+        <span className="flex items-center gap-2 rounded-xl bg-hueso px-3 py-2">
+          <code className="cifras flex-1 truncate text-xs">{linea}</code>
+          <button type="button" onClick={() => void copiar()} aria-label="Copiar" className="text-grafito-2 hover:text-grafito">
+            {copiado ? <Check /> : <Copy />}
+          </button>
+        </span>
+      </div>
+    </div>
   )
 }
