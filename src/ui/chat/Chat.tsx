@@ -29,6 +29,8 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
   const descartarPropuesta = useTienda((s) => s.descartarPropuesta)
   const verPropuesta = useTienda((s) => s.verPropuesta)
   const alternarPropuesta = useTienda((s) => s.alternarPropuesta)
+  const verVersion = useTienda((s) => s.verVersion)
+  const versionVista = useTienda((s) => s.versionVista)
 
   if (m.autor === 'usuario')
     return (
@@ -41,7 +43,19 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
       <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-oxido/30 bg-oxido/5' : 'border-linea bg-hueso'}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-grafito-2">
           <PencilSimple weight="duotone" className="text-ambar" /> Experto
-          {m.version && <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>}
+          {m.version &&
+            (m.version === estado.actual || !estado.versiones.some((v) => v.n === m.version) ? (
+              <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => verVersion(versionVista === m.version ? null : m.version)}
+                title="Ver esta versión"
+                className={`cifras rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${versionVista === m.version ? 'bg-ambar text-grafito' : 'bg-kraft text-grafito hover:bg-ambar-suave'}`}
+              >
+                v{m.version}
+              </button>
+            ))}
           {m.propuesta === 'aplicada' && <span className="text-[10px]">· aplicada</span>}
           {m.propuesta === 'descartada' && <span className="text-[10px]">· sin aplicar</span>}
         </div>

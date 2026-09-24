@@ -29,6 +29,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D17 | Las cotas se dibujan como etiquetas dentro de la escena (sprites), no como HTML | El HTML de drei se perdía al remontar la escena |
 | D18 | El repo se llama **Knotty** (*naughty knots*); la app sigue presentándose como Despiece por ahora | Nombre amplio y memorable para cuando crezca más allá del despiece |
 | D19 | SheLLM como proveedor, compatible con OpenAI; si el host no acepta esquema estricto o imágenes, la app se degrada sola y lo recuerda | Funciona con el SheLLM de hoy y aprovecha lo nuevo sin cambios |
+| D21 | Las decisiones de diseño se guardan con cada versión y se restauran al volver a ella; los requisitos no | Las decisiones describen el diseño; los requisitos, el mundo del usuario |
 | D20 | Llaves: no guardarlas, en la pestaña, o cifradas con frase (bóveda de ai-town). Al llegar, un aviso pide la frase o la llave que falte | Los pendientes de BYOK de ai-town `REVIEW-1.0.md` §3, adelantados de la fase 7 |
 
 ---
@@ -436,6 +437,13 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 - Experto simulado, Anthropic y OpenAI con BYOK básico; prompts v1.
 - Interfaz: inicio con ejemplos, captura de medidas y fotos, análisis por etapas, estudio 3D (veta, cantos, cotas, vistas, armado, ficha de pieza), chat con respuestas rápidas y propuestas, lista de piezas y revisión.
 - Verificado en el navegador en escritorio, celular y build de producción, con el experto simulado.
+
+### Fase 2 — implementada (2026-09-24)
+
+- Pestaña Historial: línea de tiempo con resumen, pedido, hora, proveedor y número de operaciones; ver una versión sin restaurarla (también desde el chip «vN» del chat) y volver a ella.
+- «Lo que el experto recuerda»: requisitos y decisiones visibles; se pueden quitar y agregar notas.
+- Cambios en vivo: piezas nuevas caen a su lugar con un puf de aserrín, las eliminadas se desvanecen en rojo, las modificadas brillan y cambian de tamaño con resorte. También al ver versiones o alternar la propuesta.
+- Los requisitos incumplidos ya no impiden dibujar: se muestran como críticos en la revisión.
 
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).

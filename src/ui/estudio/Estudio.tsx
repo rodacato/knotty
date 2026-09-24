@@ -1,16 +1,18 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsIn, ArrowsOut, CaretDown, CaretUp, ChatCircleText, GearSix, ListChecks, Plus, Ruler, Stack } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsIn, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analizar } from '../../domain/analisis'
 import { diferencias } from '../../domain/diseno/diff'
+import { verificarRequisitos } from '../../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
 import { etiquetaActiva } from '../../ports/Preferencias'
 import { Chat } from '../chat/Chat'
 import { Escena } from '../escena/Escena'
 import { useServicios } from '../servicios'
 import { Boton, cm } from '../sistema/componentes'
-import { useTienda, type Vista } from '../tienda'
+import { disenoVisible, useTienda, type Vista } from '../tienda'
+import { Historial } from './Historial'
 import { FichaPieza, Piezas, Revision } from './Paneles'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
@@ -116,22 +118,27 @@ function Encabezado({ estado }: { estado: EstadoDiseno }) {
 export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const { catalogo } = useServicios()
   const verPropuesta = useTienda((s) => s.verPropuesta)
+  const versionVista = useTienda((s) => s.versionVista)
+  const verVersion = useTienda((s) => s.verVersion)
+  const volverAVersion = useTienda((s) => s.volverAVersion)
   const escritorio = useEscritorio()
   const [panelAlto, setPanelAlto] = useState(false)
   const [pestana, setPestana] = useState('chat')
 
   const actual = disenoActual(estado)
-  const analisisActual = useMemo(() => analizar(actual, catalogo, estado.requisitos), [actual, catalogo, estado.requisitos])
-  const propuesta = estado.propuesta && verPropuesta ? estado.propuesta.diseno : null
-  const mostrado = propuesta ?? actual
-  const analisisMostrado = useMemo(() => (propuesta ? analizar(propuesta, catalogo) : analisisActual), [propuesta, catalogo, analisisActual])
+  // Los requisitos no bloquean el dibujo: si el diseño vigente no los cumple, se avisa en la revisión.
+  const analisisActual = useMemo(() => analizar(actual, catalogo), [actual, catalogo])
+  const incumplidos = useMemo(() => verificarRequisitos(actual, estado.requisitos), [actual, estado.requisitos])
+  const mostrado = disenoVisible({ estado, versionVista, verPropuesta }) ?? actual
+  const propuesta = versionVista === null && estado.propuesta && verPropuesta ? estado.propuesta.diseno : null
+  const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analizar(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
   const cambios = useMemo(() => {
     if (!propuesta || !analisisActual.valido || !analisisMostrado.valido) return { agregadas: [], modificadas: [] }
     return diferencias(actual, analisisActual.geo.cajas, propuesta, analisisMostrado.geo.cajas)
   }, [propuesta, actual, analisisActual, analisisMostrado])
 
   const hallazgos = analisisActual.valido ? analisisActual.hallazgos : []
-  const criticos = hallazgos.filter((h) => h.severidad === 'critico').length
+  const criticos = hallazgos.filter((h) => h.severidad === 'critico').length + incumplidos.length
 
   const escena = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
@@ -143,6 +150,17 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />
         {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">Viendo la propuesta sin aplicar</span>}
+        {versionVista !== null && (
+          <span className="animate-aparecer pointer-events-auto flex items-center gap-1 rounded-full bg-grafito py-1 pr-1 pl-3 text-xs font-medium text-hueso shadow">
+            Viendo v{versionVista}
+            <button type="button" onClick={() => volverAVersion(versionVista)} className="flex items-center gap-1 rounded-full bg-hueso/15 px-2 py-0.5 hover:bg-hueso/25">
+              <ArrowCounterClockwise /> Volver a esta
+            </button>
+            <button type="button" onClick={() => verVersion(null)} aria-label="Dejar de ver" className="grid size-6 place-items-center rounded-full hover:bg-hueso/20">
+              <X />
+            </button>
+          </span>
+        )}
       </div>
       {analisisMostrado.valido && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
@@ -154,18 +172,20 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
 
   const panel = (
     <Tabs.Root value={pestana} onValueChange={setPestana} className="flex h-full min-h-0 flex-col bg-hueso/60">
-      <Tabs.List className="flex items-center gap-1 border-b border-linea px-2" aria-label="Panel">
+      <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-linea px-2 [scrollbar-width:none]" aria-label="Panel">
         {[
           { id: 'chat', nombre: 'Experto', icono: <ChatCircleText /> },
           { id: 'piezas', nombre: 'Piezas', icono: <Stack /> },
           { id: 'revision', nombre: 'Revisión', icono: <ListChecks /> },
+          { id: 'historial', nombre: 'Historial', icono: <ClockCounterClockwise /> },
         ].map((t) => (
           <Tabs.Trigger
             key={t.id}
             value={t.id}
-            className="relative flex min-h-11 items-center gap-1.5 px-3 text-sm text-grafito-2 transition data-[state=active]:font-medium data-[state=active]:text-grafito data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-ambar"
+            className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-grafito-2 transition data-[state=active]:font-medium data-[state=active]:text-grafito data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-ambar"
           >
-            {t.icono} {t.nombre}
+            <span className="hidden sm:inline-flex">{t.icono}</span>
+            {t.nombre}
             {t.id === 'revision' && criticos > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-oxido text-[10px] text-white">{criticos}</span>}
           </Tabs.Trigger>
         ))}
@@ -182,7 +202,10 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         {analisisActual.valido && <Piezas diseno={actual} geo={analisisActual.geo} />}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
-        <Revision hallazgos={hallazgos} />
+        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} />
+      </Tabs.Content>
+      <Tabs.Content value="historial" className="min-h-0 flex-1 overflow-y-auto">
+        <Historial estado={estado} />
       </Tabs.Content>
     </Tabs.Root>
   )

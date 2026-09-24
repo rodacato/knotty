@@ -5,6 +5,12 @@ import type { Operacion } from '../operaciones/esquema'
 export const Origen = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
 export type Origen = z.infer<typeof Origen>
 
+export const Decision = z.object({
+  tema: z.string().min(1).describe('Clave corta: "trasera", "espesor-entrepanos"'),
+  texto: z.string().min(1).describe('La decisión y su porqué, en una línea'),
+})
+export type Decision = z.infer<typeof Decision>
+
 export const Version = z.object({
   n: z.number().int().positive(),
   diseno: Diseno,
@@ -13,14 +19,10 @@ export const Version = z.object({
   operaciones: z.array(z.string()),
   fecha: z.string(),
   origen: Origen.nullable(),
+  /** Las decisiones de diseño viajan con la versión: volver a una versión las restaura. */
+  decisiones: z.array(Decision).default([]),
 })
 export type Version = z.infer<typeof Version>
-
-export const Decision = z.object({
-  tema: z.string().min(1).describe('Clave corta: "trasera", "espesor-entrepanos"'),
-  texto: z.string().min(1).describe('La decisión y su porqué, en una línea'),
-})
-export type Decision = z.infer<typeof Decision>
 
 const LIMITES = { completas: 8, resumidas: 30, versiones: 40, decisiones: 15 }
 

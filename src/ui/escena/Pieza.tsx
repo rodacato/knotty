@@ -18,6 +18,7 @@ const CARAS: { normal: Eje; u: Eje; v: Eje }[] = [
   { normal: 'z', u: 'x', v: 'y' },
 ]
 const TAMANO_VETA = 0.45
+const CAIDA = 0.35
 
 function texturasDeCaras(p: TPieza, caja: Caja, tono: Tono): Texture[] {
   const m = { x: caja.x1 - caja.x0, y: caja.y1 - caja.y0, z: caja.z1 - caja.z0 }
@@ -46,21 +47,25 @@ export interface PropsPieza {
   fantasma: boolean
   marcada: boolean
   resaltar: number
+  /** Pieza recién agregada: cae a su lugar. */
+  nueva: boolean
   /** Retraso de la aparición del boceto a la madera; el padre remonta la pieza para repetirla. */
   retraso: number
   onSeleccionar: (id: string) => void
 }
 
-export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, resaltar, retraso, onSeleccionar }: PropsPieza) {
+export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, resaltar, nueva, retraso, onSeleccionar }: PropsPieza) {
   const [sobre, setSobre] = useState(false)
   const tamano: [number, number, number] = [(caja.x1 - caja.x0) * MM, (caja.y1 - caja.y0) * MM, (caja.z1 - caja.z0) * MM]
   const centro: [number, number, number] = [((caja.x0 + caja.x1) / 2) * MM, ((caja.y0 + caja.y1) / 2) * MM, ((caja.z0 + caja.z1) / 2) * MM]
   const mapas = useMemo(() => texturasDeCaras(pieza, caja, tono), [pieza, caja, tono])
 
   const opacidadFinal = atenuada ? 0.12 : fantasma ? 0.55 : pieza.confianza === 'baja' ? 0.6 : 1
-  const { posicion } = useSpring({
-    posicion: [centro[0] + desplazamiento[0], centro[1] + desplazamiento[1], centro[2] + desplazamiento[2]],
-    config: { mass: 1, tension: 170, friction: 16 },
+  const destino: [number, number, number] = [centro[0] + desplazamiento[0], centro[1] + desplazamiento[1], centro[2] + desplazamiento[2]]
+  const { posicion, escala } = useSpring({
+    from: nueva ? { posicion: [destino[0], destino[1] + CAIDA, destino[2]], escala: tamano.map((t) => t * 0.92) } : { posicion: destino, escala: tamano },
+    to: { posicion: destino, escala: tamano },
+    config: nueva ? { mass: 1.2, tension: 260, friction: 13 } : { mass: 1, tension: 170, friction: 16 },
   })
   const { opacidad } = useSpring({ from: { opacidad: 0 }, to: { opacidad: opacidadFinal }, delay: retraso, config: { tension: 120, friction: 20 } })
   const [{ brillo }] = useSpring(() => ({ from: { brillo: resaltar ? 1 : 0 }, to: { brillo: 0 }, config: { duration: 1800 }, reset: true }), [resaltar])
@@ -90,13 +95,14 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
   return (
     <animated.mesh
       position={posicion as never}
+      scale={escala as never}
       castShadow={!atenuada}
       receiveShadow
       onClick={alTocar}
       onPointerOver={(e) => (e.stopPropagation(), setSobre(true), (document.body.style.cursor = 'pointer'))}
       onPointerOut={() => (setSobre(false), (document.body.style.cursor = ''))}
     >
-      <boxGeometry args={tamano} />
+      <boxGeometry />
       {mapas.map((mapa, i) => (
         <meshStandardMaterial
           key={i}

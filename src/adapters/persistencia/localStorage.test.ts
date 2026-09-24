@@ -23,7 +23,7 @@ function almacen(limite = Infinity): Storage {
 const estado = (versiones = 1): EstadoDiseno => ({
   formato: 1,
   medidas: librero.dimensiones,
-  versiones: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, diseno: librero, resumen: `v${i + 1}`, motivo: '', operaciones: [], fecha: '', origen: null })),
+  versiones: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, diseno: librero, resumen: `v${i + 1}`, motivo: '', operaciones: [], fecha: '', origen: null, decisiones: [] })),
   actual: versiones,
   requisitos: [],
   decisiones: [],

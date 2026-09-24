@@ -62,7 +62,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
   function conVersion(estado: EstadoDiseno, diseno: Diseno, datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null }): EstadoDiseno {
     const n = Math.max(...estado.versiones.map((v) => v.n)) + 1
-    const versiones = podarVersiones([...estado.versiones, { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen }])
+    const versiones = podarVersiones([...estado.versiones, { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones }])
     return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const } : m)) }
   }
 
@@ -102,7 +102,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       return guardar({
         formato: 1,
         medidas: entrada.medidas,
-        versiones: [{ n: 1, diseno, resumen: 'Reconstrucción desde fotos', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen }],
+        versiones: [{ n: 1, diseno, resumen: 'Reconstrucción desde fotos', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [] }],
         actual: 1,
         requisitos: r.requisitos,
         decisiones: [],
@@ -221,17 +221,27 @@ export function crearCasosDeUso(deps: Dependencias) {
 
   function volverAVersion(estado: EstadoDiseno, n: number): EstadoDiseno {
     const destino = estado.versiones.find((v) => v.n === n)
-    if (!destino) return estado
-    const conCambio = conVersion(estado, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null })
+    if (!destino || n === estado.actual) return estado
+    const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null })
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Regresé al diseño de la v${n} (${destino.resumen}).`, { version: conCambio.actual })] })
   }
+
+  function agregarRequisito(estado: EstadoDiseno, texto: string): EstadoDiseno {
+    const limpio = texto.trim()
+    if (!limpio) return estado
+    const id = `nota-${nuevoId().slice(0, 8)}`
+    return guardar({ ...estado, requisitos: [...estado.requisitos, { id, texto: limpio, tipo: 'otro', eje: null, min: null, max: null }] })
+  }
+
+  const quitarRequisito = (estado: EstadoDiseno, id: string) => guardar({ ...estado, requisitos: estado.requisitos.filter((r) => r.id !== id) })
+  const quitarDecision = (estado: EstadoDiseno, tema: string) => guardar({ ...estado, decisiones: estado.decisiones.filter((d) => d.tema !== tema) })
 
   /** Empieza desde un diseño ya hecho (los ejemplos), sin gastar una llamada al LLM. */
   function desdeEjemplo(diseno: Diseno): EstadoDiseno {
     return guardar({
       formato: 1,
       medidas: diseno.dimensiones,
-      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null }],
+      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null, decisiones: [] }],
       actual: 1,
       requisitos: [],
       decisiones: [],
@@ -249,7 +259,20 @@ export function crearCasosDeUso(deps: Dependencias) {
 
   const preguntasPendientes = (estado: EstadoDiseno): Pregunta[] => estado.chat.filter((m) => !m.respondida).flatMap((m) => m.preguntas)
 
-  return { reconstruir, ajustar, aplicarPropuesta, descartarPropuesta, volverAVersion, desdeEjemplo, nuevoDiseno, cargar, preguntasPendientes }
+  return {
+    reconstruir,
+    ajustar,
+    aplicarPropuesta,
+    descartarPropuesta,
+    volverAVersion,
+    agregarRequisito,
+    quitarRequisito,
+    quitarDecision,
+    desdeEjemplo,
+    nuevoDiseno,
+    cargar,
+    preguntasPendientes,
+  }
 }
 
 export type CasosDeUso = ReturnType<typeof crearCasosDeUso>
