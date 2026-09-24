@@ -10,7 +10,7 @@ function archivos(dir: string): string[] {
   return readdirSync(dir).flatMap((nombre) => {
     const ruta = join(dir, nombre)
     if (statSync(ruta).isDirectory()) return archivos(ruta)
-    return /\.tsx?$/.test(nombre) && !/\.test\.tsx?$/.test(nombre) ? [ruta] : []
+    return /\.tsx?$/.test(nombre) && !/\.test(-util)?\.tsx?$/.test(nombre) ? [ruta] : []
   })
 }
 
