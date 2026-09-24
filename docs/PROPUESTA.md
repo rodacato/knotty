@@ -20,6 +20,9 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D8 | Cajones fuera de la primera fase; entran después como grupo de piezas | Validar primero lo esencial |
 | D9 | BYOK tomado de [ai-town](https://github.com/rodacato/ai-town) (`src/providers/llm/`), corrigiendo lo pendiente de su `docs/REVIEW-1.0.md` §3 | Reusar lo que ya funciona |
 | D10 | Solo piezas ortogonales (prismas alineados a los ejes) | Cubre el triplay DIY; las piezas inclinadas quedan fuera de alcance |
+| D11 | Stack: Vite, React 19, TypeScript, Zod 4, Vitest; three.js + react-three-fiber + drei + postprocessing + @react-spring/three; Motion, vaul, Radix, Tailwind v4, Zustand, Phosphor, Fontsource. Sin Pixi.js | El centro es 3D; Pixi es 2D y sumaría un segundo motor gráfico |
+| D12 | Fronteras de capas verificadas con un test de arquitectura (Vitest) en vez de ESLint | TypeScript 7 aún no tiene soporte estable en typescript-eslint; el test no agrega dependencias |
+| D13 | Dirección de arte "maqueta sobre el banco de trabajo" (ver §1) | Sensación física y dinámica, no de visor técnico |
 
 ---
 
@@ -70,6 +73,15 @@ Inicio → Medidas → Fotos guiadas → El experto analiza → Preguntas rápid
 - **Tipografía**: Fraunces (títulos), Inter (interfaz), JetBrains Mono con cifras tabulares (cotas y medidas).
 - **3D**: luz cálida, sombra de contacto, aristas finas en grafito, cantos con la textura de capas del triplay, cotas estilo dibujo técnico.
 - **Microinteracciones**: transiciones de cámara suaves (`CameraControls` de drei), vibración háptica al seleccionar en móvil, chips que se deshabilitan tras usarse.
+
+### Arte: "maqueta sobre el banco de trabajo"
+
+- **Del boceto a la madera**: mientras el experto analiza, el mueble aparece como trazo de lápiz; al validarse, cada pieza se llena de madera en cascada. Las piezas de baja confianza quedan en boceto con achurado hasta confirmarse.
+- **Veta procedural**: shader sin texturas descargadas; sigue la `veta` del modelo. Cantos con las capas del triplay.
+- **Escena**: iluminación de estudio con `Lightformer` (sin HDRI externo), piso con cuadrícula tenue tipo tapete de corte, sombra de contacto, cotas como líneas de lápiz fino.
+- **Sabor de juego**: explosión con resorte y leve rebote; pieza nueva que cae a su lugar con un "puf" de aserrín; eliminadas como fantasma; pulso ámbar en afectadas; contorno ámbar y vibración al seleccionar. Sonidos de madera opcionales, apagados por defecto.
+- **Interfaz**: papel kraft y hueso con textura apenas perceptible; severidades como sellos de tinta; medidas con regla deslizable tipo cinta métrica; lápiz que traza mientras el experto piensa, con la etapa real debajo.
+- **Rendimiento**: `PerformanceMonitor` baja resolución y apaga postproceso en teléfonos lentos; densidad de píxeles máxima 2.
 
 ---
 
