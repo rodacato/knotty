@@ -22,6 +22,9 @@ const MEDIDAS: { clave: keyof Dimensiones; nombre: string; min: number; max: num
   { clave: 'fondo', nombre: 'Fondo', min: 150, max: 1200 },
 ]
 
+/** Sin fotos, el experto trabaja con lo que le cuentes: pide una descripción con algo de sustancia. */
+const MINIMO_DESCRIPCION = 15
+
 interface FotoTomada {
   angulo: string
   base64: string
@@ -116,6 +119,9 @@ export function Captura() {
     }
   }
 
+  const sinFotos = fotos.length === 0
+  const descripcionSuficiente = notas.trim().length >= MINIMO_DESCRIPCION
+  const puedeAnalizar = !falta && !procesando && (!sinFotos || descripcionSuficiente || config.activo === 'simulado')
   const medidasValidas = MEDIDAS.every((m) => medidas[m.clave] >= m.min && medidas[m.clave] <= m.max)
   const faltanRequeridas = ANGULOS.filter((a) => a.requerida && !fotos.some((f) => f.angulo === a.id))
   const analizar = () =>
@@ -125,7 +131,7 @@ export function Captura() {
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
       <header className="flex items-center gap-3">
         <span className="cifras rounded-full bg-grafito px-2.5 py-1 text-xs text-hueso">{paso === 'medidas' ? '1' : '2'} / 2</span>
-        <Titulo>{paso === 'medidas' ? '¿Cuánto mide?' : 'Fotos del mueble'}</Titulo>
+        <Titulo>{paso === 'medidas' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Titulo>
       </header>
 
       {paso === 'medidas' ? (
@@ -145,7 +151,7 @@ export function Captura() {
       ) : (
         <>
           <p className="-mt-4 text-grafito-2">
-            Frente y 3/4 son las importantes; las demás ayudan a que el experto no tenga que suponer. Se reducen en tu teléfono antes de enviarse.
+            Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
             {ANGULOS.map((a) => (
@@ -160,14 +166,23 @@ export function Captura() {
             ))}
           </div>
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">¿Algo que el experto deba saber?</span>
+            <span className="text-sm font-medium">{sinFotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}</span>
             <textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
-              rows={2}
-              placeholder="Ej. va a cargar libros; mi espacio mide 90 cm de ancho"
+              rows={sinFotos ? 4 : 2}
+              placeholder={
+                sinFotos
+                  ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
+                  : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
+              }
               className="rounded-2xl border border-linea bg-hueso/70 p-3 outline-none focus:border-ambar"
             />
+            {sinFotos && (
+              <span className="text-xs text-grafito-2">
+                Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.
+              </span>
+            )}
           </label>
           {error && (
             <p className="flex items-start gap-2 rounded-xl border border-oxido/30 bg-oxido/10 p-3 text-sm text-oxido">
@@ -188,8 +203,8 @@ export function Captura() {
             </Boton>
             <div className="flex items-center gap-3">
               {faltanRequeridas.length > 0 && fotos.length > 0 && <span className="hidden text-xs text-grafito-2 sm:inline">Falta: {faltanRequeridas.map((a) => a.nombre).join(', ')}</span>}
-              <Boton variante="primario" className="min-h-12 px-6" disabled={!!falta || procesando || (fotos.length === 0 && config.activo !== 'simulado')} onClick={analizar}>
-                {fotos.length === 0 && config.activo === 'simulado' ? 'Probar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
+              <Boton variante="primario" className="min-h-12 px-6" disabled={!puedeAnalizar} onClick={analizar}>
+                {sinFotos ? 'Diseñar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
               </Boton>
             </div>
           </div>
