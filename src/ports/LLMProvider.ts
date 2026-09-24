@@ -68,6 +68,8 @@ export interface Respuesta<T> {
   valor: T
   origen: { promptId: string; proveedor: string; modelo: string }
   consumo: Consumo
+  /** Lo que el proveedor no pudo hacer y la persona debe saber, por ejemplo que no vio las fotos. */
+  avisos?: string[]
 }
 
 export interface LLMProvider {

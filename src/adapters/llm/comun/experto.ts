@@ -9,7 +9,7 @@ export type Contenido = { tipo: 'texto'; texto: string } | { tipo: 'imagen'; bas
 export interface Transporte {
   proveedor: string
   modelo: string
-  completarJSON(sistema: string, contenido: Contenido[], esquema: Record<string, unknown>, nombre: string, signal: AbortSignal): Promise<{ json: unknown; consumo: Consumo }>
+  completarJSON(sistema: string, contenido: Contenido[], esquema: Record<string, unknown>, nombre: string, signal: AbortSignal): Promise<{ json: unknown; consumo: Consumo; avisos?: string[] }>
 }
 
 const ESQUEMA_RECONSTRUCCION = esquemaEstricto(RespuestaReconstruccion)
@@ -40,8 +40,8 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
         ]),
       ]
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`).join('\n')))
-      const { json, consumo } = await t.completarJSON(sistemaPara(RECONSTRUCCION, s.catalogo), contenido, ESQUEMA_RECONSTRUCCION, 'reconstruccion', signal)
-      return { valor: validar(RespuestaReconstruccion, json), origen: { promptId: idPrompt(RECONSTRUCCION), proveedor: t.proveedor, modelo: t.modelo }, consumo }
+      const { json, consumo, avisos } = await t.completarJSON(sistemaPara(RECONSTRUCCION, s.catalogo), contenido, ESQUEMA_RECONSTRUCCION, 'reconstruccion', signal)
+      return { valor: validar(RespuestaReconstruccion, json), origen: { promptId: idPrompt(RECONSTRUCCION), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
     async proponerAjuste(s: SolicitudAjuste, signal) {
       const contenido: Contenido[] = [
@@ -52,8 +52,8 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
         ]),
       ]
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores))
-      const { json, consumo } = await t.completarJSON(sistemaPara(AJUSTE, s.catalogo), contenido, ESQUEMA_AJUSTE, 'ajuste', signal)
-      return { valor: validar(RespuestaAjuste, json), origen: { promptId: idPrompt(AJUSTE), proveedor: t.proveedor, modelo: t.modelo }, consumo }
+      const { json, consumo, avisos } = await t.completarJSON(sistemaPara(AJUSTE, s.catalogo), contenido, ESQUEMA_AJUSTE, 'ajuste', signal)
+      return { valor: validar(RespuestaAjuste, json), origen: { promptId: idPrompt(AJUSTE), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
   }
 }
