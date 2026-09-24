@@ -1,8 +1,10 @@
-import { ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Etapa } from '../../application/casosDeUso'
-import type { EstadoDiseno, Mensaje } from '../../domain/sesion/estado'
+import { claveFoto, clavePregunta, type EstadoDiseno, type Mensaje } from '../../domain/sesion/estado'
 import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
+import { useServicios } from '../servicios'
+import { TomarFoto } from '../sistema/TomarFoto'
 import { useTienda } from '../tienda'
 
 const ETAPAS: Record<Etapa, string> = {
@@ -34,7 +36,10 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
 
   if (m.autor === 'usuario')
     return (
-      <div className="animate-aparecer ml-10 self-end rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug text-hueso shadow-sm">{m.texto}</div>
+      <div className="animate-aparecer ml-10 flex flex-col items-end gap-1.5 self-end">
+        {m.miniatura && <img src={m.miniatura} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
+        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug text-hueso shadow-sm">{m.texto}</div>
+      </div>
     )
 
   const pendiente = m.propuesta === 'pendiente' && estado.propuesta
@@ -95,13 +100,17 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
         </div>
       )}
 
+      {m.fotosPedidas.map((f) => (
+        <FotoPedida key={f.angulo} angulo={f.angulo} motivo={f.motivo} mensaje={m} />
+      ))}
+
       {m.preguntas.map((p, i) => (
         <div key={i} className="flex flex-col gap-2">
           {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
           {p.opciones && (
             <div className="flex flex-wrap gap-2">
               {p.opciones.map((o) => (
-                <Chip key={o} disabled={m.respondida || pensando} onClick={() => void ajustar(o, m.id)}>
+                <Chip key={o} disabled={m.respondida || m.respuestas.includes(clavePregunta(i)) || pensando} onClick={() => void ajustar(o, `${m.id}#${clavePregunta(i)}`)}>
                   {o}
                 </Chip>
               ))}
@@ -109,6 +118,36 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+/** El experto pidió una foto: se toma aquí y viaja con el siguiente mensaje. */
+function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: string; mensaje: Mensaje }) {
+  const { imagenes } = useServicios()
+  const ajustar = useTienda((s) => s.ajustar)
+  const pensando = useTienda((s) => s.pensando)
+  const [procesando, setProcesando] = useState(false)
+  const enviar = async (archivo: File) => {
+    setProcesando(true)
+    try {
+      const r = await imagenes.reducir(archivo)
+      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${claveFoto(angulo)}`, { angulo, base64: r.base64, miniatura: r.miniatura })
+    } finally {
+      setProcesando(false)
+    }
+  }
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-grafito/30 bg-hueso/70 p-3">
+      <p className="flex items-start gap-2 text-sm">
+        <Camera className="mt-0.5 shrink-0 text-ambar" weight="duotone" />
+        <span>
+          <span className="font-medium">Foto: {angulo}.</span> <span className="text-grafito-2">{motivo}</span>
+        </span>
+      </p>
+      <div className="flex gap-2">
+        <TomarFoto alElegir={(f) => void enviar(f)} deshabilitado={mensaje.respondida || mensaje.respuestas.includes(claveFoto(angulo)) || pensando || procesando} />
+      </div>
     </div>
   )
 }

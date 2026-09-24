@@ -459,6 +459,14 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 - Revisión como reporte: conteo por severidad, hallazgos de la misma regla agrupados con sus piezas (tocables), alternativas como botones que mandan el pedido al experto, y «que el experto decida».
 - Prompt del sistema a `sistema@2` con las reglas nuevas; el simulado entiende «anclar al muro».
 
+### Fase 5 — implementada (2026-09-24)
+
+- Captura con silueta de referencia por ángulo; cámara y galería en un componente compartido.
+- Confianza por pieza: las de confianza baja se dibujan como boceto a lápiz (papel con achurado) y un aviso en la escena las cuenta. Se confirman respondiendo al experto, mandando una foto o con «Está bien así» en la ficha (crea una versión).
+- El experto puede pedir fotos al reconstruir y durante los ajustes; se toman desde el chat, viajan al LLM con el siguiente mensaje y quedan como miniatura (también en «Tus fotos» del historial).
+- Cada pregunta y foto de un mensaje se responde por separado.
+- Prompts `reconstruccion@2` y `ajuste@2`: política de confianza (alta, media, baja), cuándo pedir fotos y cómo preguntar. `cambiarPropiedades` acepta `confianza`.
+
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
 - La calidad de la reconstrucción desde fotos reales y de los 5 ajustes guionizados (criterios de éxito de la fase).

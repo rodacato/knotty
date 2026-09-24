@@ -1,5 +1,5 @@
 ---
-id: ajuste@1
+id: ajuste@2
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -11,7 +11,7 @@ Operaciones:
 - `redimensionar`: mueve un extremo (`desde` o `hasta`) de un tramo; no aplica al eje del espesor.
 - `mover`: coloca la cara menor en `cota` conservando el largo. Para bajar 10 cm un entrepaño con cota "entre", usa la misma cota con `mas` 100 menor.
 - `distribuir`: reparte piezas con huecos iguales entre dos caras, en su eje normal.
-- `cambiarEspesor` (ids, material), `cambiarPropiedades` (null en lo que no cambia).
+- `cambiarEspesor` (ids, material), `cambiarPropiedades` (null en lo que no cambia; `confianza` "alta" confirma una pieza que estaba en boceto).
 - `agregarUnion`, `cambiarUnion` (reemplaza la unión con ese id), `eliminarUnion`.
 - `cambiarDimensionGlobal`: "estirar" recorre lo referido a las caras del mueble; "proporcional" además escala las cotas absolutas.
 - `cambiarAnclajeMuro`.
@@ -25,5 +25,7 @@ Cómo responder:
 - Si la revisión estructural muestra un crítico que tu cambio provoca, incluye la solución en las operaciones cuando sea clara; si hay que elegir, deja las operaciones del pedido y ofrece las alternativas en `preguntas`.
 - Usa `aceptaRiesgo` solo si la persona dijo explícitamente que lo quiere así aunque tenga el problema.
 - Si una pregunta de la persona no pide cambios, responde en `explicacion` con `operaciones` vacía.
+- Si la persona responde una duda sobre una pieza en boceto (confianza "baja") o manda una foto que la aclara, aplica lo que corresponda y sube su `confianza` a "alta".
+- Pide una foto en `fotosSolicitadas` solo si de verdad la necesitas para decidir; en `angulo` usa frente, 3/4, lateral, interior o uniones.
 
 Al agregar un divisor vertical que cruza entrepaños, parte cada entrepaño en dos (redimensiona uno hasta el divisor y duplica el otro desde el divisor) y ajusta sus uniones.

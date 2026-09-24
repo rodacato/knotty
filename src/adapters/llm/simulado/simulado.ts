@@ -20,6 +20,7 @@ const respuesta = <T>(valor: T): Respuesta<T> => ({ valor, origen: ORIGEN, consu
 const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'explicacion' | 'resumen'>): RespuestaAjuste => ({
   operaciones: [],
   preguntas: [],
+  fotosSolicitadas: [],
   requisitos: { agregar: [], quitar: [] },
   decisiones: [],
   aceptaRiesgo: [],
@@ -69,8 +70,24 @@ function opsDivisor(d: Diseno): Operacion[] {
   return ops
 }
 
-function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null): RespuestaAjuste {
+const PREGUNTA_TRASERA = '¿La trasera va clavada por detrás o metida en un canal?'
+
+function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, conFoto: boolean): RespuestaAjuste {
   const texto = peticion.toLowerCase()
+  const trasera = d.piezas.find((p) => p.id === 'trasera' && p.confianza !== 'alta')
+  if (trasera && (conFoto || /clavada|canal|no sé|trasera/.test(texto))) {
+    const canal = /canal/.test(texto) && !conFoto
+    return ajuste({
+      explicacion: conFoto
+        ? 'Con la foto se ve que la trasera va clavada por detrás, sobre los cantos de laterales, piso y techo. Lo dejo confirmado.'
+        : canal
+          ? 'Un canal pide router y sacarlo con precisión; para armarlo en casa te propongo dejarla clavada y pegada por detrás, que escuadra igual de bien con 6 mm. La marco como confirmada.'
+          : 'Perfecto: la trasera va clavada y pegada por detrás. La marco como confirmada.',
+      resumen: 'Confirmar la trasera',
+      operaciones: [{ op: 'cambiarPropiedades', id: trasera.id, nombre: null, rol: null, veta: null, carga: null, apoyo: null, cantos: null, confianza: 'alta' }],
+      decisiones: [{ tema: 'trasera', texto: 'Trasera clavada y pegada por detrás, sin canal' }],
+    })
+  }
   const cm = /(\d+(?:[.,]\d+)?)\s*(cm|mm)/.exec(texto)
   const medida = cm ? Number(cm[1].replace(',', '.')) * (cm[2] === 'cm' ? 10 : 1) : null
 
@@ -94,7 +111,7 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null): 
     return ajuste({
       explicacion: 'Marco los entrepaños y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
       resumen: 'Preparar para libros',
-      operaciones: horizontalesConCarga(d).map((p): Operacion => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null })),
+      operaciones: horizontalesConCarga(d).map((p): Operacion => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null, confianza: null })),
       requisitos: { agregar: [{ id: 'carga-libros', texto: 'Va a cargar libros', tipo: 'carga', eje: null, min: null, max: null }], quitar: [] },
     })
 
@@ -150,18 +167,24 @@ export function crearSimulado(retraso = 900): LLMProvider {
     async reconstruir(s, signal) {
       await espera(retraso * 2, signal)
       const base = elegirFixture(s.medidas.ancho, s.medidas.alto)
+      const diseno = { ...structuredClone(base), dimensiones: s.medidas }
+      const trasera = diseno.piezas.find((p) => p.id === 'trasera')
+      if (trasera) trasera.confianza = 'baja'
       const valor: RespuestaReconstruccion = {
-        explicacion: `Veo un ${base.nombre.toLowerCase()} de triplay. Lo armé con tus medidas; ${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)}`,
-        diseno: { ...structuredClone(base), dimensiones: s.medidas },
-        preguntas: [{ texto: '¿Qué vas a guardar principalmente?', opciones: ['Libros', 'Ropa doblada', 'Decoración'] }],
-        fotosSolicitadas: s.fotos.some((f) => f.angulo === 'interior') ? [] : [{ angulo: 'interior', motivo: 'para confirmar cómo va fijada la trasera' }],
+        explicacion: `Veo un ${base.nombre.toLowerCase()} de triplay. Lo armé con tus medidas; ${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)} No alcanzo a ver cómo va la trasera, así que la dejé en boceto.`,
+        diseno,
+        preguntas: [
+          { texto: PREGUNTA_TRASERA, opciones: ['Clavada', 'En canal', 'No sé'] },
+          { texto: '¿Qué vas a guardar principalmente?', opciones: ['Libros', 'Ropa doblada', 'Decoración'] },
+        ],
+        fotosSolicitadas: s.fotos.some((f) => f.angulo === 'interior') ? [] : [{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }],
         requisitos: [],
       }
       return respuesta(valor)
     },
     async proponerAjuste(s, signal) {
       await espera(retraso, signal)
-      return respuesta(proponer(s.peticion, s.diseno, s.propuesta))
+      return respuesta(proponer(s.peticion, s.diseno, s.propuesta, s.fotos.length > 0))
     },
   }
 }

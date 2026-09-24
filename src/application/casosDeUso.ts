@@ -8,7 +8,7 @@ import type { Catalogo } from '../domain/materiales/catalogo'
 import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
-import { disenoActual, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
+import { disenoActual, marcarRespondida, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type RespuestaAjuste } from '../ports/LLMProvider'
@@ -26,6 +26,14 @@ export interface Dependencias {
 }
 
 const INTENTOS = 3
+const MAX_MINIATURAS = 8
+
+/** Una foto que la persona manda en medio de la conversación, casi siempre porque el experto la pidió. */
+export interface FotoEnviada {
+  angulo: string
+  base64: string
+  miniatura: string
+}
 const listarErrores = (errores: ErrorDiseno[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
 
 /** Si el experto no ofreció opciones ante un crítico, se ofrecen las alternativas que calculó el motor. */
@@ -52,6 +60,9 @@ export function crearCasosDeUso(deps: Dependencias) {
     version: null,
     propuesta: null,
     error: false,
+    fotosPedidas: [],
+    miniatura: null,
+    respuestas: [],
     ...extra,
   })
 
@@ -97,8 +108,6 @@ export function crearCasosDeUso(deps: Dependencias) {
         continue
       }
       alAvanzar('estructura', intento)
-      const pedidas = r.fotosSolicitadas.map((f) => `📷 ${f.angulo}: ${f.motivo}`)
-      const texto = [r.explicacion, ...pedidas].join('\n\n')
       return guardar({
         formato: 1,
         medidas: entrada.medidas,
@@ -106,7 +115,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         actual: 1,
         requisitos: r.requisitos,
         decisiones: [],
-        chat: [mensaje('experto', texto, { preguntas: r.preguntas.slice(0, 3), version: 1 })],
+        chat: [mensaje('experto', r.explicacion, { preguntas: r.preguntas.slice(0, 3), fotosPedidas: r.fotosSolicitadas.slice(0, 2), version: 1 })],
         miniaturas: entrada.miniaturas,
         propuesta: null,
       })
@@ -114,10 +123,18 @@ export function crearCasosDeUso(deps: Dependencias) {
     throw new ErrorExperto('No logré armar un modelo coherente con estas fotos. Prueba con otra toma de frente y una de 3/4 con buena luz.')
   }
 
-  async function ajustar(estado: EstadoDiseno, peticion: string, signal: AbortSignal, alAvanzar: AlAvanzar = () => {}, respondeA: string | null = null): Promise<EstadoDiseno> {
+  async function ajustar(
+    estado: EstadoDiseno,
+    peticion: string,
+    signal: AbortSignal,
+    alAvanzar: AlAvanzar = () => {},
+    respondeA: string | null = null,
+    foto: FotoEnviada | null = null,
+  ): Promise<EstadoDiseno> {
     const conPeticion: EstadoDiseno = {
       ...estado,
-      chat: [...estado.chat.map((m) => (m.id === respondeA ? { ...m, respondida: true } : m)), mensaje('usuario', peticion)],
+      miniaturas: foto ? [...estado.miniaturas.filter((m) => m.angulo !== foto.angulo), { angulo: foto.angulo, dataUrl: foto.miniatura }].slice(-MAX_MINIATURAS) : estado.miniaturas,
+      chat: [...marcarRespondida(estado.chat, respondeA), mensaje('usuario', peticion, { miniatura: foto?.miniatura ?? null })],
     }
     guardar(conPeticion)
     const llm = deps.llm()
@@ -134,7 +151,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         alAvanzar(intento ? 'corrigiendo' : 'proponiendo', intento)
         let respuesta
         try {
-          respuesta = await llm.proponerAjuste({ contexto, peticion, diseno, propuesta: conPeticion.propuesta?.operaciones ?? null, catalogo, correccion }, signal)
+          respuesta = await llm.proponerAjuste({ contexto, peticion, diseno, propuesta: conPeticion.propuesta?.operaciones ?? null, fotos: foto ? [{ angulo: foto.angulo, base64: foto.base64 }] : [], catalogo, correccion }, signal)
         } catch (e) {
           if (!(e instanceof RespuestaInvalida)) throw e
           correccion = { respuestaAnterior: e.respuesta, errores: e.problemas }
@@ -145,7 +162,8 @@ export function crearCasosDeUso(deps: Dependencias) {
         const requisitos = actualizarRequisitos(conPeticion.requisitos, r.requisitos)
         const decisiones = actualizarDecisiones(conPeticion.decisiones, r.decisiones)
         const base = { ...conPeticion, requisitos, decisiones }
-        if (!r.operaciones.length) return responder(r.explicacion, { preguntas: r.preguntas }, base)
+        const fotosPedidas = r.fotosSolicitadas.slice(0, 2)
+        if (!r.operaciones.length) return responder(r.explicacion, { preguntas: r.preguntas, fotosPedidas }, base)
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
@@ -192,7 +210,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen })
         const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
-        return responder([r.explicacion, ...avisos].join('\n\n'), { preguntas: r.preguntas, version: conCambio.actual }, conCambio)
+        return responder([r.explicacion, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, version: conCambio.actual }, conCambio)
       }
       return responder(`No logré hacer ese cambio sin romper el diseño (${ultimoError}), así que no apliqué nada. ¿Lo intentamos de otra forma?`, { error: true })
     } catch (e) {
@@ -224,6 +242,18 @@ export function crearCasosDeUso(deps: Dependencias) {
     if (!destino || n === estado.actual) return estado
     const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null })
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Regresé al diseño de la v${n} (${destino.resumen}).`, { version: conCambio.actual })] })
+  }
+
+  /** La persona confirma a mano una pieza que el experto dejó en boceto. */
+  function confirmarPieza(estado: EstadoDiseno, id: string): EstadoDiseno {
+    const diseno = disenoActual(estado)
+    const pieza = diseno.piezas.find((p) => p.id === id)
+    if (!pieza || pieza.confianza === 'alta') return estado
+    const operaciones: Operacion[] = [{ op: 'cambiarPropiedades', id, nombre: null, rol: null, veta: null, carga: null, apoyo: null, cantos: null, confianza: 'alta' }]
+    const r = aplicar(diseno, operaciones, catalogo)
+    if (!r.ok) return estado
+    const conCambio = conVersion(estado, r.valor.diseno, { resumen: `Confirmar ${pieza.nombre.toLowerCase()}`, motivo: 'Confirmada a mano', operaciones, origen: null })
+    return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Anoté ${pieza.nombre.toLowerCase()} como confirmada.`, { version: conCambio.actual })] })
   }
 
   function agregarRequisito(estado: EstadoDiseno, texto: string): EstadoDiseno {
@@ -265,6 +295,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     aplicarPropuesta,
     descartarPropuesta,
     volverAVersion,
+    confirmarPieza,
     agregarRequisito,
     quitarRequisito,
     quitarDecision,

@@ -87,6 +87,19 @@ export function Historial({ estado }: { estado: EstadoDiseno }) {
   return (
     <div className="flex flex-col gap-4 p-4">
       <Memoria estado={estado} />
+      {estado.miniaturas.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h3 className="font-titulo text-base font-semibold">Tus fotos</h3>
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+            {estado.miniaturas.map((m) => (
+              <figure key={m.angulo} className="flex shrink-0 flex-col items-center gap-1">
+                <img src={m.dataUrl} alt={`Foto ${m.angulo}`} className="size-20 rounded-xl border border-linea object-cover" />
+                <figcaption className="text-[11px] text-grafito-2">{m.angulo}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
       <section>
         <h3 className="mb-3 font-titulo text-base font-semibold">Versiones</h3>
         <ol className="relative flex flex-col gap-3 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-px before:bg-linea">

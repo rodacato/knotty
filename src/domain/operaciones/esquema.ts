@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CaraRef, Canto, Carga, Cota, Eje, Pieza, PiezaId, Rol, Union, Veta } from '../diseno/esquema'
+import { CaraRef, Canto, Carga, Confianza, Cota, Eje, Pieza, PiezaId, Rol, Union, Veta } from '../diseno/esquema'
 
 // Lo único que el LLM puede hacer con un diseño existente. Todos los campos van siempre (nullable si no aplica) por la salida estricta.
 
@@ -21,6 +21,7 @@ export const Operacion = z.discriminatedUnion('op', [
     carga: Carga.nullable(),
     apoyo: z.enum(['fijo', 'movil']).nullable(),
     cantos: z.array(Canto).nullable(),
+    confianza: Confianza.nullable().describe('"alta" cuando la persona o una foto confirman la pieza'),
   }),
   z.object({ op: z.literal('agregarUnion'), union: Union }),
   z.object({ op: z.literal('cambiarUnion'), union: Union }).describe('Reemplaza la unión con el mismo id'),

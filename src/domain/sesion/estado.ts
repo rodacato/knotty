@@ -12,6 +12,9 @@ export const Pregunta = z.object({
 })
 export type Pregunta = z.infer<typeof Pregunta>
 
+export const FotoPedida = z.object({ angulo: z.string(), motivo: z.string() })
+export type FotoPedida = z.infer<typeof FotoPedida>
+
 export const Mensaje = z.object({
   id: z.string(),
   autor: z.enum(['usuario', 'experto']),
@@ -22,7 +25,30 @@ export const Mensaje = z.object({
   version: z.number().nullable(),
   propuesta: z.enum(['pendiente', 'aplicada', 'descartada']).nullable(),
   error: z.boolean(),
+  /** Fotos que el experto pidió en este mensaje; se toman desde el chat. */
+  fotosPedidas: z.array(FotoPedida).default([]),
+  /** Miniatura de la foto que el usuario mandó con este mensaje. */
+  miniatura: z.string().nullable().default(null),
+  /** Qué preguntas ("p0") y fotos ("f:interior") de este mensaje ya se respondieron; con todas, queda `respondida`. */
+  respuestas: z.array(z.string()).default([]),
 })
+
+/** Clave de lo que se responde dentro de un mensaje del experto. */
+export const clavePregunta = (indice: number) => `p${indice}`
+export const claveFoto = (angulo: string) => `f:${angulo}`
+
+/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave". */
+export function marcarRespondida(chat: Mensaje[], respondeA: string | null): Mensaje[] {
+  if (!respondeA) return chat
+  const [id, clave] = respondeA.split('#')
+  return chat.map((m) => {
+    if (m.id !== id) return m
+    if (!clave) return { ...m, respondida: true }
+    const respuestas = [...new Set([...m.respuestas, clave])]
+    const total = m.preguntas.filter((p) => p.opciones).length + m.fotosPedidas.length
+    return { ...m, respuestas, respondida: respuestas.length >= total }
+  })
+}
 export type Mensaje = z.infer<typeof Mensaje>
 
 export const Propuesta = z.object({

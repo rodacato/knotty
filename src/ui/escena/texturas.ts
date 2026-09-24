@@ -2,7 +2,7 @@ import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'thr
 
 // Texturas generadas en el navegador: veta de pino para las caras y capas de triplay para los cantos. Nada que descargar.
 
-export type TipoTextura = 'veta-u' | 'veta-v' | 'capas-u' | 'capas-v'
+export type TipoTextura = 'veta-u' | 'veta-v' | 'capas-u' | 'capas-v' | 'boceto'
 export type Tono = 'triplay' | 'trasera'
 
 const TAMANO = 512
@@ -57,6 +57,24 @@ function capas(ctx: CanvasRenderingContext2D, tono: Tono) {
   }
 }
 
+/** Papel con achurado de lápiz: la pieza que el experto no pudo confirmar. */
+function boceto(ctx: CanvasRenderingContext2D) {
+  const r = aleatorio(29)
+  ctx.fillStyle = '#f4ede1'
+  ctx.fillRect(0, 0, TAMANO, TAMANO)
+  ctx.strokeStyle = '#5e574f'
+  ctx.lineCap = 'round'
+  for (let i = -TAMANO; i < TAMANO * 2; i += 22) {
+    ctx.globalAlpha = 0.25 + r() * 0.2
+    ctx.lineWidth = 1.2 + r() * 1.2
+    ctx.beginPath()
+    ctx.moveTo(i + r() * 4, TAMANO + r() * 4)
+    ctx.lineTo(i + TAMANO + r() * 6, r() * 4)
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+}
+
 const cache = new Map<string, Texture>()
 
 export function textura(tipo: TipoTextura, tono: Tono): Texture {
@@ -71,7 +89,8 @@ export function textura(tipo: TipoTextura, tono: Tono): Texture {
     ctx.translate(TAMANO, 0)
     ctx.rotate(Math.PI / 2)
   }
-  if (tipo.startsWith('veta')) veta(ctx, tono)
+  if (tipo === 'boceto') boceto(ctx)
+  else if (tipo.startsWith('veta')) veta(ctx, tono)
   else capas(ctx, tono)
   const t = new CanvasTexture(lienzo)
   t.colorSpace = SRGBColorSpace

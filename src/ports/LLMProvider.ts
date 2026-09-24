@@ -23,6 +23,7 @@ export const RespuestaAjuste = z.object({
   resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
   operaciones: z.array(Operacion),
   preguntas: z.array(Pregunta),
+  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
   requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
   decisiones: z.array(Decision),
   aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
@@ -52,6 +53,8 @@ export interface SolicitudAjuste {
   diseno: Diseno
   /** Operaciones de la propuesta sin aplicar, si la hay; también van descritas en el contexto. */
   propuesta: Operacion[] | null
+  /** Fotos que la persona manda con este pedido, casi siempre porque el experto las pidió. */
+  fotos: Foto[]
   catalogo: Catalogo
   correccion: { respuestaAnterior: unknown; errores: string } | null
 }

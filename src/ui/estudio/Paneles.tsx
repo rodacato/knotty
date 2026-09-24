@@ -57,6 +57,7 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
 }
 
 export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geometria; catalogo: Catalogo }) {
+  const confirmarPieza = useTienda((s) => s.confirmarPieza)
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)
   const p = diseno.piezas.find((x) => x.id === seleccion)
@@ -90,10 +91,15 @@ export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geo
           </div>
         ))}
       </dl>
-      <p className="mt-2 text-xs text-grafito-2">
-        Veta {VETA[p.veta]}
-        {p.confianza === 'baja' && <span className="ml-2 rounded bg-ambar-suave px-1.5 py-px text-grafito">sin confirmar</span>}
-      </p>
+      <p className="mt-2 text-xs text-grafito-2">Veta {VETA[p.veta]}</p>
+      {p.confianza === 'baja' && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-[#f4ede1] px-3 py-2 text-xs text-grafito">
+          <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>
+          <button type="button" onClick={() => confirmarPieza(p.id)} className="rounded-full bg-grafito px-3 py-1 font-medium text-hueso">
+            Está bien así
+          </button>
+        </div>
+      )}
       {uniones.length > 0 && (
         <ul className="mt-3 flex max-h-36 flex-col gap-1 overflow-y-auto border-t border-linea pt-3 text-sm">
           {uniones.map((u) => {

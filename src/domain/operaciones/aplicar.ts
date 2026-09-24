@@ -135,7 +135,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       }
       case 'cambiarPropiedades': {
         const p = pieza(op.id)
-        for (const campo of ['nombre', 'rol', 'veta', 'carga', 'apoyo', 'cantos'] as const) if (op[campo] !== null) Object.assign(p, { [campo]: op[campo] })
+        for (const campo of ['nombre', 'rol', 'veta', 'carga', 'apoyo', 'cantos', 'confianza'] as const) if (op[campo] !== null) Object.assign(p, { [campo]: op[campo] })
         return
       }
       case 'agregarUnion':
