@@ -1,7 +1,9 @@
-import { Catalogo } from '../../domain/materiales/catalogo'
+import { Acomodo, Catalogo, SIN_AJUSTES, type AjustesCatalogo } from '../../domain/materiales/catalogo'
 import type { MaterialCatalog } from '../../ports/MaterialCatalog'
 
-export function crearCatalogoJson(url = `${import.meta.env.BASE_URL}catalogo/catalogo.json`): MaterialCatalog {
+const CLAVE_AJUSTES = 'despiece:v1:catalogo'
+
+export function crearCatalogoJson(url = `${import.meta.env.BASE_URL}catalogo/catalogo.json`, almacen: Storage = localStorage): MaterialCatalog {
   let cargado: Promise<Catalogo> | null = null
   return {
     cargar() {
@@ -12,6 +14,22 @@ export function crearCatalogoJson(url = `${import.meta.env.BASE_URL}catalogo/cat
         })
         .then((datos) => Catalogo.parse(datos))
       return cargado
+    },
+    ajustes() {
+      try {
+        const guardado = JSON.parse(almacen.getItem(CLAVE_AJUSTES) ?? 'null') as Partial<AjustesCatalogo> | null
+        const acomodo = Acomodo.safeParse(guardado?.acomodo)
+        return { precios: guardado?.precios && typeof guardado.precios === 'object' ? guardado.precios : {}, acomodo: acomodo.success ? acomodo.data : null }
+      } catch {
+        return SIN_AJUSTES
+      }
+    },
+    guardarAjustes(a) {
+      try {
+        almacen.setItem(CLAVE_AJUSTES, JSON.stringify(a))
+      } catch {
+        /* sin almacenamiento: los ajustes duran la sesión */
+      }
     },
   }
 }

@@ -13,7 +13,8 @@ import { useServicios } from '../servicios'
 import { Boton, cm } from '../sistema/componentes'
 import { disenoVisible, useTienda, type Vista } from '../tienda'
 import { Historial } from './Historial'
-import { FichaPieza, Piezas, Revision } from './Paneles'
+import { Materiales } from './Materiales'
+import { FichaPieza, Revision } from './Paneles'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
   { id: 'frente', nombre: 'Frente' },
@@ -175,7 +176,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-linea px-2 [scrollbar-width:none]" aria-label="Panel">
         {[
           { id: 'chat', nombre: 'Experto', icono: <ChatCircleText /> },
-          { id: 'piezas', nombre: 'Piezas', icono: <Stack /> },
+          { id: 'materiales', nombre: 'Materiales', icono: <Stack /> },
           { id: 'revision', nombre: 'Revisión', icono: <ListChecks /> },
           { id: 'historial', nombre: 'Historial', icono: <ClockCounterClockwise /> },
         ].map((t) => (
@@ -198,8 +199,8 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       <Tabs.Content value="chat" className="min-h-0 flex-1">
         <Chat estado={estado} />
       </Tabs.Content>
-      <Tabs.Content value="piezas" className="min-h-0 flex-1 overflow-y-auto">
-        {analisisActual.valido && <Piezas diseno={actual} geo={analisisActual.geo} />}
+      <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
+        {analisisActual.valido && <Materiales diseno={actual} geo={analisisActual.geo} catalogo={catalogo} />}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
         <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} />

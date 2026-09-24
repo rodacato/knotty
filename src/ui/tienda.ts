@@ -7,6 +7,7 @@ import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
 import type { EstadoBoveda } from '../ports/Preferencias'
+import { SIN_AJUSTES, type AjustesCatalogo } from '../domain/materiales/catalogo'
 import type { Servicios } from './servicios'
 
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
@@ -35,6 +36,8 @@ interface Tienda {
   boveda: EstadoBoveda
   /** El aviso de llaves al llegar ya se atendió o se pospuso. */
   puertaCerrada: boolean
+  /** Precios y parámetros de corte del usuario sobre el catálogo. */
+  ajustesCatalogo: AjustesCatalogo
 
   iniciar(servicios: Servicios): void
   nuevoDiseno(): void
@@ -62,6 +65,7 @@ interface Tienda {
   agregarNota(texto: string): void
   quitarNota(id: string): void
   quitarDecision(tema: string): void
+  guardarAjustesCatalogo(a: AjustesCatalogo): void
 }
 
 export interface Cambios {
@@ -109,10 +113,11 @@ export const useTienda = create<Tienda>((set, get) => ({
   ajustesAbiertos: false,
   boveda: 'sin-boveda',
   puertaCerrada: false,
+  ajustesCatalogo: SIN_AJUSTES,
 
   iniciar(servicios) {
     const estado = servicios.casos.cargar()
-    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0, boveda: servicios.preferencias.boveda() })
+    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0, boveda: servicios.preferencias.boveda(), ajustesCatalogo: servicios.materiales.ajustes() })
   },
 
   nuevoDiseno() {
@@ -242,6 +247,11 @@ export const useTienda = create<Tienda>((set, get) => ({
   quitarDecision(tema) {
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
+
+  guardarAjustesCatalogo(ajustesCatalogo) {
+    get().servicios?.materiales.guardarAjustes(ajustesCatalogo)
+    set({ ajustesCatalogo })
   },
 
   refrescarBoveda() {
