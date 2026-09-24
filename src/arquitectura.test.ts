@@ -25,7 +25,7 @@ const capa = (ruta: string) => relative(SRC, ruta).split('/')[0]
 const PERMITIDO: Record<string, { capas: string[]; paquetes: RegExp }> = {
   domain: { capas: [], paquetes: /^zod$/ },
   application: { capas: ['domain', 'ports'], paquetes: /^zod$/ },
-  ports: { capas: ['domain'], paquetes: /^$/ },
+  ports: { capas: ['domain'], paquetes: /^zod$/ },
   adapters: { capas: ['domain', 'ports'], paquetes: /./ },
   ui: { capas: ['domain', 'application', 'ports'], paquetes: /./ },
 }

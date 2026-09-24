@@ -1,0 +1,83 @@
+import { z } from 'zod'
+import { Diseno, type Dimensiones } from '../domain/diseno/esquema'
+import { Decision } from '../domain/historial/historial'
+import type { Catalogo } from '../domain/materiales/catalogo'
+import { Operacion } from '../domain/operaciones/esquema'
+import { Requisito } from '../domain/requisitos/requisitos'
+import { Pregunta } from '../domain/sesion/estado'
+import type { ErrorDiseno } from '../domain/validacion/errores'
+
+// Lo que el experto puede contestar. Los mismos esquemas generan el JSON Schema de la salida estructurada y validan la respuesta.
+
+export const RespuestaReconstruccion = z.object({
+  explicacion: z.string().describe('Qué viste y cómo lo interpretaste, en 2–4 frases para el usuario'),
+  diseno: Diseno,
+  preguntas: z.array(Pregunta).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
+  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
+  requisitos: z.array(Requisito),
+})
+export type RespuestaReconstruccion = z.infer<typeof RespuestaReconstruccion>
+
+export const RespuestaAjuste = z.object({
+  explicacion: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
+  resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
+  operaciones: z.array(Operacion),
+  preguntas: z.array(Pregunta),
+  requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
+  decisiones: z.array(Decision),
+  aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
+})
+export type RespuestaAjuste = z.infer<typeof RespuestaAjuste>
+
+export interface Foto {
+  angulo: string
+  /** JPEG en base64, sin el prefijo data:. */
+  base64: string
+}
+
+export interface SolicitudReconstruccion {
+  medidas: Dimensiones
+  fotos: Foto[]
+  notas: string
+  catalogo: Catalogo
+  /** En un reintento: lo que salió mal con la respuesta anterior. */
+  correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null
+}
+
+export interface SolicitudAjuste {
+  /** El contexto ya armado y compactado por la aplicación. */
+  contexto: string
+  peticion: string
+  /** El diseño vigente, para quien necesite leerlo sin parsear el contexto (el simulado). */
+  diseno: Diseno
+  catalogo: Catalogo
+  correccion: { respuestaAnterior: unknown; errores: string } | null
+}
+
+export interface Consumo {
+  tokensEntrada?: number
+  tokensSalida?: number
+}
+
+export interface Respuesta<T> {
+  valor: T
+  origen: { promptId: string; proveedor: string; modelo: string }
+  consumo: Consumo
+}
+
+export interface LLMProvider {
+  id: string
+  etiqueta: string
+  reconstruir(solicitud: SolicitudReconstruccion, signal: AbortSignal): Promise<Respuesta<RespuestaReconstruccion>>
+  proponerAjuste(solicitud: SolicitudAjuste, signal: AbortSignal): Promise<Respuesta<RespuestaAjuste>>
+}
+
+/** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */
+export class RespuestaInvalida extends Error {
+  constructor(
+    readonly respuesta: unknown,
+    readonly problemas: string,
+  ) {
+    super('El experto contestó en un formato que no se pudo leer.')
+  }
+}
