@@ -23,16 +23,7 @@ function proveedorPara(c: ConfiguracionLLM): LLMProvider {
 
 export async function componer(): Promise<Servicios> {
   const catalogo = await crearCatalogoJson().cargar()
-  const guardadas = crearPreferencias()
-  let configuracion = guardadas.cargar()
-  const preferencias = {
-    ...guardadas,
-    cargar: () => configuracion,
-    guardar(c: ConfiguracionLLM) {
-      configuracion = c
-      guardadas.guardar(c)
-    },
-  }
-  const casos = crearCasosDeUso({ llm: () => proveedorPara(configuracion), catalogo, repositorio: crearRepositorioLocal() })
+  const preferencias = crearPreferencias()
+  const casos = crearCasosDeUso({ llm: () => proveedorPara(preferencias.cargar()), catalogo, repositorio: crearRepositorioLocal() })
   return { casos, catalogo, imagenes: crearProcesadorCanvas(), preferencias }
 }

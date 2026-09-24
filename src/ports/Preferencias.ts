@@ -10,18 +10,28 @@ export interface Conexion {
   host: string
 }
 
+/** Dónde viven las llaves: solo en memoria, en esta pestaña o cifradas en el navegador con una frase. */
+export type GuardadoLlaves = 'memoria' | 'pestana' | 'cifrada'
+export type EstadoBoveda = 'sin-boveda' | 'bloqueada' | 'abierta'
+
 export interface ConfiguracionLLM {
   activo: Proveedor
   conexiones: Record<ProveedorReal, Conexion>
-  /** Recordar las llaves en esta pestaña al recargar. */
-  recordarEnPestana: boolean
+  guardado: GuardadoLlaves
 }
 
 export interface Preferencias {
   cargar(): ConfiguracionLLM
-  guardar(c: ConfiguracionLLM): void
+  /** `frase` hace falta solo para crear la bóveda la primera vez que se elige guardarlas cifradas. */
+  guardar(c: ConfiguracionLLM, frase?: string): Promise<void>
+  boveda(): EstadoBoveda
+  /** Falla si la frase no es la correcta. */
+  desbloquear(frase: string): Promise<void>
+  olvidarLlaves(): void
   modelos(proveedor: ProveedorReal, conexion: Conexion): Promise<string[]>
 }
+
+export const FRASE_MINIMA = 8
 
 export const PRESETS: Record<Proveedor, { etiqueta: string; descripcion: string; modeloSugerido: string; pideLlave: boolean }> = {
   simulado: { etiqueta: 'Simulado', descripcion: 'Respuestas fijas para probar sin API. Gratis y sin conexión.', modeloSugerido: '', pideLlave: false },

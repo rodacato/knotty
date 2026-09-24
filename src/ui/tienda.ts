@@ -5,6 +5,7 @@ import type { Dimensiones, Diseno } from '../domain/diseno/esquema'
 import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
+import type { EstadoBoveda } from '../ports/Preferencias'
 import type { Servicios } from './servicios'
 
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
@@ -27,6 +28,9 @@ interface Tienda {
   /** Sube cada vez que el diseño aparece desde cero, para animar del boceto a la madera. */
   revelado: number
   ajustesAbiertos: boolean
+  boveda: EstadoBoveda
+  /** El aviso de llaves al llegar ya se atendió o se pospuso. */
+  puertaCerrada: boolean
 
   iniciar(servicios: Servicios): void
   nuevoDiseno(): void
@@ -43,6 +47,12 @@ interface Tienda {
   verDesde(vista: Vista): void
   alternarPropuesta(): void
   abrirAjustes(abierto: boolean): void
+  desbloquear(frase: string): Promise<void>
+  olvidarLlaves(): void
+  usarSimulado(): void
+  cerrarPuerta(): void
+  /** Tras guardar ajustes, la bóveda pudo cambiar. */
+  refrescarBoveda(): void
 }
 
 function cambiadas(antes: EstadoDiseno, despues: EstadoDiseno, catalogo: Servicios['catalogo']) {
@@ -71,10 +81,12 @@ export const useTienda = create<Tienda>((set, get) => ({
   resaltadas: { ids: [], vez: 0 },
   revelado: 0,
   ajustesAbiertos: false,
+  boveda: 'sin-boveda',
+  puertaCerrada: false,
 
   iniciar(servicios) {
     const estado = servicios.casos.cargar()
-    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0 })
+    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0, boveda: servicios.preferencias.boveda() })
   },
 
   nuevoDiseno() {
@@ -137,4 +149,32 @@ export const useTienda = create<Tienda>((set, get) => ({
   verDesde: (nombre) => set((s) => ({ vista: { nombre, vez: s.vista.vez + 1 } })),
   alternarPropuesta: () => set((s) => ({ verPropuesta: !s.verPropuesta })),
   abrirAjustes: (ajustesAbiertos) => set({ ajustesAbiertos }),
+
+  async desbloquear(frase) {
+    const { servicios } = get()
+    if (!servicios) return
+    await servicios.preferencias.desbloquear(frase)
+    set({ boveda: servicios.preferencias.boveda() })
+  },
+
+  olvidarLlaves() {
+    const { servicios } = get()
+    if (!servicios) return
+    servicios.preferencias.olvidarLlaves()
+    set({ boveda: servicios.preferencias.boveda() })
+  },
+
+  usarSimulado() {
+    const { servicios } = get()
+    if (!servicios) return
+    void servicios.preferencias.guardar({ ...servicios.preferencias.cargar(), activo: 'simulado' }).catch(() => {})
+    set({ puertaCerrada: true })
+  },
+
+  cerrarPuerta: () => set({ puertaCerrada: true }),
+
+  refrescarBoveda() {
+    const { servicios } = get()
+    if (servicios) set({ boveda: servicios.preferencias.boveda() })
+  },
 }))

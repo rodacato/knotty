@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Ajustes } from './ajustes/Ajustes'
+import { PuertaLlaves } from './ajustes/Llaves'
 import { Analizando } from './captura/Analizando'
 import { Captura } from './captura/Captura'
 import { Inicio } from './captura/Inicio'
@@ -50,6 +51,7 @@ export function App({ componer }: { componer: () => Promise<Servicios> }) {
     <ContextoServicios.Provider value={servicios}>
       <Pantalla />
       <Ajustes />
+      <PuertaLlaves />
     </ContextoServicios.Provider>
   )
 }
