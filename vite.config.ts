@@ -7,7 +7,7 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "font-src 'self'",
+  "font-src 'self' data:",
   "img-src 'self' data: blob:",
   "connect-src 'self' https://api.anthropic.com https://api.openai.com",
   "worker-src 'self' blob:",

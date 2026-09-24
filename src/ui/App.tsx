@@ -1,17 +1,30 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Ajustes } from './ajustes/Ajustes'
 import { Analizando } from './captura/Analizando'
 import { Captura } from './captura/Captura'
 import { Inicio } from './captura/Inicio'
-import { Estudio } from './estudio/Estudio'
 import { ContextoServicios, type Servicios } from './servicios'
 import { Lapiz } from './sistema/componentes'
 import { useTienda } from './tienda'
 
+// El 3D pesa: se carga hasta que hay un mueble que mostrar.
+const Estudio = lazy(() => import('./estudio/Estudio').then((m) => ({ default: m.Estudio })))
+
+const Cargando = () => (
+  <div className="grid h-full place-items-center text-ambar">
+    <Lapiz className="h-8 w-20" />
+  </div>
+)
+
 function Pantalla() {
   const fase = useTienda((s) => s.fase)
   const estado = useTienda((s) => s.estado)
-  if (fase === 'estudio' && estado) return <Estudio estado={estado} />
+  if (fase === 'estudio' && estado)
+    return (
+      <Suspense fallback={<Cargando />}>
+        <Estudio estado={estado} />
+      </Suspense>
+    )
   if (fase === 'analizando') return <Analizando />
   if (fase === 'captura') return <Captura />
   return <Inicio />
@@ -32,12 +45,7 @@ export function App({ componer }: { componer: () => Promise<Servicios> }) {
   }, [componer, iniciar])
 
   if (error) return <p className="grid h-full place-items-center p-6 text-oxido">{error}</p>
-  if (!servicios)
-    return (
-      <div className="grid h-full place-items-center text-ambar">
-        <Lapiz className="h-8 w-20" />
-      </div>
-    )
+  if (!servicios) return <Cargando />
   return (
     <ContextoServicios.Provider value={servicios}>
       <Pantalla />

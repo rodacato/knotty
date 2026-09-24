@@ -140,12 +140,12 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       ) : (
         <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {analisisMostrado.errores[0]?.mensaje}</div>
       )}
-      <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />
         {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">Viendo la propuesta sin aplicar</span>}
       </div>
       {analisisMostrado.valido && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-end md:inset-x-4 md:top-4 md:bottom-auto">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
           <FichaPieza diseno={mostrado} geo={analisisMostrado.geo} catalogo={catalogo} />
         </div>
       )}

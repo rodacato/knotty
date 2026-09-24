@@ -102,7 +102,7 @@ export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geo
   const nombre = (id: string) => diseno.piezas.find((x) => x.id === id)?.nombre ?? id
   const uniones = diseno.uniones.filter((u) => u.a === p.id || u.b === p.id)
   return (
-    <div className="animate-aparecer pointer-events-auto w-full max-w-sm rounded-2xl border border-linea bg-hueso/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
+    <div className="animate-aparecer pointer-events-auto w-full max-w-sm rounded-2xl md:w-80 border border-linea bg-hueso/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-titulo text-lg font-semibold">{p.nombre}</p>
@@ -130,7 +130,7 @@ export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geo
         {p.confianza === 'baja' && <span className="ml-2 rounded bg-ambar-suave px-1.5 py-px text-grafito">sin confirmar</span>}
       </p>
       {uniones.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-1 border-t border-linea pt-3 text-sm">
+        <ul className="mt-3 flex max-h-36 flex-col gap-1 overflow-y-auto border-t border-linea pt-3 text-sm">
           {uniones.map((u) => {
             const otra = u.a === p.id ? u.b : u.a
             const cantidad = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 0), 0)

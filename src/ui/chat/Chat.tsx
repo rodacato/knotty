@@ -43,7 +43,7 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
           <PencilSimple weight="duotone" className="text-ambar" /> Experto
           {m.version && <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>}
           {m.propuesta === 'aplicada' && <span className="text-[10px]">· aplicada</span>}
-          {m.propuesta === 'descartada' && <span className="text-[10px]">· descartada</span>}
+          {m.propuesta === 'descartada' && <span className="text-[10px]">· sin aplicar</span>}
         </div>
         {m.error && <Warning className="float-left mt-1 mr-2 text-oxido" weight="bold" />}
         {m.texto.split('\n\n').map((p, i) => (
