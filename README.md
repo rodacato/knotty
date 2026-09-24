@@ -14,7 +14,9 @@ npm run typecheck
 npm run build      # dist/, listo para GitHub Pages
 ```
 
-Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). Para usar Claude u OpenAI, abre el engrane en la app y pon tu llave: se queda en el dispositivo.
+Se puede instalar como app desde el navegador (PWA) y abre sin conexión; el experto sí necesita red.
+
+Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). Para usar Claude, OpenAI o [SheLLM](https://rodacato.github.io/SheLLM/), abre el engrane en la app y pon tu llave: se queda en el dispositivo, en memoria, en la pestaña o cifrada con una frase.
 
 ## Arquitectura
 

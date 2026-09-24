@@ -56,6 +56,7 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
                 type="button"
                 onClick={() => verVersion(versionVista === m.version ? null : m.version)}
                 title="Ver esta versión"
+                aria-label={`Ver la versión ${m.version}`}
                 className={`cifras rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${versionVista === m.version ? 'bg-ambar text-grafito' : 'bg-kraft text-grafito hover:bg-ambar-suave'}`}
               >
                 v{m.version}
@@ -172,7 +173,7 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div ref={lista} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3">
+      <div ref={lista} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
         {estado.chat.map((m) => (
           <Burbuja key={m.id} m={m} estado={estado} />
         ))}

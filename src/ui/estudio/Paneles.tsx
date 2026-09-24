@@ -93,7 +93,7 @@ export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geo
       </dl>
       <p className="mt-2 text-xs text-grafito-2">Veta {VETA[p.veta]}</p>
       {p.confianza === 'baja' && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-[#f4ede1] px-3 py-2 text-xs text-grafito">
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-papel px-3 py-2 text-xs text-grafito">
           <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>
           <button type="button" onClick={() => confirmarPieza(p.id)} className="rounded-full bg-grafito px-3 py-1 font-medium text-hueso">
             Está bien así

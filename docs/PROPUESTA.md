@@ -476,6 +476,15 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 - R3 distingue tornillo por el canto (penetración ≥ 25 mm) de tornillo por la cara (que no se asome); corrigió la dirección de la unión del divisor con el piso en el simulado. Nuevo tornillo #8 × 1".
 - En la vista de armado los cajones salen enteros hacia el frente. Prompt `ajuste@3` con la operación; el simulado entiende «fondo de N cm» y «agrega un cajón».
 
+### Fase 7 — implementada (2026-09-24)
+
+- BYOK sólido (adelantado en D20): llaves cifradas con frase, en la pestaña o en memoria, y aviso al llegar.
+- Rendimiento: el SDK de Anthropic se carga solo al usar Claude (paquete inicial de 713 a 523 KB); el 3D dibuja bajo demanda; en celular, densidad de píxeles máxima 1.5, sombras de 1024 y sin oclusión ambiental por defecto.
+- Accesibilidad: respeta «reducir movimiento» (sin resortes, caída, aserrín ni transiciones de cámara), la escena tiene descripción, Escape suelta la pieza, el chat es una región viva, los botones de solo ícono tienen nombre.
+- Modo oscuro completo: cotas y papel de boceto con tokens del tema.
+- Si el navegador no puede dibujar 3D, un aviso reemplaza la escena y el resto del estudio sigue funcionando.
+- PWA: manifest, íconos generados con `scripts/iconos.py` y service worker que abre la app sin conexión sin guardar llamadas a proveedores.
+
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
 - La calidad de la reconstrucción desde fotos reales y de los 5 ajustes guionizados (criterios de éxito de la fase).

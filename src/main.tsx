@@ -9,3 +9,6 @@ createRoot(document.getElementById('root')!).render(
     <App componer={componer} />
   </StrictMode>,
 )
+
+// Solo en producción: en desarrollo el caché estorbaría a la recarga en caliente.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) void navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {})

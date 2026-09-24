@@ -18,6 +18,7 @@
   --color-ambar-suave: var(--ambar-suave);
   --color-oxido: var(--oxido);
   --color-pizarra: var(--pizarra);
+  --color-papel: var(--papel);
   --color-abedul: #e2c9a2;
   --color-pino: #d9b27c;
   --color-nogal: #6b4a2e;
@@ -38,6 +39,7 @@
   --oxido: #b4452f;
   --pizarra: #56697a;
   --fondo-escena: #efe7da;
+  --papel: #f4ede1;
   color-scheme: light;
 }
 
@@ -53,6 +55,7 @@
     --oxido: #d9674f;
     --pizarra: #8aa0b3;
     --fondo-escena: #221e1a;
+    --papel: #3a332b;
     color-scheme: dark;
   }
 }
