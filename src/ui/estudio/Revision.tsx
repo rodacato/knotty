@@ -13,6 +13,7 @@ const TITULOS: Record<string, string> = {
   R6_PUERTAS: 'Puertas',
   R7_BASE: 'Base',
   R8_VETA: 'Veta',
+  R9_CAJONES: 'Cajones',
 }
 
 const SEVERIDADES: { id: Severidad; plural: [string, string] }[] = [

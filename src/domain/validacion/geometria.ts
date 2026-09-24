@@ -1,10 +1,12 @@
 import { DIMENSION_DE_EJE, EJES, type Diseno } from '../diseno/esquema'
 import { medidasCara, redondear, type Geometria } from '../diseno/resolver'
 import { hojaUtil, materialPorId, type Catalogo } from '../materiales/catalogo'
-import { contactos, mismoPar, TOLERANCIA_CONTACTO, type Contacto } from './contacto'
+import { contactos, mismoPar, separacionEntre, TOLERANCIA_CONTACTO, type Contacto } from './contacto'
 import { error, type AvisoDiseno, type ErrorDiseno } from './errores'
 
 const TOLERANCIA_MEDIDA = 1
+/** Separación máxima entre cajón y mueble que una corredera puede salvar. */
+const HUECO_CORREDERA = 20
 const SIN_AVISO_DE_UNION = new Set(['puerta', 'frente-cajon'])
 
 export interface ValidacionGeometrica {
@@ -41,6 +43,12 @@ export function validarGeometria(diseno: Diseno, geo: Geometria, catalogo: Catal
       errores.push(error('E_PIEZA_INEXISTENTE', `La unión "${u.id}" refiere ${faltan.map((f) => `"${f}"`).join(' y ')}, que no existe.`, { union: u.id, piezas: faltan }))
       continue
     }
+    if (u.tipo === 'corredera') {
+      const hueco = separacionEntre(geo.cajas.get(u.a)!, geo.cajas.get(u.b)!)
+      if (!hueco || hueco.eje !== 'x' || hueco.distancia > HUECO_CORREDERA)
+        errores.push(error('E_UNION_SIN_CONTACTO', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${HUECO_CORREDERA} mm.`, { union: u.id, a: u.a, b: u.b }))
+      continue
+    }
     if (!todos.some((c) => mismoPar(c, u.a, u.b)))
       errores.push(error('E_UNION_SIN_CONTACTO', `La unión "${u.id}" junta "${u.a}" y "${u.b}", pero no se tocan.`, { union: u.id, a: u.a, b: u.b }))
   }
@@ -52,6 +60,8 @@ export function validarGeometria(diseno: Diseno, geo: Geometria, catalogo: Catal
     return permitido
   })
 
+  const correderas = diseno.uniones.filter((u) => u.tipo === 'corredera' && geo.cajas.has(u.a) && geo.cajas.has(u.b))
+  conexiones.push(...correderas.map((u) => ({ a: u.a, b: u.b, eje: 'x' as const, profundidad: 0 })))
   const alcanzadas = new Set([...geo.cajas].filter(([, c]) => c.y0 <= TOLERANCIA_CONTACTO).map(([id]) => id))
   for (let cambio = true; cambio; ) {
     cambio = false

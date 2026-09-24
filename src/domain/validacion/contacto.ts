@@ -41,3 +41,10 @@ export function largoDeJunta(a: Caja, b: Caja): number {
   const lados = EJES.filter((e) => e !== contacto.eje).map((e) => traslape(a, b, e))
   return Math.max(0, ...lados)
 }
+
+/** Dos piezas frente a frente con un hueco entre ellas en un solo eje, como un cajón y el lateral que carga su corredera. */
+export function separacionEntre(a: Caja, b: Caja): { eje: Eje; distancia: number } | null {
+  const t = EJES.map((e) => traslape(a, b, e))
+  const separado = EJES.findIndex((_, i) => t[i] < -TOLERANCIA_CONTACTO && t.every((v, j) => j === i || v > TOLERANCIA_CONTACTO))
+  return separado < 0 ? null : { eje: EJES[separado], distancia: -t[separado] }
+}

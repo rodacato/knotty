@@ -63,13 +63,24 @@
   ],
   "herrajes": [
     {
+      "id": "tornillo-8x1",
+      "nombre": "Tornillo para madera #8 × 1\"",
+      "unidad": "pieza",
+      "porPaquete": 50,
+      "largo": 25.4,
+      "holguraLateral": null,
+      "sku": null,
+      "precio": 58
+    },
+    {
       "id": "tornillo-8x1-1/4",
       "nombre": "Tornillo para madera #8 × 1¼\"",
       "unidad": "pieza",
       "porPaquete": 50,
       "sku": null,
       "precio": 65,
-      "largo": 31.75
+      "largo": 31.75,
+      "holguraLateral": null
     },
     {
       "id": "tornillo-8x1-1/2",
@@ -78,7 +89,8 @@
       "porPaquete": 50,
       "sku": null,
       "precio": 75,
-      "largo": 38.1
+      "largo": 38.1,
+      "holguraLateral": null
     },
     {
       "id": "tornillo-8x2",
@@ -87,7 +99,8 @@
       "porPaquete": 50,
       "sku": null,
       "precio": 85,
-      "largo": 50.8
+      "largo": 50.8,
+      "holguraLateral": null
     },
     {
       "id": "tornillo-bolsillo-1-1/4",
@@ -96,7 +109,8 @@
       "porPaquete": 100,
       "sku": null,
       "precio": 180,
-      "largo": 31.75
+      "largo": 31.75,
+      "holguraLateral": null
     },
     {
       "id": "tarugo-8x40",
@@ -105,7 +119,8 @@
       "porPaquete": 50,
       "sku": null,
       "precio": 45,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "minifix-15",
@@ -114,7 +129,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 12,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "soporte-repisa-5",
@@ -123,7 +139,8 @@
       "porPaquete": 20,
       "sku": null,
       "precio": 55,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "bisagra-cazoleta-35-recta",
@@ -132,7 +149,8 @@
       "porPaquete": 2,
       "sku": null,
       "precio": 95,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "bisagra-cazoleta-35-codo",
@@ -141,7 +159,8 @@
       "porPaquete": 2,
       "sku": null,
       "precio": 95,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "bisagra-cazoleta-35-supercodo",
@@ -150,16 +169,58 @@
       "porPaquete": 2,
       "sku": null,
       "precio": 95,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
+    },
+    {
+      "id": "corredera-telescopica-30",
+      "nombre": "Corredera telescópica 30 cm (par)",
+      "unidad": "pieza",
+      "porPaquete": null,
+      "largo": 300,
+      "holguraLateral": 12.7,
+      "sku": null,
+      "precio": 180
+    },
+    {
+      "id": "corredera-telescopica-35",
+      "nombre": "Corredera telescópica 35 cm (par)",
+      "unidad": "pieza",
+      "porPaquete": null,
+      "largo": 350,
+      "holguraLateral": 12.7,
+      "sku": null,
+      "precio": 200
     },
     {
       "id": "corredera-telescopica-40",
       "nombre": "Corredera telescópica 40 cm (par)",
       "unidad": "pieza",
       "porPaquete": null,
+      "largo": 400,
+      "holguraLateral": 12.7,
       "sku": null,
-      "precio": 220,
-      "largo": null
+      "precio": 220
+    },
+    {
+      "id": "corredera-telescopica-45",
+      "nombre": "Corredera telescópica 45 cm (par)",
+      "unidad": "pieza",
+      "porPaquete": null,
+      "largo": 450,
+      "holguraLateral": 12.7,
+      "sku": null,
+      "precio": 245
+    },
+    {
+      "id": "corredera-telescopica-50",
+      "nombre": "Corredera telescópica 50 cm (par)",
+      "unidad": "pieza",
+      "porPaquete": null,
+      "largo": 500,
+      "holguraLateral": 12.7,
+      "sku": null,
+      "precio": 270
     },
     {
       "id": "escuadra-1-1/2",
@@ -168,7 +229,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 12,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "clavo-sin-cabeza-1",
@@ -177,7 +239,8 @@
       "porPaquete": 100,
       "sku": null,
       "precio": 35,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "pegamento-blanco",
@@ -186,7 +249,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 110,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "cubrecanto-19",
@@ -195,7 +259,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 12,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "pata-niveladora",
@@ -204,7 +269,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 28,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "jaladera",
@@ -213,7 +279,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 45,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     },
     {
       "id": "kit-antivuelco",
@@ -222,7 +289,8 @@
       "porPaquete": null,
       "sku": null,
       "precio": 90,
-      "largo": null
+      "largo": null,
+      "holguraLateral": null
     }
   ],
   "acomodo": {

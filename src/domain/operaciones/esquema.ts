@@ -30,5 +30,20 @@ export const Operacion = z.discriminatedUnion('op', [
     .object({ op: z.literal('cambiarDimensionGlobal'), eje: Eje, valor: z.number().positive(), regla: z.enum(['estirar', 'proporcional']) })
     .describe('estirar: lo referido a las caras del mueble se estira o se recorre. proporcional: además escala las cotas absolutas'),
   z.object({ op: z.literal('cambiarAnclajeMuro'), valor: z.boolean() }),
+  z
+    .object({
+      op: z.literal('agregarCajon'),
+      grupo: PiezaId.describe('Id del cajón, por ejemplo "cajon-1"; sus piezas se llaman "cajon-1-frente", "cajon-1-costado-izq"…'),
+      nombre: z.string().describe('"Cajón 1"'),
+      izquierda: CaraRef.describe('Cara x del hueco a la izquierda, por ejemplo "lat-izq.x1"'),
+      derecha: CaraRef.describe('Cara x del hueco a la derecha, por ejemplo "lat-der.x0"'),
+      abajo: CaraRef.describe('Cara y del hueco abajo, por ejemplo "piso.y1"'),
+      arriba: CaraRef.describe('Cara y del hueco arriba, por ejemplo "entrepano-1.y0"'),
+      frente: CaraRef.describe('Cara z con la que queda al ras el frente, normalmente "mueble.z1"'),
+      fondo: CaraRef.describe('Cara z del fondo del hueco, normalmente "trasera.z1"'),
+      material: z.string().describe('Frente y caja, por ejemplo "T15"'),
+      materialFondo: z.string().describe('Fondo del cajón, por ejemplo "TR6"'),
+    })
+    .describe('Arma un cajón completo con frente embutido y correderas telescópicas; la app elige la corredera y calcula las holguras'),
 ])
 export type Operacion = z.infer<typeof Operacion>

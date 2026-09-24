@@ -18,7 +18,8 @@ export const Herraje = z.object({
   nombre: z.string(),
   unidad: z.enum(['pieza', 'paquete', 'metro', 'frasco']),
   porPaquete: z.number().int().positive().nullable(),
-  largo: z.number().positive().nullable().default(null).describe('Tornillos: largo en mm'),
+  largo: z.number().positive().nullable().default(null).describe('Tornillos y correderas: largo en mm'),
+  holguraLateral: z.number().nonnegative().nullable().default(null).describe('Correderas: espacio por lado entre el cajón y el mueble'),
   sku: z.string().nullable(),
   precio: z.number().nonnegative().nullable(),
 })

@@ -1,5 +1,5 @@
 import { redondear } from '../../diseno/resolver'
-import { largoDeJunta } from '../../validacion/contacto'
+import { contactoEntre, largoDeJunta } from '../../validacion/contacto'
 import type { Hallazgo, Regla } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
 
@@ -25,9 +25,23 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
     const encontrados: Hallazgo[] = []
     const tornillos = u.herrajes.map((h) => catalogo.herrajes.find((x) => x.id === h.herrajeId)).filter((h) => h?.largo)
 
+    const tb = geo.espesores.get(u.b) ?? 0
+    // Si se tocan por la cara de b, el tornillo entra de frente en ella: lo que importa es que no se asome del otro lado.
+    const porLaCara = contactoEntre(u.a, cajaA, u.b, cajaB)?.eje === b.normal
     for (const t of tornillos) {
       const largo = t!.largo!
-      if (u.tipo === 'tope-tornillo') {
+      if (u.tipo === 'tope-tornillo' && porLaCara) {
+        const entra = largo - ta
+        if (entra <= tb - 3) continue
+        encontrados.push({
+          codigo: 'R3_TORNILLOS',
+          severidad: 'critico',
+          piezas: [u.a, u.b],
+          mensaje: `El ${t!.nombre.toLowerCase()} atraviesa ${a.nombre} (${ta} mm) y entra ${redondear(entra)} mm en la cara de ${b.nombre}, que mide ${tb} mm: se asoma del otro lado.`,
+          datos: { union: u.id, largo, entra: redondear(entra), espesor: tb },
+          alternativas: [{ clave: 'tornillo-mas-corto', descripcion: `Un tornillo de ${pulgadas(ta + tb - 5)} o menos`, datos: { largo: ta + tb - 5 } }],
+        })
+      } else if (u.tipo === 'tope-tornillo') {
         const entra = largo - ta
         if (entra >= SUPUESTOS.tornillos.penetracionMinima) continue
         const sugerido = catalogo.herrajes
@@ -57,7 +71,7 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
 
     const junta = largoDeJunta(cajaA, cajaB)
     const cantidad = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 2), 0)
-    if (u.tipo === 'tope-tornillo' && junta > 0 && cantidad >= 2 && junta < 2 * SUPUESTOS.tornillos.distanciaExtremo + 20)
+    if (u.tipo === 'tope-tornillo' && !porLaCara && junta > 0 && cantidad >= 2 && junta < 2 * SUPUESTOS.tornillos.distanciaExtremo + 20)
       encontrados.push({
         codigo: 'R3_TORNILLOS',
         severidad: 'recomendacion',

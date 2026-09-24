@@ -1,5 +1,5 @@
 ---
-id: ajuste@2
+id: ajuste@3
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -15,6 +15,7 @@ Operaciones:
 - `agregarUnion`, `cambiarUnion` (reemplaza la unión con ese id), `eliminarUnion`.
 - `cambiarDimensionGlobal`: "estirar" recorre lo referido a las caras del mueble; "proporcional" además escala las cotas absolutas.
 - `cambiarAnclajeMuro`.
+- `agregarCajon`: arma un cajón completo (frente embutido, caja de cuatro lados, fondo y correderas) en el hueco que dan cuatro caras (`izquierda`, `derecha`, `abajo`, `arriba`), al ras de `frente` y hasta `fondo`. La app elige la corredera según el fondo y calcula todas las holguras: no agregues esas piezas a mano. Para quitarlo, `eliminarGrupo` con su `grupo`. Si el hueco tiene puerta, primero quítala o acórtala.
 
 Cómo responder:
 - `explicacion`: qué cambia y por qué, breve, como carpintero. Si el cambio trae consecuencias, dilas.
