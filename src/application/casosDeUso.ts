@@ -212,7 +212,8 @@ export function crearCasosDeUso(deps: Dependencias) {
         const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
         return responder([r.explicacion, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, version: conCambio.actual }, conCambio)
       }
-      return responder(`No logré hacer ese cambio sin romper el diseño (${ultimoError}), así que no apliqué nada. ¿Lo intentamos de otra forma?`, { error: true })
+      const motivo = ultimoError.trim().replace(/\.?$/, '.')
+      return responder(`No logré hacer ese cambio sin romper el diseño, así que no apliqué nada. ${motivo.charAt(0).toUpperCase()}${motivo.slice(1)} ¿Lo intentamos de otra forma?`, { error: true })
     } catch (e) {
       if (signal.aborted) return responder('Cancelado.', { error: true })
       return responder(e instanceof Error ? e.message : 'Algo falló al consultar al experto.', { error: true })

@@ -40,7 +40,14 @@ export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo
   const espesorFrente = materialPorId(catalogo, c.material)!.espesor
   const profundidad = geo.valor({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z') - espesorFrente - geo.valor({ tipo: 'ref', ref: c.fondo, mas: 0 }, 'z')
   const corredera = correderaPara(profundidad, catalogo)
-  if (!corredera) return error('E_OPERACION_INVALIDA', `No cabe un cajón: hay ${Math.round(profundidad)} mm de fondo y la corredera más corta pide más.`, { profundidad: Math.round(profundidad) })
+  if (!corredera) {
+    const minima = Math.min(...correderas(catalogo).map((c) => c.largo))
+    const faltan = Math.ceil(minima + FONDO_LIBRE - profundidad)
+    return error('E_OPERACION_INVALIDA', `No cabe un cajón: quedan ${Math.round(profundidad)} mm de fondo y la corredera más corta, de ${minima / 10} cm, pide ${faltan} mm más. Hazlo más profundo o usa una puerta.`, {
+      profundidad: Math.round(profundidad),
+      faltan,
+    })
+  }
   const ancho = geo.valor({ tipo: 'ref', ref: c.derecha, mas: 0 }, 'x') - geo.valor({ tipo: 'ref', ref: c.izquierda, mas: 0 }, 'x')
   const alto = geo.valor({ tipo: 'ref', ref: c.arriba, mas: 0 }, 'y') - geo.valor({ tipo: 'ref', ref: c.abajo, mas: 0 }, 'y')
   if (ancho < 2 * corredera.holguraLateral + 150 || alto < HOLGURA_ABAJO + HOLGURA_ARRIBA + 60)

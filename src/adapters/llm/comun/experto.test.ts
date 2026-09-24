@@ -43,13 +43,20 @@ describe('crearExperto', () => {
     const { experto, llamadas } = falso({ explicacion: 'x', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [] })
     const r = await experto.reconstruir({ medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: 'para libros', catalogo, correccion: null }, new AbortController().signal)
     expect(r.valor.diseno.nombre).toBe('Librero')
-    expect(r.origen.promptId).toBe('sistema@2+reconstruccion@2')
+    expect(r.origen.promptId).toBe('sistema@2+reconstruccion@3')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { tipo: 'texto', texto: 'Medidas del mueble: ancho 600 mm, alto 1800 mm, fondo 300 mm.\nNotas de la persona: para libros' },
       { tipo: 'texto', texto: 'Foto 1: frente' },
       { tipo: 'imagen', base64: 'AAA' },
     ])
+  })
+
+  it('sin fotos manda la descripción y le dice al experto que diseñe con ella', async () => {
+    const { experto, llamadas } = falso({ explicacion: 'x', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [] })
+    await experto.reconstruir({ medidas: librero.dimensiones, fotos: [], notas: 'librero de 5 repisas', catalogo, correccion: null }, new AbortController().signal)
+    expect(llamadas[0].contenido).toEqual([{ tipo: 'texto', texto: expect.stringContaining('No hay fotos: diseña a partir de esta descripción') }])
+    expect(llamadas[0].contenido[0]).toMatchObject({ texto: expect.stringContaining('Descripción: librero de 5 repisas') })
   })
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {

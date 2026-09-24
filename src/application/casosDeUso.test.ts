@@ -36,13 +36,30 @@ describe('reconstruir', () => {
   it('arma la versión 1 con la explicación y preguntas del experto, y la guarda', async () => {
     const c = casos()
     const etapas: string[] = []
-    const estado = await c.reconstruir({ medidas: MEDIDAS_LIBRERO, fotos: [], miniaturas: [], notas: '' }, senal(), (e) => etapas.push(e))
+    const estado = await c.reconstruir({ medidas: MEDIDAS_LIBRERO, fotos: [{ angulo: 'frente', base64: '' }], miniaturas: [], notas: '' }, senal(), (e) => etapas.push(e))
     expect(estado.versiones).toHaveLength(1)
     expect(disenoActual(estado).nombre).toBe('Librero')
     expect(estado.chat[0].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
     expect(estado.chat[0].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
     expect(etapas).toEqual(['mirando-fotos', 'revisando', 'estructura'])
     expect(c.repositorio.estado).toEqual(estado)
+  })
+})
+
+describe('reconstruir sin fotos', () => {
+  it('arma el diseño con la descripción, sin pedir fotos, y ofrece el cajón como pregunta', async () => {
+    const c = casos()
+    const estado = await c.reconstruir(
+      { medidas: { ancho: 600, alto: 1800, fondo: 500 }, fotos: [], miniaturas: [], notas: 'Un librero con repisas para libros y un cajón abajo' },
+      senal(),
+    )
+    expect(disenoActual(estado).nombre).toBe('Librero')
+    expect(estado.chat[0].fotosPedidas).toEqual([])
+    expect(estado.chat[0].texto).toContain('Con tu descripción')
+    const opciones = estado.chat[0].preguntas.flatMap((p) => p.opciones ?? [])
+    expect(opciones).toContain('Agrega un cajón abajo')
+    const conCajon = await c.ajustar(estado, 'Agrega un cajón abajo', senal(), undefined, `${estado.chat[0].id}#p1`)
+    expect(disenoActual(conCajon).piezas.some((p) => p.grupo === 'cajon-1')).toBe(true)
   })
 })
 
