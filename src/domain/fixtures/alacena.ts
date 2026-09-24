@@ -23,7 +23,7 @@ const puerta = (lado: 'izq' | 'der'): Pieza =>
 export const alacena: Diseno = {
   esquema: 1,
   nombre: 'Alacena de pared',
-  dimensiones: { ancho: 800, alto: 720, fondo: 320 },
+  dimensiones: { ancho: 760, alto: 720, fondo: 320 },
   anclajeMuro: true,
   observaciones: 'Alacena para colgar con dos puertas sobrepuestas y un entrepaño ajustable.',
   piezas: [

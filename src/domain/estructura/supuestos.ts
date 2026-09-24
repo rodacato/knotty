@@ -1,0 +1,33 @@
+import type { Carga, TipoUnion } from '../diseno/esquema'
+
+// Supuestos de ingeniería como datos, para calibrarlos sin tocar las reglas. Triplay de pino de Home Depot MX.
+
+export const SUPUESTOS = {
+  /** MPa, flexión del triplay de pino según la veta respecto al claro. Conservador; calibrar con una prueba casera. */
+  moduloElasticidad: { paralela: 6000, perpendicular: 3500 },
+  /** La carga sostenida (libros meses y meses) aumenta la flecha. */
+  fluencia: 1.5,
+  /** kg/m² sobre el entrepaño. */
+  cargas: { ninguna: 0, ligera: 50, media: 100, pesada: 150 } satisfies Record<Carga, number>,
+  gravedad: 9.81,
+  /** La flecha se compara con claro / límite. */
+  limiteFlecha: { recomendacion: 360, critico: 200 },
+  /** Alto a partir del cual un casco que se puede descuadrar es crítico. */
+  altoEscuadradoCritico: 600,
+  uniones: {
+    'tope-tornillo': { b: 15, bCritico: 12 },
+    bolsillo: { a: 12, b: 12 },
+    tarugo: { a: 15, b: 15 },
+    minifix: { a: 15, b: 15 },
+    canal: { b: 15 },
+    rebaje: { b: 15 },
+    'bisagra-cazoleta': { a: 15 },
+    'soporte-repisa': { b: 15 },
+  } satisfies Partial<Record<TipoUnion, { a?: number; b?: number; bCritico?: number }>>,
+  /** Profundidad de canal o rebaje como fracción del espesor que la recibe. */
+  penetracion: { recomendacion: 1 / 3, critico: 1 / 2 },
+  /** Hasta este espesor, una pieza solo se clava o va en canal o rebaje. */
+  espesorDeClavar: 3,
+} as const
+
+export const UNIONES_RIGIDAS: TipoUnion[] = ['bolsillo', 'tarugo', 'minifix', 'canal', 'rebaje', 'escuadra']
