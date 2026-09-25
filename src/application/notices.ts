@@ -1,6 +1,7 @@
 import { analyze, type Analysis } from '../domain/analysis'
 import type { Design } from '../domain/design/schema'
 import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
+import { ruleTitle } from '../domain/structure/registry'
 import type { Catalog } from '../domain/materials/catalog'
 import { checkRequirements } from '../domain/requirements/requirements'
 import { currentDesign, type DesignState } from '../domain/session/state'
@@ -31,18 +32,6 @@ export interface NoticeBoard {
   resolved: string[]
 }
 
-const TITLES: Record<string, string> = {
-  R1_SAG: 'Entrepaños que se pandean',
-  R2_JOINT_THICKNESS: 'Espesor para la unión',
-  R3_SCREWS: 'Tornillos',
-  R4_TIPPING: 'Riesgo de vuelco',
-  R5_RACKING: 'Escuadrado',
-  R6_DOORS: 'Puertas',
-  R7_BASE: 'Base',
-  R8_GRAIN: 'Veta',
-  R9_DRAWERS: 'Cajones',
-  R10_USE: 'Uso del mueble',
-}
 const RANK = { critical: 0, decision: 1, recommendation: 2, detail: 3 }
 
 const named = (design: Design, text: string) => design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
@@ -57,7 +46,7 @@ function findingNotices(findings: Finding[]): Notice[] {
       key: `finding:${first.severity}:${group.map(findingKey).sort().join('+')}`,
       kind: 'finding',
       severity: first.severity,
-      title: TITLES[first.code] ?? first.code,
+      title: ruleTitle(first.code),
       message: `${first.message}${group.length > 1 ? ` Y ${group.length - 1 === 1 ? 'otra pieza' : `${group.length - 1} piezas más`} igual.` : ''}`,
       pieces: [...new Set(group.flatMap((h) => h.pieces))],
       findings: group,
