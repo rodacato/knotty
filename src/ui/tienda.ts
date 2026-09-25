@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { Etapa, FotoEnviada } from '../application/casosDeUso'
+import { ErrorExperto, type Etapa, type FotoEnviada } from '../application/casosDeUso'
+import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno, Pieza } from '../domain/diseno/esquema'
 import type { Caja } from '../domain/diseno/resolver'
@@ -27,6 +28,8 @@ interface Tienda {
   etapa: { nombre: Etapa; intento: number } | null
   pensando: boolean
   errorReconstruccion: string | null
+  /** What the expert did in a design attempt that failed, for «Ver qué pasó». */
+  failedTrace: TraceEntry[]
   /** Lo último que se mandó a diseñar, para no perderlo si falla y poder reintentar. */
   borrador: EntradaCaptura | null
   controlador: AbortController | null
@@ -118,6 +121,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   etapa: null,
   pensando: false,
   errorReconstruccion: null,
+  failedTrace: [],
   borrador: null,
   controlador: null,
   seleccion: null,
@@ -168,7 +172,13 @@ export const useTienda = create<Tienda>((set, get) => ({
     } catch (e) {
       if (!vigente()) return
       const cancelado = controlador.signal.aborted
-      set({ fase: 'captura', etapa: null, controlador: null, errorReconstruccion: cancelado ? null : e instanceof Error ? e.message : 'Algo falló al analizar las fotos.' })
+      set({
+        fase: 'captura',
+        etapa: null,
+        controlador: null,
+        errorReconstruccion: cancelado ? null : e instanceof Error ? e.message : 'Algo falló al analizar las fotos.',
+        failedTrace: e instanceof ErrorExperto ? e.trace : [],
+      })
     }
   },
 

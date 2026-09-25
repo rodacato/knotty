@@ -6,6 +6,7 @@ import { useServicios } from '../servicios'
 import { Boton, cm, Titulo } from '../sistema/componentes'
 import { TomarFoto } from '../sistema/TomarFoto'
 import { useTienda } from '../tienda'
+import { TraceLog } from '../estudio/TraceLog'
 import { Silueta } from './Siluetas'
 
 const ANGULOS = [
@@ -100,6 +101,7 @@ export function Captura() {
   const { imagenes, preferencias } = useServicios()
   const reconstruir = useTienda((s) => s.reconstruir)
   const error = useTienda((s) => s.errorReconstruccion)
+  const failedTrace = useTienda((s) => s.failedTrace)
   const abrirAjustes = useTienda((s) => s.abrirAjustes)
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
   const borrador = useTienda((s) => s.borrador)
@@ -233,17 +235,27 @@ export function Captura() {
             )}
           </label>
           {error && (
-            <p className="flex items-start gap-2 rounded-xl border border-oxido/30 bg-oxido/10 p-3 text-sm text-oxido">
-              <Warning className="mt-0.5 shrink-0" weight="bold" />
-              <span className="flex-1">
-                {error} Tus fotos y tu descripción siguen aquí.
-              </span>
-              {puedeAnalizar && (
-                <Boton variante="fantasma" className="min-h-8 shrink-0 px-2 text-oxido underline" onClick={analizar}>
-                  <ArrowClockwise weight="bold" /> Reintentar
-                </Boton>
+            <div className="flex flex-col gap-2 rounded-xl border border-oxido/30 bg-oxido/10 p-3 text-sm text-oxido">
+              <div className="flex items-start gap-2">
+                <Warning className="mt-0.5 shrink-0" weight="bold" />
+                <span className="flex-1">
+                  {error} Tus fotos y tu descripción siguen aquí.
+                </span>
+                {puedeAnalizar && (
+                  <Boton variante="fantasma" className="min-h-8 shrink-0 px-2 text-oxido underline" onClick={analizar}>
+                    <ArrowClockwise weight="bold" /> Reintentar
+                  </Boton>
+                )}
+              </div>
+              {failedTrace.length > 0 && (
+                <details className="text-grafito">
+                  <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
+                  <div className="mt-2">
+                    <TraceLog trace={failedTrace} />
+                  </div>
+                </details>
               )}
-            </p>
+            </div>
           )}
           {falta && (
             <p className="flex flex-wrap items-center gap-2 rounded-xl border border-ambar/40 bg-ambar-suave p-3 text-sm">

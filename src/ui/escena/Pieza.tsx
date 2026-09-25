@@ -53,6 +53,8 @@ export interface PropsPieza {
   atenuada: boolean
   fantasma: boolean
   marcada: boolean
+  /** A piece with an unresolved validation problem: red edges. */
+  problema: boolean
   resaltar: number
   /** Pieza recién agregada: cae a su lugar. */
   nueva: boolean
@@ -63,7 +65,7 @@ export interface PropsPieza {
   onSeleccionar: (id: string) => void
 }
 
-export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, resaltar, nueva, reducido, retraso, onSeleccionar }: PropsPieza) {
+export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, problema, resaltar, nueva, reducido, retraso, onSeleccionar }: PropsPieza) {
   const [sobre, setSobre] = useState(false)
   const tamano: [number, number, number] = [(caja.x1 - caja.x0) * MM, (caja.y1 - caja.y0) * MM, (caja.z1 - caja.z0) * MM]
   const centro: [number, number, number] = [((caja.x0 + caja.x1) / 2) * MM, ((caja.y0 + caja.y1) / 2) * MM, ((caja.z0 + caja.z1) / 2) * MM]
@@ -132,10 +134,10 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
       ))}
       <Edges
         threshold={15}
-        color={seleccionada || fantasma || marcada ? '#d98a2b' : '#2b2825'}
-        lineWidth={seleccionada ? 2.5 : marcada || boceto ? 1.8 : 1}
+        color={problema ? '#b4452f' : seleccionada || fantasma || marcada ? '#d98a2b' : '#2b2825'}
+        lineWidth={seleccionada ? 2.5 : problema ? 2.2 : marcada || boceto ? 1.8 : 1}
         transparent
-        opacity={atenuada ? 0.15 : seleccionada || marcada || boceto ? 1 : 0.45}
+        opacity={atenuada ? 0.15 : seleccionada || marcada || problema || boceto ? 1 : 0.45}
       />
     </animated.mesh>
   )

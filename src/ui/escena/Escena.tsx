@@ -22,6 +22,8 @@ interface PropsEscena {
   fantasmas: string[]
   /** Piezas que una propuesta cambia: aristas ámbar. */
   marcadas: string[]
+  /** Pieces with unresolved validation problems. */
+  problemas?: string[]
 }
 
 /** Cuánto se separa cada pieza en la vista de armado: hacia afuera del centro, sobre todo en la dirección de su espesor, sin bajar del piso. */
@@ -81,7 +83,7 @@ function Camara({ diseno, altoVisible, reducido }: { diseno: Diseno; altoVisible
   return <CameraControls ref={controles} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
 }
 
-export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEscena) {
+export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas = [] }: PropsEscena) {
   const seleccion = useTienda((s) => s.seleccion)
   const explosion = useTienda((s) => s.explosion)
   const cotas = useTienda((s) => s.cotas)
@@ -123,6 +125,7 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas }: PropsEsce
             atenuada={!!seleccion && seleccion !== p.id}
             fantasma={fantasmas.includes(p.id)}
             marcada={marcadas.includes(p.id)}
+            problema={problemas.includes(p.id)}
             resaltar={cambios.modificadas.includes(p.id) ? cambios.vez : 0}
             nueva={cambios.agregadas.includes(p.id)}
             reducido={reducido}

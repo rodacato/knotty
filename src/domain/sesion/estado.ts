@@ -3,6 +3,7 @@ import { Diseno, Dimensiones } from '../diseno/esquema'
 import { Decision, Origen, Version } from '../historial/historial'
 import { Operacion } from '../operaciones/esquema'
 import { Requisito } from '../requisitos/requisitos'
+import { TraceEntry } from '../trace/trace'
 import { Comprobacion, OpinionCarpintero, Veredicto } from '../viabilidad/viabilidad'
 
 // La sesión de diseño completa: lo que se guarda y se recupera al recargar.
@@ -92,6 +93,7 @@ export const EstadoDiseno = z.object({
   miniaturas: z.array(Miniatura),
   propuesta: Propuesta.nullable(),
   dictamen: Dictamen.nullable().default(null),
+  trace: z.array(TraceEntry).default([]),
 })
 export type EstadoDiseno = z.infer<typeof EstadoDiseno>
 
