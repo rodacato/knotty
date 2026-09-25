@@ -7,7 +7,7 @@ const respuesta = { explicacion: 'Veo un librero', diseno: librero, preguntas: [
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [{ message: { content: contenido } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
-const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: librero.dimensiones, fotos, notas: '', catalogo, correccion: null })
+const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: librero.dimensiones, fotos, notas: '', lectura: null, catalogo, correccion: null })
 let host = 0
 const nueva = () => crearCompatible({ proveedor: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', etiqueta: 'SheLLM · claude' })
 
@@ -25,7 +25,7 @@ describe('crearCompatible', () => {
     })
     vi.stubGlobal('fetch', fetch)
     const experto = crearCompatible({ proveedor: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', etiqueta: 'SheLLM' })
-    const solicitud = { medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: '', catalogo, correccion: null }
+    const solicitud = { medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: '', lectura: null, catalogo, correccion: null }
 
     const r = await experto.reconstruir(solicitud, new AbortController().signal)
     expect(r.valor.diseno.nombre).toBe('Librero')
@@ -187,7 +187,7 @@ describe('crearCompatible', () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)
     await crearCompatible({ proveedor: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', modelo: 'gpt', etiqueta: 'OpenAI' }).reconstruir(
-      { medidas: librero.dimensiones, fotos: [], notas: '', catalogo, correccion: null },
+      { medidas: librero.dimensiones, fotos: [], notas: '', lectura: null, catalogo, correccion: null },
       new AbortController().signal,
     )
     expect((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].headers).toMatchObject({ authorization: 'Bearer sk-x' })

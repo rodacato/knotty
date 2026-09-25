@@ -4,6 +4,7 @@ import { alacena } from '../../../domain/fixtures/alacena'
 import { buro } from '../../../domain/fixtures/buro'
 import { librero } from '../../../domain/fixtures/librero'
 import type { Operacion } from '../../../domain/operaciones/esquema'
+import type { PhotoReading } from '../../../domain/reading/reading'
 import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
 import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
 
@@ -234,7 +235,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
     etiqueta: 'Simulado',
     async reconstruir(s, signal) {
       await espera(retraso * 2, signal)
-      const sinFotos = s.fotos.length === 0
+      const sinFotos = s.fotos.length === 0 && !s.lectura
       const base = elegirFixture(s.medidas, s.notas)
       const diseno = { ...structuredClone(base), dimensiones: s.medidas ?? base.dimensiones }
       const trasera = diseno.piezas.find((p) => p.id === 'trasera')
@@ -261,6 +262,22 @@ export function crearSimulado(retraso = 900): LLMProvider {
     async proponerAjuste(s, signal) {
       await espera(retraso, signal)
       return respuesta(proponer(s.peticion, s.diseno, s.propuesta, s.fotos.length > 0))
+    },
+    async readPhoto(r, signal) {
+      await espera(retraso, signal)
+      const base = elegirFixture(null, `${r.context} ${r.photo.note ?? ''}`)
+      const front = r.photo.angulo !== 'lateral'
+      return respuesta<PhotoReading>({
+        kind: base.nombre.toLowerCase(),
+        confidence: 'medium',
+        description: `Parece un ${base.nombre.toLowerCase()} de triplay. (Lectura simulada.)`,
+        proportions: { height: base.dimensiones.alto / base.dimensiones.ancho, width: 1, depth: base.dimensiones.fondo / base.dimensiones.ancho },
+        base: base === librero ? 'kick' : 'floor',
+        topOverhangs: false,
+        columns: front ? [{ width: 1, cells: [{ height: 1, content: base === alacena ? 'door' : 'open', shelves: base === librero ? 4 : 1, doors: base === alacena ? 2 : null }] }] : null,
+        details: [],
+        doubts: ['No se ve cómo va fijada la trasera'],
+      })
     },
     async dictaminar(s, signal) {
       await espera(retraso, signal)

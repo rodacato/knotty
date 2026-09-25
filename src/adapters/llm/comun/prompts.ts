@@ -1,7 +1,8 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import ajuste from '../prompts/ajuste.v5.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
-import reconstruccion from '../prompts/reconstruccion.v5.md?raw'
+import lectura from '../prompts/lectura.v1.md?raw'
+import reconstruccion from '../prompts/reconstruccion.v6.md?raw'
 import sistema from '../prompts/sistema.v4.md?raw'
 
 interface Prompt {
@@ -19,6 +20,8 @@ const SISTEMA = leer(sistema)
 export const RECONSTRUCCION = leer(reconstruccion)
 export const AJUSTE = leer(ajuste)
 export const DICTAMEN = leer(dictamen)
+/** Stands alone, without the system prompt: reading a photo needs no catalog or model rules. */
+export const LECTURA = leer(lectura)
 
 function describirCatalogo(c: Catalogo) {
   return [

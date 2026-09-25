@@ -44,7 +44,7 @@ describe('reconstruir', () => {
     expect(disenoActual(estado).nombre).toBe('Librero')
     expect(estado.chat[1].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
     expect(estado.chat[1].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
-    expect(etapas).toEqual(['mirando-fotos', 'revisando', 'estructura'])
+    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'mirando-fotos', 'revisando', 'estructura'])
     expect(c.repositorio.estado).toEqual(estado)
   })
 })
@@ -334,8 +334,8 @@ describe('never throw away a paid design', () => {
   it('an overlap is fixed by rule, without asking the model again', async () => {
     const estado = await libreroInicial(casos(cambiando(conEncimada)))
     expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-copia')).toBe(false)
-    expect(estado.trace).toHaveLength(1)
-    expect(estado.trace[0]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
+    expect(estado.trace.map((t) => t.step)).toEqual(['read', 'reconstruct'])
+    expect(estado.trace[1]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
     expect(estado.chat[1].texto).toContain('Ajusté por mi cuenta un detalle')
   })
 
@@ -345,8 +345,9 @@ describe('never throw away a paid design', () => {
     expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(true)
     expect(estado.chat[1].texto).toContain('quedaron una pieza sin apoyo')
     expect(estado.chat[1].sugerencias[0]).toBe('Corrige las piezas marcadas')
-    expect(estado.trace.map((t) => t.outcome)).toEqual(['invalid', 'invalid', 'invalid'])
-    expect(estado.trace[0].errors[0].code).toBe('E_FLOTANTE')
+    const disenos = estado.trace.filter((t) => t.step === 'reconstruct')
+    expect(disenos.map((t) => t.outcome)).toEqual(['invalid', 'invalid', 'invalid'])
+    expect(disenos[0].errors[0].code).toBe('E_FLOTANTE')
   })
 
   it('a change that fixes the problem is applied, and one that adds a new problem is not', async () => {
@@ -365,6 +366,58 @@ describe('never throw away a paid design', () => {
 
   it('a provider failure carries the trace so far', async () => {
     const llm: LLMProvider = { ...crearSimulado(0), reconstruir: async () => Promise.reject(new Error('No se pudo conectar')) }
-    await expect(libreroInicial(casos(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ outcome: 'failed', step: 'reconstruct' }] })
+    await expect(libreroInicial(casos(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ step: 'read', outcome: 'ok' }, { outcome: 'failed', step: 'reconstruct' }] })
+  })
+})
+
+describe('photos are read once, in parallel, and not sent again', () => {
+  const dosFotos = { medidas: MEDIDAS_LIBRERO, fotos: [{ angulo: 'frente', base64: 'AAA', note: 'la de abajo es puerta' }, { angulo: 'lateral', base64: 'BBB' }], miniaturas: [], notas: 'librero' }
+  const espiando = (falla: (angulo: string) => boolean = () => false) => {
+    const simulado = crearSimulado(0)
+    const lecturas: string[] = []
+    const disenos: { fotos: number; lectura: boolean }[] = []
+    const llm: LLMProvider = {
+      ...simulado,
+      readPhoto: async (r, signal) => {
+        lecturas.push(`${r.photo.angulo}:${r.photo.note ?? ''}`)
+        if (falla(r.photo.angulo)) throw new Error('sin conexión')
+        return simulado.readPhoto(r, signal)
+      },
+      reconstruir: async (s, signal) => {
+        disenos.push({ fotos: s.fotos.length, lectura: !!s.lectura })
+        return simulado.reconstruir(s, signal)
+      },
+    }
+    return { llm, lecturas, disenos }
+  }
+
+  it('reads each photo with its note and designs from the reading, without the images', async () => {
+    const { llm, lecturas, disenos } = espiando()
+    const estado = await casos(llm).reconstruir(dosFotos, senal())
+    expect(lecturas.sort()).toEqual(['frente:la de abajo es puerta', 'lateral:'])
+    expect(disenos).toEqual([{ fotos: 0, lectura: true }])
+    expect(estado.chat[0].texto).toContain('Sobre la foto frente: la de abajo es puerta')
+    expect(estado.trace.filter((t) => t.step === 'read').map((t) => t.subject).sort()).toEqual(['Foto frente', 'Foto lateral'])
+  })
+
+  it('does not read the same photo twice in a session', async () => {
+    const { llm, lecturas } = espiando()
+    const c = casos(llm)
+    await c.reconstruir(dosFotos, senal())
+    await c.reconstruir(dosFotos, senal())
+    expect(lecturas).toHaveLength(2)
+  })
+
+  it('a photo that cannot be read is retried alone and then left out', async () => {
+    const { llm, lecturas, disenos } = espiando((angulo) => angulo === 'lateral')
+    await casos(llm).reconstruir(dosFotos, senal())
+    expect(lecturas.filter((l) => l.startsWith('lateral'))).toHaveLength(2)
+    expect(disenos).toEqual([{ fotos: 0, lectura: true }])
+  })
+
+  it('if no photo can be read, the design looks at the photos itself', async () => {
+    const { llm, disenos } = espiando(() => true)
+    await casos(llm).reconstruir(dosFotos, senal())
+    expect(disenos).toEqual([{ fotos: 2, lectura: false }])
   })
 })
