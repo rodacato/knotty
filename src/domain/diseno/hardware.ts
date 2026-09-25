@@ -1,4 +1,4 @@
-import { bisagrasPara } from '../estructura/supuestos'
+import { hingesFor } from '../structure/assumptions'
 import type { Diseno } from './esquema'
 import type { Box } from './resolve'
 
@@ -37,7 +37,7 @@ export function hardwareParts(design: Diseno, boxes: Map<string, Box>): Hardware
       const onLeft = Math.abs((b.x0 + b.x1) / 2 - door.x0) <= Math.abs((b.x0 + b.x1) / 2 - door.x1)
       const x = onLeft ? door.x0 + CUP_INSET : door.x1 - CUP_INSET
       const height = door.y1 - door.y0
-      const n = bisagrasPara(height)
+      const n = hingesFor(height)
       const span = height - 2 * HINGE_FROM_END
       for (let i = 0; i < n; i++)
         parts.push({ kind: 'hinge', owner: u.a, center: [x, door.y0 + HINGE_FROM_END + (n > 1 ? (span * i) / (n - 1) : span / 2), door.z0], diameter: CUP_DIAMETER, depth: CUP_DEPTH })

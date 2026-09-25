@@ -1,6 +1,6 @@
 import { analizar } from '../domain/analisis'
 import type { Diseno } from '../domain/diseno/esquema'
-import { claveHallazgo, type Hallazgo, type Severidad } from '../domain/estructura/hallazgo'
+import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
 import type { Catalogo } from '../domain/materiales/catalogo'
 import { verificarRequisitos } from '../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
@@ -14,12 +14,12 @@ export interface Notice {
   /** Stable while the problem lasts, so accepting it and seeing it resolved refer to the same thing. */
   key: string
   kind: NoticeKind
-  severity: Severidad | 'decision'
+  severity: Severity | 'decision'
   title: string
   message: string
   pieces: string[]
   /** The findings behind a finding notice: its keys are what gets accepted. */
-  findings: Hallazgo[]
+  findings: Finding[]
   /** For a question: the chat message it belongs to and its index. */
   question?: { messageId: string; index: number }
 }
@@ -48,18 +48,18 @@ const RANK = { critico: 0, decision: 1, recomendacion: 2, detalle: 3 }
 const named = (design: Diseno, text: string) => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
 
 /** Findings of the same rule and severity read as one notice, with all their pieces. */
-function findingNotices(findings: Hallazgo[]): Notice[] {
-  const groups = new Map<string, Hallazgo[]>()
-  for (const h of findings) groups.set(`${h.codigo}|${h.severidad}`, [...(groups.get(`${h.codigo}|${h.severidad}`) ?? []), h])
+function findingNotices(findings: Finding[]): Notice[] {
+  const groups = new Map<string, Finding[]>()
+  for (const h of findings) groups.set(`${h.code}|${h.severity}`, [...(groups.get(`${h.code}|${h.severity}`) ?? []), h])
   return [...groups.values()].map((group) => {
     const [first] = group
     return {
-      key: `finding:${group.map(claveHallazgo).sort().join('+')}`,
+      key: `finding:${group.map(findingKey).sort().join('+')}`,
       kind: 'finding',
-      severity: first.severidad,
-      title: TITLES[first.codigo] ?? first.codigo,
-      message: `${first.mensaje}${group.length > 1 ? ` Y ${group.length - 1 === 1 ? 'otra pieza' : `${group.length - 1} piezas más`} igual.` : ''}`,
-      pieces: [...new Set(group.flatMap((h) => h.piezas))],
+      severity: first.severity,
+      title: TITLES[first.code] ?? first.code,
+      message: `${first.message}${group.length > 1 ? ` Y ${group.length - 1 === 1 ? 'otra pieza' : `${group.length - 1} piezas más`} igual.` : ''}`,
+      pieces: [...new Set(group.flatMap((h) => h.pieces))],
       findings: group,
     }
   })
@@ -74,12 +74,12 @@ function noticesOf(estado: EstadoDiseno, design: Diseno, catalog: Catalogo): Not
       kind: 'problem',
       severity: 'critico',
       title: 'Problemas sin resolver',
-      message: analysis.errores.map((e) => named(design, e.mensaje)).join(' '),
-      pieces: [...new Set(analysis.errores.flatMap((e) => Object.values(e.datos ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
+      message: analysis.errores.map((e) => named(design, e.message)).join(' '),
+      pieces: [...new Set(analysis.errores.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
       findings: [],
     })
   for (const e of verificarRequisitos(design, estado.requisitos))
-    notices.push({ key: `requirement:${e.mensaje}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.mensaje, pieces: [], findings: [] })
+    notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
   if (analysis.valido) notices.push(...findingNotices(analysis.hallazgos))
   return notices
 }
@@ -89,7 +89,7 @@ export function noticeBoard(estado: EstadoDiseno, catalog: Catalogo): NoticeBoar
   const design = disenoActual(estado)
   const accepted = new Set(estado.accepted.map((a) => a.key))
   const all = noticesOf(estado, design, catalog)
-  const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(claveHallazgo(h)))
+  const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))
 
   const extra: Notice[] = []
   if (estado.propuesta)
@@ -112,13 +112,13 @@ export function noticeBoard(estado: EstadoDiseno, catalog: Catalogo): NoticeBoar
 
   const ordered = [...estado.versiones].sort((a, b) => a.n - b.n)
   const before = ordered[ordered.findIndex((v) => v.n === estado.actual) - 1]
-  const now = new Set(all.flatMap((n) => n.findings.map(claveHallazgo)))
+  const now = new Set(all.flatMap((n) => n.findings.map(findingKey)))
   const resolved = before
     ? noticesOf(estado, before.diseno, catalog)
         .filter((n) => n.kind === 'finding')
         .flatMap((n) => {
-          const gone = n.findings.filter((h) => !now.has(claveHallazgo(h)))
-          const names = [...new Set(gone.flatMap((h) => h.piezas.map((id) => before.diseno.piezas.find((p) => p.id === id)?.nombre ?? id)))]
+          const gone = n.findings.filter((h) => !now.has(findingKey(h)))
+          const names = [...new Set(gone.flatMap((h) => h.pieces.map((id) => before.diseno.piezas.find((p) => p.id === id)?.nombre ?? id)))]
           return gone.length ? [`${n.title}${names.length ? `: ${names.join(', ')}` : ''}`] : []
         })
     : []

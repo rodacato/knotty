@@ -13,7 +13,7 @@ const validate = (d: Diseno) => {
   if (!r.ok) throw new Error(JSON.stringify(r.errores))
   return validateGeometry(d, r.valor, catalogo)
 }
-const codes = (d: Diseno) => validate(d).errors.map((e) => e.codigo)
+const codes = (d: Diseno) => validate(d).errors.map((e) => e.code)
 
 describe('validateGeometry', () => {
   it.each([librero, buro, alacena])('the fixtures have no errors or warnings: $nombre', (d) => {
@@ -59,6 +59,6 @@ describe('validateGeometry', () => {
   it('warns about touching pieces with no joint', () => {
     const d = structuredClone(librero)
     d.uniones = d.uniones.filter((u) => u.id !== 'u-zoclo-piso')
-    expect(validate(d).warnings.map((a) => a.datos)).toEqual([{ a: 'zoclo', b: 'piso' }])
+    expect(validate(d).warnings.map((a) => a.data)).toEqual([{ a: 'zoclo', b: 'piso' }])
   })
 })

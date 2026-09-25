@@ -13,8 +13,8 @@ const cabinet = (p: Partial<CabinetPlan>) =>
   buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, catalogo).design
 const usage = (d: Diseno) => {
   const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].mensaje)
-  return a.hallazgos.filter((h) => h.codigo === 'R10_USO').map((h) => [h.severidad, h.mensaje] as const)
+  if (!a.valido) throw new Error(a.errores[0].message)
+  return a.hallazgos.filter((h) => h.code === 'R10_USO').map((h) => [h.severity, h.message] as const)
 }
 
 describe('detectKind', () => {

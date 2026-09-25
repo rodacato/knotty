@@ -1,7 +1,7 @@
 import { EJES, type Diseno, type Eje, type Union } from '../diseno/esquema'
 import { roundTo, type Geometry } from '../diseno/resolve'
 import { jointLength } from '../validation/contact'
-import { bisagrasPara } from '../estructura/supuestos'
+import { hingesFor } from '../structure/assumptions'
 import { acomodar, type AcomodoMaterial } from './acomodo'
 import type { Catalogo, Herraje, MaterialTablero } from './catalogo'
 
@@ -57,7 +57,7 @@ export function cantidadPorUnion(u: Union, geo: Geometry): number {
     case 'bisagra-cazoleta': {
       const puerta = geo.boxes.get(u.a)
       const alto = puerta ? puerta.y1 - puerta.y0 : 0
-      return bisagrasPara(alto)
+      return hingesFor(alto)
     }
     case 'escuadra':
       return 2

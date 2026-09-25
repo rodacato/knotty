@@ -25,8 +25,8 @@ describe('buildCabinet', () => {
   it.each(Object.entries(PLANS))('builds a valid %s with no overlaps and every contact joined', (_, p) => {
     const { design, notes } = buildCabinet(p, catalogo)
     const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores.map((e) => e.mensaje).join('\n'))
-    expect(a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    if (!a.valido) throw new Error(a.errores.map((e) => e.message).join('\n'))
+    expect(a.avisos.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
     expect(notes).toEqual([])
   })
 
@@ -51,7 +51,7 @@ describe('buildCabinet', () => {
   it('scales column widths and cell heights that do not add up to 1', () => {
     const { design } = buildCabinet(plan({ columns: [{ width: 2, cells: [cell('open', 3)] }, { width: 2, cells: [cell('open', 3)] }] }), catalogo)
     const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores[0].mensaje)
+    if (!a.valido) throw new Error(a.errores[0].message)
     expect(a.geo.boxes.get('div-1')!.x0).toBe(291)
   })
 })
@@ -82,15 +82,15 @@ describe('construction variants', () => {
   it.each(combos.map((c) => [Object.values(c).join(' · '), c] as const))('%s is valid, with nothing overlapping and every contact joined', (_, construction) => {
     const { design, notes } = buildCabinet({ ...mixed, construction }, catalogo)
     const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores.map((e) => e.mensaje).join('\n'))
-    expect(a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    if (!a.valido) throw new Error(a.errores.map((e) => e.message).join('\n'))
+    expect(a.avisos.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
     expect(notes).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
     const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, catalogo)
     const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores[0].mensaje)
+    if (!a.valido) throw new Error(a.errores[0].message)
     const door = a.geo.boxes.get('c1-h1-puerta-izq')!
     expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
     expect(door.z1).toBe(320)
@@ -100,7 +100,7 @@ describe('construction variants', () => {
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
       const a = analizar(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, catalogo).design, catalogo)
-      if (!a.valido) throw new Error(a.errores[0].mensaje)
+      if (!a.valido) throw new Error(a.errores[0].message)
       return a.geo.boxes.get('cajon-1-frente')!
     }
     expect(front('overlay').x0).toBe(2)

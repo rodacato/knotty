@@ -63,7 +63,7 @@ function medido(llm: LLMProvider, llamadas: Llamada[]): LLMProvider {
     async (...a: A) => {
       const inicio = performance.now()
       const previa = (a[0] as { correccion?: { errores: unknown } | null }).correccion?.errores
-      const corrige = Array.isArray(previa) ? previa.map((e: { codigo: string }) => e.codigo) : typeof previa === 'string' ? [previa.slice(0, 40)] : []
+      const corrige = Array.isArray(previa) ? previa.map((e: { code: string }) => e.code) : typeof previa === 'string' ? [previa.slice(0, 40)] : []
       try {
         const r = await f(...a)
         llamadas.push({ segundos: (performance.now() - inicio) / 1000, salida: r.consumo.tokensSalida ?? null, corrige })
@@ -159,8 +159,8 @@ async function correr(spec: string, caso: Caso): Promise<Result> {
     if (!a.valido) return { ...resultado, veredicto: 'inválido' }
     const compra = estimarCompra(diseno, a.geo, catalogo)
     const v = revisarViabilidad({ diseno, geo: a.geo, catalogo, compra, hallazgos: a.hallazgos, incumplidos: [] })
-    const criticos = a.hallazgos.filter((h) => h.severidad === 'critico')
-    return { ...resultado, criticos: criticos.length, reglas: [...new Set(criticos.map((h) => h.codigo))].join(' '), veredicto: v.veredicto }
+    const criticos = a.hallazgos.filter((h) => h.severity === 'critico')
+    return { ...resultado, criticos: criticos.length, reglas: [...new Set(criticos.map((h) => h.code))].join(' '), veredicto: v.veredicto }
   } catch (e) {
     return { ...base, ok: false, error: e instanceof Error ? e.message : String(e), segundos: (performance.now() - inicio) / 1000, intentos: llamadas.length }
   }

@@ -185,7 +185,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
 
   const geoMostrada = analisisMostrado.geo
   const problemasMostrados = analisisMostrado.valido ? [] : analisisMostrado.errores
-  const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.datos ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
+  const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
 
   const escena = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
@@ -196,7 +196,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           </BordeEscena>
         </div>
       ) : (
-        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {problemasMostrados[0]?.mensaje}</div>
+        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {problemasMostrados[0]?.message}</div>
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />

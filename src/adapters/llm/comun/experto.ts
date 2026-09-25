@@ -80,7 +80,7 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
     etiqueta,
     async reconstruir(s: SolicitudReconstruccion, signal) {
       const contenido = designRequest(s)
-      if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`).join('\n')))
+      if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
       const { json, consumo, avisos } = await t.completarJSON(sistemaPara(RECONSTRUCCION, s.catalogo), contenido, ESQUEMA_RECONSTRUCCION, 'reconstruccion', signal)
       return { valor: validar(RespuestaReconstruccion, json), origen: { promptId: idPrompt(RECONSTRUCCION), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
@@ -98,7 +98,7 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
     },
     async planDesign(s: SolicitudReconstruccion, signal) {
       const contenido = designRequest(s)
-      if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`).join('\n')))
+      if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
       const { json, consumo, avisos } = await t.completarJSON(ESQUELETO.texto.replaceAll('{{materiales}}', materialsText(s.catalogo)), contenido, PLAN_SCHEMA, 'esqueleto', signal)
       return { valor: validar(RespuestaPlan, json), origen: { promptId: ESQUELETO.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },

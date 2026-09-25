@@ -24,7 +24,7 @@ const TOLERANCE = 0.5
 
 class ResolveFailure extends Error {
   constructor(readonly detail: DesignError) {
-    super(detail.mensaje)
+    super(detail.message)
   }
 }
 
@@ -135,7 +135,7 @@ export function resolveGeometry(design: Diseno, catalog: Catalogo): Result<Geome
         return extentOf(p, axis)
       } catch (e) {
         if (!(e instanceof ResolveFailure)) throw e
-        if (!errors.some((other) => other.mensaje === e.detail.mensaje)) errors.push(e.detail)
+        if (!errors.some((other) => other.message === e.detail.message)) errors.push(e.detail)
         return null
       }
     })

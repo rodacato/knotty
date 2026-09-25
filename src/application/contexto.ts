@@ -26,10 +26,10 @@ export function construirContexto(estado: EstadoDiseno, catalogo: Catalogo): str
       '',
       '## Revisión estructural',
       ...(analisis.hallazgos.length
-        ? analisis.hallazgos.map((h) => `- [${SEVERIDAD[h.severidad]}] ${h.codigo} ${h.piezas.join(', ')}: ${h.mensaje} Alternativas: ${h.alternativas.map((a) => `${a.descripcion} ${JSON.stringify(a.datos)}`).join('; ')}`)
+        ? analisis.hallazgos.map((h) => `- [${SEVERIDAD[h.severity]}] ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternativas: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`)
         : ['Sin observaciones.']),
     )
-  } else fijo.push('', '## Errores del diseño actual', ...analisis.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`))
+  } else fijo.push('', '## Errores del diseño actual', ...analisis.errores.map((e) => `- ${e.code}: ${e.message}`))
 
   fijo.push('', '## Requisitos del usuario', ...(estado.requisitos.length ? estado.requisitos.map((r) => `- [${r.id}] ${r.texto}`) : ['Ninguno todavía.']))
   if (estado.propuesta)

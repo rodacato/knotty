@@ -34,7 +34,7 @@ const freeform = (d: Diseno): Diseno => ({ ...d, uniones: d.uniones.filter((u) =
 const r9 = (d: Diseno) => {
   const a = analizar(d, catalogo)
   if (!a.valido) throw new Error(JSON.stringify(a.errores))
-  return a.hallazgos.filter((h) => h.codigo === 'R9_CAJONES')
+  return a.hallazgos.filter((h) => h.code === 'R9_CAJONES')
 }
 
 describe('R9 for freeform drawers', () => {
@@ -57,10 +57,10 @@ describe('R9 for freeform drawers', () => {
       p.id === 'cajon-1-costado-izq' ? { ...p, x: startAt({ tipo: 'mm', mm: 120 }) } : p.id === 'cajon-1-fondo' ? { ...p, x: extent(ref('cajon-1-costado-izq.x0'), ref('cajon-1-costado-der.x1')) } : p,
     )
     const [finding] = r9(d)
-    expect(finding).toMatchObject({ severidad: 'critico', mensaje: expect.stringContaining('no tiene dónde atornillar la corredera') })
+    expect(finding).toMatchObject({ severity: 'critico', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
     const [fix] = fixesFor(d, catalogo, finding)
     expect(fix.key).toBe('apoyo-corredera')
-    expect(r9(fix.design).filter((h) => h.severidad === 'critico')).toEqual([])
+    expect(r9(fix.design).filter((h) => h.severity === 'critico')).toEqual([])
     expect(fix.design.uniones.some((u) => u.tipo === 'corredera' && u.a === 'cajon-1-costado-izq')).toBe(true)
   })
 
@@ -80,6 +80,6 @@ describe('R9 for freeform drawers', () => {
       uniones: [makeJoint('u-techo-izq', 'lat-izq', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]), makeJoint('u-techo-der', 'lat-der', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }])],
     }
     const d = build(low, [drawer({ abajo: 'mueble.y0', arriba: 'techo.y0' })])
-    expect(r9(d).map((h) => h.mensaje)).toEqual([expect.stringContaining('llega al suelo')])
+    expect(r9(d).map((h) => h.message)).toEqual([expect.stringContaining('llega al suelo')])
   })
 })

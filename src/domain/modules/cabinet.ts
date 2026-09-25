@@ -195,7 +195,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalogo): BuiltCabinet
   for (const drawer of drawers) {
     const result = aplicar(design, [drawer.operation], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.operation.nombre}: ${result.errores[0]?.mensaje ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.operation.nombre}: ${result.errores[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
     design = result.valor.diseno

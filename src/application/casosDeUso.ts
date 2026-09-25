@@ -2,8 +2,8 @@ import { analizar } from '../domain/analisis'
 import { DIMENSION_DE_EJE, type Cota, type Dimensiones, type Diseno, type Eje } from '../domain/diseno/esquema'
 import { normalize } from '../domain/diseno/normalize'
 import { completeJoints } from '../domain/diseno/joints'
-import { claveHallazgo, type Hallazgo } from '../domain/estructura/hallazgo'
-import { criticosNuevos } from '../domain/estructura/motor'
+import { findingKey, type Finding } from '../domain/structure/finding'
+import { newCriticals } from '../domain/structure/review'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
 import { materialPorId, type Catalogo } from '../domain/materiales/catalogo'
 import { estimarCompra } from '../domain/materiales/compra'
@@ -48,7 +48,7 @@ export interface FotoEnviada {
   base64: string
   miniatura: string
 }
-const listarErrores = (errores: DesignError[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
+const listarErrores = (errores: DesignError[]) => errores.map((e) => `- ${e.code}: ${e.message}${e.data ? ` ${JSON.stringify(e.data)}` : ''}`).join('\n')
 
 /** Lo que la persona pidió al empezar, como primer mensaje del chat. */
 function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; notas: string }) {
@@ -59,8 +59,8 @@ function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; no
 }
 
 /** Si el experto no ofreció opciones ante un crítico, se ofrecen las alternativas que calculó el motor. */
-function preguntaDeAlternativas(criticos: Hallazgo[]): Pregunta[] {
-  const opciones = [...new Set(criticos.flatMap((h) => h.alternativas.filter((a) => a.clave !== 'claro-maximo').map((a) => a.descripcion)))].slice(0, 3)
+function preguntaDeAlternativas(criticos: Finding[]): Pregunta[] {
+  const opciones = [...new Set(criticos.flatMap((h) => h.alternatives.filter((a) => a.key !== 'claro-maximo').map((a) => a.description)))].slice(0, 3)
   return opciones.length ? [{ texto: '¿Cómo lo resolvemos?', opciones }] : []
 }
 
@@ -176,7 +176,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const, respondida: true } : m)) }
   }
 
-  const hallazgosDe = (diseno: Diseno, requisitos: Requisito[]): Hallazgo[] => {
+  const hallazgosDe = (diseno: Diseno, requisitos: Requisito[]): Finding[] => {
     const a = analizar(diseno, catalogo, requisitos)
     return a.valido ? a.hallazgos : []
   }
@@ -295,7 +295,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           throw new ErrorExperto(e instanceof Error ? e.message : 'Algo falló al consultar al experto.', trace)
         }
         trace.push(traceEntry('reconstruct', intento, started, null, 'unreadable', [{ code: 'E_ESQUEMA', message: e.problemas.slice(0, 500) }]))
-        correccion = { respuestaAnterior: e.respuesta, errores: [{ codigo: 'E_ESQUEMA', mensaje: e.problemas }] }
+        correccion = { respuestaAnterior: e.respuesta, errores: [{ code: 'E_ESQUEMA', message: e.problemas }] }
         continue
       }
       alAvanzar('revisando', intento)
@@ -439,14 +439,14 @@ export function crearCasosDeUso(deps: Dependencias) {
       trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], rebuilt.repairs, 'Ficha'))
       alAvanzar('estructura', 0)
       const extras = vigentePlan.extras.filter((e) => !rebuilt.dropped.includes(e))
-      const criticos = criticosNuevos(antes, analysis.hallazgos)
+      const criticos = newCriticals(antes, analysis.hallazgos)
       if (criticos.length) {
         const propuesta = {
           diseno: rebuilt.design,
           operaciones: [],
           resumen: r.resumen,
           motivo: peticion,
-          criticos: criticos.map((h) => ({ codigo: h.codigo, mensaje: h.mensaje, piezas: h.piezas })),
+          criticos: criticos.map((h) => ({ codigo: h.code, mensaje: h.message, piezas: h.pieces })),
           requisitos,
           decisiones: r.decisiones,
           origen: respuesta.origen,
@@ -503,7 +503,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           const errores = !aplicado.ok ? aplicado.errores : analisis && !analisis.valido ? analisis.errores : []
           trace.push(traceEntry('adjust', intento, started, respuesta, 'invalid', traceErrors(errores), repairs))
           correccion = { respuestaAnterior: r, errores: listarErrores(errores) }
-          ultimoError = errores[0]?.mensaje ?? 'el cambio no se pudo aplicar'
+          ultimoError = errores[0]?.message ?? 'el cambio no se pudo aplicar'
           continue
         }
         trace.push(traceEntry('adjust', intento, started, respuesta, 'ok', analisis.valido ? [] : traceErrors(analisis.errores), repairs))
@@ -535,7 +535,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           return responder(r.explicacion, { preguntas: r.preguntas, propuesta: 'pendiente', sugerencias }, pendiente)
         }
         const aceptados = new Set(r.aceptaRiesgo.map((a) => a.codigo))
-        const criticos = criticosNuevos(antes, hallazgosNuevos).filter((h) => !aceptados.has(h.codigo))
+        const criticos = newCriticals(antes, hallazgosNuevos).filter((h) => !aceptados.has(h.code))
         if (criticos.length && !criticosRevisados && !r.preguntas.length) {
           criticosRevisados = true
           intento--
@@ -543,7 +543,7 @@ export function crearCasosDeUso(deps: Dependencias) {
             respuestaAnterior: r,
             errores: [
               'El cambio es válido pero deja estos problemas estructurales críticos nuevos:',
-              ...criticos.map((h) => `- ${h.codigo} ${h.piezas.join(', ')}: ${h.mensaje} Alternativas: ${h.alternativas.map((a) => `${a.descripcion} ${JSON.stringify(a.datos)}`).join('; ')}`),
+              ...criticos.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternativas: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`),
               'Si la solución es clara, inclúyela en las operaciones. Si hay que elegir, deja las operaciones del pedido y ofrece las opciones en preguntas.',
             ].join('\n'),
           }
@@ -556,7 +556,7 @@ export function crearCasosDeUso(deps: Dependencias) {
             operaciones: r.operaciones,
             resumen: r.resumen,
             motivo: peticion,
-            criticos: criticos.map((h) => ({ codigo: h.codigo, mensaje: h.mensaje, piezas: h.piezas })),
+            criticos: criticos.map((h) => ({ codigo: h.code, mensaje: h.message, piezas: h.pieces })),
             requisitos,
             decisiones: r.decisiones,
             origen: respuesta.origen,
@@ -568,7 +568,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         }
 
         const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen, ...layered(vigentePlan, r.operaciones) })
-        const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
+        const avisos = aplicado.valor.avisos.map((a) => a.message)
         return responder([r.explicacion, ...ajustes, ...quedan, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, sugerencias, version: conCambio.actual }, conCambio)
       }
       const motivo = ultimoError.trim().replace(/\.?$/, '.')
@@ -654,7 +654,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const { design, notes, dropped } = rebuildFromPlan(parsed.data, vigente.diverged ? [] : vigente.extras, catalogo, estado.requisitos)
     const analysis = analizar(design, catalogo, estado.requisitos)
     if (!analysis.valido) {
-      const first = design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), analysis.errores[0]?.mensaje ?? '')
+      const first = design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), analysis.errores[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errores))}. ${first}` }
     }
     const previous = vigente.plan
@@ -702,7 +702,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       const withVersion = conVersion(estado, candidate, { resumen: summary.slice(0, 90), motivo: `A mano: ${summary}`, operaciones, origen: null, ...layered(vigente, operaciones) })
       return { ok: true, estado: guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`, { version: withVersion.actual })] }) }
     }
-    const reason = !applied.ok ? applied.errores[0]?.mensaje : after && !after.valido ? after.errores.find((e) => !before.has(errorKey(e)))?.mensaje : undefined
+    const reason = !applied.ok ? applied.errores[0]?.message : after && !after.valido ? after.errores.find((e) => !before.has(errorKey(e)))?.message : undefined
     const named = (text = '') => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
     // Tied to the outside of the piece: what can change is the whole piece of furniture.
     const alternatives: { label: string; axis: Eje; value: number }[] =
@@ -754,11 +754,11 @@ export function crearCasosDeUso(deps: Dependencias) {
     const current = disenoActual(estado)
     const r = restorePieces(current, before.diseno, ids, catalogo)
     const named = (text = '') => current.piezas.concat(before.diseno.piezas).reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
-    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(r.errors[0]?.mensaje) || 'choca con lo que cambió después'}` }
+    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(r.errors[0]?.message) || 'choca con lo que cambió después'}` }
     const previousErrors = analizar(current, catalogo, estado.requisitos)
     const known = new Set(previousErrors.valido ? [] : previousErrors.errores.map(errorKey))
     const after = analizar(r.design, catalogo, estado.requisitos)
-    if (!after.valido && !after.errores.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(after.errores.find((e) => !known.has(errorKey(e)))?.mensaje)}` }
+    if (!after.valido && !after.errores.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(after.errores.find((e) => !known.has(errorKey(e)))?.message)}` }
     const names = ids.map((id) => before.diseno.piezas.find((p) => p.id === id)?.nombre ?? current.piezas.find((p) => p.id === id)?.nombre ?? id)
     const summary = `Regresar ${names.join(', ')}`
     const operaciones: Operacion[] = ids.flatMap((id): Operacion[] => {
@@ -782,14 +782,14 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   /** The person leaves a finding as it is: it stops counting as pending and the verdict mentions it. */
-  function acceptNotice(estado: EstadoDiseno, findings: Hallazgo[], title: string): EstadoDiseno {
+  function acceptNotice(estado: EstadoDiseno, findings: Finding[], title: string): EstadoDiseno {
     const keys = new Set(estado.accepted.map((a) => a.key))
-    const added = findings.map(claveHallazgo).filter((k) => !keys.has(k)).map((key) => ({ key, title, at: ahora() }))
+    const added = findings.map(findingKey).filter((k) => !keys.has(k)).map((key) => ({ key, title, at: ahora() }))
     return guardar({ ...estado, accepted: [...estado.accepted, ...added] })
   }
 
-  function reopenNotice(estado: EstadoDiseno, findings: Hallazgo[]): EstadoDiseno {
-    const keys = new Set(findings.map(claveHallazgo))
+  function reopenNotice(estado: EstadoDiseno, findings: Finding[]): EstadoDiseno {
+    const keys = new Set(findings.map(findingKey))
     return guardar({ ...estado, accepted: estado.accepted.filter((a) => !keys.has(a.key)) })
   }
 
@@ -817,18 +817,18 @@ export function crearCasosDeUso(deps: Dependencias) {
   async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalogo, signal: AbortSignal): Promise<Dictamen> {
     const diseno = disenoActual(estado)
     const analisis = analizar(diseno, catalogo)
-    if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].mensaje}`)
+    if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].message}`)
     const compra = estimarCompra(diseno, analisis.geo, catalogoEfectivo)
-    const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.mensaje)
+    const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.message)
     const accepted = new Map(estado.accepted.map((a) => [a.key, a.title]))
     const viabilidad = revisarViabilidad({
       diseno,
       geo: analisis.geo,
       catalogo: catalogoEfectivo,
       compra,
-      hallazgos: analisis.hallazgos.filter((h) => !accepted.has(claveHallazgo(h))),
+      hallazgos: analisis.hallazgos.filter((h) => !accepted.has(findingKey(h))),
       incumplidos,
-      accepted: analisis.hallazgos.flatMap((h) => accepted.get(claveHallazgo(h)) ?? []),
+      accepted: analisis.hallazgos.flatMap((h) => accepted.get(findingKey(h)) ?? []),
     })
     const base = { firma: firmaDictamen(estado, catalogoEfectivo), comprobaciones: viabilidad.comprobaciones, fecha: ahora() }
     try {

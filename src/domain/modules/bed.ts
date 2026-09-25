@@ -208,7 +208,7 @@ export function buildBed(plan: BedPlan, catalog: Catalogo): BuiltBed {
   for (const drawer of drawers) {
     const result = aplicar(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errores[0]?.mensaje ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errores[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
     design = result.valor.diseno

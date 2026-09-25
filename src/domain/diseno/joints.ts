@@ -1,4 +1,4 @@
-import { SUPUESTOS } from '../estructura/supuestos'
+import { ASSUMPTIONS } from '../structure/assumptions'
 import type { Catalogo } from '../materiales/catalogo'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
@@ -14,7 +14,7 @@ const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 function screwFor(catalog: Catalogo, thicknessA: number, thicknessB: number, intoFace: boolean) {
   const screws = catalog.herrajes.filter((h) => /^tornillo-8x/.test(h.id) && h.largo).sort((x, y) => x.largo! - y.largo!)
   if (intoFace) return [...screws].reverse().find((t) => t.largo! <= thicknessA + thicknessB - 3) ?? screws[0]
-  return screws.find((t) => t.largo! - thicknessA >= SUPUESTOS.tornillos.penetracionMinima) ?? screws.at(-1)
+  return screws.find((t) => t.largo! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 
 function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalogo): Omit<Union, 'id'> | null {
@@ -39,7 +39,7 @@ function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, num
   const a = byFace.length === 1 ? byFace[0] : [p, q].sort((x, y) => thicknesses.get(x.id)! - thicknesses.get(y.id)! || x.id.localeCompare(y.id))[0]
   const b = a === p ? q : p
   const ta = thicknesses.get(a.id)!
-  if (ta <= SUPUESTOS.espesorDeClavar) return makeJoint('', a.id, b.id, 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }])
+  if (ta <= ASSUMPTIONS.nailOnlyThickness) return makeJoint('', a.id, b.id, 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }])
   const t = screwFor(catalog, ta, thicknesses.get(b.id)!, byFace.length === 2)
   return makeJoint('', a.id, b.id, 'tope-tornillo', t ? [{ herrajeId: t.id, cantidad: null }] : [])
 }

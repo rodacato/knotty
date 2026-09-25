@@ -14,11 +14,11 @@ export interface Aplicado {
 
 class OperacionInvalida extends Error {
   constructor(readonly detalle: DesignError) {
-    super(detalle.mensaje)
+    super(detalle.message)
   }
 }
 
-const invalida = (codigo: DesignError['codigo'], mensaje: string, datos?: Record<string, unknown>) => new OperacionInvalida(error(codigo, mensaje, datos))
+const invalida = (codigo: DesignError['code'], mensaje: string, datos?: Record<string, unknown>) => new OperacionInvalida(error(codigo, mensaje, datos))
 
 const refiereA = (cota: Cota | null, id: string) =>
   !!cota && ((cota.tipo === 'ref' && parseFace(cota.ref).piece === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
@@ -59,7 +59,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
     diseno.piezas = diseno.piezas.filter((p) => p.id !== id)
     diseno.uniones = diseno.uniones.filter((u) => u.a !== id && u.b !== id)
     if (congeladas.size)
-      avisos.push({ codigo: 'A_REFERENCIA_CONGELADA', mensaje: `Al quitar "${id}", ${[...congeladas].join(', ')} quedaron fijas en mm.`, datos: { pieza: id, afectadas: [...congeladas] } })
+      avisos.push({ code: 'A_REFERENCIA_CONGELADA', message: `Al quitar "${id}", ${[...congeladas].join(', ')} quedaron fijas en mm.`, data: { pieza: id, afectadas: [...congeladas] } })
   }
 
   function colocar(p: Pieza, eje: Eje, cota: Cota, largo: number) {
@@ -174,7 +174,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       case 'agregarCajon': {
         if (diseno.piezas.some((p) => p.grupo === op.grupo)) throw invalida('E_ID_DUPLICADO', `Ya existe un cajón "${op.grupo}".`, { grupo: op.grupo })
         const cajon = expandirCajon(op, geometria(), catalogo)
-        if ('codigo' in cajon) throw new OperacionInvalida(cajon)
+        if ('code' in cajon) throw new OperacionInvalida(cajon)
         for (const p of cajon.piezas) idLibre(p.id)
         diseno.piezas.push(...cajon.piezas)
         diseno.uniones.push(...cajon.uniones)
@@ -188,7 +188,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       aplicarUna(op)
     } catch (e) {
       if (!(e instanceof OperacionInvalida)) throw e
-      return failure([{ ...e.detalle, datos: { ...e.detalle.datos, operacion: i, op: op.op } }])
+      return failure([{ ...e.detalle, data: { ...e.detalle.data, operacion: i, op: op.op } }])
     }
   }
   return success({ diseno, avisos })

@@ -112,7 +112,7 @@ export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalog
     const b = byId.get(c.b)!
     if ([a, b].some((p) => NO_JOINT_WARNING.has(p.rol) || p.apoyo === 'movil')) continue
     if (!design.uniones.some((u) => samePair(u, c.a, c.b)))
-      warnings.push({ codigo: 'A_CONTACTO_SIN_UNION', mensaje: `"${c.a}" y "${c.b}" se tocan pero no tienen unión.`, datos: { a: c.a, b: c.b } })
+      warnings.push({ code: 'A_CONTACTO_SIN_UNION', message: `"${c.a}" y "${c.b}" se tocan pero no tienen unión.`, data: { a: c.a, b: c.b } })
   }
 
   return { errors, warnings, contacts: all }

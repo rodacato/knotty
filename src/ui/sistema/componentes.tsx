@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import type { Severidad } from '../../domain/estructura/hallazgo'
+import type { Severity } from '../../domain/structure/finding'
 
 type Variante = 'primario' | 'secundario' | 'fantasma' | 'peligro'
 
@@ -36,14 +36,14 @@ export function Chip({ activo = false, className = '', children, ...props }: But
   )
 }
 
-const SELLO: Record<Severidad, { texto: string; clase: string; giro: string }> = {
+const SELLO: Record<Severity, { texto: string; clase: string; giro: string }> = {
   critico: { texto: 'Crítico', clase: 'text-oxido border-oxido', giro: '-rotate-3' },
   recomendacion: { texto: 'Recomendación', clase: 'text-ambar border-ambar', giro: 'rotate-2' },
   detalle: { texto: 'Detalle', clase: 'text-pizarra border-pizarra', giro: '-rotate-1' },
 }
 
 /** Severidad como sello de tinta sobre un plano. */
-export function Sello({ severidad }: { severidad: Severidad }) {
+export function Sello({ severidad }: { severidad: Severity }) {
   const s = SELLO[severidad]
   return (
     <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply dark:mix-blend-screen ${s.clase} ${s.giro}`}>

@@ -1,5 +1,5 @@
 // Typed errors: the code tells the expert what to fix and the data tells it where.
-// Their fields and codes stay in Spanish until the structural findings, which share their shape, move to English.
+// The codes stay as they are: they are data, in the saved trace and in what the expert reads.
 
 export type ErrorCode =
   | 'E_ESQUEMA'
@@ -22,18 +22,18 @@ export type ErrorCode =
 export type WarningCode = 'A_CONTACTO_SIN_UNION' | 'A_REFERENCIA_CONGELADA'
 
 export interface DesignError {
-  codigo: ErrorCode
-  mensaje: string
-  datos?: Record<string, unknown>
+  code: ErrorCode
+  message: string
+  data?: Record<string, unknown>
 }
 
 export interface DesignWarning {
-  codigo: WarningCode
-  mensaje: string
-  datos?: Record<string, unknown>
+  code: WarningCode
+  message: string
+  data?: Record<string, unknown>
 }
 
-export const error = (codigo: ErrorCode, mensaje: string, datos?: Record<string, unknown>): DesignError => ({ codigo, mensaje, ...(datos ? { datos } : {}) })
+export const error = (code: ErrorCode, message: string, data?: Record<string, unknown>): DesignError => ({ code, message, ...(data ? { data } : {}) })
 
 /** What comes of something that can fail with several errors at once. */
 export type Result<T> = { ok: true; valor: T } | { ok: false; errores: DesignError[] }

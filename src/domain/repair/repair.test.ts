@@ -12,7 +12,7 @@ const withPiece = (d: Diseno, id: string, change: (p: Pieza) => Pieza): Diseno =
 const valid = (d: Diseno) => analizar(d, catalogo).valido
 const box = (d: Diseno, id: string) => {
   const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].mensaje)
+  if (!a.valido) throw new Error(a.errores[0].message)
   return a.geo.boxes.get(id)!
 }
 
@@ -83,7 +83,7 @@ describe('repairDesign', () => {
     const broken = withPiece({ ...librero, uniones: librero.uniones.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: extent(ref('mueble.x0'), ref('mueble.x1')) }))
     const { design } = repairDesign(broken, catalogo)
     const a = analizar(design, catalogo)
-    expect(a.valido && a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(a.valido && a.avisos.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
     expect(design.uniones.some((u) => [u.a, u.b].includes('techo') && u.tipo === 'tope-tornillo')).toBe(true)
   })
 
