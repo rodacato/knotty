@@ -2,7 +2,7 @@
 
 Web app que convierte fotos de un mueble en un diseño 3D de triplay que se explora y se ajusta conversando con un carpintero experto (un LLM). No hay edición manual: todo cambio se pide en lenguaje natural. El objetivo final es saber cómo se arma y cuántas hojas de triplay comprar.
 
-Este documento es la referencia viva del proyecto. Las decisiones tomadas se anotan en [Decisiones](#decisiones); lo pendiente de discutir, en [Preguntas abiertas](#preguntas-abiertas).
+Este documento es la referencia viva del proyecto. Las decisiones tomadas se anotan en [Decisiones](#decisiones); lo pendiente de discutir, en [Preguntas abiertas](#preguntas-abiertas). El conocimiento de carpintería (material, uniones, medidas, estructura, términos) vive en [`docs/carpinteria/`](carpinteria/README.md).
 
 ---
 
@@ -116,7 +116,7 @@ Todo lo que decide vive en `domain/` y es determinista. El LLM propone; el domin
 ```
 knotty/
 ├─ .github/workflows/        ci.yml (typecheck, pruebas y build en cada PR) · deploy.yml (GitHub Pages)
-├─ docs/                     PROPUESTA.md (este documento)
+├─ docs/                     PROPUESTA.md (este documento) · carpinteria/ (referencia del dominio)
 ├─ public/catalog/           catalog.json: triplay, herrajes y acomodo; se edita sin tocar código
 ├─ scripts/brand/            SVG de la marca y generate.sh (íconos, favicon, imagen para compartir)
 ├─ scripts/compare/          models.compare.ts: el banco contra expertos reales (npm run compare) · results/
