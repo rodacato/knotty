@@ -63,7 +63,7 @@ export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partia
         <h3 className="font-titulo text-base font-semibold">Cajones</h3>
         <p className="text-xs text-grafito-2">Los lados se ven desde el pie de la cama.</p>
         <Row label="Lado">
-          <Segmented label="Lado de los cajones" value={drawers.side} options={SIDE} onChange={(side) => set({ drawers: { ...drawers, side: side as BedPlan['drawers']['side'] } })} />
+          <Segmented label="Lado de los cajones" value={drawers.side} options={SIDE} onChange={(side) => set({ drawers: { ...drawers, side: side as BedPlan['drawers']['side'], count: side === 'none' ? drawers.count : Math.max(1, drawers.count) } })} />
         </Row>
         {drawers.side !== 'none' && (
           <>

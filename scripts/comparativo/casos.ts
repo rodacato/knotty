@@ -9,6 +9,8 @@ export interface Caso {
   notas: string
   medidas: Dimensiones | null
   esperado: Partial<Record<keyof Dimensiones, Rango>>
+  /** A bed can lie either way: its ficha runs it along the width, a piece-by-piece design along the depth. */
+  cualquierPlanta?: boolean
 }
 
 export const CASOS: Caso[] = [
@@ -24,6 +26,7 @@ export const CASOS: Caso[] = [
       'Quiero una cama individual con una base con cajones 3, y una cabecera como librero para poner cosas con un espacio cerrado donde va la almohada pero despues con 2 entrepaños como librero',
     medidas: null,
     esperado: { ancho: [990, 1150], fondo: [1900, 2200], alto: [700, 1400] },
+    cualquierPlanta: true,
   },
   {
     id: 'buro',
@@ -37,6 +40,7 @@ export const CASOS: Caso[] = [
     medidas: null,
     // Colchón individual de 990 × 1900 mm: el fondo es el largo de la cama.
     esperado: { ancho: [990, 1150], fondo: [1900, 2100], alto: [250, 1200] },
+    cualquierPlanta: true,
   },
   {
     id: 'alacena',

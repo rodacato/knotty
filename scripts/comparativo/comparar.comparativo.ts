@@ -138,7 +138,8 @@ async function correr(spec: string, caso: Caso): Promise<Result> {
     const diseno = disenoActual(estado)
     const a = analizar(diseno, catalogo)
     const d = diseno.dimensiones
-    const razonables = Object.entries(caso.esperado).every(([k, [min, max]]) => d[k as keyof typeof d] >= min && d[k as keyof typeof d] <= max)
+    const dentro = (m: typeof d) => Object.entries(caso.esperado).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
+    const razonables = dentro(d) || (!!caso.cualquierPlanta && dentro({ ...d, ancho: d.fondo, fondo: d.ancho }))
     const tokens = llamadas.map((l) => l.salida)
     const resultado = {
       ...base,
