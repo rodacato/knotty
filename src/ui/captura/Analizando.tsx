@@ -1,6 +1,6 @@
 import { ArrowClockwise, Check } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
-import type { Etapa } from '../../application/casosDeUso'
+import { useEffect, useMemo, useState } from 'react'
+import { INTENTOS, type Etapa } from '../../application/casosDeUso'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
@@ -49,6 +49,9 @@ export function Analizando() {
   const conFotos = useTienda((s) => (s.borrador?.fotos.length ?? 0) > 0)
   const controlador = useTienda((s) => s.controlador)
   const segundos = useSegundos(controlador)
+  // La lentitud se mide por intento: una corrección que avanza no es un experto atorado.
+  const intento = useMemo(() => ({}), [controlador, etapa?.intento])
+  const delIntento = useSegundos(intento)
   const ETAPAS = etapas(conFotos)
   const actual = ETAPAS.findIndex((e) => e.id === etapa?.nombre)
   return (
@@ -76,16 +79,20 @@ export function Analizando() {
           )
         })}
       </ol>
-      {etapa?.nombre === 'corrigiendo' && <p className="text-sm text-grafito-2">Ajustando algunas piezas que no cerraban (intento {etapa.intento + 1})…</p>}
+      {etapa?.nombre === 'corrigiendo' && (
+        <p className="max-w-xs text-center text-sm text-grafito-2">
+          Intento {etapa.intento + 1} de {INTENTOS}: el experto está corrigiendo piezas que no cerraban.
+        </p>
+      )}
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="cifras text-sm text-grafito-2">{reloj(segundos)}</p>
-        {segundos >= LENTO ? (
+        {delIntento >= LENTO ? (
           <p className="max-w-xs text-sm text-grafito-2">Está tardando más de lo normal. Puede que el experto se haya atorado: vuelve a pedirlo con lo mismo.</p>
         ) : (
-          segundos >= PACIENCIA && <p className="max-w-xs text-sm text-grafito-2">Armar el modelo completo puede tomar 2 o 3 minutos.</p>
+          delIntento >= PACIENCIA && <p className="max-w-xs text-sm text-grafito-2">Armar el modelo completo puede tomar 2 o 3 minutos.</p>
         )}
         <div className="flex gap-2">
-          {segundos >= LENTO && (
+          {delIntento >= LENTO && (
             <Boton variante="primario" onClick={reintentar}>
               <ArrowClockwise weight="bold" /> Reintentar
             </Boton>

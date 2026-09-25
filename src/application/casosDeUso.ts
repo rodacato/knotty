@@ -36,7 +36,7 @@ export interface Dependencias {
   nuevoId?: () => string
 }
 
-const INTENTOS = 3
+export const INTENTOS = 3
 const MAX_MINIATURAS = 8
 
 /** Una foto que la persona manda en medio de la conversación, casi siempre porque el experto la pidió. */
