@@ -19,7 +19,7 @@ export interface Repair {
 }
 
 /** Which piece gives way when two overlap: the structure stays, what hangs from it adjusts. */
-const RANK: Partial<Record<Rol, number>> = { lateral: 0, piso: 1, techo: 1, divisor: 2, zoclo: 3, faja: 3, trasera: 4, entrepano: 5, puerta: 6 }
+const RANK: Partial<Record<Rol, number>> = { lateral: 0, piso: 1, techo: 1, divisor: 2, zoclo: 3, faja: 3, trasera: 4, puerta: 5, entrepano: 6 }
 const rank = (p: Pieza) => RANK[p.rol] ?? 4
 const volume = (c: Caja) => (c.x1 - c.x0) * (c.y1 - c.y0) * (c.z1 - c.z0)
 /** A trim that leaves less than this is not a trim, it is a different piece. */

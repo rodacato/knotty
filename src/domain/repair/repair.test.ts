@@ -56,6 +56,16 @@ describe('repairDesign', () => {
     expect(repairs.every((r) => r.message.startsWith('Recorté') && !r.message.startsWith('Recorté Puerta'))).toBe(true)
   })
 
+  it('a shelf that runs into a door is trimmed back; the door keeps its size', () => {
+    const door = box(alacena, 'puerta-izq')
+    const broken = withPiece(alacena, 'entrepano', (p) => ({ ...p, z: { ...p.z, hasta: mm(door.z1) } }))
+    const { design, repairs } = repairDesign(broken, catalogo)
+    expect(valid(design)).toBe(true)
+    expect(box(design, 'puerta-izq')).toEqual(door)
+    expect(box(design, 'entrepano').z1).toBe(door.z0)
+    expect(repairs.every((r) => r.message.startsWith('Recorté Entrepaño'))).toBe(true)
+  })
+
   it('drops a joint between pieces that do not touch', () => {
     const broken = { ...librero, uniones: [...librero.uniones, union('u-suelta', 'entrepano-1', 'techo', 'tope-tornillo')] }
     const { design, repairs } = repairDesign(broken, catalogo)
