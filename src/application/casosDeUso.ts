@@ -12,7 +12,8 @@ import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
-import { buildCabinet } from '../domain/modules/cabinet'
+import { buildCabinet, CabinetPlan } from '../domain/modules/cabinet'
+import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
 import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
@@ -74,6 +75,16 @@ function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[])
   ].join('\n')
 }
 
+/**
+ * The plan behind the current design. `since` is the version it comes from; if later versions changed the design
+ * freely, applying the plan again drops those changes.
+ */
+export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; since: number | null; diverged: boolean } {
+  const ordered = [...estado.versiones].sort((a, b) => b.n - a.n).filter((v) => v.n <= estado.actual)
+  const source = ordered.find((v) => v.plan)
+  return { plan: source?.plan ?? null, since: source?.n ?? null, diverged: !!source && source.n !== estado.actual }
+}
+
 /** El experto no logró algo y lo dice; el mensaje es para el usuario. */
 export class ErrorExperto extends Error {
   constructor(
@@ -133,9 +144,12 @@ export function crearCasosDeUso(deps: Dependencias) {
     return estado
   }
 
-  function conVersion(estado: EstadoDiseno, diseno: Diseno, datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null }): EstadoDiseno {
+  function conVersion(estado: EstadoDiseno, diseno: Diseno, datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null; plan?: CabinetPlan | null }): EstadoDiseno {
     const n = Math.max(...estado.versiones.map((v) => v.n)) + 1
-    const versiones = podarVersiones([...estado.versiones, { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones }])
+    const versiones = podarVersiones([
+      ...estado.versiones,
+      { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones, plan: datos.plan ?? null },
+    ])
     return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const, respondida: true } : m)) }
   }
 
@@ -223,7 +237,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     alAvanzar('estructura', 0)
     const { explicacion, preguntas, fotosSolicitadas, requisitos, sugerencias } = plan.valor
     const r: RespuestaReconstruccion = { explicacion: [explicacion, ...notes].join('\n\n'), diseno: design, preguntas, fotosSolicitadas, requisitos, sugerencias }
-    return estadoInicial(entrada, design, r, { ...plan, valor: r }, [], repairs, trace)
+    return estadoInicial(entrada, design, r, { ...plan, valor: r }, [], repairs, trace, { ...cabinet, dimensions: medidas })
   }
 
   async function reconstruir(
@@ -293,6 +307,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     problemas: ErrorDiseno[],
     repairs: Repair[],
     trace: TraceEntry[],
+    plan: CabinetPlan | null = null,
   ): EstadoDiseno {
     const { ancho, alto, fondo } = diseno.dimensiones
     const estimadas = entrada.medidas ? [] : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
@@ -303,7 +318,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     return {
       formato: 1,
       medidas: diseno.dimensiones,
-      versiones: [{ n: 1, diseno, resumen: entrada.fotos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [] }],
+      versiones: [{ n: 1, diseno, resumen: entrada.fotos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [], plan }],
       actual: 1,
       requisitos: r.requisitos,
       decisiones: [],
@@ -464,7 +479,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   function volverAVersion(estado: EstadoDiseno, n: number): EstadoDiseno {
     const destino = estado.versiones.find((v) => v.n === n)
     if (!destino || n === estado.actual) return estado
-    const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null })
+    const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null, plan: destino.plan })
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Regresé al diseño de la v${n} (${destino.resumen}).`, { version: conCambio.actual })] })
   }
 
@@ -495,7 +510,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     return guardar({
       formato: 1,
       medidas: diseno.dimensiones,
-      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null, decisiones: [] }],
+      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null, decisiones: [], plan: null }],
       actual: 1,
       requisitos: [],
       decisiones: [],
@@ -505,6 +520,25 @@ export function crearCasosDeUso(deps: Dependencias) {
       dictamen: null,
       trace: [],
     })
+  }
+
+  /** A change made on the plan itself: rebuilt at once, no expert involved. */
+  function applyPlan(estado: EstadoDiseno, plan: CabinetPlan): { ok: true; estado: EstadoDiseno; notes: string[] } | { ok: false; message: string } {
+    const parsed = CabinetPlan.safeParse(plan)
+    if (!parsed.success) return { ok: false, message: 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
+    const { design: built, notes } = buildCabinet(parsed.data, catalogo)
+    const { design } = repairDesign(built, catalogo, estado.requisitos)
+    const analysis = analizar(design, catalogo, estado.requisitos)
+    if (!analysis.valido) {
+      const first = design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), analysis.errores[0]?.mensaje ?? '')
+      return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errores))}. ${first}` }
+    }
+    const previous = currentPlan(estado).plan
+    const changes = previous ? describePlanChanges(previous, parsed.data) : []
+    const summary = changes.length ? changes.join(', ') : 'sin cambios'
+    const withVersion = conVersion(estado, design, { resumen: `Ficha: ${summary}`.slice(0, 90), motivo: `Desde la ficha: ${summary}`, operaciones: [], origen: null, plan: parsed.data })
+    const chat = [...withVersion.chat, mensaje('usuario', `Cambié desde la ficha: ${summary}.`)]
+    return { ok: true, estado: guardar({ ...withVersion, medidas: design.dimensiones, chat }), notes }
   }
 
   function nuevoDiseno() {
@@ -559,6 +593,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     nuevoDiseno,
     dictaminar,
     guardarDictamen,
+    applyPlan,
     cargar,
     preguntasPendientes,
   }
