@@ -67,8 +67,8 @@ const outside = (value: number, [min, max]: [number, number]) => value < min || 
 function bed(design: Diseno, geo: Geometria, ctx: Parameters<Regla>[0]): Hallazgo[] {
   const platform = topSurface(design, geo, 0.6)
   if (!platform) return [finding('recomendacion', [], 'No encuentro la superficie donde va el colchón: una cama necesita una base continua o tablas a lo ancho.')]
-  const width = platform.box.x1 - platform.box.x0
-  const length = platform.box.z1 - platform.box.z0
+  // A bed can lie either way in the room: the short side takes the mattress width.
+  const [width, length] = [platform.box.x1 - platform.box.x0, platform.box.z1 - platform.box.z0].sort((a, b) => a - b)
   const name = design.nombre.toLowerCase()
   const size = (Object.keys(MATTRESSES) as (keyof typeof MATTRESSES)[]).find((k) => name.includes(k)) ?? (Object.keys(MATTRESSES) as (keyof typeof MATTRESSES)[]).sort((a, b) => Math.abs(MATTRESSES[a][0] - width) - Math.abs(MATTRESSES[b][0] - width))[0]
   const [mw, ml] = MATTRESSES[size]

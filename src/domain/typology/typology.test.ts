@@ -53,6 +53,11 @@ describe('typologyRule', () => {
     expect(unsupported).toContainEqual(['critico', expect.stringContaining('sin apoyo')])
   })
 
+  it('a bed lying the other way still fits its mattress', () => {
+    const sideways = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1900, height: 350, depth: 1030 } }))
+    expect(sideways).not.toContainEqual(['critico', expect.stringContaining('no cabe')])
+  })
+
   it('a desk needs room for the legs', () => {
     expect(usage(cabinet({ name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 } }))).toContainEqual(['critico', expect.stringContaining('espacio para las piernas')])
     const open: Diseno = completeJoints(
