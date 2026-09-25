@@ -7,6 +7,7 @@ import { Inicio } from './captura/Inicio'
 import { ContextoServicios, type Servicios } from './servicios'
 import { Lapiz } from './sistema/componentes'
 import { Nudo } from './sistema/Marca'
+import { DebugPanel } from './debug/DebugPanel'
 import { useTienda } from './tienda'
 
 // El 3D pesa: se carga hasta que hay un mueble que mostrar.
@@ -56,6 +57,7 @@ export function App({ componer }: { componer: () => Promise<Servicios> }) {
       <Pantalla />
       <Ajustes />
       <PuertaLlaves />
+      <DebugPanel />
     </ContextoServicios.Provider>
   )
 }

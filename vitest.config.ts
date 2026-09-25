@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  define: { __APP_COMMIT__: JSON.stringify('pruebas') },
   test: {
     include: ['src/**/*.test.ts'],
     coverage: {
