@@ -58,6 +58,8 @@ interface Tienda {
   reconstruir(entrada: EntradaCaptura): Promise<void>
   ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
+  /** Corta la reconstrucción en curso y la vuelve a pedir con lo mismo. */
+  reintentarReconstruccion(): void
   aplicarPropuesta(): void
   descartarPropuesta(): void
   seleccionar(id: string | null): void
@@ -157,10 +159,14 @@ export const useTienda = create<Tienda>((set, get) => ({
     if (!servicios) return
     const controlador = new AbortController()
     set({ fase: 'analizando', controlador, etapa: { nombre: 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
+    // Un reintento deja huérfana a la petición anterior: lo que conteste ya no cuenta.
+    const vigente = () => get().controlador === controlador
     try {
-      const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }))
+      const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento) => vigente() && set({ etapa: { nombre, intento } }))
+      if (!vigente()) return
       set((s) => ({ estado, fase: 'estudio', etapa: null, controlador: null, borrador: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
     } catch (e) {
+      if (!vigente()) return
       const cancelado = controlador.signal.aborted
       set({ fase: 'captura', etapa: null, controlador: null, errorReconstruccion: cancelado ? null : e instanceof Error ? e.message : 'Algo falló al analizar las fotos.' })
     }
@@ -186,6 +192,13 @@ export const useTienda = create<Tienda>((set, get) => ({
   },
 
   cancelar: () => get().controlador?.abort(),
+
+  reintentarReconstruccion() {
+    const { borrador, controlador } = get()
+    if (!borrador) return
+    controlador?.abort()
+    void get().reconstruir(borrador)
+  },
 
   aplicarPropuesta() {
     const { servicios, estado } = get()
