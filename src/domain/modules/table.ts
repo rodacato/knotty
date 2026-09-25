@@ -23,6 +23,9 @@ export const TablePlan = z.object({
 })
 export type TablePlan = z.infer<typeof TablePlan>
 
+/** What each use is called: the name is also how the checks by kind of furniture recognize it. */
+export const TABLE_NAMES: Record<TablePlan['use'], string> = { dining: 'Mesa de comedor', coffee: 'Mesa de centro', side: 'Mesa lateral', desk: 'Escritorio' }
+
 const APRON = 80
 /** On a desk the back apron runs lower: it braces the ends and hides the legs from the front. */
 const MODESTY = 300

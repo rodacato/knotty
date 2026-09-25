@@ -7,7 +7,7 @@ import type { Operacion } from '../../../domain/operaciones/esquema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
 import type { BedPlan } from '../../../domain/modules/bed'
-import type { TablePlan } from '../../../domain/modules/table'
+import { TABLE_NAMES, type TablePlan } from '../../../domain/modules/table'
 import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaPlan, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
 
 // Respuestas fijas para desarrollar sin API: reconoce unos cuantos pedidos por palabras clave sobre los muebles de ejemplo.
@@ -41,11 +41,11 @@ function countBefore(text: string, word: string): number | null {
   return said ? (WORDS[said] ?? Number(said)) : null
 }
 
-const TABLES: [TablePlan['use'], RegExp, string, { width: number; height: number; depth: number }][] = [
-  ['desk', /escritorio/, 'Escritorio', { width: 1200, height: 750, depth: 600 }],
-  ['coffee', /mesa de centro|mesa de caf/, 'Mesa de centro', { width: 1000, height: 420, depth: 550 }],
-  ['side', /mesa lateral|mesa de noche|mesita/, 'Mesa lateral', { width: 500, height: 550, depth: 400 }],
-  ['dining', /\bmesa\b/, 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }],
+const TABLES: [TablePlan['use'], RegExp, { width: number; height: number; depth: number }][] = [
+  ['desk', /escritorio/, { width: 1200, height: 750, depth: 600 }],
+  ['coffee', /mesa de centro|mesa de caf/, { width: 1000, height: 420, depth: 550 }],
+  ['side', /mesa lateral|mesa de noche|mesita/, { width: 500, height: 550, depth: 400 }],
+  ['dining', /\bmesa\b/, { width: 1500, height: 750, depth: 900 }],
 ]
 
 /** A table or desk read from the request's words, or null if it is neither. */
@@ -53,7 +53,8 @@ function tableFrom(notes: string, measures: { ancho: number; alto: number; fondo
   const text = notes.toLowerCase()
   const found = TABLES.find(([, pattern]) => pattern.test(text))
   if (!found) return null
-  const [use, , name, dimensions] = found
+  const [use, , dimensions] = found
+  const name = TABLE_NAMES[use]
   const drawers = use === 'desk' && /caj/.test(text) ? (countBefore(text, 'caj') ?? 3) : 0
   return {
     kind: 'table',

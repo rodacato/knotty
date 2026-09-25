@@ -45,6 +45,7 @@ const PEDESTAL: Record<TablePlan['pedestal']['side'], string> = { none: 'sin caj
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   const changes: string[] = []
   if (before.use !== after.use) changes.push(`ahora ${USE[after.use]}`)
+  else if (before.name !== after.name) changes.push(`se llama «${after.name}»`)
   const [a, b] = [before.dimensions, after.dimensions]
   if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
   if (before.material !== after.material) changes.push(`material ${after.material}`)
