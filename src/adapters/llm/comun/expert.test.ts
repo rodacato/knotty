@@ -50,13 +50,13 @@ describe('createExpert', () => {
 
   it('sends measures, angle labels and images, with the catalog in the system prompt', async () => {
     const { experto, llamadas } = falso({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
-    const r = await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
+    const r = await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
-    expect(r.origin.promptId).toBe('sistema@5+reconstruccion@7')
+    expect(r.origin.promptId).toBe('sistema@5+reconstruccion@8')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { kind: 'texto', text: 'Medidas del mueble: ancho 600 mm, alto 1800 mm, fondo 300 mm.\nNotas de la persona: para libros' },
-      { kind: 'texto', text: 'Foto 1: frente' },
+      { kind: 'texto', text: 'Foto 1: front' },
       { kind: 'imagen', base64: 'AAA' },
     ])
   })
@@ -79,13 +79,13 @@ describe('createExpert', () => {
 
   it('reads a photo with its own short prompt, its note and the person context', async () => {
     const { experto, llamadas } = falso({ kind: 'librero', confidence: 'high', description: 'Un librero', proportions: null, base: 'kick', topOverhangs: null, columns: null, details: [], doubts: [] })
-    const r = await experto.readPhoto({ photo: { angle: 'frente', base64: 'AAA', note: 'la de abajo es puerta' }, context: 'librero para libros' }, new AbortController().signal)
+    const r = await experto.readPhoto({ photo: { angle: 'front', base64: 'AAA', note: 'la de abajo es puerta' }, context: 'librero para libros' }, new AbortController().signal)
     expect(r.value.base).toBe('kick')
     expect(r.origin.promptId).toBe('lectura@1')
     expect(llamadas[0].sistema).toContain('mueble principal')
     expect(llamadas[0].sistema).not.toContain('T18')
     expect(llamadas[0].contenido).toEqual([
-      { kind: 'texto', text: 'Foto: frente. La persona dice de esta foto: la de abajo es puerta\nLo que la persona busca: librero para libros' },
+      { kind: 'texto', text: 'Foto: front. La persona dice de esta foto: la de abajo es puerta\nLo que la persona busca: librero para libros' },
       { kind: 'imagen', base64: 'AAA' },
     ])
   })
@@ -102,7 +102,7 @@ describe('createExpert', () => {
     const { experto, llamadas } = falso({ explanation: 'x', cabinet: null, bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await experto.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('esqueleto@5')
+    expect(r.origin.promptId).toBe('esqueleto@6')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
     expect(llamadas[0].sistema).not.toContain('{{materiales}}')
   })

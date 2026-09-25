@@ -1,4 +1,5 @@
 import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
+import { angleLabel } from '../../domain/reading/reading'
 import { useEffect, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/sesion/state'
@@ -11,13 +12,13 @@ import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
 
 const STAGES: Record<Stage, string> = {
-  'leyendo-fotos': 'Mirando la foto…',
-  'mirando-fotos': 'Mirando las fotos…',
-  'disenando-piezas': 'Diseñando pieza por pieza…',
-  proponiendo: 'Pensando el cambio…',
-  revisando: 'Revisando que todo cierre…',
-  estructura: 'Revisando la estructura…',
-  corrigiendo: 'Corrigiendo un detalle…',
+  'reading-photos': 'Mirando la foto…',
+  designing: 'Mirando las fotos…',
+  'designing-pieces': 'Diseñando pieza por pieza…',
+  proposing: 'Pensando el cambio…',
+  checking: 'Revisando que todo cierre…',
+  structure: 'Revisando la estructura…',
+  correcting: 'Corrigiendo un detalle…',
 }
 
 const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
@@ -158,7 +159,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
           <ul className="flex flex-col gap-2">
             {groupByCode(state.proposal!.critical).map(({ first, more }, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
-                <Stamp severity="critico" />
+                <Stamp severity="critical" />
                 <span>
                   {first.message}
                   {more > 0 && <span className="text-grafito-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
@@ -201,7 +202,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
     setProcessing(true)
     try {
       const r = await images.reduce(file)
-      await adjust(`Te mando la foto: ${angle}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
+      await adjust(`Te mando la foto: ${angleLabel(angle)}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
     } finally {
       setProcessing(false)
     }
@@ -211,7 +212,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
       <p className="flex items-start gap-2 text-sm">
         <Camera className="mt-0.5 shrink-0 text-ambar" weight="duotone" />
         <span>
-          <span className="font-medium">Foto: {angle}.</span> <span className="text-grafito-2">{reason}</span>
+          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-grafito-2">{reason}</span>
         </span>
       </p>
       <div className="flex gap-2">

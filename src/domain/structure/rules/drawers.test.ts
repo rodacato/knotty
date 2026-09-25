@@ -34,7 +34,7 @@ const freeform = (d: Design): Design => ({ ...d, joints: d.joints.filter((u) => 
 const r9 = (d: Design) => {
   const a = analyze(d, testCatalog)
   if (!a.valid) throw new Error(JSON.stringify(a.errors))
-  return a.findings.filter((h) => h.code === 'R9_CAJONES')
+  return a.findings.filter((h) => h.code === 'R9_DRAWERS')
 }
 
 describe('R9 for freeform drawers', () => {
@@ -57,10 +57,10 @@ describe('R9 for freeform drawers', () => {
       p.id === 'cajon-1-costado-izq' ? { ...p, x: startAt({ type: 'mm', mm: 120 }) } : p.id === 'cajon-1-fondo' ? { ...p, x: extent(ref('cajon-1-costado-izq.x0'), ref('cajon-1-costado-der.x1')) } : p,
     )
     const [finding] = r9(d)
-    expect(finding).toMatchObject({ severity: 'critico', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
+    expect(finding).toMatchObject({ severity: 'critical', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
     const [fix] = fixesFor(d, testCatalog, finding)
-    expect(fix.key).toBe('apoyo-corredera')
-    expect(r9(fix.design).filter((h) => h.severity === 'critico')).toEqual([])
+    expect(fix.key).toBe('slide-support')
+    expect(r9(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
     expect(fix.design.joints.some((u) => u.type === 'drawer-slide' && u.a === 'cajon-1-costado-izq')).toBe(true)
   })
 

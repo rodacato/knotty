@@ -37,7 +37,7 @@ export function runnerFor(depth: number, catalog: Catalog) {
 
 /** The drawer's pieces and joints, all tied to the faces of the opening so they follow when the furniture changes. */
 export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog): { pieces: Piece[]; joints: Joint[] } | DesignError {
-  for (const m of [c.material, c.bottomMaterial]) if (!materialById(catalog, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
+  for (const m of [c.material, c.bottomMaterial]) if (!materialById(catalog, m)) return error('E_UNKNOWN_MATERIAL', `El material "${m}" no está en el catálogo.`, { material: m })
   const frontThickness = materialById(catalog, c.material)!.espesor
   const frontZ = geo.measure({ type: 'ref', ref: c.front, offset: 0 }, 'z')
   const backZ = geo.measure({ type: 'ref', ref: c.back, offset: 0 }, 'z')
@@ -48,7 +48,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   if (!runner) {
     const shortest = Math.min(...runners(catalog).map((c) => c.largo))
     const missing = Math.ceil(shortest + BACK_CLEARANCE - depth)
-    return error('E_OPERACION_INVALIDA', `No cabe un cajón: quedan ${Math.round(depth)} mm de fondo y la corredera más corta, de ${shortest / 10} cm, pide ${missing} mm más. Hazlo más profundo o usa una puerta.`, {
+    return error('E_INVALID_OPERATION', `No cabe un cajón: quedan ${Math.round(depth)} mm de fondo y la corredera más corta, de ${shortest / 10} cm, pide ${missing} mm más. Hazlo más profundo o usa una puerta.`, {
       depth: Math.round(depth),
       missing: missing,
     })
@@ -56,7 +56,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   const width = geo.measure({ type: 'ref', ref: c.right, offset: 0 }, 'x') - geo.measure({ type: 'ref', ref: c.left, offset: 0 }, 'x')
   const height = geo.measure({ type: 'ref', ref: c.top, offset: 0 }, 'y') - geo.measure({ type: 'ref', ref: c.bottom, offset: 0 }, 'y')
   if (width < 2 * runner.holguraLateral + 150 || height < BOTTOM_GAP + TOP_GAP + 60)
-    return error('E_OPERACION_INVALIDA', `El hueco de ${Math.round(width)} × ${Math.round(height)} mm es muy chico para un cajón.`, { width: Math.round(width), height: Math.round(height) })
+    return error('E_INVALID_OPERATION', `El hueco de ${Math.round(width)} × ${Math.round(height)} mm es muy chico para un cajón.`, { width: Math.round(width), height: Math.round(height) })
 
   const g = c.group
   const id = (part: string) => `${g}-${part}`

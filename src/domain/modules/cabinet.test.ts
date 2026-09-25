@@ -26,7 +26,7 @@ describe('buildCabinet', () => {
     const { design, notes } = buildCabinet(p, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
-    expect(a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
     expect(notes).toEqual([])
   })
 
@@ -83,7 +83,7 @@ describe('construction variants', () => {
     const { design, notes } = buildCabinet({ ...mixed, construction }, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
-    expect(a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
     expect(notes).toEqual([])
   })
 

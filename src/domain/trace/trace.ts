@@ -34,14 +34,14 @@ export function errorKey(e: DesignError) {
 }
 
 const PLAIN: Record<string, [string, string]> = {
-  E_TRASLAPE: ['una pieza encimada', 'piezas encimadas'],
-  E_FLOTANTE: ['una pieza sin apoyo', 'piezas sin apoyo'],
-  E_MEDIDA_GLOBAL: ['una medida que no cierra', 'medidas que no cierran'],
-  E_NO_CABE_EN_HOJA: ['una pieza más grande que la hoja', 'piezas más grandes que la hoja'],
-  E_UNION_SIN_CONTACTO: ['una unión entre piezas que no se tocan', 'uniones entre piezas que no se tocan'],
-  E_ESQUEMA: ['una respuesta con formato incorrecto', 'respuestas con formato incorrecto'],
-  E_CICLO: ['medidas que dependen unas de otras en círculo', 'medidas que dependen unas de otras en círculo'],
-  E_REQUISITO: ['un requisito que no se cumple', 'requisitos que no se cumplen'],
+  E_OVERLAP: ['una pieza encimada', 'piezas encimadas'],
+  E_FLOATING: ['una pieza sin apoyo', 'piezas sin apoyo'],
+  E_OVERALL_SIZE: ['una medida que no cierra', 'medidas que no cierran'],
+  E_TOO_BIG_FOR_SHEET: ['una pieza más grande que la hoja', 'piezas más grandes que la hoja'],
+  E_JOINT_WITHOUT_CONTACT: ['una unión entre piezas que no se tocan', 'uniones entre piezas que no se tocan'],
+  E_SCHEMA: ['una respuesta con formato incorrecto', 'respuestas con formato incorrecto'],
+  E_CYCLE: ['medidas que dependen unas de otras en círculo', 'medidas que dependen unas de otras en círculo'],
+  E_REQUIREMENT: ['un requisito que no se cumple', 'requisitos que no se cumplen'],
 }
 
 /** "3 piezas encimadas y una pieza sin apoyo": the kinds of problem, for a person. */

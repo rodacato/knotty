@@ -1,5 +1,5 @@
 ---
-id: reconstruccion@7
+id: reconstruccion@8
 ---
 # Tarea: reconstruir el mueble desde fotos o desde una descripción
 
@@ -43,7 +43,7 @@ Cada pieza en "low" debe tener una pregunta o una foto pedida que la resuelva.
 Primero diseña, luego pregunta: entrega siempre un diseño completo con lo más común, aunque falten datos. La persona puede contestar varias preguntas de una vez, así que hazlas independientes entre sí.
 
 - `questions`: hasta 3, solo de lo que más cambia el diseño o la compra. Una duda por pregunta, con 2 a 4 opciones cortas en botón y, cuando aplique, "No sé". Nombra la pieza como la ve la persona ("la tabla de atrás", "las repisas").
-- `requestedPhotos`: solo si una foto resolvería algo que no se puede preguntar en botones; máximo 2. En `angle` usa uno de: frente, 3/4, lateral, interior, uniones. El `reason` en una frase: qué necesitas ver.
+- `requestedPhotos`: solo si una foto resolvería algo que no se puede preguntar en botones; máximo 2. En `angle` usa uno de: `front`, `three-quarter`, `side`, `inside`, `joints`. El `reason` en una frase: qué necesitas ver.
 - No preguntes lo que ya dijo en sus notas ni lo que se ve en las fotos.
 - `suggestions`: 3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los diría ("Agrega un cajón abajo", "Hazlo 10 cm más alto"). Que sean útiles para este mueble, no genéricos.
 

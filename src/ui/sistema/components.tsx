@@ -37,9 +37,9 @@ export function Chip({ active = false, className = '', children, ...props }: But
 }
 
 const STAMP: Record<Severity, { text: string; className: string; tilt: string }> = {
-  critico: { text: 'Crítico', className: 'text-oxido border-oxido', tilt: '-rotate-3' },
-  recomendacion: { text: 'Recomendación', className: 'text-ambar border-ambar', tilt: 'rotate-2' },
-  detalle: { text: 'Detalle', className: 'text-pizarra border-pizarra', tilt: '-rotate-1' },
+  critical: { text: 'Crítico', className: 'text-oxido border-oxido', tilt: '-rotate-3' },
+  recommendation: { text: 'Recomendación', className: 'text-ambar border-ambar', tilt: 'rotate-2' },
+  detail: { text: 'Detalle', className: 'text-pizarra border-pizarra', tilt: '-rotate-1' },
 }
 
 /** Severity as an ink stamp on a drawing. */

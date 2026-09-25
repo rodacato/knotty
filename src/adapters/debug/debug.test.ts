@@ -63,7 +63,7 @@ describe('withDebugLog', () => {
   it('records each call with the request and the answer, leaving out photos and the catalog', async () => {
     const log = fromStorage(memoryStorage())
     const llm = withDebugLog(createSimulated(0), log)
-    await llm.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'A'.repeat(4096) }], notes: 'librero', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
+    await llm.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'A'.repeat(4096) }], notes: 'librero', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     const [event] = log.events()
     expect(event.kind).toBe('llm')
     expect(event.summary).toMatch(/^Diseño completo · Simulado/)

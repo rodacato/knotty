@@ -1,4 +1,5 @@
-// Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 has them in English.
+// Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 had them in English but kept
+// the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 has everything in English.
 // Only names change: the numbers, ids and texts for the person stay as they were.
 
 type Raw = Record<string, unknown>
@@ -188,7 +189,65 @@ const stateV1 = fields({
   dictamen: ['review', nullable(review)],
 })
 
-/** Brings a saved session up to the current format; anything it does not recognize is returned as is for the schema to judge. */
+// Format 2 → 3: codes live inside strings too (a finding's key is "R1_FLECHA:piso"), so they are replaced as words.
+const CODES: Record<string, string> = {
+  R1_FLECHA: 'R1_SAG',
+  R2_ESPESOR_UNION: 'R2_JOINT_THICKNESS',
+  R3_TORNILLOS: 'R3_SCREWS',
+  R4_VUELCO: 'R4_TIPPING',
+  R5_ESCUADRADO: 'R5_RACKING',
+  R6_PUERTAS: 'R6_DOORS',
+  R8_VETA: 'R8_GRAIN',
+  R9_CAJONES: 'R9_DRAWERS',
+  R10_USO: 'R10_USE',
+  E_ESQUEMA: 'E_SCHEMA',
+  E_ID_DUPLICADO: 'E_DUPLICATE_ID',
+  E_PIEZA_INEXISTENTE: 'E_UNKNOWN_PIECE',
+  E_UNION_INEXISTENTE: 'E_UNKNOWN_JOINT',
+  E_REF_INEXISTENTE: 'E_UNKNOWN_REF',
+  E_REF_EJE: 'E_REF_AXIS',
+  E_CICLO: 'E_CYCLE',
+  E_TRAMO_INVALIDO: 'E_INVALID_EXTENT',
+  E_TRASLAPE: 'E_OVERLAP',
+  E_FLOTANTE: 'E_FLOATING',
+  E_MEDIDA_GLOBAL: 'E_OVERALL_SIZE',
+  E_ESPESOR_CATALOGO: 'E_UNKNOWN_MATERIAL',
+  E_NO_CABE_EN_HOJA: 'E_TOO_BIG_FOR_SHEET',
+  E_UNION_SIN_CONTACTO: 'E_JOINT_WITHOUT_CONTACT',
+  E_REQUISITO: 'E_REQUIREMENT',
+  E_OPERACION_INVALIDA: 'E_INVALID_OPERATION',
+  E_PROVEEDOR: 'E_PROVIDER',
+  E_FICHA: 'E_PLAN_ADJUSTMENT',
+  A_CONTACTO_SIN_UNION: 'W_CONTACT_WITHOUT_JOINT',
+  A_REFERENCIA_CONGELADA: 'W_FROZEN_REFERENCE',
+}
+
+const SEVERITIES: Record<string, string> = { critico: 'critical', recomendacion: 'recommendation', detalle: 'detail' }
+const CHECKS: Record<string, string> = { medidas: 'measures', hoja: 'sheet', estructura: 'structure', tiras: 'strips', confirmadas: 'confirmed', margen: 'margin' }
+const ANGLES: Record<string, string> = { frente: 'front', '3/4': 'three-quarter', lateral: 'side', interior: 'inside', uniones: 'joints' }
+
+const withCodes = (v: unknown) => (typeof v === 'string' ? v.replace(/\b[REA]\d*_[A-Z_]+\b/g, (code) => CODES[code] ?? code) : v)
+/** A notice's key carries its severity after "finding:". */
+const noticeKey = (v: unknown) => (typeof v === 'string' ? (withCodes(v) as string).replace(/finding:(critico|recomendacion|detalle):/, (_, s: string) => `finding:${SEVERITIES[s]}:`) : v)
+const ANGLE = values(ANGLES)
+/** "p0" stays; "f:frente" becomes "f:front". */
+const answerKey = (v: unknown) => (typeof v === 'string' && v.startsWith('f:') ? `f:${ANGLES[v.slice(2)] ?? v.slice(2)}` : v)
+
+const stateV2 = fields({
+  format: ['format', () => 3],
+  chat: ['chat', list(fields({ requestedPhotos: ['requestedPhotos', list(fields({ angle: ['angle', ANGLE] }))], answers: ['answers', list(answerKey)] }))],
+  thumbnails: ['thumbnails', list(fields({ angle: ['angle', ANGLE] }))],
+  proposal: ['proposal', nullable(fields({ critical: ['critical', list(fields({ code: ['code', withCodes] }))] }))],
+  review: ['review', nullable(fields({ checks: ['checks', list(fields({ id: ['id', values(CHECKS)] }))] }))],
+  trace: ['trace', list(fields({ errors: ['errors', list(fields({ code: ['code', withCodes] }))] }))],
+  accepted: ['accepted', list(fields({ key: ['key', withCodes] }))],
+  tray: ['tray', list(fields({ id: ['id', noticeKey] }))],
+})
+
+/** Brings a saved session up to the current format, one format at a time; anything it does not recognize is returned as is for the schema to judge. */
 export function migrateState(raw: unknown): unknown {
-  return isObject(raw) && raw.formato === 1 ? stateV1(raw) : raw
+  let state = raw
+  if (isObject(state) && state.formato === 1) state = stateV1(state)
+  if (isObject(state) && state.format === 2) state = stateV2(state)
+  return state
 }

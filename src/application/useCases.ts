@@ -19,7 +19,7 @@ import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
-import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
+import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { DesignError } from '../domain/validation/errors'
 import { worst, reviewViability, type Check } from '../domain/viabilidad/viability'
@@ -28,7 +28,7 @@ import type { DesignRepository } from '../ports/DesignRepository'
 import { InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../ports/LLMProvider'
 import { buildContext } from './context'
 
-export type Stage = 'leyendo-fotos' | 'mirando-fotos' | 'disenando-piezas' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
+export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
 export type OnProgress = (stage: Stage, attempt: number, progress?: { done: number; total: number }) => void
 
 export interface Dependencies {
@@ -53,14 +53,14 @@ const listErrors = (errors: DesignError[]) => errors.map((e) => `- ${e.code}: ${
 /** What the person asked for at the start, as the first chat message. */
 function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; notes: string }) {
   const measures = input.measures ? `Mide ${input.measures.height} × ${input.measures.width} × ${input.measures.depth} mm (alto, ancho, fondo).` : 'No sé las medidas.'
-  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`} (${input.photos.map((f) => f.angle).join(', ')}).` : ''
-  const photoNotes = input.photos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${f.angle}: ${f.note!.trim()}`)
+  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`} (${input.photos.map((f) => angleLabel(f.angle)).join(', ')}).` : ''
+  const photoNotes = input.photos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${angleLabel(f.angle)}: ${f.note!.trim()}`)
   return [input.notes.trim(), photos, ...photoNotes, measures].filter(Boolean).join('\n\n')
 }
 
 /** If the expert offered no options for a critical finding, the alternatives the rules worked out are offered. */
 function questionFromAlternatives(criticals: Finding[]): Question[] {
-  const options = [...new Set(criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'claro-maximo').map((a) => a.description)))].slice(0, 3)
+  const options = [...new Set(criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'max-span').map((a) => a.description)))].slice(0, 3)
   return options.length ? [{ text: '¿Cómo lo resolvemos?', options: options }] : []
 }
 
@@ -189,11 +189,11 @@ export function createUseCases(deps: Dependencies) {
     if (!photos.length) return null
     const llm = deps.llm()
     let done = 0
-    const advance = () => onProgress('leyendo-fotos', 0, { done, total: photos.length })
+    const advance = () => onProgress('reading-photos', 0, { done, total: photos.length })
     advance()
     const readOne = async (photo: Photo) => {
       const key = photoKey(photo.base64, photo.note ?? '')
-      const subject = `Foto ${photo.angle}`
+      const subject = `Foto ${angleLabel(photo.angle)}`
       const cached = readings.get(key)
       for (let attempt = 0; !cached && attempt < 2; attempt++) {
         const started = Date.now()
@@ -205,7 +205,7 @@ export function createUseCases(deps: Dependencies) {
         } catch (e) {
           if (signal.aborted) throw e
           const outcome = e instanceof InvalidResponse ? 'unreadable' : 'failed'
-          trace.push(traceEntry('read', attempt, started, null, outcome, [{ code: outcome === 'failed' ? 'E_PROVEEDOR' : 'E_ESQUEMA', message: (e instanceof InvalidResponse ? e.problems : e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], subject))
+          trace.push(traceEntry('read', attempt, started, null, outcome, [{ code: outcome === 'failed' ? 'E_PROVIDER' : 'E_SCHEMA', message: (e instanceof InvalidResponse ? e.problems : e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], subject))
         }
       }
       done++
@@ -233,7 +233,7 @@ export function createUseCases(deps: Dependencies) {
     const llm = deps.llm()
     const hint = detectKind({ name: `${input.notes} ${reading?.kind ?? ''}` })
     if (!llm.planDesign || (hint && NOT_CABINETS.has(hint))) return null
-    onProgress('mirando-fotos', 0)
+    onProgress('designing', 0)
     const started = Date.now()
     let plan: ExpertResponse<PlanResponse>
     try {
@@ -248,7 +248,7 @@ export function createUseCases(deps: Dependencies) {
       trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No tiene ficha: se diseña pieza por pieza'))
       return null
     }
-    onProgress('revisando', 0)
+    onProgress('checking', 0)
     // A cabinet takes the measures given; a bed takes them from its mattress.
     const given = input.measures && { width: input.measures.width, height: input.measures.height, depth: input.measures.depth }
     const furniture: FurniturePlan = bed ? bed : table ? { ...table, dimensions: given ?? table.dimensions } : { ...cabinet!, dimensions: given ?? cabinet!.dimensions }
@@ -260,7 +260,7 @@ export function createUseCases(deps: Dependencies) {
       return null
     }
     trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : table ? `Mesa (${table.use})` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
-    onProgress('estructura', 0)
+    onProgress('structure', 0)
     const { explanation: explanation, questions: questions, requestedPhotos: fotosSolicitadas, requirements: requirements, suggestions: suggestions } = plan.value
     const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design: design, questions: questions, requestedPhotos: fotosSolicitadas, requirements: requirements, suggestions: suggestions }
     return initialState(input, design, r, { ...plan, value: r }, [], repairs, trace, furniture)
@@ -283,7 +283,7 @@ export function createUseCases(deps: Dependencies) {
     let lastCandidate: { design: Design; r: ReconstructionResponse; response: ExpertResponse<ReconstructionResponse>; errors: DesignError[]; repairs: Repair[] } | null = null
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
-      onProgress(attempt ? 'corrigiendo' : 'disenando-piezas', attempt)
+      onProgress(attempt ? 'correcting' : 'designing-pieces', attempt)
       const started = Date.now()
       let response
       try {
@@ -291,14 +291,14 @@ export function createUseCases(deps: Dependencies) {
       } catch (e) {
         if (!(e instanceof InvalidResponse)) {
           if (signal.aborted) throw e
-          trace.push(traceEntry('reconstruct', attempt, started, null, 'failed', [{ code: 'E_PROVEEDOR', message: e instanceof Error ? e.message : String(e) }]))
+          trace.push(traceEntry('reconstruct', attempt, started, null, 'failed', [{ code: 'E_PROVIDER', message: e instanceof Error ? e.message : String(e) }]))
           throw new ExpertError(e instanceof Error ? e.message : 'Algo falló al consultar al experto.', trace)
         }
-        trace.push(traceEntry('reconstruct', attempt, started, null, 'unreadable', [{ code: 'E_ESQUEMA', message: e.problems.slice(0, 500) }]))
-        correction = { previousResponse: e.response, errors: [{ code: 'E_ESQUEMA', message: e.problems }] }
+        trace.push(traceEntry('reconstruct', attempt, started, null, 'unreadable', [{ code: 'E_SCHEMA', message: e.problems.slice(0, 500) }]))
+        correction = { previousResponse: e.response, errors: [{ code: 'E_SCHEMA', message: e.problems }] }
         continue
       }
-      onProgress('revisando', attempt)
+      onProgress('checking', attempt)
       const r = response.value
       const proposed = completeJoints(normalize(input.measures ? { ...r.design, dimensions: input.measures } : r.design, catalog), catalog)
       // What has an obvious fix is fixed here; only the rest goes back to the model.
@@ -311,7 +311,7 @@ export function createUseCases(deps: Dependencies) {
         continue
       }
       trace.push(traceEntry('reconstruct', attempt, started, response, 'ok', [], repairs))
-      onProgress('estructura', attempt)
+      onProgress('structure', attempt)
       return save(initialState(input, design, r, response, [], repairs, trace))
     }
     if (lastCandidate) {
@@ -348,7 +348,7 @@ export function createUseCases(deps: Dependencies) {
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 2,
+      format: 3,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -406,14 +406,14 @@ export function createUseCases(deps: Dependencies) {
     const throughPlan = async (): Promise<DesignState | null> => {
       const plan = currentPlanInfo.plan
       if (!plan || currentPlanInfo.diverged || !llm.adjustPlan || photo) return null
-      onProgress('proponiendo', 0)
+      onProgress('proposing', 0)
       const started = Date.now()
       let response: ExpertResponse<PlanAdjustment>
       try {
         response = await llm.adjustPlan({ context: context, request: request, plan, catalog: catalog }, signal)
       } catch (e) {
         if (signal.aborted) throw e
-        trace.push(traceEntry('adjust', 0, started, null, e instanceof InvalidResponse ? 'unreadable' : 'failed', [{ code: 'E_FICHA', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], 'Ficha'))
+        trace.push(traceEntry('adjust', 0, started, null, e instanceof InvalidResponse ? 'unreadable' : 'failed', [{ code: 'E_PLAN_ADJUSTMENT', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], 'Ficha'))
         return null
       }
       const r = response.value
@@ -429,7 +429,7 @@ export function createUseCases(deps: Dependencies) {
         trace.push(traceEntry('adjust', 0, started, response, 'ok', [], [], 'Ficha: respuesta'))
         return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
       }
-      onProgress('revisando', 0)
+      onProgress('checking', 0)
       const rebuilt = rebuildFromPlan(next!, currentPlanInfo.extras, catalog, requirements)
       const analysis = analyze(rebuilt.design, catalog, requirements)
       if (!analysis.valid) {
@@ -437,7 +437,7 @@ export function createUseCases(deps: Dependencies) {
         return null
       }
       trace.push(traceEntry('adjust', 0, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))
-      onProgress('estructura', 0)
+      onProgress('structure', 0)
       const extras = currentPlanInfo.extras.filter((e) => !rebuilt.dropped.includes(e))
       const criticals = newCriticals(before, analysis.findings)
       if (criticals.length) {
@@ -465,17 +465,17 @@ export function createUseCases(deps: Dependencies) {
       const byPlan = await throughPlan()
       if (byPlan) return byPlan
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-        onProgress(attempt ? 'corrigiendo' : 'proponiendo', attempt)
+        onProgress(attempt ? 'correcting' : 'proposing', attempt)
         const started = Date.now()
         let response
         try {
           response = await llm.proposeAdjustment({ context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, photos: photo ? [{ angle: photo.angle, base64: photo.base64 }] : [], catalog: catalog, correction: correction }, signal)
         } catch (e) {
           if (!(e instanceof InvalidResponse)) {
-            if (!signal.aborted) trace.push(traceEntry('adjust', attempt, started, null, 'failed', [{ code: 'E_PROVEEDOR', message: e instanceof Error ? e.message : String(e) }]))
+            if (!signal.aborted) trace.push(traceEntry('adjust', attempt, started, null, 'failed', [{ code: 'E_PROVIDER', message: e instanceof Error ? e.message : String(e) }]))
             throw e
           }
-          trace.push(traceEntry('adjust', attempt, started, null, 'unreadable', [{ code: 'E_ESQUEMA', message: e.problems.slice(0, 500) }]))
+          trace.push(traceEntry('adjust', attempt, started, null, 'unreadable', [{ code: 'E_SCHEMA', message: e.problems.slice(0, 500) }]))
           correction = { previousResponse: e.response, errors: e.problems }
           lastError = 'la respuesta no tenía el formato esperado'
           continue
@@ -491,7 +491,7 @@ export function createUseCases(deps: Dependencies) {
           return reply(r.explanation, { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions }, base)
         }
 
-        onProgress('revisando', attempt)
+        onProgress('checking', attempt)
         const applied = applyOperations(design, r.operations, catalog)
         const appliedNormally = applied.ok ? completeJoints(normalize(applied.value.design, catalog), catalog, design) : null
         const repaired = appliedNormally ? repairDesign(appliedNormally, catalog, requirements) : null
@@ -511,7 +511,7 @@ export function createUseCases(deps: Dependencies) {
         const newFindings = analysis.valid ? analysis.findings : []
         const remaining = analysis.valid ? [] : [`Todavía quedan ${describeProblems(traceErrors(analysis.errors))}; pídeme que las corrija.`]
 
-        onProgress('estructura', attempt)
+        onProgress('structure', attempt)
         // Nothing that holds the piece up goes away unasked, and changes wait for the answers to the expert's own questions.
         const unasked = describeChange(design, next, catalog).direct.filter((c) => c.kind === 'removed' && STRUCTURAL.has(design.pieces.find((p) => p.id === c.id)?.role ?? ''))
         const holds = [
@@ -630,7 +630,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 2,
+      format: 3,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,

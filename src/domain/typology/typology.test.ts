@@ -14,7 +14,7 @@ const cabinet = (p: Partial<CabinetPlan>) =>
 const usage = (d: Design) => {
   const a = analyze(d, testCatalog)
   if (!a.valid) throw new Error(a.errors[0].message)
-  return a.findings.filter((h) => h.code === 'R10_USO').map((h) => [h.severity, h.message] as const)
+  return a.findings.filter((h) => h.code === 'R10_USE').map((h) => [h.severity, h.message] as const)
 }
 
 describe('detectKind', () => {
@@ -33,33 +33,33 @@ describe('detectKind', () => {
 describe('typologyRule', () => {
   it('a tall chest of drawers must be anchored', () => {
     const plan = { name: 'Cajonera', columns: [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }] }
-    expect(usage(cabinet(plan))[0]).toEqual(['critico', expect.stringContaining('se va de frente')])
+    expect(usage(cabinet(plan))[0]).toEqual(['critical', expect.stringContaining('se va de frente')])
     expect(usage(cabinet({ ...plan, wallMounted: true }))).toEqual([])
   })
 
   it('a wall cabinet hangs from the wall', () => {
-    expect(usage(cabinet({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 } })).map(([s]) => s)).toEqual(['critico', 'recomendacion'])
+    expect(usage(cabinet({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 } })).map(([s]) => s)).toEqual(['critical', 'recommendation'])
   })
 
   it('a shallow bookcase leaves books sticking out', () => {
-    expect(usage(cabinet({ name: 'Librero', dimensions: { width: 600, height: 1800, depth: 200 }, wallMounted: true }))).toEqual([['recomendacion', expect.stringContaining('200 mm de fondo')]])
+    expect(usage(cabinet({ name: 'Librero', dimensions: { width: 600, height: 1800, depth: 200 }, wallMounted: true }))).toEqual([['recommendation', expect.stringContaining('200 mm de fondo')]])
   })
 
   it('a bed whose platform is narrower than the mattress, or spans too far without support', () => {
     const narrow = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1000, height: 350, depth: 1900 } }))
-    expect(narrow).toContainEqual(['critico', expect.stringContaining('no cabe')])
+    expect(narrow).toContainEqual(['critical', expect.stringContaining('no cabe')])
     const unsupported = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1030, height: 350, depth: 1900 } }))
-    expect(unsupported).not.toContainEqual(['critico', expect.stringContaining('no cabe')])
-    expect(unsupported).toContainEqual(['critico', expect.stringContaining('sin apoyo')])
+    expect(unsupported).not.toContainEqual(['critical', expect.stringContaining('no cabe')])
+    expect(unsupported).toContainEqual(['critical', expect.stringContaining('sin apoyo')])
   })
 
   it('a bed lying the other way still fits its mattress', () => {
     const sideways = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1940, height: 350, depth: 1030 } }))
-    expect(sideways).not.toContainEqual(['critico', expect.stringContaining('no cabe')])
+    expect(sideways).not.toContainEqual(['critical', expect.stringContaining('no cabe')])
   })
 
   it('a desk needs room for the legs', () => {
-    expect(usage(cabinet({ name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 } }))).toContainEqual(['critico', expect.stringContaining('espacio para las piernas')])
+    expect(usage(cabinet({ name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 } }))).toContainEqual(['critical', expect.stringContaining('espacio para las piernas')])
     const open: Design = completeJoints(
       {
         schema: 1,
@@ -81,6 +81,6 @@ describe('typologyRule', () => {
   })
 
   it('a coffee table at dining height', () => {
-    expect(usage(cabinet({ name: 'Mesa de centro', dimensions: { width: 1000, height: 750, depth: 550 } }))).toEqual([['recomendacion', expect.stringContaining('de centro va de 350 a 500')]])
+    expect(usage(cabinet({ name: 'Mesa de centro', dimensions: { width: 1000, height: 750, depth: 550 } }))).toEqual([['recommendation', expect.stringContaining('de centro va de 350 a 500')]])
   })
 })

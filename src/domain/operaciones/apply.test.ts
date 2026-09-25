@@ -48,7 +48,7 @@ describe('applyOperations', () => {
 
   it('adding a divider requires splitting the shelves it crosses', () => {
     const { design: diseno } = aplicado(exampleBookcase, [{ op: 'addPiece', piece: divisor }])
-    expect(valido(diseno)).toContain('E_TRASLAPE')
+    expect(valido(diseno)).toContain('E_OVERLAP')
   })
 
   it('a full divider: shelves split in two with joints, and it stays valid', () => {
@@ -72,14 +72,14 @@ describe('applyOperations', () => {
     expect(valido(diseno)).toEqual([])
     const a = analyze(diseno, testCatalog)
     if (!a.valid) throw new Error()
-    expect(a.findings.filter((h) => h.code === 'R1_FLECHA').map((h) => h.pieces[0])).toEqual(['piso'])
+    expect(a.findings.filter((h) => h.code === 'R1_SAG').map((h) => h.pieces[0])).toEqual(['piso'])
   })
 
   it('removing a piece freezes the cotas that referred to it and warns', () => {
     const { design: diseno, warnings: avisos } = aplicado(exampleBookcase, [{ op: 'removePiece', id: 'zoclo' }])
     expect(diseno.pieces.find((p) => p.id === 'piso')!.y.from).toEqual(mm(70))
     expect(diseno.joints.some((u) => u.a === 'zoclo' || u.b === 'zoclo')).toBe(false)
-    expect(avisos[0].code).toBe('A_REFERENCIA_CONGELADA')
+    expect(avisos[0].code).toBe('W_FROZEN_REFERENCE')
   })
 
   it('moving keeps the length and a lowered shelf stays valid', () => {
@@ -114,13 +114,13 @@ describe('applyOperations', () => {
   it('fails without applying anything and names the operation', () => {
     const r = applyOperations(exampleBookcase, [{ op: 'setWallAnchored', value: false }, { op: 'removePiece', id: 'no-existe' }], testCatalog)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errors[0]).toMatchObject({ code: 'E_PIEZA_INEXISTENTE', data: { operacion: 1 } })
+    if (!r.ok) expect(r.errors[0]).toMatchObject({ code: 'E_UNKNOWN_PIECE', data: { operation: 1 } })
     expect(exampleBookcase.wallAnchored).toBe(true)
   })
 
   it('does not resize along the thickness axis', () => {
     const r = applyOperations(exampleBookcase, [{ op: 'resize', id: 'piso', axis: 'y', end: 'to', at: mm(200) }], testCatalog)
-    expect(r.ok || r.errors[0].code).toBe('E_OPERACION_INVALIDA')
+    expect(r.ok || r.errors[0].code).toBe('E_INVALID_OPERATION')
   })
 })
 

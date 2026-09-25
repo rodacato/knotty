@@ -11,7 +11,7 @@ const signature = (d: Design) => d.joints.map((u) => `${u.a} → ${u.b} ${u.type
 const criticals = (d: Design) => {
   const a = analyze(d, testCatalog)
   if (!a.valid) throw new Error(a.errors[0].message)
-  return a.findings.filter((h) => h.severity === 'critico')
+  return a.findings.filter((h) => h.severity === 'critical')
 }
 
 describe('completeJoints', () => {

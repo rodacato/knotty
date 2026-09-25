@@ -48,19 +48,19 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
     const [first] = notice.findings
     if (!first) return []
     const pieces = [...new Set(notice.findings.flatMap((h) => h.pieces))]
-    const general = (f: Fix) => (f.key === 'divisor-al-centro' || f.key === 'apoyo-central' ? 'Un apoyo al centro, debajo de cada una' : f.label)
-    const perPiece = new Set(['divisor-al-centro', 'apoyo-central', 'subir-espesor'])
+    const general = (f: Fix) => (f.key === 'center-divider' || f.key === 'center-support' ? 'Un apoyo al centro, debajo de cada una' : f.label)
+    const perPiece = new Set(['center-divider', 'center-support', 'thicker-board'])
     return fixesFor(design, catalog, { ...first, pieces }).map((f) => (pieces.length > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${pieces.length} piezas)` } : f))
   }, [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
-  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'claro-maximo' && !built.has(a.key)).map((a) => [a.description, a])).values()]
+  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'max-span' && !built.has(a.key)).map((a) => [a.description, a])).values()]
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   const inTray = state.tray.find((t) => t.id === noticeItemId(notice.key))
   const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
 
   return (
-    <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critico' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
+    <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critical' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">
           {KIND[notice.kind] && <span className="mr-1.5 text-xs text-grafito-2">{KIND[notice.kind]} ·</span>}

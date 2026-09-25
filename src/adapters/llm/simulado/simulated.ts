@@ -318,7 +318,7 @@ export function createSimulated(delay = 900): LLMProvider {
             ? { text: '¿Agrego el cajón que mencionaste?', options: ['Agrega un cajón abajo', 'Sin cajón por ahora'] }
             : { text: '¿Qué vas a guardar principalmente?', options: ['Libros', 'Ropa doblada', 'Decoración'] },
         ],
-        requestedPhotos: withoutPhotos || s.photos.some((f) => f.angle === 'interior') ? [] : [{ angle: 'interior', reason: 'Para ver cómo va fijada la trasera' }],
+        requestedPhotos: withoutPhotos || s.photos.some((f) => f.angle === 'inside') ? [] : [{ angle: 'inside', reason: 'Para ver cómo va fijada la trasera' }],
         requirements: [],
         suggestions: ['Que aguante libros pesados', 'Hazlo de 90 cm de ancho', 'Hazlo de 50 cm de fondo'],
       }
@@ -361,7 +361,7 @@ export function createSimulated(delay = 900): LLMProvider {
     async readPhoto(r, signal) {
       await wait(delay, signal)
       const base = chooseFixture(null, `${r.context} ${r.photo.note ?? ''}`)
-      const front = r.photo.angle !== 'lateral'
+      const front = r.photo.angle !== 'side'
       return response<PhotoReading>({
         kind: base.name.toLowerCase(),
         confidence: 'medium',

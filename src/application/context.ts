@@ -9,7 +9,7 @@ const TOKEN_BUDGET = 12_000
 const RECENT_MESSAGES = 6
 const tokens = (text: string) => Math.ceil(text.length / 3.5)
 
-const SEVERITY_LABEL = { critico: 'crítico', recomendacion: 'recomendación', detalle: 'detalle' }
+const SEVERITY_LABEL = { critical: 'crítico', recommendation: 'recomendación', detail: 'detalle' }
 
 /** What the expert needs for a change, from the most stable to the most volatile; if it does not fit, the least needed is cut. */
 export function buildContext(state: DesignState, catalog: Catalog): string {

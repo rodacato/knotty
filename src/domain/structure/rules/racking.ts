@@ -28,15 +28,15 @@ export const rackingRule: Rule = ({ design, geo }) => {
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
   const height = Math.max(...sides.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
   const finding: Finding = {
-    code: 'R5_ESCUADRADO',
-    severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critico' : 'recomendacion',
+    code: 'R5_RACKING',
+    severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critical' : 'recommendation',
     pieces: sides,
     message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
-    data: { alto: height, travesanosRigidos: rails.length },
+    data: { height: height, rigidRails: rails.length },
     alternatives: [
-      { key: 'trasera-6', description: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', data: { material: 'TR6' } },
-      { key: 'trasera-en-rebaje', description: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', data: { tipo: 'rebaje' } },
-      { key: 'faja-rigida', description: 'Faja trasera superior con tornillos de bolsillo a los laterales', data: { tipo: 'bolsillo' } },
+      { key: 'back-6mm', description: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', data: { material: 'TR6' } },
+      { key: 'back-in-rabbet', description: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', data: { type: 'rabbet' } },
+      { key: 'rigid-apron', description: 'Faja trasera superior con tornillos de bolsillo a los laterales', data: { type: 'pocket-screw' } },
     ],
   }
   return [finding]

@@ -30,7 +30,7 @@ const MAX_ROUNDS = 12
 type Fix = { operations: Operation[]; repair: Repair } | null
 
 function fixLooseJoint(e: DesignError, design: Design): Fix {
-  const joint = design.joints.find((u) => u.id === e.data?.union)
+  const joint = design.joints.find((u) => u.id === e.data?.joint)
   if (!joint || joint.type === 'drawer-slide') return null
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   return {
@@ -103,7 +103,7 @@ export function repairDesign(original: Design, catalog: Catalog, requirements: R
     const errorCount = analysis.errors.length
     let applied = false
     for (const e of analysis.errors) {
-      const fix = e.code === 'E_UNION_SIN_CONTACTO' ? fixLooseJoint(e, design) : e.code === 'E_TRASLAPE' ? fixOverlap(e, design, geo.boxes) : null
+      const fix = e.code === 'E_JOINT_WITHOUT_CONTACT' ? fixLooseJoint(e, design) : e.code === 'E_OVERLAP' ? fixOverlap(e, design, geo.boxes) : null
       if (!fix) continue
       const result = applyOperations(design, fix.operations, catalog)
       if (!result.ok) continue
