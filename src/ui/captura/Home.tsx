@@ -54,8 +54,8 @@ export function Home() {
           <p className="text-sm text-grafito-2">O empieza con un ejemplo:</p>
           <div className="flex flex-wrap gap-2">
             {[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => (
-              <Button key={d.nombre} variant="secondary" onClick={() => fromExample(d)}>
-                <Cube /> {d.nombre}
+              <Button key={d.name} variant="secondary" onClick={() => fromExample(d)}>
+                <Cube /> {d.name}
               </Button>
             ))}
           </div>

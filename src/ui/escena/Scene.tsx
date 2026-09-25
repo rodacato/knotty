@@ -30,25 +30,25 @@ interface SceneProps {
 
 /** How far each piece moves apart in the assembly view: away from the center, mostly along its thickness, never below the floor. */
 function offsets(geo: Geometry, design: Design, active: boolean) {
-  const zero = new Map(design.piezas.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
-  if (!active) return { pushes: zero, height: design.dimensiones.alto * MM }
-  const { ancho: width, alto: height, fondo: background } = design.dimensiones
+  const zero = new Map(design.pieces.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
+  if (!active) return { pushes: zero, height: design.dimensions.height * MM }
+  const { width: width, height: height, depth: background } = design.dimensions
   const center = { x: width / 2, y: height / 2, z: background / 2 }
   const scale = Math.max(width, background, height * 0.5)
   // Drawers slide out whole towards the front, as if opened, instead of coming apart.
   const drawers = new Map<string, number>()
-  for (const p of design.piezas)
-    if (p.grupo && p.rol === 'costado-cajon' && p.normal === 'x') {
+  for (const p of design.pieces)
+    if (p.group && p.role === 'drawer-side' && p.normal === 'x') {
       const c = geo.boxes.get(p.id)!
-      const front = design.piezas.find((q) => q.grupo === p.grupo && q.rol === 'frente-cajon')
+      const front = design.pieces.find((q) => q.group === p.group && q.role === 'drawer-front')
       const f = front && geo.boxes.get(front.id)
       // A drawer on the far side of a bed opens backward.
       const direction = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
-      drawers.set(p.grupo, (c.z1 - c.z0) * 0.75 * direction)
+      drawers.set(p.group, (c.z1 - c.z0) * 0.75 * direction)
     }
-  const raw = design.piezas.map((p) => {
+  const raw = design.pieces.map((p) => {
     const c = geo.boxes.get(p.id)!
-    const output = p.grupo ? drawers.get(p.grupo) : undefined
+    const output = p.group ? drawers.get(p.group) : undefined
     if (output !== undefined) return { id: p.id, c, push: { x: 0, y: 0, z: output } }
     const d = { x: (c.x0 + c.x1) / 2 - center.x, y: (c.y0 + c.y1) / 2 - center.y, z: (c.z0 + c.z1) / 2 - center.z }
     const n = p.normal
@@ -67,7 +67,7 @@ function CameraRig({ design, visibleHeight, reduced }: { design: Design; visible
   const controls = useRef<CameraControls>(null)
   const view = useStore((s) => s.view)
   const exploded = useStore((s) => s.exploded)
-  const { ancho: width, alto: height, fondo: background } = design.dimensiones
+  const { width: width, height: height, depth: background } = design.dimensions
 
   useEffect(() => {
     const c = controls.current
@@ -103,7 +103,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
 
   const { pushes, height: visibleHeight } = useMemo(() => offsets(geo, design, exploded), [geo, design, exploded])
   const kindOf = (material: string) => (catalog.materiales.find((m) => m.id === material)?.tipo === 'trasera' ? 'back' : 'plywood')
-  const order = useMemo(() => [...design.piezas].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
+  const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
     <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
@@ -119,8 +119,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
         <Lightformer form="rect" intensity={0.6} position={[4, 1.5, -1]} rotation-y={-Math.PI / 2} scale={[4, 3, 1]} color="#dfe7ff" />
       </Environment>
 
-      <group position={[(-design.dimensiones.ancho / 2) * MM, 0, (-design.dimensiones.fondo / 2) * MM]}>
-        {design.piezas.map((p) => (
+      <group position={[(-design.dimensions.width / 2) * MM, 0, (-design.dimensions.depth / 2) * MM]}>
+        {design.pieces.map((p) => (
           <PieceMesh
             key={`${p.id}-${reveal}`}
             piece={p}
@@ -150,7 +150,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             const [dx, dy, dz] = pushes.get(id) ?? [0, 0, 0]
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {dimensions && !exploded && <DimensionLines dimensions={design.dimensiones} dark={dark} />}
+        {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={dark} />}
         {dimensions && exploded && <PieceMeasures design={design} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
       </group>
 

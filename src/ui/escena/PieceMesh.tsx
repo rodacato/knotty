@@ -22,7 +22,7 @@ const FALL = 0.35
 
 function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
   const m = { x: box.x1 - box.x0, y: box.y1 - box.y0, z: box.z1 - box.z0 }
-  if (p.confianza === 'baja')
+  if (p.confidence === 'low')
     return FACES.map((face) => {
       const t = texture('sketch', tone).clone()
       t.repeat.set(Math.max(0.2, (m[face.u] * MM) / 0.25), Math.max(0.2, (m[face.v] * MM) / 0.25))
@@ -31,7 +31,7 @@ function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
     })
   const [a, b] = (['x', 'y', 'z'] as Axis[]).filter((e) => e !== p.normal)
   const length = m[a] >= m[b] ? a : b
-  const grainAlong = p.veta === 'ancho' ? (length === a ? b : a) : length
+  const grainAlong = p.grain === 'width' ? (length === a ? b : a) : length
   return FACES.map((face) => {
     const isFace = face.normal === p.normal
     const kind: TextureKind = isFace ? (grainAlong === face.u ? 'grain-u' : 'grain-v') : p.normal === face.u ? 'plies-u' : 'plies-v'
@@ -71,7 +71,7 @@ export function PieceMesh({ piece, box, tone, offset, selected, dimmed, ghost, m
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
   const maps = useMemo(() => faceTextures(piece, box, tone), [piece, box, tone])
 
-  const sketch = piece.confianza === 'baja'
+  const sketch = piece.confidence === 'low'
   const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1
   const target: [number, number, number] = [center[0] + offset[0], center[1] + offset[1], center[2] + offset[2]]
   const { position, scale } = useSpring({

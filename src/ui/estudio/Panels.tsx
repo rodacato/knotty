@@ -8,20 +8,20 @@ import { useStore } from '../store'
 import { PieceEditor } from './PieceEditor'
 
 const JOINTS: Record<JointType, string> = {
-  'tope-tornillo': 'tornillo al canto',
-  bolsillo: 'tornillo de bolsillo',
-  tarugo: 'tarugos',
-  minifix: 'minifix',
-  canal: 'canal',
-  rebaje: 'rebaje',
-  escuadra: 'escuadra',
-  'clavo-pegamento': 'clavo y pegamento',
-  'soporte-repisa': 'soportes de repisa',
-  'bisagra-cazoleta': 'bisagras de cazoleta',
-  corredera: 'corredera',
+  'butt-screw': 'tornillo al canto',
+  'pocket-screw': 'tornillo de bolsillo',
+  dowel: 'tarugos',
+  'cam-lock': 'minifix',
+  dado: 'canal',
+  rabbet: 'rebaje',
+  bracket: 'escuadra',
+  'glue-nail': 'clavo y pegamento',
+  'shelf-pin': 'soportes de repisa',
+  'cup-hinge': 'bisagras de cazoleta',
+  'drawer-slide': 'corredera',
 }
 
-const GRAIN = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
+const GRAIN = { length: 'a lo largo', width: 'a lo ancho', any: 'libre' }
 
 export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
   const select = useStore((s) => s.select)
@@ -61,18 +61,18 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
   const confirmPiece = useStore((s) => s.confirmPiece)
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
-  const p = design.piezas.find((x) => x.id === selection)
+  const p = design.pieces.find((x) => x.id === selection)
   const box = p && geo.boxes.get(p.id)
   if (!p || !box) return null
   const [length, width] = faceSize(box, p.normal)
   const material = catalog.materiales.find((m) => m.id === p.material)
-  const name = (id: string) => design.piezas.find((x) => x.id === id)?.nombre ?? id
-  const joints = design.uniones.filter((u) => u.a === p.id || u.b === p.id)
+  const name = (id: string) => design.pieces.find((x) => x.id === id)?.name ?? id
+  const joints = design.joints.filter((u) => u.a === p.id || u.b === p.id)
   return (
     <div className="animate-aparecer pointer-events-auto w-full max-w-sm rounded-2xl md:w-80 border border-linea bg-hueso/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-titulo text-lg font-semibold">{p.nombre}</p>
+          <p className="font-titulo text-lg font-semibold">{p.name}</p>
           <p className="text-xs text-grafito-2">{material?.nombre ?? p.material}</p>
         </div>
         <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
@@ -92,9 +92,9 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
           </div>
         ))}
       </dl>
-      <p className="mt-2 text-xs text-grafito-2">Veta {GRAIN[p.veta]}</p>
+      <p className="mt-2 text-xs text-grafito-2">Veta {GRAIN[p.grain]}</p>
       <PieceEditor key={p.id} piece={p} box={box} catalog={catalog} enabled={editable} />
-      {p.confianza === 'baja' && (
+      {p.confidence === 'low' && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-papel px-3 py-2 text-xs text-grafito">
           <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>
           <button type="button" onClick={() => confirmPiece(p.id)} className="rounded-full bg-grafito px-3 py-1 font-medium text-hueso">
@@ -106,7 +106,7 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
         <ul className="mt-3 flex max-h-36 flex-col gap-1 overflow-y-auto border-t border-linea pt-3 text-sm">
           {joints.map((u) => {
             const other = u.a === p.id ? u.b : u.a
-            const count = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 0), 0)
+            const count = u.hardware.reduce((n, h) => n + (h.count ?? 0), 0)
             return (
               <li key={u.id} className="flex gap-2">
                 <span className="text-ambar">→</span>
@@ -114,9 +114,9 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
                   <button type="button" className="font-medium underline decoration-linea underline-offset-2 hover:decoration-ambar" onClick={() => select(other)}>
                     {name(other)}
                   </button>
-                  : {count && u.tipo !== 'corredera' ? `${count} ` : ''}
-                  {JOINTS[u.tipo]}
-                  {u.pegamento && u.tipo !== 'clavo-pegamento' ? ' con pegamento' : ''}
+                  : {count && u.type !== 'drawer-slide' ? `${count} ` : ''}
+                  {JOINTS[u.type]}
+                  {u.glue && u.type !== 'glue-nail' ? ' con pegamento' : ''}
                 </span>
               </li>
             )

@@ -18,10 +18,10 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
   const thinking = useStore((s) => s.thinking)
   const [error, setError] = useState<string | null>(null)
   const change = useMemo(() => {
-    const ordered = [...state.versiones].sort((a, b) => a.n - b.n)
+    const ordered = [...state.versions].sort((a, b) => a.n - b.n)
     const i = ordered.findIndex((v) => v.n === version)
-    return i > 0 ? describeChange(ordered[i - 1].diseno, ordered[i].diseno, catalog) : null
-  }, [state.versiones, version, catalog])
+    return i > 0 ? describeChange(ordered[i - 1].design, ordered[i].design, catalog) : null
+  }, [state.versions, version, catalog])
   if (!change || (!change.direct.length && !change.dimensions)) return null
   const run = (r: { ok: true } | { ok: false; message: string }) => setError(r.ok ? null : r.message)
   const count = change.direct.length + (change.dimensions ? 1 : 0)

@@ -28,13 +28,13 @@ export function HistoryPanel({ state }: { state: DesignState }) {
   const viewVersion = useStore((s) => s.viewVersion)
   const backToVersion = useStore((s) => s.backToVersion)
   const thinking = useStore((s) => s.thinking)
-  const versions = [...state.versiones].sort((a, b) => b.n - a.n)
+  const versions = [...state.versions].sort((a, b) => b.n - a.n)
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <ol className="relative flex flex-col gap-3 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-px before:bg-linea">
         {versions.map((v) => {
-          const current = v.n === state.actual
+          const current = v.n === state.current
           const viewing = v.n === viewedVersion
           return (
             <li key={v.n} className="animate-aparecer relative flex gap-3">
@@ -44,14 +44,14 @@ export function HistoryPanel({ state }: { state: DesignState }) {
               <div className={`flex min-w-0 flex-1 flex-col gap-1.5 rounded-2xl border p-3 transition ${viewing ? 'border-ambar bg-ambar-suave' : 'border-linea bg-hueso'}`}>
                 <div className="flex items-baseline gap-2">
                   <span className="cifras text-xs text-grafito-2">v{v.n}</span>
-                  <span className="min-w-0 flex-1 leading-snug font-medium">{v.resumen}</span>
+                  <span className="min-w-0 flex-1 leading-snug font-medium">{v.summary}</span>
                   {current && <span className="rounded-full bg-grafito px-2 py-px text-[10px] font-medium text-hueso">Actual</span>}
                 </div>
-                {v.motivo && v.motivo !== v.resumen && !v.motivo.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-grafito-2" title={v.motivo}>«{v.motivo}»</p>}
+                {v.reason && v.reason !== v.summary && !v.reason.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-grafito-2" title={v.reason}>«{v.reason}»</p>}
                 <p className="text-[11px] text-grafito-2">
-                  {ago(v.fecha)}
-                  {v.origen && ` · ${PROVIDER[v.origen.proveedor] ?? v.origen.proveedor}`}
-                  {v.operaciones.length > 0 && ` · ${v.operaciones.length} ${v.operaciones.length === 1 ? 'operación' : 'operaciones'}`}
+                  {ago(v.date)}
+                  {v.origin && ` · ${PROVIDER[v.origin.provider] ?? v.origin.provider}`}
+                  {v.operations.length > 0 && ` · ${v.operations.length} ${v.operations.length === 1 ? 'operación' : 'operaciones'}`}
                 </p>
                 <ChangeList state={state} version={v.n} />
                 {!current && (
@@ -72,7 +72,7 @@ export function HistoryPanel({ state }: { state: DesignState }) {
       <details className="rounded-2xl border border-linea bg-hueso/60 p-3">
         <summary className="cursor-pointer text-sm font-medium">Bitácora: qué hizo el experto</summary>
         <div className="mt-3">
-          <TraceLog trace={state.trace} pieces={currentDesign(state).piezas} />
+          <TraceLog trace={state.trace} pieces={currentDesign(state).pieces} />
         </div>
       </details>
     </div>

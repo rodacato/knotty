@@ -23,9 +23,9 @@ const STAGES: Record<Stage, string> = {
 const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
 
 /** Several pieces with the same problem are counted in a single line. */
-function groupByCode<T extends { codigo: string }>(critical: T[]) {
+function groupByCode<T extends { code: string }>(critical: T[]) {
   const groups = new Map<string, T[]>()
-  for (const c of critical) groups.set(c.codigo, [...(groups.get(c.codigo) ?? []), c])
+  for (const c of critical) groups.set(c.code, [...(groups.get(c.code) ?? []), c])
   return [...groups.values()].map((g) => ({ first: g[0], more: g.length - 1 }))
 }
 
@@ -45,7 +45,7 @@ function useSeconds(active: boolean) {
 }
 
 /** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
-const openQuestions = (state: DesignState) => state.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(questionAnswerKey(i))))
+const openQuestions = (state: DesignState) => state.chat.filter((m) => m.author === 'expert' && !m.answered).flatMap((m) => m.questions.filter((p, i) => p.options && !m.answers.includes(questionAnswerKey(i))))
 
 /** One question answers at once; with several, or with something already in the tray, answers join the tray. */
 function Questions({ m, state }: { m: Message; state: DesignState }) {
@@ -57,20 +57,20 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
 
   return (
     <>
-      {m.preguntas.map((p, i) => {
-        const taken = m.respondida || m.respuestas.includes(questionAnswerKey(i))
+      {m.questions.map((p, i) => {
+        const taken = m.answered || m.answers.includes(questionAnswerKey(i))
         return (
           <div key={i} className="flex flex-col gap-2">
-            {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
-            {p.opciones && (
+            {m.questions.length > 1 || p.text !== m.text ? <p className="text-sm font-medium">{p.text}</p> : null}
+            {p.options && (
               <div className="flex flex-wrap gap-2">
-                {p.opciones.map((o) => (
+                {p.options.map((o) => (
                   <Chip
                     key={o}
                     active={chosen(i) === o}
                     aria-pressed={batch ? chosen(i) === o : undefined}
                     disabled={taken || thinking}
-                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void adjust(o, `${m.id}#${questionAnswerKey(i)}`))}
+                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.text, o)) : void adjust(o, `${m.id}#${questionAnswerKey(i)}`))}
                   >
                     {o}
                   </Chip>
@@ -80,7 +80,7 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
           </div>
         )
       })}
-      {batch && !m.respondida && m.preguntas.some((p) => p.opciones) && <p className="text-xs text-grafito-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
+      {batch && !m.answered && m.questions.some((p) => p.options) && <p className="text-xs text-grafito-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
     </>
   )
 }
@@ -94,11 +94,11 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
   const viewVersion = useStore((s) => s.viewVersion)
   const viewedVersion = useStore((s) => s.viewedVersion)
 
-  if (m.autor === 'usuario')
+  if (m.author === 'user')
     return (
       <div className="animate-aparecer ml-10 flex flex-col items-end gap-1.5 self-end">
-        {m.miniatura && <img src={m.miniatura} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
-        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.texto}</div>
+        {m.thumbnail && <img src={m.thumbnail} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
+        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.text}</div>
         {m.version && (
           <div className="w-full max-w-sm">
             <ChangeList state={state} version={m.version} />
@@ -107,14 +107,14 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
       </div>
     )
 
-  const pending = m.propuesta === 'pendiente' && state.propuesta
+  const pending = m.proposal === 'pending' && state.proposal
   return (
     <div className="animate-aparecer mr-6 flex flex-col gap-2.5 self-start">
       <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-oxido/30 bg-oxido/5' : 'border-linea bg-hueso'}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-grafito-2">
           <PencilSimple weight="duotone" className="text-ambar" /> Experto
           {m.version &&
-            (m.version === state.actual || !state.versiones.some((v) => v.n === m.version) ? (
+            (m.version === state.current || !state.versions.some((v) => v.n === m.version) ? (
               <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>
             ) : (
               <button
@@ -127,11 +127,11 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
                 v{m.version}
               </button>
             ))}
-          {m.propuesta === 'aplicada' && <span className="text-[10px]">· aplicada</span>}
-          {m.propuesta === 'descartada' && <span className="text-[10px]">· sin aplicar</span>}
+          {m.proposal === 'applied' && <span className="text-[10px]">· aplicada</span>}
+          {m.proposal === 'discarded' && <span className="text-[10px]">· sin aplicar</span>}
         </div>
         {m.error && <Warning className="float-left mt-1 mr-2 text-oxido" weight="bold" />}
-        {m.texto.split('\n\n').map((p, i) => (
+        {m.text.split('\n\n').map((p, i) => (
           <p key={i} className={i ? 'mt-2' : ''}>
             {p}
           </p>
@@ -146,9 +146,9 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
       {pending && (
         <div className="rounded-2xl border border-oxido/25 bg-kraft/60 p-3">
           <p className="mb-2 text-xs font-medium tracking-wide text-grafito-2 uppercase">Propuesta sin aplicar</p>
-          {state.propuesta!.holds.length > 0 && (
+          {state.proposal!.holds.length > 0 && (
             <ul className="mb-2 flex flex-col gap-1.5">
-              {state.propuesta!.holds.map((h) => (
+              {state.proposal!.holds.map((h) => (
                 <li key={h} className="flex items-start gap-2 text-sm">
                   <Warning className="mt-0.5 shrink-0 text-ambar" weight="bold" /> {h}
                 </li>
@@ -156,11 +156,11 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             </ul>
           )}
           <ul className="flex flex-col gap-2">
-            {groupByCode(state.propuesta!.criticos).map(({ first, more }, i) => (
+            {groupByCode(state.proposal!.critical).map(({ first, more }, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
                 <Stamp severity="critico" />
                 <span>
-                  {first.mensaje}
+                  {first.message}
                   {more > 0 && <span className="text-grafito-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
                 </span>
               </li>
@@ -171,10 +171,10 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
               {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
             </Button>
             <Button variant="ghost" className="min-h-9 text-xs" onClick={applyProposal} disabled={thinking}>
-              {state.propuesta!.criticos.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
+              {state.proposal!.critical.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
             </Button>
             <Button variant="ghost" className="min-h-9 text-xs" onClick={discardProposal} disabled={thinking}>
-              <ArrowCounterClockwise /> {state.propuesta!.criticos.length ? 'Descartar' : 'No, déjalo como estaba'}
+              <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
             </Button>
           </div>
         </div>
@@ -182,8 +182,8 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
       {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
-      {m.fotosPedidas.map((f) => (
-        <RequestedPhoto key={f.angulo} angle={f.angulo} reason={f.motivo} message={m} />
+      {m.requestedPhotos.map((f) => (
+        <RequestedPhoto key={f.angle} angle={f.angle} reason={f.reason} message={m} />
       ))}
 
       <Questions m={m} state={state} />
@@ -215,7 +215,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
         </span>
       </p>
       <div className="flex gap-2">
-        <TakePhoto onChoose={(f) => void send(f)} disabled={message.respondida || message.respuestas.includes(photoAnswerKey(angle)) || thinking || processing} />
+        <TakePhoto onChoose={(f) => void send(f)} disabled={message.answered || message.answers.includes(photoAnswerKey(angle)) || thinking || processing} />
       </div>
     </div>
   )
@@ -234,8 +234,8 @@ export function Chat({ state }: { state: DesignState }) {
   const last = state.chat.at(-1)
   const previous = state.chat.at(-2)
   // If the last attempt failed, the same request is sent again with one click.
-  const retry = last?.error && previous?.autor === 'usuario' ? () => void adjust(previous.texto) : null
-  const suggestions = thinking || last?.autor !== 'experto' || last.error ? [] : last.sugerencias.length ? last.sugerencias : state.versiones.length <= 1 ? SUGGESTIONS : []
+  const retry = last?.error && previous?.author === 'user' ? () => void adjust(previous.text) : null
+  const suggestions = thinking || last?.author !== 'expert' || last.error ? [] : last.suggestions.length ? last.suggestions : state.versions.length <= 1 ? SUGGESTIONS : []
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })

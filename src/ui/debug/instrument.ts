@@ -46,7 +46,7 @@ export function instrumentStore(log: DebugLog) {
       log.record({ kind: 'stage', summary: `Etapa: ${now.stage.name}${now.stage.attempt ? `, intento ${now.stage.attempt + 1}` : ''}${now.stage.progress ? ` (${now.stage.progress.done} de ${now.stage.progress.total})` : ''}`, data: now.stage })
     if (now.reconstructionError && now.reconstructionError !== before.reconstructionError) log.record({ kind: 'error', summary: `El diseño falló: ${now.reconstructionError}`, data: { trace: now.failedTrace } })
     if (now.verdictError && now.verdictError !== before.verdictError) log.record({ kind: 'error', summary: `La revisión falló: ${now.verdictError}` })
-    if (now.state && before.state && now.state.actual !== before.state.actual) log.record({ kind: 'action', summary: `Versión ${now.state.actual}: ${now.state.versiones.find((v) => v.n === now.state!.actual)?.resumen ?? ''}` })
+    if (now.state && before.state && now.state.current !== before.state.current) log.record({ kind: 'action', summary: `Versión ${now.state.current}: ${now.state.versions.find((v) => v.n === now.state!.current)?.summary ?? ''}` })
   })
 }
 

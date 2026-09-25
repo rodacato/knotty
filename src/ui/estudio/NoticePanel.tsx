@@ -54,9 +54,9 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
   }, [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
   const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'claro-maximo' && !built.has(a.key)).map((a) => [a.description, a])).values()]
-  const name = (id: string) => design.piezas.find((p) => p.id === id)?.nombre ?? id
+  const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   const inTray = state.tray.find((t) => t.id === noticeItemId(notice.key))
-  const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.preguntas[notice.question.index]
+  const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
 
   return (
@@ -105,8 +105,8 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
       {notice.question && question && (
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            {question.opciones?.map((o) => (
-              <Chip key={o} active={answered === o} aria-pressed={answered === o} disabled={thinking} onClick={() => toggleTray(answerItem(notice.question!.messageId, notice.question!.index, question.texto, o))}>
+            {question.options?.map((o) => (
+              <Chip key={o} active={answered === o} aria-pressed={answered === o} disabled={thinking} onClick={() => toggleTray(answerItem(notice.question!.messageId, notice.question!.index, question.text, o))}>
                 {o}
               </Chip>
             ))}

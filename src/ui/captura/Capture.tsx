@@ -18,9 +18,9 @@ const ANGLES = [
 ] as const
 
 const MEASURES: { key: keyof Dimensions; name: string; min: number; max: number }[] = [
-  { key: 'alto', name: 'Alto', min: 200, max: 2400 },
-  { key: 'ancho', name: 'Ancho', min: 200, max: 2400 },
-  { key: 'fondo', name: 'Fondo', min: 150, max: 1200 },
+  { key: 'height', name: 'Alto', min: 200, max: 2400 },
+  { key: 'width', name: 'Ancho', min: 200, max: 2400 },
+  { key: 'depth', name: 'Fondo', min: 150, max: 1200 },
 ]
 
 /** Without photos, the expert works with what you tell it: asks for a description with some substance. */
@@ -145,10 +145,10 @@ export function Capture() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
   const [step, setStep] = useState<'medidas' | 'fotos'>(draft ? 'fotos' : 'medidas')
-  const [measures, setMeasures] = useState<Dimensions>(draft?.measures ?? { ancho: 600, alto: 1800, fondo: 300 })
+  const [measures, setMeasures] = useState<Dimensions>(draft?.measures ?? { width: 600, height: 1800, depth: 300 })
   const [withMeasures, setWithMeasures] = useState(!draft || draft.measures !== null)
   const [photos, setPhotos] = useState<TakenPhoto[]>(
-    () => draft?.photos.map((f) => ({ angle: f.angle, base64: f.base64, note: f.note, thumbnail: draft.thumbnails.find((m) => m.angulo === f.angle)?.dataUrl ?? '' })) ?? [],
+    () => draft?.photos.map((f) => ({ angle: f.angle, base64: f.base64, note: f.note, thumbnail: draft.thumbnails.find((m) => m.angle === f.angle)?.dataUrl ?? '' })) ?? [],
   )
   const [notes, setNotes] = useState(draft?.notes ?? '')
   const [processing, setProcessing] = useState(false)
@@ -174,7 +174,7 @@ export function Capture() {
   const validMeasures = MEASURES.every((m) => measures[m.key] >= m.min && measures[m.key] <= m.max)
   const missingRequired = ANGLES.filter((a) => a.required && !photos.some((f) => f.angle === a.id))
   const analyzeCapture = () =>
-    reconstruct({ measures: withMeasures ? measures : null, photos: photos.map((f) => ({ angle: f.angle, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: photos.map((f) => ({ angulo: f.angle, dataUrl: f.thumbnail })), notes: notes.trim() })
+    reconstruct({ measures: withMeasures ? measures : null, photos: photos.map((f) => ({ angle: f.angle, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: photos.map((f) => ({ angle: f.angle, dataUrl: f.thumbnail })), notes: notes.trim() })
 
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">

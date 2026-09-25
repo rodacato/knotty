@@ -175,23 +175,23 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const base = (id: string) => [...catalog.materiales, ...catalog.herrajes].find((x) => x.id === id)?.precio ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
   const own = Object.keys(settings.precios).length
-  const verdict = state.dictamen?.firma === reviewSignature(state, effective) ? state.dictamen : null
+  const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
   // The shopping list appears only after the review; if it is not viable, it has to be asked for on purpose.
   if (!verdict)
     return (
       <div className="flex flex-col gap-4 p-4">
-        <ReviewGate stale={state.dictamen !== null} />
+        <ReviewGate stale={state.review !== null} />
         <CutSettings base={catalog.acomodo} />
       </div>
     )
-  if (verdict.veredicto === 'no-viable' && anyway !== verdict.firma)
+  if (verdict.verdict === 'not-viable' && anyway !== verdict.signature)
     return (
       <div className="flex flex-col gap-4 p-4">
         <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-grafito-2">
           Con estos problemas, lo que compres probablemente no sirva.{' '}
-          <button type="button" className="underline" onClick={() => setAnyway(verdict.firma)}>
+          <button type="button" className="underline" onClick={() => setAnyway(verdict.signature)}>
             Ver la lista de todos modos
           </button>
         </p>

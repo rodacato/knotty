@@ -13,8 +13,8 @@ const OUTCOME: Record<TraceEntry['outcome'], { label: string; icon: React.ReactN
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 /** Every call to the expert, newest first: how long it took, what it cost and what went wrong. */
-export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?: { id: string; nombre: string }[] }) {
-  const named = (message: string) => pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), message)
+export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?: { id: string; name: string }[] }) {
+  const named = (message: string) => pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), message)
   if (!trace.length) return <p className="text-sm text-grafito-2">Todavía no hay llamadas al experto en este diseño.</p>
   const total = trace.reduce((s, t) => s + t.seconds, 0)
   const tokens = trace.reduce((s, t) => s + (t.outputTokens ?? 0), 0)

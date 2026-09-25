@@ -101,7 +101,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const design = currentDesign(state)
-  const { ancho: width, alto: height, fondo: background } = design.dimensiones
+  const { width: width, height: height, depth: background } = design.dimensions
   const plan = currentPlan(state).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
   const bed = plan && isBed(plan) && !currentPlan(state).diverged ? plan : null
@@ -110,13 +110,13 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
     <header className="flex items-center gap-1 border-b border-linea bg-hueso/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
       <Emblem className="size-7 shrink-0 sm:size-8" />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-titulo text-lg leading-tight font-semibold">{design.nombre}</p>
+        <p className="truncate font-titulo text-lg leading-tight font-semibold">{design.name}</p>
         <p className="cifras truncate text-[11px] text-grafito-2">
           {bed ? `${cm(background)} × ${cm(width)} · colchón ${bed.mattress}` : `${height} × ${width} × ${background} mm · ${cm(width)} de ancho`}
         </p>
       </div>
-      <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.actual}: ver el historial`} title="Historial">
-        <ClockCounterClockwise /> <span className="cifras">v{state.actual}</span>
+      <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
+        <ClockCounterClockwise /> <span className="cifras">v{state.current}</span>
       </Button>
       <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-ambar' : ''} />
@@ -162,9 +162,9 @@ export function Studio({ state }: { state: DesignState }) {
   const preview = useStore((s) => s.preview)
   const previewFix = useStore((s) => s.previewFix)
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
-  useEffect(() => previewFix(null), [state.actual, overlay, previewFix])
+  useEffect(() => previewFix(null), [state.current, overlay, previewFix])
   const shownDesign = preview?.design ?? visibleDesign({ state, viewedVersion, showProposal }) ?? current
-  const proposal = preview?.design ?? (viewedVersion === null && state.propuesta && showProposal ? state.propuesta.diseno : null)
+  const proposal = preview?.design ?? (viewedVersion === null && state.proposal && showProposal ? state.proposal.design : null)
   const board = useMemo(() => noticeBoard(state, catalog), [state, catalog])
   const shownAnalysis = useMemo(() => (shownDesign === current ? currentAnalysis : analyze(shownDesign, catalog)), [shownDesign, current, catalog, currentAnalysis])
   const changes = useMemo(() => {
@@ -180,17 +180,17 @@ export function Studio({ state }: { state: DesignState }) {
     return () => window.removeEventListener('keydown', onType)
   }, [selectPiece])
 
-  const toConfirm = current.piezas.filter((p) => p.confianza === 'baja')
+  const toConfirm = current.pieces.filter((p) => p.confidence === 'low')
   const select = useStore((s) => s.select)
 
   const shownGeo = shownAnalysis.geo
   const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
-  const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.piezas.some((p) => p.id === v))))]
+  const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.pieces.some((p) => p.id === v))))]
 
   const scene = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
       {shownGeo ? (
-        <div className="h-full" role="img" aria-label={`${shownDesign.nombre} en 3D: ${shownDesign.dimensiones.alto} × ${shownDesign.dimensiones.ancho} × ${shownDesign.dimensiones.fondo} mm, ${shownDesign.piezas.length} piezas. La lista completa está en Materiales.`}>
+        <div className="h-full" role="img" aria-label={`${shownDesign.name} en 3D: ${shownDesign.dimensions.height} × ${shownDesign.dimensions.width} × ${shownDesign.dimensions.depth} mm, ${shownDesign.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
             <Scene design={shownDesign} geo={shownGeo} catalog={catalog} ghosts={changes.added} marked={changes.changed} problems={problemPieces} />
           </SceneBoundary>
@@ -216,7 +216,7 @@ export function Studio({ state }: { state: DesignState }) {
             onClick={() => select(toConfirm[0].id)}
             className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full border border-grafito/30 bg-papel px-3 py-1 text-xs font-medium text-grafito shadow-sm"
           >
-            <PencilSimpleLine /> {toConfirm.length === 1 ? `${toConfirm[0].nombre} por confirmar` : `${toConfirm.length} piezas por confirmar`}
+            <PencilSimpleLine /> {toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`}
           </button>
         )}
         {viewedVersion !== null && (

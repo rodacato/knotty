@@ -1,4 +1,4 @@
-import type { Design } from '../../domain/diseno/schema'
+import { isDrawerPart, type Design } from '../../domain/diseno/schema'
 import { faceSize, roundTo, type Geometry } from '../../domain/diseno/resolve'
 import { Label } from './Label'
 
@@ -8,7 +8,7 @@ const MM = 0.001
 
 export function PieceMeasures({ design, geo, offsets, dark, selected }: { design: Design; geo: Geometry; offsets: Map<string, [number, number, number]>; dark: boolean; selected: string | null }) {
   // Inside a drawer only its front is labeled: the box pieces are in Materiales, and their labels would pile up.
-  const labeled = design.piezas.filter((p) => geo.boxes.has(p.id) && (!p.grupo || !p.rol.endsWith('-cajon') || p.rol === 'frente-cajon') && (!selected || selected === p.id))
+  const labeled = design.pieces.filter((p) => geo.boxes.has(p.id) && (!p.group || !isDrawerPart(p) || p.role === 'drawer-front') && (!selected || selected === p.id))
   return (
     <group>
       {labeled.map((p) => {
