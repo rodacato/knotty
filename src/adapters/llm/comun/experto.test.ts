@@ -101,7 +101,7 @@ describe('crearExperto', () => {
     const { experto, llamadas } = falso({ explicacion: 'x', cabinet: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
     const r = await experto.planDesign!({ medidas: null, fotos: [], notas: 'una cama', lectura: null, catalogo, correccion: null }, new AbortController().signal)
     expect(r.valor.cabinet).toBeNull()
-    expect(r.origen.promptId).toBe('esqueleto@1')
+    expect(r.origen.promptId).toBe('esqueleto@2')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
     expect(llamadas[0].sistema).not.toContain('{{materiales}}')
   })
