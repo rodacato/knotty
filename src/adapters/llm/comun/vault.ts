@@ -7,12 +7,21 @@ const ITERATIONS = 600_000
 export type Keyring = Record<string, string>
 
 interface Sealed {
+  v: 2
+  iterations: number
+  salt: string
+  iv: string
+  data: string
+}
+/** How the first version sealed it: the same, with its fields in Spanish. */
+interface SealedV1 {
   v: 1
   iter: number
   sal: string
   iv: string
   datos: string
 }
+const current = (s: Sealed | SealedV1): Sealed => (s.v === 1 ? { v: 2, iterations: s.iter, salt: s.sal, iv: s.iv, data: s.datos } : s)
 
 const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
 const unb64 = (text: string) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0))
@@ -36,17 +45,18 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
       const iv = crypto.getRandomValues(new Uint8Array(12))
       const key = await derive(passphrase, salt, iterations)
       const data = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(keys))))
-      const sealed: Sealed = { v: 1, iter: iterations, sal: b64(salt), iv: b64(iv), datos: b64(data) }
+      const sealed: Sealed = { v: 2, iterations, salt: b64(salt), iv: b64(iv), data: b64(data) }
       storage.setItem(STORAGE_KEY, JSON.stringify(sealed))
     },
     /** Fails if the passphrase is not the right one. */
     async open(passphrase: string): Promise<Keyring> {
-      const sealed = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as Sealed | null
-      if (!sealed) return {}
-      if (sealed.v !== 1) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
-      const key = await derive(passphrase, unb64(sealed.sal), sealed.iter)
+      const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as Sealed | SealedV1 | null
+      if (!saved) return {}
+      if (saved.v !== 1 && saved.v !== 2) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
+      const sealed = current(saved)
+      const key = await derive(passphrase, unb64(sealed.salt), sealed.iterations)
       try {
-        const flat = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(sealed.iv) }, key, unb64(sealed.datos))
+        const flat = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(sealed.iv) }, key, unb64(sealed.data))
         return JSON.parse(new TextDecoder().decode(flat)) as Keyring
       } catch {
         throw new Error('La frase no es correcta.')

@@ -1,4 +1,4 @@
-import type { LLMConfiguration, VaultState, Preferences, RealProvider } from '../../../ports/Preferences'
+import type { LLMConfiguration, VaultState, Preferences, RealProvider, Provider, KeyStorage } from '../../../ports/Preferences'
 import { MIN_PASSPHRASE } from '../../../ports/Preferences'
 import { anthropicModels } from '../anthropic'
 import { compatibleModels } from '../compatibleOpenAI'
@@ -11,30 +11,46 @@ const STORAGE_KEY = 'despiece:v1:llm'
 const TAB_KEY = 'despiece:v1:llaves'
 
 export const INITIAL_CONFIGURATION: LLMConfiguration = {
-  activo: 'simulado',
-  conexiones: {
-    anthropic: { modelo: 'claude-opus-5', apiKey: '', host: 'https://api.anthropic.com' },
-    openai: { modelo: '', apiKey: '', host: 'https://api.openai.com' },
-    shellm: { modelo: 'claude', apiKey: '', host: 'http://127.0.0.1:6100' },
+  active: 'simulated',
+  connections: {
+    anthropic: { model: 'claude-opus-5', apiKey: '', host: 'https://api.anthropic.com' },
+    openai: { model: '', apiKey: '', host: 'https://api.openai.com' },
+    shellm: { model: 'claude', apiKey: '', host: 'http://127.0.0.1:6100' },
   },
-  guardado: 'memoria',
+  keyStorage: 'memory',
 }
 
-const keyring = (c: LLMConfiguration): Keyring => Object.fromEntries(PROVIDERS.filter((p) => c.conexiones[p].apiKey).map((p) => [p, c.conexiones[p].apiKey]))
+const keyring = (c: LLMConfiguration): Keyring => Object.fromEntries(PROVIDERS.filter((p) => c.connections[p].apiKey).map((p) => [p, c.connections[p].apiKey]))
 const withKeys = (c: LLMConfiguration, keys: Keyring): LLMConfiguration => ({
   ...c,
-  conexiones: Object.fromEntries(PROVIDERS.map((p) => [p, { ...c.conexiones[p], apiKey: keys[p] ?? c.conexiones[p].apiKey }])) as LLMConfiguration['conexiones'],
+  connections: Object.fromEntries(PROVIDERS.map((p) => [p, { ...c.connections[p], apiKey: keys[p] ?? c.connections[p].apiKey }])) as LLMConfiguration['connections'],
 })
+
+/** How older versions saved it: fields in Spanish, and before that a `recordarEnPestana` flag. */
+interface SavedV1 {
+  activo?: string
+  guardado?: string
+  recordarEnPestana?: boolean
+  conexiones?: Partial<Record<RealProvider, { modelo?: string; host?: string }>>
+}
+const OLD_PROVIDER: Record<string, Provider> = { simulado: 'simulated' }
+const OLD_STORAGE: Record<string, KeyStorage> = { memoria: 'memory', pestana: 'tab', cifrada: 'encrypted' }
 
 function read(storage: Storage, tab: Storage): LLMConfiguration {
   try {
-    // `recordarEnPestana` is how older versions saved it: read to migrate it.
-    const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as (Partial<LLMConfiguration> & { recordarEnPestana?: boolean }) | null
+    const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as (Partial<LLMConfiguration> & SavedV1) | null
     const keys = JSON.parse(tab.getItem(TAB_KEY) ?? '{}') as Keyring
+    const active = saved?.active ?? (saved?.activo ? (OLD_PROVIDER[saved.activo] ?? (saved.activo as Provider)) : INITIAL_CONFIGURATION.active)
+    const keyStorage = saved?.keyStorage ?? (saved?.guardado ? OLD_STORAGE[saved.guardado] : undefined) ?? (saved?.recordarEnPestana ? 'tab' : 'memory')
+    const connection = (p: RealProvider) => {
+      const now = saved?.connections?.[p]
+      const old = saved?.conexiones?.[p]
+      return { ...INITIAL_CONFIGURATION.connections[p], ...(old?.host ? { host: old.host } : {}), ...(old?.modelo !== undefined ? { model: old.modelo } : {}), ...now, apiKey: '' }
+    }
     const base: LLMConfiguration = {
-      activo: saved?.activo ?? INITIAL_CONFIGURATION.activo,
-      guardado: saved?.guardado ?? (saved?.recordarEnPestana ? 'pestana' : 'memoria'),
-      conexiones: Object.fromEntries(PROVIDERS.map((p) => [p, { ...INITIAL_CONFIGURATION.conexiones[p], ...saved?.conexiones?.[p], apiKey: '' }])) as LLMConfiguration['conexiones'],
+      active: PROVIDERS.includes(active as RealProvider) || active === 'simulated' ? active : INITIAL_CONFIGURATION.active,
+      keyStorage,
+      connections: Object.fromEntries(PROVIDERS.map((p) => [p, connection(p)])) as LLMConfiguration['connections'],
     }
     return withKeys(base, keys)
   } catch {
@@ -46,29 +62,29 @@ export function createPreferences(storage: Storage = localStorage, tab: Storage 
   let current = read(storage, tab)
   /** The passphrase of an open vault, only in this tab's memory, to encrypt every change again without asking. */
   let passphrase: string | null = null
-  if (vault.exists()) current = { ...current, guardado: 'cifrada' }
+  if (vault.exists()) current = { ...current, keyStorage: 'encrypted' }
 
-  const state = (): VaultState => (!vault.exists() ? 'sin-boveda' : passphrase === null ? 'bloqueada' : 'abierta')
+  const state = (): VaultState => (!vault.exists() ? 'none' : passphrase === null ? 'locked' : 'open')
 
   return {
     load: () => current,
     vaultState: state,
     async save(c, newPassphrase) {
-      if (c.guardado === 'cifrada' && state() === 'sin-boveda') {
+      if (c.keyStorage === 'encrypted' && state() === 'none') {
         if (!newPassphrase || newPassphrase.length < MIN_PASSPHRASE) throw new Error(`La frase necesita al menos ${MIN_PASSPHRASE} caracteres.`)
         passphrase = newPassphrase
       }
-      if (c.guardado !== 'cifrada' && state() === 'abierta') {
+      if (c.keyStorage !== 'encrypted' && state() === 'open') {
         vault.forget()
         passphrase = null
       }
       // With the vault locked it is not sealed again: the keys it keeps would be lost.
-      if (c.guardado === 'cifrada' && passphrase !== null) await vault.seal(keyring(c), passphrase)
+      if (c.keyStorage === 'encrypted' && passphrase !== null) await vault.seal(keyring(c), passphrase)
       current = c
-      const withoutKeys = { ...c, conexiones: Object.fromEntries(PROVIDERS.map((p) => [p, { ...c.conexiones[p], apiKey: '' }])) }
+      const withoutKeys: LLMConfiguration = { ...c, connections: Object.fromEntries(PROVIDERS.map((p) => [p, { ...c.connections[p], apiKey: '' }])) as LLMConfiguration['connections'] }
       try {
         storage.setItem(STORAGE_KEY, JSON.stringify(withoutKeys))
-        if (c.guardado === 'pestana') tab.setItem(TAB_KEY, JSON.stringify(keyring(c)))
+        if (c.keyStorage === 'tab') tab.setItem(TAB_KEY, JSON.stringify(keyring(c)))
         else tab.removeItem(TAB_KEY)
       } catch {
         /* sin almacenamiento (ventana privada): la configuración dura la sesión */
@@ -77,12 +93,12 @@ export function createPreferences(storage: Storage = localStorage, tab: Storage 
     async unlock(attempt) {
       const keys = await vault.open(attempt)
       passphrase = attempt
-      current = withKeys({ ...current, guardado: 'cifrada' }, keys)
+      current = withKeys({ ...current, keyStorage: 'encrypted' }, keys)
     },
     forgetKeys() {
       vault.forget()
       passphrase = null
-      current = { ...current, guardado: 'memoria' }
+      current = { ...current, keyStorage: 'memory' }
     },
     listModels: (provider, connection) => (provider === 'anthropic' ? anthropicModels(connection.apiKey) : compatibleModels(connection, provider === 'openai')),
   }
