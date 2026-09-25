@@ -24,8 +24,11 @@ import type { DesignError } from '../../domain/validation/errors'
 import { worst, reviewViability, type Check } from '../../domain/viability/viability'
 import { toggleInTray, trayRequest, type TrayItem } from '../../domain/tray/tray'
 import type { DesignRepository } from '../../ports/DesignRepository'
-import { expertPlans, InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../../ports/LLMProvider'
+import { expertPlans, type Photo, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { buildContext, describeAlternatives } from '../context'
+import { ExpertError, expertCall, traceEntry } from './expertCall'
+
+export { ExpertError }
 import { named } from '../named'
 
 export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
@@ -118,38 +121,6 @@ const toOutside = (position: Position | null) => position?.type === 'ref' && pos
 export type PieceEdit = { kind: 'length'; axis: Axis; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Axis; delta: number }
 export type PieceEditResult = { ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
 
-/** The expert could not do something and says so; the message is for the person. */
-export class ExpertError extends Error {
-  constructor(
-    message: string,
-    readonly trace: TraceEntry[] = [],
-  ) {
-    super(message)
-  }
-}
-
-const traceEntry = (
-  step: TraceEntry['step'],
-  attempt: number,
-  started: number,
-  response: ExpertResponse<unknown> | null,
-  outcome: TraceEntry['outcome'],
-  errors: TraceEntry['errors'],
-  repairs: Repair[] = [],
-  subject: string | null = null,
-): TraceEntry => ({
-  at: new Date(started).toISOString(),
-  step,
-  subject,
-  attempt,
-  seconds: Math.round((Date.now() - started) / 100) / 10,
-  outputTokens: response?.usage.outputTokens ?? null,
-  promptId: response?.origin.promptId ?? null,
-  outcome,
-  errors,
-  repairs: repairs.map((r) => r.message),
-})
-
 export function createUseCases(deps: Dependencies) {
   const { catalog, repository } = deps
   const now = deps.now ?? (() => new Date().toISOString())
@@ -211,17 +182,11 @@ export function createUseCases(deps: Dependencies) {
       const subject = `Foto ${angleLabel(photo.angle)}`
       const cached = readings.get(key)
       for (let attempt = 0; !cached && attempt < 2; attempt++) {
-        const started = Date.now()
-        try {
-          const r = await llm.readPhoto({ photo: photo, context }, signal)
-          trace.push(traceEntry('read', attempt, started, r, 'ok', [], [], subject))
-          readings.set(key, r.value)
-          break
-        } catch (e) {
-          if (signal.aborted) throw e
-          const outcome = e instanceof InvalidResponse ? 'unreadable' : 'failed'
-          trace.push(traceEntry('read', attempt, started, null, outcome, [{ code: outcome === 'failed' ? 'E_PROVIDER' : 'E_SCHEMA', message: (e instanceof InvalidResponse ? e.problems : e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], subject))
-        }
+        const call = await expertCall(() => llm.readPhoto({ photo: photo, context }, signal), { step: 'read', attempt, signal, trace, onFailure: 'skip', subject })
+        if (!call.ok) continue
+        trace.push(traceEntry('read', attempt, call.started, call.response, 'ok', [], [], subject))
+        readings.set(key, call.response.value)
+        break
       }
       done++
       advance()
@@ -246,15 +211,16 @@ export function createUseCases(deps: Dependencies) {
     const hint = kindFromWords(`${input.notes} ${reading?.kind ?? ''}`)
     if (!llm.planDesign || (hint && !MODULE_OF_KIND[hint])) return null
     onProgress('designing', 0)
-    const started = Date.now()
-    let plan: ExpertResponse<PlanResponse>
-    try {
-      plan = await llm.planDesign({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction: null }, signal)
-    } catch (e) {
-      if (signal.aborted) throw e
-      trace.push(traceEntry('plan', 0, started, null, e instanceof InvalidResponse ? 'unreadable' : 'failed', [{ code: 'E_PLAN', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }]))
-      return null
-    }
+    const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction: null }, signal), {
+      step: 'plan',
+      attempt: 0,
+      signal,
+      trace,
+      onFailure: 'skip',
+      code: 'E_PLAN',
+    })
+    if (!call.ok) return null
+    const { response: plan, started } = call
     const offered = Object.values(expertPlans(plan.value)).find((p) => p !== null)
     if (!offered) {
       trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No tiene ficha: se diseña pieza por pieza'))
@@ -294,20 +260,19 @@ export function createUseCases(deps: Dependencies) {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
       onProgress(attempt ? 'correcting' : 'designing-pieces', attempt)
-      const started = Date.now()
-      let response
-      try {
-        response = await llm.reconstruct({ measures: input.measures, photos: photosForDesign, notes: input.notes, reading: reading, catalog: catalog, correction: correction }, signal)
-      } catch (e) {
-        if (!(e instanceof InvalidResponse)) {
-          if (signal.aborted) throw e
-          trace.push(traceEntry('reconstruct', attempt, started, null, 'failed', [{ code: 'E_PROVIDER', message: e instanceof Error ? e.message : String(e) }]))
-          throw new ExpertError(e instanceof Error ? e.message : 'Algo falló al consultar al experto.', trace)
-        }
-        trace.push(traceEntry('reconstruct', attempt, started, null, 'unreadable', [{ code: 'E_SCHEMA', message: e.problems.slice(0, 500) }]))
+      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, photos: photosForDesign, notes: input.notes, reading: reading, catalog: catalog, correction: correction }, signal), {
+        step: 'reconstruct',
+        attempt,
+        signal,
+        trace,
+        onFailure: 'correct',
+      })
+      if (!call.ok) {
+        const e = call.unreadable!
         correction = { previousResponse: e.response, errors: [{ code: 'E_SCHEMA', message: e.problems }] }
         continue
       }
+      const { response, started } = call
       onProgress('checking', attempt)
       const r = response.value
       const proposed = completeJoints(normalize(input.measures ? { ...r.design, dimensions: input.measures } : r.design, catalog), catalog)
@@ -417,15 +382,17 @@ export function createUseCases(deps: Dependencies) {
       const plan = currentPlanInfo.plan
       if (!plan || currentPlanInfo.diverged || !llm.adjustPlan || photo) return null
       onProgress('proposing', 0)
-      const started = Date.now()
-      let response: ExpertResponse<PlanAdjustment>
-      try {
-        response = await llm.adjustPlan({ context: context, request: request, plan, catalog: catalog }, signal)
-      } catch (e) {
-        if (signal.aborted) throw e
-        trace.push(traceEntry('adjust', 0, started, null, e instanceof InvalidResponse ? 'unreadable' : 'failed', [{ code: 'E_PLAN_ADJUSTMENT', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], 'Ficha'))
-        return null
-      }
+      const call = await expertCall(() => llm.adjustPlan!({ context: context, request: request, plan, catalog: catalog }, signal), {
+        step: 'adjust',
+        attempt: 0,
+        signal,
+        trace,
+        onFailure: 'skip',
+        code: 'E_PLAN_ADJUSTMENT',
+        subject: 'Ficha',
+      })
+      if (!call.ok) return null
+      const { response, started } = call
       const r = response.value
       const requirements = updateRequirements(withRequest.requirements, r.requirements)
       const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
@@ -476,20 +443,21 @@ export function createUseCases(deps: Dependencies) {
       if (byPlan) return byPlan
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
         onProgress(attempt ? 'correcting' : 'proposing', attempt)
-        const started = Date.now()
-        let response
-        try {
-          response = await llm.proposeAdjustment({ context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, photos: photo ? [{ angle: photo.angle, base64: photo.base64 }] : [], catalog: catalog, correction: correction }, signal)
-        } catch (e) {
-          if (!(e instanceof InvalidResponse)) {
-            if (!signal.aborted) trace.push(traceEntry('adjust', attempt, started, null, 'failed', [{ code: 'E_PROVIDER', message: e instanceof Error ? e.message : String(e) }]))
-            throw e
-          }
-          trace.push(traceEntry('adjust', attempt, started, null, 'unreadable', [{ code: 'E_SCHEMA', message: e.problems.slice(0, 500) }]))
+        const call = await expertCall(
+          () =>
+            llm.proposeAdjustment(
+              { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, photos: photo ? [{ angle: photo.angle, base64: photo.base64 }] : [], catalog: catalog, correction: correction },
+              signal,
+            ),
+          { step: 'adjust', attempt, signal, trace, onFailure: 'correct' },
+        )
+        if (!call.ok) {
+          const e = call.unreadable!
           correction = { previousResponse: e.response, errors: e.problems }
           lastError = 'la respuesta no tenía el formato esperado'
           continue
         }
+        const { response, started } = call
         const r = { ...response.value, explanation: [response.value.explanation, ...(response.warnings ?? [])].join('\n\n') }
         const requirements = updateRequirements(withRequest.requirements, r.requirements)
         const decisions = updateDecisions(withRequest.decisions, r.decisions)
