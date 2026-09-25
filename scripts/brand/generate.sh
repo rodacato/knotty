@@ -20,4 +20,4 @@ python3 ico.py "$PUBLIC/favicon.ico" "$TMP/16.png" "$TMP/32.png" "$TMP/48.png"
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 --virtual-time-budget=3000 \
   --screenshot="$PUBLIC/share.png" "file://$PWD/share.html" 2>/dev/null
 rm -rf "$TMP"
-echo "Listo: íconos, favicon.ico y share.png en public/"
+echo "Done: icons, favicon.ico and share.png in public/"

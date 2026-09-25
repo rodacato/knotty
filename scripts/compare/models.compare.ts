@@ -46,7 +46,7 @@ function provider(spec: string): LLMProvider {
   if (kind === 'openai') return createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', model: model, label: spec })
   if (kind === 'simulated') return createSimulated(0)
   if (kind === 'shellm') return createCompatible({ provider: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', model: model, label: spec })
-  throw new Error(`Proveedor desconocido: ${spec}`)
+  throw new Error(`Unknown provider: ${spec}`)
 }
 
 const commit = () => {
@@ -57,13 +57,16 @@ const commit = () => {
   }
 }
 
+/** A file-name-safe version of a label: accents dropped, everything else non-alphanumeric turned into dashes. */
+const slug = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\W+/g, '-')
+
 type Row = BenchResult & { model: string; prompt: string | null }
 
 /** Each design is saved (outside git) to look at later what the model built. */
 function saveDesign(spec: string, caseId: string, state: DesignState) {
   const folder = join(import.meta.dirname, 'results', 'designs')
   mkdirSync(folder, { recursive: true })
-  writeFileSync(join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${spec.replace(/\W+/g, '-')}-${caseId}.json`), JSON.stringify(state, null, 2))
+  writeFileSync(join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${slug(spec)}-${caseId}.json`), JSON.stringify(state, null, 2))
 }
 
 /** Runs `n` at a time, to stay within each provider's limits. */
@@ -75,7 +78,7 @@ async function inBatches<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
 
 function report(rows: Row[], label: string) {
   const line = (r: Row) =>
-    `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.path === 'ficha' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} |`
+    `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.path === 'plan' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} |`
   const models = [...new Set(rows.map((r) => r.model))]
   const summary = models.map((m) => {
     const rs = rows.filter((r) => r.model === m)
@@ -102,7 +105,7 @@ function report(rows: Row[], label: string) {
 
 it('model comparison', async () => {
   const models = (setting('KNOTTY_MODELS', 'KNOTTY_MODELOS') ?? '').split(',').filter(Boolean)
-  if (!models.length) throw new Error('Define KNOTTY_MODELS, por ejemplo "anthropic:claude-sonnet-5,shellm:claude".')
+  if (!models.length) throw new Error('Set KNOTTY_MODELS, for example "anthropic:claude-sonnet-5,shellm:claude".')
   const only = setting('KNOTTY_CASES', 'KNOTTY_CASOS')?.split(',')
   const repetitions = Number(setting('KNOTTY_REPEAT', 'KNOTTY_REPETICIONES') ?? 1)
   const jobs = models.flatMap((model) => {
@@ -116,11 +119,11 @@ it('model comparison', async () => {
     return { ...r, model, prompt: r.state?.versions[0].origin?.promptId ?? null }
   })
 
-  const label = setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'formato actual'
+  const label = setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'current format'
   const text = report(rows, label)
   const folder = join(import.meta.dirname, 'results')
   mkdirSync(folder, { recursive: true })
-  const file = join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${label.replace(/\W+/g, '-')}.md`)
+  const file = join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${slug(label)}.md`)
   writeFileSync(file, text)
-  console.log(`\n${text}\nGuardado en ${file}`)
+  console.log(`\n${text}\nSaved to ${file}`)
 })
