@@ -1,6 +1,7 @@
 import { analizar } from '../analisis'
 import { mm } from '../diseno/construir'
 import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno, type Eje, type Pieza, type Rol } from '../diseno/esquema'
+import { completeJoints } from '../diseno/joints'
 import { normalizar } from '../diseno/normalizador'
 import { redondear, type Caja } from '../diseno/resolver'
 import type { Catalogo } from '../materiales/catalogo'
@@ -117,5 +118,6 @@ export function repairDesign(original: Diseno, catalog: Catalogo, requirements: 
     }
     if (!applied) break
   }
-  return { design, repairs }
+  // A repair can create contacts (a top trimmed between two sides): they get their joints, the rest stays as it was.
+  return { design: repairs.length ? completeJoints(design, catalog, original) : design, repairs }
 }

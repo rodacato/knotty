@@ -73,7 +73,14 @@ function medido(llm: LLMProvider, llamadas: Llamada[]): LLMProvider {
         throw e
       }
     }
-  return { ...llm, reconstruir: medir(llm.reconstruir.bind(llm)), proponerAjuste: medir(llm.proponerAjuste.bind(llm)), dictaminar: medir(llm.dictaminar.bind(llm)) }
+  return {
+    ...llm,
+    reconstruir: medir(llm.reconstruir.bind(llm)),
+    proponerAjuste: medir(llm.proponerAjuste.bind(llm)),
+    dictaminar: medir(llm.dictaminar.bind(llm)),
+    readPhoto: medir(llm.readPhoto.bind(llm)),
+    planDesign: llm.planDesign ? medir(llm.planDesign.bind(llm)) : null,
+  }
 }
 
 const commit = () => {
