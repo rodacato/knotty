@@ -22,6 +22,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
       code: 'R9_DRAWERS',
+      check: 'drawer.slide-clearance',
       severity: 'critical',
       pieces: [u.a, u.b],
       message:
@@ -42,6 +43,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     if (bottom && bottomBox && thickness !== undefined && thickness < ASSUMPTIONS.drawers.minBottom && bottomBox.x1 - bottomBox.x0 > ASSUMPTIONS.drawers.thinBottomWidth)
       found.push({
         code: 'R9_DRAWERS',
+        check: 'drawer.thin-bottom',
         severity: 'recommendation',
         pieces: [bottom.id],
         message: `${bottom.name} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
@@ -55,6 +57,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     if (frontRubs.length)
       found.push({
         code: 'R9_DRAWERS',
+        check: 'drawer.front-rubs',
         severity: 'recommendation',
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
         message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
@@ -68,6 +71,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
       const others = [...new Set(rubs.map((c) => (box.includes(c.a) ? c.b : c.a)))]
       found.push({
         code: 'R9_DRAWERS',
+        check: 'drawer.box-rubs',
         severity: 'recommendation',
         pieces: [...new Set(rubs.map((c) => (box.includes(c.a) ? c.a : c.b))), ...others],
         message: `La caja de ${drawerName(design, g)} toca ${others.map((id) => design.pieces.find((p) => p.id === id)?.name ?? id).join(', ')}: va a rozar al abrir. Con correderas laterales la caja va separada de todo.`,
@@ -96,6 +100,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
       return [
         {
           code: 'R9_DRAWERS',
+          check: 'drawer.no-slide-support',
           severity: 'critical',
           pieces: [side.id],
           message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza a ${gap} mm de la caja.`,
@@ -107,6 +112,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
     return [
       {
         code: 'R9_DRAWERS',
+        check: 'drawer.slide-gap',
         severity: 'critical',
         pieces: [side.id, support.piece.id],
         message:
@@ -130,6 +136,7 @@ function floorClearance(design: Design, geo: Geometry): Finding[] {
     return [
       {
         code: 'R9_DRAWERS',
+        check: 'drawer.floor',
         severity: 'critical',
         pieces: pieces.map((p) => p.id),
         message: `${drawerName(design, g).replace(/^./, (c) => c.toUpperCase())} llega al suelo (queda a ${roundTo(bottom)} mm): arrastraría al abrir. Deja al menos ${ASSUMPTIONS.drawers.floorClearance} mm abajo.`,

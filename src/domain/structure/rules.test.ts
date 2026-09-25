@@ -6,6 +6,7 @@ import { exampleWallCabinet } from '../fixtures/wallCabinet'
 import { exampleNightstand } from '../fixtures/nightstand'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
+import { findingKey } from './finding'
 
 const findings = (d: Design, code: string) => {
   const a = analyze(d, testCatalog)
@@ -93,5 +94,21 @@ describe('fixtures', () => {
   it('the wall cabinet only recommends the hanging rail', () => {
     const a = analyze(exampleWallCabinet, testCatalog)
     expect(a.valid && a.findings.map((h) => [h.code, h.severity, h.alternatives[0]?.key])).toEqual([['R10_USE', 'recommendation', 'hanging-rail']])
+  })
+})
+
+describe('findingKey', () => {
+  it('without a check it is the key saved so far; with one, the check tells apart findings on the same pieces', () => {
+    expect(findingKey({ code: 'R1_SAG', pieces: ['shelf-2', 'shelf-1'] })).toBe('R1_SAG:shelf-1,shelf-2')
+    expect(findingKey({ code: 'R6_DOORS', pieces: ['door'], check: 'door.hinges' })).not.toBe(findingKey({ code: 'R6_DOORS', pieces: ['door'], check: 'door.width' }))
+  })
+
+  it('no rule finds two things with the same key on one design', () => {
+    const unanchoredCabinet = { ...exampleWallCabinet, wallAnchored: false }
+    for (const d of [exampleBookcase, exampleNightstand, unanchoredCabinet, { ...exampleBookcase, wallAnchored: false, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }]) {
+      const a = analyze(d, testCatalog)
+      const keys = a.valid ? a.findings.map(findingKey) : []
+      expect(new Set(keys).size).toBe(keys.length)
+    }
   })
 })
