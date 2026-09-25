@@ -61,14 +61,6 @@ export function Pencil({ className = '' }: { className?: string }) {
   )
 }
 
-export function Measure({ mm, className = '' }: { mm: number; className?: string }) {
-  return (
-    <span className={`numerals ${className}`}>
-      {Math.round(mm)} <span className="text-graphite-2">mm</span>
-    </span>
-  )
-}
-
 export const cm = (mm: number) => `${(mm / 10).toLocaleString('es-MX', { maximumFractionDigits: 1 })} cm`
 
 export function Title({ children, className = '' }: { children: ReactNode; className?: string }) {

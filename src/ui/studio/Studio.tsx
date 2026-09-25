@@ -166,7 +166,7 @@ export function Studio({ state }: { state: DesignState }) {
   useEffect(() => previewFix(null), [state.current, overlay, previewFix])
   const shownDesign = preview?.design ?? visibleDesign({ state, viewedVersion, showProposal }) ?? current
   const proposal = preview?.design ?? (viewedVersion === null && state.proposal && showProposal ? state.proposal.design : null)
-  const board = useMemo(() => noticeBoard(state, catalog), [state, catalog])
+  const board = useMemo(() => noticeBoard(state, catalog, currentAnalysis), [state, catalog, currentAnalysis])
   const shownAnalysis = useMemo(() => (shownDesign === current ? currentAnalysis : analyze(shownDesign, catalog)), [shownDesign, current, catalog, currentAnalysis])
   const changes = useMemo(() => {
     if (!proposal || !currentAnalysis.valid || !shownAnalysis.valid) return { added: [], changed: [] }
@@ -249,7 +249,7 @@ export function Studio({ state }: { state: DesignState }) {
           <X />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel state={state} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel state={state} board={board} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
     </section>
   )
 

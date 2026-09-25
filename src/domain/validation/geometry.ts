@@ -14,7 +14,7 @@ const RUNNER_GAP = 20
 const HINGE_GAP = 4
 const NO_JOINT_WARNING = new Set(['door', 'drawer-front'])
 
-export interface GeometryValidation {
+interface GeometryValidation {
   errors: DesignError[]
   warnings: DesignWarning[]
   contacts: Contact[]

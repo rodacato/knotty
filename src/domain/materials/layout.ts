@@ -4,7 +4,7 @@ import { usableSheet, materialById, type Catalog } from './catalog'
 
 // A purchase estimate, not a cutting plan: guillotine cuts on the usable sheet, trying several heuristics and keeping the one with fewest sheets.
 
-export interface LayoutPiece {
+interface LayoutPiece {
   id: string
   name: string
   length: number
@@ -13,7 +13,7 @@ export interface LayoutPiece {
   orientation: 'fixed' | 'turned' | 'free'
 }
 
-export interface Placed {
+interface Placed {
   id: string
   name: string
   x: number
@@ -24,7 +24,7 @@ export interface Placed {
   rotated: boolean
 }
 
-export interface Sheet {
+interface Sheet {
   placed: Placed[]
   /** The fraction of the whole sheet that goes to waste (trimming, cuts and offcuts included). */
   waste: number
@@ -56,7 +56,7 @@ const ORDERS: Record<Order, (a: LayoutPiece, b: LayoutPiece) => number> = {
 }
 
 /** Each material's pieces, turned as their grain allows. */
-export function layoutPieces(design: Design, geo: Geometry): Map<string, LayoutPiece[]> {
+function layoutPieces(design: Design, geo: Geometry): Map<string, LayoutPiece[]> {
   const byMaterial = new Map<string, LayoutPiece[]>()
   for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)

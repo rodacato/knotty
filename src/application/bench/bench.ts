@@ -85,7 +85,7 @@ const inMemory = () => {
   return { load: () => state, save: (x: DesignState) => void (state = x), clear: () => void (state = null) }
 }
 
-export function withinExpected(c: BenchCase, d: Design['dimensions']) {
+function withinExpected(c: BenchCase, d: Design['dimensions']) {
   const inside = (m: Design['dimensions']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
   return inside(d) || (!!c.anyOrientation && inside({ ...d, width: d.depth, depth: d.width }))
 }

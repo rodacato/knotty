@@ -9,7 +9,7 @@ import type { Operation } from './schema'
 
 // The operations the expert (or Knotty) asks for, applied in order on a copy.
 
-export interface Applied {
+interface Applied {
   design: Design
   warnings: DesignWarning[]
 }

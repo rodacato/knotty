@@ -4,7 +4,7 @@ import type { ReducedImage, ImageProcessor } from '../../ports/ImageProcessor'
 export const LONG_SIDE = 1568
 const THUMBNAIL_SIDE = 160
 /** SheLLM rejects images over 5 MiB decoded; a margin is left. */
-export const MAX_IMAGE_BYTES = 4.5 * 1024 * 1024
+const MAX_IMAGE_BYTES = 4.5 * 1024 * 1024
 const QUALITIES = [0.85, 0.75, 0.65, 0.55]
 
 /** Measures so the long side stays within the limit, never enlarging the photo. */

@@ -9,9 +9,9 @@ import type { Purchase } from '../materials/purchase'
 // Check ids are saved in the verdict: renaming one needs a migration.
 
 /** Narrower than this, a strip is dangerous to cut with a circular saw at home. */
-export const MIN_STRIP = 50
+const MIN_STRIP = 50
 /** From this use of the usable sheet up, one wrong cut means buying another sheet. */
-export const TIGHT_YIELD = 0.85
+const TIGHT_YIELD = 0.85
 const MEASURE_TOLERANCE = 2
 
 export const Verdict = z.enum(['viable', 'needs-changes', 'not-viable'])
@@ -46,8 +46,8 @@ export const CarpenterOpinion = z.object({
 })
 export type CarpenterOpinion = z.infer<typeof CarpenterOpinion>
 
-export const Viability = z.object({ verdict: Verdict, checks: z.array(Check) })
-export type Viability = z.infer<typeof Viability>
+const Viability = z.object({ verdict: Verdict, checks: z.array(Check) })
+type Viability = z.infer<typeof Viability>
 
 interface ViabilityInput {
   design: Design

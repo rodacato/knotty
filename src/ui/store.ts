@@ -15,7 +15,7 @@ import type { VaultState } from '../ports/Preferences'
 import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materials/catalog'
 import type { Services } from './services'
 
-export type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
+type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
 export type View = 'front' | 'side' | 'three-quarter' | 'top'
 
 export interface CaptureInput {
@@ -93,7 +93,6 @@ interface Store {
   review(): Promise<void>
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
-  /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   /** A solution shown in 3D before applying it. */
   preview: { design: Design; label: string } | null
   previewFix(fix: Fix | null): void
@@ -106,12 +105,13 @@ interface Store {
   reopenNotice(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
+  /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   editPiece(id: string, edit: PieceEdit): PieceEditResult
   resizeFurniture(axis: Axis, value: number): PieceEditResult
   cancelReview(): void
 }
 
-export interface SceneChanges {
+interface SceneChanges {
   added: string[]
   modified: string[]
   removed: { piece: Piece; box: Box }[]
@@ -137,6 +137,11 @@ function transition(before: Design, after: Design, catalog: Services['catalog'],
   return { added: d.added, modified: d.changed, removed, nonce }
 }
 
+/** The scene change from one session to the next, each seen through the design it shows (its proposal, if any). */
+function sessionTransition(before: DesignState, after: DesignState, catalog: Services['catalog'], previous: SceneChanges): SceneChanges {
+  return transition(shownDesign(before), shownDesign(after), catalog, previous.nonce + 1)
+}
+
 type Set = StoreApi<Store>['setState']
 type Get = StoreApi<Store>['getState']
 
@@ -156,7 +161,7 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
     controller: null,
     showProposal: true,
     viewedVersion: null,
-    changes: transition(shownDesign(state), shownDesign(fresh), services.catalog, s.changes.nonce + 1),
+    changes: sessionTransition(state, fresh, services.catalog, s.changes),
   }))
 }
 
@@ -273,7 +278,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return
     const fresh = services.useCases.discardProposal(state)
-    set((s) => ({ state: fresh, changes: transition(shownDesign(state), shownDesign(fresh), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: fresh, changes: sessionTransition(state, fresh, services.catalog, s.changes) }))
   },
 
   select: (id) => set((s) => ({ selection: s.selection === id ? null : id })),
@@ -332,7 +337,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return
     const fresh = services.useCases.confirmPiece(state, id)
-    set((s) => ({ state: fresh, changes: transition(shownDesign(state), shownDesign(fresh), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: fresh, changes: sessionTransition(state, fresh, services.catalog, s.changes) }))
   },
 
   addNote(text) {
@@ -356,7 +361,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return
     const fresh = services.useCases.applyFix(state, fix)
-    set((s) => ({ state: fresh, preview: null, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(fresh), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: fresh, preview: null, viewedVersion: null, changes: sessionTransition(state, fresh, services.catalog, s.changes) }))
   },
 
   acceptNotice(notice) {
@@ -376,7 +381,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!services || !state) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = services.useCases.restoreFromVersion(state, n, ids)
     if (!r.ok) return r
-    set((s) => ({ state: r.state, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(r.state), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: r.state, viewedVersion: null, changes: sessionTransition(state, r.state, services.catalog, s.changes) }))
     return { ok: true }
   },
 
@@ -385,7 +390,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!services || !state) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = services.useCases.undoChange(state, n)
     if (!r.ok) return r
-    set((s) => ({ state: r.state, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(r.state), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: r.state, viewedVersion: null, changes: sessionTransition(state, r.state, services.catalog, s.changes) }))
     return { ok: true }
   },
 
@@ -393,7 +398,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
     const r = services.useCases.editPiece(state, id, edit)
-    if (r.ok) set((s) => ({ state: r.state, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(r.state), services.catalog, s.changes.nonce + 1) }))
+    if (r.ok) set((s) => ({ state: r.state, viewedVersion: null, changes: sessionTransition(state, r.state, services.catalog, s.changes) }))
     return r
   },
 
@@ -401,7 +406,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
     const r = services.useCases.resizeFurniture(state, axis, value)
-    if (r.ok) set((s) => ({ state: r.state, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(r.state), services.catalog, s.changes.nonce + 1) }))
+    if (r.ok) set((s) => ({ state: r.state, viewedVersion: null, changes: sessionTransition(state, r.state, services.catalog, s.changes) }))
     return r
   },
 
@@ -410,7 +415,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!services || !state) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = services.useCases.applyPlan(state, plan)
     if (!r.ok) return r
-    set((s) => ({ state: r.state, viewedVersion: null, changes: transition(shownDesign(state), shownDesign(r.state), services.catalog, s.changes.nonce + 1) }))
+    set((s) => ({ state: r.state, viewedVersion: null, changes: sessionTransition(state, r.state, services.catalog, s.changes) }))
     return { ok: true, notes: r.notes }
   },
 

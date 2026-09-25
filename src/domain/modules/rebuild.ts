@@ -10,7 +10,7 @@ import { buildPlan, type FurniturePlan } from './plan'
 
 // The design is its plan plus the free-form changes made on top: rebuilding replays them, so neither the ficha nor the freedom is lost.
 
-export interface Rebuilt {
+interface Rebuilt {
   design: Design
   notes: string[]
   /** Extras that no longer apply (they touched a piece the new plan does not have): left out, and said. */

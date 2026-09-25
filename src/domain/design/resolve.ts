@@ -28,7 +28,7 @@ class ResolveFailure extends Error {
   }
 }
 
-export const faceAxes = (normal: Axis) => AXES.filter((e) => e !== normal) as [Axis, Axis]
+const faceAxes = (normal: Axis) => AXES.filter((e) => e !== normal) as [Axis, Axis]
 
 export function parseFace(face: FaceRef) {
   const [piece, which] = face.split('.')
@@ -150,7 +150,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
 
 export const roundTo = (mm: number, decimals = 1) => Math.round(mm * 10 ** decimals) / 10 ** decimals
 
-export const sizeOf = (box: Box) => ({ x: box.x1 - box.x0, y: box.y1 - box.y0, z: box.z1 - box.z0 })
+const sizeOf = (box: Box) => ({ x: box.x1 - box.x0, y: box.y1 - box.y0, z: box.z1 - box.z0 })
 
 /** The two measures of a piece's face, larger first. */
 export function faceSize(box: Box, normal: Axis): [number, number] {

@@ -1,7 +1,7 @@
 import type { Design } from './schema'
 import type { Box } from './resolve'
 
-export interface Differences {
+interface Differences {
   added: string[]
   removed: string[]
   changed: string[]
@@ -27,5 +27,3 @@ export function differences(before: Design, boxesBefore: Map<string, Box>, after
     }),
   }
 }
-
-export const hasDifferences = (d: Differences) => d.added.length + d.removed.length + d.changed.length > 0

@@ -7,12 +7,12 @@ import { error, type DesignError } from '../validation/errors'
 // A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.
 // A request's fields are the expert's `addDrawer` operation.
 
-export const FRONT_GAP = 2
+const FRONT_GAP = 2
 const BOTTOM_GAP = 12
 const TOP_GAP = 20
 const BACK_CLEARANCE = 10
 
-export interface DrawerRequest {
+interface DrawerRequest {
   group: string
   name: string
   left: FaceRef
@@ -25,11 +25,11 @@ export interface DrawerRequest {
   bottomMaterial: string
 }
 
-export const runners = (catalog: Catalog) =>
+const runners = (catalog: Catalog) =>
   catalog.hardware.filter((h): h is Hardware & { length: number; sideClearance: number } => h.id.startsWith('drawer-slide') && h.length !== null && h.sideClearance !== null)
 
 /** The longest runner that fits the depth there is. */
-export function runnerFor(depth: number, catalog: Catalog) {
+function runnerFor(depth: number, catalog: Catalog) {
   return runners(catalog)
     .filter((c) => c.length <= depth - BACK_CLEARANCE)
     .sort((a, b) => b.length - a.length)[0]

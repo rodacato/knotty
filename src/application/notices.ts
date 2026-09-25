@@ -1,4 +1,4 @@
-import { analyze } from '../domain/analysis'
+import { analyze, type Analysis } from '../domain/analysis'
 import type { Design } from '../domain/design/schema'
 import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
 import type { Catalog } from '../domain/materials/catalog'
@@ -8,7 +8,7 @@ import { noticeItemId, type TrayItem } from '../domain/tray/tray'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.
 
-export type NoticeKind = 'finding' | 'requirement' | 'problem' | 'proposal' | 'question'
+type NoticeKind = 'finding' | 'requirement' | 'problem' | 'proposal' | 'question'
 
 export interface Notice {
   /** Stable while the problem lasts, so accepting it and seeing it resolved refer to the same thing. */
@@ -65,8 +65,7 @@ function findingNotices(findings: Finding[]): Notice[] {
   })
 }
 
-function noticesOf(state: DesignState, design: Design, catalog: Catalog): Notice[] {
-  const analysis = analyze(design, catalog)
+function noticesOf(state: DesignState, design: Design, catalog: Catalog, analysis: Analysis = analyze(design, catalog)): Notice[] {
   const notices: Notice[] = []
   if (!analysis.valid)
     notices.push({
@@ -84,11 +83,14 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog): Notice
   return notices
 }
 
-/** The board for the current version: pending and accepted notices, and what the last change resolved. */
-export function noticeBoard(state: DesignState, catalog: Catalog): NoticeBoard {
+/**
+ * The board for the current version: pending and accepted notices, and what the last change resolved.
+ * `analysis` is the current design's, when the caller already has it.
+ */
+export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Analysis): NoticeBoard {
   const design = currentDesign(state)
   const accepted = new Set(state.accepted.map((a) => a.key))
-  const all = noticesOf(state, design, catalog)
+  const all = noticesOf(state, design, catalog, analysis)
   const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))
 
   const extra: Notice[] = []
