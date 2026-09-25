@@ -34,7 +34,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(5)
+    expect(migrated.data?.format).toBe(6)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -87,6 +87,14 @@ describe('migrateState', () => {
     expect(extras[0]).toMatchObject({ piece: { support: 'movable', confidence: 'low', load: 'light', grain: 'width', y: { from: { type: 'between', offset: -9 } } } })
     expect(extras[9]).toMatchObject({ joint: { type: 'pocket-screw', glue: true, hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } })
     expect(extras[14]).toMatchObject({ group: 'cajon-1', left: 'lat-izq.x1', back: 'trasera.z1', bottomMaterial: 'TR6' })
+  })
+
+  it('renames the accepted-risks check saved by format 5', () => {
+    const v5 = { ...structuredClone(migrated.data!), format: 5 }
+    v5.review!.checks.push({ id: 'aceptados', title: 'Aceptado por ti', status: 'warning', detail: 'x', pieces: [], request: null, impossible: false })
+    const state = DesignState.parse(migrateState(v5))
+    expect(state.format).toBe(6)
+    expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin', 'accepted'])
   })
 
   it('leaves the current format as it is', () => {

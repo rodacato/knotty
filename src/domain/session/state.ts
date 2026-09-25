@@ -8,7 +8,7 @@ import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
 import { Check, CarpenterOpinion, Verdict } from '../viability/viability'
 
-// The whole design session: what is saved and comes back on reload. Its field names are the saved format (5); `migrate.ts` reads older ones.
+// The whole design session: what is saved and comes back on reload. Its field names are the saved format (6); `migrate.ts` reads older ones.
 
 export const Question = z.object({
   text: z.string().min(1),
@@ -51,9 +51,9 @@ export function markAnswered(chat: Message[], answering: string | null): Message
   return chat.map((m) => {
     if (m.id !== id) return m
     if (!keys) return { ...m, answered: true }
-    const respuestas = [...new Set([...m.answers, ...keys.split(',')])]
-    const total = m.questions.filter((p) => p.options).length + m.requestedPhotos.length
-    return { ...m, answers: respuestas, answered: respuestas.length >= total }
+    const answers = [...new Set([...m.answers, ...keys.split(',')])]
+    const total = m.questions.filter((q) => q.options).length + m.requestedPhotos.length
+    return { ...m, answers, answered: answers.length >= total }
   })
 }
 export type Message = z.infer<typeof Message>
@@ -91,7 +91,7 @@ export const PurchaseReview = z.object({
 export type PurchaseReview = z.infer<typeof PurchaseReview>
 
 export const DesignState = z.object({
-  format: z.literal(5),
+  format: z.literal(6),
   measures: Dimensions,
   versions: z.array(Version).min(1),
   current: z.number().int().positive(),
