@@ -28,13 +28,13 @@ const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digi
 
 /** Everything needed to understand or rebuild a session, without API keys. */
 function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServices>['preferences']['load']>, design: unknown) {
-  const connection = preferences.activo === 'simulado' ? null : preferences.conexiones[preferences.activo]
+  const connection = preferences.active === 'simulated' ? null : preferences.connections[preferences.active]
   return {
     format: 'knotty-debug@1',
     exportedAt: new Date().toISOString(),
     commit: __APP_COMMIT__,
     userAgent: navigator.userAgent,
-    expert: { provider: preferences.activo, model: connection?.modelo ?? null, host: preferences.activo === 'shellm' ? (connection?.host ?? null) : null },
+    expert: { provider: preferences.active, model: connection?.model ?? null, host: preferences.active === 'shellm' ? (connection?.host ?? null) : null },
     design,
     events,
   }

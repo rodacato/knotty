@@ -12,7 +12,7 @@ import type { LLMProvider, ExpertResponse, AdjustmentResponse, ReviewResponse, P
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
 
-const ORIGIN = { promptId: 'simulado@1', provider: 'simulado', model: 'reglas' }
+const ORIGIN = { promptId: 'simulated@1', provider: 'simulated', model: 'reglas' }
 const wait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     const t = setTimeout(resolve, ms)
@@ -127,9 +127,9 @@ function dividerOps(d: Design): Operation[] {
       op: 'addPiece',
       piece: makePiece({ id: 'divisor', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
     },
-    { op: 'addJoint', joint: makeJoint('u-div-piso', 'piso', 'divisor', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]) },
-    { op: 'addJoint', joint: makeJoint('u-div-techo', 'techo', 'divisor', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]) },
-    { op: 'addJoint', joint: makeJoint('u-div-trasera', 'trasera', 'divisor', 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('u-div-piso', 'piso', 'divisor', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('u-div-techo', 'techo', 'divisor', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('u-div-trasera', 'trasera', 'divisor', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
   ]
   if (d.pieces.some((p) => p.id === 'zoclo'))
     ops.push(
@@ -137,9 +137,9 @@ function dividerOps(d: Design): Operation[] {
         op: 'addPiece',
         piece: makePiece({ id: 'apoyo-piso', name: 'Apoyo central del piso', role: 'brace', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('mueble.y0'), ref('piso.y0')), z: extent(ref('trasera.z1'), ref('zoclo.z0')) }),
       },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-piso', 'piso', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]) },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: 2 }]) },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }]) },
+      { op: 'addJoint', joint: makeJoint('u-apoyo-piso', 'piso', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+      { op: 'addJoint', joint: makeJoint('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'screw-8x2', count: 2 }]) },
+      { op: 'addJoint', joint: makeJoint('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
     )
   for (const e of shelves(d)) {
     const right = `${e.id}-der`
@@ -148,8 +148,8 @@ function dividerOps(d: Design): Operation[] {
       { op: 'duplicatePiece', id: e.id, newId: right, name: `${e.name} derecho`, axis: 'x', at: ref('divisor.x1') },
       { op: 'resize', id: right, axis: 'x', end: 'to', at: ref('lat-der.x0') },
       ...d.joints.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operation => ({ op: 'removeJoint', id: u.id })),
-      { op: 'addJoint', joint: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'shelf-pin', [{ hardwareId: 'soporte-repisa-5', count: 2 }]) },
-      { op: 'addJoint', joint: makeJoint(`u-${right}-div`, right, 'divisor', 'shelf-pin', [{ hardwareId: 'soporte-repisa-5', count: 2 }]) },
+      { op: 'addJoint', joint: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
+      { op: 'addJoint', joint: makeJoint(`u-${right}-div`, right, 'divisor', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
     )
   }
   return ops
@@ -265,10 +265,10 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
           op: 'addPiece',
           piece: makePiece({ id: 'refuerzo-base', name: 'Travesaño trasero', role: 'brace', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(ref('mueble.y0'), ref('piso.y0')), z: startAt(ref('trasera.z1')) }),
         },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-piso', 'piso', 'refuerzo-base', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }]) },
+        { op: 'addJoint', joint: makeJoint('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
+        { op: 'addJoint', joint: makeJoint('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
+        { op: 'addJoint', joint: makeJoint('u-refuerzo-piso', 'piso', 'refuerzo-base', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+        { op: 'addJoint', joint: makeJoint('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
       ],
       decisions: [{ topic: 'base', text: 'Travesaño trasero bajo el piso además del zoclo' }],
     })
@@ -296,7 +296,7 @@ function reviewPurchase(s: ReviewRequest): ReviewResponse {
 
 export function createSimulated(delay = 900): LLMProvider {
   return {
-    id: 'simulado',
+    id: 'simulated',
     label: 'Simulado',
     async reconstruct(s, signal) {
       await wait(delay * 2, signal)

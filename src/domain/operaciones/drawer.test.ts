@@ -43,7 +43,7 @@ describe('addDrawer', () => {
     expect(piezas.map((p) => p.id).sort()).toEqual(['cajon-1-contra', 'cajon-1-costado-der', 'cajon-1-costado-izq', 'cajon-1-fondo', 'cajon-1-frente', 'cajon-1-trasera'])
     const a = analisis(d)
     expect(a.findings).toEqual([])
-    expect(d.joints.find((u) => u.id === 'u-cajon-1-corredera-izq')?.hardware[0].hardwareId).toBe('corredera-telescopica-45')
+    expect(d.joints.find((u) => u.id === 'u-cajon-1-corredera-izq')?.hardware[0].hardwareId).toBe('drawer-slide-45')
     const frente = a.geo.boxes.get('cajon-1-frente')!
     expect(frente.z1).toBe(500)
     expect(frente.x0).toBe(20)
@@ -61,7 +61,7 @@ describe('addDrawer', () => {
   it('goes into the purchase: runners and drawer pieces', () => {
     const d = conCajon(hondo)
     const compra = estimatePurchase(d, analisis(d).geo, testCatalog)
-    expect(compra.hardware.find((h) => h.hardware.id === 'corredera-telescopica-45')?.count).toBe(1)
+    expect(compra.hardware.find((h) => h.hardware.id === 'drawer-slide-45')?.count).toBe(1)
     expect(compra.sheets.map((h) => h.material.id)).toContain('T15')
   })
 
@@ -95,7 +95,7 @@ describe('R9 drawers and screws into a face', () => {
 
   it('a screw into a face must not come out the other side', () => {
     const d = conCajon(hondo)
-    d.joints = d.joints.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, hardware: [{ hardwareId: 'tornillo-8x2', count: 4 }] } : u))
+    d.joints = d.joints.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, hardware: [{ hardwareId: 'screw-8x2', count: 4 }] } : u))
     expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.joint])).toEqual([['R3_SCREWS', 'critical', 'u-cajon-1-contra-frente']])
   })
 })

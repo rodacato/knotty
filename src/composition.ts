@@ -16,10 +16,10 @@ import type { Services } from './ui/services'
 // Composition root: the only place that knows the concrete adapters.
 
 function providerFor(c: LLMConfiguration): LLMProvider {
-  if (c.activo === 'anthropic') return createAnthropic(c.conexiones.anthropic.apiKey, c.conexiones.anthropic.modelo)
-  if (c.activo === 'openai' || c.activo === 'shellm') {
-    const connection = c.conexiones[c.activo]
-    return createCompatible({ provider: c.activo, ...connection, label: `${PRESETS[c.activo].label} · ${connection.modelo}` })
+  if (c.active === 'anthropic') return createAnthropic(c.connections.anthropic.apiKey, c.connections.anthropic.model)
+  if (c.active === 'openai' || c.active === 'shellm') {
+    const connection = c.connections[c.active]
+    return createCompatible({ provider: c.active, ...connection, label: `${PRESETS[c.active].label} · ${connection.model}` })
   }
   return createSimulated()
 }

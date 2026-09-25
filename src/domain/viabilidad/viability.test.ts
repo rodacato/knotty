@@ -28,7 +28,7 @@ describe('reviewViability', () => {
     const alto = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, height: 2400 } }
     const holgado = revisar(alto)
     expect(estado(holgado, 'sheet').status).toBe('ok')
-    const v = revisar(alto, { ...testCatalog, acomodo: { ...testCatalog.acomodo, refilado: 50 } })
+    const v = revisar(alto, { ...testCatalog, layout: { ...testCatalog.layout, trim: 50 } })
     expect(estado(v, 'sheet')).toMatchObject({ status: 'fail', impossible: true })
     expect(estado(v, 'sheet').detail).toContain('2340')
     expect(v.verdict).toBe('not-viable')

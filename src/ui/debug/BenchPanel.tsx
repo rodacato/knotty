@@ -28,7 +28,7 @@ export function BenchPanel() {
   const controller = useRef<AbortController | null>(null)
   const running = Object.values(results).some((r) => r === 'running')
   const prefs = preferences.load()
-  const expert = prefs.activo === 'simulado' ? 'Simulado' : `${prefs.activo} · ${prefs.conexiones[prefs.activo].modelo}`
+  const expert = prefs.active === 'simulated' ? 'Simulado' : `${prefs.active} · ${prefs.connections[prefs.active].model}`
 
   const run = async () => {
     const ctrl = new AbortController()

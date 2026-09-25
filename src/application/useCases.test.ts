@@ -303,7 +303,7 @@ describe('reviewPurchase', () => {
     const simulado = createSimulated(0)
     const llm: LLMProvider = { ...simulado, reviewPurchase: async (s, signal) => ({ ...(await simulado.reviewPurchase(s, signal)), value: { verdict: 'viable', summary: 'Todo bien', problems: [], tips: [] } }) }
     const c = casos(llm)
-    const estrecho = { ...testCatalog, acomodo: { ...testCatalog.acomodo, refilado: 400 } }
+    const estrecho = { ...testCatalog, layout: { ...testCatalog.layout, trim: 400 } }
     const dictamen = await c.reviewPurchase(await libreroInicial(c), estrecho, senal())
     expect(dictamen.verdict).toBe('not-viable')
   })

@@ -66,7 +66,7 @@ function questionFromAlternatives(criticals: Finding[]): Question[] {
 
 /** What a purchase review was made with: if the version, the requirements or the cutting settings change, it has to be redone. */
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
-  JSON.stringify([state.current, state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.acomodo, effectiveCatalog.materiales.map((m) => [m.id, m.hoja])])
+  JSON.stringify([state.current, state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
 function reviewText(cut: CutLine[], comprobaciones: Check[]) {
@@ -348,7 +348,7 @@ export function createUseCases(deps: Dependencies) {
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 3,
+      format: 4,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -630,7 +630,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 3,
+      format: 4,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,
@@ -687,7 +687,7 @@ export function createUseCases(deps: Dependencies) {
             ]
     const summary =
       edit.kind === 'thickness'
-        ? `${piece.name} de ${materialById(catalog, edit.material)?.espesor ?? '?'} mm`
+        ? `${piece.name} de ${materialById(catalog, edit.material)?.thickness ?? '?'} mm`
         : edit.kind === 'move'
           ? `Mover ${piece.name.toLowerCase()} ${Math.abs(edit.delta)} mm`
           : `${piece.name} de ${Math.round(size(edit.axis))} a ${Math.round(edit.value)} mm`

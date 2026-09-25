@@ -86,17 +86,17 @@ export function edgeBandingMeters(design: Design, geo: Geometry) {
 export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog): Purchase {
   const missingPrices: string[] = []
   const layout = layOut(design, geo, catalog)
-  const thicknessOf = (id: string) => catalog.materiales.find((m) => m.id === id)?.espesor ?? 0
+  const thicknessOf = (id: string) => catalog.materials.find((m) => m.id === id)?.thickness ?? 0
 
   const sheets: SheetLine[] = [...layout].sort((a, b) => thicknessOf(b.material) - thicknessOf(a.material)).map((a) => {
-    const material = catalog.materiales.find((m) => m.id === a.material)!
+    const material = catalog.materials.find((m) => m.id === a.material)!
     const n = a.sheets.length + a.unplaced.length
-    if (material.precio === null) missingPrices.push(material.nombre)
+    if (material.price === null) missingPrices.push(material.name)
     return {
       material,
       sheets: n,
       waste: a.sheets.length ? a.sheets.reduce((s, h) => s + h.waste, 0) / a.sheets.length : 0,
-      cost: material.precio === null ? null : material.precio * n,
+      cost: material.price === null ? null : material.price * n,
     }
   })
 
@@ -104,20 +104,20 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   const add = (id: string, n: number) => counts.set(id, (counts.get(id) ?? 0) + n)
   for (const u of design.joints) for (const h of u.hardware) add(h.hardwareId, h.count ?? hardwarePerJoint(u, geo))
   const glued = design.joints.filter((u) => u.glue).length
-  if (glued) add('pegamento-blanco', Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
+  if (glued) add('white-glue', Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
   const edgeBanding = edgeBandingMeters(design, geo)
 
   const hardware: HardwareLine[] = [...counts].flatMap(([id, count]) => {
-    const item = catalog.herrajes.find((h) => h.id === id)
+    const item = catalog.hardware.find((h) => h.id === id)
     if (!item) return []
-    const packs = item.porPaquete ? Math.ceil(count / item.porPaquete) : null
-    if (item.precio === null) missingPrices.push(item.nombre)
-    return [{ hardware: item, count, packs, cost: item.precio === null ? null : item.precio * (packs ?? count) }]
+    const packs = item.perPack ? Math.ceil(count / item.perPack) : null
+    if (item.price === null) missingPrices.push(item.name)
+    return [{ hardware: item, count, packs, cost: item.price === null ? null : item.price * (packs ?? count) }]
   })
-  const tape = catalog.herrajes.find((h) => h.unidad === 'metro')
+  const tape = catalog.hardware.find((h) => h.unit === 'meter')
   if (edgeBanding > 0 && tape) {
-    if (tape.precio === null) missingPrices.push(tape.nombre)
-    hardware.push({ hardware: tape, count: Math.ceil(edgeBanding), packs: null, cost: tape.precio === null ? null : tape.precio * Math.ceil(edgeBanding) })
+    if (tape.price === null) missingPrices.push(tape.name)
+    hardware.push({ hardware: tape, count: Math.ceil(edgeBanding), packs: null, cost: tape.price === null ? null : tape.price * Math.ceil(edgeBanding) })
   }
 
   const total = [...sheets, ...hardware].reduce((s, r) => s + (r.cost ?? 0), 0)

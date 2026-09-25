@@ -46,7 +46,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   const thicknessOf = (p: Piece) => {
     const material = materialById(catalog, p.material)
     if (!material) throw new ResolveFailure(error('E_UNKNOWN_MATERIAL', `"${p.id}" usa el material "${p.material}", que no está en el catálogo.`, { piece: p.id, material: p.material }))
-    return material.espesor
+    return material.thickness
   }
 
   const face = (ref: FaceRef, axis: Axis, who: string): number => {

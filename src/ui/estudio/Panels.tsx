@@ -65,7 +65,7 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
   const box = p && geo.boxes.get(p.id)
   if (!p || !box) return null
   const [length, width] = faceSize(box, p.normal)
-  const material = catalog.materiales.find((m) => m.id === p.material)
+  const material = catalog.materials.find((m) => m.id === p.material)
   const name = (id: string) => design.pieces.find((x) => x.id === id)?.name ?? id
   const joints = design.joints.filter((u) => u.a === p.id || u.b === p.id)
   return (
@@ -73,7 +73,7 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-titulo text-lg font-semibold">{p.name}</p>
-          <p className="text-xs text-grafito-2">{material?.nombre ?? p.material}</p>
+          <p className="text-xs text-grafito-2">{material?.name ?? p.material}</p>
         </div>
         <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
           <X />

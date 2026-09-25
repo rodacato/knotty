@@ -20,7 +20,7 @@ export const tippingRule: Rule = ({ design }): Finding[] => {
       message: `Mide ${height} mm de alto y solo ${depth} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
       data: { height: height, depth: depth, ratio: roundTo(ratio) },
       alternatives: [
-        { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: { hardwareId: 'kit-antivuelco' } },
+        { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: { hardwareId: 'anti-tip-kit' } },
         { key: 'deeper', description: `Darle al menos ${Math.ceil(height / recommendedRatio / 10) * 10} mm de fondo`, data: { depth: Math.ceil(height / recommendedRatio / 10) * 10 } },
       ],
     },

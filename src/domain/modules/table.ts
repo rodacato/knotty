@@ -41,7 +41,7 @@ const MAX_END_INSET = 50
 const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium' }
 
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
-  const t = materialById(catalog, plan.material)?.espesor ?? 18
+  const t = materialById(catalog, plan.material)?.thickness ?? 18
   const { width, height, depth } = plan.dimensions
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
   const pieces: Piece[] = []
@@ -101,7 +101,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   )
   for (const apron of ['faldon-frente', 'faldon-atras'])
     for (const end of [openLeft, openRight].map((f) => f.split('.')[0]))
-      joints.push(makeJoint(`u-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]))
+      joints.push(makeJoint(`u-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]))
 
   // Cleats between the aprons, so the top never spans more than it can.
   const openWidth = width - 2 * plan.overhang - 2 * t - (pedestal ? PEDESTAL - t : 0)

@@ -102,7 +102,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const dark = useDark()
 
   const { pushes, height: visibleHeight } = useMemo(() => offsets(geo, design, exploded), [geo, design, exploded])
-  const kindOf = (material: string) => (catalog.materiales.find((m) => m.id === material)?.tipo === 'trasera' ? 'back' : 'plywood')
+  const kindOf = (material: string) => (catalog.materials.find((m) => m.id === material)?.type === 'back' ? 'back' : 'plywood')
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (

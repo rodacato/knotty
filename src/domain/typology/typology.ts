@@ -142,7 +142,7 @@ function drawers(design: Design): Finding[] {
   if (count < 2 || design.dimensions.height <= 700 || design.wallAnchored) return []
   return [
     finding('critical', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { drawers: count }, [
-      { key: 'anchor-to-wall', description: 'Anclarla al muro con un kit antivuelco', data: { hardwareId: 'kit-antivuelco' } },
+      { key: 'anchor-to-wall', description: 'Anclarla al muro con un kit antivuelco', data: { hardwareId: 'anti-tip-kit' } },
     ]),
   ]
 }

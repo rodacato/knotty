@@ -16,10 +16,10 @@ const findings = (d: Design, code: string) => {
 describe('R3 screws', () => {
   it('asks for a longer screw when it does not go 25 mm into the piece that takes it', () => {
     const d = structuredClone(exampleBookcase)
-    d.joints = d.joints.map((u) => (u.id === 'u-piso-izq' ? { ...u, hardware: [{ hardwareId: 'tornillo-8x1-1/4', count: null }] } : u))
+    d.joints = d.joints.map((u) => (u.id === 'u-piso-izq' ? { ...u, hardware: [{ hardwareId: 'screw-8x1-1/4', count: null }] } : u))
     const [h] = findings(d, 'R3_SCREWS')
     expect(h).toMatchObject({ severity: 'recommendation', data: { joint: 'u-piso-izq' } })
-    expect(h.alternatives[0].data.hardwareId).toBe('tornillo-8x2')
+    expect(h.alternatives[0].data.hardwareId).toBe('screw-8x2')
   })
 
   it('warns when a pocket screw pokes out of thin plywood', () => {
@@ -32,7 +32,7 @@ describe('R3 screws', () => {
     const d = structuredClone(exampleBookcase)
     const zoclo = d.pieces.find((p) => p.id === 'zoclo')!
     zoclo.y = extent(ref('mueble.y0'), null, 50)
-    d.joints = d.joints.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', type: 'butt-screw', hardware: [{ hardwareId: 'tornillo-8x2', count: 2 }] } : u))
+    d.joints = d.joints.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', type: 'butt-screw', hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } : u))
     expect(findings(d, 'R3_SCREWS').some((h) => h.data.jointLength === 50)).toBe(true)
   })
 })

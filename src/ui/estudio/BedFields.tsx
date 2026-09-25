@@ -39,7 +39,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partial<BedPlan>) => void }) {
   const { catalog } = useServices()
-  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
+  const boards = catalog.materials.filter((m) => m.type === 'plywood')
   const drawers = draft.drawers
   const headboard = draft.headboard
   const deep = headboard.style === 'bookcase' || headboard.style === 'storage'
@@ -55,7 +55,7 @@ export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partia
           <NumberField label="Alto de la base" suffix="mm" value={draft.height} onChange={(height) => set({ height })} />
         </div>
         <Row label="Triplay">
-          <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.espesor} mm`])} onChange={(material) => set({ material })} />
+          <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.thickness} mm`])} onChange={(material) => set({ material })} />
         </Row>
       </section>
 

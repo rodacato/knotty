@@ -9,7 +9,7 @@ const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
 const solicitud = (fotos = [{ angle: 'front', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensions, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
 let host = 0
-const nueva = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', label: 'SheLLM · claude' })
+const nueva = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', model: 'claude', label: 'SheLLM · claude' })
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -24,7 +24,7 @@ describe('createCompatible', () => {
       return ok(respuesta)
     })
     vi.stubGlobal('fetch', fetch)
-    const experto = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', label: 'SheLLM' })
+    const experto = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', model: 'claude', label: 'SheLLM' })
     const solicitud = { measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
 
     const r = await experto.reconstruct(solicitud, new AbortController().signal)
@@ -186,7 +186,7 @@ describe('createCompatible', () => {
   it('sends the key only when there is one', async () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)
-    await createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', modelo: 'gpt', label: 'OpenAI' }).reconstruct(
+    await createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', model: 'gpt', label: 'OpenAI' }).reconstruct(
       { measures: exampleBookcase.dimensions, photos: [], notes: '', reading: null, catalog: testCatalog, correction: null },
       new AbortController().signal,
     )

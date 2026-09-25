@@ -15,9 +15,9 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const a = geo.boxes.get(u.a)
     const b = geo.boxes.get(u.b)
     const gap = a && b ? gapBetween(a, b) : null
-    const runner = catalog.herrajes.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.holguraLateral !== null) ?? catalog.herrajes.find((h) => h.holguraLateral !== null)
-    if (!gap || !runner?.holguraLateral) continue
-    const off = gap.distance - runner.holguraLateral
+    const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? catalog.hardware.find((h) => h.sideClearance !== null)
+    if (!gap || !runner?.sideClearance) continue
+    const off = gap.distance - runner.sideClearance
     if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
     const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
@@ -26,10 +26,10 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
       pieces: [u.a, u.b],
       message:
         off < 0
-          ? `La corredera necesita ${runner.holguraLateral} mm junto a ${name} y solo hay ${roundTo(gap.distance)}: el cajón no entra.`
-          : `Junto a ${name} hay ${roundTo(gap.distance)} mm y la corredera ocupa ${runner.holguraLateral}: el cajón quedaría flojo.`,
-      data: { joint: u.id, gap: roundTo(gap.distance), needs: runner.holguraLateral },
-      alternatives: [{ key: 'fit-box', description: `Dejar ${runner.holguraLateral} mm por lado entre la caja y el mueble`, data: { clearance: runner.holguraLateral } }],
+          ? `La corredera necesita ${runner.sideClearance} mm junto a ${name} y solo hay ${roundTo(gap.distance)}: el cajón no entra.`
+          : `Junto a ${name} hay ${roundTo(gap.distance)} mm y la corredera ocupa ${runner.sideClearance}: el cajón quedaría flojo.`,
+      data: { joint: u.id, gap: roundTo(gap.distance), needs: runner.sideClearance },
+      alternatives: [{ key: 'fit-box', description: `Dejar ${runner.sideClearance} mm por lado entre la caja y el mueble`, data: { clearance: runner.sideClearance } }],
     })
   }
 
@@ -85,9 +85,9 @@ const drawerName = (design: Design, group: string) => {
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
 function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
-  const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
-  if (!runner?.holguraLateral) return []
-  const gap = runner.holguraLateral
+  const runner = catalog.hardware.find((h) => h.id.startsWith('drawer-slide') && h.sideClearance !== null)
+  if (!runner?.sideClearance) return []
+  const gap = runner.sideClearance
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
     // A declared runner joint is checked above, with its own hardware.
     if (support && design.joints.some((u) => u.type === 'drawer-slide' && [u.a, u.b].includes(side.id))) return []

@@ -81,10 +81,10 @@ export function KeysGate() {
   const switchToSimulated = useStore((s) => s.switchToSimulated)
   const openSettings = useStore((s) => s.openSettings)
   const config = preferences.load()
-  const locked = vault === 'bloqueada'
+  const locked = vault === 'locked'
   const missingKey = missing(config)
   const visible = !closed && !settingsOpen && (locked || !!missingKey)
-  const name = config.activo === 'simulado' ? '' : PRESETS[config.activo].label
+  const name = config.active === 'simulated' ? '' : PRESETS[config.active].label
 
   return (
     <Dialog.Root open={visible} onOpenChange={(open) => !open && close()}>

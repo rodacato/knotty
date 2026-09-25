@@ -156,7 +156,7 @@ export function Capture() {
   // Re-read when the settings close so the notice disappears as soon as you connect an expert.
   const config = useMemo(() => preferences.load(), [preferences, settingsOpen])
   const missingKey = missing(config)
-  const simulated = config.activo === 'simulado'
+  const simulated = config.active === 'simulated'
 
   const add = async (angle: string, file: File) => {
     setProcessing(true)

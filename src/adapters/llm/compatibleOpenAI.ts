@@ -8,7 +8,7 @@ export interface CompatibleConnection {
   provider: 'openai' | 'shellm'
   host: string
   apiKey: string
-  modelo: string
+  model: string
   label: string
 }
 
@@ -211,7 +211,7 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
 
   const transport: Transport = {
     provider: c.provider,
-    modelo: c.modelo,
+    model: c.model,
     async completeJSON(system, content, schema, name, signal) {
       for (;;) {
         const { schema: withSchema, images: images, stream, reasoning: reasoning } = can()
@@ -228,7 +228,7 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
             method: 'POST',
             signal,
             body: JSON.stringify({
-              model: c.modelo,
+              model: c.model,
               messages: [
                 { role: 'system', content: instruction },
                 { role: 'user', content: parts.map((p) => (p.kind === 'texto' ? { type: 'text', text: p.text } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },

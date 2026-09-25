@@ -23,8 +23,8 @@ describe('sheet layout', () => {
       expect(m.sheets.flatMap((h) => h.placed).map((c) => c.id).sort()).toEqual(piezas.map((p) => p.id).sort())
       for (const h of m.sheets) {
         for (const c of h.placed) {
-          expect(c.x + c.w).toBeLessThanOrEqual(m.usable.largo)
-          expect(c.y + c.h).toBeLessThanOrEqual(m.usable.ancho)
+          expect(c.x + c.w).toBeLessThanOrEqual(m.usable.length)
+          expect(c.y + c.h).toBeLessThanOrEqual(m.usable.width)
           const p = piezas.find((x) => x.id === c.id)!
           if (p.grain === 'length') expect(c.w).toBeGreaterThanOrEqual(c.h)
         }
@@ -55,7 +55,7 @@ describe('sheet layout', () => {
 
   it('a piece larger than the sheet is left unplaced and counts as a sheet of its own', () => {
     const g = geo(exampleBookcase)
-    const enorme = { ...testCatalog, materiales: testCatalog.materiales.map((m) => (m.id === 'TR6' ? { ...m, hoja: { largo: 1500, ancho: 1220 } } : m)) }
+    const enorme = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
     const tr6 = layOut(exampleBookcase, g, enorme).find((m) => m.material === 'TR6')!
     expect(tr6.unplaced.map((p) => p.id)).toEqual(['trasera'])
   })
@@ -75,15 +75,15 @@ describe('hardware and purchase', () => {
 
   it('builds the list with packs and total cost', () => {
     const r = estimatePurchase(exampleWallCabinet, geo(exampleWallCabinet), testCatalog)
-    const bisagras = r.hardware.find((h) => h.hardware.id === 'bisagra-cazoleta-35-recta')!
+    const bisagras = r.hardware.find((h) => h.hardware.id === 'cup-hinge-35-full')!
     expect(bisagras).toMatchObject({ count: 4, packs: 2 })
-    expect(r.hardware.some((h) => h.hardware.id === 'pegamento-blanco')).toBe(true)
+    expect(r.hardware.some((h) => h.hardware.id === 'white-glue')).toBe(true)
     expect(r.cost.missingPrices).toEqual([])
     expect(r.cost.total).toBe(r.sheets.reduce((s, h) => s + h.cost!, 0) + r.hardware.reduce((s, h) => s + h.cost!, 0))
   })
 
   it('says which prices are missing', () => {
-    const sinPrecio = { ...testCatalog, materiales: testCatalog.materiales.map((m) => ({ ...m, precio: null })) }
+    const sinPrecio = { ...testCatalog, materials: testCatalog.materials.map((m) => ({ ...m, price: null })) }
     const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), sinPrecio)
     expect(r.cost.missingPrices).toContain('Triplay de pino 18 mm')
   })

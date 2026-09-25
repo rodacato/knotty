@@ -22,16 +22,16 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
   const save = useStore((s) => s.saveCatalogSettings)
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState('')
-  const changed = id in settings.precios
+  const changed = id in settings.prices
 
   const confirm = () => {
     const n = Number(text.replace(/[$,\s]/g, ''))
-    save({ ...settings, precios: { ...settings.precios, [id]: text.trim() === '' || !Number.isFinite(n) ? null : n } })
+    save({ ...settings, prices: { ...settings.prices, [id]: text.trim() === '' || !Number.isFinite(n) ? null : n } })
     setEditing(false)
   }
   const reset = () => {
-    const { [id]: _, ...rest } = settings.precios
-    save({ ...settings, precios: rest })
+    const { [id]: _, ...rest } = settings.prices
+    save({ ...settings, prices: rest })
   }
 
   if (editing)
@@ -86,7 +86,7 @@ function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; t
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
   const sheet = a.sheets[index]
-  const trim = (a.sheet.largo - a.usable.largo) / 2
+  const trim = (a.sheet.length - a.usable.length) / 2
   const pattern = `rayado-${a.material}-${index}`
   return (
     <figure className="flex flex-col gap-1.5">
@@ -96,14 +96,14 @@ function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; t
         </span>
         <span className="cifras">desperdicio {percent(sheet.waste)}</span>
       </figcaption>
-      <svg viewBox={`0 0 ${a.sheet.largo} ${a.sheet.ancho}`} className="w-full rounded-md border border-linea" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
+      <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="w-full rounded-md border border-linea" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
         <defs>
           <pattern id={pattern} width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="40" stroke="var(--grafito-2)" strokeOpacity="0.25" strokeWidth="6" />
           </pattern>
         </defs>
-        <rect width={a.sheet.largo} height={a.sheet.ancho} fill={`url(#${pattern})`} />
-        <rect x={trim} y={trim} width={a.usable.largo} height={a.usable.ancho} fill="var(--hueso)" />
+        <rect width={a.sheet.length} height={a.sheet.width} fill={`url(#${pattern})`} />
+        <rect x={trim} y={trim} width={a.usable.length} height={a.usable.width} fill="var(--hueso)" />
         {sheet.placed.map((c) => {
           const active = selection === c.id
           const large = c.w > 360 && c.h > 110
@@ -129,11 +129,11 @@ function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; t
 function CutSettings({ base }: { base: LayoutSettings }) {
   const settings = useStore((s) => s.catalogSettings)
   const save = useStore((s) => s.saveCatalogSettings)
-  const current = settings.acomodo ?? base
+  const current = settings.layout ?? base
   const fields: { key: keyof LayoutSettings; name: string; help: string }[] = [
-    { key: 'refilado', name: 'Refilado', help: 'Canto de fábrica que se recorta por lado' },
-    { key: 'sierra', name: 'Corte', help: 'Lo que se come la sierra' },
-    { key: 'holgura', name: 'Holgura', help: 'Margen por pieza' },
+    { key: 'trim', name: 'Refilado', help: 'Canto de fábrica que se recorta por lado' },
+    { key: 'kerf', name: 'Corte', help: 'Lo que se come la sierra' },
+    { key: 'clearance', name: 'Holgura', help: 'Margen por pieza' },
   ]
   return (
     <details className="rounded-2xl border border-linea bg-hueso p-4 text-sm">
@@ -150,7 +150,7 @@ function CutSettings({ base }: { base: LayoutSettings }) {
                 min={0}
                 step={1}
                 value={current[c.key]}
-                onChange={(e) => save({ ...settings, acomodo: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
+                onChange={(e) => save({ ...settings, layout: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
                 className="cifras min-h-9 w-full bg-transparent outline-none"
               />
               <span className="cifras text-xs text-grafito-2">mm</span>
@@ -158,8 +158,8 @@ function CutSettings({ base }: { base: LayoutSettings }) {
           </label>
         ))}
       </div>
-      {settings.acomodo && (
-        <button type="button" className="mt-2 text-xs text-grafito-2 underline" onClick={() => save({ ...settings, acomodo: null })}>
+      {settings.layout && (
+        <button type="button" className="mt-2 text-xs text-grafito-2 underline" onClick={() => save({ ...settings, layout: null })}>
           Volver a los valores del catálogo
         </button>
       )}
@@ -172,9 +172,9 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
   const [anyway, setAnyway] = useState<string | null>(null)
-  const base = (id: string) => [...catalog.materiales, ...catalog.herrajes].find((x) => x.id === id)?.precio ?? null
+  const base = (id: string) => [...catalog.materials, ...catalog.hardware].find((x) => x.id === id)?.price ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
-  const own = Object.keys(settings.precios).length
+  const own = Object.keys(settings.prices).length
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
   // The shopping list appears only after the review; if it is not viable, it has to be asked for on purpose.
@@ -182,7 +182,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
     return (
       <div className="flex flex-col gap-4 p-4">
         <ReviewGate stale={state.review !== null} />
-        <CutSettings base={catalog.acomodo} />
+        <CutSettings base={catalog.layout} />
       </div>
     )
   if (verdict.verdict === 'not-viable' && anyway !== verdict.signature)
@@ -195,7 +195,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
             Ver la lista de todos modos
           </button>
         </p>
-        <CutSettings base={catalog.acomodo} />
+        <CutSettings base={catalog.layout} />
       </div>
     )
 
@@ -214,7 +214,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         <div className="flex items-start gap-2 rounded-xl border border-ambar/40 bg-ambar-suave px-3 py-2 text-xs leading-relaxed">
           <Info className="mt-0.5 shrink-0" weight="bold" />
           <span>
-            <span className="font-medium">Precios de referencia, no una cotización.</span> {catalog.notaPrecios} Toca cualquier precio para poner el de tu tienda
+            <span className="font-medium">Precios de referencia, no una cotización.</span> {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
             {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.
             {purchase.cost.missingPrices.length > 0 && ` Sin precio: ${purchase.cost.missingPrices.join(', ')}.`}
           </span>
@@ -230,14 +230,14 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
               <div className="flex items-start gap-3">
                 <span className="cifras grid size-10 shrink-0 place-items-center rounded-xl bg-grafito text-lg font-medium text-hueso">{h.sheets}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">{h.material.nombre}</p>
+                  <p className="font-medium">{h.material.name}</p>
                   <p className="cifras text-xs text-grafito-2">
-                    {meters(h.material.hoja.ancho)} × {meters(h.material.hoja.largo)} · desperdicio {percent(h.waste)}
+                    {meters(h.material.sheet.width)} × {meters(h.material.sheet.length)} · desperdicio {percent(h.waste)}
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="cifras text-sm font-medium">{h.cost === null ? '—' : `${h.material.id in settings.precios ? '' : '~'}${weights.format(h.cost)}`}</span>
-                  <Price id={h.material.id} value={h.material.precio} base={base(h.material.id)} unit="por hoja" />
+                  <span className="cifras text-sm font-medium">{h.cost === null ? '—' : `${h.material.id in settings.prices ? '' : '~'}${weights.format(h.cost)}`}</span>
+                  <Price id={h.material.id} value={h.material.price} base={base(h.material.id)} unit="por hoja" />
                 </div>
               </div>
               {a.unplaced.length > 0 && <p className="text-xs text-oxido">No caben en una hoja: {a.unplaced.map((p) => p.name).join(', ')}. Cuentan como hoja aparte.</p>}
@@ -247,7 +247,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
             </div>
           )
         })}
-        <CutSettings base={catalog.acomodo} />
+        <CutSettings base={catalog.layout} />
       </section>
 
       <section className="flex flex-col gap-3">
@@ -257,19 +257,19 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
             <li key={r.hardware.id} className="flex items-center gap-3 px-4 py-3">
               <span className="cifras min-w-12 shrink-0 text-sm font-medium">
                 {r.count}
-                {r.hardware.unidad === 'metro' ? ' m' : ''}
+                {r.hardware.unit === 'meter' ? ' m' : ''}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm">{r.hardware.nombre}</span>
+                <span className="block text-sm">{r.hardware.name}</span>
                 {r.packs !== null && (
                   <span className="block text-xs text-grafito-2">
-                    {r.packs} {r.packs === 1 ? 'paquete' : 'paquetes'} de {r.hardware.porPaquete}
+                    {r.packs} {r.packs === 1 ? 'paquete' : 'paquetes'} de {r.hardware.perPack}
                   </span>
                 )}
               </span>
               <span className="flex flex-col items-end">
-                <span className="cifras text-sm">{r.cost === null ? '—' : `${r.hardware.id in settings.precios ? '' : '~'}${weights.format(r.cost)}`}</span>
-                <Price id={r.hardware.id} value={r.hardware.precio} base={base(r.hardware.id)} unit={r.hardware.porPaquete ? 'por paquete' : r.hardware.unidad === 'metro' ? 'por metro' : 'c/u'} />
+                <span className="cifras text-sm">{r.cost === null ? '—' : `${r.hardware.id in settings.prices ? '' : '~'}${weights.format(r.cost)}`}</span>
+                <Price id={r.hardware.id} value={r.hardware.price} base={base(r.hardware.id)} unit={r.hardware.perPack ? 'por paquete' : r.hardware.unit === 'meter' ? 'por metro' : 'c/u'} />
               </span>
             </li>
           ))}

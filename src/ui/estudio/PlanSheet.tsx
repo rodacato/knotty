@@ -82,7 +82,7 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
 function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Partial<CabinetPlan>) => void }) {
   const { catalog } = useServices()
   const setColumn = (i: number, column: Column) => set({ columns: draft.columns.map((c, j) => (j === i ? column : c)) })
-  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
+  const boards = catalog.materials.filter((m) => m.type === 'plywood')
   const widths = draft.columns.map((c) => c.width)
   return (
     <>
@@ -100,7 +100,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Triplay</span>
-            <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.espesor} mm`])} onChange={(material) => set({ material })} />
+            <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.thickness} mm`])} onChange={(material) => set({ material })} />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Base</span>

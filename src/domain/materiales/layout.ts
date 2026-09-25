@@ -32,8 +32,8 @@ export interface Sheet {
 
 export interface MaterialLayout {
   material: string
-  sheet: { largo: number; ancho: number }
-  usable: { largo: number; ancho: number }
+  sheet: { length: number; width: number }
+  usable: { length: number; width: number }
   sheets: Sheet[]
   unplaced: LayoutPiece[]
 }
@@ -68,7 +68,7 @@ export function layoutPieces(design: Design, geo: Geometry): Map<string, LayoutP
   return byMaterial
 }
 
-function pack(pieces: LayoutPiece[], usable: { largo: number; ancho: number }, kerf: number, play: number, order: Order, fit: Fit, split: Split) {
+function pack(pieces: LayoutPiece[], usable: { length: number; width: number }, kerf: number, play: number, order: Order, fit: Fit, split: Split) {
   const sheets: { free: Free[]; placed: Placed[] }[] = []
   const unplaced: LayoutPiece[] = []
 
@@ -82,7 +82,7 @@ function pack(pieces: LayoutPiece[], usable: { largo: number; ancho: number }, k
 
   for (const p of [...pieces].sort(ORDERS[order])) {
     const shapes = options(p)
-    if (!shapes.some((o) => fits({ x: 0, y: 0, w: usable.largo, h: usable.ancho }, o))) {
+    if (!shapes.some((o) => fits({ x: 0, y: 0, w: usable.length, h: usable.width }, o))) {
       unplaced.push(p)
       continue
     }
@@ -97,7 +97,7 @@ function pack(pieces: LayoutPiece[], usable: { largo: number; ancho: number }, k
       ),
     )
     if (!best) {
-      sheets.push({ free: [{ x: 0, y: 0, w: usable.largo, h: usable.ancho }], placed: [] })
+      sheets.push({ free: [{ x: 0, y: 0, w: usable.length, h: usable.width }], placed: [] })
       const free = sheets.at(-1)!.free[0]
       best = { sheet: sheets.length - 1, free: 0, shape: shapes.find((f) => fits(free, f))!, value: 0 }
     }
@@ -117,7 +117,7 @@ function pack(pieces: LayoutPiece[], usable: { largo: number; ancho: number }, k
 }
 
 export function layOut(design: Design, geo: Geometry, catalog: Catalog): MaterialLayout[] {
-  const { sierra: kerf, holgura: play } = catalog.acomodo
+  const { kerf: kerf, clearance: play } = catalog.layout
   return [...layoutPieces(design, geo)].flatMap(([id, pieces]) => {
     const material = materialById(catalog, id)
     if (!material) return []
@@ -130,11 +130,11 @@ export function layOut(design: Design, geo: Geometry, catalog: Catalog): Materia
           const usedInLast = (x: typeof r) => x.sheets.at(-1)?.placed.reduce((a, c) => a + c.w * c.h, 0) ?? 0
           if (!best || r.sheets.length < best.sheets.length || (r.sheets.length === best.sheets.length && usedInLast(r) < usedInLast(best))) best = r
         }
-    const sheetArea = material.hoja.largo * material.hoja.ancho
+    const sheetArea = material.sheet.length * material.sheet.width
     return [
       {
         material: id,
-        sheet: material.hoja,
+        sheet: material.sheet,
         usable,
         sheets: best!.sheets.map((h) => ({ placed: h.placed, waste: 1 - h.placed.reduce((a, c) => a + c.w * c.h, 0) / sheetArea })),
         unplaced: best!.unplaced,

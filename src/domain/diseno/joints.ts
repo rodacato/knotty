@@ -12,9 +12,9 @@ const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 /** The shortest screw that bites enough into the edge, or the longest that does not poke out when it goes into a face. */
 function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, intoFace: boolean) {
-  const screws = catalog.herrajes.filter((h) => /^tornillo-8x/.test(h.id) && h.largo).sort((x, y) => x.largo! - y.largo!)
-  if (intoFace) return [...screws].reverse().find((t) => t.largo! <= thicknessA + thicknessB - 3) ?? screws[0]
-  return screws.find((t) => t.largo! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
+  const screws = catalog.hardware.filter((h) => /^screw-8x/.test(h.id) && h.length).sort((x, y) => x.length! - y.length!)
+  if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - 3) ?? screws[0]
+  return screws.find((t) => t.length! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 
 function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, number>, catalog: Catalog): Omit<Joint, 'id'> | null {
@@ -23,14 +23,14 @@ function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, num
     const other = back === p ? q : p
     // A shelf that moves is not nailed to the back.
     if (other.role === 'back' || other.support === 'movable') return null
-    return makeJoint('', back.id, other.id, 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }])
+    return makeJoint('', back.id, other.id, 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])
   }
 
   const movable = p.support === 'movable' ? p : q.support === 'movable' ? q : null
   if (movable) {
     const other = movable === p ? q : p
     if (movable.role !== 'shelf' || other.normal !== 'x' || c.axis !== 'x') return null
-    return makeJoint('', movable.id, other.id, 'shelf-pin', [{ hardwareId: 'soporte-repisa-5', count: 2 }])
+    return makeJoint('', movable.id, other.id, 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }])
   }
 
   // The screw goes through the piece that touches with its face and into the other's edge; edge to edge is not screwed.
@@ -39,7 +39,7 @@ function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, num
   const a = byFace.length === 1 ? byFace[0] : [p, q].sort((x, y) => thicknesses.get(x.id)! - thicknesses.get(y.id)! || x.id.localeCompare(y.id))[0]
   const b = a === p ? q : p
   const ta = thicknesses.get(a.id)!
-  if (ta <= ASSUMPTIONS.nailOnlyThickness) return makeJoint('', a.id, b.id, 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }])
+  if (ta <= ASSUMPTIONS.nailOnlyThickness) return makeJoint('', a.id, b.id, 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])
   const t = screwFor(catalog, ta, thicknesses.get(b.id)!, byFace.length === 2)
   return makeJoint('', a.id, b.id, 'butt-screw', t ? [{ hardwareId: t.id, count: null }] : [])
 }
@@ -52,7 +52,7 @@ function hinge(door: Piece, box: Box, neighbours: { piece: Piece; box: Box }[]):
   const distance = (k: Box) => Math.min(Math.abs(center(k) - box.x0), Math.abs(center(k) - box.x1))
   // On a tie, the left one: it is what someone opening it expects.
   const chosen = [...uprights].sort((m, n) => distance(m.box) - distance(n.box) || center(m.box) - center(n.box))[0]
-  return makeJoint('', door.id, chosen.piece.id, 'cup-hinge', [{ hardwareId: 'bisagra-cazoleta-35-recta', count: null }])
+  return makeJoint('', door.id, chosen.piece.id, 'cup-hinge', [{ hardwareId: 'cup-hinge-35-full', count: null }])
 }
 
 /** Adds missing joints; with `previous`, only where the change created a contact, so a joint removed on purpose does not come back. */
@@ -93,7 +93,7 @@ export function completeJoints(design: Design, catalog: Catalog, previous?: Desi
   }
 
   // A drawer that came without runners gets them on the pieces beside its box; R9 then checks the gap.
-  const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
+  const runner = catalog.hardware.find((h) => h.id.startsWith('drawer-slide') && h.sideClearance !== null)
   const withRunner = new Set(design.joints.filter((u) => u.type === 'drawer-slide').flatMap((u) => [u.a, u.b]))
   const groupsWithHardware = new Set(design.joints.filter((u) => u.type === 'drawer-slide' && u.hardware.length).flatMap((u) => [byId.get(u.a)?.group, byId.get(u.b)?.group]))
   for (const { group, side, support } of drawerSides(design, boxes)) {

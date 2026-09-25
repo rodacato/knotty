@@ -24,13 +24,13 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
     const boxB = geo.boxes.get(u.b)
     if (!a || !b || ta === undefined || !boxA || !boxB) return []
     const found: Finding[] = []
-    const screws = u.hardware.map((h) => catalog.herrajes.find((x) => x.id === h.hardwareId)).filter((h) => h?.largo)
+    const screws = u.hardware.map((h) => catalog.hardware.find((x) => x.id === h.hardwareId)).filter((h) => h?.length)
 
     const tb = geo.thicknesses.get(u.b) ?? 0
     // Touching b's face, the screw goes straight into it: what matters is that it does not come out the other side.
     const intoFace = contactBetween(u.a, boxA, u.b, boxB)?.axis === b.normal
     for (const t of screws) {
-      const length = t!.largo!
+      const length = t!.length!
       if (u.type === 'butt-screw' && intoFace) {
         const bite = length - ta
         if (bite <= tb - 3) continue
@@ -38,23 +38,23 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           code: 'R3_SCREWS',
           severity: 'critical',
           pieces: [u.a, u.b],
-          message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
+          message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
           data: { joint: u.id, length: length, bite: roundTo(bite), thickness: tb },
           alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(ta + tb - 5)} o menos`, data: { length: ta + tb - 5 } }],
         })
       } else if (u.type === 'butt-screw') {
         const bite = length - ta
         if (bite >= ASSUMPTIONS.screws.minPenetration) continue
-        const suggested = catalog.herrajes
-          .filter((h) => h.largo && h.id.startsWith('tornillo-') && !h.id.includes('bolsillo') && h.largo - ta >= ASSUMPTIONS.screws.minPenetration)
-          .sort((x, y) => x.largo! - y.largo!)[0]
+        const suggested = catalog.hardware
+          .filter((h) => h.length && h.id.startsWith('screw-') && h.length - ta >= ASSUMPTIONS.screws.minPenetration)
+          .sort((x, y) => x.length! - y.length!)[0]
         found.push({
           code: 'R3_SCREWS',
           severity: 'recommendation',
           pieces: [u.a, u.b],
-          message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y solo entra ${roundTo(bite)} mm en ${b.name}; conviene que entre al menos ${ASSUMPTIONS.screws.minPenetration} mm.`,
+          message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y solo entra ${roundTo(bite)} mm en ${b.name}; conviene que entre al menos ${ASSUMPTIONS.screws.minPenetration} mm.`,
           data: { joint: u.id, length: length, bite: roundTo(bite) },
-          alternatives: suggested ? [{ key: 'longer-screw', description: `Usar ${suggested.nombre.toLowerCase()}`, data: { hardwareId: suggested.id } }] : [],
+          alternatives: suggested ? [{ key: 'longer-screw', description: `Usar ${suggested.name.toLowerCase()}`, data: { hardwareId: suggested.id } }] : [],
         })
       } else {
         const longest = ASSUMPTIONS.screws.pocketScrews.find((f) => ta <= f.upTo)?.length
