@@ -1,27 +1,27 @@
 import { Camera, Images } from '@phosphor-icons/react'
 import { useRef, type ReactNode } from 'react'
-import { Boton } from './componentes'
+import { Button } from './components'
 
-/** Cámara o galería: en el celular `capture` abre la cámara directo; en escritorio ambos abren el selector de archivos. */
-export function TomarFoto({ alElegir, deshabilitado = false, compacto = false, etiqueta }: { alElegir: (archivo: File) => void; deshabilitado?: boolean; compacto?: boolean; etiqueta?: ReactNode }) {
-  const camara = useRef<HTMLInputElement>(null)
-  const galeria = useRef<HTMLInputElement>(null)
-  const elegir = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const archivo = e.target.files?.[0]
-    if (archivo) alElegir(archivo)
+/** Camera or gallery: on a phone `capture` opens the camera directly; on desktop both open the file picker. */
+export function TakePhoto({ onChoose, disabled = false, compact = false, label }: { onChoose: (file: File) => void; disabled?: boolean; compact?: boolean; label?: ReactNode }) {
+  const camera = useRef<HTMLInputElement>(null)
+  const gallery = useRef<HTMLInputElement>(null)
+  const choose = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) onChoose(file)
     e.target.value = ''
   }
-  const tamano = compacto ? 'min-h-9 flex-1 px-2 text-xs' : 'min-h-9 text-xs'
+  const size = compact ? 'min-h-9 flex-1 px-2 text-xs' : 'min-h-9 text-xs'
   return (
     <>
-      <Boton variante="primario" className={tamano} onClick={() => camara.current?.click()} disabled={deshabilitado} aria-label="Tomar foto">
-        <Camera weight="bold" /> {!compacto && (etiqueta ?? 'Tomar foto')}
-      </Boton>
-      <Boton variante="secundario" className={tamano} onClick={() => galeria.current?.click()} disabled={deshabilitado} aria-label="Elegir de la galería">
-        <Images weight="bold" /> {!compacto && 'Galería'}
-      </Boton>
-      <input ref={camara} type="file" accept="image/*" capture="environment" hidden onChange={elegir} />
-      <input ref={galeria} type="file" accept="image/*" hidden onChange={elegir} />
+      <Button variant="primary" className={size} onClick={() => camera.current?.click()} disabled={disabled} aria-label="Tomar foto">
+        <Camera weight="bold" /> {!compact && (label ?? 'Tomar foto')}
+      </Button>
+      <Button variant="secondary" className={size} onClick={() => gallery.current?.click()} disabled={disabled} aria-label="Elegir de la galería">
+        <Images weight="bold" /> {!compact && 'Galería'}
+      </Button>
+      <input ref={camera} type="file" accept="image/*" capture="environment" hidden onChange={choose} />
+      <input ref={gallery} type="file" accept="image/*" hidden onChange={choose} />
     </>
   )
 }

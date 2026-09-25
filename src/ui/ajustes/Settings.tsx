@@ -2,82 +2,82 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
-import { Desbloquear } from './Llaves'
-import { useServicios } from '../servicios'
-import { Boton, Titulo } from '../sistema/componentes'
+import { Unlock } from './Keys'
+import { useServices } from '../services'
+import { Button, Title } from '../sistema/components'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
-import { useTienda } from '../tienda'
+import { useStore } from '../store'
 
-const PROVEEDORES: Provider[] = ['simulado', 'anthropic', 'openai', 'shellm']
+const PROVIDERS: Provider[] = ['simulado', 'anthropic', 'openai', 'shellm']
 
-const GUARDADOS: { id: KeyStorage; nombre: string; detalle: string }[] = [
-  { id: 'cifrada', nombre: 'Cifradas en este navegador', detalle: 'Con una frase que te pido al volver. Recomendado.' },
-  { id: 'pestana', nombre: 'Solo en esta pestaña', detalle: 'Sobreviven a recargar; se borran al cerrarla.' },
-  { id: 'memoria', nombre: 'No guardarlas', detalle: 'Se pierden al recargar.' },
+const SAVED: { id: KeyStorage; name: string; detail: string }[] = [
+  { id: 'cifrada', name: 'Cifradas en este navegador', detail: 'Con una frase que te pido al volver. Recomendado.' },
+  { id: 'pestana', name: 'Solo en esta pestaña', detail: 'Sobreviven a recargar; se borran al cerrarla.' },
+  { id: 'memoria', name: 'No guardarlas', detail: 'Se pierden al recargar.' },
 ]
 
-type EstadoModelos = { tipo: 'nada' | 'cargando' } | { tipo: 'listo'; modelos: string[] } | { tipo: 'error'; mensaje: string }
+type ModelsState = { kind: 'idle' | 'loading' } | { kind: 'ready'; models: string[] } | { kind: 'error'; message: string }
 
-export function Ajustes() {
-  const { preferencias, debug } = useServicios()
-  const [depuracion, setDepuracion] = useState(() => debug.visible())
-  const abierto = useTienda((s) => s.ajustesAbiertos)
-  const abrir = useTienda((s) => s.abrirAjustes)
-  const [borrador, setBorrador] = useState<LLMConfiguration>(preferencias.load())
-  const [verLlave, setVerLlave] = useState(false)
-  const [modelos, setModelos] = useState<EstadoModelos>({ tipo: 'nada' })
-  const [frase, setFrase] = useState('')
+export function Settings() {
+  const { preferences, debug } = useServices()
+  const [debugVisible, setDebugVisible] = useState(() => debug.visible())
+  const open = useStore((s) => s.settingsOpen)
+  const setOpen = useStore((s) => s.openSettings)
+  const [draft, setDraft] = useState<LLMConfiguration>(preferences.load())
+  const [showKey, setShowKey] = useState(false)
+  const [models, setModels] = useState<ModelsState>({ kind: 'idle' })
+  const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
-  const [guardando, setGuardando] = useState(false)
-  const boveda = useTienda((s) => s.boveda)
-  const refrescarBoveda = useTienda((s) => s.refrescarBoveda)
+  const [saving, setSaving] = useState(false)
+  const vault = useStore((s) => s.vault)
+  const refreshVault = useStore((s) => s.refreshVault)
 
   useEffect(() => {
-    if (!abierto) return
-    setBorrador(preferencias.load())
-    setFrase('')
+    if (!open) return
+    setDraft(preferences.load())
+    setPassphrase('')
     setError('')
-  }, [abierto, preferencias, boveda])
-  useEffect(() => setModelos({ tipo: 'nada' }), [borrador.activo])
+  }, [open, preferences, vault])
+  useEffect(() => setModels({ kind: 'idle' }), [draft.activo])
 
-  const activo = borrador.activo
-  const conexion = activo === 'simulado' ? null : borrador.conexiones[activo]
-  const cambiar = (patch: Partial<Connection>) => {
-    if (activo === 'simulado') return
-    setBorrador((b) => ({ ...b, conexiones: { ...b.conexiones, [activo]: { ...b.conexiones[activo], ...patch } } }))
+  const active = draft.activo
+  const connection = active === 'simulado' ? null : draft.conexiones[active]
+  const change = (patch: Partial<Connection>) => {
+    if (active === 'simulado') return
+    setDraft((b) => ({ ...b, conexiones: { ...b.conexiones, [active]: { ...b.conexiones[active], ...patch } } }))
   }
-  const cargarModelos = async () => {
-    if (activo === 'simulado' || !conexion || (PRESETS[activo].needsKey && !conexion.apiKey)) return
-    setModelos({ tipo: 'cargando' })
+  const loadModels = async () => {
+    if (active === 'simulado' || !connection || (PRESETS[active].needsKey && !connection.apiKey)) return
+    setModels({ kind: 'loading' })
     try {
-      setModelos({ tipo: 'listo', modelos: await preferencias.listModels(activo, conexion) })
+      setModels({ kind: 'ready', models: await preferences.listModels(active, connection) })
     } catch (e) {
-      setModelos({ tipo: 'error', mensaje: e instanceof Error ? e.message : 'No se pudo cargar la lista.' })
+      setModels({ kind: 'error', message: e instanceof Error ? e.message : 'No se pudo cargar la lista.' })
     }
   }
-  const bloqueada = boveda === 'bloqueada'
-  const pideFrase = borrador.guardado === 'cifrada' && boveda === 'sin-boveda'
-  const guardar = async () => {
-    setGuardando(true)
+  const locked = vault === 'bloqueada'
+  const asksPassphrase = draft.guardado === 'cifrada' && vault === 'sin-boveda'
+  const save = async () => {
+    setSaving(true)
     setError('')
     try {
-      await preferencias.save(borrador, frase)
-      refrescarBoveda()
-      abrir(false)
+      await preferences.save(draft, passphrase)
+      refreshVault()
+      setOpen(false)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar.')
     }
-    setGuardando(false)
+    setSaving(false)
   }
 
   return (
-    <Dialog.Root open={abierto} onOpenChange={abrir}>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-grafito/30 backdrop-blur-[2px]" />
         <Dialog.Content className="animate-aparecer fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col gap-5 overflow-y-auto rounded-3xl border border-linea bg-hueso p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-center justify-between">
             <Dialog.Title asChild>
-              <Titulo className="text-xl">El experto</Titulo>
+              <Title className="text-xl">El experto</Title>
             </Dialog.Title>
             <Dialog.Close className="grid size-9 place-items-center rounded-full hover:bg-kraft" aria-label="Cerrar">
               <X />
@@ -87,18 +87,18 @@ export function Ajustes() {
             Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
           </Dialog.Description>
 
-          {bloqueada && <Desbloquear />}
+          {locked && <Unlock />}
 
           <div role="radiogroup" className="grid gap-2">
-            {PROVEEDORES.map((p) => (
+            {PROVIDERS.map((p) => (
               <button
                 key={p}
                 type="button"
                 role="radio"
-                aria-checked={activo === p}
+                aria-checked={active === p}
                 aria-label={PRESETS[p].label}
-                onClick={() => setBorrador((b) => ({ ...b, activo: p }))}
-                className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${activo === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
+                onClick={() => setDraft((b) => ({ ...b, activo: p }))}
+                className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
               >
                 <span className="font-medium">{PRESETS[p].label}</span>
                 <span className="text-xs text-grafito-2">{PRESETS[p].description}</span>
@@ -106,74 +106,74 @@ export function Ajustes() {
             ))}
           </div>
 
-          {activo === 'shellm' && conexion && <SheLLM host={conexion.host} onHost={(host) => cambiar({ host: host.trim() })} />}
+          {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} />}
 
-          {conexion && activo !== 'simulado' && (
+          {connection && active !== 'simulado' && (
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">API key{!PRESETS[activo].needsKey && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
+                <span className="text-sm font-medium">API key{!PRESETS[active].needsKey && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
                 <span className="flex items-center gap-2 rounded-xl border border-linea bg-hueso px-3 focus-within:border-ambar">
                   <input
-                    type={verLlave ? 'text' : 'password'}
+                    type={showKey ? 'text' : 'password'}
                     autoComplete="off"
                     spellCheck={false}
-                    value={conexion.apiKey}
-                    onChange={(e) => cambiar({ apiKey: e.target.value.trim() })}
-                    placeholder={activo === 'anthropic' ? 'sk-ant-…' : activo === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
+                    value={connection.apiKey}
+                    onChange={(e) => change({ apiKey: e.target.value.trim() })}
+                    placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
                     className="cifras min-h-11 flex-1 bg-transparent text-sm outline-none"
                   />
-                  <button type="button" onClick={() => setVerLlave((v) => !v)} aria-label={verLlave ? 'Ocultar' : 'Mostrar'} className="text-grafito-2">
-                    {verLlave ? <EyeSlash /> : <Eye />}
+                  <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-grafito-2">
+                    {showKey ? <EyeSlash /> : <Eye />}
                   </button>
                 </span>
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between text-sm font-medium">
                   Modelo
-                  <button type="button" onClick={() => void cargarModelos()} disabled={(PRESETS[activo].needsKey && !conexion.apiKey) || modelos.tipo === 'cargando'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
-                    <ArrowCounterClockwise /> {modelos.tipo === 'cargando' ? 'Cargando…' : 'Cargar lista'}
+                  <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
+                    <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
                   </button>
                 </span>
-                {modelos.tipo === 'listo' ? (
-                  <select value={conexion.modelo} onChange={(e) => cambiar({ modelo: e.target.value })} className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm">
-                    {!modelos.modelos.includes(conexion.modelo) && <option value={conexion.modelo}>{conexion.modelo || 'Elige un modelo'}</option>}
-                    {modelos.modelos.map((m) => (
+                {models.kind === 'ready' ? (
+                  <select value={connection.modelo} onChange={(e) => change({ modelo: e.target.value })} className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm">
+                    {!models.models.includes(connection.modelo) && <option value={connection.modelo}>{connection.modelo || 'Elige un modelo'}</option>}
+                    {models.models.map((m) => (
                       <option key={m}>{m}</option>
                     ))}
                   </select>
                 ) : (
                   <input
-                    value={conexion.modelo}
-                    onChange={(e) => cambiar({ modelo: e.target.value.trim() })}
-                    placeholder={PRESETS[activo].suggestedModel || 'Carga la lista o escribe el id'}
+                    value={connection.modelo}
+                    onChange={(e) => change({ modelo: e.target.value.trim() })}
+                    placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'}
                     className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
                   />
                 )}
-                {modelos.tipo === 'error' && <span className="text-xs text-oxido">{modelos.mensaje}</span>}
+                {models.kind === 'error' && <span className="text-xs text-oxido">{models.message}</span>}
               </label>
-              <fieldset className="flex flex-col gap-2" disabled={bloqueada}>
+              <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
-                {boveda === 'abierta' && borrador.guardado === 'cifrada' ? (
+                {vault === 'abierta' && draft.guardado === 'cifrada' ? (
                   <p className="text-xs text-grafito-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
-                ) : bloqueada ? (
+                ) : locked ? (
                   <p className="text-xs text-oxido">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
                 <div className="grid gap-1.5">
-                  {GUARDADOS.map((g) => (
-                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${borrador.guardado === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
-                      <input type="radio" name="guardado" checked={borrador.guardado === g.id} onChange={() => setBorrador((b) => ({ ...b, guardado: g.id }))} className="mt-1 accent-ambar" />
+                  {SAVED.map((g) => (
+                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.guardado === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
+                      <input type="radio" name="guardado" checked={draft.guardado === g.id} onChange={() => setDraft((b) => ({ ...b, guardado: g.id }))} className="mt-1 accent-ambar" />
                       <span>
-                        {g.nombre}
-                        <span className="block text-xs text-grafito-2">{g.detalle}</span>
+                        {g.name}
+                        <span className="block text-xs text-grafito-2">{g.detail}</span>
                       </span>
                     </label>
                   ))}
                 </div>
-                {pideFrase && (
+                {asksPassphrase && (
                   <input
                     type="password"
-                    value={frase}
-                    onChange={(e) => setFrase(e.target.value)}
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
                     placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
                     autoComplete="new-password"
                     aria-label="Frase para cifrar las llaves"
@@ -188,10 +188,10 @@ export function Ajustes() {
           <label className="flex items-center gap-2 border-t border-linea pt-3 text-xs text-grafito-2">
             <input
               type="checkbox"
-              checked={depuracion}
+              checked={debugVisible}
               onChange={(e) => {
                 debug.setVisible(e.target.checked)
-                setDepuracion(e.target.checked)
+                setDebugVisible(e.target.checked)
                 dispatchEvent(new CustomEvent(DEBUG_VISIBILITY, { detail: e.target.checked }))
               }}
             />
@@ -201,11 +201,11 @@ export function Ajustes() {
           {error && <p className="text-sm text-oxido">{error}</p>}
           <div className="flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Boton variante="fantasma">Cancelar</Boton>
+              <Button variant="ghost">Cancelar</Button>
             </Dialog.Close>
-            <Boton variante="primario" onClick={() => void guardar()} disabled={guardando || (pideFrase && frase.length < MIN_PASSPHRASE)}>
-              {guardando ? 'Guardando…' : 'Guardar'}
-            </Boton>
+            <Button variant="primary" onClick={() => void save()} disabled={saving || (asksPassphrase && passphrase.length < MIN_PASSPHRASE)}>
+              {saving ? 'Guardando…' : 'Guardar'}
+            </Button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -213,15 +213,15 @@ export function Ajustes() {
   )
 }
 
-/** SheLLM corre en la máquina del usuario: se explica qué es y cómo dejar que esta página le hable. */
+/** SheLLM runs on the person's machine: explains what it is and how to let this page talk to it. */
 function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void }) {
-  const [copiado, setCopiado] = useState(false)
-  const origen = location.origin
-  const linea = `SHELLM_CORS_ORIGINS=${origen}`
-  const copiar = async () => {
-    await navigator.clipboard.writeText(linea)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 1500)
+  const [copied, setCopied] = useState(false)
+  const origin = location.origin
+  const line = `SHELLM_CORS_ORIGINS=${origin}`
+  const copy = async () => {
+    await navigator.clipboard.writeText(line)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-ambar/40 bg-ambar-suave p-4 text-sm">
@@ -238,9 +238,9 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
       <div className="flex flex-col gap-1.5">
         <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
         <span className="flex items-center gap-2 rounded-xl bg-hueso px-3 py-2">
-          <code className="cifras flex-1 truncate text-xs">{linea}</code>
-          <button type="button" onClick={() => void copiar()} aria-label="Copiar" className="text-grafito-2 hover:text-grafito">
-            {copiado ? <Check /> : <Copy />}
+          <code className="cifras flex-1 truncate text-xs">{line}</code>
+          <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-grafito-2 hover:text-grafito">
+            {copied ? <Check /> : <Copy />}
           </button>
         </span>
       </div>
