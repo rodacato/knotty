@@ -4,58 +4,58 @@
 @import '@fontsource-variable/jetbrains-mono';
 
 @theme {
-  --font-titulo: 'Fraunces Variable', Georgia, serif;
+  --font-display: 'Fraunces Variable', Georgia, serif;
   --font-sans: 'Inter Variable', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
-  --color-hueso: var(--hueso);
+  --color-bone: var(--bone);
   --color-kraft: var(--kraft);
   --color-kraft-2: var(--kraft-2);
-  --color-grafito: var(--grafito);
-  --color-grafito-2: var(--grafito-2);
-  --color-linea: var(--linea);
-  --color-ambar: var(--ambar);
-  --color-ambar-suave: var(--ambar-suave);
-  --color-oxido: var(--oxido);
-  --color-pizarra: var(--pizarra);
-  --color-papel: var(--papel);
-  --color-abedul: #e2c9a2;
-  --color-pino: #d9b27c;
-  --color-nogal: #6b4a2e;
+  --color-graphite: var(--graphite);
+  --color-graphite-2: var(--graphite-2);
+  --color-line: var(--line);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-rust: var(--rust);
+  --color-slate: var(--slate);
+  --color-paper: var(--paper);
+  --color-birch: #e2c9a2;
+  --color-pine: #d9b27c;
+  --color-walnut: #6b4a2e;
 
-  --animate-trazo: trazo 2.4s ease-in-out infinite;
-  --animate-aparecer: aparecer 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-draw: draw 2.4s ease-in-out infinite;
+  --animate-appear: appear 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
 :root {
-  --hueso: #f5f0e8;
+  --bone: #f5f0e8;
   --kraft: #ede3d3;
   --kraft-2: #e3d5bf;
-  --grafito: #2b2825;
-  --grafito-2: #6a6158;
-  --linea: rgb(43 40 37 / 0.12);
-  --ambar: #d98a2b;
-  --ambar-suave: rgb(217 138 43 / 0.14);
-  --oxido: #b4452f;
-  --pizarra: #56697a;
-  --fondo-escena: #efe7da;
-  --papel: #f4ede1;
+  --graphite: #2b2825;
+  --graphite-2: #6a6158;
+  --line: rgb(43 40 37 / 0.12);
+  --amber: #d98a2b;
+  --amber-soft: rgb(217 138 43 / 0.14);
+  --rust: #b4452f;
+  --slate: #56697a;
+  --scene-bg: #efe7da;
+  --paper: #f4ede1;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --hueso: #1d1a17;
+    --bone: #1d1a17;
     --kraft: #27231f;
     --kraft-2: #332d27;
-    --grafito: #efe7da;
-    --grafito-2: #b3a896;
-    --linea: rgb(239 231 218 / 0.12);
-    --ambar-suave: rgb(217 138 43 / 0.2);
-    --oxido: #d9674f;
-    --pizarra: #8aa0b3;
-    --fondo-escena: #221e1a;
-    --papel: #3a332b;
+    --graphite: #efe7da;
+    --graphite-2: #b3a896;
+    --line: rgb(239 231 218 / 0.12);
+    --amber-soft: rgb(217 138 43 / 0.2);
+    --rust: #d9674f;
+    --slate: #8aa0b3;
+    --scene-bg: #221e1a;
+    --paper: #3a332b;
     color-scheme: dark;
   }
 }
@@ -68,21 +68,21 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--hueso);
+  background-color: var(--bone);
   /* A barely noticeable paper texture. */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  color: var(--grafito);
+  color: var(--graphite);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
 
-.cifras {
+.numerals {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-@keyframes trazo {
+@keyframes draw {
   0% {
     stroke-dashoffset: 1;
   }
@@ -95,7 +95,7 @@ body {
   }
 }
 
-@keyframes aparecer {
+@keyframes appear {
   from {
     opacity: 0;
     transform: translateY(6px) scale(0.98);

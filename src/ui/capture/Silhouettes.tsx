@@ -42,7 +42,7 @@ const DRAWINGS: Record<string, React.ReactNode> = {
 
 export function Silhouette({ angle }: { angle: string }) {
   return (
-    <svg viewBox="0 0 64 80" className="h-14 w-12 text-grafito-2" aria-hidden>
+    <svg viewBox="0 0 64 80" className="h-14 w-12 text-graphite-2" aria-hidden>
       {DRAWINGS[angle]}
     </svg>
   )

@@ -2,7 +2,7 @@ import { TABLE_NAMES, type TablePlan } from '../../domain/modules/table'
 import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
-// A table's or desk's ficha: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
+// A table's or desk's plan: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
 
 const USE: [TablePlan['use'], string][] = [
   ['dining', 'Comedor'],
@@ -33,14 +33,14 @@ export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Pa
   return (
     <>
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Qué es</h3>
+        <h3 className="font-display text-base font-semibold">Qué es</h3>
         <Row label="Uso">
           <Segmented label="Uso" value={draft.use} options={USE} onChange={(use) => set({ use: use as TablePlan['use'], name: TABLE_NAMES[use as TablePlan['use']], shelf: use === 'desk' ? false : draft.shelf, pedestal: use === 'desk' ? draft.pedestal : { side: 'none', drawers: 0 } })} />
         </Row>
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Medidas</h3>
+        <h3 className="font-display text-base font-semibold">Medidas</h3>
         <div className="grid grid-cols-3 gap-2">
           <NumberField label="Alto" suffix="mm" value={size.height} onChange={(height) => set({ dimensions: { ...size, height } })} />
           <NumberField label="Largo" suffix="mm" value={size.width} onChange={(width) => set({ dimensions: { ...size, width } })} />
@@ -55,7 +55,7 @@ export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Pa
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">{desk ? 'Cajonera' : 'Abajo'}</h3>
+        <h3 className="font-display text-base font-semibold">{desk ? 'Cajonera' : 'Abajo'}</h3>
         {desk ? (
           <>
             <Row label="Lado">

@@ -34,13 +34,13 @@ const MATTRESS_TOLERANCE = { tight: 20, loose: 80 }
 const BED_SPAN = 800
 const BENCH_HEIGHT: [number, number] = [420, 480]
 
-const finding = (severidad: Finding['severity'], piezas: string[], mensaje: string, datos: Finding['data'] = {}, alternativas: Finding['alternatives'] = []): Finding => ({
+const finding = (severity: Finding['severity'], pieces: string[], message: string, data: Finding['data'] = {}, alternatives: Finding['alternatives'] = []): Finding => ({
   code: 'R10_USE',
-  severity: severidad,
-  pieces: piezas,
-  message: mensaje,
-  data: datos,
-  alternatives: alternativas,
+  severity,
+  pieces,
+  message,
+  data,
+  alternatives,
 })
 
 const horizontal = (design: Design, geo: Geometry) =>
@@ -160,10 +160,10 @@ function wallCabinet(design: Design): Finding[] {
 }
 
 const minDepth = (design: Design, min: number, message: string): Finding[] =>
-  design.dimensions.depth < min ? [finding('recommendation', [], message.replace('{fondo}', String(design.dimensions.depth)), { depth: design.dimensions.depth, min: min })] : []
+  design.dimensions.depth < min ? [finding('recommendation', [], message.replace('{depth}', String(design.dimensions.depth)), { depth: design.dimensions.depth, min: min })] : []
 
 function wardrobe(design: Design): Finding[] {
-  const found = minDepth(design, 550, 'Con {fondo} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos 550–600 mm.')
+  const found = minDepth(design, 550, 'Con {depth} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos 550–600 mm.')
   if (design.dimensions.height > 1500 && !design.wallAnchored)
     found.push(finding('critical', [], `Un clóset de ${design.dimensions.height} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`, {}, [{ key: 'anchor-to-wall', description: 'Anclarlo al muro', data: {} }]))
   return found
@@ -196,11 +196,11 @@ export const typologyRule: Rule = (ctx) => {
     case 'wallCabinet':
       return wallCabinet(design)
     case 'bookcase':
-      return minDepth(design, 230, 'Con {fondo} mm de fondo, los libros grandes quedan de fuera; un librero lleva 230–300 mm.')
+      return minDepth(design, 230, 'Con {depth} mm de fondo, los libros grandes quedan de fuera; un librero lleva 230–300 mm.')
     case 'wardrobe':
       return wardrobe(design)
     case 'shoeRack':
-      return minDepth(design, 300, 'Con {fondo} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva 300–350 mm.')
+      return minDepth(design, 300, 'Con {depth} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva 300–350 mm.')
     case 'bench':
       return bench(design, geo)
     default:

@@ -1,10 +1,10 @@
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
 import type { Design } from '../design/schema'
 
-const ENTREPANOS = 4
-const ESPESOR = 18
+const SHELVES = 4
+const THICKNESS = 18
 
-const entrepanos = Array.from({ length: ENTREPANOS }, (_, i) =>
+const shelves = Array.from({ length: SHELVES }, (_, i) =>
   makePiece({
     id: `shelf-${i + 1}`,
     name: `Entrepaño ${i + 1}`,
@@ -12,7 +12,7 @@ const entrepanos = Array.from({ length: ENTREPANOS }, (_, i) =>
     material: 'T18',
     normal: 'y',
     x: extent(ref('side-left.x1'), ref('side-right.x0')),
-    y: startAt(partway('bottom.y1', 'top.y0', (i + 1) / (ENTREPANOS + 1), (ESPESOR * (i - ENTREPANOS)) / (ENTREPANOS + 1))),
+    y: startAt(partway('bottom.y1', 'top.y0', (i + 1) / (SHELVES + 1), (THICKNESS * (i - SHELVES)) / (SHELVES + 1))),
     z: extent(ref('back.z1'), ref('furniture.z1')),
     load: 'heavy',
     support: 'movable',
@@ -33,7 +33,7 @@ export const exampleBookcase: Design = {
     makePiece({ id: 'kick', name: 'Zoclo', role: 'kick', material: 'T18', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(ref('furniture.y0'), null, 70), z: endAt(ref('furniture.z1', -30)), grain: 'length' }),
     makePiece({ id: 'bottom', name: 'Piso', role: 'bottom', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(ref('kick.y1')), z: extent(ref('back.z1'), ref('furniture.z1')), load: 'heavy', edges: ['front'] }),
     makePiece({ id: 'top', name: 'Techo', role: 'top', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: endAt(ref('furniture.y1')), z: extent(ref('back.z1'), ref('furniture.z1')), edges: ['front'] }),
-    ...entrepanos,
+    ...shelves,
   ],
   joints: [
     makeJoint('j-bottom-left', 'side-left', 'bottom', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]),
@@ -44,8 +44,8 @@ export const exampleBookcase: Design = {
     makeJoint('j-kick-right', 'kick', 'side-right', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]),
     makeJoint('j-kick-bottom', 'bottom', 'kick', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]),
     ...['side-left', 'side-right', 'bottom', 'top'].map((b) => makeJoint(`j-back-${b}`, 'back', b, 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])),
-    ...entrepanos.flatMap((e) =>
-      ['side-left', 'side-right'].map((lat) => makeJoint(`j-${e.id}-${lat}`, e.id, lat, 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }])),
+    ...shelves.flatMap((shelf) =>
+      ['side-left', 'side-right'].map((side) => makeJoint(`j-${shelf.id}-${side}`, shelf.id, side, 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }])),
     ),
   ],
 }

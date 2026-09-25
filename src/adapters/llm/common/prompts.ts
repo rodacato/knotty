@@ -1,8 +1,8 @@
 import type { Catalog } from '../../../domain/materials/catalog'
 import adjust from '../prompts/adjust.v10.md?raw'
-import planAdjust from '../prompts/plan-adjust.v7.md?raw'
+import planAdjust from '../prompts/plan-adjust.v8.md?raw'
 import review from '../prompts/review.v4.md?raw'
-import skeleton from '../prompts/skeleton.v9.md?raw'
+import skeleton from '../prompts/skeleton.v10.md?raw'
 import reading from '../prompts/reading.v3.md?raw'
 import reconstruction from '../prompts/reconstruction.v11.md?raw'
 import system from '../prompts/system.v9.md?raw'
@@ -26,7 +26,7 @@ export const PURCHASE_REVIEW = read(review)
 export const READING = read(reading)
 /** Stands alone too: the skeleton only needs the board thicknesses, filled in as {{materials}}. */
 export const SKELETON = read(skeleton)
-/** Standalone as well: editing the ficha needs the board thicknesses, not the piece rules. */
+/** Standalone as well: editing the plan needs the board thicknesses, not the piece rules. */
 export const PLAN_ADJUSTMENT = read(planAdjust)
 
 function describeCatalog(c: Catalog) {

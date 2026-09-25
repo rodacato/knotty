@@ -53,7 +53,7 @@ export function KonamiTrail({ onComplete }: { onComplete: () => void }) {
   if (done < SHOW_FROM && !complete) return null
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center" aria-hidden>
-      <div className={`animate-aparecer flex items-center gap-1.5 rounded-full px-4 py-2 font-mono text-sm shadow-xl transition-colors duration-300 ${complete ? 'bg-ambar text-grafito' : 'bg-grafito text-hueso'}`}>
+      <div className={`animate-appear flex items-center gap-1.5 rounded-full px-4 py-2 font-mono text-sm shadow-xl transition-colors duration-300 ${complete ? 'bg-amber text-graphite' : 'bg-graphite text-bone'}`}>
         {KONAMI.map((k, i) => (
           <span key={i} className={`w-3 text-center transition-opacity ${i < done ? 'opacity-100' : 'opacity-25'}`}>
             {GLYPH[k]}

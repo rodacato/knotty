@@ -58,7 +58,7 @@ export interface BedSize {
 const HEADBOARD_DEPTH = 250
 const headboardDepth = (plan: BedPlan, t: number) => (plan.headboard.style === 'none' ? 0 : plan.headboard.style === 'plain' ? t : plan.headboard.depth || HEADBOARD_DEPTH)
 
-/** Outer measures from the mattress, the base and the headboard, as the mueble's width (x), height and depth (z). */
+/** Outer measures from the mattress, the base and the headboard, as the furniture's width (x), height and depth (z). */
 export function bedSize(plan: BedPlan, t: number): BedSize {
   const [mw, ml] = MATTRESSES[plan.mattress]
   return {

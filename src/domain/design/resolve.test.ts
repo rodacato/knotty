@@ -14,21 +14,21 @@ const resolved = (d: TDiseno): Geometry => {
 }
 
 describe('resolveGeometry', () => {
-  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the fixtures match the schema and resolve: $nombre', (d) => {
+  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the fixtures match the schema and resolve: $name', (d) => {
     expect(Design.safeParse(d).success).toBe(true)
     expect(resolved(d).boxes.size).toBe(d.pieces.length)
   })
 
-  it('resolves references, thicknesses and proportional cotas of the bookcase', () => {
+  it('resolves references, thicknesses and proportional positions of the bookcase', () => {
     const { boxes } = resolved(exampleBookcase)
     expect(boxes.get('side-left')).toEqual({ x0: 0, x1: 18, y0: 0, y1: 1800, z0: 6, z1: 300 })
     expect(boxes.get('side-right')).toMatchObject({ x0: 582, x1: 600 })
     expect(boxes.get('bottom')).toMatchObject({ x0: 18, x1: 582, y0: 70, y1: 88 })
     expect(boxes.get('top')).toMatchObject({ y0: 1782, y1: 1800 })
-    const huecos = [boxes.get('bottom')!, ...[1, 2, 3, 4].map((i) => boxes.get(`shelf-${i}`)!), boxes.get('top')!]
+    const gaps = [boxes.get('bottom')!, ...[1, 2, 3, 4].map((i) => boxes.get(`shelf-${i}`)!), boxes.get('top')!]
       .slice(1)
       .map((c, i, arr) => c.y0 - (i === 0 ? boxes.get('bottom')!.y1 : arr[i - 1].y1))
-    for (const h of huecos) expect(h).toBeCloseTo(huecos[0], 5)
+    for (const h of gaps) expect(h).toBeCloseTo(gaps[0], 5)
   })
 
   it('carries a change of width to everything that refers to it', () => {
@@ -53,8 +53,8 @@ describe('resolveGeometry', () => {
 
   it('finds reference cycles', () => {
     const d = structuredClone(exampleBookcase)
-    const lat = d.pieces.find((p) => p.id === 'side-left')!
-    lat.x = startAt(ref('bottom.x0', -18))
+    const side = d.pieces.find((p) => p.id === 'side-left')!
+    side.x = startAt(ref('bottom.x0', -18))
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors[0].code).toBe('E_CYCLE')

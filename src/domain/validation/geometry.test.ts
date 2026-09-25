@@ -16,7 +16,7 @@ const validate = (d: Design) => {
 const codes = (d: Design) => validate(d).errors.map((e) => e.code)
 
 describe('validateGeometry', () => {
-  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the fixtures have no errors or warnings: $nombre', (d) => {
+  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the fixtures have no errors or warnings: $name', (d) => {
     const { errors, warnings } = validate(d)
     expect(errors).toEqual([])
     expect(warnings).toEqual([])
@@ -31,8 +31,8 @@ describe('validateGeometry', () => {
 
   it('lets a declared groove overlap', () => {
     const d = structuredClone(exampleBookcase)
-    const piso = d.pieces.find((p) => p.id === 'bottom')!
-    piso.x = extent(ref('side-left.x1', -6), ref('side-right.x0', 6))
+    const bottom = d.pieces.find((p) => p.id === 'bottom')!
+    bottom.x = extent(ref('side-left.x1', -6), ref('side-right.x0', 6))
     d.joints = d.joints.map((u) => (u.b === 'bottom' && u.a.startsWith('side') ? { ...u, type: 'dado', depth: 6 } : u))
     expect(codes(d)).toEqual([])
   })

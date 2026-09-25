@@ -6,7 +6,7 @@ import { error, type DesignError } from '../validation/errors'
 // Their fields are saved and written by the expert.
 
 export const Requirement = z.object({
-  id: z.string().min(1).describe('Short, stable key, for example "espacio-ancho"'),
+  id: z.string().min(1).describe('Short, stable key, for example "space-width"'),
   text: z.string().min(1).describe('As the person would say it, in Spanish: "Mi espacio mide 90 cm de ancho"'),
   type: z.enum(['space', 'load', 'tool', 'style', 'other']),
   axis: Axis.nullable().describe('Only for type space: the outside size of the whole furniture, never of a part'),

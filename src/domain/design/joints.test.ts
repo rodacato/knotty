@@ -24,8 +24,8 @@ describe('completeJoints', () => {
     expect(signature(completeJoints({ ...exampleNightstand, joints: [] }, testCatalog))).toEqual([...withoutDowels, 'side-right → shelf butt-screw', 'side-left → shelf butt-screw'].sort())
   })
 
-  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('what it infers passes the structural review without criticals: $nombre', (diseno) => {
-    expect(criticals(completeJoints({ ...diseno, joints: [] }, testCatalog))).toEqual([])
+  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('what it infers passes the structural review without criticals: $name', (design) => {
+    expect(criticals(completeJoints({ ...design, joints: [] }, testCatalog))).toEqual([])
   })
 
   it('keeps the joints the expert declared and picks a screw that bites 25 mm into the edge', () => {
@@ -42,7 +42,7 @@ describe('completeJoints', () => {
   })
 
   it('pieces the model grouped into parts still get their joints; only drawer parts are skipped', () => {
-    const grouped = { ...exampleBookcase, joints: [], pieces: exampleBookcase.pieces.map((p) => ({ ...p, grupo: 'casco' })) }
+    const grouped = { ...exampleBookcase, joints: [], pieces: exampleBookcase.pieces.map((p) => ({ ...p, group: 'carcass' })) }
     expect(signature(completeJoints(grouped, testCatalog))).toEqual(signature(completeJoints({ ...exampleBookcase, joints: [] }, testCatalog)))
   })
 

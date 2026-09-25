@@ -1,5 +1,5 @@
-// La app abre sin conexión: el HTML se pide a la red primero y los archivos con hash se sirven del caché.
-// Nunca se guardan llamadas a otros orígenes (proveedores de LLM, SheLLM).
+// The app opens offline: HTML goes to the network first and hashed files are served from the cache.
+// Calls to other origins (LLM providers, SheLLM) are never cached.
 
 const CACHE = 'knotty-v2'
 const BASE = new URL('./', self.location).pathname
@@ -10,7 +10,7 @@ self.addEventListener('install', (e) => {
 })
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((claves) => Promise.all(claves.filter((k) => k !== CACHE).map((k) => caches.delete(k)))))
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))))
   self.clients.claim()
 })
 
@@ -22,8 +22,8 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request)
         .then((r) => {
-          const copia = r.clone()
-          caches.open(CACHE).then((c) => c.put(e.request.mode === 'navigate' ? BASE : e.request, copia))
+          const copy = r.clone()
+          caches.open(CACHE).then((c) => c.put(e.request.mode === 'navigate' ? BASE : e.request, copy))
           return r
         })
         .catch(() => caches.match(e.request.mode === 'navigate' ? BASE : e.request)),
@@ -33,12 +33,12 @@ self.addEventListener('fetch', (e) => {
 
   e.respondWith(
     caches.match(e.request).then(
-      (guardado) =>
-        guardado ??
+      (cached) =>
+        cached ??
         fetch(e.request).then((r) => {
           if (r.ok) {
-            const copia = r.clone()
-            caches.open(CACHE).then((c) => c.put(e.request, copia))
+            const copy = r.clone()
+            caches.open(CACHE).then((c) => c.put(e.request, copy))
           }
           return r
         }),

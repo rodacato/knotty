@@ -29,26 +29,26 @@ describe('R1 shelf sag', () => {
   })
 
   it('the longest span leaves the sag right at the recommended limit', () => {
-    const claro = maxSpan(300, 18, 'heavy', 6000)
-    expect(deflection(claro, 300, 18, 'heavy', 6000)).toBeCloseTo(claro / 360, 5)
+    const span = maxSpan(300, 18, 'heavy', 6000)
+    expect(deflection(span, 300, 18, 'heavy', 6000)).toBeCloseTo(span / 360, 5)
   })
 
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {
-    const ancho = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } }
-    const r1 = findings(ancho).filter((h) => h.code === 'R1_SAG')
+    const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } }
+    const r1 = findings(wide).filter((h) => h.code === 'R1_SAG')
     expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['bottom', 'shelf-1', 'shelf-2', 'shelf-3', 'shelf-4'])
     expect(r1.every((h) => h.severity === 'critical')).toBe(true)
-    const divisor = r1[0].alternatives.find((a) => a.key === 'center-divider')!
-    expect(divisor.data.sag).toBeLessThan(1)
+    const divider = r1[0].alternatives.find((a) => a.key === 'center-divider')!
+    expect(divider.data.sag).toBeLessThan(1)
   })
 
   it('takes the lower modulus when the grain runs across', () => {
     const d = structuredClone(exampleBookcase)
     d.dimensions.width = 800
-    const conVeta = findings(d).find((h) => h.pieces[0] === 'shelf-1')
+    const withGrain = findings(d).find((h) => h.pieces[0] === 'shelf-1')
     d.pieces.find((p) => p.id === 'shelf-1')!.grain = 'width'
-    const contraVeta = findings(d).find((h) => h.pieces[0] === 'shelf-1')!
-    expect(Number(contraVeta.data.sag)).toBeGreaterThan(Number(conVeta?.data.sag ?? 0))
+    const againstGrain = findings(d).find((h) => h.pieces[0] === 'shelf-1')!
+    expect(Number(againstGrain.data.sag)).toBeGreaterThan(Number(withGrain?.data.sag ?? 0))
   })
 })
 
@@ -57,9 +57,9 @@ describe('R2 thickness per joint', () => {
     const d = structuredClone(exampleNightstand)
     for (const p of d.pieces) if (p.role === 'side') p.material = 'T12'
     const r2 = findings(d).filter((h) => h.code === 'R2_JOINT_THICKNESS')
-    const porUnion = Object.fromEntries(r2.map((h) => [h.data.joint, h.severity]))
-    expect(porUnion['j-shelf-left']).toBe('critical')
-    expect(porUnion['j-top-left']).toBe('recommendation')
+    const byJoint = Object.fromEntries(r2.map((h) => [h.data.joint, h.severity]))
+    expect(byJoint['j-shelf-left']).toBe('critical')
+    expect(byJoint['j-top-left']).toBe('recommendation')
     expect(r2[0].alternatives[0].data.material).toBe('T15')
   })
 
@@ -89,9 +89,9 @@ describe('R5 racking', () => {
 
 describe('newCriticals', () => {
   it('counts only those that were not there before', () => {
-    const antes = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } })
-    const despues = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1000 } })
-    expect(newCriticals(antes, despues)).toEqual([])
-    expect(newCriticals([], despues).length).toBe(5)
+    const before = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } })
+    const after = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1000 } })
+    expect(newCriticals(before, after)).toEqual([])
+    expect(newCriticals([], after).length).toBe(5)
   })
 })

@@ -69,13 +69,13 @@ export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =
   JSON.stringify([state.current, state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
-function reviewText(cut: CutLine[], comprobaciones: Check[]) {
+function reviewText(cut: CutLine[], checks: Check[]) {
   return [
     '## Cut list (length × width × thickness, mm)',
     ...cut.map((r) => `- ${r.count} × ${r.name} (${r.material}): ${r.length} × ${r.width} × ${r.thickness}`),
     '',
     '## App checks',
-    ...comprobaciones.map((c) => `- [${CHECK_STATE[c.status]}] ${c.title}: ${c.detail}`),
+    ...checks.map((c) => `- [${CHECK_STATE[c.status]}] ${c.title}: ${c.detail}`),
   ].join('\n')
 }
 
@@ -141,9 +141,9 @@ export function createUseCases(deps: Dependencies) {
   const now = deps.now ?? (() => new Date().toISOString())
   const newId = deps.newId ?? (() => crypto.randomUUID())
 
-  const message = (autor: Message['author'], text: string, extra: Partial<Message> = {}): Message => ({
+  const message = (author: Message['author'], text: string, extra: Partial<Message> = {}): Message => ({
     id: newId(),
-    author: autor,
+    author,
     text: text,
     date: now(),
     questions: [],
@@ -218,7 +218,7 @@ export function createUseCases(deps: Dependencies) {
   }
 
   /** Kinds that are not a box with columns: asking for a cabinet plan would only add a wasted call. */
-  /** Kinds with no ficha yet: they go straight to piece by piece. */
+  /** Kinds with no plan yet: they go straight to piece by piece. */
   const NOT_CABINETS = new Set(['bench'])
 
   /** The skeleton path: if the expert says it is a cabinet, Knotty builds it. Null means: design it whole. */
@@ -261,8 +261,8 @@ export function createUseCases(deps: Dependencies) {
     }
     trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : table ? `Mesa (${table.use})` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
     onProgress('structure', 0)
-    const { explanation: explanation, questions: questions, requestedPhotos: fotosSolicitadas, requirements: requirements, suggestions: suggestions } = plan.value
-    const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design: design, questions: questions, requestedPhotos: fotosSolicitadas, requirements: requirements, suggestions: suggestions }
+    const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
+    const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
     return initialState(input, design, r, { ...plan, value: r }, [], repairs, trace, furniture)
   }
 
@@ -348,7 +348,7 @@ export function createUseCases(deps: Dependencies) {
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 5,
+      format: 6,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -402,7 +402,7 @@ export function createUseCases(deps: Dependencies) {
     let criticalsReviewed = false
     let lastError = ''
 
-    /** With a live plan the expert edits the ficha; null means: go piece by piece. */
+    /** With a live plan the expert edits the plan; null means: go piece by piece. */
     const throughPlan = async (): Promise<DesignState | null> => {
       const plan = currentPlanInfo.plan
       if (!plan || currentPlanInfo.diverged || !llm.adjustPlan || photo) return null
@@ -630,7 +630,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 5,
+      format: 6,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,
@@ -712,7 +712,7 @@ export function createUseCases(deps: Dependencies) {
     return { ok: false, message: `Así no queda: ${(named(reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
   }
 
-  /** The whole piece of furniture grows or shrinks along one axis; through the ficha when there is one. */
+  /** The whole piece of furniture grows or shrinks along one axis; through the plan when there is one. */
   function resizeFurniture(state: DesignState, axis: Axis, value: number): PieceEditResult {
     const current = currentPlan(state)
     if (current.plan && !current.diverged) {

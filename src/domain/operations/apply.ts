@@ -22,8 +22,8 @@ class InvalidOperation extends Error {
 
 const invalid = (code: DesignError['code'], message: string, data?: Record<string, unknown>) => new InvalidOperation(error(code, message, data))
 
-const refersTo = (cota: Position | null, id: string) =>
-  !!cota && ((cota.type === 'ref' && parseFace(cota.ref).piece === id) || (cota.type === 'between' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
+const refersTo = (position: Position | null, id: string) =>
+  !!position && ((position.type === 'ref' && parseFace(position.ref).piece === id) || (position.type === 'between' && [position.a, position.b].some((r) => parseFace(r).piece === id)))
 
 /** Applies the operations in order on a copy. If one fails, none is applied. */
 export function applyOperations(original: Design, operations: Operation[], catalog: Catalog): Result<Applied> {
@@ -53,9 +53,9 @@ export function applyOperations(original: Design, operations: Operation[], catal
       if (p.id === id) continue
       for (const axis of AXES)
         for (const end of ['from', 'to'] as const) {
-          const cota = p[axis][end]
-          if (!refersTo(cota, id)) continue
-          p[axis][end] = { type: 'mm', mm: geo.measure(cota!, axis) }
+          const position = p[axis][end]
+          if (!refersTo(position, id)) continue
+          p[axis][end] = { type: 'mm', mm: geo.measure(position!, axis) }
           frozen.add(p.id)
         }
     }
@@ -65,8 +65,8 @@ export function applyOperations(original: Design, operations: Operation[], catal
       warnings.push({ code: 'W_FROZEN_REFERENCE', message: `Al quitar "${id}", ${[...frozen].join(', ')} quedaron fijas en mm.`, data: { piece: id, affected: [...frozen] } })
   }
 
-  function place(p: Piece, axis: Axis, cota: Position, length: number) {
-    p[axis] = axis === p.normal ? { from: cota, to: null, length: null } : { from: cota, to: null, length: length }
+  function place(p: Piece, axis: Axis, position: Position, length: number) {
+    p[axis] = axis === p.normal ? { from: position, to: null, length: null } : { from: position, to: null, length: length }
   }
   const lengthOf = (id: string, axis: Axis, geo: Geometry) => geo.boxes.get(id)![`${axis}1`] - geo.boxes.get(id)![`${axis}0`]
 
@@ -165,8 +165,8 @@ export function applyOperations(original: Design, operations: Operation[], catal
           for (const p of design.pieces) {
             const t = p[op.axis]
             for (const end of ['from', 'to'] as const) {
-              const cota = t[end]
-              if (cota?.type === 'mm') t[end] = { type: 'mm', mm: cota.mm * factor }
+              const position = t[end]
+              if (position?.type === 'mm') t[end] = { type: 'mm', mm: position.mm * factor }
             }
             if (t.length !== null && op.axis !== p.normal) t.length *= factor
           }

@@ -19,15 +19,15 @@ describe('the bench', () => {
     expect(r.state?.versions).toHaveLength(1)
   })
 
-  it('a bed goes through its ficha', async () => {
+  it('a bed goes through its plan', async () => {
     const r = await bench.runCase(bench.cases.find((c) => c.id === 'bed')!, signal())
-    expect(r).toMatchObject({ ok: true, path: 'ficha', reasonable: true, verdict: 'viable' })
+    expect(r).toMatchObject({ ok: true, path: 'plan', reasonable: true, verdict: 'viable' })
   })
 
   it('a case that names its path is not reasonable when the design took the other one', async () => {
     const bed = bench.cases.find((c) => c.id === 'bed')!
-    expect(await bench.runCase({ ...bed, path: 'pieces' }, signal())).toMatchObject({ path: 'ficha', reasonable: false })
-    expect(await bench.runCase({ ...bed, path: 'ficha' }, signal())).toMatchObject({ path: 'ficha', reasonable: true })
+    expect(await bench.runCase({ ...bed, path: 'pieces' }, signal())).toMatchObject({ path: 'plan', reasonable: false })
+    expect(await bench.runCase({ ...bed, path: 'plan' }, signal())).toMatchObject({ path: 'plan', reasonable: true })
   })
 
   it('a case the expert cannot do is reported, not thrown', async () => {

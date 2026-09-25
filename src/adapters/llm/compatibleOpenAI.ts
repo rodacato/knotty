@@ -180,8 +180,8 @@ function unwrap(value: unknown): unknown {
   const values = Object.values(value)
   if (values.length !== 1 || typeof values[0] !== 'string') return value
   try {
-    const dentro = JSON.parse(values[0])
-    return dentro && typeof dentro === 'object' ? dentro : value
+    const inner = JSON.parse(values[0])
+    return inner && typeof inner === 'object' ? inner : value
   } catch {
     return value
   }
@@ -214,15 +214,15 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
     model: c.model,
     async completeJSON(system, content, schema, name, signal) {
       for (;;) {
-        const { schema: withSchema, images: images, stream, reasoning: reasoning } = can()
-        const photos = content.filter((x) => x.kind === 'imagen').length
+        const { schema: withSchema, images, stream, reasoning } = can()
+        const photos = content.filter((x) => x.kind === 'image').length
         const parts: Content[] = images
           ? content
           : [
-              ...content.filter((x) => x.kind === 'texto'),
-              ...(photos ? [{ kind: 'texto' as const, text: `(La persona tomó ${photos} fotos, pero este proveedor no puede verlas. Trabaja con las medidas, las notas y los ángulos; marca confianza baja y pregunta lo que no puedas saber.)` }] : []),
+              ...content.filter((x) => x.kind === 'text'),
+              ...(photos ? [{ kind: 'text' as const, text: `(The person took ${photos} photos, but this provider cannot see them. Work from the measures, the notes and the angles; mark low confidence and ask what you cannot know.)` }] : []),
             ]
-        const instruction = withSchema ? system : `${system}\n\n# Formato de salida\nResponde únicamente con un objeto JSON que cumpla este JSON Schema, sin texto alrededor:\n${JSON.stringify(schema)}`
+        const instruction = withSchema ? system : `${system}\n\n# Output format\nAnswer only with a JSON object that follows this JSON Schema, with no text around it:\n${JSON.stringify(schema)}`
         try {
           const r = (await ask(c, '/chat/completions', {
             method: 'POST',
@@ -231,7 +231,7 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
               model: c.model,
               messages: [
                 { role: 'system', content: instruction },
-                { role: 'user', content: parts.map((p) => (p.kind === 'texto' ? { type: 'text', text: p.text } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },
+                { role: 'user', content: parts.map((p) => (p.kind === 'text' ? { type: 'text', text: p.text } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },
               ],
               response_format: withSchema ? { type: 'json_schema', json_schema: { name: name, strict: true, schema: schema } } : { type: 'json_object' },
               // Streaming, the connection is never silent for minutes: neither the host nor a proxy cuts it for being idle.

@@ -5,7 +5,7 @@ import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from 
 import { error, type DesignWarning, type DesignError } from './errors'
 
 // Whether the pieces make a piece of furniture: its measures add up, joints join touching pieces, nothing overlaps or floats, and every piece fits a sheet.
-// The error payloads (codigo, mensaje, datos) keep their names: the expert reads them, and they share their shape with the structural findings.
+// The error payloads (code, message, data) keep their shape: the expert reads them, and they share their shape with the structural findings.
 
 const MEASURE_TOLERANCE = 1
 /** The widest gap between a drawer and the piece beside it that a runner can bridge. */

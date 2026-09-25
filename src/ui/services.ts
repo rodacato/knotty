@@ -22,6 +22,6 @@ export const ServicesContext = createContext<Services | null>(null)
 
 export function useServices() {
   const s = useContext(ServicesContext)
-  if (!s) throw new Error('Faltan los servicios: envuelve la app en ServicesContext.')
+  if (!s) throw new Error('Missing services: wrap the app in ServicesContext.')
   return s
 }

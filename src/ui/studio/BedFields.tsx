@@ -2,7 +2,7 @@ import type { BedPlan } from '../../domain/modules/bed'
 import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
-// A bed's ficha: the mattress sets its size; the base, its drawers and the headboard are choices.
+// A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices.
 
 const MATTRESS: [BedPlan['mattress'], string][] = [
   ['individual', 'Individual'],
@@ -46,11 +46,11 @@ export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partia
   return (
     <>
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Colchón y base</h3>
+        <h3 className="font-display text-base font-semibold">Colchón y base</h3>
         <Row label="Colchón">
           <Segmented label="Colchón" value={draft.mattress} options={MATTRESS} onChange={(mattress) => set({ mattress: mattress as BedPlan['mattress'] })} />
         </Row>
-        <p className="text-xs text-grafito-2">El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.</p>
+        <p className="text-xs text-graphite-2">El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.</p>
         <div className="grid grid-cols-2 gap-2">
           <NumberField label="Alto de la base" suffix="mm" value={draft.height} onChange={(height) => set({ height })} />
         </div>
@@ -60,8 +60,8 @@ export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partia
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Cajones</h3>
-        <p className="text-xs text-grafito-2">Los lados se ven desde el pie de la cama.</p>
+        <h3 className="font-display text-base font-semibold">Cajones</h3>
+        <p className="text-xs text-graphite-2">Los lados se ven desde el pie de la cama.</p>
         <Row label="Lado">
           <Segmented label="Lado de los cajones" value={drawers.side} options={SIDE} onChange={(side) => set({ drawers: { ...drawers, side: side as BedPlan['drawers']['side'], count: side === 'none' ? drawers.count : Math.max(1, drawers.count) } })} />
         </Row>
@@ -78,11 +78,11 @@ export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partia
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Cabecera</h3>
+        <h3 className="font-display text-base font-semibold">Cabecera</h3>
         <Row label="Tipo">
           <Segmented label="Tipo de cabecera" value={headboard.style} options={STYLE} onChange={(style) => set({ headboard: { ...headboard, style: style as BedPlan['headboard']['style'] } })} />
         </Row>
-        {headboard.style === 'storage' && <p className="text-xs text-grafito-2">Un espacio cerrado a la altura de la almohada y repisas arriba.</p>}
+        {headboard.style === 'storage' && <p className="text-xs text-graphite-2">Un espacio cerrado a la altura de la almohada y repisas arriba.</p>}
         {headboard.style !== 'none' && (
           <div className="grid grid-cols-2 gap-2">
             <NumberField label="Alto desde el piso" suffix="mm" value={headboard.height} onChange={(height) => set({ headboard: { ...headboard, height } })} />

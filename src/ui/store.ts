@@ -145,7 +145,7 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
   const { services, state, thinking } = get()
   if (!services || !state || thinking) return
   const controller = new AbortController()
-  const pending: Message = { id: 'pendiente', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [] }
+  const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [] }
   const optimistic = { ...state, tray: [], chat: [...markAnswered(state.chat, replyTo), pending] }
   set({ thinking: true, controller, stage: { name: 'proposing', attempt: 0 }, state: optimistic })
   const fresh = await call(controller.signal, (name, attempt) => set({ stage: { name, attempt } }))

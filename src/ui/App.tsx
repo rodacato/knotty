@@ -15,7 +15,7 @@ const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.St
 
 const Loading = () => (
   <div className="grid h-full place-items-center">
-    <div className="flex flex-col items-center gap-3 text-ambar">
+    <div className="flex flex-col items-center gap-3 text-amber">
       <Knot className="size-12 animate-pulse" />
       <Pencil className="h-6 w-16" />
     </div>
@@ -50,7 +50,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
       .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo iniciar.'))
   }, [compose, start])
 
-  if (error) return <p className="grid h-full place-items-center p-6 text-oxido">{error}</p>
+  if (error) return <p className="grid h-full place-items-center p-6 text-rust">{error}</p>
   if (!services) return <Loading />
   return (
     <ServicesContext.Provider value={services}>

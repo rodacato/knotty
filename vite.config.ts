@@ -3,14 +3,14 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// Sin scripts de terceros ni eval: un script inyectado no puede correr ni leer las llaves.
+// No third-party scripts or eval: an injected script can neither run nor read the keys.
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
-  // https: y loopback abiertos para SheLLM, que corre donde el usuario quiera.
+  // https: and loopback stay open for SheLLM, which runs wherever the user wants.
   "connect-src 'self' https: http://localhost:* http://127.0.0.1:*",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -21,7 +21,7 @@ const CSP = [
 
 function contentSecurityPolicy(): Plugin {
   return {
-    name: 'despiece-csp',
+    name: 'knotty-csp',
     apply: 'build',
     transformIndexHtml: (html) => html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${CSP}" />`),
   }
@@ -32,7 +32,7 @@ function commit() {
   try {
     return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
   } catch {
-    return 'desconocido'
+    return 'unknown'
   }
 }
 

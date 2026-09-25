@@ -24,8 +24,8 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
   }
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] tracking-wide text-grafito-2 uppercase">{label}</span>
-      <span className="flex items-baseline gap-1 rounded-xl border border-linea bg-papel px-2 focus-within:border-ambar">
+      <span className="text-[10px] tracking-wide text-graphite-2 uppercase">{label}</span>
+      <span className="flex items-baseline gap-1 rounded-xl border border-line bg-paper px-2 focus-within:border-amber">
         <input
           type="number"
           inputMode="numeric"
@@ -34,9 +34,9 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
           onBlur={commit}
           onKeyDown={(e) => e.key === 'Enter' && commit()}
           aria-label={`${label} en milímetros`}
-          className="cifras min-h-8 w-full bg-transparent text-sm outline-none"
+          className="numerals min-h-8 w-full bg-transparent text-sm outline-none"
         />
-        <span className="cifras text-[10px] text-grafito-2">mm</span>
+        <span className="numerals text-[10px] text-graphite-2">mm</span>
       </span>
     </label>
   )
@@ -66,17 +66,17 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
 
   const [less, more, lessIcon, moreIcon] = MOVE[piece.normal]
   return (
-    <div className="mt-3 flex flex-col gap-2 border-t border-linea pt-3">
+    <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
       <div className="grid grid-cols-3 gap-2">
         <LengthField key={`l-${Math.round(size(longAxis))}`} label="Largo" value={size(longAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: longAxis, value }))} />
         <LengthField key={`a-${Math.round(size(shortAxis))}`} label="Ancho" value={size(shortAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: shortAxis, value }))} />
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] tracking-wide text-grafito-2 uppercase">Espesor</span>
+          <span className="text-[10px] tracking-wide text-graphite-2 uppercase">Espesor</span>
           <select
             value={piece.material}
             onChange={(e) => run(editPiece(piece.id, { kind: 'thickness', material: e.target.value }))}
             aria-label="Espesor"
-            className="cifras min-h-8 rounded-xl border border-linea bg-papel px-1 text-sm"
+            className="numerals min-h-8 rounded-xl border border-line bg-paper px-1 text-sm"
           >
             {sameKind.map((m) => (
               <option key={m.id} value={m.id}>
@@ -87,21 +87,21 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
         </label>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-grafito-2">Mover</span>
+        <span className="text-graphite-2">Mover</span>
         <Button variant="secondary" className="min-h-8 px-2 text-xs" aria-label={less} title={less} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: -step }))}>
           {lessIcon}
         </Button>
         <Button variant="secondary" className="min-h-8 px-2 text-xs" aria-label={more} title={more} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: step }))}>
           {moreIcon}
         </Button>
-        <label className="flex items-center gap-1 text-grafito-2">
+        <label className="flex items-center gap-1 text-graphite-2">
           de
-          <input type="number" min={1} value={step} onChange={(e) => setStep(Math.max(1, Number(e.target.value)))} aria-label="Paso en milímetros" className="cifras w-14 rounded-lg border border-linea bg-papel px-1 py-0.5 text-right" />
+          <input type="number" min={1} value={step} onChange={(e) => setStep(Math.max(1, Number(e.target.value)))} aria-label="Paso en milímetros" className="numerals w-14 rounded-lg border border-line bg-paper px-1 py-0.5 text-right" />
           mm
         </label>
       </div>
       {result && !result.ok && (
-        <div className="flex flex-col gap-1.5 rounded-xl bg-oxido/10 p-2 text-xs text-oxido">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-rust/10 p-2 text-xs text-rust">
           <span>{result.message}</span>
           {result.alternatives.map((a) => (
             <Button key={a.label} variant="secondary" className="min-h-8 self-start text-xs" onClick={() => run(resizeFurniture(a.axis, a.value))}>

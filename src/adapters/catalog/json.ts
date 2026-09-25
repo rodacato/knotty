@@ -39,7 +39,7 @@ export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalog/cata
       try {
         storage.setItem(SETTINGS_KEY, JSON.stringify(a))
       } catch {
-        /* sin almacenamiento: los ajustes duran la sesión */
+        /* no storage: the settings last the session */
       }
     },
   }

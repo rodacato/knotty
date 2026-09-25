@@ -36,10 +36,10 @@ interface TakenPhoto {
 
 function MeasureField({ name, value, min, max, onChange }: { name: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
-    <label className="flex flex-col gap-2 rounded-2xl border border-linea bg-hueso/70 p-4">
+    <label className="flex flex-col gap-2 rounded-2xl border border-line bg-bone/70 p-4">
       <span className="flex items-baseline justify-between">
         <span className="font-medium">{name}</span>
-        <span className="cifras text-sm text-grafito-2">{cm(value)}</span>
+        <span className="numerals text-sm text-graphite-2">{cm(value)}</span>
       </span>
       <span className="flex items-baseline gap-2">
         <input
@@ -50,9 +50,9 @@ function MeasureField({ name, value, min, max, onChange }: { name: string; value
           step={10}
           value={value || ''}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="cifras w-full bg-transparent text-4xl font-medium outline-none"
+          className="numerals w-full bg-transparent text-4xl font-medium outline-none"
         />
-        <span className="cifras text-grafito-2">mm</span>
+        <span className="numerals text-graphite-2">mm</span>
       </span>
       <input
         type="range"
@@ -62,7 +62,7 @@ function MeasureField({ name, value, min, max, onChange }: { name: string; value
         value={Math.min(max, Math.max(min, value))}
         onChange={(e) => onChange(Number(e.target.value))}
         aria-label={`${name} en milímetros`}
-        className="h-7 w-full cursor-pointer appearance-none rounded bg-[repeating-linear-gradient(90deg,var(--linea)_0_1px,transparent_1px_10px),repeating-linear-gradient(90deg,var(--grafito-2)_0_1px,transparent_1px_50px)] bg-[length:100%_40%,100%_75%] bg-bottom bg-no-repeat accent-ambar"
+        className="h-7 w-full cursor-pointer appearance-none rounded bg-[repeating-linear-gradient(90deg,var(--line)_0_1px,transparent_1px_10px),repeating-linear-gradient(90deg,var(--graphite-2)_0_1px,transparent_1px_50px)] bg-[length:100%_40%,100%_75%] bg-bottom bg-no-repeat accent-amber"
       />
     </label>
   )
@@ -85,12 +85,12 @@ function Slot({
 }) {
   const [noteOpen, setNoteOpen] = useState(false)
   return (
-    <div className={`animate-aparecer relative flex min-h-60 flex-col overflow-hidden rounded-2xl border ${photo ? 'border-transparent' : 'border-dashed border-grafito/25 bg-hueso/60'}`}>
+    <div className={`animate-appear relative flex min-h-60 flex-col overflow-hidden rounded-2xl border ${photo ? 'border-transparent' : 'border-dashed border-graphite/25 bg-bone/60'}`}>
       {photo ? (
         <>
           <img src={photo.thumbnail} alt={`Foto ${angle.name}`} className="absolute inset-0 h-full w-full object-cover" />
-          <span className="absolute top-2 left-2 rounded-full bg-grafito/80 px-2 py-0.5 text-xs font-medium text-hueso">{angle.name}</span>
-          <button type="button" onClick={onRemove} aria-label={`Quitar foto ${angle.name}`} className="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-hueso/90 text-grafito shadow">
+          <span className="absolute top-2 left-2 rounded-full bg-graphite/80 px-2 py-0.5 text-xs font-medium text-bone">{angle.name}</span>
+          <button type="button" onClick={onRemove} aria-label={`Quitar foto ${angle.name}`} className="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-bone/90 text-graphite shadow">
             <Trash />
           </button>
           {noteOpen ? (
@@ -102,7 +102,7 @@ function Slot({
               rows={3}
               placeholder="Descríbela: «la de abajo es puerta», «las repisas se mueven»"
               aria-label={`Nota sobre la foto ${angle.name}`}
-              className="absolute inset-x-2 bottom-2 resize-none rounded-xl border border-linea bg-hueso/95 p-2 text-xs text-grafito shadow outline-none focus:border-ambar"
+              className="absolute inset-x-2 bottom-2 resize-none rounded-xl border border-line bg-bone/95 p-2 text-xs text-graphite shadow outline-none focus:border-amber"
             />
           ) : (
             <button
@@ -110,7 +110,7 @@ function Slot({
               onClick={() => setNoteOpen(true)}
               aria-label={`Agregar una nota a la foto ${angle.name}`}
               title="Agregar una nota"
-              className={`absolute right-2 bottom-2 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs shadow ${photo.note?.trim() ? 'bg-grafito text-hueso' : 'bg-hueso/90 text-grafito'}`}
+              className={`absolute right-2 bottom-2 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs shadow ${photo.note?.trim() ? 'bg-graphite text-bone' : 'bg-bone/90 text-graphite'}`}
             >
               <NotePencil /> {photo.note?.trim() ? 'Nota' : ''}
             </button>
@@ -120,9 +120,9 @@ function Slot({
         <div className="flex h-full flex-col justify-between gap-1 p-3">
           <div>
             <p className="font-medium">
-              {angle.name} {angle.required && <span className="text-ambar">•</span>}
+              {angle.name} {angle.required && <span className="text-amber">•</span>}
             </p>
-            <p className="text-xs leading-snug text-grafito-2">{angle.hint}</p>
+            <p className="text-xs leading-snug text-graphite-2">{angle.hint}</p>
           </div>
           <div className="grid flex-1 place-items-center">
             <Silhouette angle={angle.id} />
@@ -179,16 +179,16 @@ export function Capture() {
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
       <header className="flex items-center gap-3">
-        <span className="cifras rounded-full bg-grafito px-2.5 py-1 text-xs text-hueso">{step === 'measures' ? '1' : '2'} / 2</span>
+        <span className="numerals rounded-full bg-graphite px-2.5 py-1 text-xs text-bone">{step === 'measures' ? '1' : '2'} / 2</span>
         <Title>{step === 'measures' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Title>
       </header>
 
       {simulated && !withSimulated && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-ambar/40 bg-ambar-suave p-4">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber/40 bg-amber-soft p-4">
           <p className="flex items-start gap-2 font-medium">
             <Robot className="mt-0.5 shrink-0" weight="bold" /> Conecta tu experto para diseñar tu mueble
           </p>
-          <p className="text-sm text-grafito-2">
+          <p className="text-sm text-graphite-2">
             Sin una API key solo responde el modo simulado, que no entiende tu mueble: arma uno de tres ejemplos (librero, buró o alacena). Con Claude, OpenAI o SheLLM el experto sí lee
             tus fotos y tu descripción.
           </p>
@@ -205,7 +205,7 @@ export function Capture() {
 
       {step === 'measures' ? (
         <>
-          <p className="-mt-4 text-grafito-2">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
+          <p className="-mt-4 text-graphite-2">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
           <div className="grid gap-3 sm:grid-cols-3">
             {MEASURES.map((m) => (
               <MeasureField key={m.key} name={m.name} value={measures[m.key]} min={m.min} max={m.max} onChange={(v) => setMeasures((d) => ({ ...d, [m.key]: v }))} />
@@ -237,9 +237,9 @@ export function Capture() {
       ) : (
         <>
           {!withMeasures && (
-            <p className="-mt-4 text-sm text-grafito-2">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
+            <p className="-mt-4 text-sm text-graphite-2">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
           )}
-          <p className={withMeasures ? '-mt-4 text-grafito-2' : 'text-grafito-2'}>
+          <p className={withMeasures ? '-mt-4 text-graphite-2' : 'text-graphite-2'}>
             Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -266,29 +266,29 @@ export function Capture() {
                   ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
                   : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
               }
-              className="rounded-2xl border border-linea bg-hueso/70 p-3 outline-none focus:border-ambar"
+              className="rounded-2xl border border-line bg-bone/70 p-3 outline-none focus:border-amber"
             />
             {withoutPhotos && (
-              <span className="text-xs text-grafito-2">
+              <span className="text-xs text-graphite-2">
                 Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.
               </span>
             )}
           </label>
           {error && (
-            <div className="flex flex-col gap-2 rounded-xl border border-oxido/30 bg-oxido/10 p-3 text-sm text-oxido">
+            <div className="flex flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
               <div className="flex items-start gap-2">
                 <Warning className="mt-0.5 shrink-0" weight="bold" />
                 <span className="flex-1">
                   {error} Tus fotos y tu descripción siguen aquí.
                 </span>
                 {canAnalyze && (
-                  <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-oxido underline" onClick={analyzeCapture}>
+                  <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
                     <ArrowClockwise weight="bold" /> Reintentar
                   </Button>
                 )}
               </div>
               {failedTrace.length > 0 && (
-                <details className="text-grafito">
+                <details className="text-graphite">
                   <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
                   <div className="mt-2">
                     <TraceLog trace={failedTrace} />
@@ -298,7 +298,7 @@ export function Capture() {
             </div>
           )}
           {missingKey && (
-            <p className="flex flex-wrap items-center gap-2 rounded-xl border border-ambar/40 bg-ambar-suave p-3 text-sm">
+            <p className="flex flex-wrap items-center gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-sm">
               <Key weight="bold" /> {missingKey}
               <Button variant="ghost" className="min-h-8 px-2 underline" onClick={() => openSettings(true)}>
                 Configurar
@@ -310,7 +310,7 @@ export function Capture() {
               <ArrowLeft /> {withMeasures ? 'Medidas' : 'Poner medidas'}
             </Button>
             <div className="flex items-center gap-3">
-              {missingRequired.length > 0 && photos.length > 0 && <span className="hidden text-xs text-grafito-2 sm:inline">Falta: {missingRequired.map((a) => a.name).join(', ')}</span>}
+              {missingRequired.length > 0 && photos.length > 0 && <span className="hidden text-xs text-graphite-2 sm:inline">Falta: {missingRequired.map((a) => a.name).join(', ')}</span>}
               <Button variant="primary" className="min-h-12 px-6" disabled={!canAnalyze} onClick={analyzeCapture}>
                 {withoutPhotos ? 'Diseñar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
               </Button>

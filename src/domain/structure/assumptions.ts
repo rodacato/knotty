@@ -55,6 +55,6 @@ export const ASSUMPTIONS = {
   },
 } as const
 
-export const hingesFor = (alto: number) => ASSUMPTIONS.doors.hinges.find((b) => alto <= b.upTo)!.n
+export const hingesFor = (height: number) => ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo)!.n
 
 export const RIGID_JOINTS: JointType[] = ['pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket']

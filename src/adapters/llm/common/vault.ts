@@ -68,7 +68,7 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
       try {
         removeStored(storage, STORAGE_KEY, OLDER_KEY)
       } catch {
-        /* no había nada guardado */
+        /* nothing was stored */
       }
     },
   }

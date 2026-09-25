@@ -75,7 +75,7 @@ describe('repairDesign', () => {
   })
 
   it('also repairs pieces the model grouped into parts', () => {
-    const broken = withPiece(exampleBookcase, 'shelf-1', (p) => ({ ...p, group: 'casco', x: { ...p.x, to: ref('furniture.x1') } }))
+    const broken = withPiece(exampleBookcase, 'shelf-1', (p) => ({ ...p, group: 'carcass', x: { ...p.x, to: ref('furniture.x1') } }))
     expect(valid(repairDesign(broken, testCatalog).design)).toBe(true)
   })
 

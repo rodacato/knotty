@@ -12,8 +12,8 @@ async function client(apiKey: string) {
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 300_000 })
 }
 
-const bloque = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
-  c.kind === 'texto' ? { type: 'text', text: c.text } : { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.base64 } }
+const block = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
+  c.kind === 'text' ? { type: 'text', text: c.text } : { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.base64 } }
 
 export function createAnthropic(apiKey: string, model: string): LLMProvider {
   const transport: Transport = {
@@ -26,7 +26,7 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
             model: model,
             max_tokens: 32000,
             system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-            messages: [{ role: 'user', content: content.map(bloque) }],
+            messages: [{ role: 'user', content: content.map(block) }],
             output_config: { format: { type: 'json_schema', schema: schema } },
             ...(WITH_FALLBACK.includes(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
           },

@@ -27,20 +27,20 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
   const count = change.direct.length + (change.dimensions ? 1 : 0)
 
   return (
-    <details className="rounded-2xl border border-linea bg-hueso/70 px-3 py-2 text-sm">
-      <summary className="cursor-pointer text-xs text-grafito-2">
+    <details className="rounded-2xl border border-line bg-bone/70 px-3 py-2 text-sm">
+      <summary className="cursor-pointer text-xs text-graphite-2">
         Qué cambió ({count}){change.followed.length ? ` · ${change.followed.length} ${change.followed.length === 1 ? 'pieza se ajustó sola' : 'piezas se ajustaron solas'}` : ''}
       </summary>
       <ul className="mt-2 flex flex-col gap-1">
         {change.dimensions && <li className="text-xs">Medidas del mueble: {change.dimensions}</li>}
         {change.direct.map((c) => (
           <li key={c.id} className="flex items-center gap-2">
-            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${c.kind === 'removed' ? 'bg-oxido/15 text-oxido' : c.kind === 'added' ? 'bg-pizarra/15 text-pizarra' : 'bg-ambar-suave text-grafito'}`}>{ICON[c.kind]}</span>
+            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${c.kind === 'removed' ? 'bg-rust/15 text-rust' : c.kind === 'added' ? 'bg-slate/15 text-slate' : 'bg-amber-soft text-graphite'}`}>{ICON[c.kind]}</span>
             <button type="button" className="min-w-0 flex-1 truncate text-left text-xs hover:underline" onClick={() => c.kind !== 'removed' && select(c.id)} title={c.detail}>
               <span className="font-medium">{c.name}</span>
-              {c.detail && <span className="text-grafito-2"> · {c.detail}</span>}
+              {c.detail && <span className="text-graphite-2"> · {c.detail}</span>}
             </button>
-            <button type="button" disabled={thinking} onClick={() => run(restore(version, [c.id]))} className="shrink-0 text-xs text-grafito-2 underline hover:text-grafito disabled:opacity-40">
+            <button type="button" disabled={thinking} onClick={() => run(restore(version, [c.id]))} className="shrink-0 text-xs text-graphite-2 underline hover:text-graphite disabled:opacity-40">
               {BACK[c.kind]}
             </button>
           </li>
@@ -49,7 +49,7 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
       <button type="button" disabled={thinking} onClick={() => run(undo(version))} className="mt-2 flex items-center gap-1 text-xs font-medium underline disabled:opacity-40">
         <ArrowCounterClockwise /> Deshacer este cambio
       </button>
-      {error && <p className="mt-1 text-xs text-oxido">{error}</p>}
+      {error && <p className="mt-1 text-xs text-rust">{error}</p>}
     </details>
   )
 }

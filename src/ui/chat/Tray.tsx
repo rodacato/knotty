@@ -12,10 +12,10 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
   const thinking = useStore((s) => s.thinking)
   if (!items.length) return null
   return (
-    <div className="animate-aparecer mx-3 mb-2 flex flex-col gap-2 rounded-2xl border border-ambar/40 bg-ambar-suave/40 p-2.5" aria-label="Bandeja para el experto">
+    <div className="animate-appear mx-3 mb-2 flex flex-col gap-2 rounded-2xl border border-amber/40 bg-amber-soft/40 p-2.5" aria-label="Bandeja para el experto">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-grafito-2 uppercase">
-          <TrayIcon weight="duotone" className="text-ambar" /> Bandeja · {items.length}
+        <p className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-graphite-2 uppercase">
+          <TrayIcon weight="duotone" className="text-amber" /> Bandeja · {items.length}
         </p>
         <Button variant="primary" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={onSend}>
           <ChatCircleText weight="fill" /> Consultar al experto
@@ -23,15 +23,15 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
       </div>
       <ul className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
         {items.map((i) => (
-          <li key={i.id} className="flex max-w-full items-center gap-1 rounded-full border border-linea bg-hueso py-0.5 pr-1 pl-2.5 text-xs" title={`${KIND[i.kind]}: ${i.text}`}>
+          <li key={i.id} className="flex max-w-full items-center gap-1 rounded-full border border-line bg-bone py-0.5 pr-1 pl-2.5 text-xs" title={`${KIND[i.kind]}: ${i.text}`}>
             <span className="truncate">{i.label}</span>
-            <button type="button" onClick={() => toggleTray(i)} disabled={thinking} aria-label={`Quitar «${i.label}» de la bandeja`} className="shrink-0 rounded-full p-0.5 text-grafito-2 hover:bg-kraft hover:text-grafito">
+            <button type="button" onClick={() => toggleTray(i)} disabled={thinking} aria-label={`Quitar «${i.label}» de la bandeja`} className="shrink-0 rounded-full p-0.5 text-graphite-2 hover:bg-kraft hover:text-graphite">
               <X size={12} />
             </button>
           </li>
         ))}
       </ul>
-      <p className="hidden text-xs text-grafito-2 sm:block">{typed ? 'Lo que escribiste va en el mismo pedido.' : 'Va todo en un solo pedido; si escribes algo abajo, se suma.'}</p>
+      <p className="hidden text-xs text-graphite-2 sm:block">{typed ? 'Lo que escribiste va en el mismo pedido.' : 'Va todo en un solo pedido; si escribes algo abajo, se suma.'}</p>
     </div>
   )
 }

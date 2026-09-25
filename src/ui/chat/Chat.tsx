@@ -35,8 +35,8 @@ function useSeconds(active: boolean) {
   const [seconds, setSeconds] = useState(0)
   useEffect(() => {
     if (!active) return
-    const inicio = Date.now()
-    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - inicio) / 1000)), 1000)
+    const start = Date.now()
+    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000)
     return () => {
       clearInterval(clock)
       setSeconds(0)
@@ -81,7 +81,7 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
           </div>
         )
       })}
-      {batch && !m.answered && m.questions.some((p) => p.options) && <p className="text-xs text-grafito-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
+      {batch && !m.answered && m.questions.some((p) => p.options) && <p className="text-xs text-graphite-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
     </>
   )
 }
@@ -97,9 +97,9 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
   if (m.author === 'user')
     return (
-      <div className="animate-aparecer ml-10 flex flex-col items-end gap-1.5 self-end">
-        {m.thumbnail && <img src={m.thumbnail} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
-        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.text}</div>
+      <div className="animate-appear ml-10 flex flex-col items-end gap-1.5 self-end">
+        {m.thumbnail && <img src={m.thumbnail} alt="Foto enviada" className="h-24 rounded-xl border border-line object-cover shadow-sm" />}
+        <div className="rounded-2xl rounded-br-md bg-graphite px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-bone shadow-sm">{m.text}</div>
         {m.version && (
           <div className="w-full max-w-sm">
             <ChangeList state={state} version={m.version} />
@@ -110,20 +110,20 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
   const pending = m.proposal === 'pending' && state.proposal
   return (
-    <div className="animate-aparecer mr-6 flex flex-col gap-2.5 self-start">
-      <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-oxido/30 bg-oxido/5' : 'border-linea bg-hueso'}`}>
-        <div className="mb-1 flex items-center gap-2 text-xs text-grafito-2">
-          <PencilSimple weight="duotone" className="text-ambar" /> Experto
+    <div className="animate-appear mr-6 flex flex-col gap-2.5 self-start">
+      <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-rust/30 bg-rust/5' : 'border-line bg-bone'}`}>
+        <div className="mb-1 flex items-center gap-2 text-xs text-graphite-2">
+          <PencilSimple weight="duotone" className="text-amber" /> Experto
           {m.version &&
             (m.version === state.current || !state.versions.some((v) => v.n === m.version) ? (
-              <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>
+              <span className="numerals rounded-full bg-kraft px-1.5 py-px text-[10px] text-graphite">v{m.version}</span>
             ) : (
               <button
                 type="button"
                 onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`cifras rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-ambar text-grafito' : 'bg-kraft text-grafito hover:bg-ambar-suave'}`}
+                className={`numerals rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-graphite' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
               >
                 v{m.version}
               </button>
@@ -131,7 +131,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
           {m.proposal === 'applied' && <span className="text-[10px]">· aplicada</span>}
           {m.proposal === 'discarded' && <span className="text-[10px]">· sin aplicar</span>}
         </div>
-        {m.error && <Warning className="float-left mt-1 mr-2 text-oxido" weight="bold" />}
+        {m.error && <Warning className="float-left mt-1 mr-2 text-rust" weight="bold" />}
         {m.text.split('\n\n').map((p, i) => (
           <p key={i} className={i ? 'mt-2' : ''}>
             {p}
@@ -145,13 +145,13 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
       </div>
 
       {pending && (
-        <div className="rounded-2xl border border-oxido/25 bg-kraft/60 p-3">
-          <p className="mb-2 text-xs font-medium tracking-wide text-grafito-2 uppercase">Propuesta sin aplicar</p>
+        <div className="rounded-2xl border border-rust/25 bg-kraft/60 p-3">
+          <p className="mb-2 text-xs font-medium tracking-wide text-graphite-2 uppercase">Propuesta sin aplicar</p>
           {state.proposal!.holds.length > 0 && (
             <ul className="mb-2 flex flex-col gap-1.5">
               {state.proposal!.holds.map((h) => (
                 <li key={h} className="flex items-start gap-2 text-sm">
-                  <Warning className="mt-0.5 shrink-0 text-ambar" weight="bold" /> {h}
+                  <Warning className="mt-0.5 shrink-0 text-amber" weight="bold" /> {h}
                 </li>
               ))}
             </ul>
@@ -162,7 +162,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
                 <Stamp severity="critical" />
                 <span>
                   {first.message}
-                  {more > 0 && <span className="text-grafito-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
+                  {more > 0 && <span className="text-graphite-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
                 </span>
               </li>
             ))}
@@ -208,11 +208,11 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
     }
   }
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-grafito/30 bg-hueso/70 p-3">
+    <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-graphite/30 bg-bone/70 p-3">
       <p className="flex items-start gap-2 text-sm">
-        <Camera className="mt-0.5 shrink-0 text-ambar" weight="duotone" />
+        <Camera className="mt-0.5 shrink-0 text-amber" weight="duotone" />
         <span>
-          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-grafito-2">{reason}</span>
+          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-graphite-2">{reason}</span>
         </span>
       </p>
       <div className="flex gap-2">
@@ -255,9 +255,9 @@ export function Chat({ state }: { state: DesignState }) {
           <Bubble key={m.id} m={m} state={state} retry={m === last ? retry : null} />
         ))}
         {thinking && (
-          <div className="flex items-center gap-2 self-start rounded-2xl border border-linea bg-hueso px-4 py-2.5 text-sm text-grafito-2" aria-live="polite">
-            <Pencil className="h-5 w-12 text-ambar" /> {stage ? STAGES[stage.name] : 'Pensando…'}
-            {seconds >= 10 && <span className="cifras text-xs">· {seconds} s</span>}
+          <div className="flex items-center gap-2 self-start rounded-2xl border border-line bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
+            <Pencil className="h-5 w-12 text-amber" /> {stage ? STAGES[stage.name] : 'Pensando…'}
+            {seconds >= 10 && <span className="numerals text-xs">· {seconds} s</span>}
           </div>
         )}
       </div>
@@ -272,7 +272,7 @@ export function Chat({ state }: { state: DesignState }) {
       )}
       <Tray items={state.tray} typed={!!text.trim()} onSend={send} />
       <form
-        className="flex items-end gap-2 border-t border-linea bg-hueso/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
+        className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
         onSubmit={(e) => {
           e.preventDefault()
           send()
@@ -290,7 +290,7 @@ export function Chat({ state }: { state: DesignState }) {
           rows={1}
           placeholder="Pide un cambio: «refuerza la base»…"
           aria-label="Mensaje para el experto"
-          className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-linea bg-hueso px-4 py-2.5 text-[15px] outline-none [field-sizing:content] focus:border-ambar"
+          className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-line bg-bone px-4 py-2.5 text-[15px] outline-none [field-sizing:content] focus:border-amber"
         />
         {thinking ? (
           <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">

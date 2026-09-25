@@ -224,7 +224,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
       explanation: `Cambio el ancho total a ${measure / 10} cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran para llenar el espacio.`,
       summary: `Ensanchar a ${measure / 10} cm`,
       operations: [{ op: 'resizeFurniture', axis: 'x', value: measure, rule: 'stretch' }],
-      requirements: { add: [{ id: 'espacio-ancho', text: `El espacio mide ${measure / 10} cm de ancho`, type: 'space', axis: 'x', min: null, max: measure }], remove: [] },
+      requirements: { add: [{ id: 'space-width', text: `El espacio mide ${measure / 10} cm de ancho`, type: 'space', axis: 'x', min: null, max: measure }], remove: [] },
     })
 
   if (/libro|pesad/.test(text))
@@ -232,7 +232,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
       explanation: 'Marco los entrepaños y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
       summary: 'Preparar para libros',
       operations: loadedHorizontals(d).map((p): Operation => ({ op: 'changeProperties', id: p.id, name: null, role: null, grain: null, load: 'heavy', support: null, edges: null, confidence: null })),
-      requirements: { add: [{ id: 'carga-libros', text: 'Va a cargar libros', type: 'load', axis: null, min: null, max: null }], remove: [] },
+      requirements: { add: [{ id: 'book-load', text: 'Va a cargar libros', type: 'load', axis: null, min: null, max: null }], remove: [] },
     })
 
   if (/muro|ancla|vuelco/.test(text) && !d.wallAnchored)
@@ -240,7 +240,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
       explanation: 'Lo marco para ir anclado al muro: con un kit antivuelco atornillado a la pared ya no se va de frente aunque lo jalen.',
       summary: 'Anclar al muro',
       operations: [{ op: 'setWallAnchored', value: true }],
-      decisions: [{ topic: 'anclaje', text: 'Anclado al muro con kit antivuelco por ser alto y poco profundo' }],
+      decisions: [{ topic: 'anchoring', text: 'Anclado al muro con kit antivuelco por ser alto y poco profundo' }],
     })
 
   const first = shelves(d)[0]

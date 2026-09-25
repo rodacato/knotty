@@ -1,7 +1,7 @@
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
 import type { Design } from '../design/schema'
 
-const HOLGURA_PUERTA = 3
+const DOOR_GAP = 3
 
 export const exampleNightstand: Design = {
   schema: 1,
@@ -16,7 +16,7 @@ export const exampleNightstand: Design = {
     makePiece({ id: 'side-right', name: 'Lateral derecho', role: 'side', material: 'T18', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('top.y0')), z: extent(ref('back.z1'), ref('door.z0')), edges: ['front'] }),
     makePiece({ id: 'bottom', name: 'Piso', role: 'bottom', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(ref('furniture.y0')), z: extent(ref('back.z1'), ref('door.z0')), load: 'medium' }),
     makePiece({ id: 'shelf', name: 'Entrepaño', role: 'shelf', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(partway('bottom.y1', 'top.y0', 0.5, -9)), z: extent(ref('back.z1'), ref('door.z0', -5)), load: 'medium', edges: ['front'] }),
-    makePiece({ id: 'door', name: 'Puerta', role: 'door', material: 'T18', normal: 'z', x: extent(ref('furniture.x0', HOLGURA_PUERTA), ref('furniture.x1', -HOLGURA_PUERTA)), y: extent(ref('furniture.y0', HOLGURA_PUERTA), ref('top.y0', -HOLGURA_PUERTA)), z: endAt(ref('furniture.z1')), grain: 'length', edges: ['front', 'back', 'left', 'right', 'top', 'bottom'] }),
+    makePiece({ id: 'door', name: 'Puerta', role: 'door', material: 'T18', normal: 'z', x: extent(ref('furniture.x0', DOOR_GAP), ref('furniture.x1', -DOOR_GAP)), y: extent(ref('furniture.y0', DOOR_GAP), ref('top.y0', -DOOR_GAP)), z: endAt(ref('furniture.z1')), grain: 'length', edges: ['front', 'back', 'left', 'right', 'top', 'bottom'] }),
   ],
   joints: [
     makeJoint('j-top-left', 'top', 'side-left', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]),

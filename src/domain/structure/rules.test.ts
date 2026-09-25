@@ -30,8 +30,8 @@ describe('R3 screws', () => {
 
   it('warns when two screws sit at the ends of a short joint', () => {
     const d = structuredClone(exampleBookcase)
-    const zoclo = d.pieces.find((p) => p.id === 'kick')!
-    zoclo.y = extent(ref('furniture.y0'), null, 50)
+    const kick = d.pieces.find((p) => p.id === 'kick')!
+    kick.y = extent(ref('furniture.y0'), null, 50)
     d.joints = d.joints.map((u) => (u.id === 'j-kick-left' ? { ...u, a: 'side-left', b: 'kick', type: 'butt-screw', hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } : u))
     expect(findings(d, 'R3_SCREWS').some((h) => h.data.jointLength === 50)).toBe(true)
   })
@@ -44,15 +44,15 @@ describe('R4 tipping', () => {
   })
 
   it('a lower one is a recommendation', () => {
-    const bajo = { ...exampleBookcase, wallAnchored: false, dimensions: { ...exampleBookcase.dimensions, height: 1000 } }
-    expect(findings(bajo, 'R4_TIPPING')[0].severity).toBe('recommendation')
+    const low = { ...exampleBookcase, wallAnchored: false, dimensions: { ...exampleBookcase.dimensions, height: 1000 } }
+    expect(findings(low, 'R4_TIPPING')[0].severity).toBe('recommendation')
   })
 })
 
 describe('R6 doors', () => {
   it('a tall door with two hinges asks for more', () => {
-    const alta = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
-    const r6 = findings(alta, 'R6_DOORS')
+    const tall = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
+    const r6 = findings(tall, 'R6_DOORS')
     expect(r6.map((h) => [h.pieces[0], h.severity, h.data.needed])).toEqual([
       ['door-left', 'critical', 4],
       ['door-right', 'critical', 4],
@@ -60,8 +60,8 @@ describe('R6 doors', () => {
   })
 
   it('a door wider than 60 cm suggests splitting it', () => {
-    const ancha = { ...exampleNightstand, dimensions: { ...exampleNightstand.dimensions, width: 700 } }
-    expect(findings(ancha, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['two-doors'])
+    const wide = { ...exampleNightstand, dimensions: { ...exampleNightstand.dimensions, width: 700 } }
+    expect(findings(wide, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['two-doors'])
   })
 })
 

@@ -10,10 +10,10 @@ export interface BenchCase {
   notes: string
   measures: Dimensions | null
   expected: Partial<Record<keyof Dimensions, Range>>
-  /** A bed can lie either way: its ficha runs it along the width, a piece-by-piece design along the depth. */
+  /** A bed can lie either way: its plan runs it along the width, a piece-by-piece design along the depth. */
   anyOrientation?: boolean
-  /** How the request should be designed: a shape no ficha expresses must go piece by piece, and the other way is a misread. */
-  path?: 'ficha' | 'pieces'
+  /** How the request should be designed: a shape no plan expresses must go piece by piece, and the other way is a misread. */
+  path?: 'plan' | 'pieces'
 }
 
 export const BENCH_CASES: BenchCase[] = [
@@ -79,7 +79,7 @@ export const BENCH_CASES: BenchCase[] = [
     id: 'plant-stand',
     notes: 'Un exhibidor escalonado para plantas, de triplay: tres escalones de 80 cm de ancho y 25 cm de fondo cada uno, el más alto a 75 cm del piso y cada uno 25 cm más bajo que el de atrás',
     measures: null,
-    // No ficha has steps: the skeleton should leave it and design it piece by piece.
+    // No plan has steps: the skeleton should leave it and design it piece by piece.
     expected: { width: [750, 850], depth: [650, 850], height: [650, 850] },
     path: 'pieces',
   },
