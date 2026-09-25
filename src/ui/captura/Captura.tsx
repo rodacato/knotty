@@ -1,4 +1,4 @@
-import { ArrowClockwise, ArrowLeft, ArrowRight, Key, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import type { Dimensiones } from '../../domain/diseno/esquema'
 import { faltante } from '../../ports/Preferencias'
@@ -30,6 +30,8 @@ interface FotoTomada {
   angulo: string
   base64: string
   miniatura: string
+  /** Optional: what the person wants to say about this photo. */
+  note?: string
 }
 
 function CampoMedida({ nombre, valor, min, max, onCambio }: { nombre: string; valor: number; min: number; max: number; onCambio: (v: number) => void }) {
@@ -66,7 +68,22 @@ function CampoMedida({ nombre, valor, min, max, onCambio }: { nombre: string; va
   )
 }
 
-function Ranura({ angulo, foto, onFoto, onQuitar, procesando }: { angulo: (typeof ANGULOS)[number]; foto?: FotoTomada; onFoto: (f: File) => void; onQuitar: () => void; procesando: boolean }) {
+function Ranura({
+  angulo,
+  foto,
+  onFoto,
+  onQuitar,
+  onNota,
+  procesando,
+}: {
+  angulo: (typeof ANGULOS)[number]
+  foto?: FotoTomada
+  onFoto: (f: File) => void
+  onQuitar: () => void
+  onNota: (nota: string) => void
+  procesando: boolean
+}) {
+  const [notaAbierta, setNotaAbierta] = useState(false)
   return (
     <div className={`animate-aparecer relative flex min-h-60 flex-col overflow-hidden rounded-2xl border ${foto ? 'border-transparent' : 'border-dashed border-grafito/25 bg-hueso/60'}`}>
       {foto ? (
@@ -76,6 +93,28 @@ function Ranura({ angulo, foto, onFoto, onQuitar, procesando }: { angulo: (typeo
           <button type="button" onClick={onQuitar} aria-label={`Quitar foto ${angulo.nombre}`} className="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-hueso/90 text-grafito shadow">
             <Trash />
           </button>
+          {notaAbierta ? (
+            <textarea
+              autoFocus
+              value={foto.note ?? ''}
+              onChange={(e) => onNota(e.target.value)}
+              onBlur={() => !foto.note?.trim() && setNotaAbierta(false)}
+              rows={3}
+              placeholder="Descríbela: «la de abajo es puerta», «las repisas se mueven»"
+              aria-label={`Nota sobre la foto ${angulo.nombre}`}
+              className="absolute inset-x-2 bottom-2 resize-none rounded-xl border border-linea bg-hueso/95 p-2 text-xs text-grafito shadow outline-none focus:border-ambar"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setNotaAbierta(true)}
+              aria-label={`Agregar una nota a la foto ${angulo.nombre}`}
+              title="Agregar una nota"
+              className={`absolute right-2 bottom-2 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs shadow ${foto.note?.trim() ? 'bg-grafito text-hueso' : 'bg-hueso/90 text-grafito'}`}
+            >
+              <NotePencil /> {foto.note?.trim() ? 'Nota' : ''}
+            </button>
+          )}
         </>
       ) : (
         <div className="flex h-full flex-col justify-between gap-1 p-3">
@@ -135,7 +174,7 @@ export function Captura() {
   const medidasValidas = MEDIDAS.every((m) => medidas[m.clave] >= m.min && medidas[m.clave] <= m.max)
   const faltanRequeridas = ANGULOS.filter((a) => a.requerida && !fotos.some((f) => f.angulo === a.id))
   const analizar = () =>
-    reconstruir({ medidas: conMedidas ? medidas : null, fotos: fotos.map((f) => ({ angulo: f.angulo, base64: f.base64 })), miniaturas: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notas: notas.trim() })
+    reconstruir({ medidas: conMedidas ? medidas : null, fotos: fotos.map((f) => ({ angulo: f.angulo, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), miniaturas: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notas: notas.trim() })
 
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
@@ -212,6 +251,7 @@ export function Captura() {
                 procesando={procesando}
                 onFoto={(f) => void agregar(a.id, f)}
                 onQuitar={() => setFotos((f) => f.filter((x) => x.angulo !== a.id))}
+                onNota={(note) => setFotos((f) => f.map((x) => (x.angulo === a.id ? { ...x, note } : x)))}
               />
             ))}
           </div>

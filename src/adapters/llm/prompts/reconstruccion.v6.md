@@ -1,5 +1,5 @@
 ---
-id: reconstruccion@5
+id: reconstruccion@6
 ---
 # Tarea: reconstruir el mueble desde fotos o desde una descripción
 
@@ -10,6 +10,15 @@ Recibes las medidas generales de un mueble (o el aviso de que la persona no las 
 - Usa ids cortos en minúsculas con guiones ("lat-izq", "entrepano-2") y nombres claros en español.
 - Pon `carga` en los entrepaños según su uso aparente; si no se sabe, "media", y pregunta qué se va a guardar.
 - Anota en `observaciones` lo que viste y no cabe en el modelo (acabados, jaladeras, detalles).
+
+## Con lectura de fotos
+
+Si en lugar de fotos recibes una lectura (JSON con `columns`, `proportions`, `base`, `details` y `doubts`), es lo que ya se vio en ellas; no hay imágenes que mirar:
+
+- Respeta la distribución: cada columna de izquierda a derecha con su ancho relativo, y dentro, los huecos de abajo hacia arriba con su contenido (`open` con sus repisas, `drawer`, `door` con sus hojas, `closed`).
+- Las proporciones son relativas: escálalas a las medidas dadas o, si no hay, a las típicas del mueble.
+- Si pide cajones, no los armes: deja el hueco y ofrécelos con una pregunta, como en «Sin fotos».
+- Convierte las `doubts` que más cambien el diseño en `preguntas` con opciones; no pidas fotos para lo que ya se leyó.
 
 ## Sin fotos
 

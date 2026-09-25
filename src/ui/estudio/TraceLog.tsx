@@ -1,7 +1,7 @@
 import { CheckCircle, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
 import type { TraceEntry } from '../../domain/trace/trace'
 
-const STEP: Record<TraceEntry['step'], string> = { reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
+const STEP: Record<TraceEntry['step'], string> = { read: 'Lectura de foto', reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
 
 const OUTCOME: Record<TraceEntry['outcome'], { label: string; icon: React.ReactNode }> = {
   ok: { label: 'Listo', icon: <CheckCircle weight="fill" className="text-pizarra" /> },
@@ -29,7 +29,7 @@ export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?:
             <span className="flex items-center gap-2">
               {OUTCOME[t.outcome].icon}
               <span className="font-medium">
-                {STEP[t.step]}
+                {t.subject ?? STEP[t.step]}
                 {t.attempt > 0 ? `, intento ${t.attempt + 1}` : ''}
               </span>
               <span className="cifras ml-auto text-xs text-grafito-2">

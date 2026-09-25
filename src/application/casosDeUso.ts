@@ -13,6 +13,7 @@ import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import { repairDesign, type Repair } from '../domain/repair/repair'
+import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
@@ -20,8 +21,8 @@ import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type Respuesta, type RespuestaAjuste, type RespuestaReconstruccion } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
 
-export type Etapa = 'mirando-fotos' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
-export type AlAvanzar = (etapa: Etapa, intento: number) => void
+export type Etapa = 'leyendo-fotos' | 'mirando-fotos' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
+export type AlAvanzar = (etapa: Etapa, intento: number, progress?: { done: number; total: number }) => void
 
 export interface Dependencias {
   llm: () => LLMProvider
@@ -46,7 +47,8 @@ const listarErrores = (errores: ErrorDiseno[]) => errores.map((e) => `- ${e.codi
 function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; notas: string }) {
   const medidas = entrada.medidas ? `Mide ${entrada.medidas.alto} × ${entrada.medidas.ancho} × ${entrada.medidas.fondo} mm (alto, ancho, fondo).` : 'No sé las medidas.'
   const fotos = entrada.fotos.length ? `Te mando ${entrada.fotos.length === 1 ? 'una foto' : `${entrada.fotos.length} fotos`} (${entrada.fotos.map((f) => f.angulo).join(', ')}).` : ''
-  return [entrada.notas.trim(), fotos, medidas].filter(Boolean).join('\n\n')
+  const notasDeFotos = entrada.fotos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${f.angulo}: ${f.note!.trim()}`)
+  return [entrada.notas.trim(), fotos, ...notasDeFotos, medidas].filter(Boolean).join('\n\n')
 }
 
 /** Si el experto no ofreció opciones ante un crítico, se ofrecen las alternativas que calculó el motor. */
@@ -88,9 +90,11 @@ const traceEntry = (
   outcome: TraceEntry['outcome'],
   errors: TraceEntry['errors'],
   repairs: Repair[] = [],
+  subject: string | null = null,
 ): TraceEntry => ({
   at: new Date(started).toISOString(),
   step,
+  subject,
   attempt,
   seconds: Math.round((Date.now() - started) / 100) / 10,
   outputTokens: respuesta?.consumo.tokensSalida ?? null,
@@ -138,6 +142,42 @@ export function crearCasosDeUso(deps: Dependencias) {
     return a.valido ? a.hallazgos : []
   }
 
+  // Readings of this session's photos: a retry or a second design does not look at the same photo twice.
+  const readings = new Map<string, PhotoReading>()
+
+  /** Reads every photo at once; one that fails is retried alone. Null if none could be read. */
+  async function readPhotos(fotos: Foto[], context: string, signal: AbortSignal, alAvanzar: AlAvanzar, trace: TraceEntry[]) {
+    if (!fotos.length) return null
+    const llm = deps.llm()
+    let done = 0
+    const advance = () => alAvanzar('leyendo-fotos', 0, { done, total: fotos.length })
+    advance()
+    const readOne = async (foto: Foto) => {
+      const key = photoKey(foto.base64, foto.note ?? '')
+      const subject = `Foto ${foto.angulo}`
+      const cached = readings.get(key)
+      for (let attempt = 0; !cached && attempt < 2; attempt++) {
+        const started = Date.now()
+        try {
+          const r = await llm.readPhoto({ photo: foto, context }, signal)
+          trace.push(traceEntry('read', attempt, started, r, 'ok', [], [], subject))
+          readings.set(key, r.valor)
+          break
+        } catch (e) {
+          if (signal.aborted) throw e
+          const outcome = e instanceof RespuestaInvalida ? 'unreadable' : 'failed'
+          trace.push(traceEntry('read', attempt, started, null, outcome, [{ code: outcome === 'failed' ? 'E_PROVEEDOR' : 'E_ESQUEMA', message: (e instanceof RespuestaInvalida ? e.problemas : e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], subject))
+        }
+      }
+      done++
+      advance()
+      const reading = readings.get(key)
+      return reading ? { angle: foto.angulo, reading } : null
+    }
+    const read = await Promise.all(fotos.map(readOne))
+    return mergeReadings(read.filter((r): r is NonNullable<typeof r> => !!r))
+  }
+
   async function reconstruir(
     entrada: { medidas: Dimensiones | null; fotos: Foto[]; miniaturas: Miniatura[]; notas: string },
     signal: AbortSignal,
@@ -146,6 +186,9 @@ export function crearCasosDeUso(deps: Dependencias) {
     const llm = deps.llm()
     let correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null = null
     const trace: TraceEntry[] = []
+    const lectura = await readPhotos(entrada.fotos, entrada.notas, signal, alAvanzar, trace)
+    // With a reading the photos are not sent again; if none could be read, the design looks at them itself.
+    const fotosParaDiseno = lectura ? [] : entrada.fotos
     // A design that resolves but did not pass validation: shown with its problems instead of thrown away.
     let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[]; repairs: Repair[] } | null = null
     for (let intento = 0; intento < INTENTOS; intento++) {
@@ -153,7 +196,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       const started = Date.now()
       let respuesta
       try {
-        respuesta = await llm.reconstruir({ medidas: entrada.medidas, fotos: entrada.fotos, notas: entrada.notas, catalogo, correccion }, signal)
+        respuesta = await llm.reconstruir({ medidas: entrada.medidas, fotos: fotosParaDiseno, notas: entrada.notas, lectura, catalogo, correccion }, signal)
       } catch (e) {
         if (!(e instanceof RespuestaInvalida)) {
           if (signal.aborted) throw e

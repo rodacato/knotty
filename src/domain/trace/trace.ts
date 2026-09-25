@@ -5,7 +5,9 @@ import type { ErrorDiseno } from '../validacion/errores'
 
 export const TraceEntry = z.object({
   at: z.string(),
-  step: z.enum(['reconstruct', 'adjust', 'verdict']),
+  step: z.enum(['read', 'reconstruct', 'adjust', 'verdict']),
+  /** What the call was about when there are several at once, like which photo. */
+  subject: z.string().nullable().default(null),
   attempt: z.number().int().nonnegative(),
   seconds: z.number().nonnegative(),
   outputTokens: z.number().nullable(),

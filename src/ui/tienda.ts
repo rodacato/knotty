@@ -25,7 +25,7 @@ interface Tienda {
   servicios: Servicios | null
   estado: EstadoDiseno | null
   fase: Fase
-  etapa: { nombre: Etapa; intento: number } | null
+  etapa: { nombre: Etapa; intento: number; progress?: { done: number; total: number } } | null
   pensando: boolean
   errorReconstruccion: string | null
   /** What the expert did in a design attempt that failed, for «Ver qué pasó». */
@@ -162,11 +162,11 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios } = get()
     if (!servicios) return
     const controlador = new AbortController()
-    set({ fase: 'analizando', controlador, etapa: { nombre: 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
+    set({ fase: 'analizando', controlador, etapa: { nombre: entrada.fotos.length ? 'leyendo-fotos' : 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
     // Un reintento deja huérfana a la petición anterior: lo que conteste ya no cuenta.
     const vigente = () => get().controlador === controlador
     try {
-      const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento) => vigente() && set({ etapa: { nombre, intento } }))
+      const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento, progress) => vigente() && set({ etapa: { nombre, intento, progress } }))
       if (!vigente()) return
       set((s) => ({ estado, fase: 'estudio', etapa: null, controlador: null, borrador: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
     } catch (e) {

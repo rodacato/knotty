@@ -8,10 +8,12 @@ import {
   type LLMProvider,
   type SolicitudAjuste,
   type SolicitudDictamen,
+  type PhotoReadingRequest,
   type SolicitudReconstruccion,
 } from '../../../ports/LLMProvider'
+import { PhotoReading } from '../../../domain/reading/reading'
 import { describirProblemas, esquemaEstricto } from './esquemaJson'
-import { AJUSTE, DICTAMEN, idPrompt, RECONSTRUCCION, sistemaPara } from './prompts'
+import { AJUSTE, DICTAMEN, idPrompt, LECTURA, RECONSTRUCCION, sistemaPara } from './prompts'
 
 export type Contenido = { tipo: 'texto'; texto: string } | { tipo: 'imagen'; base64: string }
 
@@ -25,6 +27,7 @@ export interface Transporte {
 const ESQUEMA_RECONSTRUCCION = esquemaEstricto(RespuestaReconstruccion)
 const ESQUEMA_AJUSTE = esquemaEstricto(RespuestaAjuste)
 const ESQUEMA_DICTAMEN = esquemaEstricto(RespuestaDictamen)
+const READING_SCHEMA = esquemaEstricto(PhotoReading)
 
 function validar<T>(esquema: z.ZodType<T>, json: unknown): T {
   const r = esquema.safeParse(json)
@@ -45,15 +48,19 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
       const medidas = s.medidas
         ? `Medidas del mueble: ancho ${s.medidas.ancho} mm, alto ${s.medidas.alto} mm, fondo ${s.medidas.fondo} mm.`
         : 'La persona no sabe las medidas: propón unas típicas para ese mueble en `dimensiones` y dilo en la explicación.'
+      const lectura = s.lectura
+        ? `\nNo te mando las fotos: ya se leyeron. Esto es lo que se ve en ellas (proporciones relativas, columnas de izquierda a derecha y huecos de abajo hacia arriba):\n${JSON.stringify(s.lectura)}`
+        : ''
       const contenido: Contenido[] = [
         {
           tipo: 'texto',
-          texto: s.fotos.length
-            ? `${medidas}${s.notas ? `\nNotas de la persona: ${s.notas}` : ''}`
-            : `${medidas}\nNo hay fotos: diseña a partir de esta descripción de la persona.\nDescripción: ${s.notas || '(sin descripción)'}`,
+          texto:
+            s.fotos.length || s.lectura
+              ? `${medidas}${s.notas ? `\nNotas de la persona: ${s.notas}` : ''}${lectura}`
+              : `${medidas}\nNo hay fotos: diseña a partir de esta descripción de la persona.\nDescripción: ${s.notas || '(sin descripción)'}`,
         },
         ...s.fotos.flatMap((f, i): Contenido[] => [
-          { tipo: 'texto', texto: `Foto ${i + 1}: ${f.angulo}` },
+          { tipo: 'texto', texto: `Foto ${i + 1}: ${f.angulo}${f.note ? `. La persona dice: ${f.note}` : ''}` },
           { tipo: 'imagen', base64: f.base64 },
         ]),
       ]
@@ -72,6 +79,14 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores))
       const { json, consumo, avisos } = await t.completarJSON(sistemaPara(AJUSTE, s.catalogo), contenido, ESQUEMA_AJUSTE, 'ajuste', signal)
       return { valor: validar(RespuestaAjuste, json), origen: { promptId: idPrompt(AJUSTE), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
+    },
+    async readPhoto(r: PhotoReadingRequest, signal) {
+      const contenido: Contenido[] = [
+        { tipo: 'texto', texto: `Foto: ${r.photo.angulo}.${r.photo.note ? ` La persona dice de esta foto: ${r.photo.note}` : ''}${r.context ? `\nLo que la persona busca: ${r.context}` : ''}` },
+        { tipo: 'imagen', base64: r.photo.base64 },
+      ]
+      const { json, consumo, avisos } = await t.completarJSON(LECTURA.texto, contenido, READING_SCHEMA, 'lectura', signal)
+      return { valor: validar(PhotoReading, json), origen: { promptId: LECTURA.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
     async dictaminar(s: SolicitudDictamen, signal) {
       const contenido: Contenido[] = [{ tipo: 'texto', texto: `${s.contexto}\n\n${s.revision}` }]

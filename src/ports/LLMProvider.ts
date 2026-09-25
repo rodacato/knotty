@@ -6,6 +6,7 @@ import { Operacion } from '../domain/operaciones/esquema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
+import type { PhotoReading } from '../domain/reading/reading'
 import { OpinionCarpintero, type Comprobacion } from '../domain/viabilidad/viabilidad'
 
 // Lo que el experto puede contestar. Los mismos esquemas generan el JSON Schema de la salida estructurada y validan la respuesta.
@@ -52,6 +53,14 @@ export interface Foto {
   angulo: string
   /** JPEG en base64, sin el prefijo data:. */
   base64: string
+  /** What the person says about this photo, if anything. */
+  note?: string
+}
+
+export interface PhotoReadingRequest {
+  photo: Foto
+  /** The person's general description, so the reading knows what to look for. */
+  context: string
 }
 
 export interface SolicitudReconstruccion {
@@ -59,6 +68,8 @@ export interface SolicitudReconstruccion {
   medidas: Dimensiones | null
   fotos: Foto[]
   notas: string
+  /** What was read from the photos beforehand; when present, the photos are not sent again. */
+  lectura: PhotoReading | null
   catalogo: Catalogo
   /** En un reintento: lo que salió mal con la respuesta anterior. */
   correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null
@@ -97,6 +108,7 @@ export interface LLMProvider {
   reconstruir(solicitud: SolicitudReconstruccion, signal: AbortSignal): Promise<Respuesta<RespuestaReconstruccion>>
   proponerAjuste(solicitud: SolicitudAjuste, signal: AbortSignal): Promise<Respuesta<RespuestaAjuste>>
   dictaminar(solicitud: SolicitudDictamen, signal: AbortSignal): Promise<Respuesta<RespuestaDictamen>>
+  readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<Respuesta<PhotoReading>>
 }
 
 /** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */

@@ -5,7 +5,8 @@ import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
 const etapas = (conFotos: boolean): { id: Etapa; texto: string }[] => [
-  { id: 'mirando-fotos', texto: conFotos ? 'Mirando las fotos' : 'Pensando el diseño' },
+  ...(conFotos ? [{ id: 'leyendo-fotos' as const, texto: 'Mirando las fotos' }] : []),
+  { id: 'mirando-fotos', texto: 'Pensando el diseño' },
   { id: 'revisando', texto: 'Midiendo que todo cierre' },
   { id: 'estructura', texto: 'Revisando la estructura' },
 ]
@@ -56,13 +57,21 @@ export function Analizando() {
       <ol className="flex flex-col gap-3">
         {ETAPAS.map((e, i) => {
           const hecha = actual > i
-          const enCurso = actual === i || (etapa?.nombre === 'corrigiendo' && i === 1)
+          const enCurso = actual === i || (etapa?.nombre === 'corrigiendo' && e.id === 'revisando')
           return (
             <li key={e.id} className={`flex items-center gap-3 transition ${hecha || enCurso ? 'text-grafito' : 'text-grafito-2/50'}`}>
               <span className={`grid size-6 place-items-center rounded-full border ${hecha ? 'border-grafito bg-grafito text-hueso' : enCurso ? 'border-ambar' : 'border-linea'}`}>
                 {hecha ? <Check size={12} weight="bold" /> : enCurso ? <span className="size-2 animate-pulse rounded-full bg-ambar" /> : null}
               </span>
-              <span className={enCurso ? 'font-medium' : ''}>{e.texto}</span>
+              <span className={enCurso ? 'font-medium' : ''}>
+                {e.texto}
+                {e.id === 'leyendo-fotos' && etapa?.progress && enCurso && (
+                  <span className="cifras text-grafito-2">
+                    {' '}
+                    ({Math.min(etapa.progress.done + 1, etapa.progress.total)} de {etapa.progress.total})
+                  </span>
+                )}
+              </span>
             </li>
           )
         })}
