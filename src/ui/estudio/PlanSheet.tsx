@@ -1,7 +1,11 @@
-import { ArrowCounterClockwise, Check, Minus, Plus, Trash, Warning } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Check, Plus, Trash, Warning } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/casosDeUso'
+import type { BedPlan } from '../../domain/modules/bed'
 import type { CabinetConstruction, CabinetPlan } from '../../domain/modules/cabinet'
+import { isBed, type FurniturePlan } from '../../domain/modules/plan'
+import { BedFields } from './BedFields'
+import { NumberField, Segmented, Stepper } from './PlanControls'
 import { describePlanChanges } from '../../domain/modules/planChanges'
 import type { Cell, Column } from '../../domain/reading/reading'
 import type { EstadoDiseno } from '../../domain/sesion/estado'
@@ -9,7 +13,7 @@ import { useServicios } from '../servicios'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-// The plan as a form: every decision that shapes the cabinet, applied at once and without the expert.
+// The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.
 
 const CONSTRUCTION: { key: keyof CabinetConstruction; label: string; options: [string, string][] }[] = [
   { key: 'doors', label: 'Puertas', options: [['overlay', 'Sobrepuestas'], ['inset', 'Embutidas']] },
@@ -26,51 +30,6 @@ const CONTENTS: [Cell['content'], string][] = [
 ]
 const newCell = (): Cell => ({ height: 1, content: 'open', shelves: 0, doors: null })
 const percent = (value: number, all: number[]) => Math.round((value / (all.reduce((s, v) => s + v, 0) || 1)) * 100)
-
-function Segmented({ value, options, onChange, label }: { value: string; options: [string, string][]; onChange: (v: string) => void; label: string }) {
-  return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-full border border-linea bg-hueso p-0.5">
-      {options.map(([id, text]) => (
-        <button
-          key={id}
-          type="button"
-          role="radio"
-          aria-checked={value === id}
-          onClick={() => onChange(id)}
-          className={`rounded-full px-2.5 py-1 text-xs transition ${value === id ? 'bg-grafito text-hueso' : 'text-grafito-2 hover:text-grafito'}`}
-        >
-          {text}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1" aria-label={label}>
-      <button type="button" aria-label={`Menos ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="grid size-6 place-items-center rounded-full border border-linea disabled:opacity-30">
-        <Minus size={10} />
-      </button>
-      <span className="cifras w-5 text-center text-xs">{value}</span>
-      <button type="button" aria-label={`Más ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="grid size-6 place-items-center rounded-full border border-linea disabled:opacity-30">
-        <Plus size={10} />
-      </button>
-    </span>
-  )
-}
-
-function NumberField({ value, onChange, label, suffix }: { value: number; onChange: (v: number) => void; label: string; suffix: string }) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs text-grafito-2">{label}</span>
-      <span className="flex items-baseline gap-1 rounded-xl border border-linea bg-hueso px-2 focus-within:border-ambar">
-        <input type="number" inputMode="numeric" min={1} value={value || ''} onChange={(e) => onChange(Number(e.target.value))} className="cifras min-h-9 w-full bg-transparent outline-none" />
-        <span className="cifras text-xs text-grafito-2">{suffix}</span>
-      </span>
-    </label>
-  )
-}
 
 function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; heights: number[]; index: number; onChange: (c: Cell) => void; onRemove: (() => void) | null }) {
   return (
@@ -118,50 +77,13 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
   )
 }
 
-export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
+function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Partial<CabinetPlan>) => void }) {
   const { catalogo } = useServicios()
-  const applyPlan = useTienda((s) => s.applyPlan)
-  const source = useMemo(() => currentPlan(estado), [estado])
-  const [draft, setDraft] = useState<CabinetPlan | null>(source.plan)
-  const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
-  useEffect(() => setDraft(source.plan), [source.plan])
-
-  if (!source.plan || !draft)
-    return (
-      <div className="flex flex-col gap-2 p-6 text-center text-sm text-grafito-2">
-        <p className="font-medium text-grafito">Este mueble no tiene ficha</p>
-        <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…). Camas, mesas y escritorios se ajustan por ahora con el experto.</p>
-      </div>
-    )
-
-  const changes = describePlanChanges(source.plan, draft)
-  const set = (change: Partial<CabinetPlan>) => {
-    setMessage(null)
-    setDraft({ ...draft, ...change })
-  }
   const setColumn = (i: number, column: Column) => set({ columns: draft.columns.map((c, j) => (j === i ? column : c)) })
   const boards = catalogo.materiales.filter((m) => m.tipo === 'triplay')
   const widths = draft.columns.map((c) => c.width)
-
-  const apply = () => {
-    const r = applyPlan(draft)
-    setMessage(r.ok ? (r.notes.length ? { kind: 'note', text: r.notes.join(' ') } : null) : { kind: 'error', text: r.message })
-  }
-
   return (
-    <div className="flex flex-col gap-5 p-4 pb-28">
-      {source.diverged && (
-        <p className="flex items-start gap-2 rounded-xl border border-ambar/40 bg-ambar-suave p-3 text-xs">
-          <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
-        </p>
-      )}
-
-      {!source.diverged && source.extras.length > 0 && (
-        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-grafito-2">
-          Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
-        </p>
-      )}
-
+    <>
       <section className="flex flex-col gap-2">
         <h3 className="font-titulo text-base font-semibold">Medidas</h3>
         <div className="grid grid-cols-3 gap-2">
@@ -250,6 +172,51 @@ export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
           )
         })}
       </section>
+    </>
+  )
+}
+
+export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
+  const applyPlan = useTienda((s) => s.applyPlan)
+  const source = useMemo(() => currentPlan(estado), [estado])
+  const [draft, setDraft] = useState<FurniturePlan | null>(source.plan)
+  const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
+  useEffect(() => setDraft(source.plan), [source.plan])
+
+  if (!source.plan || !draft)
+    return (
+      <div className="flex flex-col gap-2 p-6 text-center text-sm text-grafito-2">
+        <p className="font-medium text-grafito">Este mueble no tiene ficha</p>
+        <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…) o una cama. Mesas y escritorios se ajustan por ahora con el experto.</p>
+      </div>
+    )
+
+  const changes = describePlanChanges(source.plan, draft)
+  const set = (change: Partial<CabinetPlan> | Partial<BedPlan>) => {
+    setMessage(null)
+    setDraft({ ...draft, ...change } as FurniturePlan)
+  }
+
+  const apply = () => {
+    const r = applyPlan(draft)
+    setMessage(r.ok ? (r.notes.length ? { kind: 'note', text: r.notes.join(' ') } : null) : { kind: 'error', text: r.message })
+  }
+
+  return (
+    <div className="flex flex-col gap-5 p-4 pb-28">
+      {source.diverged && (
+        <p className="flex items-start gap-2 rounded-xl border border-ambar/40 bg-ambar-suave p-3 text-xs">
+          <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
+        </p>
+      )}
+
+      {!source.diverged && source.extras.length > 0 && (
+        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-grafito-2">
+          Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
+        </p>
+      )}
+
+      {isBed(draft) ? <BedFields draft={draft} set={set} /> : <CabinetFields draft={draft} set={set} />}
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-linea bg-papel/95 px-4 py-3 backdrop-blur">
         {message && <p className={`text-xs ${message.kind === 'error' ? 'text-oxido' : 'text-grafito-2'}`}>{message.text}</p>}
