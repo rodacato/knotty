@@ -61,7 +61,7 @@ export function Pencil({ className = '' }: { className?: string }) {
   )
 }
 
-export const cm = (mm: number) => `${(mm / 10).toLocaleString('es-MX', { maximumFractionDigits: 1 })} cm`
+export { cm } from '../../domain/modules/common'
 
 export function Title({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <h2 className={`font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48] ${className}`}>{children}</h2>

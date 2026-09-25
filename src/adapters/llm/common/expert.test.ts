@@ -111,11 +111,11 @@ describe('createExpert', () => {
 
   it('edits the plan with its own short prompt: the context, the current plan and the request', async () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', cabinet: null, bed: null, table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
-    const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
+    const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog }, new AbortController().signal)
     expect(r.origin.promptId).toBe('plan-adjust@9')
     expect(calls[0].system).toContain('"T15" (15 mm)')
-    expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
+    expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"kind":"cabinet","name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
   })
 
   it('an answer that does not match the schema throws InvalidResponse with the problems', async () => {

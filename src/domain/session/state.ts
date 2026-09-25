@@ -8,7 +8,7 @@ import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
 import { Check, CarpenterOpinion, Verdict } from '../viability/viability'
 
-// The whole design session: what is saved and comes back on reload. Its field names are the saved format (6); `migrate.ts` reads older ones.
+// The whole design session: what is saved and comes back on reload. Its field names are the saved format (7); `migrate.ts` reads older ones.
 
 export const Question = z.object({
   text: z.string().min(1),
@@ -93,7 +93,7 @@ export const PurchaseReview = z.object({
 export type PurchaseReview = z.infer<typeof PurchaseReview>
 
 export const DesignState = z.object({
-  format: z.literal(6),
+  format: z.literal(7),
   measures: Dimensions,
   versions: z.array(Version).min(1),
   current: z.number().int().positive(),

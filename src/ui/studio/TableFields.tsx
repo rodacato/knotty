@@ -1,20 +1,11 @@
-import { TABLE_NAMES, type TablePlan } from '../../domain/modules/table'
+import { TABLE_LABELS, type TablePlan } from '../../domain/modules/table'
 import { useServices } from '../services'
-import { NumberField, Segmented, Stepper } from './PlanControls'
+import { NumberField, optionsOf, Segmented, Stepper } from './PlanControls'
 
 // A table's or desk's plan: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
 
-const USE: [TablePlan['use'], string][] = [
-  ['dining', 'Comedor'],
-  ['coffee', 'Centro'],
-  ['side', 'Lateral'],
-  ['desk', 'Escritorio'],
-]
-const PEDESTAL: [TablePlan['pedestal']['side'], string][] = [
-  ['none', 'Sin cajonera'],
-  ['left', 'Izquierda'],
-  ['right', 'Derecha'],
-]
+const USE = optionsOf(TABLE_LABELS.use)
+const PEDESTAL = optionsOf(TABLE_LABELS.pedestal)
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -35,7 +26,7 @@ export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Pa
       <section className="flex flex-col gap-2">
         <h3 className="font-display text-base font-semibold">Qué es</h3>
         <Row label="Uso">
-          <Segmented label="Uso" value={draft.use} options={USE} onChange={(use) => set({ use: use as TablePlan['use'], name: TABLE_NAMES[use as TablePlan['use']], shelf: use === 'desk' ? false : draft.shelf, pedestal: use === 'desk' ? draft.pedestal : { side: 'none', drawers: 0 } })} />
+          <Segmented label="Uso" value={draft.use} options={USE} onChange={(use) => set({ use: use as TablePlan['use'], name: TABLE_LABELS.use[use as TablePlan['use']].name, shelf: use === 'desk' ? false : draft.shelf, pedestal: use === 'desk' ? draft.pedestal : { side: 'none', drawers: 0 } })} />
         </Row>
       </section>
 

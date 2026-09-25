@@ -24,7 +24,7 @@ describe('hardware to draw', () => {
   })
   it('puts two hinge cups on the inside of each door of a short cabinet, at the edge with the hinge', () => {
     const { design } = buildCabinet(
-      { name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] },
+      { kind: 'cabinet', name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] },
       testCatalog,
     )
     const geo = analyze(design, testCatalog).geo!

@@ -1,7 +1,7 @@
 // Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 had them in English but kept
 // the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 kept the catalog's hardware ids and the
 // simulated provider in Spanish; format 4 still called the furniture's own faces "mueble"; format 5 still saved the accepted-risks check as "aceptados";
-// format 6 has everything in English.
+// format 6 saved a cabinet's plan with no kind, the only plan without one; format 7 names every plan's kind.
 // Piece ids are the design's own data: the ones saved in Spanish stay as they were and still work.
 // Only names change: the numbers, ids and texts for the person stay as they were.
 
@@ -307,6 +307,14 @@ const stateV5 = fields({
   review: ['review', nullable(fields({ checks: ['checks', list(fields({ id: ['id', values({ aceptados: 'accepted' })] }))] }))],
 })
 
+// Format 6 → 7: a plan with no kind is a cabinet's.
+const planV6 = (v: unknown) => (isObject(v) && !('kind' in v) ? { kind: 'cabinet', ...v } : v)
+const stateV6 = fields({
+  format: ['format', () => 7],
+  versions: ['versions', list(fields({ plan: ['plan', planV6] }))],
+  proposal: ['proposal', nullable(fields({ plan: ['plan', planV6] }))],
+})
+
 /** Brings a saved session up to the current format, one format at a time; anything it does not recognize is returned as is for the schema to judge. */
 export function migrateState(raw: unknown): unknown {
   let state = raw
@@ -315,5 +323,6 @@ export function migrateState(raw: unknown): unknown {
   if (isObject(state) && state.format === 3) state = stateV3(state)
   if (isObject(state) && state.format === 4) state = stateV4(state)
   if (isObject(state) && state.format === 5) state = stateV5(state)
+  if (isObject(state) && state.format === 6) state = stateV6(state)
   return state
 }

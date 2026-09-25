@@ -2,6 +2,9 @@ import { Minus, Plus } from '@phosphor-icons/react'
 
 // The small controls of a plan: choices, counts and measures.
 
+/** A module's labels as the buttons of a choice, in their order. */
+export const optionsOf = (labels: Record<string, { option: string }>) => Object.entries(labels).map(([value, { option }]): [string, string] => [value, option])
+
 export function Segmented({ value, options, onChange, label }: { value: string; options: [string, string][]; onChange: (v: string) => void; label: string }) {
   return (
     <div role="radiogroup" aria-label={label} className="inline-flex rounded-full border border-line bg-bone p-0.5">

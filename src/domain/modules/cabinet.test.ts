@@ -5,7 +5,7 @@ import type { Cell } from '../reading/reading'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetConstruction, type CabinetPlan } from './cabinet'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
-const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
+const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
 
 const PLANS: Record<string, CabinetPlan> = {
   bookcase: plan({ name: 'Librero' }),

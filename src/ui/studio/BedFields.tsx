@@ -1,32 +1,13 @@
-import type { BedPlan } from '../../domain/modules/bed'
+import { BED_LABELS, type BedPlan } from '../../domain/modules/bed'
 import { useServices } from '../services'
-import { NumberField, Segmented, Stepper } from './PlanControls'
+import { NumberField, optionsOf, Segmented, Stepper } from './PlanControls'
 
 // A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices.
 
-const MATTRESS: [BedPlan['mattress'], string][] = [
-  ['individual', 'Individual'],
-  ['matrimonial', 'Matrimonial'],
-  ['queen', 'Queen'],
-  ['king', 'King'],
-]
-const SIDE: [BedPlan['drawers']['side'], string][] = [
-  ['none', 'Sin cajones'],
-  ['left', 'Izquierda'],
-  ['right', 'Derecha'],
-  ['both', 'Los dos'],
-]
-const POSITION: [BedPlan['drawers']['position'], string][] = [
-  ['head', 'Cabecera'],
-  ['center', 'Centro'],
-  ['foot', 'Pie'],
-]
-const STYLE: [BedPlan['headboard']['style'], string][] = [
-  ['none', 'Sin cabecera'],
-  ['plain', 'Lisa'],
-  ['bookcase', 'Librero'],
-  ['storage', 'Compartimento'],
-]
+const MATTRESS = optionsOf(BED_LABELS.mattress)
+const SIDE = optionsOf(BED_LABELS.drawerSide)
+const POSITION = optionsOf(BED_LABELS.drawerPosition)
+const STYLE = optionsOf(BED_LABELS.headboard)
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (

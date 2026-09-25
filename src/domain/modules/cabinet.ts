@@ -1,13 +1,14 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
-import type { FaceRef, Position, Design, Piece, Joint } from '../design/schema'
+import { DIMENSION_OF_AXIS, type FaceRef, type Position, type Design, type Piece, type Joint } from '../design/schema'
 import { analyze } from '../analysis'
 import { completeJoints } from '../design/joints'
 import type { Catalog } from '../materials/catalog'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
-import { Column } from '../reading/reading'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, panelOf, thicknessOf, type AddDrawer } from './common'
+import { Column, type Cell } from '../reading/reading'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, thicknessOf, type AddDrawer } from './common'
+import type { FurnitureModule, Labels } from './module'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
@@ -24,6 +25,7 @@ export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable' }
 
 export const CabinetPlan = z.object({
+  kind: z.literal('cabinet'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Librero", "Buró con cajón"'),
   dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Outside measures in mm'),
   material: z.string().describe('Plywood id for the carcass, usually "T18"'),
@@ -33,6 +35,19 @@ export const CabinetPlan = z.object({
   columns: z.array(Column).min(1).describe('Left to right; each one with its openings from bottom to top'),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
+
+/** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
+export const CABINET_LABELS = {
+  base: { kick: { option: 'Con zoclo', phrase: 'con zoclo' }, floor: { option: 'Directa', phrase: 'sin zoclo' } } satisfies Labels<CabinetPlan['base']>,
+  cell: { open: 'Abierto', drawer: 'Cajón', door: 'Puerta', closed: 'Tapado' } satisfies Record<Cell['content'], string>,
+  construction: {
+    doors: { label: 'Puertas', options: { overlay: 'Sobrepuestas', inset: 'Embutidas' } },
+    drawerFronts: { label: 'Frentes de cajón', options: { inset: 'Embutidos', overlay: 'Sobrepuestos' } },
+    top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima' } },
+    back: { label: 'Trasera', options: { nailed: 'Clavada', none: 'Sin trasera' } },
+    shelves: { label: 'Repisas', options: { movable: 'Móviles', fixed: 'Fijas' } },
+  } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string> } },
+}
 
 const BACK = 'TR6'
 const GAP = 2
@@ -217,4 +232,55 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     if (result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid) design = result.value.design
   }
   return { design: completeJoints(design, catalog), notes }
+}
+
+const count = (plan: CabinetPlan, content: Cell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
+const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
+
+function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
+  const changes: string[] = []
+  const a = before.dimensions
+  const b = after.dimensions
+  if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
+  if (before.material !== after.material) changes.push(`material ${after.material}`)
+  if (before.base !== after.base) changes.push(CABINET_LABELS.base[after.base].phrase)
+  if (before.wallMounted !== after.wallMounted) changes.push(after.wallMounted ? 'anclado al muro' : 'sin anclar')
+  for (const key of Object.keys(CABINET_LABELS.construction) as (keyof CabinetConstruction)[]) {
+    if (before.construction[key] === after.construction[key]) continue
+    const { label, options } = CABINET_LABELS.construction[key] as { label: string; options: Record<string, string> }
+    changes.push(`${lower(label)} ${lower(options[after.construction[key]])}`)
+  }
+  if (before.columns.length !== after.columns.length) changes.push(`${after.columns.length} ${after.columns.length === 1 ? 'columna' : 'columnas'}`)
+  for (const content of Object.keys(CABINET_LABELS.cell) as Cell['content'][]) {
+    const [was, is] = [count(before, content), count(after, content)]
+    if (was !== is) changes.push(`${is} ${content === 'drawer' ? (is === 1 ? 'cajón' : 'cajones') : `${is === 1 ? 'hueco' : 'huecos'} ${lower(CABINET_LABELS.cell[content])}${is === 1 ? '' : 's'}`}`)
+  }
+  if (!changes.length && layout(before) !== layout(after)) changes.push('distribución de los huecos')
+  return changes
+}
+
+function benchCabinets(): [string, CabinetPlan][] {
+  const cell = (content: Cell['content'], height = 1, shelves: number | null = null, doors: number | null = null): Cell => ({ height, content, shelves, doors })
+  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
+  return [
+    ['librero', cabinet('Librero', { width: 600, height: 1800, depth: 300 }, [{ width: 1, cells: [cell('open', 1, 4)] }])],
+    ['buró', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'floor', wallMounted: false })],
+    ['alacena', cabinet('Alacena', { width: 760, height: 720, depth: 320 }, [{ width: 1, cells: [cell('door', 1, 1, 2)] }], { base: 'floor' })],
+    ['cajonera', cabinet('Cajonera', { width: 500, height: 900, depth: 450 }, [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }])],
+    ['mueble de TV', cabinet('Mueble de TV', { width: 1600, height: 500, depth: 400 }, [{ width: 0.3, cells: [cell('door', 1, 0, 1)] }, { width: 0.4, cells: [cell('open', 1, 1)] }, { width: 0.3, cells: [cell('door', 1, 0, 1)] }], { wallMounted: false })],
+  ]
+}
+
+export const cabinetModule: FurnitureModule<CabinetPlan> = {
+  kind: 'cabinet',
+  schema: CabinetPlan,
+  label: 'un gabinete',
+  build: buildCabinet,
+  describeChanges: describeCabinetChanges,
+  resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),
+  withMeasures: (plan, { width, height, depth }) => ({ ...plan, dimensions: { width, height, depth } }),
+  summary: (_, dimensions) => measuresSummary(dimensions),
+  measuresNote: () => null,
+  traceLabel: (plan) => `Gabinete de ${plan.columns.length} ${plan.columns.length === 1 ? 'columna' : 'columnas'}`,
+  benchVariants: benchCabinets,
 }
