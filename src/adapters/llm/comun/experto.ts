@@ -14,7 +14,7 @@ import {
   type PhotoReadingRequest,
   type SolicitudReconstruccion,
 } from '../../../ports/LLMProvider'
-import type { Catalogo } from '../../../domain/materiales/catalogo'
+import type { Catalog } from '../../../domain/materiales/catalog'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { describirProblemas, esquemaEstricto } from './esquemaJson'
 import { AJUSTE, AJUSTE_FICHA, DICTAMEN, ESQUELETO, idPrompt, LECTURA, RECONSTRUCCION, sistemaPara } from './prompts'
@@ -69,7 +69,7 @@ function designRequest(s: SolicitudReconstruccion): Contenido[] {
   ]
 }
 
-const materialsText = (catalog: Catalogo) => {
+const materialsText = (catalog: Catalog) => {
   const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
   return `uno de ${boards.map((m) => `"${m.id}" (${m.espesor} mm)`).join(', ')}`
 }

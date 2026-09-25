@@ -3,7 +3,7 @@ import type { Diseno, Pieza } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import { faceSize, roundTo, type Box } from '../diseno/resolve'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { DesignError } from '../validation/errors'
 
@@ -46,7 +46,7 @@ function detail(before: Pieza, after: Pieza, a: Box | undefined, b: Box | undefi
   return parts.join(' · ') || 'cambió su definición'
 }
 
-export function describeChange(before: Diseno, after: Diseno, catalog: Catalogo): Change {
+export function describeChange(before: Diseno, after: Diseno, catalog: Catalog): Change {
   const boxesBefore = analizar(before, catalog).geo?.boxes ?? new Map<string, Box>()
   const boxesAfter = analizar(after, catalog).geo?.boxes ?? new Map<string, Box>()
   const previous = new Map(before.piezas.map((p) => [p.id, p]))
@@ -66,7 +66,7 @@ export function describeChange(before: Diseno, after: Diseno, catalog: Catalogo)
 }
 
 /** Brings pieces back as they were in `source` (removed ones return, changed ones revert, added ones go); the rest stays. */
-export function restorePieces(current: Diseno, source: Diseno, ids: string[], catalog: Catalogo): { ok: true; design: Diseno } | { ok: false; errors: DesignError[] } {
+export function restorePieces(current: Diseno, source: Diseno, ids: string[], catalog: Catalog): { ok: true; design: Diseno } | { ok: false; errors: DesignError[] } {
   const was = new Map(source.piezas.map((p) => [p.id, p]))
   const toRemove = ids.filter((id) => !was.has(id) && current.piezas.some((p) => p.id === id))
   let design = current

@@ -4,7 +4,7 @@ import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno, type Eje, type Pieza
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import { roundTo, type Box } from '../diseno/resolve'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import type { Requisito } from '../requisitos/requisitos'
@@ -93,7 +93,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
 }
 
 /** Fixes what has an obvious fix, one error at a time, and stops as soon as a fix does not help. */
-export function repairDesign(original: Diseno, catalog: Catalogo, requirements: Requisito[] = []): { design: Diseno; repairs: Repair[] } {
+export function repairDesign(original: Diseno, catalog: Catalog, requirements: Requisito[] = []): { design: Diseno; repairs: Repair[] } {
   let design = original
   const repairs: Repair[] = []
   for (let round = 0; round < MAX_ROUNDS; round++) {

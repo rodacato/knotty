@@ -1,7 +1,7 @@
 import { analizar } from '../domain/analisis'
 import type { Diseno } from '../domain/diseno/esquema'
 import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
-import type { Catalogo } from '../domain/materiales/catalogo'
+import type { Catalog } from '../domain/materiales/catalog'
 import { verificarRequisitos } from '../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import { noticeItemId, type TrayItem } from '../domain/tray/tray'
@@ -65,7 +65,7 @@ function findingNotices(findings: Finding[]): Notice[] {
   })
 }
 
-function noticesOf(estado: EstadoDiseno, design: Diseno, catalog: Catalogo): Notice[] {
+function noticesOf(estado: EstadoDiseno, design: Diseno, catalog: Catalog): Notice[] {
   const analysis = analizar(design, catalog)
   const notices: Notice[] = []
   if (!analysis.valido)
@@ -85,7 +85,7 @@ function noticesOf(estado: EstadoDiseno, design: Diseno, catalog: Catalogo): Not
 }
 
 /** The board for the current version: pending and accepted notices, and what the last change resolved. */
-export function noticeBoard(estado: EstadoDiseno, catalog: Catalogo): NoticeBoard {
+export function noticeBoard(estado: EstadoDiseno, catalog: Catalog): NoticeBoard {
   const design = disenoActual(estado)
   const accepted = new Set(estado.accepted.map((a) => a.key))
   const all = noticesOf(estado, design, catalog)

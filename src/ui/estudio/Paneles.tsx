@@ -1,8 +1,8 @@
 import { X } from '@phosphor-icons/react'
 import type { Diseno, TipoUnion } from '../../domain/diseno/esquema'
 import { faceSize, type Geometry } from '../../domain/diseno/resolve'
-import type { Catalogo } from '../../domain/materiales/catalogo'
-import { despiece } from '../../domain/materiales/despiece'
+import type { Catalog } from '../../domain/materiales/catalog'
+import { cutList } from '../../domain/materiales/cutList'
 import { cm } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 import { PieceEditor } from './PieceEditor'
@@ -26,12 +26,12 @@ const VETA = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
 export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
   const seleccionar = useTienda((s) => s.seleccionar)
   const seleccion = useTienda((s) => s.seleccion)
-  const lista = despiece(diseno, geo)
-  const total = lista.reduce((n, r) => n + r.cantidad, 0)
+  const lista = cutList(diseno, geo)
+  const total = lista.reduce((n, r) => n + r.count, 0)
   return (
     <div className="flex flex-col gap-3 p-4">
       <p className="text-sm text-grafito-2">
-        {total} piezas en {new Set(lista.map((r) => r.espesor)).size} espesores. Toca una para verla.
+        {total} piezas en {new Set(lista.map((r) => r.thickness)).size} espesores. Toca una para verla.
       </p>
       <ul className="flex flex-col divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-hueso">
         {lista.map((r) => (
@@ -41,14 +41,14 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
               onClick={() => seleccionar(r.ids[0])}
               className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(seleccion ?? '') ? 'bg-ambar-suave' : ''}`}
             >
-              <span className="cifras grid size-8 shrink-0 place-items-center rounded-lg bg-kraft text-sm font-medium">{r.cantidad}×</span>
+              <span className="cifras grid size-8 shrink-0 place-items-center rounded-lg bg-kraft text-sm font-medium">{r.count}×</span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{r.nombre}</span>
+                <span className="block truncate font-medium">{r.name}</span>
                 <span className="cifras block text-xs text-grafito-2">
-                  {r.largo} × {r.ancho} mm · {cm(r.largo)} × {cm(r.ancho)}
+                  {r.length} × {r.width} mm · {cm(r.length)} × {cm(r.width)}
                 </span>
               </span>
-              <span className="cifras shrink-0 rounded-full border border-linea px-2 py-0.5 text-xs">{r.espesor} mm</span>
+              <span className="cifras shrink-0 rounded-full border border-linea px-2 py-0.5 text-xs">{r.thickness} mm</span>
             </button>
           </li>
         ))}
@@ -57,7 +57,7 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
   )
 }
 
-export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometry; catalogo: Catalogo; editable?: boolean }) {
+export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometry; catalogo: Catalog; editable?: boolean }) {
   const confirmarPieza = useTienda((s) => s.confirmarPieza)
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)

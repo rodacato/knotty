@@ -1,17 +1,17 @@
 import { ArrowClockwise, CheckCircle, Hammer, Lightbulb, Stop, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
 import type { Diseno } from '../../domain/diseno/esquema'
 import type { Dictamen as DatosDictamen } from '../../domain/sesion/estado'
-import type { Comprobacion, Veredicto } from '../../domain/viabilidad/viabilidad'
+import type { Check, Verdict } from '../../domain/viabilidad/viability'
 import { Boton, Lapiz } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-const VEREDICTOS: Record<Veredicto, { titulo: string; clase: string; icono: React.ReactNode }> = {
+const VEREDICTOS: Record<Verdict, { titulo: string; clase: string; icono: React.ReactNode }> = {
   viable: { titulo: 'Se puede hacer', clase: 'border-pizarra/40 bg-pizarra/10 text-pizarra', icono: <CheckCircle weight="fill" /> },
   'con-cambios': { titulo: 'Arréglalo antes de comprar', clase: 'border-ambar/50 bg-ambar-suave text-grafito', icono: <WarningCircle weight="fill" className="text-ambar" /> },
   'no-viable': { titulo: 'Así no se puede hacer', clase: 'border-oxido/40 bg-oxido/10 text-oxido', icono: <XCircle weight="fill" /> },
 }
 
-const ICONO_COMPROBACION: Record<Comprobacion['estado'], React.ReactNode> = {
+const ICONO_COMPROBACION: Record<Check['estado'], React.ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-pizarra" />,
   aviso: <WarningCircle weight="fill" className="text-ambar" />,
   falla: <XCircle weight="fill" className="text-oxido" />,
@@ -66,7 +66,7 @@ export function PuertaRevision({ desactualizado }: { desactualizado: boolean }) 
   )
 }
 
-function Renglon({ c, diseno, alPedir }: { c: Comprobacion; diseno: Diseno; alPedir: (texto: string) => void }) {
+function Renglon({ c, diseno, alPedir }: { c: Check; diseno: Diseno; alPedir: (texto: string) => void }) {
   const seleccionar = useTienda((s) => s.seleccionar)
   const pensando = useTienda((s) => s.pensando)
   const pieza = c.piezas.find((id) => diseno.piezas.some((p) => p.id === id))

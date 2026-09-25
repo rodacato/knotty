@@ -4,7 +4,7 @@ import { startAt, ref } from '../diseno/builders'
 import type { Diseno } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
-import { estimarCompra } from '../materiales/compra'
+import { estimatePurchase } from '../materiales/purchase'
 import { aplicar } from './aplicar'
 import type { Operacion } from './esquema'
 
@@ -60,9 +60,9 @@ describe('agregarCajon', () => {
 
   it('entra en la compra: correderas y piezas del cajón', () => {
     const d = conCajon(hondo)
-    const compra = estimarCompra(d, analisis(d).geo, catalogo)
-    expect(compra.herrajes.find((h) => h.herraje.id === 'corredera-telescopica-45')?.cantidad).toBe(1)
-    expect(compra.hojas.map((h) => h.material.id)).toContain('T15')
+    const compra = estimatePurchase(d, analisis(d).geo, catalogo)
+    expect(compra.hardware.find((h) => h.hardware.id === 'corredera-telescopica-45')?.count).toBe(1)
+    expect(compra.sheets.map((h) => h.material.id)).toContain('T15')
   })
 
   it('se quita completo con eliminarGrupo', () => {

@@ -5,26 +5,26 @@ import { alacena } from '../fixtures/alacena'
 import { buro } from '../fixtures/buro'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
-import type { Catalogo } from '../materiales/catalogo'
-import { estimarCompra } from '../materiales/compra'
-import { peor, revisarViabilidad } from './viabilidad'
+import type { Catalog } from '../materiales/catalog'
+import { estimatePurchase } from '../materiales/purchase'
+import { worst, reviewViability } from './viability'
 
-function revisar(diseno: Diseno, c: Catalogo = catalogo) {
+function revisar(diseno: Diseno, c: Catalog = catalogo) {
   const a = analizar(diseno, catalogo)
   if (!a.valido) throw new Error(a.errores[0].message)
-  return revisarViabilidad({ diseno, geo: a.geo, catalogo: c, compra: estimarCompra(diseno, a.geo, c), hallazgos: a.hallazgos, incumplidos: [] })
+  return reviewViability({ design: diseno, geo: a.geo, catalog: c, purchase: estimatePurchase(diseno, a.geo, c), findings: a.hallazgos, unmet: [] })
 }
 const estado = (v: ReturnType<typeof revisar>, id: string) => v.comprobaciones.find((c) => c.id === id)!
 
-describe('revisarViabilidad', () => {
-  it.each([librero, buro, alacena])('los ejemplos cierran sus medidas y caben en la hoja: $nombre', (diseno) => {
+describe('reviewViability', () => {
+  it.each([librero, buro, alacena])('the examples add up and fit the sheet: $nombre', (diseno) => {
     const v = revisar(diseno)
     expect(estado(v, 'medidas').estado).toBe('ok')
     expect(estado(v, 'hoja').estado).toBe('ok')
     expect(v.veredicto).not.toBe('no-viable')
   })
 
-  it('con más refilado, una pieza larga deja de caber y el diseño no es viable', async () => {
+  it('with more trim, a long piece stops fitting and the design is not viable', async () => {
     const alto = { ...librero, dimensiones: { ...librero.dimensiones, alto: 2400 } }
     const holgado = revisar(alto)
     expect(estado(holgado, 'hoja').estado).toBe('ok')
@@ -34,17 +34,17 @@ describe('revisarViabilidad', () => {
     expect(v.veredicto).toBe('no-viable')
   })
 
-  it('si las piezas no suman la medida del mueble, no es viable', () => {
+  it('when the pieces do not add up to the furniture measures, it is not viable', () => {
     const a = analizar(librero, catalogo)
     if (!a.valido) throw new Error()
     const dice = { ...librero, dimensiones: { ...librero.dimensiones, ancho: 650 } }
-    const v = revisarViabilidad({ diseno: dice, geo: a.geo, catalogo, compra: estimarCompra(librero, a.geo, catalogo), hallazgos: [], incumplidos: [] })
+    const v = reviewViability({ design: dice, geo: a.geo, catalog: catalogo, purchase: estimatePurchase(librero, a.geo, catalogo), findings: [], unmet: [] })
     expect(estado(v, 'medidas')).toMatchObject({ estado: 'falla', imposible: true, pedido: 'Haz que las piezas cierren exacto en 1800 × 650 × 300 mm' })
     expect(v.veredicto).toBe('no-viable')
   })
 
-  it('el carpintero puede endurecer el veredicto pero no suavizarlo', () => {
-    expect(peor('viable', 'con-cambios')).toBe('con-cambios')
-    expect(peor('no-viable', 'viable')).toBe('no-viable')
+  it('the carpenter can harden the verdict but not soften it', () => {
+    expect(worst('viable', 'con-cambios')).toBe('con-cambios')
+    expect(worst('no-viable', 'viable')).toBe('no-viable')
   })
 })

@@ -5,7 +5,7 @@ import { buro } from '../../../domain/fixtures/buro'
 import { librero } from '../../../domain/fixtures/librero'
 import type { Operacion } from '../../../domain/operaciones/esquema'
 import type { PhotoReading } from '../../../domain/reading/reading'
-import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
+import { verdictOf } from '../../../domain/viabilidad/viability'
 import type { BedPlan } from '../../../domain/modules/bed'
 import { TABLE_NAMES, type TablePlan } from '../../../domain/modules/table'
 import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaPlan, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
@@ -282,7 +282,7 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
 
 /** Sin criterio propio: se queda con el veredicto de las cuentas y da consejos de siempre. */
 function dictaminar(s: SolicitudDictamen): RespuestaDictamen {
-  const veredicto = veredictoDe(s.comprobaciones)
+  const veredicto = verdictOf(s.comprobaciones)
   return {
     veredicto,
     resumen:

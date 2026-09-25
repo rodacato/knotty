@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Diseno, type Dimensiones } from '../domain/diseno/esquema'
 import { Decision } from '../domain/historial/historial'
-import type { Catalogo } from '../domain/materiales/catalogo'
+import type { Catalog } from '../domain/materiales/catalog'
 import { Operacion } from '../domain/operaciones/esquema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
@@ -11,7 +11,7 @@ import { CabinetPlan } from '../domain/modules/cabinet'
 import { TablePlan } from '../domain/modules/table'
 import type { FurniturePlan } from '../domain/modules/plan'
 import type { PhotoReading } from '../domain/reading/reading'
-import { OpinionCarpintero, type Comprobacion } from '../domain/viabilidad/viabilidad'
+import { CarpenterOpinion, type Check } from '../domain/viabilidad/viability'
 
 // Lo que el experto puede contestar. Los mismos esquemas generan el JSON Schema de la salida estructurada y validan la respuesta.
 
@@ -39,7 +39,7 @@ export const RespuestaAjuste = z.object({
 export type RespuestaAjuste = z.infer<typeof RespuestaAjuste>
 
 /** La opinión del carpintero; vive en el dominio porque se guarda con el diseño. */
-export const RespuestaDictamen = OpinionCarpintero
+export const RespuestaDictamen = CarpenterOpinion
 export type RespuestaDictamen = z.infer<typeof RespuestaDictamen>
 
 export interface SolicitudDictamen {
@@ -49,8 +49,8 @@ export interface SolicitudDictamen {
   revision: string
   diseno: Diseno
   /** Las comprobaciones de cuentas, para quien no lee texto (el simulado). */
-  comprobaciones: Comprobacion[]
-  catalogo: Catalogo
+  comprobaciones: Check[]
+  catalogo: Catalog
 }
 
 /** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
@@ -86,7 +86,7 @@ export interface PlanAdjustRequest {
   contexto: string
   peticion: string
   plan: FurniturePlan
-  catalogo: Catalogo
+  catalogo: Catalog
 }
 
 export interface Foto {
@@ -110,7 +110,7 @@ export interface SolicitudReconstruccion {
   notas: string
   /** What was read from the photos beforehand; when present, the photos are not sent again. */
   lectura: PhotoReading | null
-  catalogo: Catalogo
+  catalogo: Catalog
   /** En un reintento: lo que salió mal con la respuesta anterior. */
   correccion: { respuestaAnterior: unknown; errores: DesignError[] } | null
 }
@@ -125,7 +125,7 @@ export interface SolicitudAjuste {
   propuesta: Operacion[] | null
   /** Fotos que la persona manda con este pedido, casi siempre porque el experto las pidió. */
   fotos: Foto[]
-  catalogo: Catalogo
+  catalogo: Catalog
   correccion: { respuestaAnterior: unknown; errores: string } | null
 }
 

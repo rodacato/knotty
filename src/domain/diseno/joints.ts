@@ -1,5 +1,5 @@
 import { ASSUMPTIONS } from '../structure/assumptions'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
 import { isDrawerPart, type Diseno, type Pieza, type Union } from './esquema'
@@ -11,13 +11,13 @@ import { resolveGeometry, type Box } from './resolve'
 const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 /** The shortest screw that bites enough into the edge, or the longest that does not poke out when it goes into a face. */
-function screwFor(catalog: Catalogo, thicknessA: number, thicknessB: number, intoFace: boolean) {
+function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, intoFace: boolean) {
   const screws = catalog.herrajes.filter((h) => /^tornillo-8x/.test(h.id) && h.largo).sort((x, y) => x.largo! - y.largo!)
   if (intoFace) return [...screws].reverse().find((t) => t.largo! <= thicknessA + thicknessB - 3) ?? screws[0]
   return screws.find((t) => t.largo! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 
-function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalogo): Omit<Union, 'id'> | null {
+function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalog): Omit<Union, 'id'> | null {
   const back = p.rol === 'trasera' ? p : q.rol === 'trasera' ? q : null
   if (back) {
     const other = back === p ? q : p
@@ -56,7 +56,7 @@ function hinge(door: Pieza, box: Box, neighbours: { piece: Pieza; box: Box }[]):
 }
 
 /** Adds missing joints; with `previous`, only where the change created a contact, so a joint removed on purpose does not come back. */
-export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Diseno): Diseno {
+export function completeJoints(design: Diseno, catalog: Catalog, previous?: Diseno): Diseno {
   const resolved = resolveGeometry(design, catalog)
   if (!resolved.ok) return design
   const { boxes, thicknesses } = resolved.valor

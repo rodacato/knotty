@@ -1,6 +1,6 @@
 import type { Pieza, TipoUnion, Union } from '../../diseno/esquema'
 import { roundTo } from '../../diseno/resolve'
-import type { Catalogo } from '../../materiales/catalogo'
+import type { Catalog } from '../../materiales/catalog'
 import type { Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
@@ -20,10 +20,10 @@ const JOINT_NAME: Record<TipoUnion, string> = {
   corredera: 'corredera',
 }
 
-const thinnestBoard = (catalog: Catalogo, thickness: number) =>
+const thinnestBoard = (catalog: Catalog, thickness: number) =>
   catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor >= thickness).sort((a, b) => a.espesor - b.espesor)[0]
 
-function tooThin(u: Union, piece: Pieza, thickness: number, minimum: number, severity: Severity, catalog: Catalogo): Finding {
+function tooThin(u: Union, piece: Pieza, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
   const suggested = thinnestBoard(catalog, minimum)
   return {
     code: 'R2_ESPESOR_UNION',

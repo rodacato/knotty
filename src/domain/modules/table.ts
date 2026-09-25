@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
 import type { CaraRef, Diseno, Pieza, Union } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
-import { materialPorId, type Catalogo } from '../materiales/catalogo'
+import { materialById, type Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 
@@ -40,8 +40,8 @@ const MAX_END_INSET = 50
 
 const LOAD: Record<TablePlan['use'], Pieza['carga']> = { dining: 'media', coffee: 'ligera', side: 'ligera', desk: 'media' }
 
-export function buildTable(plan: TablePlan, catalog: Catalogo): { design: Diseno; notes: string[] } {
-  const t = materialPorId(catalog, plan.material)?.espesor ?? 18
+export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno; notes: string[] } {
+  const t = materialById(catalog, plan.material)?.espesor ?? 18
   const { width, height, depth } = plan.dimensions
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })
   const pieces: Pieza[] = []

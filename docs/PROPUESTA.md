@@ -508,13 +508,15 @@ Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompt
 2. ✅ Validación y contacto: `domain/validacion` → `domain/validation` (`contact`, `errors`, `geometry`). Los campos del error (`codigo`, `mensaje`, `datos`) y sus códigos (`E_FLOTANTE`…) quedan en español hasta el paso 4, porque comparten forma con los hallazgos y el experto los lee; los campos de `Result` (`valor`, `errores`), hasta el paso 6, con `aplicar`.
 3. ✅ Resolución y normalización: `resolver` → `resolve` (`resolveGeometry`, `Geometry` con `boxes`, `thicknesses` y `measure`, `Box`, `faceSize`, `roundTo`), `normalizador` → `normalize` y `construir` → `builders` (`makePiece`, `makeJoint`, `extent`, `startAt`, `endAt`, `partway`). Los campos de las cotas (`desde`, `hasta`, `largo`, `tipo`, `mas`) son del esquema y cambian en el paso 7.
 4. ✅ Reglas estructurales: `domain/estructura` → `domain/structure` (`finding`, `review`, `assumptions`, `rules/*`). Hallazgos (`Finding`: `code`, `severity`, `pieces`, `message`, `data`, `alternatives` con `key`, `description`, `data`) y errores (`code`, `message`, `data`) con campos en inglés. Siguen en español los datos: códigos de regla y de error, severidades, claves de alternativas y del contenido de `data`, que lee el experto y usan los avisos guardados; y los críticos guardados de una propuesta, que son del esquema (paso 7).
-5. Materiales y viabilidad (`domain/materiales`, `domain/viabilidad`); el dictamen guardado cambia de formato.
-6. Operaciones (`domain/operaciones`): los nombres de las operaciones los escribe el LLM, así que cambian con una versión nueva de los prompts.
-7. Esquema del diseño y del estado (`domain/diseno/esquema`, `domain/sesion`): cambia lo guardado en el navegador, con migración `formato: 2` que lee el formato anterior.
+5. ✅ Materiales y viabilidad: `catalogo` → `catalog` (`Catalog`, `BoardMaterial`, `Hardware`, `materialById`, `usableSheet`), `acomodo` → `layout` (`layOut`, `MaterialLayout`), `compra` → `purchase` (`estimatePurchase`, `Purchase` con `layout`, `sheets`, `hardware`, `edgeBanding`, `cost`), `despiece` → `cutList` y `viabilidad` → `viability` (`reviewViability`, `Check`, `Verdict`, `CarpenterOpinion`). Los campos del catálogo (JSON), de los ajustes guardados y del dictamen guardado quedan para el paso 9.
+6. Operaciones (`domain/operaciones`): el código; los nombres de las operaciones y sus campos los escribe el experto y cambian en el paso 9.
+7. Esquema del diseño y del estado (`domain/diseno/esquema`, `domain/sesion`, `historial`, `requisitos`): los nombres de tipos y funciones; los campos son lo guardado y cambian en el paso 9.
 8. Aplicación, adaptadores e interfaz (`application`, `adapters`, `ui`).
 9. Todo en inglés, por consistencia (pedido del autor el 2026-09-25, al final de todo lo demás): los datos y estructuras que hoy se quedan en español a propósito (códigos de regla y de error, severidades, claves de alternativas y del contenido de `data`, roles, tipos de unión, nombres de operaciones y el esquema guardado), y los prompts, escritos en inglés y pidiendo al experto que le conteste a la persona en español. La interfaz y los textos para la persona siguen en español. Lo guardado en el navegador y la bitácora se leen con migración de formato.
 
-En pausa después del paso 4 (2026-09-25): los pasos 5 a 9 quedan pendientes y se retoman cuando el autor lo pida; mientras, el código nuevo nace en inglés.
+10. Carpetas en inglés (pedido del autor el 2026-09-25): `domain/diseno`, `materiales`, `viabilidad`, `operaciones`, `sesion`, `historial`, `requisitos`, `fixtures` y las de `ui` (`estudio`, `escena`, `captura`, `ajustes`, `sistema`) y `adapters`.
+
+Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 cambia de una vez los datos guardados, lo que escribe el experto y los prompts, con migración de formato; el 10 mueve carpetas.
 
 ---
 

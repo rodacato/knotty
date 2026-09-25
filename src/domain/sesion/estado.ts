@@ -6,7 +6,7 @@ import { FurniturePlan } from '../modules/plan'
 import { Requisito } from '../requisitos/requisitos'
 import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
-import { Comprobacion, OpinionCarpintero, Veredicto } from '../viabilidad/viabilidad'
+import { Check, CarpenterOpinion, Verdict } from '../viabilidad/viability'
 
 // La sesión de diseño completa: lo que se guarda y se recupera al recargar.
 
@@ -81,9 +81,9 @@ export type Miniatura = z.infer<typeof Miniatura>
 /** La revisión antes de comprar de una versión; `firma` dice con qué versión y ajustes de corte se hizo. */
 export const Dictamen = z.object({
   firma: z.string(),
-  veredicto: Veredicto,
-  comprobaciones: z.array(Comprobacion),
-  carpintero: OpinionCarpintero.extend({ origen: Origen }).nullable(),
+  veredicto: Verdict,
+  comprobaciones: z.array(Check),
+  carpintero: CarpenterOpinion.extend({ origen: Origen }).nullable(),
   /** Si el carpintero no contestó, por qué; las comprobaciones de cuentas valen igual. */
   error: z.string().nullable(),
   fecha: z.string(),

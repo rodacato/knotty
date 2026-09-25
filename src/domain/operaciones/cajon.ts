@@ -1,7 +1,7 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
 import type { CaraRef, Pieza, Union } from '../diseno/esquema'
 import { parseFace, type Geometry } from '../diseno/resolve'
-import { materialPorId, type Catalogo, type Herraje } from '../materiales/catalogo'
+import { materialById, type Catalog, type Hardware } from '../materiales/catalog'
 import { error, type DesignError } from '../validation/errors'
 
 // Un cajón DIY con frente embutido y correderas telescópicas: caja de cuatro lados atornillada, fondo clavado abajo y frente al ras.
@@ -24,20 +24,20 @@ export interface PedidoCajon {
   materialFondo: string
 }
 
-export const correderas = (catalogo: Catalogo) =>
-  catalogo.herrajes.filter((h): h is Herraje & { largo: number; holguraLateral: number } => h.id.startsWith('corredera') && h.largo !== null && h.holguraLateral !== null)
+export const correderas = (catalogo: Catalog) =>
+  catalogo.herrajes.filter((h): h is Hardware & { largo: number; holguraLateral: number } => h.id.startsWith('corredera') && h.largo !== null && h.holguraLateral !== null)
 
 /** La corredera más larga que cabe en el fondo disponible. */
-export function correderaPara(profundidad: number, catalogo: Catalogo) {
+export function correderaPara(profundidad: number, catalogo: Catalog) {
   return correderas(catalogo)
     .filter((c) => c.largo <= profundidad - FONDO_LIBRE)
     .sort((a, b) => b.largo - a.largo)[0]
 }
 
 /** Las piezas y uniones del cajón, todas referidas a las caras del hueco para que se ajusten si el mueble cambia. */
-export function expandirCajon(c: PedidoCajon, geo: Geometry, catalogo: Catalogo): { piezas: Pieza[]; uniones: Union[] } | DesignError {
-  for (const m of [c.material, c.materialFondo]) if (!materialPorId(catalogo, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
-  const espesorFrente = materialPorId(catalogo, c.material)!.espesor
+export function expandirCajon(c: PedidoCajon, geo: Geometry, catalogo: Catalog): { piezas: Pieza[]; uniones: Union[] } | DesignError {
+  for (const m of [c.material, c.materialFondo]) if (!materialById(catalogo, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
+  const espesorFrente = materialById(catalogo, c.material)!.espesor
   const zFrente = geo.measure({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z')
   const zFondo = geo.measure({ tipo: 'ref', ref: c.fondo, mas: 0 }, 'z')
   // A drawer opens toward its front: forward as usual, or backward when the front is behind the bottom of the opening (the far side of a bed).

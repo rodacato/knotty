@@ -1,4 +1,4 @@
-import type { Catalogo } from '../../../domain/materiales/catalogo'
+import type { Catalog } from '../../../domain/materiales/catalog'
 import ajuste from '../prompts/ajuste.v6.md?raw'
 import ajusteFicha from '../prompts/ajuste-ficha.v3.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
@@ -29,7 +29,7 @@ export const ESQUELETO = leer(esqueleto)
 /** Standalone as well: editing the ficha needs the board thicknesses, not the piece rules. */
 export const AJUSTE_FICHA = leer(ajusteFicha)
 
-function describirCatalogo(c: Catalogo) {
+function describirCatalogo(c: Catalog) {
   return [
     'Materiales:',
     ...c.materiales.map((m) => `- ${m.id}: ${m.nombre}, ${m.espesor} mm (${m.tipo})`),
@@ -39,5 +39,5 @@ function describirCatalogo(c: Catalogo) {
 }
 
 /** Sistema + tarea: estable entre llamadas para aprovechar el caché del proveedor. */
-export const sistemaPara = (tarea: Prompt, catalogo: Catalogo) => `${SISTEMA.texto.replace('{{catalogo}}', describirCatalogo(catalogo))}\n\n${tarea.texto}`
+export const sistemaPara = (tarea: Prompt, catalogo: Catalog) => `${SISTEMA.texto.replace('{{catalogo}}', describirCatalogo(catalogo))}\n\n${tarea.texto}`
 export const idPrompt = (tarea: Prompt) => `${SISTEMA.id}+${tarea.id}`

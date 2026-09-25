@@ -4,7 +4,7 @@ import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Diseno } from '../../domain/diseno/esquema'
 import type { Geometry } from '../../domain/diseno/resolve'
-import type { Catalogo } from '../../domain/materiales/catalogo'
+import type { Catalog } from '../../domain/materiales/catalog'
 import { useTienda, type Vista } from '../tienda'
 import { DimensionLines } from './DimensionLines'
 import { Hardware } from './Hardware'
@@ -19,7 +19,7 @@ const MM = 0.001
 interface PropsEscena {
   diseno: Diseno
   geo: Geometry
-  catalogo: Catalogo
+  catalogo: Catalog
   /** Piezas nuevas de una propuesta: fantasma ámbar. */
   fantasmas: string[]
   /** Piezas que una propuesta cambia: aristas ámbar. */
