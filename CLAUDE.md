@@ -4,3 +4,4 @@
 - Medidas en milímetros. Arquitectura hexagonal: `src/arquitectura.test.ts` verifica las fronteras entre capas.
 - `docs/PROPUESTA.md` es el documento vivo: decisiones, fases y estado.
 - Antes de un PR: `npm run typecheck` y `npm test`. `npm run comparar` llama a proveedores reales y cuesta tokens: solo a mano.
+- Bitácora de depuración: `Ctrl+Shift+D` o `?debug` en la dirección muestra el botón «Bitácora»; «Exportar» baja un JSON con el commit, el experto (sin llaves), el diseño y todos los eventos. Captura siempre, aunque esté oculta.
