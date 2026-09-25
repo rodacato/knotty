@@ -3,10 +3,11 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import type { FaceRef, Position, Design, Piece, Joint } from '../design/schema'
 import { analyze } from '../analysis'
 import { completeJoints } from '../design/joints'
-import { materialById, type Catalog } from '../materials/catalog'
+import type { Catalog } from '../materials/catalog'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 import { Column } from '../reading/reading'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, panelOf, thicknessOf, type AddDrawer } from './common'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
@@ -34,8 +35,6 @@ export const CabinetPlan = z.object({
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 
 const BACK = 'TR6'
-const KICK_HEIGHT = 70
-const KICK_SETBACK = 30
 const GAP = 2
 const SHELF_SETBACK = 5
 const INSET_HINGE = 'cup-hinge-35-inset'
@@ -61,7 +60,7 @@ interface BuiltCabinet {
 
 export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
   const build = plan.construction
-  const t = materialById(catalog, plan.material)?.thickness ?? 18
+  const t = thicknessOf(catalog, plan.material)
   const half = t / 2
   const cells = plan.columns.flatMap((c) => c.cells)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
@@ -69,7 +68,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
   const backFace: FaceRef = build.back === 'nailed' ? 'back.z1' : 'furniture.z0'
   const depth = () => extent(ref(backFace), front)
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
+  const panel = panelOf(plan.material)
   const sideHeight = build.top === 'over' ? extent(ref('furniture.y0'), ref('top.y0')) : extent(ref('furniture.y0'), ref('furniture.y1'))
 
   const pieces: Piece[] = []
@@ -89,7 +88,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
         material: plan.material,
         normal: 'z',
         x: extent(ref('side-left.x1'), ref('side-right.x0')),
-        y: extent(ref('furniture.y0'), null, KICK_HEIGHT),
+        y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet),
         z: endAt(overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)),
       }),
     )
@@ -105,8 +104,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     pieces.push(panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -half)), y: extent(ref('bottom.y1'), ref('top.y0')), z: depth() })),
   )
 
-  const drawers: { operation: Extract<Operation, { op: 'addDrawer' }>; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
-  const notes: string[] = []
+  const drawers: { operation: AddDrawer; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
   plan.columns.forEach((column, i) => {
     const n = plan.columns.length
     const col = `c${i + 1}`
@@ -194,20 +192,17 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     pieces: pieces,
     joints: joints,
   }
-  // Drawers go one by one: one that does not fit leaves its cell open instead of failing the whole cabinet.
-  for (const drawer of drawers) {
-    const result = applyOperations(design, [drawer.operation], catalog)
-    if (!result.ok) {
-      notes.push(`${drawer.operation.name}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
-      continue
-    }
-    design = result.value.design
-    // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
-    if (build.drawerFronts === 'overlay') {
-      const frontId = `${drawer.operation.group}-front`
-      design = { ...design, pieces: design.pieces.map((p) => (p.id === frontId ? { ...p, x: drawer.overlay.x, y: drawer.overlay.y, z: endAt(ref('furniture.z1')) } : p)) }
-    }
+  const overlayOf = new Map(drawers.map((d) => [d.operation.group, d.overlay]))
+  // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
+  const withFronts = (built: Design, drawer: AddDrawer): Design => {
+    const overlay = overlayOf.get(drawer.group)
+    if (build.drawerFronts !== 'overlay' || !overlay) return built
+    const frontId = `${drawer.group}-front`
+    return { ...built, pieces: built.pieces.map((p) => (p.id === frontId ? { ...p, x: overlay.x, y: overlay.y, z: endAt(ref('furniture.z1')) } : p)) }
   }
+  const placed = addDrawers(design, drawers.map((d) => d.operation), catalog, withFronts)
+  design = placed.design
+  const notes = placed.notes
   // What a carpenter adds without being asked, each kept only if the design still holds with it:
   // on a kick, the floor rests on a support under each divider; hung on the wall, a rail at the top and back takes the screws.
   const extras: Operation[] = []

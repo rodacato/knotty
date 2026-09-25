@@ -1,11 +1,10 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent } from '../design/builders'
+import { startAt, partway, endAt, ref, extent } from '../design/builders'
 import type { FaceRef, Design, Piece } from '../design/schema'
 import { completeJoints } from '../design/joints'
-import { materialById, type Catalog } from '../materials/catalog'
-import { applyOperations } from '../operations/apply'
-import type { Operation } from '../operations/schema'
+import type { Catalog } from '../materials/catalog'
 import { MATTRESSES } from '../typology/typology'
+import { addDrawers, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
@@ -41,9 +40,6 @@ export type BedPlan = z.infer<typeof BedPlan>
 
 /** Room around the mattress so it goes in and comes out. */
 const MATTRESS_PLAY = 20
-const KICK_HEIGHT = 80
-/** The platform carries people: it needs something under it at least this often, and drawers are no wider. */
-const MAX_SPAN = 600
 /** A closed stretch of side shorter than this leaves too little joint for two screws. */
 const MIN_CLOSED_STRETCH = 120
 /** As wide as a drawer gets to fill its side: past it, the platform over the drawer bends more than it should. */
@@ -80,12 +76,12 @@ interface BuiltBed {
 }
 
 export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
-  const t = materialById(catalog, plan.material)?.thickness ?? 18
+  const t = thicknessOf(catalog, plan.material)
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
+  const panel = panelOf(plan.material)
   // The headboard is its own part: its floor is level with the platform but is not where the mattress goes.
-  const headboardPanel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => panel({ group: 'headboard', ...p })
+  const headboardPanel = (p: Parameters<typeof panel>[0]) => panel({ group: 'headboard', ...p })
   const pieces: Piece[] = []
   const notes: string[] = []
   const style = plan.headboard.style
@@ -136,7 +132,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   pieces.push(panel({ id: 'spine', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(ref('furniture.y0'), ref(under('left'))), z: startAt(ref('furniture.z0', middle - t / 2)), grain: 'length' }))
 
   // Each side: drawers between dividers, or a closed rail.
-  const drawers: Operation[] = []
+  const drawers: AddDrawer[] = []
   const inner = size.width - hd - t - (style === 'plain' ? 0 : deep ? 0 : t)
   for (const side of ['left', 'right'] as const) {
     const faceZ = side === 'left' ? endAt(ref('furniture.z1')) : startAt(ref('furniture.z0'))
@@ -144,7 +140,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const label = side === 'left' ? 'izquierdo' : 'derecho'
     /** Cross members over a closed stretch of the side, so the platform never spans more than it can. */
     const crossMembers = (from: number, to: number, span: number) => {
-      const count = Math.ceil((to - from) / (MAX_SPAN + t)) - 1
+      const count = supportsAcross(to - from, t)
       for (let k = 1; k <= count; k++)
         pieces.push(panel({ id: `rail-${side}-${span}-${k}`, name: `Travesaño ${label} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(ref('furniture.y0'), ref(under(side))), z: side === 'left' ? extent(ref('spine.z1'), ref(`side-${side}-${span}.z0`)) : extent(ref(`side-${side}-${span}.z1`), ref('spine.z0')) }))
     }
@@ -186,7 +182,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
       }
       edges.push(right)
       const bay = `${side}-${k}`
-      pieces.push(panel({ id: `kick-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('furniture.y0'), null, KICK_HEIGHT), grain: 'length' }))
+      pieces.push(panel({ id: `kick-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('furniture.y0'), null, KICK_HEIGHT.bed), grain: 'length' }))
       drawers.push({
         op: 'addDrawer',
         group: `drawer-${side}-${k}`,
@@ -208,7 +204,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     })
   }
 
-  let design: Design = {
+  const design: Design = {
     schema: 1,
     name: plan.name,
     dimensions: { width: size.width, height: size.height, depth: size.length },
@@ -217,13 +213,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     pieces: pieces,
     joints: [],
   }
-  for (const drawer of drawers) {
-    const result = applyOperations(design, [drawer], catalog)
-    if (!result.ok) {
-      notes.push(`${drawer.op === 'addDrawer' ? drawer.name : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
-      continue
-    }
-    design = result.value.design
-  }
-  return { design: completeJoints(design, catalog), notes }
+  const placed = addDrawers(design, drawers, catalog)
+  notes.push(...placed.notes)
+  return { design: completeJoints(placed.design, catalog), notes }
 }
