@@ -39,6 +39,9 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D28 | Reintentar sin perder nada: la captura se conserva si falla y el chat ofrece reenviar el último pedido. Las peticiones compatibles se cortan a los 5 min y SheLLM explica qué revisar si no conecta | Una espera larga que termina en «no se pudo conectar» obligaba a empezar de cero |
 | D29 | Hoja real de 2440 × 1218 mm (así la lista Home Depot MX) y refilado de 15 mm por orilla: hoja útil de 2410 × 1188 | Las orillas de fábrica llegan golpeadas; los optimizadores usan 5–6 mm por orilla en tablero de taller, y el triplay de tienda pide más sin tirar el 8 % que costarían 5 cm |
 | D30 | La lista de compra aparece después de una revisión: primero cuentas deterministas (medidas, hoja útil, estructura, tiras, boceto, margen) y luego el dictamen del carpintero (prompt `dictamen@1`). El carpintero puede endurecer el veredicto, nunca suavizarlo; si no contesta, valen las cuentas. Si no es viable, la lista se ve solo a propósito | Que nadie compre material para algo que matemáticamente no se puede armar o que tiene un error de origen |
+| D31 | Diseñar por pasos: lectura de cada foto (en paralelo y guardada), esqueleto de medidas y módulos, módulos convertidos en piezas por Knotty, reparación por reglas y, al final, detalles del experto. Cada paso guarda su resultado con la huella de lo que recibió y no se repite | La línea base con SheLLM mostró que casi todo el tiempo y el costo se iban en reescribir el diseño completo en cada reintento; en pasos chicos, cada uno se ve en cuanto llega |
+| D32 | Nunca tirar un diseño pagado: si los intentos no pasan la validación, se muestra el último con los problemas marcados y se corrige desde el chat | Tres intentos fallidos costaban ~$0.33 USD sin mostrar nada |
+| D33 | La interfaz, los textos para la persona y los prompts quedan en español; el código (nombres, archivos, lógica y comentarios) va en inglés. Lo nuevo nace en inglés y lo existente se migra un módulo por PR, con migración de formato para lo guardado | Pedido del autor el 2026-09-25 |
 | D20 | Llaves: no guardarlas, en la pestaña, o cifradas con frase (bóveda de ai-town). Al llegar, un aviso pide la frase o la llave que falte | Los pendientes de BYOK de ai-town `REVIEW-1.0.md` §3, adelantados de la fase 7 |
 
 ---
@@ -434,6 +437,32 @@ Grupo de piezas con correderas, reglas propias.
 ### Fase 7 — BYOK sólido y pulido
 
 Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` §3; modo oscuro, accesibilidad, rendimiento 3D, PWA opcional.
+
+### Fase 8 — Diseño por pasos
+
+Lo que mostró el comparativo con SheLLM (9 pedidos fijos, `npm run comparar`): los diseños salen válidos con medidas razonables, pero 4 de 9 necesitaron reintentos por piezas encimadas y cada reintento reescribe el diseño completo (60–90 s y ~$0.13 USD cada uno). La fase cambia un pedido grande por pasos chicos, con Knotty haciendo lo que se puede hacer sin modelo.
+
+| Paso | Quién | Qué ve la persona |
+|---|---|---|
+| 0. Forma aproximada por la descripción | Knotty | Silueta en boceto al instante, con frases de taller |
+| 1. Lectura de cada foto, en paralelo y guardada por huella | Modelo | «Mirando la foto 2 de 3…»; una foto que falla se reintenta sola |
+| 2. Esqueleto: medidas generales y módulos | Modelo, respuesta chica | Volúmenes en boceto |
+| 3. Módulos convertidos en piezas y reparación por reglas | Knotty | El mueble ya sólido |
+| 4. Uniones especiales, preguntas y sugerencias | Modelo, respuesta chica | El chat se llena |
+| 5. Dictamen antes de comprar | Modelo | Ya existe (D30) |
+
+- **Módulos**: como `agregarCajon`, el modelo elige el módulo y sus parámetros, y Knotty construye piezas, uniones y holguras; las piezas no se pueden encimar por construcción. Lo que no encaje en un módulo va como piezas libres, como hoy.
+- **Reparación por reglas**: piezas encimadas (se recorta la de menor jerarquía hasta la cara de la otra), piezas flotantes (se pegan al apoyo más cercano), uniones sin contacto (se quitan), medidas que no cierran. Solo lo que no tenga arreglo vuelve al modelo, con un pedido chico sobre esas piezas. Cada reparación queda anotada y se puede deshacer.
+- **Bitácora**: cada paso deja su renglón (qué se pidió, qué contestó, tiempo, tokens, errores, reparaciones), visible con «Ver qué pasó». Sirve para validar y afinar los prompts.
+- **Nunca tirar un diseño** (D32).
+
+Entregas, cada una útil por sí sola:
+1. Bitácora y nunca tirar un diseño.
+2. Reparación determinista de los errores comunes.
+3. Lectura de fotos en paralelo y guardada.
+4. Esqueleto y módulos con entrega por pasos, empezando por los módulos que piden los casos del comparativo: casco, cajonera, librero, base de cama y cabecera.
+
+Riesgos: el catálogo de módulos es el trabajo grande; las reparaciones pueden cambiar algo que el modelo quería así (por eso se anotan y se deshacen); juntar lecturas de varias fotos sin contar dos veces la misma pieza.
 
 ---
 
