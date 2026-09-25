@@ -14,8 +14,8 @@ const SEVERITY_LABEL = { critico: 'crítico', recomendacion: 'recomendación', d
 /** What the expert needs for a change, from the most stable to the most volatile; if it does not fit, the least needed is cut. */
 export function buildContext(state: DesignState, catalog: Catalog): string {
   const version = currentVersion(state)
-  const design = version.diseno
-  const analysis = analyze(design, catalog, state.requisitos)
+  const design = version.design
+  const analysis = analyze(design, catalog, state.requirements)
 
   const fixed: string[] = [`## Diseño actual (v${version.n})`, '```json', JSON.stringify(design), '```']
   if (analysis.valid) {
@@ -31,19 +31,19 @@ export function buildContext(state: DesignState, catalog: Catalog): string {
     )
   } else fixed.push('', '## Errores del diseño actual', ...analysis.errors.map((e) => `- ${e.code}: ${e.message}`))
 
-  fixed.push('', '## Requisitos del usuario', ...(state.requisitos.length ? state.requisitos.map((r) => `- [${r.id}] ${r.texto}`) : ['Ninguno todavía.']))
-  if (state.propuesta)
+  fixed.push('', '## Requisitos del usuario', ...(state.requirements.length ? state.requirements.map((r) => `- [${r.id}] ${r.text}`) : ['Ninguno todavía.']))
+  if (state.proposal)
     fixed.push(
       '',
       '## Propuesta pendiente (no aplicada)',
-      `"${state.propuesta.resumen}" por el pedido "${state.propuesta.motivo}". Operaciones: ${JSON.stringify(state.propuesta.operaciones)}`,
-      ...state.propuesta.criticos.map((c) => `- Crítico ${c.codigo} ${c.piezas.join(', ')}: ${c.mensaje}`),
+      `"${state.proposal.summary}" por el pedido "${state.proposal.reason}". Operaciones: ${JSON.stringify(state.proposal.operations)}`,
+      ...state.proposal.critical.map((c) => `- Crítico ${c.code} ${c.pieces.join(', ')}: ${c.message}`),
       'Si el usuario elige una opción, responde con las operaciones completas sobre el diseño actual: las de la propuesta más la solución.',
     )
 
-  let decisions = state.decisiones.map((d) => `- ${d.tema}: ${d.texto}`)
-  let log = compactLog(state.versiones)
-  let chat = state.chat.slice(-RECENT_MESSAGES).map((m) => `${m.autor === 'usuario' ? 'Usuario' : 'Experto'}: ${m.texto}`)
+  let decisions = state.decisions.map((d) => `- ${d.topic}: ${d.text}`)
+  let log = compactLog(state.versions)
+  let chat = state.chat.slice(-RECENT_MESSAGES).map((m) => `${m.author === 'user' ? 'Usuario' : 'Experto'}: ${m.text}`)
 
   const assemble = () =>
     [...fixed, '', '## Decisiones de diseño', ...(decisions.length ? decisions : ['Ninguna todavía.']), '', '## Bitácora de cambios', ...log, '', '## Conversación reciente', ...chat].join('\n')

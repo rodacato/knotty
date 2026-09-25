@@ -45,7 +45,7 @@ const TITLES: Record<string, string> = {
 }
 const RANK = { critico: 0, decision: 1, recomendacion: 2, detalle: 3 }
 
-const named = (design: Design, text: string) => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
+const named = (design: Design, text: string) => design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
 
 /** Findings of the same rule and severity read as one notice, with all their pieces. */
 function findingNotices(findings: Finding[]): Notice[] {
@@ -75,10 +75,10 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog): Notice
       severity: 'critico',
       title: 'Problemas sin resolver',
       message: analysis.errors.map((e) => named(design, e.message)).join(' '),
-      pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
+      pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.pieces.some((p) => p.id === v))))],
       findings: [],
     })
-  for (const e of checkRequirements(design, state.requisitos))
+  for (const e of checkRequirements(design, state.requirements))
     notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
   if (analysis.valid) notices.push(...findingNotices(analysis.findings))
   return notices
@@ -92,33 +92,33 @@ export function noticeBoard(state: DesignState, catalog: Catalog): NoticeBoard {
   const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))
 
   const extra: Notice[] = []
-  if (state.propuesta)
+  if (state.proposal)
     extra.push({
       key: 'proposal',
       kind: 'proposal',
       severity: 'decision',
       title: 'Propuesta del experto sin aplicar',
-      message: [...state.propuesta.holds, ...state.propuesta.criticos.map((c) => c.mensaje)].join(' ') || state.propuesta.resumen,
-      pieces: state.propuesta.criticos.flatMap((c) => c.piezas),
+      message: [...state.proposal.holds, ...state.proposal.critical.map((c) => c.message)].join(' ') || state.proposal.summary,
+      pieces: state.proposal.critical.flatMap((c) => c.pieces),
       findings: [],
     })
   for (const m of state.chat) {
-    if (m.autor !== 'experto' || m.respondida || m.propuesta === 'pendiente') continue
-    m.preguntas.forEach((q, index) => {
-      if (!q.opciones || m.respuestas.includes(`p${index}`)) return
-      extra.push({ key: `question:${m.id}:${index}`, kind: 'question', severity: 'decision', title: 'Pregunta del experto', message: q.texto, pieces: [], findings: [], question: { messageId: m.id, index } })
+    if (m.author !== 'expert' || m.answered || m.proposal === 'pending') continue
+    m.questions.forEach((q, index) => {
+      if (!q.options || m.answers.includes(`p${index}`)) return
+      extra.push({ key: `question:${m.id}:${index}`, kind: 'question', severity: 'decision', title: 'Pregunta del experto', message: q.text, pieces: [], findings: [], question: { messageId: m.id, index } })
     })
   }
 
-  const ordered = [...state.versiones].sort((a, b) => a.n - b.n)
-  const before = ordered[ordered.findIndex((v) => v.n === state.actual) - 1]
+  const ordered = [...state.versions].sort((a, b) => a.n - b.n)
+  const before = ordered[ordered.findIndex((v) => v.n === state.current) - 1]
   const now = new Set(all.flatMap((n) => n.findings.map(findingKey)))
   const resolved = before
-    ? noticesOf(state, before.diseno, catalog)
+    ? noticesOf(state, before.design, catalog)
         .filter((n) => n.kind === 'finding')
         .flatMap((n) => {
           const gone = n.findings.filter((h) => !now.has(findingKey(h)))
-          const names = [...new Set(gone.flatMap((h) => h.pieces.map((id) => before.diseno.piezas.find((p) => p.id === id)?.nombre ?? id)))]
+          const names = [...new Set(gone.flatMap((h) => h.pieces.map((id) => before.design.pieces.find((p) => p.id === id)?.name ?? id)))]
           return gone.length ? [`${n.title}${names.length ? `: ${names.join(', ')}` : ''}`] : []
         })
     : []
