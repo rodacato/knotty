@@ -1,302 +1,302 @@
 {
-  "materiales": [
+  "materials": [
     {
       "id": "T12",
-      "nombre": "Triplay de pino 12 mm",
-      "tipo": "triplay",
-      "espesor": 12,
-      "hoja": {
-        "largo": 2440,
-        "ancho": 1218
+      "name": "Triplay de pino 12 mm",
+      "type": "plywood",
+      "thickness": 12,
+      "sheet": {
+        "length": 2440,
+        "width": 1218
       },
       "sku": null,
-      "precio": 720
+      "price": 720
     },
     {
       "id": "T15",
-      "nombre": "Triplay de pino 15 mm",
-      "tipo": "triplay",
-      "espesor": 15,
-      "hoja": {
-        "largo": 2440,
-        "ancho": 1218
+      "name": "Triplay de pino 15 mm",
+      "type": "plywood",
+      "thickness": 15,
+      "sheet": {
+        "length": 2440,
+        "width": 1218
       },
       "sku": null,
-      "precio": 860
+      "price": 860
     },
     {
       "id": "T18",
-      "nombre": "Triplay de pino 18 mm",
-      "tipo": "triplay",
-      "espesor": 18,
-      "hoja": {
-        "largo": 2440,
-        "ancho": 1218
+      "name": "Triplay de pino 18 mm",
+      "type": "plywood",
+      "thickness": 18,
+      "sheet": {
+        "length": 2440,
+        "width": 1218
       },
       "sku": null,
-      "precio": 1050
+      "price": 1050
     },
     {
       "id": "TR3",
-      "nombre": "Triplay de pino 3 mm (trasera)",
-      "tipo": "trasera",
-      "espesor": 3,
-      "hoja": {
-        "largo": 2440,
-        "ancho": 1218
+      "name": "Triplay de pino 3 mm (trasera)",
+      "type": "back",
+      "thickness": 3,
+      "sheet": {
+        "length": 2440,
+        "width": 1218
       },
       "sku": null,
-      "precio": 330
+      "price": 330
     },
     {
       "id": "TR6",
-      "nombre": "Triplay de pino 6 mm (trasera)",
-      "tipo": "trasera",
-      "espesor": 6,
-      "hoja": {
-        "largo": 2440,
-        "ancho": 1218
+      "name": "Triplay de pino 6 mm (trasera)",
+      "type": "back",
+      "thickness": 6,
+      "sheet": {
+        "length": 2440,
+        "width": 1218
       },
       "sku": null,
-      "precio": 480
+      "price": 480
     }
   ],
-  "herrajes": [
+  "hardware": [
     {
-      "id": "tornillo-8x1",
-      "nombre": "Tornillo para madera #8 × 1\"",
-      "unidad": "pieza",
-      "porPaquete": 50,
-      "largo": 25.4,
-      "holguraLateral": null,
+      "id": "screw-8x1",
+      "name": "Tornillo para madera #8 × 1\"",
+      "unit": "piece",
+      "perPack": 50,
+      "length": 25.4,
+      "sideClearance": null,
       "sku": null,
-      "precio": 58
+      "price": 58
     },
     {
-      "id": "tornillo-8x1-1/4",
-      "nombre": "Tornillo para madera #8 × 1¼\"",
-      "unidad": "pieza",
-      "porPaquete": 50,
+      "id": "screw-8x1-1/4",
+      "name": "Tornillo para madera #8 × 1¼\"",
+      "unit": "piece",
+      "perPack": 50,
+      "length": 31.75,
+      "sideClearance": null,
       "sku": null,
-      "precio": 65,
-      "largo": 31.75,
-      "holguraLateral": null
+      "price": 65
     },
     {
-      "id": "tornillo-8x1-1/2",
-      "nombre": "Tornillo para madera #8 × 1½\"",
-      "unidad": "pieza",
-      "porPaquete": 50,
+      "id": "screw-8x1-1/2",
+      "name": "Tornillo para madera #8 × 1½\"",
+      "unit": "piece",
+      "perPack": 50,
+      "length": 38.1,
+      "sideClearance": null,
       "sku": null,
-      "precio": 75,
-      "largo": 38.1,
-      "holguraLateral": null
+      "price": 75
     },
     {
-      "id": "tornillo-8x2",
-      "nombre": "Tornillo para madera #8 × 2\"",
-      "unidad": "pieza",
-      "porPaquete": 50,
+      "id": "screw-8x2",
+      "name": "Tornillo para madera #8 × 2\"",
+      "unit": "piece",
+      "perPack": 50,
+      "length": 50.8,
+      "sideClearance": null,
       "sku": null,
-      "precio": 85,
-      "largo": 50.8,
-      "holguraLateral": null
+      "price": 85
     },
     {
-      "id": "tornillo-bolsillo-1-1/4",
-      "nombre": "Tornillo de bolsillo 1¼\" rosca gruesa",
-      "unidad": "pieza",
-      "porPaquete": 100,
+      "id": "pocket-screw-1-1/4",
+      "name": "Tornillo de bolsillo 1¼\" rosca gruesa",
+      "unit": "piece",
+      "perPack": 100,
+      "length": 31.75,
+      "sideClearance": null,
       "sku": null,
-      "precio": 180,
-      "largo": 31.75,
-      "holguraLateral": null
+      "price": 180
     },
     {
-      "id": "tarugo-8x40",
-      "nombre": "Tarugo de madera 8 × 40 mm",
-      "unidad": "pieza",
-      "porPaquete": 50,
+      "id": "dowel-8x40",
+      "name": "Tarugo de madera 8 × 40 mm",
+      "unit": "piece",
+      "perPack": 50,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 45,
-      "largo": null,
-      "holguraLateral": null
+      "price": 45
     },
     {
-      "id": "minifix-15",
-      "nombre": "Minifix 15 mm con perno",
-      "unidad": "pieza",
-      "porPaquete": null,
+      "id": "cam-lock-15",
+      "name": "Minifix 15 mm con perno",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 12,
-      "largo": null,
-      "holguraLateral": null
+      "price": 12
     },
     {
-      "id": "soporte-repisa-5",
-      "nombre": "Soporte de repisa 5 mm",
-      "unidad": "pieza",
-      "porPaquete": 20,
+      "id": "shelf-pin-5",
+      "name": "Soporte de repisa 5 mm",
+      "unit": "piece",
+      "perPack": 20,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 55,
-      "largo": null,
-      "holguraLateral": null
+      "price": 55
     },
     {
-      "id": "bisagra-cazoleta-35-recta",
-      "nombre": "Bisagra de cazoleta 35 mm recta",
-      "unidad": "pieza",
-      "porPaquete": 2,
+      "id": "cup-hinge-35-full",
+      "name": "Bisagra de cazoleta 35 mm recta",
+      "unit": "piece",
+      "perPack": 2,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 95,
-      "largo": null,
-      "holguraLateral": null
+      "price": 95
     },
     {
-      "id": "bisagra-cazoleta-35-codo",
-      "nombre": "Bisagra de cazoleta 35 mm codo",
-      "unidad": "pieza",
-      "porPaquete": 2,
+      "id": "cup-hinge-35-half",
+      "name": "Bisagra de cazoleta 35 mm codo",
+      "unit": "piece",
+      "perPack": 2,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 95,
-      "largo": null,
-      "holguraLateral": null
+      "price": 95
     },
     {
-      "id": "bisagra-cazoleta-35-supercodo",
-      "nombre": "Bisagra de cazoleta 35 mm súper codo",
-      "unidad": "pieza",
-      "porPaquete": 2,
+      "id": "cup-hinge-35-inset",
+      "name": "Bisagra de cazoleta 35 mm súper codo",
+      "unit": "piece",
+      "perPack": 2,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 95,
-      "largo": null,
-      "holguraLateral": null
+      "price": 95
     },
     {
-      "id": "corredera-telescopica-30",
-      "nombre": "Corredera telescópica 30 cm (par)",
-      "unidad": "pieza",
-      "porPaquete": null,
-      "largo": 300,
-      "holguraLateral": 12.7,
+      "id": "drawer-slide-30",
+      "name": "Corredera telescópica 30 cm (par)",
+      "unit": "piece",
+      "perPack": null,
+      "length": 300,
+      "sideClearance": 12.7,
       "sku": null,
-      "precio": 180
+      "price": 180
     },
     {
-      "id": "corredera-telescopica-35",
-      "nombre": "Corredera telescópica 35 cm (par)",
-      "unidad": "pieza",
-      "porPaquete": null,
-      "largo": 350,
-      "holguraLateral": 12.7,
+      "id": "drawer-slide-35",
+      "name": "Corredera telescópica 35 cm (par)",
+      "unit": "piece",
+      "perPack": null,
+      "length": 350,
+      "sideClearance": 12.7,
       "sku": null,
-      "precio": 200
+      "price": 200
     },
     {
-      "id": "corredera-telescopica-40",
-      "nombre": "Corredera telescópica 40 cm (par)",
-      "unidad": "pieza",
-      "porPaquete": null,
-      "largo": 400,
-      "holguraLateral": 12.7,
+      "id": "drawer-slide-40",
+      "name": "Corredera telescópica 40 cm (par)",
+      "unit": "piece",
+      "perPack": null,
+      "length": 400,
+      "sideClearance": 12.7,
       "sku": null,
-      "precio": 220
+      "price": 220
     },
     {
-      "id": "corredera-telescopica-45",
-      "nombre": "Corredera telescópica 45 cm (par)",
-      "unidad": "pieza",
-      "porPaquete": null,
-      "largo": 450,
-      "holguraLateral": 12.7,
+      "id": "drawer-slide-45",
+      "name": "Corredera telescópica 45 cm (par)",
+      "unit": "piece",
+      "perPack": null,
+      "length": 450,
+      "sideClearance": 12.7,
       "sku": null,
-      "precio": 245
+      "price": 245
     },
     {
-      "id": "corredera-telescopica-50",
-      "nombre": "Corredera telescópica 50 cm (par)",
-      "unidad": "pieza",
-      "porPaquete": null,
-      "largo": 500,
-      "holguraLateral": 12.7,
+      "id": "drawer-slide-50",
+      "name": "Corredera telescópica 50 cm (par)",
+      "unit": "piece",
+      "perPack": null,
+      "length": 500,
+      "sideClearance": 12.7,
       "sku": null,
-      "precio": 270
+      "price": 270
     },
     {
-      "id": "escuadra-1-1/2",
-      "nombre": "Escuadra metálica 1½\"",
-      "unidad": "pieza",
-      "porPaquete": null,
+      "id": "bracket-1-1/2",
+      "name": "Escuadra metálica 1½\"",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 12,
-      "largo": null,
-      "holguraLateral": null
+      "price": 12
     },
     {
-      "id": "clavo-sin-cabeza-1",
-      "nombre": "Clavo sin cabeza 1\"",
-      "unidad": "pieza",
-      "porPaquete": 100,
+      "id": "brad-nail-1",
+      "name": "Clavo sin cabeza 1\"",
+      "unit": "piece",
+      "perPack": 100,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 35,
-      "largo": null,
-      "holguraLateral": null
+      "price": 35
     },
     {
-      "id": "pegamento-blanco",
-      "nombre": "Pegamento blanco para madera",
-      "unidad": "frasco",
-      "porPaquete": null,
+      "id": "white-glue",
+      "name": "Pegamento blanco para madera",
+      "unit": "jar",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 110,
-      "largo": null,
-      "holguraLateral": null
+      "price": 110
     },
     {
-      "id": "cubrecanto-19",
-      "nombre": "Cubrecanto de pino 19 mm",
-      "unidad": "metro",
-      "porPaquete": null,
+      "id": "edge-banding-19",
+      "name": "Cubrecanto de pino 19 mm",
+      "unit": "meter",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 12,
-      "largo": null,
-      "holguraLateral": null
+      "price": 12
     },
     {
-      "id": "pata-niveladora",
-      "nombre": "Pata niveladora",
-      "unidad": "pieza",
-      "porPaquete": null,
+      "id": "leveling-foot",
+      "name": "Pata niveladora",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 28,
-      "largo": null,
-      "holguraLateral": null
+      "price": 28
     },
     {
-      "id": "jaladera",
-      "nombre": "Jaladera",
-      "unidad": "pieza",
-      "porPaquete": null,
+      "id": "handle",
+      "name": "Jaladera",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 45,
-      "largo": null,
-      "holguraLateral": null
+      "price": 45
     },
     {
-      "id": "kit-antivuelco",
-      "nombre": "Kit antivuelco para muro",
-      "unidad": "pieza",
-      "porPaquete": null,
+      "id": "anti-tip-kit",
+      "name": "Kit antivuelco para muro",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
       "sku": null,
-      "precio": 90,
-      "largo": null,
-      "holguraLateral": null
+      "price": 90
     }
   ],
-  "acomodo": {
-    "refilado": 15,
-    "sierra": 4,
-    "holgura": 2
+  "layout": {
+    "trim": 15,
+    "kerf": 4,
+    "clearance": 2
   },
-  "notaPrecios": "Los estimó Knotty en septiembre de 2026, no vienen de Home Depot y no se actualizan solos; cambian por sucursal, marca y fecha."
+  "priceNote": "Los estimó Knotty en septiembre de 2026, no vienen de Home Depot y no se actualizan solos; cambian por sucursal, marca y fecha."
 }

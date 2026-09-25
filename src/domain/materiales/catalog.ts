@@ -1,63 +1,63 @@
 import { z } from 'zod'
 
 // The catalog is data, not code: it loads from public/catalogo/*.json and the person can override prices.
-// Its field names are the JSON's and stay in Spanish until the data moves to English (step 9).
+// Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
 
 export const BoardMaterial = z.object({
   id: z.string(),
-  nombre: z.string(),
-  tipo: z.enum(['triplay', 'trasera']),
-  espesor: z.number().positive(),
-  hoja: z.object({ largo: z.number().positive(), ancho: z.number().positive() }),
+  name: z.string(),
+  type: z.enum(['plywood', 'back']),
+  thickness: z.number().positive(),
+  sheet: z.object({ length: z.number().positive(), width: z.number().positive() }),
   sku: z.string().nullable(),
-  precio: z.number().nonnegative().nullable(),
+  price: z.number().nonnegative().nullable(),
 })
 export type BoardMaterial = z.infer<typeof BoardMaterial>
 
 export const Hardware = z.object({
   id: z.string(),
-  nombre: z.string(),
-  unidad: z.enum(['pieza', 'paquete', 'metro', 'frasco']),
-  porPaquete: z.number().int().positive().nullable(),
-  largo: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
-  holguraLateral: z.number().nonnegative().nullable().default(null).describe('Slides: space per side between the drawer and the furniture'),
+  name: z.string(),
+  unit: z.enum(['piece', 'pack', 'meter', 'jar']),
+  perPack: z.number().int().positive().nullable(),
+  length: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
+  sideClearance: z.number().nonnegative().nullable().default(null).describe('Slides: space per side between the drawer and the furniture'),
   sku: z.string().nullable(),
-  precio: z.number().nonnegative().nullable(),
+  price: z.number().nonnegative().nullable(),
 })
 export type Hardware = z.infer<typeof Hardware>
 
 export const LayoutSettings = z.object({
-  refilado: z.number().nonnegative().describe('Factory edge trimmed per side'),
-  sierra: z.number().nonnegative().describe('Width of the cut'),
-  holgura: z.number().nonnegative().describe('Clearance per piece'),
+  trim: z.number().nonnegative().describe('Factory edge trimmed per side'),
+  kerf: z.number().nonnegative().describe('Width of the cut'),
+  clearance: z.number().nonnegative().describe('Clearance per piece'),
 })
 export type LayoutSettings = z.infer<typeof LayoutSettings>
 
 export const Catalog = z.object({
-  materiales: z.array(BoardMaterial).min(1),
-  herrajes: z.array(Hardware),
-  acomodo: LayoutSettings,
-  notaPrecios: z.string().nullable().default(null),
+  materials: z.array(BoardMaterial).min(1),
+  hardware: z.array(Hardware),
+  layout: LayoutSettings,
+  priceNote: z.string().nullable().default(null),
 })
 export type Catalog = z.infer<typeof Catalog>
 
-export const materialById = (catalog: Catalog, id: string) => catalog.materiales.find((m) => m.id === id)
+export const materialById = (catalog: Catalog, id: string) => catalog.materials.find((m) => m.id === id)
 
 /** The sheet without its factory edge: the most a piece can measure without joining boards. */
 export const usableSheet = (catalog: Catalog, material: BoardMaterial) => ({
-  largo: material.hoja.largo - 2 * catalog.acomodo.refilado,
-  ancho: material.hoja.ancho - 2 * catalog.acomodo.refilado,
+  length: material.sheet.length - 2 * catalog.layout.trim,
+  width: material.sheet.width - 2 * catalog.layout.trim,
 })
 
 /** What the person changes in the catalog on their device: their store's prices and cutting settings. */
 export interface CatalogSettings {
-  precios: Record<string, number | null>
-  acomodo: LayoutSettings | null
+  prices: Record<string, number | null>
+  layout: LayoutSettings | null
 }
 
-export const NO_SETTINGS: CatalogSettings = { precios: {}, acomodo: null }
+export const NO_SETTINGS: CatalogSettings = { prices: {}, layout: null }
 
 export function applySettings(c: Catalog, a: CatalogSettings): Catalog {
-  const priced = <T extends { id: string; precio: number | null }>(x: T): T => (x.id in a.precios ? { ...x, precio: a.precios[x.id] } : x)
-  return { ...c, materiales: c.materiales.map(priced), herrajes: c.herrajes.map(priced), acomodo: a.acomodo ?? c.acomodo }
+  const priced = <T extends { id: string; price: number | null }>(x: T): T => (x.id in a.prices ? { ...x, price: a.prices[x.id] } : x)
+  return { ...c, materials: c.materials.map(priced), hardware: c.hardware.map(priced), layout: a.layout ?? c.layout }
 }
