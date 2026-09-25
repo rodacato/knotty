@@ -3,7 +3,7 @@ import { catalogo } from '../../domain/fixtures/catalogo.test-util'
 import { librero } from '../../domain/fixtures/librero'
 import { crearCompatible } from './compatibleOpenAI'
 
-const respuesta = { explicacion: 'Veo un librero', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [] }
+const respuesta = { explicacion: 'Veo un librero', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
 const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: librero.dimensiones, fotos, notas: '', catalogo, correccion: null })
@@ -74,6 +74,11 @@ describe('crearCompatible', () => {
   it('un 413 sin fotos no se puede resolver quitándolas: se reporta', async () => {
     vi.stubGlobal('fetch', async () => rechazo('Payload Too Large', 413))
     await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow('413')
+  })
+
+  it('si SheLLM no responde, dice qué revisar: que esté corriendo y el origen en su CORS', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))))
+    await expect(nueva().reconstruir(solicitud(), new AbortController().signal)).rejects.toThrow(/SheLLM en http:\/\/127\.0\.0\.1:\d+.*SHELLM_CORS_ORIGINS/)
   })
 
   it('manda la llave solo si hay', async () => {

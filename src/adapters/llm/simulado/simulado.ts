@@ -18,6 +18,7 @@ const espera = (ms: number, signal: AbortSignal) =>
 const respuesta = <T>(valor: T): Respuesta<T> => ({ valor, origen: ORIGEN, consumo: {} })
 
 const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'explicacion' | 'resumen'>): RespuestaAjuste => ({
+  sugerencias: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Agrega un cajón abajo'],
   operaciones: [],
   preguntas: [],
   fotosSolicitadas: [],
@@ -27,11 +28,21 @@ const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'expli
   ...parcial,
 })
 
-function elegirFixture(ancho: number, alto: number, descripcion = ''): Diseno {
+/** El simulado solo conoce sus tres muebles de ejemplo; ante otra cosa lo dice en vez de inventar un librero. */
+export class MuebleDesconocido extends Error {
+  constructor() {
+    super('El modo simulado solo sabe armar libreros, burós y alacenas de ejemplo. Para diseñar este mueble conecta un experto real (Claude, OpenAI o SheLLM) en el engrane.')
+  }
+}
+
+function elegirFixture(medidas: { ancho: number; alto: number } | null, descripcion = ''): Diseno {
   const d = descripcion.toLowerCase()
   if (/librer|repisa|libros/.test(d)) return librero
   if (/bur[oó]|mesa de noche|mesita/.test(d)) return buro
   if (/alacena|gabinete|puertas/.test(d)) return alacena
+  if (d.trim()) throw new MuebleDesconocido()
+  if (!medidas) return librero
+  const { ancho, alto } = medidas
   if (alto > ancho * 1.8) return librero
   if (alto < 650) return buro
   return alacena
@@ -206,15 +217,15 @@ export function crearSimulado(retraso = 900): LLMProvider {
     async reconstruir(s, signal) {
       await espera(retraso * 2, signal)
       const sinFotos = s.fotos.length === 0
-      const base = elegirFixture(s.medidas.ancho, s.medidas.alto, s.notas)
-      const diseno = { ...structuredClone(base), dimensiones: s.medidas }
+      const base = elegirFixture(s.medidas, s.notas)
+      const diseno = { ...structuredClone(base), dimensiones: s.medidas ?? base.dimensiones }
       const trasera = diseno.piezas.find((p) => p.id === 'trasera')
       if (trasera) trasera.confianza = 'baja'
       const quiereCajon = /caj[oó]n/i.test(s.notas) && base === librero
       const detalle = `${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)}`
       const valor: RespuestaReconstruccion = {
         explicacion: sinFotos
-          ? `Con tu descripción armé un ${base.nombre.toLowerCase()} de triplay con tus medidas: ${detalle} No dijiste cómo va la trasera, así que la dejé en boceto.${quiereCajon ? ' El cajón lo agrego en cuanto me confirmes.' : ''}`
+          ? `Con tu descripción armé un ${base.nombre.toLowerCase()} de triplay${s.medidas ? ' con tus medidas' : ''}: ${detalle} No dijiste cómo va la trasera, así que la dejé en boceto.${quiereCajon ? ' El cajón lo agrego en cuanto me confirmes.' : ''}`
           : `Veo un ${base.nombre.toLowerCase()} de triplay. Lo armé con tus medidas; ${detalle} No alcanzo a ver cómo va la trasera, así que la dejé en boceto.`,
         diseno,
         preguntas: [
@@ -225,6 +236,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
         ],
         fotosSolicitadas: sinFotos || s.fotos.some((f) => f.angulo === 'interior') ? [] : [{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }],
         requisitos: [],
+        sugerencias: ['Que aguante libros pesados', 'Hazlo de 90 cm de ancho', 'Hazlo de 50 cm de fondo'],
       }
       return respuesta(valor)
     },

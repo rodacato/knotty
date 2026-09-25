@@ -31,6 +31,8 @@ export const Mensaje = z.object({
   miniatura: z.string().nullable().default(null),
   /** Qué preguntas ("p0") y fotos ("f:interior") de este mensaje ya se respondieron; con todas, queda `respondida`. */
   respuestas: z.array(z.string()).default([]),
+  /** Siguientes pasos que el experto sugiere; se muestran como botones bajo su último mensaje. */
+  sugerencias: z.array(z.string()).default([]),
 })
 
 /** Clave de lo que se responde dentro de un mensaje del experto. */

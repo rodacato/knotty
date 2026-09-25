@@ -31,13 +31,15 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
     id: t.proveedor,
     etiqueta,
     async reconstruir(s: SolicitudReconstruccion, signal) {
-      const { ancho, alto, fondo } = s.medidas
+      const medidas = s.medidas
+        ? `Medidas del mueble: ancho ${s.medidas.ancho} mm, alto ${s.medidas.alto} mm, fondo ${s.medidas.fondo} mm.`
+        : 'La persona no sabe las medidas: propón unas típicas para ese mueble en `dimensiones` y dilo en la explicación.'
       const contenido: Contenido[] = [
         {
           tipo: 'texto',
           texto: s.fotos.length
-            ? `Medidas del mueble: ancho ${ancho} mm, alto ${alto} mm, fondo ${fondo} mm.${s.notas ? `\nNotas de la persona: ${s.notas}` : ''}`
-            : `Medidas del mueble: ancho ${ancho} mm, alto ${alto} mm, fondo ${fondo} mm.\nNo hay fotos: diseña a partir de esta descripción de la persona.\nDescripción: ${s.notas || '(sin descripción)'}`,
+            ? `${medidas}${s.notas ? `\nNotas de la persona: ${s.notas}` : ''}`
+            : `${medidas}\nNo hay fotos: diseña a partir de esta descripción de la persona.\nDescripción: ${s.notas || '(sin descripción)'}`,
         },
         ...s.fotos.flatMap((f, i): Contenido[] => [
           { tipo: 'texto', texto: `Foto ${i + 1}: ${f.angulo}` },

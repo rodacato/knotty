@@ -36,6 +36,13 @@ export interface FotoEnviada {
 }
 const listarErrores = (errores: ErrorDiseno[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
 
+/** Lo que la persona pidió al empezar, como primer mensaje del chat. */
+function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; notas: string }) {
+  const medidas = entrada.medidas ? `Mide ${entrada.medidas.alto} × ${entrada.medidas.ancho} × ${entrada.medidas.fondo} mm (alto, ancho, fondo).` : 'No sé las medidas.'
+  const fotos = entrada.fotos.length ? `Te mando ${entrada.fotos.length === 1 ? 'una foto' : `${entrada.fotos.length} fotos`} (${entrada.fotos.map((f) => f.angulo).join(', ')}).` : ''
+  return [entrada.notas.trim(), fotos, medidas].filter(Boolean).join('\n\n')
+}
+
 /** Si el experto no ofreció opciones ante un crítico, se ofrecen las alternativas que calculó el motor. */
 function preguntaDeAlternativas(criticos: Hallazgo[]): Pregunta[] {
   const opciones = [...new Set(criticos.flatMap((h) => h.alternativas.filter((a) => a.clave !== 'claro-maximo').map((a) => a.descripcion)))].slice(0, 3)
@@ -63,6 +70,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     fotosPedidas: [],
     miniatura: null,
     respuestas: [],
+    sugerencias: [],
     ...extra,
   })
 
@@ -83,7 +91,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   async function reconstruir(
-    entrada: { medidas: Dimensiones; fotos: Foto[]; miniaturas: Miniatura[]; notas: string },
+    entrada: { medidas: Dimensiones | null; fotos: Foto[]; miniaturas: Miniatura[]; notas: string },
     signal: AbortSignal,
     alAvanzar: AlAvanzar = () => {},
   ): Promise<EstadoDiseno> {
@@ -101,26 +109,40 @@ export function crearCasosDeUso(deps: Dependencias) {
       }
       alAvanzar('revisando', intento)
       const r = respuesta.valor
-      const diseno = normalizar({ ...r.diseno, dimensiones: entrada.medidas }, catalogo)
+      const diseno = normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo)
       const analisis = analizar(diseno, catalogo, r.requisitos)
       if (!analisis.valido) {
         correccion = { respuestaAnterior: r, errores: analisis.errores }
         continue
       }
       alAvanzar('estructura', intento)
+      const { ancho, alto, fondo } = diseno.dimensiones
+      const estimadas = entrada.medidas ? [] : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
       return guardar({
         formato: 1,
-        medidas: entrada.medidas,
-        versiones: [{ n: 1, diseno, resumen: 'Reconstrucción desde fotos', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [] }],
+        medidas: diseno.dimensiones,
+        versiones: [{ n: 1, diseno, resumen: entrada.fotos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [] }],
         actual: 1,
         requisitos: r.requisitos,
         decisiones: [],
-        chat: [mensaje('experto', [r.explicacion, ...(respuesta.avisos ?? [])].join('\n\n'), { preguntas: r.preguntas.slice(0, 3), fotosPedidas: r.fotosSolicitadas.slice(0, 2), version: 1 })],
+        chat: [
+          mensaje('usuario', pedidoInicial(entrada), { miniatura: entrada.miniaturas[0]?.dataUrl ?? null }),
+          mensaje('experto', [r.explicacion, ...estimadas, ...(respuesta.avisos ?? [])].join('\n\n'), {
+            preguntas: r.preguntas.slice(0, 3),
+            fotosPedidas: r.fotosSolicitadas.slice(0, 2),
+            sugerencias: r.sugerencias.slice(0, 4),
+            version: 1,
+          }),
+        ],
         miniaturas: entrada.miniaturas,
         propuesta: null,
       })
     }
-    throw new ErrorExperto('No logré armar un modelo coherente con estas fotos. Prueba con otra toma de frente y una de 3/4 con buena luz.')
+    throw new ErrorExperto(
+      entrada.fotos.length
+        ? 'No logré armar un modelo coherente con estas fotos. Prueba con otra toma de frente y una de 3/4 con buena luz.'
+        : 'No logré armar un modelo coherente con esa descripción. Prueba contando qué es, sus partes principales (repisas, puertas, cajones) y para qué lo vas a usar.',
+    )
   }
 
   async function ajustar(
@@ -163,7 +185,8 @@ export function crearCasosDeUso(deps: Dependencias) {
         const decisiones = actualizarDecisiones(conPeticion.decisiones, r.decisiones)
         const base = { ...conPeticion, requisitos, decisiones }
         const fotosPedidas = r.fotosSolicitadas.slice(0, 2)
-        if (!r.operaciones.length) return responder(r.explicacion, { preguntas: r.preguntas, fotosPedidas }, base)
+        const sugerencias = r.sugerencias.slice(0, 4)
+        if (!r.operaciones.length) return responder(r.explicacion, { preguntas: r.preguntas, fotosPedidas, sugerencias }, base)
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
@@ -210,7 +233,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen })
         const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
-        return responder([r.explicacion, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, version: conCambio.actual }, conCambio)
+        return responder([r.explicacion, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, sugerencias, version: conCambio.actual }, conCambio)
       }
       const motivo = ultimoError.trim().replace(/\.?$/, '.')
       return responder(`No logré hacer ese cambio sin romper el diseño, así que no apliqué nada. ${motivo.charAt(0).toUpperCase()}${motivo.slice(1)} ¿Lo intentamos de otra forma?`, { error: true })

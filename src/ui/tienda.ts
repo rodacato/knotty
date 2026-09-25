@@ -43,7 +43,7 @@ interface Tienda {
   nuevoDiseno(): void
   empezarCaptura(): void
   desdeEjemplo(diseno: Diseno): void
-  reconstruir(entrada: { medidas: Dimensiones; fotos: Foto[]; miniaturas: Miniatura[]; notas: string }): Promise<void>
+  reconstruir(entrada: { medidas: Dimensiones | null; fotos: Foto[]; miniaturas: Miniatura[]; notas: string }): Promise<void>
   ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
   aplicarPropuesta(): void
@@ -153,7 +153,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios, estado, pensando } = get()
     if (!servicios || !estado || pensando || !peticion.trim()) return
     const controlador = new AbortController()
-    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [] }
+    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [], sugerencias: [] }
     const optimista = { ...estado, chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
     set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
     const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA, foto)

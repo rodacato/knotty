@@ -15,6 +15,7 @@ export const RespuestaReconstruccion = z.object({
   preguntas: z.array(Pregunta).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
   requisitos: z.array(Requisito),
+  sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
 export type RespuestaReconstruccion = z.infer<typeof RespuestaReconstruccion>
 
@@ -24,6 +25,7 @@ export const RespuestaAjuste = z.object({
   operaciones: z.array(Operacion),
   preguntas: z.array(Pregunta),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
+  sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir, escritos como ella los pediría'),
   requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
   decisiones: z.array(Decision),
   aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
@@ -37,7 +39,8 @@ export interface Foto {
 }
 
 export interface SolicitudReconstruccion {
-  medidas: Dimensiones
+  /** null: la persona no las sabe y el experto las estima. */
+  medidas: Dimensiones | null
   fotos: Foto[]
   notas: string
   catalogo: Catalogo
