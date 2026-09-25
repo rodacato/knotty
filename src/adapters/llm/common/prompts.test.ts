@@ -31,6 +31,18 @@ describe('placeholders', () => {
     expect(render(prompt, testCatalog)).not.toMatch(/\{\{|\}\}/)
   })
 
+  it('the expert reads the materials as it always did: id, name, thickness and kind', () => {
+    expect(values.catalog?.text.split('\n').slice(0, 6)).toEqual([
+      'Materials:',
+      '- T12: Triplay de pino 12 mm, 12 mm (plywood)',
+      '- T15: Triplay de pino 15 mm, 15 mm (plywood)',
+      '- T18: Triplay de pino 18 mm, 18 mm (plywood)',
+      '- TR3: Triplay de pino 3 mm (trasera), 3 mm (back)',
+      '- TR6: Triplay de pino 6 mm (trasera), 6 mm (back)',
+    ])
+    expect(values.materials?.text).toBe('one of "T12" (12 mm), "T15" (15 mm), "T18" (18 mm)')
+  })
+
   it('every placeholder a prompt uses has a value', () => {
     const used = PROMPTS.flatMap((p) => placeholdersIn(p.text))
     expect(used.filter((name) => !(name in values))).toEqual([])

@@ -7,6 +7,7 @@ import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { newCriticals } from './review'
 import { maxSpan, deflection, deflectionSeverity } from './rules/deflection'
+import { stiffness } from '../materials/grades'
 
 const findings = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -50,6 +51,16 @@ describe('R1 shelf sag', () => {
     const againstGrain = findings(d).find((h) => h.pieces[0] === 'shelf-1')!
     expect(Number(againstGrain.data.sag)).toBeGreaterThan(Number(withGrain?.data.sag ?? 0))
   })
+
+  it('reads the stiffness from the grade of the board, by the grain against the span', () => {
+    const d = structuredClone(exampleBookcase)
+    d.dimensions.width = 800
+    const shelf = d.pieces.find((p) => p.id === 'shelf-1')!
+    const expected = stiffness('pine-plywood', 18)
+    expect(findings(d).find((h) => h.pieces[0] === 'shelf-1')?.data.modulus).toBe(expected.parallel)
+    shelf.grain = 'width'
+    expect(findings(d).find((h) => h.pieces[0] === 'shelf-1')?.data.modulus).toBe(expected.perpendicular)
+  })
 })
 
 describe('R2 thickness per joint', () => {
@@ -84,6 +95,11 @@ describe('R5 racking', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
     expect(findings(d).find((h) => h.code === 'R5_RACKING')?.severity).toBe('critical')
+  })
+
+  it('proposes the catalog back board: TR6, described by its thickness', () => {
+    const back = findings(exampleNightstand)[0].alternatives.find((a) => a.key === 'back-6mm')
+    expect(back).toEqual({ key: 'back-6mm', description: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', data: { material: 'TR6' } })
   })
 })
 
