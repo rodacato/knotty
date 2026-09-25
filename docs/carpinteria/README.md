@@ -1,36 +1,31 @@
-# Investigación: muebles de triplay para Knotty
+# Carpintería de muebles de triplay
 
-Investigación del 2026-09-25 sobre muebles de triplay para personas en México: material, uniones, acabados, tipos de mueble, reglas estructurales, vocabulario, armado y cómo meter todo eso en Knotty. Todo va en milímetros; las pulgadas aparecen solo como designación comercial, p. ej. «32 mm (1¼")».
+Material de referencia del dominio: cómo se diseñan, calculan, arman y terminan muebles de triplay en México. Es conocimiento de oficio con fuentes, independiente de cómo esté hecho el código, y sirve para decidir reglas, escribir prompts, enseñar terminología y redactar guías.
 
-Siete documentos se escribieron en paralelo y después pasaron por una auditoría con ojo de carpintero, que los corrigió en su lugar (las correcciones van marcadas con «Nota de auditoría:»). Cuando dos documentos no coinciden, manda **10-auditoria.md**.
-
-## Por dónde empezar
-
-- Para decidir qué cambiar en el código: [10 — Auditoría](10-auditoria.md), §8 (cambios al código por prioridad) y §9 (decisiones pendientes).
-- Para los números que Knotty debería usar: [10 — Auditoría](10-auditoria.md) §2 (valores canónicos) y §3 (vocabulario canónico).
-- Para diseñar cómo entra el conocimiento al sistema: [07 — Arquitectura del conocimiento](07-arquitectura-del-conocimiento.md).
+Todo va en milímetros; las pulgadas aparecen solo como designación comercial, p. ej. «32 mm (1¼")». Las fuentes se consultaron el 2026-09-25; precios, marcas y productos caducan, así que cada documento marca la fecha.
 
 ## Documentos
 
-| # | Documento | De qué trata |
-|---|---|---|
-| 01 | [Triplay: el material](01-triplay-material.md) | Tipos y grados que se consiguen en México, espesores reales contra nominales, hoja, peso, rigidez, humedad, cortes, cantos y cubrecanto |
-| 02 | [Uniones y herrajes](02-uniones-y-herrajes.md) | Uniones para triplay con espesores mínimos y distancias, sistema 32 mm, pegamentos, bisagras, correderas y tornillería |
-| 03 | [Acabados](03-acabados.md) | Lijado, selladores, lacas, barnices, aceites, tintas y pintura con marcas mexicanas; tabla de acabado → apariencia en 3D |
-| 04 | [Tipologías y medidas](04-tipologias-y-medidas.md) | Tipos de mueble por habitación, medidas ergonómicas, colchones de México y 31 plantillas de muebles prehechos |
-| 05 | [Reglas estructurales](05-reglas-estructurales.md) | Pandeo de repisas, rigidez, ahorro de material oculto, cajones, puertas, vuelco, anclaje y reglas R11–R22 |
-| 06 | [Glosario](06-glosario.md) | Nombre correcto de cada pieza, unión y herramienta; sinónimos regionales; términos que la app usa mal hoy |
-| 07 | [Arquitectura del conocimiento](07-arquitectura-del-conocimiento.md) | Base de conocimiento tipada en `src/domain/knowledge/`, plantillas, reglas como datos, prompts generados y plan de PRs |
-| 08 | [Estilo visual de las piezas](08-estilo-visual-de-piezas.md) | Bordes redondeados, perfiles de canto y acabados en el 3D; material de shader único y plan por entregas |
-| 09 | [Fabricación y armado](09-fabricacion-y-armado.md) | Herramientas por nivel, corte en tienda, orden de armado, seguridad, transporte, instalación e instrucciones generadas |
-| 10 | [Auditoría](10-auditoria.md) | Valores y vocabulario canónicos, numeración de reglas, fuentes rotas, lo no considerado, cambios al código y decisiones |
-| 11 | [Guías y preguntas frecuentes](11-guias-y-faq.md) | Índice de guías por público y nivel, y FAQ consolidada para principiantes |
+| Documento | De qué trata |
+|---|---|
+| [Triplay](triplay.md) | Tipos y grados que se consiguen en México, espesores reales contra nominales, hoja, peso, rigidez, humedad, corte, perfiles de canto y cubrecanto, defectos |
+| [Uniones y herrajes](uniones-y-herrajes.md) | Uniones para triplay con espesores mínimos y distancias, sistema 32 mm, pegamentos, bisagras, correderas, tornillería y kit antivuelco |
+| [Acabados](acabados.md) | Lijado, selladores, lacas, barnices, aceites, tintas y pintura con marcas mexicanas; qué acabado lleva cada parte, cuánto comprar y cómo se ve |
+| [Muebles y medidas](muebles-y-medidas.md) | Qué muebles se hacen bien en triplay, sus variantes y partes, medidas ergonómicas, colchones de México y normas de seguridad |
+| [Estructura](estructura.md) | Pandeo de repisas, escuadrado, ahorro de material oculto, cajones, puertas, vuelco, anclaje por tipo de muro, asientos y camas |
+| [Fabricación y armado](fabricacion-y-armado.md) | Herramientas por nivel, corte en tienda, orden de armado, tiempos, errores de principiante, seguridad, transporte e instalación |
+| [Glosario](glosario.md) | Nombre recomendado de cada pieza, unión, herramienta y operación, con sinónimos regionales, inglés y falsos amigos |
+| [Valores de referencia](valores-de-referencia.md) | Los números del oficio en un solo lugar: valor recomendado, rango, cuándo aplica y qué documento lo explica |
+| [Preguntas frecuentes](preguntas-frecuentes.md) | Las dudas de quien hace su primer mueble, contestadas por un carpintero con paciencia |
+| [Expertos](expertos.md) | Panel de carpinteros ficticios por especialidad, para consultarlos mientras se programa o como base del experto de la app |
 
-## Nivel de confianza
+## Cómo leerlos
 
-- ✅ Verificado en dos o más fuentes.
-- ⚠️ Una sola fuente o práctica de taller.
-- ❓ Por validar.
-- † El dato viene de un resumen del buscador, no de la página leída. El presupuesto de búsquedas de la sesión se agotó a la mitad, así que conviene revisar estos datos antes de convertirlos en regla.
-
-Los precios son estimados de septiembre de 2026 y no se consultaron en tienda.
+- Si dos documentos no coinciden en un número, manda [Valores de referencia](valores-de-referencia.md).
+- Los términos siguen el [Glosario](glosario.md): repisa (fija o móvil), travesaño, ranura, pandeo, súper codo.
+- Nivel de confianza en cada dato:
+  - ✅ Verificado en dos o más fuentes.
+  - ⚠️ Una sola fuente o práctica de taller.
+  - ❓ Por validar.
+  - † Tomado del resumen de un buscador, sin leer la página. Conviene confirmarlo antes de volverlo regla.
+- Los precios son estimados, no consultados en tienda.
