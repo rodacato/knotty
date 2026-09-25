@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { catalogo } from '../../domain/fixtures/catalogo.test-util'
 import { librero } from '../../domain/fixtures/librero'
 import { crearSimulado } from '../llm/simulado/simulado'
-import { createLocalDebugLog } from './localDebugLog'
+import { createDebugLog, localStorageStore, type EventStore } from './localDebugLog'
 import { withDebugLog } from './loggedProvider'
 
 const memoryStorage = (): Storage => {
@@ -19,30 +19,49 @@ const memoryStorage = (): Storage => {
   }
 }
 
-describe('createLocalDebugLog', () => {
-  it('keeps events across reloads, and the panel stays hidden until asked for', () => {
+const fromStorage = (storage: Storage) => createDebugLog(localStorageStore(storage), storage)
+const settle = () => new Promise((r) => setTimeout(r, 0))
+
+describe('createDebugLog', () => {
+  it('keeps events across reloads, and the panel stays hidden until asked for', async () => {
     const storage = memoryStorage()
-    const log = createLocalDebugLog(storage)
+    const log = fromStorage(storage)
     log.record({ kind: 'action', summary: 'Diseñar' })
-    expect(createLocalDebugLog(storage).events().map((e) => e.summary)).toEqual(['Diseñar'])
+    const reloaded = fromStorage(storage)
+    await settle()
+    expect(reloaded.events().map((e) => e.summary)).toEqual(['Diseñar'])
     expect(log.visible()).toBe(false)
     log.setVisible(true)
-    expect(createLocalDebugLog(storage).visible()).toBe(true)
+    expect(fromStorage(storage).visible()).toBe(true)
   })
 
-  it('cuts long strings inside an event and drops the oldest events past the limit', () => {
-    const log = createLocalDebugLog(memoryStorage())
+  it('an event recorded while the stored ones load goes after them', async () => {
+    const stored = { at: '2026-01-01T00:00:00Z', kind: 'app' as const, summary: 'antes' }
+    let release = (_: typeof stored[]) => {}
+    const store: EventStore = { load: () => new Promise((r) => (release = r)), append: () => {}, clear: () => {}, keep: () => {} }
+    const log = createDebugLog(store, memoryStorage())
+    log.record({ kind: 'action', summary: 'después' })
+    release([stored])
+    await settle()
+    expect(log.events().map((e) => e.summary)).toEqual(['antes', 'después'])
+  })
+
+  it('the localStorage fallback cuts long strings and drops the oldest events past its limit; memory keeps them whole', () => {
+    const storage = memoryStorage()
+    const log = fromStorage(storage)
+    const saved = () => JSON.parse(storage.getItem('knotty:debug:events') ?? '[]') as { summary: string }[]
     log.record({ kind: 'llm', summary: 'grande', data: { texto: 'x'.repeat(100_000) } })
-    expect(JSON.stringify(log.events()[0]).length).toBeLessThan(60_000)
+    expect(JSON.stringify(saved()[0]).length).toBeLessThan(60_000)
+    expect(JSON.stringify(log.events()[0]).length).toBeGreaterThan(100_000)
     for (let i = 0; i < 80; i++) log.record({ kind: 'llm', summary: `n${i}`, data: { a: 'y'.repeat(3_900), b: 'z'.repeat(3_900), c: 'w'.repeat(3_900), d: 'v'.repeat(3_900), e: 'u'.repeat(3_900), f: 't'.repeat(3_900) } })
-    expect(JSON.stringify(log.events()).length).toBeLessThanOrEqual(1_500_000)
-    expect(log.events().at(-1)?.summary).toBe('n79')
+    expect(JSON.stringify(saved()).length).toBeLessThanOrEqual(1_500_000)
+    expect(saved().at(-1)?.summary).toBe('n79')
   })
 })
 
 describe('withDebugLog', () => {
   it('records each call with the request and the answer, leaving out photos and the catalog', async () => {
-    const log = createLocalDebugLog(memoryStorage())
+    const log = fromStorage(memoryStorage())
     const llm = withDebugLog(crearSimulado(0), log)
     await llm.reconstruir({ medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'A'.repeat(4096) }], notas: 'librero', lectura: null, catalogo, correccion: null }, new AbortController().signal)
     const [event] = log.events()
@@ -55,7 +74,7 @@ describe('withDebugLog', () => {
   })
 
   it('records a failed call as an error and still throws it', async () => {
-    const log = createLocalDebugLog(memoryStorage())
+    const log = fromStorage(memoryStorage())
     const llm = withDebugLog({ ...crearSimulado(0), dictaminar: async () => Promise.reject(new Error('sin conexión')) }, log)
     await expect(llm.dictaminar({ contexto: '', revision: '', diseno: librero, comprobaciones: [], catalogo }, new AbortController().signal)).rejects.toThrow('sin conexión')
     expect(log.events()[0]).toMatchObject({ kind: 'error', summary: expect.stringContaining('Revisión antes de comprar falló') })
