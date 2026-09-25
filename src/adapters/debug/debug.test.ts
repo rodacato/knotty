@@ -37,7 +37,7 @@ describe('createDebugLog', () => {
 
   it('an event recorded while the stored ones load goes after them', async () => {
     const stored = { at: '2026-01-01T00:00:00Z', kind: 'app' as const, summary: 'antes' }
-    let release = (_: typeof stored[]) => {}
+    let release: (events: typeof stored[]) => void = () => {}
     const store: EventStore = { load: () => new Promise((r) => (release = r)), append: () => {}, clear: () => {}, keep: () => {} }
     const log = createDebugLog(store, memoryStorage())
     log.record({ kind: 'action', summary: 'después' })

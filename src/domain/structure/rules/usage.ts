@@ -7,7 +7,7 @@ import { freeSpan } from './deflection'
 
 /** R4: tall and shallow furniture falls forward when pulled or when a child climbs it. */
 export const tippingRule: Rule = ({ design }): Finding[] => {
-  const { height: height, depth: depth } = design.dimensions
+  const { height, depth } = design.dimensions
   const ratio = height / depth
   const { recommendedRatio, criticalRatio, criticalHeight } = ASSUMPTIONS.tipping
   if (design.wallAnchored || ratio < recommendedRatio) return []

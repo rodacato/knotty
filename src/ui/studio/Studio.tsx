@@ -105,6 +105,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
   const plan = currentPlan(state).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
   const bed = plan && isBed(plan) && !currentPlan(state).diverged ? plan : null
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const label = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">

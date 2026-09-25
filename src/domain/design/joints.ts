@@ -12,7 +12,7 @@ const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 /** The shortest screw that bites enough into the edge, or the longest that does not poke out when it goes into a face. */
 function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, intoFace: boolean) {
-  const screws = catalog.hardware.filter((h) => /^screw-8x/.test(h.id) && h.length).sort((x, y) => x.length! - y.length!)
+  const screws = catalog.hardware.filter((h) => h.id.startsWith('screw-8x') && h.length).sort((x, y) => x.length! - y.length!)
   if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - 3) ?? screws[0]
   return screws.find((t) => t.length! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }

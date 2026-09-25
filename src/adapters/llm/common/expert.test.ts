@@ -17,13 +17,15 @@ function walk(node: unknown, visit: (n: Record<string, unknown>) => void) {
 
 describe('strictSchema', () => {
   it.each([AdjustmentResponse, ReviewResponse, PhotoReading, PlanResponse, PlanAdjustment])('leaves a schema the strict modes accept', (schema) => {
+    const objects: Record<string, unknown>[] = []
     walk(strictSchema(schema), (n) => {
       for (const forbidden of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(forbidden)
-      if (n.type === 'object' && n.properties) {
-        expect(n.additionalProperties).toBe(false)
-        expect(n.required).toEqual(Object.keys(n.properties as object))
-      }
+      if (n.type === 'object' && n.properties) objects.push(n)
     })
+    for (const n of objects) {
+      expect(n.additionalProperties).toBe(false)
+      expect(n.required).toEqual(Object.keys(n.properties as object))
+    }
   })
 })
 

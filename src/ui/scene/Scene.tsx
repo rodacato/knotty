@@ -32,7 +32,7 @@ interface SceneProps {
 function offsets(geo: Geometry, design: Design, active: boolean) {
   const zero = new Map(design.pieces.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
   if (!active) return { pushes: zero, height: design.dimensions.height * MM }
-  const { width: width, height: height, depth: background } = design.dimensions
+  const { width, height, depth: background } = design.dimensions
   const center = { x: width / 2, y: height / 2, z: background / 2 }
   const scale = Math.max(width, background, height * 0.5)
   // Drawers slide out whole towards the front, as if opened, instead of coming apart.
@@ -67,7 +67,7 @@ function CameraRig({ design, visibleHeight, reduced }: { design: Design; visible
   const controls = useRef<CameraControls>(null)
   const view = useStore((s) => s.view)
   const exploded = useStore((s) => s.exploded)
-  const { width: width, height: height, depth: background } = design.dimensions
+  const { width, height, depth: background } = design.dimensions
 
   useEffect(() => {
     const c = controls.current

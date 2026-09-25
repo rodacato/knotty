@@ -154,6 +154,7 @@ export function Capture() {
   const [processing, setProcessing] = useState(false)
   const [withSimulated, setWithSimulated] = useState(draft !== null)
   // Re-read when the settings close so the notice disappears as soon as you connect an expert.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const config = useMemo(() => preferences.load(), [preferences, settingsOpen])
   const missingKey = missing(config)
   const simulated = config.active === 'simulated'

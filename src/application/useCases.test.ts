@@ -520,7 +520,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
 
   it('a bench skips the skeleton: it has no plan yet', async () => {
     const { llm, calls } = withPlan(cabinetPlan)
-    await expect(setup(llm).reconstruct(request('Una banca para el recibidor'), newSignal())).rejects.toThrow()
+    await expect(setup(llm).reconstruct(request('Una banca para el recibidor'), newSignal())).rejects.toThrow(/modo simulado/)
     expect(calls).toEqual(['design'])
   })
 

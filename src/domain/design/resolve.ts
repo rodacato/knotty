@@ -104,7 +104,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
 
   /** Across its face a piece needs two of: where it starts, where it ends, how long it is. */
   function faceExtent(p: Piece, axis: Axis): [number, number] {
-    const { from: start, to: end, length: length } = p[axis]
+    const { from: start, to: end, length } = p[axis]
     if (start && end) {
       const s = value(start, axis, p.id)
       const e = value(end, axis, p.id)

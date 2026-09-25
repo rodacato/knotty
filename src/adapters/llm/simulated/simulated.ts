@@ -112,7 +112,7 @@ function chooseFixture(measures: Pick<Dimensions, 'width' | 'height'> | null, de
   if (/puertas/.test(d)) return exampleWallCabinet
   if (d.trim()) throw new UnknownFurniture()
   if (!measures) return exampleBookcase
-  const { width: width, height: height } = measures
+  const { width, height } = measures
   if (height > width * 1.8) return exampleBookcase
   if (height < 650) return exampleNightstand
   return exampleWallCabinet

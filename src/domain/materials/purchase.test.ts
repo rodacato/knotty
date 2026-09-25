@@ -26,7 +26,7 @@ describe('sheet layout', () => {
           expect(c.x + c.w).toBeLessThanOrEqual(m.usable.length)
           expect(c.y + c.h).toBeLessThanOrEqual(m.usable.width)
           const p = pieces.find((x) => x.id === c.id)!
-          if (p.grain === 'length') expect(c.w).toBeGreaterThanOrEqual(c.h)
+          expect(p.grain !== 'length' || c.w >= c.h, `${c.id} runs across the grain`).toBe(true)
         }
         for (const [i, a] of h.placed.entries())
           for (const b of h.placed.slice(i + 1)) {

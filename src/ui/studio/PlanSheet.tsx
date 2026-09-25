@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, Check, Plus, Trash, Warning } from '@phosphor-icons/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { BedPlan } from '../../domain/modules/bed'
 import type { CabinetConstruction, CabinetPlan } from '../../domain/modules/cabinet'
@@ -183,7 +183,12 @@ export function PlanSheet({ state }: { state: DesignState }) {
   const source = useMemo(() => currentPlan(state), [state])
   const [draft, setDraft] = useState<FurniturePlan | null>(source.plan)
   const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
-  useEffect(() => setDraft(source.plan), [source.plan])
+  // A new plan from outside (another version, the expert) replaces the draft.
+  const [synced, setSynced] = useState(source.plan)
+  if (synced !== source.plan) {
+    setSynced(source.plan)
+    setDraft(source.plan)
+  }
 
   if (!source.plan || !draft)
     return (

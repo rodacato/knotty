@@ -1,5 +1,5 @@
 import { Check } from '@phosphor-icons/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ATTEMPTS, type Stage } from '../../application/useCases'
 import { Button } from '../system/components'
 import { useStore } from '../store'
@@ -14,16 +14,16 @@ const stages = (withPhotos: boolean, pieceByPiece: boolean): { id: Stage; text: 
 /** From here on the wait explains itself; there is no retry while the expert is still answering: its own time limit ends a stuck call. */
 const PATIENCE = 30
 
-/** Seconds since the attempt started; `attempt` changes on every retry and restarts the count. */
-function useSeconds(attempt: unknown) {
-  const [seconds, setSeconds] = useState(0)
+/** Seconds since the attempt started; `run` and `retry` identify it, and a change in either restarts the count. */
+function useSeconds(run: unknown, retry?: unknown) {
+  const [tick, setTick] = useState({ run, retry, seconds: 0 })
   useEffect(() => {
     const start = Date.now()
-    setSeconds(0)
-    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000)
+    const clock = setInterval(() => setTick({ run, retry, seconds: Math.floor((Date.now() - start) / 1000) }), 1000)
     return () => clearInterval(clock)
-  }, [attempt])
-  return seconds
+  }, [run, retry])
+  // A tick from the previous attempt counts as zero until the new clock ticks.
+  return tick.run === run && tick.retry === retry ? tick.seconds : 0
 }
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -48,13 +48,10 @@ export function Analyzing() {
   const controller = useStore((s) => s.controller)
   const seconds = useSeconds(controller)
   // Slowness is measured per attempt: a correction that makes progress is not a stuck expert.
-  const attempt = useMemo(() => ({}), [controller, stage?.attempt])
-  const attemptSeconds = useSeconds(attempt)
+  const attemptSeconds = useSeconds(controller, stage?.attempt)
   // Once the expert writes piece by piece, the stage is named that way from then on.
   const [pieceByPiece, setPieceByPiece] = useState(false)
-  useEffect(() => {
-    if (stage?.name === 'designing-pieces') setPieceByPiece(true)
-  }, [stage?.name])
+  if (stage?.name === 'designing-pieces' && !pieceByPiece) setPieceByPiece(true)
   const STAGES = stages(withPhotos, pieceByPiece)
   const current = STAGES.findIndex((e) => e.id === stage?.name)
   return (
