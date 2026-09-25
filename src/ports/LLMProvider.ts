@@ -6,6 +6,7 @@ import { Operacion } from '../domain/operaciones/esquema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
+import { OpinionCarpintero, type Comprobacion } from '../domain/viabilidad/viabilidad'
 
 // Lo que el experto puede contestar. Los mismos esquemas generan el JSON Schema de la salida estructurada y validan la respuesta.
 
@@ -31,6 +32,21 @@ export const RespuestaAjuste = z.object({
   aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
 })
 export type RespuestaAjuste = z.infer<typeof RespuestaAjuste>
+
+/** La opinión del carpintero; vive en el dominio porque se guarda con el diseño. */
+export const RespuestaDictamen = OpinionCarpintero
+export type RespuestaDictamen = z.infer<typeof RespuestaDictamen>
+
+export interface SolicitudDictamen {
+  /** El contexto del diseño ya armado por la aplicación. */
+  contexto: string
+  /** La lista de corte y las comprobaciones de cuentas, en texto. */
+  revision: string
+  diseno: Diseno
+  /** Las comprobaciones de cuentas, para quien no lee texto (el simulado). */
+  comprobaciones: Comprobacion[]
+  catalogo: Catalogo
+}
 
 export interface Foto {
   angulo: string
@@ -80,6 +96,7 @@ export interface LLMProvider {
   etiqueta: string
   reconstruir(solicitud: SolicitudReconstruccion, signal: AbortSignal): Promise<Respuesta<RespuestaReconstruccion>>
   proponerAjuste(solicitud: SolicitudAjuste, signal: AbortSignal): Promise<Respuesta<RespuestaAjuste>>
+  dictaminar(solicitud: SolicitudDictamen, signal: AbortSignal): Promise<Respuesta<RespuestaDictamen>>
 }
 
 /** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */

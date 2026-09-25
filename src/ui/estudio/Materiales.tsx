@@ -4,9 +4,12 @@ import type { Diseno } from '../../domain/diseno/esquema'
 import type { Geometria } from '../../domain/diseno/resolver'
 import type { AcomodoMaterial } from '../../domain/materiales/acomodo'
 import { aplicarAjustes, type Acomodo, type Catalogo } from '../../domain/materiales/catalogo'
+import { firmaDictamen } from '../../application/casosDeUso'
 import { estimarCompra } from '../../domain/materiales/compra'
+import type { EstadoDiseno } from '../../domain/sesion/estado'
 import { Titulo } from '../sistema/componentes'
 import { useTienda } from '../tienda'
+import { PuertaRevision, TarjetaDictamen } from './Dictamen'
 import { Piezas } from './Paneles'
 
 const pesos = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
@@ -161,15 +164,40 @@ function AjustesCorte({ base }: { base: Acomodo }) {
   )
 }
 
-export function Materiales({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geometria; catalogo: Catalogo }) {
+export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometria; catalogo: Catalogo; alPedir: (texto: string) => void }) {
   const ajustes = useTienda((s) => s.ajustesCatalogo)
   const efectivo = useMemo(() => aplicarAjustes(catalogo, ajustes), [catalogo, ajustes])
   const compra = useMemo(() => estimarCompra(diseno, geo, efectivo), [diseno, geo, efectivo])
+  const [aunAsi, setAunAsi] = useState<string | null>(null)
   const base = (id: string) => [...catalogo.materiales, ...catalogo.herrajes].find((x) => x.id === id)?.precio ?? null
   const totalHojas = compra.hojas.reduce((s, h) => s + h.hojas, 0)
+  const dictamen = estado.dictamen?.firma === firmaDictamen(estado, efectivo) ? estado.dictamen : null
+
+  // La lista de compra solo aparece después de la revisión; si no es viable, hay que pedirla a propósito.
+  if (!dictamen)
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <PuertaRevision desactualizado={estado.dictamen !== null} />
+        <AjustesCorte base={catalogo.acomodo} />
+      </div>
+    )
+  if (dictamen.veredicto === 'no-viable' && aunAsi !== dictamen.firma)
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <TarjetaDictamen dictamen={dictamen} diseno={diseno} alPedir={alPedir} />
+        <p className="text-sm text-grafito-2">
+          Con estos problemas, lo que compres probablemente no sirva.{' '}
+          <button type="button" className="underline" onClick={() => setAunAsi(dictamen.firma)}>
+            Ver la lista de todos modos
+          </button>
+        </p>
+        <AjustesCorte base={catalogo.acomodo} />
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      <TarjetaDictamen dictamen={dictamen} diseno={diseno} alPedir={alPedir} />
       <section className="flex flex-col gap-2 rounded-2xl border border-linea bg-hueso p-4">
         <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Para comprar</p>
         <p className="font-titulo text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">

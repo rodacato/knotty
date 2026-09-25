@@ -232,7 +232,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         <Chat estado={estado} />
       </Tabs.Content>
       <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
-        {analisisActual.valido && <Materiales diseno={actual} geo={analisisActual.geo} catalogo={catalogo} />}
+        {analisisActual.valido && <Materiales estado={estado} diseno={actual} geo={analisisActual.geo} catalogo={catalogo} alPedir={pedir} />}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
         <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} diseno={actual} alPedir={pedir} />

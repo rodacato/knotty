@@ -5,11 +5,14 @@ import type { Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
 import type { Catalogo } from '../domain/materiales/catalogo'
+import { estimarCompra } from '../domain/materiales/compra'
+import { despiece, type RenglonDespiece } from '../domain/materiales/despiece'
 import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
-import { actualizarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
-import { disenoActual, marcarRespondida, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
+import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
+import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
+import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type RespuestaAjuste } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
@@ -47,6 +50,21 @@ function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; no
 function preguntaDeAlternativas(criticos: Hallazgo[]): Pregunta[] {
   const opciones = [...new Set(criticos.flatMap((h) => h.alternativas.filter((a) => a.clave !== 'claro-maximo').map((a) => a.descripcion)))].slice(0, 3)
   return opciones.length ? [{ texto: '¿Cómo lo resolvemos?', opciones }] : []
+}
+
+/** Con qué se hizo un dictamen: si cambia la versión, los requisitos o los ajustes de corte, hay que repetirlo. */
+export const firmaDictamen = (estado: EstadoDiseno, catalogoEfectivo: Catalogo) =>
+  JSON.stringify([estado.actual, estado.requisitos.map((r) => r.id), catalogoEfectivo.acomodo, catalogoEfectivo.materiales.map((m) => [m.id, m.hoja])])
+
+const ESTADO_COMPROBACION = { ok: 'bien', aviso: 'aviso', falla: 'FALLA' }
+function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[]) {
+  return [
+    '## Lista de corte (largo × ancho × espesor, mm)',
+    ...corte.map((r) => `- ${r.cantidad} × ${r.nombre} (${r.material}): ${r.largo} × ${r.ancho} × ${r.espesor}`),
+    '',
+    '## Comprobaciones de la app',
+    ...comprobaciones.map((c) => `- [${ESTADO_COMPROBACION[c.estado]}] ${c.titulo}: ${c.detalle}`),
+  ].join('\n')
 }
 
 /** El experto no logró algo y lo dice; el mensaje es para el usuario. */
@@ -136,6 +154,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         ],
         miniaturas: entrada.miniaturas,
         propuesta: null,
+        dictamen: null,
       })
     }
     throw new ErrorExperto(
@@ -302,12 +321,43 @@ export function crearCasosDeUso(deps: Dependencias) {
       chat: [mensaje('experto', `Aquí tienes un ${diseno.nombre.toLowerCase()} de ejemplo. ${diseno.observaciones} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
       miniaturas: [],
       propuesta: null,
+      dictamen: null,
     })
   }
 
   function nuevoDiseno() {
     repositorio.borrar()
   }
+
+  /** Las cuentas primero y luego el carpintero; si él no contesta, el dictamen queda solo con las cuentas. */
+  async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalogo, signal: AbortSignal): Promise<Dictamen> {
+    const diseno = disenoActual(estado)
+    const analisis = analizar(diseno, catalogo)
+    if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].mensaje}`)
+    const compra = estimarCompra(diseno, analisis.geo, catalogoEfectivo)
+    const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.mensaje)
+    const viabilidad = revisarViabilidad({ diseno, geo: analisis.geo, catalogo: catalogoEfectivo, compra, hallazgos: analisis.hallazgos, incumplidos })
+    const base = { firma: firmaDictamen(estado, catalogoEfectivo), comprobaciones: viabilidad.comprobaciones, fecha: ahora() }
+    try {
+      const r = await deps.llm().dictaminar(
+        {
+          contexto: construirContexto(estado, catalogo),
+          revision: textoRevision(despiece(diseno, analisis.geo), viabilidad.comprobaciones),
+          diseno,
+          comprobaciones: viabilidad.comprobaciones,
+          catalogo: catalogoEfectivo,
+        },
+        signal,
+      )
+      return { ...base, veredicto: peor(viabilidad.veredicto, r.valor.veredicto), carpintero: { ...r.valor, origen: r.origen }, error: null }
+    } catch (e) {
+      if (signal.aborted) throw e
+      return { ...base, veredicto: viabilidad.veredicto, carpintero: null, error: e instanceof Error ? e.message : 'El carpintero no contestó.' }
+    }
+  }
+
+  /** Se guarda sobre el estado vigente: el diseño pudo cambiar mientras el carpintero revisaba. */
+  const guardarDictamen = (estado: EstadoDiseno, dictamen: Dictamen) => guardar({ ...estado, dictamen })
 
   const cargar = () => repositorio.cargar()
 
@@ -325,6 +375,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     quitarDecision,
     desdeEjemplo,
     nuevoDiseno,
+    dictaminar,
+    guardarDictamen,
     cargar,
     preguntasPendientes,
   }

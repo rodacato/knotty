@@ -4,7 +4,8 @@ import { alacena } from '../../../domain/fixtures/alacena'
 import { buro } from '../../../domain/fixtures/buro'
 import { librero } from '../../../domain/fixtures/librero'
 import type { Operacion } from '../../../domain/operaciones/esquema'
-import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaReconstruccion } from '../../../ports/LLMProvider'
+import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
+import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
 
 // Respuestas fijas para desarrollar sin API: reconoce unos cuantos pedidos por palabras clave sobre los muebles de ejemplo.
 
@@ -213,6 +214,20 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
   })
 }
 
+/** Sin criterio propio: se queda con el veredicto de las cuentas y da consejos de siempre. */
+function dictaminar(s: SolicitudDictamen): RespuestaDictamen {
+  const veredicto = veredictoDe(s.comprobaciones)
+  return {
+    veredicto,
+    resumen:
+      veredicto === 'viable'
+        ? `Tu ${s.diseno.nombre.toLowerCase()} se puede comprar y armar así. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`
+        : `Antes de comprar hay que resolver lo marcado en las cuentas. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`,
+    problemas: [],
+    consejos: ['Mide el espesor real de tus hojas antes de cortar: el triplay de 18 mm suele medir un poco menos.', 'Pide los cortes largos en la tienda y deja los chicos para casa.'],
+  }
+}
+
 export function crearSimulado(retraso = 900): LLMProvider {
   return {
     id: 'simulado',
@@ -246,6 +261,10 @@ export function crearSimulado(retraso = 900): LLMProvider {
     async proponerAjuste(s, signal) {
       await espera(retraso, signal)
       return respuesta(proponer(s.peticion, s.diseno, s.propuesta, s.fotos.length > 0))
+    },
+    async dictaminar(s, signal) {
+      await espera(retraso, signal)
+      return respuesta(dictaminar(s))
     },
   }
 }

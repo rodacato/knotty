@@ -4,7 +4,7 @@ import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type LLMProvider, type RespuestaAjuste } from '../ports/LLMProvider'
-import { crearCasosDeUso } from './casosDeUso'
+import { crearCasosDeUso, firmaDictamen } from './casosDeUso'
 import { construirContexto } from './contexto'
 
 const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
@@ -272,5 +272,35 @@ describe('construirContexto', () => {
     const estado = c.aplicarPropuesta(await c.ajustar(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal()))
     const texto = construirContexto(estado, catalogo)
     for (const parte of ['## Diseño actual (v2)', 'lat-der: 882–900', 'R1_FLECHA', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Usuario: Hazlo de 90 cm']) expect(texto).toContain(parte)
+  })
+})
+
+describe('dictaminar', () => {
+  it('guarda las comprobaciones y la opinión del carpintero con la firma de la versión', async () => {
+    const c = casos()
+    const inicial = await libreroInicial(c)
+    const estado = c.guardarDictamen(inicial, await c.dictaminar(inicial, catalogo, senal()))
+    expect(estado.dictamen).toMatchObject({ veredicto: 'viable', error: null, firma: firmaDictamen(inicial, catalogo) })
+    expect(estado.dictamen!.comprobaciones.find((x) => x.id === 'confirmadas')?.estado).toBe('aviso')
+    expect(estado.dictamen!.carpintero?.consejos.length).toBeGreaterThan(0)
+    expect(c.repositorio.estado?.dictamen).toEqual(estado.dictamen)
+    const cambiado = await c.ajustar(estado, 'Refuerza la base', senal())
+    expect(firmaDictamen(cambiado, catalogo)).not.toBe(estado.dictamen!.firma)
+  })
+
+  it('el carpintero no puede aprobar lo que las cuentas marcan imposible', async () => {
+    const simulado = crearSimulado(0)
+    const llm: LLMProvider = { ...simulado, dictaminar: async (s, signal) => ({ ...(await simulado.dictaminar(s, signal)), valor: { veredicto: 'viable', resumen: 'Todo bien', problemas: [], consejos: [] } }) }
+    const c = casos(llm)
+    const estrecho = { ...catalogo, acomodo: { ...catalogo.acomodo, refilado: 400 } }
+    const dictamen = await c.dictaminar(await libreroInicial(c), estrecho, senal())
+    expect(dictamen.veredicto).toBe('no-viable')
+  })
+
+  it('si el carpintero no contesta, queda el dictamen de las cuentas con el motivo', async () => {
+    const llm: LLMProvider = { ...crearSimulado(0), dictaminar: async () => Promise.reject(new Error('No se pudo conectar con SheLLM.')) }
+    const c = casos(llm)
+    const dictamen = await c.dictaminar(await libreroInicial(c), catalogo, senal())
+    expect(dictamen).toMatchObject({ veredicto: 'viable', carpintero: null, error: 'No se pudo conectar con SheLLM.' })
   })
 })
