@@ -876,3 +876,26 @@ describe('the tray: decisions for the expert go in one request', () => {
     expect(sent.tray).toEqual([])
   })
 })
+
+describe('the extra round for new critical findings', () => {
+  it('a valid change with a new critical finding goes back to the expert once, without spending an attempt, and then waits for the person', async () => {
+    let calls = 0
+    const simulated = createSimulated(0)
+    const wider: Operation[] = [{ op: 'resizeFurniture', axis: 'x', value: 900, rule: 'stretch' }]
+    const c = setup({
+      ...simulated,
+      proposeAdjustment: async () => {
+        calls++
+        return { value: { ...emptyAdjustment, summary: 'Más ancho', operations: wider }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }
+      },
+    })
+    const state = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm', newSignal())
+    expect(calls).toBe(2)
+    expect(state.trace.filter((t) => t.step === 'adjust').map((t) => [t.attempt, t.outcome])).toEqual([
+      [0, 'ok'],
+      [0, 'ok'],
+    ])
+    expect(state.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
+    expect(state.versions).toHaveLength(1)
+  })
+})
