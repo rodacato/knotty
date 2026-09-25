@@ -1,7 +1,7 @@
-// La marca Knotty: un nudo de madera como símbolo y como la «o» del logotipo.
+// The Knotty brand: a wood knot as the emblem and as the «o» of the logo.
 
-/** El nudo solo, para la «o» del logotipo o como adorno; hereda el tamaño del texto. */
-export function Nudo({ className = '' }: { className?: string }) {
+/** The knot alone, for the «o» of the logo or as an ornament; it inherits the text size. */
+export function Knot({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden>
       <g fill="none" transform="rotate(-8 32 34)">
@@ -13,18 +13,18 @@ export function Nudo({ className = '' }: { className?: string }) {
   )
 }
 
-/** «Knotty» con el nudo en lugar de la «o». */
-export function Logotipo({ className = '' }: { className?: string }) {
+/** «Knotty» with the knot in place of the «o». */
+export function Logo({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-baseline font-titulo font-semibold tracking-tight [font-variation-settings:'opsz'_144] ${className}`} aria-label="Knotty" role="img">
       <span aria-hidden>Kn</span>
-      <Nudo className="mx-[0.015em] inline-block size-[0.56em] translate-y-[0.03em] dark:brightness-150" />
+      <Knot className="mx-[0.015em] inline-block size-[0.56em] translate-y-[0.03em] dark:brightness-150" />
       <span aria-hidden>tty</span>
     </span>
   )
 }
 
-/** El símbolo de la app: madera de pino con el nudo. */
-export function Simbolo({ className = '' }: { className?: string }) {
+/** The app's emblem: pine wood with the knot. */
+export function Emblem({ className = '' }: { className?: string }) {
   return <img src="./icono-192.png" alt="" className={`rounded-[22%] ${className}`} />
 }

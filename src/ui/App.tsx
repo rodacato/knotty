@@ -1,63 +1,63 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { Ajustes } from './ajustes/Ajustes'
-import { PuertaLlaves } from './ajustes/Llaves'
-import { Analizando } from './captura/Analizando'
-import { Captura } from './captura/Captura'
-import { Inicio } from './captura/Inicio'
-import { ContextoServicios, type Servicios } from './servicios'
-import { Lapiz } from './sistema/componentes'
-import { Nudo } from './sistema/Marca'
+import { Settings } from './ajustes/Settings'
+import { KeysGate } from './ajustes/Keys'
+import { Analyzing } from './captura/Analyzing'
+import { Capture } from './captura/Capture'
+import { Home } from './captura/Home'
+import { ServicesContext, type Services } from './services'
+import { Pencil } from './sistema/components'
+import { Knot } from './sistema/Brand'
 import { DebugPanel } from './debug/DebugPanel'
-import { useTienda } from './tienda'
+import { useStore } from './store'
 
-// El 3D pesa: se carga hasta que hay un mueble que mostrar.
-const Estudio = lazy(() => import('./estudio/Estudio').then((m) => ({ default: m.Estudio })))
+// The 3D is heavy: it loads once there is a piece of furniture to show.
+const Studio = lazy(() => import('./estudio/Studio').then((m) => ({ default: m.Studio })))
 
-const Cargando = () => (
+const Loading = () => (
   <div className="grid h-full place-items-center">
     <div className="flex flex-col items-center gap-3 text-ambar">
-      <Nudo className="size-12 animate-pulse" />
-      <Lapiz className="h-6 w-16" />
+      <Knot className="size-12 animate-pulse" />
+      <Pencil className="h-6 w-16" />
     </div>
   </div>
 )
 
-function Pantalla() {
-  const fase = useTienda((s) => s.fase)
-  const estado = useTienda((s) => s.estado)
-  if (fase === 'estudio' && estado)
+function Screen() {
+  const phase = useStore((s) => s.phase)
+  const state = useStore((s) => s.state)
+  if (phase === 'studio' && state)
     return (
-      <Suspense fallback={<Cargando />}>
-        <Estudio estado={estado} />
+      <Suspense fallback={<Loading />}>
+        <Studio state={state} />
       </Suspense>
     )
-  if (fase === 'analizando') return <Analizando />
-  if (fase === 'captura') return <Captura />
-  return <Inicio />
+  if (phase === 'analyzing') return <Analyzing />
+  if (phase === 'capture') return <Capture />
+  return <Home />
 }
 
-export function App({ componer }: { componer: () => Promise<Servicios> }) {
-  const [servicios, setServicios] = useState<Servicios | null>(null)
+export function App({ compose }: { compose: () => Promise<Services> }) {
+  const [services, setServices] = useState<Services | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const iniciar = useTienda((s) => s.iniciar)
+  const start = useStore((s) => s.start)
 
   useEffect(() => {
-    componer()
+    compose()
       .then((s) => {
-        iniciar(s)
-        setServicios(s)
+        start(s)
+        setServices(s)
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo iniciar.'))
-  }, [componer, iniciar])
+  }, [compose, start])
 
   if (error) return <p className="grid h-full place-items-center p-6 text-oxido">{error}</p>
-  if (!servicios) return <Cargando />
+  if (!services) return <Loading />
   return (
-    <ContextoServicios.Provider value={servicios}>
-      <Pantalla />
-      <Ajustes />
-      <PuertaLlaves />
+    <ServicesContext.Provider value={services}>
+      <Screen />
+      <Settings />
+      <KeysGate />
       <DebugPanel />
-    </ContextoServicios.Provider>
+    </ServicesContext.Provider>
   )
 }

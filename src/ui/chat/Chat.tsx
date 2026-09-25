@@ -3,14 +3,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/sesion/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/tray/tray'
-import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
-import { useServicios } from '../servicios'
-import { TomarFoto } from '../sistema/TomarFoto'
-import { useTienda } from '../tienda'
+import { Button, Chip, Pencil, Stamp } from '../sistema/components'
+import { useServices } from '../services'
+import { TakePhoto } from '../sistema/TakePhoto'
+import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
 
-const ETAPAS: Record<Stage, string> = {
+const STAGES: Record<Stage, string> = {
   'leyendo-fotos': 'Mirando la foto…',
   'mirando-fotos': 'Mirando las fotos…',
   'disenando-piezas': 'Diseñando pieza por pieza…',
@@ -20,45 +20,45 @@ const ETAPAS: Record<Stage, string> = {
   corrigiendo: 'Corrigiendo un detalle…',
 }
 
-const SUGERENCIAS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
+const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
 
-/** Varias piezas con el mismo problema se cuentan en una sola línea. */
-function agrupar<T extends { codigo: string }>(criticos: T[]) {
-  const grupos = new Map<string, T[]>()
-  for (const c of criticos) grupos.set(c.codigo, [...(grupos.get(c.codigo) ?? []), c])
-  return [...grupos.values()].map((g) => ({ primero: g[0], mas: g.length - 1 }))
+/** Several pieces with the same problem are counted in a single line. */
+function groupByCode<T extends { codigo: string }>(critical: T[]) {
+  const groups = new Map<string, T[]>()
+  for (const c of critical) groups.set(c.codigo, [...(groups.get(c.codigo) ?? []), c])
+  return [...groups.values()].map((g) => ({ first: g[0], more: g.length - 1 }))
 }
 
-/** Segundos desde que empezó a pensar, para que una espera larga no parezca colgada. */
-function useSegundos(activo: boolean) {
-  const [segundos, setSegundos] = useState(0)
+/** Seconds since it started thinking, so a long wait does not look frozen. */
+function useSeconds(active: boolean) {
+  const [seconds, setSeconds] = useState(0)
   useEffect(() => {
-    if (!activo) return
+    if (!active) return
     const inicio = Date.now()
-    const reloj = setInterval(() => setSegundos(Math.floor((Date.now() - inicio) / 1000)), 1000)
+    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - inicio) / 1000)), 1000)
     return () => {
-      clearInterval(reloj)
-      setSegundos(0)
+      clearInterval(clock)
+      setSeconds(0)
     }
-  }, [activo])
-  return segundos
+  }, [active])
+  return seconds
 }
 
 /** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
-const openQuestions = (estado: DesignState) => estado.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(questionAnswerKey(i))))
+const openQuestions = (state: DesignState) => state.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(questionAnswerKey(i))))
 
 /** One question answers at once; with several, or with something already in the tray, answers join the tray. */
-function Preguntas({ m, estado }: { m: Message; estado: DesignState }) {
-  const ajustar = useTienda((s) => s.ajustar)
-  const toggleTray = useTienda((s) => s.toggleTray)
-  const pensando = useTienda((s) => s.pensando)
-  const batch = estado.tray.length > 0 || openQuestions(estado).length > 1
-  const chosen = (i: number) => estado.tray.find((t) => t.id === answerItemId(m.id, i))?.label
+function Questions({ m, state }: { m: Message; state: DesignState }) {
+  const adjust = useStore((s) => s.adjust)
+  const toggleTray = useStore((s) => s.toggleTray)
+  const thinking = useStore((s) => s.thinking)
+  const batch = state.tray.length > 0 || openQuestions(state).length > 1
+  const chosen = (i: number) => state.tray.find((t) => t.id === answerItemId(m.id, i))?.label
 
   return (
     <>
       {m.preguntas.map((p, i) => {
-        const hecha = m.respondida || m.respuestas.includes(questionAnswerKey(i))
+        const taken = m.respondida || m.respuestas.includes(questionAnswerKey(i))
         return (
           <div key={i} className="flex flex-col gap-2">
             {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
@@ -67,10 +67,10 @@ function Preguntas({ m, estado }: { m: Message; estado: DesignState }) {
                 {p.opciones.map((o) => (
                   <Chip
                     key={o}
-                    activo={chosen(i) === o}
+                    active={chosen(i) === o}
                     aria-pressed={batch ? chosen(i) === o : undefined}
-                    disabled={hecha || pensando}
-                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void ajustar(o, `${m.id}#${questionAnswerKey(i)}`))}
+                    disabled={taken || thinking}
+                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void adjust(o, `${m.id}#${questionAnswerKey(i)}`))}
                   >
                     {o}
                   </Chip>
@@ -85,14 +85,14 @@ function Preguntas({ m, estado }: { m: Message; estado: DesignState }) {
   )
 }
 
-function Burbuja({ m, estado, reintentar }: { m: Message; estado: DesignState; reintentar: (() => void) | null }) {
-  const pensando = useTienda((s) => s.pensando)
-  const aplicarPropuesta = useTienda((s) => s.aplicarPropuesta)
-  const descartarPropuesta = useTienda((s) => s.descartarPropuesta)
-  const verPropuesta = useTienda((s) => s.verPropuesta)
-  const alternarPropuesta = useTienda((s) => s.alternarPropuesta)
-  const verVersion = useTienda((s) => s.verVersion)
-  const versionVista = useTienda((s) => s.versionVista)
+function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: (() => void) | null }) {
+  const thinking = useStore((s) => s.thinking)
+  const applyProposal = useStore((s) => s.applyProposal)
+  const discardProposal = useStore((s) => s.discardProposal)
+  const showProposal = useStore((s) => s.showProposal)
+  const toggleProposal = useStore((s) => s.toggleProposal)
+  const viewVersion = useStore((s) => s.viewVersion)
+  const viewedVersion = useStore((s) => s.viewedVersion)
 
   if (m.autor === 'usuario')
     return (
@@ -101,28 +101,28 @@ function Burbuja({ m, estado, reintentar }: { m: Message; estado: DesignState; r
         <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.texto}</div>
         {m.version && (
           <div className="w-full max-w-sm">
-            <ChangeList estado={estado} version={m.version} />
+            <ChangeList state={state} version={m.version} />
           </div>
         )}
       </div>
     )
 
-  const pendiente = m.propuesta === 'pendiente' && estado.propuesta
+  const pending = m.propuesta === 'pendiente' && state.propuesta
   return (
     <div className="animate-aparecer mr-6 flex flex-col gap-2.5 self-start">
       <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-oxido/30 bg-oxido/5' : 'border-linea bg-hueso'}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-grafito-2">
           <PencilSimple weight="duotone" className="text-ambar" /> Experto
           {m.version &&
-            (m.version === estado.actual || !estado.versiones.some((v) => v.n === m.version) ? (
+            (m.version === state.actual || !state.versiones.some((v) => v.n === m.version) ? (
               <span className="cifras rounded-full bg-kraft px-1.5 py-px text-[10px] text-grafito">v{m.version}</span>
             ) : (
               <button
                 type="button"
-                onClick={() => verVersion(versionVista === m.version ? null : m.version)}
+                onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`cifras rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${versionVista === m.version ? 'bg-ambar text-grafito' : 'bg-kraft text-grafito hover:bg-ambar-suave'}`}
+                className={`cifras rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-ambar text-grafito' : 'bg-kraft text-grafito hover:bg-ambar-suave'}`}
               >
                 v{m.version}
               </button>
@@ -136,19 +136,19 @@ function Burbuja({ m, estado, reintentar }: { m: Message; estado: DesignState; r
             {p}
           </p>
         ))}
-        {reintentar && (
-          <Boton variante="secundario" className="mt-3 min-h-9 text-xs" onClick={reintentar} disabled={pensando}>
+        {retry && (
+          <Button variant="secondary" className="mt-3 min-h-9 text-xs" onClick={retry} disabled={thinking}>
             <ArrowClockwise weight="bold" /> Reintentar
-          </Boton>
+          </Button>
         )}
       </div>
 
-      {pendiente && (
+      {pending && (
         <div className="rounded-2xl border border-oxido/25 bg-kraft/60 p-3">
           <p className="mb-2 text-xs font-medium tracking-wide text-grafito-2 uppercase">Propuesta sin aplicar</p>
-          {estado.propuesta!.holds.length > 0 && (
+          {state.propuesta!.holds.length > 0 && (
             <ul className="mb-2 flex flex-col gap-1.5">
-              {estado.propuesta!.holds.map((h) => (
+              {state.propuesta!.holds.map((h) => (
                 <li key={h} className="flex items-start gap-2 text-sm">
                   <Warning className="mt-0.5 shrink-0 text-ambar" weight="bold" /> {h}
                 </li>
@@ -156,54 +156,54 @@ function Burbuja({ m, estado, reintentar }: { m: Message; estado: DesignState; r
             </ul>
           )}
           <ul className="flex flex-col gap-2">
-            {agrupar(estado.propuesta!.criticos).map(({ primero, mas }, i) => (
+            {groupByCode(state.propuesta!.criticos).map(({ first, more }, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
-                <Sello severidad="critico" />
+                <Stamp severity="critico" />
                 <span>
-                  {primero.mensaje}
-                  {mas > 0 && <span className="text-grafito-2"> Y {mas === 1 ? 'otra pieza' : `${mas} piezas más`} con el mismo problema.</span>}
+                  {first.mensaje}
+                  {more > 0 && <span className="text-grafito-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
                 </span>
               </li>
             ))}
           </ul>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Boton variante="secundario" className="min-h-9 text-xs" onClick={alternarPropuesta}>
-              {verPropuesta ? <EyeSlash /> : <Eye />} {verPropuesta ? 'Ver el actual' : 'Ver propuesta'}
-            </Boton>
-            <Boton variante="fantasma" className="min-h-9 text-xs" onClick={aplicarPropuesta} disabled={pensando}>
-              {estado.propuesta!.criticos.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
-            </Boton>
-            <Boton variante="fantasma" className="min-h-9 text-xs" onClick={descartarPropuesta} disabled={pensando}>
-              <ArrowCounterClockwise /> {estado.propuesta!.criticos.length ? 'Descartar' : 'No, déjalo como estaba'}
-            </Boton>
+            <Button variant="secondary" className="min-h-9 text-xs" onClick={toggleProposal}>
+              {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
+            </Button>
+            <Button variant="ghost" className="min-h-9 text-xs" onClick={applyProposal} disabled={thinking}>
+              {state.propuesta!.criticos.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
+            </Button>
+            <Button variant="ghost" className="min-h-9 text-xs" onClick={discardProposal} disabled={thinking}>
+              <ArrowCounterClockwise /> {state.propuesta!.criticos.length ? 'Descartar' : 'No, déjalo como estaba'}
+            </Button>
           </div>
         </div>
       )}
 
-      {m.version && !pendiente && <ChangeList estado={estado} version={m.version} />}
+      {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
       {m.fotosPedidas.map((f) => (
-        <FotoPedida key={f.angulo} angulo={f.angulo} motivo={f.motivo} mensaje={m} />
+        <RequestedPhoto key={f.angulo} angle={f.angulo} reason={f.motivo} message={m} />
       ))}
 
-      <Preguntas m={m} estado={estado} />
+      <Questions m={m} state={state} />
     </div>
   )
 }
 
-/** El experto pidió una foto: se toma aquí y viaja con el siguiente mensaje. */
-function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: string; mensaje: Message }) {
-  const { imagenes } = useServicios()
-  const ajustar = useTienda((s) => s.ajustar)
-  const pensando = useTienda((s) => s.pensando)
-  const [procesando, setProcesando] = useState(false)
-  const enviar = async (archivo: File) => {
-    setProcesando(true)
+/** The expert asked for a photo: it is taken here and travels with the next message. */
+function RequestedPhoto({ angle, reason, message }: { angle: string; reason: string; message: Message }) {
+  const { images } = useServices()
+  const adjust = useStore((s) => s.adjust)
+  const thinking = useStore((s) => s.thinking)
+  const [processing, setProcessing] = useState(false)
+  const send = async (file: File) => {
+    setProcessing(true)
     try {
-      const r = await imagenes.reduce(archivo)
-      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${photoAnswerKey(angulo)}`, { angle: angulo, base64: r.base64, thumbnail: r.thumbnail })
+      const r = await images.reduce(file)
+      await adjust(`Te mando la foto: ${angle}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
     } finally {
-      setProcesando(false)
+      setProcessing(false)
     }
   }
   return (
@@ -211,79 +211,79 @@ function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: strin
       <p className="flex items-start gap-2 text-sm">
         <Camera className="mt-0.5 shrink-0 text-ambar" weight="duotone" />
         <span>
-          <span className="font-medium">Foto: {angulo}.</span> <span className="text-grafito-2">{motivo}</span>
+          <span className="font-medium">Foto: {angle}.</span> <span className="text-grafito-2">{reason}</span>
         </span>
       </p>
       <div className="flex gap-2">
-        <TomarFoto alElegir={(f) => void enviar(f)} deshabilitado={mensaje.respondida || mensaje.respuestas.includes(photoAnswerKey(angulo)) || pensando || procesando} />
+        <TakePhoto onChoose={(f) => void send(f)} disabled={message.respondida || message.respuestas.includes(photoAnswerKey(angle)) || thinking || processing} />
       </div>
     </div>
   )
 }
 
-export function Chat({ estado }: { estado: DesignState }) {
-  const ajustar = useTienda((s) => s.ajustar)
-  const sendTray = useTienda((s) => s.sendTray)
-  const toggleTray = useTienda((s) => s.toggleTray)
-  const pensando = useTienda((s) => s.pensando)
-  const etapa = useTienda((s) => s.etapa)
-  const cancelar = useTienda((s) => s.cancelar)
-  const [texto, setTexto] = useState('')
-  const lista = useRef<HTMLDivElement>(null)
-  const segundos = useSegundos(pensando)
-  const ultimo = estado.chat.at(-1)
-  const anterior = estado.chat.at(-2)
-  // Si el último intento falló, se reenvía el mismo pedido con un clic.
-  const reintentar = ultimo?.error && anterior?.autor === 'usuario' ? () => void ajustar(anterior.texto) : null
-  const sugerencias = pensando || ultimo?.autor !== 'experto' || ultimo.error ? [] : ultimo.sugerencias.length ? ultimo.sugerencias : estado.versiones.length <= 1 ? SUGERENCIAS : []
+export function Chat({ state }: { state: DesignState }) {
+  const adjust = useStore((s) => s.adjust)
+  const sendTray = useStore((s) => s.sendTray)
+  const toggleTray = useStore((s) => s.toggleTray)
+  const thinking = useStore((s) => s.thinking)
+  const stage = useStore((s) => s.stage)
+  const cancel = useStore((s) => s.cancel)
+  const [text, setText] = useState('')
+  const list = useRef<HTMLDivElement>(null)
+  const seconds = useSeconds(thinking)
+  const last = state.chat.at(-1)
+  const previous = state.chat.at(-2)
+  // If the last attempt failed, the same request is sent again with one click.
+  const retry = last?.error && previous?.autor === 'usuario' ? () => void adjust(previous.texto) : null
+  const suggestions = thinking || last?.autor !== 'experto' || last.error ? [] : last.sugerencias.length ? last.sugerencias : state.versiones.length <= 1 ? SUGGESTIONS : []
 
   useEffect(() => {
-    lista.current?.scrollTo({ top: lista.current.scrollHeight, behavior: 'smooth' })
-  }, [estado.chat.length, pensando])
+    list.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })
+  }, [state.chat.length, thinking])
 
-  const enviar = () => {
-    if ((!texto.trim() && !estado.tray.length) || pensando) return
-    void (estado.tray.length ? sendTray(texto) : ajustar(texto))
-    setTexto('')
+  const send = () => {
+    if ((!text.trim() && !state.tray.length) || thinking) return
+    void (state.tray.length ? sendTray(text) : adjust(text))
+    setText('')
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div ref={lista} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
-        {estado.chat.map((m) => (
-          <Burbuja key={m.id} m={m} estado={estado} reintentar={m === ultimo ? reintentar : null} />
+      <div ref={list} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
+        {state.chat.map((m) => (
+          <Bubble key={m.id} m={m} state={state} retry={m === last ? retry : null} />
         ))}
-        {pensando && (
+        {thinking && (
           <div className="flex items-center gap-2 self-start rounded-2xl border border-linea bg-hueso px-4 py-2.5 text-sm text-grafito-2" aria-live="polite">
-            <Lapiz className="h-5 w-12 text-ambar" /> {etapa ? ETAPAS[etapa.nombre] : 'Pensando…'}
-            {segundos >= 10 && <span className="cifras text-xs">· {segundos} s</span>}
+            <Pencil className="h-5 w-12 text-ambar" /> {stage ? STAGES[stage.name] : 'Pensando…'}
+            {seconds >= 10 && <span className="cifras text-xs">· {seconds} s</span>}
           </div>
         )}
       </div>
-      {sugerencias.length > 0 && (
+      {suggestions.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]" aria-label="Sugerencias">
-          {sugerencias.map((s) => (
-            <Chip key={s} className="shrink-0" activo={estado.tray.some((t) => t.id === suggestionItem(s).id)} onClick={() => (estado.tray.length ? toggleTray(suggestionItem(s)) : void ajustar(s))}>
+          {suggestions.map((s) => (
+            <Chip key={s} className="shrink-0" active={state.tray.some((t) => t.id === suggestionItem(s).id)} onClick={() => (state.tray.length ? toggleTray(suggestionItem(s)) : void adjust(s))}>
               {s}
             </Chip>
           ))}
         </div>
       )}
-      <Tray items={estado.tray} typed={!!texto.trim()} onSend={enviar} />
+      <Tray items={state.tray} typed={!!text.trim()} onSend={send} />
       <form
         className="flex items-end gap-2 border-t border-linea bg-hueso/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
         onSubmit={(e) => {
           e.preventDefault()
-          enviar()
+          send()
         }}
       >
         <textarea
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
-              enviar()
+              send()
             }
           }}
           rows={1}
@@ -291,14 +291,14 @@ export function Chat({ estado }: { estado: DesignState }) {
           aria-label="Mensaje para el experto"
           className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-linea bg-hueso px-4 py-2.5 text-[15px] outline-none [field-sizing:content] focus:border-ambar"
         />
-        {pensando ? (
-          <Boton variante="secundario" className="size-11 shrink-0 rounded-full p-0" onClick={cancelar} aria-label="Cancelar">
+        {thinking ? (
+          <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">
             <Stop weight="fill" />
-          </Boton>
+          </Button>
         ) : (
-          <Boton type="submit" variante="primario" className="size-11 shrink-0 rounded-full p-0" disabled={!texto.trim() && !estado.tray.length} aria-label={estado.tray.length ? 'Consultar al experto' : 'Enviar'}>
+          <Button type="submit" variant="primary" className="size-11 shrink-0 rounded-full p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
             <PaperPlaneRight weight="fill" />
-          </Boton>
+          </Button>
         )}
       </form>
     </div>

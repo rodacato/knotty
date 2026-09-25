@@ -2,10 +2,10 @@ import { Copy, DownloadSimple, Trash, X } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useCallback, useEffect, useState } from 'react'
 import type { DebugEvent, DebugKind } from '../../ports/DebugLog'
-import { useServicios } from '../servicios'
-import { Boton } from '../sistema/componentes'
-import { Nudo } from '../sistema/Marca'
-import { useTienda } from '../tienda'
+import { useServices } from '../services'
+import { Button } from '../sistema/components'
+import { Knot } from '../sistema/Brand'
+import { useStore } from '../store'
 import { captureGlobalErrors, instrumentStore } from './instrument'
 import { BenchPanel } from './BenchPanel'
 import { KonamiTrail } from './KonamiTrail'
@@ -27,7 +27,7 @@ const COLOR: Record<DebugKind, string> = { llm: 'bg-ambar-suave', action: 'bg-kr
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 /** Everything needed to understand or rebuild a session, without API keys. */
-function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServicios>['preferencias']['load']>, design: unknown) {
+function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServices>['preferences']['load']>, design: unknown) {
   const connection = preferences.activo === 'simulado' ? null : preferences.conexiones[preferences.activo]
   return {
     format: 'knotty-debug@1',
@@ -41,8 +41,8 @@ function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<t
 }
 
 export function DebugPanel() {
-  const { debug, preferencias } = useServicios()
-  const estado = useTienda((s) => s.estado)
+  const { debug, preferences } = useServices()
+  const state = useStore((s) => s.state)
   const [visible, setVisible] = useState(() => debug.visible() || new URLSearchParams(location.search).has('debug'))
   const [open, setOpen] = useState(false)
   const [kinds, setKinds] = useState<Set<DebugKind>>(new Set(KINDS.map((k) => k.id)))
@@ -97,7 +97,7 @@ export function DebugPanel() {
   if (!visible) return trail
   const events = debug.events()
   const shown = [...events].reverse().filter((e) => kinds.has(e.kind))
-  const bundle = () => JSON.stringify(exportBundle(events, preferencias.load(), estado), null, 2)
+  const bundle = () => JSON.stringify(exportBundle(events, preferences.load(), state), null, 2)
 
   const download = () => {
     const url = URL.createObjectURL(new Blob([bundle()], { type: 'application/json' }))
@@ -120,7 +120,7 @@ export function DebugPanel() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">
-          <Nudo className="size-4" /> Entrañas <span className="cifras opacity-70">{events.length}</span>
+          <Knot className="size-4" /> Entrañas <span className="cifras opacity-70">{events.length}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -132,14 +132,14 @@ export function DebugPanel() {
               <span className="block text-xs text-grafito-2">Todo lo que pasó por dentro, anillo por anillo</span>
             </Dialog.Title>
             <Dialog.Description className="sr-only">Todo lo que pasó en esta sesión, para exportarlo y revisarlo.</Dialog.Description>
-            <Boton variante="secundario" className="min-h-8 px-2 text-xs" onClick={download}>
+            <Button variant="secondary" className="min-h-8 px-2 text-xs" onClick={download}>
               <DownloadSimple /> Exportar
-            </Boton>
-            <Boton variante="fantasma" className="min-h-8 px-2 text-xs" onClick={() => void copy()}>
+            </Button>
+            <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={() => void copy()}>
               <Copy /> {copied ? 'Copiado' : 'Copiar'}
-            </Boton>
-            <Boton
-              variante="fantasma"
+            </Button>
+            <Button
+              variant="ghost"
               className="min-h-8 px-2 text-xs"
               onClick={() => {
                 debug.clear()
@@ -147,7 +147,7 @@ export function DebugPanel() {
               }}
             >
               <Trash /> Limpiar
-            </Boton>
+            </Button>
             <Dialog.Close asChild>
               <button type="button" aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
                 <X />

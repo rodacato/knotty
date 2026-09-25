@@ -1,5 +1,5 @@
 import { TABLE_NAMES, type TablePlan } from '../../domain/modules/table'
-import { useServicios } from '../servicios'
+import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
 // A table's or desk's ficha: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
@@ -26,8 +26,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Partial<TablePlan>) => void }) {
-  const { catalogo } = useServicios()
-  const boards = catalogo.materiales.filter((m) => m.tipo === 'triplay')
+  const { catalog } = useServices()
+  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
   const desk = draft.use === 'desk'
   const size = draft.dimensions
   return (

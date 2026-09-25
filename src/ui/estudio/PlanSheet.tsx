@@ -11,9 +11,9 @@ import { NumberField, Segmented, Stepper } from './PlanControls'
 import { describePlanChanges } from '../../domain/modules/planChanges'
 import type { Cell, Column } from '../../domain/reading/reading'
 import type { DesignState } from '../../domain/sesion/state'
-import { useServicios } from '../servicios'
-import { Boton } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { useServices } from '../services'
+import { Button } from '../sistema/components'
+import { useStore } from '../store'
 
 // The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.
 
@@ -80,9 +80,9 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
 }
 
 function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Partial<CabinetPlan>) => void }) {
-  const { catalogo } = useServicios()
+  const { catalog } = useServices()
   const setColumn = (i: number, column: Column) => set({ columns: draft.columns.map((c, j) => (j === i ? column : c)) })
-  const boards = catalogo.materiales.filter((m) => m.tipo === 'triplay')
+  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
   const widths = draft.columns.map((c) => c.width)
   return (
     <>
@@ -122,9 +122,9 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <h3 className="font-titulo text-base font-semibold">Columnas y huecos</h3>
-          <Boton variante="fantasma" className="min-h-8 px-2 text-xs" onClick={() => set({ columns: [...draft.columns, { width: draft.columns.reduce((s, c) => s + c.width, 0) / draft.columns.length, cells: [newCell()] }] })}>
+          <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={() => set({ columns: [...draft.columns, { width: draft.columns.reduce((s, c) => s + c.width, 0) / draft.columns.length, cells: [newCell()] }] })}>
             <Plus /> Columna
-          </Boton>
+          </Button>
         </div>
         {draft.columns.map((column, i) => {
           const heights = column.cells.map((c) => c.height)
@@ -178,9 +178,9 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
   )
 }
 
-export function PlanSheet({ estado }: { estado: DesignState }) {
-  const applyPlan = useTienda((s) => s.applyPlan)
-  const source = useMemo(() => currentPlan(estado), [estado])
+export function PlanSheet({ state }: { state: DesignState }) {
+  const applyPlan = useStore((s) => s.applyPlan)
+  const source = useMemo(() => currentPlan(state), [state])
   const [draft, setDraft] = useState<FurniturePlan | null>(source.plan)
   const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
   useEffect(() => setDraft(source.plan), [source.plan])
@@ -224,12 +224,12 @@ export function PlanSheet({ estado }: { estado: DesignState }) {
         {message && <p className={`text-xs ${message.kind === 'error' ? 'text-oxido' : 'text-grafito-2'}`}>{message.text}</p>}
         <p className="text-xs text-grafito-2">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         <div className="flex gap-2">
-          <Boton variante="primario" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
+          <Button variant="primary" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
             <Check weight="bold" /> Aplicar
-          </Boton>
-          <Boton variante="fantasma" className="min-h-10" disabled={!changes.length} onClick={() => set(source.plan!)}>
+          </Button>
+          <Button variant="ghost" className="min-h-10" disabled={!changes.length} onClick={() => set(source.plan!)}>
             <ArrowCounterClockwise /> Descartar
-          </Boton>
+          </Button>
         </div>
       </div>
     </div>

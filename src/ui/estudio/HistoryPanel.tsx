@@ -1,8 +1,8 @@
 import { ArrowCounterClockwise, Eye, EyeSlash } from '@phosphor-icons/react'
 import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { ChangeList } from '../chat/ChangeList'
-import { Boton } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { Button } from '../sistema/components'
+import { useStore } from '../store'
 import { TraceLog } from './TraceLog'
 
 // Every version, newest first, with what changed in each and how to go back: seen from the header, not a tab.
@@ -23,19 +23,19 @@ function ago(date: string) {
 
 const PROVIDER: Record<string, string> = { simulado: 'Simulado', anthropic: 'Claude', openai: 'OpenAI', shellm: 'SheLLM' }
 
-export function HistoryPanel({ estado }: { estado: DesignState }) {
-  const versionVista = useTienda((s) => s.versionVista)
-  const verVersion = useTienda((s) => s.verVersion)
-  const volverAVersion = useTienda((s) => s.volverAVersion)
-  const pensando = useTienda((s) => s.pensando)
-  const versions = [...estado.versiones].sort((a, b) => b.n - a.n)
+export function HistoryPanel({ state }: { state: DesignState }) {
+  const viewedVersion = useStore((s) => s.viewedVersion)
+  const viewVersion = useStore((s) => s.viewVersion)
+  const backToVersion = useStore((s) => s.backToVersion)
+  const thinking = useStore((s) => s.thinking)
+  const versions = [...state.versiones].sort((a, b) => b.n - a.n)
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <ol className="relative flex flex-col gap-3 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-px before:bg-linea">
         {versions.map((v) => {
-          const current = v.n === estado.actual
-          const viewing = v.n === versionVista
+          const current = v.n === state.actual
+          const viewing = v.n === viewedVersion
           return (
             <li key={v.n} className="animate-aparecer relative flex gap-3">
               <span className={`z-10 mt-1 grid size-6 shrink-0 place-items-center rounded-full border-2 ${current ? 'border-ambar bg-ambar' : viewing ? 'border-ambar bg-hueso' : 'border-linea bg-hueso'}`}>
@@ -53,15 +53,15 @@ export function HistoryPanel({ estado }: { estado: DesignState }) {
                   {v.origen && ` · ${PROVIDER[v.origen.proveedor] ?? v.origen.proveedor}`}
                   {v.operaciones.length > 0 && ` · ${v.operaciones.length} ${v.operaciones.length === 1 ? 'operación' : 'operaciones'}`}
                 </p>
-                <ChangeList estado={estado} version={v.n} />
+                <ChangeList state={state} version={v.n} />
                 {!current && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Boton variante="secundario" className="min-h-8 px-3 text-xs" onClick={() => verVersion(viewing ? null : v.n)}>
+                    <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={() => viewVersion(viewing ? null : v.n)}>
                       {viewing ? <EyeSlash /> : <Eye />} {viewing ? 'Dejar de ver' : 'Ver'}
-                    </Boton>
-                    <Boton variante="fantasma" className="min-h-8 px-3 text-xs" disabled={pensando} onClick={() => volverAVersion(v.n)}>
+                    </Button>
+                    <Button variant="ghost" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={() => backToVersion(v.n)}>
                       <ArrowCounterClockwise /> Volver a esta
-                    </Boton>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -72,7 +72,7 @@ export function HistoryPanel({ estado }: { estado: DesignState }) {
       <details className="rounded-2xl border border-linea bg-hueso/60 p-3">
         <summary className="cursor-pointer text-sm font-medium">Bitácora: qué hizo el experto</summary>
         <div className="mt-3">
-          <TraceLog trace={estado.trace} pieces={currentDesign(estado).piezas} />
+          <TraceLog trace={state.trace} pieces={currentDesign(state).piezas} />
         </div>
       </details>
     </div>

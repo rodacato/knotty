@@ -7,21 +7,21 @@ import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'
 import type { ImageProcessor } from '../ports/ImageProcessor'
 
-export interface Servicios {
-  casos: UseCases
-  catalogo: Catalog
-  materiales: MaterialCatalog
-  imagenes: ImageProcessor
-  preferencias: Preferences
+export interface Services {
+  useCases: UseCases
+  catalog: Catalog
+  materials: MaterialCatalog
+  images: ImageProcessor
+  preferences: Preferences
   debug: DebugLog
   /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
   bench: Bench
 }
 
-export const ContextoServicios = createContext<Servicios | null>(null)
+export const ServicesContext = createContext<Services | null>(null)
 
-export function useServicios() {
-  const s = useContext(ContextoServicios)
-  if (!s) throw new Error('Faltan los servicios: envuelve la app en ContextoServicios.')
+export function useServices() {
+  const s = useContext(ServicesContext)
+  if (!s) throw new Error('Faltan los servicios: envuelve la app en ServicesContext.')
   return s
 }

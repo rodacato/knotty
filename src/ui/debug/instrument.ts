@@ -1,31 +1,31 @@
 import type { DebugLog } from '../../ports/DebugLog'
-import type { CaptureInput } from '../tienda'
-import { useTienda } from '../tienda'
+import type { CaptureInput } from '../store'
+import { useStore } from '../store'
 
 // Records what the person does and what the app goes through, without touching each action.
 
-type Store = ReturnType<typeof useTienda.getState>
+type Store = ReturnType<typeof useStore.getState>
 type Describe = (...args: never[]) => { summary: string; data?: unknown }
 
-const photos = (e: CaptureInput) => e.photos.map((f) => ({ angulo: f.angle, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
+const photos = (e: CaptureInput) => e.photos.map((f) => ({ angle: f.angle, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
 
 const ACTIONS: Partial<Record<keyof Store, Describe>> = {
-  reconstruir: (entrada: CaptureInput) => ({ summary: `Diseñar: «${entrada.notes.slice(0, 60)}»${entrada.photos.length ? ` con ${entrada.photos.length} fotos` : ''}`, data: { medidas: entrada.measures, notas: entrada.notes, fotos: photos(entrada) } }),
-  ajustar: (peticion: string, respondeA?: string | null, foto?: { angulo: string } | null) => ({ summary: `Pedir: «${peticion.slice(0, 80)}»`, data: { peticion, respondeA: respondeA ?? null, foto: foto?.angulo ?? null } }),
-  reintentarReconstruccion: () => ({ summary: 'Reintentar el diseño' }),
-  cancelar: () => ({ summary: 'Cancelar' }),
-  aplicarPropuesta: () => ({ summary: 'Aplicar la propuesta bajo su riesgo' }),
-  descartarPropuesta: () => ({ summary: 'Descartar la propuesta' }),
-  volverAVersion: (n: number) => ({ summary: `Volver a la versión ${n}` }),
-  confirmarPieza: (id: string) => ({ summary: `Confirmar la pieza ${id}` }),
-  dictaminar: () => ({ summary: 'Revisar antes de comprar' }),
-  nuevoDiseno: () => ({ summary: 'Nuevo diseño' }),
-  desdeEjemplo: (diseno: { nombre: string }) => ({ summary: `Abrir el ejemplo ${diseno.nombre}` }),
-  usarSimulado: () => ({ summary: 'Usar el experto simulado' }),
+  reconstruct: (input: CaptureInput) => ({ summary: `Diseñar: «${input.notes.slice(0, 60)}»${input.photos.length ? ` con ${input.photos.length} fotos` : ''}`, data: { measures: input.measures, notes: input.notes, photos: photos(input) } }),
+  adjust: (request: string, replyTo?: string | null, photo?: { angle: string } | null) => ({ summary: `Pedir: «${request.slice(0, 80)}»`, data: { request, replyTo: replyTo ?? null, photo: photo?.angle ?? null } }),
+  retryReconstruction: () => ({ summary: 'Reintentar el diseño' }),
+  cancel: () => ({ summary: 'Cancelar' }),
+  applyProposal: () => ({ summary: 'Aplicar la propuesta bajo su riesgo' }),
+  discardProposal: () => ({ summary: 'Descartar la propuesta' }),
+  backToVersion: (n: number) => ({ summary: `Volver a la versión ${n}` }),
+  confirmPiece: (id: string) => ({ summary: `Confirmar la pieza ${id}` }),
+  review: () => ({ summary: 'Revisar antes de comprar' }),
+  newDesign: () => ({ summary: 'Nuevo diseño' }),
+  fromExample: (design: { nombre: string }) => ({ summary: `Abrir el ejemplo ${design.nombre}` }),
+  switchToSimulated: () => ({ summary: 'Usar el experto simulado' }),
 }
 
 export function instrumentStore(log: DebugLog) {
-  const state = useTienda.getState()
+  const state = useStore.getState()
   const wrapped: Partial<Store> = {}
   for (const [key, describe] of Object.entries(ACTIONS) as [keyof Store, Describe][]) {
     const original = state[key] as unknown as (...args: unknown[]) => unknown
@@ -38,15 +38,15 @@ export function instrumentStore(log: DebugLog) {
       return original(...args)
     }
   }
-  useTienda.setState(wrapped)
+  useStore.setState(wrapped)
 
   // Stages and errors are read from the store as they change.
-  return useTienda.subscribe((now, before) => {
-    if (now.etapa && (now.etapa.nombre !== before.etapa?.nombre || now.etapa.intento !== before.etapa?.intento || now.etapa.progress?.done !== before.etapa?.progress?.done))
-      log.record({ kind: 'stage', summary: `Etapa: ${now.etapa.nombre}${now.etapa.intento ? `, intento ${now.etapa.intento + 1}` : ''}${now.etapa.progress ? ` (${now.etapa.progress.done} de ${now.etapa.progress.total})` : ''}`, data: now.etapa })
-    if (now.errorReconstruccion && now.errorReconstruccion !== before.errorReconstruccion) log.record({ kind: 'error', summary: `El diseño falló: ${now.errorReconstruccion}`, data: { trace: now.failedTrace } })
-    if (now.errorDictamen && now.errorDictamen !== before.errorDictamen) log.record({ kind: 'error', summary: `La revisión falló: ${now.errorDictamen}` })
-    if (now.estado && before.estado && now.estado.actual !== before.estado.actual) log.record({ kind: 'action', summary: `Versión ${now.estado.actual}: ${now.estado.versiones.find((v) => v.n === now.estado!.actual)?.resumen ?? ''}` })
+  return useStore.subscribe((now, before) => {
+    if (now.stage && (now.stage.name !== before.stage?.name || now.stage.attempt !== before.stage?.attempt || now.stage.progress?.done !== before.stage?.progress?.done))
+      log.record({ kind: 'stage', summary: `Etapa: ${now.stage.name}${now.stage.attempt ? `, intento ${now.stage.attempt + 1}` : ''}${now.stage.progress ? ` (${now.stage.progress.done} de ${now.stage.progress.total})` : ''}`, data: now.stage })
+    if (now.reconstructionError && now.reconstructionError !== before.reconstructionError) log.record({ kind: 'error', summary: `El diseño falló: ${now.reconstructionError}`, data: { trace: now.failedTrace } })
+    if (now.verdictError && now.verdictError !== before.verdictError) log.record({ kind: 'error', summary: `La revisión falló: ${now.verdictError}` })
+    if (now.state && before.state && now.state.actual !== before.state.actual) log.record({ kind: 'action', summary: `Versión ${now.state.actual}: ${now.state.versiones.find((v) => v.n === now.state!.actual)?.resumen ?? ''}` })
   })
 }
 

@@ -2,9 +2,9 @@ import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, Warning
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import type { BenchResult, ModuleCheck } from '../../application/bench/bench'
-import { useServicios } from '../servicios'
-import { Boton } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { useServices } from '../services'
+import { Button } from '../sistema/components'
+import { useStore } from '../store'
 
 // A hidden test bench next to the log: the fixed cases against the connected expert, and every variant of the modules, graded by Knotty's own checks.
 
@@ -18,8 +18,8 @@ function Verdict({ r }: { r: BenchResult }) {
 }
 
 export function BenchPanel() {
-  const { bench, preferencias } = useServicios()
-  const openState = useTienda((s) => s.openState)
+  const { bench, preferences } = useServices()
+  const openState = useStore((s) => s.openState)
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set(bench.cases.map((c) => c.id)))
   const [results, setResults] = useState<Record<string, BenchResult | 'running'>>({})
@@ -27,7 +27,7 @@ export function BenchPanel() {
   const [confirming, setConfirming] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
   const running = Object.values(results).some((r) => r === 'running')
-  const prefs = preferencias.load()
+  const prefs = preferences.load()
   const expert = prefs.activo === 'simulado' ? 'Simulado' : `${prefs.activo} · ${prefs.conexiones[prefs.activo].modelo}`
 
   const run = async () => {
@@ -75,9 +75,9 @@ export function BenchPanel() {
               <span className="block text-xs text-grafito-2">Casos fijos contra {expert}, calificados con las cuentas de Knotty</span>
             </Dialog.Title>
             <Dialog.Description className="sr-only">Corre los casos de prueba contra el experto conectado y revisa los módulos sin experto.</Dialog.Description>
-            <Boton variante="secundario" className="min-h-8 px-2 text-xs" onClick={download} disabled={!Object.keys(results).length && !modules}>
+            <Button variant="secondary" className="min-h-8 px-2 text-xs" onClick={download} disabled={!Object.keys(results).length && !modules}>
               <DownloadSimple /> Exportar
-            </Boton>
+            </Button>
             <Dialog.Close asChild>
               <button type="button" aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
                 <X />
@@ -93,13 +93,13 @@ export function BenchPanel() {
                   {selected.size === bench.cases.length ? 'Ninguno' : 'Todos'}
                 </button>
                 {running ? (
-                  <Boton variante="secundario" className="min-h-8 px-3 text-xs" onClick={() => controller.current?.abort()}>
+                  <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={() => controller.current?.abort()}>
                     <Stop weight="fill" /> Detener
-                  </Boton>
+                  </Button>
                 ) : (
-                  <Boton variante="primario" className="min-h-8 px-3 text-xs" disabled={!selected.size} onClick={() => void run()}>
+                  <Button variant="primary" className="min-h-8 px-3 text-xs" disabled={!selected.size} onClick={() => void run()}>
                     <Play weight="fill" /> Correr {selected.size}
-                  </Boton>
+                  </Button>
                 )}
               </div>
               <p className="text-[11px] text-grafito-2">Cada caso usa tu llave y cuesta lo que un diseño; no toca tu diseño actual. Las respuestas crudas quedan en la bitácora.</p>
@@ -166,9 +166,9 @@ export function BenchPanel() {
             <section className="flex flex-col gap-2 p-3">
               <div className="flex items-center gap-2">
                 <h3 className="flex-1 text-sm font-semibold">Sin experto: los módulos de Knotty</h3>
-                <Boton variante="secundario" className="min-h-8 px-3 text-xs" onClick={() => setModules(bench.runModules())}>
+                <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={() => setModules(bench.runModules())}>
                   <Play weight="fill" /> Revisar
-                </Boton>
+                </Button>
               </div>
               <p className="text-[11px] text-grafito-2">Arma cada variante de cama, mesa y gabinete y marca las que salen inválidas o con avisos: eso es un error de Knotty, no del experto.</p>
               {modules && (
