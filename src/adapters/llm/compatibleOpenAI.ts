@@ -112,7 +112,12 @@ async function leerStream(respuesta: Response): Promise<Completado> {
       const dato = linea.startsWith('data:') ? linea.slice(5).trim() : ''
       if (!dato || dato === '[DONE]') continue
       const evento = JSON.parse(dato) as { choices?: { delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }[]; usage?: Completado['usage']; error?: { message?: string } }
-      if (evento.error) throw new Error(`El proveedor cortó la respuesta: ${evento.error.message ?? 'error sin detalle'}`)
+      if (evento.error) {
+        const detalle = evento.error.message ?? 'error sin detalle'
+        // 143 es SIGTERM: el host mató al modelo, casi siempre por su propio límite de tiempo.
+        if (/code 143|SIGTERM|timed? ?out/i.test(detalle)) throw new Error(`El proveedor detuvo al modelo antes de terminar (${detalle}); suele ser su límite de tiempo. En SheLLM sube TIMEOUT_MS a 300000.`)
+        throw new Error(`El proveedor cortó la respuesta: ${detalle}`)
+      }
       const eleccion = evento.choices?.[0]
       contenido += eleccion?.delta?.content ?? ''
       rechazo += eleccion?.delta?.refusal ?? ''

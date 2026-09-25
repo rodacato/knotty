@@ -19,6 +19,13 @@ export const CASOS: Caso[] = [
     esperado: { alto: [1800, 1800], ancho: [800, 800], fondo: [300, 300] },
   },
   {
+    id: 'cama-cajones',
+    notas:
+      'Quiero una cama individual con una base con cajones 3, y una cabecera como librero para poner cosas con un espacio cerrado donde va la almohada pero despues con 2 entrepaños como librero',
+    medidas: null,
+    esperado: { ancho: [990, 1150], fondo: [1900, 2200], alto: [700, 1400] },
+  },
+  {
     id: 'buro',
     notas: 'Buró con un cajón arriba y una repisa abierta abajo',
     medidas: null,
