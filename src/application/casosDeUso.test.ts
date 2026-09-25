@@ -653,3 +653,51 @@ describe('editing a piece by hand, without the expert', () => {
     expect(currentPlan(wider.estado).extras).toHaveLength(1)
   })
 })
+
+describe('trust: nothing structural goes unasked, and any change can be undone in parts', () => {
+  const answering = (valor: Partial<RespuestaAjuste>) => {
+    const simulado = crearSimulado(0)
+    return casos({ ...simulado, proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Cambio', ...valor }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
+  }
+  const removeKick: Operacion[] = [{ op: 'eliminarPieza', id: 'zoclo' }]
+
+  it('taking away structure that was not asked for waits for the person, and one click applies it', () => {
+    const c = answering({ operaciones: removeKick })
+    return c.ajustar(c.desdeEjemplo(librero), 'Hazlo más ligero', senal()).then((estado) => {
+      expect(estado.versiones).toHaveLength(1)
+      expect(estado.propuesta?.holds[0]).toMatch(/^Quiere quitar Zoclo/)
+      const aplicado = c.aplicarPropuesta(estado)
+      expect(disenoActual(aplicado).piezas.some((p) => p.id === 'zoclo')).toBe(false)
+    })
+  })
+
+  it('when the person asks to remove it, it just happens', async () => {
+    const c = answering({ operaciones: removeKick })
+    const estado = await c.ajustar(c.desdeEjemplo(librero), 'Quita el zoclo', senal())
+    expect(estado.versiones).toHaveLength(2)
+  })
+
+  it('changes that come with questions wait for the answers', async () => {
+    const c = answering({ operaciones: [{ op: 'cambiarEspesor', ids: ['entrepano-1'], material: 'T15' }], preguntas: [{ texto: '¿Cuánto peso?', opciones: ['Poco', 'Mucho'] }] })
+    const estado = await c.ajustar(c.desdeEjemplo(librero), 'Adelgaza la repisa', senal())
+    expect(estado.versiones).toHaveLength(1)
+    expect(estado.propuesta?.holds).toEqual(['Hizo preguntas: el cambio espera tus respuestas.'])
+  })
+
+  it('brings back one piece from before an older change, and undoes a whole change', () => {
+    const c = casos()
+    const inicial = c.desdeEjemplo(librero)
+    const sinRepisas = c.editPiece(inicial, 'entrepano-2', { kind: 'thickness', material: 'T15' })
+    if (!sinRepisas.ok) throw new Error(sinRepisas.message)
+    const movida = c.editPiece(sinRepisas.estado, 'entrepano-1', { kind: 'move', axis: 'y', delta: 30 })
+    if (!movida.ok) throw new Error(movida.message)
+    const regresada = c.restoreFromVersion(movida.estado, 2, ['entrepano-2'])
+    if (!regresada.ok) throw new Error(regresada.message)
+    const d = disenoActual(regresada.estado)
+    expect(d.piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T18')
+    expect(regresada.estado.chat.at(-1)?.texto).toBe('Regresé Entrepaño 2 como estaba antes de la v2.')
+    const deshecha = c.undoChange(regresada.estado, regresada.estado.actual)
+    if (!deshecha.ok) throw new Error(deshecha.message)
+    expect(disenoActual(deshecha.estado).piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T15')
+  })
+})

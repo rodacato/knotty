@@ -89,6 +89,8 @@ interface Tienda {
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: CabinetPlan): { ok: true; notes: string[] } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
+  restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
+  undoChange(n: number): { ok: true } | { ok: false; message: string }
   editPiece(id: string, edit: PieceEdit): PieceEditResult
   resizeFurniture(axis: Eje, value: number): PieceEditResult
   cancelarDictamen(): void
@@ -301,6 +303,24 @@ export const useTienda = create<Tienda>((set, get) => ({
   quitarDecision(tema) {
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
+
+  restoreFromVersion(n, ids) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
+    const r = servicios.casos.restoreFromVersion(estado, n, ids)
+    if (!r.ok) return r
+    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    return { ok: true }
+  },
+
+  undoChange(n) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
+    const r = servicios.casos.undoChange(estado, n)
+    if (!r.ok) return r
+    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    return { ok: true }
   },
 
   editPiece(id, edit) {

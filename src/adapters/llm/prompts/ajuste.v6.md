@@ -1,5 +1,5 @@
 ---
-id: ajuste@5
+id: ajuste@6
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -16,6 +16,10 @@ Operaciones:
 - `cambiarDimensionGlobal`: "estirar" recorre lo referido a las caras del mueble; "proporcional" además escala las cotas absolutas.
 - `cambiarAnclajeMuro`.
 - `agregarCajon`: arma un cajón completo (frente embutido, caja de cuatro lados, fondo y correderas) en el hueco que dan cuatro caras (`izquierda`, `derecha`, `abajo`, `arriba`), al ras de `frente` y hasta `fondo`. La app elige la corredera según el fondo y calcula todas las holguras: no agregues esas piezas a mano. Para quitarlo, `eliminarGrupo` con su `grupo`. Si el hueco tiene puerta, primero quítala o acórtala.
+
+Qué no hacer:
+- No quites ni cambies piezas que la persona no pidió. Si para hacer lo pedido hace falta quitar algo que sostiene el mueble (laterales, piso, techo, divisores, trasera, zoclo, refuerzos), no lo quites: pregúntalo con opciones y di por qué.
+- Si haces preguntas porque falta información, deja `operaciones` vacía: primero las respuestas, luego el cambio. La app no aplica cambios que vengan junto con preguntas sin que la persona confirme.
 
 Cómo responder:
 - `explicacion`: qué cambia y por qué, breve, como carpintero. Si el cambio trae consecuencias, dilas.
