@@ -1,0 +1,117 @@
+# Cómo contribuir a Knotty
+
+Esta guía dice cómo correr la app, dónde va cada cosa y, sobre todo, cómo comprobar que un cambio funciona antes de abrir un PR. Las decisiones y el estado del proyecto viven en [docs/PROPUESTA.md](docs/PROPUESTA.md).
+
+## Para empezar
+
+Hace falta Node 24.
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
+
+Sin llave de API la app usa el experto **Simulado**, que entiende unos cuantos pedidos y arma tres ejemplos (librero, buró, alacena). Para un experto real, abre el engrane y elige Claude, OpenAI o SheLLM; la llave se queda en el navegador.
+
+Para `npm run compare` (el banco contra expertos reales), copia `.env.example` a `.env` y llena lo que vayas a usar. `.env` no se sube a git.
+
+## Cómo está organizado
+
+Arquitectura hexagonal; el mapa completo está en la sección 2 de la propuesta.
+
+- `src/domain/`: el mueble, sus reglas y todo lo que decide. TypeScript puro y determinista: sin React, sin navegador, sin LLM.
+- `src/application/`: casos de uso (diseñar, ajustar, revisar antes de comprar), el contexto que se le manda al experto y el banco de pruebas.
+- `src/ports/` y `src/adapters/`: la frontera con el mundo (proveedores de LLM, localStorage, catálogo, fotos). Los prompts están en `src/adapters/llm/prompts/`.
+- `src/ui/`: React y la escena 3D.
+- `public/catalog/catalog.json`: triplay, herrajes y parámetros de corte; se edita sin tocar código.
+
+`src/architecture.test.ts` falla si una capa importa lo que no debe.
+
+## Idiomas
+
+- **En inglés:** el código (nombres, archivos, carpetas, comentarios), los datos que se guardan, los ids y los prompts.
+- **En español de México:** todo lo que lee la persona: la interfaz, los mensajes, los nombres de piezas y muebles, y lo que escribe el experto (los prompts se lo piden así). Palabras de taller: «triplay», «entrepaño», «zoclo», «jaladera».
+- **Medidas en milímetros**; a la persona se le muestran también en centímetros cuando ayuda.
+- Commits, PRs y documentación, en español.
+
+## Cómo verificar un cambio
+
+### 1. Siempre
+
+Lo mismo que corre el CI en cada PR; si pasa en tu máquina, pasa ahí:
+
+```bash
+npm run typecheck && npm test && npm run build
+```
+
+### 2. En el navegador, sin costo
+
+Con `npm run dev` y el experto Simulado:
+
+1. **Diseñar:** «Nuevo diseño», escribe «Un librero con repisas para libros» y diséñalo. Sale el mueble en 3D con veta de pino.
+2. **Ajustar:** en el chat, «Hazlo de 90 cm de ancho». Sale una propuesta con un aviso crítico: «Ver propuesta» / «Ver el actual» alterna el 3D, y en los avisos (la campana) cada solución tiene «Ver» y «Aplicar».
+3. **Pestañas:** en Mueble aparecen las piezas con medidas; en Materiales, «Revisar y ver materiales» da el dictamen y la lista de compra.
+4. **Recargar:** el diseño sigue ahí.
+
+Si tocaste la interfaz, pruébala también en celular (el modo responsivo del navegador basta) y en modo oscuro.
+
+### 3. El banco sin experto (gratis, segundos)
+
+Abre la app con `?debug` al final de la dirección (o el código Konami, o `Ctrl+Shift+D`) y entra a **Banco**; en «Sin experto: los módulos de Knotty», **Revisar**. Arma todas las variantes de cama, mesa y gabinete (unas 180) y las revisa con las reglas: una variante inválida o con avisos es un error de Knotty.
+
+### 4. El banco con experto real (cuesta tokens)
+
+```bash
+npm run compare                                  # los 10 casos
+KNOTTY_CASES=bookcase,plant-stand npm run compare
+KNOTTY_REPEAT=3 KNOTTY_LABEL="mi cambio" npm run compare
+```
+
+`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`). El reporte queda en `scripts/compare/results/` con tiempo, intentos, camino (ficha o pieza por pieza), medidas razonables, críticos y veredicto. Compáralo con el reporte anterior: la corrida varía, así que repite un caso antes de concluir.
+
+### Qué correr según lo que tocaste
+
+| Si tocaste… | Además de lo de siempre |
+|---|---|
+| La interfaz o la escena 3D | Recorrido en el navegador (2) |
+| Reglas, módulos (fichas), uniones, geometría o reparaciones | Banco sin experto (3) y recorrido (2) |
+| Prompts, esquemas que ve el experto o el contexto que se le manda | Banco con experto (4), comparado con el anterior |
+| Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
+| El catálogo | Banco sin experto (3) y la pestaña Materiales (2) |
+
+## Cambios que piden cuidado
+
+### Lo que se guarda en el navegador
+
+Los diseños de la persona viven en `localStorage` y tienen que seguir abriendo después de tu cambio.
+
+- La sesión tiene formato (`format` en `src/domain/session/state.ts`). Si cambias un campo o un valor guardado, sube el formato y agrega su migración en `src/domain/session/migrate.ts`, con prueba. Hay una sesión real de la primera versión en `state-v1.fixture.json` que se migra en las pruebas.
+- Preferencias y ajustes del catálogo leen su forma anterior en su adaptador (`configuration.ts`, `catalog/json.ts`).
+- Antes de subir, abre la app con un diseño guardado por la versión anterior y comprueba que abre igual.
+
+### Llaves de API
+
+Nunca se guardan en claro en `localStorage`: viven en memoria, en la pestaña o cifradas con frase. Las pruebas de `configuration.test.ts` comprueban que la llave no aparezca en lo guardado; si tocas preferencias, deben seguir pasando. No pegues llaves en issues, PRs ni en la bitácora exportada (se exporta sin ellas).
+
+### Prompts
+
+- Cada prompt lleva `id: nombre@versión` en su encabezado, y el archivo se llama igual (`system.v9.md`). Si cambias el contenido, sube la versión en los dos: cada diseño guarda qué prompt lo produjo.
+- Corre el banco con experto antes y después (4).
+- Los reportes de `scripts/compare/results/` son historial: no se reescriben, ni con un reemplazo global.
+
+### Textos para la persona
+
+En español de México, claros y breves, como en un taller. Los identificadores que aparezcan en un mensaje (una medida, un ángulo de foto) llevan su etiqueta en español: `DIMENSION_LABEL`, `angleLabel`.
+
+## Cuando algo falla
+
+- **Bitácora de depuración** («Entrañas de la madera»): con `?debug`, el código Konami o `Ctrl+Shift+D`. Registra cada llamada al experto, cada error y cada acción; «Exportar» baja un JSON con el commit, el experto (sin llaves), el diseño y los eventos. Adjúntalo a un issue.
+- **«Ver qué pasó»** en un diseño que falló muestra cada intento del experto, sus errores y lo que Knotty reparó.
+- **Banco:** «Abrir en el estudio» lleva el resultado de un caso al estudio para revisarlo.
+
+## Commits y PRs
+
+- Commits chicos y frecuentes, con mensaje en español que diga qué cambia.
+- Agrega los archivos por nombre; nunca `.env`.
+- El PR dice qué cambia, por qué y **cómo lo verificaste** (qué niveles de arriba corriste y con qué resultado).
+- El CI corre `typecheck`, `test` y `build`; un PR con el CI en rojo no se mergea. Al mergear a `main`, la app se publica sola en GitHub Pages.

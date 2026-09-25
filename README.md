@@ -21,6 +21,8 @@ npm run build      # dist/, listo para GitHub Pages
 npm run compare    # el banco contra expertos reales; cuesta tokens, solo a mano
 ```
 
+Antes de abrir un PR, [CONTRIBUTING.md](CONTRIBUTING.md) dice cómo comprobar que un cambio funciona.
+
 Se puede instalar como app desde el navegador (PWA) y abre sin conexión; el experto sí necesita red.
 
 Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). Para usar Claude, OpenAI o [SheLLM](https://rodacato.github.io/SheLLM/), abre el engrane en la app y pon tu llave: se queda en el dispositivo, en memoria, en la pestaña o cifrada con una frase.
@@ -28,9 +30,9 @@ Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("h
 ## Arquitectura
 
 - `src/domain/`: modelo del mueble, operaciones, validación, reglas estructurales. TypeScript puro.
-- `src/application/`: casos de uso y construcción del contexto para el LLM.
+- `src/application/`: casos de uso, construcción del contexto para el LLM y el banco de pruebas.
 - `src/ports/`: interfaces hacia afuera.
-- `src/adapters/`: Anthropic, OpenAI, simulado, localStorage, catálogo, imágenes. Los prompts están en `src/adapters/llm/prompts/`.
+- `src/adapters/`: Anthropic, OpenAI y SheLLM, el experto simulado, localStorage, catálogo, imágenes y bitácora. Los prompts están en `src/adapters/llm/prompts/`.
 - `src/ui/`: React y la escena 3D.
 - `public/catalog/catalog.json`: materiales, herrajes y parámetros de acomodo; se edita sin tocar código.
 
