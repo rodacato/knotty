@@ -21,8 +21,8 @@ export interface BenchResult {
   /** Calls to the expert, retries included. */
   calls: number
   outputTokens: number | null
-  /** How the design came to be: from a ficha Knotty built, or piece by piece. */
-  path: 'ficha' | 'pieces' | null
+  /** How the design came to be: from a plan Knotty built, or piece by piece. */
+  path: 'plan' | 'pieces' | null
   pieces: number
   joints: number
   measures: string
@@ -90,6 +90,11 @@ export function withinExpected(c: BenchCase, d: Design['dimensions']) {
   return inside(d) || (!!c.anyOrientation && inside({ ...d, width: d.depth, depth: d.width }))
 }
 
+// Spanish labels for the bed variants the bench shows the person.
+const HEADBOARD_LABEL: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera librero', storage: 'cabecera con compartimento' }
+const DRAWER_SIDE_LABEL: Record<BedPlan['drawers']['side'], string> = { none: '', left: 'a la izquierda', right: 'a la derecha', both: 'de cada lado' }
+const DRAWER_POSITION_LABEL: Record<BedPlan['drawers']['position'], string> = { head: 'hacia la cabecera', center: 'al centro', foot: 'hacia el pie' }
+
 export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) {
   const { catalog } = deps
 
@@ -105,7 +110,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       const design = currentDesign(state)
       const d = design.dimensions
       const tokens = calls.map((l) => l.output)
-      const path = state.versions[0].plan ? ('ficha' as const) : ('pieces' as const)
+      const path = state.versions[0].plan ? ('plan' as const) : ('pieces' as const)
       const common = {
         caseId: c.id,
         ok: true,
@@ -123,7 +128,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         state,
       }
       const a = analyze(design, catalog)
-      if (!a.valid) return { ...common, criticals: 0, rules: [], verdict: 'inválido' }
+      if (!a.valid) return { ...common, criticals: 0, rules: [], verdict: 'invalid' }
       const purchase = estimatePurchase(design, a.geo, catalog)
       const viability = reviewViability({ design, geo: a.geo, catalog, purchase, findings: a.findings, unmet: [] })
       const criticals = a.findings.filter((h) => h.severity === 'critical')
@@ -146,7 +151,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
           for (const position of ['head', 'center', 'foot'] as const) {
             if (side === 'none' && position !== 'head') continue
             const plan: BedPlan = { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } }
-            results.push(check('bed', `${mattress}, cabecera ${style}, cajones ${side} hacia ${position}`, buildBed(plan, catalog).design))
+            results.push(check('bed', `${mattress}, ${HEADBOARD_LABEL[style]}, ${side === 'none' ? 'sin cajones' : `cajones ${DRAWER_SIDE_LABEL[side]} ${DRAWER_POSITION_LABEL[position]}`}`, buildBed(plan, catalog).design))
           }
     const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, ...extra })
     const tables: [string, TablePlan][] = [

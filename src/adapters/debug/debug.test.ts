@@ -68,8 +68,8 @@ describe('withDebugLog', () => {
     expect(event.kind).toBe('llm')
     expect(event.summary).toMatch(/^Diseño completo · Simulado/)
     const data = event.data as { request: { photos: { base64: string }[]; catalog: string }; answer: { value: { design: { name: string } } } }
-    expect(data.request.photos[0].base64).toBe('[JPEG de 3 KB]')
-    expect(data.request.catalog).toBe('[catálogo]')
+    expect(data.request.photos[0].base64).toBe('[JPEG, 3 KB]')
+    expect(data.request.catalog).toBe('[catalog]')
     expect(data.answer.value.design.name).toBe('Librero')
   })
 
