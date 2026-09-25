@@ -17,7 +17,7 @@ interface Completado {
   usage?: { prompt_tokens?: number; completion_tokens?: number }
 }
 
-const capacidades = new Map<string, { esquema: boolean; imagenes: boolean }>()
+const capacidades = new Map<string, { esquema: boolean; imagenes: boolean; stream: boolean }>()
 export const normalizarHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
 
 class Rechazo extends Error {
@@ -36,6 +36,13 @@ function sinConexion(c: Pick<ConexionCompatible, 'host'> & { proveedor?: Conexio
   if (c.proveedor !== 'shellm') return 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'
   const origen = typeof location === 'undefined' ? 'el origen de Knotty' : location.origin
   return `No se pudo conectar con SheLLM en ${normalizarHost(c.host)}. Revisa que esté corriendo y que SHELLM_CORS_ORIGINS incluya ${origen}. Si pasa después de mucho rato, el túnel o proxy pudo cortar la conexión por tiempo.`
+}
+
+const CORTE_TARDIO_S = 45
+
+function cortePorTiempo(c: { proveedor?: ConexionCompatible['proveedor'] }, segundos: number) {
+  const nombre = c.proveedor === 'shellm' ? 'SheLLM' : 'El proveedor'
+  return `${nombre} cortó la petición a los ${segundos} s: el modelo tardó más que su límite de tiempo. Armar el diseño completo puede tomar 2 o 3 minutos; ${c.proveedor === 'shellm' ? 'sube TIMEOUT_MS de SheLLM a 300000' : 'intenta de nuevo'} o usa un modelo más rápido.`
 }
 
 /** ¿El host contesta a un GET? Si sí, lo que falló fue el POST en particular. */
@@ -57,6 +64,7 @@ function postBloqueado(c: Pick<ConexionCompatible, 'host'> & { proveedor?: Conex
 async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedor?: ConexionCompatible['proveedor'] }, ruta: string, init: RequestInit = {}) {
   let respuesta: Response
   const limite = AbortSignal.timeout(LIMITE_MS)
+  const inicio = Date.now()
   try {
     respuesta = await fetch(`${normalizarHost(c.host)}/v1${ruta}`, {
       ...init,
@@ -65,14 +73,54 @@ async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedo
     })
   } catch (e) {
     if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
+    const segundos = Math.round((Date.now() - inicio) / 1000)
+    // Un corte después de mucho rato es un límite de tiempo, aunque llegue sin cabeceras de CORS y parezca falta de conexión.
+    if (e instanceof TypeError && segundos >= CORTE_TARDIO_S) throw new Error(cortePorTiempo(c, segundos))
     if (e instanceof TypeError) throw new Error(init.method === 'POST' && (await responde(c)) ? postBloqueado(c, init.body) : sinConexion(c))
     throw new ErrorProveedor(e)
   }
   if (respuesta.status === 401 || respuesta.status === 403) throw new Error(c.apiKey ? 'La API key no es válida.' : 'El host pide una API key.')
   if (respuesta.status === 429) throw new Error('Límite de peticiones alcanzado; espera un momento.')
+  if (respuesta.status === 504 || respuesta.status === 524) throw new Error(cortePorTiempo(c, Math.round((Date.now() - inicio) / 1000)))
   if (respuesta.status === 404) throw new Error('El modelo o la ruta no existen en ese host.')
   if (!respuesta.ok) throw new Rechazo(respuesta.status, await respuesta.text())
-  return respuesta.json()
+  try {
+    return (respuesta.headers.get('content-type') ?? '').includes('text/event-stream') ? await leerStream(respuesta) : await respuesta.json()
+  } catch (e) {
+    // La conexión también se puede caer a medio stream: se explica igual que si no hubiera arrancado.
+    if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
+    if (e instanceof TypeError) throw new Error(cortePorTiempo(c, Math.round((Date.now() - inicio) / 1000)))
+    throw e
+  }
+}
+
+/** Junta los pedazos de un stream SSE de chat/completions en la misma forma que una respuesta completa. */
+async function leerStream(respuesta: Response): Promise<Completado> {
+  const lector = respuesta.body!.pipeThrough(new TextDecoderStream()).getReader()
+  let pendiente = ''
+  let contenido = ''
+  let rechazo = ''
+  let fin: string | undefined
+  let usage: Completado['usage']
+  for (;;) {
+    const { value, done } = await lector.read()
+    if (done) break
+    pendiente += value
+    const lineas = pendiente.split('\n')
+    pendiente = lineas.pop() ?? ''
+    for (const linea of lineas) {
+      const dato = linea.startsWith('data:') ? linea.slice(5).trim() : ''
+      if (!dato || dato === '[DONE]') continue
+      const evento = JSON.parse(dato) as { choices?: { delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }[]; usage?: Completado['usage']; error?: { message?: string } }
+      if (evento.error) throw new Error(`El proveedor cortó la respuesta: ${evento.error.message ?? 'error sin detalle'}`)
+      const eleccion = evento.choices?.[0]
+      contenido += eleccion?.delta?.content ?? ''
+      rechazo += eleccion?.delta?.refusal ?? ''
+      fin = eleccion?.finish_reason ?? fin
+      if (evento.usage) usage = evento.usage
+    }
+  }
+  return { choices: [{ message: { content: contenido, refusal: rechazo || null }, finish_reason: fin }], usage }
 }
 
 /** Quita cercas de código u otro texto alrededor del objeto JSON. */
@@ -89,14 +137,14 @@ function extraerJSON(texto: string) {
 
 export function crearCompatible(c: ConexionCompatible): LLMProvider {
   const clave = normalizarHost(c.host)
-  const puede = () => capacidades.get(clave) ?? { esquema: true, imagenes: true }
+  const puede = () => capacidades.get(clave) ?? { esquema: true, imagenes: true, stream: true }
 
   const transporte: Transporte = {
     proveedor: c.proveedor,
     modelo: c.modelo,
     async completarJSON(sistema, contenido, esquema, nombre, signal) {
       for (;;) {
-        const { esquema: conEsquema, imagenes } = puede()
+        const { esquema: conEsquema, imagenes, stream } = puede()
         const fotos = contenido.filter((x) => x.tipo === 'imagen').length
         const partes: Contenido[] = imagenes
           ? contenido
@@ -116,6 +164,8 @@ export function crearCompatible(c: ConexionCompatible): LLMProvider {
                 { role: 'user', content: partes.map((p) => (p.tipo === 'texto' ? { type: 'text', text: p.texto } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },
               ],
               response_format: conEsquema ? { type: 'json_schema', json_schema: { name: nombre, strict: true, schema: esquema } } : { type: 'json_object' },
+              // En stream la conexión no se queda callada minutos: ni el host ni un proxy la cortan por inactividad.
+              ...(stream ? { stream: true, stream_options: { include_usage: true } } : {}),
             }),
           })) as Completado
           const eleccion = r.choices?.[0]
@@ -127,7 +177,8 @@ export function crearCompatible(c: ConexionCompatible): LLMProvider {
           if (!(e instanceof Rechazo)) throw e
           // Un 413 es el cuerpo completo demasiado grande: con fotos, casi siempre son ellas.
           const porImagenes = (e.status === 400 && /image/i.test(e.cuerpo)) || e.status === 413
-          if (e.status === 400 && conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
+          if (e.status === 400 && stream && /stream/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), stream: false })
+          else if (e.status === 400 && conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
           else if (imagenes && fotos && porImagenes) capacidades.set(clave, { ...puede(), imagenes: false })
           else throw e
         }
