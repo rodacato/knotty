@@ -86,6 +86,54 @@ describe('crearCompatible', () => {
     await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM responde.*\(\d+ KB\).*Content-Type y Authorization/)
   })
 
+  it('un 504 del host se explica como límite de tiempo, no como falta de conexión', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream timeout', { status: 504 })))
+    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM cortó la petición a los \d+ s.*sube TIMEOUT_MS de SheLLM/)
+  })
+
+  it('pide stream y arma la respuesta con los pedazos SSE, comentarios de cola incluidos', async () => {
+    const texto = JSON.stringify(respuesta)
+    const mitad = Math.floor(texto.length / 2)
+    const sse = [
+      ': queued 1\n\n',
+      `data: ${JSON.stringify({ choices: [{ delta: { content: texto.slice(0, mitad) } }] })}\n\n`,
+      // Un evento partido entre dos lecturas se junta antes de leerse.
+      `data: ${JSON.stringify({ choices: [{ delta: { content: texto.slice(mitad) }, finish_reason: 'stop' }] })}`.slice(0, 20),
+      `data: ${JSON.stringify({ choices: [{ delta: { content: texto.slice(mitad) }, finish_reason: 'stop' }] })}\n\n`.slice(20),
+      `data: ${JSON.stringify({ choices: [], usage: { prompt_tokens: 900, completion_tokens: 3100 } })}\n\n`,
+      'data: [DONE]\n\n',
+    ]
+    const cuerpos: { stream?: boolean; stream_options?: unknown }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        cuerpos.push(JSON.parse(init.body as string))
+        const cuerpo = new ReadableStream({ start: (c) => (sse.forEach((x) => c.enqueue(new TextEncoder().encode(x))), c.close()) })
+        return new Response(cuerpo, { status: 200, headers: { 'content-type': 'text/event-stream' } })
+      }),
+    )
+    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
+    expect(r.valor.diseno.nombre).toBe('Librero')
+    expect(r.consumo).toEqual({ tokensEntrada: 900, tokensSalida: 3100 })
+    expect(cuerpos[0]).toMatchObject({ stream: true, stream_options: { include_usage: true } })
+  })
+
+  it('si el host no acepta stream, lo deja de pedir y lo recuerda', async () => {
+    const cuerpos: { stream?: boolean }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        const cuerpo = JSON.parse(init.body as string)
+        cuerpos.push(cuerpo)
+        return cuerpo.stream ? rechazo('Unknown parameter: stream_options') : ok(respuesta)
+      }),
+    )
+    const experto = nueva()
+    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    expect(cuerpos.map((c) => c.stream ?? false)).toEqual([true, false, false])
+  })
+
   it('manda la llave solo si hay', async () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)

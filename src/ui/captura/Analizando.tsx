@@ -12,7 +12,7 @@ const etapas = (conFotos: boolean): { id: Etapa; texto: string }[] => [
 
 /** A partir de aquí se avisa que tarda; a partir de LENTO se ofrece reintentar. */
 const PACIENCIA = 45
-const LENTO = 120
+const LENTO = 180
 
 /** Segundos desde que empezó el intento; `intento` cambia en cada reintento y reinicia la cuenta. */
 function useSegundos(intento: unknown) {
@@ -73,7 +73,7 @@ export function Analizando() {
         {segundos >= LENTO ? (
           <p className="max-w-xs text-sm text-grafito-2">Está tardando más de lo normal. Puede que el experto se haya atorado: vuelve a pedirlo con lo mismo.</p>
         ) : (
-          segundos >= PACIENCIA && <p className="max-w-xs text-sm text-grafito-2">Armar el modelo completo toma a veces uno o dos minutos.</p>
+          segundos >= PACIENCIA && <p className="max-w-xs text-sm text-grafito-2">Armar el modelo completo puede tomar 2 o 3 minutos.</p>
         )}
         <div className="flex gap-2">
           {segundos >= LENTO && (
