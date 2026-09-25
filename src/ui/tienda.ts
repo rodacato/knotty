@@ -62,6 +62,8 @@ interface Tienda {
   nuevoDiseno(): void
   empezarCaptura(): void
   desdeEjemplo(diseno: Diseno): void
+  /** A whole session from elsewhere (the bench) becomes the current design. */
+  openState(state: EstadoDiseno): void
   reconstruir(entrada: EntradaCaptura): Promise<void>
   ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
@@ -196,6 +198,12 @@ export const useTienda = create<Tienda>((set, get) => ({
   },
 
   empezarCaptura: () => set({ fase: 'captura', errorReconstruccion: null, borrador: null }),
+
+  openState(state) {
+    const { servicios } = get()
+    if (!servicios) return
+    set((s) => ({ estado: servicios.casos.adopt(state), fase: 'estudio', versionVista: null, seleccion: null, preview: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
+  },
 
   desdeEjemplo(diseno) {
     const { servicios } = get()

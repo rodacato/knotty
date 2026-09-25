@@ -7,9 +7,11 @@ import { Boton } from '../sistema/componentes'
 import { Nudo } from '../sistema/Marca'
 import { useTienda } from '../tienda'
 import { captureGlobalErrors, instrumentStore } from './instrument'
+import { BenchPanel } from './BenchPanel'
 import { KonamiTrail } from './KonamiTrail'
 
 // A development tool: hidden until asked for (Konami code, Ctrl+Shift+D, settings or ?debug), it shows and exports everything the session did.
+// The test bench comes with it.
 
 /** Other parts of the app (the settings switch) show or hide the panel through this event. */
 export const DEBUG_VISIBILITY = 'knotty:debug-visibility'
@@ -114,6 +116,7 @@ export function DebugPanel() {
   return (
     <>
     {trail}
+    <BenchPanel />
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">

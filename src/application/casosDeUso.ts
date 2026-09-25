@@ -809,6 +809,11 @@ export function crearCasosDeUso(deps: Dependencias) {
     return ajustar({ ...estado, tray: [] }, text, signal, alAvanzar, answers)
   }
 
+  /** A session made elsewhere (a bench run) becomes the one the person works on. */
+  function adopt(estado: EstadoDiseno): EstadoDiseno {
+    return guardar(estado)
+  }
+
   function nuevoDiseno() {
     repositorio.borrar()
   }
@@ -877,6 +882,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     reopenNotice,
     applyFix,
     toggleTray,
+    adopt,
     sendTray,
     editPiece,
     resizeFurniture,

@@ -38,6 +38,8 @@ const MATTRESS_PLAY = 20
 const KICK_HEIGHT = 80
 /** The platform carries people: it needs something under it at least this often, and drawers are no wider. */
 const MAX_SPAN = 600
+/** A closed stretch of side shorter than this leaves too little joint for two screws. */
+const MIN_CLOSED_STRETCH = 120
 /** As wide as a drawer gets to fill its side: past it, the platform over the drawer bends more than it should. */
 const WIDEST_DRAWER = 640
 /** The pillow-level compartment of a storage headboard. */
@@ -152,7 +154,9 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const group = n * width + (n - 1) * t
     const rest = inner - group
     // Where the drawers gather: the free length goes to the other end, closed by a rail.
-    const before = plan.drawers.position === 'head' ? 0 : plan.drawers.position === 'foot' ? rest : rest / 2
+    // Centered, the free length splits in two; if each half would be a sliver, the drawers gather at the head instead.
+    const centered = plan.drawers.position === 'center' && rest / 2 - t >= MIN_CLOSED_STRETCH
+    const before = plan.drawers.position === 'foot' ? rest : centered ? rest / 2 : 0
     const edges: CaraRef[] = []
     const addDivider = (id: string, at: number) => {
       pieces.push(panel({ id, nombre: `Divisor ${label} ${edges.length + 1}`, rol: 'divisor', normal: 'x', x: startAt(ref(headEnd, at)), y: extent(ref('mueble.y0'), ref(under(side))), z: side === 'izq' ? extent(ref('espina.z1'), ref('mueble.z1')) : extent(ref('mueble.z0'), ref('espina.z0')) }))

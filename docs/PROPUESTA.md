@@ -500,6 +500,10 @@ Nace de la revisión de uso del 2026-09-25. Todo gira alrededor de un solo model
 6. ✅ **Módulo de cama** con variantes y ficha (base con cajones de un lado o de los dos, hacia la cabecera o el pie; cabecera lisa, librero o con compartimento). El largo y el ancho salen del colchón; la cama corre a lo largo del eje x con la cabecera en un extremo, y los cajones del otro lado abren hacia atrás. Las 64 combinaciones de colchón, cajones y cabecera se arman sin avisos. Mesas (comedor, centro, lateral) y escritorios también tienen ficha: cubierta sobre dos costados, faldones con tornillo de bolsillo que la escuadran, travesaños para que ningún claro pase de 60 cm, repisa baja con apoyos y, en el escritorio, cajonera a un lado con espacio libre para las piernas. Las bancas siguen pieza por pieza.
 7. **Código en inglés:** cada entrega migra los módulos que toca (D33).
 
+### Banco de pruebas (2026-09-25)
+
+Oculto junto a la bitácora: los casos fijos del comparativo corren contra el experto conectado desde la app (tiempo, llamadas, si fue por ficha o pieza por pieza, medidas razonables, críticos, veredicto; se abre el diseño en el estudio y se exporta), y todas las variantes de los módulos se revisan al instante sin experto. Al estrenarse encontró dos huecos de Knotty, ya corregidos: cajones de cama centrados que dejaban tiras de 65 mm, y gabinetes con zoclo cuyo piso no tenía apoyo bajo los divisores (más el listón de colgar que ahora lleva una alacena).
+
 ### Migración del código a inglés (D33)
 
 Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompts siguen en español. Orden, de lo que no toca datos guardados a lo que sí:
