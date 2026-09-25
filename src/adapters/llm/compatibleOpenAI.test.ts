@@ -16,7 +16,7 @@ afterEach(() => vi.unstubAllGlobals())
 describe('createCompatible', () => {
   it('if the host takes neither strict schemas nor images, it falls back to json_object without photos and remembers it', async () => {
     const bodies: { response_format: { type: string }; messages: { content: unknown }[] }[] = []
-    const fetch = vi.fn(async (_url: string, init: RequestInit) => {
+    const fetch = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async (_url, init) => {
       const body = JSON.parse(init.body as string)
       bodies.push(body)
       if (body.response_format.type === 'json_schema') return rejection('Field "response_format" must be an object with type "json_object" or "text"')
@@ -66,7 +66,7 @@ describe('createCompatible', () => {
   })
 
   it('a 400 about neither response_format nor images does not fall back: it is reported', async () => {
-    const fetch = vi.fn(async () => rejection('Field "model" is required'))
+    const fetch = vi.fn<() => Promise<Response>>(async () => rejection('Field "model" is required'))
     vi.stubGlobal('fetch', fetch)
     await expect(fresh().reconstruct(request(), new AbortController().signal)).rejects.toThrow('Field "model" is required')
     expect(fetch).toHaveBeenCalledTimes(1)
@@ -184,7 +184,7 @@ describe('createCompatible', () => {
   })
 
   it('sends the key only when there is one', async () => {
-    const fetch = vi.fn(async () => ok(answer))
+    const fetch = vi.fn<() => Promise<Response>>(async () => ok(answer))
     vi.stubGlobal('fetch', fetch)
     await createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', model: 'gpt', label: 'OpenAI' }).reconstruct(
       { measures: exampleBookcase.dimensions, photos: [], notes: '', reading: null, catalog: testCatalog, correction: null },

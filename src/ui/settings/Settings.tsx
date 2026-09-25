@@ -25,7 +25,8 @@ export function Settings() {
   const setOpen = useStore((s) => s.openSettings)
   const [draft, setDraft] = useState<LLMConfiguration>(preferences.load())
   const [showKey, setShowKey] = useState(false)
-  const [models, setModels] = useState<ModelsState>({ kind: 'idle' })
+  // The fetched list belongs to the provider it was fetched for; any other provider starts idle.
+  const [fetched, setFetched] = useState<{ provider: Provider; models: ModelsState }>({ provider: draft.active, models: { kind: 'idle' } })
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -34,13 +35,15 @@ export function Settings() {
 
   useEffect(() => {
     if (!open) return
+    // oxlint-disable-next-line react/set-state-in-effect -- reloads saved preferences from storage each time the dialog opens or the vault changes
     setDraft(preferences.load())
     setPassphrase('')
     setError('')
   }, [open, preferences, vault])
-  useEffect(() => setModels({ kind: 'idle' }), [draft.active])
 
   const active = draft.active
+  const models: ModelsState = fetched.provider === active ? fetched.models : { kind: 'idle' }
+  const setModels = (m: ModelsState) => setFetched({ provider: active, models: m })
   const connection = active === 'simulated' ? null : draft.connections[active]
   const change = (patch: Partial<Connection>) => {
     if (active === 'simulated') return
@@ -97,7 +100,10 @@ export function Settings() {
                 role="radio"
                 aria-checked={active === p}
                 aria-label={PRESETS[p].label}
-                onClick={() => setDraft((b) => ({ ...b, active: p }))}
+                onClick={() => {
+                  if (p !== active) setModels({ kind: 'idle' })
+                  setDraft((b) => ({ ...b, active: p }))
+                }}
                 className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
               >
                 <span className="font-medium">{PRESETS[p].label}</span>

@@ -183,7 +183,7 @@ function bench(design: Design, geo: Geometry): Finding[] {
 
 /** R10: what this kind of furniture needs to be used safely. */
 export const typologyRule: Rule = (ctx) => {
-  const { design: design, geo } = ctx
+  const { design, geo } = ctx
   switch (detectKind(design)) {
     case 'bed':
       return bed(design, geo, ctx)

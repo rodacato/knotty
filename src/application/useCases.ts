@@ -137,7 +137,7 @@ const traceEntry = (
 })
 
 export function createUseCases(deps: Dependencies) {
-  const { catalog: catalog, repository: repository } = deps
+  const { catalog, repository } = deps
   const now = deps.now ?? (() => new Date().toISOString())
   const newId = deps.newId ?? (() => crypto.randomUUID())
 
@@ -302,7 +302,7 @@ export function createUseCases(deps: Dependencies) {
       const r = response.value
       const proposed = completeJoints(normalize(input.measures ? { ...r.design, dimensions: input.measures } : r.design, catalog), catalog)
       // What has an obvious fix is fixed here; only the rest goes back to the model.
-      const { design: design, repairs } = repairDesign(proposed, catalog, r.requirements)
+      const { design, repairs } = repairDesign(proposed, catalog, r.requirements)
       const analysis = analyze(design, catalog, r.requirements)
       if (!analysis.valid) {
         trace.push(traceEntry('reconstruct', attempt, started, response, 'invalid', traceErrors(analysis.errors), repairs))
@@ -315,7 +315,7 @@ export function createUseCases(deps: Dependencies) {
       return save(initialState(input, design, r, response, [], repairs, trace))
     }
     if (lastCandidate) {
-      const { design: design, r, response: response, errors: errors, repairs } = lastCandidate
+      const { design, r, response, errors, repairs } = lastCandidate
       return save(initialState(input, design, r, response, errors, repairs, trace))
     }
     const problems = describeProblems(trace.at(-1)?.errors ?? [])
@@ -336,7 +336,7 @@ export function createUseCases(deps: Dependencies) {
     trace: TraceEntry[],
     plan: FurniturePlan | null = null,
   ): DesignState {
-    const { width: width, height: height, depth: depth } = design.dimensions
+    const { width, height, depth } = design.dimensions
     const estimated =
       plan && isBed(plan)
         ? [`Las medidas salen del colchón ${plan.mattress}: la cama mide ${depth / 10} × ${width / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${height / 10} cm de alto con la cabecera`}.`]

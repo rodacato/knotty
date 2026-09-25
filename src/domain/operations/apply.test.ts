@@ -114,7 +114,7 @@ describe('applyOperations', () => {
   it('fails without applying anything and names the operation', () => {
     const r = applyOperations(exampleBookcase, [{ op: 'setWallAnchored', value: false }, { op: 'removePiece', id: 'missing' }], testCatalog)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errors[0]).toMatchObject({ code: 'E_UNKNOWN_PIECE', data: { operation: 1 } })
+    expect(r.ok ? undefined : r.errors[0]).toMatchObject({ code: 'E_UNKNOWN_PIECE', data: { operation: 1 } })
     expect(exampleBookcase.wallAnchored).toBe(true)
   })
 

@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { it } from 'vitest'
+import { expect, it } from 'vitest'
 import data from '../../public/catalog/catalog.json'
 import { createAnthropic } from '../../src/adapters/llm/anthropic'
 import { createCompatible } from '../../src/adapters/llm/compatibleOpenAI'
@@ -118,6 +118,7 @@ it('model comparison', async () => {
     if (r.state) saveDesign(model, c.id, r.state)
     return { ...r, model, prompt: r.state?.versions[0].origin?.promptId ?? null }
   })
+  expect(rows).toHaveLength(jobs.length)
 
   const label = setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'current format'
   const text = report(rows, label)

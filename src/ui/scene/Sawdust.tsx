@@ -1,27 +1,30 @@
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { BufferAttribute, BufferGeometry, type PointsMaterial } from 'three'
 
 const PARTICLES = 36
 const DURATION = 1.1
 const GRAVITY = -2.4
 
+/** Random directions for each particle, drawn once per poof. */
+function scatter() {
+  const positions = new Float32Array(PARTICLES * 3)
+  const speeds = new Float32Array(PARTICLES * 3)
+  for (let i = 0; i < PARTICLES; i++) {
+    const angle = Math.random() * Math.PI * 2
+    const speed = 0.25 + Math.random() * 0.45
+    speeds.set([Math.cos(angle) * speed, 0.6 + Math.random() * 0.8, Math.sin(angle) * speed], i * 3)
+  }
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new BufferAttribute(positions, 3))
+  return { geometry, speeds }
+}
+
 /** A "poof" of sawdust where a new piece lands. */
 export function Sawdust({ en, delay = 0.28 }: { en: [number, number, number]; delay?: number }) {
   const material = useRef<PointsMaterial>(null)
   const startedAt = useRef<number | null>(null)
-  const { geometry, speeds } = useMemo(() => {
-    const positions = new Float32Array(PARTICLES * 3)
-    const speeds = new Float32Array(PARTICLES * 3)
-    for (let i = 0; i < PARTICLES; i++) {
-      const angle = Math.random() * Math.PI * 2
-      const speed = 0.25 + Math.random() * 0.45
-      speeds.set([Math.cos(angle) * speed, 0.6 + Math.random() * 0.8, Math.sin(angle) * speed], i * 3)
-    }
-    const geometry = new BufferGeometry()
-    geometry.setAttribute('position', new BufferAttribute(positions, 3))
-    return { geometry, speeds }
-  }, [])
+  const [{ geometry, speeds }] = useState(scatter)
 
   useFrame(({ clock, invalidate }) => {
     startedAt.current ??= clock.elapsedTime + delay

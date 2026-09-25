@@ -117,7 +117,7 @@ function pack(pieces: LayoutPiece[], usable: { length: number; width: number }, 
 }
 
 export function layOut(design: Design, geo: Geometry, catalog: Catalog): MaterialLayout[] {
-  const { kerf: kerf, clearance: play } = catalog.layout
+  const { kerf, clearance: play } = catalog.layout
   return [...layoutPieces(design, geo)].flatMap(([id, pieces]) => {
     const material = materialById(catalog, id)
     if (!material) return []
