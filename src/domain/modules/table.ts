@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { CaraRef, Diseno, Pieza, Union } from '../diseno/esquema'
+import type { FaceRef, Design, Piece, Joint } from '../diseno/schema'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
 import { applyOperations } from '../operaciones/apply'
@@ -38,14 +38,14 @@ const KICK_SETBACK = 30
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
 
-const LOAD: Record<TablePlan['use'], Pieza['carga']> = { dining: 'media', coffee: 'ligera', side: 'ligera', desk: 'media' }
+const LOAD: Record<TablePlan['use'], Piece['carga']> = { dining: 'media', coffee: 'ligera', side: 'ligera', desk: 'media' }
 
-export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno; notes: string[] } {
+export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
   const t = materialById(catalog, plan.material)?.espesor ?? 18
   const { width, height, depth } = plan.dimensions
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })
-  const pieces: Pieza[] = []
-  const joints: Union[] = []
+  const pieces: Piece[] = []
+  const joints: Joint[] = []
   const notes: string[] = []
   const desk = plan.use === 'desk'
   const inset = Math.min(plan.overhang, MAX_END_INSET)
@@ -60,8 +60,8 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno;
   )
 
   // The open part between the ends, or between the pedestal and the far end.
-  let openLeft: CaraRef = 'lat-izq.x1'
-  let openRight: CaraRef = 'lat-der.x0'
+  let openLeft: FaceRef = 'lat-izq.x1'
+  let openRight: FaceRef = 'lat-der.x0'
   if (pedestal) {
     const outer = pedestal === 'left' ? 'lat-izq' : 'lat-der'
     const between = pedestal === 'left' ? extent(ref('lat-izq.x1'), ref('ped-div.x0')) : extent(ref('ped-div.x1'), ref('lat-der.x0'))
@@ -75,7 +75,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno;
     const n = plan.pedestal.drawers
     for (let k = 1; k < n; k++)
       pieces.push(panel({ id: `ped-sep-${k}`, nombre: `Separador ${k} de la cajonera`, rol: 'entrepano', normal: 'y', x: between, y: startAt(partway('ped-piso.y1', 'cubierta.y0', k / n, -t / 2)), z: zBox, carga: 'ligera' }))
-    const [left, right]: [CaraRef, CaraRef] = pedestal === 'left' ? ['lat-izq.x1', 'ped-div.x0'] : ['ped-div.x1', 'lat-der.x0']
+    const [left, right]: [FaceRef, FaceRef] = pedestal === 'left' ? ['lat-izq.x1', 'ped-div.x0'] : ['ped-div.x1', 'lat-der.x0']
     drawers = Array.from({ length: n }, (_, i) => ({
       op: 'agregarCajon' as const,
       grupo: `cajon-${i + 1}`,
@@ -118,7 +118,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno;
   }
   if (plan.shelf && desk) notes.push('Un escritorio no lleva repisa baja: estorba las piernas.')
 
-  let design: Diseno = { esquema: 1, nombre: plan.name, dimensiones: { ancho: width, alto: height, fondo: depth }, anclajeMuro: false, observaciones: '', piezas: pieces, uniones: joints }
+  let design: Design = { esquema: 1, nombre: plan.name, dimensiones: { ancho: width, alto: height, fondo: depth }, anclajeMuro: false, observaciones: '', piezas: pieces, uniones: joints }
   for (const drawer of drawers) {
     const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {

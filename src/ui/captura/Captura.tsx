@@ -1,6 +1,6 @@
 import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import type { Dimensiones } from '../../domain/diseno/esquema'
+import type { Dimensions } from '../../domain/diseno/schema'
 import { faltante } from '../../ports/Preferencias'
 import { useServicios } from '../servicios'
 import { Boton, cm, Titulo } from '../sistema/componentes'
@@ -17,7 +17,7 @@ const ANGULOS = [
   { id: 'uniones', nombre: 'Uniones', pista: 'De cerca: cómo se juntan', requerida: false },
 ] as const
 
-const MEDIDAS: { clave: keyof Dimensiones; nombre: string; min: number; max: number }[] = [
+const MEDIDAS: { clave: keyof Dimensions; nombre: string; min: number; max: number }[] = [
   { clave: 'alto', nombre: 'Alto', min: 200, max: 2400 },
   { clave: 'ancho', nombre: 'Ancho', min: 200, max: 2400 },
   { clave: 'fondo', nombre: 'Fondo', min: 150, max: 1200 },
@@ -145,7 +145,7 @@ export function Captura() {
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
   const borrador = useTienda((s) => s.borrador)
   const [paso, setPaso] = useState<'medidas' | 'fotos'>(borrador ? 'fotos' : 'medidas')
-  const [medidas, setMedidas] = useState<Dimensiones>(borrador?.medidas ?? { ancho: 600, alto: 1800, fondo: 300 })
+  const [medidas, setMedidas] = useState<Dimensions>(borrador?.medidas ?? { ancho: 600, alto: 1800, fondo: 300 })
   const [conMedidas, setConMedidas] = useState(!borrador || borrador.medidas !== null)
   const [fotos, setFotos] = useState<FotoTomada[]>(
     () => borrador?.fotos.map((f) => ({ ...f, miniatura: borrador.miniaturas.find((m) => m.angulo === f.angulo)?.dataUrl ?? '' })) ?? [],

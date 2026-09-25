@@ -1,23 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../analisis'
-import type { Diseno } from '../diseno/esquema'
-import { alacena } from '../fixtures/alacena'
-import { buro } from '../fixtures/buro'
-import { catalogo } from '../fixtures/catalogo.test-util'
-import { librero } from '../fixtures/librero'
+import { analyze } from '../analysis'
+import type { Design } from '../diseno/schema'
+import { exampleWallCabinet } from '../fixtures/wallCabinet'
+import { exampleNightstand } from '../fixtures/nightstand'
+import { testCatalog } from '../fixtures/catalog.test-util'
+import { exampleBookcase } from '../fixtures/bookcase'
 import { layOut } from './layout'
 import { hardwarePerJoint, estimatePurchase, edgeBandingMeters } from './purchase'
 
-const geo = (d: Diseno) => {
-  const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(JSON.stringify(a.errores))
+const geo = (d: Design) => {
+  const a = analyze(d, testCatalog)
+  if (!a.valid) throw new Error(JSON.stringify(a.errors))
   return a.geo
 }
 
 describe('sheet layout', () => {
-  it.each([librero, buro, alacena])('places everything without overlaps, inside the usable sheet and along the grain: $nombre', (d) => {
+  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('places everything without overlaps, inside the usable sheet and along the grain: $nombre', (d) => {
     const g = geo(d)
-    for (const m of layOut(d, g, catalogo)) {
+    for (const m of layOut(d, g, testCatalog)) {
       expect(m.unplaced).toEqual([])
       const piezas = d.piezas.filter((p) => p.material === m.material)
       expect(m.sheets.flatMap((h) => h.placed).map((c) => c.id).sort()).toEqual(piezas.map((p) => p.id).sort())
@@ -40,7 +40,7 @@ describe('sheet layout', () => {
   })
 
   it('the 60 cm bookcase takes one 18 mm sheet and one back sheet', () => {
-    const r = estimatePurchase(librero, geo(librero), catalogo)
+    const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), testCatalog)
     expect(r.sheets.map((h) => [h.material.id, h.sheets])).toEqual([
       ['T18', 1],
       ['TR6', 1],
@@ -48,33 +48,33 @@ describe('sheet layout', () => {
   })
 
   it('wider takes more sheets', () => {
-    const ancho = { ...librero, dimensiones: { ...librero.dimensiones, ancho: 1100 } }
-    const hojas = estimatePurchase(ancho, geo(ancho), catalogo).sheets.find((h) => h.material.id === 'T18')!.sheets
+    const ancho = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 1100 } }
+    const hojas = estimatePurchase(ancho, geo(ancho), testCatalog).sheets.find((h) => h.material.id === 'T18')!.sheets
     expect(hojas).toBe(2)
   })
 
   it('a piece larger than the sheet is left unplaced and counts as a sheet of its own', () => {
-    const g = geo(librero)
-    const enorme = { ...catalogo, materiales: catalogo.materiales.map((m) => (m.id === 'TR6' ? { ...m, hoja: { largo: 1500, ancho: 1220 } } : m)) }
-    const tr6 = layOut(librero, g, enorme).find((m) => m.material === 'TR6')!
+    const g = geo(exampleBookcase)
+    const enorme = { ...testCatalog, materiales: testCatalog.materiales.map((m) => (m.id === 'TR6' ? { ...m, hoja: { largo: 1500, ancho: 1220 } } : m)) }
+    const tr6 = layOut(exampleBookcase, g, enorme).find((m) => m.material === 'TR6')!
     expect(tr6.unplaced.map((p) => p.id)).toEqual(['trasera'])
   })
 })
 
 describe('hardware and purchase', () => {
   it('works out screws and nails by spacing along the joint', () => {
-    const g = geo(librero)
-    const joint = (id: string) => librero.uniones.find((u) => u.id === id)!
+    const g = geo(exampleBookcase)
+    const joint = (id: string) => exampleBookcase.uniones.find((u) => u.id === id)!
     expect(hardwarePerJoint(joint('u-piso-izq'), g)).toBe(2)
     expect(hardwarePerJoint(joint('u-trasera-lat-izq'), g)).toBe(13)
   })
 
   it('adds up edge banding for the marked edges, with waste', () => {
-    expect(edgeBandingMeters(librero, geo(librero))).toBeCloseTo(((1800 * 2 + 564 * 6) / 1000) * 1.1, 1)
+    expect(edgeBandingMeters(exampleBookcase, geo(exampleBookcase))).toBeCloseTo(((1800 * 2 + 564 * 6) / 1000) * 1.1, 1)
   })
 
   it('builds the list with packs and total cost', () => {
-    const r = estimatePurchase(alacena, geo(alacena), catalogo)
+    const r = estimatePurchase(exampleWallCabinet, geo(exampleWallCabinet), testCatalog)
     const bisagras = r.hardware.find((h) => h.hardware.id === 'bisagra-cazoleta-35-recta')!
     expect(bisagras).toMatchObject({ count: 4, packs: 2 })
     expect(r.hardware.some((h) => h.hardware.id === 'pegamento-blanco')).toBe(true)
@@ -83,8 +83,8 @@ describe('hardware and purchase', () => {
   })
 
   it('says which prices are missing', () => {
-    const sinPrecio = { ...catalogo, materiales: catalogo.materiales.map((m) => ({ ...m, precio: null })) }
-    const r = estimatePurchase(librero, geo(librero), sinPrecio)
+    const sinPrecio = { ...testCatalog, materiales: testCatalog.materiales.map((m) => ({ ...m, precio: null })) }
+    const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), sinPrecio)
     expect(r.cost.missingPrices).toContain('Triplay de pino 18 mm')
   })
 })

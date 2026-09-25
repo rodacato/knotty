@@ -2,7 +2,7 @@ import { ArrowCounterClockwise, CheckCircle, Eye, Lightning, ChatCircleText, Tra
 import { useMemo, useState } from 'react'
 import { noticeBoard, noticeItem, type Notice } from '../../application/notices'
 import { fixesFor, type Fix } from '../../domain/fixes/fixes'
-import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { answerItem, answerItemId, noticeItemId } from '../../domain/tray/tray'
 import { useServicios } from '../servicios'
 import { Boton, Chip, Sello } from '../sistema/componentes'
@@ -32,7 +32,7 @@ function FixButton({ fix }: { fix: Fix }) {
   )
 }
 
-function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: EstadoDiseno; onAnswer: () => void }) {
+function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: DesignState; onAnswer: () => void }) {
   const { catalogo } = useServicios()
   const seleccionar = useTienda((s) => s.seleccionar)
   const acceptNotice = useTienda((s) => s.acceptNotice)
@@ -42,7 +42,7 @@ function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: Esta
   const alternarPropuesta = useTienda((s) => s.alternarPropuesta)
   const verPropuesta = useTienda((s) => s.verPropuesta)
   const pensando = useTienda((s) => s.pensando)
-  const design = disenoActual(estado)
+  const design = currentDesign(estado)
   // One solution covers every piece of the notice: five sagging shelves get five supports in one click.
   const fixes = useMemo(() => {
     const [first] = notice.findings
@@ -145,7 +145,7 @@ function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: Esta
   )
 }
 
-export function NoticePanel({ estado, onAnswer }: { estado: EstadoDiseno; onAnswer: () => void }) {
+export function NoticePanel({ estado, onAnswer }: { estado: DesignState; onAnswer: () => void }) {
   const { catalogo } = useServicios()
   const reopenNotice = useTienda((s) => s.reopenNotice)
   const sendTray = useTienda((s) => s.sendTray)

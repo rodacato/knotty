@@ -1,4 +1,4 @@
-import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno } from '../diseno/esquema'
+import { DIMENSION_OF_AXIS, AXES, isDrawerPart, type Design } from '../diseno/schema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 import { usableSheet, materialById, type Catalog } from '../materiales/catalog'
 import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
@@ -20,20 +20,20 @@ export interface GeometryValidation {
   contacts: Contact[]
 }
 
-export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalog): GeometryValidation {
+export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog): GeometryValidation {
   const errors: DesignError[] = []
   const warnings: DesignWarning[] = []
   const all = contacts(geo.boxes)
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
 
   const boxes = [...geo.boxes.values()]
-  for (const axis of EJES) {
+  for (const axis of AXES) {
     const min = Math.min(...boxes.map((c) => c[`${axis}0`]))
     const max = Math.max(...boxes.map((c) => c[`${axis}1`]))
-    const expected = design.dimensiones[DIMENSION_DE_EJE[axis]]
+    const expected = design.dimensiones[DIMENSION_OF_AXIS[axis]]
     if (boxes.length && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
       errors.push(
-        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_DE_EJE[axis]}, pero el mueble mide ${expected} mm.`, {
+        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_OF_AXIS[axis]}, pero el mueble mide ${expected} mm.`, {
           eje: axis,
           desde: roundTo(min),
           hasta: roundTo(max),

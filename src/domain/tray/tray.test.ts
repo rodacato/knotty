@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { marcarRespondida, type Mensaje } from '../sesion/estado'
+import { markAnswered, type Message } from '../sesion/state'
 import { answerItem, suggestionItem, toggleInTray, trayRequest } from './tray'
 
 describe('the tray', () => {
@@ -20,8 +20,8 @@ describe('the tray', () => {
   })
 
   it('marks the questions of several messages answered at once', () => {
-    const message = (id: string): Mensaje => ({ id, autor: 'experto', texto: '', fecha: '', preguntas: [{ texto: '¿?', opciones: ['a', 'b'] }], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: null, respuestas: [], sugerencias: [] })
-    const chat = marcarRespondida([message('m1'), message('m2')], 'm1#p0;m2#p0')
+    const message = (id: string): Message => ({ id, autor: 'experto', texto: '', fecha: '', preguntas: [{ texto: '¿?', opciones: ['a', 'b'] }], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: null, respuestas: [], sugerencias: [] })
+    const chat = markAnswered([message('m1'), message('m2')], 'm1#p0;m2#p0')
     expect(chat.map((m) => m.respondida)).toEqual([true, true])
   })
 })

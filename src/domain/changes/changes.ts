@@ -1,5 +1,5 @@
-import { analizar } from '../analisis'
-import type { Diseno, Pieza } from '../diseno/esquema'
+import { analyze } from '../analysis'
+import type { Design, Piece } from '../diseno/schema'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import { faceSize, roundTo, type Box } from '../diseno/resolve'
@@ -27,12 +27,12 @@ export interface Change {
 }
 
 const PROPERTIES = ['nombre', 'rol', 'material', 'normal', 'veta', 'carga', 'apoyo', 'grupo', 'confianza'] as const
-const definitionChanged = (a: Pieza, b: Pieza) => PROPERTIES.some((k) => a[k] !== b[k]) || JSON.stringify([a.x, a.y, a.z, a.cantos]) !== JSON.stringify([b.x, b.y, b.z, b.cantos])
+const definitionChanged = (a: Piece, b: Piece) => PROPERTIES.some((k) => a[k] !== b[k]) || JSON.stringify([a.x, a.y, a.z, a.cantos]) !== JSON.stringify([b.x, b.y, b.z, b.cantos])
 const boxChanged = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
-const face = (p: Pieza, box: Box) => faceSize(box, p.normal).map((m) => roundTo(m, 0)).join(' × ')
-const thickness = (p: Pieza, box: Box) => roundTo(box[`${p.normal}1`] - box[`${p.normal}0`], 0)
+const face = (p: Piece, box: Box) => faceSize(box, p.normal).map((m) => roundTo(m, 0)).join(' × ')
+const thickness = (p: Piece, box: Box) => roundTo(box[`${p.normal}1`] - box[`${p.normal}0`], 0)
 
-function detail(before: Pieza, after: Pieza, a: Box | undefined, b: Box | undefined): string {
+function detail(before: Piece, after: Piece, a: Box | undefined, b: Box | undefined): string {
   const parts: string[] = []
   if (a && b) {
     if (face(before, a) !== face(after, b)) parts.push(`${face(before, a)} → ${face(after, b)} mm`)
@@ -46,9 +46,9 @@ function detail(before: Pieza, after: Pieza, a: Box | undefined, b: Box | undefi
   return parts.join(' · ') || 'cambió su definición'
 }
 
-export function describeChange(before: Diseno, after: Diseno, catalog: Catalog): Change {
-  const boxesBefore = analizar(before, catalog).geo?.boxes ?? new Map<string, Box>()
-  const boxesAfter = analizar(after, catalog).geo?.boxes ?? new Map<string, Box>()
+export function describeChange(before: Design, after: Design, catalog: Catalog): Change {
+  const boxesBefore = analyze(before, catalog).geo?.boxes ?? new Map<string, Box>()
+  const boxesAfter = analyze(after, catalog).geo?.boxes ?? new Map<string, Box>()
   const previous = new Map(before.piezas.map((p) => [p.id, p]))
   const next = new Map(after.piezas.map((p) => [p.id, p]))
   const direct: ChangeItem[] = []
@@ -66,7 +66,7 @@ export function describeChange(before: Diseno, after: Diseno, catalog: Catalog):
 }
 
 /** Brings pieces back as they were in `source` (removed ones return, changed ones revert, added ones go); the rest stays. */
-export function restorePieces(current: Diseno, source: Diseno, ids: string[], catalog: Catalog): { ok: true; design: Diseno } | { ok: false; errors: DesignError[] } {
+export function restorePieces(current: Design, source: Design, ids: string[], catalog: Catalog): { ok: true; design: Design } | { ok: false; errors: DesignError[] } {
   const was = new Map(source.piezas.map((p) => [p.id, p]))
   const toRemove = ids.filter((id) => !was.has(id) && current.piezas.some((p) => p.id === id))
   let design = current
@@ -83,7 +83,7 @@ export function restorePieces(current: Diseno, source: Diseno, ids: string[], ca
     ...source.uniones.filter((u) => (back.includes(u.a) || back.includes(u.b)) && present.has(u.a) && present.has(u.b)),
   ]
   const candidate = { ...design, piezas: pieces, uniones: joints }
-  const analysis = analizar(candidate, catalog)
-  if (!analysis.geo) return { ok: false, errors: analysis.valido ? [] : analysis.errores }
+  const analysis = analyze(candidate, catalog)
+  if (!analysis.geo) return { ok: false, errors: analysis.valid ? [] : analysis.errors }
   return { ok: true, design: completeJoints(normalize(candidate, catalog), catalog, current) }
 }

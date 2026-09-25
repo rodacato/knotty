@@ -1,4 +1,4 @@
-import type { Diseno, Pieza } from './esquema'
+import type { Design, Piece } from './schema'
 import type { Box } from './resolve'
 
 // Where a drawer's runners go: the outer sides of its box and the piece beside each one, whatever built the drawer.
@@ -8,16 +8,16 @@ export const SUPPORT_REACH = 60
 
 export interface DrawerSide {
   group: string
-  side: Pieza
+  side: Piece
   /** -1 for the left side, 1 for the right one. */
   towards: -1 | 1
   /** The closest vertical piece beside it, facing it, and how far it is. */
-  support: { piece: Pieza; distance: number } | null
+  support: { piece: Piece; distance: number } | null
 }
 
 const overlap = (a: Box, b: Box, axis: 'y' | 'z') => Math.min(a[`${axis}1`], b[`${axis}1`]) - Math.max(a[`${axis}0`], b[`${axis}0`]) > 0
 
-export function drawerSides(design: Diseno, boxes: Map<string, Box>): DrawerSide[] {
+export function drawerSides(design: Design, boxes: Map<string, Box>): DrawerSide[] {
   const groups = [...new Set(design.piezas.filter((p) => p.rol === 'costado-cajon' && p.grupo).map((p) => p.grupo!))]
   return groups.flatMap((group) => {
     const sides = design.piezas.filter((p) => p.grupo === group && p.rol === 'costado-cajon' && p.normal === 'x' && boxes.has(p.id)).sort((a, b) => boxes.get(a.id)!.x0 - boxes.get(b.id)!.x0)

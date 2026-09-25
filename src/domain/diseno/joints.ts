@@ -2,7 +2,7 @@ import { ASSUMPTIONS } from '../structure/assumptions'
 import type { Catalog } from '../materiales/catalog'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
-import { isDrawerPart, type Diseno, type Pieza, type Union } from './esquema'
+import { isDrawerPart, type Design, type Piece, type Joint } from './schema'
 import { drawerSides } from './drawers'
 import { resolveGeometry, type Box } from './resolve'
 
@@ -17,7 +17,7 @@ function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, into
   return screws.find((t) => t.largo! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 
-function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalog): Omit<Union, 'id'> | null {
+function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, number>, catalog: Catalog): Omit<Joint, 'id'> | null {
   const back = p.rol === 'trasera' ? p : q.rol === 'trasera' ? q : null
   if (back) {
     const other = back === p ? q : p
@@ -45,7 +45,7 @@ function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, num
 }
 
 /** A door hangs from the upright closest to one of its edges. */
-function hinge(door: Pieza, box: Box, neighbours: { piece: Pieza; box: Box }[]): Omit<Union, 'id'> | null {
+function hinge(door: Piece, box: Box, neighbours: { piece: Piece; box: Box }[]): Omit<Joint, 'id'> | null {
   const uprights = neighbours.filter((x) => x.piece.normal === 'x' && x.piece.rol !== 'puerta')
   if (!uprights.length) return null
   const center = (k: Box) => (k.x0 + k.x1) / 2
@@ -56,7 +56,7 @@ function hinge(door: Pieza, box: Box, neighbours: { piece: Pieza; box: Box }[]):
 }
 
 /** Adds missing joints; with `previous`, only where the change created a contact, so a joint removed on purpose does not come back. */
-export function completeJoints(design: Diseno, catalog: Catalog, previous?: Diseno): Diseno {
+export function completeJoints(design: Design, catalog: Catalog, previous?: Design): Design {
   const resolved = resolveGeometry(design, catalog)
   if (!resolved.ok) return design
   const { boxes, thicknesses } = resolved.value
@@ -67,8 +67,8 @@ export function completeJoints(design: Diseno, catalog: Catalog, previous?: Dise
   // Only real contacts count as earlier: two pieces that overlapped were not joined, they were wrong.
   const earlierContacts = new Set(before && before.ok ? contacts(before.value.boxes).filter((c) => c.axis !== null).map((c) => pairKey(c.a, c.b)) : [])
 
-  const added: Union[] = []
-  const add = (u: Omit<Union, 'id'> | null) => {
+  const added: Joint[] = []
+  const add = (u: Omit<Joint, 'id'> | null) => {
     if (!u) return
     let id = `u-${u.a}-${u.b}`
     for (let n = 2; ids.has(id); n++) id = `u-${u.a}-${u.b}-${n}`

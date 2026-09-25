@@ -1,10 +1,10 @@
-import { EstadoDiseno } from '../../domain/sesion/estado'
+import { DesignState } from '../../domain/sesion/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
 
 const CLAVE = 'despiece:v1:diseno'
 
 /** Si el guardado excede la cuota, se sueltan primero las miniaturas y luego las versiones intermedias más viejas. */
-function reducir(estado: EstadoDiseno): EstadoDiseno | null {
+function reducir(estado: DesignState): DesignState | null {
   if (estado.miniaturas.length) return { ...estado, miniaturas: [] }
   if (estado.versiones.length > 3) return { ...estado, versiones: [estado.versiones[0], ...estado.versiones.slice(2)] }
   return null
@@ -16,14 +16,14 @@ export function crearRepositorioLocal(almacen: Storage = localStorage): DesignRe
       try {
         const crudo = almacen.getItem(CLAVE)
         if (!crudo) return null
-        const r = EstadoDiseno.safeParse(JSON.parse(crudo))
+        const r = DesignState.safeParse(JSON.parse(crudo))
         return r.success ? r.data : null
       } catch {
         return null
       }
     },
     guardar(estado) {
-      for (let actual: EstadoDiseno | null = estado; actual; actual = reducir(actual)) {
+      for (let actual: DesignState | null = estado; actual; actual = reducir(actual)) {
         try {
           almacen.setItem(CLAVE, JSON.stringify(actual))
           return

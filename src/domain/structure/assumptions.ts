@@ -1,4 +1,4 @@
-import type { Carga, TipoUnion } from '../diseno/esquema'
+import type { Load, JointType } from '../diseno/schema'
 
 // Engineering assumptions as data, to calibrate them without touching the rules. Pine plywood from Home Depot MX.
 
@@ -8,7 +8,7 @@ export const ASSUMPTIONS = {
   /** A load held for months (books) makes the sag grow. */
   creep: 1.5,
   /** kg/m² on the shelf. */
-  loads: { ninguna: 0, ligera: 50, media: 100, pesada: 150 } satisfies Record<Carga, number>,
+  loads: { ninguna: 0, ligera: 50, media: 100, pesada: 150 } satisfies Record<Load, number>,
   gravity: 9.81,
   /** Sag is compared with span / limit. */
   deflectionLimit: { recommended: 360, critical: 200 },
@@ -23,7 +23,7 @@ export const ASSUMPTIONS = {
     rebaje: { b: 15 },
     'bisagra-cazoleta': { a: 15 },
     'soporte-repisa': { b: 15 },
-  } satisfies Partial<Record<TipoUnion, { a?: number; b?: number; bCritical?: number }>>,
+  } satisfies Partial<Record<JointType, { a?: number; b?: number; bCritical?: number }>>,
   /** Depth of a groove or rabbet as a fraction of the thickness that takes it. */
   penetration: { recommended: 1 / 3, critical: 1 / 2 },
   /** Up to this thickness a piece is only nailed, or goes in a groove or rabbet. */
@@ -57,4 +57,4 @@ export const ASSUMPTIONS = {
 
 export const hingesFor = (alto: number) => ASSUMPTIONS.doors.hinges.find((b) => alto <= b.upTo)!.n
 
-export const RIGID_JOINTS: TipoUnion[] = ['bolsillo', 'tarugo', 'minifix', 'canal', 'rebaje', 'escuadra']
+export const RIGID_JOINTS: JointType[] = ['bolsillo', 'tarugo', 'minifix', 'canal', 'rebaje', 'escuadra']

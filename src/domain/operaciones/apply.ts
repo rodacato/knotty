@@ -1,5 +1,5 @@
 import { partway } from '../diseno/builders'
-import { DIMENSION_DE_EJE, EJES, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from '../diseno/esquema'
+import { DIMENSION_OF_AXIS, AXES, type Position, type Design, type Axis, type Piece, type Extent } from '../diseno/schema'
 import { parseFace, resolveGeometry, type Geometry } from '../diseno/resolve'
 import { materialById, type Catalog } from '../materiales/catalog'
 import { contactBetween } from '../validation/contact'
@@ -10,7 +10,7 @@ import type { Operation } from './schema'
 // The operations the expert (or Knotty) asks for, applied in order on a copy. Their names and fields are the expert's and stay as they are.
 
 export interface Applied {
-  design: Diseno
+  design: Design
   warnings: DesignWarning[]
 }
 
@@ -22,11 +22,11 @@ class InvalidOperation extends Error {
 
 const invalid = (code: DesignError['code'], message: string, data?: Record<string, unknown>) => new InvalidOperation(error(code, message, data))
 
-const refersTo = (cota: Cota | null, id: string) =>
+const refersTo = (cota: Position | null, id: string) =>
   !!cota && ((cota.tipo === 'ref' && parseFace(cota.ref).piece === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
 
 /** Applies the operations in order on a copy. If one fails, none is applied. */
-export function applyOperations(original: Diseno, operations: Operation[], catalog: Catalog): Result<Applied> {
+export function applyOperations(original: Design, operations: Operation[], catalog: Catalog): Result<Applied> {
   const design = structuredClone(original)
   const warnings: DesignWarning[] = []
 
@@ -51,7 +51,7 @@ export function applyOperations(original: Diseno, operations: Operation[], catal
     const frozen = new Set<string>()
     for (const p of design.piezas) {
       if (p.id === id) continue
-      for (const axis of EJES)
+      for (const axis of AXES)
         for (const end of ['desde', 'hasta'] as const) {
           const cota = p[axis][end]
           if (!refersTo(cota, id)) continue
@@ -65,10 +65,10 @@ export function applyOperations(original: Diseno, operations: Operation[], catal
       warnings.push({ code: 'A_REFERENCIA_CONGELADA', message: `Al quitar "${id}", ${[...frozen].join(', ')} quedaron fijas en mm.`, data: { pieza: id, afectadas: [...frozen] } })
   }
 
-  function place(p: Pieza, axis: Eje, cota: Cota, length: number) {
+  function place(p: Piece, axis: Axis, cota: Position, length: number) {
     p[axis] = axis === p.normal ? { desde: cota, hasta: null, largo: null } : { desde: cota, hasta: null, largo: length }
   }
-  const lengthOf = (id: string, axis: Eje, geo: Geometry) => geo.boxes.get(id)![`${axis}1`] - geo.boxes.get(id)![`${axis}0`]
+  const lengthOf = (id: string, axis: Axis, geo: Geometry) => geo.boxes.get(id)![`${axis}1`] - geo.boxes.get(id)![`${axis}0`]
 
   const applyOne = (op: Operation) => {
     switch (op.op) {
@@ -87,7 +87,7 @@ export function applyOperations(original: Diseno, operations: Operation[], catal
         const source = piece(op.id)
         assertFreeId(op.nuevoId)
         const geo = geometry()
-        const copy: Pieza = { ...structuredClone(source), id: op.nuevoId, nombre: op.nombre }
+        const copy: Piece = { ...structuredClone(source), id: op.nuevoId, nombre: op.nombre }
         place(copy, op.eje, op.cota, lengthOf(op.id, op.eje, geo))
         design.piezas.push(copy)
         const copied = design.uniones
@@ -109,7 +109,7 @@ export function applyOperations(original: Diseno, operations: Operation[], catal
         if (op.eje === p.normal) throw invalid('E_OPERACION_INVALIDA', `"${p.id}" tiene su espesor en ${op.eje}; para eso usa cambiarEspesor o mover.`, { pieza: p.id, eje: op.eje })
         const box = geometry().boxes.get(p.id)!
         const current = p[op.eje]
-        const next: Tramo =
+        const next: Extent =
           op.extremo === 'desde'
             ? { desde: op.cota, hasta: current.hasta ?? { tipo: 'mm', mm: box[`${op.eje}1`] }, largo: null }
             : { desde: current.desde ?? { tipo: 'mm', mm: box[`${op.eje}0`] }, hasta: op.cota, largo: null }
@@ -158,7 +158,7 @@ export function applyOperations(original: Diseno, operations: Operation[], catal
         design.uniones = design.uniones.filter((u) => u.id !== op.id)
         return
       case 'cambiarDimensionGlobal': {
-        const key = DIMENSION_DE_EJE[op.eje]
+        const key = DIMENSION_OF_AXIS[op.eje]
         const factor = op.valor / design.dimensiones[key]
         design.dimensiones[key] = op.valor
         if (op.regla === 'proporcional')

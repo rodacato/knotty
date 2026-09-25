@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { Diseno } from '../diseno/esquema'
+import { Design } from '../diseno/schema'
 import { FurniturePlan } from '../modules/plan'
 import { Operation } from '../operaciones/schema'
 
-export const Origen = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
-export type Origen = z.infer<typeof Origen>
+export const Origin = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
+export type Origin = z.infer<typeof Origin>
 
 export const Decision = z.object({
   tema: z.string().min(1).describe('Clave corta: "trasera", "espesor-entrepanos"'),
@@ -14,12 +14,12 @@ export type Decision = z.infer<typeof Decision>
 
 export const Version = z.object({
   n: z.number().int().positive(),
-  diseno: Diseno,
+  diseno: Design,
   resumen: z.string(),
   motivo: z.string(),
   operaciones: z.array(z.string()),
   fecha: z.string(),
-  origen: Origen.nullable(),
+  origen: Origin.nullable(),
   /** Las decisiones de diseño viajan con la versión: volver a una versión las restaura. */
   decisiones: z.array(Decision).default([]),
   /** The plan this version was built from, when it was; later free-form changes leave it null. */
@@ -29,9 +29,9 @@ export const Version = z.object({
 })
 export type Version = z.infer<typeof Version>
 
-const LIMITES = { completas: 8, resumidas: 30, versiones: 40, decisiones: 15 }
+const LIMITS = { full: 8, summarized: 30, versions: 40, decisions: 15 }
 
-export function abreviar(op: Operation): string {
+export function abbreviate(op: Operation): string {
   switch (op.op) {
     case 'agregarPieza':
       return `+${op.pieza.id}`
@@ -66,24 +66,24 @@ export function abreviar(op: Operation): string {
   }
 }
 
-/** La bitácora que ve el LLM: reciente con detalle, media en una línea y lo viejo solo contado; lo importante ya vive en decisiones y requisitos. */
-export function bitacoraCompacta(versiones: Version[]): string[] {
-  const orden = [...versiones].sort((a, b) => b.n - a.n)
-  const completas = orden.slice(0, LIMITES.completas).map((v) => `v${v.n}: ${v.resumen} — pedido: "${v.motivo}" — ${v.operaciones.join('; ') || 'sin operaciones'}`)
-  const resumidas = orden.slice(LIMITES.completas, LIMITES.resumidas).map((v) => `v${v.n}: ${v.resumen}`)
-  const restantes = orden.length - LIMITES.resumidas
-  return [...completas, ...resumidas, ...(restantes > 0 ? [`(${restantes} cambios anteriores)`] : [])].reverse()
+/** The log the expert sees: recent changes in full, older ones in a line, the oldest only counted; what matters already lives in decisions and requirements. */
+export function compactLog(versions: Version[]): string[] {
+  const ordered = [...versions].sort((a, b) => b.n - a.n)
+  const full = ordered.slice(0, LIMITS.full).map((v) => `v${v.n}: ${v.resumen} — pedido: "${v.motivo}" — ${v.operaciones.join('; ') || 'sin operaciones'}`)
+  const summarized = ordered.slice(LIMITS.full, LIMITS.summarized).map((v) => `v${v.n}: ${v.resumen}`)
+  const rest = ordered.length - LIMITS.summarized
+  return [...full, ...summarized, ...(rest > 0 ? [`(${rest} cambios anteriores)`] : [])].reverse()
 }
 
-/** La decisión nueva de un tema reemplaza a la anterior; se conservan las más recientes. */
-export function actualizarDecisiones(actuales: Decision[], nuevas: Decision[]): Decision[] {
-  const temas = new Set(nuevas.map((d) => d.tema))
-  return [...actuales.filter((d) => !temas.has(d.tema)), ...nuevas].slice(-LIMITES.decisiones)
+/** A new decision on a topic replaces the previous one; the most recent are kept. */
+export function updateDecisions(current: Decision[], added: Decision[]): Decision[] {
+  const topics = new Set(added.map((d) => d.tema))
+  return [...current.filter((d) => !topics.has(d.tema)), ...added].slice(-LIMITS.decisions)
 }
 
-/** Se conserva la primera versión y las más recientes. */
-export function podarVersiones(versiones: Version[]): Version[] {
-  if (versiones.length <= LIMITES.versiones) return versiones
-  const [primera, ...resto] = versiones
-  return [primera, ...resto.slice(-(LIMITES.versiones - 1))]
+/** The first version and the most recent ones are kept. */
+export function pruneVersions(versions: Version[]): Version[] {
+  if (versions.length <= LIMITS.versions) return versions
+  const [first, ...rest] = versions
+  return [first, ...rest.slice(-(LIMITS.versions - 1))]
 }

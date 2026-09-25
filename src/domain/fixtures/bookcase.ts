@@ -1,5 +1,5 @@
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 
 const ENTREPANOS = 4
 const ESPESOR = 18
@@ -20,7 +20,7 @@ const entrepanos = Array.from({ length: ENTREPANOS }, (_, i) =>
   }),
 )
 
-export const librero: Diseno = {
+export const exampleBookcase: Design = {
   esquema: 1,
   nombre: 'Librero',
   dimensiones: { ancho: 600, alto: 1800, fondo: 300 },

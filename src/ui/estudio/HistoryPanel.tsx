@@ -1,5 +1,5 @@
 import { ArrowCounterClockwise, Eye, EyeSlash } from '@phosphor-icons/react'
-import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { ChangeList } from '../chat/ChangeList'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -23,7 +23,7 @@ function ago(date: string) {
 
 const PROVIDER: Record<string, string> = { simulado: 'Simulado', anthropic: 'Claude', openai: 'OpenAI', shellm: 'SheLLM' }
 
-export function HistoryPanel({ estado }: { estado: EstadoDiseno }) {
+export function HistoryPanel({ estado }: { estado: DesignState }) {
   const versionVista = useTienda((s) => s.versionVista)
   const verVersion = useTienda((s) => s.verVersion)
   const volverAVersion = useTienda((s) => s.volverAVersion)
@@ -72,7 +72,7 @@ export function HistoryPanel({ estado }: { estado: EstadoDiseno }) {
       <details className="rounded-2xl border border-linea bg-hueso/60 p-3">
         <summary className="cursor-pointer text-sm font-medium">Bitácora: qué hizo el experto</summary>
         <div className="mt-3">
-          <TraceLog trace={estado.trace} pieces={disenoActual(estado).piezas} />
+          <TraceLog trace={estado.trace} pieces={currentDesign(estado).piezas} />
         </div>
       </details>
     </div>

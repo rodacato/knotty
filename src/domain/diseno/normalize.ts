@@ -1,5 +1,5 @@
 import type { Catalog } from '../materiales/catalog'
-import { DIMENSION_DE_EJE, EJES, type CaraRef, type Diseno, type Eje, type Pieza } from './esquema'
+import { DIMENSION_OF_AXIS, AXES, type FaceRef, type Design, type Axis, type Piece } from './schema'
 import { referencedPieces, resolveGeometry, roundTo, type Box } from './resolve'
 
 // A design thought in coordinates becomes parametric: each absolute cota is tied to the nearest face, without moving it.
@@ -9,19 +9,19 @@ const SNAP = 3
 
 type End = 'desde' | 'hasta'
 interface Candidate {
-  ref: CaraRef
+  ref: FaceRef
   value: number
   preference: number
 }
 
-export function normalize(original: Diseno, catalog: Catalog): Diseno {
+export function normalize(original: Design, catalog: Catalog): Design {
   const r = resolveGeometry(original, catalog)
   if (!r.ok) return original
   const { boxes } = r.value
   const design = structuredClone(original)
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
 
-  const dependsOn = (from: string, target: string, axis: Eje, seen = new Set<string>()): boolean => {
+  const dependsOn = (from: string, target: string, axis: Axis, seen = new Set<string>()): boolean => {
     if (from === target) return true
     if (seen.has(from)) return false
     seen.add(from)
@@ -29,18 +29,18 @@ export function normalize(original: Diseno, catalog: Catalog): Diseno {
     return !!p && referencedPieces(p[axis]).some((other) => other !== 'mueble' && dependsOn(other, target, axis, seen))
   }
 
-  const candidates = (p: Pieza, axis: Eje, end: End, outsideOnly: boolean): Candidate[] => {
+  const candidates = (p: Piece, axis: Axis, end: End, outsideOnly: boolean): Candidate[] => {
     const opposite = end === 'desde' ? 1 : 0
     const outside: Candidate[] = [
       { ref: `mueble.${axis}0`, value: 0, preference: 0 },
-      { ref: `mueble.${axis}1`, value: design.dimensiones[DIMENSION_DE_EJE[axis]], preference: 0 },
+      { ref: `mueble.${axis}1`, value: design.dimensiones[DIMENSION_OF_AXIS[axis]], preference: 0 },
     ]
     if (outsideOnly) return outside
     return [
       ...outside,
       ...[...boxes]
         .filter(([id]) => id !== p.id && !dependsOn(id, p.id, axis))
-        .flatMap(([id, box]) => ([0, 1] as const).map((side) => ({ ref: `${id}.${axis}${side}` as CaraRef, value: box[`${axis}${side}`], preference: side === opposite ? 1 : 2 }))),
+        .flatMap(([id, box]) => ([0, 1] as const).map((side) => ({ ref: `${id}.${axis}${side}` as FaceRef, value: box[`${axis}${side}`], preference: side === opposite ? 1 : 2 }))),
     ]
   }
 
@@ -50,7 +50,7 @@ export function normalize(original: Diseno, catalog: Catalog): Diseno {
       .filter((c) => c.distance <= SNAP)
       .sort((a, b) => a.distance - b.distance || a.preference - b.preference)[0]
 
-  const anchor = (p: Pieza, axis: Eje, box: Box, outsideOnly: boolean) => {
+  const anchor = (p: Piece, axis: Axis, box: Box, outsideOnly: boolean) => {
     const t = p[axis]
     if (axis === p.normal) {
       const current = t.desde ?? t.hasta
@@ -80,6 +80,6 @@ export function normalize(original: Diseno, catalog: Catalog): Diseno {
   // First to the outside of the piece of furniture, then to the other pieces: outer measures win when both are close.
   for (const outsideOnly of [true, false])
     for (const p of design.piezas)
-      for (const axis of EJES) anchor(p, axis, boxes.get(p.id)!, outsideOnly)
+      for (const axis of AXES) anchor(p, axis, boxes.get(p.id)!, outsideOnly)
   return design
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { librero } from '../../domain/fixtures/librero'
-import type { EstadoDiseno } from '../../domain/sesion/estado'
+import { exampleBookcase } from '../../domain/fixtures/bookcase'
+import type { DesignState } from '../../domain/sesion/state'
 import { crearRepositorioLocal } from './localStorage'
 
 function almacen(limite = Infinity): Storage {
@@ -20,10 +20,10 @@ function almacen(limite = Infinity): Storage {
   }
 }
 
-const estado = (versiones = 1): EstadoDiseno => ({
+const estado = (versiones = 1): DesignState => ({
   formato: 1,
-  medidas: librero.dimensiones,
-  versiones: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, diseno: librero, resumen: `v${i + 1}`, motivo: '', operaciones: [], fecha: '', origen: null, decisiones: [], plan: null, extras: [] })),
+  medidas: exampleBookcase.dimensiones,
+  versiones: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, diseno: exampleBookcase, resumen: `v${i + 1}`, motivo: '', operaciones: [], fecha: '', origen: null, decisiones: [], plan: null, extras: [] })),
   actual: versiones,
   requisitos: [],
   decisiones: [],

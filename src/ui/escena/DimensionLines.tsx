@@ -2,7 +2,7 @@ import { Line } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import { Vector3, type Group } from 'three'
-import type { Dimensiones } from '../../domain/diseno/esquema'
+import type { Dimensions } from '../../domain/diseno/schema'
 import { Label } from './Label'
 
 // Overall dimensions as on a drawing: width at the front, height on the left, depth on the right, tied to the piece by reference lines.
@@ -44,7 +44,7 @@ function Dimension({ from, to, out, value, dark }: { from: Point; to: Point; out
   )
 }
 
-export function DimensionLines({ dimensions, dark }: { dimensions: Dimensiones; dark: boolean }) {
+export function DimensionLines({ dimensions, dark }: { dimensions: Dimensions; dark: boolean }) {
   const w = dimensions.ancho * MM
   const h = dimensions.alto * MM
   const d = dimensions.fondo * MM

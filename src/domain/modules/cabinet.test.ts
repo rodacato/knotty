@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../analisis'
-import { catalogo } from '../fixtures/catalogo.test-util'
+import { analyze } from '../analysis'
+import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetConstruction, type CabinetPlan } from './cabinet'
 
@@ -23,35 +23,35 @@ const PLANS: Record<string, CabinetPlan> = {
 
 describe('buildCabinet', () => {
   it.each(Object.entries(PLANS))('builds a valid %s with no overlaps and every contact joined', (_, p) => {
-    const { design, notes } = buildCabinet(p, catalogo)
-    const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores.map((e) => e.message).join('\n'))
-    expect(a.avisos.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    expect(a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
     expect(notes).toEqual([])
   })
 
   it('makes one drawer per drawer cell, with slides', () => {
-    const { design } = buildCabinet(PLANS.cajonera, catalogo)
+    const { design } = buildCabinet(PLANS.cajonera, testCatalog)
     expect(new Set(design.piezas.map((p) => p.grupo).filter(Boolean))).toEqual(new Set(['cajon-1', 'cajon-2', 'cajon-3']))
     expect(design.uniones.filter((u) => u.tipo === 'corredera').length).toBeGreaterThanOrEqual(3)
   })
 
   it('hangs each door and puts movable shelves on supports', () => {
-    const { design } = buildCabinet(PLANS.alacena, catalogo)
+    const { design } = buildCabinet(PLANS.alacena, testCatalog)
     expect(design.uniones.filter((u) => u.tipo === 'bisagra-cazoleta').map((u) => u.a).sort()).toEqual(['c1-h1-puerta-der', 'c1-h1-puerta-izq'])
     expect(design.uniones.filter((u) => u.tipo === 'soporte-repisa')).toHaveLength(2)
   })
 
   it('a drawer too shallow for any slide stays as an open cell, and says so', () => {
-    const { design, notes } = buildCabinet(plan({ dimensions: { width: 500, height: 400, depth: 250 }, columns: [{ width: 1, cells: [cell('drawer')] }] }), catalogo)
+    const { design, notes } = buildCabinet(plan({ dimensions: { width: 500, height: 400, depth: 250 }, columns: [{ width: 1, cells: [cell('drawer')] }] }), testCatalog)
     expect(design.piezas.some((p) => p.grupo)).toBe(false)
     expect(notes[0]).toMatch(/^Cajón 1: No cabe un cajón/)
   })
 
   it('scales column widths and cell heights that do not add up to 1', () => {
-    const { design } = buildCabinet(plan({ columns: [{ width: 2, cells: [cell('open', 3)] }, { width: 2, cells: [cell('open', 3)] }] }), catalogo)
-    const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores[0].message)
+    const { design } = buildCabinet(plan({ columns: [{ width: 2, cells: [cell('open', 3)] }, { width: 2, cells: [cell('open', 3)] }] }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
     expect(a.geo.boxes.get('div-1')!.x0).toBe(291)
   })
 })
@@ -80,17 +80,17 @@ describe('construction variants', () => {
   })
 
   it.each(combos.map((c) => [Object.values(c).join(' · '), c] as const))('%s is valid, with nothing overlapping and every contact joined', (_, construction) => {
-    const { design, notes } = buildCabinet({ ...mixed, construction }, catalogo)
-    const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores.map((e) => e.message).join('\n'))
-    expect(a.avisos.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    const { design, notes } = buildCabinet({ ...mixed, construction }, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    expect(a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
     expect(notes).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
-    const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, catalogo)
-    const a = analizar(design, catalogo)
-    if (!a.valido) throw new Error(a.errores[0].message)
+    const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
     const door = a.geo.boxes.get('c1-h1-puerta-izq')!
     expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
     expect(door.z1).toBe(320)
@@ -99,8 +99,8 @@ describe('construction variants', () => {
 
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
-      const a = analizar(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, catalogo).design, catalogo)
-      if (!a.valido) throw new Error(a.errores[0].message)
+      const a = analyze(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog).design, testCatalog)
+      if (!a.valid) throw new Error(a.errors[0].message)
       return a.geo.boxes.get('cajon-1-frente')!
     }
     expect(front('overlay').x0).toBe(2)

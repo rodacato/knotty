@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Minus, Plus, Swap } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { describeChange } from '../../domain/changes/changes'
-import type { EstadoDiseno } from '../../domain/sesion/estado'
+import type { DesignState } from '../../domain/sesion/state'
 import { useServicios } from '../servicios'
 import { useTienda } from '../tienda'
 
@@ -10,7 +10,7 @@ import { useTienda } from '../tienda'
 const ICON = { added: <Plus size={11} weight="bold" />, removed: <Minus size={11} weight="bold" />, changed: <Swap size={11} weight="bold" /> }
 const BACK = { added: 'Quitar', removed: 'Regresar', changed: 'Regresar' }
 
-export function ChangeList({ estado, version }: { estado: EstadoDiseno; version: number }) {
+export function ChangeList({ estado, version }: { estado: DesignState; version: number }) {
   const { catalogo } = useServicios()
   const restore = useTienda((s) => s.restoreFromVersion)
   const undo = useTienda((s) => s.undoChange)

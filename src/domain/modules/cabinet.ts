@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { CaraRef, Cota, Diseno, Pieza, Union } from '../diseno/esquema'
-import { analizar } from '../analisis'
+import type { FaceRef, Position, Design, Piece, Joint } from '../diseno/schema'
+import { analyze } from '../analysis'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
 import { applyOperations } from '../operaciones/apply'
@@ -49,12 +49,12 @@ const shares = (values: number[]) => {
   return values.map((v) => (sum += v / total))
 }
 
-const pieceOf = (face: CaraRef) => face.split('.')[0]
+const pieceOf = (face: FaceRef) => face.split('.')[0]
 /** The same reference, moved along its axis. */
-const shift = (cota: Cota, delta: number): Cota => (cota.tipo === 'ref' ? { ...cota, mas: cota.mas + delta } : cota.tipo === 'mm' ? { ...cota, mm: cota.mm + delta } : { ...cota, mas: cota.mas + delta })
+const shift = (cota: Position, delta: number): Position => (cota.tipo === 'ref' ? { ...cota, mas: cota.mas + delta } : cota.tipo === 'mm' ? { ...cota, mm: cota.mm + delta } : { ...cota, mas: cota.mas + delta })
 
 export interface BuiltCabinet {
-  design: Diseno
+  design: Design
   /** Cells that could not be built as asked, for the person. */
   notes: string[]
 }
@@ -66,14 +66,14 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const cells = plan.columns.flatMap((c) => c.cells)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
-  const front: Cota = overlays ? ref('mueble.z1', -t) : ref('mueble.z1')
-  const backFace: CaraRef = build.back === 'nailed' ? 'trasera.z1' : 'mueble.z0'
+  const front: Position = overlays ? ref('mueble.z1', -t) : ref('mueble.z1')
+  const backFace: FaceRef = build.back === 'nailed' ? 'trasera.z1' : 'mueble.z0'
   const depth = () => extent(ref(backFace), front)
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })
   const sideHeight = build.top === 'over' ? extent(ref('mueble.y0'), ref('techo.y0')) : extent(ref('mueble.y0'), ref('mueble.y1'))
 
-  const pieces: Pieza[] = []
-  const joints: Union[] = []
+  const pieces: Piece[] = []
+  const joints: Joint[] = []
   if (build.back === 'nailed')
     pieces.push(makePiece({ id: 'trasera', nombre: 'Trasera', rol: 'trasera', material: BACK, normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: startAt(ref('mueble.z0')) }))
   pieces.push(
@@ -110,8 +110,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   plan.columns.forEach((column, i) => {
     const n = plan.columns.length
     const col = `c${i + 1}`
-    const left: CaraRef = i === 0 ? 'lat-izq.x1' : `div-${i}.x1`
-    const right: CaraRef = i === n - 1 ? 'lat-der.x0' : `div-${i + 1}.x0`
+    const left: FaceRef = i === 0 ? 'lat-izq.x1' : `div-${i}.x1`
+    const right: FaceRef = i === n - 1 ? 'lat-der.x0' : `div-${i + 1}.x0`
     // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
     const overLeft = i === 0 ? ref('mueble.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2)
     const overRight = i === n - 1 ? ref('mueble.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2)
@@ -125,8 +125,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       const m = column.cells.length
       const id = `${col}-h${j + 1}`
       const label = `${n > 1 ? ` de la columna ${i + 1}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`
-      const bottom: CaraRef = j === 0 ? 'piso.y1' : `${col}-sep-${j}.y1`
-      const top: CaraRef = j === m - 1 ? 'techo.y0' : `${col}-sep-${j + 1}.y0`
+      const bottom: FaceRef = j === 0 ? 'piso.y1' : `${col}-sep-${j}.y1`
+      const top: FaceRef = j === m - 1 ? 'techo.y0' : `${col}-sep-${j + 1}.y0`
       const overBottom = j === 0 ? ref('piso.y0', GAP) : ref(`${col}-sep-${j}.y0`, half + GAP / 2)
       const overTop = j === m - 1 ? (build.top === 'over' ? ref('techo.y0', -GAP) : ref('mueble.y1', -GAP)) : ref(`${col}-sep-${j + 1}.y0`, half - GAP / 2)
       const overlay = { x: extent(overLeft, overRight), y: extent(overBottom, overTop) }
@@ -150,7 +150,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
           }),
         )
 
-      const front6 = ['frente', 'atras', 'izq', 'der', 'arriba', 'abajo'] as Pieza['cantos']
+      const front6 = ['frente', 'atras', 'izq', 'der', 'arriba', 'abajo'] as Piece['cantos']
       // Overlay leaves close the front of the piece; inset ones sit flush with the carcass, wherever overlay drawer fronts put it.
       const leaf = { material: plan.material, normal: 'z' as const, z: endAt(build.doors === 'overlay' ? ref('mueble.z1') : front), cantos: front6 }
       if (cell.content === 'closed') {
@@ -185,7 +185,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     })
   })
 
-  let design: Diseno = {
+  let design: Design = {
     esquema: 1,
     nombre: plan.name,
     dimensiones: { ancho: plan.dimensions.width, alto: plan.dimensions.height, fondo: plan.dimensions.depth },
@@ -219,7 +219,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     extras.push({ op: 'agregarPieza', pieza: panel({ id: 'liston-colgar', nombre: 'Listón de colgar', rol: 'refuerzo', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('techo.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
   for (const extra of extras) {
     const result = applyOperations(design, [extra], catalog)
-    if (result.ok && analizar(completeJoints(result.value.design, catalog), catalog).valido) design = result.value.design
+    if (result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid) design = result.value.design
   }
   return { design: completeJoints(design, catalog), notes }
 }

@@ -1,7 +1,7 @@
-import type { EstadoDiseno } from '../domain/sesion/estado'
+import type { DesignState } from '../domain/sesion/state'
 
 export interface DesignRepository {
-  cargar(): EstadoDiseno | null
-  guardar(estado: EstadoDiseno): void
+  cargar(): DesignState | null
+  guardar(estado: DesignState): void
   borrar(): void
 }

@@ -1,4 +1,4 @@
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 
 export interface CutLine {
@@ -12,7 +12,7 @@ export interface CutLine {
 }
 
 /** The cut list: equal pieces (same material and measures) share a line. */
-export function cutList(design: Diseno, geo: Geometry): CutLine[] {
+export function cutList(design: Design, geo: Geometry): CutLine[] {
   const lines = new Map<string, CutLine>()
   for (const p of design.piezas) {
     const box = geo.boxes.get(p.id)

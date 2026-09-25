@@ -2,9 +2,9 @@ import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { analizar } from '../../domain/analisis'
-import { diferencias } from '../../domain/diseno/diff'
-import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { analyze } from '../../domain/analysis'
+import { differences } from '../../domain/diseno/diff'
+import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { etiquetaActiva } from '../../ports/Preferencias'
 import { Chat } from '../chat/Chat'
 import { BordeEscena } from '../escena/BordeEscena'
@@ -96,11 +96,11 @@ function ConfirmarNuevo({ children }: { children: ReactNode }) {
 
 type Overlay = 'notices' | 'history'
 
-function Encabezado({ estado, pending, overlay, onOpen }: { estado: EstadoDiseno; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
+function Encabezado({ estado, pending, overlay, onOpen }: { estado: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
   const { preferencias } = useServicios()
   const abrirAjustes = useTienda((s) => s.abrirAjustes)
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
-  const diseno = disenoActual(estado)
+  const diseno = currentDesign(estado)
   const { ancho, alto, fondo } = diseno.dimensiones
   const plan = currentPlan(estado).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
@@ -134,7 +134,7 @@ function Encabezado({ estado, pending, overlay, onOpen }: { estado: EstadoDiseno
   )
 }
 
-export function Estudio({ estado }: { estado: EstadoDiseno }) {
+export function Estudio({ estado }: { estado: DesignState }) {
   const { catalogo } = useServicios()
   const verPropuesta = useTienda((s) => s.verPropuesta)
   const versionVista = useTienda((s) => s.versionVista)
@@ -157,8 +157,8 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
     void ajustar(texto)
   }
 
-  const actual = disenoActual(estado)
-  const analisisActual = useMemo(() => analizar(actual, catalogo), [actual, catalogo])
+  const actual = currentDesign(estado)
+  const analisisActual = useMemo(() => analyze(actual, catalogo), [actual, catalogo])
   const preview = useTienda((s) => s.preview)
   const previewFix = useTienda((s) => s.previewFix)
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
@@ -166,10 +166,10 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const mostrado = preview?.design ?? disenoVisible({ estado, versionVista, verPropuesta }) ?? actual
   const propuesta = preview?.design ?? (versionVista === null && estado.propuesta && verPropuesta ? estado.propuesta.diseno : null)
   const board = useMemo(() => noticeBoard(estado, catalogo), [estado, catalogo])
-  const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analizar(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
+  const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analyze(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
   const cambios = useMemo(() => {
-    if (!propuesta || !analisisActual.valido || !analisisMostrado.valido) return { agregadas: [], modificadas: [] }
-    return diferencias(actual, analisisActual.geo.boxes, propuesta, analisisMostrado.geo.boxes)
+    if (!propuesta || !analisisActual.valid || !analisisMostrado.valid) return { added: [], changed: [] }
+    return differences(actual, analisisActual.geo.boxes, propuesta, analisisMostrado.geo.boxes)
   }, [propuesta, actual, analisisActual, analisisMostrado])
 
   useEffect(() => {
@@ -184,7 +184,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const seleccionar = useTienda((s) => s.seleccionar)
 
   const geoMostrada = analisisMostrado.geo
-  const problemasMostrados = analisisMostrado.valido ? [] : analisisMostrado.errores
+  const problemasMostrados = analisisMostrado.valid ? [] : analisisMostrado.errors
   const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
 
   const escena = (
@@ -192,7 +192,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       {geoMostrada ? (
         <div className="h-full" role="img" aria-label={`${mostrado.nombre} en 3D: ${mostrado.dimensiones.alto} × ${mostrado.dimensiones.ancho} × ${mostrado.dimensiones.fondo} mm, ${mostrado.piezas.length} piezas. La lista completa está en Materiales.`}>
           <BordeEscena>
-            <Escena diseno={mostrado} geo={geoMostrada} catalogo={catalogo} fantasmas={cambios.agregadas} marcadas={cambios.modificadas} problemas={piezasConProblema} />
+            <Escena diseno={mostrado} geo={geoMostrada} catalogo={catalogo} fantasmas={cambios.added} marcadas={cambios.changed} problemas={piezasConProblema} />
           </BordeEscena>
         </div>
       ) : (
@@ -285,7 +285,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           <FurniturePanel estado={estado} geo={analisisActual.geo ?? null} />
         </Tabs.Content>
         <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
-          {analisisActual.valido ? (
+          {analisisActual.valid ? (
             <Materiales estado={estado} diseno={actual} geo={analisisActual.geo} catalogo={catalogo} alPedir={pedir} />
           ) : (
             <p className="p-4 text-sm text-grafito-2">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>

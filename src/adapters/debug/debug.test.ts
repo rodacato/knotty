@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { catalogo } from '../../domain/fixtures/catalogo.test-util'
-import { librero } from '../../domain/fixtures/librero'
+import { testCatalog } from '../../domain/fixtures/catalog.test-util'
+import { exampleBookcase } from '../../domain/fixtures/bookcase'
 import { crearSimulado } from '../llm/simulado/simulado'
 import { createDebugLog, localStorageStore, type EventStore } from './localDebugLog'
 import { withDebugLog } from './loggedProvider'
@@ -63,7 +63,7 @@ describe('withDebugLog', () => {
   it('records each call with the request and the answer, leaving out photos and the catalog', async () => {
     const log = fromStorage(memoryStorage())
     const llm = withDebugLog(crearSimulado(0), log)
-    await llm.reconstruir({ medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'A'.repeat(4096) }], notas: 'librero', lectura: null, catalogo, correccion: null }, new AbortController().signal)
+    await llm.reconstruir({ medidas: exampleBookcase.dimensiones, fotos: [{ angulo: 'frente', base64: 'A'.repeat(4096) }], notas: 'librero', lectura: null, catalogo: testCatalog, correccion: null }, new AbortController().signal)
     const [event] = log.events()
     expect(event.kind).toBe('llm')
     expect(event.summary).toMatch(/^Diseño completo · Simulado/)
@@ -76,7 +76,7 @@ describe('withDebugLog', () => {
   it('records a failed call as an error and still throws it', async () => {
     const log = fromStorage(memoryStorage())
     const llm = withDebugLog({ ...crearSimulado(0), dictaminar: async () => Promise.reject(new Error('sin conexión')) }, log)
-    await expect(llm.dictaminar({ contexto: '', revision: '', diseno: librero, comprobaciones: [], catalogo }, new AbortController().signal)).rejects.toThrow('sin conexión')
+    await expect(llm.dictaminar({ contexto: '', revision: '', diseno: exampleBookcase, comprobaciones: [], catalogo: testCatalog }, new AbortController().signal)).rejects.toThrow('sin conexión')
     expect(log.events()[0]).toMatchObject({ kind: 'error', summary: expect.stringContaining('Revisión antes de comprar falló') })
   })
 })

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Diseno } from '../../domain/diseno/esquema'
+import type { Design } from '../../domain/diseno/schema'
 import { hardwareParts } from '../../domain/diseno/hardware'
 import type { Geometry } from '../../domain/diseno/resolve'
 
@@ -10,7 +10,7 @@ const METAL = { color: '#a19e98', metalness: 0.75, roughness: 0.35 }
 /** The hinge arm, from the cup toward the side it is screwed to. */
 const ARM = { length: 45, width: 16, thickness: 10 }
 
-export function Hardware({ design, geo, offsets, selected }: { design: Diseno; geo: Geometry; offsets: Map<string, [number, number, number]>; selected: string | null }) {
+export function Hardware({ design, geo, offsets, selected }: { design: Design; geo: Geometry; offsets: Map<string, [number, number, number]>; selected: string | null }) {
   const parts = useMemo(() => hardwareParts(design, geo.boxes), [design, geo])
   return (
     <group>

@@ -1,5 +1,5 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { CaraRef, Pieza, Union } from '../diseno/esquema'
+import type { FaceRef, Piece, Joint } from '../diseno/schema'
 import { parseFace, type Geometry } from '../diseno/resolve'
 import { materialById, type Catalog, type Hardware } from '../materiales/catalog'
 import { error, type DesignError } from '../validation/errors'
@@ -15,12 +15,12 @@ const BACK_CLEARANCE = 10
 export interface DrawerRequest {
   grupo: string
   nombre: string
-  izquierda: CaraRef
-  derecha: CaraRef
-  abajo: CaraRef
-  arriba: CaraRef
-  frente: CaraRef
-  fondo: CaraRef
+  izquierda: FaceRef
+  derecha: FaceRef
+  abajo: FaceRef
+  arriba: FaceRef
+  frente: FaceRef
+  fondo: FaceRef
   material: string
   materialFondo: string
 }
@@ -36,7 +36,7 @@ export function runnerFor(depth: number, catalog: Catalog) {
 }
 
 /** The drawer's pieces and joints, all tied to the faces of the opening so they follow when the furniture changes. */
-export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog): { piezas: Pieza[]; uniones: Union[] } | DesignError {
+export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog): { piezas: Piece[]; uniones: Joint[] } | DesignError {
   for (const m of [c.material, c.materialFondo]) if (!materialById(catalog, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
   const frontThickness = materialById(catalog, c.material)!.espesor
   const frontZ = geo.measure({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z')
@@ -64,7 +64,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   const shared = { material: c.material, grupo: g, confianza: 'alta' as const }
   /** The box runs from behind the front, as long as the runner. */
   const box = () => (backward ? extent(ref(`${id('frente')}.z1`), null, runner.largo) : extent(null, ref(`${id('frente')}.z0`), runner.largo))
-  const pieces: Pieza[] = [
+  const pieces: Piece[] = [
     makePiece({
       ...shared,
       id: id('frente'),
@@ -84,7 +84,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   ]
 
   const screw = [{ herrajeId: 'tornillo-8x2', cantidad: null }]
-  const joints: Union[] = [
+  const joints: Joint[] = [
     ...['contra', 'trasera'].flatMap((b) => ['costado-izq', 'costado-der'].map((a) => makeJoint(`u-${g}-${a}-${b}`, id(a), id(b), 'tope-tornillo', screw))),
     makeJoint(`u-${g}-contra-frente`, id('contra'), id('frente'), 'tope-tornillo', [{ herrajeId: 'tornillo-8x1', cantidad: 4 }]),
     ...['costado-izq', 'costado-der', 'contra', 'trasera'].map((b) => makeJoint(`u-${g}-fondo-${b}`, id('fondo'), id(b), 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }])),

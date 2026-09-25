@@ -3,13 +3,13 @@ import { Edges } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MeshStandardMaterial, Texture } from 'three'
-import type { Eje, Pieza as TPieza } from '../../domain/diseno/esquema'
+import type { Axis, Piece as TPieza } from '../../domain/diseno/schema'
 import type { Box } from '../../domain/diseno/resolve'
 import { textura, type TipoTextura, type Tono } from './texturas'
 
 const MM = 0.001
 /** Ejes (u, v) de cada cara de BoxGeometry, en el orden de sus materiales: +x, −x, +y, −y, +z, −z. */
-const CARAS: { normal: Eje; u: Eje; v: Eje }[] = [
+const CARAS: { normal: Axis; u: Axis; v: Axis }[] = [
   { normal: 'x', u: 'z', v: 'y' },
   { normal: 'x', u: 'z', v: 'y' },
   { normal: 'y', u: 'x', v: 'z' },
@@ -29,7 +29,7 @@ function texturasDeCaras(p: TPieza, caja: Box, tono: Tono): Texture[] {
       t.needsUpdate = true
       return t
     })
-  const [a, b] = (['x', 'y', 'z'] as Eje[]).filter((e) => e !== p.normal)
+  const [a, b] = (['x', 'y', 'z'] as Axis[]).filter((e) => e !== p.normal)
   const largo = m[a] >= m[b] ? a : b
   const vetaEn = p.veta === 'ancho' ? (largo === a ? b : a) : largo
   return CARAS.map((cara) => {

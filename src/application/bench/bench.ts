@@ -1,11 +1,11 @@
-import { analizar } from '../../domain/analisis'
+import { analyze } from '../../domain/analysis'
 import { buildBed, type BedPlan } from '../../domain/modules/bed'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../domain/modules/cabinet'
 import { buildTable, type TablePlan } from '../../domain/modules/table'
-import type { Diseno } from '../../domain/diseno/esquema'
+import type { Design } from '../../domain/diseno/schema'
 import type { Catalog } from '../../domain/materiales/catalog'
 import { estimatePurchase } from '../../domain/materiales/purchase'
-import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { reviewViability } from '../../domain/viabilidad/viability'
 import type { LLMProvider } from '../../ports/LLMProvider'
 import { crearCasosDeUso } from '../casosDeUso'
@@ -34,7 +34,7 @@ export interface BenchResult {
   repairs: number
   verdict: string
   /** The whole session, to open it in the studio or export it. */
-  state: EstadoDiseno | null
+  state: DesignState | null
 }
 
 export interface ModuleCheck {
@@ -80,12 +80,12 @@ function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
 
 /** Kept in memory: a bench run never touches the design the person is working on. */
 const inMemory = () => {
-  let state: EstadoDiseno | null = null
-  return { cargar: () => state, guardar: (x: EstadoDiseno) => void (state = x), borrar: () => void (state = null) }
+  let state: DesignState | null = null
+  return { cargar: () => state, guardar: (x: DesignState) => void (state = x), borrar: () => void (state = null) }
 }
 
-export function withinExpected(c: BenchCase, d: Diseno['dimensiones']) {
-  const inside = (m: Diseno['dimensiones']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
+export function withinExpected(c: BenchCase, d: Design['dimensiones']) {
+  const inside = (m: Design['dimensiones']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
   return inside(d) || (!!c.anyOrientation && inside({ ...d, ancho: d.fondo, fondo: d.ancho }))
 }
 
@@ -101,7 +101,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
     try {
       const state = await useCases.reconstruir({ medidas: c.measures, fotos: [], miniaturas: [], notas: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
-      const design = disenoActual(state)
+      const design = currentDesign(state)
       const d = design.dimensiones
       const tokens = calls.map((l) => l.output)
       const common = {
@@ -120,11 +120,11 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
         state,
       }
-      const a = analizar(design, catalog)
-      if (!a.valido) return { ...common, criticals: 0, rules: [], verdict: 'inválido' }
+      const a = analyze(design, catalog)
+      if (!a.valid) return { ...common, criticals: 0, rules: [], verdict: 'inválido' }
       const purchase = estimatePurchase(design, a.geo, catalog)
-      const viability = reviewViability({ design, geo: a.geo, catalog, purchase, findings: a.hallazgos, unmet: [] })
-      const criticals = a.hallazgos.filter((h) => h.severity === 'critico')
+      const viability = reviewViability({ design, geo: a.geo, catalog, purchase, findings: a.findings, unmet: [] })
+      const criticals = a.findings.filter((h) => h.severity === 'critico')
       return { ...common, criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.veredicto }
     } catch (e) {
       return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length }
@@ -133,9 +133,9 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
 
   /** Every variant of the modules, with no expert: any that comes out invalid or with findings is a bug in Knotty. */
   function runModules(): ModuleCheck[] {
-    const check = (module: ModuleCheck['module'], variant: string, design: Diseno): ModuleCheck => {
-      const a = analizar(design, catalog)
-      return { module, variant, valid: a.valido, findings: a.valido ? a.hallazgos.map((h) => `${h.severity}: ${h.message}`) : a.errores.map((e) => e.message) }
+    const check = (module: ModuleCheck['module'], variant: string, design: Design): ModuleCheck => {
+      const a = analyze(design, catalog)
+      return { module, variant, valid: a.valid, findings: a.valid ? a.findings.map((h) => `${h.severity}: ${h.message}`) : a.errors.map((e) => e.message) }
     }
     const results: ModuleCheck[] = []
     for (const mattress of ['individual', 'matrimonial', 'queen', 'king'] as const)

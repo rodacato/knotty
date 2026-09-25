@@ -1,9 +1,9 @@
-import { analizar } from '../domain/analisis'
-import type { Diseno } from '../domain/diseno/esquema'
+import { analyze } from '../domain/analysis'
+import type { Design } from '../domain/diseno/schema'
 import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
 import type { Catalog } from '../domain/materiales/catalog'
-import { verificarRequisitos } from '../domain/requisitos/requisitos'
-import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
+import { checkRequirements } from '../domain/requisitos/requirements'
+import { currentDesign, type DesignState } from '../domain/sesion/state'
 import { noticeItemId, type TrayItem } from '../domain/tray/tray'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.
@@ -45,7 +45,7 @@ const TITLES: Record<string, string> = {
 }
 const RANK = { critico: 0, decision: 1, recomendacion: 2, detalle: 3 }
 
-const named = (design: Diseno, text: string) => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
+const named = (design: Design, text: string) => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
 
 /** Findings of the same rule and severity read as one notice, with all their pieces. */
 function findingNotices(findings: Finding[]): Notice[] {
@@ -65,28 +65,28 @@ function findingNotices(findings: Finding[]): Notice[] {
   })
 }
 
-function noticesOf(estado: EstadoDiseno, design: Diseno, catalog: Catalog): Notice[] {
-  const analysis = analizar(design, catalog)
+function noticesOf(estado: DesignState, design: Design, catalog: Catalog): Notice[] {
+  const analysis = analyze(design, catalog)
   const notices: Notice[] = []
-  if (!analysis.valido)
+  if (!analysis.valid)
     notices.push({
       key: 'problems',
       kind: 'problem',
       severity: 'critico',
       title: 'Problemas sin resolver',
-      message: analysis.errores.map((e) => named(design, e.message)).join(' '),
-      pieces: [...new Set(analysis.errores.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
+      message: analysis.errors.map((e) => named(design, e.message)).join(' '),
+      pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
       findings: [],
     })
-  for (const e of verificarRequisitos(design, estado.requisitos))
+  for (const e of checkRequirements(design, estado.requisitos))
     notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
-  if (analysis.valido) notices.push(...findingNotices(analysis.hallazgos))
+  if (analysis.valid) notices.push(...findingNotices(analysis.findings))
   return notices
 }
 
 /** The board for the current version: pending and accepted notices, and what the last change resolved. */
-export function noticeBoard(estado: EstadoDiseno, catalog: Catalog): NoticeBoard {
-  const design = disenoActual(estado)
+export function noticeBoard(estado: DesignState, catalog: Catalog): NoticeBoard {
+  const design = currentDesign(estado)
   const accepted = new Set(estado.accepted.map((a) => a.key))
   const all = noticesOf(estado, design, catalog)
   const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))

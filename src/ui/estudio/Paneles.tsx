@@ -1,5 +1,5 @@
 import { X } from '@phosphor-icons/react'
-import type { Diseno, TipoUnion } from '../../domain/diseno/esquema'
+import type { Design, JointType } from '../../domain/diseno/schema'
 import { faceSize, type Geometry } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
 import { cutList } from '../../domain/materiales/cutList'
@@ -7,7 +7,7 @@ import { cm } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 import { PieceEditor } from './PieceEditor'
 
-const UNIONES: Record<TipoUnion, string> = {
+const UNIONES: Record<JointType, string> = {
   'tope-tornillo': 'tornillo al canto',
   bolsillo: 'tornillo de bolsillo',
   tarugo: 'tarugos',
@@ -23,7 +23,7 @@ const UNIONES: Record<TipoUnion, string> = {
 
 const VETA = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
 
-export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
+export function Piezas({ diseno, geo }: { diseno: Design; geo: Geometry }) {
   const seleccionar = useTienda((s) => s.seleccionar)
   const seleccion = useTienda((s) => s.seleccion)
   const lista = cutList(diseno, geo)
@@ -57,7 +57,7 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
   )
 }
 
-export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometry; catalogo: Catalog; editable?: boolean }) {
+export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Design; geo: Geometry; catalogo: Catalog; editable?: boolean }) {
   const confirmarPieza = useTienda((s) => s.confirmarPieza)
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)

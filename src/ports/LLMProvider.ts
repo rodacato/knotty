@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { Diseno, type Dimensiones } from '../domain/diseno/esquema'
-import { Decision } from '../domain/historial/historial'
+import { Design, type Dimensions } from '../domain/diseno/schema'
+import { Decision } from '../domain/historial/history'
 import type { Catalog } from '../domain/materiales/catalog'
 import { Operation } from '../domain/operaciones/schema'
-import { Requisito } from '../domain/requisitos/requisitos'
-import { Pregunta } from '../domain/sesion/estado'
+import { Requirement } from '../domain/requisitos/requirements'
+import { Question } from '../domain/sesion/state'
 import type { DesignError } from '../domain/validation/errors'
 import { BedPlan } from '../domain/modules/bed'
 import { CabinetPlan } from '../domain/modules/cabinet'
@@ -17,10 +17,10 @@ import { CarpenterOpinion, type Check } from '../domain/viabilidad/viability'
 
 export const RespuestaReconstruccion = z.object({
   explicacion: z.string().describe('Qué viste y cómo lo interpretaste, en 2–4 frases para el usuario'),
-  diseno: Diseno,
-  preguntas: z.array(Pregunta).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
+  diseno: Design,
+  preguntas: z.array(Question).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
-  requisitos: z.array(Requisito),
+  requisitos: z.array(Requirement),
   sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
 export type RespuestaReconstruccion = z.infer<typeof RespuestaReconstruccion>
@@ -29,10 +29,10 @@ export const RespuestaAjuste = z.object({
   explicacion: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
   resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
   operaciones: z.array(Operation),
-  preguntas: z.array(Pregunta),
+  preguntas: z.array(Question),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
   sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir, escritos como ella los pediría'),
-  requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
+  requisitos: z.object({ agregar: z.array(Requirement), quitar: z.array(z.string()) }),
   decisiones: z.array(Decision),
   aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
 })
@@ -47,7 +47,7 @@ export interface SolicitudDictamen {
   contexto: string
   /** La lista de corte y las comprobaciones de cuentas, en texto. */
   revision: string
-  diseno: Diseno
+  diseno: Design
   /** Las comprobaciones de cuentas, para quien no lee texto (el simulado). */
   comprobaciones: Check[]
   catalogo: Catalog
@@ -59,9 +59,9 @@ export const RespuestaPlan = z.object({
   cabinet: CabinetPlan.nullable().describe('El plan si el mueble es un gabinete (caja con columnas y huecos); null si no lo es'),
   bed: BedPlan.nullable().describe('La ficha si el mueble es una cama (base con o sin cajones y cabecera); null si no lo es'),
   table: TablePlan.nullable().describe('La ficha si el mueble es una mesa o un escritorio; null si no lo es'),
-  preguntas: z.array(Pregunta).describe('Lo que más cambia el diseño o la compra; máximo 3'),
+  preguntas: z.array(Question).describe('Lo que más cambia el diseño o la compra; máximo 3'),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
-  requisitos: z.array(Requisito),
+  requisitos: z.array(Requirement),
   sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
 export type RespuestaPlan = z.infer<typeof RespuestaPlan>
@@ -74,9 +74,9 @@ export const PlanAdjustment = z.object({
   plan: CabinetPlan.nullable().describe('La ficha completa del gabinete con el cambio, cuando action es "plan" y el mueble es un gabinete; null en otro caso'),
   bed: BedPlan.nullable().describe('La ficha completa de la cama con el cambio, cuando action es "plan" y el mueble es una cama; null en otro caso'),
   table: TablePlan.nullable().describe('La ficha completa de la mesa o escritorio con el cambio, cuando action es "plan" y el mueble es una mesa; null en otro caso'),
-  preguntas: z.array(Pregunta),
+  preguntas: z.array(Question),
   sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir'),
-  requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
+  requisitos: z.object({ agregar: z.array(Requirement), quitar: z.array(z.string()) }),
   decisiones: z.array(Decision),
 })
 export type PlanAdjustment = z.infer<typeof PlanAdjustment>
@@ -105,7 +105,7 @@ export interface PhotoReadingRequest {
 
 export interface SolicitudReconstruccion {
   /** null: la persona no las sabe y el experto las estima. */
-  medidas: Dimensiones | null
+  medidas: Dimensions | null
   fotos: Foto[]
   notas: string
   /** What was read from the photos beforehand; when present, the photos are not sent again. */
@@ -120,7 +120,7 @@ export interface SolicitudAjuste {
   contexto: string
   peticion: string
   /** El diseño vigente, para quien necesite leerlo sin parsear el contexto (el simulado). */
-  diseno: Diseno
+  diseno: Design
   /** Operaciones de la propuesta sin aplicar, si la hay; también van descritas en el contexto. */
   propuesta: Operation[] | null
   /** Fotos que la persona manda con este pedido, casi siempre porque el experto las pidió. */

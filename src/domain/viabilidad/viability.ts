@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 import type { Finding } from '../structure/finding'
 import type { Catalog } from '../materiales/catalog'
@@ -50,7 +50,7 @@ export const Viability = z.object({ veredicto: Verdict, comprobaciones: z.array(
 export type Viability = z.infer<typeof Viability>
 
 interface ViabilityInput {
-  design: Diseno
+  design: Design
   geo: Geometry
   /** With the person's cutting settings: the trim changes what fits. */
   catalog: Catalog

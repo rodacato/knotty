@@ -1,4 +1,4 @@
-import type { Pieza, TipoUnion, Union } from '../../diseno/esquema'
+import type { Piece, JointType, Joint } from '../../diseno/schema'
 import { roundTo } from '../../diseno/resolve'
 import type { Catalog } from '../../materiales/catalog'
 import type { Finding, Rule, Severity } from '../finding'
@@ -6,7 +6,7 @@ import { ASSUMPTIONS } from '../assumptions'
 
 // R2: each joint needs enough board on each side, and a groove or rabbet must not weaken what takes it.
 
-const JOINT_NAME: Record<TipoUnion, string> = {
+const JOINT_NAME: Record<JointType, string> = {
   'tope-tornillo': 'tornillo al canto',
   bolsillo: 'tornillo de bolsillo',
   tarugo: 'tarugo',
@@ -23,7 +23,7 @@ const JOINT_NAME: Record<TipoUnion, string> = {
 const thinnestBoard = (catalog: Catalog, thickness: number) =>
   catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor >= thickness).sort((a, b) => a.espesor - b.espesor)[0]
 
-function tooThin(u: Union, piece: Pieza, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
+function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
   const suggested = thinnestBoard(catalog, minimum)
   return {
     code: 'R2_ESPESOR_UNION',
@@ -43,7 +43,7 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
     const tb = geo.thicknesses.get(u.b)
     if (!a || !b || ta === undefined || tb === undefined) return []
 
-    const thin = [[a, ta], [b, tb]].find(([, t]) => (t as number) <= ASSUMPTIONS.nailOnlyThickness) as [Pieza, number] | undefined
+    const thin = [[a, ta], [b, tb]].find(([, t]) => (t as number) <= ASSUMPTIONS.nailOnlyThickness) as [Piece, number] | undefined
     if (thin && !['clavo-pegamento', 'canal', 'rebaje'].includes(u.tipo))
       return [
         {

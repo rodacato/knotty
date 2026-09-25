@@ -1,4 +1,4 @@
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import { roundTo, type Box, type Geometry } from '../diseno/resolve'
 import type { Finding, Rule } from '../structure/finding'
 import { freeSpan } from '../structure/rules/deflection'
@@ -20,7 +20,7 @@ const KINDS: [Kind, RegExp][] = [
   ['table', /\bmesa\b/],
 ]
 
-export function detectKind(design: Pick<Diseno, 'nombre'>): Kind | null {
+export function detectKind(design: Pick<Design, 'nombre'>): Kind | null {
   const name = design.nombre.toLowerCase()
   return KINDS.find(([, pattern]) => pattern.test(name))?.[0] ?? null
 }
@@ -43,12 +43,12 @@ const finding = (severidad: Finding['severity'], piezas: string[], mensaje: stri
   alternatives: alternativas,
 })
 
-const horizontal = (design: Diseno, geo: Geometry) =>
+const horizontal = (design: Design, geo: Geometry) =>
   design.piezas.filter((p) => p.normal === 'y' && !p.grupo && geo.boxes.has(p.id)).map((p) => ({ piece: p, box: geo.boxes.get(p.id)! }))
 const area = (b: Box) => ((b.x1 - b.x0) * (b.z1 - b.z0)) / 1e6
 
 /** The work or sleeping surface: the highest level where horizontal pieces add up to the most area. */
-function topSurface(design: Diseno, geo: Geometry, minArea: number) {
+function topSurface(design: Design, geo: Geometry, minArea: number) {
   const levels = new Map<number, { area: number; ids: string[]; box: Box }>()
   for (const { piece, box } of horizontal(design, geo)) {
     if (area(box) < 0.05) continue
@@ -64,7 +64,7 @@ function topSurface(design: Diseno, geo: Geometry, minArea: number) {
 
 const outside = (value: number, [min, max]: [number, number]) => value < min || value > max
 
-function bed(design: Diseno, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[] {
+function bed(design: Design, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[] {
   const platform = topSurface(design, geo, 0.6)
   if (!platform) return [finding('recomendacion', [], 'No encuentro la superficie donde va el colchón: una cama necesita una base continua o tablas a lo ancho.')]
   // A bed can lie either way in the room: the short side takes the mattress width.
@@ -96,7 +96,7 @@ function bed(design: Diseno, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[]
 }
 
 /** Free space for the legs under the top: a gap at least as wide, tall and deep as a seated person needs. */
-function kneeSpace(design: Diseno, geo: Geometry, top: Box) {
+function kneeSpace(design: Design, geo: Geometry, top: Box) {
   const front = top.z1
   const blocking = [...geo.boxes.entries()]
     .filter(([id, b]) => !design.piezas.find((p) => p.id === id)?.grupo && b.y0 < KNEE.height && b.y1 > 0.5 && b.z1 > front - KNEE.depth && b.y1 <= top.y0 + 0.5)
@@ -111,7 +111,7 @@ function kneeSpace(design: Diseno, geo: Geometry, top: Box) {
   return Math.max(widest, top.x1 - cursor)
 }
 
-function desk(design: Diseno, geo: Geometry): Finding[] {
+function desk(design: Design, geo: Geometry): Finding[] {
   const top = topSurface(design, geo, 0.25)
   if (!top) return []
   const found: Finding[] = []
@@ -127,7 +127,7 @@ function desk(design: Diseno, geo: Geometry): Finding[] {
   return found
 }
 
-function table(design: Diseno, geo: Geometry): Finding[] {
+function table(design: Design, geo: Geometry): Finding[] {
   const top = topSurface(design, geo, 0.1)
   if (!top) return []
   const name = design.nombre.toLowerCase()
@@ -137,7 +137,7 @@ function table(design: Diseno, geo: Geometry): Finding[] {
   return outside(top.box.y1, range) ? [finding('recomendacion', top.ids, `Una mesa ${label} va de ${range[0]} a ${range[1]} mm de alto; esta queda a ${roundTo(top.box.y1, 0)} mm.`, { alto: roundTo(top.box.y1, 0) })] : []
 }
 
-function drawers(design: Diseno): Finding[] {
+function drawers(design: Design): Finding[] {
   const count = new Set(design.piezas.map((p) => p.grupo).filter((g): g is string => !!g && g.startsWith('cajon'))).size
   if (count < 2 || design.dimensiones.alto <= 700 || design.anclajeMuro) return []
   return [
@@ -147,7 +147,7 @@ function drawers(design: Diseno): Finding[] {
   ]
 }
 
-function wallCabinet(design: Diseno): Finding[] {
+function wallCabinet(design: Design): Finding[] {
   const found: Finding[] = []
   if (!design.anclajeMuro) found.push(finding('critico', [], 'Una alacena de pared va colgada del muro: márcala como anclada para revisar cómo se sostiene.', {}, [{ key: 'anclar-muro', description: 'Colgarla del muro', data: {} }]))
   if (!design.piezas.some((p) => p.rol === 'refuerzo'))
@@ -159,17 +159,17 @@ function wallCabinet(design: Diseno): Finding[] {
   return found
 }
 
-const minDepth = (design: Diseno, min: number, message: string): Finding[] =>
+const minDepth = (design: Design, min: number, message: string): Finding[] =>
   design.dimensiones.fondo < min ? [finding('recomendacion', [], message.replace('{fondo}', String(design.dimensiones.fondo)), { fondo: design.dimensiones.fondo, minimo: min })] : []
 
-function wardrobe(design: Diseno): Finding[] {
+function wardrobe(design: Design): Finding[] {
   const found = minDepth(design, 550, 'Con {fondo} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos 550–600 mm.')
   if (design.dimensiones.alto > 1500 && !design.anclajeMuro)
     found.push(finding('critico', [], `Un clóset de ${design.dimensiones.alto} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`, {}, [{ key: 'anclar-muro', description: 'Anclarlo al muro', data: {} }]))
   return found
 }
 
-function bench(design: Diseno, geo: Geometry): Finding[] {
+function bench(design: Design, geo: Geometry): Finding[] {
   const seat = topSurface(design, geo, 0.05)
   if (!seat) return []
   const found: Finding[] = []

@@ -5,11 +5,11 @@ import type { Fix } from '../domain/fixes/fixes'
 import { trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { FurniturePlan } from '../domain/modules/plan'
 import type { TraceEntry } from '../domain/trace/trace'
-import { analizar } from '../domain/analisis'
-import type { Dimensiones, Diseno, Eje, Pieza } from '../domain/diseno/esquema'
+import { analyze } from '../domain/analysis'
+import type { Dimensions, Design, Axis, Piece } from '../domain/diseno/schema'
 import type { Box } from '../domain/diseno/resolve'
-import { diferencias } from '../domain/diseno/diff'
-import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
+import { differences } from '../domain/diseno/diff'
+import { currentDesign, markAnswered, type DesignState, type Thumbnail } from '../domain/sesion/state'
 import type { Foto } from '../ports/LLMProvider'
 import type { EstadoBoveda } from '../ports/Preferencias'
 import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materiales/catalog'
@@ -19,15 +19,15 @@ export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
 export type Vista = 'frente' | 'lado' | 'tres-cuartos' | 'arriba'
 
 export interface EntradaCaptura {
-  medidas: Dimensiones | null
+  medidas: Dimensions | null
   fotos: Foto[]
-  miniaturas: Miniatura[]
+  miniaturas: Thumbnail[]
   notas: string
 }
 
 interface Tienda {
   servicios: Servicios | null
-  estado: EstadoDiseno | null
+  estado: DesignState | null
   fase: Fase
   etapa: { nombre: Etapa; intento: number; progress?: { done: number; total: number } } | null
   pensando: boolean
@@ -61,9 +61,9 @@ interface Tienda {
   iniciar(servicios: Servicios): void
   nuevoDiseno(): void
   empezarCaptura(): void
-  desdeEjemplo(diseno: Diseno): void
+  desdeEjemplo(diseno: Design): void
   /** A whole session from elsewhere (the bench) becomes the current design. */
-  openState(state: EstadoDiseno): void
+  openState(state: DesignState): void
   reconstruir(entrada: EntradaCaptura): Promise<void>
   ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
@@ -95,7 +95,7 @@ interface Tienda {
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   /** A solution shown in 3D before applying it. */
-  preview: { design: Diseno; label: string } | null
+  preview: { design: Design; label: string } | null
   previewFix(fix: Fix | null): void
   applyFix(fix: Fix): void
   /** Puts an item in the tray, replaces the one from the same origin, or takes it out. */
@@ -107,46 +107,46 @@ interface Tienda {
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
   editPiece(id: string, edit: PieceEdit): PieceEditResult
-  resizeFurniture(axis: Eje, value: number): PieceEditResult
+  resizeFurniture(axis: Axis, value: number): PieceEditResult
   cancelarDictamen(): void
 }
 
 export interface Cambios {
   agregadas: string[]
   modificadas: string[]
-  eliminadas: { pieza: Pieza; caja: Box }[]
+  eliminadas: { pieza: Piece; caja: Box }[]
   vez: number
 }
 
-const mostrado = (e: EstadoDiseno) => e.propuesta?.diseno ?? disenoActual(e)
+const mostrado = (e: DesignState) => e.propuesta?.diseno ?? currentDesign(e)
 
 /** Lo que la escena muestra: una versión anterior, la propuesta o el diseño vigente. */
-export function disenoVisible(s: Pick<Tienda, 'estado' | 'versionVista' | 'verPropuesta'>): Diseno | null {
+export function disenoVisible(s: Pick<Tienda, 'estado' | 'versionVista' | 'verPropuesta'>): Design | null {
   if (!s.estado) return null
-  if (s.versionVista !== null) return s.estado.versiones.find((v) => v.n === s.versionVista)?.diseno ?? disenoActual(s.estado)
-  return s.estado.propuesta && s.verPropuesta ? s.estado.propuesta.diseno : disenoActual(s.estado)
+  if (s.versionVista !== null) return s.estado.versiones.find((v) => v.n === s.versionVista)?.diseno ?? currentDesign(s.estado)
+  return s.estado.propuesta && s.verPropuesta ? s.estado.propuesta.diseno : currentDesign(s.estado)
 }
 
 /** Qué cambia al pasar de un diseño a otro, con la caja de lo que desaparece para dibujar su fantasma. */
-function transicion(antes: Diseno, despues: Diseno, catalogo: Servicios['catalogo'], vez: number): Cambios {
-  const ga = analizar(antes, catalogo)
-  const gb = analizar(despues, catalogo)
-  if (!ga.valido || !gb.valido) return { agregadas: [], modificadas: [], eliminadas: [], vez }
-  const d = diferencias(antes, ga.geo.boxes, despues, gb.geo.boxes)
-  const eliminadas = d.eliminadas.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.boxes.get(id)! }))
-  return { agregadas: d.agregadas, modificadas: d.modificadas, eliminadas, vez }
+function transicion(antes: Design, despues: Design, catalogo: Servicios['catalogo'], vez: number): Cambios {
+  const ga = analyze(antes, catalogo)
+  const gb = analyze(despues, catalogo)
+  if (!ga.valid || !gb.valid) return { agregadas: [], modificadas: [], eliminadas: [], vez }
+  const d = differences(antes, ga.geo.boxes, despues, gb.geo.boxes)
+  const eliminadas = d.removed.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.boxes.get(id)! }))
+  return { agregadas: d.added, modificadas: d.changed, eliminadas, vez }
 }
 
 type Set = StoreApi<Tienda>['setState']
 type Get = StoreApi<Tienda>['getState']
 
 /** A request to the expert: the message shows at once, and the answer replaces the state when it arrives. */
-async function askExpert(set: Set, get: Get, texto: string, respondeA: string | null, miniatura: string | null, call: (signal: AbortSignal, alAvanzar: AlAvanzar) => Promise<EstadoDiseno>) {
+async function askExpert(set: Set, get: Get, texto: string, respondeA: string | null, miniatura: string | null, call: (signal: AbortSignal, alAvanzar: AlAvanzar) => Promise<DesignState>) {
   const { servicios, estado, pensando } = get()
   if (!servicios || !estado || pensando) return
   const controlador = new AbortController()
   const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto, fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura, respuestas: [], sugerencias: [] }
-  const optimista = { ...estado, tray: [], chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
+  const optimista = { ...estado, tray: [], chat: [...markAnswered(estado.chat, respondeA), pendiente] }
   set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
   const nuevo = await call(controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }))
   set((s) => ({

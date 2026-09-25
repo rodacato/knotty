@@ -2,7 +2,7 @@ import { Plus, X } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/casosDeUso'
 import type { Geometry } from '../../domain/diseno/resolve'
-import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 import { Piezas } from './Paneles'
@@ -11,7 +11,7 @@ import { PlanSheet } from './PlanSheet'
 // The furniture as decided: its ficha when it has one, what the expert remembers, the photos and, without a ficha, its pieces.
 
 /** What the expert remembers between changes: the person's requirements and design decisions, which can be removed or added to. */
-function Memory({ estado }: { estado: EstadoDiseno }) {
+function Memory({ estado }: { estado: DesignState }) {
   const addNote = useTienda((s) => s.agregarNota)
   const removeNote = useTienda((s) => s.quitarNota)
   const removeDecision = useTienda((s) => s.quitarDecision)
@@ -67,7 +67,7 @@ function Memory({ estado }: { estado: EstadoDiseno }) {
   )
 }
 
-function Photos({ estado }: { estado: EstadoDiseno }) {
+function Photos({ estado }: { estado: DesignState }) {
   if (!estado.miniaturas.length) return null
   return (
     <section className="flex flex-col gap-2">
@@ -84,7 +84,7 @@ function Photos({ estado }: { estado: EstadoDiseno }) {
   )
 }
 
-export function FurniturePanel({ estado, geo }: { estado: EstadoDiseno; geo: Geometry | null }) {
+export function FurniturePanel({ estado, geo }: { estado: DesignState; geo: Geometry | null }) {
   const hasPlan = useMemo(() => !!currentPlan(estado).plan, [estado])
   return (
     <div className="flex flex-col">
@@ -97,7 +97,7 @@ export function FurniturePanel({ estado, geo }: { estado: EstadoDiseno; geo: Geo
         <Memory estado={estado} />
         <Photos estado={estado} />
       </div>
-      {!hasPlan && geo && <Piezas diseno={disenoActual(estado)} geo={geo} />}
+      {!hasPlan && geo && <Piezas diseno={currentDesign(estado)} geo={geo} />}
     </div>
   )
 }
