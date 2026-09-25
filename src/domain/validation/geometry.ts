@@ -34,10 +34,10 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     if (boxes.length && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
       errors.push(
         error('E_OVERALL_SIZE', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_LABEL[DIMENSION_OF_AXIS[axis]]}, pero el mueble mide ${expected} mm.`, {
-          eje: axis,
-          desde: roundTo(min),
-          hasta: roundTo(max),
-          esperado: expected,
+          axis: axis,
+          from: roundTo(min),
+          to: roundTo(max),
+          expected: expected,
         }),
       )
   }
@@ -45,30 +45,30 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   for (const u of design.joints) {
     const missing = [u.a, u.b].filter((id) => !byId.has(id))
     if (missing.length) {
-      errors.push(error('E_UNKNOWN_PIECE', `La unión "${u.id}" refiere ${missing.map((f) => `"${f}"`).join(' y ')}, que no existe.`, { union: u.id, piezas: missing }))
+      errors.push(error('E_UNKNOWN_PIECE', `La unión "${u.id}" refiere ${missing.map((f) => `"${f}"`).join(' y ')}, que no existe.`, { joint: u.id, pieces: missing }))
       continue
     }
     if (u.type === 'drawer-slide') {
       const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.axis !== 'x' || gap.distance > RUNNER_GAP)
-        errors.push(error('E_JOINT_WITHOUT_CONTACT', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${RUNNER_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
+        errors.push(error('E_JOINT_WITHOUT_CONTACT', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${RUNNER_GAP} mm.`, { joint: u.id, a: u.a, b: u.b }))
       continue
     }
     if (u.type === 'cup-hinge' && !all.some((c) => samePair(c, u.a, u.b))) {
       const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.distance > HINGE_GAP)
-        errors.push(error('E_JOINT_WITHOUT_CONTACT', `La bisagra "${u.id}" necesita a "${u.a}" junto a "${u.b}", a menos de ${HINGE_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
+        errors.push(error('E_JOINT_WITHOUT_CONTACT', `La bisagra "${u.id}" necesita a "${u.a}" junto a "${u.b}", a menos de ${HINGE_GAP} mm.`, { joint: u.id, a: u.a, b: u.b }))
       continue
     }
     if (!all.some((c) => samePair(c, u.a, u.b)))
-      errors.push(error('E_JOINT_WITHOUT_CONTACT', `La unión "${u.id}" junta "${u.a}" y "${u.b}", pero no se tocan.`, { union: u.id, a: u.a, b: u.b }))
+      errors.push(error('E_JOINT_WITHOUT_CONTACT', `La unión "${u.id}" junta "${u.a}" y "${u.b}", pero no se tocan.`, { joint: u.id, a: u.a, b: u.b }))
   }
 
   // Touching pieces connect; overlapping ones only where a joint lets one go into the other (a groove, a rabbet).
   const connections = all.filter((c) => {
     if (c.axis) return true
     const allowed = design.joints.some((u) => samePair(u, c.a, c.b) && u.depth !== null && c.depth <= u.depth + CONTACT_TOLERANCE)
-    if (!allowed) errors.push(error('E_OVERLAP', `"${c.a}" y "${c.b}" se enciman ${roundTo(c.depth)} mm.`, { a: c.a, b: c.b, profundidad: roundTo(c.depth) }))
+    if (!allowed) errors.push(error('E_OVERLAP', `"${c.a}" y "${c.b}" se enciman ${roundTo(c.depth)} mm.`, { a: c.a, b: c.b, depth: roundTo(c.depth) }))
     return allowed
   })
 
@@ -88,7 +88,7 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   // A drawer hangs from its runners: whether it has something to hang from is a drawer rule (R9), with a way to fix it.
   const drawerParts = new Set(design.pieces.filter((p) => isDrawerPart(p) && p.group).map((p) => p.id))
   for (const id of geo.boxes.keys())
-    if (!reached.has(id) && !drawerParts.has(id)) errors.push(error('E_FLOATING', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { pieza: id }))
+    if (!reached.has(id) && !drawerParts.has(id)) errors.push(error('E_FLOATING', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { piece: id }))
 
   for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
@@ -99,10 +99,10 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     if (length > sheet.largo || width > sheet.ancho)
       errors.push(
         error('E_TOO_BIG_FOR_SHEET', `"${p.id}" mide ${roundTo(length)} × ${roundTo(width)} mm y la hoja útil es de ${sheet.largo} × ${sheet.ancho} mm.`, {
-          pieza: p.id,
-          largo: roundTo(length),
-          ancho: roundTo(width),
-          hoja: sheet,
+          piece: p.id,
+          length: roundTo(length),
+          width: roundTo(width),
+          sheet: sheet,
         }),
       )
   }

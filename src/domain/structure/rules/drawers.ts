@@ -28,8 +28,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         off < 0
           ? `La corredera necesita ${runner.holguraLateral} mm junto a ${name} y solo hay ${roundTo(gap.distance)}: el cajón no entra.`
           : `Junto a ${name} hay ${roundTo(gap.distance)} mm y la corredera ocupa ${runner.holguraLateral}: el cajón quedaría flojo.`,
-      data: { union: u.id, hueco: roundTo(gap.distance), necesita: runner.holguraLateral },
-      alternatives: [{ key: 'ajustar-caja', description: `Dejar ${runner.holguraLateral} mm por lado entre la caja y el mueble`, data: { holgura: runner.holguraLateral } }],
+      data: { joint: u.id, gap: roundTo(gap.distance), needs: runner.holguraLateral },
+      alternatives: [{ key: 'fit-box', description: `Dejar ${runner.holguraLateral} mm por lado entre la caja y el mueble`, data: { clearance: runner.holguraLateral } }],
     })
   }
 
@@ -45,8 +45,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         severity: 'recommendation',
         pieces: [bottom.id],
         message: `${bottom.name} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
-        data: { espesor: thickness, ancho: Math.round(bottomBox.x1 - bottomBox.x0) },
-        alternatives: [{ key: 'fondo-6', description: 'Fondo de 6 mm', data: { material: 'TR6' } }],
+        data: { thickness: thickness, width: Math.round(bottomBox.x1 - bottomBox.x0) },
+        alternatives: [{ key: 'bottom-6mm', description: 'Fondo de 6 mm', data: { material: 'TR6' } }],
       })
 
     const front = design.pieces.find((p) => p.group === g && p.role === 'drawer-front')
@@ -58,8 +58,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         severity: 'recommendation',
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
         message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
-        data: { toca: frontRubs.length },
-        alternatives: [{ key: 'holgura-frente', description: 'Dejar 2 mm de holgura alrededor del frente', data: { holgura: 2 } }],
+        data: { touches: frontRubs.length },
+        alternatives: [{ key: 'front-clearance', description: 'Dejar 2 mm de holgura alrededor del frente', data: { clearance: 2 } }],
       })
 
     const box = design.pieces.filter((p) => p.group === g && p.role !== 'drawer-front').map((p) => p.id)
@@ -71,7 +71,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         severity: 'recommendation',
         pieces: [...new Set(rubs.map((c) => (box.includes(c.a) ? c.a : c.b))), ...others],
         message: `La caja de ${drawerName(design, g)} toca ${others.map((id) => design.pieces.find((p) => p.id === id)?.name ?? id).join(', ')}: va a rozar al abrir. Con correderas laterales la caja va separada de todo.`,
-        data: { toca: others.length },
+        data: { touches: others.length },
         alternatives: [],
       })
     }
@@ -91,7 +91,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
     // A declared runner joint is checked above, with its own hardware.
     if (support && design.joints.some((u) => u.type === 'drawer-slide' && [u.a, u.b].includes(side.id))) return []
-    const lado = towards < 0 ? 'izq' : 'der'
+    const direction = towards < 0 ? 'left' : 'right'
     if (!support)
       return [
         {
@@ -99,8 +99,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
           severity: 'critical',
           pieces: [side.id],
           message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza a ${gap} mm de la caja.`,
-          data: { lado, grupo: group },
-          alternatives: [{ key: 'apoyo-corredera', description: `Una pieza junto al cajón, a ${gap} mm, para la corredera`, data: { lado, grupo: group } }],
+          data: { side: direction, group },
+          alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${gap} mm, para la corredera`, data: { side: direction, group } }],
         },
       ]
     if (Math.abs(support.distance - gap) <= ASSUMPTIONS.drawers.runnerTolerance) return []
@@ -113,8 +113,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
           support.distance < gap
             ? `La corredera necesita ${gap} mm junto a ${support.piece.name} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
             : `Junto a ${support.piece.name} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
-        data: { hueco: roundTo(support.distance), necesita: gap, grupo: group },
-        alternatives: [{ key: 'ajustar-caja', description: `Dejar ${gap} mm por lado entre la caja y el mueble`, data: { holgura: gap } }],
+        data: { gap: roundTo(support.distance), needs: gap, group: group },
+        alternatives: [{ key: 'fit-box', description: `Dejar ${gap} mm por lado entre la caja y el mueble`, data: { clearance: gap } }],
       },
     ]
   })
@@ -133,8 +133,8 @@ function floorClearance(design: Design, geo: Geometry): Finding[] {
         severity: 'critical',
         pieces: pieces.map((p) => p.id),
         message: `${drawerName(design, g).replace(/^./, (c) => c.toUpperCase())} llega al suelo (queda a ${roundTo(bottom)} mm): arrastraría al abrir. Deja al menos ${ASSUMPTIONS.drawers.floorClearance} mm abajo.`,
-        data: { abajo: roundTo(bottom), grupo: g },
-        alternatives: [{ key: 'subir-cajon', description: `Subir el cajón ${ASSUMPTIONS.drawers.floorClearance} mm sobre el suelo`, data: { holgura: ASSUMPTIONS.drawers.floorClearance } }],
+        data: { bottom: roundTo(bottom), group: g },
+        alternatives: [{ key: 'raise-drawer', description: `Subir el cajón ${ASSUMPTIONS.drawers.floorClearance} mm sobre el suelo`, data: { clearance: ASSUMPTIONS.drawers.floorClearance } }],
       },
     ]
   })

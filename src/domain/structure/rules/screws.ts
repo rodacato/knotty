@@ -39,8 +39,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           severity: 'critical',
           pieces: [u.a, u.b],
           message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
-          data: { union: u.id, largo: length, entra: roundTo(bite), espesor: tb },
-          alternatives: [{ key: 'tornillo-mas-corto', description: `Un tornillo de ${inches(ta + tb - 5)} o menos`, data: { largo: ta + tb - 5 } }],
+          data: { joint: u.id, length: length, bite: roundTo(bite), thickness: tb },
+          alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(ta + tb - 5)} o menos`, data: { length: ta + tb - 5 } }],
         })
       } else if (u.type === 'butt-screw') {
         const bite = length - ta
@@ -53,8 +53,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y solo entra ${roundTo(bite)} mm en ${b.name}; conviene que entre al menos ${ASSUMPTIONS.screws.minPenetration} mm.`,
-          data: { union: u.id, largo: length, entra: roundTo(bite) },
-          alternatives: suggested ? [{ key: 'tornillo-mas-largo', description: `Usar ${suggested.nombre.toLowerCase()}`, data: { herrajeId: suggested.id } }] : [],
+          data: { joint: u.id, length: length, bite: roundTo(bite) },
+          alternatives: suggested ? [{ key: 'longer-screw', description: `Usar ${suggested.nombre.toLowerCase()}`, data: { hardwareId: suggested.id } }] : [],
         })
       } else {
         const longest = ASSUMPTIONS.screws.pocketScrews.find((f) => ta <= f.upTo)?.length
@@ -64,8 +64,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `En ${a.name} de ${ta} mm, un tornillo de bolsillo de ${inches(length)} puede asomarse; para ese espesor va de ${inches(longest)}.`,
-          data: { union: u.id, largo: length, maximo: longest },
-          alternatives: [{ key: 'tornillo-bolsillo-corto', description: `Tornillo de bolsillo de ${inches(longest)}`, data: { largo: longest } }],
+          data: { joint: u.id, length: length, max: longest },
+          alternatives: [{ key: 'short-pocket-screw', description: `Tornillo de bolsillo de ${inches(longest)}`, data: { length: longest } }],
         })
       }
     }
@@ -78,10 +78,10 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
         severity: 'recommendation',
         pieces: [u.a, u.b],
         message: `La junta entre ${a.name} y ${b.name} mide ${roundTo(joint, 0)} mm: dos tornillos quedarían a menos de ${ASSUMPTIONS.screws.endDistance} mm del extremo y pueden rajar el canto.`,
-        data: { union: u.id, junta: roundTo(joint, 0) },
+        data: { joint: u.id, jointLength: roundTo(joint, 0) },
         alternatives: [
-          { key: 'un-tornillo', description: 'Un solo tornillo al centro', data: { cantidad: 1 } },
-          { key: 'tarugo', description: 'Tarugo con pegamento', data: { tipo: 'tarugo' } },
+          { key: 'one-screw', description: 'Un solo tornillo al centro', data: { count: 1 } },
+          { key: 'dowel', description: 'Tarugo con pegamento', data: { type: 'dowel' } },
         ],
       })
     return found

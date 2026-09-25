@@ -37,11 +37,11 @@ export function applyOperations(original: Design, operations: Operation[], catal
   }
   const piece = (id: string) => {
     const p = design.pieces.find((x) => x.id === id)
-    if (!p) throw invalid('E_UNKNOWN_PIECE', `No existe la pieza "${id}".`, { pieza: id })
+    if (!p) throw invalid('E_UNKNOWN_PIECE', `No existe la pieza "${id}".`, { piece: id })
     return p
   }
   const assertFreeId = (id: string) => {
-    if (design.pieces.some((p) => p.id === id)) throw invalid('E_DUPLICATE_ID', `Ya existe una pieza "${id}".`, { pieza: id })
+    if (design.pieces.some((p) => p.id === id)) throw invalid('E_DUPLICATE_ID', `Ya existe una pieza "${id}".`, { piece: id })
   }
 
   /** Removing a piece freezes in millimetres whatever was tied to its faces, so nothing else moves. */
@@ -62,7 +62,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
     design.pieces = design.pieces.filter((p) => p.id !== id)
     design.joints = design.joints.filter((u) => u.a !== id && u.b !== id)
     if (frozen.size)
-      warnings.push({ code: 'W_FROZEN_REFERENCE', message: `Al quitar "${id}", ${[...frozen].join(', ')} quedaron fijas en mm.`, data: { pieza: id, afectadas: [...frozen] } })
+      warnings.push({ code: 'W_FROZEN_REFERENCE', message: `Al quitar "${id}", ${[...frozen].join(', ')} quedaron fijas en mm.`, data: { piece: id, affected: [...frozen] } })
   }
 
   function place(p: Piece, axis: Axis, cota: Position, length: number) {
@@ -80,7 +80,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
         return remove(op.id)
       case 'removeGroup': {
         const ids = design.pieces.filter((p) => p.group === op.group).map((p) => p.id)
-        if (!ids.length) throw invalid('E_UNKNOWN_PIECE', `No hay piezas en el grupo "${op.group}".`, { grupo: op.group })
+        if (!ids.length) throw invalid('E_UNKNOWN_PIECE', `No hay piezas en el grupo "${op.group}".`, { group: op.group })
         return ids.forEach(remove)
       }
       case 'duplicatePiece': {
@@ -106,7 +106,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
       }
       case 'resize': {
         const p = piece(op.id)
-        if (op.axis === p.normal) throw invalid('E_INVALID_OPERATION', `"${p.id}" tiene su espesor en ${op.axis}; para eso usa changeMaterial o move.`, { pieza: p.id, eje: op.axis })
+        if (op.axis === p.normal) throw invalid('E_INVALID_OPERATION', `"${p.id}" tiene su espesor en ${op.axis}; para eso usa changeMaterial o move.`, { piece: p.id, axis: op.axis })
         const box = geometry().boxes.get(p.id)!
         const current = p[op.axis]
         const next: Extent =
@@ -123,7 +123,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
       case 'distribute': {
         const pieces = op.ids.map(piece)
         const across = pieces.find((p) => p.normal !== op.axis)
-        if (across) throw invalid('E_INVALID_OPERATION', `Solo se reparte en el eje del espesor; "${across.id}" lo tiene en ${across.normal}.`, { pieza: across.id, eje: op.axis })
+        if (across) throw invalid('E_INVALID_OPERATION', `Solo se reparte en el eje del espesor; "${across.id}" lo tiene en ${across.normal}.`, { piece: across.id, axis: op.axis })
         const geo = geometry()
         const n = pieces.length
         pieces
@@ -144,17 +144,17 @@ export function applyOperations(original: Design, operations: Operation[], catal
         return
       }
       case 'addJoint':
-        if (design.joints.some((u) => u.id === op.joint.id)) throw invalid('E_DUPLICATE_ID', `Ya existe una unión "${op.joint.id}".`, { union: op.joint.id })
+        if (design.joints.some((u) => u.id === op.joint.id)) throw invalid('E_DUPLICATE_ID', `Ya existe una unión "${op.joint.id}".`, { joint: op.joint.id })
         design.joints.push(structuredClone(op.joint))
         return
       case 'changeJoint': {
         const i = design.joints.findIndex((u) => u.id === op.joint.id)
-        if (i < 0) throw invalid('E_UNKNOWN_JOINT', `No existe la unión "${op.joint.id}".`, { union: op.joint.id })
+        if (i < 0) throw invalid('E_UNKNOWN_JOINT', `No existe la unión "${op.joint.id}".`, { joint: op.joint.id })
         design.joints[i] = structuredClone(op.joint)
         return
       }
       case 'removeJoint':
-        if (!design.joints.some((u) => u.id === op.id)) throw invalid('E_UNKNOWN_JOINT', `No existe la unión "${op.id}".`, { union: op.id })
+        if (!design.joints.some((u) => u.id === op.id)) throw invalid('E_UNKNOWN_JOINT', `No existe la unión "${op.id}".`, { joint: op.id })
         design.joints = design.joints.filter((u) => u.id !== op.id)
         return
       case 'resizeFurniture': {
@@ -176,7 +176,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
         design.wallAnchored = op.value
         return
       case 'addDrawer': {
-        if (design.pieces.some((p) => p.group === op.group)) throw invalid('E_DUPLICATE_ID', `Ya existe un cajón "${op.group}".`, { grupo: op.group })
+        if (design.pieces.some((p) => p.group === op.group)) throw invalid('E_DUPLICATE_ID', `Ya existe un cajón "${op.group}".`, { group: op.group })
         const drawer = expandDrawer(op, geometry(), catalog)
         if ('code' in drawer) throw new InvalidOperation(drawer)
         for (const p of drawer.pieces) assertFreeId(p.id)
@@ -192,7 +192,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
       applyOne(op)
     } catch (e) {
       if (!(e instanceof InvalidOperation)) throw e
-      return failure([{ ...e.detail, data: { ...e.detail.data, operacion: i, op: op.op } }])
+      return failure([{ ...e.detail, data: { ...e.detail.data, operation: i, op: op.op } }])
     }
   }
   return success({ design, warnings })

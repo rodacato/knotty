@@ -18,14 +18,14 @@ describe('R3 screws', () => {
     const d = structuredClone(exampleBookcase)
     d.joints = d.joints.map((u) => (u.id === 'u-piso-izq' ? { ...u, hardware: [{ hardwareId: 'tornillo-8x1-1/4', count: null }] } : u))
     const [h] = findings(d, 'R3_SCREWS')
-    expect(h).toMatchObject({ severity: 'recommendation', data: { union: 'u-piso-izq' } })
-    expect(h.alternatives[0].data.herrajeId).toBe('tornillo-8x2')
+    expect(h).toMatchObject({ severity: 'recommendation', data: { joint: 'u-piso-izq' } })
+    expect(h.alternatives[0].data.hardwareId).toBe('tornillo-8x2')
   })
 
   it('warns when a pocket screw pokes out of thin plywood', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.find((p) => p.id === 'zoclo')!.material = 'T15'
-    expect(findings(d, 'R3_SCREWS').map((h) => h.data.union)).toEqual(['u-zoclo-izq', 'u-zoclo-der'])
+    expect(findings(d, 'R3_SCREWS').map((h) => h.data.joint)).toEqual(['u-zoclo-izq', 'u-zoclo-der'])
   })
 
   it('warns when two screws sit at the ends of a short joint', () => {
@@ -33,7 +33,7 @@ describe('R3 screws', () => {
     const zoclo = d.pieces.find((p) => p.id === 'zoclo')!
     zoclo.y = extent(ref('mueble.y0'), null, 50)
     d.joints = d.joints.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', type: 'butt-screw', hardware: [{ hardwareId: 'tornillo-8x2', count: 2 }] } : u))
-    expect(findings(d, 'R3_SCREWS').some((h) => h.data.junta === 50)).toBe(true)
+    expect(findings(d, 'R3_SCREWS').some((h) => h.data.jointLength === 50)).toBe(true)
   })
 })
 
@@ -53,7 +53,7 @@ describe('R6 doors', () => {
   it('a tall door with two hinges asks for more', () => {
     const alta = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
     const r6 = findings(alta, 'R6_DOORS')
-    expect(r6.map((h) => [h.pieces[0], h.severity, h.data.necesarias])).toEqual([
+    expect(r6.map((h) => [h.pieces[0], h.severity, h.data.needed])).toEqual([
       ['puerta-izq', 'critical', 4],
       ['puerta-der', 'critical', 4],
     ])
@@ -61,7 +61,7 @@ describe('R6 doors', () => {
 
   it('a door wider than 60 cm suggests splitting it', () => {
     const ancha = { ...exampleNightstand, dimensions: { ...exampleNightstand.dimensions, width: 700 } }
-    expect(findings(ancha, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['dos-puertas'])
+    expect(findings(ancha, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['two-doors'])
   })
 })
 
@@ -72,7 +72,7 @@ describe('R7 base', () => {
     d.pieces = d.pieces.filter((p) => p.id !== 'zoclo')
     d.joints = d.joints.filter((u) => u.a !== 'zoclo' && u.b !== 'zoclo')
     d.pieces.find((p) => p.id === 'piso')!.y = { from: mm(70), to: null, length: null }
-    expect(findings(d, 'R7_BASE').map((h) => h.data.claro)).toEqual([964])
+    expect(findings(d, 'R7_BASE').map((h) => h.data.span)).toEqual([964])
   })
 })
 
@@ -92,6 +92,6 @@ describe('fixtures', () => {
 
   it('the wall cabinet only recommends the hanging rail', () => {
     const a = analyze(exampleWallCabinet, testCatalog)
-    expect(a.valid && a.findings.map((h) => [h.code, h.severity, h.alternatives[0]?.key])).toEqual([['R10_USE', 'recommendation', 'liston-colgar']])
+    expect(a.valid && a.findings.map((h) => [h.code, h.severity, h.alternatives[0]?.key])).toEqual([['R10_USE', 'recommendation', 'hanging-rail']])
   })
 })

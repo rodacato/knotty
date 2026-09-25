@@ -30,7 +30,7 @@ const MAX_ROUNDS = 12
 type Fix = { operations: Operation[]; repair: Repair } | null
 
 function fixLooseJoint(e: DesignError, design: Design): Fix {
-  const joint = design.joints.find((u) => u.id === e.data?.union)
+  const joint = design.joints.find((u) => u.id === e.data?.joint)
   if (!joint || joint.type === 'drawer-slide') return null
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   return {

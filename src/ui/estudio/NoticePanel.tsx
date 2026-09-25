@@ -48,12 +48,12 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
     const [first] = notice.findings
     if (!first) return []
     const pieces = [...new Set(notice.findings.flatMap((h) => h.pieces))]
-    const general = (f: Fix) => (f.key === 'divisor-al-centro' || f.key === 'apoyo-central' ? 'Un apoyo al centro, debajo de cada una' : f.label)
-    const perPiece = new Set(['divisor-al-centro', 'apoyo-central', 'subir-espesor'])
+    const general = (f: Fix) => (f.key === 'center-divider' || f.key === 'center-support' ? 'Un apoyo al centro, debajo de cada una' : f.label)
+    const perPiece = new Set(['center-divider', 'center-support', 'thicker-board'])
     return fixesFor(design, catalog, { ...first, pieces }).map((f) => (pieces.length > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${pieces.length} piezas)` } : f))
   }, [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
-  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'claro-maximo' && !built.has(a.key)).map((a) => [a.description, a])).values()]
+  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'max-span' && !built.has(a.key)).map((a) => [a.description, a])).values()]
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   const inTray = state.tray.find((t) => t.id === noticeItemId(notice.key))
   const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]

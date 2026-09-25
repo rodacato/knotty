@@ -59,7 +59,7 @@ describe('R9 for freeform drawers', () => {
     const [finding] = r9(d)
     expect(finding).toMatchObject({ severity: 'critical', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
     const [fix] = fixesFor(d, testCatalog, finding)
-    expect(fix.key).toBe('apoyo-corredera')
+    expect(fix.key).toBe('slide-support')
     expect(r9(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
     expect(fix.design.joints.some((u) => u.type === 'drawer-slide' && u.a === 'cajon-1-costado-izq')).toBe(true)
   })

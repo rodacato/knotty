@@ -60,7 +60,7 @@ function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; n
 
 /** If the expert offered no options for a critical finding, the alternatives the rules worked out are offered. */
 function questionFromAlternatives(criticals: Finding[]): Question[] {
-  const options = [...new Set(criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'claro-maximo').map((a) => a.description)))].slice(0, 3)
+  const options = [...new Set(criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'max-span').map((a) => a.description)))].slice(0, 3)
   return options.length ? [{ text: '¿Cómo lo resolvemos?', options: options }] : []
 }
 

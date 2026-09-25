@@ -86,24 +86,24 @@ function backRail(design: Design, role: 'brace' | 'apron', name: string): Operat
 }
 
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
-function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'izq' | 'der'): Operation[] {
+function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'left' | 'right'): Operation[] {
   const geo = analyze(design, catalog).geo
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
-  const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'izq' ? -1 : 1))
+  const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'left' ? -1 : 1))
   if (!geo || !runner?.holguraLateral || !found) return []
   const material = design.pieces.find((p) => p.role === 'side')?.material ?? found.side.material
   const thickness = catalog.materiales.find((m) => m.id === material)?.espesor ?? 18
   const box = geo.boxes.get(found.side.id)!
   const drawer = design.pieces.filter((p) => p.group === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
   const [bottom, top] = [Math.min(...drawer.map((b) => b.y0)), Math.max(...drawer.map((b) => b.y1))]
-  const x0 = side === 'izq' ? box.x0 - runner.holguraLateral - thickness : box.x1 + runner.holguraLateral
+  const x0 = side === 'left' ? box.x0 - runner.holguraLateral - thickness : box.x1 + runner.holguraLateral
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => !drawer.includes(b) && id !== found.side.id && b.x0 < x0 + thickness && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
   const below = inColumn.filter(([, b]) => b.y1 <= bottom + 0.5).sort(([, a], [, b]) => b.y1 - a.y1)[0]
   const above = inColumn.filter(([, b]) => b.y0 >= top - 0.5).sort(([, a], [, b]) => a.y0 - b.y0)[0]
   const id = uniqueId(design, `apoyo-${group}-${side}`)
   const support = makePiece({
     id,
-    name: `Apoyo de corredera ${side === 'izq' ? 'izquierdo' : 'derecho'}`,
+    name: `Apoyo de corredera ${side === 'left' ? 'izquierdo' : 'derecho'}`,
     role: 'divider',
     material,
     normal: 'x',
@@ -122,19 +122,19 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
   const pieces = finding.pieces.map((id) => design.pieces.find((p) => p.id === id)).filter((p): p is Piece => !!p)
   switch (alternative.key) {
-    case 'subir-espesor':
+    case 'thicker-board':
       return typeof alternative.data.material === 'string' ? [{ op: 'changeMaterial', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
-    case 'divisor-al-centro':
-    case 'apoyo-central':
+    case 'center-divider':
+    case 'center-support':
       return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupport(design, catalog, p))
-    case 'anclar-muro':
+    case 'anchor-to-wall':
       return design.wallAnchored ? [] : [{ op: 'setWallAnchored', value: true }]
-    case 'liston-colgar':
+    case 'hanging-rail':
       return backRail(design, 'brace', 'Listón de colgar')
-    case 'faja-rigida':
+    case 'rigid-apron':
       return backRail(design, 'apron', 'Faja trasera')
-    case 'apoyo-corredera':
-      return typeof alternative.data.grupo === 'string' && (alternative.data.lado === 'izq' || alternative.data.lado === 'der') ? runnerSupportPiece(design, catalog, alternative.data.grupo, alternative.data.lado) : []
+    case 'slide-support':
+      return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
     default:
       return []
   }

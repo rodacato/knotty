@@ -58,17 +58,17 @@ function alternatives(p: Piece, span: number, depth: number, thickness: number, 
   const thicker = catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > thickness).sort((a, b) => a.espesor - b.espesor)[0]
   if (thicker)
     list.push({
-      key: 'subir-espesor',
+      key: 'thicker-board',
       description: `Subir a ${thicker.nombre}`,
-      data: { material: thicker.id, flecha: roundTo(deflection(span, depth, thicker.espesor, load, modulus)) },
+      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.espesor, load, modulus)) },
     })
   const half = (span - thickness) / 2
   list.push({
-    key: 'divisor-al-centro',
+    key: 'center-divider',
     description: p.role === 'bottom' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
-    data: { claro: roundTo(half, 0), flecha: roundTo(deflection(half, depth, thickness, load, modulus)) },
+    data: { span: roundTo(half, 0), sag: roundTo(deflection(half, depth, thickness, load, modulus)) },
   })
-  list.push({ key: 'claro-maximo', description: `Claro máximo con ${thickness} mm`, data: { claro: roundTo(maxSpan(depth, thickness, load, modulus), 0) } })
+  list.push({ key: 'max-span', description: `Claro máximo con ${thickness} mm`, data: { span: roundTo(maxSpan(depth, thickness, load, modulus), 0) } })
   return list
 }
 
@@ -91,7 +91,7 @@ export const deflectionRule: Rule = (ctx) =>
         severity,
         pieces: [p.id],
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.load]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
-        data: { claro: roundTo(span, 0), depth: roundTo(depth, 0), espesor: thickness, carga: p.load, flecha: roundTo(delta), limite: roundTo(limit), moduloE: modulus },
+        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus },
         alternatives: alternatives(p, span, depth, thickness, p.load, modulus, ctx.catalog),
       },
     ]

@@ -38,8 +38,8 @@ describe('R1 shelf sag', () => {
     const r1 = findings(ancho).filter((h) => h.code === 'R1_SAG')
     expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'piso'])
     expect(r1.every((h) => h.severity === 'critical')).toBe(true)
-    const divisor = r1[0].alternatives.find((a) => a.key === 'divisor-al-centro')!
-    expect(divisor.data.flecha).toBeLessThan(1)
+    const divisor = r1[0].alternatives.find((a) => a.key === 'center-divider')!
+    expect(divisor.data.sag).toBeLessThan(1)
   })
 
   it('takes the lower modulus when the grain runs across', () => {
@@ -48,7 +48,7 @@ describe('R1 shelf sag', () => {
     const conVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')
     d.pieces.find((p) => p.id === 'entrepano-1')!.grain = 'width'
     const contraVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')!
-    expect(Number(contraVeta.data.flecha)).toBeGreaterThan(Number(conVeta?.data.flecha ?? 0))
+    expect(Number(contraVeta.data.sag)).toBeGreaterThan(Number(conVeta?.data.sag ?? 0))
   })
 })
 
@@ -57,7 +57,7 @@ describe('R2 thickness per joint', () => {
     const d = structuredClone(exampleNightstand)
     for (const p of d.pieces) if (p.role === 'side') p.material = 'T12'
     const r2 = findings(d).filter((h) => h.code === 'R2_JOINT_THICKNESS')
-    const porUnion = Object.fromEntries(r2.map((h) => [h.data.union, h.severity]))
+    const porUnion = Object.fromEntries(r2.map((h) => [h.data.joint, h.severity]))
     expect(porUnion['u-entrepano-izq']).toBe('critical')
     expect(porUnion['u-techo-izq']).toBe('recommendation')
     expect(r2[0].alternatives[0].data.material).toBe('T15')
@@ -66,7 +66,7 @@ describe('R2 thickness per joint', () => {
   it('does not take screws in a 3 mm back', () => {
     const d = structuredClone(exampleNightstand)
     d.joints = d.joints.map((u) => (u.id === 'u-trasera-piso' ? { ...u, type: 'butt-screw' } : u))
-    expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.pieza === 'trasera')).toBe(true)
+    expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.piece === 'trasera')).toBe(true)
   })
 })
 

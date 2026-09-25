@@ -18,10 +18,10 @@ export const tippingRule: Rule = ({ design }): Finding[] => {
       severity: critical ? 'critical' : 'recommendation',
       pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
       message: `Mide ${height} mm de alto y solo ${depth} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
-      data: { alto: height, fondo: depth, relacion: roundTo(ratio) },
+      data: { height: height, depth: depth, ratio: roundTo(ratio) },
       alternatives: [
-        { key: 'anclar-muro', description: 'Anclarlo al muro con un kit antivuelco', data: { herrajeId: 'kit-antivuelco' } },
-        { key: 'mas-fondo', description: `Darle al menos ${Math.ceil(height / recommendedRatio / 10) * 10} mm de fondo`, data: { fondo: Math.ceil(height / recommendedRatio / 10) * 10 } },
+        { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: { hardwareId: 'kit-antivuelco' } },
+        { key: 'deeper', description: `Darle al menos ${Math.ceil(height / recommendedRatio / 10) * 10} mm de fondo`, data: { depth: Math.ceil(height / recommendedRatio / 10) * 10 } },
       ],
     },
   ]
@@ -46,8 +46,8 @@ export const doorRule: Rule = ({ design, geo }) =>
           severity: needed - fitted >= 2 ? 'critical' : 'recommendation',
           pieces: [p.id],
           message: `${p.name} mide ${Math.round(height)} mm de alto y lleva ${fitted} bisagras; con esa altura van ${needed} para que no se descuelgue.`,
-          data: { alto: Math.round(height), puestas: fitted, necesarias: needed },
-          alternatives: [{ key: 'mas-bisagras', description: `Poner ${needed} bisagras`, data: { cantidad: needed } }],
+          data: { height: Math.round(height), fitted: fitted, needed: needed },
+          alternatives: [{ key: 'more-hinges', description: `Poner ${needed} bisagras`, data: { count: needed } }],
         })
       if (width > ASSUMPTIONS.doors.maxWidth)
         found.push({
@@ -55,8 +55,8 @@ export const doorRule: Rule = ({ design, geo }) =>
           severity: 'recommendation',
           pieces: [p.id],
           message: `${p.name} mide ${Math.round(width)} mm de ancho: una hoja tan ancha pesa en las bisagras y estorba al abrir.`,
-          data: { ancho: Math.round(width), maximo: ASSUMPTIONS.doors.maxWidth },
-          alternatives: [{ key: 'dos-puertas', description: 'Dividirla en dos puertas', data: { puertas: 2 } }],
+          data: { width: Math.round(width), max: ASSUMPTIONS.doors.maxWidth },
+          alternatives: [{ key: 'two-doors', description: 'Dividirla en dos puertas', data: { doors: 2 } }],
         })
       return found
     })
@@ -82,10 +82,10 @@ export const baseRule: Rule = (ctx) =>
           severity: 'recommendation',
           pieces: [p.id],
           message: `${p.name} cruza ${roundTo(span, 0)} mm sin nada debajo: con peso encima tiende a vencerse.`,
-          data: { claro: roundTo(span, 0), maximo: ASSUMPTIONS.floorSpan },
+          data: { span: roundTo(span, 0), max: ASSUMPTIONS.floorSpan },
           alternatives: [
-            { key: 'apoyo-central', description: 'Agregar un apoyo al centro, debajo del piso', data: {} },
-            { key: 'zoclo', description: 'Agregar un zoclo corrido al frente', data: {} },
+            { key: 'center-support', description: 'Agregar un apoyo al centro, debajo del piso', data: {} },
+            { key: 'kick', description: 'Agregar un zoclo corrido al frente', data: {} },
           ],
         },
       ]
@@ -106,8 +106,8 @@ export const grainRule: Rule = ({ design, geo }) =>
         severity: 'detail',
         pieces: [p.id],
         message: `En ${p.name} la veta corre a lo ancho: se ve menos natural y la pieza es menos rígida.`,
-        data: { largo: Math.round(length), ancho: Math.round(width) },
-        alternatives: [{ key: 'veta-a-lo-largo', description: 'Cortarla con la veta a lo largo', data: { veta: 'largo' } }],
+        data: { length: Math.round(length), width: Math.round(width) },
+        alternatives: [{ key: 'grain-lengthwise', description: 'Cortarla con la veta a lo largo', data: { grain: 'length' } }],
       },
     ]
   })

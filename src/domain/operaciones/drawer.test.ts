@@ -96,6 +96,6 @@ describe('R9 drawers and screws into a face', () => {
   it('a screw into a face must not come out the other side', () => {
     const d = conCajon(hondo)
     d.joints = d.joints.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, hardware: [{ hardwareId: 'tornillo-8x2', count: 4 }] } : u))
-    expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.union])).toEqual([['R3_SCREWS', 'critical', 'u-cajon-1-contra-frente']])
+    expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.joint])).toEqual([['R3_SCREWS', 'critical', 'u-cajon-1-contra-frente']])
   })
 })

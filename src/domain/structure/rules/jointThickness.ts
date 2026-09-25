@@ -30,8 +30,8 @@ function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, sev
     severity,
     pieces: [u.a, u.b],
     message: `Una unión con ${JOINT_NAME[u.type]} necesita al menos ${minimum} mm en ${piece.name}, que es de ${thickness} mm.`,
-    data: { union: u.id, tipo: u.type, pieza: piece.id, espesor: thickness, minimo: minimum },
-    alternatives: suggested ? [{ key: 'subir-espesor', description: `Hacer ${piece.name} de ${suggested.nombre}`, data: { pieza: piece.id, material: suggested.id } }] : [],
+    data: { joint: u.id, type: u.type, piece: piece.id, thickness: thickness, min: minimum },
+    alternatives: suggested ? [{ key: 'thicker-board', description: `Hacer ${piece.name} de ${suggested.nombre}`, data: { piece: piece.id, material: suggested.id } }] : [],
   }
 }
 
@@ -51,8 +51,8 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
           severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `${thin[0].name} es de ${thin[1]} mm: se fija con clavo y pegamento, o en canal o rebaje; el ${JOINT_NAME[u.type]} no agarra.`,
-          data: { union: u.id, tipo: u.type, pieza: thin[0].id, espesor: thin[1] },
-          alternatives: [{ key: 'cambiar-union', description: 'Clavo sin cabeza con pegamento', data: { tipo: 'clavo-pegamento' } }],
+          data: { joint: u.id, type: u.type, piece: thin[0].id, thickness: thin[1] },
+          alternatives: [{ key: 'change-joint', description: 'Clavo sin cabeza con pegamento', data: { type: 'glue-nail' } }],
         },
       ]
 
@@ -73,8 +73,8 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
           severity,
           pieces: [u.a, u.b],
           message: `El ${u.type} de ${u.depth} mm debilita ${b.name} (${tb} mm); lo recomendable es hasta ${roundTo(tb * ASSUMPTIONS.penetration.recommended)} mm.`,
-          data: { union: u.id, tipo: u.type, pieza: b.id, espesor: tb, penetracion: u.depth },
-          alternatives: [{ key: 'reducir-penetracion', description: `Hacer el ${u.type} de ${roundTo(tb * ASSUMPTIONS.penetration.recommended, 0)} mm`, data: { penetracion: roundTo(tb * ASSUMPTIONS.penetration.recommended, 0) } }],
+          data: { joint: u.id, type: u.type, piece: b.id, thickness: tb, penetration: u.depth },
+          alternatives: [{ key: 'shallower-groove', description: `Hacer el ${u.type} de ${roundTo(tb * ASSUMPTIONS.penetration.recommended, 0)} mm`, data: { penetration: roundTo(tb * ASSUMPTIONS.penetration.recommended, 0) } }],
         })
     }
     return found

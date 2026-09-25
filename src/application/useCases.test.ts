@@ -741,7 +741,7 @@ describe('notices: one place for what waits for a decision', () => {
     expect(noticeBoard(aceptado, testCatalog).accepted.map((n) => n.key)).toContain(sag.key)
     expect(noticeBoard(c.reopenNotice(aceptado, sag.findings), testCatalog).pending.some((n) => n.key === sag.key)).toBe(true)
 
-    const fix = fixesFor(currentDesign(inicial), testCatalog, sag.findings[0]).find((f) => f.key === 'divisor-al-centro')!
+    const fix = fixesFor(currentDesign(inicial), testCatalog, sag.findings[0]).find((f) => f.key === 'center-divider')!
     const resuelto = c.applyFix(inicial, fix)
     expect(resuelto.chat.at(-1)?.text).toBe(`Resolví: ${fix.label}.`)
     const piece = currentDesign(inicial).pieces.find((p) => p.id === sag.findings[0].pieces[0])!.name
