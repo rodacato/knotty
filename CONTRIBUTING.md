@@ -41,7 +41,7 @@ Arquitectura hexagonal; el mapa completo está en la sección 2 de la propuesta.
 Lo mismo que corre el CI en cada PR; si pasa en tu máquina, pasa ahí:
 
 ```bash
-npm run typecheck && npm test && npm run build
+npm run lint && npm run typecheck && npm test && npm run build
 ```
 
 ### 2. En el navegador, sin costo
@@ -114,4 +114,5 @@ En español de México, claros y breves, como en un taller. Los identificadores 
 - Commits chicos y frecuentes, con mensaje en español que diga qué cambia.
 - Agrega los archivos por nombre; nunca `.env`.
 - El PR dice qué cambia, por qué y **cómo lo verificaste** (qué niveles de arriba corriste y con qué resultado).
-- El CI corre `typecheck`, `test` y `build`; un PR con el CI en rojo no se mergea. Al mergear a `main`, la app se publica sola en GitHub Pages.
+- El CI corre `lint` (oxlint), `typecheck`, `test` y `build`; un PR con el CI en rojo no se mergea. Al mergear a `main`, la app se publica sola en GitHub Pages.
+- El workflow **Security** corre en cada PR, en `main` y cada lunes: CodeQL (análisis de código; los hallazgos quedan en la pestaña Security), dependency review (falla si el PR agrega una dependencia con una vulnerabilidad alta o crítica) y gitleaks (secretos en los commits). Dependabot propone cada semana las actualizaciones de npm y de las actions, y abre un PR solo cuando hay una vulnerabilidad.
