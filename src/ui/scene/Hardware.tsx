@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import type { Design } from '../../domain/diseno/schema'
-import { hardwareParts } from '../../domain/diseno/hardware'
-import type { Geometry } from '../../domain/diseno/resolve'
+import type { Design } from '../../domain/design/schema'
+import { hardwareParts } from '../../domain/design/hardware'
+import type { Geometry } from '../../domain/design/resolve'
 
 // Runners and hinges drawn in metal, so a drawer shows what it slides on and a door what it swings on.
 

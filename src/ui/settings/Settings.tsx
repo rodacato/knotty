@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
 import { useServices } from '../services'
-import { Button, Title } from '../sistema/components'
+import { Button, Title } from '../system/components'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 

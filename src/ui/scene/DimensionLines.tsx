@@ -2,7 +2,7 @@ import { Line } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import { Vector3, type Group } from 'three'
-import type { Dimensions } from '../../domain/diseno/schema'
+import type { Dimensions } from '../../domain/design/schema'
 import { Label } from './Label'
 
 // Overall dimensions as on a drawing: width at the front, height on the left, depth on the right, tied to the piece by reference lines.

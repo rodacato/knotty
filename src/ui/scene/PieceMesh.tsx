@@ -3,8 +3,8 @@ import { Edges } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MeshStandardMaterial, Texture } from 'three'
-import type { Axis, Piece } from '../../domain/diseno/schema'
-import type { Box } from '../../domain/diseno/resolve'
+import type { Axis, Piece } from '../../domain/design/schema'
+import type { Box } from '../../domain/design/resolve'
 import { texture, type TextureKind, type Tone } from './textures'
 
 const MM = 0.001

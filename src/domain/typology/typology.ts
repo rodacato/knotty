@@ -1,5 +1,5 @@
-import type { Design } from '../diseno/schema'
-import { roundTo, type Box, type Geometry } from '../diseno/resolve'
+import type { Design } from '../design/schema'
+import { roundTo, type Box, type Geometry } from '../design/resolve'
 import type { Finding, Rule } from '../structure/finding'
 import { freeSpan } from '../structure/rules/deflection'
 

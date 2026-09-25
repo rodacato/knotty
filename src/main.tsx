@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { compose } from './composition'
 import { App } from './ui/App'
-import './ui/sistema/tokens.css'
+import './ui/system/tokens.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

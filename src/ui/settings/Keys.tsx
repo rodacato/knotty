@@ -3,7 +3,7 @@ import { LockKey } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { missing, PRESETS } from '../../ports/Preferences'
 import { useServices } from '../services'
-import { Button, Title } from '../sistema/components'
+import { Button, Title } from '../system/components'
 import { useStore } from '../store'
 
 /** Opens the encrypted saved keys; forgetting them asks first because it cannot be undone. */

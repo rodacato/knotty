@@ -1,17 +1,17 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { Settings } from './ajustes/Settings'
-import { KeysGate } from './ajustes/Keys'
-import { Analyzing } from './captura/Analyzing'
-import { Capture } from './captura/Capture'
-import { Home } from './captura/Home'
+import { Settings } from './settings/Settings'
+import { KeysGate } from './settings/Keys'
+import { Analyzing } from './capture/Analyzing'
+import { Capture } from './capture/Capture'
+import { Home } from './capture/Home'
 import { ServicesContext, type Services } from './services'
-import { Pencil } from './sistema/components'
-import { Knot } from './sistema/Brand'
+import { Pencil } from './system/components'
+import { Knot } from './system/Brand'
 import { DebugPanel } from './debug/DebugPanel'
 import { useStore } from './store'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
-const Studio = lazy(() => import('./estudio/Studio').then((m) => ({ default: m.Studio })))
+const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 
 const Loading = () => (
   <div className="grid h-full place-items-center">

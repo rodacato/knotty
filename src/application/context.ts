@@ -1,8 +1,8 @@
 import { analyze } from '../domain/analysis'
-import { roundTo } from '../domain/diseno/resolve'
-import { compactLog } from '../domain/historial/history'
-import type { Catalog } from '../domain/materiales/catalog'
-import { currentVersion, type DesignState } from '../domain/sesion/state'
+import { roundTo } from '../domain/design/resolve'
+import { compactLog } from '../domain/history/history'
+import type { Catalog } from '../domain/materials/catalog'
+import { currentVersion, type DesignState } from '../domain/session/state'
 
 // Sent with every change: more context costs more and distracts the expert.
 const TOKEN_BUDGET = 12_000

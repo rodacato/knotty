@@ -1,6 +1,6 @@
-import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Design } from '../diseno/schema'
-import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
-import { usableSheet, materialById, type Catalog } from '../materiales/catalog'
+import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Design } from '../design/schema'
+import { faceSize, roundTo, type Geometry } from '../design/resolve'
+import { usableSheet, materialById, type Catalog } from '../materials/catalog'
 import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
 

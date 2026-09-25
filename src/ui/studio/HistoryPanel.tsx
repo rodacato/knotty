@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Eye, EyeSlash } from '@phosphor-icons/react'
-import { currentDesign, type DesignState } from '../../domain/sesion/state'
+import { currentDesign, type DesignState } from '../../domain/session/state'
 import { ChangeList } from '../chat/ChangeList'
-import { Button } from '../sistema/components'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 import { TraceLog } from './TraceLog'
 

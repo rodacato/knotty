@@ -1,6 +1,6 @@
-import type { Piece, JointType, Joint } from '../../diseno/schema'
-import { roundTo } from '../../diseno/resolve'
-import type { Catalog } from '../../materiales/catalog'
+import type { Piece, JointType, Joint } from '../../design/schema'
+import { roundTo } from '../../design/resolve'
+import type { Catalog } from '../../materials/catalog'
 import type { Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
-import { startAt, ref } from '../diseno/builders'
-import type { Design } from '../diseno/schema'
+import { startAt, ref } from '../design/builders'
+import type { Design } from '../design/schema'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
-import { estimatePurchase } from '../materiales/purchase'
+import { estimatePurchase } from '../materials/purchase'
 import { applyOperations } from './apply'
 import type { Operation } from './schema'
 

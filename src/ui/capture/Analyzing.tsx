@@ -1,7 +1,7 @@
 import { Check } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { ATTEMPTS, type Stage } from '../../application/useCases'
-import { Button } from '../sistema/components'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 
 const stages = (withPhotos: boolean, pieceByPiece: boolean): { id: Stage; text: string }[] => [

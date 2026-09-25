@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { FaceRef, Position, Design, Piece, Joint } from '../diseno/schema'
+import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { FaceRef, Position, Design, Piece, Joint } from '../design/schema'
 import { analyze } from '../analysis'
-import { completeJoints } from '../diseno/joints'
-import { materialById, type Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import { completeJoints } from '../design/joints'
+import { materialById, type Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 import { Column } from '../reading/reading'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.

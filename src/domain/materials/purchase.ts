@@ -1,5 +1,5 @@
-import { AXES, type Design, type Axis, type Joint } from '../diseno/schema'
-import { roundTo, type Geometry } from '../diseno/resolve'
+import { AXES, type Design, type Axis, type Joint } from '../design/schema'
+import { roundTo, type Geometry } from '../design/resolve'
 import { jointLength } from '../validation/contact'
 import { hingesFor } from '../structure/assumptions'
 import { layOut, type MaterialLayout } from './layout'

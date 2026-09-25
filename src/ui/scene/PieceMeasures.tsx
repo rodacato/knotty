@@ -1,5 +1,5 @@
-import { isDrawerPart, type Design } from '../../domain/diseno/schema'
-import { faceSize, roundTo, type Geometry } from '../../domain/diseno/resolve'
+import { isDrawerPart, type Design } from '../../domain/design/schema'
+import { faceSize, roundTo, type Geometry } from '../../domain/design/resolve'
 import { Label } from './Label'
 
 // In the exploded view, each piece carries its size, so the drawing reads like a cut list.

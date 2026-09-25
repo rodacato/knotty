@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
-import { applyOperations } from '../operaciones/apply'
+import { applyOperations } from '../operations/apply'
 import { cutList } from './cutList'
 
 describe('cut list names', () => {

@@ -3,7 +3,7 @@ import { analyze } from '../analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { buildCabinet, DEFAULT_CONSTRUCTION } from '../modules/cabinet'
-import { applyOperations } from '../operaciones/apply'
+import { applyOperations } from '../operations/apply'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {

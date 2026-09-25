@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../analysis'
-import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../diseno/builders'
-import type { Design } from '../../diseno/schema'
+import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
+import type { Design } from '../../design/schema'
 import { testCatalog } from '../../fixtures/catalog.test-util'
 import { exampleBookcase } from '../../fixtures/bookcase'
-import { completeJoints } from '../../diseno/joints'
+import { completeJoints } from '../../design/joints'
 import { fixesFor } from '../../fixes/fixes'
-import { applyOperations } from '../../operaciones/apply'
-import type { Operation } from '../../operaciones/schema'
+import { applyOperations } from '../../operations/apply'
+import type { Operation } from '../../operations/schema'
 
 const drawer = (extra: Partial<Extract<Operation, { op: 'addDrawer' }>> = {}): Operation => ({
   op: 'addDrawer',

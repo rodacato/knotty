@@ -1,4 +1,4 @@
-import { materialById, type Catalog } from '../materiales/catalog'
+import { materialById, type Catalog } from '../materials/catalog'
 import { error, success, failure, type DesignError, type Result } from '../validation/errors'
 import { DIMENSION_OF_AXIS, AXES, type FaceRef, type Position, type Design, type Axis, type Piece, type Extent } from './schema'
 

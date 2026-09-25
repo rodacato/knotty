@@ -1,6 +1,6 @@
-import type { Load, Piece } from '../../diseno/schema'
-import { roundTo, type Box } from '../../diseno/resolve'
-import type { Catalog } from '../../materiales/catalog'
+import type { Load, Piece } from '../../design/schema'
+import { roundTo, type Box } from '../../design/resolve'
+import type { Catalog } from '../../materials/catalog'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 

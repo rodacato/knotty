@@ -2,10 +2,10 @@ import { ArrowCounterClockwise, CheckCircle, Eye, Lightning, ChatCircleText, Tra
 import { useMemo, useState } from 'react'
 import { noticeBoard, noticeItem, type Notice } from '../../application/notices'
 import { fixesFor, type Fix } from '../../domain/fixes/fixes'
-import { currentDesign, type DesignState } from '../../domain/sesion/state'
+import { currentDesign, type DesignState } from '../../domain/session/state'
 import { answerItem, answerItemId, noticeItemId } from '../../domain/tray/tray'
 import { useServices } from '../services'
-import { Button, Chip, Stamp } from '../sistema/components'
+import { Button, Chip, Stamp } from '../system/components'
 import { useStore } from '../store'
 
 // Every notice with its way out: a solution Knotty builds (previewed in 3D), the tray for the expert, or leaving it as it is.

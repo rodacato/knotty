@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// The catalog is data, not code: it loads from public/catalogo/*.json and the person can override prices.
+// The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
 // Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
 
 export const BoardMaterial = z.object({

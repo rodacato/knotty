@@ -10,9 +10,9 @@ import { BedFields } from './BedFields'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 import { describePlanChanges } from '../../domain/modules/planChanges'
 import type { Cell, Column } from '../../domain/reading/reading'
-import type { DesignState } from '../../domain/sesion/state'
+import type { DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
-import { Button } from '../sistema/components'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 
 // The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.

@@ -1,4 +1,4 @@
-import type { Catalog } from '../materiales/catalog'
+import type { Catalog } from '../materials/catalog'
 import { DIMENSION_OF_AXIS, AXES, type FaceRef, type Design, type Axis, type Piece } from './schema'
 import { referencedPieces, resolveGeometry, roundTo, type Box } from './resolve'
 

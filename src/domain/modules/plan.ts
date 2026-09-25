@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { Design } from '../diseno/schema'
-import type { Catalog } from '../materiales/catalog'
+import type { Design } from '../design/schema'
+import type { Catalog } from '../materials/catalog'
 import { BedPlan, buildBed } from './bed'
 import { buildCabinet, CabinetPlan } from './cabinet'
 import { buildTable, TablePlan } from './table'

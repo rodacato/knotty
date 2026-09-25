@@ -1,4 +1,4 @@
-import { faceSize, roundTo } from '../../diseno/resolve'
+import { faceSize, roundTo } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
 import { freeSpan } from './deflection'

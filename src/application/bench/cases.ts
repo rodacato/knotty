@@ -1,4 +1,4 @@
-import type { Dimensions } from '../../domain/diseno/schema'
+import type { Dimensions } from '../../domain/design/schema'
 
 // Fixed requests to try an expert with: the same in the comparison script and in the hidden bench.
 // `expected` holds sensible ranges in mm for each piece of furniture; outside them, the expert misread the request.

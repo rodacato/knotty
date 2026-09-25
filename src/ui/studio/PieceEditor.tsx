@@ -1,10 +1,10 @@
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, PencilSimple } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { PieceEditResult } from '../../application/useCases'
-import { AXES, type Axis, type Piece } from '../../domain/diseno/schema'
-import type { Box } from '../../domain/diseno/resolve'
-import type { Catalog } from '../../domain/materiales/catalog'
-import { Button } from '../sistema/components'
+import { AXES, type Axis, type Piece } from '../../domain/design/schema'
+import type { Box } from '../../domain/design/resolve'
+import type { Catalog } from '../../domain/materials/catalog'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 
 // Hand edits on the selected piece: its length, width, thickness and position, applied at once and checked like any change.

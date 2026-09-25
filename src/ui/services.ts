@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { Bench } from '../application/bench/bench'
 import type { UseCases } from '../application/useCases'
-import type { Catalog } from '../domain/materiales/catalog'
+import type { Catalog } from '../domain/materials/catalog'
 import type { DebugLog } from '../ports/DebugLog'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'

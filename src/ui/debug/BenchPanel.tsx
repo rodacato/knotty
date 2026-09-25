@@ -3,7 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import type { BenchResult, ModuleCheck } from '../../application/bench/bench'
 import { useServices } from '../services'
-import { Button } from '../sistema/components'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 
 // A hidden test bench next to the log: the fixed cases against the connected expert, and every variant of the modules, graded by Knotty's own checks.

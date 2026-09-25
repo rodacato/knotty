@@ -2,8 +2,8 @@ import { ArrowRight, Cube } from '@phosphor-icons/react'
 import { exampleWallCabinet } from '../../domain/fixtures/wallCabinet'
 import { exampleNightstand } from '../../domain/fixtures/nightstand'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
-import { Button } from '../sistema/components'
-import { Logo, Emblem } from '../sistema/Brand'
+import { Button } from '../system/components'
+import { Logo, Emblem } from '../system/Brand'
 import { useStore } from '../store'
 
 /** A piece of furniture in exploded view, drawn as a sketch. */

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
-import type { Design } from '../diseno/schema'
+import type { Design } from '../design/schema'
 import { exampleWallCabinet } from '../fixtures/wallCabinet'
 import { exampleNightstand } from '../fixtures/nightstand'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
-import type { Catalog } from '../materiales/catalog'
-import { estimatePurchase } from '../materiales/purchase'
+import type { Catalog } from '../materials/catalog'
+import { estimatePurchase } from '../materials/purchase'
 import { worst, reviewViability } from './viability'
 
 function revisar(diseno: Design, c: Catalog = testCatalog) {

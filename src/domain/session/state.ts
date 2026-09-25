@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { Design, Dimensions } from '../diseno/schema'
-import { Decision, Origin, Version } from '../historial/history'
-import { Operation } from '../operaciones/schema'
+import { Design, Dimensions } from '../design/schema'
+import { Decision, Origin, Version } from '../history/history'
+import { Operation } from '../operations/schema'
 import { FurniturePlan } from '../modules/plan'
-import { Requirement } from '../requisitos/requirements'
+import { Requirement } from '../requirements/requirements'
 import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
-import { Check, CarpenterOpinion, Verdict } from '../viabilidad/viability'
+import { Check, CarpenterOpinion, Verdict } from '../viability/viability'
 
 // The whole design session: what is saved and comes back on reload. Its field names are the saved format (5); `migrate.ts` reads older ones.
 

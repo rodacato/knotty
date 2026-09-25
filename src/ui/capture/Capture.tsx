@@ -1,12 +1,12 @@
 import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import type { Dimensions } from '../../domain/diseno/schema'
+import type { Dimensions } from '../../domain/design/schema'
 import { missing } from '../../ports/Preferences'
 import { useServices } from '../services'
-import { Button, cm, Title } from '../sistema/components'
-import { TakePhoto } from '../sistema/TakePhoto'
+import { Button, cm, Title } from '../system/components'
+import { TakePhoto } from '../system/TakePhoto'
 import { useStore } from '../store'
-import { TraceLog } from '../estudio/TraceLog'
+import { TraceLog } from '../studio/TraceLog'
 import { Silhouette } from './Silhouettes'
 
 const ANGLES = [

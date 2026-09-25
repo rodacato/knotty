@@ -1,7 +1,7 @@
-import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { FaceRef, Piece, Joint } from '../diseno/schema'
-import { parseFace, type Geometry } from '../diseno/resolve'
-import { materialById, type Catalog, type Hardware } from '../materiales/catalog'
+import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { FaceRef, Piece, Joint } from '../design/schema'
+import { parseFace, type Geometry } from '../design/resolve'
+import { materialById, type Catalog, type Hardware } from '../materials/catalog'
 import { error, type DesignError } from '../validation/errors'
 
 // A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.

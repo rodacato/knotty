@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { FaceRef, Edge, Load, PieceConfidence, Position, Axis, Piece, PieceId, Role, Joint, Grain } from '../diseno/schema'
+import { FaceRef, Edge, Load, PieceConfidence, Position, Axis, Piece, PieceId, Role, Joint, Grain } from '../design/schema'
 
 // All the expert can do to an existing design. Every field is always there (nullable when it does not apply) for strict output.
 // Operation names and fields are what the expert writes and what versions save.

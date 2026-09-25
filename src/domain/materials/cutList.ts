@@ -1,5 +1,5 @@
-import type { Design } from '../diseno/schema'
-import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
+import type { Design } from '../design/schema'
+import { faceSize, roundTo, type Geometry } from '../design/resolve'
 
 export interface CutLine {
   ids: string[]

@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { FaceRef, Design, Piece, Joint } from '../diseno/schema'
-import { completeJoints } from '../diseno/joints'
-import { materialById, type Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { FaceRef, Design, Piece, Joint } from '../design/schema'
+import { completeJoints } from '../design/joints'
+import { materialById, type Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 

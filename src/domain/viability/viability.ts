@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { DIMENSION_LABEL, type Design } from '../diseno/schema'
-import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
+import { DIMENSION_LABEL, type Design } from '../design/schema'
+import { faceSize, roundTo, type Geometry } from '../design/resolve'
 import type { Finding } from '../structure/finding'
-import type { Catalog } from '../materiales/catalog'
-import type { Purchase } from '../materiales/purchase'
+import type { Catalog } from '../materials/catalog'
+import type { Purchase } from '../materials/purchase'
 
 // The review before buying: what can be checked with arithmetic, no opinions. The carpenter (the model) gives an opinion on top of it, never against it.
 // Check ids are saved in the verdict: renaming one needs a migration.

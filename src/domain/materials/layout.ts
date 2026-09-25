@@ -1,5 +1,5 @@
-import type { Design } from '../diseno/schema'
-import { faceSize, type Geometry } from '../diseno/resolve'
+import type { Design } from '../design/schema'
+import { faceSize, type Geometry } from '../design/resolve'
 import { usableSheet, materialById, type Catalog } from './catalog'
 
 // A purchase estimate, not a cutting plan: guillotine cuts on the usable sheet, trying several heuristics and keeping the one with fewest sheets.

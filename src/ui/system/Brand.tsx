@@ -26,5 +26,5 @@ export function Logo({ className = '' }: { className?: string }) {
 
 /** The app's emblem: pine wood with the knot. */
 export function Emblem({ className = '' }: { className?: string }) {
-  return <img src="./icono-192.png" alt="" className={`rounded-[22%] ${className}`} />
+  return <img src="./icon-192.png" alt="" className={`rounded-[22%] ${className}`} />
 }

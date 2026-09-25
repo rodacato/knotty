@@ -1,5 +1,5 @@
 import { ASSUMPTIONS } from '../structure/assumptions'
-import type { Catalog } from '../materiales/catalog'
+import type { Catalog } from '../materials/catalog'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
 import { isDrawerPart, type Design, type Piece, type Joint } from './schema'

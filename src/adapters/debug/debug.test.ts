@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
-import { createSimulated } from '../llm/simulado/simulated'
+import { createSimulated } from '../llm/simulated/simulated'
 import { createDebugLog, localStorageStore, type EventStore } from './localDebugLog'
 import { withDebugLog } from './loggedProvider'
 

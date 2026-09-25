@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { markAnswered, type Message } from '../sesion/state'
+import { markAnswered, type Message } from '../session/state'
 import { answerItem, suggestionItem, toggleInTray, trayRequest } from './tray'
 
 describe('the tray', () => {

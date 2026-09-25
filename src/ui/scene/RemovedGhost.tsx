@@ -1,5 +1,5 @@
 import { animated, useSpring } from '@react-spring/three'
-import type { Box } from '../../domain/diseno/resolve'
+import type { Box } from '../../domain/design/resolve'
 
 const MM = 0.001
 

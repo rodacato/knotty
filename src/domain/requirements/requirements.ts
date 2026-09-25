@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DIMENSION_OF_AXIS, DIMENSION_LABEL, Axis, type Design } from '../diseno/schema'
+import { DIMENSION_OF_AXIS, DIMENSION_LABEL, Axis, type Design } from '../design/schema'
 import { error, type DesignError } from '../validation/errors'
 
 // Facts the person stated. They survive going back a version: "my space is 90 cm wide" is still true.

@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { Design } from '../diseno/schema'
+import { Design } from '../design/schema'
 import { FurniturePlan } from '../modules/plan'
-import { Operation } from '../operaciones/schema'
+import { Operation } from '../operations/schema'
 
 export const Origin = z.object({ promptId: z.string(), provider: z.string(), model: z.string() })
 export type Origin = z.infer<typeof Origin>

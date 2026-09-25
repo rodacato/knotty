@@ -1,4 +1,4 @@
-import type { DesignState } from '../domain/sesion/state'
+import type { DesignState } from '../domain/session/state'
 
 export interface DesignRepository {
   load(): DesignState | null
