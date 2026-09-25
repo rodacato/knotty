@@ -559,6 +559,8 @@ Un módulo por PR, con las pruebas pasando; la interfaz y los textos para la per
 
 12. Arquitectura, fase 0 (auditoría del 2026-09-25): errores e higiene antes de crecer el catálogo. «Hacer más grueso» cambiaba las dos piezas de una unión; ahora solo la delgada, y un aviso con varias uniones delgadas engruesa cada una una vez (`fixesForNotice`). Cada comprobación lleva su `check` en la clave del aviso: aceptar el anclaje de una alacena ya no aceptaba en silencio su listón (tipología, R2, R3, R6 y R9); las claves viejas de esos avisos dejan de coincidir y se vuelven a mostrar una vez. El tornillo de bolsillo se elige por espesor (1" hasta 16 mm, 1¼" hasta 19; el de 1" entra al catálogo sin precio) y el cubrecanto por su id. Un JSON inválido del experto (Claude y compatibles con OpenAI) ahora se corrige como cualquier respuesta inválida, en vez de abortar. La revisión de compra sigue al contenido del diseño, no al número de versión. Fuera código muerto y `export` de lo que solo se usa en su archivo.
 
+13. Menos viajes al experto, primera parte: cuando una propuesta deja críticos y el experto no ofreció opciones, las que salen de las reglas y Knotty sabe construir quedan ligadas a su solución (`solutions` en el mensaje, sin tocar lo que ve el experto). Al elegirla se aplica la propuesta y luego la solución, en dos versiones y sin llamar al experto; si no se puede construir, va al experto como antes. En modo bandeja la opción sigue yendo como texto.
+
 Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 cambia de una vez los datos guardados, lo que escribe el experto y los prompts, con migración de formato; el 10 mueve carpetas.
 
 ---
