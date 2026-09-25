@@ -9,15 +9,15 @@ import { hardwareParts } from './hardware'
 describe('hardware to draw', () => {
   it('puts a runner in the gap beside each drawer side, as long as the side', () => {
     const r = applyOperations({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, depth: 500 } }, [
-      { op: 'addDrawer', group: 'cajon-1', name: 'Cajón 1', left: 'lat-izq.x1', right: 'lat-der.x0', bottom: 'piso.y1', top: 'entrepano-1.y0', front: 'mueble.z1', back: 'trasera.z1', material: 'T15', bottomMaterial: 'TR6' },
+      { op: 'addDrawer', group: 'drawer-1', name: 'Cajón 1', left: 'side-left.x1', right: 'side-right.x0', bottom: 'bottom.y1', top: 'shelf-1.y0', front: 'furniture.z1', back: 'back.z1', material: 'T15', bottomMaterial: 'TR6' },
     ], testCatalog)
     if (!r.ok) throw new Error('no drawer')
     const geo = analyze(r.value.design, testCatalog).geo!
     const runners = hardwareParts(r.value.design, geo.boxes).filter((h) => h.kind === 'runner')
     expect(runners).toHaveLength(2)
     const left = runners[0] as Extract<(typeof runners)[number], { kind: 'runner' }>
-    const side = geo.boxes.get('cajon-1-costado-izq')!
-    expect(left.owner).toBe('cajon-1-costado-izq')
+    const side = geo.boxes.get('drawer-1-side-left')!
+    expect(left.owner).toBe('drawer-1-side-left')
     expect(left.box.x0).toBe(18)
     expect(left.box.x1).toBeCloseTo(side.x0, 5)
     expect([left.box.z0, left.box.z1]).toEqual([side.z0, side.z1])

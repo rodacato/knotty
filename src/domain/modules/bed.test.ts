@@ -31,26 +31,26 @@ describe('buildBed', () => {
     const geo = analyze(design, testCatalog).geo!
     const fronts = design.pieces.filter((p) => p.role === 'drawer-front')
     expect(fronts).toHaveLength(6)
-    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z0 === 0).map((p) => p.group)).toEqual(['cajon-der-1', 'cajon-der-2', 'cajon-der-3'])
+    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z0 === 0).map((p) => p.group)).toEqual(['drawer-right-1', 'drawer-right-2', 'drawer-right-3'])
     expect(fronts.filter((p) => geo.boxes.get(p.id)!.z1 === design.dimensions.depth)).toHaveLength(3)
   })
 
   it('gathers fewer drawers toward the foot and closes the rest of the side, with cross members under the platform', () => {
     const { design } = buildBed(bed({ drawers: { side: 'left', count: 1, position: 'foot' } }), testCatalog)
     const geo = analyze(design, testCatalog).geo!
-    const front = geo.boxes.get('cajon-izq-1-frente')!
-    expect(geo.boxes.get('base-pie')!.x0 - front.x1).toBeCloseTo(2, 5)
-    expect(design.pieces.some((p) => p.id === 'costado-izq-1')).toBe(true)
-    expect(design.pieces.filter((p) => p.id.startsWith('travesano-izq')).length).toBeGreaterThan(0)
+    const front = geo.boxes.get('drawer-left-1-front')!
+    expect(geo.boxes.get('foot-panel')!.x0 - front.x1).toBeCloseTo(2, 5)
+    expect(design.pieces.some((p) => p.id === 'side-left-1')).toBe(true)
+    expect(design.pieces.filter((p) => p.id.startsWith('rail-left')).length).toBeGreaterThan(0)
   })
 
   it('makes a storage headboard with a closed compartment at pillow level and shelves above', () => {
     const { design } = buildBed(bed({ headboard: { style: 'storage', height: 1200, depth: 250, shelves: 2 } }), testCatalog)
     const geo = analyze(design, testCatalog).geo!
-    const floor = geo.boxes.get('cab-piso')!
+    const floor = geo.boxes.get('head-bottom')!
     expect(floor.y1).toBe(400)
-    expect(geo.boxes.get('cab-sep')!.y0).toBe(400 + 280)
-    expect(design.pieces.filter((p) => p.id.startsWith('cab-rep-'))).toHaveLength(2)
+    expect(geo.boxes.get('head-sep')!.y0).toBe(400 + 280)
+    expect(design.pieces.filter((p) => p.id.startsWith('head-shelf-'))).toHaveLength(2)
     expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1200, depth: 990 + 20 })
   })
   it('takes the ficha a real expert sends for a plain bed: no drawers as count 0, no depth for a plain headboard', () => {

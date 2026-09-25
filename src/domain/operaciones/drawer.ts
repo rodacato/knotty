@@ -63,11 +63,11 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   const gap = runner.sideClearance
   const shared = { material: c.material, group: g, confidence: 'high' as const }
   /** The box runs from behind the front, as long as the runner. */
-  const box = () => (backward ? extent(ref(`${id('frente')}.z1`), null, runner.length) : extent(null, ref(`${id('frente')}.z0`), runner.length))
+  const box = () => (backward ? extent(ref(`${id('front')}.z1`), null, runner.length) : extent(null, ref(`${id('front')}.z0`), runner.length))
   const pieces: Piece[] = [
     makePiece({
       ...shared,
-      id: id('frente'),
+      id: id('front'),
       name: `Frente de ${c.name.toLowerCase()}`,
       role: 'drawer-front',
       normal: 'z',
@@ -76,22 +76,22 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
       z: backward ? startAt(ref(c.front)) : endAt(ref(c.front)),
       edges: ['front', 'left', 'right', 'top', 'bottom'],
     }),
-    makePiece({ ...shared, material: c.bottomMaterial, id: id('fondo'), name: `Fondo de ${c.name.toLowerCase()}`, role: 'drawer-bottom', normal: 'y', x: extent(ref(c.left, gap), ref(c.right, -gap)), y: startAt(ref(c.bottom, BOTTOM_GAP)), z: box(), grain: 'any' }),
-    makePiece({ ...shared, id: id('costado-izq'), name: `Costado izquierdo de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: startAt(ref(c.left, gap)), y: extent(ref(`${id('fondo')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),
-    makePiece({ ...shared, id: id('costado-der'), name: `Costado derecho de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: endAt(ref(c.right, -gap)), y: extent(ref(`${id('fondo')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),
-    makePiece({ ...shared, id: id('contra'), name: `Contrafrente de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'z', x: extent(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: extent(ref(`${id('fondo')}.y1`), ref(c.top, -TOP_GAP)), z: backward ? startAt(ref(`${id('frente')}.z1`)) : endAt(ref(`${id('frente')}.z0`)), edges: ['top'] }),
-    makePiece({ ...shared, id: id('trasera'), name: `Trasera de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'z', x: extent(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: extent(ref(`${id('fondo')}.y1`), ref(c.top, -TOP_GAP)), z: backward ? endAt(ref(`${id('costado-izq')}.z1`)) : startAt(ref(`${id('costado-izq')}.z0`)), edges: ['top'] }),
+    makePiece({ ...shared, material: c.bottomMaterial, id: id('bottom'), name: `Fondo de ${c.name.toLowerCase()}`, role: 'drawer-bottom', normal: 'y', x: extent(ref(c.left, gap), ref(c.right, -gap)), y: startAt(ref(c.bottom, BOTTOM_GAP)), z: box(), grain: 'any' }),
+    makePiece({ ...shared, id: id('side-left'), name: `Costado izquierdo de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: startAt(ref(c.left, gap)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),
+    makePiece({ ...shared, id: id('side-right'), name: `Costado derecho de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: endAt(ref(c.right, -gap)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),
+    makePiece({ ...shared, id: id('subfront'), name: `Contrafrente de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'z', x: extent(ref(`${id('side-left')}.x1`), ref(`${id('side-right')}.x0`)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: backward ? startAt(ref(`${id('front')}.z1`)) : endAt(ref(`${id('front')}.z0`)), edges: ['top'] }),
+    makePiece({ ...shared, id: id('back'), name: `Trasera de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'z', x: extent(ref(`${id('side-left')}.x1`), ref(`${id('side-right')}.x0`)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: backward ? endAt(ref(`${id('side-left')}.z1`)) : startAt(ref(`${id('side-left')}.z0`)), edges: ['top'] }),
   ]
 
   const screw = [{ hardwareId: 'screw-8x2', count: null }]
   const joints: Joint[] = [
-    ...['contra', 'trasera'].flatMap((b) => ['costado-izq', 'costado-der'].map((a) => makeJoint(`u-${g}-${a}-${b}`, id(a), id(b), 'butt-screw', screw))),
-    makeJoint(`u-${g}-contra-frente`, id('contra'), id('frente'), 'butt-screw', [{ hardwareId: 'screw-8x1', count: 4 }]),
-    ...['costado-izq', 'costado-der', 'contra', 'trasera'].map((b) => makeJoint(`u-${g}-fondo-${b}`, id('fondo'), id(b), 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])),
+    ...['subfront', 'back'].flatMap((b) => ['side-left', 'side-right'].map((a) => makeJoint(`j-${g}-${a}-${b}`, id(a), id(b), 'butt-screw', screw))),
+    makeJoint(`j-${g}-subfront-front`, id('subfront'), id('front'), 'butt-screw', [{ hardwareId: 'screw-8x1', count: 4 }]),
+    ...['side-left', 'side-right', 'subfront', 'back'].map((b) => makeJoint(`j-${g}-bottom-${b}`, id('bottom'), id(b), 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])),
   ]
   const leftSupport = parseFace(c.left).piece
   const rightSupport = parseFace(c.right).piece
-  if (leftSupport !== 'mueble') joints.push(makeJoint(`u-${g}-corredera-izq`, id('costado-izq'), leftSupport, 'drawer-slide', [{ hardwareId: runner.id, count: 1 }]))
-  if (rightSupport !== 'mueble') joints.push(makeJoint(`u-${g}-corredera-der`, id('costado-der'), rightSupport, 'drawer-slide', []))
+  if (leftSupport !== 'furniture') joints.push(makeJoint(`j-${g}-slide-left`, id('side-left'), leftSupport, 'drawer-slide', [{ hardwareId: runner.id, count: 1 }]))
+  if (rightSupport !== 'furniture') joints.push(makeJoint(`j-${g}-slide-right`, id('side-right'), rightSupport, 'drawer-slide', []))
   return { pieces, joints }
 }

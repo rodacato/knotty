@@ -16,23 +16,23 @@ const findings = (d: Design, code: string) => {
 describe('R3 screws', () => {
   it('asks for a longer screw when it does not go 25 mm into the piece that takes it', () => {
     const d = structuredClone(exampleBookcase)
-    d.joints = d.joints.map((u) => (u.id === 'u-piso-izq' ? { ...u, hardware: [{ hardwareId: 'screw-8x1-1/4', count: null }] } : u))
+    d.joints = d.joints.map((u) => (u.id === 'j-bottom-left' ? { ...u, hardware: [{ hardwareId: 'screw-8x1-1/4', count: null }] } : u))
     const [h] = findings(d, 'R3_SCREWS')
-    expect(h).toMatchObject({ severity: 'recommendation', data: { joint: 'u-piso-izq' } })
+    expect(h).toMatchObject({ severity: 'recommendation', data: { joint: 'j-bottom-left' } })
     expect(h.alternatives[0].data.hardwareId).toBe('screw-8x2')
   })
 
   it('warns when a pocket screw pokes out of thin plywood', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.find((p) => p.id === 'zoclo')!.material = 'T15'
-    expect(findings(d, 'R3_SCREWS').map((h) => h.data.joint)).toEqual(['u-zoclo-izq', 'u-zoclo-der'])
+    d.pieces.find((p) => p.id === 'kick')!.material = 'T15'
+    expect(findings(d, 'R3_SCREWS').map((h) => h.data.joint)).toEqual(['j-kick-left', 'j-kick-right'])
   })
 
   it('warns when two screws sit at the ends of a short joint', () => {
     const d = structuredClone(exampleBookcase)
-    const zoclo = d.pieces.find((p) => p.id === 'zoclo')!
-    zoclo.y = extent(ref('mueble.y0'), null, 50)
-    d.joints = d.joints.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', type: 'butt-screw', hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } : u))
+    const zoclo = d.pieces.find((p) => p.id === 'kick')!
+    zoclo.y = extent(ref('furniture.y0'), null, 50)
+    d.joints = d.joints.map((u) => (u.id === 'j-kick-left' ? { ...u, a: 'side-left', b: 'kick', type: 'butt-screw', hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } : u))
     expect(findings(d, 'R3_SCREWS').some((h) => h.data.jointLength === 50)).toBe(true)
   })
 })
@@ -54,8 +54,8 @@ describe('R6 doors', () => {
     const alta = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
     const r6 = findings(alta, 'R6_DOORS')
     expect(r6.map((h) => [h.pieces[0], h.severity, h.data.needed])).toEqual([
-      ['puerta-izq', 'critical', 4],
-      ['puerta-der', 'critical', 4],
+      ['door-left', 'critical', 4],
+      ['door-right', 'critical', 4],
     ])
   })
 
@@ -69,9 +69,9 @@ describe('R7 base', () => {
   it('a raised floor without a kick over a long span asks for support; with a full kick it does not', () => {
     const d = { ...structuredClone(exampleBookcase), dimensions: { ...exampleBookcase.dimensions, width: 1000 } }
     expect(findings(d, 'R7_BASE')).toEqual([])
-    d.pieces = d.pieces.filter((p) => p.id !== 'zoclo')
-    d.joints = d.joints.filter((u) => u.a !== 'zoclo' && u.b !== 'zoclo')
-    d.pieces.find((p) => p.id === 'piso')!.y = { from: mm(70), to: null, length: null }
+    d.pieces = d.pieces.filter((p) => p.id !== 'kick')
+    d.joints = d.joints.filter((u) => u.a !== 'kick' && u.b !== 'kick')
+    d.pieces.find((p) => p.id === 'bottom')!.y = { from: mm(70), to: null, length: null }
     expect(findings(d, 'R7_BASE').map((h) => h.data.span)).toEqual([964])
   })
 })
@@ -79,8 +79,8 @@ describe('R7 base', () => {
 describe('R8 grain', () => {
   it('marks grain across long pieces as a detail', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.find((p) => p.id === 'lat-izq')!.grain = 'width'
-    expect(findings(d, 'R8_GRAIN').map((h) => [h.pieces[0], h.severity])).toEqual([['lat-izq', 'detail']])
+    d.pieces.find((p) => p.id === 'side-left')!.grain = 'width'
+    expect(findings(d, 'R8_GRAIN').map((h) => [h.pieces[0], h.severity])).toEqual([['side-left', 'detail']])
   })
 })
 

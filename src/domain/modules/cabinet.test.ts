@@ -32,13 +32,13 @@ describe('buildCabinet', () => {
 
   it('makes one drawer per drawer cell, with slides', () => {
     const { design } = buildCabinet(PLANS.cajonera, testCatalog)
-    expect(new Set(design.pieces.map((p) => p.group).filter(Boolean))).toEqual(new Set(['cajon-1', 'cajon-2', 'cajon-3']))
+    expect(new Set(design.pieces.map((p) => p.group).filter(Boolean))).toEqual(new Set(['drawer-1', 'drawer-2', 'drawer-3']))
     expect(design.joints.filter((u) => u.type === 'drawer-slide').length).toBeGreaterThanOrEqual(3)
   })
 
   it('hangs each door and puts movable shelves on supports', () => {
     const { design } = buildCabinet(PLANS.alacena, testCatalog)
-    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.a).sort()).toEqual(['c1-h1-puerta-der', 'c1-h1-puerta-izq'])
+    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.a).sort()).toEqual(['c1-h1-door-left', 'c1-h1-door-right'])
     expect(design.joints.filter((u) => u.type === 'shelf-pin')).toHaveLength(2)
   })
 
@@ -91,8 +91,8 @@ describe('construction variants', () => {
     const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors[0].message)
-    const door = a.geo.boxes.get('c1-h1-puerta-izq')!
-    expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
+    const door = a.geo.boxes.get('c1-h1-door-left')!
+    expect(door.x0).toBe(a.geo.boxes.get('side-left')!.x1 + 2)
     expect(door.z1).toBe(320)
     expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.hardware[0].hardwareId)).toEqual(['cup-hinge-35-inset', 'cup-hinge-35-inset'])
   })
@@ -101,7 +101,7 @@ describe('construction variants', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
       const a = analyze(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog).design, testCatalog)
       if (!a.valid) throw new Error(a.errors[0].message)
-      return a.geo.boxes.get('cajon-1-frente')!
+      return a.geo.boxes.get('drawer-1-front')!
     }
     expect(front('overlay').x0).toBe(2)
     expect(front('inset').x0).toBeGreaterThan(18)

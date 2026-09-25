@@ -36,7 +36,7 @@ describe('R1 shelf sag', () => {
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {
     const ancho = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } }
     const r1 = findings(ancho).filter((h) => h.code === 'R1_SAG')
-    expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'piso'])
+    expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['bottom', 'shelf-1', 'shelf-2', 'shelf-3', 'shelf-4'])
     expect(r1.every((h) => h.severity === 'critical')).toBe(true)
     const divisor = r1[0].alternatives.find((a) => a.key === 'center-divider')!
     expect(divisor.data.sag).toBeLessThan(1)
@@ -45,9 +45,9 @@ describe('R1 shelf sag', () => {
   it('takes the lower modulus when the grain runs across', () => {
     const d = structuredClone(exampleBookcase)
     d.dimensions.width = 800
-    const conVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')
-    d.pieces.find((p) => p.id === 'entrepano-1')!.grain = 'width'
-    const contraVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')!
+    const conVeta = findings(d).find((h) => h.pieces[0] === 'shelf-1')
+    d.pieces.find((p) => p.id === 'shelf-1')!.grain = 'width'
+    const contraVeta = findings(d).find((h) => h.pieces[0] === 'shelf-1')!
     expect(Number(contraVeta.data.sag)).toBeGreaterThan(Number(conVeta?.data.sag ?? 0))
   })
 })
@@ -58,15 +58,15 @@ describe('R2 thickness per joint', () => {
     for (const p of d.pieces) if (p.role === 'side') p.material = 'T12'
     const r2 = findings(d).filter((h) => h.code === 'R2_JOINT_THICKNESS')
     const porUnion = Object.fromEntries(r2.map((h) => [h.data.joint, h.severity]))
-    expect(porUnion['u-entrepano-izq']).toBe('critical')
-    expect(porUnion['u-techo-izq']).toBe('recommendation')
+    expect(porUnion['j-shelf-left']).toBe('critical')
+    expect(porUnion['j-top-left']).toBe('recommendation')
     expect(r2[0].alternatives[0].data.material).toBe('T15')
   })
 
   it('does not take screws in a 3 mm back', () => {
     const d = structuredClone(exampleNightstand)
-    d.joints = d.joints.map((u) => (u.id === 'u-trasera-piso' ? { ...u, type: 'butt-screw' } : u))
-    expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.piece === 'trasera')).toBe(true)
+    d.joints = d.joints.map((u) => (u.id === 'j-back-bottom' ? { ...u, type: 'butt-screw' } : u))
+    expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.piece === 'back')).toBe(true)
   })
 })
 
@@ -82,7 +82,7 @@ describe('R5 racking', () => {
 
   it('is critical in a tall piece', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.find((p) => p.id === 'trasera')!.material = 'TR3'
+    d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
     expect(findings(d).find((h) => h.code === 'R5_RACKING')?.severity).toBe('critical')
   })
 })

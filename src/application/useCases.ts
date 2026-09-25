@@ -99,7 +99,7 @@ const STRUCTURAL = new Set(['side', 'bottom', 'top', 'divider', 'back', 'kick', 
 const ASKS_REMOVAL = /\b(quit|elimin|sac|borr|remuev|remov|sin )/i
 
 /** A cota tied to an outer face of the piece of furniture. */
-const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('mueble.')
+const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
 
 export type PieceEdit = { kind: 'length'; axis: Axis; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Axis; delta: number }
 export type PieceEditResult = { ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
@@ -348,7 +348,7 @@ export function createUseCases(deps: Dependencies) {
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 4,
+      format: 5,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -630,7 +630,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 4,
+      format: 5,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,

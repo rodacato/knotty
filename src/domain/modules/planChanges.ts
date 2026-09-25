@@ -6,12 +6,12 @@ import type { Cell } from '../reading/reading'
 
 // What changed between two plans, in words for the person and for the expert's context.
 
-const CONTENT: Record<Cell['content'], string> = { open: 'abierto', drawer: 'cajón', door: 'puerta', closed: 'tapado' }
+const CONTENT: Record<Cell['content'], string> = { open: 'abierto', drawer: 'cajón', door: 'door', closed: 'tapado' }
 const CONSTRUCTION: { [K in keyof CabinetConstruction]: [string, Record<CabinetConstruction[K], string>] } = {
   doors: ['puertas', { overlay: 'sobrepuestas', inset: 'embutidas' }],
   drawerFronts: ['frentes de cajón', { inset: 'embutidos', overlay: 'sobrepuestos' }],
-  top: ['techo', { between: 'entre laterales', over: 'cubierta encima' }],
-  back: ['trasera', { nailed: 'clavada', none: 'sin trasera' }],
+  top: ['top', { between: 'entre laterales', over: 'cubierta encima' }],
+  back: ['back', { nailed: 'clavada', none: 'sin trasera' }],
   shelves: ['repisas', { movable: 'móviles', fixed: 'fijas' }],
 }
 
@@ -35,7 +35,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   if (h.style !== k.style) changes.push(HEADBOARD[k.style])
   if (k.style !== 'none' && h.height !== k.height) changes.push(`cabecera de ${k.height} mm`)
   if ((k.style === 'bookcase' || k.style === 'storage') && h.depth !== k.depth) changes.push(`cabecera de ${k.depth} mm de fondo`)
-  if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
+  if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'shelf' : 'repisas'} en la cabecera`)
   return changes
 }
 
