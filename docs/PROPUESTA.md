@@ -146,7 +146,7 @@ knotty/
    │  ├─ image/              reducción de fotos y miniaturas
    │  ├─ debug/              bitácora de depuración (localDebugLog) y proveedor que la alimenta (loggedProvider)
    │  └─ storedKey.ts        claves de localStorage (y mueve las de Despiece)
-   ├─ ui/                    system/ · capture/ · studio/ · scene/ · chat/ · settings/ · debug/ · store.ts · services.ts
+   ├─ ui/                    system/ · capture/ · studio/ · scene/ · chat/ · settings/ · debug/ · store/ · services.ts
    ├─ composition.ts         raíz de composición: instancia adapters e inyecta casos de uso
    ├─ main.tsx               arranque de React y del service worker
    └─ architecture.test.ts   fronteras entre capas
