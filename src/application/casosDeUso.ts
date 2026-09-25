@@ -14,7 +14,7 @@ import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../do
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import { describeChange, restorePieces } from '../domain/changes/changes'
 import type { Fix } from '../domain/fixes/fixes'
-import { buildPlan, FurniturePlan, isBed } from '../domain/modules/plan'
+import { buildPlan, FurniturePlan, isBed, isTable } from '../domain/modules/plan'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
@@ -219,7 +219,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
   /** Kinds that are not a box with columns: asking for a cabinet plan would only add a wasted call. */
   /** Kinds with no ficha yet: they go straight to piece by piece. */
-  const NOT_CABINETS = new Set(['desk', 'table', 'bench'])
+  const NOT_CABINETS = new Set(['bench'])
 
   /** The skeleton path: if the expert says it is a cabinet, Knotty builds it. Null means: design it whole. */
   async function designFromPlan(
@@ -243,16 +243,15 @@ export function crearCasosDeUso(deps: Dependencias) {
       trace.push(traceEntry('plan', 0, started, null, e instanceof RespuestaInvalida ? 'unreadable' : 'failed', [{ code: 'E_PLAN', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }]))
       return null
     }
-    const { cabinet, bed } = plan.valor
-    if (!cabinet && !bed) {
-      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No es un gabinete ni una cama: se diseña pieza por pieza'))
+    const { cabinet, bed, table } = plan.valor
+    if (!cabinet && !bed && !table) {
+      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No tiene ficha: se diseña pieza por pieza'))
       return null
     }
     alAvanzar('revisando', 0)
     // A cabinet takes the measures given; a bed takes them from its mattress.
-    const furniture: FurniturePlan = bed
-      ? bed
-      : { ...cabinet!, dimensions: entrada.medidas ? { width: entrada.medidas.ancho, height: entrada.medidas.alto, depth: entrada.medidas.fondo } : cabinet!.dimensions }
+    const given = entrada.medidas && { width: entrada.medidas.ancho, height: entrada.medidas.alto, depth: entrada.medidas.fondo }
+    const furniture: FurniturePlan = bed ? bed : table ? { ...table, dimensions: given ?? table.dimensions } : { ...cabinet!, dimensions: given ?? cabinet!.dimensions }
     const { design: built, notes } = buildPlan(furniture, catalogo)
     const { design, repairs } = repairDesign(built, catalogo, plan.valor.requisitos)
     const analisis = analizar(design, catalogo, plan.valor.requisitos)
@@ -260,7 +259,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       trace.push(traceEntry('plan', 0, started, plan, 'invalid', traceErrors(analisis.errores), repairs))
       return null
     }
-    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
+    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : table ? `Mesa (${table.use})` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
     alAvanzar('estructura', 0)
     const { explicacion, preguntas, fotosSolicitadas, requisitos, sugerencias } = plan.valor
     const r: RespuestaReconstruccion = { explicacion: [explicacion, ...notes].join('\n\n'), diseno: design, preguntas, fotosSolicitadas, requisitos, sugerencias }
@@ -421,7 +420,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       const requisitos = actualizarRequisitos(conPeticion.requisitos, r.requisitos)
       const base = { ...conPeticion, requisitos, decisiones: actualizarDecisiones(conPeticion.decisiones, r.decisiones) }
       const sugerencias = r.sugerencias.slice(0, 4)
-      const next: FurniturePlan | null = isBed(plan) ? r.bed : r.plan
+      const next: FurniturePlan | null = isBed(plan) ? r.bed : isTable(plan) ? r.table : r.plan
       if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
         trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
         return null
