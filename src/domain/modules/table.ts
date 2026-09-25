@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
-import type { FaceRef, Design, Piece, Joint } from '../design/schema'
+import { startAt, partway, endAt, ref, extent, makeJoint } from '../design/builders'
+import { DIMENSION_OF_AXIS, type FaceRef, type Design, type Piece, type Joint } from '../design/schema'
 import { completeJoints } from '../design/joints'
-import { materialById, type Catalog } from '../materials/catalog'
+import type { Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
-import { applyOperations } from '../operations/apply'
-import type { Operation } from '../operations/schema'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import type { FurnitureModule, Labels } from './module'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 
@@ -27,8 +27,20 @@ export const TablePlan = z.object({
 })
 export type TablePlan = z.infer<typeof TablePlan>
 
-/** What each use is called: the name is also how the checks by kind of furniture recognize it. */
-export const TABLE_NAMES: Record<TablePlan['use'], string> = { dining: 'Mesa de comedor', coffee: 'Mesa de centro', side: 'Mesa lateral', desk: 'Escritorio' }
+export const TABLE_LABELS = {
+  /** `name` is what each use is called, and also how the checks by kind of furniture recognize it. */
+  use: {
+    dining: { option: 'Comedor', name: 'Mesa de comedor' },
+    coffee: { option: 'Centro', name: 'Mesa de centro' },
+    side: { option: 'Lateral', name: 'Mesa lateral' },
+    desk: { option: 'Escritorio', name: 'Escritorio' },
+  } satisfies Record<TablePlan['use'], { option: string; name: string }>,
+  pedestal: {
+    none: { option: 'Sin cajonera', phrase: 'sin cajonera' },
+    left: { option: 'Izquierda', phrase: 'cajonera a la izquierda' },
+    right: { option: 'Derecha', phrase: 'cajonera a la derecha' },
+  } satisfies Labels<TablePlan['pedestal']['side']>,
+}
 
 /** Typical outside measures for each use, in mm, when the person gives none. */
 export const TYPICAL_TABLE_DIMENSIONS: Record<TablePlan['use'], TablePlan['dimensions']> = {
@@ -41,21 +53,17 @@ export const TYPICAL_TABLE_DIMENSIONS: Record<TablePlan['use'], TablePlan['dimen
 const APRON = 80
 /** On a desk the back apron runs lower: it braces the ends and hides the legs from the front. */
 const MODESTY = 300
-/** The top is carried at least this often: cleats between the aprons where the ends are far apart. */
-const MAX_SPAN = 600
 const SHELF_HEIGHT = 120
 const PEDESTAL = 420
-const KICK = 70
-const KICK_SETBACK = 30
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
 
 const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium' }
 
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
-  const t = materialById(catalog, plan.material)?.thickness ?? 18
+  const t = thicknessOf(catalog, plan.material)
   const { width, height, depth } = plan.dimensions
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
+  const panel = panelOf(plan.material)
   const pieces: Piece[] = []
   const joints: Joint[] = []
   const notes: string[] = []
@@ -63,7 +71,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const inset = Math.min(plan.overhang, MAX_END_INSET)
   const endsZ = extent(ref('furniture.z0', desk ? 0 : inset), ref('furniture.z1', -inset))
   const pedestal = desk && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0 ? plan.pedestal.side : null
-  let drawers: Operation[] = []
+  let drawers: AddDrawer[] = []
 
   pieces.push(
     panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] }),
@@ -81,7 +89,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
     pieces.push(
       panel({ id: 'ped-div', name: 'Costado interior de la cajonera', role: 'divider', normal: 'x', x: pedestal === 'left' ? startAt(ref('side-left.x1', PEDESTAL - 2 * t)) : endAt(ref('side-right.x0', -(PEDESTAL - 2 * t))), y: extent(ref('furniture.y0'), ref('top.y0')), z: endsZ }),
       panel({ id: 'ped-back', name: 'Fondo de la cajonera', role: 'back', normal: 'z', x: between, y: extent(ref('furniture.y0'), ref('top.y0')), z: startAt(ref(`${outer}.z0`)) }),
-      panel({ id: 'ped-kick', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('furniture.y0'), null, KICK), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
+      panel({ id: 'ped-kick', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('furniture.y0'), null, KICK_HEIGHT.pedestal), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
       panel({ id: 'ped-bottom', name: 'Piso de la cajonera', role: 'bottom', normal: 'y', x: between, y: startAt(ref('ped-kick.y1')), z: zBox, load: 'medium' }),
     )
     const n = plan.pedestal.drawers
@@ -117,27 +125,63 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
 
   // Cleats between the aprons, so the top never spans more than it can.
   const openWidth = width - 2 * plan.overhang - 2 * t - (pedestal ? PEDESTAL - t : 0)
-  const cleats = Math.ceil(openWidth / (MAX_SPAN + t)) - 1
+  const cleats = supportsAcross(openWidth, t)
   for (let k = 1; k <= cleats; k++)
     pieces.push(panel({ id: `rail-${k}`, name: `Travesaño ${k}`, role: 'divider', normal: 'x', x: startAt(partway(openLeft, openRight, k / (cleats + 1), -t / 2)), y: extent(ref('apron-front.y0'), ref('top.y0')), z: extent(ref('apron-back.z1'), ref('apron-front.z0')) }))
 
   if (plan.shelf && !desk) {
     pieces.push(panel({ id: 'low-shelf', name: 'Repisa baja', role: 'shelf', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(ref('furniture.y0', SHELF_HEIGHT)), z: endsZ, load: 'light' }))
     // The shelf sits close to the floor: short feet under it are simpler than anything above.
-    const feet = Math.ceil((width - 2 * plan.overhang - 2 * t) / (MAX_SPAN + t)) - 1
+    const feet = supportsAcross(width - 2 * plan.overhang - 2 * t, t)
     for (let k = 1; k <= feet; k++)
       pieces.push(panel({ id: `shelf-leg-${k}`, name: `Apoyo ${k} de la repisa`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', k / (feet + 1), -t / 2)), y: extent(ref('furniture.y0'), ref('low-shelf.y0')), z: endsZ }))
   }
   if (plan.shelf && desk) notes.push('Un escritorio no lleva repisa baja: estorba las piernas.')
 
-  let design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints }
-  for (const drawer of drawers) {
-    const result = applyOperations(design, [drawer], catalog)
-    if (!result.ok) {
-      notes.push(`${drawer.op === 'addDrawer' ? drawer.name : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
-      continue
-    }
-    design = result.value.design
-  }
-  return { design: completeJoints(design, catalog), notes }
+  const design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints }
+  const placed = addDrawers(design, drawers, catalog)
+  notes.push(...placed.notes)
+  return { design: completeJoints(placed.design, catalog), notes }
+}
+
+function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
+  const changes: string[] = []
+  if (before.use !== after.use) changes.push(`ahora ${lower(TABLE_LABELS.use[after.use].name)}`)
+  else if (before.name !== after.name) changes.push(`se llama «${after.name}»`)
+  const [a, b] = [before.dimensions, after.dimensions]
+  if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
+  if (before.material !== after.material) changes.push(`material ${after.material}`)
+  if (before.overhang !== after.overhang) changes.push(after.overhang ? `cubierta que sobresale ${after.overhang} mm` : 'costados a la orilla')
+  if (before.shelf !== after.shelf) changes.push(after.shelf ? 'con repisa baja' : 'sin repisa baja')
+  if (before.pedestal.side !== after.pedestal.side) changes.push(TABLE_LABELS.pedestal[after.pedestal.side].phrase)
+  if (after.pedestal.side !== 'none' && before.pedestal.drawers !== after.pedestal.drawers) changes.push(`${after.pedestal.drawers} ${after.pedestal.drawers === 1 ? 'cajón' : 'cajones'} en la cajonera`)
+  return changes
+}
+
+function benchTables(): [string, TablePlan][] {
+  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, ...extra })
+  return [
+    ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
+    ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
+    ['centro', table('coffee', 'Mesa de centro', { width: 1000, height: 420, depth: 550 }, { shelf: true })],
+    ['lateral', table('side', 'Mesa lateral', { width: 500, height: 550, depth: 400 }, { shelf: true })],
+    ['escritorio', table('desk', 'Escritorio', { width: 1200, height: 750, depth: 600 })],
+    ...([1, 2, 3, 4] as const).flatMap((drawers) =>
+      (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
+    ),
+  ]
+}
+
+export const tableModule: FurnitureModule<TablePlan> = {
+  kind: 'table',
+  schema: TablePlan,
+  label: 'una mesa',
+  build: buildTable,
+  describeChanges: describeTableChanges,
+  resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),
+  withMeasures: (plan, { width, height, depth }) => ({ ...plan, dimensions: { width, height, depth } }),
+  summary: (_, dimensions) => measuresSummary(dimensions),
+  measuresNote: () => null,
+  traceLabel: (plan) => `Mesa (${plan.use})`,
+  benchVariants: benchTables,
 }

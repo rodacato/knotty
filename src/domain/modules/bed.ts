@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent } from '../design/builders'
+import { startAt, partway, endAt, ref, extent } from '../design/builders'
 import type { FaceRef, Design, Piece } from '../design/schema'
 import { completeJoints } from '../design/joints'
-import { materialById, type Catalog } from '../materials/catalog'
-import { applyOperations } from '../operations/apply'
-import type { Operation } from '../operations/schema'
+import type { Catalog } from '../materials/catalog'
 import { MATTRESSES } from '../typology/typology'
+import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import type { FurnitureModule, Labels } from './module'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
@@ -39,11 +39,34 @@ export const BedPlan = z.object({
 })
 export type BedPlan = z.infer<typeof BedPlan>
 
+export const BED_LABELS = {
+  mattress: {
+    individual: { option: 'Individual', phrase: 'colchón individual' },
+    matrimonial: { option: 'Matrimonial', phrase: 'colchón matrimonial' },
+    queen: { option: 'Queen', phrase: 'colchón queen' },
+    king: { option: 'King', phrase: 'colchón king' },
+  } satisfies Labels<Mattress>,
+  drawerSide: {
+    none: { option: 'Sin cajones', phrase: 'sin cajones' },
+    left: { option: 'Izquierda', phrase: 'cajones del lado izquierdo' },
+    right: { option: 'Derecha', phrase: 'cajones del lado derecho' },
+    both: { option: 'Los dos', phrase: 'cajones de los dos lados' },
+  } satisfies Labels<BedPlan['drawers']['side']>,
+  drawerPosition: {
+    head: { option: 'Cabecera', phrase: 'hacia la cabecera' },
+    center: { option: 'Centro', phrase: 'al centro' },
+    foot: { option: 'Pie', phrase: 'hacia el pie' },
+  } satisfies Labels<BedPlan['drawers']['position']>,
+  headboard: {
+    none: { option: 'Sin cabecera', phrase: 'sin cabecera' },
+    plain: { option: 'Lisa', phrase: 'cabecera lisa' },
+    bookcase: { option: 'Librero', phrase: 'cabecera librero' },
+    storage: { option: 'Compartimento', phrase: 'cabecera con compartimento' },
+  } satisfies Labels<BedPlan['headboard']['style']>,
+}
+
 /** Room around the mattress so it goes in and comes out. */
 const MATTRESS_PLAY = 20
-const KICK_HEIGHT = 80
-/** The platform carries people: it needs something under it at least this often, and drawers are no wider. */
-const MAX_SPAN = 600
 /** A closed stretch of side shorter than this leaves too little joint for two screws. */
 const MIN_CLOSED_STRETCH = 120
 /** As wide as a drawer gets to fill its side: past it, the platform over the drawer bends more than it should. */
@@ -80,12 +103,12 @@ interface BuiltBed {
 }
 
 export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
-  const t = materialById(catalog, plan.material)?.thickness ?? 18
+  const t = thicknessOf(catalog, plan.material)
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
+  const panel = panelOf(plan.material)
   // The headboard is its own part: its floor is level with the platform but is not where the mattress goes.
-  const headboardPanel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => panel({ group: 'headboard', ...p })
+  const headboardPanel = (p: Parameters<typeof panel>[0]) => panel({ group: 'headboard', ...p })
   const pieces: Piece[] = []
   const notes: string[] = []
   const style = plan.headboard.style
@@ -136,7 +159,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   pieces.push(panel({ id: 'spine', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(ref('furniture.y0'), ref(under('left'))), z: startAt(ref('furniture.z0', middle - t / 2)), grain: 'length' }))
 
   // Each side: drawers between dividers, or a closed rail.
-  const drawers: Operation[] = []
+  const drawers: AddDrawer[] = []
   const inner = size.width - hd - t - (style === 'plain' ? 0 : deep ? 0 : t)
   for (const side of ['left', 'right'] as const) {
     const faceZ = side === 'left' ? endAt(ref('furniture.z1')) : startAt(ref('furniture.z0'))
@@ -144,7 +167,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const label = side === 'left' ? 'izquierdo' : 'derecho'
     /** Cross members over a closed stretch of the side, so the platform never spans more than it can. */
     const crossMembers = (from: number, to: number, span: number) => {
-      const count = Math.ceil((to - from) / (MAX_SPAN + t)) - 1
+      const count = supportsAcross(to - from, t)
       for (let k = 1; k <= count; k++)
         pieces.push(panel({ id: `rail-${side}-${span}-${k}`, name: `Travesaño ${label} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(ref('furniture.y0'), ref(under(side))), z: side === 'left' ? extent(ref('spine.z1'), ref(`side-${side}-${span}.z0`)) : extent(ref(`side-${side}-${span}.z1`), ref('spine.z0')) }))
     }
@@ -186,7 +209,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
       }
       edges.push(right)
       const bay = `${side}-${k}`
-      pieces.push(panel({ id: `kick-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('furniture.y0'), null, KICK_HEIGHT), grain: 'length' }))
+      pieces.push(panel({ id: `kick-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('furniture.y0'), null, KICK_HEIGHT.bed), grain: 'length' }))
       drawers.push({
         op: 'addDrawer',
         group: `drawer-${side}-${k}`,
@@ -208,7 +231,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     })
   }
 
-  let design: Design = {
+  const design: Design = {
     schema: 1,
     name: plan.name,
     dimensions: { width: size.width, height: size.height, depth: size.length },
@@ -217,13 +240,60 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     pieces: pieces,
     joints: [],
   }
-  for (const drawer of drawers) {
-    const result = applyOperations(design, [drawer], catalog)
-    if (!result.ok) {
-      notes.push(`${drawer.op === 'addDrawer' ? drawer.name : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
-      continue
-    }
-    design = result.value.design
-  }
-  return { design: completeJoints(design, catalog), notes }
+  const placed = addDrawers(design, drawers, catalog)
+  notes.push(...placed.notes)
+  return { design: completeJoints(placed.design, catalog), notes }
+}
+
+function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
+  const changes: string[] = []
+  if (before.mattress !== after.mattress) changes.push(BED_LABELS.mattress[after.mattress].phrase)
+  if (before.height !== after.height) changes.push(`base de ${after.height} mm`)
+  if (before.material !== after.material) changes.push(`material ${after.material}`)
+  const [a, b] = [before.drawers, after.drawers]
+  if (a.side !== b.side) changes.push(BED_LABELS.drawerSide[b.side].phrase)
+  if (b.side !== 'none' && a.count !== b.count) changes.push(`${b.count} ${b.count === 1 ? 'cajón' : 'cajones'} por lado`)
+  if (b.side !== 'none' && a.position !== b.position) changes.push(`cajones ${BED_LABELS.drawerPosition[b.position].phrase}`)
+  const [h, k] = [before.headboard, after.headboard]
+  if (h.style !== k.style) changes.push(BED_LABELS.headboard[k.style].phrase)
+  if (k.style !== 'none' && h.height !== k.height) changes.push(`cabecera de ${k.height} mm`)
+  if ((k.style === 'bookcase' || k.style === 'storage') && h.depth !== k.depth) changes.push(`cabecera de ${k.depth} mm de fondo`)
+  if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
+  return changes
+}
+
+function benchBeds(): [string, BedPlan][] {
+  const variants: [string, BedPlan][] = []
+  for (const mattress of Mattress.options)
+    for (const style of BedPlan.shape.headboard.shape.style.options)
+      for (const side of BedPlan.shape.drawers.shape.side.options)
+        for (const position of BedPlan.shape.drawers.shape.position.options) {
+          if (side === 'none' && position !== 'head') continue
+          const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
+          variants.push([
+            `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } },
+          ])
+        }
+  return variants
+}
+
+export const bedModule: FurnitureModule<BedPlan> = {
+  kind: 'bed',
+  schema: BedPlan,
+  label: 'una cama',
+  build: buildBed,
+  describeChanges: describeBedChanges,
+  // Its length and width come from the mattress; its height is the headboard's, or the base's without one.
+  resize: (plan, axis, value) =>
+    axis !== 'y'
+      ? { ok: false, message: 'El largo y el ancho de la cama salen del colchón: cambia el colchón en la ficha.' }
+      : { ok: true, plan: plan.headboard.style === 'none' ? { ...plan, height: value } : { ...plan, headboard: { ...plan.headboard, height: value } } },
+  // Its measures come from the mattress, not from the ones the person gave.
+  withMeasures: (plan) => plan,
+  // Along x runs its length: it reads as its width by its length.
+  summary: (plan, { width, depth }) => `${cm(depth)} × ${cm(width)} · ${BED_LABELS.mattress[plan.mattress].phrase}`,
+  measuresNote: (plan, { width, height, depth }) => `Las medidas salen del ${BED_LABELS.mattress[plan.mattress].phrase}: la cama mide ${depth / 10} × ${width / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${height / 10} cm de alto con la cabecera`}.`,
+  traceLabel: (plan) => `Cama ${plan.mattress}`,
+  benchVariants: benchBeds,
 }

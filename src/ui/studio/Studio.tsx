@@ -10,7 +10,7 @@ import { Chat } from '../chat/Chat'
 import { SceneBoundary } from '../scene/SceneBoundary'
 import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
-import { Button, cm } from '../system/components'
+import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
 import { visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
@@ -19,7 +19,8 @@ import { Materials } from './Materials'
 import { PieceCard } from './Panels'
 import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
-import { isBed } from '../../domain/modules/plan'
+import { measuresSummary } from '../../domain/modules/common'
+import { moduleOf } from '../../domain/modules/plan'
 import { NoticePanel } from './NoticePanel'
 
 const VIEWS: { id: View; name: string }[] = [
@@ -101,10 +102,8 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const design = currentDesign(state)
-  const { width, height, depth } = design.dimensions
-  const plan = currentPlan(state).plan
-  // A bed reads as its width by its length and its mattress; along x runs its length.
-  const bed = plan && isBed(plan) && !currentPlan(state).diverged ? plan : null
+  const { plan, diverged } = currentPlan(state)
+  const summary = plan && !diverged ? moduleOf(plan).summary(plan, design.dimensions) : measuresSummary(design.dimensions)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const label = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
   return (
@@ -113,7 +112,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg leading-tight font-semibold">{design.name}</p>
         <p className="numerals truncate text-[11px] text-graphite-2">
-          {bed ? `${cm(depth)} × ${cm(width)} · colchón ${bed.mattress}` : `${height} × ${width} × ${depth} mm · ${cm(width)} de ancho`}
+          {summary}
         </p>
       </div>
       <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">

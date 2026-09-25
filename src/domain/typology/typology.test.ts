@@ -10,7 +10,7 @@ import { detectKind } from './typology'
 
 const cell = (content: Cell['content'], extra: Partial<Cell> = {}): Cell => ({ height: 1, content, shelves: null, doors: null, ...extra })
 const cabinet = (p: Partial<CabinetPlan>) =>
-  buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, testCatalog).design
+  buildCabinet({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, testCatalog).design
 const usage = (d: Design) => {
   const a = analyze(d, testCatalog)
   if (!a.valid) throw new Error(a.errors[0].message)

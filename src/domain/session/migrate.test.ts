@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import saved from './state-v1.fixture.json'
 import { migrateState } from './migrate'
+import { DEFAULT_CONSTRUCTION } from '../modules/cabinet'
 import { currentDesign, DesignState } from './state'
 import { analyze } from '../analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
@@ -34,7 +35,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(6)
+    expect(migrated.data?.format).toBe(7)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -93,8 +94,25 @@ describe('migrateState', () => {
     const v5 = { ...structuredClone(migrated.data!), format: 5 }
     v5.review!.checks.push({ id: 'aceptados', title: 'Aceptado por ti', status: 'warning', detail: 'x', pieces: [], request: null, impossible: false })
     const state = DesignState.parse(migrateState(v5))
-    expect(state.format).toBe(6)
+    expect(state.format).toBe(7)
     expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin', 'accepted'])
+  })
+
+  it('names the kind of a cabinet plan saved by format 6, and leaves the bed and table plans as they were', () => {
+    const cabinet = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 4, doors: null }] }] }
+    const bed = { kind: 'bed', name: 'Cama', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }
+    const v6 = structuredClone(migrated.data!) as unknown as { format: number; versions: { plan: unknown }[]; proposal: { plan: unknown } }
+    v6.format = 6
+    v6.versions[0].plan = cabinet
+    v6.versions.at(-1)!.plan = bed
+    v6.proposal.plan = cabinet
+    const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v6))))
+    expect(state.format).toBe(7)
+    expect(state.versions[0].plan).toEqual({ kind: 'cabinet', ...cabinet })
+    expect(state.versions.at(-1)!.plan).toEqual(bed)
+    expect(state.proposal?.plan).toEqual({ kind: 'cabinet', ...cabinet })
+    // What is saved again reads back the same.
+    expect(DesignState.parse(migrateState(JSON.parse(JSON.stringify(state))))).toEqual(state)
   })
 
   it('leaves the current format as it is', () => {

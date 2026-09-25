@@ -6,8 +6,8 @@ import { exampleBookcase } from '../../../domain/fixtures/bookcase'
 import type { Operation } from '../../../domain/operations/schema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viability/viability'
-import type { BedPlan } from '../../../domain/modules/bed'
-import { TABLE_NAMES, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/modules/table'
+import { BED_LABELS, type BedPlan } from '../../../domain/modules/bed'
+import { TABLE_LABELS, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/modules/table'
 import type { LLMProvider, ExpertResponse, AdjustmentResponse, ReviewResponse, PlanResponse, ReconstructionResponse, ReviewRequest } from '../../../ports/LLMProvider'
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
@@ -32,7 +32,6 @@ const adjustment = (partial: Partial<AdjustmentResponse> & Pick<AdjustmentRespon
   ...partial,
 })
 
-const HEADBOARD: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera tipo librero', storage: 'cabecera con un compartimento a la altura de la almohada y repisas arriba' }
 const WORDS: Record<string, number> = { un: 1, uno: 1, dos: 2, tres: 3, cuatro: 4 }
 
 /** "3 cajones", "dos entrepaños": the number said right before a word. */
@@ -55,7 +54,7 @@ function tableFrom(notes: string, measures: Dimensions | null): TablePlan | null
   const found = TABLES.find(([, pattern]) => pattern.test(text))
   if (!found) return null
   const [use] = found
-  const name = TABLE_NAMES[use]
+  const name = TABLE_LABELS.use[use].name
   const drawers = use === 'desk' && /caj/.test(text) ? (countBefore(text, 'caj') ?? 3) : 0
   return {
     kind: 'table',
@@ -347,7 +346,7 @@ export function createSimulated(delay = 900): LLMProvider {
         })
       return response<PlanResponse>({
         explanation: bed
-          ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${HEADBOARD[bed.headboard.style]}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
+          ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${BED_LABELS.headboard[bed.headboard.style].phrase}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
           : '',
         cabinet: null,
         bed,

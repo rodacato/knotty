@@ -53,10 +53,20 @@ export interface ReviewRequest {
   catalog: Catalog
 }
 
+/** The expert names the kind by the field it fills, so its cabinet has no `kind` (bed and table carry theirs): what it sees stays as it was. */
+const ExpertCabinetPlan = CabinetPlan.omit({ kind: true })
+
+/** The plan the expert gave for each kind, bed first: when it fills more than one field, the first one counts. */
+export const expertPlans = (r: Pick<PlanResponse, 'cabinet' | 'bed' | 'table'>): { [K in FurniturePlan['kind']]: Extract<FurniturePlan, { kind: K }> | null } => ({
+  bed: r.bed,
+  table: r.table,
+  cabinet: r.cabinet && { kind: 'cabinet', ...r.cabinet },
+})
+
 /** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
 export const PlanResponse = z.object({
   explanation: z.string().describe('What you understood and what you decided, in 2–4 sentences for the person, in Spanish'),
-  cabinet: CabinetPlan.nullable().describe('The plan if the furniture is a cabinet (a box with columns and openings); null if it is not'),
+  cabinet: ExpertCabinetPlan.nullable().describe('The plan if the furniture is a cabinet (a box with columns and openings); null if it is not'),
   bed: BedPlan.nullable().describe('The plan if the furniture is a bed (a base with or without drawers, and a headboard); null if it is not'),
   table: TablePlan.nullable().describe('The plan if the furniture is a table or a desk; null if it is not'),
   questions: z.array(Question).describe('What changes the design or the purchase the most; at most 3'),
@@ -71,7 +81,7 @@ export const PlanAdjustment = z.object({
   explanation: z.string().describe('What changes and why, brief, like a carpenter, in Spanish; or the answer if the person only asked'),
   summary: z.string().max(90).describe('For the timeline, in Spanish, in the infinitive: "Agregar un cajón"'),
   action: z.enum(['plan', 'freeform', 'answer']).describe('plan: the change fits in the plan and goes in `cabinet`, `bed` or `table`; freeform: asks for something the plan cannot express; answer: did not ask for a change'),
-  cabinet: CabinetPlan.nullable().describe('The complete cabinet plan with the change, when action is "plan" and the furniture is a cabinet; null otherwise'),
+  cabinet: ExpertCabinetPlan.nullable().describe('The complete cabinet plan with the change, when action is "plan" and the furniture is a cabinet; null otherwise'),
   bed: BedPlan.nullable().describe('The complete bed plan with the change, when action is "plan" and the furniture is a bed; null otherwise'),
   table: TablePlan.nullable().describe('The complete table or desk plan with the change, when action is "plan" and the furniture is a table; null otherwise'),
   questions: z.array(Question),

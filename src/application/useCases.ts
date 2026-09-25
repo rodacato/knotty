@@ -14,9 +14,8 @@ import { updateRequirements, checkRequirements, type Requirement } from '../doma
 import { currentDesign, markAnswered, questionAnswerKey, type PurchaseReview, type DesignState, type Message, type Thumbnail, type Question } from '../domain/session/state'
 import { describeChange, restorePieces } from '../domain/changes/changes'
 import { fixForAlternative, type Fix } from '../domain/fixes/fixes'
-import { buildPlan, FurniturePlan, isBed, isTable } from '../domain/modules/plan'
+import { buildPlan, describePlanChanges, FurniturePlan, moduleOf } from '../domain/modules/plan'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
-import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
 import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
@@ -25,7 +24,7 @@ import type { DesignError } from '../domain/validation/errors'
 import { worst, reviewViability, type Check } from '../domain/viability/viability'
 import { toggleInTray, trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../ports/LLMProvider'
+import { expertPlans, InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../ports/LLMProvider'
 import { buildContext, describeAlternatives } from './context'
 
 export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
@@ -258,15 +257,13 @@ export function createUseCases(deps: Dependencies) {
       trace.push(traceEntry('plan', 0, started, null, e instanceof InvalidResponse ? 'unreadable' : 'failed', [{ code: 'E_PLAN', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }]))
       return null
     }
-    const { cabinet, bed, table } = plan.value
-    if (!cabinet && !bed && !table) {
+    const offered = Object.values(expertPlans(plan.value)).find((p) => p !== null)
+    if (!offered) {
       trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No tiene ficha: se diseña pieza por pieza'))
       return null
     }
     onProgress('checking', 0)
-    // A cabinet takes the measures given; a bed takes them from its mattress.
-    const given = input.measures && { width: input.measures.width, height: input.measures.height, depth: input.measures.depth }
-    const furniture: FurniturePlan = bed ? bed : table ? { ...table, dimensions: given ?? table.dimensions } : { ...cabinet!, dimensions: given ?? cabinet!.dimensions }
+    const furniture = input.measures ? moduleOf(offered).withMeasures(offered, input.measures) : offered
     const { design: built, notes } = buildPlan(furniture, catalog)
     const { design, repairs } = repairDesign(built, catalog, plan.value.requirements)
     const analysis = analyze(design, catalog, plan.value.requirements)
@@ -274,7 +271,7 @@ export function createUseCases(deps: Dependencies) {
       trace.push(traceEntry('plan', 0, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
       return null
     }
-    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : table ? `Mesa (${table.use})` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
+    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, moduleOf(furniture).traceLabel(furniture)))
     onProgress('structure', 0)
     const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
     const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
@@ -352,18 +349,18 @@ export function createUseCases(deps: Dependencies) {
     plan: FurniturePlan | null = null,
   ): DesignState {
     const { width, height, depth } = design.dimensions
-    const estimated =
-      plan && isBed(plan)
-        ? [`Las medidas salen del colchón ${plan.mattress}: la cama mide ${depth / 10} × ${width / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${height / 10} cm de alto con la cabecera`}.`]
-        : input.measures
-          ? []
-          : [`Como no tenías las medidas, las estimé: ${height} × ${width} × ${depth} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
+    const fromPlan = plan && moduleOf(plan).measuresNote(plan, design.dimensions)
+    const estimated = fromPlan
+      ? [fromPlan]
+      : input.measures
+        ? []
+        : [`Como no tenías las medidas, las estimé: ${height} × ${width} × ${depth} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
     const repaired = repairs.length ? [`Ajusté por mi cuenta ${repairs.length === 1 ? 'un detalle' : `${repairs.length} detalles`}: ${repairs.map((x) => x.message).join(' ')}`] : []
     const pendingItems = problems.length
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 6,
+      format: 7,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -435,7 +432,7 @@ export function createUseCases(deps: Dependencies) {
       const requirements = updateRequirements(withRequest.requirements, r.requirements)
       const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
       const suggestions = r.suggestions.slice(0, 4)
-      const next: FurniturePlan | null = isBed(plan) ? r.bed : isTable(plan) ? r.table : r.cabinet
+      const next = expertPlans(r)[plan.kind]
       if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
         trace.push(traceEntry('adjust', 0, started, response, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
         return null
@@ -661,7 +658,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 6,
+      format: 7,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,
@@ -748,15 +745,9 @@ export function createUseCases(deps: Dependencies) {
     const current = currentPlan(state)
     if (current.plan && !current.diverged) {
       const plan = current.plan
-      const key = { x: 'width', y: 'height', z: 'depth' } as const
-      // A bed's length and width come from its mattress; its height is the headboard's, or the base's without one.
-      if (isBed(plan) && axis !== 'y') return { ok: false, message: 'El largo y el ancho de la cama salen del colchón: cambia el colchón en la ficha.', alternatives: [] }
-      const resized: FurniturePlan = isBed(plan)
-        ? plan.headboard.style === 'none'
-          ? { ...plan, height: value }
-          : { ...plan, headboard: { ...plan.headboard, height: value } }
-        : { ...plan, dimensions: { ...plan.dimensions, [key[axis]]: value } }
-      const r = applyPlan(state, resized)
+      const resized = moduleOf(plan).resize(plan, axis, value)
+      if (!resized.ok) return { ok: false, message: resized.message, alternatives: [] }
+      const r = applyPlan(state, resized.plan)
       return r.ok ? { ok: true, state: r.state } : { ok: false, message: r.message, alternatives: [] }
     }
     const operations: Operation[] = [{ op: 'resizeFurniture', axis: axis, value: value, rule: 'stretch' }]

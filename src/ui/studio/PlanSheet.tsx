@@ -2,13 +2,12 @@ import { ArrowCounterClockwise, Check, Plus, Trash, Warning } from '@phosphor-ic
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { BedPlan } from '../../domain/modules/bed'
-import type { CabinetConstruction, CabinetPlan } from '../../domain/modules/cabinet'
-import { isBed, isTable, type FurniturePlan } from '../../domain/modules/plan'
+import { CABINET_LABELS, type CabinetConstruction, type CabinetPlan } from '../../domain/modules/cabinet'
+import { describePlanChanges, type FurniturePlan } from '../../domain/modules/plan'
 import type { TablePlan } from '../../domain/modules/table'
 import { TableFields } from './TableFields'
 import { BedFields } from './BedFields'
-import { NumberField, Segmented, Stepper } from './PlanControls'
-import { describePlanChanges } from '../../domain/modules/planChanges'
+import { NumberField, optionsOf, Segmented, Stepper } from './PlanControls'
 import type { Cell, Column } from '../../domain/reading/reading'
 import type { DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
@@ -17,19 +16,9 @@ import { useStore } from '../store'
 
 // The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.
 
-const CONSTRUCTION: { key: keyof CabinetConstruction; label: string; options: [string, string][] }[] = [
-  { key: 'doors', label: 'Puertas', options: [['overlay', 'Sobrepuestas'], ['inset', 'Embutidas']] },
-  { key: 'drawerFronts', label: 'Frentes de cajón', options: [['inset', 'Embutidos'], ['overlay', 'Sobrepuestos']] },
-  { key: 'top', label: 'Techo', options: [['between', 'Entre laterales'], ['over', 'Cubierta encima']] },
-  { key: 'back', label: 'Trasera', options: [['nailed', 'Clavada'], ['none', 'Sin trasera']] },
-  { key: 'shelves', label: 'Repisas', options: [['movable', 'Móviles'], ['fixed', 'Fijas']] },
-]
-const CONTENTS: [Cell['content'], string][] = [
-  ['open', 'Abierto'],
-  ['drawer', 'Cajón'],
-  ['door', 'Puerta'],
-  ['closed', 'Tapado'],
-]
+const CONSTRUCTION = (Object.keys(CABINET_LABELS.construction) as (keyof CabinetConstruction)[]).map((key) => ({ key, label: CABINET_LABELS.construction[key].label, options: Object.entries(CABINET_LABELS.construction[key].options) }))
+const CONTENTS = Object.entries(CABINET_LABELS.cell) as [Cell['content'], string][]
+const BASES = optionsOf(CABINET_LABELS.base)
 const newCell = (): Cell => ({ height: 1, content: 'open', shelves: 0, doors: null })
 const percent = (value: number, all: number[]) => Math.round((value / (all.reduce((s, v) => s + v, 0) || 1)) * 100)
 
@@ -104,7 +93,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Base</span>
-            <Segmented label="Base" value={draft.base} options={[['kick', 'Con zoclo'], ['floor', 'Directa']]} onChange={(base) => set({ base: base as CabinetPlan['base'] })} />
+            <Segmented label="Base" value={draft.base} options={BASES} onChange={(base) => set({ base: base as CabinetPlan['base'] })} />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Anclado al muro</span>
@@ -178,6 +167,19 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
   )
 }
 
+function Fields({ draft, set }: { draft: FurniturePlan; set: (change: Partial<CabinetPlan> | Partial<BedPlan> | Partial<TablePlan>) => void }) {
+  switch (draft.kind) {
+    case 'cabinet':
+      return <CabinetFields draft={draft} set={set} />
+    case 'bed':
+      return <BedFields draft={draft} set={set} />
+    case 'table':
+      return <TableFields draft={draft} set={set} />
+    default:
+      return draft satisfies never
+  }
+}
+
 export function PlanSheet({ state }: { state: DesignState }) {
   const applyPlan = useStore((s) => s.applyPlan)
   const source = useMemo(() => currentPlan(state), [state])
@@ -223,7 +225,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
         </p>
       )}
 
-      {isBed(draft) ? <BedFields draft={draft} set={set} /> : isTable(draft) ? <TableFields draft={draft} set={set} /> : <CabinetFields draft={draft} set={set} />}
+      <Fields draft={draft} set={set} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
         {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite-2'}`}>{message.text}</p>}

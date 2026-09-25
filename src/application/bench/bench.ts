@@ -1,7 +1,5 @@
 import { analyze } from '../../domain/analysis'
-import { buildBed, type BedPlan } from '../../domain/modules/bed'
-import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../domain/modules/cabinet'
-import { buildTable, type TablePlan } from '../../domain/modules/table'
+import { buildPlan, MODULES, type FurnitureKind } from '../../domain/modules/plan'
 import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
 import { estimatePurchase } from '../../domain/materials/purchase'
@@ -39,7 +37,7 @@ export interface BenchResult {
 }
 
 export interface ModuleCheck {
-  module: 'bed' | 'table' | 'cabinet'
+  module: FurnitureKind
   variant: string
   valid: boolean
   findings: string[]
@@ -90,11 +88,6 @@ function withinExpected(c: BenchCase, d: Design['dimensions']) {
   return inside(d) || (!!c.anyOrientation && inside({ ...d, width: d.depth, depth: d.width }))
 }
 
-// Spanish labels for the bed variants the bench shows the person.
-const HEADBOARD_LABEL: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera librero', storage: 'cabecera con compartimento' }
-const DRAWER_SIDE_LABEL: Record<BedPlan['drawers']['side'], string> = { none: '', left: 'a la izquierda', right: 'a la derecha', both: 'de cada lado' }
-const DRAWER_POSITION_LABEL: Record<BedPlan['drawers']['position'], string> = { head: 'hacia la cabecera', center: 'al centro', foot: 'hacia el pie' }
-
 export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) {
   const { catalog } = deps
 
@@ -144,38 +137,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       const a = analyze(design, catalog)
       return { module, variant, valid: a.valid, findings: a.valid ? a.findings.map((h) => `${h.severity}: ${h.message}`) : a.errors.map((e) => e.message) }
     }
-    const results: ModuleCheck[] = []
-    for (const mattress of ['individual', 'matrimonial', 'queen', 'king'] as const)
-      for (const style of ['none', 'plain', 'bookcase', 'storage'] as const)
-        for (const side of ['none', 'left', 'right', 'both'] as const)
-          for (const position of ['head', 'center', 'foot'] as const) {
-            if (side === 'none' && position !== 'head') continue
-            const plan: BedPlan = { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } }
-            results.push(check('bed', `${mattress}, ${HEADBOARD_LABEL[style]}, ${side === 'none' ? 'sin cajones' : `cajones ${DRAWER_SIDE_LABEL[side]} ${DRAWER_POSITION_LABEL[position]}`}`, buildBed(plan, catalog).design))
-          }
-    const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, ...extra })
-    const tables: [string, TablePlan][] = [
-      ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
-      ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
-      ['centro', table('coffee', 'Mesa de centro', { width: 1000, height: 420, depth: 550 }, { shelf: true })],
-      ['lateral', table('side', 'Mesa lateral', { width: 500, height: 550, depth: 400 }, { shelf: true })],
-      ['escritorio', table('desk', 'Escritorio', { width: 1200, height: 750, depth: 600 })],
-      ...([1, 2, 3, 4] as const).flatMap((drawers) =>
-        (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
-      ),
-    ]
-    for (const [variant, plan] of tables) results.push(check('table', variant, buildTable(plan, catalog).design))
-    const cell = (content: 'open' | 'drawer' | 'door' | 'closed', height = 1, shelves: number | null = null, doors: number | null = null) => ({ height, content, shelves, doors })
-    const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ name, dimensions, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
-    const cabinets: [string, CabinetPlan][] = [
-      ['librero', cabinet('Librero', { width: 600, height: 1800, depth: 300 }, [{ width: 1, cells: [cell('open', 1, 4)] }])],
-      ['buró', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'floor', wallMounted: false })],
-      ['alacena', cabinet('Alacena', { width: 760, height: 720, depth: 320 }, [{ width: 1, cells: [cell('door', 1, 1, 2)] }], { base: 'floor' })],
-      ['cajonera', cabinet('Cajonera', { width: 500, height: 900, depth: 450 }, [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }])],
-      ['mueble de TV', cabinet('Mueble de TV', { width: 1600, height: 500, depth: 400 }, [{ width: 0.3, cells: [cell('door', 1, 0, 1)] }, { width: 0.4, cells: [cell('open', 1, 1)] }, { width: 0.3, cells: [cell('door', 1, 0, 1)] }], { wallMounted: false })],
-    ]
-    for (const [variant, plan] of cabinets) results.push(check('cabinet', variant, buildCabinet(plan, catalog).design))
-    return results
+    return Object.values(MODULES).flatMap((module) => module.benchVariants().map(([variant, plan]) => check(module.kind, variant, buildPlan(plan, catalog).design)))
   }
 
   return { cases: BENCH_CASES, runCase, runModules }
