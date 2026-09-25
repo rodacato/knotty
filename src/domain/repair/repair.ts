@@ -1,6 +1,6 @@
 import { analizar } from '../analisis'
 import { mm } from '../diseno/construir'
-import { EJES, isDrawerPart, type Diseno, type Eje, type Pieza, type Rol } from '../diseno/esquema'
+import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno, type Eje, type Pieza, type Rol } from '../diseno/esquema'
 import { normalizar } from '../diseno/normalizador'
 import { redondear, type Caja } from '../diseno/resolver'
 import type { Catalogo } from '../materiales/catalogo'
@@ -54,27 +54,40 @@ function fixOverlap(e: ErrorDiseno, design: Diseno, boxes: Map<string, Caja>): F
       repair: { code: e.codigo, message: `Quité ${give.nombre}: estaba completa dentro de ${keep.nombre}.`, pieces: [give.id, keep.id] },
     }
 
-  const options = EJES.map((axis) => {
-    const before = (g[`${axis}0`] + g[`${axis}1`]) / 2 < (k[`${axis}0`] + k[`${axis}1`]) / 2
-    const length = g[`${axis}1`] - g[`${axis}0`]
-    if (axis === give.normal) {
-      const start = before ? k[`${axis}0`] - length : k[`${axis}1`]
-      return { axis, cost: overlap(axis), operation: { op: 'mover', id: give.id, eje: axis, cota: mm(redondear(start)) } as Operacion, moved: true }
+  const size = (axis: Eje) => design.dimensiones[DIMENSION_DE_EJE[axis]]
+  const normal = give.normal
+  const thickness = g[`${normal}1`] - g[`${normal}0`]
+  const before = (axis: Eje) => (g[`${axis}0`] + g[`${axis}1`]) / 2 < (k[`${axis}0`] + k[`${axis}1`]) / 2
+  // Sunk into the other only part of its thickness: it belongs next to it, so it moves out whole.
+  if (overlap(normal) < thickness - 0.5) {
+    const start = before(normal) ? k[`${normal}0`] - thickness : k[`${normal}1`]
+    if (start >= -0.5 && start + thickness <= size(normal) + 0.5)
+      return {
+        operations: [{ op: 'mover', id: give.id, eje: normal, cota: mm(redondear(start)) }],
+        repair: { code: e.codigo, message: `Moví ${give.nombre} junto a ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
+      }
+    // No room to move out (an overlay door at the front): the other one steps back instead.
+    const edge = before(normal) ? g[`${normal}1`] : g[`${normal}0`]
+    const left = before(normal) ? k[`${normal}1`] - edge : edge - k[`${normal}0`]
+    if (keep.normal === normal || left < MIN_LENGTH) return null
+    return {
+      operations: [{ op: 'redimensionar', id: keep.id, eje: normal, extremo: before(normal) ? 'desde' : 'hasta', cota: mm(redondear(edge)) }],
+      repair: { code: e.codigo, message: `Recorté ${keep.nombre} hasta ${give.nombre}: se encimaban ${depth} mm.`, pieces: [keep.id, give.id] },
     }
-    const remaining = before ? k[`${axis}0`] - g[`${axis}0`] : g[`${axis}1`] - k[`${axis}1`]
-    if (remaining < MIN_LENGTH) return null
-    const operation: Operacion = { op: 'redimensionar', id: give.id, eje: axis, extremo: before ? 'hasta' : 'desde', cota: mm(redondear(before ? k[`${axis}0`] : k[`${axis}1`])) }
-    return { axis, cost: overlap(axis), operation, moved: false }
-  }).filter((o): o is NonNullable<typeof o> => !!o && o.cost > 0)
+  }
+
+  // Through its whole thickness (a shelf running into a side): it is trimmed where the change is smallest.
+  const options = EJES.filter((axis) => axis !== normal).map((axis) => {
+    const remaining = before(axis) ? k[`${axis}0`] - g[`${axis}0`] : g[`${axis}1`] - k[`${axis}1`]
+    if (remaining < MIN_LENGTH || overlap(axis) <= 0) return null
+    const operation: Operacion = { op: 'redimensionar', id: give.id, eje: axis, extremo: before(axis) ? 'hasta' : 'desde', cota: mm(redondear(before(axis) ? k[`${axis}0`] : k[`${axis}1`])) }
+    return { cost: overlap(axis), operation }
+  }).filter((o): o is NonNullable<typeof o> => !!o)
   const best = options.sort((a, b) => a.cost - b.cost)[0]
   if (!best) return null
   return {
     operations: [best.operation],
-    repair: {
-      code: e.codigo,
-      message: best.moved ? `Moví ${give.nombre} junto a ${keep.nombre}: se encimaban ${depth} mm.` : `Recorté ${give.nombre} hasta ${keep.nombre}: se encimaban ${depth} mm.`,
-      pieces: [give.id, keep.id],
-    },
+    repair: { code: e.codigo, message: `Recorté ${give.nombre} hasta ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
   }
 }
 

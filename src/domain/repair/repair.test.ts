@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { ref, union } from '../diseno/construir'
+import { mm, ref, union } from '../diseno/construir'
 import type { Diseno, Pieza } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
+import { alacena } from '../fixtures/alacena'
 import { librero } from '../fixtures/librero'
 import { repairDesign } from './repair'
 
@@ -41,6 +42,18 @@ describe('repairDesign', () => {
     expect(fixed.y0).toBe(box(librero, 'piso').y1)
     expect(fixed.y1 - fixed.y0).toBe(18)
     expect(repairs[0].message).toMatch(/^Moví Entrepaño 1 junto a Piso/)
+  })
+
+  it('an overlay door sunk into the carcass with no room in front: the carcass steps back, the door keeps its size', () => {
+    const door = box(alacena, 'puerta-izq')
+    const into = mm(door.z0 + 16)
+    const broken = ['lat-izq', 'lat-der', 'piso', 'techo'].reduce((d, id) => withPiece(d, id, (p) => ({ ...p, z: { ...p.z, hasta: into } })), alacena)
+    expect(valid(broken)).toBe(false)
+    const { design, repairs } = repairDesign(broken, catalogo)
+    expect(valid(design)).toBe(true)
+    expect(box(design, 'puerta-izq')).toEqual(door)
+    expect(box(design, 'lat-izq').z1).toBe(door.z0)
+    expect(repairs.every((r) => r.message.startsWith('Recorté') && !r.message.startsWith('Recorté Puerta'))).toBe(true)
   })
 
   it('drops a joint between pieces that do not touch', () => {

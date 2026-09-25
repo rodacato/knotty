@@ -125,7 +125,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
   const inicio = performance.now()
   const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, reglas: '', correcciones: '', reparaciones: 0, veredicto: '—' }
   try {
-    const estado = await casos.reconstruir({ medidas: caso.medidas, fotos: [], miniaturas: [], notas: caso.notas }, AbortSignal.timeout(6 * 60_000))
+    const estado = await casos.reconstruir({ medidas: caso.medidas, fotos: [], miniaturas: [], notas: caso.notas }, AbortSignal.timeout(15 * 60_000))
     const segundos = (performance.now() - inicio) / 1000
     const diseno = disenoActual(estado)
     const a = analizar(diseno, catalogo)
