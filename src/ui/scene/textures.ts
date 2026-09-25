@@ -1,14 +1,15 @@
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'three'
+import type { BoardTone } from '../../domain/materials/grades'
 
 // Textures generated in the browser: pine grain for the faces and plywood plies for the edges. Nothing to download.
 
 export type TextureKind = 'grain-u' | 'grain-v' | 'plies-u' | 'plies-v' | 'sketch'
-export type Tone = 'plywood' | 'back'
 
 const SIZE = 512
-const TONES: Record<Tone, { base: string; grain: string; lightLayer: string; darkLayer: string }> = {
-  plywood: { base: '#dcb680', grain: '#b98752', lightLayer: '#ecd6b0', darkLayer: '#c3955d' },
-  back: { base: '#e3c9a0', grain: '#c49a68', lightLayer: '#f0dcbc', darkLayer: '#caa272' },
+/** The colors of each tone the grades name, and the seed that draws its grain. */
+const TONES: Record<BoardTone, { seed: number; base: string; grain: string; lightLayer: string; darkLayer: string }> = {
+  pine: { seed: 7, base: '#dcb680', grain: '#b98752', lightLayer: '#ecd6b0', darkLayer: '#c3955d' },
+  'pale-pine': { seed: 13, base: '#e3c9a0', grain: '#c49a68', lightLayer: '#f0dcbc', darkLayer: '#caa272' },
 }
 
 function random(seed: number) {
@@ -16,9 +17,9 @@ function random(seed: number) {
   return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646
 }
 
-function grain(ctx: CanvasRenderingContext2D, tone: Tone) {
+function grain(ctx: CanvasRenderingContext2D, tone: BoardTone) {
   const t = TONES[tone]
-  const r = random(tone === 'plywood' ? 7 : 13)
+  const r = random(t.seed)
   ctx.fillStyle = t.base
   ctx.fillRect(0, 0, SIZE, SIZE)
   for (let i = 0; i < 70; i++) {
@@ -45,11 +46,10 @@ function grain(ctx: CanvasRenderingContext2D, tone: Tone) {
   ctx.globalAlpha = 1
 }
 
-function layers(ctx: CanvasRenderingContext2D, tone: Tone) {
+function layers(ctx: CanvasRenderingContext2D, tone: BoardTone, plies: number) {
   const t = TONES[tone]
-  const n = tone === 'plywood' ? 7 : 3
-  const height = SIZE / n
-  for (let i = 0; i < n; i++) {
+  const height = SIZE / plies
+  for (let i = 0; i < plies; i++) {
     ctx.fillStyle = i % 2 ? t.darkLayer : t.lightLayer
     ctx.fillRect(0, i * height, SIZE, height)
     ctx.fillStyle = 'rgba(80, 55, 30, 0.35)'
@@ -77,8 +77,8 @@ function sketch(ctx: CanvasRenderingContext2D) {
 
 const cache = new Map<string, Texture>()
 
-export function texture(kind: TextureKind, tone: Tone): Texture {
-  const key = `${kind}|${tone}`
+export function texture(kind: TextureKind, tone: BoardTone, plies: number): Texture {
+  const key = `${kind}|${tone}|${plies}`
   const taken = cache.get(key)
   if (taken) return taken
   const canvas = document.createElement('canvas')
@@ -91,7 +91,7 @@ export function texture(kind: TextureKind, tone: Tone): Texture {
   }
   if (kind === 'sketch') sketch(ctx)
   else if (kind === 'grain-u' || kind === 'grain-v') grain(ctx, tone)
-  else layers(ctx, tone)
+  else layers(ctx, tone, plies)
   const t = new CanvasTexture(canvas)
   t.colorSpace = SRGBColorSpace
   t.wrapS = t.wrapT = RepeatWrapping

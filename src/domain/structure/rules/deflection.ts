@@ -1,6 +1,7 @@
 import type { Load, Piece } from '../../design/schema'
 import { roundTo, type Box } from '../../design/resolve'
-import type { Catalog } from '../../materials/catalog'
+import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../../materials/catalog'
+import { stiffness } from '../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
@@ -28,11 +29,17 @@ export function deflectionSeverity(delta: number, span: number): Severity | null
   return null
 }
 
-function modulusByGrain(p: Piece, box: Box) {
+type GrainToSpan = 'parallel' | 'perpendicular'
+
+/** The span runs along x: the face grain goes with it or across it. */
+function grainToSpan(p: Piece, box: Box): GrainToSpan {
   const longSideIsX = box.x1 - box.x0 >= box.z1 - box.z0
   const grainAlongX = p.grain === 'length' ? longSideIsX : p.grain === 'width' ? !longSideIsX : false
-  return grainAlongX ? ASSUMPTIONS.elasticModulus.parallel : ASSUMPTIONS.elasticModulus.perpendicular
+  return grainAlongX ? 'parallel' : 'perpendicular'
 }
+
+/** The board's stiffness in MPa, from its grade and thickness. */
+const modulusOf = (board: BoardMaterial, grain: GrainToSpan) => stiffness(board.grade, board.thickness)[grain]
 
 /** The longest free span between upright supports: those touching its ends or holding it from below. */
 export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
@@ -53,14 +60,16 @@ export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
   return span > 0 ? span : null
 }
 
-function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, catalog: Catalog): Alternative[] {
+function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, grain: GrainToSpan, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
-  const thicker = catalog.materials.filter((m) => m.type === 'plywood' && m.thickness > thickness).sort((a, b) => a.thickness - b.thickness)[0]
+  const thicker = boardsFor(catalog, 'carcass')
+    .filter((m) => m.thickness > thickness)
+    .sort((a, b) => a.thickness - b.thickness)[0]
   if (thicker)
     list.push({
       key: 'thicker-board',
       description: `Subir a ${thicker.name}`,
-      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulus)) },
+      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulusOf(thicker, grain))) },
     })
   const half = (span - thickness) / 2
   list.push({
@@ -75,11 +84,13 @@ export const deflectionRule: Rule = (ctx) =>
   ctx.design.pieces.flatMap((p): Finding[] => {
     const box = ctx.geo.boxes.get(p.id)
     const thickness = ctx.geo.thicknesses.get(p.id)
-    if (!box || !thickness || p.normal !== 'y' || p.load === 'none') return []
+    const board = materialById(ctx.catalog, p.material)
+    if (!box || !thickness || !board || p.normal !== 'y' || p.load === 'none') return []
     const span = freeSpan(p.id, box, ctx)
     if (!span) return []
     const depth = box.z1 - box.z0
-    const modulus = modulusByGrain(p, box)
+    const grain = grainToSpan(p, box)
+    const modulus = modulusOf(board, grain)
     const delta = deflection(span, depth, thickness, p.load, modulus)
     const severity = deflectionSeverity(delta, span)
     if (!severity) return []
@@ -92,7 +103,7 @@ export const deflectionRule: Rule = (ctx) =>
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.load]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
         // The longest span this board takes: a fact for the expert, not a way out.
         data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, p.load, modulus), 0) },
-        alternatives: alternatives(p, span, depth, thickness, p.load, modulus, ctx.catalog),
+        alternatives: alternatives(p, span, depth, thickness, p.load, modulus, grain, ctx.catalog),
       },
     ]
   })

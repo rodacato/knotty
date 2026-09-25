@@ -4,7 +4,8 @@ import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
-import type { Catalog } from '../../domain/materials/catalog'
+import { materialById, type Catalog } from '../../domain/materials/catalog'
+import { boardLook } from '../../domain/materials/grades'
 import { useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { Hardware } from './Hardware'
@@ -102,7 +103,11 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const dark = useDark()
 
   const { pushes, height: visibleHeight } = useMemo(() => offsets(geo, design, exploded), [geo, design, exploded])
-  const kindOf = (material: string) => (catalog.materials.find((m) => m.id === material)?.type === 'back' ? 'back' : 'plywood')
+  // A material not in the catalog is drawn as the usual board: pine plywood of 18 mm.
+  const lookOf = (material: string) => {
+    const board = materialById(catalog, material)
+    return board ? boardLook(board.grade, board.thickness) : boardLook('pine-plywood', 18)
+  }
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
@@ -125,7 +130,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             key={`${p.id}-${reveal}`}
             piece={p}
             box={geo.boxes.get(p.id)!}
-            tone={kindOf(p.material)}
+            tone={lookOf(p.material).tone}
+            plies={lookOf(p.material).plies}
             offset={pushes.get(p.id)!}
             selected={selection === p.id}
             dimmed={!!selection && selection !== p.id}

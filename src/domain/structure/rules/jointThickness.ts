@@ -1,17 +1,14 @@
 import type { Piece, Joint } from '../../design/schema'
 import { JOINTS } from '../../design/jointSpecs'
 import { roundTo } from '../../design/resolve'
-import type { Catalog } from '../../materials/catalog'
+import { thinnestBoard, type Catalog } from '../../materials/catalog'
 import type { Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
 // R2: each joint needs enough board on each side, and a groove or rabbet must not weaken what takes it.
 
-const thinnestBoard = (catalog: Catalog, thickness: number) =>
-  catalog.materials.filter((m) => m.type === 'plywood' && m.thickness >= thickness).sort((a, b) => a.thickness - b.thickness)[0]
-
 function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
-  const suggested = thinnestBoard(catalog, minimum)
+  const suggested = thinnestBoard(catalog, 'carcass', minimum)
   return {
     code: 'R2_JOINT_THICKNESS',
     severity,
