@@ -73,7 +73,7 @@ describe('hardware and purchase', () => {
     expect(edgeBandingMeters(exampleBookcase, geo(exampleBookcase))).toBeCloseTo(((1800 * 2 + 564 * 6) / 1000) * 1.1, 1)
   })
 
-  it('buys the edge banding by its id, not whatever else is sold by the metre', () => {
+  it('buys the edge banding by its role, not whatever else is sold by the metre', () => {
     const rope = { id: 'drawer-rope', name: 'Cordón', role: 'handle' as const, unit: 'meter' as const, perPack: null, length: null, sideClearance: null, sku: null, price: 5 }
     const catalog = { ...testCatalog, hardware: [rope, ...testCatalog.hardware] }
     const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), catalog)

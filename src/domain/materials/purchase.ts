@@ -3,15 +3,13 @@ import { roundTo, type Geometry } from '../design/resolve'
 import { jointLength } from '../validation/contact'
 import { hingesFor } from '../structure/assumptions'
 import { layOut, type MaterialLayout } from './layout'
-import type { Catalog, Hardware, BoardMaterial } from './catalog'
+import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from './catalog'
 
 // The shopping list: sheets by thickness, hardware, edge banding and glue, with an approximate cost.
 
 const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
 const EDGE_BANDING_WASTE = 1.1
-/** The edge banding in the catalog, by name: another item sold by the metre is not it. */
-export const EDGE_BANDING_ID = 'edge-banding-19'
 const JOINTS_PER_GLUE_BOTTLE = 20
 const EDGE_AXIS: Record<string, Axis> = { front: 'z', back: 'z', left: 'x', right: 'x', top: 'y', bottom: 'y' }
 
@@ -106,7 +104,8 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   const add = (id: string, n: number) => counts.set(id, (counts.get(id) ?? 0) + n)
   for (const u of design.joints) for (const h of u.hardware) add(h.hardwareId, h.count ?? hardwarePerJoint(u, geo))
   const glued = design.joints.filter((u) => u.glue).length
-  if (glued) add('white-glue', Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
+  const glue = pickHardware(catalog, 'glue')
+  if (glued && glue) add(glue.id, Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
   const edgeBanding = edgeBandingMeters(design, geo)
 
   const hardware: HardwareLine[] = [...counts].flatMap(([id, count]) => {
@@ -116,7 +115,8 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
     if (item.price === null) missingPrices.push(item.name)
     return [{ hardware: item, count, packs, cost: item.price === null ? null : item.price * (packs ?? count) }]
   })
-  const tape = catalog.hardware.find((h) => h.id === EDGE_BANDING_ID)
+  // The catalog has one edge banding, 19 mm wide, for every board; another item sold by the metre is not it.
+  const tape = pickHardware(catalog, 'edge-banding')
   if (edgeBanding > 0 && tape) {
     if (tape.price === null) missingPrices.push(tape.name)
     hardware.push({ hardware: tape, count: Math.ceil(edgeBanding), packs: null, cost: tape.price === null ? null : tape.price * Math.ceil(edgeBanding) })
