@@ -37,6 +37,8 @@ export const Message = z.object({
   answers: z.array(z.string()).default([]),
   /** Next steps the expert suggests; shown as buttons under its last message. */
   suggestions: z.array(z.string()).default([]),
+  /** Options from the rules' alternatives that Knotty builds itself when chosen; the expert never sees this. */
+  solutions: z.array(z.object({ question: z.number().int(), option: z.string(), alternative: z.string() })).default([]),
 })
 
 /** The key of what gets answered inside one of the expert's messages. */

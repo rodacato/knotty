@@ -4,7 +4,7 @@ import type { Design, Piece } from '../design/schema'
 import { drawerSides } from '../design/drawers'
 import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
-import type { Alternative, Finding } from '../structure/finding'
+import { findingKey, type Alternative, type Finding } from '../structure/finding'
 import { materialById, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
@@ -163,6 +163,16 @@ export function fixesForNotice(design: Design, catalog: Catalog, findings: Findi
     const perPiece = alternative.key === 'thicker-board' && typeof alternative.data.piece === 'string'
     return build(design, catalog, alternative, perPiece ? thickerPieces(catalog, findings) : operationsFor(design, catalog, together, alternative))
   })
+}
+
+/** One alternative built for every finding that offers it, like a notice does, only if it clears them all; null leaves it to the expert. */
+export function fixForAlternative(design: Design, catalog: Catalog, findings: Finding[], key: string): Fix | null {
+  const offering = findings.filter((h) => h.alternatives.some((a) => a.key === key))
+  const fix = fixesForNotice(design, catalog, offering.map((h) => ({ ...h, alternatives: h.alternatives.filter((a) => a.key === key) })))[0]
+  if (!fix) return null
+  const after = analyze(fix.design, catalog)
+  const left = new Set((after.valid ? after.findings : []).filter((h) => h.severity === 'critical').map(findingKey))
+  return offering.some((h) => left.has(findingKey(h))) ? null : fix
 }
 
 function thickerPieces(catalog: Catalog, findings: Finding[]): Operation[] {

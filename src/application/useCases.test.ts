@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { analyze } from '../domain/analysis'
 import { createSimulated } from '../adapters/llm/simulated/simulated'
 import { startAt, makePiece, ref, extent } from '../domain/design/builders'
@@ -129,6 +129,43 @@ describe('adjust', () => {
     expect(currentDesign(resolved).dimensions.width).toBe(900)
     expect(currentDesign(resolved).pieces.map((p) => p.id)).toEqual(expect.arrayContaining(['divider', 'bottom-support', 'shelf-1-right']))
     expect(resolved.versions.at(-1)?.summary).toBe('Ensanchar con divisor al centro')
+  })
+
+  it('an option Knotty can build applies the proposal and then the solution, with no expert call', async () => {
+    const llm = createSimulated(0)
+    const c = setup(llm)
+    const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
+    const question = pending.chat.at(-1)!
+    const option = 'Agregar un apoyo al centro, debajo del piso'
+    expect(question.questions[0].options).toEqual([option, 'Agregar un divisor vertical al centro'])
+    expect(question.solutions).toEqual([{ question: 0, option, alternative: 'center-divider' }])
+
+    const spies = (Object.keys(llm) as (keyof LLMProvider)[]).filter((k) => typeof llm[k] === 'function').map((k) => vi.spyOn(llm, k as never))
+    const resolved = c.answerWithFix(pending, question.id, 0, option)!
+    expect(spies.length).toBeGreaterThan(3)
+    for (const spy of spies) expect(spy).not.toHaveBeenCalled()
+    expect(resolved.proposal).toBeNull()
+    expect(resolved.versions.map((v) => v.summary)).toEqual([pending.versions[0].summary, 'Ensanchar a 90 cm', option])
+    expect(resolved.chat.find((m) => m.id === question.id)).toMatchObject({ proposal: 'applied', answered: true })
+    expect(resolved.chat.at(-1)).toMatchObject({ author: 'user', text: `Resolví: ${option}.`, version: resolved.current })
+    const design = currentDesign(resolved)
+    expect(design.dimensions.width).toBe(900)
+    expect(design.pieces.filter((p) => p.id.startsWith('support-')).map((p) => p.id)).toEqual(['support-bottom', 'support-shelf-1', 'support-shelf-2', 'support-shelf-3', 'support-shelf-4'])
+    const analysis = analyze(design, testCatalog)
+    if (!analysis.valid) throw new Error('the fix left an invalid design')
+    const sagging = pending.proposal!.critical.flatMap((h) => h.pieces)
+    expect(analysis.findings.filter((h) => h.severity === 'critical' && h.pieces.some((p) => sagging.includes(p)))).toEqual([])
+    expect(c.repository.state).toEqual(resolved)
+  })
+
+  it('an option Knotty cannot build goes back to be sent to the expert', async () => {
+    const c = setup()
+    const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
+    const question = pending.chat.at(-1)!
+    expect(c.answerWithFix(pending, question.id, 0, 'Agregar un divisor vertical al centro')).toBeNull()
+    const unbuildable = { ...pending, chat: pending.chat.map((m) => (m.id === question.id ? { ...m, solutions: [{ question: 0, option: 'Dividirla en dos puertas', alternative: 'two-doors' }] } : m)) }
+    expect(c.answerWithFix(unbuildable, question.id, 0, 'Dividirla en dos puertas')).toBeNull()
+    expect(c.answerWithFix(c.discardProposal(pending), question.id, 0, 'Agregar un apoyo al centro, debajo del piso')).toBeNull()
   })
 
   it('a change without critical findings makes a new version', async () => {

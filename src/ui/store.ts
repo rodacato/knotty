@@ -9,7 +9,7 @@ import { analyze } from '../domain/analysis'
 import type { Dimensions, Design, Axis, Piece } from '../domain/design/schema'
 import type { Box } from '../domain/design/resolve'
 import { differences } from '../domain/design/diff'
-import { currentDesign, markAnswered, type DesignState, type Message, type Thumbnail } from '../domain/session/state'
+import { currentDesign, markAnswered, questionAnswerKey, type DesignState, type Message, type Thumbnail } from '../domain/session/state'
 import type { Photo } from '../ports/LLMProvider'
 import type { VaultState } from '../ports/Preferences'
 import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materials/catalog'
@@ -70,6 +70,8 @@ interface Store {
   /** Aborts the reconstruction in progress and asks again with the same input. */
   retryReconstruction(): void
   applyProposal(): void
+  /** An option answered from the chat: Knotty builds it when it can, otherwise it goes to the expert. */
+  chooseOption(messageId: string, question: number, option: string): Promise<void>
   discardProposal(): void
   select(id: string | null): void
   toggleExploded(): void
@@ -150,7 +152,7 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
   const { services, state, thinking } = get()
   if (!services || !state || thinking) return
   const controller = new AbortController()
-  const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [] }
+  const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [], solutions: [] }
   const optimistic = { ...state, tray: [], chat: [...markAnswered(state.chat, replyTo), pending] }
   set({ thinking: true, controller, stage: { name: 'proposing', attempt: 0 }, state: optimistic })
   const fresh = await call(controller.signal, (name, attempt) => set({ stage: { name, attempt } }))
@@ -272,6 +274,15 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state } = get()
     if (!services || !state) return
     set({ state: services.useCases.applyProposal(state), viewedVersion: null })
+  },
+
+  chooseOption(messageId, question, option) {
+    const { services, state, thinking } = get()
+    if (!services || !state || thinking) return Promise.resolve()
+    const fixed = services.useCases.answerWithFix(state, messageId, question, option)
+    if (!fixed) return get().adjust(option, `${messageId}#${questionAnswerKey(question)}`)
+    set((s) => ({ state: fixed, preview: null, viewedVersion: null, changes: sessionTransition(state, fixed, services.catalog, s.changes) }))
+    return Promise.resolve()
   },
 
   discardProposal() {
