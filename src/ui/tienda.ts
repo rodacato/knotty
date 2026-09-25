@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { ErrorExperto, type Etapa, type FotoEnviada } from '../application/casosDeUso'
+import type { CabinetPlan } from '../domain/modules/cabinet'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno, Pieza } from '../domain/diseno/esquema'
@@ -85,6 +86,8 @@ interface Tienda {
   quitarDecision(tema: string): void
   guardarAjustesCatalogo(a: AjustesCatalogo): void
   dictaminar(): Promise<void>
+  /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
+  applyPlan(plan: CabinetPlan): { ok: true; notes: string[] } | { ok: false; message: string }
   cancelarDictamen(): void
 }
 
@@ -295,6 +298,15 @@ export const useTienda = create<Tienda>((set, get) => ({
   quitarDecision(tema) {
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
+
+  applyPlan(plan) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
+    const r = servicios.casos.applyPlan(estado, plan)
+    if (!r.ok) return r
+    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    return { ok: true, notes: r.notes }
   },
 
   async dictaminar() {

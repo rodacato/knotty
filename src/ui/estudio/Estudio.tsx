@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, SlidersHorizontal, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analizar } from '../../domain/analisis'
 import { diferencias } from '../../domain/diseno/diff'
@@ -17,6 +17,7 @@ import { disenoVisible, useTienda, type Vista } from '../tienda'
 import { Historial } from './Historial'
 import { Materiales } from './Materiales'
 import { FichaPieza } from './Paneles'
+import { PlanSheet } from './PlanSheet'
 import { Revision } from './Revision'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
@@ -222,6 +223,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-linea px-2 [scrollbar-width:none]" aria-label="Panel">
         {[
           { id: 'chat', nombre: 'Experto', icono: <ChatCircleText /> },
+          { id: 'ficha', nombre: 'Ficha', icono: <SlidersHorizontal /> },
           { id: 'materiales', nombre: 'Materiales', icono: <Stack /> },
           { id: 'revision', nombre: 'Revisión', icono: <ListChecks /> },
           { id: 'historial', nombre: 'Historial', icono: <ClockCounterClockwise /> },
@@ -244,6 +246,9 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       </Tabs.List>
       <Tabs.Content value="chat" className="min-h-0 flex-1">
         <Chat estado={estado} />
+      </Tabs.Content>
+      <Tabs.Content value="ficha" className="min-h-0 flex-1 overflow-y-auto">
+        <PlanSheet estado={estado} />
       </Tabs.Content>
       <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
         {analisisActual.valido ? (
