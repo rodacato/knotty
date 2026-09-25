@@ -52,7 +52,7 @@ describe('createExpert', () => {
     const { experto, llamadas } = falso({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
-    expect(r.origin.promptId).toBe('sistema@7+reconstruccion@10')
+    expect(r.origin.promptId).toBe('system@8+reconstruction@11')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { kind: 'texto', text: 'Furniture measures: width 600 mm, height 1800 mm, depth 300 mm.\nThe person\'s notes: para libros' },
@@ -72,7 +72,7 @@ describe('createExpert', () => {
     const { experto, llamadas } = falso({ verdict: 'needs-changes', summary: 'Sube la repisa', problems: [], tips: ['Mide el espesor'] })
     const r = await experto.reviewPurchase({ context: '## Diseño', review: '## Lista de corte', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal)
     expect(r.value.verdict).toBe('needs-changes')
-    expect(r.origin.promptId).toBe('sistema@7+dictamen@3')
+    expect(r.origin.promptId).toBe('system@8+review@4')
     expect(llamadas[0].sistema).toContain('review before buying')
     expect(llamadas[0].contenido).toEqual([{ kind: 'texto', text: '## Diseño\n\n## Lista de corte' }])
   })
@@ -81,7 +81,7 @@ describe('createExpert', () => {
     const { experto, llamadas } = falso({ kind: 'librero', confidence: 'high', description: 'Un librero', proportions: null, base: 'kick', topOverhangs: null, columns: null, details: [], doubts: [] })
     const r = await experto.readPhoto({ photo: { angle: 'front', base64: 'AAA', note: 'la de abajo es puerta' }, context: 'librero para libros' }, new AbortController().signal)
     expect(r.value.base).toBe('kick')
-    expect(r.origin.promptId).toBe('lectura@2')
+    expect(r.origin.promptId).toBe('reading@3')
     expect(llamadas[0].sistema).toContain('main piece of furniture')
     expect(llamadas[0].sistema).not.toContain('T18')
     expect(llamadas[0].contenido).toEqual([
@@ -102,16 +102,16 @@ describe('createExpert', () => {
     const { experto, llamadas } = falso({ explanation: 'x', cabinet: null, bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await experto.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('esqueleto@7')
+    expect(r.origin.promptId).toBe('skeleton@8')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
-    expect(llamadas[0].sistema).not.toContain('{{materiales}}')
+    expect(llamadas[0].sistema).not.toContain('{{materials}}')
   })
 
   it('edits the ficha with its own short prompt: the context, the current plan and the request', async () => {
     const { experto, llamadas } = falso({ explanation: 'x', summary: 'r', action: 'answer', cabinet: null, bed: null, table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await experto.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('ajuste-ficha@5')
+    expect(r.origin.promptId).toBe('plan-adjust@6')
     expect(llamadas[0].sistema).toContain('"T15" (15 mm)')
     expect(llamadas[0].contenido[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current ficha\n\{"name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
   })

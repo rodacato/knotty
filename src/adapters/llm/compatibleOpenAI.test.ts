@@ -50,7 +50,7 @@ describe('createCompatible', () => {
       'Photo 2: three-quarter',
       'data:image/jpeg;base64,BBB',
     ])
-    expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruccion', strict: true } })
+    expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruction', strict: true } })
   })
 
   it('a 413 with photos retries without them and tells the person', async () => {
