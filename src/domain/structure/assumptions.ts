@@ -1,4 +1,4 @@
-import type { Load, JointType } from '../design/schema'
+import type { Load } from '../design/schema'
 
 // Engineering assumptions as data, to calibrate them without touching the rules. Pine plywood from Home Depot MX.
 
@@ -14,16 +14,6 @@ export const ASSUMPTIONS = {
   deflectionLimit: { recommended: 360, critical: 200 },
   /** From this height up, a carcass that can rack is critical. */
   criticalRackingHeight: 600,
-  joints: {
-    'butt-screw': { b: 15, bCritical: 12 },
-    'pocket-screw': { a: 12, b: 12 },
-    dowel: { a: 15, b: 15 },
-    'cam-lock': { a: 15, b: 15 },
-    dado: { b: 15 },
-    rabbet: { b: 15 },
-    'cup-hinge': { a: 15 },
-    'shelf-pin': { b: 15 },
-  } satisfies Partial<Record<JointType, { a?: number; b?: number; bCritical?: number }>>,
   /** Depth of a groove or rabbet as a fraction of the thickness that takes it. */
   penetration: { recommended: 1 / 3, critical: 1 / 2 },
   /** Up to this thickness a piece is only nailed, or goes in a groove or rabbet. */
@@ -61,5 +51,3 @@ export const pocketScrewFor = (thickness: number) => ASSUMPTIONS.screws.pocketSc
 export const pocketScrewId = (thickness: number) => (pocketScrewFor(thickness) ?? ASSUMPTIONS.screws.pocketScrews.at(-1)!).hardwareId
 
 export const hingesFor = (height: number) => ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo)!.n
-
-export const RIGID_JOINTS: JointType[] = ['pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket']

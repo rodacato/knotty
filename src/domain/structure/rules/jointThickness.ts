@@ -1,24 +1,11 @@
-import type { Piece, JointType, Joint } from '../../design/schema'
+import type { Piece, Joint } from '../../design/schema'
+import { JOINTS } from '../../design/jointSpecs'
 import { roundTo } from '../../design/resolve'
 import type { Catalog } from '../../materials/catalog'
 import type { Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
 // R2: each joint needs enough board on each side, and a groove or rabbet must not weaken what takes it.
-
-const JOINT_NAME: Record<JointType, string> = {
-  'butt-screw': 'tornillo al canto',
-  'pocket-screw': 'tornillo de bolsillo',
-  dowel: 'tarugo',
-  'cam-lock': 'minifix',
-  dado: 'canal',
-  rabbet: 'rebaje',
-  bracket: 'escuadra',
-  'glue-nail': 'clavo y pegamento',
-  'shelf-pin': 'soporte de repisa',
-  'cup-hinge': 'bisagra de cazoleta',
-  'drawer-slide': 'corredera',
-}
 
 const thinnestBoard = (catalog: Catalog, thickness: number) =>
   catalog.materials.filter((m) => m.type === 'plywood' && m.thickness >= thickness).sort((a, b) => a.thickness - b.thickness)[0]
@@ -30,7 +17,7 @@ function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, sev
     severity,
     pieces: [u.a, u.b],
     check: piece.id === u.a ? 'joint.too-thin-a' : 'joint.too-thin-b',
-    message: `Una unión con ${JOINT_NAME[u.type]} necesita al menos ${minimum} mm en ${piece.name}, que es de ${thickness} mm.`,
+    message: `Una unión con ${JOINTS[u.type].label.singular} necesita al menos ${minimum} mm en ${piece.name}, que es de ${thickness} mm.`,
     data: { joint: u.id, type: u.type, piece: piece.id, thickness: thickness, min: minimum },
     alternatives: suggested ? [{ key: 'thicker-board', description: `Hacer ${piece.name} de ${suggested.name}`, data: { piece: piece.id, material: suggested.id } }] : [],
   }
@@ -45,20 +32,20 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
     if (!a || !b || ta === undefined || tb === undefined) return []
 
     const thin = [[a, ta], [b, tb]].find(([, t]) => (t as number) <= ASSUMPTIONS.nailOnlyThickness) as [Piece, number] | undefined
-    if (thin && !['glue-nail', 'dado', 'rabbet'].includes(u.type))
+    if (thin && !JOINTS[u.type].holdsThinBoard)
       return [
         {
           code: 'R2_JOINT_THICKNESS',
           severity: 'recommendation',
           pieces: [u.a, u.b],
           check: 'joint.nail-only',
-          message: `${thin[0].name} es de ${thin[1]} mm: se fija con clavo y pegamento, o en canal o rebaje; el ${JOINT_NAME[u.type]} no agarra.`,
+          message: `${thin[0].name} es de ${thin[1]} mm: se fija con clavo y pegamento, o en canal o rebaje; el ${JOINTS[u.type].label.singular} no agarra.`,
           data: { joint: u.id, type: u.type, piece: thin[0].id, thickness: thin[1] },
           alternatives: [{ key: 'change-joint', description: 'Clavo sin cabeza con pegamento', data: { type: 'glue-nail' } }],
         },
       ]
 
-    const minimums = ASSUMPTIONS.joints[u.type as keyof typeof ASSUMPTIONS.joints] as { a?: number; b?: number; bCritical?: number } | undefined
+    const minimums = JOINTS[u.type].minThickness
     if (!minimums) return []
     const found: Finding[] = []
     if (minimums.a !== undefined && ta < minimums.a) found.push(tooThin(u, a, ta, minimums.a, 'critical', catalog))
