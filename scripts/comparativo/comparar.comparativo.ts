@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { it } from 'vitest'
 import datos from '../../public/catalogo/catalogo.json'
@@ -15,6 +15,9 @@ import type { LLMProvider } from '../../src/ports/LLMProvider'
 import { CASOS, type Caso } from './casos'
 
 // Corre los pedidos fijos contra cada modelo y califica el resultado con las cuentas de Knotty. Se corre a mano: npm run comparar.
+
+// Las llaves van en .env (ignorado por git), nunca en la línea de comandos ni en el código.
+if (existsSync('.env')) process.loadEnvFile('.env')
 
 const catalogo = Catalogo.parse(datos)
 const env = process.env
