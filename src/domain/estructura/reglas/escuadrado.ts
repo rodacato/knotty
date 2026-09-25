@@ -24,7 +24,8 @@ export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
   const marcoRigido = travesanos.length >= 2 && travesanos.some((p) => p.rol === 'faja' || p.rol === 'zoclo')
 
   if (traseraRigida || marcoRigido) return []
-  const alto = diseno.dimensiones.alto
+  // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
+  const alto = Math.max(...laterales.map((id) => geo.cajas.get(id)?.y1 ?? 0)) || diseno.dimensiones.alto
   const hallazgo: Hallazgo = {
     codigo: 'R5_ESCUADRADO',
     severidad: alto > SUPUESTOS.altoEscuadradoCritico ? 'critico' : 'recomendacion',
