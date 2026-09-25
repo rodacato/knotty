@@ -1,6 +1,7 @@
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno } from '../domain/diseno/esquema'
 import { normalizar } from '../domain/diseno/normalizador'
+import { completarUniones } from '../domain/diseno/uniones'
 import type { Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
@@ -127,7 +128,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       }
       alAvanzar('revisando', intento)
       const r = respuesta.valor
-      const diseno = normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo)
+      const diseno = completarUniones(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
       const analisis = analizar(diseno, catalogo, r.requisitos)
       if (!analisis.valido) {
         correccion = { respuestaAnterior: r, errores: analisis.errores }
@@ -209,7 +210,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
-        const nuevo = aplicado.ok ? normalizar(aplicado.valor.diseno, catalogo) : null
+        const nuevo = aplicado.ok ? completarUniones(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
         const analisis = nuevo ? analizar(nuevo, catalogo, requisitos) : null
         if (!aplicado.ok || !nuevo || !analisis?.valido) {
           const errores = !aplicado.ok ? aplicado.errores : analisis && !analisis.valido ? analisis.errores : []
