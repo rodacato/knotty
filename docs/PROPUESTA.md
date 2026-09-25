@@ -41,7 +41,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D30 | La lista de compra aparece después de una revisión: primero cuentas deterministas (medidas, hoja útil, estructura, tiras, boceto, margen) y luego el dictamen del carpintero (prompt `dictamen@1`). El carpintero puede endurecer el veredicto, nunca suavizarlo; si no contesta, valen las cuentas. Si no es viable, la lista se ve solo a propósito | Que nadie compre material para algo que matemáticamente no se puede armar o que tiene un error de origen |
 | D31 | Diseñar por pasos: lectura de cada foto (en paralelo y guardada), esqueleto de medidas y módulos, módulos convertidos en piezas por Knotty, reparación por reglas y, al final, detalles del experto. Cada paso guarda su resultado con la huella de lo que recibió y no se repite | La línea base con SheLLM mostró que casi todo el tiempo y el costo se iban en reescribir el diseño completo en cada reintento; en pasos chicos, cada uno se ve en cuanto llega |
 | D32 | Nunca tirar un diseño pagado: si los intentos no pasan la validación, se muestra el último con los problemas marcados y se corrige desde el chat | Tres intentos fallidos costaban ~$0.33 USD sin mostrar nada |
-| D33 | La interfaz, los textos para la persona y los prompts quedan en español; el código (nombres, archivos, lógica y comentarios) va en inglés. Lo nuevo nace en inglés y lo existente se migra un módulo por PR, con migración de formato para lo guardado | Pedido del autor el 2026-09-25 |
+| D33 | La interfaz y los textos para la persona quedan en español de México; el código (nombres, archivos, carpetas, lógica y comentarios), los datos guardados, los ids y los prompts van en inglés, y los prompts piden al experto que escriba en español lo que lee la persona. Se migró un módulo por PR, con migración de formato para lo guardado (terminada el 2026-09-25) | Pedido del autor el 2026-09-25; los datos, prompts y carpetas, pedido posterior del mismo día |
 | D34 | Tres velocidades para cambiar el mueble: **instantáneo** (ficha, edición a mano y soluciones que Knotty construye), **agrupado** (lo que necesita criterio va a una bandeja y se manda al experto en un solo pedido) y **libre** (el chat, para lo creativo). El experto solo interviene donde aporta criterio | La revisión de uso mostró que cada decisión chica costaba un minuto de espera y que el experto se usaba para cosas que Knotty puede resolver |
 | D35 | Todo cambio es un **cambio con origen y diferencias** (qué piezas se agregaron, quitaron o cambiaron) y se puede deshacer completo o por partes, sin experto | El experto quitó dos divisores sin que se lo pidieran y no había forma de regresarlos conservando lo demás |
 | D36 | El experto no quita ni cambia estructura que no se pidió: si su respuesta lo hace, queda como propuesta que la persona confirma; si trae preguntas, sus operaciones esperan a las respuestas | Confianza: nada que sostenga el mueble desaparece sin permiso, con cualquier modelo |
@@ -111,46 +111,49 @@ Inicio → Medidas → Fotos guiadas → El experto analiza → Preguntas rápid
 
 ## 2. Arquitectura
 
-Todo lo que decide vive en `domain/` y es determinista. El LLM propone; el dominio acepta o rechaza.
+Todo lo que decide vive en `domain/` y es determinista. El LLM propone; el dominio acepta o rechaza. El código, los datos guardados y los prompts están en inglés; lo que lee la persona, en español de México (D33).
 
 ```
-despiece/
-├─ .github/workflows/        ci.yml · deploy.yml (GitHub Pages)
+knotty/
+├─ .github/workflows/        ci.yml (typecheck, pruebas y build en cada PR) · deploy.yml (GitHub Pages)
 ├─ docs/                     PROPUESTA.md (este documento)
-├─ public/catalogo/          materiales.json · herrajes.json
+├─ public/catalog/           catalog.json: triplay, herrajes y acomodo; se edita sin tocar código
+├─ scripts/brand/            SVG de la marca y generate.sh (íconos, favicon, imagen para compartir)
+├─ scripts/compare/          models.compare.ts: el banco contra expertos reales (npm run compare) · results/
 └─ src/
    ├─ domain/                TypeScript puro: sin React, sin LLM, sin navegador
-   │  ├─ diseno/             esquema · resolver (cotas → geometría) · normalizador · diff
-   │  ├─ operaciones/        esquema · aplicar · propagacion
-   │  ├─ validacion/         geometria · contacto (grafo) · catalogo · requisitos · errores
-   │  ├─ estructura/         supuestos · motor · reglas/* · simulaciones (alternativas)
-   │  ├─ materiales/         despiece · acomodo/guillotina · herrajes · costo
-   │  ├─ historial/          versiones · bitacora · compactacion
-   │  └─ requisitos/         esquema · verificacion
-   ├─ application/           ReconstruirDesdeFotos · AjustarDiseno · ResponderPregunta
-   │                         RevisarEstructura · EstimarMateriales · VolverAVersion · NuevoDiseno
-   │                         contexto/ConstruirContexto · cicloCorreccion
-   ├─ ports/                 LLMProvider · DesignRepository · MaterialCatalog
-   │                         ProcesadorImagen · Preferencias
+   │  ├─ design/             esquema · resolve (cotas → geometría) · normalize · joints · hardware · diff
+   │  ├─ modules/            fichas de gabinete, cama y mesa, y cómo se arman (buildPlan, rebuild)
+   │  ├─ operations/         esquema · apply · drawer (macro de cajón)
+   │  ├─ validation/         geometry · contact (grafo) · errors
+   │  ├─ structure/          assumptions · review · rules/* (R1–R10) · finding
+   │  ├─ repair/ · fixes/    reparaciones por reglas y soluciones que Knotty construye para cada aviso
+   │  ├─ materials/          catalog · cutList · layout (acomodo en hoja) · purchase
+   │  ├─ viability/          revisión antes de comprar
+   │  ├─ session/            estado guardado (state) y migración de formatos viejos (migrate)
+   │  ├─ history/ · requirements/ · changes/ · reading/ · trace/ · tray/ · typology/
+   │  └─ fixtures/           ejemplos (librero, buró, alacena) y catálogo de prueba
+   ├─ application/           useCases (reconstruct, adjust, applyPlan, reviewPurchase…) · context · notices
+   │  └─ bench/              casos fijos y banco de pruebas (también lo usa scripts/compare)
+   ├─ ports/                 LLMProvider · DesignRepository · MaterialCatalog · ImageProcessor · Preferences
    ├─ adapters/
-   │  ├─ llm/comun/          mensajes · Zod → JSON Schema · errores en español
-   │  ├─ llm/prompts/        sistema.v1.md · reconstruccion.v1.md · ajuste.v1.md · revision.v1.md
-   │  ├─ llm/anthropic/      tool_use forzado + cache_control
-   │  ├─ llm/openai/         structured outputs (json_schema strict)
-   │  ├─ llm/simulado/       fixtures fijos por escenario
-   │  ├─ persistencia/localStorage/   con versión de esquema y migraciones
-   │  ├─ catalogo/json/      fetch de public/catalogo + overrides del usuario
-   │  └─ imagen/canvas/      reducción a ~1500 px JPEG y miniaturas
-   ├─ ui/                    sistema/ · escena/ · captura/ · chat/ · revision/
-   │                         materiales/ · historial/ · ajustes/
-   └─ composicion.ts         raíz de composición: instancia adapters e inyecta casos de uso
+   │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/ · prompts/*.md
+   │  │  └─ common/          expert (arma los pedidos) · configuration · vault · jsonSchema · errors
+   │  ├─ persistence/        localStorage, con migración de formatos
+   │  ├─ catalog/            catálogo JSON y ajustes de precio y corte de la persona
+   │  ├─ image/              reducción de fotos y miniaturas
+   │  ├─ debug/              bitácora de depuración
+   │  └─ storedKey.ts        claves de localStorage (y mueve las de Despiece)
+   ├─ ui/                    capture/ · studio/ · scene/ · chat/ · settings/ · system/ · debug/ · store.ts
+   ├─ composition.ts         raíz de composición: instancia adapters e inyecta casos de uso
+   └─ architecture.test.ts   fronteras entre capas
 ```
 
-- **Fronteras forzadas** con `eslint-plugin-boundaries` (o `dependency-cruiser`): `domain/` no importa React, `window` ni `adapters/`; `ui/` solo consume `application/`.
+- **Fronteras** comprobadas por `src/architecture.test.ts`: `domain/` solo importa zod y no toca el navegador; `application/` y `ports/`, dominio y puertos; `ui/`, todo menos `adapters/`.
 - **Zod en el dominio** es aceptable: es TypeScript puro.
-- **`LLMProvider` expresa intenciones**: `reconstruir(fotos, medidas)`, `proponerAjuste(contexto, erroresPrevios?)`, `redactarRevision(reporte)`. Anthropic y OpenAI comparten `comun/` y `prompts/` y solo difieren en transporte; el simulado implementa la interfaz con fixtures. El ciclo de corrección vive en `application/` y se prueba sin red.
-- **Salida estructurada**: los esquemas Zod son la única fuente; de ahí sale el JSON Schema (`z.toJSONSchema`). Por el modo estricto de OpenAI (sin `oneOf`, todos los campos requeridos) los esquemas usan uniones discriminadas por `op` y opcionales como `nullable`. Siempre se re-valida con Zod.
-- **Prompts versionados**: cada archivo lleva frontmatter `id: ajuste@1`; cada versión del diseño guarda qué prompt y modelo la produjeron.
+- **`LLMProvider` expresa intenciones**: `reconstruct`, `planDesign` (esqueleto), `adjustPlan`, `proposeAdjustment`, `readPhoto` y `reviewPurchase`. Anthropic, OpenAI y SheLLM comparten `common/` y `prompts/` y solo difieren en transporte; el simulado implementa la interfaz con reglas fijas. El ciclo de corrección vive en `application/` y se prueba sin red.
+- **Salida estructurada**: los esquemas Zod son la única fuente; de ahí sale el JSON Schema. Por el modo estricto (sin `oneOf`, todos los campos requeridos) los esquemas usan uniones discriminadas por `op` y opcionales como `nullable`. Siempre se re-valida con Zod.
+- **Prompts versionados**: cada archivo lleva frontmatter `id: system@9`; cada versión del diseño guarda qué prompt y modelo la produjeron.
 
 ### BYOK (tomado de ai-town)
 
@@ -160,10 +163,10 @@ Se reutiliza el enfoque de `ai-town/src/providers/llm/`:
 - `vault.ts`: llaves recordadas **cifradas con frase de paso** (PBKDF2 600k + AES-GCM); si no, viven solo en memoria.
 - `transport.ts`: `listModels` para elegir modelo de una lista; `describeError` con mensajes en español (key inválida, límite, CORS, timeout).
 
-Cambios para Despiece:
+Cambios para Knotty (entonces Despiece):
 
-- Solo Simulado, Anthropic y OpenAI (sin SheLLM ni personalizado).
-- Salida estructurada en vez de extraer JSON del texto: tool use forzado en Anthropic, `response_format: json_schema` en OpenAI. El campo `explicacion` se puede ir mostrando mientras llega, con la técnica de `partialStringField`.
+- Simulado, Anthropic, OpenAI y SheLLM (una suscripción de Claude Code o Codex como API local), sin proveedor personalizado.
+- Salida estructurada en vez de extraer JSON del texto: tool use forzado en Anthropic, `response_format: json_schema` en OpenAI. El campo `explanation` se puede ir mostrando mientras llega, con la técnica de `partialStringField`.
 - Imágenes en la reconstrucción (content blocks de imagen en ambos proveedores).
 - Se atienden los pendientes de `REVIEW-1.0.md` §3: al recargar se ve qué llave falta y se pide; desbloqueo claro con frase de paso; elección explícita entre "solo esta pestaña", "este navegador (cifrada)" o "no guardar"; si una consulta falla por llave, se ofrece arreglarla ahí mismo; tests del ciclo guardar → recargar → desbloquear → olvidar.
 - CSP estricta sin scripts de terceros.
@@ -172,9 +175,11 @@ Cambios para Despiece:
 
 ## 3. Modelo del mueble y operaciones
 
+La fuente de verdad es `src/domain/design/schema.ts` (y `operations/schema.ts`); aquí va el resumen.
+
 ### Convenciones
 
-- Todo en **mm enteros**.
+- Todo en **mm**.
 - Ejes: **X = ancho** (izq → der), **Y = alto** (piso → arriba), **Z = fondo** (trasera → frente). Origen en la esquina inferior-izquierda-trasera.
 
 ### Cotas con referencias
@@ -182,99 +187,107 @@ Cambios para Despiece:
 Cada extremo de una pieza es una **cota** que puede ser absoluta o apuntar a una cara de otra pieza o del mueble. Un resolvedor calcula las coordenadas en orden topológico. Así, "hazlo de 90 cm" o "sube a 18 mm" se propagan solos.
 
 ```ts
-Diseno {
-  esquema: 1
-  nombre: string
-  dimensiones: { ancho: mm, alto: mm, fondo: mm }
-  anclajeMuro: boolean
-  piezas: Pieza[]
-  uniones: Union[]
-  observaciones: string         // lo que el experto vio en las fotos (≤ 600 car.)
+Design {
+  schema: 1
+  name: string                  // para la persona, en español: "Librero"
+  dimensions: { width, height, depth }   // mm
+  wallAnchored: boolean
+  pieces: Piece[]
+  joints: Joint[]
+  notes: string                 // lo que el experto vio y no cabe en el modelo (≤ 1200 car.)
 }
 
-Pieza {
-  id: string                    // estable y legible: "lat-izq", "entrepano-2"
-  nombre: string                // "Lateral izquierdo"
-  rol: 'lateral' | 'piso' | 'techo' | 'entrepano' | 'divisor' | 'trasera' | 'zoclo' | 'faja'
-     | 'puerta' | 'frente-cajon' | 'costado-cajon' | 'fondo-cajon' | 'refuerzo' | 'otro'
-  material: MaterialId          // "T12" | "T15" | "T18" | "TR3" | "TR6" (del catálogo)
+Piece {
+  id: string                    // estable y legible: "side-left", "shelf-2"
+  name: string                  // para la persona: "Lateral izquierdo"
+  role: 'side' | 'bottom' | 'top' | 'shelf' | 'divider' | 'back' | 'kick' | 'apron'
+      | 'door' | 'drawer-front' | 'drawer-side' | 'drawer-bottom' | 'brace' | 'other'
+  material: string              // "T12" | "T15" | "T18" | "TR3" | "TR6" (del catálogo)
   normal: 'x' | 'y' | 'z'       // eje del espesor
-  x: Tramo; y: Tramo; z: Tramo  // en el eje normal se ancla una sola cara; el largo es el espesor
-  veta: 'largo' | 'ancho' | 'libre'
-  carga: 'ninguna' | 'ligera' | 'media' | 'pesada'
-  apoyo: 'fijo' | 'movil'
-  cantos: ('frente' | 'atras' | 'izq' | 'der' | 'arriba' | 'abajo')[]   // con cubrecanto
-  grupo: string | null          // "puerta-1", "cajon-2"
-  confianza: 'alta' | 'media' | 'baja'
+  x: Extent; y: Extent; z: Extent
+  grain: 'length' | 'width' | 'any'
+  load: 'none' | 'light' | 'medium' | 'heavy'
+  support: 'fixed' | 'movable'
+  edges: ('front' | 'back' | 'left' | 'right' | 'top' | 'bottom')[]   // con cubrecanto
+  group: string | null          // "drawer-2", "headboard"
+  confidence: 'high' | 'medium' | 'low'   // "low" se dibuja en boceto
 }
 
-Tramo   = { desde: Cota, hasta: Cota }            // ejes de la cara
-        | { cara: Cota, lado: 'desde' | 'hasta' } // eje normal
-Cota    = { mm: number }                          // absoluta desde el origen
-        | { ref: CaraRef, mas: number }           // "lat-izq.x1" + 0
-        | { entre: [CaraRef, CaraRef], t: number } // proporcional (divisor al centro: t = 0.5)
-CaraRef = "mueble.x0" | "mueble.x1" | … | "<piezaId>.x0" | "<piezaId>.y1" | …
+Extent   = { from: Position | null, to: Position | null, length: mm | null }
+           // en los ejes de la cara van dos de tres; en el eje normal, solo from o solo to
+Position = { type: 'mm', mm }                                     // absoluta desde el origen
+         | { type: 'ref', ref: FaceRef, offset }                  // "side-left.x1" + 0
+         | { type: 'between', a: FaceRef, b: FaceRef, t, offset } // proporcional (divisor al centro: t = 0.5)
+FaceRef  = "furniture.x0" | "furniture.x1" | … | "<pieceId>.x0" | "<pieceId>.y1" | …
 
-Union {
+Joint {
   id: string
-  a: PiezaId; b: PiezaId        // a se fija a b
-  tipo: 'tope-tornillo' | 'bolsillo' | 'tarugo' | 'minifix' | 'canal' | 'rebaje' | 'escuadra'
-      | 'clavo-pegamento' | 'soporte-repisa' | 'bisagra-cazoleta' | 'corredera'
-  pegamento: boolean
-  penetracion: mm | null        // canal / rebaje: traslape permitido
-  herrajes: { herrajeId: string, cantidad: number | null }[]   // null → la calcula R3
+  a: PieceId; b: PieceId        // a se fija a b
+  type: 'butt-screw' | 'pocket-screw' | 'dowel' | 'cam-lock' | 'dado' | 'rabbet' | 'bracket'
+      | 'glue-nail' | 'shelf-pin' | 'cup-hinge' | 'drawer-slide'
+  glue: boolean
+  depth: mm | null              // canal / rebaje: cuánto entra a en b
+  hardware: { hardwareId: string, count: number | null }[]   // null → lo calcula Knotty
 }
 ```
 
+- **Fichas** (`domain/modules/`): gabinete, cama y mesa se describen con una ficha (`CabinetPlan`, `BedPlan`, `TablePlan`) y Knotty arma todas las piezas, uniones y holguras. Lo que la ficha no expresa se agrega encima como operaciones libres (`extras`).
 - **Normalizador**: al LLM le cuesta generar grafos de referencias, así que puede mandar cotas absolutas; toda cota a ±3 mm de una cara existente se "imanta" y se convierte en `ref`.
-- **Derivados**: la geometría resuelta, el grafo de contacto, el despiece y el acomodo nunca se guardan. Al LLM sí se le manda la caja resuelta de cada pieza como dato de solo lectura.
+- **Uniones comunes**: las pone Knotty (`design/joints.ts`) donde dos piezas se tocan; el experto solo declara las especiales.
+- **Derivados**: la geometría resuelta, el grafo de contacto, la lista de corte y el acomodo nunca se guardan. Al LLM sí se le manda la caja resuelta de cada pieza como dato de solo lectura.
 
 ### Operaciones (unión discriminada por `op`)
 
 | `op` | Parámetros | Notas |
 |---|---|---|
-| `agregarPieza` | `pieza` | id nuevo |
-| `eliminarPieza` | `id` | elimina sus uniones; las cotas que la referían se congelan a mm y se reporta |
-| `eliminarGrupo` | `grupo` | |
-| `duplicarPieza` | `id, nuevoId, nombre, eje, cota` | "agrega otra repisa igual" |
-| `redimensionar` | `id, eje, extremo, cota` | |
-| `mover` | `id, eje, cota` | conserva el largo |
-| `distribuir` | `ids[], eje, entre: [CaraRef, CaraRef]` | reparte con cotas proporcionales |
-| `cambiarEspesor` | `ids[], material` | lo referido se recorre solo |
-| `cambiarPropiedades` | `id, { nombre?, veta?, carga?, apoyo?, cantos?, rol? }` | |
-| `agregarUnion` / `cambiarUnion` / `eliminarUnion` | `union` / `id, cambios` / `id` | |
-| `cambiarDimensionGlobal` | `eje, valor, regla: 'estirar' \| 'proporcional'` | ver abajo |
-| `cambiarAnclajeMuro` | `valor` | |
+| `addPiece` | `piece` | id nuevo |
+| `removePiece` | `id` | elimina sus uniones; las cotas que la referían se congelan a mm y se reporta |
+| `removeGroup` | `group` | |
+| `duplicatePiece` | `id, newId, name, axis, at` | "agrega otra repisa igual" |
+| `resize` | `id, axis, end: 'from' \| 'to', at` | |
+| `move` | `id, axis, at` | conserva el largo |
+| `distribute` | `ids[], axis, a, b` | reparte con huecos iguales entre dos caras |
+| `changeMaterial` | `ids[], material` | lo referido se recorre solo |
+| `changeProperties` | `id, name, role, grain, load, support, edges, confidence` | null en lo que no cambia |
+| `addJoint` / `changeJoint` / `removeJoint` | `joint` / `joint` / `id` | |
+| `resizeFurniture` | `axis, value, rule: 'stretch' \| 'proportional'` | ver abajo |
+| `setWallAnchored` | `value` | |
+| `addDrawer` | `group, name, left, right, bottom, top, front, back, material, bottomMaterial` | Knotty arma el cajón completo con correderas |
 
-`cambiarDimensionGlobal`:
+`resizeFurniture`:
 
-- **estirar**: mueve la cara del mueble; lo referido se estira o se recorre; lo proporcional conserva su proporción.
-- **proporcional**: además escala las cotas absolutas del eje.
+- **stretch**: mueve la cara del mueble; lo referido se estira o se recorre; lo proporcional conserva su proporción.
+- **proportional**: además escala las cotas absolutas del eje.
 
 ### Respuesta del LLM en un ajuste
 
 ```ts
 {
-  explicacion: string            // qué cambia y por qué
-  resumen: string                // ≤ 80 car., para la línea de tiempo
-  operaciones: Operacion[]       // vacía si solo pregunta
-  preguntas: { texto, opciones: string[] | null }[]
-  requisitos: { agregar: Requisito[], quitar: string[] }
-  decisiones: { tema: string, texto: string }[]
-  aceptaRiesgo: { codigo, justificacion }[]   // si el usuario eligió "bajo mi riesgo"
+  explanation: string            // qué cambia y por qué, en español
+  summary: string                // ≤ 90 car., para la línea de tiempo
+  operations: Operation[]        // vacía si solo pregunta
+  questions: { text, options: string[] | null }[]
+  requestedPhotos: { angle, reason }[]
+  suggestions: string[]
+  requirements: { add: Requirement[], remove: string[] }
+  decisions: { topic, text }[]
+  acceptedRisks: { code, justification }[]   // si la persona eligió "bajo mi riesgo"
 }
 ```
+
+Con ficha, el ajuste usa `PlanAdjustment` (`action: 'plan' | 'freeform' | 'answer'` y la ficha completa en `cabinet`, `bed` o `table`).
 
 ### Ciclo de validación
 
 1. Zod valida la respuesta.
 2. Se aplican las operaciones sobre una copia y se resuelven las cotas.
-3. Se valida: geometría → catálogo → requisitos → estructura.
-4. **Errores bloqueantes**: se reenvían al LLM con código y datos (`E_TRASLAPE {a, b, volumen}`). Máximo 2 reintentos; si falla, el experto lo dice ("No logré hacer ese cambio sin romper X") y no se aplica nada.
-5. **Críticos estructurales nuevos**: se devuelven al LLM con las alternativas simuladas por el motor. El LLM incluye la mitigación si no es ambigua, o propone opciones en botones y el cambio queda en vista previa.
-6. Si todo pasa: versión nueva, diff y animación.
+3. Se repara por reglas lo que tiene arreglo obvio (piezas encimadas, uniones sin contacto) y queda anotado.
+4. Se valida: geometría → catálogo → requisitos → estructura.
+5. **Errores bloqueantes**: se reenvían al LLM con código y datos (`E_OVERLAP {a, b, …}`), hasta 3 intentos en total; si no pasa, se muestra el último diseño con sus problemas marcados (D32).
+6. **Críticos estructurales nuevos**: se devuelven al LLM con las alternativas que calculó el motor. El LLM incluye la mitigación si no es ambigua, o propone opciones y el cambio queda como propuesta.
+7. Si todo pasa: versión nueva, diferencias y animación.
 
-Códigos bloqueantes: `E_ESQUEMA`, `E_REF_INEXISTENTE`, `E_CICLO`, `E_TRAMO_INVALIDO`, `E_TRASLAPE`, `E_FLOTANTE`, `E_MEDIDA_GLOBAL`, `E_ESPESOR_CATALOGO`, `E_NO_CABE_EN_HOJA`, `E_UNION_SIN_CONTACTO`, `E_REQUISITO`. Aviso: `A_CONTACTO_SIN_UNION`.
+Códigos bloqueantes (`validation/errors.ts`): `E_SCHEMA`, `E_DUPLICATE_ID`, `E_UNKNOWN_PIECE`, `E_UNKNOWN_JOINT`, `E_UNKNOWN_REF`, `E_REF_AXIS`, `E_CYCLE`, `E_INVALID_EXTENT`, `E_OVERLAP`, `E_FLOATING`, `E_OVERALL_SIZE`, `E_UNKNOWN_MATERIAL`, `E_TOO_BIG_FOR_SHEET`, `E_JOINT_WITHOUT_CONTACT`, `E_REQUIREMENT`, `E_INVALID_OPERATION`. Avisos: `W_CONTACT_WITHOUT_JOINT`, `W_FROZEN_REFERENCE`.
 
 Flotantes: grafo de contacto (caras coincidentes a ±0.5 mm más uniones declaradas); toda pieza debe conectarse con alguna que toque `y = 0`.
 
@@ -287,40 +300,41 @@ Flotantes: grafo de contacto (caras coincidentes a ±0.5 mm más uniones declara
 | Memoria | Qué guarda | Quién la escribe | Límite |
 |---|---|---|---|
 | **Requisitos** | Hechos del usuario: espacio, carga, herramientas disponibles | El LLM los propone; el usuario los ve y puede borrarlos | ~15, sin duplicados por tipo |
-| **Decisiones** | Razonamiento de diseño: "trasera de 6 mm para escuadrar" | El LLM, con clave `tema` | 15; la nueva del mismo tema reemplaza |
+| **Decisiones** | Razonamiento de diseño: "trasera de 6 mm para escuadrar" | El LLM, con clave `topic` | 15; la nueva del mismo tema reemplaza |
 | **Bitácora** | Por versión: número, resumen, motivo, operaciones abreviadas | Determinista | ver compactación |
 
-Los requisitos tienen forma estructurada cuando se puede (`{tipo:'espacio', eje:'x', max:900}`), así el dominio los verifica (`E_REQUISITO`) sin depender de que el LLM los recuerde.
+Los requisitos tienen forma estructurada cuando se puede (`{type:'space', axis:'x', max:900}`), así el dominio los verifica (`E_REQUIREMENT`) sin depender de que el LLM los recuerde. Un requisito de espacio es la medida del mueble completo, nunca de una parte.
 
 ### Qué se envía en cada ajuste
 
 Del más estable al más volátil, para aprovechar el caché de prompts:
 
 1. **Sistema** (fijo, cacheable, ~4–5k tokens): rol, convenciones, esquema, operaciones con ejemplos, catálogos con ids, cómo leer los resultados estructurales.
-2. **Diseño actual** (~2–4k tokens para ~30 piezas): modelo, caja resuelta por pieza y `observaciones`.
+2. **Diseño actual** (~2–4k tokens para ~30 piezas): modelo, caja resuelta por pieza y `notes`.
 3. **Reporte estructural vigente**: solo hallazgos que no están OK, con sus datos.
 4. **Requisitos y decisiones.**
 5. **Bitácora compactada**: últimas 8 versiones completas; de la 9 a la 30 solo `vN: resumen`; más allá, una línea "N cambios anteriores".
 6. **Chat**: últimos 6 mensajes (respuestas de botón como texto).
 7. **Petición actual**, y en reintentos los errores del intento anterior.
 
-`ConstruirContexto` estima tokens; si pasa de ~12k recorta en orden: chat antiguo → bitácora media → decisiones más viejas. Nunca recorta el modelo ni los requisitos.
+`buildContext` (`application/context.ts`) estima tokens; si pasa de ~12k recorta en orden: chat antiguo → bitácora media → decisiones más viejas. Nunca recorta el modelo ni los requisitos.
 
 ### Fotos
 
-Solo se mandan en la reconstrucción. En los ajustes, lo visual vive en `observaciones`. Durante la sesión las fotos reducidas quedan en memoria por si el experto pide re-mirarlas; en localStorage solo miniaturas (≤ 6 de 160 px, JPEG 0.6, ~8 KB cada una).
+Solo se mandan en la reconstrucción. En los ajustes, lo visual vive en `notes`. Durante la sesión las fotos reducidas quedan en memoria por si el experto pide re-mirarlas; en localStorage solo miniaturas (≤ 6 de 160 px, JPEG 0.6, ~8 KB cada una).
 
 ### Persistencia
 
-- Clave `despiece:v1:diseno` → `{ modelo, versiones[{ n, snapshot, resumen, motivo, promptId, modelo }], requisitos, decisiones, chat, miniaturas }`.
-- Snapshots completos (~10 KB). Tope de 40 versiones: se conserva la v1 y se podan las intermedias más viejas.
-- Guardia de cuota y migraciones por `esquema`.
+- Clave `knotty:design` → `DesignState` (`domain/session/state.ts`): `{ format, measures, versions[{ n, design, summary, reason, operations, date, origin, decisions, plan, extras }], current, requirements, decisions, chat, thumbnails, proposal, review, trace, accepted, tray }`.
+- Snapshots completos (~10 KB). Tope de 40 versiones: se conserva la v1 y se podan las intermedias más viejas. Si no cabe, primero se sueltan las miniaturas.
+- **Formatos**: hoy `format: 5`. `domain/session/migrate.ts` lee cualquier formato anterior, uno a la vez (1 en español, 2 con códigos en español, 3 con ids de herrajes viejos, 4 con la cara `mueble.`). Cambiar un campo guardado pide subir el formato y agregar su migración con prueba.
+- Otras claves: `knotty:expert` (configuración sin llaves), `knotty:vault` (llaves cifradas), `knotty:tab-keys` (sessionStorage), `knotty:catalog-settings` (precios y corte). Lo guardado con las claves `despiece:v1:*` se mueve al leerlo (`adapters/storedKey.ts`).
 
 ---
 
 ## 5. Reglas estructurales
 
-Los supuestos viven en `domain/estructura/supuestos.ts` como datos. Cada hallazgo devuelve `{ codigo, severidad, piezas, datos, alternativas }`: el LLM narra, no calcula. Las alternativas las simula el motor (siguiente espesor, divisor al centro, claro máximo con el espesor actual).
+Los supuestos viven en `domain/structure/assumptions.ts` como datos y cada regla en `domain/structure/rules/`. Cada hallazgo devuelve `{ code, severity, pieces, message, data, alternatives }` (severidad `critical`, `recommendation` o `detail`): el LLM narra, no calcula. Las alternativas las simula el motor (siguiente espesor, divisor al centro, claro máximo con el espesor actual).
 
 ### R1 — Flecha de entrepaños
 
@@ -362,11 +376,11 @@ Los supuestos viven en `domain/estructura/supuestos.ts` como datos. Cada hallazg
 ### R4 — Vuelco
 
 - alto / fondo ≥ 3 → recomendación de kit antivuelco.
-- Crítico si alto > 1 200 mm, alto / fondo ≥ 4 y `anclajeMuro = false`.
+- Crítico si alto > 1 200 mm, alto / fondo ≥ 4 y `wallAnchored = false`.
 
 ### R5 — Escuadrado
 
-El casco necesita al menos uno de: trasera ≥ 6 mm fijada en todo el perímetro; trasera de 3 mm pegada en rebaje; o marco rígido (zoclo + faja superior + entrepaño fijo con bolsillo o tarugo). Si no: crítico con alto > 600 mm, recomendación si es menor.
+El casco necesita al menos uno de: trasera ≥ 6 mm fijada en todo el perímetro; trasera de 3 mm pegada en rebaje; o marco rígido (zoclo + faja superior + entrepaño fijo con bolsillo o tarugo). La regla y sus soluciones suponen una caja: un mueble abierto de varios marcos (un exhibidor escalonado) sale siempre crítico y sin solución que Knotty pueda construir; está en Preguntas abiertas. Si no: crítico con alto > 600 mm, recomendación si es menor.
 
 ### R6 — Puertas
 
@@ -380,15 +394,23 @@ Piso con claro > 800 mm sin apoyo intermedio → recomendación.
 
 Entrepaño o lateral con veta perpendicular a su largo → detalle (R1 ya usa el E menor).
 
+### R9 — Cajones
+
+Holgura de la corredera a cada lado, fondo del cajón suficiente para su ancho, una pieza a la que atornillar cada corredera y holgura del frente con lo que lo rodea. Aplica a los cajones del módulo y a los que arma el experto.
+
+### R10 — Uso
+
+Revisiones por tipo de mueble (`domain/typology`): alto de una mesa o un escritorio, espacio para las piernas, medidas de la cama contra el colchón, fondo de un librero, anclaje de lo que cuelga.
+
 Las fallas geométricas (traslape, flotante, medida total, pieza mayor que la hoja útil) son errores bloqueantes, no severidades.
 
 ---
 
 ## 6. Materiales
 
-- **Catálogo** en `public/catalogo/*.json`, cargado en tiempo de ejecución; desde Ajustes se pueden sobreescribir precios (localStorage). SKU y precios de Home Depot MX: placeholders marcados hasta llenarlos.
+- **Catálogo** en `public/catalog/catalog.json`, cargado en tiempo de ejecución; en Materiales se pueden sobreescribir precios y ajustes de corte (localStorage). SKU y precios de Home Depot MX: placeholders marcados hasta llenarlos.
 - **Acomodo guillotina** por espesor:
-  - Área útil = hoja − 2 × refilado (10 mm). Corte de sierra 4 mm, holgura 2 mm por pieza. Todo configurable.
+  - Área útil = hoja − 2 × refilado (15 mm, D29). Corte de sierra 4 mm, holgura 2 mm por pieza. Todo configurable.
   - Piezas con veta fija no rotan; la veta va sobre el lado de 2 440.
   - Varias heurísticas (mejor área, lado más corto, con y sin rotación); gana la de menos hojas y luego menos desperdicio. Determinista.
 - **Herrajes comunes en México**: tornillo para madera #8 × 1¼", 1½" y 2"; tornillo de bolsillo 1¼" rosca gruesa; tarugo 8 × 40; soporte de repisa 5 mm; bisagra de cazoleta 35 mm (recta, codo, súper codo); corredera telescópica 30–50 cm; escuadra; clavo sin cabeza; pegamento blanco; cubrecanto por metro; pata niveladora; kit antivuelco.
@@ -498,7 +520,7 @@ Nace de la revisión de uso del 2026-09-25. Todo gira alrededor de un solo model
 4. ✅ **Acomodo de la pantalla:** tres pestañas, historial en el encabezado, avisos fuera de las pestañas. Avisos e historial ocupan el lugar de las pestañas, no el del 3D, para que la vista previa de una solución siga a la vista.
 5. ✅ **El 3D se entiende:** cotas legibles, medidas en la vista de armado, herrajes dibujados, reglas de cajón (pieza entre cajones, holgura al piso, correderas) también para diseños libres. Un cajón sin correderas declaradas las recibe de las piezas junto a su caja; si un lado no tiene dónde atornillarla, Knotty ofrece la pieza como solución instantánea.
 6. ✅ **Módulo de cama** con variantes y ficha (base con cajones de un lado o de los dos, hacia la cabecera o el pie; cabecera lisa, librero o con compartimento). El largo y el ancho salen del colchón; la cama corre a lo largo del eje x con la cabecera en un extremo, y los cajones del otro lado abren hacia atrás. Las 64 combinaciones de colchón, cajones y cabecera se arman sin avisos. Mesas (comedor, centro, lateral) y escritorios también tienen ficha: cubierta sobre dos costados, faldones con tornillo de bolsillo que la escuadran, travesaños para que ningún claro pase de 60 cm, repisa baja con apoyos y, en el escritorio, cajonera a un lado con espacio libre para las piernas. Las bancas siguen pieza por pieza.
-7. **Código en inglés:** cada entrega migra los módulos que toca (D33).
+7. ✅ **Código en inglés:** código, datos, prompts, ids y carpetas (D33, ver «Migración del código a inglés»).
 
 ### Banco de pruebas (2026-09-25)
 
@@ -511,7 +533,7 @@ Caso pieza por pieza (2026-09-25): todos los casos iban por la ficha, así que e
 
 ### Migración del código a inglés (D33)
 
-Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompts siguen en español. Orden, de lo que no toca datos guardados a lo que sí:
+Un módulo por PR, con las pruebas pasando; la interfaz y los textos para la persona siguen en español. Terminada: pasos 1 a 10. El orden fue de lo que no toca datos guardados a lo que sí:
 
 1. ✅ `domain/trace` (nació en inglés) y `domain/diseno/uniones.ts` → `joints.ts`.
 2. ✅ Validación y contacto: `domain/validacion` → `domain/validation` (`contact`, `errors`, `geometry`). Los campos del error (`codigo`, `mensaje`, `datos`) y sus códigos (`E_FLOTANTE`…) quedan en español hasta el paso 4, porque comparten forma con los hallazgos y el experto los lee; los campos de `Result` (`valor`, `errores`), hasta el paso 6, con `aplicar`.
@@ -587,18 +609,26 @@ Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 camb
 - Accesibilidad: respeta «reducir movimiento» (sin resortes, caída, aserrín ni transiciones de cámara), la escena tiene descripción, Escape suelta la pieza, el chat es una región viva, los botones de solo ícono tienen nombre.
 - Modo oscuro completo: cotas y papel de boceto con tokens del tema.
 - Si el navegador no puede dibujar 3D, un aviso reemplaza la escena y el resto del estudio sigue funcionando.
-- PWA: manifest, íconos generados con `scripts/iconos.py` y service worker que abre la app sin conexión sin guardar llamadas a proveedores.
+- PWA: manifest, íconos generados con `scripts/iconos.py` (hoy `scripts/brand/generate.sh`) y service worker que abre la app sin conexión sin guardar llamadas a proveedores.
 
 Pendiente de validar con una API key real:
-- Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
-- La calidad de la reconstrucción desde fotos reales y de los 5 ajustes guionizados (criterios de éxito de la fase).
+- Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 15 operaciones y cotas anidadas). Validado con SheLLM (compatible con OpenAI); falta Anthropic y OpenAI directos.
+- La calidad de la reconstrucción desde fotos reales (el banco solo usa descripciones) y de los 5 ajustes guionizados (el banco solo diseña desde cero).
 
-### Fase 8 — en curso (2026-09-25)
+### Fase 8 — implementada (2026-09-25)
 
 - Entrega 1: bitácora y nunca tirar un diseño.
 - Entrega 2: reparación por reglas (piezas encimadas, uniones sin contacto).
 - Entrega 3: lectura de fotos en paralelo y guardada, con nota por foto.
 - Entrega 4: esqueleto y generador de gabinetes (`domain/modules/cabinet.ts`), y revisiones de uso por tipo de mueble (R10). Con SheLLM, los gabinetes del comparativo salen en 10–26 s (antes 60–160 s); camas, escritorios y mesas se siguen diseñando pieza por pieza.
+
+Del plan quedó fuera el paso 0 (silueta en boceto al instante por la descripción) y la reparación de piezas flotantes: solo se reparan las encimadas y las uniones sin contacto.
+
+### Fase 9 — implementada (2026-09-25)
+
+- Entregas 1 a 6: confianza y deshacer, avisos con estado, bandeja, acomodo de la pantalla, 3D legible con reglas de cajón, fichas de cama y de mesa o escritorio.
+- Entrega 7: código, datos guardados, prompts, catálogo, preferencias, ids y carpetas en inglés (D33, pasos 1–10), con migración de todo lo guardado.
+- Banco de pruebas oculto y `npm run compare` con los mismos casos, incluido uno que obliga el camino pieza por pieza.
 
 ### Pendientes de la revisión de uso (2026-09-25)
 
@@ -612,7 +642,7 @@ Quedaron integrados en la fase 9. La lista original:
 
 ## Preguntas abiertas
 
-- ¿Aplicar sola la solución de un crítico de escuadrado (R5) en el primer diseño pieza por pieza, como una reparación por reglas, en vez de dejarla como aviso? (ver «Caso pieza por pieza»)
+- ¿Cómo juzgar el escuadrado (R5) de un mueble abierto que no es caja? La regla solo cuenta travesaños unidos a todos los costados, ignora los `brace` que pone el experto y sus soluciones necesitan un techo: el exhibidor escalonado sale crítico sin solución construible. Después de eso: ¿aplicar la solución sola en el primer diseño, como una reparación por reglas? (ver «Caso pieza por pieza»)
 
 - Precios y SKU reales de triplay de pino 12/15/18 mm y trasera 3/6 mm en Home Depot MX.
 - Calibrar E del triplay de pino con una prueba casera (entrepaño cargado, medir flecha) cuando haya app.
