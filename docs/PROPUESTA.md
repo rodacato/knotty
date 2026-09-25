@@ -297,7 +297,7 @@ Del más estable al más volátil, para aprovechar el caché de prompts:
 6. **Chat**: últimos 6 mensajes (respuestas de botón como texto).
 7. **Petición actual**, y en reintentos los errores del intento anterior.
 
-`ConstruirContexto` estima tokens; si pasa de ~14k recorta en orden: chat antiguo → bitácora media → decisiones más viejas. Nunca recorta el modelo ni los requisitos.
+`ConstruirContexto` estima tokens; si pasa de ~12k recorta en orden: chat antiguo → bitácora media → decisiones más viejas. Nunca recorta el modelo ni los requisitos.
 
 ### Fotos
 

@@ -17,7 +17,7 @@ interface Completado {
   usage?: { prompt_tokens?: number; completion_tokens?: number }
 }
 
-const capacidades = new Map<string, { esquema: boolean; imagenes: boolean; stream: boolean }>()
+const capacidades = new Map<string, { esquema: boolean; imagenes: boolean; stream: boolean; razonamiento: boolean }>()
 export const normalizarHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
 
 class Rechazo extends Error {
@@ -152,14 +152,14 @@ function extraerJSON(texto: string) {
 
 export function crearCompatible(c: ConexionCompatible): LLMProvider {
   const clave = normalizarHost(c.host)
-  const puede = () => capacidades.get(clave) ?? { esquema: true, imagenes: true, stream: true }
+  const puede = () => capacidades.get(clave) ?? { esquema: true, imagenes: true, stream: true, razonamiento: true }
 
   const transporte: Transporte = {
     proveedor: c.proveedor,
     modelo: c.modelo,
     async completarJSON(sistema, contenido, esquema, nombre, signal) {
       for (;;) {
-        const { esquema: conEsquema, imagenes, stream } = puede()
+        const { esquema: conEsquema, imagenes, stream, razonamiento } = puede()
         const fotos = contenido.filter((x) => x.tipo === 'imagen').length
         const partes: Contenido[] = imagenes
           ? contenido
@@ -181,6 +181,8 @@ export function crearCompatible(c: ConexionCompatible): LLMProvider {
               response_format: conEsquema ? { type: 'json_schema', json_schema: { name: nombre, strict: true, schema: esquema } } : { type: 'json_object' },
               // En stream la conexión no se queda callada minutos: ni el host ni un proxy la cortan por inactividad.
               ...(stream ? { stream: true, stream_options: { include_usage: true } } : {}),
+              // Llenar un JSON con esquema no pide pensar mucho: el razonamiento largo es la mayor parte del tiempo y del costo.
+              ...(razonamiento ? { reasoning_effort: 'low' } : {}),
             }),
           })) as Completado
           const eleccion = r.choices?.[0]
@@ -192,7 +194,8 @@ export function crearCompatible(c: ConexionCompatible): LLMProvider {
           if (!(e instanceof Rechazo)) throw e
           // Un 413 es el cuerpo completo demasiado grande: con fotos, casi siempre son ellas.
           const porImagenes = (e.status === 400 && /image/i.test(e.cuerpo)) || e.status === 413
-          if (e.status === 400 && stream && /stream/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), stream: false })
+          if (e.status === 400 && razonamiento && /reasoning/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), razonamiento: false })
+          else if (e.status === 400 && stream && /stream/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), stream: false })
           else if (e.status === 400 && conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
           else if (imagenes && fotos && porImagenes) capacidades.set(clave, { ...puede(), imagenes: false })
           else throw e

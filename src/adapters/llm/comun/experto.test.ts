@@ -4,6 +4,7 @@ import { librero } from '../../../domain/fixtures/librero'
 import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida } from '../../../ports/LLMProvider'
 import { esquemaEstricto } from './esquemaJson'
 import { crearExperto, type Contenido, type Transporte } from './experto'
+import { AJUSTE, DICTAMEN, RECONSTRUCCION, sistemaPara } from './prompts'
 
 function recorrer(nodo: unknown, visitar: (n: Record<string, unknown>) => void) {
   if (Array.isArray(nodo)) return nodo.forEach((n) => recorrer(n, visitar))
@@ -21,6 +22,13 @@ describe('esquemaEstricto', () => {
         expect(n.required).toEqual(Object.keys(n.properties as object))
       }
     })
+  })
+})
+
+describe('prompts', () => {
+  // El sistema viaja en cada llamada: si crece de golpe, algo se coló (por ejemplo, un catálogo enorme).
+  it.each([RECONSTRUCCION, AJUSTE, DICTAMEN])('el sistema de $id se mantiene chico', (tarea) => {
+    expect(new TextEncoder().encode(sistemaPara(tarea, catalogo)).length).toBeLessThan(64 * 1024)
   })
 })
 
