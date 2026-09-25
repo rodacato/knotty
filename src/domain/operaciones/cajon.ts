@@ -2,7 +2,7 @@ import { desde, hasta, pieza, ref, tramo, union } from '../diseno/construir'
 import type { CaraRef, Pieza, Union } from '../diseno/esquema'
 import { parseCara, type Geometria } from '../diseno/resolver'
 import { materialPorId, type Catalogo, type Herraje } from '../materiales/catalogo'
-import { error, type ErrorDiseno } from '../validacion/errores'
+import { error, type DesignError } from '../validation/errors'
 
 // Un cajón DIY con frente embutido y correderas telescópicas: caja de cuatro lados atornillada, fondo clavado abajo y frente al ras.
 
@@ -35,7 +35,7 @@ export function correderaPara(profundidad: number, catalogo: Catalogo) {
 }
 
 /** Las piezas y uniones del cajón, todas referidas a las caras del hueco para que se ajusten si el mueble cambia. */
-export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo): { piezas: Pieza[]; uniones: Union[] } | ErrorDiseno {
+export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo): { piezas: Pieza[]; uniones: Union[] } | DesignError {
   for (const m of [c.material, c.materialFondo]) if (!materialPorId(catalogo, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
   const espesorFrente = materialPorId(catalogo, c.material)!.espesor
   const zFrente = geo.valor({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z')

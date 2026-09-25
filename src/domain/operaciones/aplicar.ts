@@ -2,31 +2,31 @@ import { entre } from '../diseno/construir'
 import { DIMENSION_DE_EJE, EJES, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from '../diseno/esquema'
 import { parseCara, resolver, type Geometria } from '../diseno/resolver'
 import { materialPorId, type Catalogo } from '../materiales/catalogo'
-import { contactoEntre } from '../validacion/contacto'
-import { error, exito, fallo, type AvisoDiseno, type ErrorDiseno, type Resultado } from '../validacion/errores'
+import { contactBetween } from '../validation/contact'
+import { error, success, failure, type DesignWarning, type DesignError, type Result } from '../validation/errors'
 import { expandirCajon } from './cajon'
 import type { Operacion } from './esquema'
 
 export interface Aplicado {
   diseno: Diseno
-  avisos: AvisoDiseno[]
+  avisos: DesignWarning[]
 }
 
 class OperacionInvalida extends Error {
-  constructor(readonly detalle: ErrorDiseno) {
+  constructor(readonly detalle: DesignError) {
     super(detalle.mensaje)
   }
 }
 
-const invalida = (codigo: ErrorDiseno['codigo'], mensaje: string, datos?: Record<string, unknown>) => new OperacionInvalida(error(codigo, mensaje, datos))
+const invalida = (codigo: DesignError['codigo'], mensaje: string, datos?: Record<string, unknown>) => new OperacionInvalida(error(codigo, mensaje, datos))
 
 const refiereA = (cota: Cota | null, id: string) =>
   !!cota && ((cota.tipo === 'ref' && parseCara(cota.ref).pieza === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseCara(r).pieza === id)))
 
 /** Aplica las operaciones en orden sobre una copia. Si una falla, no se aplica ninguna. */
-export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Catalogo): Resultado<Aplicado> {
+export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Catalogo): Result<Aplicado> {
   const diseno = structuredClone(original)
-  const avisos: AvisoDiseno[] = []
+  const avisos: DesignWarning[] = []
 
   const geometria = (): Geometria => {
     const r = resolver(diseno, catalogo)
@@ -95,7 +95,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
           ...copiadas.filter((u) => {
             if (!despues.ok) return true
             const { cajas } = despues.valor
-            return !!cajas.get(u.a) && !!cajas.get(u.b) && !!contactoEntre(u.a, cajas.get(u.a)!, u.b, cajas.get(u.b)!)
+            return !!cajas.get(u.a) && !!cajas.get(u.b) && !!contactBetween(u.a, cajas.get(u.a)!, u.b, cajas.get(u.b)!)
           }),
         )
         return
@@ -188,8 +188,8 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       aplicarUna(op)
     } catch (e) {
       if (!(e instanceof OperacionInvalida)) throw e
-      return fallo([{ ...e.detalle, datos: { ...e.detalle.datos, operacion: i, op: op.op } }])
+      return failure([{ ...e.detalle, datos: { ...e.detalle.datos, operacion: i, op: op.op } }])
     }
   }
-  return exito({ diseno, avisos })
+  return success({ diseno, avisos })
 }

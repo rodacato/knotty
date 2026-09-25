@@ -92,7 +92,7 @@ const commit = () => {
   }
 }
 
-interface Resultado {
+interface Result {
   prompt: string | null
   modelo: string
   caso: string
@@ -127,7 +127,7 @@ const memoria = () => {
   return { cargar: () => e, guardar: (x: EstadoDiseno) => void (e = x), borrar: () => void (e = null) }
 }
 
-async function correr(spec: string, caso: Caso): Promise<Resultado> {
+async function correr(spec: string, caso: Caso): Promise<Result> {
   const llamadas: Llamada[] = []
   const casos = crearCasosDeUso({ llm: () => medido(proveedor(spec), llamadas), catalogo, repositorio: memoria() })
   const inicio = performance.now()
@@ -173,8 +173,8 @@ async function enLotes<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
   return salida
 }
 
-function informe(resultados: Resultado[], etiqueta: string) {
-  const fila = (r: Resultado) =>
+function informe(resultados: Result[], etiqueta: string) {
+  const fila = (r: Result) =>
     `| ${r.modelo} | ${r.caso} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.segundos.toFixed(0)} | ${r.intentos}${r.correcciones ? ` (${r.correcciones})` : ''} | ${r.reparaciones} | ${r.tokensSalida ?? '—'} | ${r.piezas} | ${r.uniones} | ${r.medidas} | ${r.medidasRazonables === null ? '—' : r.medidasRazonables ? 'sí' : 'NO'} | ${r.criticos}${r.reglas ? ` (${r.reglas})` : ''} | ${r.veredicto} |`
   const modelos = [...new Set(resultados.map((r) => r.modelo))]
   const resumen = modelos.map((m) => {

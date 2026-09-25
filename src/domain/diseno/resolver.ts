@@ -1,5 +1,5 @@
 import { materialPorId, type Catalogo } from '../materiales/catalogo'
-import { error, exito, fallo, type ErrorDiseno, type Resultado } from '../validacion/errores'
+import { error, success, failure, type DesignError, type Result } from '../validation/errors'
 import { DIMENSION_DE_EJE, EJES, type CaraRef, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from './esquema'
 
 export interface Caja {
@@ -21,7 +21,7 @@ export interface Geometria {
 const TOLERANCIA = 0.5
 
 class FalloResolucion extends Error {
-  constructor(readonly detalle: ErrorDiseno) {
+  constructor(readonly detalle: DesignError) {
     super(detalle.mensaje)
   }
 }
@@ -36,7 +36,7 @@ export function parseCara(ref: CaraRef) {
 export const piezasReferidas = (tramo: Tramo) =>
   [tramo.desde, tramo.hasta].flatMap((c) => (!c ? [] : c.tipo === 'ref' ? [c.ref] : c.tipo === 'entre' ? [c.a, c.b] : [])).map((r) => parseCara(r).pieza)
 
-export function resolver(diseno: Diseno, catalogo: Catalogo): Resultado<Geometria> {
+export function resolver(diseno: Diseno, catalogo: Catalogo): Result<Geometria> {
   const porId = new Map(diseno.piezas.map((p) => [p.id, p]))
   const tramos = new Map<string, [number, number]>()
   const visitando: string[] = []
@@ -119,7 +119,7 @@ export function resolver(diseno: Diseno, catalogo: Catalogo): Resultado<Geometri
     throw new FalloResolucion(error('E_TRAMO_INVALIDO', `"${p.id}" en ${eje} necesita dos de: desde, hasta, largo.`, { pieza: p.id, eje }))
   }
 
-  const errores: ErrorDiseno[] = []
+  const errores: DesignError[] = []
   const cajas = new Map<string, Caja>()
   const espesores = new Map<string, number>()
   const vistos = new Set<string>()
@@ -140,8 +140,8 @@ export function resolver(diseno: Diseno, catalogo: Catalogo): Resultado<Geometri
     cajas.set(p.id, { x0, x1, y0, y1, z0, z1 })
     espesores.set(p.id, espesorDe(p))
   }
-  if (errores.length) return fallo(errores)
-  return exito({ cajas, espesores, valor: (cota, eje) => valor(cota, eje, 'consulta') })
+  if (errores.length) return failure(errores)
+  return success({ cajas, espesores, valor: (cota, eje) => valor(cota, eje, 'consulta') })
 }
 
 export const redondear = (mm: number, decimales = 1) => Math.round(mm * 10 ** decimales) / 10 ** decimales

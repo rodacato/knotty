@@ -1,5 +1,5 @@
 import { redondear } from '../../diseno/resolver'
-import { contactoEntre, largoDeJunta } from '../../validacion/contacto'
+import { contactBetween, jointLength } from '../../validation/contact'
 import type { Hallazgo, Regla } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
 
@@ -27,7 +27,7 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
 
     const tb = geo.espesores.get(u.b) ?? 0
     // Si se tocan por la cara de b, el tornillo entra de frente en ella: lo que importa es que no se asome del otro lado.
-    const porLaCara = contactoEntre(u.a, cajaA, u.b, cajaB)?.eje === b.normal
+    const porLaCara = contactBetween(u.a, cajaA, u.b, cajaB)?.axis === b.normal
     for (const t of tornillos) {
       const largo = t!.largo!
       if (u.tipo === 'tope-tornillo' && porLaCara) {
@@ -69,7 +69,7 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
       }
     }
 
-    const junta = largoDeJunta(cajaA, cajaB)
+    const junta = jointLength(cajaA, cajaB)
     const cantidad = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 2), 0)
     if (u.tipo === 'tope-tornillo' && !porLaCara && junta > 0 && cantidad >= 2 && junta < 2 * SUPUESTOS.tornillos.distanciaExtremo + 20)
       encontrados.push({

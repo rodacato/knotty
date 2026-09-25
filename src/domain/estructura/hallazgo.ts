@@ -1,7 +1,7 @@
 import type { Diseno } from '../diseno/esquema'
 import type { Geometria } from '../diseno/resolver'
 import type { Catalogo } from '../materiales/catalogo'
-import type { Contacto } from '../validacion/contacto'
+import type { Contact } from '../validation/contact'
 
 export type Severidad = 'critico' | 'recomendacion' | 'detalle'
 export type CodigoRegla = 'R1_FLECHA' | 'R2_ESPESOR_UNION' | 'R3_TORNILLOS' | 'R4_VUELCO' | 'R5_ESCUADRADO' | 'R6_PUERTAS' | 'R7_BASE' | 'R8_VETA' | 'R9_CAJONES' | 'R10_USO'
@@ -25,7 +25,7 @@ export interface Contexto {
   diseno: Diseno
   geo: Geometria
   catalogo: Catalogo
-  contactos: Contacto[]
+  contactos: Contact[]
 }
 
 export type Regla = (ctx: Contexto) => Hallazgo[]

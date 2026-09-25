@@ -21,7 +21,7 @@ import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
 import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
-import type { ErrorDiseno } from '../domain/validacion/errores'
+import type { DesignError } from '../domain/validation/errors'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
 import { toggleInTray, trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { DesignRepository } from '../ports/DesignRepository'
@@ -48,7 +48,7 @@ export interface FotoEnviada {
   base64: string
   miniatura: string
 }
-const listarErrores = (errores: ErrorDiseno[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
+const listarErrores = (errores: DesignError[]) => errores.map((e) => `- ${e.codigo}: ${e.mensaje}${e.datos ? ` ${JSON.stringify(e.datos)}` : ''}`).join('\n')
 
 /** Lo que la persona pidió al empezar, como primer mensaje del chat. */
 function pedidoInicial(entrada: { medidas: Dimensiones | null; fotos: Foto[]; notas: string }) {
@@ -272,7 +272,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     alAvanzar: AlAvanzar = () => {},
   ): Promise<EstadoDiseno> {
     const llm = deps.llm()
-    let correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null = null
+    let correccion: { respuestaAnterior: unknown; errores: DesignError[] } | null = null
     const trace: TraceEntry[] = []
     const lectura = await readPhotos(entrada.fotos, entrada.notas, signal, alAvanzar, trace)
     // With a reading the photos are not sent again; if none could be read, the design looks at them itself.
@@ -280,7 +280,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const desdePlan = await designFromPlan(entrada, fotosParaDiseno, lectura, signal, alAvanzar, trace)
     if (desdePlan) return guardar(desdePlan)
     // A design that resolves but did not pass validation: shown with its problems instead of thrown away.
-    let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[]; repairs: Repair[] } | null = null
+    let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: DesignError[]; repairs: Repair[] } | null = null
     for (let intento = 0; intento < INTENTOS; intento++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
       alAvanzar(intento ? 'corrigiendo' : 'disenando-piezas', intento)
@@ -331,7 +331,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     diseno: Diseno,
     r: RespuestaReconstruccion,
     respuesta: Respuesta<RespuestaReconstruccion>,
-    problemas: ErrorDiseno[],
+    problemas: DesignError[],
     repairs: Repair[],
     trace: TraceEntry[],
     plan: FurniturePlan | null = null,

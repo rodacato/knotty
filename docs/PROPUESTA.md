@@ -505,7 +505,7 @@ Nace de la revisión de uso del 2026-09-25. Todo gira alrededor de un solo model
 Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompts siguen en español. Orden, de lo que no toca datos guardados a lo que sí:
 
 1. ✅ `domain/trace` (nació en inglés) y `domain/diseno/uniones.ts` → `joints.ts`.
-2. Validación y contacto (`domain/validacion`).
+2. ✅ Validación y contacto: `domain/validacion` → `domain/validation` (`contact`, `errors`, `geometry`). Los campos del error (`codigo`, `mensaje`, `datos`) y sus códigos (`E_FLOTANTE`…) quedan en español hasta el paso 4, porque comparten forma con los hallazgos y el experto los lee; los campos de `Result` (`valor`, `errores`), hasta el paso 6, con `aplicar`.
 3. Resolución y normalización (`domain/diseno/resolver`, `normalizador`, `construir`).
 4. Reglas estructurales (`domain/estructura`).
 5. Materiales y viabilidad (`domain/materiales`, `domain/viabilidad`); el dictamen guardado cambia de formato.
