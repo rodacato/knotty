@@ -110,7 +110,7 @@ it('comparativo de modelos', async () => {
   const rows = await inBatches(jobs, Number(env.KNOTTY_PARALELO ?? 2), async ({ model, c, bench }): Promise<Row> => {
     const r = await bench.runCase(c, AbortSignal.timeout(15 * 60_000))
     if (r.state) saveDesign(model, c.id, r.state)
-    return { ...r, model, prompt: r.state?.versiones[0].origen?.promptId ?? null }
+    return { ...r, model, prompt: r.state?.versions[0].origin?.promptId ?? null }
   })
 
   const label = env.KNOTTY_ETIQUETA ?? 'formato actual'
