@@ -1,11 +1,11 @@
-import type { Design } from '../diseno/schema'
-import { completeJoints } from '../diseno/joints'
-import { normalize } from '../diseno/normalize'
-import type { Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import type { Design } from '../design/schema'
+import { completeJoints } from '../design/joints'
+import { normalize } from '../design/normalize'
+import type { Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 import { repairDesign, type Repair } from '../repair/repair'
-import type { Requirement } from '../requisitos/requirements'
+import type { Requirement } from '../requirements/requirements'
 import { buildPlan, type FurniturePlan } from './plan'
 
 // The design is its plan plus the free-form changes made on top: rebuilding replays them, so neither the ficha nor the freedom is lost.

@@ -1,4 +1,4 @@
-import { roundTo } from '../../diseno/resolve'
+import { roundTo } from '../../design/resolve'
 import { contactBetween, jointLength } from '../../validation/contact'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'

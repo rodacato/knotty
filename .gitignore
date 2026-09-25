@@ -5,5 +5,5 @@ coverage/
 *.local
 .env
 *.tsbuildinfo
-scripts/comparativo/resultados/crudo/
-scripts/comparativo/resultados/disenos/
+scripts/compare/results/raw/
+scripts/compare/results/designs/

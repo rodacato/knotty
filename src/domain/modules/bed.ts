@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { startAt, partway, endAt, makePiece, ref, extent } from '../diseno/builders'
-import type { FaceRef, Design, Piece } from '../diseno/schema'
-import { completeJoints } from '../diseno/joints'
-import { materialById, type Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import { startAt, partway, endAt, makePiece, ref, extent } from '../design/builders'
+import type { FaceRef, Design, Piece } from '../design/schema'
+import { completeJoints } from '../design/joints'
+import { materialById, type Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 import { MATTRESSES } from '../typology/typology'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.

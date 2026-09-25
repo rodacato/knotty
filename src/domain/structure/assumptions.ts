@@ -1,4 +1,4 @@
-import type { Load, JointType } from '../diseno/schema'
+import type { Load, JointType } from '../design/schema'
 
 // Engineering assumptions as data, to calibrate them without touching the rules. Pine plywood from Home Depot MX.
 

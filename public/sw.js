@@ -1,11 +1,11 @@
 // La app abre sin conexión: el HTML se pide a la red primero y los archivos con hash se sirven del caché.
 // Nunca se guardan llamadas a otros orígenes (proveedores de LLM, SheLLM).
 
-const CACHE = 'knotty-v1'
+const CACHE = 'knotty-v2'
 const BASE = new URL('./', self.location).pathname
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalogo/catalogo.json`, `${BASE}favicon.svg`, `${BASE}icono-192.png`])))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
   self.skipWaiting()
 })
 
@@ -18,7 +18,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return
 
-  if (e.request.mode === 'navigate' || url.pathname.endsWith('catalogo.json')) {
+  if (e.request.mode === 'navigate' || url.pathname.endsWith('catalog.json')) {
     e.respondWith(
       fetch(e.request)
         .then((r) => {

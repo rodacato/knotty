@@ -1,6 +1,6 @@
-import type { Design } from '../diseno/schema'
-import type { Geometry } from '../diseno/resolve'
-import type { Catalog } from '../materiales/catalog'
+import type { Design } from '../design/schema'
+import type { Geometry } from '../design/resolve'
+import type { Catalog } from '../materials/catalog'
 import type { Contact } from '../validation/contact'
 
 // What a rule finds: which pieces, how serious, why, and the ways out it has already worked out.

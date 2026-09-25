@@ -1,6 +1,6 @@
 import { ChatCircleText, Tray as TrayIcon, X } from '@phosphor-icons/react'
 import type { TrayItem } from '../../domain/tray/tray'
-import { Button } from '../sistema/components'
+import { Button } from '../system/components'
 import { useStore } from '../store'
 
 // What waits for the expert, next to the chat box: taken out one by one, sent all at once.

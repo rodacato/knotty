@@ -1,10 +1,10 @@
 import { analyze } from '../analysis'
-import { DIMENSION_LABEL, type Design, type Piece } from '../diseno/schema'
-import { completeJoints } from '../diseno/joints'
-import { normalize } from '../diseno/normalize'
-import { faceSize, roundTo, type Box } from '../diseno/resolve'
-import type { Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
+import { DIMENSION_LABEL, type Design, type Piece } from '../design/schema'
+import { completeJoints } from '../design/joints'
+import { normalize } from '../design/normalize'
+import { faceSize, roundTo, type Box } from '../design/resolve'
+import type { Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
 import type { DesignError } from '../validation/errors'
 
 // What a change did to the pieces, in words, and how to bring pieces back from before it without touching the rest.

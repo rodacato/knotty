@@ -1,13 +1,13 @@
 import { analyze } from '../analysis'
-import { startAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Design, Piece } from '../diseno/schema'
-import { drawerSides } from '../diseno/drawers'
-import { completeJoints } from '../diseno/joints'
-import { normalize } from '../diseno/normalize'
+import { startAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { Design, Piece } from '../design/schema'
+import { drawerSides } from '../design/drawers'
+import { completeJoints } from '../design/joints'
+import { normalize } from '../design/normalize'
 import type { Alternative, Finding } from '../structure/finding'
-import type { Catalog } from '../materiales/catalog'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import type { Catalog } from '../materials/catalog'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 
 // Solutions Knotty can build by itself for a finding: previewed and applied at once, no expert involved.
 

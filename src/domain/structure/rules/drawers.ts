@@ -1,8 +1,8 @@
-import { roundTo } from '../../diseno/resolve'
+import { roundTo } from '../../design/resolve'
 import { gapBetween } from '../../validation/contact'
-import type { Design } from '../../diseno/schema'
-import { drawerSides } from '../../diseno/drawers'
-import type { Geometry } from '../../diseno/resolve'
+import type { Design } from '../../design/schema'
+import { drawerSides } from '../../design/drawers'
+import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 

@@ -1,4 +1,4 @@
-<p align="center"><img src="public/icono-192.png" width="96" alt="" /></p>
+<p align="center"><img src="public/icon-192.png" width="96" alt="" /></p>
 
 <h1 align="center">Knotty</h1>
 
@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Abrir la app</strong></a></p>
 
-![Knotty](public/compartir.png)
+![Knotty](public/share.png)
 
 La propuesta, las decisiones y el estado viven en [docs/PROPUESTA.md](docs/PROPUESTA.md).
 
@@ -18,6 +18,7 @@ npm run dev        # http://localhost:5173
 npm test           # dominio, casos de uso y adapters
 npm run typecheck
 npm run build      # dist/, listo para GitHub Pages
+npm run compare    # el banco contra expertos reales; cuesta tokens, solo a mano
 ```
 
 Se puede instalar como app desde el navegador (PWA) y abre sin conexión; el experto sí necesita red.
@@ -31,14 +32,14 @@ Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("h
 - `src/ports/`: interfaces hacia afuera.
 - `src/adapters/`: Anthropic, OpenAI, simulado, localStorage, catálogo, imágenes. Los prompts están en `src/adapters/llm/prompts/`.
 - `src/ui/`: React y la escena 3D.
-- `public/catalogo/catalogo.json`: materiales, herrajes y parámetros de acomodo; se edita sin tocar código.
+- `public/catalog/catalog.json`: materiales, herrajes y parámetros de acomodo; se edita sin tocar código.
 
-`src/arquitectura.test.ts` verifica que ninguna capa importe lo que no debe.
+`src/architecture.test.ts` verifica que ninguna capa importe lo que no debe.
 
 ## Marca
 
-Los SVG de la marca viven en `scripts/marca/`. Para regenerar el favicon, los íconos de la PWA y la imagen para compartir (`public/compartir.png`) hace falta `rsvg-convert` (`brew install librsvg`) y Google Chrome:
+Los SVG de la marca viven en `scripts/brand/`. Para regenerar el favicon, los íconos de la PWA y la imagen para compartir (`public/share.png`) hace falta `rsvg-convert` (`brew install librsvg`) y Google Chrome:
 
 ```bash
-./scripts/marca/generar.sh
+./scripts/brand/generate.sh
 ```

@@ -1,7 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { LLMProvider } from '../../ports/LLMProvider'
-import { createExpert, type Content, type Transport } from './comun/expert'
-import { ProviderError } from './comun/errors'
+import { createExpert, type Content, type Transport } from './common/expert'
+import { ProviderError } from './common/errors'
 
 // Models that sometimes refuse because of safety classifiers: the API retries on another model by itself.
 const WITH_FALLBACK = ['claude-opus-5', 'claude-fable-5-1']

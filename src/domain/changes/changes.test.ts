@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
-import type { Design } from '../diseno/schema'
+import type { Design } from '../design/schema'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
-import { applyOperations } from '../operaciones/apply'
-import type { Operation } from '../operaciones/schema'
+import { applyOperations } from '../operations/apply'
+import type { Operation } from '../operations/schema'
 import { describeChange, restorePieces } from './changes'
 
 const apply = (d: Design, ops: Operation[]) => {

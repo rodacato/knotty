@@ -1,5 +1,5 @@
-import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Design, Piece } from '../diseno/schema'
+import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { Design, Piece } from '../design/schema'
 
 const HOLGURA = 2
 const ENTRE_PUERTAS = 3

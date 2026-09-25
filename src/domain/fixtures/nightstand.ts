@@ -1,5 +1,5 @@
-import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Design } from '../diseno/schema'
+import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
+import type { Design } from '../design/schema'
 
 const HOLGURA_PUERTA = 3
 

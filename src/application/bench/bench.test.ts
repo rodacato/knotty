@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createSimulated } from '../../adapters/llm/simulado/simulated'
+import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { createBench } from './bench'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
-import type { Design } from '../diseno/schema'
+import type { Design } from '../design/schema'
 import type { RuleCode } from '../structure/finding'
 import { exampleWallCabinet } from '../fixtures/wallCabinet'
 import { exampleNightstand } from '../fixtures/nightstand'

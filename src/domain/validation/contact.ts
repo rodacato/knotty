@@ -1,5 +1,5 @@
-import { AXES, type Axis } from '../diseno/schema'
-import type { Box } from '../diseno/resolve'
+import { AXES, type Axis } from '../design/schema'
+import type { Box } from '../design/resolve'
 
 // Which pieces touch, overlap or face each other across a gap: the geometry every other check stands on.
 

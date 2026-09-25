@@ -1,6 +1,6 @@
 import type { LLMProvider } from '../../ports/LLMProvider'
-import { createExpert, type Content, type Transport } from './comun/expert'
-import { ProviderError } from './comun/errors'
+import { createExpert, type Content, type Transport } from './common/expert'
+import { ProviderError } from './common/errors'
 
 // OpenAI and any compatible API (SheLLM). If the host does not take strict schemas or images, it falls back by itself and remembers it.
 
