@@ -20,6 +20,21 @@ import { CASOS, type Caso } from './casos'
 // Las llaves van en .env (ignorado por git), nunca en la línea de comandos ni en el código.
 if (existsSync('.env')) process.loadEnvFile('.env')
 
+// Con KNOTTY_CRUDO=1 guarda el stream tal como llegó, para reportar al proveedor una respuesta rota.
+if (process.env.KNOTTY_CRUDO) {
+  const original = globalThis.fetch
+  let n = 0
+  globalThis.fetch = async (url, init) => {
+    const r = await original(url, init)
+    if (!(r.headers.get('content-type') ?? '').includes('text/event-stream')) return r
+    const texto = await r.text()
+    const carpeta = join(import.meta.dirname, 'resultados', 'crudo')
+    mkdirSync(carpeta, { recursive: true })
+    writeFileSync(join(carpeta, `${Date.now()}-${++n}.sse`), texto)
+    return new Response(texto, { status: r.status, headers: r.headers })
+  }
+}
+
 const catalogo = Catalogo.parse(datos)
 const env = process.env
 
