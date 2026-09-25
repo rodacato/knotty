@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analizar } from '../../domain/analisis'
 import { diferencias } from '../../domain/diseno/diff'
@@ -158,22 +158,36 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const hallazgos = analisisActual.valido ? analisisActual.hallazgos : []
   const porConfirmar = actual.piezas.filter((p) => p.confianza === 'baja')
   const seleccionar = useTienda((s) => s.seleccionar)
-  const criticos = hallazgos.filter((h) => h.severidad === 'critico').length + incumplidos.length
+  const criticos = hallazgos.filter((h) => h.severidad === 'critico').length + incumplidos.length + ('errores' in analisisActual ? analisisActual.errores.length : 0)
+
+  const geoMostrada = analisisMostrado.geo
+  const problemasMostrados = analisisMostrado.valido ? [] : analisisMostrado.errores
+  const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.datos ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
+  const problemasActuales = analisisActual.valido ? [] : analisisActual.errores
 
   const escena = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
-      {analisisMostrado.valido ? (
+      {geoMostrada ? (
         <div className="h-full" role="img" aria-label={`${mostrado.nombre} en 3D: ${mostrado.dimensiones.alto} × ${mostrado.dimensiones.ancho} × ${mostrado.dimensiones.fondo} mm, ${mostrado.piezas.length} piezas. La lista completa está en Materiales.`}>
           <BordeEscena>
-            <Escena diseno={mostrado} geo={analisisMostrado.geo} catalogo={catalogo} fantasmas={cambios.agregadas} marcadas={cambios.modificadas} />
+            <Escena diseno={mostrado} geo={geoMostrada} catalogo={catalogo} fantasmas={cambios.agregadas} marcadas={cambios.modificadas} problemas={piezasConProblema} />
           </BordeEscena>
         </div>
       ) : (
-        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {analisisMostrado.errores[0]?.mensaje}</div>
+        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {problemasMostrados[0]?.mensaje}</div>
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />
         {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">Viendo la propuesta sin aplicar</span>}
+        {geoMostrada && problemasMostrados.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setPestana('revision')}
+            className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full bg-oxido px-3 py-1 text-xs font-medium text-white shadow"
+          >
+            <Warning weight="bold" /> {problemasMostrados.length === 1 ? 'Un problema sin resolver' : `${problemasMostrados.length} problemas sin resolver`}
+          </button>
+        )}
         {porConfirmar.length > 0 && versionVista === null && !propuesta && (
           <button
             type="button"
@@ -195,9 +209,9 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           </span>
         )}
       </div>
-      {analisisMostrado.valido && (
+      {geoMostrada && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
-          <FichaPieza diseno={mostrado} geo={analisisMostrado.geo} catalogo={catalogo} />
+          <FichaPieza diseno={mostrado} geo={geoMostrada} catalogo={catalogo} />
         </div>
       )}
     </div>
@@ -232,10 +246,14 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         <Chat estado={estado} />
       </Tabs.Content>
       <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
-        {analisisActual.valido && <Materiales estado={estado} diseno={actual} geo={analisisActual.geo} catalogo={catalogo} alPedir={pedir} />}
+        {analisisActual.valido ? (
+          <Materiales estado={estado} diseno={actual} geo={analisisActual.geo} catalogo={catalogo} alPedir={pedir} />
+        ) : (
+          <p className="p-4 text-sm text-grafito-2">Primero hay que resolver los problemas del diseño; están en Revisión.</p>
+        )}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
-        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} diseno={actual} alPedir={pedir} />
+        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} problemas={problemasActuales} diseno={actual} alPedir={pedir} />
       </Tabs.Content>
       <Tabs.Content value="historial" className="min-h-0 flex-1 overflow-y-auto">
         <Historial estado={estado} />

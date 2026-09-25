@@ -31,6 +31,7 @@ const estado = (versiones = 1): EstadoDiseno => ({
   miniaturas: [{ angulo: 'frente', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
   propuesta: null,
   dictamen: null,
+  trace: [],
 })
 
 describe('repositorio localStorage', () => {

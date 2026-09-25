@@ -1,8 +1,9 @@
 import { ArrowCounterClockwise, Eye, EyeSlash, Plus, X } from '@phosphor-icons/react'
 import { useState } from 'react'
-import type { EstadoDiseno } from '../../domain/sesion/estado'
+import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
+import { TraceLog } from './TraceLog'
 
 const relativo = new Intl.RelativeTimeFormat('es-MX', { numeric: 'auto' })
 
@@ -139,6 +140,12 @@ export function Historial({ estado }: { estado: EstadoDiseno }) {
           })}
         </ol>
       </section>
+      <details className="rounded-2xl border border-linea bg-hueso/60 p-3">
+        <summary className="cursor-pointer text-sm font-medium">Bitácora: qué hizo el experto</summary>
+        <div className="mt-3">
+          <TraceLog trace={estado.trace} pieces={disenoActual(estado).piezas} />
+        </div>
+      </details>
     </div>
   )
 }

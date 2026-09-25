@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
+import type { Diseno } from '../domain/diseno/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import type { DesignRepository } from '../ports/DesignRepository'
@@ -27,6 +28,7 @@ const casos = (llm: LLMProvider = crearSimulado(0)) => {
 }
 const senal = () => new AbortController().signal
 const MEDIDAS_LIBRERO = { ancho: 600, alto: 1800, fondo: 300 }
+const ajusteVacio: RespuestaAjuste = { explicacion: 'Listo', resumen: '', operaciones: [], preguntas: [], fotosSolicitadas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], aceptaRiesgo: [] }
 
 async function libreroInicial(c = casos()) {
   return c.reconstruir({ medidas: MEDIDAS_LIBRERO, fotos: [{ angulo: 'frente', base64: '' }], miniaturas: [], notas: '' }, senal())
@@ -302,5 +304,43 @@ describe('dictaminar', () => {
     const c = casos(llm)
     const dictamen = await c.dictaminar(await libreroInicial(c), catalogo, senal())
     expect(dictamen).toMatchObject({ veredicto: 'viable', carpintero: null, error: 'No se pudo conectar con SheLLM.' })
+  })
+})
+
+describe('never throw away a paid design', () => {
+  // A shelf copied on top of another one: it resolves, but the two overlap.
+  const conEncimada = (d: Diseno): Diseno => ({ ...d, piezas: [...d.piezas, { ...d.piezas.find((p) => p.id === 'entrepano-1')!, id: 'entrepano-extra', nombre: 'Entrepaño extra' }] })
+  const encimando = (): LLMProvider => {
+    const simulado = crearSimulado(0)
+    return { ...simulado, reconstruir: async (s, signal) => { const r = await simulado.reconstruir(s, signal); return { ...r, valor: { ...r.valor, diseno: conEncimada(r.valor.diseno) } } } }
+  }
+
+  it('after every attempt fails validation, keeps the last design and says what is left', async () => {
+    const c = casos(encimando())
+    const estado = await libreroInicial(c)
+    expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(true)
+    expect(estado.chat[1].texto).toContain('quedaron una pieza encimada')
+    expect(estado.chat[1].sugerencias[0]).toBe('Corrige las piezas marcadas')
+    expect(estado.trace.map((t) => t.outcome)).toEqual(['invalid', 'invalid', 'invalid'])
+    expect(estado.trace[0].errors[0].code).toBe('E_TRASLAPE')
+  })
+
+  it('a change that fixes the problem is applied, and one that adds a new problem is not', async () => {
+    const c = casos(encimando())
+    const inicial = await libreroInicial(c)
+    const quitar = { ...crearSimulado(0), proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Quitar extra', operaciones: [{ op: 'eliminarPieza' as const, id: 'entrepano-extra' }] }, origen: { promptId: 'p', proveedor: 'x', modelo: 'm' }, consumo: {} }) }
+    const arreglado = await casos(quitar).ajustar(inicial, 'Corrige las piezas marcadas', senal())
+    expect(disenoActual(arreglado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(false)
+    expect(arreglado.trace.at(-1)).toMatchObject({ step: 'adjust', outcome: 'ok', errors: [] })
+
+    const romper = { ...crearSimulado(0), proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Mover', operaciones: [{ op: 'mover' as const, id: 'lat-izq', eje: 'x' as const, cota: { tipo: 'mm' as const, mm: -50 } }] }, origen: { promptId: 'p', proveedor: 'x', modelo: 'm' }, consumo: {} }) }
+    const peor = await casos(romper).ajustar(inicial, 'Mueve el lateral', senal())
+    expect(peor.versiones).toHaveLength(1)
+    expect(peor.chat.at(-1)?.error).toBe(true)
+  })
+
+  it('a provider failure carries the trace so far', async () => {
+    const llm: LLMProvider = { ...crearSimulado(0), reconstruir: async () => Promise.reject(new Error('No se pudo conectar')) }
+    await expect(libreroInicial(casos(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ outcome: 'failed', step: 'reconstruct' }] })
   })
 })

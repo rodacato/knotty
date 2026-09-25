@@ -2,6 +2,7 @@ import { Wrench } from '@phosphor-icons/react'
 import type { Diseno } from '../../domain/diseno/esquema'
 import type { Alternativa, Hallazgo, Severidad } from '../../domain/estructura/hallazgo'
 import { Boton, Chip, Sello } from '../sistema/componentes'
+import type { ErrorDiseno } from '../../domain/validacion/errores'
 import { useTienda } from '../tienda'
 
 const TITULOS: Record<string, string> = {
@@ -84,9 +85,34 @@ function Tarjeta({ grupo, diseno, alPedir }: { grupo: Hallazgo[]; diseno: Diseno
   )
 }
 
-export function Revision({ hallazgos, incumplidos, diseno, alPedir }: { hallazgos: Hallazgo[]; incumplidos: string[]; diseno: Diseno; alPedir: (texto: string) => void }) {
+/** Validation messages name pieces by id; a person knows them by name. */
+const withNames = (message: string, diseno: Diseno) => diseno.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), message)
+
+function Problemas({ problemas, diseno, alPedir }: { problemas: ErrorDiseno[]; diseno: Diseno; alPedir: (texto: string) => void }) {
   const pensando = useTienda((s) => s.pensando)
-  const conteo = SEVERIDADES.map((s) => ({ ...s, n: hallazgos.filter((h) => h.severidad === s.id).length + (s.id === 'critico' ? incumplidos.length : 0) })).filter((s) => s.n > 0)
+  const mensajes = problemas.map((p) => withNames(p.mensaje, diseno))
+  return (
+    <li className="animate-aparecer flex flex-col gap-3 rounded-2xl border border-oxido/30 bg-oxido/5 p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-medium">Problemas sin resolver</span>
+        <Sello severidad="critico" />
+      </div>
+      <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] leading-snug">
+        {mensajes.map((m) => (
+          <li key={m}>{m}</li>
+        ))}
+      </ul>
+      <p className="text-xs text-grafito-2">Están marcadas en rojo en el 3D. Hasta resolverlas no hay lista de materiales.</p>
+      <Boton variante="secundario" className="min-h-9 self-start text-xs" disabled={pensando} onClick={() => alPedir(`Corrige estos problemas del diseño: ${mensajes.join(' ')}`)}>
+        Pedir al experto que los corrija
+      </Boton>
+    </li>
+  )
+}
+
+export function Revision({ hallazgos, incumplidos, problemas = [], diseno, alPedir }: { hallazgos: Hallazgo[]; incumplidos: string[]; problemas?: ErrorDiseno[]; diseno: Diseno; alPedir: (texto: string) => void }) {
+  const pensando = useTienda((s) => s.pensando)
+  const conteo = SEVERIDADES.map((s) => ({ ...s, n: hallazgos.filter((h) => h.severidad === s.id).length + (s.id === 'critico' ? incumplidos.length + problemas.length : 0) })).filter((s) => s.n > 0)
 
   if (!conteo.length)
     return (
@@ -110,6 +136,7 @@ export function Revision({ hallazgos, incumplidos, diseno, alPedir }: { hallazgo
         ))}
       </p>
       <ul className="flex flex-col gap-3">
+        {problemas.length > 0 && <Problemas problemas={problemas} diseno={diseno} alPedir={alPedir} />}
         {incumplidos.map((m) => (
           <li key={m} className="animate-aparecer flex flex-col gap-3 rounded-2xl border border-oxido/30 bg-oxido/5 p-4">
             <div className="flex items-center justify-between gap-2">
