@@ -42,6 +42,10 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D31 | Diseñar por pasos: lectura de cada foto (en paralelo y guardada), esqueleto de medidas y módulos, módulos convertidos en piezas por Knotty, reparación por reglas y, al final, detalles del experto. Cada paso guarda su resultado con la huella de lo que recibió y no se repite | La línea base con SheLLM mostró que casi todo el tiempo y el costo se iban en reescribir el diseño completo en cada reintento; en pasos chicos, cada uno se ve en cuanto llega |
 | D32 | Nunca tirar un diseño pagado: si los intentos no pasan la validación, se muestra el último con los problemas marcados y se corrige desde el chat | Tres intentos fallidos costaban ~$0.33 USD sin mostrar nada |
 | D33 | La interfaz, los textos para la persona y los prompts quedan en español; el código (nombres, archivos, lógica y comentarios) va en inglés. Lo nuevo nace en inglés y lo existente se migra un módulo por PR, con migración de formato para lo guardado | Pedido del autor el 2026-09-25 |
+| D34 | Tres velocidades para cambiar el mueble: **instantáneo** (ficha, edición a mano y soluciones que Knotty construye), **agrupado** (lo que necesita criterio va a una bandeja y se manda al experto en un solo pedido) y **libre** (el chat, para lo creativo). El experto solo interviene donde aporta criterio | La revisión de uso mostró que cada decisión chica costaba un minuto de espera y que el experto se usaba para cosas que Knotty puede resolver |
+| D35 | Todo cambio es un **cambio con origen y diferencias** (qué piezas se agregaron, quitaron o cambiaron) y se puede deshacer completo o por partes, sin experto | El experto quitó dos divisores sin que se lo pidieran y no había forma de regresarlos conservando lo demás |
+| D36 | El experto no quita ni cambia estructura que no se pidió: si su respuesta lo hace, queda como propuesta que la persona confirma; si trae preguntas, sus operaciones esperan a las respuestas | Confianza: nada que sostenga el mueble desaparece sin permiso, con cualquier modelo |
+| D37 | Las revisiones son **avisos con estado** (pendiente, viendo solución, resuelto, aceptado así) en un solo lugar, junto con las propuestas y preguntas del experto; cada aviso ofrece soluciones con vista previa en 3D, pedírselo al experto (a la bandeja) o aceptarlo así | El panel de Revisión informaba pero no dejaba decidir, y no había salida de «no hacer nada» |
 | D20 | Llaves: no guardarlas, en la pestaña, o cifradas con frase (bóveda de ai-town). Al llegar, un aviso pide la frase o la llave que falte | Los pendientes de BYOK de ai-town `REVIEW-1.0.md` §3, adelantados de la fase 7 |
 
 ---
@@ -464,6 +468,38 @@ Entregas, cada una útil por sí sola:
 
 Riesgos: el catálogo de módulos es el trabajo grande; las reparaciones pueden cambiar algo que el modelo quería así (por eso se anotan y se deshacen); juntar lecturas de varias fotos sin contar dos veces la misma pieza.
 
+### Fase 9 — Decidir rápido, con confianza
+
+Nace de la revisión de uso del 2026-09-25. Todo gira alrededor de un solo modelo de interacción:
+
+**Tres velocidades (D34)**
+| Velocidad | Qué | Quién lo hace | Espera |
+|---|---|---|---|
+| Instantáneo | Ficha, edición a mano, soluciones de los avisos que Knotty construye (apoyo al centro, divisor, más grosor, faldón, antivuelco), deshacer | Knotty | ninguna |
+| Agrupado | Soluciones que piden criterio, respuestas a preguntas, sugerencias | El experto, todo en un pedido desde la bandeja | ~10 s–1 min por pedido, no por decisión |
+| Libre | Lo creativo o lo que no cabe en la ficha | El experto por chat; queda como extra sobre la ficha | lo que tarde |
+
+**Cómo se conectan las piezas**
+- **Cambio con diferencias (D35):** cada versión sabe de dónde vino (ficha, a mano, Knotty, experto) y qué piezas agregó, quitó o cambió. De ahí salen el historial visible, el «qué cambió» bajo cada respuesta del experto, «Regresar» por pieza y «Deshacer este cambio».
+- **Avisos (D37):** un solo lugar para lo que espera una decisión: problemas de estructura y de uso, requisitos, problemas sin resolver, propuestas del experto (incluidas las de D36) y preguntas pendientes. Una burbuja en el encabezado cuenta los pendientes; cada aviso se resuelve con una solución instantánea con vista previa, se manda a la bandeja o se acepta así.
+- **Bandeja:** junto a la caja del chat. Las soluciones que piden criterio, las respuestas y las sugerencias se juntan ahí; «Consultar al experto» manda todo en un pedido, y al volver cada aviso o pregunta se marca resuelto en su lugar.
+- **Confianza (D36):** la red de seguridad convierte en propuesta cualquier respuesta que quite estructura no pedida; la propuesta aparece como aviso con «Sí, quítalos» / «No, déjalos».
+
+**Acomodo de la pantalla**
+- A la izquierda, el mueble en 3D: cotas legibles (tamaño fijo, líneas de referencia, ocultas de canto), medidas por pieza en la vista de armado, herrajes dibujados (correderas, bisagras) y vista previa de soluciones como fantasma.
+- La pieza seleccionada abre su tarjeta con medidas, uniones y edición a mano (como hoy).
+- En el encabezado: la versión actual con su historial desplegable (línea de tiempo con diferencias y deshacer) y la burbuja de avisos.
+- A la derecha, tres pestañas: **Conversación** (chat con la bandeja), **Mueble** (la ficha; en muebles sin ficha, lo que el experto decidió y sus piezas) y **Materiales** (revisión antes de comprar y lista). Revisión e Historial dejan de ser pestañas: viven en los avisos y en el encabezado.
+
+**Entregas**, en este orden porque cada una se apoya en la anterior:
+1. **Confianza y deshacer:** diferencias por versión, «qué cambió» bajo cada respuesta, «Regresar» por pieza, «Deshacer este cambio», red de seguridad de estructura y prompts que no cambian lo no pedido.
+2. **Avisos con estado:** burbuja en el encabezado, estados, «Aceptar así», catálogo de soluciones que Knotty construye con vista previa en 3D y flecha nueva, y las propuestas y preguntas del experto como avisos.
+3. **Bandeja:** decisiones que piden criterio agrupadas en un pedido; las respuestas del experto resuelven sus avisos.
+4. **Acomodo de la pantalla:** tres pestañas, historial en el encabezado, avisos fuera de las pestañas.
+5. **El 3D se entiende:** cotas legibles, medidas en la vista de armado, herrajes dibujados, reglas de cajón (pieza entre cajones, holgura al piso, correderas) también para diseños libres.
+6. **Módulo de cama** con variantes y ficha (base con cajones de un lado o de los dos, hacia la cabecera o el pie; cabecera lisa, librero o con compartimento). Después mesas y escritorios.
+7. **Código en inglés:** cada entrega migra los módulos que toca (D33).
+
 ### Migración del código a inglés (D33)
 
 Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompts siguen en español. Orden, de lo que no toca datos guardados a lo que sí:
@@ -547,7 +583,7 @@ Pendiente de validar con una API key real:
 
 ### Pendientes de la revisión de uso (2026-09-25)
 
-Para discutir antes de la siguiente entrega:
+Quedaron integrados en la fase 9. La lista original:
 1. Panel lateral amontonado: las revisiones como avisos tipo notificación, con salida fácil de «no hacer nada».
 2. Historial y versiones más a la vista.
 3. Medidas en la vista de armado.
