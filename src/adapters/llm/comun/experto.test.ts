@@ -42,7 +42,7 @@ describe('crearExperto', () => {
     const { experto, llamadas } = falso({ explicacion: 'x', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
     const r = await experto.reconstruir({ medidas: librero.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: 'para libros', catalogo, correccion: null }, new AbortController().signal)
     expect(r.valor.diseno.nombre).toBe('Librero')
-    expect(r.origen.promptId).toBe('sistema@3+reconstruccion@4')
+    expect(r.origen.promptId).toBe('sistema@4+reconstruccion@5')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { tipo: 'texto', texto: 'Medidas del mueble: ancho 600 mm, alto 1800 mm, fondo 300 mm.\nNotas de la persona: para libros' },
@@ -62,7 +62,7 @@ describe('crearExperto', () => {
     const { experto, llamadas } = falso({ veredicto: 'con-cambios', resumen: 'Sube la repisa', problemas: [], consejos: ['Mide el espesor'] })
     const r = await experto.dictaminar({ contexto: '## Diseño', revision: '## Lista de corte', diseno: librero, comprobaciones: [], catalogo }, new AbortController().signal)
     expect(r.valor.veredicto).toBe('con-cambios')
-    expect(r.origen.promptId).toBe('sistema@3+dictamen@1')
+    expect(r.origen.promptId).toBe('sistema@4+dictamen@1')
     expect(llamadas[0].sistema).toContain('dictamen antes de comprar')
     expect(llamadas[0].contenido).toEqual([{ tipo: 'texto', texto: '## Diseño\n\n## Lista de corte' }])
   })
