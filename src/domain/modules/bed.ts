@@ -13,15 +13,21 @@ import { MATTRESSES } from '../typology/typology'
 const Mattress = z.enum(['individual', 'matrimonial', 'queen', 'king'])
 type Mattress = z.infer<typeof Mattress>
 
+/** The most drawers a side of the base takes. */
+export const MAX_DRAWERS_PER_SIDE = 4
+const MATTRESS_SIZES = Object.entries(MATTRESSES)
+  .map(([name, [width, length]]) => `${name} ${width / 10} × ${length / 10}`)
+  .join(', ')
+
 export const BedPlan = z.object({
   kind: z.literal('bed'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Cama individual con cajones"'),
-  mattress: Mattress.describe('Mattress size: individual 99 × 190, matrimonial 135 × 190, queen 152 × 200, king 193 × 200 cm'),
+  mattress: Mattress.describe(`Mattress size: ${MATTRESS_SIZES} cm`),
   material: z.string().describe('Plywood id, usually "T18"'),
   height: z.number().positive().describe('Base height in mm, from the floor to where the mattress rests; usually 300–450'),
   drawers: z.object({
     side: z.enum(['none', 'left', 'right', 'both']).describe('Which side they open on, seen from the foot of the bed: none, left, right or both'),
-    count: z.number().int().min(0).max(4).describe('How many drawers per side; 0 if there are none'),
+    count: z.number().int().min(0).max(MAX_DRAWERS_PER_SIDE).describe('How many drawers per side; 0 if there are none'),
     position: z.enum(['head', 'center', 'foot']).describe('If they do not fill the whole length, where they gather: head, center or foot'),
   }),
   headboard: z.object({

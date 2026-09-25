@@ -11,6 +11,10 @@ const FRONT_GAP = 2
 const BOTTOM_GAP = 12
 const TOP_GAP = 20
 const BACK_CLEARANCE = 10
+/** The lowest box side worth building. */
+const MIN_BOX_HEIGHT = 60
+/** The lowest opening a drawer fits in: the gaps under and over the box, plus the lowest box. */
+export const MIN_DRAWER_OPENING_HEIGHT = BOTTOM_GAP + TOP_GAP + MIN_BOX_HEIGHT
 
 interface DrawerRequest {
   group: string
@@ -55,7 +59,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   }
   const width = geo.measure({ type: 'ref', ref: c.right, offset: 0 }, 'x') - geo.measure({ type: 'ref', ref: c.left, offset: 0 }, 'x')
   const height = geo.measure({ type: 'ref', ref: c.top, offset: 0 }, 'y') - geo.measure({ type: 'ref', ref: c.bottom, offset: 0 }, 'y')
-  if (width < 2 * runner.sideClearance + 150 || height < BOTTOM_GAP + TOP_GAP + 60)
+  if (width < 2 * runner.sideClearance + 150 || height < MIN_DRAWER_OPENING_HEIGHT)
     return error('E_INVALID_OPERATION', `El hueco de ${Math.round(width)} × ${Math.round(height)} mm es muy chico para un cajón.`, { width: Math.round(width), height: Math.round(height) })
 
   const g = c.group

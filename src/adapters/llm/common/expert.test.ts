@@ -54,7 +54,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await expert.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
-    expect(r.origin.promptId).toBe('system@9+reconstruction@11')
+    expect(r.origin.promptId).toBe('system@10+reconstruction@12')
     expect(calls[0].system).toContain('T18: Triplay de pino 18 mm')
     expect(calls[0].content).toEqual([
       { kind: 'text', text: 'Furniture measures: width 600 mm, height 1800 mm, depth 300 mm.\nThe person\'s notes: para libros' },
@@ -74,7 +74,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ verdict: 'needs-changes', summary: 'Sube la repisa', problems: [], tips: ['Mide el espesor'] })
     const r = await expert.reviewPurchase({ context: '## Diseño', review: '## Lista de corte', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal)
     expect(r.value.verdict).toBe('needs-changes')
-    expect(r.origin.promptId).toBe('system@9+review@4')
+    expect(r.origin.promptId).toBe('system@10+review@5')
     expect(calls[0].system).toContain('review before buying')
     expect(calls[0].content).toEqual([{ kind: 'text', text: '## Diseño\n\n## Lista de corte' }])
   })
@@ -104,7 +104,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', cabinet: null, bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await expert.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('skeleton@10')
+    expect(r.origin.promptId).toBe('skeleton@11')
     expect(calls[0].system).toContain('"T18" (18 mm)')
     expect(calls[0].system).not.toContain('{{materials}}')
   })
@@ -113,7 +113,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', cabinet: null, bed: null, table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('plan-adjust@8')
+    expect(r.origin.promptId).toBe('plan-adjust@9')
     expect(calls[0].system).toContain('"T15" (15 mm)')
     expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
   })

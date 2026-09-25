@@ -9,6 +9,9 @@ import type { Operation } from '../operations/schema'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 
+/** The most drawers a desk pedestal takes. */
+export const MAX_PEDESTAL_DRAWERS = 4
+
 export const TablePlan = z.object({
   kind: z.literal('table'),
   use: z.enum(['dining', 'coffee', 'side', 'desk']).describe('dining: dining table; coffee: coffee table; side: side table or nightstand; desk: desk'),
@@ -19,13 +22,21 @@ export const TablePlan = z.object({
   shelf: z.boolean().describe('Low shelf between the sides (coffee and side tables); a desk has none, it gets in the way of the legs'),
   pedestal: z.object({
     side: z.enum(['none', 'left', 'right']).describe('Which side the pedestal goes on, seen from the front of the desk'),
-    drawers: z.number().int().min(0).max(4).describe('How many drawers the pedestal has; 0 if there is none'),
+    drawers: z.number().int().min(0).max(MAX_PEDESTAL_DRAWERS).describe('How many drawers the pedestal has; 0 if there is none'),
   }),
 })
 export type TablePlan = z.infer<typeof TablePlan>
 
 /** What each use is called: the name is also how the checks by kind of furniture recognize it. */
 export const TABLE_NAMES: Record<TablePlan['use'], string> = { dining: 'Mesa de comedor', coffee: 'Mesa de centro', side: 'Mesa lateral', desk: 'Escritorio' }
+
+/** Typical outside measures for each use, in mm, when the person gives none. */
+export const TYPICAL_TABLE_DIMENSIONS: Record<TablePlan['use'], TablePlan['dimensions']> = {
+  dining: { width: 1500, height: 750, depth: 900 },
+  coffee: { width: 1000, height: 420, depth: 550 },
+  side: { width: 500, height: 550, depth: 400 },
+  desk: { width: 1200, height: 750, depth: 600 },
+}
 
 const APRON = 80
 /** On a desk the back apron runs lower: it braces the ends and hides the legs from the front. */

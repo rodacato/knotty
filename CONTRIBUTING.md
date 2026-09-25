@@ -96,6 +96,7 @@ Nunca se guardan en claro en `localStorage`: viven en memoria, en la pestaña o 
 ### Prompts
 
 - Cada prompt lleva `id: nombre@versión` en su encabezado, y el archivo se llama igual (`system.v9.md`). Si cambias el contenido, sube la versión en los dos: cada diseño guarda qué prompt lo produjo.
+- Los números del oficio (medidas mínimas, hoja útil, colchones, tornillos) no se escriben a mano en un prompt: van como `{{nombre}}` y salen del código en `src/adapters/llm/common/promptValues.ts`. Una prueba falla si uno aparece escrito a mano.
 - Corre el banco con experto antes y después (4).
 - Los reportes de `scripts/compare/results/` son historial: no se reescriben, ni con un reemplazo global.
 

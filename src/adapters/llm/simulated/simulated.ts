@@ -7,7 +7,7 @@ import type { Operation } from '../../../domain/operations/schema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viability/viability'
 import type { BedPlan } from '../../../domain/modules/bed'
-import { TABLE_NAMES, type TablePlan } from '../../../domain/modules/table'
+import { TABLE_NAMES, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/modules/table'
 import type { LLMProvider, ExpertResponse, AdjustmentResponse, ReviewResponse, PlanResponse, ReconstructionResponse, ReviewRequest } from '../../../ports/LLMProvider'
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
@@ -41,11 +41,12 @@ function countBefore(text: string, word: string): number | null {
   return said ? (WORDS[said] ?? Number(said)) : null
 }
 
-const TABLES: [TablePlan['use'], RegExp, { width: number; height: number; depth: number }][] = [
-  ['desk', /escritorio/, { width: 1200, height: 750, depth: 600 }],
-  ['coffee', /mesa de centro|mesa de caf/, { width: 1000, height: 420, depth: 550 }],
-  ['side', /mesa lateral|mesa de noche|mesita/, { width: 500, height: 550, depth: 400 }],
-  ['dining', /\bmesa\b/, { width: 1500, height: 750, depth: 900 }],
+/** In order: the first that matches wins, so plain "mesa" goes last. */
+const TABLES: [TablePlan['use'], RegExp][] = [
+  ['desk', /escritorio/],
+  ['coffee', /mesa de centro|mesa de caf/],
+  ['side', /mesa lateral|mesa de noche|mesita/],
+  ['dining', /\bmesa\b/],
 ]
 
 /** A table or desk read from the request's words, or null if it is neither. */
@@ -53,7 +54,7 @@ function tableFrom(notes: string, measures: Dimensions | null): TablePlan | null
   const text = notes.toLowerCase()
   const found = TABLES.find(([, pattern]) => pattern.test(text))
   if (!found) return null
-  const [use, , dimensions] = found
+  const [use] = found
   const name = TABLE_NAMES[use]
   const drawers = use === 'desk' && /caj/.test(text) ? (countBefore(text, 'caj') ?? 3) : 0
   return {
@@ -61,7 +62,7 @@ function tableFrom(notes: string, measures: Dimensions | null): TablePlan | null
     use,
     name: drawers ? `${name} con cajonera` : name,
     material: 'T18',
-    dimensions: measures ? { width: measures.width, height: measures.height, depth: measures.depth } : dimensions,
+    dimensions: measures ? { width: measures.width, height: measures.height, depth: measures.depth } : TYPICAL_TABLE_DIMENSIONS[use],
     overhang: use === 'dining' ? 50 : 0,
     shelf: use === 'coffee' || use === 'side',
     pedestal: { side: drawers ? (/izquier/.test(text) ? 'left' : 'right') : 'none', drawers: Math.min(4, drawers) },
