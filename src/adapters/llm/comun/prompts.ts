@@ -9,27 +9,27 @@ import sistema from '../prompts/sistema.v4.md?raw'
 
 interface Prompt {
   id: string
-  texto: string
+  text: string
 }
 
-function leer(crudo: string): Prompt {
-  const encabezado = /^---\n([\s\S]*?)\n---\n/.exec(crudo)
-  const id = /id:\s*(\S+)/.exec(encabezado?.[1] ?? '')?.[1] ?? 'sin-id'
-  return { id, texto: crudo.slice(encabezado?.[0].length ?? 0).trim() }
+function read(raw: string): Prompt {
+  const header = /^---\n([\s\S]*?)\n---\n/.exec(raw)
+  const id = /id:\s*(\S+)/.exec(header?.[1] ?? '')?.[1] ?? 'sin-id'
+  return { id, text: raw.slice(header?.[0].length ?? 0).trim() }
 }
 
-const SISTEMA = leer(sistema)
-export const RECONSTRUCCION = leer(reconstruccion)
-export const AJUSTE = leer(ajuste)
-export const DICTAMEN = leer(dictamen)
+const SYSTEM = read(sistema)
+export const RECONSTRUCTION = read(reconstruccion)
+export const ADJUSTMENT = read(ajuste)
+export const PURCHASE_REVIEW = read(dictamen)
 /** Stands alone, without the system prompt: reading a photo needs no catalog or model rules. */
-export const LECTURA = leer(lectura)
+export const READING = read(lectura)
 /** Stands alone too: the skeleton only needs the board thicknesses, filled in as {{materiales}}. */
-export const ESQUELETO = leer(esqueleto)
+export const SKELETON = read(esqueleto)
 /** Standalone as well: editing the ficha needs the board thicknesses, not the piece rules. */
-export const AJUSTE_FICHA = leer(ajusteFicha)
+export const PLAN_ADJUSTMENT = read(ajusteFicha)
 
-function describirCatalogo(c: Catalog) {
+function describeCatalog(c: Catalog) {
   return [
     'Materiales:',
     ...c.materiales.map((m) => `- ${m.id}: ${m.nombre}, ${m.espesor} mm (${m.tipo})`),
@@ -38,6 +38,6 @@ function describirCatalogo(c: Catalog) {
   ].join('\n')
 }
 
-/** Sistema + tarea: estable entre llamadas para aprovechar el caché del proveedor. */
-export const sistemaPara = (tarea: Prompt, catalogo: Catalog) => `${SISTEMA.texto.replace('{{catalogo}}', describirCatalogo(catalogo))}\n\n${tarea.texto}`
-export const idPrompt = (tarea: Prompt) => `${SISTEMA.id}+${tarea.id}`
+/** System + task: stable between calls to make the most of the provider's cache. */
+export const systemFor = (task: Prompt, catalog: Catalog) => `${SYSTEM.text.replace('{{catalogo}}', describeCatalog(catalog))}\n\n${task.text}`
+export const promptIdOf = (task: Prompt) => `${SYSTEM.id}+${task.id}`

@@ -27,7 +27,7 @@ const COLOR: Record<DebugKind, string> = { llm: 'bg-ambar-suave', action: 'bg-kr
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 /** Everything needed to understand or rebuild a session, without API keys. */
-function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServicios>['preferencias']['cargar']>, design: unknown) {
+function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServicios>['preferencias']['load']>, design: unknown) {
   const connection = preferences.activo === 'simulado' ? null : preferences.conexiones[preferences.activo]
   return {
     format: 'knotty-debug@1',
@@ -97,7 +97,7 @@ export function DebugPanel() {
   if (!visible) return trail
   const events = debug.events()
   const shown = [...events].reverse().filter((e) => kinds.has(e.kind))
-  const bundle = () => JSON.stringify(exportBundle(events, preferencias.cargar(), estado), null, 2)
+  const bundle = () => JSON.stringify(exportBundle(events, preferencias.load(), estado), null, 2)
 
   const download = () => {
     const url = URL.createObjectURL(new Blob([bundle()], { type: 'application/json' }))

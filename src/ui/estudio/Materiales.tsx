@@ -4,7 +4,7 @@ import type { Design } from '../../domain/diseno/schema'
 import type { Geometry } from '../../domain/diseno/resolve'
 import type { MaterialLayout } from '../../domain/materiales/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materiales/catalog'
-import { firmaDictamen } from '../../application/casosDeUso'
+import { reviewSignature } from '../../application/useCases'
 import { estimatePurchase } from '../../domain/materiales/purchase'
 import type { DesignState } from '../../domain/sesion/state'
 import { Titulo } from '../sistema/componentes'
@@ -175,7 +175,7 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
   const base = (id: string) => [...catalogo.materiales, ...catalogo.herrajes].find((x) => x.id === id)?.precio ?? null
   const totalHojas = compra.sheets.reduce((s, h) => s + h.sheets, 0)
   const propios = Object.keys(ajustes.precios).length
-  const dictamen = estado.dictamen?.firma === firmaDictamen(estado, efectivo) ? estado.dictamen : null
+  const dictamen = estado.dictamen?.firma === reviewSignature(estado, efectivo) ? estado.dictamen : null
 
   // La lista de compra solo aparece después de la revisión; si no es viable, hay que pedirla a propósito.
   if (!dictamen)

@@ -13,9 +13,9 @@ import type { FurniturePlan } from '../domain/modules/plan'
 import type { PhotoReading } from '../domain/reading/reading'
 import { CarpenterOpinion, type Check } from '../domain/viabilidad/viability'
 
-// Lo que el experto puede contestar. Los mismos esquemas generan el JSON Schema de la salida estructurada y validan la respuesta.
+// What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 
-export const RespuestaReconstruccion = z.object({
+export const ReconstructionResponse = z.object({
   explicacion: z.string().describe('Qué viste y cómo lo interpretaste, en 2–4 frases para el usuario'),
   diseno: Design,
   preguntas: z.array(Question).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
@@ -23,9 +23,9 @@ export const RespuestaReconstruccion = z.object({
   requisitos: z.array(Requirement),
   sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
-export type RespuestaReconstruccion = z.infer<typeof RespuestaReconstruccion>
+export type ReconstructionResponse = z.infer<typeof ReconstructionResponse>
 
-export const RespuestaAjuste = z.object({
+export const AdjustmentResponse = z.object({
   explicacion: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
   resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
   operaciones: z.array(Operation),
@@ -36,25 +36,25 @@ export const RespuestaAjuste = z.object({
   decisiones: z.array(Decision),
   aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
 })
-export type RespuestaAjuste = z.infer<typeof RespuestaAjuste>
+export type AdjustmentResponse = z.infer<typeof AdjustmentResponse>
 
-/** La opinión del carpintero; vive en el dominio porque se guarda con el diseño. */
-export const RespuestaDictamen = CarpenterOpinion
-export type RespuestaDictamen = z.infer<typeof RespuestaDictamen>
+/** The carpenter's opinion; it lives in the domain because it is saved with the design. */
+export const ReviewResponse = CarpenterOpinion
+export type ReviewResponse = z.infer<typeof ReviewResponse>
 
-export interface SolicitudDictamen {
-  /** El contexto del diseño ya armado por la aplicación. */
-  contexto: string
-  /** La lista de corte y las comprobaciones de cuentas, en texto. */
-  revision: string
-  diseno: Design
-  /** Las comprobaciones de cuentas, para quien no lee texto (el simulado). */
+export interface ReviewRequest {
+  /** The design's context, already put together by the application. */
+  context: string
+  /** The cut list and the arithmetic checks, as text. */
+  review: string
+  design: Design
+  /** The arithmetic checks, for whoever does not read text (the simulated expert). */
   comprobaciones: Check[]
-  catalogo: Catalog
+  catalog: Catalog
 }
 
 /** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
-export const RespuestaPlan = z.object({
+export const PlanResponse = z.object({
   explicacion: z.string().describe('Qué entendiste y qué decidiste, en 2–4 frases para la persona'),
   cabinet: CabinetPlan.nullable().describe('El plan si el mueble es un gabinete (caja con columnas y huecos); null si no lo es'),
   bed: BedPlan.nullable().describe('La ficha si el mueble es una cama (base con o sin cajones y cabecera); null si no lo es'),
@@ -64,7 +64,7 @@ export const RespuestaPlan = z.object({
   requisitos: z.array(Requirement),
   sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
-export type RespuestaPlan = z.infer<typeof RespuestaPlan>
+export type PlanResponse = z.infer<typeof PlanResponse>
 
 /** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. */
 export const PlanAdjustment = z.object({
@@ -83,83 +83,83 @@ export type PlanAdjustment = z.infer<typeof PlanAdjustment>
 
 export interface PlanAdjustRequest {
   /** The design context already built by the application. */
-  contexto: string
-  peticion: string
+  context: string
+  request: string
   plan: FurniturePlan
-  catalogo: Catalog
+  catalog: Catalog
 }
 
-export interface Foto {
-  angulo: string
-  /** JPEG en base64, sin el prefijo data:. */
+export interface Photo {
+  angle: string
+  /** JPEG in base64, without the data: prefix. */
   base64: string
   /** What the person says about this photo, if anything. */
   note?: string
 }
 
 export interface PhotoReadingRequest {
-  photo: Foto
+  photo: Photo
   /** The person's general description, so the reading knows what to look for. */
   context: string
 }
 
-export interface SolicitudReconstruccion {
-  /** null: la persona no las sabe y el experto las estima. */
-  medidas: Dimensions | null
-  fotos: Foto[]
-  notas: string
+export interface ReconstructionRequest {
+  /** null: the person does not know them and the expert estimates them. */
+  measures: Dimensions | null
+  photos: Photo[]
+  notes: string
   /** What was read from the photos beforehand; when present, the photos are not sent again. */
-  lectura: PhotoReading | null
-  catalogo: Catalog
-  /** En un reintento: lo que salió mal con la respuesta anterior. */
-  correccion: { respuestaAnterior: unknown; errores: DesignError[] } | null
+  reading: PhotoReading | null
+  catalog: Catalog
+  /** On a retry: what went wrong with the previous answer. */
+  correction: { previousResponse: unknown; errors: DesignError[] } | null
 }
 
-export interface SolicitudAjuste {
-  /** El contexto ya armado y compactado por la aplicación. */
-  contexto: string
-  peticion: string
-  /** El diseño vigente, para quien necesite leerlo sin parsear el contexto (el simulado). */
-  diseno: Design
-  /** Operaciones de la propuesta sin aplicar, si la hay; también van descritas en el contexto. */
-  propuesta: Operation[] | null
-  /** Fotos que la persona manda con este pedido, casi siempre porque el experto las pidió. */
-  fotos: Foto[]
-  catalogo: Catalog
-  correccion: { respuestaAnterior: unknown; errores: string } | null
+export interface AdjustmentRequest {
+  /** The context, already put together and compacted by the application. */
+  context: string
+  request: string
+  /** The current design, for whoever needs it without parsing the context (the simulated expert). */
+  design: Design
+  /** Operations of the pending proposal, if any; they are also described in the context. */
+  proposal: Operation[] | null
+  /** Photos the person sends with this request, almost always because the expert asked for them. */
+  photos: Photo[]
+  catalog: Catalog
+  correction: { previousResponse: unknown; errors: string } | null
 }
 
-export interface Consumo {
-  tokensEntrada?: number
-  tokensSalida?: number
+export interface Usage {
+  inputTokens?: number
+  outputTokens?: number
 }
 
-export interface Respuesta<T> {
-  valor: T
-  origen: { promptId: string; proveedor: string; modelo: string }
-  consumo: Consumo
-  /** Lo que el proveedor no pudo hacer y la persona debe saber, por ejemplo que no vio las fotos. */
-  avisos?: string[]
+export interface ExpertResponse<T> {
+  value: T
+  origin: { promptId: string; proveedor: string; modelo: string }
+  usage: Usage
+  /** What the provider could not do and the person should know, for example that it did not see the photos. */
+  warnings?: string[]
 }
 
 export interface LLMProvider {
   id: string
-  etiqueta: string
-  reconstruir(solicitud: SolicitudReconstruccion, signal: AbortSignal): Promise<Respuesta<RespuestaReconstruccion>>
-  proponerAjuste(solicitud: SolicitudAjuste, signal: AbortSignal): Promise<Respuesta<RespuestaAjuste>>
-  dictaminar(solicitud: SolicitudDictamen, signal: AbortSignal): Promise<Respuesta<RespuestaDictamen>>
-  readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<Respuesta<PhotoReading>>
+  label: string
+  reconstruct(request: ReconstructionRequest, signal: AbortSignal): Promise<ExpertResponse<ReconstructionResponse>>
+  proposeAdjustment(request: AdjustmentRequest, signal: AbortSignal): Promise<ExpertResponse<AdjustmentResponse>>
+  reviewPurchase(request: ReviewRequest, signal: AbortSignal): Promise<ExpertResponse<ReviewResponse>>
+  readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<ExpertResponse<PhotoReading>>
   /** Null when the provider has no skeleton step: the full design is asked for directly. */
-  planDesign: ((request: SolicitudReconstruccion, signal: AbortSignal) => Promise<Respuesta<RespuestaPlan>>) | null
+  planDesign: ((request: ReconstructionRequest, signal: AbortSignal) => Promise<ExpertResponse<PlanResponse>>) | null
   /** Null when the provider does not edit plans: chat changes go piece by piece. */
-  adjustPlan: ((request: PlanAdjustRequest, signal: AbortSignal) => Promise<Respuesta<PlanAdjustment>>) | null
+  adjustPlan: ((request: PlanAdjustRequest, signal: AbortSignal) => Promise<ExpertResponse<PlanAdjustment>>) | null
 }
 
-/** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */
-export class RespuestaInvalida extends Error {
+/** The provider answered something that does not match the schema; the text goes back to the model to correct it. */
+export class InvalidResponse extends Error {
   constructor(
-    readonly respuesta: unknown,
-    readonly problemas: string,
+    readonly response: unknown,
+    readonly problems: string,
   ) {
     super('El experto contestó en un formato que no se pudo leer.')
   }

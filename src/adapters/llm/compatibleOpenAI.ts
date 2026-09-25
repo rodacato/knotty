@@ -1,268 +1,268 @@
 import type { LLMProvider } from '../../ports/LLMProvider'
-import { crearExperto, type Contenido, type Transporte } from './comun/experto'
-import { ErrorProveedor } from './comun/errores'
+import { createExpert, type Content, type Transport } from './comun/expert'
+import { ProviderError } from './comun/errors'
 
-// OpenAI y cualquier API compatible (SheLLM). Si el host no acepta esquema estricto o imágenes, se degrada solo y lo recuerda.
+// OpenAI and any compatible API (SheLLM). If the host does not take strict schemas or images, it falls back by itself and remembers it.
 
-export interface ConexionCompatible {
-  proveedor: 'openai' | 'shellm'
+export interface CompatibleConnection {
+  provider: 'openai' | 'shellm'
   host: string
   apiKey: string
   modelo: string
-  etiqueta: string
+  label: string
 }
 
-interface Completado {
+interface Completed {
   choices?: { message?: { content?: string | null; refusal?: string | null }; finish_reason?: string }[]
   usage?: { prompt_tokens?: number; completion_tokens?: number }
 }
 
-const capacidades = new Map<string, { esquema: boolean; imagenes: boolean; stream: boolean; razonamiento: boolean }>()
-export const normalizarHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
+const capabilities = new Map<string, { schema: boolean; images: boolean; stream: boolean; reasoning: boolean }>()
+export const normalizeHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
 
-class Rechazo extends Error {
+class Refusal extends Error {
   constructor(
     readonly status: number,
-    readonly cuerpo: string,
+    readonly body: string,
   ) {
-    super(`Error ${status} del proveedor: ${cuerpo.slice(0, 300)}`)
+    super(`Error ${status} del proveedor: ${body.slice(0, 300)}`)
   }
 }
 
-const LIMITE_MS = 5 * 60_000
+const LIMIT_MS = 5 * 60_000
 
-/** Si no se pudo ni conectar, con SheLLM casi siempre es el host apagado o el origen fuera de su lista de CORS. */
-function sinConexion(c: Pick<ConexionCompatible, 'host'> & { proveedor?: ConexionCompatible['proveedor'] }) {
-  if (c.proveedor !== 'shellm') return 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'
-  const origen = typeof location === 'undefined' ? 'el origen de Knotty' : location.origin
-  return `No se pudo conectar con SheLLM en ${normalizarHost(c.host)}. Revisa que esté corriendo y que SHELLM_CORS_ORIGINS incluya ${origen}. Si pasa después de mucho rato, el túnel o proxy pudo cortar la conexión por tiempo.`
+/** When it could not even connect, with SheLLM it is almost always the host being off or the origin missing from its CORS list. */
+function offline(c: Pick<CompatibleConnection, 'host'> & { provider?: CompatibleConnection['provider'] }) {
+  if (c.provider !== 'shellm') return 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'
+  const origin = typeof location === 'undefined' ? 'el origen de Knotty' : location.origin
+  return `No se pudo conectar con SheLLM en ${normalizeHost(c.host)}. Revisa que esté corriendo y que SHELLM_CORS_ORIGINS incluya ${origin}. Si pasa después de mucho rato, el túnel o proxy pudo cortar la conexión por tiempo.`
 }
 
-const CORTE_TARDIO_S = 45
+const LATE_CUTOFF_S = 45
 
-function cortePorTiempo(c: { proveedor?: ConexionCompatible['proveedor'] }, segundos: number) {
-  const nombre = c.proveedor === 'shellm' ? 'SheLLM' : 'El proveedor'
-  return `${nombre} cortó la petición a los ${segundos} s: el modelo tardó más que su límite de tiempo. Armar el diseño completo puede tomar 2 o 3 minutos; ${c.proveedor === 'shellm' ? 'sube TIMEOUT_MS de SheLLM a 300000' : 'intenta de nuevo'} o usa un modelo más rápido.`
+function timeoutCut(c: { provider?: CompatibleConnection['provider'] }, seconds: number) {
+  const name = c.provider === 'shellm' ? 'SheLLM' : 'El proveedor'
+  return `${name} cortó la petición a los ${seconds} s: el modelo tardó más que su límite de tiempo. Armar el diseño completo puede tomar 2 o 3 minutos; ${c.provider === 'shellm' ? 'sube TIMEOUT_MS de SheLLM a 300000' : 'intenta de nuevo'} o usa un modelo más rápido.`
 }
 
-/** ¿El host contesta a un GET? Si sí, lo que falló fue el POST en particular. */
-async function responde(c: Pick<ConexionCompatible, 'host' | 'apiKey'>) {
+/** Does the host answer a GET? If so, what failed was the POST itself. */
+async function answers(c: Pick<CompatibleConnection, 'host' | 'apiKey'>) {
   try {
-    const r = await fetch(`${normalizarHost(c.host)}/v1/models`, { signal: AbortSignal.timeout(5000), headers: c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {} })
+    const r = await fetch(`${normalizeHost(c.host)}/v1/models`, { signal: AbortSignal.timeout(5000), headers: c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {} })
     return r.ok || r.status === 304
   } catch {
     return false
   }
 }
 
-function postBloqueado(c: Pick<ConexionCompatible, 'host'> & { proveedor?: ConexionCompatible['proveedor'] }, cuerpo: RequestInit['body']) {
-  const kb = typeof cuerpo === 'string' ? Math.round(cuerpo.length / 1024) : null
-  const nombre = c.proveedor === 'shellm' ? 'SheLLM' : 'El host'
-  return `${nombre} responde, pero el navegador no pudo mandarle el pedido${kb ? ` (${kb} KB)` : ''}. Suele ser CORS del POST: que permita las cabeceras Content-Type y Authorization desde ${typeof location === 'undefined' ? 'este sitio' : location.origin}. Si hay un proxy o túnel enfrente, revisa también su límite de tamaño y de tiempo.`
+function postBlocked(c: Pick<CompatibleConnection, 'host'> & { provider?: CompatibleConnection['provider'] }, body: RequestInit['body']) {
+  const kb = typeof body === 'string' ? Math.round(body.length / 1024) : null
+  const name = c.provider === 'shellm' ? 'SheLLM' : 'El host'
+  return `${name} responde, pero el navegador no pudo mandarle el pedido${kb ? ` (${kb} KB)` : ''}. Suele ser CORS del POST: que permita las cabeceras Content-Type y Authorization desde ${typeof location === 'undefined' ? 'este sitio' : location.origin}. Si hay un proxy o túnel enfrente, revisa también su límite de tamaño y de tiempo.`
 }
 
-async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedor?: ConexionCompatible['proveedor'] }, ruta: string, init: RequestInit = {}) {
-  let respuesta: Response
-  const limite = AbortSignal.timeout(LIMITE_MS)
-  const inicio = Date.now()
+async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider?: CompatibleConnection['provider'] }, route: string, init: RequestInit = {}) {
+  let response: Response
+  const limit = AbortSignal.timeout(LIMIT_MS)
+  const start = Date.now()
   try {
-    respuesta = await fetch(`${normalizarHost(c.host)}/v1${ruta}`, {
+    response = await fetch(`${normalizeHost(c.host)}/v1${route}`, {
       ...init,
-      signal: init.signal ? AbortSignal.any([init.signal, limite]) : limite,
+      signal: init.signal ? AbortSignal.any([init.signal, limit]) : limit,
       headers: { 'content-type': 'application/json', ...(c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {}) },
     })
   } catch (e) {
-    if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
-    const segundos = Math.round((Date.now() - inicio) / 1000)
-    // Un corte después de mucho rato es un límite de tiempo, aunque llegue sin cabeceras de CORS y parezca falta de conexión.
-    if (e instanceof TypeError && segundos >= CORTE_TARDIO_S) throw new Error(cortePorTiempo(c, segundos))
-    if (e instanceof TypeError) throw new Error(init.method === 'POST' && (await responde(c)) ? postBloqueado(c, init.body) : sinConexion(c))
-    throw new ErrorProveedor(e)
+    if (limit.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMIT_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
+    const seconds = Math.round((Date.now() - start) / 1000)
+    // A cut after a long time is a time limit, even when it arrives without CORS headers and looks like no connection.
+    if (e instanceof TypeError && seconds >= LATE_CUTOFF_S) throw new Error(timeoutCut(c, seconds))
+    if (e instanceof TypeError) throw new Error(init.method === 'POST' && (await answers(c)) ? postBlocked(c, init.body) : offline(c))
+    throw new ProviderError(e)
   }
-  if (respuesta.status === 401 || respuesta.status === 403) throw new Error(c.apiKey ? 'La API key no es válida.' : 'El host pide una API key.')
-  if (respuesta.status === 429) throw new Error('Límite de peticiones alcanzado; espera un momento.')
-  if (respuesta.status === 504 || respuesta.status === 524) throw new Error(cortePorTiempo(c, Math.round((Date.now() - inicio) / 1000)))
-  if (respuesta.status === 404) throw new Error('El modelo o la ruta no existen en ese host.')
-  if (!respuesta.ok) throw new Rechazo(respuesta.status, await respuesta.text())
+  if (response.status === 401 || response.status === 403) throw new Error(c.apiKey ? 'La API key no es válida.' : 'El host pide una API key.')
+  if (response.status === 429) throw new Error('Límite de peticiones alcanzado; espera un momento.')
+  if (response.status === 504 || response.status === 524) throw new Error(timeoutCut(c, Math.round((Date.now() - start) / 1000)))
+  if (response.status === 404) throw new Error('El modelo o la ruta no existen en ese host.')
+  if (!response.ok) throw new Refusal(response.status, await response.text())
   try {
-    return (respuesta.headers.get('content-type') ?? '').includes('text/event-stream') ? await leerStream(respuesta) : await respuesta.json()
+    return (response.headers.get('content-type') ?? '').includes('text/event-stream') ? await readStream(response) : await response.json()
   } catch (e) {
-    // La conexión también se puede caer a medio stream: se explica igual que si no hubiera arrancado.
-    if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
-    if (e instanceof TypeError) throw new Error(cortePorTiempo(c, Math.round((Date.now() - inicio) / 1000)))
+    // The connection can also drop mid-stream: it is explained as if it had not started.
+    if (limit.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMIT_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
+    if (e instanceof TypeError) throw new Error(timeoutCut(c, Math.round((Date.now() - start) / 1000)))
     throw e
   }
 }
 
-/** Junta los pedazos de un stream SSE de chat/completions en la misma forma que una respuesta completa. */
-async function leerStream(respuesta: Response): Promise<Completado> {
-  const lector = respuesta.body!.pipeThrough(new TextDecoderStream()).getReader()
-  let pendiente = ''
-  let contenido = ''
-  let rechazo = ''
-  let fin: string | undefined
-  let usage: Completado['usage']
-  let terminado = false
+/** Puts the pieces of a chat/completions SSE stream together in the shape of a whole answer. */
+async function readStream(response: Response): Promise<Completed> {
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader()
+  let pending = ''
+  let content = ''
+  let refusal = ''
+  let end: string | undefined
+  let usage: Completed['usage']
+  let finished = false
   for (;;) {
-    const { value, done } = await lector.read()
+    const { value, done } = await reader.read()
     if (done) break
-    pendiente += value
-    const lineas = pendiente.split('\n')
-    pendiente = lineas.pop() ?? ''
-    for (const linea of lineas) {
-      const dato = linea.startsWith('data:') ? linea.slice(5).trim() : ''
-      if (dato === '[DONE]') terminado = true
-      if (!dato || dato === '[DONE]') continue
-      const evento = JSON.parse(dato) as { choices?: { delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }[]; usage?: Completado['usage']; error?: { message?: string } }
-      if (evento.error) {
-        const detalle = evento.error.message ?? 'error sin detalle'
-        // 143 es SIGTERM: el host mató al modelo, casi siempre por su propio límite de tiempo.
-        if (/code 143|SIGTERM|timed? ?out/i.test(detalle)) throw new Error(`El proveedor detuvo al modelo antes de terminar (${detalle}); suele ser su límite de tiempo. En SheLLM sube TIMEOUT_MS a 300000.`)
-        throw new Error(`El proveedor cortó la respuesta: ${detalle}`)
+    pending += value
+    const lines = pending.split('\n')
+    pending = lines.pop() ?? ''
+    for (const line of lines) {
+      const datum = line.startsWith('data:') ? line.slice(5).trim() : ''
+      if (datum === '[DONE]') finished = true
+      if (!datum || datum === '[DONE]') continue
+      const event = JSON.parse(datum) as { choices?: { delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }[]; usage?: Completed['usage']; error?: { message?: string } }
+      if (event.error) {
+        const detail = event.error.message ?? 'error sin detalle'
+        // 143 is SIGTERM: the host killed the model, almost always for its own time limit.
+        if (/code 143|SIGTERM|timed? ?out/i.test(detail)) throw new Error(`El proveedor detuvo al modelo antes de terminar (${detail}); suele ser su límite de tiempo. En SheLLM sube TIMEOUT_MS a 300000.`)
+        throw new Error(`El proveedor cortó la respuesta: ${detail}`)
       }
-      const eleccion = evento.choices?.[0]
-      contenido += eleccion?.delta?.content ?? ''
-      rechazo += eleccion?.delta?.refusal ?? ''
-      fin = eleccion?.finish_reason ?? fin
-      if (evento.usage) usage = evento.usage
+      const choice = event.choices?.[0]
+      content += choice?.delta?.content ?? ''
+      refusal += choice?.delta?.refusal ?? ''
+      end = choice?.finish_reason ?? end
+      if (event.usage) usage = event.usage
     }
   }
-  // Un proxy que corta sin error deja el stream a medias: mejor decirlo que reportar un JSON inválido.
-  if (!terminado && !fin) throw new StreamCortado(contenido.length)
-  return { choices: [{ message: { content: contenido, refusal: rechazo || null }, finish_reason: fin }], usage }
+  // A proxy that cuts without an error leaves the stream half done: better to say so than to report invalid JSON.
+  if (!finished && !end) throw new StreamCut(content.length)
+  return { choices: [{ message: { content: content, refusal: refusal || null }, finish_reason: end }], usage }
 }
 
-class StreamCortado extends Error {
-  constructor(recibido: number) {
-    super(`La conexión se cortó a media respuesta (llegaron ${Math.round(recibido / 1024)} KB). Suele ser un proxy como Cloudflare que corta tras 100 s sin datos mientras el modelo piensa.`)
+class StreamCut extends Error {
+  constructor(received: number) {
+    super(`La conexión se cortó a media respuesta (llegaron ${Math.round(received / 1024)} KB). Suele ser un proxy como Cloudflare que corta tras 100 s sin datos mientras el modelo piensa.`)
   }
 }
 
-/** Los objetos JSON de primer nivel en el texto, respetando llaves dentro de cadenas. */
-function objetosDeNivelSuperior(texto: string): string[] {
-  const objetos: string[] = []
-  let profundidad = 0
-  let inicio = -1
-  let enCadena = false
-  for (let i = 0; i < texto.length; i++) {
-    const c = texto[i]
-    if (enCadena) {
+/** The top-level JSON objects in the text, respecting braces inside strings. */
+function topLevelObjects(text: string): string[] {
+  const objects: string[] = []
+  let depthValue = 0
+  let start = -1
+  let chained = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (chained) {
       if (c === '\\') i++
-      else if (c === '"') enCadena = false
-    } else if (c === '"') enCadena = profundidad > 0
-    else if (c === '{' && profundidad++ === 0) inicio = i
-    else if (c === '}' && profundidad > 0 && --profundidad === 0) objetos.push(texto.slice(inicio, i + 1))
+      else if (c === '"') chained = false
+    } else if (c === '"') chained = depthValue > 0
+    else if (c === '{' && depthValue++ === 0) start = i
+    else if (c === '}' && depthValue > 0 && --depthValue === 0) objects.push(text.slice(start, i + 1))
   }
-  return objetos
+  return objects
 }
 
 const ESCAPES: Record<string, string> = { '\n': '\\n', '\t': '\\t', '\r': '\\r' }
 
-/** Escapa saltos y tabuladores crudos dentro de las cadenas: el JSON los prohíbe, pero algunos modelos los escriben. */
-function escaparControles(json: string) {
-  let salida = ''
-  let enCadena = false
+/** Escapes raw newlines and tabs inside strings: JSON forbids them, but some models write them. */
+function escapeControls(json: string) {
+  let output = ''
+  let chained = false
   for (let i = 0; i < json.length; i++) {
     const c = json[i]
-    if (enCadena && c === '\\') {
-      salida += c + (json[++i] ?? '')
+    if (chained && c === '\\') {
+      output += c + (json[++i] ?? '')
       continue
     }
-    if (c === '"') enCadena = !enCadena
-    salida += enCadena && ESCAPES[c] ? ESCAPES[c] : c
+    if (c === '"') chained = !chained
+    output += chained && ESCAPES[c] ? ESCAPES[c] : c
   }
-  return salida
+  return output
 }
 
-/** Un objeto con una sola llave cuyo valor es el JSON escrito como texto: el modelo lo envolvió de más. */
-function desenvolver(valor: unknown): unknown {
-  if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return valor
-  const valores = Object.values(valor)
-  if (valores.length !== 1 || typeof valores[0] !== 'string') return valor
+/** An object with a single key whose value is the JSON written as text: the model wrapped it once too often. */
+function unwrap(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const values = Object.values(value)
+  if (values.length !== 1 || typeof values[0] !== 'string') return value
   try {
-    const dentro = JSON.parse(valores[0])
-    return dentro && typeof dentro === 'object' ? dentro : valor
+    const dentro = JSON.parse(values[0])
+    return dentro && typeof dentro === 'object' ? dentro : value
   } catch {
-    return valor
+    return value
   }
 }
 
-/** Quita cercas de código u otro texto; si llegaron varios intentos seguidos, se queda con el último que se pueda leer. */
-function extraerJSON(texto: string) {
-  // Con cuánto llegó y cómo termina se distingue una respuesta cortada de una mal escrita.
-  const muestra = `${texto.length.toLocaleString('es-MX')} caracteres, termina en «${texto.slice(-40).replace(/\s+/g, ' ')}»`
-  const candidatos = objetosDeNivelSuperior(texto)
-  if (!texto.includes('{')) throw new Error(`El modelo no devolvió JSON (${muestra}).`)
-  for (const candidato of candidatos.reverse()) {
-    for (const version of [candidato, escaparControles(candidato)]) {
+/** Strips code fences and other text; if several attempts came in a row, keeps the last one that can be read. */
+function extractJSON(text: string) {
+  // How much arrived and how it ends tell a cut answer from a badly written one.
+  const sample = `${text.length.toLocaleString('es-MX')} caracteres, termina en «${text.slice(-40).replace(/\s+/g, ' ')}»`
+  const candidates = topLevelObjects(text)
+  if (!text.includes('{')) throw new Error(`El modelo no devolvió JSON (${sample}).`)
+  for (const candidate of candidates.reverse()) {
+    for (const version of [candidate, escapeControls(candidate)]) {
       try {
-        return desenvolver(JSON.parse(version))
+        return unwrap(JSON.parse(version))
       } catch {
-        // Un intento roto: se prueba corregido y luego el anterior.
+        // A broken attempt: try it fixed, then the previous one.
       }
     }
   }
-  throw new Error(`El modelo devolvió un JSON inválido (${muestra}).`)
+  throw new Error(`El modelo devolvió un JSON inválido (${sample}).`)
 }
 
-export function crearCompatible(c: ConexionCompatible): LLMProvider {
-  const clave = normalizarHost(c.host)
-  const puede = () => capacidades.get(clave) ?? { esquema: true, imagenes: true, stream: true, razonamiento: true }
+export function createCompatible(c: CompatibleConnection): LLMProvider {
+  const key = normalizeHost(c.host)
+  const can = () => capabilities.get(key) ?? { schema: true, images: true, stream: true, reasoning: true }
 
-  const transporte: Transporte = {
-    proveedor: c.proveedor,
+  const transport: Transport = {
+    provider: c.provider,
     modelo: c.modelo,
-    async completarJSON(sistema, contenido, esquema, nombre, signal) {
+    async completeJSON(system, content, schema, name, signal) {
       for (;;) {
-        const { esquema: conEsquema, imagenes, stream, razonamiento } = puede()
-        const fotos = contenido.filter((x) => x.tipo === 'imagen').length
-        const partes: Contenido[] = imagenes
-          ? contenido
+        const { schema: withSchema, images: images, stream, reasoning: reasoning } = can()
+        const photos = content.filter((x) => x.kind === 'imagen').length
+        const parts: Content[] = images
+          ? content
           : [
-              ...contenido.filter((x) => x.tipo === 'texto'),
-              ...(fotos ? [{ tipo: 'texto' as const, texto: `(La persona tomó ${fotos} fotos, pero este proveedor no puede verlas. Trabaja con las medidas, las notas y los ángulos; marca confianza baja y pregunta lo que no puedas saber.)` }] : []),
+              ...content.filter((x) => x.kind === 'texto'),
+              ...(photos ? [{ kind: 'texto' as const, text: `(La persona tomó ${photos} fotos, pero este proveedor no puede verlas. Trabaja con las medidas, las notas y los ángulos; marca confianza baja y pregunta lo que no puedas saber.)` }] : []),
             ]
-        const instruccion = conEsquema ? sistema : `${sistema}\n\n# Formato de salida\nResponde únicamente con un objeto JSON que cumpla este JSON Schema, sin texto alrededor:\n${JSON.stringify(esquema)}`
+        const instruction = withSchema ? system : `${system}\n\n# Formato de salida\nResponde únicamente con un objeto JSON que cumpla este JSON Schema, sin texto alrededor:\n${JSON.stringify(schema)}`
         try {
-          const r = (await pedir(c, '/chat/completions', {
+          const r = (await ask(c, '/chat/completions', {
             method: 'POST',
             signal,
             body: JSON.stringify({
               model: c.modelo,
               messages: [
-                { role: 'system', content: instruccion },
-                { role: 'user', content: partes.map((p) => (p.tipo === 'texto' ? { type: 'text', text: p.texto } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },
+                { role: 'system', content: instruction },
+                { role: 'user', content: parts.map((p) => (p.kind === 'texto' ? { type: 'text', text: p.text } : { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${p.base64}`, detail: 'high' } })) },
               ],
-              response_format: conEsquema ? { type: 'json_schema', json_schema: { name: nombre, strict: true, schema: esquema } } : { type: 'json_object' },
-              // En stream la conexión no se queda callada minutos: ni el host ni un proxy la cortan por inactividad.
+              response_format: withSchema ? { type: 'json_schema', json_schema: { name: name, strict: true, schema: schema } } : { type: 'json_object' },
+              // Streaming, the connection is never silent for minutes: neither the host nor a proxy cuts it for being idle.
               ...(stream ? { stream: true, stream_options: { include_usage: true } } : {}),
-              // Llenar un JSON con esquema no pide pensar mucho: el razonamiento largo es la mayor parte del tiempo y del costo.
-              ...(razonamiento ? { reasoning_effort: 'low' } : {}),
+              // Filling in JSON with a schema needs little thinking: long reasoning is most of the time and the cost.
+              ...(reasoning ? { reasoning_effort: 'low' } : {}),
             }),
-          })) as Completado
-          const eleccion = r.choices?.[0]
-          if (eleccion?.message?.refusal) throw new Error(`El modelo se negó: ${eleccion.message.refusal}`)
-          if (eleccion?.finish_reason === 'length') throw new Error('La respuesta se cortó por el límite de tokens.')
-          const avisos = !imagenes && fotos ? [`${c.etiqueta.split(' · ')[0]} no aceptó las fotos, así que el experto trabajó sin verlas: con tus medidas, notas y respuestas.`] : undefined
-          return { json: extraerJSON(eleccion?.message?.content ?? ''), consumo: { tokensEntrada: r.usage?.prompt_tokens, tokensSalida: r.usage?.completion_tokens }, avisos }
+          })) as Completed
+          const choice = r.choices?.[0]
+          if (choice?.message?.refusal) throw new Error(`El modelo se negó: ${choice.message.refusal}`)
+          if (choice?.finish_reason === 'length') throw new Error('La respuesta se cortó por el límite de tokens.')
+          const warnings = !images && photos ? [`${c.label.split(' · ')[0]} no aceptó las fotos, así que el experto trabajó sin verlas: con tus medidas, notas y respuestas.`] : undefined
+          return { json: extractJSON(choice?.message?.content ?? ''), usage: { inputTokens: r.usage?.prompt_tokens, outputTokens: r.usage?.completion_tokens }, warnings: warnings }
         } catch (e) {
-          if (!(e instanceof Rechazo)) throw e
-          // Un 413 es el cuerpo completo demasiado grande: con fotos, casi siempre son ellas.
-          const porImagenes = (e.status === 400 && /image/i.test(e.cuerpo)) || e.status === 413
-          if (e.status === 400 && razonamiento && /reasoning/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), razonamiento: false })
-          else if (e.status === 400 && stream && /stream/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), stream: false })
-          else if (e.status === 400 && conEsquema && /response_format|json_schema/i.test(e.cuerpo)) capacidades.set(clave, { ...puede(), esquema: false })
-          else if (imagenes && fotos && porImagenes) capacidades.set(clave, { ...puede(), imagenes: false })
+          if (!(e instanceof Refusal)) throw e
+          // A 413 is the whole body being too large: with photos, it is almost always them.
+          const byImages = (e.status === 400 && /image/i.test(e.body)) || e.status === 413
+          if (e.status === 400 && reasoning && /reasoning/i.test(e.body)) capabilities.set(key, { ...can(), reasoning: false })
+          else if (e.status === 400 && stream && /stream/i.test(e.body)) capabilities.set(key, { ...can(), stream: false })
+          else if (e.status === 400 && withSchema && /response_format|json_schema/i.test(e.body)) capabilities.set(key, { ...can(), schema: false })
+          else if (images && photos && byImages) capabilities.set(key, { ...can(), images: false })
           else throw e
         }
       }
     },
   }
-  return crearExperto(transporte, c.etiqueta)
+  return createExpert(transport, c.label)
 }
 
-export async function modelosCompatibles(c: Pick<ConexionCompatible, 'host' | 'apiKey'>, soloOpenAI: boolean): Promise<string[]> {
-  const r = (await pedir(c, '/models')) as { data?: { id: string }[] }
+export async function compatibleModels(c: Pick<CompatibleConnection, 'host' | 'apiKey'>, openAIOnly: boolean): Promise<string[]> {
+  const r = (await ask(c, '/models')) as { data?: { id: string }[] }
   const ids = (r.data ?? []).map((m) => m.id)
-  return soloOpenAI ? ids.filter((id) => /^(gpt|o\d|chatgpt)/.test(id) && !/audio|realtime|transcribe|tts|image|search/.test(id)).sort() : ids
+  return openAIOnly ? ids.filter((id) => /^(gpt|o\d|chatgpt)/.test(id) && !/audio|realtime|transcribe|tts|image|search/.test(id)).sort() : ids
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
 import type { DesignState } from '../../domain/sesion/state'
-import { crearRepositorioLocal } from './localStorage'
+import { createLocalRepository } from './localStorage'
 
 function almacen(limite = Infinity): Storage {
   const datos = new Map<string, string>()
@@ -36,26 +36,26 @@ const estado = (versiones = 1): DesignState => ({
   tray: [],
 })
 
-describe('repositorio localStorage', () => {
-  it('guarda y recupera validando el esquema', () => {
-    const repo = crearRepositorioLocal(almacen())
-    repo.guardar(estado())
-    expect(repo.cargar()).toEqual(estado())
-    repo.borrar()
-    expect(repo.cargar()).toBeNull()
+describe('localStorage repository', () => {
+  it('saves and loads, validating the schema', () => {
+    const repo = createLocalRepository(almacen())
+    repo.save(estado())
+    expect(repo.load()).toEqual(estado())
+    repo.clear()
+    expect(repo.load()).toBeNull()
   })
 
   it('ignora datos corruptos', () => {
     const a = almacen()
     a.setItem('despiece:v1:diseno', '{"formato":1')
-    expect(crearRepositorioLocal(a).cargar()).toBeNull()
+    expect(createLocalRepository(a).load()).toBeNull()
   })
 
-  it('si no cabe, suelta miniaturas y luego versiones viejas', () => {
+  it('if it does not fit, drops thumbnails and then old versions', () => {
     const tamano = JSON.stringify({ ...estado(6), miniaturas: [] }).length
-    const repo = crearRepositorioLocal(almacen(tamano - 100))
-    repo.guardar(estado(6))
-    const cargado = repo.cargar()!
+    const repo = createLocalRepository(almacen(tamano - 100))
+    repo.save(estado(6))
+    const cargado = repo.load()!
     expect(cargado.miniaturas).toEqual([])
     expect(cargado.versiones.map((v) => v.n)).toEqual([1, 3, 4, 5, 6])
   })

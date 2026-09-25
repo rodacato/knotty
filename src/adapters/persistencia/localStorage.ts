@@ -1,40 +1,40 @@
 import { DesignState } from '../../domain/sesion/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
 
-const CLAVE = 'despiece:v1:diseno'
+const STORAGE_KEY = 'despiece:v1:diseno'
 
-/** Si el guardado excede la cuota, se sueltan primero las miniaturas y luego las versiones intermedias más viejas. */
-function reducir(estado: DesignState): DesignState | null {
-  if (estado.miniaturas.length) return { ...estado, miniaturas: [] }
-  if (estado.versiones.length > 3) return { ...estado, versiones: [estado.versiones[0], ...estado.versiones.slice(2)] }
+/** If saving exceeds the quota, thumbnails are dropped first, then the oldest in-between versions. */
+function reduce(state: DesignState): DesignState | null {
+  if (state.miniaturas.length) return { ...state, miniaturas: [] }
+  if (state.versiones.length > 3) return { ...state, versiones: [state.versiones[0], ...state.versiones.slice(2)] }
   return null
 }
 
-export function crearRepositorioLocal(almacen: Storage = localStorage): DesignRepository {
+export function createLocalRepository(storage: Storage = localStorage): DesignRepository {
   return {
-    cargar() {
+    load() {
       try {
-        const crudo = almacen.getItem(CLAVE)
-        if (!crudo) return null
-        const r = DesignState.safeParse(JSON.parse(crudo))
+        const raw = storage.getItem(STORAGE_KEY)
+        if (!raw) return null
+        const r = DesignState.safeParse(JSON.parse(raw))
         return r.success ? r.data : null
       } catch {
         return null
       }
     },
-    guardar(estado) {
-      for (let actual: DesignState | null = estado; actual; actual = reducir(actual)) {
+    save(state) {
+      for (let current: DesignState | null = state; current; current = reduce(current)) {
         try {
-          almacen.setItem(CLAVE, JSON.stringify(actual))
+          storage.setItem(STORAGE_KEY, JSON.stringify(current))
           return
         } catch {
           /* cuota llena: se intenta con menos */
         }
       }
     },
-    borrar() {
+    clear() {
       try {
-        almacen.removeItem(CLAVE)
+        storage.removeItem(STORAGE_KEY)
       } catch {
         /* nada guardado */
       }

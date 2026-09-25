@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/analysis'
 import { differences } from '../../domain/diseno/diff'
 import { currentDesign, type DesignState } from '../../domain/sesion/state'
-import { etiquetaActiva } from '../../ports/Preferencias'
+import { activeLabel } from '../../ports/Preferences'
 import { Chat } from '../chat/Chat'
 import { BordeEscena } from '../escena/BordeEscena'
 import { Escena } from '../escena/Escena'
@@ -18,7 +18,7 @@ import { HistoryPanel } from './HistoryPanel'
 import { Materiales } from './Materiales'
 import { FichaPieza } from './Paneles'
 import { noticeBoard } from '../../application/notices'
-import { currentPlan } from '../../application/casosDeUso'
+import { currentPlan } from '../../application/useCases'
 import { isBed } from '../../domain/modules/plan'
 import { NoticePanel } from './NoticePanel'
 
@@ -105,7 +105,7 @@ function Encabezado({ estado, pending, overlay, onOpen }: { estado: DesignState;
   const plan = currentPlan(estado).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
   const bed = plan && isBed(plan) && !currentPlan(estado).diverged ? plan : null
-  const etiqueta = useMemo(() => etiquetaActiva(preferencias.cargar()), [preferencias, ajustesAbiertos])
+  const etiqueta = useMemo(() => activeLabel(preferencias.load()), [preferencias, ajustesAbiertos])
   return (
     <header className="flex items-center gap-1 border-b border-linea bg-hueso/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
       <Simbolo className="size-7 shrink-0 sm:size-8" />

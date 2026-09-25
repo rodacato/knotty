@@ -1,6 +1,6 @@
 import { Plus, X } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { currentPlan } from '../../application/casosDeUso'
+import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/diseno/resolve'
 import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { Boton } from '../sistema/componentes'

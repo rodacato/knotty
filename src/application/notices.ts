@@ -54,7 +54,7 @@ function findingNotices(findings: Finding[]): Notice[] {
   return [...groups.values()].map((group) => {
     const [first] = group
     return {
-      key: `finding:${group.map(findingKey).sort().join('+')}`,
+      key: `finding:${first.severity}:${group.map(findingKey).sort().join('+')}`,
       kind: 'finding',
       severity: first.severity,
       title: TITLES[first.code] ?? first.code,
@@ -65,7 +65,7 @@ function findingNotices(findings: Finding[]): Notice[] {
   })
 }
 
-function noticesOf(estado: DesignState, design: Design, catalog: Catalog): Notice[] {
+function noticesOf(state: DesignState, design: Design, catalog: Catalog): Notice[] {
   const analysis = analyze(design, catalog)
   const notices: Notice[] = []
   if (!analysis.valid)
@@ -78,31 +78,31 @@ function noticesOf(estado: DesignState, design: Design, catalog: Catalog): Notic
       pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.piezas.some((p) => p.id === v))))],
       findings: [],
     })
-  for (const e of checkRequirements(design, estado.requisitos))
+  for (const e of checkRequirements(design, state.requisitos))
     notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
   if (analysis.valid) notices.push(...findingNotices(analysis.findings))
   return notices
 }
 
 /** The board for the current version: pending and accepted notices, and what the last change resolved. */
-export function noticeBoard(estado: DesignState, catalog: Catalog): NoticeBoard {
-  const design = currentDesign(estado)
-  const accepted = new Set(estado.accepted.map((a) => a.key))
-  const all = noticesOf(estado, design, catalog)
+export function noticeBoard(state: DesignState, catalog: Catalog): NoticeBoard {
+  const design = currentDesign(state)
+  const accepted = new Set(state.accepted.map((a) => a.key))
+  const all = noticesOf(state, design, catalog)
   const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))
 
   const extra: Notice[] = []
-  if (estado.propuesta)
+  if (state.propuesta)
     extra.push({
       key: 'proposal',
       kind: 'proposal',
       severity: 'decision',
       title: 'Propuesta del experto sin aplicar',
-      message: [...estado.propuesta.holds, ...estado.propuesta.criticos.map((c) => c.mensaje)].join(' ') || estado.propuesta.resumen,
-      pieces: estado.propuesta.criticos.flatMap((c) => c.piezas),
+      message: [...state.propuesta.holds, ...state.propuesta.criticos.map((c) => c.mensaje)].join(' ') || state.propuesta.resumen,
+      pieces: state.propuesta.criticos.flatMap((c) => c.piezas),
       findings: [],
     })
-  for (const m of estado.chat) {
+  for (const m of state.chat) {
     if (m.autor !== 'experto' || m.respondida || m.propuesta === 'pendiente') continue
     m.preguntas.forEach((q, index) => {
       if (!q.opciones || m.respuestas.includes(`p${index}`)) return
@@ -110,11 +110,11 @@ export function noticeBoard(estado: DesignState, catalog: Catalog): NoticeBoard 
     })
   }
 
-  const ordered = [...estado.versiones].sort((a, b) => a.n - b.n)
-  const before = ordered[ordered.findIndex((v) => v.n === estado.actual) - 1]
+  const ordered = [...state.versiones].sort((a, b) => a.n - b.n)
+  const before = ordered[ordered.findIndex((v) => v.n === state.actual) - 1]
   const now = new Set(all.flatMap((n) => n.findings.map(findingKey)))
   const resolved = before
-    ? noticesOf(estado, before.diseno, catalog)
+    ? noticesOf(state, before.diseno, catalog)
         .filter((n) => n.kind === 'finding')
         .flatMap((n) => {
           const gone = n.findings.filter((h) => !now.has(findingKey(h)))

@@ -1,32 +1,32 @@
 import { LayoutSettings, Catalog, NO_SETTINGS, type CatalogSettings } from '../../domain/materiales/catalog'
 import type { MaterialCatalog } from '../../ports/MaterialCatalog'
 
-const CLAVE_AJUSTES = 'despiece:v1:catalogo'
+const SETTINGS_KEY = 'despiece:v1:catalogo'
 
-export function crearCatalogoJson(url = `${import.meta.env.BASE_URL}catalogo/catalogo.json`, almacen: Storage = localStorage): MaterialCatalog {
-  let cargado: Promise<Catalog> | null = null
+export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalogo/catalogo.json`, storage: Storage = localStorage): MaterialCatalog {
+  let loaded: Promise<Catalog> | null = null
   return {
-    cargar() {
-      cargado ??= fetch(url)
+    load() {
+      loaded ??= fetch(url)
         .then((r) => {
           if (!r.ok) throw new Error(`No se pudo cargar el catálogo (${r.status}).`)
           return r.json()
         })
-        .then((datos) => Catalog.parse(datos))
-      return cargado
+        .then((data) => Catalog.parse(data))
+      return loaded
     },
-    ajustes() {
+    settings() {
       try {
-        const guardado = JSON.parse(almacen.getItem(CLAVE_AJUSTES) ?? 'null') as Partial<CatalogSettings> | null
-        const acomodo = LayoutSettings.safeParse(guardado?.acomodo)
-        return { precios: guardado?.precios && typeof guardado.precios === 'object' ? guardado.precios : {}, acomodo: acomodo.success ? acomodo.data : null }
+        const saved = JSON.parse(storage.getItem(SETTINGS_KEY) ?? 'null') as Partial<CatalogSettings> | null
+        const layout = LayoutSettings.safeParse(saved?.acomodo)
+        return { precios: saved?.precios && typeof saved.precios === 'object' ? saved.precios : {}, acomodo: layout.success ? layout.data : null }
       } catch {
         return NO_SETTINGS
       }
     },
-    guardarAjustes(a) {
+    saveSettings(a) {
       try {
-        almacen.setItem(CLAVE_AJUSTES, JSON.stringify(a))
+        storage.setItem(SETTINGS_KEY, JSON.stringify(a))
       } catch {
         /* sin almacenamiento: los ajustes duran la sesión */
       }

@@ -1,20 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
-import { crearCompatible } from './compatibleOpenAI'
+import { createCompatible } from './compatibleOpenAI'
 
 const respuesta = { explicacion: 'Veo un librero', diseno: exampleBookcase, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [{ message: { content: contenido } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
-const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: exampleBookcase.dimensiones, fotos, notas: '', lectura: null, catalogo: testCatalog, correccion: null })
+const solicitud = (fotos = [{ angle: 'frente', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensiones, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
 let host = 0
-const nueva = () => crearCompatible({ proveedor: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', etiqueta: 'SheLLM · claude' })
+const nueva = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', label: 'SheLLM · claude' })
 
 afterEach(() => vi.unstubAllGlobals())
 
-describe('crearCompatible', () => {
-  it('si el host no acepta esquema estricto ni imágenes, se degrada a json_object sin fotos y lo recuerda', async () => {
+describe('createCompatible', () => {
+  it('if the host takes neither strict schemas nor images, it falls back to json_object without photos and remembers it', async () => {
     const cuerpos: { response_format: { type: string }; messages: { content: unknown }[] }[] = []
     const fetch = vi.fn(async (_url: string, init: RequestInit) => {
       const cuerpo = JSON.parse(init.body as string)
@@ -24,24 +24,24 @@ describe('crearCompatible', () => {
       return ok(respuesta)
     })
     vi.stubGlobal('fetch', fetch)
-    const experto = crearCompatible({ proveedor: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', etiqueta: 'SheLLM' })
-    const solicitud = { medidas: exampleBookcase.dimensiones, fotos: [{ angulo: 'frente', base64: 'AAA' }], notas: '', lectura: null, catalogo: testCatalog, correccion: null }
+    const experto = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', label: 'SheLLM' })
+    const solicitud = { measures: exampleBookcase.dimensiones, photos: [{ angle: 'frente', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
 
-    const r = await experto.reconstruir(solicitud, new AbortController().signal)
-    expect(r.valor.diseno.nombre).toBe('Librero')
+    const r = await experto.reconstruct(solicitud, new AbortController().signal)
+    expect(r.value.diseno.nombre).toBe('Librero')
     expect(cuerpos.map((c) => c.response_format.type)).toEqual(['json_schema', 'json_object', 'json_object'])
     expect(JSON.stringify(cuerpos[2].messages)).toContain('no puede verlas')
     expect(JSON.stringify(cuerpos[2].messages[0])).toContain('JSON Schema')
     expect(fetch.mock.calls[0][0]).toBe('http://127.0.0.1:6100/v1/chat/completions')
 
-    await experto.reconstruir(solicitud, new AbortController().signal)
+    await experto.reconstruct(solicitud, new AbortController().signal)
     expect(cuerpos).toHaveLength(4)
   })
 
-  it('arma la petición: texto e imagen intercalados en orden, data URL JPEG y json_schema estricto', async () => {
+  it('builds the request: text and image interleaved in order, JPEG data URL and strict json_schema', async () => {
     let cuerpo: { messages: { role: string; content: { type: string; text?: string; image_url?: { url: string } }[] }[]; response_format: { type: string; json_schema: { name: string; strict: boolean } } } | null = null
     vi.stubGlobal('fetch', async (_: string, init: RequestInit) => ((cuerpo = JSON.parse(init.body as string)), ok(respuesta)))
-    await nueva().reconstruir(solicitud([{ angulo: 'frente', base64: 'AAA' }, { angulo: '3/4', base64: 'BBB' }]), new AbortController().signal)
+    await nueva().reconstruct(solicitud([{ angle: 'frente', base64: 'AAA' }, { angle: '3/4', base64: 'BBB' }]), new AbortController().signal)
     const partes = cuerpo!.messages[1].content
     expect(partes.map((p) => p.text ?? p.image_url?.url)).toEqual([
       expect.stringContaining('Medidas del mueble'),
@@ -53,46 +53,46 @@ describe('crearCompatible', () => {
     expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruccion', strict: true } })
   })
 
-  it('un 413 con fotos se reintenta sin ellas y avisa a la persona', async () => {
+  it('a 413 with photos retries without them and tells the person', async () => {
     const tipos: boolean[] = []
     vi.stubGlobal('fetch', async (_: string, init: RequestInit) => {
       const conImagen = (init.body as string).includes('image_url')
       tipos.push(conImagen)
       return conImagen ? rechazo('Payload Too Large', 413) : ok(respuesta)
     })
-    const r = await nueva().reconstruir(solicitud(), new AbortController().signal)
+    const r = await nueva().reconstruct(solicitud(), new AbortController().signal)
     expect(tipos).toEqual([true, false])
-    expect(r.avisos).toEqual([expect.stringContaining('SheLLM no aceptó las fotos')])
+    expect(r.warnings).toEqual([expect.stringContaining('SheLLM no aceptó las fotos')])
   })
 
-  it('un 400 que no habla de response_format ni de imágenes no degrada: se reporta', async () => {
+  it('a 400 about neither response_format nor images does not fall back: it is reported', async () => {
     const fetch = vi.fn(async () => rechazo('Field "model" is required'))
     vi.stubGlobal('fetch', fetch)
-    await expect(nueva().reconstruir(solicitud(), new AbortController().signal)).rejects.toThrow('Field "model" is required')
+    await expect(nueva().reconstruct(solicitud(), new AbortController().signal)).rejects.toThrow('Field "model" is required')
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 
-  it('un 413 sin fotos no se puede resolver quitándolas: se reporta', async () => {
+  it('a 413 without photos cannot be solved by dropping them: it is reported', async () => {
     vi.stubGlobal('fetch', async () => rechazo('Payload Too Large', 413))
-    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow('413')
+    await expect(nueva().reconstruct(solicitud([]), new AbortController().signal)).rejects.toThrow('413')
   })
 
-  it('si SheLLM no responde, dice qué revisar: que esté corriendo y el origen en su CORS', async () => {
+  it('if SheLLM does not answer, it says what to check: that it runs and the origin is in its CORS', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))))
-    await expect(nueva().reconstruir(solicitud(), new AbortController().signal)).rejects.toThrow(/SheLLM en http:\/\/127\.0\.0\.1:\d+.*SHELLM_CORS_ORIGINS/)
+    await expect(nueva().reconstruct(solicitud(), new AbortController().signal)).rejects.toThrow(/SheLLM en http:\/\/127\.0\.0\.1:\d+.*SHELLM_CORS_ORIGINS/)
   })
 
-  it('si el GET contesta pero el POST no sale, apunta a CORS del POST y dice el tamaño', async () => {
+  it('if the GET answers but the POST does not go out, it points to the POST CORS and says the size', async () => {
     vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => (init?.method === 'POST' ? Promise.reject(new TypeError('Failed to fetch')) : new Response('{"data":[]}', { status: 200 }))))
-    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM responde.*\(\d+ KB\).*Content-Type y Authorization/)
+    await expect(nueva().reconstruct(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM responde.*\(\d+ KB\).*Content-Type y Authorization/)
   })
 
-  it('un 504 del host se explica como límite de tiempo, no como falta de conexión', async () => {
+  it('a 504 from the host is explained as a time limit, not as no connection', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream timeout', { status: 504 })))
-    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM cortó la petición a los \d+ s.*sube TIMEOUT_MS de SheLLM/)
+    await expect(nueva().reconstruct(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM cortó la petición a los \d+ s.*sube TIMEOUT_MS de SheLLM/)
   })
 
-  it('pide stream y arma la respuesta con los pedazos SSE, comentarios de cola incluidos', async () => {
+  it('asks for a stream and builds the answer from the SSE pieces, trailing comments included', async () => {
     const texto = JSON.stringify(respuesta)
     const mitad = Math.floor(texto.length / 2)
     const sse = [
@@ -113,19 +113,19 @@ describe('crearCompatible', () => {
         return new Response(cuerpo, { status: 200, headers: { 'content-type': 'text/event-stream' } })
       }),
     )
-    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
-    expect(r.valor.diseno.nombre).toBe('Librero')
-    expect(r.consumo).toEqual({ tokensEntrada: 900, tokensSalida: 3100 })
+    const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
+    expect(r.value.diseno.nombre).toBe('Librero')
+    expect(r.usage).toEqual({ inputTokens: 900, outputTokens: 3100 })
     expect(cuerpos[0]).toMatchObject({ stream: true, stream_options: { include_usage: true } })
   })
 
-  it('un stream que se corta sin [DONE] ni finish_reason se reporta como corte, no como JSON inválido', async () => {
+  it('a stream cut without [DONE] or finish_reason is reported as a cut, not as invalid JSON', async () => {
     const sse = [`data: ${JSON.stringify({ choices: [{ delta: { content: '{"explicacion":"Veo un' } }] })}\n\n`]
     vi.stubGlobal('fetch', vi.fn(async () => new Response(new ReadableStream({ start: (c) => (sse.forEach((x) => c.enqueue(new TextEncoder().encode(x))), c.close()) }), { status: 200, headers: { 'content-type': 'text/event-stream' } })))
-    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/se cortó a media respuesta/)
+    await expect(nueva().reconstruct(solicitud([]), new AbortController().signal)).rejects.toThrow(/se cortó a media respuesta/)
   })
 
-  it('pide razonamiento bajo y, si el modelo no lo acepta, lo deja de pedir', async () => {
+  it('asks for low reasoning and, if the model does not take it, stops asking', async () => {
     const cuerpos: { reasoning_effort?: string }[] = []
     vi.stubGlobal(
       'fetch',
@@ -136,38 +136,38 @@ describe('crearCompatible', () => {
       }),
     )
     const experto = nueva()
-    await experto.reconstruir(solicitud([]), new AbortController().signal)
-    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    await experto.reconstruct(solicitud([]), new AbortController().signal)
+    await experto.reconstruct(solicitud([]), new AbortController().signal)
     expect(cuerpos.map((c) => c.reasoning_effort ?? null)).toEqual(['low', null, null])
   })
 
-  it('si llegan dos intentos pegados, el primero envuelto como texto, se queda con el bueno', async () => {
+  it('if two attempts arrive stuck together, the first wrapped as text, it keeps the good one', async () => {
     const texto = JSON.stringify(respuesta)
     const intentos = `${JSON.stringify({ $PARAMETER_NAME: JSON.stringify(respuesta, null, 2) })}${texto}`
     vi.stubGlobal('fetch', vi.fn(async () => conTexto(intentos)))
-    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
-    expect(r.valor.diseno.nombre).toBe('Librero')
+    const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
+    expect(r.value.diseno.nombre).toBe('Librero')
   })
 
-  it('un salto de línea crudo dentro de un texto no tumba la respuesta', async () => {
+  it('a raw newline inside a string does not break the answer', async () => {
     const texto = JSON.stringify({ ...respuesta, explicacion: 'Veo un librero__SALTO__con zoclo' }).replace('__SALTO__', '\n\t')
     vi.stubGlobal('fetch', vi.fn(async () => conTexto(texto)))
-    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
-    expect(r.valor.explicacion).toBe('Veo un librero\n\tcon zoclo')
+    const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
+    expect(r.value.explicacion).toBe('Veo un librero\n\tcon zoclo')
   })
 
-  it('un solo intento envuelto como texto también se desenvuelve', async () => {
+  it('a single attempt wrapped as text is unwrapped too', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ok({ $PARAMETER_NAME: JSON.stringify(respuesta) })))
-    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
-    expect(r.valor.explicacion).toBe('Veo un librero')
+    const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
+    expect(r.value.explicacion).toBe('Veo un librero')
   })
 
-  it('un JSON inválido dice cuánto llegó y cómo termina, para distinguir un corte', async () => {
+  it('invalid JSON says how much arrived and how it ends, to tell a cut apart', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"explicacion": "Veo un buró", "diseno": {"dimensiones": {"alto": 500}, "piezas": [' } }] }), { status: 200 })))
-    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/JSON inválido \(\d+ caracteres, termina en «.*piezas": \[»\)/)
+    await expect(nueva().reconstruct(solicitud([]), new AbortController().signal)).rejects.toThrow(/JSON inválido \(\d+ caracteres, termina en «.*piezas": \[»\)/)
   })
 
-  it('si el host no acepta stream, lo deja de pedir y lo recuerda', async () => {
+  it('if the host does not take streams, it stops asking and remembers it', async () => {
     const cuerpos: { stream?: boolean }[] = []
     vi.stubGlobal(
       'fetch',
@@ -178,16 +178,16 @@ describe('crearCompatible', () => {
       }),
     )
     const experto = nueva()
-    await experto.reconstruir(solicitud([]), new AbortController().signal)
-    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    await experto.reconstruct(solicitud([]), new AbortController().signal)
+    await experto.reconstruct(solicitud([]), new AbortController().signal)
     expect(cuerpos.map((c) => c.stream ?? false)).toEqual([true, false, false])
   })
 
-  it('manda la llave solo si hay', async () => {
+  it('sends the key only when there is one', async () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)
-    await crearCompatible({ proveedor: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', modelo: 'gpt', etiqueta: 'OpenAI' }).reconstruir(
-      { medidas: exampleBookcase.dimensiones, fotos: [], notas: '', lectura: null, catalogo: testCatalog, correccion: null },
+    await createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', modelo: 'gpt', label: 'OpenAI' }).reconstruct(
+      { measures: exampleBookcase.dimensiones, photos: [], notes: '', reading: null, catalog: testCatalog, correction: null },
       new AbortController().signal,
     )
     expect((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].headers).toMatchObject({ authorization: 'Bearer sk-x' })

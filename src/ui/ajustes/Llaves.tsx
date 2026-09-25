@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { LockKey } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { faltante, PRESETS } from '../../ports/Preferencias'
+import { missing, PRESETS } from '../../ports/Preferences'
 import { useServicios } from '../servicios'
 import { Boton, Titulo } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -80,11 +80,11 @@ export function PuertaLlaves() {
   const cerrar = useTienda((s) => s.cerrarPuerta)
   const usarSimulado = useTienda((s) => s.usarSimulado)
   const abrirAjustes = useTienda((s) => s.abrirAjustes)
-  const config = preferencias.cargar()
+  const config = preferencias.load()
   const bloqueada = boveda === 'bloqueada'
-  const falta = faltante(config)
+  const falta = missing(config)
   const visible = !cerrada && !ajustesAbiertos && (bloqueada || !!falta)
-  const nombre = config.activo === 'simulado' ? '' : PRESETS[config.activo].etiqueta
+  const nombre = config.activo === 'simulado' ? '' : PRESETS[config.activo].label
 
   return (
     <Dialog.Root open={visible} onOpenChange={(abierto) => !abierto && cerrar()}>

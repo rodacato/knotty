@@ -27,7 +27,7 @@ export function BenchPanel() {
   const [confirming, setConfirming] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
   const running = Object.values(results).some((r) => r === 'running')
-  const prefs = preferencias.cargar()
+  const prefs = preferencias.load()
   const expert = prefs.activo === 'simulado' ? 'Simulado' : `${prefs.activo} · ${prefs.conexiones[prefs.activo].modelo}`
 
   const run = async () => {

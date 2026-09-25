@@ -1,5 +1,5 @@
 import { startAt, partway, makePiece, ref, extent, makeJoint } from '../../../domain/diseno/builders'
-import type { Design } from '../../../domain/diseno/schema'
+import type { Design, Dimensions } from '../../../domain/diseno/schema'
 import { exampleWallCabinet } from '../../../domain/fixtures/wallCabinet'
 import { exampleNightstand } from '../../../domain/fixtures/nightstand'
 import { exampleBookcase } from '../../../domain/fixtures/bookcase'
@@ -8,20 +8,20 @@ import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viabilidad/viability'
 import type { BedPlan } from '../../../domain/modules/bed'
 import { TABLE_NAMES, type TablePlan } from '../../../domain/modules/table'
-import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaPlan, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
+import type { LLMProvider, ExpertResponse, AdjustmentResponse, ReviewResponse, PlanResponse, ReconstructionResponse, ReviewRequest } from '../../../ports/LLMProvider'
 
-// Respuestas fijas para desarrollar sin API: reconoce unos cuantos pedidos por palabras clave sobre los muebles de ejemplo.
+// Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
 
-const ORIGEN = { promptId: 'simulado@1', proveedor: 'simulado', modelo: 'reglas' }
-const espera = (ms: number, signal: AbortSignal) =>
+const ORIGIN = { promptId: 'simulado@1', proveedor: 'simulado', modelo: 'reglas' }
+const wait = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     const t = setTimeout(resolve, ms)
     signal.addEventListener('abort', () => (clearTimeout(t), reject(new DOMException('Cancelado', 'AbortError'))))
   })
 
-const respuesta = <T>(valor: T): Respuesta<T> => ({ valor, origen: ORIGEN, consumo: {} })
+const response = <T>(value: T): ExpertResponse<T> => ({ value, origin: ORIGIN, usage: {} })
 
-const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'explicacion' | 'resumen'>): RespuestaAjuste => ({
+const adjustment = (partial: Partial<AdjustmentResponse> & Pick<AdjustmentResponse, 'explicacion' | 'resumen'>): AdjustmentResponse => ({
   sugerencias: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Agrega un cajón abajo'],
   operaciones: [],
   preguntas: [],
@@ -29,7 +29,7 @@ const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'expli
   requisitos: { agregar: [], quitar: [] },
   decisiones: [],
   aceptaRiesgo: [],
-  ...parcial,
+  ...partial,
 })
 
 const HEADBOARD: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera tipo librero', storage: 'cabecera con un compartimento a la altura de la almohada y repisas arriba' }
@@ -49,7 +49,7 @@ const TABLES: [TablePlan['use'], RegExp, { width: number; height: number; depth:
 ]
 
 /** A table or desk read from the request's words, or null if it is neither. */
-function tableFrom(notes: string, measures: { ancho: number; alto: number; fondo: number } | null): TablePlan | null {
+function tableFrom(notes: string, measures: Dimensions | null): TablePlan | null {
   const text = notes.toLowerCase()
   const found = TABLES.find(([, pattern]) => pattern.test(text))
   if (!found) return null
@@ -95,33 +95,33 @@ function bedFrom(notes: string): BedPlan | null {
   }
 }
 
-/** El simulado solo conoce sus tres muebles de ejemplo; ante otra cosa lo dice en vez de inventar un librero. */
-export class MuebleDesconocido extends Error {
+/** The simulated expert only knows its three example pieces; for anything else it says so instead of making up a bookcase. */
+export class UnknownFurniture extends Error {
   constructor() {
     super('El modo simulado solo sabe armar libreros, burós y alacenas de ejemplo. Para diseñar este mueble conecta un experto real (Claude, OpenAI o SheLLM) en el engrane.')
   }
 }
 
-function elegirFixture(medidas: { ancho: number; alto: number } | null, descripcion = ''): Design {
-  const d = descripcion.toLowerCase()
-  // Primero el nombre del mueble: "repisa" o "puertas" también salen al describir un buró.
+function chooseFixture(measures: Pick<Dimensions, 'ancho' | 'alto'> | null, description = ''): Design {
+  const d = description.toLowerCase()
+  // The furniture's name first: "repisa" or "puertas" also come up when describing a nightstand.
   if (/bur[oó]|mesa de noche|mesita/.test(d)) return exampleNightstand
   if (/alacena|gabinete/.test(d)) return exampleWallCabinet
   if (/librer|estante|libros/.test(d)) return exampleBookcase
   if (/repisa/.test(d)) return exampleBookcase
   if (/puertas/.test(d)) return exampleWallCabinet
-  if (d.trim()) throw new MuebleDesconocido()
-  if (!medidas) return exampleBookcase
-  const { ancho, alto } = medidas
-  if (alto > ancho * 1.8) return exampleBookcase
-  if (alto < 650) return exampleNightstand
+  if (d.trim()) throw new UnknownFurniture()
+  if (!measures) return exampleBookcase
+  const { ancho: width, alto: height } = measures
+  if (height > width * 1.8) return exampleBookcase
+  if (height < 650) return exampleNightstand
   return exampleWallCabinet
 }
 
-const horizontalesConCarga = (d: Design) => d.piezas.filter((p) => p.normal === 'y' && (p.rol === 'entrepano' || p.rol === 'piso'))
-const entrepanos = (d: Design) => d.piezas.filter((p) => p.rol === 'entrepano').sort((a, b) => a.id.localeCompare(b.id))
+const loadedHorizontals = (d: Design) => d.piezas.filter((p) => p.normal === 'y' && (p.rol === 'entrepano' || p.rol === 'piso'))
+const shelves = (d: Design) => d.piezas.filter((p) => p.rol === 'entrepano').sort((a, b) => a.id.localeCompare(b.id))
 
-function opsDivisor(d: Design): Operation[] {
+function dividerOps(d: Design): Operation[] {
   const ops: Operation[] = [
     {
       op: 'agregarPieza',
@@ -141,64 +141,64 @@ function opsDivisor(d: Design): Operation[] {
       { op: 'agregarUnion', union: makeJoint('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: 2 }]) },
       { op: 'agregarUnion', union: makeJoint('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
     )
-  for (const e of entrepanos(d)) {
-    const der = `${e.id}-der`
+  for (const e of shelves(d)) {
+    const right = `${e.id}-der`
     ops.push(
       { op: 'redimensionar', id: e.id, eje: 'x', extremo: 'hasta', cota: ref('divisor.x0') },
-      { op: 'duplicarPieza', id: e.id, nuevoId: der, nombre: `${e.nombre} derecho`, eje: 'x', cota: ref('divisor.x1') },
-      { op: 'redimensionar', id: der, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
+      { op: 'duplicarPieza', id: e.id, nuevoId: right, nombre: `${e.nombre} derecho`, eje: 'x', cota: ref('divisor.x1') },
+      { op: 'redimensionar', id: right, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
       ...d.uniones.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operation => ({ op: 'eliminarUnion', id: u.id })),
       { op: 'agregarUnion', union: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
-      { op: 'agregarUnion', union: makeJoint(`u-${der}-div`, der, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
+      { op: 'agregarUnion', union: makeJoint(`u-${right}-div`, right, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
     )
   }
   return ops
 }
 
-const PREGUNTA_TRASERA = '¿La trasera va clavada por detrás o metida en un canal?'
+const BACK_QUESTION = '¿La trasera va clavada por detrás o metida en un canal?'
 
-function proponer(peticion: string, d: Design, pendientes: Operation[] | null, conFoto: boolean): RespuestaAjuste {
-  const texto = peticion.toLowerCase()
-  const trasera = d.piezas.find((p) => p.id === 'trasera' && p.confianza !== 'alta')
-  if (trasera && (conFoto || /clavada|canal|no sé|trasera/.test(texto))) {
-    const canal = /canal/.test(texto) && !conFoto
-    return ajuste({
-      explicacion: conFoto
+function propose(request: string, d: Design, pendingItems: Operation[] | null, withPhoto: boolean): AdjustmentResponse {
+  const text = request.toLowerCase()
+  const back = d.piezas.find((p) => p.id === 'trasera' && p.confianza !== 'alta')
+  if (back && (withPhoto || /clavada|canal|no sé|trasera/.test(text))) {
+    const channel = /canal/.test(text) && !withPhoto
+    return adjustment({
+      explicacion: withPhoto
         ? 'Con la foto se ve que la trasera va clavada por detrás, sobre los cantos de laterales, piso y techo. Lo dejo confirmado.'
-        : canal
+        : channel
           ? 'Un canal pide router y sacarlo con precisión; para armarlo en casa te propongo dejarla clavada y pegada por detrás, que escuadra igual de bien con 6 mm. La marco como confirmada.'
           : 'Perfecto: la trasera va clavada y pegada por detrás. La marco como confirmada.',
       resumen: 'Confirmar la trasera',
-      operaciones: [{ op: 'cambiarPropiedades', id: trasera.id, nombre: null, rol: null, veta: null, carga: null, apoyo: null, cantos: null, confianza: 'alta' }],
+      operaciones: [{ op: 'cambiarPropiedades', id: back.id, nombre: null, rol: null, veta: null, carga: null, apoyo: null, cantos: null, confianza: 'alta' }],
       decisiones: [{ tema: 'trasera', texto: 'Trasera clavada y pegada por detrás, sin canal' }],
     })
   }
-  const cm = /(\d+(?:[.,]\d+)?)\s*(cm|mm)/.exec(texto)
-  const medida = cm ? Number(cm[1].replace(',', '.')) * (cm[2] === 'cm' ? 10 : 1) : null
+  const cm = /(\d+(?:[.,]\d+)?)\s*(cm|mm)/.exec(text)
+  const measure = cm ? Number(cm[1].replace(',', '.')) * (cm[2] === 'cm' ? 10 : 1) : null
 
-  if (/divisor|apoyo/.test(texto) && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.id === 'divisor'))
-    return ajuste({
+  if (/divisor|apoyo/.test(text) && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.id === 'divisor'))
+    return adjustment({
       explicacion: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada entrepaño en dos; abajo agrego un apoyo central para el piso. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
-      resumen: pendientes ? 'Ensanchar con divisor al centro' : 'Agregar divisor al centro',
-      operaciones: [...(pendientes ?? []), ...opsDivisor(d)],
+      resumen: pendingItems ? 'Ensanchar con divisor al centro' : 'Agregar divisor al centro',
+      operaciones: [...(pendingItems ?? []), ...dividerOps(d)],
       decisiones: [{ tema: 'divisor', texto: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
     })
 
-  if (/fondo|profund/.test(texto) && medida && !/caj[oó]n/.test(texto))
-    return ajuste({
-      explicacion: `Cambio el fondo a ${medida / 10} cm. Laterales, piso, techo y entrepaños se alargan hacia el frente.`,
-      resumen: `Fondo de ${medida / 10} cm`,
-      operaciones: [{ op: 'cambiarDimensionGlobal', eje: 'z', valor: medida, regla: 'estirar' }],
+  if (/fondo|profund/.test(text) && measure && !/caj[oó]n/.test(text))
+    return adjustment({
+      explicacion: `Cambio el fondo a ${measure / 10} cm. Laterales, piso, techo y entrepaños se alargan hacia el frente.`,
+      resumen: `Fondo de ${measure / 10} cm`,
+      operaciones: [{ op: 'cambiarDimensionGlobal', eje: 'z', valor: measure, regla: 'estirar' }],
     })
 
-  const hueco = ['piso', ...entrepanos(d).map((p) => p.id)]
-  if (/caj[oó]n/.test(texto) && hueco.length > 1 && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.rol === 'puerta')) {
+  const gap = ['piso', ...shelves(d).map((p) => p.id)]
+  if (/caj[oó]n/.test(text) && gap.length > 1 && d.piezas.some((p) => p.id === 'lat-izq') && !d.piezas.some((p) => p.rol === 'puerta')) {
     const n = new Set(d.piezas.filter((p) => p.grupo?.startsWith('cajon-')).map((p) => p.grupo)).size + 1
-    const abajo = n === 1 ? 'piso' : hueco[n - 1]
-    const arriba = hueco[n]
-    if (arriba)
-      return ajuste({
-        explicacion: `Pongo un cajón ${abajo === 'piso' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
+    const bottom = n === 1 ? 'piso' : gap[n - 1]
+    const top = gap[n]
+    if (top)
+      return adjustment({
+        explicacion: `Pongo un cajón ${bottom === 'piso' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
         resumen: `Agregar cajón ${n}`,
         operaciones: [
           {
@@ -207,8 +207,8 @@ function proponer(peticion: string, d: Design, pendientes: Operation[] | null, c
             nombre: `Cajón ${n}`,
             izquierda: 'lat-izq.x1',
             derecha: 'lat-der.x0',
-            abajo: `${abajo}.y1`,
-            arriba: `${arriba}.y0`,
+            abajo: `${bottom}.y1`,
+            arriba: `${top}.y0`,
             frente: 'mueble.z1',
             fondo: 'trasera.z1',
             material: 'T15',
@@ -219,45 +219,45 @@ function proponer(peticion: string, d: Design, pendientes: Operation[] | null, c
       })
   }
 
-  if (/ancho|anch|espacio/.test(texto) && medida)
-    return ajuste({
-      explicacion: `Cambio el ancho total a ${medida / 10} cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran para llenar el espacio.`,
-      resumen: `Ensanchar a ${medida / 10} cm`,
-      operaciones: [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: medida, regla: 'estirar' }],
-      requisitos: { agregar: [{ id: 'espacio-ancho', texto: `El espacio mide ${medida / 10} cm de ancho`, tipo: 'espacio', eje: 'x', min: null, max: medida }], quitar: [] },
+  if (/ancho|anch|espacio/.test(text) && measure)
+    return adjustment({
+      explicacion: `Cambio el ancho total a ${measure / 10} cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran para llenar el espacio.`,
+      resumen: `Ensanchar a ${measure / 10} cm`,
+      operaciones: [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: measure, regla: 'estirar' }],
+      requisitos: { agregar: [{ id: 'espacio-ancho', texto: `El espacio mide ${measure / 10} cm de ancho`, tipo: 'espacio', eje: 'x', min: null, max: measure }], quitar: [] },
     })
 
-  if (/libro|pesad/.test(texto))
-    return ajuste({
+  if (/libro|pesad/.test(text))
+    return adjustment({
       explicacion: 'Marco los entrepaños y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
       resumen: 'Preparar para libros',
-      operaciones: horizontalesConCarga(d).map((p): Operation => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null, confianza: null })),
+      operaciones: loadedHorizontals(d).map((p): Operation => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null, confianza: null })),
       requisitos: { agregar: [{ id: 'carga-libros', texto: 'Va a cargar libros', tipo: 'carga', eje: null, min: null, max: null }], quitar: [] },
     })
 
-  if (/muro|ancla|vuelco/.test(texto) && !d.anclajeMuro)
-    return ajuste({
+  if (/muro|ancla|vuelco/.test(text) && !d.anclajeMuro)
+    return adjustment({
       explicacion: 'Lo marco para ir anclado al muro: con un kit antivuelco atornillado a la pared ya no se va de frente aunque lo jalen.',
       resumen: 'Anclar al muro',
       operaciones: [{ op: 'cambiarAnclajeMuro', valor: true }],
       decisiones: [{ tema: 'anclaje', texto: 'Anclado al muro con kit antivuelco por ser alto y poco profundo' }],
     })
 
-  const primero = entrepanos(d)[0]
-  if (/baja|sube/.test(texto) && primero) {
-    const delta = (medida ?? 100) * (/baja/.test(texto) ? -1 : 1)
-    const actual = primero.y.desde ?? primero.y.hasta
-    const cota = actual && actual.tipo !== 'mm' ? { ...actual, mas: actual.mas + delta } : null
-    if (cota)
-      return ajuste({
-        explicacion: `${delta < 0 ? 'Bajo' : 'Subo'} ${primero.nombre.toLowerCase()} ${Math.abs(delta) / 10} cm.`,
-        resumen: `${delta < 0 ? 'Bajar' : 'Subir'} ${primero.nombre.toLowerCase()}`,
-        operaciones: [{ op: 'mover', id: primero.id, eje: 'y', cota }],
+  const first = shelves(d)[0]
+  if (/baja|sube/.test(text) && first) {
+    const delta = (measure ?? 100) * (/baja/.test(text) ? -1 : 1)
+    const current = first.y.desde ?? first.y.hasta
+    const position = current && current.tipo !== 'mm' ? { ...current, mas: current.mas + delta } : null
+    if (position)
+      return adjustment({
+        explicacion: `${delta < 0 ? 'Bajo' : 'Subo'} ${first.nombre.toLowerCase()} ${Math.abs(delta) / 10} cm.`,
+        resumen: `${delta < 0 ? 'Bajar' : 'Subir'} ${first.nombre.toLowerCase()}`,
+        operaciones: [{ op: 'mover', id: first.id, eje: 'y', cota: position }],
       })
   }
 
-  if (/refuerz|base/.test(texto) && d.piezas.some((p) => p.id === 'zoclo') && !d.piezas.some((p) => p.id === 'refuerzo-base'))
-    return ajuste({
+  if (/refuerz|base/.test(text) && d.piezas.some((p) => p.id === 'zoclo') && !d.piezas.some((p) => p.id === 'refuerzo-base'))
+    return adjustment({
       explicacion: 'Agrego un travesaño trasero bajo el piso, con tornillos de bolsillo a los laterales. Junto con el zoclo, el piso queda apoyado adelante y atrás y la base ya no se tuerce.',
       resumen: 'Reforzar la base',
       operaciones: [
@@ -273,68 +273,68 @@ function proponer(peticion: string, d: Design, pendientes: Operation[] | null, c
       decisiones: [{ tema: 'base', texto: 'Travesaño trasero bajo el piso además del zoclo' }],
     })
 
-  return ajuste({
+  return adjustment({
     explicacion: 'En modo simulado solo entiendo algunos pedidos. Prueba con uno de estos:',
     resumen: 'Sin cambios',
     preguntas: [{ texto: 'Pedidos de ejemplo', opciones: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Hazlo de 50 cm de fondo', 'Agrega un cajón abajo'] }],
   })
 }
 
-/** Sin criterio propio: se queda con el veredicto de las cuentas y da consejos de siempre. */
-function dictaminar(s: SolicitudDictamen): RespuestaDictamen {
-  const veredicto = verdictOf(s.comprobaciones)
+/** No judgment of its own: it keeps the arithmetic's verdict and gives the usual advice. */
+function reviewPurchase(s: ReviewRequest): ReviewResponse {
+  const verdict = verdictOf(s.comprobaciones)
   return {
-    veredicto,
+    veredicto: verdict,
     resumen:
-      veredicto === 'viable'
-        ? `Tu ${s.diseno.nombre.toLowerCase()} se puede comprar y armar así. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`
+      verdict === 'viable'
+        ? `Tu ${s.design.nombre.toLowerCase()} se puede comprar y armar así. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`
         : `Antes de comprar hay que resolver lo marcado en las cuentas. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`,
     problemas: [],
     consejos: ['Mide el espesor real de tus hojas antes de cortar: el triplay de 18 mm suele medir un poco menos.', 'Pide los cortes largos en la tienda y deja los chicos para casa.'],
   }
 }
 
-export function crearSimulado(retraso = 900): LLMProvider {
+export function createSimulated(delay = 900): LLMProvider {
   return {
     id: 'simulado',
-    etiqueta: 'Simulado',
-    async reconstruir(s, signal) {
-      await espera(retraso * 2, signal)
-      const sinFotos = s.fotos.length === 0 && !s.lectura
-      const base = elegirFixture(s.medidas, s.notas)
-      const diseno = { ...structuredClone(base), dimensiones: s.medidas ?? base.dimensiones }
-      const trasera = diseno.piezas.find((p) => p.id === 'trasera')
-      if (trasera) trasera.confianza = 'baja'
-      const quiereCajon = /caj[oó]n/i.test(s.notas) && base === exampleBookcase
-      const detalle = `${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)}`
-      const valor: RespuestaReconstruccion = {
-        explicacion: sinFotos
-          ? `Con tu descripción armé un ${base.nombre.toLowerCase()} de triplay${s.medidas ? ' con tus medidas' : ''}: ${detalle} No dijiste cómo va la trasera, así que la dejé en boceto.${quiereCajon ? ' El cajón lo agrego en cuanto me confirmes.' : ''}`
-          : `Veo un ${base.nombre.toLowerCase()} de triplay. Lo armé con tus medidas; ${detalle} No alcanzo a ver cómo va la trasera, así que la dejé en boceto.`,
-        diseno,
+    label: 'Simulado',
+    async reconstruct(s, signal) {
+      await wait(delay * 2, signal)
+      const withoutPhotos = s.photos.length === 0 && !s.reading
+      const base = chooseFixture(s.measures, s.notes)
+      const design = { ...structuredClone(base), dimensiones: s.measures ?? base.dimensiones }
+      const back = design.piezas.find((p) => p.id === 'trasera')
+      if (back) back.confianza = 'baja'
+      const wantsDrawer = /caj[oó]n/i.test(s.notes) && base === exampleBookcase
+      const detail = `${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)}`
+      const value: ReconstructionResponse = {
+        explicacion: withoutPhotos
+          ? `Con tu descripción armé un ${base.nombre.toLowerCase()} de triplay${s.measures ? ' con tus medidas' : ''}: ${detail} No dijiste cómo va la trasera, así que la dejé en boceto.${wantsDrawer ? ' El cajón lo agrego en cuanto me confirmes.' : ''}`
+          : `Veo un ${base.nombre.toLowerCase()} de triplay. Lo armé con tus medidas; ${detail} No alcanzo a ver cómo va la trasera, así que la dejé en boceto.`,
+        diseno: design,
         preguntas: [
-          { texto: PREGUNTA_TRASERA, opciones: ['Clavada', 'En canal', 'No sé'] },
-          quiereCajon
+          { texto: BACK_QUESTION, opciones: ['Clavada', 'En canal', 'No sé'] },
+          wantsDrawer
             ? { texto: '¿Agrego el cajón que mencionaste?', opciones: ['Agrega un cajón abajo', 'Sin cajón por ahora'] }
             : { texto: '¿Qué vas a guardar principalmente?', opciones: ['Libros', 'Ropa doblada', 'Decoración'] },
         ],
-        fotosSolicitadas: sinFotos || s.fotos.some((f) => f.angulo === 'interior') ? [] : [{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }],
+        fotosSolicitadas: withoutPhotos || s.photos.some((f) => f.angle === 'interior') ? [] : [{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }],
         requisitos: [],
         sugerencias: ['Que aguante libros pesados', 'Hazlo de 90 cm de ancho', 'Hazlo de 50 cm de fondo'],
       }
-      return respuesta(valor)
+      return response(value)
     },
-    async proponerAjuste(s, signal) {
-      await espera(retraso, signal)
-      return respuesta(proponer(s.peticion, s.diseno, s.propuesta, s.fotos.length > 0))
+    async proposeAdjustment(s, signal) {
+      await wait(delay, signal)
+      return response(propose(s.request, s.design, s.proposal, s.photos.length > 0))
     },
     // Only beds come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
     async planDesign(s, signal) {
-      await espera(retraso, signal)
-      const bed = bedFrom(s.notas)
-      const table = bed ? null : tableFrom(s.notas, s.medidas)
+      await wait(delay, signal)
+      const bed = bedFrom(s.notes)
+      const table = bed ? null : tableFrom(s.notes, s.measures)
       if (table)
-        return respuesta<RespuestaPlan>({
+        return response<PlanResponse>({
           explicacion: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
           cabinet: null,
           bed: null,
@@ -344,7 +344,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
           requisitos: [],
           sugerencias: table.use === 'desk' ? ['Hazlo de 1.40 m', 'Cajonera del otro lado'] : ['Hazla más larga', 'Con repisa abajo'],
         })
-      return respuesta<RespuestaPlan>({
+      return response<PlanResponse>({
         explicacion: bed
           ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${HEADBOARD[bed.headboard.style]}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
           : '',
@@ -359,10 +359,10 @@ export function crearSimulado(retraso = 900): LLMProvider {
     },
     adjustPlan: null,
     async readPhoto(r, signal) {
-      await espera(retraso, signal)
-      const base = elegirFixture(null, `${r.context} ${r.photo.note ?? ''}`)
-      const front = r.photo.angulo !== 'lateral'
-      return respuesta<PhotoReading>({
+      await wait(delay, signal)
+      const base = chooseFixture(null, `${r.context} ${r.photo.note ?? ''}`)
+      const front = r.photo.angle !== 'lateral'
+      return response<PhotoReading>({
         kind: base.nombre.toLowerCase(),
         confidence: 'medium',
         description: `Parece un ${base.nombre.toLowerCase()} de triplay. (Lectura simulada.)`,
@@ -374,9 +374,9 @@ export function crearSimulado(retraso = 900): LLMProvider {
         doubts: ['No se ve cómo va fijada la trasera'],
       })
     },
-    async dictaminar(s, signal) {
-      await espera(retraso, signal)
-      return respuesta(dictaminar(s))
+    async reviewPurchase(s, signal) {
+      await wait(delay, signal)
+      return response(reviewPurchase(s))
     },
   }
 }

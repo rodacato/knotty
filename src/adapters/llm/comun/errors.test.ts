@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { describirError } from './errores'
+import { describeError } from './errors'
 
 const conStatus = (status: number, message = 'detalle') => Object.assign(new Error(message), { status })
 const conNombre = (name: string) => Object.assign(new Error('x'), { name })
 
-describe('describirError', () => {
+describe('describeError', () => {
   it.each([
     [conStatus(401), 'La API key no es válida.'],
     [conStatus(403), 'Tu API key no tiene permiso para ese modelo.'],
@@ -16,6 +16,6 @@ describe('describirError', () => {
     [new TypeError('Failed to fetch'), 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'],
     ['nada', 'Error desconocido.'],
   ])('%s → %s', (err, esperado) => {
-    expect(describirError(err)).toBe(esperado)
+    expect(describeError(err)).toBe(esperado)
   })
 })

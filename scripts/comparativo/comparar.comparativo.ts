@@ -3,9 +3,9 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { it } from 'vitest'
 import data from '../../public/catalogo/catalogo.json'
-import { crearAnthropic } from '../../src/adapters/llm/anthropic'
-import { crearCompatible } from '../../src/adapters/llm/compatibleOpenAI'
-import { crearSimulado } from '../../src/adapters/llm/simulado/simulado'
+import { createAnthropic } from '../../src/adapters/llm/anthropic'
+import { createCompatible } from '../../src/adapters/llm/compatibleOpenAI'
+import { createSimulated } from '../../src/adapters/llm/simulado/simulated'
 import { createBench, type BenchResult } from '../../src/application/bench/bench'
 import { Catalog } from '../../src/domain/materiales/catalog'
 import type { DesignState } from '../../src/domain/sesion/state'
@@ -39,10 +39,10 @@ const env = process.env
 function provider(spec: string): LLMProvider {
   const [kind, ...rest] = spec.split(':')
   const model = rest.join(':')
-  if (kind === 'anthropic') return crearAnthropic(env.ANTHROPIC_API_KEY ?? '', model)
-  if (kind === 'openai') return crearCompatible({ proveedor: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', modelo: model, etiqueta: spec })
-  if (kind === 'simulado') return crearSimulado(0)
-  if (kind === 'shellm') return crearCompatible({ proveedor: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', modelo: model, etiqueta: spec })
+  if (kind === 'anthropic') return createAnthropic(env.ANTHROPIC_API_KEY ?? '', model)
+  if (kind === 'openai') return createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', modelo: model, label: spec })
+  if (kind === 'simulado') return createSimulated(0)
+  if (kind === 'shellm') return createCompatible({ provider: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', modelo: model, label: spec })
   throw new Error(`Proveedor desconocido: ${spec}`)
 }
 

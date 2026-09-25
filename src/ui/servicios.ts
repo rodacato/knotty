@@ -1,18 +1,18 @@
 import { createContext, useContext } from 'react'
 import type { Bench } from '../application/bench/bench'
-import type { CasosDeUso } from '../application/casosDeUso'
+import type { UseCases } from '../application/useCases'
 import type { Catalog } from '../domain/materiales/catalog'
 import type { DebugLog } from '../ports/DebugLog'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
-import type { Preferencias } from '../ports/Preferencias'
-import type { ProcesadorImagen } from '../ports/ProcesadorImagen'
+import type { Preferences } from '../ports/Preferences'
+import type { ImageProcessor } from '../ports/ImageProcessor'
 
 export interface Servicios {
-  casos: CasosDeUso
+  casos: UseCases
   catalogo: Catalog
   materiales: MaterialCatalog
-  imagenes: ProcesadorImagen
-  preferencias: Preferencias
+  imagenes: ImageProcessor
+  preferencias: Preferences
   debug: DebugLog
   /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
   bench: Bench
