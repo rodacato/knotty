@@ -20,7 +20,7 @@ export const Version = z.object({
   operations: z.array(z.string()),
   date: z.string(),
   origin: Origin.nullable(),
-  /** Las decisiones de diseño viajan con la versión: volver a una versión las restaura. */
+  /** Design decisions travel with the version: going back to a version restores them. */
   decisions: z.array(Decision).default([]),
   /** The plan this version was built from, when it was; later free-form changes leave it null. */
   plan: FurniturePlan.nullable().default(null),

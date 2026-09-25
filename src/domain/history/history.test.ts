@@ -6,23 +6,23 @@ const version = (n: number): Version => ({ n, design: exampleBookcase, summary: 
 
 describe('history', () => {
   it('compacts the log: 8 in full, up to 30 summarized and the rest counted', () => {
-    const lineas = compactLog(Array.from({ length: 35 }, (_, i) => version(i + 1)))
-    expect(lineas[0]).toBe('(5 earlier changes)')
-    expect(lineas[1]).toBe('v6: cambio 6')
-    expect(lineas.at(-1)).toBe('v35: cambio 35 — request: "pedido 35" — x→900 estirar')
-    expect(lineas.filter((l) => l.includes('request:'))).toHaveLength(8)
-    expect(lineas).toHaveLength(31)
+    const lines = compactLog(Array.from({ length: 35 }, (_, i) => version(i + 1)))
+    expect(lines[0]).toBe('(5 earlier changes)')
+    expect(lines[1]).toBe('v6: cambio 6')
+    expect(lines.at(-1)).toBe('v35: cambio 35 — request: "pedido 35" — x→900 estirar')
+    expect(lines.filter((l) => l.includes('request:'))).toHaveLength(8)
+    expect(lines).toHaveLength(31)
   })
 
   it('a new decision replaces the one on the same topic', () => {
-    const d = updateDecisions([{ topic: 'back', text: 'TR3' }, { topic: 'espesor', text: '15 mm' }], [{ topic: 'back', text: 'TR6 para escuadrar' }])
-    expect(d).toEqual([{ topic: 'espesor', text: '15 mm' }, { topic: 'back', text: 'TR6 para escuadrar' }])
+    const d = updateDecisions([{ topic: 'back', text: 'TR3' }, { topic: 'thickness', text: '15 mm' }], [{ topic: 'back', text: 'TR6 para escuadrar' }])
+    expect(d).toEqual([{ topic: 'thickness', text: '15 mm' }, { topic: 'back', text: 'TR6 para escuadrar' }])
   })
 
   it('prunes versions keeping the first one', () => {
-    const podadas = pruneVersions(Array.from({ length: 50 }, (_, i) => version(i + 1)))
-    expect(podadas).toHaveLength(40)
-    expect(podadas[0].n).toBe(1)
-    expect(podadas[1].n).toBe(12)
+    const pruned = pruneVersions(Array.from({ length: 50 }, (_, i) => version(i + 1)))
+    expect(pruned).toHaveLength(40)
+    expect(pruned[0].n).toBe(1)
+    expect(pruned[1].n).toBe(12)
   })
 })

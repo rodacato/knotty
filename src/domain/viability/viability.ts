@@ -23,9 +23,9 @@ export const Check = z.object({
   status: z.enum(['ok', 'warning', 'fail']),
   detail: z.string(),
   pieces: z.array(z.string()),
-  /** Lo que se le pide al experto para arreglarlo, si hay un arreglo claro. */
+  /** What the expert is asked to fix it, when there is a clear fix. */
   request: z.string().nullable(),
-  /** Una falla imposible (no cabe, no cierra) hace el diseño no viable; las demás piden cambios. */
+  /** An impossible failure (it does not fit, it does not add up) makes the design not viable; the others ask for changes. */
   impossible: z.boolean(),
 })
 export type Check = z.infer<typeof Check>
@@ -70,16 +70,16 @@ function measures({ design, geo }: ViabilityInput): Check {
   const boxes = [...geo.boxes.values()]
   const span = (e: 'x' | 'y' | 'z') => Math.max(...boxes.map((c) => c[`${e}1`])) - Math.min(...boxes.map((c) => c[`${e}0`]))
   const real = { width: span('x'), height: span('y'), depth: span('z') }
-  const { width: ancho, height: alto, depth: fondo } = design.dimensions
+  const { width, height, depth } = design.dimensions
   const off = (['height', 'width', 'depth'] as const).filter((k) => Math.abs(real[k] - design.dimensions[k]) > MEASURE_TOLERANCE)
-  if (!off.length) return check({ id: 'measures', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo).` })
+  if (!off.length) return check({ id: 'measures', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${height} × ${width} × ${depth} mm (alto, ancho, fondo).` })
   return check({
     id: 'measures',
     title: 'Las medidas no cierran',
     status: 'fail',
     impossible: true,
-    detail: `Las piezas suman ${roundTo(real.height)} × ${roundTo(real.width)} × ${roundTo(real.depth)} mm y el mueble dice ${alto} × ${ancho} × ${fondo} mm; no coincide el ${off.map((k) => DIMENSION_LABEL[k]).join(' ni el ')}.`,
-    request: `Haz que las piezas cierren exacto en ${alto} × ${ancho} × ${fondo} mm`,
+    detail: `Las piezas suman ${roundTo(real.height)} × ${roundTo(real.width)} × ${roundTo(real.depth)} mm y el mueble dice ${height} × ${width} × ${depth} mm; no coincide el ${off.map((k) => DIMENSION_LABEL[k]).join(' ni el ')}.`,
+    request: `Haz que las piezas cierren exacto en ${height} × ${width} × ${depth} mm`,
   })
 }
 
@@ -180,7 +180,7 @@ function margin({ catalog, purchase }: ViabilityInput): Check {
 /** What the person accepted is not a failure any more, but the verdict still says it. */
 function acceptedByPerson({ accepted = [] }: ViabilityInput): Check[] {
   const titles = [...new Set(accepted)]
-  return titles.length ? [check({ id: 'aceptados', title: 'Aceptado por ti', status: 'warning', detail: `Lo dejaste así, bajo tu riesgo: ${titles.join(', ')}.` })] : []
+  return titles.length ? [check({ id: 'accepted', title: 'Aceptado por ti', status: 'warning', detail: `Lo dejaste así, bajo tu riesgo: ${titles.join(', ')}.` })] : []
 }
 
 /** The arithmetic checks, the most serious first. */

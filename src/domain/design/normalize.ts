@@ -2,9 +2,9 @@ import type { Catalog } from '../materials/catalog'
 import { DIMENSION_OF_AXIS, AXES, type FaceRef, type Design, type Axis, type Piece } from './schema'
 import { referencedPieces, resolveGeometry, roundTo, type Box } from './resolve'
 
-// A design thought in coordinates becomes parametric: each absolute cota is tied to the nearest face, without moving it.
+// A design thought in coordinates becomes parametric: each absolute position is tied to the nearest face, without moving it.
 
-/** How close a face has to be for a cota to snap to it. */
+/** How close a face has to be for a position to snap to it. */
 const SNAP = 3
 
 type End = 'from' | 'to'
@@ -65,15 +65,15 @@ export function normalize(original: Design, catalog: Catalog): Design {
         .sort((a, b) => a.c.distance - b.c.distance || a.c.preference - b.c.preference)
       const chosen = options[0]
       if (!chosen) return
-      const cota = { type: 'ref' as const, ref: chosen.c.ref, offset: roundTo(chosen.value - chosen.c.value) }
-      p[axis] = { from: chosen.end === 'from' ? cota : null, to: chosen.end === 'to' ? cota : null, length: null }
+      const position = { type: 'ref' as const, ref: chosen.c.ref, offset: roundTo(chosen.value - chosen.c.value) }
+      p[axis] = { from: chosen.end === 'from' ? position : null, to: chosen.end === 'to' ? position : null, length: null }
       return
     }
     for (const end of ['from', 'to'] as const) {
-      const cota = t[end]
-      if (cota?.type !== 'mm') continue
-      const c = best(cota.mm, candidates(p, axis, end, outsideOnly))
-      if (c) t[end] = { type: 'ref', ref: c.ref, offset: roundTo(cota.mm - c.value) }
+      const position = t[end]
+      if (position?.type !== 'mm') continue
+      const c = best(position.mm, candidates(p, axis, end, outsideOnly))
+      if (c) t[end] = { type: 'ref', ref: c.ref, offset: roundTo(position.mm - c.value) }
     }
   }
 

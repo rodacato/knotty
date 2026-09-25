@@ -9,9 +9,9 @@ export const partway = (a: FaceRef, b: FaceRef, t: number, plus = 0): Position =
 
 export const extent = (start: Position | null, end: Position | null, length: number | null = null): Extent => ({ from: start, to: end, length: length })
 /** Along the normal axis: anchored by its lower face. */
-export const startAt = (cota: Position): Extent => extent(cota, null)
+export const startAt = (position: Position): Extent => extent(position, null)
 /** Along the normal axis: anchored by its upper face. */
-export const endAt = (cota: Position): Extent => extent(null, cota)
+export const endAt = (position: Position): Extent => extent(null, position)
 
 type Essential = Pick<Piece, 'id' | 'name' | 'role' | 'material' | 'normal' | 'x' | 'y' | 'z'>
 

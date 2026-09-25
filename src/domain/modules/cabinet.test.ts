@@ -8,17 +8,17 @@ const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): 
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
 
 const PLANS: Record<string, CabinetPlan> = {
-  librero: plan({ name: 'Librero' }),
-  buro: plan({ name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, base: 'floor', wallMounted: false, columns: [{ width: 1, cells: [cell('open', 0.6, { shelves: 0 }), cell('drawer', 0.4)] }] }),
-  alacena: plan({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }] }),
-  muebleTv: plan({
+  bookcase: plan({ name: 'Librero' }),
+  nightstand: plan({ name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, base: 'floor', wallMounted: false, columns: [{ width: 1, cells: [cell('open', 0.6, { shelves: 0 }), cell('drawer', 0.4)] }] }),
+  wallCabinet: plan({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }] }),
+  tvStand: plan({
     name: 'Mueble de TV',
     dimensions: { width: 1600, height: 500, depth: 400 },
     wallMounted: false,
     columns: [{ width: 0.3, cells: [cell('door', 1, { doors: 1 })] }, { width: 0.4, cells: [cell('open', 1, { shelves: 1 })] }, { width: 0.3, cells: [cell('door', 1, { doors: 1 })] }],
   }),
-  cajonera: plan({ name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, wallMounted: false, columns: [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }] }),
-  cabecera: plan({ name: 'Cabecera', dimensions: { width: 1030, height: 900, depth: 250 }, base: 'floor', columns: [{ width: 1, cells: [cell('closed', 0.4), cell('open', 0.6, { shelves: 1 })] }] }),
+  drawerChest: plan({ name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, wallMounted: false, columns: [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }] }),
+  headboard: plan({ name: 'Cabecera', dimensions: { width: 1030, height: 900, depth: 250 }, base: 'floor', columns: [{ width: 1, cells: [cell('closed', 0.4), cell('open', 0.6, { shelves: 1 })] }] }),
 }
 
 describe('buildCabinet', () => {
@@ -31,13 +31,13 @@ describe('buildCabinet', () => {
   })
 
   it('makes one drawer per drawer cell, with slides', () => {
-    const { design } = buildCabinet(PLANS.cajonera, testCatalog)
+    const { design } = buildCabinet(PLANS.drawerChest, testCatalog)
     expect(new Set(design.pieces.map((p) => p.group).filter(Boolean))).toEqual(new Set(['drawer-1', 'drawer-2', 'drawer-3']))
     expect(design.joints.filter((u) => u.type === 'drawer-slide').length).toBeGreaterThanOrEqual(3)
   })
 
   it('hangs each door and puts movable shelves on supports', () => {
-    const { design } = buildCabinet(PLANS.alacena, testCatalog)
+    const { design } = buildCabinet(PLANS.wallCabinet, testCatalog)
     expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.a).sort()).toEqual(['c1-h1-door-left', 'c1-h1-door-right'])
     expect(design.joints.filter((u) => u.type === 'shelf-pin')).toHaveLength(2)
   })
@@ -88,7 +88,7 @@ describe('construction variants', () => {
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
-    const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, testCatalog)
+    const { design } = buildCabinet({ ...PLANS.wallCabinet, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors[0].message)
     const door = a.geo.boxes.get('c1-h1-door-left')!
@@ -99,7 +99,7 @@ describe('construction variants', () => {
 
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
-      const a = analyze(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog).design, testCatalog)
+      const a = analyze(buildCabinet({ ...PLANS.drawerChest, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog).design, testCatalog)
       if (!a.valid) throw new Error(a.errors[0].message)
       return a.geo.boxes.get('drawer-1-front')!
     }

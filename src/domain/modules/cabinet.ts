@@ -51,7 +51,7 @@ const shares = (values: number[]) => {
 
 const pieceOf = (face: FaceRef) => face.split('.')[0]
 /** The same reference, moved along its axis. */
-const shift = (cota: Position, delta: number): Position => (cota.type === 'ref' ? { ...cota, offset: cota.offset + delta } : cota.type === 'mm' ? { ...cota, mm: cota.mm + delta } : { ...cota, offset: cota.offset + delta })
+const shift = (position: Position, delta: number): Position => (position.type === 'ref' ? { ...position, offset: position.offset + delta } : position.type === 'mm' ? { ...position, mm: position.mm + delta } : { ...position, offset: position.offset + delta })
 
 export interface BuiltCabinet {
   design: Design

@@ -16,8 +16,8 @@ export interface Box {
 export interface Geometry {
   boxes: Map<string, Box>
   thicknesses: Map<string, number>
-  /** Where a cota lands in the resolved design. */
-  measure: (cota: Position, axis: Axis) => number
+  /** Where a position lands in the resolved design. */
+  measure: (position: Position, axis: Axis) => number
 }
 
 const TOLERANCE = 0.5
@@ -58,11 +58,11 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
     return extentOf(other, axis)[side]
   }
 
-  const value = (cota: Position, axis: Axis, who: string): number => {
-    if (cota.type === 'mm') return cota.mm
-    if (cota.type === 'ref') return face(cota.ref, axis, who) + cota.offset
-    const a = face(cota.a, axis, who)
-    return a + cota.t * (face(cota.b, axis, who) - a) + cota.offset
+  const value = (position: Position, axis: Axis, who: string): number => {
+    if (position.type === 'mm') return position.mm
+    if (position.type === 'ref') return face(position.ref, axis, who) + position.offset
+    const a = face(position.a, axis, who)
+    return a + position.t * (face(position.b, axis, who) - a) + position.offset
   }
 
   function extentOf(p: Piece, axis: Axis): [number, number] {
@@ -145,7 +145,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
     thicknesses.set(p.id, thicknessOf(p))
   }
   if (errors.length) return failure(errors)
-  return success({ boxes, thicknesses, measure: (cota, axis) => value(cota, axis, 'consulta') })
+  return success({ boxes, thicknesses, measure: (position, axis) => value(position, axis, 'consulta') })
 }
 
 export const roundTo = (mm: number, decimals = 1) => Math.round(mm * 10 ** decimals) / 10 ** decimals

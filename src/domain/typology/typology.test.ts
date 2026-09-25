@@ -27,7 +27,7 @@ describe('detectKind', () => {
     ['Librero 5 repisas', 'bookcase'],
     ['Zapatera', 'shoeRack'],
     ['Mueble de TV', null],
-  ])('%s → %s', (nombre, kind) => expect(detectKind({ name: nombre })).toBe(kind))
+  ])('%s → %s', (name, kind) => expect(detectKind({ name })).toBe(kind))
 })
 
 describe('typologyRule', () => {
