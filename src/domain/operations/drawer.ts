@@ -1,7 +1,7 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
 import type { FaceRef, Piece, Joint } from '../design/schema'
 import { parseFace, type Geometry } from '../design/resolve'
-import { materialById, type Catalog, type Hardware } from '../materials/catalog'
+import { hardwareByRole, materialById, pickHardware, type Catalog, type Hardware } from '../materials/catalog'
 import { error, type DesignError } from '../validation/errors'
 
 // A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.
@@ -30,7 +30,13 @@ interface DrawerRequest {
 }
 
 const runners = (catalog: Catalog) =>
-  catalog.hardware.filter((h): h is Hardware & { length: number; sideClearance: number } => h.id.startsWith('drawer-slide') && h.length !== null && h.sideClearance !== null)
+  hardwareByRole(catalog, 'drawer-slide').filter((h): h is Hardware & { length: number; sideClearance: number } => h.length !== null && h.sideClearance !== null)
+
+/** The catalog's wood screw of a trade size, #8 × 2" as 2; the box is screwed with what there is. */
+const screwOf = (catalog: Catalog, inches: number, count: number | null) => {
+  const screw = pickHardware(catalog, 'screw', (h) => h.length !== null && Math.abs(h.length - inches * 25.4) < 0.5)
+  return screw ? [{ hardwareId: screw.id, count }] : []
+}
 
 /** The longest runner that fits the depth there is. */
 function runnerFor(depth: number, catalog: Catalog) {
@@ -87,11 +93,12 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
     makePiece({ ...shared, id: id('back'), name: `Trasera de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'z', x: extent(ref(`${id('side-left')}.x1`), ref(`${id('side-right')}.x0`)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: backward ? endAt(ref(`${id('side-left')}.z1`)) : startAt(ref(`${id('side-left')}.z0`)), edges: ['top'] }),
   ]
 
-  const screw = [{ hardwareId: 'screw-8x2', count: null }]
+  const screw = screwOf(catalog, 2, null)
+  const nail = pickHardware(catalog, 'nail')
   const joints: Joint[] = [
     ...['subfront', 'back'].flatMap((b) => ['side-left', 'side-right'].map((a) => makeJoint(`j-${g}-${a}-${b}`, id(a), id(b), 'butt-screw', screw))),
-    makeJoint(`j-${g}-subfront-front`, id('subfront'), id('front'), 'butt-screw', [{ hardwareId: 'screw-8x1', count: 4 }]),
-    ...['side-left', 'side-right', 'subfront', 'back'].map((b) => makeJoint(`j-${g}-bottom-${b}`, id('bottom'), id(b), 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])),
+    makeJoint(`j-${g}-subfront-front`, id('subfront'), id('front'), 'butt-screw', screwOf(catalog, 1, 4)),
+    ...['side-left', 'side-right', 'subfront', 'back'].map((b) => makeJoint(`j-${g}-bottom-${b}`, id('bottom'), id(b), 'glue-nail', nail ? [{ hardwareId: nail.id, count: null }] : [])),
   ]
   const leftSupport = parseFace(c.left).piece
   const rightSupport = parseFace(c.right).piece

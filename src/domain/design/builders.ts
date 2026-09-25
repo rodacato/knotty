@@ -1,4 +1,5 @@
 import type { FaceRef, Position, Piece, JointType, Extent, Joint } from './schema'
+import { JOINTS } from './jointSpecs'
 
 // Shorthands to write pieces and joints by hand: in modules, fixtures and tests. The shapes they build are the schema's.
 
@@ -30,7 +31,7 @@ export const makeJoint = (id: string, a: string, b: string, type: JointType, har
   a,
   b,
   type,
-  glue: type !== 'shelf-pin' && type !== 'cup-hinge' && type !== 'drawer-slide',
+  glue: JOINTS[type].glue,
   depth: null,
   hardware,
   ...extra,

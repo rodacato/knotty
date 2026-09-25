@@ -2,6 +2,8 @@ import type { Design } from '../design/schema'
 import { roundTo, type Box, type Geometry } from '../design/resolve'
 import type { Finding, Rule } from '../structure/finding'
 import { freeSpan } from '../structure/rules/deflection'
+import { antiTipData } from '../structure/rules/usage'
+import type { Catalog } from '../materials/catalog'
 
 // Checks by kind of furniture: what a bed, a desk or a chest of drawers needs to be usable and safe. Structure and use, not style.
 
@@ -146,12 +148,12 @@ function table(design: Design, geo: Geometry): Finding[] {
   return outside(top.box.y1, range) ? [finding('table.height', 'recommendation', top.ids, `Una mesa ${label} va de ${range[0]} a ${range[1]} mm de alto; esta queda a ${roundTo(top.box.y1, 0)} mm.`, { height: roundTo(top.box.y1, 0) })] : []
 }
 
-function drawers(design: Design): Finding[] {
+function drawers(design: Design, catalog: Catalog): Finding[] {
   const count = new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group)).size
   if (count < 2 || design.dimensions.height <= 700 || design.wallAnchored) return []
   return [
     finding('drawers.anchor', 'critical', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { drawers: count }, [
-      { key: 'anchor-to-wall', description: 'Anclarla al muro con un kit antivuelco', data: { hardwareId: 'anti-tip-kit' } },
+      { key: 'anchor-to-wall', description: 'Anclarla al muro con un kit antivuelco', data: antiTipData(catalog) },
     ]),
   ]
 }
@@ -202,7 +204,7 @@ export const typologyRule: Rule = (ctx) => {
     case 'table':
       return table(design, geo)
     case 'drawers':
-      return drawers(design)
+      return drawers(design, ctx.catalog)
     case 'wallCabinet':
       return wallCabinet(design)
     case 'bookcase':

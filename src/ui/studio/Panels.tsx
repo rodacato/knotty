@@ -1,25 +1,12 @@
 import { X } from '@phosphor-icons/react'
-import type { Design, JointType } from '../../domain/design/schema'
+import type { Design } from '../../domain/design/schema'
+import { JOINTS } from '../../domain/design/jointSpecs'
 import { faceSize, type Geometry } from '../../domain/design/resolve'
 import type { Catalog } from '../../domain/materials/catalog'
 import { cutList } from '../../domain/materials/cutList'
 import { cm } from '../system/components'
 import { useStore } from '../store'
 import { PieceEditor } from './PieceEditor'
-
-const JOINTS: Record<JointType, string> = {
-  'butt-screw': 'tornillo al canto',
-  'pocket-screw': 'tornillo de bolsillo',
-  dowel: 'tarugos',
-  'cam-lock': 'minifix',
-  dado: 'canal',
-  rabbet: 'rebaje',
-  bracket: 'escuadra',
-  'glue-nail': 'clavo y pegamento',
-  'shelf-pin': 'soportes de repisa',
-  'cup-hinge': 'bisagras de cazoleta',
-  'drawer-slide': 'corredera',
-}
 
 const GRAIN = { length: 'a lo largo', width: 'a lo ancho', any: 'libre' }
 
@@ -115,7 +102,7 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
                     {name(other)}
                   </button>
                   : {count && u.type !== 'drawer-slide' ? `${count} ` : ''}
-                  {JOINTS[u.type]}
+                  {JOINTS[u.type].label.plural}
                   {u.glue && u.type !== 'glue-nail' ? ' con pegamento' : ''}
                 </span>
               </li>

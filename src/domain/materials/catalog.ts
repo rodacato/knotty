@@ -14,9 +14,18 @@ export const BoardMaterial = z.object({
 })
 export type BoardMaterial = z.infer<typeof BoardMaterial>
 
+/** What a hardware item is for: code asks the catalog for a role, never for an id or an id's prefix. */
+export const HARDWARE_ROLES = [
+  'screw', 'pocket-screw', 'nail', 'dowel', 'cam-lock', 'bracket', 'shelf-pin', 'hinge', 'drawer-slide',
+  'glue', 'edge-banding', 'leveling-foot', 'handle', 'anti-tip',
+] as const
+export const HardwareRole = z.enum(HARDWARE_ROLES)
+export type HardwareRole = z.infer<typeof HardwareRole>
+
 export const Hardware = z.object({
   id: z.string(),
   name: z.string(),
+  role: HardwareRole,
   unit: z.enum(['piece', 'pack', 'meter', 'jar']),
   perPack: z.number().int().positive().nullable(),
   length: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
@@ -42,6 +51,11 @@ export const Catalog = z.object({
 export type Catalog = z.infer<typeof Catalog>
 
 export const materialById = (catalog: Catalog, id: string) => catalog.materials.find((m) => m.id === id)
+
+/** The catalog's hardware of a role, in catalog order. */
+export const hardwareByRole = (catalog: Catalog, role: HardwareRole) => catalog.hardware.filter((h) => h.role === role)
+/** The first item of a role that meets the condition: with several of a role, the first in the catalog is the usual one. */
+export const pickHardware = (catalog: Catalog, role: HardwareRole, predicate: (h: Hardware) => boolean = () => true) => hardwareByRole(catalog, role).find(predicate)
 
 /** The sheet without its factory edge: the most a piece can measure without joining boards. */
 export const usableSheet = (catalog: Catalog, material: BoardMaterial) => ({

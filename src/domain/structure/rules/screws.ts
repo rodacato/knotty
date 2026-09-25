@@ -1,5 +1,6 @@
 import { roundTo } from '../../design/resolve'
 import { contactBetween, jointLength } from '../../validation/contact'
+import { hardwareByRole } from '../../materials/catalog'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS, pocketScrewFor } from '../assumptions'
 
@@ -46,8 +47,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
       } else if (u.type === 'butt-screw') {
         const bite = length - ta
         if (bite >= ASSUMPTIONS.screws.minPenetration) continue
-        const suggested = catalog.hardware
-          .filter((h) => h.length && h.id.startsWith('screw-') && h.length - ta >= ASSUMPTIONS.screws.minPenetration)
+        const suggested = hardwareByRole(catalog, 'screw')
+          .filter((h) => h.length && h.length - ta >= ASSUMPTIONS.screws.minPenetration)
           .sort((x, y) => x.length! - y.length!)[0]
         found.push({
           code: 'R3_SCREWS',

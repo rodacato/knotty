@@ -1,5 +1,7 @@
 import type { Finding, Rule } from '../finding'
-import { ASSUMPTIONS, RIGID_JOINTS } from '../assumptions'
+import { ASSUMPTIONS } from '../assumptions'
+import { JOINTS } from '../../design/jointSpecs'
+import type { JointType } from '../../design/schema'
 
 const PERIMETER = new Set(['side', 'bottom', 'top'])
 const RAILS = new Set(['bottom', 'top', 'shelf', 'apron', 'kick'])
@@ -9,7 +11,7 @@ export const rackingRule: Rule = ({ design, geo }) => {
   const sides = design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
   if (sides.length < 2) return []
   const role = new Map(design.pieces.map((p) => [p.id, p.role]))
-  const joinedTo = (id: string, filter: (type: string, glued: boolean) => boolean) =>
+  const joinedTo = (id: string, filter: (type: JointType, glued: boolean) => boolean) =>
     new Set(design.joints.filter((u) => (u.a === id || u.b === id) && filter(u.type, u.glue)).map((u) => (u.a === id ? u.b : u.a)))
 
   // A full board in the back plane braces like a back: the spine of a bed base, screwed to both ends and the platform.
@@ -21,7 +23,7 @@ export const rackingRule: Rule = ({ design, geo }) => {
     return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rabbet' || type === 'dado') && glued)) >= 3
   })
 
-  const rails = design.pieces.filter((p) => RAILS.has(p.role) && p.support === 'fixed' && sides.every((side) => joinedTo(p.id, (type) => RIGID_JOINTS.includes(type as never)).has(side)))
+  const rails = design.pieces.filter((p) => RAILS.has(p.role) && p.support === 'fixed' && sides.every((side) => joinedTo(p.id, (type) => JOINTS[type].rigid).has(side)))
   const rigidFrame = rails.length >= 2 && rails.some((p) => p.role === 'apron' || p.role === 'kick')
 
   if (rigidBack || rigidFrame) return []
