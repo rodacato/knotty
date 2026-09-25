@@ -48,7 +48,7 @@ describe('reconstruir', () => {
     expect(disenoActual(estado).nombre).toBe('Librero')
     expect(estado.chat[1].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
     expect(estado.chat[1].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
-    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'mirando-fotos', 'revisando', 'estructura'])
+    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'disenando-piezas', 'revisando', 'estructura'])
     expect(c.repositorio.estado).toEqual(estado)
   })
 })

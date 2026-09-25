@@ -1,13 +1,19 @@
-import { Bug, Copy, DownloadSimple, Trash, X } from '@phosphor-icons/react'
+import { Copy, DownloadSimple, Trash, X } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useEffect, useState } from 'react'
 import type { DebugEvent, DebugKind } from '../../ports/DebugLog'
 import { useServicios } from '../servicios'
 import { Boton } from '../sistema/componentes'
+import { Nudo } from '../sistema/Marca'
 import { useTienda } from '../tienda'
 import { captureGlobalErrors, instrumentStore } from './instrument'
 
-// A development tool: hidden until asked for with Ctrl+Shift+D or ?debug, it shows and exports everything the session did.
+// A development tool: hidden until asked for (Konami code, Ctrl+Shift+D, settings or ?debug), it shows and exports everything the session did.
+
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
+
+/** Other parts of the app (the settings switch) show or hide the panel through this event. */
+export const DEBUG_VISIBILITY = 'knotty:debug-visibility'
 
 const KINDS: { id: DebugKind; label: string }[] = [
   { id: 'llm', label: 'Experto' },
@@ -52,17 +58,32 @@ export function DebugPanel() {
   }, [debug])
 
   useEffect(() => {
+    const toggle = () =>
+      setVisible((v) => {
+        debug.setVisible(!v)
+        return !v
+      })
+    let typed: string[] = []
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
-        setVisible((v) => {
-          debug.setVisible(!v)
-          return !v
-        })
+        toggle()
+        return
+      }
+      // The Konami code opens the wood's insides from any screen, even while the expert is working.
+      typed = [...typed, e.key.length === 1 ? e.key.toLowerCase() : e.key].slice(-KONAMI.length)
+      if (typed.join() === KONAMI.join()) {
+        typed = []
+        toggle()
       }
     }
+    const onToggle = (e: Event) => setVisible((e as CustomEvent<boolean>).detail)
     addEventListener('keydown', onKey)
-    return () => removeEventListener('keydown', onKey)
+    addEventListener(DEBUG_VISIBILITY, onToggle)
+    return () => {
+      removeEventListener('keydown', onKey)
+      removeEventListener(DEBUG_VISIBILITY, onToggle)
+    }
   }, [debug])
 
   // While open, the list follows new events.
@@ -94,15 +115,18 @@ export function DebugPanel() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir la bitácora de depuración">
-          <Bug weight="bold" /> Bitácora <span className="cifras opacity-70">{events.length}</span>
+        <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">
+          <Nudo className="size-4" /> Entrañas <span className="cifras opacity-70">{events.length}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-grafito/30" />
         <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-full max-w-xl flex-col bg-papel shadow-2xl">
           <div className="flex items-center gap-2 border-b border-linea p-3">
-            <Dialog.Title className="flex-1 font-medium">Bitácora de depuración</Dialog.Title>
+            <Dialog.Title className="flex-1">
+              <span className="block font-titulo text-lg font-semibold">Entrañas de la madera</span>
+              <span className="block text-xs text-grafito-2">Todo lo que pasó por dentro, anillo por anillo</span>
+            </Dialog.Title>
             <Dialog.Description className="sr-only">Todo lo que pasó en esta sesión, para exportarlo y revisarlo.</Dialog.Description>
             <Boton variante="secundario" className="min-h-8 px-2 text-xs" onClick={download}>
               <DownloadSimple /> Exportar
@@ -139,7 +163,7 @@ export function DebugPanel() {
               </button>
             ))}
             <span className="ml-auto self-center text-[11px] text-grafito-2">
-              {__APP_COMMIT__} · Ctrl+Shift+D oculta el botón
+              {__APP_COMMIT__} · se oculta con el código Konami, Ctrl+Shift+D o en ajustes
             </span>
           </div>
           <ol className="flex-1 divide-y divide-linea overflow-y-auto">
