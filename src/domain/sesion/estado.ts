@@ -100,6 +100,8 @@ export const EstadoDiseno = z.object({
   propuesta: Propuesta.nullable(),
   dictamen: Dictamen.nullable().default(null),
   trace: z.array(TraceEntry).default([]),
+  /** Findings the person chose to leave as they are, by the key of each finding. */
+  accepted: z.array(z.object({ key: z.string(), title: z.string(), at: z.string() })).default([]),
 })
 export type EstadoDiseno = z.infer<typeof EstadoDiseno>
 

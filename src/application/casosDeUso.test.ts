@@ -12,6 +12,8 @@ import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type LLMProvider, type PlanAdjustment, type RespuestaAjuste } from '../ports/LLMProvider'
 import { crearCasosDeUso, currentPlan, firmaDictamen } from './casosDeUso'
 import { construirContexto } from './contexto'
+import { noticeBoard } from './notices'
+import { fixesFor } from '../domain/fixes/fixes'
 
 const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
   estado: null,
@@ -699,5 +701,43 @@ describe('trust: nothing structural goes unasked, and any change can be undone i
     const deshecha = c.undoChange(regresada.estado, regresada.estado.actual)
     if (!deshecha.ok) throw new Error(deshecha.message)
     expect(disenoActual(deshecha.estado).piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T15')
+  })
+})
+
+describe('notices: one place for what waits for a decision', () => {
+  const wide = { ...librero, dimensiones: { ...librero.dimensiones, ancho: 1100 } }
+
+  it('a finding is pending until it is fixed by Knotty (and then shows as resolved) or accepted as it is', () => {
+    const c = casos()
+    const inicial = c.desdeEjemplo(wide)
+    const board = noticeBoard(inicial, catalogo)
+    const sag = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    expect(sag).toBeTruthy()
+
+    const aceptado = c.acceptNotice(inicial, sag.findings, sag.title)
+    expect(noticeBoard(aceptado, catalogo).pending.some((n) => n.key === sag.key)).toBe(false)
+    expect(noticeBoard(aceptado, catalogo).accepted.map((n) => n.key)).toContain(sag.key)
+    expect(noticeBoard(c.reopenNotice(aceptado, sag.findings), catalogo).pending.some((n) => n.key === sag.key)).toBe(true)
+
+    const fix = fixesFor(disenoActual(inicial), catalogo, sag.findings[0]).find((f) => f.key === 'divisor-al-centro')!
+    const resuelto = c.applyFix(inicial, fix)
+    expect(resuelto.chat.at(-1)?.texto).toBe(`Resolví: ${fix.label}.`)
+    const piece = disenoActual(inicial).piezas.find((p) => p.id === sag.findings[0].piezas[0])!.nombre
+    expect(noticeBoard(resuelto, catalogo).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
+  })
+
+  it('what the person accepted is not a failure in the verdict, but it is said', async () => {
+    const c = casos()
+    const inicial = c.desdeEjemplo({ ...librero, anclajeMuro: false })
+    const vuelco = noticeBoard(inicial, catalogo).pending.find((n) => n.title === 'Riesgo de vuelco')!
+    const aceptado = c.acceptNotice(inicial, vuelco.findings, vuelco.title)
+    const dictamen = await c.dictaminar(aceptado, catalogo, senal())
+    expect(dictamen.comprobaciones.find((x) => x.id === 'aceptados')?.detalle).toBe('Lo dejaste así, bajo tu riesgo: Riesgo de vuelco.')
+  })
+
+  it("the expert's pending proposal and unanswered questions are notices too", async () => {
+    const inicial = await libreroInicial(casos())
+    const board = noticeBoard(inicial, catalogo)
+    expect(board.pending.filter((n) => n.kind === 'question').map((n) => n.message)).toContain('¿Qué vas a guardar principalmente?')
   })
 })

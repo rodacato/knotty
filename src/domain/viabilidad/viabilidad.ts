@@ -56,6 +56,8 @@ interface Entrada {
   compra: Compra
   hallazgos: Hallazgo[]
   incumplidos: string[]
+  /** Titles of findings the person chose to leave as they are. */
+  accepted?: string[]
 }
 
 const cm = (mm: number) => `${redondear(mm / 10, 1)} cm`
@@ -175,8 +177,14 @@ function margen({ catalogo, compra }: Entrada): Comprobacion {
 }
 
 /** Las comprobaciones de cuentas, de la más grave a la más leve. */
+/** What the person accepted is not a failure any more, but the verdict still says it. */
+function acceptedByPerson({ accepted = [] }: Entrada): Comprobacion[] {
+  const titles = [...new Set(accepted)]
+  return titles.length ? [comprobacion({ id: 'aceptados', titulo: 'Aceptado por ti', estado: 'aviso', detalle: `Lo dejaste así, bajo tu riesgo: ${titles.join(', ')}.` })] : []
+}
+
 export function revisarViabilidad(entrada: Entrada): Viabilidad {
-  const comprobaciones = [medidas, hoja, estructura, tiras, confirmadas, margen].map((f) => f(entrada))
+  const comprobaciones = [...[medidas, hoja, estructura, tiras, confirmadas, margen].map((f) => f(entrada)), ...acceptedByPerson(entrada)]
   return { veredicto: veredictoDe(comprobaciones), comprobaciones }
 }
 
