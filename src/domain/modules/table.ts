@@ -3,6 +3,7 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import type { FaceRef, Design, Piece, Joint } from '../design/schema'
 import { completeJoints } from '../design/joints'
 import { materialById, type Catalog } from '../materials/catalog'
+import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 
@@ -101,7 +102,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   )
   for (const apron of ['apron-front', 'apron-back'])
     for (const end of [openLeft, openRight].map((f) => f.split('.')[0]))
-      joints.push(makeJoint(`j-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]))
+      joints.push(makeJoint(`j-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: pocketScrewId(t), count: 2 }]))
 
   // Cleats between the aprons, so the top never spans more than it can.
   const openWidth = width - 2 * plan.overhang - 2 * t - (pedestal ? PEDESTAL - t : 0)

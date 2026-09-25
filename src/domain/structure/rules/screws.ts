@@ -1,7 +1,7 @@
 import { roundTo } from '../../design/resolve'
 import { contactBetween, jointLength } from '../../validation/contact'
 import type { Finding, Rule } from '../finding'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS, pocketScrewFor } from '../assumptions'
 
 const INCH = 25.4
 /** Millimetres as a hardware store says them: 1¼", ⅝". */
@@ -38,6 +38,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           code: 'R3_SCREWS',
           severity: 'critical',
           pieces: [u.a, u.b],
+          check: 'screw.pokes-through',
           message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
           data: { joint: u.id, length: length, bite: roundTo(bite), thickness: tb },
           alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(ta + tb - 5)} o menos`, data: { length: ta + tb - 5 } }],
@@ -52,20 +53,23 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           code: 'R3_SCREWS',
           severity: 'recommendation',
           pieces: [u.a, u.b],
+          check: 'screw.short-bite',
           message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y solo entra ${roundTo(bite)} mm en ${b.name}; conviene que entre al menos ${ASSUMPTIONS.screws.minPenetration} mm.`,
           data: { joint: u.id, length: length, bite: roundTo(bite) },
           alternatives: suggested ? [{ key: 'longer-screw', description: `Usar ${suggested.name.toLowerCase()}`, data: { hardwareId: suggested.id } }] : [],
         })
       } else {
-        const longest = ASSUMPTIONS.screws.pocketScrews.find((f) => ta <= f.upTo)?.length
-        if (longest === undefined || length <= longest + 0.5) continue
+        const fitting = pocketScrewFor(ta)
+        if (!fitting || length <= fitting.length + 0.5) continue
+        const longest = fitting.length
         found.push({
           code: 'R3_SCREWS',
           severity: 'recommendation',
           pieces: [u.a, u.b],
+          check: 'pocket-screw.too-long',
           message: `En ${a.name} de ${ta} mm, un tornillo de bolsillo de ${inches(length)} puede asomarse; para ese espesor va de ${inches(longest)}.`,
           data: { joint: u.id, length: length, max: longest },
-          alternatives: [{ key: 'short-pocket-screw', description: `Tornillo de bolsillo de ${inches(longest)}`, data: { length: longest } }],
+          alternatives: [{ key: 'short-pocket-screw', description: `Tornillo de bolsillo de ${inches(longest)}`, data: { length: longest, hardwareId: fitting.hardwareId } }],
         })
       }
     }
@@ -77,6 +81,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
         code: 'R3_SCREWS',
         severity: 'recommendation',
         pieces: [u.a, u.b],
+        check: 'screw.end-distance',
         message: `La junta entre ${a.name} y ${b.name} mide ${roundTo(joint, 0)} mm: dos tornillos quedarían a menos de ${ASSUMPTIONS.screws.endDistance} mm del extremo y pueden rajar el canto.`,
         data: { joint: u.id, jointLength: roundTo(joint, 0) },
         alternatives: [

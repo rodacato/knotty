@@ -33,11 +33,11 @@ export const ASSUMPTIONS = {
     minPenetration: 25,
     /** The least distance from a screw to the end of the joint, so the edge does not split. */
     endDistance: 25,
-    /** The pocket screw that does not poke out, by the thickness of the piece with the pocket (Kreg's table). */
+    /** The pocket screw that does not poke out, by the thickness of the piece with the pocket (Kreg's table), and the catalog item that is it. */
     pocketScrews: [
-      { upTo: 13, length: 25.4 },
-      { upTo: 16, length: 25.4 },
-      { upTo: 19, length: 31.75 },
+      { upTo: 13, length: 25.4, hardwareId: 'pocket-screw-1' },
+      { upTo: 16, length: 25.4, hardwareId: 'pocket-screw-1' },
+      { upTo: 19, length: 31.75, hardwareId: 'pocket-screw-1-1/4' },
     ],
   },
   tipping: { recommendedRatio: 3, criticalRatio: 4, criticalHeight: 1200 },
@@ -54,6 +54,11 @@ export const ASSUMPTIONS = {
     floorClearance: 10,
   },
 } as const
+
+/** The pocket screw for the piece with the pocket: 1" up to 16 mm, 1¼" for 18–19 mm. Undefined past the table. */
+export const pocketScrewFor = (thickness: number) => ASSUMPTIONS.screws.pocketScrews.find((f) => thickness <= f.upTo)
+/** The catalog id of that screw; past the table, the longest one there is. */
+export const pocketScrewId = (thickness: number) => (pocketScrewFor(thickness) ?? ASSUMPTIONS.screws.pocketScrews.at(-1)!).hardwareId
 
 export const hingesFor = (height: number) => ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo)!.n
 

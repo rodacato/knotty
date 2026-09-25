@@ -5,7 +5,8 @@ import { drawerSides } from '../design/drawers'
 import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
 import type { Alternative, Finding } from '../structure/finding'
-import type { Catalog } from '../materials/catalog'
+import { materialById, type Catalog } from '../materials/catalog'
+import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 
@@ -61,7 +62,7 @@ function centerSupport(design: Design, catalog: Catalog, target: Piece): Operati
 }
 
 /** A rail across the back, just under the top: to hang the piece from the wall or to keep it square. */
-function backRail(design: Design, role: 'brace' | 'apron', name: string): Operation[] {
+function backRail(design: Design, catalog: Catalog, role: 'brace' | 'apron', name: string): Operation[] {
   const sides = design.pieces.filter((p) => p.role === 'side' && p.normal === 'x')
   const top = design.pieces.find((p) => p.role === 'top')
   if (sides.length < 2 || !top) return []
@@ -81,7 +82,7 @@ function backRail(design: Design, role: 'brace' | 'apron', name: string): Operat
   const operations: Operation[] = [{ op: 'addPiece', piece: rail }]
   // A rigid rail is what keeps a box square: pocket screws into both sides, not butt screws.
   if (role === 'apron')
-    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`j-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) })
+    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`j-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: pocketScrewId(materialById(catalog, left.material)?.thickness ?? 18), count: 2 }]) })
   return operations
 }
 
@@ -122,17 +123,22 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
   const pieces = finding.pieces.map((id) => design.pieces.find((p) => p.id === id)).filter((p): p is Piece => !!p)
   switch (alternative.key) {
-    case 'thicker-board':
-      return typeof alternative.data.material === 'string' ? [{ op: 'changeMaterial', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
+    case 'thicker-board': {
+      // R2 names the one piece that is too thin for the joint; R1 names none, and every sagging piece of the finding gets the board.
+      const { material, piece } = alternative.data
+      if (typeof material !== 'string') return []
+      const ids = typeof piece === 'string' ? pieces.filter((p) => p.id === piece).map((p) => p.id) : pieces.map((p) => p.id)
+      return ids.length ? [{ op: 'changeMaterial', ids, material }] : []
+    }
     case 'center-divider':
     case 'center-support':
       return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupport(design, catalog, p))
     case 'anchor-to-wall':
       return design.wallAnchored ? [] : [{ op: 'setWallAnchored', value: true }]
     case 'hanging-rail':
-      return backRail(design, 'brace', 'Listón de colgar')
+      return backRail(design, catalog, 'brace', 'Listón de colgar')
     case 'rigid-apron':
-      return backRail(design, 'apron', 'Faja trasera')
+      return backRail(design, catalog, 'apron', 'Faja trasera')
     case 'slide-support':
       return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
     default:
@@ -142,13 +148,41 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
 
 /** The alternatives of a finding that Knotty can build and that leave a valid design, each with its result. */
 export function fixesFor(design: Design, catalog: Catalog, finding: Finding): Fix[] {
-  return finding.alternatives.flatMap((alternative) => {
-    const operations = operationsFor(design, catalog, finding, alternative)
-    if (!operations.length) return []
-    const result = applyOperations(design, operations, catalog)
-    if (!result.ok) return []
-    const built = completeJoints(normalize(result.value.design, catalog), catalog, design)
-    if (!analyze(built, catalog).valid) return []
-    return [{ key: alternative.key, label: alternative.description, operations, design: built }]
+  return finding.alternatives.flatMap((alternative) => build(design, catalog, alternative, operationsFor(design, catalog, finding, alternative)))
+}
+
+/**
+ * One solution for every finding of a notice: five sagging shelves get five supports in one click.
+ * A thicker board is per finding: each joint too thin thickens its own piece, and a piece named twice takes the thicker board.
+ */
+export function fixesForNotice(design: Design, catalog: Catalog, findings: Finding[]): Fix[] {
+  const [first] = findings
+  if (!first) return []
+  const together = { ...first, pieces: [...new Set(findings.flatMap((h) => h.pieces))] }
+  return first.alternatives.flatMap((alternative) => {
+    const perPiece = alternative.key === 'thicker-board' && typeof alternative.data.piece === 'string'
+    return build(design, catalog, alternative, perPiece ? thickerPieces(catalog, findings) : operationsFor(design, catalog, together, alternative))
   })
+}
+
+function thickerPieces(catalog: Catalog, findings: Finding[]): Operation[] {
+  const thickness = (id: string) => materialById(catalog, id)?.thickness ?? 0
+  const chosen = new Map<string, string>()
+  for (const { key, data } of findings.flatMap((h) => h.alternatives)) {
+    if (key !== 'thicker-board' || typeof data.piece !== 'string' || typeof data.material !== 'string') continue
+    const current = chosen.get(data.piece)
+    if (!current || thickness(data.material) > thickness(current)) chosen.set(data.piece, data.material)
+  }
+  const byMaterial = new Map<string, string[]>()
+  for (const [piece, material] of chosen) byMaterial.set(material, [...(byMaterial.get(material) ?? []), piece])
+  return [...byMaterial].map(([material, ids]): Operation => ({ op: 'changeMaterial', ids, material }))
+}
+
+function build(design: Design, catalog: Catalog, alternative: Alternative, operations: Operation[]): Fix[] {
+  if (!operations.length) return []
+  const result = applyOperations(design, operations, catalog)
+  if (!result.ok) return []
+  const built = completeJoints(normalize(result.value.design, catalog), catalog, design)
+  if (!analyze(built, catalog).valid) return []
+  return [{ key: alternative.key, label: alternative.description, operations, design: built }]
 }

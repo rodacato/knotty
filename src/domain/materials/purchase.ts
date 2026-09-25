@@ -10,6 +10,8 @@ import type { Catalog, Hardware, BoardMaterial } from './catalog'
 const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
 const EDGE_BANDING_WASTE = 1.1
+/** The edge banding in the catalog, by name: another item sold by the metre is not it. */
+export const EDGE_BANDING_ID = 'edge-banding-19'
 const JOINTS_PER_GLUE_BOTTLE = 20
 const EDGE_AXIS: Record<string, Axis> = { front: 'z', back: 'z', left: 'x', right: 'x', top: 'y', bottom: 'y' }
 
@@ -114,7 +116,7 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
     if (item.price === null) missingPrices.push(item.name)
     return [{ hardware: item, count, packs, cost: item.price === null ? null : item.price * (packs ?? count) }]
   })
-  const tape = catalog.hardware.find((h) => h.unit === 'meter')
+  const tape = catalog.hardware.find((h) => h.id === EDGE_BANDING_ID)
   if (edgeBanding > 0 && tape) {
     if (tape.price === null) missingPrices.push(tape.name)
     hardware.push({ hardware: tape, count: Math.ceil(edgeBanding), packs: null, cost: tape.price === null ? null : tape.price * Math.ceil(edgeBanding) })

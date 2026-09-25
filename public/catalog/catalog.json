@@ -103,6 +103,16 @@
       "price": 85
     },
     {
+      "id": "pocket-screw-1",
+      "name": "Tornillo de bolsillo 1\" rosca gruesa",
+      "unit": "piece",
+      "perPack": 100,
+      "length": 25.4,
+      "sideClearance": null,
+      "sku": null,
+      "price": null
+    },
+    {
       "id": "pocket-screw-1-1/4",
       "name": "Tornillo de bolsillo 1¼\" rosca gruesa",
       "unit": "piece",

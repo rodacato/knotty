@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, CheckCircle, Eye, Lightning, ChatCircleText, Tray, Wrench } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { noticeBoard, noticeItem, type Notice } from '../../application/notices'
-import { fixesFor, type Fix } from '../../domain/fixes/fixes'
+import { noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
+import { fixesForNotice, type Fix } from '../../domain/fixes/fixes'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { answerItem, answerItemId, noticeItemId } from '../../domain/tray/tray'
 import { useServices } from '../services'
@@ -45,12 +45,12 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
   const design = currentDesign(state)
   // One solution covers every piece of the notice: five sagging shelves get five supports in one click.
   const fixes = useMemo(() => {
-    const [first] = notice.findings
-    if (!first) return []
-    const pieces = [...new Set(notice.findings.flatMap((h) => h.pieces))]
+    const pieces = new Set(notice.findings.flatMap((h) => h.pieces)).size
     const general = (f: Fix) => (f.key === 'center-divider' || f.key === 'center-support' ? 'Un apoyo al centro, debajo de cada una' : f.label)
+    // A thicker board changes only the thin pieces, not every piece the notice names.
+    const count = (f: Fix) => (f.key === 'thicker-board' ? f.operations.flatMap((o) => (o.op === 'changeMaterial' ? o.ids : [])).length : pieces)
     const perPiece = new Set(['center-divider', 'center-support', 'thicker-board'])
-    return fixesFor(design, catalog, { ...first, pieces }).map((f) => (pieces.length > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${pieces.length} piezas)` } : f))
+    return fixesForNotice(design, catalog, notice.findings).map((f) => (count(f) > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${count(f)} piezas)` } : f))
   }, [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
   const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'max-span' && !built.has(a.key)).map((a) => [a.description, a])).values()]
@@ -145,12 +145,10 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
   )
 }
 
-export function NoticePanel({ state, onAnswer }: { state: DesignState; onAnswer: () => void }) {
-  const { catalog } = useServices()
+export function NoticePanel({ state, board, onAnswer }: { state: DesignState; board: NoticeBoard; onAnswer: () => void }) {
   const reopenNotice = useStore((s) => s.reopenNotice)
   const sendTray = useStore((s) => s.sendTray)
   const thinking = useStore((s) => s.thinking)
-  const board = useMemo(() => noticeBoard(state, catalog), [state, catalog])
   const [showAccepted, setShowAccepted] = useState(false)
 
   return (

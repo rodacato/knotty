@@ -45,6 +45,26 @@ describe('buildTable', () => {
     expect(design.joints.filter((u) => u.type === 'pocket-screw')).toHaveLength(4)
   })
 
+  it.each([
+    ['T15', 'pocket-screw-1'],
+    ['T18', 'pocket-screw-1-1/4'],
+  ])('in %s the aprons take the pocket screw for that board (%s), and R3 agrees', (material, screw) => {
+    const { design } = buildTable(table({ material }), testCatalog)
+    const pocket = design.joints.filter((u) => u.type === 'pocket-screw')
+    expect([...new Set(pocket.flatMap((u) => u.hardware.map((h) => h.hardwareId)))]).toEqual([screw])
+    const a = analyze(design, testCatalog)
+    expect(a.valid && a.findings.filter((h) => h.code === 'R3_SCREWS')).toEqual([])
+  })
+
+  it('a 1¼" pocket screw in 15 mm is flagged, and the fix names the 1" one', () => {
+    const { design } = buildTable(table({ material: 'T15' }), testCatalog)
+    const long = { ...design, joints: design.joints.map((u) => (u.type === 'pocket-screw' ? { ...u, hardware: [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }] } : u)) }
+    const a = analyze(long, testCatalog)
+    const r3 = a.valid ? a.findings.filter((h) => h.code === 'R3_SCREWS') : []
+    expect(r3.length).toBeGreaterThan(0)
+    expect(r3.map((h) => h.alternatives[0].data.hardwareId)).toEqual(r3.map(() => 'pocket-screw-1'))
+  })
+
   it('a desk with a pedestal keeps room for the legs and its drawers open to the front', () => {
     const { design } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'right', drawers: 3 } }), testCatalog)
     const geo = analyze(design, testCatalog).geo!
