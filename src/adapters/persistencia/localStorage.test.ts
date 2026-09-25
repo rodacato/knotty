@@ -22,7 +22,7 @@ function almacen(limite = Infinity): Storage {
 }
 
 const estado = (versiones = 1): DesignState => ({
-  format: 3,
+  format: 4,
   measures: exampleBookcase.dimensions,
   versions: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, design: exampleBookcase, summary: `v${i + 1}`, reason: '', operations: [], date: '', origin: null, decisions: [], plan: null, extras: [] })),
   current: versiones,
@@ -56,7 +56,7 @@ describe('localStorage repository', () => {
     const a = almacen()
     a.setItem('despiece:v1:diseno', JSON.stringify(saved))
     const loaded = createLocalRepository(a).load()
-    expect(loaded?.format).toBe(3)
+    expect(loaded?.format).toBe(4)
     expect(loaded?.versions).toHaveLength(saved.versiones.length)
   })
 

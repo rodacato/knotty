@@ -37,10 +37,10 @@ export const exampleWallCabinet: Design = {
     puerta('der'),
   ],
   joints: [
-    ...['piso', 'techo'].flatMap((b) => ['lat-izq', 'lat-der'].map((lat) => makeJoint(`u-${b}-${lat}`, lat, b, 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]))),
-    ...['lat-izq', 'lat-der', 'piso', 'techo'].map((b) => makeJoint(`u-trasera-${b}`, 'trasera', b, 'glue-nail', [{ hardwareId: 'clavo-sin-cabeza-1', count: null }])),
-    ...['lat-izq', 'lat-der'].map((lat) => makeJoint(`u-entrepano-${lat}`, 'entrepano', lat, 'shelf-pin', [{ hardwareId: 'soporte-repisa-5', count: 2 }])),
-    makeJoint('u-puerta-izq', 'puerta-izq', 'lat-izq', 'cup-hinge', [{ hardwareId: 'bisagra-cazoleta-35-recta', count: 2 }]),
-    makeJoint('u-puerta-der', 'puerta-der', 'lat-der', 'cup-hinge', [{ hardwareId: 'bisagra-cazoleta-35-recta', count: 2 }]),
+    ...['piso', 'techo'].flatMap((b) => ['lat-izq', 'lat-der'].map((lat) => makeJoint(`u-${b}-${lat}`, lat, b, 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]))),
+    ...['lat-izq', 'lat-der', 'piso', 'techo'].map((b) => makeJoint(`u-trasera-${b}`, 'trasera', b, 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }])),
+    ...['lat-izq', 'lat-der'].map((lat) => makeJoint(`u-entrepano-${lat}`, 'entrepano', lat, 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }])),
+    makeJoint('u-puerta-izq', 'puerta-izq', 'lat-izq', 'cup-hinge', [{ hardwareId: 'cup-hinge-35-full', count: 2 }]),
+    makeJoint('u-puerta-der', 'puerta-der', 'lat-der', 'cup-hinge', [{ hardwareId: 'cup-hinge-35-full', count: 2 }]),
   ],
 }

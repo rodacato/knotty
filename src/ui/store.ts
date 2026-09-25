@@ -179,7 +179,7 @@ export const useStore = create<Store>((set, get) => ({
   viewedVersion: null,
   reveal: 0,
   settingsOpen: false,
-  vault: 'sin-boveda',
+  vault: 'none',
   gateClosed: false,
   catalogSettings: NO_SETTINGS,
   preview: null,
@@ -306,7 +306,7 @@ export const useStore = create<Store>((set, get) => ({
   switchToSimulated() {
     const { services } = get()
     if (!services) return
-    void services.preferences.save({ ...services.preferences.load(), activo: 'simulado' }).catch(() => {})
+    void services.preferences.save({ ...services.preferences.load(), active: 'simulated' }).catch(() => {})
     set({ gateClosed: true })
   },
 

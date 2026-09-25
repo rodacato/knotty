@@ -32,7 +32,7 @@ describe('completeJoints', () => {
     const pocket = exampleBookcase.joints.filter((u) => u.b === 'lat-izq' && u.a === 'zoclo')
     const d = completeJoints({ ...exampleBookcase, joints: pocket }, testCatalog)
     expect(d.joints.filter((u) => [u.a, u.b].sort().join() === 'lat-izq,zoclo')).toEqual(pocket)
-    expect(d.joints.find((u) => u.a === 'lat-izq' && u.b === 'piso')?.hardware).toEqual([{ hardwareId: 'tornillo-8x2', count: null }])
+    expect(d.joints.find((u) => u.a === 'lat-izq' && u.b === 'piso')?.hardware).toEqual([{ hardwareId: 'screw-8x2', count: null }])
   })
 
   it('given the previous design, does not bring back a joint removed on purpose', () => {

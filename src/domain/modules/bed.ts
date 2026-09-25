@@ -74,7 +74,7 @@ export interface BuiltBed {
 }
 
 export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
-  const t = materialById(catalog, plan.material)?.espesor ?? 18
+  const t = materialById(catalog, plan.material)?.thickness ?? 18
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })

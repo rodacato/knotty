@@ -52,8 +52,8 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
   const size = (axis: Axis) => box[`${axis}1`] - box[`${axis}0`]
   // Largo is the longer side of the face, ancho the shorter, as in the cut list.
   const [longAxis, shortAxis] = AXES.filter((e) => e !== piece.normal).sort((a, b) => size(b) - size(a))
-  const current = catalog.materiales.find((m) => m.id === piece.material)
-  const sameKind = catalog.materiales.filter((m) => m.tipo === current?.tipo)
+  const current = catalog.materials.find((m) => m.id === piece.material)
+  const sameKind = catalog.materials.filter((m) => m.type === current?.type)
   const run = (r: PieceEditResult) => setResult(r.ok ? null : r)
 
   if (!enabled) return null
@@ -80,7 +80,7 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
           >
             {sameKind.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.espesor} mm
+                {m.thickness} mm
               </option>
             ))}
           </select>

@@ -84,7 +84,7 @@ function measures({ design, geo }: ViabilityInput): Check {
 }
 
 function sheet({ catalog, purchase }: ViabilityInput): Check {
-  const trim = catalog.acomodo.refilado
+  const trim = catalog.layout.trim
   const unplaced = purchase.layout.flatMap((a) => a.unplaced.map((p) => ({ ...p, usable: a.usable })))
   if (!unplaced.length) {
     const usable = purchase.layout[0]?.usable
@@ -92,7 +92,7 @@ function sheet({ catalog, purchase }: ViabilityInput): Check {
       id: 'sheet',
       title: 'Todo cabe en la hoja',
       status: 'ok',
-      detail: usable ? `Cada pieza cabe en la parte buena de la hoja (${usable.largo} × ${usable.ancho} mm), ya sin los ${trim} mm por orilla que se recortan.` : 'No hay piezas de triplay que acomodar.',
+      detail: usable ? `Cada pieza cabe en la parte buena de la hoja (${usable.length} × ${usable.width} mm), ya sin los ${trim} mm por orilla que se recortan.` : 'No hay piezas de triplay que acomodar.',
     })
   }
   const p = unplaced[0]
@@ -102,8 +102,8 @@ function sheet({ catalog, purchase }: ViabilityInput): Check {
     status: 'fail',
     impossible: true,
     pieces: unplaced.map((x) => x.id),
-    detail: `${listed(unplaced.map((x) => x.name))}: ${p.name.toLowerCase()} mide ${roundTo(p.length)} × ${roundTo(p.width)} mm y lo más que sale de una hoja es ${p.usable.largo} × ${p.usable.ancho} mm (se recortan ${trim} mm por orilla).`,
-    request: `Haz que ${p.name.toLowerCase()} quepa en una hoja: máximo ${p.usable.largo} × ${p.usable.ancho} mm`,
+    detail: `${listed(unplaced.map((x) => x.name))}: ${p.name.toLowerCase()} mide ${roundTo(p.length)} × ${roundTo(p.width)} mm y lo más que sale de una hoja es ${p.usable.length} × ${p.usable.width} mm (se recortan ${trim} mm por orilla).`,
+    request: `Haz que ${p.name.toLowerCase()} quepa en una hoja: máximo ${p.usable.length} × ${p.usable.width} mm`,
   })
 }
 
@@ -164,9 +164,9 @@ function margin({ catalog, purchase }: ViabilityInput): Check {
   const tight = purchase.layout.flatMap((a) => {
     const sheets = a.sheets.length
     if (!sheets) return []
-    const used = a.sheets.reduce((s, h) => s + h.placed.reduce((t, c) => t + c.w * c.h, 0), 0) / (sheets * a.usable.largo * a.usable.ancho)
-    const material = catalog.materiales.find((m) => m.id === a.material)
-    return used >= TIGHT_YIELD ? [{ name: material?.nombre ?? a.material, used }] : []
+    const used = a.sheets.reduce((s, h) => s + h.placed.reduce((t, c) => t + c.w * c.h, 0), 0) / (sheets * a.usable.length * a.usable.width)
+    const material = catalog.materials.find((m) => m.id === a.material)
+    return used >= TIGHT_YIELD ? [{ name: material?.name ?? a.material, used }] : []
   })
   if (!tight.length) return check({ id: 'margin', title: 'Material de sobra', status: 'ok', detail: 'Si un corte sale mal, queda sobrante para repetirlo.' })
   return check({

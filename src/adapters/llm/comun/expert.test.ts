@@ -39,7 +39,7 @@ describe('createExpert', () => {
     const llamadas: { sistema: string; contenido: Content[] }[] = []
     const t: Transport = {
       provider: 'prueba',
-      modelo: 'm',
+      model: 'm',
       async completeJSON(sistema, contenido) {
         llamadas.push({ sistema, contenido })
         return { json, usage: {} }

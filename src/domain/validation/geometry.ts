@@ -96,9 +96,9 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     if (!box || !material) continue
     const [length, width] = faceSize(box, p.normal)
     const sheet = usableSheet(catalog, material)
-    if (length > sheet.largo || width > sheet.ancho)
+    if (length > sheet.length || width > sheet.width)
       errors.push(
-        error('E_TOO_BIG_FOR_SHEET', `"${p.id}" mide ${roundTo(length)} × ${roundTo(width)} mm y la hoja útil es de ${sheet.largo} × ${sheet.ancho} mm.`, {
+        error('E_TOO_BIG_FOR_SHEET', `"${p.id}" mide ${roundTo(length)} × ${roundTo(width)} mm y la hoja útil es de ${sheet.length} × ${sheet.width} mm.`, {
           piece: p.id,
           length: roundTo(length),
           width: roundTo(width),

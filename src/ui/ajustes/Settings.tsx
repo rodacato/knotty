@@ -8,12 +8,12 @@ import { Button, Title } from '../sistema/components'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 
-const PROVIDERS: Provider[] = ['simulado', 'anthropic', 'openai', 'shellm']
+const PROVIDERS: Provider[] = ['simulated', 'anthropic', 'openai', 'shellm']
 
 const SAVED: { id: KeyStorage; name: string; detail: string }[] = [
-  { id: 'cifrada', name: 'Cifradas en este navegador', detail: 'Con una frase que te pido al volver. Recomendado.' },
-  { id: 'pestana', name: 'Solo en esta pestaña', detail: 'Sobreviven a recargar; se borran al cerrarla.' },
-  { id: 'memoria', name: 'No guardarlas', detail: 'Se pierden al recargar.' },
+  { id: 'encrypted', name: 'Cifradas en este navegador', detail: 'Con una frase que te pido al volver. Recomendado.' },
+  { id: 'tab', name: 'Solo en esta pestaña', detail: 'Sobreviven a recargar; se borran al cerrarla.' },
+  { id: 'memory', name: 'No guardarlas', detail: 'Se pierden al recargar.' },
 ]
 
 type ModelsState = { kind: 'idle' | 'loading' } | { kind: 'ready'; models: string[] } | { kind: 'error'; message: string }
@@ -38,16 +38,16 @@ export function Settings() {
     setPassphrase('')
     setError('')
   }, [open, preferences, vault])
-  useEffect(() => setModels({ kind: 'idle' }), [draft.activo])
+  useEffect(() => setModels({ kind: 'idle' }), [draft.active])
 
-  const active = draft.activo
-  const connection = active === 'simulado' ? null : draft.conexiones[active]
+  const active = draft.active
+  const connection = active === 'simulated' ? null : draft.connections[active]
   const change = (patch: Partial<Connection>) => {
-    if (active === 'simulado') return
-    setDraft((b) => ({ ...b, conexiones: { ...b.conexiones, [active]: { ...b.conexiones[active], ...patch } } }))
+    if (active === 'simulated') return
+    setDraft((b) => ({ ...b, connections: { ...b.connections, [active]: { ...b.connections[active], ...patch } } }))
   }
   const loadModels = async () => {
-    if (active === 'simulado' || !connection || (PRESETS[active].needsKey && !connection.apiKey)) return
+    if (active === 'simulated' || !connection || (PRESETS[active].needsKey && !connection.apiKey)) return
     setModels({ kind: 'loading' })
     try {
       setModels({ kind: 'ready', models: await preferences.listModels(active, connection) })
@@ -55,8 +55,8 @@ export function Settings() {
       setModels({ kind: 'error', message: e instanceof Error ? e.message : 'No se pudo cargar la lista.' })
     }
   }
-  const locked = vault === 'bloqueada'
-  const asksPassphrase = draft.guardado === 'cifrada' && vault === 'sin-boveda'
+  const locked = vault === 'locked'
+  const asksPassphrase = draft.keyStorage === 'encrypted' && vault === 'none'
   const save = async () => {
     setSaving(true)
     setError('')
@@ -97,7 +97,7 @@ export function Settings() {
                 role="radio"
                 aria-checked={active === p}
                 aria-label={PRESETS[p].label}
-                onClick={() => setDraft((b) => ({ ...b, activo: p }))}
+                onClick={() => setDraft((b) => ({ ...b, active: p }))}
                 className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
               >
                 <span className="font-medium">{PRESETS[p].label}</span>
@@ -108,7 +108,7 @@ export function Settings() {
 
           {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} />}
 
-          {connection && active !== 'simulado' && (
+          {connection && active !== 'simulated' && (
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium">API key{!PRESETS[active].needsKey && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
@@ -135,16 +135,16 @@ export function Settings() {
                   </button>
                 </span>
                 {models.kind === 'ready' ? (
-                  <select value={connection.modelo} onChange={(e) => change({ modelo: e.target.value })} className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm">
-                    {!models.models.includes(connection.modelo) && <option value={connection.modelo}>{connection.modelo || 'Elige un modelo'}</option>}
+                  <select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm">
+                    {!models.models.includes(connection.model) && <option value={connection.model}>{connection.model || 'Elige un modelo'}</option>}
                     {models.models.map((m) => (
                       <option key={m}>{m}</option>
                     ))}
                   </select>
                 ) : (
                   <input
-                    value={connection.modelo}
-                    onChange={(e) => change({ modelo: e.target.value.trim() })}
+                    value={connection.model}
+                    onChange={(e) => change({ model: e.target.value.trim() })}
                     placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'}
                     className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
                   />
@@ -153,15 +153,15 @@ export function Settings() {
               </label>
               <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
-                {vault === 'abierta' && draft.guardado === 'cifrada' ? (
+                {vault === 'open' && draft.keyStorage === 'encrypted' ? (
                   <p className="text-xs text-grafito-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
                 ) : locked ? (
                   <p className="text-xs text-oxido">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
                 <div className="grid gap-1.5">
                   {SAVED.map((g) => (
-                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.guardado === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
-                      <input type="radio" name="guardado" checked={draft.guardado === g.id} onChange={() => setDraft((b) => ({ ...b, guardado: g.id }))} className="mt-1 accent-ambar" />
+                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
+                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-ambar" />
                       <span>
                         {g.name}
                         <span className="block text-xs text-grafito-2">{g.detail}</span>

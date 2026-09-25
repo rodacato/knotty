@@ -77,7 +77,7 @@ describe('R9 for freeform drawers', () => {
         makePiece({ id: 'lat-der', name: 'Lateral derecho', role: 'side', material: 'T18', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
         makePiece({ id: 'techo', name: 'Techo', role: 'top', material: 'T18', normal: 'y', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: endAt(ref('mueble.y1')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
       ],
-      joints: [makeJoint('u-techo-izq', 'lat-izq', 'techo', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }]), makeJoint('u-techo-der', 'lat-der', 'techo', 'butt-screw', [{ hardwareId: 'tornillo-8x2', count: null }])],
+      joints: [makeJoint('u-techo-izq', 'lat-izq', 'techo', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]), makeJoint('u-techo-der', 'lat-der', 'techo', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }])],
     }
     const d = build(low, [drawer({ bottom: 'mueble.y0', top: 'techo.y0' })])
     expect(r9(d).map((h) => h.message)).toEqual([expect.stringContaining('llega al suelo')])

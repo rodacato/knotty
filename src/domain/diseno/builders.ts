@@ -25,13 +25,13 @@ export const makePiece = (p: Essential & Partial<Piece>): Piece => ({
   ...p,
 })
 
-export const makeJoint = (id: string, a: string, b: string, tipo: JointType, herrajes: Joint['hardware'] = [], extra: Partial<Joint> = {}): Joint => ({
+export const makeJoint = (id: string, a: string, b: string, type: JointType, hardware: Joint['hardware'] = [], extra: Partial<Joint> = {}): Joint => ({
   id,
   a,
   b,
-  type: tipo,
-  glue: tipo !== 'shelf-pin' && tipo !== 'cup-hinge' && tipo !== 'drawer-slide',
+  type,
+  glue: type !== 'shelf-pin' && type !== 'cup-hinge' && type !== 'drawer-slide',
   depth: null,
-  hardware: herrajes,
+  hardware,
   ...extra,
 })

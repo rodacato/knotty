@@ -32,9 +32,9 @@ export const PLAN_ADJUSTMENT = read(ajusteFicha)
 function describeCatalog(c: Catalog) {
   return [
     'Materiales:',
-    ...c.materiales.map((m) => `- ${m.id}: ${m.nombre}, ${m.espesor} mm (${m.tipo})`),
+    ...c.materials.map((m) => `- ${m.id}: ${m.name}, ${m.thickness} mm (${m.type})`),
     'Herrajes:',
-    ...c.herrajes.map((h) => `- ${h.id}: ${h.nombre}`),
+    ...c.hardware.map((h) => `- ${h.id}: ${h.name}`),
   ].join('\n')
 }
 

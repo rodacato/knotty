@@ -21,7 +21,7 @@ function ago(date: string) {
   return 'hace un momento'
 }
 
-const PROVIDER: Record<string, string> = { simulado: 'Simulado', anthropic: 'Claude', openai: 'OpenAI', shellm: 'SheLLM' }
+const PROVIDER: Record<string, string> = { simulated: 'Simulado', anthropic: 'Claude', openai: 'OpenAI', shellm: 'SheLLM' }
 
 export function HistoryPanel({ state }: { state: DesignState }) {
   const viewedVersion = useStore((s) => s.viewedVersion)

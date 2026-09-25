@@ -81,22 +81,22 @@ function backRail(design: Design, role: 'brace' | 'apron', name: string): Operat
   const operations: Operation[] = [{ op: 'addPiece', piece: rail }]
   // A rigid rail is what keeps a box square: pocket screws into both sides, not butt screws.
   if (role === 'apron')
-    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`u-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]) })
+    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`u-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) })
   return operations
 }
 
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
 function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'left' | 'right'): Operation[] {
   const geo = analyze(design, catalog).geo
-  const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
+  const runner = catalog.hardware.find((h) => h.id.startsWith('drawer-slide') && h.sideClearance !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'left' ? -1 : 1))
-  if (!geo || !runner?.holguraLateral || !found) return []
+  if (!geo || !runner?.sideClearance || !found) return []
   const material = design.pieces.find((p) => p.role === 'side')?.material ?? found.side.material
-  const thickness = catalog.materiales.find((m) => m.id === material)?.espesor ?? 18
+  const thickness = catalog.materials.find((m) => m.id === material)?.thickness ?? 18
   const box = geo.boxes.get(found.side.id)!
   const drawer = design.pieces.filter((p) => p.group === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
   const [bottom, top] = [Math.min(...drawer.map((b) => b.y0)), Math.max(...drawer.map((b) => b.y1))]
-  const x0 = side === 'left' ? box.x0 - runner.holguraLateral - thickness : box.x1 + runner.holguraLateral
+  const x0 = side === 'left' ? box.x0 - runner.sideClearance - thickness : box.x1 + runner.sideClearance
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => !drawer.includes(b) && id !== found.side.id && b.x0 < x0 + thickness && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
   const below = inColumn.filter(([, b]) => b.y1 <= bottom + 0.5).sort(([, a], [, b]) => b.y1 - a.y1)[0]
   const above = inColumn.filter(([, b]) => b.y0 >= top - 0.5).sort(([, a], [, b]) => a.y0 - b.y0)[0]

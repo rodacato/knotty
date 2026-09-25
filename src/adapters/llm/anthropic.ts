@@ -18,7 +18,7 @@ const bloque = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
 export function createAnthropic(apiKey: string, model: string): LLMProvider {
   const transport: Transport = {
     provider: 'anthropic',
-    modelo: model,
+    model: model,
     async completeJSON(system, content, schema, _name, signal) {
       try {
         const stream = (await client(apiKey)).beta.messages.stream(

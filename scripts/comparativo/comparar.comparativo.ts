@@ -40,9 +40,9 @@ function provider(spec: string): LLMProvider {
   const [kind, ...rest] = spec.split(':')
   const model = rest.join(':')
   if (kind === 'anthropic') return createAnthropic(env.ANTHROPIC_API_KEY ?? '', model)
-  if (kind === 'openai') return createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', modelo: model, label: spec })
-  if (kind === 'simulado') return createSimulated(0)
-  if (kind === 'shellm') return createCompatible({ provider: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', modelo: model, label: spec })
+  if (kind === 'openai') return createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: env.OPENAI_API_KEY ?? '', model: model, label: spec })
+  if (kind === 'simulated') return createSimulated(0)
+  if (kind === 'shellm') return createCompatible({ provider: 'shellm', host: env.SHELLM_HOST ?? '', apiKey: env.SHELLM_API_KEY ?? '', model: model, label: spec })
   throw new Error(`Proveedor desconocido: ${spec}`)
 }
 

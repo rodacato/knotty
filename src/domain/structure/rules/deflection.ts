@@ -55,12 +55,12 @@ export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
 
 function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
-  const thicker = catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > thickness).sort((a, b) => a.espesor - b.espesor)[0]
+  const thicker = catalog.materials.filter((m) => m.type === 'plywood' && m.thickness > thickness).sort((a, b) => a.thickness - b.thickness)[0]
   if (thicker)
     list.push({
       key: 'thicker-board',
-      description: `Subir a ${thicker.nombre}`,
-      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.espesor, load, modulus)) },
+      description: `Subir a ${thicker.name}`,
+      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulus)) },
     })
   const half = (span - thickness) / 2
   list.push({

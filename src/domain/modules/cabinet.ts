@@ -38,7 +38,7 @@ const KICK_HEIGHT = 70
 const KICK_SETBACK = 30
 const GAP = 2
 const SHELF_SETBACK = 5
-const INSET_HINGE = 'bisagra-cazoleta-35-supercodo'
+const INSET_HINGE = 'cup-hinge-35-inset'
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
 
@@ -61,7 +61,7 @@ export interface BuiltCabinet {
 
 export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
   const build = plan.construction
-  const t = materialById(catalog, plan.material)?.espesor ?? 18
+  const t = materialById(catalog, plan.material)?.thickness ?? 18
   const half = t / 2
   const cells = plan.columns.flatMap((c) => c.cells)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))

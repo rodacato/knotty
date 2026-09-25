@@ -94,7 +94,7 @@ describe('construction variants', () => {
     const door = a.geo.boxes.get('c1-h1-puerta-izq')!
     expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
     expect(door.z1).toBe(320)
-    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.hardware[0].hardwareId)).toEqual(['bisagra-cazoleta-35-supercodo', 'bisagra-cazoleta-35-supercodo'])
+    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.hardware[0].hardwareId)).toEqual(['cup-hinge-35-inset', 'cup-hinge-35-inset'])
   })
 
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {

@@ -21,7 +21,7 @@ const JOINT_NAME: Record<JointType, string> = {
 }
 
 const thinnestBoard = (catalog: Catalog, thickness: number) =>
-  catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor >= thickness).sort((a, b) => a.espesor - b.espesor)[0]
+  catalog.materials.filter((m) => m.type === 'plywood' && m.thickness >= thickness).sort((a, b) => a.thickness - b.thickness)[0]
 
 function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
   const suggested = thinnestBoard(catalog, minimum)
@@ -31,7 +31,7 @@ function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, sev
     pieces: [u.a, u.b],
     message: `Una unión con ${JOINT_NAME[u.type]} necesita al menos ${minimum} mm en ${piece.name}, que es de ${thickness} mm.`,
     data: { joint: u.id, type: u.type, piece: piece.id, thickness: thickness, min: minimum },
-    alternatives: suggested ? [{ key: 'thicker-board', description: `Hacer ${piece.name} de ${suggested.nombre}`, data: { piece: piece.id, material: suggested.id } }] : [],
+    alternatives: suggested ? [{ key: 'thicker-board', description: `Hacer ${piece.name} de ${suggested.name}`, data: { piece: piece.id, material: suggested.id } }] : [],
   }
 }
 

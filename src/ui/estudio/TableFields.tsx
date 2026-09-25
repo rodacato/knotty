@@ -27,7 +27,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Partial<TablePlan>) => void }) {
   const { catalog } = useServices()
-  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
+  const boards = catalog.materials.filter((m) => m.type === 'plywood')
   const desk = draft.use === 'desk'
   const size = draft.dimensions
   return (
@@ -50,7 +50,7 @@ export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Pa
           <NumberField label="La cubierta sobresale" suffix="mm" min={0} value={draft.overhang} onChange={(overhang) => set({ overhang: Math.max(0, overhang) })} />
         </div>
         <Row label="Triplay">
-          <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.espesor} mm`])} onChange={(material) => set({ material })} />
+          <Segmented label="Triplay" value={draft.material} options={boards.map((m) => [m.id, `${m.thickness} mm`])} onChange={(material) => set({ material })} />
         </Row>
       </section>
 
