@@ -16,10 +16,10 @@ const findings = (d: Design) => {
 
 describe('R1 shelf sag', () => {
   it('reproduces the numbers of the proposal (18 mm, 300 deep, books, grain along)', () => {
-    expect(deflection(600, 300, 18, 'pesada', 6000)).toBeCloseTo(1.28, 1)
-    expect(deflection(900, 300, 18, 'pesada', 6000)).toBeCloseTo(6.47, 1)
-    expect(deflection(441, 300, 18, 'pesada', 6000)).toBeCloseTo(0.37, 1)
-    expect(deflection(600, 300, 15, 'pesada', 6000)).toBeCloseTo(2.21, 1)
+    expect(deflection(600, 300, 18, 'heavy', 6000)).toBeCloseTo(1.28, 1)
+    expect(deflection(900, 300, 18, 'heavy', 6000)).toBeCloseTo(6.47, 1)
+    expect(deflection(441, 300, 18, 'heavy', 6000)).toBeCloseTo(0.37, 1)
+    expect(deflection(600, 300, 15, 'heavy', 6000)).toBeCloseTo(2.21, 1)
   })
 
   it('grades by span', () => {
@@ -29,12 +29,12 @@ describe('R1 shelf sag', () => {
   })
 
   it('the longest span leaves the sag right at the recommended limit', () => {
-    const claro = maxSpan(300, 18, 'pesada', 6000)
-    expect(deflection(claro, 300, 18, 'pesada', 6000)).toBeCloseTo(claro / 360, 5)
+    const claro = maxSpan(300, 18, 'heavy', 6000)
+    expect(deflection(claro, 300, 18, 'heavy', 6000)).toBeCloseTo(claro / 360, 5)
   })
 
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {
-    const ancho = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 900 } }
+    const ancho = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } }
     const r1 = findings(ancho).filter((h) => h.code === 'R1_FLECHA')
     expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'piso'])
     expect(r1.every((h) => h.severity === 'critico')).toBe(true)
@@ -44,9 +44,9 @@ describe('R1 shelf sag', () => {
 
   it('takes the lower modulus when the grain runs across', () => {
     const d = structuredClone(exampleBookcase)
-    d.dimensiones.ancho = 800
+    d.dimensions.width = 800
     const conVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')
-    d.piezas.find((p) => p.id === 'entrepano-1')!.veta = 'ancho'
+    d.pieces.find((p) => p.id === 'entrepano-1')!.grain = 'width'
     const contraVeta = findings(d).find((h) => h.pieces[0] === 'entrepano-1')!
     expect(Number(contraVeta.data.flecha)).toBeGreaterThan(Number(conVeta?.data.flecha ?? 0))
   })
@@ -55,7 +55,7 @@ describe('R1 shelf sag', () => {
 describe('R2 thickness per joint', () => {
   it('asks for at least 15 mm for a dowel and 15 mm to take an edge screw', () => {
     const d = structuredClone(exampleNightstand)
-    for (const p of d.piezas) if (p.rol === 'lateral') p.material = 'T12'
+    for (const p of d.pieces) if (p.role === 'side') p.material = 'T12'
     const r2 = findings(d).filter((h) => h.code === 'R2_ESPESOR_UNION')
     const porUnion = Object.fromEntries(r2.map((h) => [h.data.union, h.severity]))
     expect(porUnion['u-entrepano-izq']).toBe('critico')
@@ -65,7 +65,7 @@ describe('R2 thickness per joint', () => {
 
   it('does not take screws in a 3 mm back', () => {
     const d = structuredClone(exampleNightstand)
-    d.uniones = d.uniones.map((u) => (u.id === 'u-trasera-piso' ? { ...u, tipo: 'tope-tornillo' } : u))
+    d.joints = d.joints.map((u) => (u.id === 'u-trasera-piso' ? { ...u, type: 'butt-screw' } : u))
     expect(findings(d).some((h) => h.code === 'R2_ESPESOR_UNION' && h.data.pieza === 'trasera')).toBe(true)
   })
 })
@@ -82,15 +82,15 @@ describe('R5 racking', () => {
 
   it('is critical in a tall piece', () => {
     const d = structuredClone(exampleBookcase)
-    d.piezas.find((p) => p.id === 'trasera')!.material = 'TR3'
+    d.pieces.find((p) => p.id === 'trasera')!.material = 'TR3'
     expect(findings(d).find((h) => h.code === 'R5_ESCUADRADO')?.severity).toBe('critico')
   })
 })
 
 describe('newCriticals', () => {
   it('counts only those that were not there before', () => {
-    const antes = findings({ ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 900 } })
-    const despues = findings({ ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 1000 } })
+    const antes = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } })
+    const despues = findings({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1000 } })
     expect(newCriticals(antes, despues)).toEqual([])
     expect(newCriticals([], despues).length).toBe(5)
   })

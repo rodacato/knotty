@@ -32,19 +32,19 @@ describe('buildCabinet', () => {
 
   it('makes one drawer per drawer cell, with slides', () => {
     const { design } = buildCabinet(PLANS.cajonera, testCatalog)
-    expect(new Set(design.piezas.map((p) => p.grupo).filter(Boolean))).toEqual(new Set(['cajon-1', 'cajon-2', 'cajon-3']))
-    expect(design.uniones.filter((u) => u.tipo === 'corredera').length).toBeGreaterThanOrEqual(3)
+    expect(new Set(design.pieces.map((p) => p.group).filter(Boolean))).toEqual(new Set(['cajon-1', 'cajon-2', 'cajon-3']))
+    expect(design.joints.filter((u) => u.type === 'drawer-slide').length).toBeGreaterThanOrEqual(3)
   })
 
   it('hangs each door and puts movable shelves on supports', () => {
     const { design } = buildCabinet(PLANS.alacena, testCatalog)
-    expect(design.uniones.filter((u) => u.tipo === 'bisagra-cazoleta').map((u) => u.a).sort()).toEqual(['c1-h1-puerta-der', 'c1-h1-puerta-izq'])
-    expect(design.uniones.filter((u) => u.tipo === 'soporte-repisa')).toHaveLength(2)
+    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.a).sort()).toEqual(['c1-h1-puerta-der', 'c1-h1-puerta-izq'])
+    expect(design.joints.filter((u) => u.type === 'shelf-pin')).toHaveLength(2)
   })
 
   it('a drawer too shallow for any slide stays as an open cell, and says so', () => {
     const { design, notes } = buildCabinet(plan({ dimensions: { width: 500, height: 400, depth: 250 }, columns: [{ width: 1, cells: [cell('drawer')] }] }), testCatalog)
-    expect(design.piezas.some((p) => p.grupo)).toBe(false)
+    expect(design.pieces.some((p) => p.group)).toBe(false)
     expect(notes[0]).toMatch(/^Cajón 1: No cabe un cajón/)
   })
 
@@ -94,7 +94,7 @@ describe('construction variants', () => {
     const door = a.geo.boxes.get('c1-h1-puerta-izq')!
     expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
     expect(door.z1).toBe(320)
-    expect(design.uniones.filter((u) => u.tipo === 'bisagra-cazoleta').map((u) => u.herrajes[0].herrajeId)).toEqual(['bisagra-cazoleta-35-supercodo', 'bisagra-cazoleta-35-supercodo'])
+    expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.hardware[0].hardwareId)).toEqual(['bisagra-cazoleta-35-supercodo', 'bisagra-cazoleta-35-supercodo'])
   })
 
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {

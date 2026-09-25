@@ -16,7 +16,7 @@ const resolved = (d: TDiseno): Geometry => {
 describe('resolveGeometry', () => {
   it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the fixtures match the schema and resolve: $nombre', (d) => {
     expect(Design.safeParse(d).success).toBe(true)
-    expect(resolved(d).boxes.size).toBe(d.piezas.length)
+    expect(resolved(d).boxes.size).toBe(d.pieces.length)
   })
 
   it('resolves references, thicknesses and proportional cotas of the bookcase', () => {
@@ -32,20 +32,20 @@ describe('resolveGeometry', () => {
   })
 
   it('carries a change of width to everything that refers to it', () => {
-    const { boxes } = resolved({ ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 900 } })
+    const { boxes } = resolved({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } })
     expect(boxes.get('lat-der')).toMatchObject({ x0: 882, x1: 900 })
     expect(boxes.get('entrepano-2')).toMatchObject({ x0: 18, x1: 882 })
   })
 
   it('takes the catalog thickness along the normal axis', () => {
     const d = structuredClone(exampleBookcase)
-    d.piezas.find((p) => p.id === 'lat-izq')!.material = 'T15'
+    d.pieces.find((p) => p.id === 'lat-izq')!.material = 'T15'
     expect(resolved(d).boxes.get('piso')).toMatchObject({ x0: 15 })
   })
 
   it('reports references to missing pieces and crossed axes', () => {
     const d = structuredClone(exampleBookcase)
-    d.piezas.push(makePiece({ id: 'extra', nombre: 'Extra', rol: 'otro', material: 'T18', normal: 'y', x: extent(ref('fantasma.x1'), ref('mueble.x1')), y: startAt(mm(500)), z: extent(ref('mueble.y0'), ref('mueble.z1')) }))
+    d.pieces.push(makePiece({ id: 'extra', name: 'Extra', role: 'other', material: 'T18', normal: 'y', x: extent(ref('fantasma.x1'), ref('mueble.x1')), y: startAt(mm(500)), z: extent(ref('mueble.y0'), ref('mueble.z1')) }))
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors.map((e) => e.code).sort()).toEqual(['E_REF_EJE', 'E_REF_INEXISTENTE'])
@@ -53,7 +53,7 @@ describe('resolveGeometry', () => {
 
   it('finds reference cycles', () => {
     const d = structuredClone(exampleBookcase)
-    const lat = d.piezas.find((p) => p.id === 'lat-izq')!
+    const lat = d.pieces.find((p) => p.id === 'lat-izq')!
     lat.x = startAt(ref('piso.x0', -18))
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
@@ -62,8 +62,8 @@ describe('resolveGeometry', () => {
 
   it('rejects extents with zero or negative length and materials outside the catalog', () => {
     const d = structuredClone(exampleBookcase)
-    d.dimensiones.ancho = 30
-    d.piezas.find((p) => p.id === 'techo')!.material = 'T25'
+    d.dimensions.width = 30
+    d.pieces.find((p) => p.id === 'techo')!.material = 'T25'
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(new Set(r.errors.map((e) => e.code))).toEqual(new Set(['E_TRAMO_INVALIDO', 'E_ESPESOR_CATALOGO']))

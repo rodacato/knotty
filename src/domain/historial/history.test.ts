@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { updateDecisions, compactLog, pruneVersions, type Version } from './history'
 
-const version = (n: number): Version => ({ n, diseno: exampleBookcase, resumen: `cambio ${n}`, motivo: `pedido ${n}`, operaciones: ['x→900 estirar'], fecha: '2026-09-24', origen: null, decisiones: [], plan: null, extras: [] })
+const version = (n: number): Version => ({ n, design: exampleBookcase, summary: `cambio ${n}`, reason: `pedido ${n}`, operations: ['x→900 estirar'], date: '2026-09-24', origin: null, decisions: [], plan: null, extras: [] })
 
 describe('history', () => {
   it('compacts the log: 8 in full, up to 30 summarized and the rest counted', () => {
@@ -15,8 +15,8 @@ describe('history', () => {
   })
 
   it('a new decision replaces the one on the same topic', () => {
-    const d = updateDecisions([{ tema: 'trasera', texto: 'TR3' }, { tema: 'espesor', texto: '15 mm' }], [{ tema: 'trasera', texto: 'TR6 para escuadrar' }])
-    expect(d).toEqual([{ tema: 'espesor', texto: '15 mm' }, { tema: 'trasera', texto: 'TR6 para escuadrar' }])
+    const d = updateDecisions([{ topic: 'trasera', text: 'TR3' }, { topic: 'espesor', text: '15 mm' }], [{ topic: 'trasera', text: 'TR6 para escuadrar' }])
+    expect(d).toEqual([{ topic: 'espesor', text: '15 mm' }, { topic: 'trasera', text: 'TR6 para escuadrar' }])
   })
 
   it('prunes versions keeping the first one', () => {

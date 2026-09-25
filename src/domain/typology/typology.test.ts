@@ -27,7 +27,7 @@ describe('detectKind', () => {
     ['Librero 5 repisas', 'bookcase'],
     ['Zapatera', 'shoeRack'],
     ['Mueble de TV', null],
-  ])('%s → %s', (nombre, kind) => expect(detectKind({ nombre })).toBe(kind))
+  ])('%s → %s', (nombre, kind) => expect(detectKind({ name: nombre })).toBe(kind))
 })
 
 describe('typologyRule', () => {
@@ -62,17 +62,17 @@ describe('typologyRule', () => {
     expect(usage(cabinet({ name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 } }))).toContainEqual(['critico', expect.stringContaining('espacio para las piernas')])
     const open: Design = completeJoints(
       {
-        esquema: 1,
-        nombre: 'Escritorio',
-        dimensiones: { ancho: 1200, alto: 750, fondo: 600 },
-        anclajeMuro: false,
-        observaciones: '',
-        uniones: [],
-        piezas: [
-          makePiece({ id: 'lat-izq', nombre: 'Pata izquierda', rol: 'lateral', material: 'T18', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
-          makePiece({ id: 'lat-der', nombre: 'Pata derecha', rol: 'lateral', material: 'T18', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
-          makePiece({ id: 'cubierta', nombre: 'Cubierta', rol: 'techo', material: 'T18', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
-          makePiece({ id: 'faldon', nombre: 'Faldón', rol: 'faja', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('cubierta.y0'), 150), z: startAt(ref('mueble.z0')) }),
+        schema: 1,
+        name: 'Escritorio',
+        dimensions: { width: 1200, height: 750, depth: 600 },
+        wallAnchored: false,
+        notes: '',
+        joints: [],
+        pieces: [
+          makePiece({ id: 'lat-izq', name: 'Pata izquierda', role: 'side', material: 'T18', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'lat-der', name: 'Pata derecha', role: 'side', material: 'T18', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'cubierta', name: 'Cubierta', role: 'top', material: 'T18', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'faldon', name: 'Faldón', role: 'apron', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('cubierta.y0'), 150), z: startAt(ref('mueble.z0')) }),
         ],
       },
       testCatalog,
