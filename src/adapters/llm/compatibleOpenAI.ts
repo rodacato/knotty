@@ -102,6 +102,7 @@ async function leerStream(respuesta: Response): Promise<Completado> {
   let rechazo = ''
   let fin: string | undefined
   let usage: Completado['usage']
+  let terminado = false
   for (;;) {
     const { value, done } = await lector.read()
     if (done) break
@@ -110,6 +111,7 @@ async function leerStream(respuesta: Response): Promise<Completado> {
     pendiente = lineas.pop() ?? ''
     for (const linea of lineas) {
       const dato = linea.startsWith('data:') ? linea.slice(5).trim() : ''
+      if (dato === '[DONE]') terminado = true
       if (!dato || dato === '[DONE]') continue
       const evento = JSON.parse(dato) as { choices?: { delta?: { content?: string | null; refusal?: string | null }; finish_reason?: string | null }[]; usage?: Completado['usage']; error?: { message?: string } }
       if (evento.error) {
@@ -125,7 +127,15 @@ async function leerStream(respuesta: Response): Promise<Completado> {
       if (evento.usage) usage = evento.usage
     }
   }
+  // Un proxy que corta sin error deja el stream a medias: mejor decirlo que reportar un JSON inválido.
+  if (!terminado && !fin) throw new StreamCortado(contenido.length)
   return { choices: [{ message: { content: contenido, refusal: rechazo || null }, finish_reason: fin }], usage }
+}
+
+class StreamCortado extends Error {
+  constructor(recibido: number) {
+    super(`La conexión se cortó a media respuesta (llegaron ${Math.round(recibido / 1024)} KB). Suele ser un proxy como Cloudflare que corta tras 100 s sin datos mientras el modelo piensa.`)
+  }
 }
 
 /** Quita cercas de código u otro texto alrededor del objeto JSON. */

@@ -118,6 +118,12 @@ describe('crearCompatible', () => {
     expect(cuerpos[0]).toMatchObject({ stream: true, stream_options: { include_usage: true } })
   })
 
+  it('un stream que se corta sin [DONE] ni finish_reason se reporta como corte, no como JSON inválido', async () => {
+    const sse = [`data: ${JSON.stringify({ choices: [{ delta: { content: '{"explicacion":"Veo un' } }] })}\n\n`]
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new ReadableStream({ start: (c) => (sse.forEach((x) => c.enqueue(new TextEncoder().encode(x))), c.close()) }), { status: 200, headers: { 'content-type': 'text/event-stream' } })))
+    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/se cortó a media respuesta/)
+  })
+
   it('si el host no acepta stream, lo deja de pedir y lo recuerda', async () => {
     const cuerpos: { stream?: boolean }[] = []
     vi.stubGlobal(
