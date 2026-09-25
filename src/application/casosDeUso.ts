@@ -330,7 +330,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   /** Las cuentas primero y luego el carpintero; si él no contesta, el dictamen queda solo con las cuentas. */
-  async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalogo, signal: AbortSignal): Promise<EstadoDiseno> {
+  async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalogo, signal: AbortSignal): Promise<Dictamen> {
     const diseno = disenoActual(estado)
     const analisis = analizar(diseno, catalogo)
     if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].mensaje}`)
@@ -338,7 +338,6 @@ export function crearCasosDeUso(deps: Dependencias) {
     const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.mensaje)
     const viabilidad = revisarViabilidad({ diseno, geo: analisis.geo, catalogo: catalogoEfectivo, compra, hallazgos: analisis.hallazgos, incumplidos })
     const base = { firma: firmaDictamen(estado, catalogoEfectivo), comprobaciones: viabilidad.comprobaciones, fecha: ahora() }
-    let dictamen: Dictamen
     try {
       const r = await deps.llm().dictaminar(
         {
@@ -350,13 +349,15 @@ export function crearCasosDeUso(deps: Dependencias) {
         },
         signal,
       )
-      dictamen = { ...base, veredicto: peor(viabilidad.veredicto, r.valor.veredicto), carpintero: { ...r.valor, origen: r.origen }, error: null }
+      return { ...base, veredicto: peor(viabilidad.veredicto, r.valor.veredicto), carpintero: { ...r.valor, origen: r.origen }, error: null }
     } catch (e) {
       if (signal.aborted) throw e
-      dictamen = { ...base, veredicto: viabilidad.veredicto, carpintero: null, error: e instanceof Error ? e.message : 'El carpintero no contestó.' }
+      return { ...base, veredicto: viabilidad.veredicto, carpintero: null, error: e instanceof Error ? e.message : 'El carpintero no contestó.' }
     }
-    return guardar({ ...estado, dictamen })
   }
+
+  /** Se guarda sobre el estado vigente: el diseño pudo cambiar mientras el carpintero revisaba. */
+  const guardarDictamen = (estado: EstadoDiseno, dictamen: Dictamen) => guardar({ ...estado, dictamen })
 
   const cargar = () => repositorio.cargar()
 
@@ -375,6 +376,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     desdeEjemplo,
     nuevoDiseno,
     dictaminar,
+    guardarDictamen,
     cargar,
     preguntasPendientes,
   }

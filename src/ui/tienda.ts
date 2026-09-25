@@ -7,7 +7,7 @@ import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
 import type { EstadoBoveda } from '../ports/Preferencias'
-import { SIN_AJUSTES, type AjustesCatalogo } from '../domain/materiales/catalogo'
+import { aplicarAjustes, SIN_AJUSTES, type AjustesCatalogo } from '../domain/materiales/catalogo'
 import type { Servicios } from './servicios'
 
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
@@ -47,6 +47,9 @@ interface Tienda {
   puertaCerrada: boolean
   /** Precios y parámetros de corte del usuario sobre el catálogo. */
   ajustesCatalogo: AjustesCatalogo
+  /** El carpintero está revisando la compra; va aparte del chat para no bloquearlo. */
+  dictaminando: AbortController | null
+  errorDictamen: string | null
 
   iniciar(servicios: Servicios): void
   nuevoDiseno(): void
@@ -76,6 +79,8 @@ interface Tienda {
   quitarNota(id: string): void
   quitarDecision(tema: string): void
   guardarAjustesCatalogo(a: AjustesCatalogo): void
+  dictaminar(): Promise<void>
+  cancelarDictamen(): void
 }
 
 export interface Cambios {
@@ -125,6 +130,8 @@ export const useTienda = create<Tienda>((set, get) => ({
   boveda: 'sin-boveda',
   puertaCerrada: false,
   ajustesCatalogo: SIN_AJUSTES,
+  dictaminando: null,
+  errorDictamen: null,
 
   iniciar(servicios) {
     const estado = servicios.casos.cargar()
@@ -266,6 +273,23 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
   },
+
+  async dictaminar() {
+    const { servicios, estado, ajustesCatalogo, dictaminando } = get()
+    if (!servicios || !estado || dictaminando) return
+    const controlador = new AbortController()
+    set({ dictaminando: controlador, errorDictamen: null })
+    try {
+      const dictamen = await servicios.casos.dictaminar(estado, aplicarAjustes(servicios.catalogo, ajustesCatalogo), controlador.signal)
+      // Si mientras tanto cambió el diseño, su firma ya no coincide y se ve como desactualizado.
+      const vigente = get().estado
+      set({ estado: vigente ? servicios.casos.guardarDictamen(vigente, dictamen) : null, dictaminando: null })
+    } catch (e) {
+      set({ dictaminando: null, errorDictamen: controlador.signal.aborted ? null : e instanceof Error ? e.message : 'No se pudo revisar la compra.' })
+    }
+  },
+
+  cancelarDictamen: () => get().dictaminando?.abort(),
 
   guardarAjustesCatalogo(ajustesCatalogo) {
     get().servicios?.materiales.guardarAjustes(ajustesCatalogo)

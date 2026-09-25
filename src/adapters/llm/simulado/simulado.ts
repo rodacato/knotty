@@ -214,19 +214,16 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
   })
 }
 
-/** Sin criterio propio: repite las comprobaciones de cuentas como problemas y da consejos de siempre. */
+/** Sin criterio propio: se queda con el veredicto de las cuentas y da consejos de siempre. */
 function dictaminar(s: SolicitudDictamen): RespuestaDictamen {
   const veredicto = veredictoDe(s.comprobaciones)
-  const problemas = s.comprobaciones
-    .filter((c) => c.estado !== 'ok')
-    .map((c) => ({ titulo: c.titulo, detalle: c.detalle, gravedad: c.estado === 'falla' ? ('alta' as const) : ('baja' as const), piezas: c.piezas, pedido: c.pedido }))
   return {
     veredicto,
     resumen:
       veredicto === 'viable'
         ? `Tu ${s.diseno.nombre.toLowerCase()} se puede comprar y armar así. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`
-        : `Antes de comprar hay que resolver lo marcado. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`,
-    problemas,
+        : `Antes de comprar hay que resolver lo marcado en las cuentas. (Esto es el modo simulado: conecta un experto real para una revisión con criterio.)`,
+    problemas: [],
     consejos: ['Mide el espesor real de tus hojas antes de cortar: el triplay de 18 mm suele medir un poco menos.', 'Pide los cortes largos en la tienda y deja los chicos para casa.'],
   }
 }

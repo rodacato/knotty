@@ -279,7 +279,7 @@ describe('dictaminar', () => {
   it('guarda las comprobaciones y la opinión del carpintero con la firma de la versión', async () => {
     const c = casos()
     const inicial = await libreroInicial(c)
-    const estado = await c.dictaminar(inicial, catalogo, senal())
+    const estado = c.guardarDictamen(inicial, await c.dictaminar(inicial, catalogo, senal()))
     expect(estado.dictamen).toMatchObject({ veredicto: 'viable', error: null, firma: firmaDictamen(inicial, catalogo) })
     expect(estado.dictamen!.comprobaciones.find((x) => x.id === 'confirmadas')?.estado).toBe('aviso')
     expect(estado.dictamen!.carpintero?.consejos.length).toBeGreaterThan(0)
@@ -293,14 +293,14 @@ describe('dictaminar', () => {
     const llm: LLMProvider = { ...simulado, dictaminar: async (s, signal) => ({ ...(await simulado.dictaminar(s, signal)), valor: { veredicto: 'viable', resumen: 'Todo bien', problemas: [], consejos: [] } }) }
     const c = casos(llm)
     const estrecho = { ...catalogo, acomodo: { ...catalogo.acomodo, refilado: 400 } }
-    const estado = await c.dictaminar(await libreroInicial(c), estrecho, senal())
-    expect(estado.dictamen?.veredicto).toBe('no-viable')
+    const dictamen = await c.dictaminar(await libreroInicial(c), estrecho, senal())
+    expect(dictamen.veredicto).toBe('no-viable')
   })
 
   it('si el carpintero no contesta, queda el dictamen de las cuentas con el motivo', async () => {
     const llm: LLMProvider = { ...crearSimulado(0), dictaminar: async () => Promise.reject(new Error('No se pudo conectar con SheLLM.')) }
     const c = casos(llm)
-    const estado = await c.dictaminar(await libreroInicial(c), catalogo, senal())
-    expect(estado.dictamen).toMatchObject({ veredicto: 'viable', carpintero: null, error: 'No se pudo conectar con SheLLM.' })
+    const dictamen = await c.dictaminar(await libreroInicial(c), catalogo, senal())
+    expect(dictamen).toMatchObject({ veredicto: 'viable', carpintero: null, error: 'No se pudo conectar con SheLLM.' })
   })
 })
