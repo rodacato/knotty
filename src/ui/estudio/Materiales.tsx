@@ -45,6 +45,7 @@ function Precio({ id, valor, base, unidad }: { id: string; valor: number | null;
       >
         <input
           autoFocus
+          onFocus={(e) => e.target.select()}
           inputMode="decimal"
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
@@ -67,7 +68,9 @@ function Precio({ id, valor, base, unidad }: { id: string; valor: number | null;
         className={`cifras inline-flex items-center gap-1 rounded-md px-1 text-xs transition hover:bg-kraft ${cambiado ? 'text-grafito' : 'text-grafito-2'}`}
         title="Cambiar por el precio de tu tienda"
       >
-        {valor === null ? 'sin precio' : `${pesos.format(valor)} ${unidad}`} <PencilSimple size={11} />
+        {valor === null ? 'sin precio' : `${cambiado ? '' : '~'}${pesos.format(valor)} ${unidad}`}
+        <span className={`rounded px-1 text-[10px] ${cambiado ? 'bg-grafito text-hueso' : 'bg-kraft'}`}>{cambiado ? 'tu precio' : 'ref.'}</span>
+        <PencilSimple size={11} />
       </button>
       {cambiado && valor !== base && (
         <button type="button" onClick={restablecer} aria-label="Volver al precio del catálogo" title="Volver al precio del catálogo" className="text-grafito-2 hover:text-grafito">
@@ -171,6 +174,7 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
   const [aunAsi, setAunAsi] = useState<string | null>(null)
   const base = (id: string) => [...catalogo.materiales, ...catalogo.herrajes].find((x) => x.id === id)?.precio ?? null
   const totalHojas = compra.hojas.reduce((s, h) => s + h.hojas, 0)
+  const propios = Object.keys(ajustes.precios).length
   const dictamen = estado.dictamen?.firma === firmaDictamen(estado, efectivo) ? estado.dictamen : null
 
   // La lista de compra solo aparece después de la revisión; si no es viable, hay que pedirla a propósito.
@@ -199,21 +203,22 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
     <div className="flex flex-col gap-4 p-4">
       <TarjetaDictamen dictamen={dictamen} diseno={diseno} alPedir={alPedir} />
       <section className="flex flex-col gap-2 rounded-2xl border border-linea bg-hueso p-4">
-        <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Para comprar</p>
+        <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Costo aproximado</p>
         <p className="font-titulo text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
+          <span className="text-grafito-2">~</span>
           {pesos.format(compra.costo.total)}
-          <span className="ml-2 align-middle text-sm font-normal text-grafito-2">aprox.</span>
         </p>
         <p className="text-sm text-grafito-2">
           {totalHojas} {totalHojas === 1 ? 'hoja' : 'hojas'} de triplay, herrajes y cubrecanto.
         </p>
-        <p className="flex items-start gap-2 rounded-xl bg-ambar-suave px-3 py-2 text-xs">
-          <Info className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 rounded-xl border border-ambar/40 bg-ambar-suave px-3 py-2 text-xs leading-relaxed">
+          <Info className="mt-0.5 shrink-0" weight="bold" />
           <span>
-            Es una estimación para comprar, no un plano de corte. {catalogo.notaPrecios}
+            <span className="font-medium">Precios de referencia, no una cotización.</span> {catalogo.notaPrecios} Toca cualquier precio para poner el de tu tienda
+            {propios > 0 ? `; ya pusiste ${propios === 1 ? 'uno' : propios}.` : '.'} Las cantidades son para comprar, no un plano de corte.
             {compra.costo.faltanPrecios.length > 0 && ` Sin precio: ${compra.costo.faltanPrecios.join(', ')}.`}
           </span>
-        </p>
+        </div>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -231,7 +236,7 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="cifras text-sm font-medium">{h.costo === null ? '—' : pesos.format(h.costo)}</span>
+                  <span className="cifras text-sm font-medium">{h.costo === null ? '—' : `${h.material.id in ajustes.precios ? '' : '~'}${pesos.format(h.costo)}`}</span>
                   <Precio id={h.material.id} valor={h.material.precio} base={base(h.material.id)} unidad="por hoja" />
                 </div>
               </div>
@@ -263,7 +268,7 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
                 )}
               </span>
               <span className="flex flex-col items-end">
-                <span className="cifras text-sm">{r.costo === null ? '—' : pesos.format(r.costo)}</span>
+                <span className="cifras text-sm">{r.costo === null ? '—' : `${r.herraje.id in ajustes.precios ? '' : '~'}${pesos.format(r.costo)}`}</span>
                 <Precio id={r.herraje.id} valor={r.herraje.precio} base={base(r.herraje.id)} unidad={r.herraje.porPaquete ? 'por paquete' : r.herraje.unidad === 'metro' ? 'por metro' : 'c/u'} />
               </span>
             </li>
