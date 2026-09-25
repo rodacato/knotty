@@ -6,7 +6,7 @@ import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
 import { findingKey, type Alternative, type Finding } from '../structure/finding'
 import { isBuildKey, type AlternativeKey } from '../structure/alternatives'
-import { materialById, type Catalog } from '../materials/catalog'
+import { materialById, pickHardware, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
@@ -90,7 +90,7 @@ function backRail(design: Design, catalog: Catalog, role: 'brace' | 'apron', nam
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
 function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'left' | 'right'): Operation[] {
   const geo = analyze(design, catalog).geo
-  const runner = catalog.hardware.find((h) => h.id.startsWith('drawer-slide') && h.sideClearance !== null)
+  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'left' ? -1 : 1))
   if (!geo || !runner?.sideClearance || !found) return []
   const material = design.pieces.find((p) => p.role === 'side')?.material ?? found.side.material

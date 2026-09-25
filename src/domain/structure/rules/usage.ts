@@ -1,12 +1,19 @@
 import { faceSize, roundTo } from '../../design/resolve'
+import { pickHardware, type Catalog } from '../../materials/catalog'
 import type { Finding, Rule } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
 import { freeSpan } from './deflection'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
 
+/** Anchoring to the wall names the catalog's anti-tip kit, when there is one. */
+export const antiTipData = (catalog: Catalog): Record<string, string> => {
+  const kit = pickHardware(catalog, 'anti-tip')
+  return kit ? { hardwareId: kit.id } : {}
+}
+
 /** R4: tall and shallow furniture falls forward when pulled or when a child climbs it. */
-export const tippingRule: Rule = ({ design }): Finding[] => {
+export const tippingRule: Rule = ({ design, catalog }): Finding[] => {
   const { height, depth } = design.dimensions
   const ratio = height / depth
   const { recommendedRatio, criticalRatio, criticalHeight } = ASSUMPTIONS.tipping
@@ -20,7 +27,7 @@ export const tippingRule: Rule = ({ design }): Finding[] => {
       message: `Mide ${height} mm de alto y solo ${depth} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
       data: { height: height, depth: depth, ratio: roundTo(ratio) },
       alternatives: [
-        { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: { hardwareId: 'anti-tip-kit' } },
+        { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: antiTipData(catalog) },
         { key: 'deeper', description: `Darle al menos ${Math.ceil(height / recommendedRatio / 10) * 10} mm de fondo`, data: { depth: Math.ceil(height / recommendedRatio / 10) * 10 } },
       ],
     },

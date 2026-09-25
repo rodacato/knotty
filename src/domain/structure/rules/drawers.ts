@@ -2,6 +2,7 @@ import { roundTo } from '../../design/resolve'
 import { gapBetween } from '../../validation/contact'
 import type { Design } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
+import { pickHardware } from '../../materials/catalog'
 import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
@@ -89,7 +90,7 @@ const drawerName = (design: Design, group: string) => {
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
 function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
-  const runner = catalog.hardware.find((h) => h.id.startsWith('drawer-slide') && h.sideClearance !== null)
+  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
   if (!runner?.sideClearance) return []
   const gap = runner.sideClearance
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
