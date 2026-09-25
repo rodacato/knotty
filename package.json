@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "comparar": "vitest run --config scripts/comparativo/vitest.config.ts"
+    "compare": "vitest run --config scripts/compare/vitest.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

@@ -1,6 +1,6 @@
 # Comparativo de modelos: ids en inglés (paso 9e)
 
-Commit 1c9c11f · prompts esqueleto@7 · 2026-09-25 21:31 UTC
+Commit 1c9c11f · prompts skeleton@8 · 2026-09-25 21:31 UTC
 
 | Modelo | Diseños válidos | Segundos (prom.) | Tokens de salida (prom.) | Medidas razonables | Viables |
 |---|---|---|---|---|---|
