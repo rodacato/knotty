@@ -6,7 +6,9 @@ import type { Diseno } from '../../domain/diseno/esquema'
 import type { Geometria } from '../../domain/diseno/resolver'
 import type { Catalogo } from '../../domain/materiales/catalogo'
 import { useTienda, type Vista } from '../tienda'
-import { Cotas } from './Cotas'
+import { DimensionLines } from './DimensionLines'
+import { Hardware } from './Hardware'
+import { PieceMeasures } from './PieceMeasures'
 import { Aserrin } from './Aserrin'
 import { Pieza } from './Pieza'
 import { Saliente } from './Saliente'
@@ -133,6 +135,7 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
             onSeleccionar={seleccionar}
           />
         ))}
+        <Hardware design={diseno} geo={geo} offsets={empujes} selected={seleccion} />
         {cambios.eliminadas.filter(() => !reducido).map(({ pieza, caja }) => (
           <Saliente key={`${pieza.id}-${cambios.vez}`} caja={caja} />
         ))}
@@ -143,7 +146,8 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
             const [dx, dy, dz] = empujes.get(id) ?? [0, 0, 0]
             return <Aserrin key={`${id}-${cambios.vez}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {cotas && !explosion && <Cotas dimensiones={diseno.dimensiones} oscuro={oscuro} />}
+        {cotas && !explosion && <DimensionLines dimensions={diseno.dimensiones} dark={oscuro} />}
+        {cotas && explosion && <PieceMeasures design={diseno} geo={geo} offsets={empujes} dark={oscuro} selected={seleccion} />}
       </group>
 
       <ContactShadows position={[0, 0.0005, 0]} opacity={oscuro ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
