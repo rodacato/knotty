@@ -512,6 +512,9 @@ Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompt
 6. Operaciones (`domain/operaciones`): los nombres de las operaciones los escribe el LLM, así que cambian con una versión nueva de los prompts.
 7. Esquema del diseño y del estado (`domain/diseno/esquema`, `domain/sesion`): cambia lo guardado en el navegador, con migración `formato: 2` que lee el formato anterior.
 8. Aplicación, adaptadores e interfaz (`application`, `adapters`, `ui`).
+9. Todo en inglés, por consistencia (pedido del autor el 2026-09-25, al final de todo lo demás): los datos y estructuras que hoy se quedan en español a propósito (códigos de regla y de error, severidades, claves de alternativas y del contenido de `data`, roles, tipos de unión, nombres de operaciones y el esquema guardado), y los prompts, escritos en inglés y pidiendo al experto que le conteste a la persona en español. La interfaz y los textos para la persona siguen en español. Lo guardado en el navegador y la bitácora se leen con migración de formato.
+
+En pausa después del paso 4 (2026-09-25): los pasos 5 a 9 quedan pendientes y se retoman cuando el autor lo pida; mientras, el código nuevo nace en inglés.
 
 ---
 
