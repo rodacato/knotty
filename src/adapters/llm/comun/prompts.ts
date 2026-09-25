@@ -1,6 +1,7 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import ajuste from '../prompts/ajuste.v5.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
+import esqueleto from '../prompts/esqueleto.v1.md?raw'
 import lectura from '../prompts/lectura.v1.md?raw'
 import reconstruccion from '../prompts/reconstruccion.v6.md?raw'
 import sistema from '../prompts/sistema.v4.md?raw'
@@ -22,6 +23,8 @@ export const AJUSTE = leer(ajuste)
 export const DICTAMEN = leer(dictamen)
 /** Stands alone, without the system prompt: reading a photo needs no catalog or model rules. */
 export const LECTURA = leer(lectura)
+/** Stands alone too: the skeleton only needs the board thicknesses, filled in as {{materiales}}. */
+export const ESQUELETO = leer(esqueleto)
 
 function describirCatalogo(c: Catalogo) {
   return [

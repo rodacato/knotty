@@ -538,6 +538,23 @@ Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 14 operaciones y cotas anidadas).
 - La calidad de la reconstrucción desde fotos reales y de los 5 ajustes guionizados (criterios de éxito de la fase).
 
+### Fase 8 — en curso (2026-09-25)
+
+- Entrega 1: bitácora y nunca tirar un diseño.
+- Entrega 2: reparación por reglas (piezas encimadas, uniones sin contacto).
+- Entrega 3: lectura de fotos en paralelo y guardada, con nota por foto.
+- Entrega 4: esqueleto y generador de gabinetes (`domain/modules/cabinet.ts`), y revisiones de uso por tipo de mueble (R10). Con SheLLM, los gabinetes del comparativo salen en 10–26 s (antes 60–160 s); camas, escritorios y mesas se siguen diseñando pieza por pieza.
+
+### Pendientes de la revisión de uso (2026-09-25)
+
+Para discutir antes de la siguiente entrega:
+1. Panel lateral amontonado: las revisiones como avisos tipo notificación, con salida fácil de «no hacer nada».
+2. Historial y versiones más a la vista.
+3. Medidas en la vista de armado.
+4. Cajones viables y visibles: pieza entre cajones, correderas dibujadas en 3D, holgura entre piso y cajón; revisar con reglas de cajón los diseños que no salen del módulo.
+5. Cotas legibles: tamaño fijo en pantalla, líneas de referencia al mueble, ocultar las de canto.
+6. Interacción más ágil: ficha de decisiones por tipo de mueble ligada al plan (se aplica al instante, sin modelo), varias decisiones en una versión, medidas editables en el estudio, preguntas ligadas a campos del plan, módulo de cama, y qué pasa con la ficha cuando el diseño ya se salió del plan.
+
 ## Preguntas abiertas
 
 - Precios y SKU reales de triplay de pino 12/15/18 mm y trasera 3/6 mm en Home Depot MX.

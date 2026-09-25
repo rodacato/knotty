@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { mm, ref, union } from '../diseno/construir'
+import { mm, ref, tramo, union } from '../diseno/construir'
 import type { Diseno, Pieza } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { alacena } from '../fixtures/alacena'
@@ -77,6 +77,14 @@ describe('repairDesign', () => {
   it('also repairs pieces the model grouped into parts', () => {
     const broken = withPiece(librero, 'entrepano-1', (p) => ({ ...p, grupo: 'casco', x: { ...p.x, hasta: ref('mueble.x1') } }))
     expect(valid(repairDesign(broken, catalogo).design)).toBe(true)
+  })
+
+  it('contacts a repair creates get their joints', () => {
+    const broken = withPiece({ ...librero, uniones: librero.uniones.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: tramo(ref('mueble.x0'), ref('mueble.x1')) }))
+    const { design } = repairDesign(broken, catalogo)
+    const a = analizar(design, catalogo)
+    expect(a.valido && a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(design.uniones.some((u) => [u.a, u.b].includes('techo') && u.tipo === 'tope-tornillo')).toBe(true)
   })
 
   it('leaves a valid design alone', () => {

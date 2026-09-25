@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { analizar } from '../domain/analisis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
 import { ref } from '../domain/diseno/construir'
 import type { Diseno } from '../domain/diseno/esquema'
@@ -419,5 +420,67 @@ describe('photos are read once, in parallel, and not sent again', () => {
     const { llm, disenos } = espiando(() => true)
     await casos(llm).reconstruir(dosFotos, senal())
     expect(disenos).toEqual([{ fotos: 2, lectura: false }])
+  })
+})
+
+describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
+  const cabinetPlan = {
+    name: 'Cajonera',
+    dimensions: { width: 500, height: 900, depth: 450 },
+    material: 'T18',
+    base: 'kick' as const,
+    wallMounted: true,
+    columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
+  }
+  const origen = { promptId: 'esqueleto@1', proveedor: 'x', modelo: 'm' }
+  const conPlan = (cabinet: typeof cabinetPlan | null, falla = false) => {
+    const simulado = crearSimulado(0)
+    const llamadas: string[] = []
+    const llm: LLMProvider = {
+      ...simulado,
+      planDesign: async () => {
+        llamadas.push('plan')
+        if (falla) throw new Error('sin conexión')
+        return { valor: { explicacion: 'Una cajonera de tres cajones.', cabinet, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: ['Hazla más alta'] }, origen, consumo: { tokensSalida: 400 } }
+      },
+      reconstruir: async (s, signal) => {
+        llamadas.push('diseno')
+        return simulado.reconstruir(s, signal)
+      },
+    }
+    return { llm, llamadas }
+  }
+  const pedido = (notas: string) => ({ medidas: null, fotos: [], miniaturas: [], notas })
+
+  it('builds the cabinet without asking for pieces, with its drawers and joints', async () => {
+    const { llm, llamadas } = conPlan(cabinetPlan)
+    const estado = await casos(llm).reconstruir(pedido('Una cajonera de tres cajones'), senal())
+    expect(llamadas).toEqual(['plan'])
+    const d = disenoActual(estado)
+    expect(d.nombre).toBe('Cajonera')
+    expect(new Set(d.piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(3)
+    expect(analizar(d, catalogo).valido).toBe(true)
+    expect(estado.trace.map((t) => [t.step, t.outcome])).toEqual([['plan', 'ok']])
+    expect(estado.chat[1].sugerencias).toEqual(['Hazla más alta'])
+  })
+
+  it('uses the measures the person gave over the plan', async () => {
+    const { llm } = conPlan(cabinetPlan)
+    const estado = await casos(llm).reconstruir({ ...pedido('Una cajonera'), medidas: { ancho: 600, alto: 1000, fondo: 500 } }, senal())
+    expect(disenoActual(estado).dimensiones).toEqual({ ancho: 600, alto: 1000, fondo: 500 })
+  })
+
+  it('not a cabinet, or the skeleton fails: designs it whole', async () => {
+    for (const [cabinet, falla] of [[null, false], [cabinetPlan, true]] as const) {
+      const { llm, llamadas } = conPlan(cabinet, falla)
+      await casos(llm).reconstruir(pedido('Un librero'), senal())
+      expect(llamadas).toEqual(['plan', 'diseno'])
+    }
+  })
+
+  it('a bed, a desk or a table skips the skeleton', async () => {
+    const { llm, llamadas } = conPlan(cabinetPlan)
+    await expect(casos(llm).reconstruir(pedido('Una cama individual con cabecera'), senal())).rejects.toThrow()
+    expect(llamadas).toEqual(['diseno'])
   })
 })

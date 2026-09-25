@@ -63,7 +63,8 @@ export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Dis
   const joined = new Set(design.uniones.map((u) => pairKey(u.a, u.b)))
   const ids = new Set(design.uniones.map((u) => u.id))
   const before = previous && resolver(previous, catalog)
-  const earlierContacts = new Set(before && before.ok ? contactos(before.valor.cajas).map((c) => pairKey(c.a, c.b)) : [])
+  // Only real contacts count as earlier: two pieces that overlapped were not joined, they were wrong.
+  const earlierContacts = new Set(before && before.ok ? contactos(before.valor.cajas).filter((c) => c.eje !== null).map((c) => pairKey(c.a, c.b)) : [])
 
   const added: Union[] = []
   const add = (u: Omit<Union, 'id'> | null) => {

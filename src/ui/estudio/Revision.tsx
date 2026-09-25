@@ -15,6 +15,7 @@ const TITULOS: Record<string, string> = {
   R7_BASE: 'Base',
   R8_VETA: 'Veta',
   R9_CAJONES: 'Cajones',
+  R10_USO: 'Uso del mueble',
 }
 
 const SEVERIDADES: { id: Severidad; plural: [string, string] }[] = [
