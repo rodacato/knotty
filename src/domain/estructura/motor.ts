@@ -5,8 +5,9 @@ import { reglaFlecha } from './reglas/flecha'
 import { reglaTornillos } from './reglas/tornillos'
 import { reglaEspesorUnion } from './reglas/uniones'
 import { reglaBase, reglaPuertas, reglaVeta, reglaVuelco } from './reglas/uso'
+import { typologyRule } from '../typology/typology'
 
-const REGLAS: Regla[] = [reglaFlecha, reglaEspesorUnion, reglaTornillos, reglaVuelco, reglaEscuadrado, reglaPuertas, reglaBase, reglaVeta, reglaCajones]
+const REGLAS: Regla[] = [reglaFlecha, reglaEspesorUnion, reglaTornillos, reglaVuelco, reglaEscuadrado, reglaPuertas, reglaBase, reglaVeta, reglaCajones, typologyRule]
 const ORDEN = { critico: 0, recomendacion: 1, detalle: 2 }
 
 export const revisarEstructura = (ctx: Contexto): Hallazgo[] => REGLAS.flatMap((r) => r(ctx)).sort((a, b) => ORDEN[a.severidad] - ORDEN[b.severidad])

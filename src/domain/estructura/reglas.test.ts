@@ -85,8 +85,13 @@ describe('R8 veta', () => {
 })
 
 describe('fixtures', () => {
-  it.each([librero, alacena])('$nombre no tiene observaciones', (d) => {
-    const a = analizar(d, catalogo)
+  it('Librero no tiene observaciones', () => {
+    const a = analizar(librero, catalogo)
     expect(a.valido && a.hallazgos).toEqual([])
+  })
+
+  it('Alacena de pared solo recomienda el listón para colgarla', () => {
+    const a = analizar(alacena, catalogo)
+    expect(a.valido && a.hallazgos.map((h) => [h.codigo, h.severidad, h.alternativas[0]?.clave])).toEqual([['R10_USO', 'recomendacion', 'liston-colgar']])
   })
 })

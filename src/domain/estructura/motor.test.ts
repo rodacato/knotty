@@ -73,7 +73,7 @@ describe('R2 espesor por unión', () => {
 describe('R5 escuadrado', () => {
   it('los fixtures con trasera de 6 mm fijada están bien', () => {
     expect(hallazgos(librero)).toEqual([])
-    expect(hallazgos(alacena)).toEqual([])
+    expect(hallazgos(alacena).filter((h) => h.codigo === 'R5_ESCUADRADO')).toEqual([])
   })
 
   it('el buró con trasera de 3 mm clavada es recomendación por ser bajo', () => {
