@@ -1,7 +1,7 @@
 import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import type { Dimensions } from '../../domain/diseno/schema'
-import { faltante } from '../../ports/Preferencias'
+import { missing } from '../../ports/Preferences'
 import { useServicios } from '../servicios'
 import { Boton, cm, Titulo } from '../sistema/componentes'
 import { TomarFoto } from '../sistema/TomarFoto'
@@ -145,24 +145,24 @@ export function Captura() {
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
   const borrador = useTienda((s) => s.borrador)
   const [paso, setPaso] = useState<'medidas' | 'fotos'>(borrador ? 'fotos' : 'medidas')
-  const [medidas, setMedidas] = useState<Dimensions>(borrador?.medidas ?? { ancho: 600, alto: 1800, fondo: 300 })
-  const [conMedidas, setConMedidas] = useState(!borrador || borrador.medidas !== null)
+  const [medidas, setMedidas] = useState<Dimensions>(borrador?.measures ?? { ancho: 600, alto: 1800, fondo: 300 })
+  const [conMedidas, setConMedidas] = useState(!borrador || borrador.measures !== null)
   const [fotos, setFotos] = useState<FotoTomada[]>(
-    () => borrador?.fotos.map((f) => ({ ...f, miniatura: borrador.miniaturas.find((m) => m.angulo === f.angulo)?.dataUrl ?? '' })) ?? [],
+    () => borrador?.photos.map((f) => ({ angulo: f.angle, base64: f.base64, note: f.note, miniatura: borrador.thumbnails.find((m) => m.angulo === f.angle)?.dataUrl ?? '' })) ?? [],
   )
-  const [notas, setNotas] = useState(borrador?.notas ?? '')
+  const [notas, setNotas] = useState(borrador?.notes ?? '')
   const [procesando, setProcesando] = useState(false)
   const [conSimulado, setConSimulado] = useState(borrador !== null)
   // Se relee al cerrar los ajustes para que el aviso desaparezca en cuanto conectes un experto.
-  const config = useMemo(() => preferencias.cargar(), [preferencias, ajustesAbiertos])
-  const falta = faltante(config)
+  const config = useMemo(() => preferencias.load(), [preferencias, ajustesAbiertos])
+  const falta = missing(config)
   const simulado = config.activo === 'simulado'
 
   const agregar = async (angulo: string, archivo: File) => {
     setProcesando(true)
     try {
-      const r = await imagenes.reducir(archivo)
-      setFotos((f) => [...f.filter((x) => x.angulo !== angulo), { angulo, ...r }])
+      const r = await imagenes.reduce(archivo)
+      setFotos((f) => [...f.filter((x) => x.angulo !== angulo), { angulo, base64: r.base64, miniatura: r.thumbnail }])
     } finally {
       setProcesando(false)
     }
@@ -174,7 +174,7 @@ export function Captura() {
   const medidasValidas = MEDIDAS.every((m) => medidas[m.clave] >= m.min && medidas[m.clave] <= m.max)
   const faltanRequeridas = ANGULOS.filter((a) => a.requerida && !fotos.some((f) => f.angulo === a.id))
   const analizar = () =>
-    reconstruir({ medidas: conMedidas ? medidas : null, fotos: fotos.map((f) => ({ angulo: f.angulo, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), miniaturas: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notas: notas.trim() })
+    reconstruir({ measures: conMedidas ? medidas : null, photos: fotos.map((f) => ({ angle: f.angulo, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notes: notas.trim() })
 
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">

@@ -1,6 +1,6 @@
 import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
-import type { Etapa } from '../../application/casosDeUso'
+import type { Stage } from '../../application/useCases'
 import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/sesion/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/tray/tray'
 import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
@@ -10,7 +10,7 @@ import { useTienda } from '../tienda'
 import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
 
-const ETAPAS: Record<Etapa, string> = {
+const ETAPAS: Record<Stage, string> = {
   'leyendo-fotos': 'Mirando la foto…',
   'mirando-fotos': 'Mirando las fotos…',
   'disenando-piezas': 'Diseñando pieza por pieza…',
@@ -200,8 +200,8 @@ function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: strin
   const enviar = async (archivo: File) => {
     setProcesando(true)
     try {
-      const r = await imagenes.reducir(archivo)
-      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${photoAnswerKey(angulo)}`, { angulo, base64: r.base64, miniatura: r.miniatura })
+      const r = await imagenes.reduce(archivo)
+      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${photoAnswerKey(angulo)}`, { angle: angulo, base64: r.base64, thumbnail: r.thumbnail })
     } finally {
       setProcesando(false)
     }

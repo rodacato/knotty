@@ -1,17 +1,17 @@
-// Mensajes en español para lo que puede fallar al llamar al proveedor desde el navegador.
-// Se revisan las propiedades del error en vez de sus clases para no cargar el SDK de Anthropic solo para esto.
+// Messages in Spanish for what can fail when calling the provider from the browser.
+// The error's properties are checked instead of its class, so the Anthropic SDK is not loaded just for this.
 
 const CORS = 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'
 
-interface ErrorDeApi {
+interface ApiError {
   status?: number
   name?: string
   message?: string
 }
 
-export function describirError(err: unknown): string {
+export function describeError(err: unknown): string {
   if (!(err instanceof Error)) return 'Error desconocido.'
-  const e = err as ErrorDeApi
+  const e = err as ApiError
   if (e.name === 'AbortError') return 'Cancelado.'
   if (e.name === 'APIConnectionTimeoutError') return 'El proveedor tardó demasiado en responder.'
   if (e.name === 'APIConnectionError' || err instanceof TypeError) return CORS
@@ -29,9 +29,9 @@ export function describirError(err: unknown): string {
   return err.message
 }
 
-export class ErrorProveedor extends Error {
+export class ProviderError extends Error {
   constructor(err: unknown) {
-    super(describirError(err))
+    super(describeError(err))
     this.name = err instanceof Error && err.name === 'AbortError' ? 'AbortError' : 'ErrorProveedor'
   }
 }

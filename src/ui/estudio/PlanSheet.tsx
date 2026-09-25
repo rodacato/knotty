@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, Check, Plus, Trash, Warning } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
-import { currentPlan } from '../../application/casosDeUso'
+import { currentPlan } from '../../application/useCases'
 import type { BedPlan } from '../../domain/modules/bed'
 import type { CabinetConstruction, CabinetPlan } from '../../domain/modules/cabinet'
 import { isBed, isTable, type FurniturePlan } from '../../domain/modules/plan'

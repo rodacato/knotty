@@ -1,16 +1,16 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { FRASE_MINIMA, PRESETS, SHELLM_URL, type ConfiguracionLLM, type Conexion, type GuardadoLlaves, type Proveedor } from '../../ports/Preferencias'
+import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Desbloquear } from './Llaves'
 import { useServicios } from '../servicios'
 import { Boton, Titulo } from '../sistema/componentes'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useTienda } from '../tienda'
 
-const PROVEEDORES: Proveedor[] = ['simulado', 'anthropic', 'openai', 'shellm']
+const PROVEEDORES: Provider[] = ['simulado', 'anthropic', 'openai', 'shellm']
 
-const GUARDADOS: { id: GuardadoLlaves; nombre: string; detalle: string }[] = [
+const GUARDADOS: { id: KeyStorage; nombre: string; detalle: string }[] = [
   { id: 'cifrada', nombre: 'Cifradas en este navegador', detalle: 'Con una frase que te pido al volver. Recomendado.' },
   { id: 'pestana', nombre: 'Solo en esta pestaña', detalle: 'Sobreviven a recargar; se borran al cerrarla.' },
   { id: 'memoria', nombre: 'No guardarlas', detalle: 'Se pierden al recargar.' },
@@ -23,7 +23,7 @@ export function Ajustes() {
   const [depuracion, setDepuracion] = useState(() => debug.visible())
   const abierto = useTienda((s) => s.ajustesAbiertos)
   const abrir = useTienda((s) => s.abrirAjustes)
-  const [borrador, setBorrador] = useState<ConfiguracionLLM>(preferencias.cargar())
+  const [borrador, setBorrador] = useState<LLMConfiguration>(preferencias.load())
   const [verLlave, setVerLlave] = useState(false)
   const [modelos, setModelos] = useState<EstadoModelos>({ tipo: 'nada' })
   const [frase, setFrase] = useState('')
@@ -34,7 +34,7 @@ export function Ajustes() {
 
   useEffect(() => {
     if (!abierto) return
-    setBorrador(preferencias.cargar())
+    setBorrador(preferencias.load())
     setFrase('')
     setError('')
   }, [abierto, preferencias, boveda])
@@ -42,15 +42,15 @@ export function Ajustes() {
 
   const activo = borrador.activo
   const conexion = activo === 'simulado' ? null : borrador.conexiones[activo]
-  const cambiar = (patch: Partial<Conexion>) => {
+  const cambiar = (patch: Partial<Connection>) => {
     if (activo === 'simulado') return
     setBorrador((b) => ({ ...b, conexiones: { ...b.conexiones, [activo]: { ...b.conexiones[activo], ...patch } } }))
   }
   const cargarModelos = async () => {
-    if (activo === 'simulado' || !conexion || (PRESETS[activo].pideLlave && !conexion.apiKey)) return
+    if (activo === 'simulado' || !conexion || (PRESETS[activo].needsKey && !conexion.apiKey)) return
     setModelos({ tipo: 'cargando' })
     try {
-      setModelos({ tipo: 'listo', modelos: await preferencias.modelos(activo, conexion) })
+      setModelos({ tipo: 'listo', modelos: await preferencias.listModels(activo, conexion) })
     } catch (e) {
       setModelos({ tipo: 'error', mensaje: e instanceof Error ? e.message : 'No se pudo cargar la lista.' })
     }
@@ -61,7 +61,7 @@ export function Ajustes() {
     setGuardando(true)
     setError('')
     try {
-      await preferencias.guardar(borrador, frase)
+      await preferencias.save(borrador, frase)
       refrescarBoveda()
       abrir(false)
     } catch (e) {
@@ -96,12 +96,12 @@ export function Ajustes() {
                 type="button"
                 role="radio"
                 aria-checked={activo === p}
-                aria-label={PRESETS[p].etiqueta}
+                aria-label={PRESETS[p].label}
                 onClick={() => setBorrador((b) => ({ ...b, activo: p }))}
                 className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${activo === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
               >
-                <span className="font-medium">{PRESETS[p].etiqueta}</span>
-                <span className="text-xs text-grafito-2">{PRESETS[p].descripcion}</span>
+                <span className="font-medium">{PRESETS[p].label}</span>
+                <span className="text-xs text-grafito-2">{PRESETS[p].description}</span>
               </button>
             ))}
           </div>
@@ -111,7 +111,7 @@ export function Ajustes() {
           {conexion && activo !== 'simulado' && (
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">API key{!PRESETS[activo].pideLlave && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
+                <span className="text-sm font-medium">API key{!PRESETS[activo].needsKey && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
                 <span className="flex items-center gap-2 rounded-xl border border-linea bg-hueso px-3 focus-within:border-ambar">
                   <input
                     type={verLlave ? 'text' : 'password'}
@@ -130,7 +130,7 @@ export function Ajustes() {
               <label className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between text-sm font-medium">
                   Modelo
-                  <button type="button" onClick={() => void cargarModelos()} disabled={(PRESETS[activo].pideLlave && !conexion.apiKey) || modelos.tipo === 'cargando'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
+                  <button type="button" onClick={() => void cargarModelos()} disabled={(PRESETS[activo].needsKey && !conexion.apiKey) || modelos.tipo === 'cargando'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
                     <ArrowCounterClockwise /> {modelos.tipo === 'cargando' ? 'Cargando…' : 'Cargar lista'}
                   </button>
                 </span>
@@ -145,7 +145,7 @@ export function Ajustes() {
                   <input
                     value={conexion.modelo}
                     onChange={(e) => cambiar({ modelo: e.target.value.trim() })}
-                    placeholder={PRESETS[activo].modeloSugerido || 'Carga la lista o escribe el id'}
+                    placeholder={PRESETS[activo].suggestedModel || 'Carga la lista o escribe el id'}
                     className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
                   />
                 )}
@@ -174,7 +174,7 @@ export function Ajustes() {
                     type="password"
                     value={frase}
                     onChange={(e) => setFrase(e.target.value)}
-                    placeholder={`Frase secreta (${FRASE_MINIMA} caracteres o más); te la pediré al volver`}
+                    placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
                     autoComplete="new-password"
                     aria-label="Frase para cifrar las llaves"
                     className="min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
@@ -203,7 +203,7 @@ export function Ajustes() {
             <Dialog.Close asChild>
               <Boton variante="fantasma">Cancelar</Boton>
             </Dialog.Close>
-            <Boton variante="primario" onClick={() => void guardar()} disabled={guardando || (pideFrase && frase.length < FRASE_MINIMA)}>
+            <Boton variante="primario" onClick={() => void guardar()} disabled={guardando || (pideFrase && frase.length < MIN_PASSPHRASE)}>
               {guardando ? 'Guardando…' : 'Guardar'}
             </Boton>
           </div>

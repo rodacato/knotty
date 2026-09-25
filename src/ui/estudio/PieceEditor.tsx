@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, PencilSimple } from '@phosphor-icons/react'
 import { useState } from 'react'
-import type { PieceEditResult } from '../../application/casosDeUso'
+import type { PieceEditResult } from '../../application/useCases'
 import { AXES, type Axis, type Piece } from '../../domain/diseno/schema'
 import type { Box } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'

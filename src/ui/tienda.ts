@@ -1,5 +1,5 @@
 import { create, type StoreApi } from 'zustand'
-import { ErrorExperto, type AlAvanzar, type Etapa, type FotoEnviada, type PieceEdit, type PieceEditResult } from '../application/casosDeUso'
+import { ExpertError, type OnProgress, type Stage, type SentPhoto, type PieceEdit, type PieceEditResult } from '../application/useCases'
 import type { Notice } from '../application/notices'
 import type { Fix } from '../domain/fixes/fixes'
 import { trayRequest, type TrayItem } from '../domain/tray/tray'
@@ -10,32 +10,32 @@ import type { Dimensions, Design, Axis, Piece } from '../domain/diseno/schema'
 import type { Box } from '../domain/diseno/resolve'
 import { differences } from '../domain/diseno/diff'
 import { currentDesign, markAnswered, type DesignState, type Thumbnail } from '../domain/sesion/state'
-import type { Foto } from '../ports/LLMProvider'
-import type { EstadoBoveda } from '../ports/Preferencias'
+import type { Photo } from '../ports/LLMProvider'
+import type { VaultState } from '../ports/Preferences'
 import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materiales/catalog'
 import type { Servicios } from './servicios'
 
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
 export type Vista = 'frente' | 'lado' | 'tres-cuartos' | 'arriba'
 
-export interface EntradaCaptura {
-  medidas: Dimensions | null
-  fotos: Foto[]
-  miniaturas: Thumbnail[]
-  notas: string
+export interface CaptureInput {
+  measures: Dimensions | null
+  photos: Photo[]
+  thumbnails: Thumbnail[]
+  notes: string
 }
 
 interface Tienda {
   servicios: Servicios | null
   estado: DesignState | null
   fase: Fase
-  etapa: { nombre: Etapa; intento: number; progress?: { done: number; total: number } } | null
+  etapa: { nombre: Stage; intento: number; progress?: { done: number; total: number } } | null
   pensando: boolean
   errorReconstruccion: string | null
   /** What the expert did in a design attempt that failed, for «Ver qué pasó». */
   failedTrace: TraceEntry[]
   /** Lo último que se mandó a diseñar, para no perderlo si falla y poder reintentar. */
-  borrador: EntradaCaptura | null
+  borrador: CaptureInput | null
   controlador: AbortController | null
   seleccion: string | null
   explosion: boolean
@@ -49,7 +49,7 @@ interface Tienda {
   /** Sube cada vez que el diseño aparece desde cero, para animar del boceto a la madera. */
   revelado: number
   ajustesAbiertos: boolean
-  boveda: EstadoBoveda
+  boveda: VaultState
   /** El aviso de llaves al llegar ya se atendió o se pospuso. */
   puertaCerrada: boolean
   /** Precios y parámetros de corte del usuario sobre el catálogo. */
@@ -64,8 +64,8 @@ interface Tienda {
   desdeEjemplo(diseno: Design): void
   /** A whole session from elsewhere (the bench) becomes the current design. */
   openState(state: DesignState): void
-  reconstruir(entrada: EntradaCaptura): Promise<void>
-  ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
+  reconstruir(entrada: CaptureInput): Promise<void>
+  ajustar(peticion: string, respondeA?: string | null, foto?: SentPhoto | null): Promise<void>
   cancelar(): void
   /** Corta la reconstrucción en curso y la vuelve a pedir con lo mismo. */
   reintentarReconstruccion(): void
@@ -141,7 +141,7 @@ type Set = StoreApi<Tienda>['setState']
 type Get = StoreApi<Tienda>['getState']
 
 /** A request to the expert: the message shows at once, and the answer replaces the state when it arrives. */
-async function askExpert(set: Set, get: Get, texto: string, respondeA: string | null, miniatura: string | null, call: (signal: AbortSignal, alAvanzar: AlAvanzar) => Promise<DesignState>) {
+async function askExpert(set: Set, get: Get, texto: string, respondeA: string | null, miniatura: string | null, call: (signal: AbortSignal, alAvanzar: OnProgress) => Promise<DesignState>) {
   const { servicios, estado, pensando } = get()
   if (!servicios || !estado || pensando) return
   const controlador = new AbortController()
@@ -187,13 +187,13 @@ export const useTienda = create<Tienda>((set, get) => ({
   errorDictamen: null,
 
   iniciar(servicios) {
-    const estado = servicios.casos.cargar()
-    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0, boveda: servicios.preferencias.boveda(), ajustesCatalogo: servicios.materiales.ajustes() })
+    const estado = servicios.casos.load()
+    set({ servicios, estado, fase: estado ? 'estudio' : 'inicio', revelado: estado ? 1 : 0, boveda: servicios.preferencias.vaultState(), ajustesCatalogo: servicios.materiales.settings() })
   },
 
   nuevoDiseno() {
     get().controlador?.abort()
-    get().servicios?.casos.nuevoDiseno()
+    get().servicios?.casos.newDesign()
     set({ estado: null, fase: 'captura', seleccion: null, explosion: false, errorReconstruccion: null, borrador: null, pensando: false, etapa: null })
   },
 
@@ -208,18 +208,18 @@ export const useTienda = create<Tienda>((set, get) => ({
   desdeEjemplo(diseno) {
     const { servicios } = get()
     if (!servicios) return
-    set((s) => ({ estado: servicios.casos.desdeEjemplo(diseno), fase: 'estudio', revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
+    set((s) => ({ estado: servicios.casos.fromExample(diseno), fase: 'estudio', revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
   },
 
   async reconstruir(entrada) {
     const { servicios } = get()
     if (!servicios) return
     const controlador = new AbortController()
-    set({ fase: 'analizando', controlador, etapa: { nombre: entrada.fotos.length ? 'leyendo-fotos' : 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
+    set({ fase: 'analizando', controlador, etapa: { nombre: entrada.photos.length ? 'leyendo-fotos' : 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
     // Un reintento deja huérfana a la petición anterior: lo que conteste ya no cuenta.
     const vigente = () => get().controlador === controlador
     try {
-      const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento, progress) => vigente() && set({ etapa: { nombre, intento, progress } }))
+      const estado = await servicios.casos.reconstruct(entrada, controlador.signal, (nombre, intento, progress) => vigente() && set({ etapa: { nombre, intento, progress } }))
       if (!vigente()) return
       set((s) => ({ estado, fase: 'estudio', etapa: null, controlador: null, borrador: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
     } catch (e) {
@@ -230,7 +230,7 @@ export const useTienda = create<Tienda>((set, get) => ({
         etapa: null,
         controlador: null,
         errorReconstruccion: cancelado ? null : e instanceof Error ? e.message : 'Algo falló al analizar las fotos.',
-        failedTrace: e instanceof ErrorExperto ? e.trace : [],
+        failedTrace: e instanceof ExpertError ? e.trace : [],
       })
     }
   },
@@ -238,7 +238,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   ajustar(peticion, respondeA = null, foto = null) {
     const { servicios, estado } = get()
     if (!servicios || !estado || !peticion.trim()) return Promise.resolve()
-    return askExpert(set, get, peticion.trim(), respondeA, foto?.miniatura ?? null, (signal, alAvanzar) => servicios.casos.ajustar(estado, peticion.trim(), signal, alAvanzar, respondeA, foto))
+    return askExpert(set, get, peticion.trim(), respondeA, foto?.thumbnail ?? null, (signal, alAvanzar) => servicios.casos.adjust(estado, peticion.trim(), signal, alAvanzar, respondeA, foto))
   },
 
   toggleTray(item) {
@@ -266,13 +266,13 @@ export const useTienda = create<Tienda>((set, get) => ({
   aplicarPropuesta() {
     const { servicios, estado } = get()
     if (!servicios || !estado) return
-    set({ estado: servicios.casos.aplicarPropuesta(estado), versionVista: null })
+    set({ estado: servicios.casos.applyProposal(estado), versionVista: null })
   },
 
   descartarPropuesta() {
     const { servicios, estado } = get()
     if (!servicios || !estado) return
-    const nuevo = servicios.casos.descartarPropuesta(estado)
+    const nuevo = servicios.casos.discardProposal(estado)
     set((s) => ({ estado: nuevo, cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
   },
 
@@ -292,21 +292,21 @@ export const useTienda = create<Tienda>((set, get) => ({
   async desbloquear(frase) {
     const { servicios } = get()
     if (!servicios) return
-    await servicios.preferencias.desbloquear(frase)
-    set({ boveda: servicios.preferencias.boveda() })
+    await servicios.preferencias.unlock(frase)
+    set({ boveda: servicios.preferencias.vaultState() })
   },
 
   olvidarLlaves() {
     const { servicios } = get()
     if (!servicios) return
-    servicios.preferencias.olvidarLlaves()
-    set({ boveda: servicios.preferencias.boveda() })
+    servicios.preferencias.forgetKeys()
+    set({ boveda: servicios.preferencias.vaultState() })
   },
 
   usarSimulado() {
     const { servicios } = get()
     if (!servicios) return
-    void servicios.preferencias.guardar({ ...servicios.preferencias.cargar(), activo: 'simulado' }).catch(() => {})
+    void servicios.preferencias.save({ ...servicios.preferencias.load(), activo: 'simulado' }).catch(() => {})
     set({ puertaCerrada: true })
   },
 
@@ -323,7 +323,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   volverAVersion(n) {
     const { servicios, estado, versionVista } = get()
     if (!servicios || !estado) return
-    const nuevo = servicios.casos.volverAVersion(estado, n)
+    const nuevo = servicios.casos.backToVersion(estado, n)
     const antes = versionVista !== null ? (estado.versiones.find((v) => v.n === versionVista)?.diseno ?? mostrado(estado)) : mostrado(estado)
     set((s) => ({ estado: nuevo, versionVista: null, cambios: transicion(antes, mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
   },
@@ -331,23 +331,23 @@ export const useTienda = create<Tienda>((set, get) => ({
   confirmarPieza(id) {
     const { servicios, estado } = get()
     if (!servicios || !estado) return
-    const nuevo = servicios.casos.confirmarPieza(estado, id)
+    const nuevo = servicios.casos.confirmPiece(estado, id)
     set((s) => ({ estado: nuevo, cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
   },
 
   agregarNota(texto) {
     const { servicios, estado } = get()
-    if (servicios && estado) set({ estado: servicios.casos.agregarRequisito(estado, texto) })
+    if (servicios && estado) set({ estado: servicios.casos.addRequirement(estado, texto) })
   },
 
   quitarNota(id) {
     const { servicios, estado } = get()
-    if (servicios && estado) set({ estado: servicios.casos.quitarRequisito(estado, id) })
+    if (servicios && estado) set({ estado: servicios.casos.removeRequirement(estado, id) })
   },
 
   quitarDecision(tema) {
     const { servicios, estado } = get()
-    if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+    if (servicios && estado) set({ estado: servicios.casos.removeDecision(estado, tema) })
   },
 
   previewFix: (fix) => set({ preview: fix ? { design: fix.design, label: fix.label } : null, versionVista: null }),
@@ -376,7 +376,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = servicios.casos.restoreFromVersion(estado, n, ids)
     if (!r.ok) return r
-    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    set((s) => ({ estado: r.state, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.state), servicios.catalogo, s.cambios.vez + 1) }))
     return { ok: true }
   },
 
@@ -385,7 +385,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = servicios.casos.undoChange(estado, n)
     if (!r.ok) return r
-    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    set((s) => ({ estado: r.state, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.state), servicios.catalogo, s.cambios.vez + 1) }))
     return { ok: true }
   },
 
@@ -393,7 +393,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios, estado } = get()
     if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
     const r = servicios.casos.editPiece(estado, id, edit)
-    if (r.ok) set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    if (r.ok) set((s) => ({ estado: r.state, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.state), servicios.catalogo, s.cambios.vez + 1) }))
     return r
   },
 
@@ -401,7 +401,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios, estado } = get()
     if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
     const r = servicios.casos.resizeFurniture(estado, axis, value)
-    if (r.ok) set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    if (r.ok) set((s) => ({ estado: r.state, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.state), servicios.catalogo, s.cambios.vez + 1) }))
     return r
   },
 
@@ -410,7 +410,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.' }
     const r = servicios.casos.applyPlan(estado, plan)
     if (!r.ok) return r
-    set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    set((s) => ({ estado: r.state, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.state), servicios.catalogo, s.cambios.vez + 1) }))
     return { ok: true, notes: r.notes }
   },
 
@@ -420,10 +420,10 @@ export const useTienda = create<Tienda>((set, get) => ({
     const controlador = new AbortController()
     set({ dictaminando: controlador, errorDictamen: null })
     try {
-      const dictamen = await servicios.casos.dictaminar(estado, applySettings(servicios.catalogo, ajustesCatalogo), controlador.signal)
+      const dictamen = await servicios.casos.reviewPurchase(estado, applySettings(servicios.catalogo, ajustesCatalogo), controlador.signal)
       // Si mientras tanto cambió el diseño, su firma ya no coincide y se ve como desactualizado.
       const vigente = get().estado
-      set({ estado: vigente ? servicios.casos.guardarDictamen(vigente, dictamen) : null, dictaminando: null })
+      set({ estado: vigente ? servicios.casos.saveReview(vigente, dictamen) : null, dictaminando: null })
     } catch (e) {
       set({ dictaminando: null, errorDictamen: controlador.signal.aborted ? null : e instanceof Error ? e.message : 'No se pudo revisar la compra.' })
     }
@@ -432,12 +432,12 @@ export const useTienda = create<Tienda>((set, get) => ({
   cancelarDictamen: () => get().dictaminando?.abort(),
 
   guardarAjustesCatalogo(ajustesCatalogo) {
-    get().servicios?.materiales.guardarAjustes(ajustesCatalogo)
+    get().servicios?.materiales.saveSettings(ajustesCatalogo)
     set({ ajustesCatalogo })
   },
 
   refrescarBoveda() {
     const { servicios } = get()
-    if (servicios) set({ boveda: servicios.preferencias.boveda() })
+    if (servicios) set({ boveda: servicios.preferencias.vaultState() })
   },
 }))

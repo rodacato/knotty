@@ -8,7 +8,7 @@ import { estimatePurchase } from '../../domain/materiales/purchase'
 import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { reviewViability } from '../../domain/viabilidad/viability'
 import type { LLMProvider } from '../../ports/LLMProvider'
-import { crearCasosDeUso } from '../casosDeUso'
+import { createUseCases } from '../useCases'
 import { BENCH_CASES, type BenchCase } from './cases'
 
 // A test bench: the fixed cases run against the expert that is connected, and every variant of Knotty's modules, each measured and graded.
@@ -53,14 +53,14 @@ interface Call {
 /** Wraps the provider to time each call: the use cases retry, and each attempt counts. */
 function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
   const timed =
-    <A extends unknown[], R extends { consumo: { tokensSalida?: number } }>(f: (...a: A) => Promise<R>) =>
+    <A extends unknown[], R extends { usage: { outputTokens?: number } }>(f: (...a: A) => Promise<R>) =>
     async (...a: A) => {
       const start = performance.now()
-      const previous = (a[0] as { correccion?: { errores: unknown } | null }).correccion?.errores
+      const previous = (a[0] as { correction?: { errors: unknown } | null }).correction?.errors
       const corrects = Array.isArray(previous) ? previous.map((e: { code: string }) => e.code) : typeof previous === 'string' ? [previous.slice(0, 40)] : []
       try {
         const r = await f(...a)
-        calls.push({ seconds: (performance.now() - start) / 1000, output: r.consumo.tokensSalida ?? null, corrects })
+        calls.push({ seconds: (performance.now() - start) / 1000, output: r.usage.outputTokens ?? null, corrects })
         return r
       } catch (e) {
         calls.push({ seconds: (performance.now() - start) / 1000, output: null, corrects })
@@ -69,9 +69,9 @@ function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
     }
   return {
     ...llm,
-    reconstruir: timed(llm.reconstruir.bind(llm)),
-    proponerAjuste: timed(llm.proponerAjuste.bind(llm)),
-    dictaminar: timed(llm.dictaminar.bind(llm)),
+    reconstruct: timed(llm.reconstruct.bind(llm)),
+    proposeAdjustment: timed(llm.proposeAdjustment.bind(llm)),
+    reviewPurchase: timed(llm.reviewPurchase.bind(llm)),
     readPhoto: timed(llm.readPhoto.bind(llm)),
     planDesign: llm.planDesign ? timed(llm.planDesign.bind(llm)) : null,
     adjustPlan: llm.adjustPlan ? timed(llm.adjustPlan.bind(llm)) : null,
@@ -81,7 +81,7 @@ function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
 /** Kept in memory: a bench run never touches the design the person is working on. */
 const inMemory = () => {
   let state: DesignState | null = null
-  return { cargar: () => state, guardar: (x: DesignState) => void (state = x), borrar: () => void (state = null) }
+  return { load: () => state, save: (x: DesignState) => void (state = x), clear: () => void (state = null) }
 }
 
 export function withinExpected(c: BenchCase, d: Design['dimensiones']) {
@@ -95,11 +95,11 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
   async function runCase(c: BenchCase, signal: AbortSignal): Promise<BenchResult> {
     const calls: Call[] = []
     const provider = deps.llm()
-    const useCases = crearCasosDeUso({ llm: () => measured(provider, calls), catalogo: catalog, repositorio: inMemory() })
+    const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory() })
     const start = performance.now()
     const empty = { path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
     try {
-      const state = await useCases.reconstruir({ medidas: c.measures, fotos: [], miniaturas: [], notas: c.notes }, signal)
+      const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
       const design = currentDesign(state)
       const d = design.dimensiones

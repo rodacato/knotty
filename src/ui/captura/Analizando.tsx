@@ -1,10 +1,10 @@
 import { Check } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
-import { INTENTOS, type Etapa } from '../../application/casosDeUso'
+import { ATTEMPTS, type Stage } from '../../application/useCases'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-const etapas = (conFotos: boolean, piezaPorPieza: boolean): { id: Etapa; texto: string }[] => [
+const etapas = (conFotos: boolean, piezaPorPieza: boolean): { id: Stage; texto: string }[] => [
   ...(conFotos ? [{ id: 'leyendo-fotos' as const, texto: 'Mirando las fotos' }] : []),
   piezaPorPieza ? { id: 'disenando-piezas', texto: 'Diseñando pieza por pieza' } : { id: 'mirando-fotos', texto: 'Pensando el diseño' },
   { id: 'revisando', texto: 'Midiendo que todo cierre' },
@@ -44,7 +44,7 @@ function Trazo() {
 export function Analizando() {
   const etapa = useTienda((s) => s.etapa)
   const cancelar = useTienda((s) => s.cancelar)
-  const conFotos = useTienda((s) => (s.borrador?.fotos.length ?? 0) > 0)
+  const conFotos = useTienda((s) => (s.borrador?.photos.length ?? 0) > 0)
   const controlador = useTienda((s) => s.controlador)
   const segundos = useSegundos(controlador)
   // La lentitud se mide por intento: una corrección que avanza no es un experto atorado.
@@ -84,7 +84,7 @@ export function Analizando() {
       </ol>
       {etapa?.nombre === 'corrigiendo' && (
         <p className="max-w-xs text-center text-sm text-grafito-2">
-          Intento {etapa.intento + 1} de {INTENTOS}: el experto está corrigiendo piezas que no cerraban.
+          Intento {etapa.intento + 1} de {ATTEMPTS}: el experto está corrigiendo piezas que no cerraban.
         </p>
       )}
       <div className="flex flex-col items-center gap-3 text-center">

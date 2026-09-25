@@ -1,5 +1,5 @@
 import type { DebugLog } from '../../ports/DebugLog'
-import type { EntradaCaptura } from '../tienda'
+import type { CaptureInput } from '../tienda'
 import { useTienda } from '../tienda'
 
 // Records what the person does and what the app goes through, without touching each action.
@@ -7,10 +7,10 @@ import { useTienda } from '../tienda'
 type Store = ReturnType<typeof useTienda.getState>
 type Describe = (...args: never[]) => { summary: string; data?: unknown }
 
-const photos = (e: EntradaCaptura) => e.fotos.map((f) => ({ angulo: f.angulo, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
+const photos = (e: CaptureInput) => e.photos.map((f) => ({ angulo: f.angle, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
 
 const ACTIONS: Partial<Record<keyof Store, Describe>> = {
-  reconstruir: (entrada: EntradaCaptura) => ({ summary: `Diseñar: «${entrada.notas.slice(0, 60)}»${entrada.fotos.length ? ` con ${entrada.fotos.length} fotos` : ''}`, data: { medidas: entrada.medidas, notas: entrada.notas, fotos: photos(entrada) } }),
+  reconstruir: (entrada: CaptureInput) => ({ summary: `Diseñar: «${entrada.notes.slice(0, 60)}»${entrada.photos.length ? ` con ${entrada.photos.length} fotos` : ''}`, data: { medidas: entrada.measures, notas: entrada.notes, fotos: photos(entrada) } }),
   ajustar: (peticion: string, respondeA?: string | null, foto?: { angulo: string } | null) => ({ summary: `Pedir: «${peticion.slice(0, 80)}»`, data: { peticion, respondeA: respondeA ?? null, foto: foto?.angulo ?? null } }),
   reintentarReconstruccion: () => ({ summary: 'Reintentar el diseño' }),
   cancelar: () => ({ summary: 'Cancelar' }),
