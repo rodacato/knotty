@@ -20,6 +20,8 @@ export type Candidate =
   | { ok: true; design: Design; analysis: Analysis; repairs: Repair[]; warnings: DesignWarning[] }
   | { ok: false; errors: DesignError[]; added: DesignError[]; repairs: Repair[] }
 
+export type Accepted = Extract<Candidate, { ok: true }>
+
 /** Operations applied, normalized, joined (optionally repaired) and analyzed; refused if they add a problem not in `known`. */
 export function tryCandidate(
   design: Design,

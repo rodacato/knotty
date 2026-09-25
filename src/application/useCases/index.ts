@@ -27,7 +27,8 @@ import type { DesignRepository } from '../../ports/DesignRepository'
 import { expertPlans, type Photo, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { buildContext, describeAlternatives } from '../context'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
-import { knownErrors, newErrors, tryCandidate } from './candidate'
+import { knownErrors, newErrors, tryCandidate, type Candidate } from './candidate'
+import { judge } from './judge'
 
 export { ExpertError }
 import { named } from '../named'
@@ -53,6 +54,14 @@ export interface SentPhoto {
   thumbnail: string
 }
 const listErrors = (errors: DesignError[]) => errors.map((e) => `- ${e.code}: ${e.message}${e.data ? ` ${JSON.stringify(e.data)}` : ''}`).join('\n')
+
+/** For the extra round: the change is valid, but these new critical findings need a fix or a question. */
+const criticalsCorrection = (criticals: Finding[]) =>
+  [
+    'The change is valid but leaves these new critical structural problems:',
+    ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${describeAlternatives(h)}`),
+    'If the fix is clear, include it in the operations. If there is a choice to make, keep the requested operations and offer the options in questions.',
+  ].join('\n')
 
 /** What the person asked for at the start, as the first chat message. */
 function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; notes: string }) {
@@ -110,11 +119,6 @@ export function currentPlan(state: DesignState): { plan: FurniturePlan | null; e
 /** A free-form change on a design that has a plan keeps the plan and joins its extras. */
 const layered = (current: ReturnType<typeof currentPlan>, operations: Operation[]) =>
   current.plan && !current.diverged ? { plan: current.plan, extras: [...current.extras, ...operations] } : { plan: null, extras: [] }
-
-/** Pieces that hold the furniture up: the expert does not take them away unasked. */
-const STRUCTURAL = new Set(['side', 'bottom', 'top', 'divider', 'back', 'kick', 'apron', 'brace'])
-/** The request itself asks to take something away. */
-const ASKS_REMOVAL = /\b(quit|elimin|sac|borr|remuev|remov|sin )/i
 
 /** A cota tied to an outer face of the piece of furniture. */
 const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
@@ -404,7 +408,6 @@ export function createUseCases(deps: Dependencies) {
       save({ ...base, trace: appendTrace(base.trace, trace), chat: [...base.chat, message('expert', text, extra)] })
 
     let correction: { previousResponse: unknown; errors: string } | null = null
-    let criticalsReviewed = false
     let lastError = ''
 
     /** With a live plan the expert edits the plan; null means: go piece by piece. */
@@ -459,7 +462,10 @@ export function createUseCases(deps: Dependencies) {
     try {
       const byPlan = await throughPlan()
       if (byPlan) return byPlan
-      for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+      // A valid change with new critical findings earns the expert one extra round that does not spend an attempt.
+      let criticalsReviewed = false
+      let attempt = 0
+      while (attempt < ATTEMPTS) {
         onProgress(attempt ? 'correcting' : 'proposing', attempt)
         const call = await expertCall(
           () =>
@@ -473,6 +479,7 @@ export function createUseCases(deps: Dependencies) {
           const e = call.unreadable!
           correction = { previousResponse: e.response, errors: e.problems }
           lastError = 'la respuesta no tenía el formato esperado'
+          attempt++
           continue
         }
         const { response, started } = call
@@ -482,63 +489,43 @@ export function createUseCases(deps: Dependencies) {
         const base = { ...withRequest, requirements, decisions }
         const requestedPhotos = r.requestedPhotos.slice(0, 2)
         const suggestions = r.suggestions.slice(0, 4)
-        if (!r.operations.length) {
-          trace.push(traceEntry('adjust', attempt, started, response, 'ok', []))
-          return reply(r.explanation, { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions }, base)
+        let candidate: Candidate | null = null
+        if (r.operations.length) {
+          onProgress('checking', attempt)
+          candidate = tryCandidate(design, r.operations, catalog, requirements, { known: previousProblems, repair: true })
+        }
+        if (!candidate) trace.push(traceEntry('adjust', attempt, started, response, 'ok', []))
+        else if (!candidate.ok) trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(candidate.errors), candidate.repairs))
+        else {
+          trace.push(traceEntry('adjust', attempt, started, response, 'ok', candidate.analysis.valid ? [] : traceErrors(candidate.analysis.errors), candidate.repairs))
+          onProgress('structure', attempt)
         }
 
-        onProgress('checking', attempt)
-        const candidate = tryCandidate(design, r.operations, catalog, requirements, { known: previousProblems, repair: true })
-        if (!candidate.ok) {
-          const { errors } = candidate
-          trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(errors), candidate.repairs))
-          correction = { previousResponse: r, errors: listErrors(errors) }
-          lastError = errors[0]?.message ?? 'el cambio no se pudo aplicar'
+        const verdict = judge({ design, before, candidate, response: r, request, catalog, criticalsReviewed })
+        if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions }, base)
+        if (verdict.kind === 'retry' && verdict.reason === 'invalid') {
+          correction = { previousResponse: r, errors: listErrors(verdict.errors) }
+          lastError = verdict.errors[0]?.message ?? 'el cambio no se pudo aplicar'
+          attempt++
           continue
         }
-        const { design: next, analysis, repairs } = candidate
-        trace.push(traceEntry('adjust', attempt, started, response, 'ok', analysis.valid ? [] : traceErrors(analysis.errors), repairs))
-        const settings = repairs.length ? [`Además ajusté por mi cuenta: ${repairs.map((x) => x.message).join(' ')}`] : []
-        const newFindings = analysis.valid ? analysis.findings : []
-        const remaining = analysis.valid ? [] : [`Todavía quedan ${describeProblems(traceErrors(analysis.errors))}; pídeme que las corrija.`]
-
-        onProgress('structure', attempt)
-        // Nothing that holds the piece up goes away unasked, and changes wait for the answers to the expert's own questions.
-        const unasked = describeChange(design, next, catalog).direct.filter((c) => c.kind === 'removed' && STRUCTURAL.has(design.pieces.find((p) => p.id === c.id)?.role ?? ''))
-        const holds = [
-          ...(unasked.length && !ASKS_REMOVAL.test(request) ? [`Quiere quitar ${unasked.map((c) => c.name).join(', ')}, que sostienen el mueble y no pediste quitar.`] : []),
-          ...(r.questions.length ? ['Hizo preguntas: el cambio espera tus respuestas.'] : []),
-        ]
-        if (holds.length) {
-          const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: [], requirements, origin: response.origin, plan: layered(currentPlanInfo, r.operations), holds })
-          const pending = { ...withRequest, proposal }
-          return reply(r.explanation, { questions: r.questions, proposal: 'pending', suggestions: suggestions }, pending)
-        }
-        const accepted = new Set(r.acceptedRisks.map((a) => a.code))
-        const criticals = newCriticals(before, newFindings).filter((h) => !accepted.has(h.code))
-        if (criticals.length && !criticalsReviewed && !r.questions.length) {
+        if (verdict.kind === 'retry') {
           criticalsReviewed = true
-          attempt--
-          correction = {
-            previousResponse: r,
-            errors: [
-              'The change is valid but leaves these new critical structural problems:',
-              ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${describeAlternatives(h)}`),
-              'If the fix is clear, include it in the operations. If there is a choice to make, keep the requested operations and offer the options in questions.',
-            ].join('\n'),
-          }
+          correction = { previousResponse: r, errors: criticalsCorrection(verdict.criticals) }
           continue
         }
-
-        if (criticals.length) {
-          const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: criticals, requirements, origin: response.origin, plan: layered(currentPlanInfo, r.operations), holds: [] })
+        const { design: next, repairs, warnings } = verdict.candidate
+        const plan = layered(currentPlanInfo, r.operations)
+        if (verdict.kind === 'pending') {
+          const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: verdict.critical, requirements, origin: response.origin, plan, holds: verdict.holds })
           const pending = { ...withRequest, proposal }
-          return reply(r.explanation, { ...(r.questions.length ? { questions: r.questions } : questionFromAlternatives(criticals, next, catalog)), proposal: 'pending' }, pending)
+          const ask = verdict.holds.length ? { questions: r.questions, suggestions: suggestions } : r.questions.length ? { questions: r.questions } : questionFromAlternatives(verdict.critical, next, catalog)
+          return reply(r.explanation, { ...ask, proposal: 'pending' }, pending)
         }
-
-        const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...layered(currentPlanInfo, r.operations) })
-        const warnings = candidate.warnings.map((a) => a.message)
-        return reply([r.explanation, ...settings, ...remaining, ...warnings].join('\n\n'), { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions, version: withChange.current }, withChange)
+        const settings = repairs.length ? [`Además ajusté por mi cuenta: ${repairs.map((x) => x.message).join(' ')}`] : []
+        const remaining = verdict.unresolved.length ? [`Todavía quedan ${describeProblems(traceErrors(verdict.unresolved))}; pídeme que las corrija.`] : []
+        const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...plan })
+        return reply([r.explanation, ...settings, ...remaining, ...warnings.map((a) => a.message)].join('\n\n'), { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions, version: withChange.current }, withChange)
       }
       const reason = lastError.trim().replace(/\.?$/, '.')
       return reply(`No logré hacer ese cambio sin romper el diseño, así que no apliqué nada. ${reason.charAt(0).toUpperCase()}${reason.slice(1)} ¿Lo intentamos de otra forma?`, { error: true })
