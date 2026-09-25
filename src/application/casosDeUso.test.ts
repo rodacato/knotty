@@ -14,6 +14,7 @@ import { crearCasosDeUso, currentPlan, firmaDictamen } from './casosDeUso'
 import { construirContexto } from './contexto'
 import { noticeBoard } from './notices'
 import { fixesFor } from '../domain/fixes/fixes'
+import { answerItem, suggestionItem } from '../domain/tray/tray'
 
 const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
   estado: null,
@@ -739,5 +740,22 @@ describe('notices: one place for what waits for a decision', () => {
     const inicial = await libreroInicial(casos())
     const board = noticeBoard(inicial, catalogo)
     expect(board.pending.filter((n) => n.kind === 'question').map((n) => n.message)).toContain('¿Qué vas a guardar principalmente?')
+  })
+})
+
+describe('the tray: decisions for the expert go in one request', () => {
+  it('sends answers and notices together, marks the questions answered and empties the tray', async () => {
+    const c = casos()
+    const inicial = await libreroInicial(c)
+    const expert = inicial.chat[1]
+    const [question] = expert.preguntas
+    let estado = c.toggleTray(inicial, answerItem(expert.id, 0, question.texto, question.opciones![0]))
+    estado = c.toggleTray(estado, suggestionItem('Refuerza la base'))
+    expect(c.repositorio.estado?.tray).toHaveLength(2)
+    const sent = await c.sendTray(estado, 'Y hazlo de 80 cm de ancho', senal())
+    const request = sent.chat.filter((m) => m.autor === 'usuario').at(-1)!
+    expect(request.texto).toBe(`Te mando todo junto:\n1. ${question.texto} ${question.opciones![0]}\n2. Refuerza la base\n3. Y hazlo de 80 cm de ancho`)
+    expect(sent.chat.find((m) => m.id === expert.id)!.respuestas).toContain('p0')
+    expect(sent.tray).toEqual([])
   })
 })

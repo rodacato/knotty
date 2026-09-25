@@ -23,6 +23,7 @@ import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/re
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
+import { toggleInTray, trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type PlanAdjustment, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
@@ -359,6 +360,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       dictamen: null,
       trace,
       accepted: [],
+      tray: [],
     }
   }
 
@@ -631,6 +633,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       dictamen: null,
       trace: [],
       accepted: [],
+      tray: [],
     })
   }
 
@@ -779,6 +782,16 @@ export function crearCasosDeUso(deps: Dependencias) {
     return guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Resolví: ${fix.label}.`, { version: withVersion.actual })] })
   }
 
+  function toggleTray(estado: EstadoDiseno, item: TrayItem): EstadoDiseno {
+    return guardar({ ...estado, tray: toggleInTray(estado.tray, item) })
+  }
+
+  /** Everything in the tray, plus what was typed, in one request; its questions are marked answered. */
+  function sendTray(estado: EstadoDiseno, typed: string, signal: AbortSignal, alAvanzar?: AlAvanzar): Promise<EstadoDiseno> {
+    const { text, answers } = trayRequest(estado.tray, typed)
+    return ajustar({ ...estado, tray: [] }, text, signal, alAvanzar, answers)
+  }
+
   function nuevoDiseno() {
     repositorio.borrar()
   }
@@ -846,6 +859,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     acceptNotice,
     reopenNotice,
     applyFix,
+    toggleTray,
+    sendTray,
     editPiece,
     resizeFurniture,
     cargar,

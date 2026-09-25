@@ -5,6 +5,7 @@ import { Operacion } from '../operaciones/esquema'
 import { CabinetPlan } from '../modules/cabinet'
 import { Requisito } from '../requisitos/requisitos'
 import { TraceEntry } from '../trace/trace'
+import { TrayItem } from '../tray/tray'
 import { Comprobacion, OpinionCarpintero, Veredicto } from '../viabilidad/viabilidad'
 
 // La sesión de diseño completa: lo que se guarda y se recupera al recargar.
@@ -42,9 +43,10 @@ export const Mensaje = z.object({
 export const clavePregunta = (indice: number) => `p${indice}`
 export const claveFoto = (angulo: string) => `f:${angulo}`
 
-/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave,clave". */
+/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave,clave", y varios van separados por ";". */
 export function marcarRespondida(chat: Mensaje[], respondeA: string | null): Mensaje[] {
   if (!respondeA) return chat
+  if (respondeA.includes(';')) return respondeA.split(';').reduce(marcarRespondida, chat)
   const [id, claves] = respondeA.split('#')
   return chat.map((m) => {
     if (m.id !== id) return m
@@ -102,6 +104,8 @@ export const EstadoDiseno = z.object({
   trace: z.array(TraceEntry).default([]),
   /** Findings the person chose to leave as they are, by the key of each finding. */
   accepted: z.array(z.object({ key: z.string(), title: z.string(), at: z.string() })).default([]),
+  /** What waits to go to the expert in one request. */
+  tray: z.array(TrayItem).default([]),
 })
 export type EstadoDiseno = z.infer<typeof EstadoDiseno>
 
