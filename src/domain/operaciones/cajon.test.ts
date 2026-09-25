@@ -55,7 +55,7 @@ describe('agregarCajon', () => {
     const d = conCajon(hondo, [cajon(), { op: 'cambiarDimensionGlobal', eje: 'x', valor: 800, regla: 'estirar' }])
     const a = analisis(d)
     expect(a.geo.boxes.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
-    expect(a.hallazgos.filter((h) => h.codigo === 'R9_CAJONES')).toEqual([])
+    expect(a.hallazgos.filter((h) => h.code === 'R9_CAJONES')).toEqual([])
   })
 
   it('entra en la compra: correderas y piezas del cajón', () => {
@@ -74,7 +74,7 @@ describe('agregarCajon', () => {
 
   it('no cabe en un mueble muy poco profundo', () => {
     const r = aplicar(librero, [cajon()], catalogo)
-    expect(r.ok || r.errores[0]).toMatchObject({ codigo: 'E_OPERACION_INVALIDA', mensaje: expect.stringContaining('No cabe un cajón') })
+    expect(r.ok || r.errores[0]).toMatchObject({ code: 'E_OPERACION_INVALIDA', message: expect.stringContaining('No cabe un cajón') })
   })
 })
 
@@ -84,18 +84,18 @@ describe('R9 cajones y tornillos por la cara', () => {
   it('una corredera sin su holgura exacta es crítica', () => {
     const d = conCajon(hondo)
     d.piezas.find((p) => p.id === 'cajon-1-costado-izq')!.x = startAt(ref('lat-izq.x1', 8))
-    const r9 = hallazgos(d).filter((h) => h.codigo === 'R9_CAJONES')
-    expect(r9).toEqual([expect.objectContaining({ severidad: 'critico', mensaje: expect.stringContaining('no entra') })])
+    const r9 = hallazgos(d).filter((h) => h.code === 'R9_CAJONES')
+    expect(r9).toEqual([expect.objectContaining({ severity: 'critico', message: expect.stringContaining('no entra') })])
   })
 
   it('un fondo de 3 mm en un cajón ancho se vence', () => {
     const d = conCajon({ ...hondo, dimensiones: { ...hondo.dimensiones, ancho: 700 } }, [cajon({ materialFondo: 'TR3' })])
-    expect(hallazgos(d).filter((h) => h.codigo === 'R9_CAJONES').map((h) => [h.severidad, h.piezas[0]])).toEqual([['recomendacion', 'cajon-1-fondo']])
+    expect(hallazgos(d).filter((h) => h.code === 'R9_CAJONES').map((h) => [h.severity, h.pieces[0]])).toEqual([['recomendacion', 'cajon-1-fondo']])
   })
 
   it('un tornillo que entra por la cara no debe asomarse del otro lado', () => {
     const d = conCajon(hondo)
     d.uniones = d.uniones.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, herrajes: [{ herrajeId: 'tornillo-8x2', cantidad: 4 }] } : u))
-    expect(hallazgos(d).map((h) => [h.codigo, h.severidad, h.datos.union])).toEqual([['R3_TORNILLOS', 'critico', 'u-cajon-1-contra-frente']])
+    expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.union])).toEqual([['R3_TORNILLOS', 'critico', 'u-cajon-1-contra-frente']])
   })
 })

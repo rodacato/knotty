@@ -34,7 +34,7 @@ describe('buildTable', () => {
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(JSON.stringify(a.errores.slice(0, 3)))
     expect(notes).toEqual([])
-    expect(a.hallazgos.map((h) => h.mensaje)).toEqual([])
+    expect(a.hallazgos.map((h) => h.message)).toEqual([])
   })
   it('carries a long top on cleats between the aprons, never more than 60 cm apart', () => {
     const { design } = buildTable(table({ dimensions: { width: 1800, height: 750, depth: 900 } }), catalogo)

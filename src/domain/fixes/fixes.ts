@@ -4,7 +4,7 @@ import type { Diseno, Pieza } from '../diseno/esquema'
 import { drawerSides } from '../diseno/drawers'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
-import type { Alternativa, Hallazgo } from '../estructura/hallazgo'
+import type { Alternative, Finding } from '../structure/finding'
 import type { Catalogo } from '../materiales/catalogo'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
@@ -119,11 +119,11 @@ function runnerSupportPiece(design: Diseno, catalog: Catalogo, group: string, si
   ]
 }
 
-function operationsFor(design: Diseno, catalog: Catalogo, finding: Hallazgo, alternative: Alternativa): Operacion[] {
-  const pieces = finding.piezas.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Pieza => !!p)
-  switch (alternative.clave) {
+function operationsFor(design: Diseno, catalog: Catalogo, finding: Finding, alternative: Alternative): Operacion[] {
+  const pieces = finding.pieces.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Pieza => !!p)
+  switch (alternative.key) {
     case 'subir-espesor':
-      return typeof alternative.datos.material === 'string' ? [{ op: 'cambiarEspesor', ids: pieces.map((p) => p.id), material: alternative.datos.material }] : []
+      return typeof alternative.data.material === 'string' ? [{ op: 'cambiarEspesor', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
     case 'divisor-al-centro':
     case 'apoyo-central':
       return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupport(design, catalog, p))
@@ -134,21 +134,21 @@ function operationsFor(design: Diseno, catalog: Catalogo, finding: Hallazgo, alt
     case 'faja-rigida':
       return backRail(design, 'faja', 'Faja trasera')
     case 'apoyo-corredera':
-      return typeof alternative.datos.grupo === 'string' && (alternative.datos.lado === 'izq' || alternative.datos.lado === 'der') ? runnerSupportPiece(design, catalog, alternative.datos.grupo, alternative.datos.lado) : []
+      return typeof alternative.data.grupo === 'string' && (alternative.data.lado === 'izq' || alternative.data.lado === 'der') ? runnerSupportPiece(design, catalog, alternative.data.grupo, alternative.data.lado) : []
     default:
       return []
   }
 }
 
 /** The alternatives of a finding that Knotty can build and that leave a valid design, each with its result. */
-export function fixesFor(design: Diseno, catalog: Catalogo, finding: Hallazgo): Fix[] {
-  return finding.alternativas.flatMap((alternative) => {
+export function fixesFor(design: Diseno, catalog: Catalogo, finding: Finding): Fix[] {
+  return finding.alternatives.flatMap((alternative) => {
     const operations = operationsFor(design, catalog, finding, alternative)
     if (!operations.length) return []
     const result = aplicar(design, operations, catalog)
     if (!result.ok) return []
     const built = completeJoints(normalize(result.valor.diseno, catalog), catalog, design)
     if (!analizar(built, catalog).valido) return []
-    return [{ key: alternative.clave, label: alternative.descripcion, operations, design: built }]
+    return [{ key: alternative.key, label: alternative.description, operations, design: built }]
   })
 }

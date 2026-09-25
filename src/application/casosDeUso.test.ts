@@ -632,7 +632,7 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
 describe('editing a piece by hand, without the expert', () => {
   const box = (estado: EstadoDiseno, id: string) => {
     const a = analizar(disenoActual(estado), catalogo)
-    if (!a.valido) throw new Error(a.errores[0].mensaje)
+    if (!a.valido) throw new Error(a.errores[0].message)
     return a.geo.boxes.get(id)!
   }
   const start = () => {
@@ -744,7 +744,7 @@ describe('notices: one place for what waits for a decision', () => {
     const fix = fixesFor(disenoActual(inicial), catalogo, sag.findings[0]).find((f) => f.key === 'divisor-al-centro')!
     const resuelto = c.applyFix(inicial, fix)
     expect(resuelto.chat.at(-1)?.texto).toBe(`Resolví: ${fix.label}.`)
-    const piece = disenoActual(inicial).piezas.find((p) => p.id === sag.findings[0].piezas[0])!.nombre
+    const piece = disenoActual(inicial).piezas.find((p) => p.id === sag.findings[0].pieces[0])!.nombre
     expect(noticeBoard(resuelto, catalogo).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
   })
 

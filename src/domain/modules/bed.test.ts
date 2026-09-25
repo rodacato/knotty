@@ -24,7 +24,7 @@ describe('buildBed', () => {
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(JSON.stringify(a.errores.slice(0, 3)))
     expect(notes).toEqual([])
-    expect(a.hallazgos.map((h) => h.mensaje)).toEqual([])
+    expect(a.hallazgos.map((h) => h.message)).toEqual([])
   })
   it('puts the drawers of the right side (seen from the foot) opening backward, and the left ones forward', () => {
     const { design } = buildBed(bed({ drawers: { side: 'both', count: 3, position: 'head' } }), catalogo)

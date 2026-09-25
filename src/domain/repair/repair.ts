@@ -30,17 +30,17 @@ const MAX_ROUNDS = 12
 type Fix = { operations: Operacion[]; repair: Repair } | null
 
 function fixLooseJoint(e: DesignError, design: Diseno): Fix {
-  const joint = design.uniones.find((u) => u.id === e.datos?.union)
+  const joint = design.uniones.find((u) => u.id === e.data?.union)
   if (!joint || joint.tipo === 'corredera') return null
   const name = (id: string) => design.piezas.find((p) => p.id === id)?.nombre ?? id
   return {
     operations: [{ op: 'eliminarUnion', id: joint.id }],
-    repair: { code: e.codigo, message: `Quité la unión entre ${name(joint.a)} y ${name(joint.b)}: no se tocan.`, pieces: [joint.a, joint.b] },
+    repair: { code: e.code, message: `Quité la unión entre ${name(joint.a)} y ${name(joint.b)}: no se tocan.`, pieces: [joint.a, joint.b] },
   }
 }
 
 function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fix {
-  const [p, q] = [e.datos?.a, e.datos?.b].map((id) => design.piezas.find((x) => x.id === id))
+  const [p, q] = [e.data?.a, e.data?.b].map((id) => design.piezas.find((x) => x.id === id))
   if (!p || !q || isDrawerPart(p) || isDrawerPart(q)) return null
   const [pb, qb] = [boxes.get(p.id)!, boxes.get(q.id)!]
   // The one that gives way: lower in the structure, then the smaller one, then the later one.
@@ -52,7 +52,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
   if (EJES.every((axis) => overlap(axis) >= g[`${axis}1`] - g[`${axis}0`] - 0.5))
     return {
       operations: [{ op: 'eliminarPieza', id: give.id }],
-      repair: { code: e.codigo, message: `Quité ${give.nombre}: estaba completa dentro de ${keep.nombre}.`, pieces: [give.id, keep.id] },
+      repair: { code: e.code, message: `Quité ${give.nombre}: estaba completa dentro de ${keep.nombre}.`, pieces: [give.id, keep.id] },
     }
 
   const size = (axis: Eje) => design.dimensiones[DIMENSION_DE_EJE[axis]]
@@ -65,7 +65,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
     if (start >= -0.5 && start + thickness <= size(normal) + 0.5)
       return {
         operations: [{ op: 'mover', id: give.id, eje: normal, cota: mm(roundTo(start)) }],
-        repair: { code: e.codigo, message: `Moví ${give.nombre} junto a ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
+        repair: { code: e.code, message: `Moví ${give.nombre} junto a ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
       }
     // No room to move out (an overlay door at the front): the other one steps back instead.
     const edge = before(normal) ? g[`${normal}1`] : g[`${normal}0`]
@@ -73,7 +73,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
     if (keep.normal === normal || left < MIN_LENGTH) return null
     return {
       operations: [{ op: 'redimensionar', id: keep.id, eje: normal, extremo: before(normal) ? 'desde' : 'hasta', cota: mm(roundTo(edge)) }],
-      repair: { code: e.codigo, message: `Recorté ${keep.nombre} hasta ${give.nombre}: se encimaban ${depth} mm.`, pieces: [keep.id, give.id] },
+      repair: { code: e.code, message: `Recorté ${keep.nombre} hasta ${give.nombre}: se encimaban ${depth} mm.`, pieces: [keep.id, give.id] },
     }
   }
 
@@ -88,7 +88,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
   if (!best) return null
   return {
     operations: [best.operation],
-    repair: { code: e.codigo, message: `Recorté ${give.nombre} hasta ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
+    repair: { code: e.code, message: `Recorté ${give.nombre} hasta ${keep.nombre}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
   }
 }
 
@@ -103,7 +103,7 @@ export function repairDesign(original: Diseno, catalog: Catalogo, requirements: 
     const errorCount = analysis.errores.length
     let applied = false
     for (const e of analysis.errores) {
-      const fix = e.codigo === 'E_UNION_SIN_CONTACTO' ? fixLooseJoint(e, design) : e.codigo === 'E_TRASLAPE' ? fixOverlap(e, design, geo.boxes) : null
+      const fix = e.code === 'E_UNION_SIN_CONTACTO' ? fixLooseJoint(e, design) : e.code === 'E_TRASLAPE' ? fixOverlap(e, design, geo.boxes) : null
       if (!fix) continue
       const result = aplicar(design, fix.operations, catalog)
       if (!result.ok) continue

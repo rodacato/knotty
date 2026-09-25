@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { Diseno } from '../diseno/esquema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
-import type { Hallazgo } from '../estructura/hallazgo'
+import type { Finding } from '../structure/finding'
 import type { Catalogo } from '../materiales/catalogo'
 import type { Compra } from '../materiales/compra'
 
@@ -54,7 +54,7 @@ interface Entrada {
   /** Con los ajustes de corte de la persona: el refilado cambia lo que cabe. */
   catalogo: Catalogo
   compra: Compra
-  hallazgos: Hallazgo[]
+  hallazgos: Finding[]
   incumplidos: string[]
   /** Titles of findings the person chose to leave as they are. */
   accepted?: string[]
@@ -122,18 +122,18 @@ function tiras({ diseno, geo }: Entrada): Comprobacion {
 }
 
 function estructura({ hallazgos, incumplidos }: Entrada): Comprobacion {
-  const criticos = hallazgos.filter((h) => h.severidad === 'critico')
-  const recomendaciones = hallazgos.filter((h) => h.severidad === 'recomendacion')
+  const criticos = hallazgos.filter((h) => h.severity === 'critico')
+  const recomendaciones = hallazgos.filter((h) => h.severity === 'recomendacion')
   if (criticos.length || incumplidos.length) {
-    const mensajes = [...incumplidos, ...criticos.map((h) => h.mensaje)]
-    const primero = criticos[0]?.alternativas[0]
+    const mensajes = [...incumplidos, ...criticos.map((h) => h.message)]
+    const primero = criticos[0]?.alternatives[0]
     return comprobacion({
       id: 'estructura',
       titulo: criticos.length + incumplidos.length === 1 ? 'Un problema de estructura' : `${criticos.length + incumplidos.length} problemas de estructura`,
       estado: 'falla',
-      piezas: [...new Set(criticos.flatMap((h) => h.piezas))],
+      piezas: [...new Set(criticos.flatMap((h) => h.pieces))],
       detalle: mensajes.slice(0, 3).join(' '),
-      pedido: primero ? primero.descripcion : null,
+      pedido: primero ? primero.description : null,
     })
   }
   if (recomendaciones.length)
@@ -141,8 +141,8 @@ function estructura({ hallazgos, incumplidos }: Entrada): Comprobacion {
       id: 'estructura',
       titulo: 'Estructura firme, con recomendaciones',
       estado: 'aviso',
-      piezas: [...new Set(recomendaciones.flatMap((h) => h.piezas))],
-      detalle: `Aguanta, pero hay ${recomendaciones.length === 1 ? 'una mejora recomendada' : `${recomendaciones.length} mejoras recomendadas`}: ${recomendaciones[0].mensaje}`,
+      piezas: [...new Set(recomendaciones.flatMap((h) => h.pieces))],
+      detalle: `Aguanta, pero hay ${recomendaciones.length === 1 ? 'una mejora recomendada' : `${recomendaciones.length} mejoras recomendadas`}: ${recomendaciones[0].message}`,
     })
   return comprobacion({ id: 'estructura', titulo: 'Estructura firme', estado: 'ok', detalle: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
 }

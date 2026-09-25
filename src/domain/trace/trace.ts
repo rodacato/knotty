@@ -23,14 +23,14 @@ const MAX_ENTRIES = 60
 
 export const appendTrace = (trace: TraceEntry[], entries: TraceEntry[]) => [...trace, ...entries].slice(-MAX_ENTRIES)
 
-export const traceErrors = (errors: DesignError[]) => errors.map((e) => ({ code: e.codigo, message: e.mensaje }))
+export const traceErrors = (errors: DesignError[]) => errors.map((e) => ({ code: e.code, message: e.message }))
 
 /** Piece ids an error talks about, so the same problem is recognized after a partial fix. */
 export function errorKey(e: DesignError) {
-  const ids = Object.values(e.datos ?? {})
+  const ids = Object.values(e.data ?? {})
     .filter((v): v is string => typeof v === 'string')
     .sort()
-  return `${e.codigo}:${ids.join(',')}`
+  return `${e.code}:${ids.join(',')}`
 }
 
 const PLAIN: Record<string, [string, string]> = {

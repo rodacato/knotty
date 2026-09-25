@@ -23,7 +23,7 @@ const cajas = (d: Diseno) => {
 }
 const valido = (d: Diseno) => {
   const a = analizar(d, catalogo)
-  return a.valido ? [] : a.errores.map((e) => e.codigo)
+  return a.valido ? [] : a.errores.map((e) => e.code)
 }
 
 const divisor = makePiece({
@@ -72,14 +72,14 @@ describe('aplicar', () => {
     expect(valido(diseno)).toEqual([])
     const a = analizar(diseno, catalogo)
     if (!a.valido) throw new Error()
-    expect(a.hallazgos.filter((h) => h.codigo === 'R1_FLECHA').map((h) => h.piezas[0])).toEqual(['piso'])
+    expect(a.hallazgos.filter((h) => h.code === 'R1_FLECHA').map((h) => h.pieces[0])).toEqual(['piso'])
   })
 
   it('eliminar una pieza congela las cotas que la referían y avisa', () => {
     const { diseno, avisos } = aplicado(librero, [{ op: 'eliminarPieza', id: 'zoclo' }])
     expect(diseno.piezas.find((p) => p.id === 'piso')!.y.desde).toEqual(mm(70))
     expect(diseno.uniones.some((u) => u.a === 'zoclo' || u.b === 'zoclo')).toBe(false)
-    expect(avisos[0].codigo).toBe('A_REFERENCIA_CONGELADA')
+    expect(avisos[0].code).toBe('A_REFERENCIA_CONGELADA')
   })
 
   it('mover conserva el largo y un entrepaño bajado sigue válido', () => {
@@ -114,13 +114,13 @@ describe('aplicar', () => {
   it('falla sin aplicar nada e indica la operación', () => {
     const r = aplicar(librero, [{ op: 'cambiarAnclajeMuro', valor: false }, { op: 'eliminarPieza', id: 'no-existe' }], catalogo)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errores[0]).toMatchObject({ codigo: 'E_PIEZA_INEXISTENTE', datos: { operacion: 1 } })
+    if (!r.ok) expect(r.errores[0]).toMatchObject({ code: 'E_PIEZA_INEXISTENTE', data: { operacion: 1 } })
     expect(librero.anclajeMuro).toBe(true)
   })
 
   it('no redimensiona en el eje del espesor', () => {
     const r = aplicar(librero, [{ op: 'redimensionar', id: 'piso', eje: 'y', extremo: 'hasta', cota: mm(200) }], catalogo)
-    expect(r.ok || r.errores[0].codigo).toBe('E_OPERACION_INVALIDA')
+    expect(r.ok || r.errores[0].code).toBe('E_OPERACION_INVALIDA')
   })
 })
 

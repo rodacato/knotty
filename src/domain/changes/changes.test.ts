@@ -9,12 +9,12 @@ import { describeChange, restorePieces } from './changes'
 
 const apply = (d: Diseno, ops: Operacion[]) => {
   const r = aplicar(d, ops, catalogo)
-  if (!r.ok) throw new Error(r.errores[0].mensaje)
+  if (!r.ok) throw new Error(r.errores[0].message)
   return r.valor.diseno
 }
 const box = (d: Diseno, id: string) => {
   const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].mensaje)
+  if (!a.valido) throw new Error(a.errores[0].message)
   return a.geo.boxes.get(id)!
 }
 
@@ -43,7 +43,7 @@ describe('restorePieces', () => {
     const removed = apply(librero, [{ op: 'eliminarPieza', id: 'entrepano-2' }, { op: 'eliminarPieza', id: 'entrepano-3' }])
     const later = apply(removed, [{ op: 'cambiarEspesor', ids: ['entrepano-1'], material: 'T15' }])
     const r = restorePieces(later, librero, ['entrepano-2'], catalogo)
-    if (!r.ok) throw new Error(r.errors[0].mensaje)
+    if (!r.ok) throw new Error(r.errors[0].message)
     expect(r.design.piezas.some((p) => p.id === 'entrepano-2')).toBe(true)
     expect(r.design.piezas.some((p) => p.id === 'entrepano-3')).toBe(false)
     expect(r.design.uniones.filter((u) => u.a === 'entrepano-2').map((u) => u.tipo)).toEqual(['soporte-repisa', 'soporte-repisa'])
@@ -53,7 +53,7 @@ describe('restorePieces', () => {
   it('reverts a changed piece and removes an added one', () => {
     const moved = apply(librero, [{ op: 'cambiarEspesor', ids: ['entrepano-1'], material: 'T15' }, { op: 'duplicarPieza', id: 'entrepano-4', nuevoId: 'entrepano-5', nombre: 'Entrepaño 5', eje: 'y', cota: { tipo: 'mm', mm: 1500 } }])
     const r = restorePieces(moved, librero, ['entrepano-1', 'entrepano-5'], catalogo)
-    if (!r.ok) throw new Error(r.errors[0].mensaje)
+    if (!r.ok) throw new Error(r.errors[0].message)
     expect(box(r.design, 'entrepano-1').y1 - box(r.design, 'entrepano-1').y0).toBe(18)
     expect(r.design.piezas.some((p) => p.id === 'entrepano-5')).toBe(false)
     expect(analizar(r.design, catalogo).valido).toBe(true)

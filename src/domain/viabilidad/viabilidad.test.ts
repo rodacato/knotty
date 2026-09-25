@@ -11,7 +11,7 @@ import { peor, revisarViabilidad } from './viabilidad'
 
 function revisar(diseno: Diseno, c: Catalogo = catalogo) {
   const a = analizar(diseno, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].mensaje)
+  if (!a.valido) throw new Error(a.errores[0].message)
   return revisarViabilidad({ diseno, geo: a.geo, catalogo: c, compra: estimarCompra(diseno, a.geo, c), hallazgos: a.hallazgos, incumplidos: [] })
 }
 const estado = (v: ReturnType<typeof revisar>, id: string) => v.comprobaciones.find((c) => c.id === id)!

@@ -10,8 +10,8 @@ import { completeJoints } from './joints'
 const signature = (d: Diseno) => d.uniones.map((u) => `${u.a} → ${u.b} ${u.tipo}`).sort()
 const criticals = (d: Diseno) => {
   const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].mensaje)
-  return a.hallazgos.filter((h) => h.severidad === 'critico')
+  if (!a.valido) throw new Error(a.errores[0].message)
+  return a.hallazgos.filter((h) => h.severity === 'critico')
 }
 
 describe('completeJoints', () => {

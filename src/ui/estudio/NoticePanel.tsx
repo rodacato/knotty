@@ -47,13 +47,13 @@ function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: Esta
   const fixes = useMemo(() => {
     const [first] = notice.findings
     if (!first) return []
-    const pieces = [...new Set(notice.findings.flatMap((h) => h.piezas))]
+    const pieces = [...new Set(notice.findings.flatMap((h) => h.pieces))]
     const general = (f: Fix) => (f.key === 'divisor-al-centro' || f.key === 'apoyo-central' ? 'Un apoyo al centro, debajo de cada una' : f.label)
     const perPiece = new Set(['divisor-al-centro', 'apoyo-central', 'subir-espesor'])
-    return fixesFor(design, catalogo, { ...first, piezas: pieces }).map((f) => (pieces.length > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${pieces.length} piezas)` } : f))
+    return fixesFor(design, catalogo, { ...first, pieces: pieces }).map((f) => (pieces.length > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${pieces.length} piezas)` } : f))
   }, [notice, design, catalogo])
   const built = new Set(fixes.map((f) => f.key))
-  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternativas).filter((a) => a.clave !== 'claro-maximo' && !built.has(a.clave)).map((a) => [a.descripcion, a])).values()]
+  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'claro-maximo' && !built.has(a.key)).map((a) => [a.description, a])).values()]
   const name = (id: string) => design.piezas.find((p) => p.id === id)?.nombre ?? id
   const inTray = estado.tray.find((t) => t.id === noticeItemId(notice.key))
   const question = notice.question && estado.chat.find((m) => m.id === notice.question!.messageId)?.preguntas[notice.question.index]
@@ -122,10 +122,10 @@ function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: Esta
           <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">A la bandeja, para el experto</p>
           <div className="flex flex-wrap gap-2">
             {forExpert.map((a) => {
-              const item = noticeItem(notice, a.descripcion)
+              const item = noticeItem(notice, a.description)
               return (
-                <Chip key={a.descripcion} activo={inTray?.text === item.text} aria-pressed={inTray?.text === item.text} disabled={pensando} onClick={() => toggleTray(item)}>
-                  <Wrench /> {a.descripcion}
+                <Chip key={a.description} activo={inTray?.text === item.text} aria-pressed={inTray?.text === item.text} disabled={pensando} onClick={() => toggleTray(item)}>
+                  <Wrench /> {a.description}
                 </Chip>
               )
             })}

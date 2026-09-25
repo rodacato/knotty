@@ -1,11 +1,11 @@
-import type { Hallazgo, Regla } from '../hallazgo'
-import { SUPUESTOS, UNIONES_RIGIDAS } from '../supuestos'
+import type { Finding, Rule } from '../finding'
+import { ASSUMPTIONS, RIGID_JOINTS } from '../assumptions'
 
 const PERIMETRO = new Set(['lateral', 'piso', 'techo'])
 const TRAVESANOS = new Set(['piso', 'techo', 'entrepano', 'faja', 'zoclo'])
 
 /** Un casco sin trasera rígida ni marco rígido se descuadra como paralelogramo al empujarlo de lado. */
-export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
+export const rackingRule: Rule = ({ design: diseno, geo }) => {
   const laterales = diseno.piezas.filter((p) => p.rol === 'lateral').map((p) => p.id)
   if (laterales.length < 2) return []
   const rol = new Map(diseno.piezas.map((p) => [p.id, p.rol]))
@@ -21,22 +21,22 @@ export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
     return perimetro(unidasA(t.id, (tipo, pegamento) => (tipo === 'rebaje' || tipo === 'canal') && pegamento)) >= 3
   })
 
-  const travesanos = diseno.piezas.filter((p) => TRAVESANOS.has(p.rol) && p.apoyo === 'fijo' && laterales.every((lat) => unidasA(p.id, (tipo) => UNIONES_RIGIDAS.includes(tipo as never)).has(lat)))
+  const travesanos = diseno.piezas.filter((p) => TRAVESANOS.has(p.rol) && p.apoyo === 'fijo' && laterales.every((lat) => unidasA(p.id, (tipo) => RIGID_JOINTS.includes(tipo as never)).has(lat)))
   const marcoRigido = travesanos.length >= 2 && travesanos.some((p) => p.rol === 'faja' || p.rol === 'zoclo')
 
   if (traseraRigida || marcoRigido) return []
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
   const alto = Math.max(...laterales.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || diseno.dimensiones.alto
-  const hallazgo: Hallazgo = {
-    codigo: 'R5_ESCUADRADO',
-    severidad: alto > SUPUESTOS.altoEscuadradoCritico ? 'critico' : 'recomendacion',
-    piezas: laterales,
-    mensaje: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
-    datos: { alto, travesanosRigidos: travesanos.length },
-    alternativas: [
-      { clave: 'trasera-6', descripcion: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', datos: { material: 'TR6' } },
-      { clave: 'trasera-en-rebaje', descripcion: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', datos: { tipo: 'rebaje' } },
-      { clave: 'faja-rigida', descripcion: 'Faja trasera superior con tornillos de bolsillo a los laterales', datos: { tipo: 'bolsillo' } },
+  const hallazgo: Finding = {
+    code: 'R5_ESCUADRADO',
+    severity: alto > ASSUMPTIONS.criticalRackingHeight ? 'critico' : 'recomendacion',
+    pieces: laterales,
+    message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
+    data: { alto, travesanosRigidos: travesanos.length },
+    alternatives: [
+      { key: 'trasera-6', description: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', data: { material: 'TR6' } },
+      { key: 'trasera-en-rebaje', description: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', data: { tipo: 'rebaje' } },
+      { key: 'faja-rigida', description: 'Faja trasera superior con tornillos de bolsillo a los laterales', data: { tipo: 'bolsillo' } },
     ],
   }
   return [hallazgo]
