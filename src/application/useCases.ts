@@ -31,7 +31,7 @@ import { buildContext } from './context'
 export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
 export type OnProgress = (stage: Stage, attempt: number, progress?: { done: number; total: number }) => void
 
-export interface Dependencies {
+interface Dependencies {
   llm: () => LLMProvider
   catalog: Catalog
   repository: DesignRepository
@@ -64,9 +64,19 @@ function questionFromAlternatives(criticals: Finding[]): Question[] {
   return options.length ? [{ text: '¿Cómo lo resolvemos?', options: options }] : []
 }
 
-/** What a purchase review was made with: if the version, the requirements or the cutting settings change, it has to be redone. */
+/** A short, stable fingerprint of a text (FNV-1a plus its length). */
+function fingerprint(text: string) {
+  let hash = 0x811c9dc5
+  for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 0x01000193) >>> 0
+  return `${hash.toString(16)}-${text.length}`
+}
+
+/**
+ * What a purchase review was made with: if the design, the requirements or the cutting settings change, it has to be redone.
+ * It keys on the design's content, not the version number, so going back to an identical version keeps the review.
+ */
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
-  JSON.stringify([state.current, state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
+  JSON.stringify([fingerprint(JSON.stringify(currentDesign(state))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
 function reviewText(cut: CutLine[], checks: Check[]) {

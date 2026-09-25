@@ -64,7 +64,7 @@ function openDb(): Promise<IDBDatabase> {
   })
 }
 
-export function indexedDbStore(): EventStore {
+function indexedDbStore(): EventStore {
   const db = openDb()
   const run = (mode: IDBTransactionMode, work: (store: IDBObjectStore) => void) =>
     db.then((d) => work(d.transaction(STORE, mode).objectStore(STORE))).catch(() => {

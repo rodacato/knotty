@@ -27,7 +27,7 @@ export const Extent = z
   .describe('On the axes of the face, two of the three are set; on the normal axis only from or only to, because the length is the thickness')
 export type Extent = z.infer<typeof Extent>
 
-export const ROLES = [
+const ROLES = [
   'side', 'bottom', 'top', 'shelf', 'divider', 'back', 'kick', 'apron',
   'door', 'drawer-front', 'drawer-side', 'drawer-bottom', 'brace', 'other',
 ] as const
@@ -66,7 +66,7 @@ export const Piece = z.object({
 })
 export type Piece = z.infer<typeof Piece>
 
-export const JOINT_TYPES = [
+const JOINT_TYPES = [
   'butt-screw', 'pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket',
   'glue-nail', 'shelf-pin', 'cup-hinge', 'drawer-slide',
 ] as const

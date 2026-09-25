@@ -4,9 +4,9 @@ import type { Box } from './resolve'
 // Where a drawer's runners go: the outer sides of its box and the piece beside each one, whatever built the drawer.
 
 /** How far from a box side a piece still counts as the one that holds its runner. */
-export const SUPPORT_REACH = 60
+const SUPPORT_REACH = 60
 
-export interface DrawerSide {
+interface DrawerSide {
   group: string
   side: Piece
   /** -1 for the left side, 1 for the right one. */

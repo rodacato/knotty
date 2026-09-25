@@ -16,8 +16,8 @@ export const Question = z.object({
 })
 export type Question = z.infer<typeof Question>
 
-export const PhotoRequest = z.object({ angle: z.string(), reason: z.string() })
-export type PhotoRequest = z.infer<typeof PhotoRequest>
+const PhotoRequest = z.object({ angle: z.string(), reason: z.string() })
+type PhotoRequest = z.infer<typeof PhotoRequest>
 
 export const Message = z.object({
   id: z.string(),
@@ -58,7 +58,7 @@ export function markAnswered(chat: Message[], answering: string | null): Message
 }
 export type Message = z.infer<typeof Message>
 
-export const Proposal = z.object({
+const Proposal = z.object({
   design: Design,
   operations: z.array(Operation),
   summary: z.string(),
@@ -73,12 +73,12 @@ export const Proposal = z.object({
   /** Why it waits for the person besides critical problems: structure removed that was not asked for, open questions. */
   holds: z.array(z.string()).default([]),
 })
-export type Proposal = z.infer<typeof Proposal>
+type Proposal = z.infer<typeof Proposal>
 
 export const Thumbnail = z.object({ angle: z.string(), dataUrl: z.string() })
 export type Thumbnail = z.infer<typeof Thumbnail>
 
-/** A version's review before buying; `signature` says which version and cutting settings it was made with. */
+/** A version's review before buying; `signature` says which design and cutting settings it was made with. */
 export const PurchaseReview = z.object({
   signature: z.string(),
   verdict: Verdict,

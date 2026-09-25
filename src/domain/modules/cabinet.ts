@@ -53,7 +53,7 @@ const pieceOf = (face: FaceRef) => face.split('.')[0]
 /** The same reference, moved along its axis. */
 const shift = (position: Position, delta: number): Position => (position.type === 'ref' ? { ...position, offset: position.offset + delta } : position.type === 'mm' ? { ...position, mm: position.mm + delta } : { ...position, offset: position.offset + delta })
 
-export interface BuiltCabinet {
+interface BuiltCabinet {
   design: Design
   /** Cells that could not be built as asked, for the person. */
   notes: string[]

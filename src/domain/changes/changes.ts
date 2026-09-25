@@ -9,7 +9,7 @@ import type { DesignError } from '../validation/errors'
 
 // What a change did to the pieces, in words, and how to bring pieces back from before it without touching the rest.
 
-export interface ChangeItem {
+interface ChangeItem {
   id: string
   name: string
   kind: 'added' | 'removed' | 'changed'
@@ -17,7 +17,7 @@ export interface ChangeItem {
   detail: string
 }
 
-export interface Change {
+interface Change {
   /** What the change touched on purpose: these can be brought back one by one. */
   direct: ChangeItem[]
   /** Pieces that only followed along (a shelf that grew because the piece got wider). */

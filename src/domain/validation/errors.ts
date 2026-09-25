@@ -1,7 +1,7 @@
 // Typed errors: the code tells the expert what to fix and the data tells it where.
 // The codes are data: they are saved in the trace and the expert reads them, so renaming one needs a migration.
 
-export type ErrorCode =
+type ErrorCode =
   | 'E_SCHEMA'
   | 'E_DUPLICATE_ID'
   | 'E_UNKNOWN_PIECE'
@@ -19,7 +19,7 @@ export type ErrorCode =
   | 'E_REQUIREMENT'
   | 'E_INVALID_OPERATION'
 
-export type WarningCode = 'W_CONTACT_WITHOUT_JOINT' | 'W_FROZEN_REFERENCE'
+type WarningCode = 'W_CONTACT_WITHOUT_JOINT' | 'W_FROZEN_REFERENCE'
 
 export interface DesignError {
   code: ErrorCode

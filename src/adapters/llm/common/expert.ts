@@ -41,6 +41,14 @@ function validate<T>(schema: z.ZodType<T>, json: unknown): T {
   return r.data
 }
 
+/**
+ * The model answered text that is not JSON: like a schema mismatch, it goes back to the model to be corrected.
+ * How much arrived and how it ends tell a cut answer from a badly written one.
+ */
+export function invalidJSON(text: string, reason = 'The answer is not valid JSON') {
+  return new InvalidResponse(text, `${reason} (${text.length} characters, ends in «${text.slice(-40).replace(/\s+/g, ' ')}»). Answer with a single complete JSON object.`)
+}
+
 const correction = (previous: unknown, errors: string): Content => ({
   kind: 'text',
   text: `## Your previous answer could not be used\n${errors}\n\nPrevious answer:\n\`\`\`json\n${JSON.stringify(previous)}\n\`\`\`\nFix it and answer again in full.`,

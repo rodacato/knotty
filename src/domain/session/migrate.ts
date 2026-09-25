@@ -65,7 +65,7 @@ const joint = fields({
   penetracion: 'depth',
   herrajes: ['hardware', list(fields({ herrajeId: 'hardwareId', cantidad: 'count' }))],
 })
-export const migrateDesign = fields({
+const migrateDesign = fields({
   esquema: 'schema',
   nombre: 'name',
   dimensiones: ['dimensions', dimensions],
@@ -106,7 +106,6 @@ const operationFields = fields({
   fondo: 'back',
   materialFondo: 'bottomMaterial',
 })
-export const migrateOperation = operationFields
 
 const requirement = fields({
   texto: 'text',

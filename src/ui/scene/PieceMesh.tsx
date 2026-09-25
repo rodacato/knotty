@@ -44,7 +44,7 @@ function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
   })
 }
 
-export interface PieceMeshProps {
+interface PieceMeshProps {
   piece: Piece
   box: Box
   tone: Tone

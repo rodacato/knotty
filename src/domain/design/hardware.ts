@@ -12,7 +12,7 @@ const CUP_DEPTH = 12
 const CUP_INSET = 22.5
 const HINGE_FROM_END = 100
 
-export type HardwarePart =
+type HardwarePart =
   /** Moves with `owner` in the exploded view. */
   | { kind: 'runner'; owner: string; box: Box }
   | { kind: 'hinge'; owner: string; center: [number, number, number]; diameter: number; depth: number }

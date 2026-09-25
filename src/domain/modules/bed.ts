@@ -10,8 +10,8 @@ import { MATTRESSES } from '../typology/typology'
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
 
-export const Mattress = z.enum(['individual', 'matrimonial', 'queen', 'king'])
-export type Mattress = z.infer<typeof Mattress>
+const Mattress = z.enum(['individual', 'matrimonial', 'queen', 'king'])
+type Mattress = z.infer<typeof Mattress>
 
 export const BedPlan = z.object({
   kind: z.literal('bed'),
@@ -48,7 +48,7 @@ const COMPARTMENT = 280
 const ONE_SHEET = 1200
 const BACK = 'TR6'
 
-export interface BedSize {
+interface BedSize {
   width: number
   length: number
   height: number
@@ -59,7 +59,7 @@ const HEADBOARD_DEPTH = 250
 const headboardDepth = (plan: BedPlan, t: number) => (plan.headboard.style === 'none' ? 0 : plan.headboard.style === 'plain' ? t : plan.headboard.depth || HEADBOARD_DEPTH)
 
 /** Outer measures from the mattress, the base and the headboard, as the furniture's width (x), height and depth (z). */
-export function bedSize(plan: BedPlan, t: number): BedSize {
+function bedSize(plan: BedPlan, t: number): BedSize {
   const [mw, ml] = MATTRESSES[plan.mattress]
   return {
     width: headboardDepth(plan, t) + ml + MATTRESS_PLAY + t,
@@ -68,7 +68,7 @@ export function bedSize(plan: BedPlan, t: number): BedSize {
   }
 }
 
-export interface BuiltBed {
+interface BuiltBed {
   design: Design
   notes: string[]
 }

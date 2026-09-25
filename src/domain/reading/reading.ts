@@ -35,7 +35,7 @@ export const PhotoReading = z.object({
 export type PhotoReading = z.infer<typeof PhotoReading>
 
 /** The angles a photo can be taken from, as the person calls them. */
-export const ANGLE_LABEL: Record<string, string> = { front: 'frente', 'three-quarter': '3/4', side: 'lateral', inside: 'interior', joints: 'uniones' }
+const ANGLE_LABEL: Record<string, string> = { front: 'frente', 'three-quarter': '3/4', side: 'lateral', inside: 'interior', joints: 'uniones' }
 export const angleLabel = (angle: string) => ANGLE_LABEL[angle] ?? angle
 
 /** Which views see each field best: the front sees the layout, the side sees the depth. */

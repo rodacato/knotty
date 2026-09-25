@@ -73,6 +73,21 @@ describe('hardware and purchase', () => {
     expect(edgeBandingMeters(exampleBookcase, geo(exampleBookcase))).toBeCloseTo(((1800 * 2 + 564 * 6) / 1000) * 1.1, 1)
   })
 
+  it('buys the edge banding by its id, not whatever else is sold by the metre', () => {
+    const rope = { id: 'drawer-rope', name: 'Cordón', unit: 'meter' as const, perPack: null, length: null, sideClearance: null, sku: null, price: 5 }
+    const catalog = { ...testCatalog, hardware: [rope, ...testCatalog.hardware] }
+    const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), catalog)
+    const tape = r.hardware.filter((h) => h.hardware.unit === 'meter')
+    expect(tape.map((h) => [h.hardware.id, h.count])).toEqual([['edge-banding-19', Math.ceil(r.edgeBanding)]])
+  })
+
+  it('a pocket screw with no price yet is listed and named as missing a price', () => {
+    const d = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.type === 'pocket-screw' ? { ...u, hardware: [{ hardwareId: 'pocket-screw-1', count: 2 }] } : u)) }
+    const r = estimatePurchase(d, geo(d), testCatalog)
+    expect(r.hardware.find((h) => h.hardware.id === 'pocket-screw-1')).toMatchObject({ count: 4, packs: 1, cost: null })
+    expect(r.cost.missingPrices).toContain('Tornillo de bolsillo 1" rosca gruesa')
+  })
+
   it('builds the list with packs and total cost', () => {
     const r = estimatePurchase(exampleWallCabinet, geo(exampleWallCabinet), testCatalog)
     const hinges = r.hardware.find((h) => h.hardware.id === 'cup-hinge-35-full')!
