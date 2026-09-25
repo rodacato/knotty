@@ -26,8 +26,8 @@ describe('esquemaEstricto', () => {
 })
 
 describe('prompts', () => {
-  // SheLLM pasa el sistema como argumento de línea de comandos y Linux lo limita a 128 KiB.
-  it.each([RECONSTRUCCION, AJUSTE, DICTAMEN])('el sistema de $id cabe con holgura en un argumento de línea de comandos', (tarea) => {
+  // El sistema viaja en cada llamada: si crece de golpe, algo se coló (por ejemplo, un catálogo enorme).
+  it.each([RECONSTRUCCION, AJUSTE, DICTAMEN])('el sistema de $id se mantiene chico', (tarea) => {
     expect(new TextEncoder().encode(sistemaPara(tarea, catalogo)).length).toBeLessThan(64 * 1024)
   })
 })
