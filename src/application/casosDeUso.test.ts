@@ -6,6 +6,7 @@ import { DEFAULT_CONSTRUCTION } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
+import { librero } from '../domain/fixtures/librero'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type LLMProvider, type PlanAdjustment, type RespuestaAjuste } from '../ports/LLMProvider'
@@ -601,5 +602,54 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     const { c, inicial } = await start(llm)
     await c.ajustar(inicial, 'Hazla de 3 metros', senal())
     expect(calls).toEqual(['ficha', 'piezas'])
+  })
+})
+
+describe('editing a piece by hand, without the expert', () => {
+  const box = (estado: EstadoDiseno, id: string) => {
+    const a = analizar(disenoActual(estado), catalogo)
+    if (!a.valido) throw new Error(a.errores[0].mensaje)
+    return a.geo.cajas.get(id)!
+  }
+  const start = () => {
+    const c = casos()
+    return { c, inicial: c.desdeEjemplo(librero) }
+  }
+
+  it('moves a shelf and changes its thickness, each in one version', () => {
+    const { c, inicial } = start()
+    const moved = c.editPiece(inicial, 'entrepano-1', { kind: 'move', axis: 'y', delta: 50 })
+    if (!moved.ok) throw new Error(moved.message)
+    expect(box(moved.estado, 'entrepano-1').y0).toBe(box(inicial, 'entrepano-1').y0 + 50)
+    expect(moved.estado.chat.at(-1)?.texto).toBe('Cambié a mano: Mover entrepaño 1 50 mm.')
+    const thinner = c.editPiece(moved.estado, 'entrepano-1', { kind: 'thickness', material: 'T15' })
+    if (!thinner.ok) throw new Error(thinner.message)
+    expect(box(thinner.estado, 'entrepano-1').y1 - box(thinner.estado, 'entrepano-1').y0).toBe(15)
+    expect(thinner.estado.versiones.map((v) => v.n)).toEqual([1, 2, 3])
+  })
+
+  it('a shelf longer than its opening is refused, and widening the whole piece is offered', () => {
+    const { c, inicial } = start()
+    const r = c.editPiece(inicial, 'entrepano-1', { kind: 'length', axis: 'x', value: 700 })
+    expect(r).toMatchObject({ ok: false, alternatives: [{ axis: 'x', value: 736, label: 'Cambiar el ancho del mueble en +136 mm' }] })
+    if (r.ok) return
+    const wider = c.resizeFurniture(inicial, 'x', r.alternatives[0].value)
+    if (!wider.ok) throw new Error(wider.message)
+    expect(disenoActual(wider.estado).dimensiones.ancho).toBe(736)
+    expect(box(wider.estado, 'entrepano-1').x1 - box(wider.estado, 'entrepano-1').x0).toBe(700)
+  })
+
+  it('on a design with a ficha, the hand edit rides on top as an extra, and widening goes through the ficha', async () => {
+    const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
+    const simulado = crearSimulado(0)
+    const c = casos({ ...simulado, planDesign: async () => ({ valor: { explicacion: 'Librero.', cabinet: plan, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
+    const inicial = await c.reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un librero' }, senal())
+    const moved = c.editPiece(inicial, 'c1-h1-rep-1', { kind: 'move', axis: 'y', delta: 40 })
+    if (!moved.ok) throw new Error(moved.message)
+    expect(currentPlan(moved.estado)).toMatchObject({ diverged: false, extras: [{ op: 'mover', id: 'c1-h1-rep-1' }] })
+    const wider = c.resizeFurniture(moved.estado, 'x', 800)
+    if (!wider.ok) throw new Error(wider.message)
+    expect(currentPlan(wider.estado).plan?.dimensions.width).toBe(800)
+    expect(currentPlan(wider.estado).extras).toHaveLength(1)
   })
 })
