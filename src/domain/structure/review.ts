@@ -1,18 +1,17 @@
-import { findingKey, type RuleContext, type Finding, type Rule } from './finding'
-import { drawerRule } from './rules/drawers'
-import { rackingRule } from './rules/racking'
-import { deflectionRule } from './rules/deflection'
-import { screwRule } from './rules/screws'
-import { jointThicknessRule } from './rules/jointThickness'
-import { baseRule, doorRule, grainRule, tippingRule } from './rules/usage'
-import { typologyRule } from '../typology/typology'
+import { findingKey, type RuleContext, type Finding } from './finding'
+import { RULES, appliesTo } from './registry'
+import { detectKind } from '../typology/typology'
 
-// Every rule over the design, the most serious findings first.
+// Every rule over the design that applies to its kind of furniture, the most serious findings first.
 
-const RULES: Rule[] = [deflectionRule, jointThicknessRule, screwRule, tippingRule, rackingRule, doorRule, baseRule, grainRule, drawerRule, typologyRule]
 const ORDER = { critical: 0, recommendation: 1, detail: 2 }
 
-export const reviewStructure = (ctx: RuleContext): Finding[] => RULES.flatMap((r) => r(ctx)).sort((a, b) => ORDER[a.severity] - ORDER[b.severity])
+export function reviewStructure(ctx: RuleContext): Finding[] {
+  const kind = detectKind(ctx.design)
+  return RULES.filter((r) => appliesTo(r, kind))
+    .flatMap((r) => r.check(ctx))
+    .sort((a, b) => ORDER[a.severity] - ORDER[b.severity])
+}
 
 /** The critical findings a change brings: those already there do not hold a new change back. */
 export function newCriticals(before: Finding[], after: Finding[]) {
