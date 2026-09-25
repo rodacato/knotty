@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent } from '../diseno/builders'
 import type { CaraRef, Diseno, Pieza } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
-import { materialPorId, type Catalogo } from '../materiales/catalogo'
+import { materialById, type Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import { MATTRESSES } from '../typology/typology'
@@ -69,8 +69,8 @@ export interface BuiltBed {
   notes: string[]
 }
 
-export function buildBed(plan: BedPlan, catalog: Catalogo): BuiltBed {
-  const t = materialPorId(catalog, plan.material)?.espesor ?? 18
+export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
+  const t = materialById(catalog, plan.material)?.espesor ?? 18
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
   const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })

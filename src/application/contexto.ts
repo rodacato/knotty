@@ -1,7 +1,7 @@
 import { analizar } from '../domain/analisis'
 import { roundTo } from '../domain/diseno/resolve'
 import { bitacoraCompacta } from '../domain/historial/historial'
-import type { Catalogo } from '../domain/materiales/catalogo'
+import type { Catalog } from '../domain/materiales/catalog'
 import { versionActual, type EstadoDiseno } from '../domain/sesion/estado'
 
 // Se manda en cada ajuste: más contexto cuesta más y distrae al experto.
@@ -12,7 +12,7 @@ const tokens = (texto: string) => Math.ceil(texto.length / 3.5)
 const SEVERIDAD = { critico: 'crítico', recomendacion: 'recomendación', detalle: 'detalle' }
 
 /** Lo que el experto necesita para un ajuste, del más estable al más volátil; si no cabe, se recorta lo más prescindible. */
-export function construirContexto(estado: EstadoDiseno, catalogo: Catalogo): string {
+export function construirContexto(estado: EstadoDiseno, catalogo: Catalog): string {
   const version = versionActual(estado)
   const diseno = version.diseno
   const analisis = analizar(diseno, catalogo, estado.requisitos)

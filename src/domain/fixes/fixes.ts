@@ -5,7 +5,7 @@ import { drawerSides } from '../diseno/drawers'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import type { Alternative, Finding } from '../structure/finding'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 
@@ -29,7 +29,7 @@ const uniqueId = (design: Diseno, base: string) => {
 }
 
 /** A vertical support under the middle of a horizontal piece, down to what is below it, dodging what is in its way. */
-function centerSupport(design: Diseno, catalog: Catalogo, target: Pieza): Operacion[] {
+function centerSupport(design: Diseno, catalog: Catalog, target: Pieza): Operacion[] {
   const analysis = analizar(design, catalog)
   const geo = analysis.geo
   const box = geo?.boxes.get(target.id)
@@ -86,7 +86,7 @@ function backRail(design: Diseno, role: 'refuerzo' | 'faja', name: string): Oper
 }
 
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
-function runnerSupportPiece(design: Diseno, catalog: Catalogo, group: string, side: 'izq' | 'der'): Operacion[] {
+function runnerSupportPiece(design: Diseno, catalog: Catalog, group: string, side: 'izq' | 'der'): Operacion[] {
   const geo = analizar(design, catalog).geo
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'izq' ? -1 : 1))
@@ -119,7 +119,7 @@ function runnerSupportPiece(design: Diseno, catalog: Catalogo, group: string, si
   ]
 }
 
-function operationsFor(design: Diseno, catalog: Catalogo, finding: Finding, alternative: Alternative): Operacion[] {
+function operationsFor(design: Diseno, catalog: Catalog, finding: Finding, alternative: Alternative): Operacion[] {
   const pieces = finding.pieces.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Pieza => !!p)
   switch (alternative.key) {
     case 'subir-espesor':
@@ -141,7 +141,7 @@ function operationsFor(design: Diseno, catalog: Catalogo, finding: Finding, alte
 }
 
 /** The alternatives of a finding that Knotty can build and that leave a valid design, each with its result. */
-export function fixesFor(design: Diseno, catalog: Catalogo, finding: Finding): Fix[] {
+export function fixesFor(design: Diseno, catalog: Catalog, finding: Finding): Fix[] {
   return finding.alternatives.flatMap((alternative) => {
     const operations = operationsFor(design, catalog, finding, alternative)
     if (!operations.length) return []

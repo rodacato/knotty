@@ -1,4 +1,4 @@
-import { materialPorId, type Catalogo } from '../materiales/catalogo'
+import { materialById, type Catalog } from '../materiales/catalog'
 import { error, success, failure, type DesignError, type Result } from '../validation/errors'
 import { DIMENSION_DE_EJE, EJES, type CaraRef, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from './esquema'
 
@@ -38,13 +38,13 @@ export function parseFace(face: CaraRef) {
 export const referencedPieces = (extent: Tramo) =>
   [extent.desde, extent.hasta].flatMap((c) => (!c ? [] : c.tipo === 'ref' ? [c.ref] : c.tipo === 'entre' ? [c.a, c.b] : [])).map((r) => parseFace(r).piece)
 
-export function resolveGeometry(design: Diseno, catalog: Catalogo): Result<Geometry> {
+export function resolveGeometry(design: Diseno, catalog: Catalog): Result<Geometry> {
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
   const extents = new Map<string, [number, number]>()
   const visiting: string[] = []
 
   const thicknessOf = (p: Pieza) => {
-    const material = materialPorId(catalog, p.material)
+    const material = materialById(catalog, p.material)
     if (!material) throw new ResolveFailure(error('E_ESPESOR_CATALOGO', `"${p.id}" usa el material "${p.material}", que no está en el catálogo.`, { pieza: p.id, material: p.material }))
     return material.espesor
   }

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { PieceEditResult } from '../../application/casosDeUso'
 import { EJES, type Eje, type Pieza } from '../../domain/diseno/esquema'
 import type { Box } from '../../domain/diseno/resolve'
-import type { Catalogo } from '../../domain/materiales/catalogo'
+import type { Catalog } from '../../domain/materiales/catalog'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
@@ -42,7 +42,7 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
   )
 }
 
-export function PieceEditor({ piece, box, catalog, enabled }: { piece: Pieza; box: Box; catalog: Catalogo; enabled: boolean }) {
+export function PieceEditor({ piece, box, catalog, enabled }: { piece: Pieza; box: Box; catalog: Catalog; enabled: boolean }) {
   const editPiece = useTienda((s) => s.editPiece)
   const resizeFurniture = useTienda((s) => s.resizeFurniture)
   const pensando = useTienda((s) => s.pensando)

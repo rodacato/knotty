@@ -1,7 +1,7 @@
 import { partway } from '../diseno/builders'
 import { DIMENSION_DE_EJE, EJES, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from '../diseno/esquema'
 import { parseFace, resolveGeometry, type Geometry } from '../diseno/resolve'
-import { materialPorId, type Catalogo } from '../materiales/catalogo'
+import { materialById, type Catalog } from '../materiales/catalog'
 import { contactBetween } from '../validation/contact'
 import { error, success, failure, type DesignWarning, type DesignError, type Result } from '../validation/errors'
 import { expandirCajon } from './cajon'
@@ -24,7 +24,7 @@ const refiereA = (cota: Cota | null, id: string) =>
   !!cota && ((cota.tipo === 'ref' && parseFace(cota.ref).piece === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
 
 /** Aplica las operaciones en orden sobre una copia. Si una falla, no se aplica ninguna. */
-export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Catalogo): Result<Aplicado> {
+export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Catalog): Result<Aplicado> {
   const diseno = structuredClone(original)
   const avisos: DesignWarning[] = []
 
@@ -131,7 +131,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
         return
       }
       case 'cambiarEspesor': {
-        if (!materialPorId(catalogo, op.material)) throw invalida('E_ESPESOR_CATALOGO', `El material "${op.material}" no está en el catálogo.`, { material: op.material })
+        if (!materialById(catalogo, op.material)) throw invalida('E_ESPESOR_CATALOGO', `El material "${op.material}" no está en el catálogo.`, { material: op.material })
         return op.ids.forEach((id) => (pieza(id).material = op.material))
       }
       case 'cambiarPropiedades': {

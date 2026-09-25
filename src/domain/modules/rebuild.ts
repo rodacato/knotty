@@ -1,7 +1,7 @@
 import type { Diseno } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import { repairDesign, type Repair } from '../repair/repair'
@@ -18,7 +18,7 @@ export interface Rebuilt {
   repairs: Repair[]
 }
 
-export function rebuildFromPlan(plan: FurniturePlan, extras: Operacion[], catalog: Catalogo, requirements: Requisito[] = []): Rebuilt {
+export function rebuildFromPlan(plan: FurniturePlan, extras: Operacion[], catalog: Catalog, requirements: Requisito[] = []): Rebuilt {
   const built = buildPlan(plan, catalog)
   let design = built.design
   const dropped: Operacion[] = []

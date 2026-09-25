@@ -1,4 +1,4 @@
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import { DIMENSION_DE_EJE, EJES, type CaraRef, type Diseno, type Eje, type Pieza } from './esquema'
 import { referencedPieces, resolveGeometry, roundTo, type Box } from './resolve'
 
@@ -14,7 +14,7 @@ interface Candidate {
   preference: number
 }
 
-export function normalize(original: Diseno, catalog: Catalogo): Diseno {
+export function normalize(original: Diseno, catalog: Catalog): Diseno {
   const r = resolveGeometry(original, catalog)
   if (!r.ok) return original
   const { boxes } = r.valor

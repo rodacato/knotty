@@ -1,6 +1,6 @@
 import type { Diseno } from '../diseno/esquema'
 import type { Geometry } from '../diseno/resolve'
-import type { Catalogo } from '../materiales/catalogo'
+import type { Catalog } from '../materiales/catalog'
 import type { Contact } from '../validation/contact'
 
 // What a rule finds: which pieces, how serious, why, and the ways out it has already worked out.
@@ -27,7 +27,7 @@ export interface Finding {
 export interface RuleContext {
   design: Diseno
   geo: Geometry
-  catalog: Catalogo
+  catalog: Catalog
   contacts: Contact[]
 }
 

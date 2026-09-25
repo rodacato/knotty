@@ -1,7 +1,7 @@
-import type { AjustesCatalogo, Catalogo } from '../domain/materiales/catalogo'
+import type { CatalogSettings, Catalog } from '../domain/materiales/catalog'
 
 export interface MaterialCatalog {
-  cargar(): Promise<Catalogo>
-  ajustes(): AjustesCatalogo
-  guardarAjustes(a: AjustesCatalogo): void
+  cargar(): Promise<Catalog>
+  ajustes(): CatalogSettings
+  guardarAjustes(a: CatalogSettings): void
 }

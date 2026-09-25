@@ -8,10 +8,10 @@ import { crearCompatible } from '../../src/adapters/llm/compatibleOpenAI'
 import { crearSimulado } from '../../src/adapters/llm/simulado/simulado'
 import { crearCasosDeUso } from '../../src/application/casosDeUso'
 import { analizar } from '../../src/domain/analisis'
-import { Catalogo } from '../../src/domain/materiales/catalogo'
-import { estimarCompra } from '../../src/domain/materiales/compra'
+import { Catalog } from '../../src/domain/materiales/catalog'
+import { estimatePurchase } from '../../src/domain/materiales/purchase'
 import { disenoActual, type EstadoDiseno } from '../../src/domain/sesion/estado'
-import { revisarViabilidad } from '../../src/domain/viabilidad/viabilidad'
+import { reviewViability } from '../../src/domain/viabilidad/viability'
 import type { LLMProvider } from '../../src/ports/LLMProvider'
 import { CASOS, type Caso } from './casos'
 
@@ -35,7 +35,7 @@ if (process.env.KNOTTY_CRUDO) {
   }
 }
 
-const catalogo = Catalogo.parse(datos)
+const catalogo = Catalog.parse(datos)
 const env = process.env
 
 /** KNOTTY_MODELOS="anthropic:claude-sonnet-5,openai:gpt-5,shellm:claude" */
@@ -157,8 +157,8 @@ async function correr(spec: string, caso: Caso): Promise<Result> {
     }
     guardarDiseno(spec, caso.id, estado)
     if (!a.valido) return { ...resultado, veredicto: 'inválido' }
-    const compra = estimarCompra(diseno, a.geo, catalogo)
-    const v = revisarViabilidad({ diseno, geo: a.geo, catalogo, compra, hallazgos: a.hallazgos, incumplidos: [] })
+    const compra = estimatePurchase(diseno, a.geo, catalogo)
+    const v = reviewViability({ design: diseno, geo: a.geo, catalog: catalogo, purchase: compra, findings: a.hallazgos, unmet: [] })
     const criticos = a.hallazgos.filter((h) => h.severity === 'critico')
     return { ...resultado, criticos: criticos.length, reglas: [...new Set(criticos.map((h) => h.code))].join(' '), veredicto: v.veredicto }
   } catch (e) {

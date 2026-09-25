@@ -12,7 +12,7 @@ import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
 import type { EstadoBoveda } from '../ports/Preferencias'
-import { aplicarAjustes, SIN_AJUSTES, type AjustesCatalogo } from '../domain/materiales/catalogo'
+import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materiales/catalog'
 import type { Servicios } from './servicios'
 
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
@@ -53,7 +53,7 @@ interface Tienda {
   /** El aviso de llaves al llegar ya se atendió o se pospuso. */
   puertaCerrada: boolean
   /** Precios y parámetros de corte del usuario sobre el catálogo. */
-  ajustesCatalogo: AjustesCatalogo
+  ajustesCatalogo: CatalogSettings
   /** El carpintero está revisando la compra; va aparte del chat para no bloquearlo. */
   dictaminando: AbortController | null
   errorDictamen: string | null
@@ -87,7 +87,7 @@ interface Tienda {
   agregarNota(texto: string): void
   quitarNota(id: string): void
   quitarDecision(tema: string): void
-  guardarAjustesCatalogo(a: AjustesCatalogo): void
+  guardarAjustesCatalogo(a: CatalogSettings): void
   dictaminar(): Promise<void>
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
@@ -179,7 +179,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   ajustesAbiertos: false,
   boveda: 'sin-boveda',
   puertaCerrada: false,
-  ajustesCatalogo: SIN_AJUSTES,
+  ajustesCatalogo: NO_SETTINGS,
   preview: null,
   dictaminando: null,
   errorDictamen: null,
@@ -412,7 +412,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     const controlador = new AbortController()
     set({ dictaminando: controlador, errorDictamen: null })
     try {
-      const dictamen = await servicios.casos.dictaminar(estado, aplicarAjustes(servicios.catalogo, ajustesCatalogo), controlador.signal)
+      const dictamen = await servicios.casos.dictaminar(estado, applySettings(servicios.catalogo, ajustesCatalogo), controlador.signal)
       // Si mientras tanto cambió el diseño, su firma ya no coincide y se ve como desactualizado.
       const vigente = get().estado
       set({ estado: vigente ? servicios.casos.guardarDictamen(vigente, dictamen) : null, dictaminando: null })

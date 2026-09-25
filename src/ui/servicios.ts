@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { CasosDeUso } from '../application/casosDeUso'
-import type { Catalogo } from '../domain/materiales/catalogo'
+import type { Catalog } from '../domain/materiales/catalog'
 import type { DebugLog } from '../ports/DebugLog'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferencias } from '../ports/Preferencias'
@@ -8,7 +8,7 @@ import type { ProcesadorImagen } from '../ports/ProcesadorImagen'
 
 export interface Servicios {
   casos: CasosDeUso
-  catalogo: Catalogo
+  catalogo: Catalog
   materiales: MaterialCatalog
   imagenes: ProcesadorImagen
   preferencias: Preferencias

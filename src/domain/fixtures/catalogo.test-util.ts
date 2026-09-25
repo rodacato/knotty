@@ -1,4 +1,4 @@
 import datos from '../../../public/catalogo/catalogo.json'
-import { Catalogo } from '../materiales/catalogo'
+import { Catalog } from '../materiales/catalog'
 
-export const catalogo = Catalogo.parse(datos)
+export const catalogo = Catalog.parse(datos)

@@ -5,9 +5,9 @@ import { completeJoints } from '../domain/diseno/joints'
 import { findingKey, type Finding } from '../domain/structure/finding'
 import { newCriticals } from '../domain/structure/review'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
-import { materialPorId, type Catalogo } from '../domain/materiales/catalogo'
-import { estimarCompra } from '../domain/materiales/compra'
-import { despiece, type RenglonDespiece } from '../domain/materiales/despiece'
+import { materialById, type Catalog } from '../domain/materiales/catalog'
+import { estimatePurchase } from '../domain/materiales/purchase'
+import { cutList, type CutLine } from '../domain/materiales/cutList'
 import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
@@ -22,7 +22,7 @@ import { detectKind } from '../domain/typology/typology'
 import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { DesignError } from '../domain/validation/errors'
-import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
+import { worst, reviewViability, type Check } from '../domain/viabilidad/viability'
 import { toggleInTray, trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type PlanAdjustment, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
@@ -33,7 +33,7 @@ export type AlAvanzar = (etapa: Etapa, intento: number, progress?: { done: numbe
 
 export interface Dependencias {
   llm: () => LLMProvider
-  catalogo: Catalogo
+  catalogo: Catalog
   repositorio: DesignRepository
   ahora?: () => string
   nuevoId?: () => string
@@ -65,14 +65,14 @@ function preguntaDeAlternativas(criticos: Finding[]): Pregunta[] {
 }
 
 /** Con qué se hizo un dictamen: si cambia la versión, los requisitos o los ajustes de corte, hay que repetirlo. */
-export const firmaDictamen = (estado: EstadoDiseno, catalogoEfectivo: Catalogo) =>
+export const firmaDictamen = (estado: EstadoDiseno, catalogoEfectivo: Catalog) =>
   JSON.stringify([estado.actual, estado.requisitos.map((r) => r.id), estado.accepted.map((a) => a.key), catalogoEfectivo.acomodo, catalogoEfectivo.materiales.map((m) => [m.id, m.hoja])])
 
 const ESTADO_COMPROBACION = { ok: 'bien', aviso: 'aviso', falla: 'FALLA' }
-function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[]) {
+function textoRevision(corte: CutLine[], comprobaciones: Check[]) {
   return [
     '## Lista de corte (largo × ancho × espesor, mm)',
-    ...corte.map((r) => `- ${r.cantidad} × ${r.nombre} (${r.material}): ${r.largo} × ${r.ancho} × ${r.espesor}`),
+    ...corte.map((r) => `- ${r.count} × ${r.name} (${r.material}): ${r.length} × ${r.width} × ${r.thickness}`),
     '',
     '## Comprobaciones de la app',
     ...comprobaciones.map((c) => `- [${ESTADO_COMPROBACION[c.estado]}] ${c.titulo}: ${c.detalle}`),
@@ -687,7 +687,7 @@ export function crearCasosDeUso(deps: Dependencias) {
             ]
     const summary =
       edit.kind === 'thickness'
-        ? `${piece.nombre} de ${materialPorId(catalogo, edit.material)?.espesor ?? '?'} mm`
+        ? `${piece.nombre} de ${materialById(catalogo, edit.material)?.espesor ?? '?'} mm`
         : edit.kind === 'move'
           ? `Mover ${piece.nombre.toLowerCase()} ${Math.abs(edit.delta)} mm`
           : `${piece.nombre} de ${Math.round(size(edit.axis))} a ${Math.round(edit.value)} mm`
@@ -814,20 +814,20 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   /** Las cuentas primero y luego el carpintero; si él no contesta, el dictamen queda solo con las cuentas. */
-  async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalogo, signal: AbortSignal): Promise<Dictamen> {
+  async function dictaminar(estado: EstadoDiseno, catalogoEfectivo: Catalog, signal: AbortSignal): Promise<Dictamen> {
     const diseno = disenoActual(estado)
     const analisis = analizar(diseno, catalogo)
     if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].message}`)
-    const compra = estimarCompra(diseno, analisis.geo, catalogoEfectivo)
+    const compra = estimatePurchase(diseno, analisis.geo, catalogoEfectivo)
     const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.message)
     const accepted = new Map(estado.accepted.map((a) => [a.key, a.title]))
-    const viabilidad = revisarViabilidad({
-      diseno,
+    const viabilidad = reviewViability({
+      design: diseno,
       geo: analisis.geo,
-      catalogo: catalogoEfectivo,
-      compra,
-      hallazgos: analisis.hallazgos.filter((h) => !accepted.has(findingKey(h))),
-      incumplidos,
+      catalog: catalogoEfectivo,
+      purchase: compra,
+      findings: analisis.hallazgos.filter((h) => !accepted.has(findingKey(h))),
+      unmet: incumplidos,
       accepted: analisis.hallazgos.flatMap((h) => accepted.get(findingKey(h)) ?? []),
     })
     const base = { firma: firmaDictamen(estado, catalogoEfectivo), comprobaciones: viabilidad.comprobaciones, fecha: ahora() }
@@ -835,14 +835,14 @@ export function crearCasosDeUso(deps: Dependencias) {
       const r = await deps.llm().dictaminar(
         {
           contexto: construirContexto(estado, catalogo),
-          revision: textoRevision(despiece(diseno, analisis.geo), viabilidad.comprobaciones),
+          revision: textoRevision(cutList(diseno, analisis.geo), viabilidad.comprobaciones),
           diseno,
           comprobaciones: viabilidad.comprobaciones,
           catalogo: catalogoEfectivo,
         },
         signal,
       )
-      return { ...base, veredicto: peor(viabilidad.veredicto, r.valor.veredicto), carpintero: { ...r.valor, origen: r.origen }, error: null }
+      return { ...base, veredicto: worst(viabilidad.veredicto, r.valor.veredicto), carpintero: { ...r.valor, origen: r.origen }, error: null }
     } catch (e) {
       if (signal.aborted) throw e
       return { ...base, veredicto: viabilidad.veredicto, carpintero: null, error: e instanceof Error ? e.message : 'El carpintero no contestó.' }

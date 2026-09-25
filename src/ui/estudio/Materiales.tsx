@@ -2,10 +2,10 @@ import { ArrowCounterClockwise, Check, Info, PencilSimple, Sliders } from '@phos
 import { useMemo, useState } from 'react'
 import type { Diseno } from '../../domain/diseno/esquema'
 import type { Geometry } from '../../domain/diseno/resolve'
-import type { AcomodoMaterial } from '../../domain/materiales/acomodo'
-import { aplicarAjustes, type Acomodo, type Catalogo } from '../../domain/materiales/catalogo'
+import type { MaterialLayout } from '../../domain/materiales/layout'
+import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materiales/catalog'
 import { firmaDictamen } from '../../application/casosDeUso'
-import { estimarCompra } from '../../domain/materiales/compra'
+import { estimatePurchase } from '../../domain/materiales/purchase'
 import type { EstadoDiseno } from '../../domain/sesion/estado'
 import { Titulo } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -82,11 +82,11 @@ function Precio({ id, valor, base, unidad }: { id: string; valor: number | null;
 }
 
 /** El acomodo de una hoja como en un plano: refilado rayado, piezas en madera, sobrante en blanco. */
-function DiagramaHoja({ a, indice, total }: { a: AcomodoMaterial; indice: number; total: number }) {
+function DiagramaHoja({ a, indice, total }: { a: MaterialLayout; indice: number; total: number }) {
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)
-  const hoja = a.hojas[indice]
-  const refilado = (a.hoja.largo - a.util.largo) / 2
+  const hoja = a.sheets[indice]
+  const refilado = (a.sheet.largo - a.usable.largo) / 2
   const patron = `rayado-${a.material}-${indice}`
   return (
     <figure className="flex flex-col gap-1.5">
@@ -94,17 +94,17 @@ function DiagramaHoja({ a, indice, total }: { a: AcomodoMaterial; indice: number
         <span>
           Hoja {indice + 1} de {total}
         </span>
-        <span className="cifras">desperdicio {porcentaje(hoja.desperdicio)}</span>
+        <span className="cifras">desperdicio {porcentaje(hoja.waste)}</span>
       </figcaption>
-      <svg viewBox={`0 0 ${a.hoja.largo} ${a.hoja.ancho}`} className="w-full rounded-md border border-linea" role="img" aria-label={`Acomodo de la hoja ${indice + 1}`}>
+      <svg viewBox={`0 0 ${a.sheet.largo} ${a.sheet.ancho}`} className="w-full rounded-md border border-linea" role="img" aria-label={`Acomodo de la hoja ${indice + 1}`}>
         <defs>
           <pattern id={patron} width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="40" stroke="var(--grafito-2)" strokeOpacity="0.25" strokeWidth="6" />
           </pattern>
         </defs>
-        <rect width={a.hoja.largo} height={a.hoja.ancho} fill={`url(#${patron})`} />
-        <rect x={refilado} y={refilado} width={a.util.largo} height={a.util.ancho} fill="var(--hueso)" />
-        {hoja.colocadas.map((c) => {
+        <rect width={a.sheet.largo} height={a.sheet.ancho} fill={`url(#${patron})`} />
+        <rect x={refilado} y={refilado} width={a.usable.largo} height={a.usable.ancho} fill="var(--hueso)" />
+        {hoja.placed.map((c) => {
           const activa = seleccion === c.id
           const grande = c.w > 360 && c.h > 110
           return (
@@ -112,9 +112,9 @@ function DiagramaHoja({ a, indice, total }: { a: AcomodoMaterial; indice: number
               <rect x={refilado + c.x} y={refilado + c.y} width={c.w} height={c.h} fill={activa ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity="0.6" strokeWidth="5" />
               {grande && (
                 <text x={refilado + c.x + c.w / 2} y={refilado + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(64, c.h * 0.32)} fill="#2b2825" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {c.nombre}
+                  {c.name}
                   <tspan x={refilado + c.x + c.w / 2} dy="1.2em" fontSize={Math.min(52, c.h * 0.26)} fillOpacity="0.7" style={{ fontFamily: 'var(--font-mono)' }}>
-                    {Math.round(c.rotada ? c.h : c.w)} × {Math.round(c.rotada ? c.w : c.h)}
+                    {Math.round(c.rotated ? c.h : c.w)} × {Math.round(c.rotated ? c.w : c.h)}
                   </tspan>
                 </text>
               )}
@@ -126,11 +126,11 @@ function DiagramaHoja({ a, indice, total }: { a: AcomodoMaterial; indice: number
   )
 }
 
-function AjustesCorte({ base }: { base: Acomodo }) {
+function AjustesCorte({ base }: { base: LayoutSettings }) {
   const ajustes = useTienda((s) => s.ajustesCatalogo)
   const guardar = useTienda((s) => s.guardarAjustesCatalogo)
   const actual = ajustes.acomodo ?? base
-  const campos: { clave: keyof Acomodo; nombre: string; ayuda: string }[] = [
+  const campos: { clave: keyof LayoutSettings; nombre: string; ayuda: string }[] = [
     { clave: 'refilado', nombre: 'Refilado', ayuda: 'Canto de fábrica que se recorta por lado' },
     { clave: 'sierra', nombre: 'Corte', ayuda: 'Lo que se come la sierra' },
     { clave: 'holgura', nombre: 'Holgura', ayuda: 'Margen por pieza' },
@@ -167,13 +167,13 @@ function AjustesCorte({ base }: { base: Acomodo }) {
   )
 }
 
-export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometry; catalogo: Catalogo; alPedir: (texto: string) => void }) {
+export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometry; catalogo: Catalog; alPedir: (texto: string) => void }) {
   const ajustes = useTienda((s) => s.ajustesCatalogo)
-  const efectivo = useMemo(() => aplicarAjustes(catalogo, ajustes), [catalogo, ajustes])
-  const compra = useMemo(() => estimarCompra(diseno, geo, efectivo), [diseno, geo, efectivo])
+  const efectivo = useMemo(() => applySettings(catalogo, ajustes), [catalogo, ajustes])
+  const compra = useMemo(() => estimatePurchase(diseno, geo, efectivo), [diseno, geo, efectivo])
   const [aunAsi, setAunAsi] = useState<string | null>(null)
   const base = (id: string) => [...catalogo.materiales, ...catalogo.herrajes].find((x) => x.id === id)?.precio ?? null
-  const totalHojas = compra.hojas.reduce((s, h) => s + h.hojas, 0)
+  const totalHojas = compra.sheets.reduce((s, h) => s + h.sheets, 0)
   const propios = Object.keys(ajustes.precios).length
   const dictamen = estado.dictamen?.firma === firmaDictamen(estado, efectivo) ? estado.dictamen : null
 
@@ -206,7 +206,7 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
         <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Costo aproximado</p>
         <p className="font-titulo text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
           <span className="text-grafito-2">~</span>
-          {pesos.format(compra.costo.total)}
+          {pesos.format(compra.cost.total)}
         </p>
         <p className="text-sm text-grafito-2">
           {totalHojas} {totalHojas === 1 ? 'hoja' : 'hojas'} de triplay, herrajes y cubrecanto.
@@ -216,33 +216,33 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
           <span>
             <span className="font-medium">Precios de referencia, no una cotización.</span> {catalogo.notaPrecios} Toca cualquier precio para poner el de tu tienda
             {propios > 0 ? `; ya pusiste ${propios === 1 ? 'uno' : propios}.` : '.'} Las cantidades son para comprar, no un plano de corte.
-            {compra.costo.faltanPrecios.length > 0 && ` Sin precio: ${compra.costo.faltanPrecios.join(', ')}.`}
+            {compra.cost.missingPrices.length > 0 && ` Sin precio: ${compra.cost.missingPrices.join(', ')}.`}
           </span>
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
         <Titulo className="text-lg">Hojas de triplay</Titulo>
-        {compra.hojas.map((h) => {
-          const a = compra.acomodo.find((x) => x.material === h.material.id)!
+        {compra.sheets.map((h) => {
+          const a = compra.layout.find((x) => x.material === h.material.id)!
           return (
             <div key={h.material.id} className="flex flex-col gap-3 rounded-2xl border border-linea bg-hueso p-4">
               <div className="flex items-start gap-3">
-                <span className="cifras grid size-10 shrink-0 place-items-center rounded-xl bg-grafito text-lg font-medium text-hueso">{h.hojas}</span>
+                <span className="cifras grid size-10 shrink-0 place-items-center rounded-xl bg-grafito text-lg font-medium text-hueso">{h.sheets}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{h.material.nombre}</p>
                   <p className="cifras text-xs text-grafito-2">
-                    {metros(h.material.hoja.ancho)} × {metros(h.material.hoja.largo)} · desperdicio {porcentaje(h.desperdicio)}
+                    {metros(h.material.hoja.ancho)} × {metros(h.material.hoja.largo)} · desperdicio {porcentaje(h.waste)}
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="cifras text-sm font-medium">{h.costo === null ? '—' : `${h.material.id in ajustes.precios ? '' : '~'}${pesos.format(h.costo)}`}</span>
+                  <span className="cifras text-sm font-medium">{h.cost === null ? '—' : `${h.material.id in ajustes.precios ? '' : '~'}${pesos.format(h.cost)}`}</span>
                   <Precio id={h.material.id} valor={h.material.precio} base={base(h.material.id)} unidad="por hoja" />
                 </div>
               </div>
-              {a.sinLugar.length > 0 && <p className="text-xs text-oxido">No caben en una hoja: {a.sinLugar.map((p) => p.nombre).join(', ')}. Cuentan como hoja aparte.</p>}
-              {a.hojas.map((_, i) => (
-                <DiagramaHoja key={i} a={a} indice={i} total={a.hojas.length} />
+              {a.unplaced.length > 0 && <p className="text-xs text-oxido">No caben en una hoja: {a.unplaced.map((p) => p.name).join(', ')}. Cuentan como hoja aparte.</p>}
+              {a.sheets.map((_, i) => (
+                <DiagramaHoja key={i} a={a} indice={i} total={a.sheets.length} />
               ))}
             </div>
           )
@@ -253,23 +253,23 @@ export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado:
       <section className="flex flex-col gap-3">
         <Titulo className="text-lg">Herrajes y consumibles</Titulo>
         <ul className="flex flex-col divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-hueso">
-          {compra.herrajes.map((r) => (
-            <li key={r.herraje.id} className="flex items-center gap-3 px-4 py-3">
+          {compra.hardware.map((r) => (
+            <li key={r.hardware.id} className="flex items-center gap-3 px-4 py-3">
               <span className="cifras min-w-12 shrink-0 text-sm font-medium">
-                {r.cantidad}
-                {r.herraje.unidad === 'metro' ? ' m' : ''}
+                {r.count}
+                {r.hardware.unidad === 'metro' ? ' m' : ''}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm">{r.herraje.nombre}</span>
-                {r.paquetes !== null && (
+                <span className="block text-sm">{r.hardware.nombre}</span>
+                {r.packs !== null && (
                   <span className="block text-xs text-grafito-2">
-                    {r.paquetes} {r.paquetes === 1 ? 'paquete' : 'paquetes'} de {r.herraje.porPaquete}
+                    {r.packs} {r.packs === 1 ? 'paquete' : 'paquetes'} de {r.hardware.porPaquete}
                   </span>
                 )}
               </span>
               <span className="flex flex-col items-end">
-                <span className="cifras text-sm">{r.costo === null ? '—' : `${r.herraje.id in ajustes.precios ? '' : '~'}${pesos.format(r.costo)}`}</span>
-                <Precio id={r.herraje.id} valor={r.herraje.precio} base={base(r.herraje.id)} unidad={r.herraje.porPaquete ? 'por paquete' : r.herraje.unidad === 'metro' ? 'por metro' : 'c/u'} />
+                <span className="cifras text-sm">{r.cost === null ? '—' : `${r.hardware.id in ajustes.precios ? '' : '~'}${pesos.format(r.cost)}`}</span>
+                <Precio id={r.hardware.id} valor={r.hardware.precio} base={base(r.hardware.id)} unidad={r.hardware.porPaquete ? 'por paquete' : r.hardware.unidad === 'metro' ? 'por metro' : 'c/u'} />
               </span>
             </li>
           ))}

@@ -1,6 +1,6 @@
 import type { Carga, Pieza } from '../../diseno/esquema'
 import { roundTo, type Box } from '../../diseno/resolve'
-import type { Catalogo } from '../../materiales/catalogo'
+import type { Catalog } from '../../materiales/catalog'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
@@ -53,7 +53,7 @@ export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
   return span > 0 ? span : null
 }
 
-function alternatives(p: Pieza, span: number, depth: number, thickness: number, load: Carga, modulus: number, catalog: Catalogo): Alternative[] {
+function alternatives(p: Pieza, span: number, depth: number, thickness: number, load: Carga, modulus: number, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
   const thicker = catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > thickness).sort((a, b) => a.espesor - b.espesor)[0]
   if (thicker)

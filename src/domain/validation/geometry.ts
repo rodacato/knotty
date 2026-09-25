@@ -1,6 +1,6 @@
 import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno } from '../diseno/esquema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
-import { hojaUtil, materialPorId, type Catalogo } from '../materiales/catalogo'
+import { usableSheet, materialById, type Catalog } from '../materiales/catalog'
 import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
 
@@ -20,7 +20,7 @@ export interface GeometryValidation {
   contacts: Contact[]
 }
 
-export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalogo): GeometryValidation {
+export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalog): GeometryValidation {
   const errors: DesignError[] = []
   const warnings: DesignWarning[] = []
   const all = contacts(geo.boxes)
@@ -92,10 +92,10 @@ export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalog
 
   for (const p of design.piezas) {
     const box = geo.boxes.get(p.id)
-    const material = materialPorId(catalog, p.material)
+    const material = materialById(catalog, p.material)
     if (!box || !material) continue
     const [length, width] = faceSize(box, p.normal)
-    const sheet = hojaUtil(catalog, material)
+    const sheet = usableSheet(catalog, material)
     if (length > sheet.largo || width > sheet.ancho)
       errors.push(
         error('E_NO_CABE_EN_HOJA', `"${p.id}" mide ${roundTo(length)} × ${roundTo(width)} mm y la hoja útil es de ${sheet.largo} × ${sheet.ancho} mm.`, {

@@ -2,7 +2,7 @@ import type { Diseno } from './diseno/esquema'
 import { resolveGeometry, type Geometry } from './diseno/resolve'
 import type { Finding } from './structure/finding'
 import { reviewStructure } from './structure/review'
-import type { Catalogo } from './materiales/catalogo'
+import type { Catalog } from './materiales/catalog'
 import { verificarRequisitos, type Requisito } from './requisitos/requisitos'
 import type { Contact } from './validation/contact'
 import type { DesignWarning, DesignError } from './validation/errors'
@@ -14,7 +14,7 @@ export type Analisis =
   | { valido: false; errores: DesignError[]; geo?: Geometry }
 
 /** Todo lo que hay que saber de un diseño antes de mostrarlo: geometría, requisitos y estructura. */
-export function analizar(diseno: Diseno, catalogo: Catalogo, requisitos: Requisito[] = []): Analisis {
+export function analizar(diseno: Diseno, catalogo: Catalog, requisitos: Requisito[] = []): Analisis {
   const resuelto = resolveGeometry(diseno, catalogo)
   if (!resuelto.ok) return { valido: false, errores: resuelto.errores }
   const geo = resuelto.valor

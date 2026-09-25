@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
 import type { CaraRef, Cota, Diseno, Pieza, Union } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
-import { materialPorId, type Catalogo } from '../materiales/catalogo'
+import { materialById, type Catalog } from '../materiales/catalog'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import { Column } from '../reading/reading'
@@ -56,9 +56,9 @@ export interface BuiltCabinet {
   notes: string[]
 }
 
-export function buildCabinet(plan: CabinetPlan, catalog: Catalogo): BuiltCabinet {
+export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
   const build = plan.construction
-  const t = materialPorId(catalog, plan.material)?.espesor ?? 18
+  const t = materialById(catalog, plan.material)?.espesor ?? 18
   const half = t / 2
   const cells = plan.columns.flatMap((c) => c.cells)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))

@@ -7,7 +7,7 @@ import { normalize } from '../diseno/normalize'
 import { resolveGeometry } from '../diseno/resolve'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
-import { despiece } from '../materiales/despiece'
+import { cutList } from '../materiales/cutList'
 import { aplicar } from './aplicar'
 import { Operacion } from './esquema'
 
@@ -146,8 +146,8 @@ describe('despiece', () => {
   it('agrupa piezas iguales', () => {
     const r = resolveGeometry(librero, catalogo)
     if (!r.ok) throw new Error()
-    const lista = despiece(librero, r.valor)
-    expect(lista.find((l) => l.ids.includes('entrepano-1'))).toMatchObject({ nombre: 'Entrepaño', cantidad: 4, largo: 564, ancho: 294, espesor: 18 })
-    expect(lista.find((l) => l.ids.includes('lat-izq'))).toMatchObject({ cantidad: 2, largo: 1800, ancho: 294 })
+    const lista = cutList(librero, r.valor)
+    expect(lista.find((l) => l.ids.includes('entrepano-1'))).toMatchObject({ name: 'Entrepaño', count: 4, length: 564, width: 294, thickness: 18 })
+    expect(lista.find((l) => l.ids.includes('lat-izq'))).toMatchObject({ count: 2, length: 1800, width: 294 })
   })
 })
