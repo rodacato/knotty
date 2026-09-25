@@ -1,7 +1,7 @@
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno } from '../domain/diseno/esquema'
 import { normalizar } from '../domain/diseno/normalizador'
-import { completarUniones } from '../domain/diseno/uniones'
+import { completeJoints } from '../domain/diseno/joints'
 import type { Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
@@ -156,7 +156,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       }
       alAvanzar('revisando', intento)
       const r = respuesta.valor
-      const diseno = completarUniones(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
+      const diseno = completeJoints(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
       const analisis = analizar(diseno, catalogo, r.requisitos)
       if (!analisis.valido) {
         trace.push(traceEntry('reconstruct', intento, started, respuesta, 'invalid', traceErrors(analisis.errores)))
@@ -274,7 +274,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
-        const nuevo = aplicado.ok ? completarUniones(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
+        const nuevo = aplicado.ok ? completeJoints(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
         const analisis = nuevo ? analizar(nuevo, catalogo, requisitos) : null
         const sinProblemasNuevos = !!analisis && !analisis.valido && !!problemasPrevios && analisis.errores.every((e) => problemasPrevios.has(errorKey(e)))
         if (!aplicado.ok || !nuevo || !analisis || (!analisis.valido && !sinProblemasNuevos)) {
