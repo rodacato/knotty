@@ -35,12 +35,12 @@ export function Stepper({ value, min, max, onChange, label }: { value: number; m
   )
 }
 
-export function NumberField({ value, onChange, label, suffix }: { value: number; onChange: (v: number) => void; label: string; suffix: string }) {
+export function NumberField({ value, onChange, label, suffix, min = 1 }: { value: number; onChange: (v: number) => void; label: string; suffix: string; min?: number }) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-grafito-2">{label}</span>
       <span className="flex items-baseline gap-1 rounded-xl border border-linea bg-hueso px-2 focus-within:border-ambar">
-        <input type="number" inputMode="numeric" min={1} value={value || ''} onChange={(e) => onChange(Number(e.target.value))} className="cifras min-h-9 w-full bg-transparent outline-none" />
+        <input type="number" inputMode="numeric" min={min} value={value || value === min ? value : ''} onChange={(e) => onChange(Number(e.target.value))} className="cifras min-h-9 w-full bg-transparent outline-none" />
         <span className="cifras text-xs text-grafito-2">{suffix}</span>
       </span>
     </label>

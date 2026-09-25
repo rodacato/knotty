@@ -7,6 +7,7 @@ import type { Operacion } from '../../../domain/operaciones/esquema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
 import type { BedPlan } from '../../../domain/modules/bed'
+import { TABLE_NAMES, type TablePlan } from '../../../domain/modules/table'
 import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaPlan, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
 
 // Respuestas fijas para desarrollar sin API: reconoce unos cuantos pedidos por palabras clave sobre los muebles de ejemplo.
@@ -38,6 +39,33 @@ const WORDS: Record<string, number> = { un: 1, uno: 1, dos: 2, tres: 3, cuatro: 
 function countBefore(text: string, word: string): number | null {
   const said = new RegExp(`(\\d|un|uno|dos|tres|cuatro)\\s+${word}`).exec(text)?.[1]
   return said ? (WORDS[said] ?? Number(said)) : null
+}
+
+const TABLES: [TablePlan['use'], RegExp, { width: number; height: number; depth: number }][] = [
+  ['desk', /escritorio/, { width: 1200, height: 750, depth: 600 }],
+  ['coffee', /mesa de centro|mesa de caf/, { width: 1000, height: 420, depth: 550 }],
+  ['side', /mesa lateral|mesa de noche|mesita/, { width: 500, height: 550, depth: 400 }],
+  ['dining', /\bmesa\b/, { width: 1500, height: 750, depth: 900 }],
+]
+
+/** A table or desk read from the request's words, or null if it is neither. */
+function tableFrom(notes: string, measures: { ancho: number; alto: number; fondo: number } | null): TablePlan | null {
+  const text = notes.toLowerCase()
+  const found = TABLES.find(([, pattern]) => pattern.test(text))
+  if (!found) return null
+  const [use, , dimensions] = found
+  const name = TABLE_NAMES[use]
+  const drawers = use === 'desk' && /caj/.test(text) ? (countBefore(text, 'caj') ?? 3) : 0
+  return {
+    kind: 'table',
+    use,
+    name: drawers ? `${name} con cajonera` : name,
+    material: 'T18',
+    dimensions: measures ? { width: measures.ancho, height: measures.alto, depth: measures.fondo } : dimensions,
+    overhang: use === 'dining' ? 50 : 0,
+    shelf: use === 'coffee' || use === 'side',
+    pedestal: { side: drawers ? (/izquier/.test(text) ? 'left' : 'right') : 'none', drawers: Math.min(4, drawers) },
+  }
 }
 
 /** A bed read from the request's words, or null if it is not a bed. */
@@ -304,12 +332,25 @@ export function crearSimulado(retraso = 900): LLMProvider {
     async planDesign(s, signal) {
       await espera(retraso, signal)
       const bed = bedFrom(s.notas)
+      const table = bed ? null : tableFrom(s.notas, s.medidas)
+      if (table)
+        return respuesta<RespuestaPlan>({
+          explicacion: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
+          cabinet: null,
+          bed: null,
+          table,
+          preguntas: [],
+          fotosSolicitadas: [],
+          requisitos: [],
+          sugerencias: table.use === 'desk' ? ['Hazlo de 1.40 m', 'Cajonera del otro lado'] : ['Hazla más larga', 'Con repisa abajo'],
+        })
       return respuesta<RespuestaPlan>({
         explicacion: bed
           ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${HEADBOARD[bed.headboard.style]}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
           : '',
         cabinet: null,
         bed,
+        table: null,
         preguntas: bed ? [{ texto: '¿Cuánto peso va a cargar la cama?', opciones: ['Una persona', 'Dos personas'] }] : [],
         fotosSolicitadas: [],
         requisitos: [],

@@ -99,19 +99,19 @@ describe('crearExperto', () => {
   })
 
   it('asks for the skeleton with its own short prompt and the board thicknesses of the catalog', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', cabinet: null, bed: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
+    const { experto, llamadas } = falso({ explicacion: 'x', cabinet: null, bed: null, table: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
     const r = await experto.planDesign!({ medidas: null, fotos: [], notas: 'una cama', lectura: null, catalogo, correccion: null }, new AbortController().signal)
     expect(r.valor.cabinet).toBeNull()
-    expect(r.origen.promptId).toBe('esqueleto@3')
+    expect(r.origen.promptId).toBe('esqueleto@4')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
     expect(llamadas[0].sistema).not.toContain('{{materiales}}')
   })
 
   it('edits the ficha with its own short prompt: the context, the current plan and the request', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', resumen: 'r', action: 'answer', plan: null, bed: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [] })
+    const { experto, llamadas } = falso({ explicacion: 'x', resumen: 'r', action: 'answer', plan: null, bed: null, table: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [] })
     const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await experto.adjustPlan!({ contexto: '## Diseño', peticion: '¿Aguanta?', plan, catalogo }, new AbortController().signal)
-    expect(r.origen.promptId).toBe('ajuste-ficha@2')
+    expect(r.origen.promptId).toBe('ajuste-ficha@3')
     expect(llamadas[0].sistema).toContain('"T15" (15 mm)')
     expect(llamadas[0].contenido[0]).toMatchObject({ texto: expect.stringMatching(/## Diseño[\s\S]*## Ficha actual\n\{"name":"Buró"[\s\S]*## Pedido de la persona\n¿Aguanta\?/) })
   })

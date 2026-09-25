@@ -8,6 +8,7 @@ import { Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { BedPlan } from '../domain/modules/bed'
 import { CabinetPlan } from '../domain/modules/cabinet'
+import { TablePlan } from '../domain/modules/table'
 import type { FurniturePlan } from '../domain/modules/plan'
 import type { PhotoReading } from '../domain/reading/reading'
 import { OpinionCarpintero, type Comprobacion } from '../domain/viabilidad/viabilidad'
@@ -57,6 +58,7 @@ export const RespuestaPlan = z.object({
   explicacion: z.string().describe('Qué entendiste y qué decidiste, en 2–4 frases para la persona'),
   cabinet: CabinetPlan.nullable().describe('El plan si el mueble es un gabinete (caja con columnas y huecos); null si no lo es'),
   bed: BedPlan.nullable().describe('La ficha si el mueble es una cama (base con o sin cajones y cabecera); null si no lo es'),
+  table: TablePlan.nullable().describe('La ficha si el mueble es una mesa o un escritorio; null si no lo es'),
   preguntas: z.array(Pregunta).describe('Lo que más cambia el diseño o la compra; máximo 3'),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
   requisitos: z.array(Requisito),
@@ -71,6 +73,7 @@ export const PlanAdjustment = z.object({
   action: z.enum(['plan', 'freeform', 'answer']).describe('plan: el cambio cabe en la ficha y va en `plan`; freeform: pide algo que la ficha no expresa; answer: no pidió un cambio'),
   plan: CabinetPlan.nullable().describe('La ficha completa del gabinete con el cambio, cuando action es "plan" y el mueble es un gabinete; null en otro caso'),
   bed: BedPlan.nullable().describe('La ficha completa de la cama con el cambio, cuando action es "plan" y el mueble es una cama; null en otro caso'),
+  table: TablePlan.nullable().describe('La ficha completa de la mesa o escritorio con el cambio, cuando action es "plan" y el mueble es una mesa; null en otro caso'),
   preguntas: z.array(Pregunta),
   sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir'),
   requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),

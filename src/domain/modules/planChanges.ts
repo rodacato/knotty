@@ -1,6 +1,7 @@
 import type { BedPlan } from './bed'
 import type { CabinetConstruction, CabinetPlan } from './cabinet'
-import { isBed, type FurniturePlan } from './plan'
+import { isBed, isTable, type FurniturePlan } from './plan'
+import type { TablePlan } from './table'
 import type { Cell } from '../reading/reading'
 
 // What changed between two plans, in words for the person and for the expert's context.
@@ -38,9 +39,29 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   return changes
 }
 
+const USE: Record<TablePlan['use'], string> = { dining: 'mesa de comedor', coffee: 'mesa de centro', side: 'mesa lateral', desk: 'escritorio' }
+const PEDESTAL: Record<TablePlan['pedestal']['side'], string> = { none: 'sin cajonera', left: 'cajonera a la izquierda', right: 'cajonera a la derecha' }
+
+function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
+  const changes: string[] = []
+  if (before.use !== after.use) changes.push(`ahora ${USE[after.use]}`)
+  else if (before.name !== after.name) changes.push(`se llama «${after.name}»`)
+  const [a, b] = [before.dimensions, after.dimensions]
+  if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
+  if (before.material !== after.material) changes.push(`material ${after.material}`)
+  if (before.overhang !== after.overhang) changes.push(after.overhang ? `cubierta que sobresale ${after.overhang} mm` : 'costados a la orilla')
+  if (before.shelf !== after.shelf) changes.push(after.shelf ? 'con repisa baja' : 'sin repisa baja')
+  if (before.pedestal.side !== after.pedestal.side) changes.push(PEDESTAL[after.pedestal.side])
+  if (after.pedestal.side !== 'none' && before.pedestal.drawers !== after.pedestal.drawers) changes.push(`${after.pedestal.drawers} ${after.pedestal.drawers === 1 ? 'cajón' : 'cajones'} en la cajonera`)
+  return changes
+}
+
+const KIND_NAME = (plan: FurniturePlan) => (isBed(plan) ? 'una cama' : isTable(plan) ? 'una mesa' : 'un gabinete')
+
 export function describePlanChanges(before: FurniturePlan, after: FurniturePlan): string[] {
   if (isBed(before) && isBed(after)) return describeBedChanges(before, after)
-  if (isBed(before) || isBed(after)) return [isBed(after) ? 'ahora es una cama' : 'ahora es un gabinete']
+  if (isTable(before) && isTable(after)) return describeTableChanges(before, after)
+  if (isBed(before) || isBed(after) || isTable(before) || isTable(after)) return [`ahora es ${KIND_NAME(after)}`]
   return describeCabinetChanges(before, after)
 }
 

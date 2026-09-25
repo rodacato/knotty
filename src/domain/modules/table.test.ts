@@ -1,0 +1,62 @@
+import { describe, expect, it } from 'vitest'
+import { analizar } from '../analisis'
+import { catalogo } from '../fixtures/catalogo.test-util'
+import { buildTable, type TablePlan } from './table'
+
+const table = (p: Partial<TablePlan> = {}): TablePlan => ({
+  kind: 'table',
+  use: 'dining',
+  name: 'Mesa de comedor',
+  material: 'T18',
+  dimensions: { width: 1500, height: 750, depth: 900 },
+  overhang: 50,
+  shelf: false,
+  pedestal: { side: 'none', drawers: 0 },
+  ...p,
+})
+
+const CASES: [string, Partial<TablePlan>][] = [
+  ['dining 150', {}],
+  ['dining 180', { dimensions: { width: 1800, height: 750, depth: 900 } }],
+  ['dining 120 flush', { dimensions: { width: 1200, height: 760, depth: 800 }, overhang: 0 }],
+  ['coffee', { use: 'coffee', name: 'Mesa de centro', dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: true }],
+  ['side', { use: 'side', name: 'Mesa lateral', dimensions: { width: 500, height: 550, depth: 400 }, overhang: 0, shelf: true }],
+  ['desk', { use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0 }],
+  ['desk 150', { use: 'desk', name: 'Escritorio', dimensions: { width: 1500, height: 750, depth: 650 }, overhang: 20 }],
+  ...([1, 2, 3, 4] as const).flatMap((drawers) =>
+    (['left', 'right'] as const).map((side): [string, Partial<TablePlan>] => [`desk ${side} ${drawers}`, { use: 'desk', name: 'Escritorio con cajonera', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side, drawers } }]),
+  ),
+]
+
+describe('buildTable', () => {
+  it.each(CASES)('%s: valid, with nothing to warn about', (_, p) => {
+    const { design, notes } = buildTable(table(p), catalogo)
+    const a = analizar(design, catalogo)
+    if (!a.valido) throw new Error(JSON.stringify(a.errores.slice(0, 3)))
+    expect(notes).toEqual([])
+    expect(a.hallazgos.map((h) => h.mensaje)).toEqual([])
+  })
+  it('carries a long top on cleats between the aprons, never more than 60 cm apart', () => {
+    const { design } = buildTable(table({ dimensions: { width: 1800, height: 750, depth: 900 } }), catalogo)
+    const geo = analizar(design, catalogo).geo!
+    const supports = design.piezas.filter((p) => p.id.startsWith('travesano') || p.rol === 'lateral').map((p) => geo.cajas.get(p.id)!).sort((a, b) => a.x0 - b.x0)
+    const gaps = supports.slice(1).map((b, i) => b.x0 - supports[i].x1)
+    expect(Math.max(...gaps)).toBeLessThanOrEqual(600)
+    expect(design.uniones.filter((u) => u.tipo === 'bolsillo')).toHaveLength(4)
+  })
+
+  it('a desk with a pedestal keeps room for the legs and its drawers open to the front', () => {
+    const { design } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'right', drawers: 3 } }), catalogo)
+    const geo = analizar(design, catalogo).geo!
+    const fronts = design.piezas.filter((p) => p.rol === 'frente-cajon').map((p) => geo.cajas.get(p.id)!)
+    expect(fronts).toHaveLength(3)
+    expect(fronts.every((b) => b.z1 === 600 && b.x0 > 1300 - 420)).toBe(true)
+    expect(geo.cajas.get('ped-div')!.x0 - geo.cajas.get('lat-izq')!.x1).toBeGreaterThanOrEqual(600)
+  })
+
+  it('a desk does not take a low shelf: it would be in the way of the legs', () => {
+    const { design, notes } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0, shelf: true }), catalogo)
+    expect(design.piezas.some((p) => p.id === 'repisa-baja')).toBe(false)
+    expect(notes).toEqual([expect.stringContaining('estorba las piernas')])
+  })
+})

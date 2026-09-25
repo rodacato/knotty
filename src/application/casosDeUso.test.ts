@@ -83,7 +83,7 @@ describe('reconstruir sin fotos', () => {
   })
 
   it('el simulado no inventa un librero cuando le piden otro mueble', async () => {
-    await expect(casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un escritorio con dos cajones' }, senal())).rejects.toThrow(/conecta un experto real/)
+    await expect(casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Una banca para el recibidor' }, senal())).rejects.toThrow(/conecta un experto real/)
   })
 })
 
@@ -440,7 +440,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
   }
-  const origen = { promptId: 'esqueleto@3', proveedor: 'x', modelo: 'm' }
+  const origen = { promptId: 'esqueleto@4', proveedor: 'x', modelo: 'm' }
   const conPlan = (cabinet: typeof cabinetPlan | null, falla = false, bed: BedPlan | null = null) => {
     const simulado = crearSimulado(0)
     const llamadas: string[] = []
@@ -449,7 +449,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
       planDesign: async () => {
         llamadas.push('plan')
         if (falla) throw new Error('sin conexión')
-        return { valor: { explicacion: 'Una cajonera de tres cajones.', cabinet, bed, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: ['Hazla más alta'] }, origen, consumo: { tokensSalida: 400 } }
+        return { valor: { explicacion: 'Una cajonera de tres cajones.', cabinet, bed, table: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: ['Hazla más alta'] }, origen, consumo: { tokensSalida: 400 } }
       },
       reconstruir: async (s, signal) => {
         llamadas.push('diseno')
@@ -518,10 +518,19 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/más grandes? que la hoja\. Trasera mide 3000/) })
   })
 
-  it('a desk or a table skips the skeleton', async () => {
+  it('a bench skips the skeleton: it has no ficha yet', async () => {
     const { llm, llamadas } = conPlan(cabinetPlan)
-    await expect(casos(llm).reconstruir(pedido('Un escritorio con un cajón'), senal())).rejects.toThrow()
+    await expect(casos(llm).reconstruir(pedido('Una banca para el recibidor'), senal())).rejects.toThrow()
     expect(llamadas).toEqual(['diseno'])
+  })
+
+  it('a desk goes through its own ficha, with the measures given', async () => {
+    const c = casos()
+    const estado = await c.reconstruir({ medidas: { ancho: 1300, alto: 750, fondo: 600 }, fotos: [], miniaturas: [], notas: 'Un escritorio con 3 cajones a la izquierda' }, senal())
+    expect(currentPlan(estado).plan).toMatchObject({ kind: 'table', use: 'desk', pedestal: { side: 'left', drawers: 3 } })
+    const design = disenoActual(estado)
+    expect(design.dimensiones).toEqual({ ancho: 1300, alto: 750, fondo: 600 })
+    expect(design.piezas.filter((p) => p.rol === 'frente-cajon')).toHaveLength(3)
   })
 
   it('a bed goes through its own ficha and Knotty builds it, measures from the mattress', async () => {
@@ -553,11 +562,11 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     const calls: string[] = []
     const llm: LLMProvider = {
       ...simulado,
-      planDesign: async () => ({ valor: { explicacion: 'Cajonera.', cabinet: drawers(3), bed: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen, consumo: {} }),
+      planDesign: async () => ({ valor: { explicacion: 'Cajonera.', cabinet: drawers(3), bed: null, table: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen, consumo: {} }),
       adjustPlan: adjust
         ? async () => {
             calls.push('ficha')
-            return { valor: { explicacion: 'Listo.', resumen: 'Cambio', action: 'plan', plan: null, bed: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], ...adjust }, origen, consumo: {} }
+            return { valor: { explicacion: 'Listo.', resumen: 'Cambio', action: 'plan', plan: null, bed: null, table: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], ...adjust }, origen, consumo: {} }
           }
         : null,
       proponerAjuste: async () => {
@@ -657,7 +666,7 @@ describe('editing a piece by hand, without the expert', () => {
   it('on a design with a ficha, the hand edit rides on top as an extra, and widening goes through the ficha', async () => {
     const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
     const simulado = crearSimulado(0)
-    const c = casos({ ...simulado, planDesign: async () => ({ valor: { explicacion: 'Librero.', cabinet: plan, bed: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
+    const c = casos({ ...simulado, planDesign: async () => ({ valor: { explicacion: 'Librero.', cabinet: plan, bed: null, table: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
     const inicial = await c.reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un librero' }, senal())
     const moved = c.editPiece(inicial, 'c1-h1-rep-1', { kind: 'move', axis: 'y', delta: 40 })
     if (!moved.ok) throw new Error(moved.message)
