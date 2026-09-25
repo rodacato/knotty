@@ -1,10 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, SlidersHorizontal, Stack, Warning, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, ListChecks, Plus, Ruler, SlidersHorizontal, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analizar } from '../../domain/analisis'
 import { diferencias } from '../../domain/diseno/diff'
-import { verificarRequisitos } from '../../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
 import { etiquetaActiva } from '../../ports/Preferencias'
 import { Chat } from '../chat/Chat'
@@ -17,8 +16,9 @@ import { disenoVisible, useTienda, type Vista } from '../tienda'
 import { Historial } from './Historial'
 import { Materiales } from './Materiales'
 import { FichaPieza } from './Paneles'
+import { noticeBoard } from '../../application/notices'
 import { PlanSheet } from './PlanSheet'
-import { Revision } from './Revision'
+import { NoticePanel } from './NoticePanel'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
   { id: 'frente', nombre: 'Frente' },
@@ -92,7 +92,7 @@ function ConfirmarNuevo({ children }: { children: ReactNode }) {
   )
 }
 
-function Encabezado({ estado }: { estado: EstadoDiseno }) {
+function Encabezado({ estado, pending, onNotices }: { estado: EstadoDiseno; pending: number; onNotices: () => void }) {
   const { preferencias } = useServicios()
   const abrirAjustes = useTienda((s) => s.abrirAjustes)
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
@@ -108,6 +108,10 @@ function Encabezado({ estado }: { estado: EstadoDiseno }) {
           {alto} × {ancho} × {fondo} mm · {cm(ancho)} de ancho
         </p>
       </div>
+      <Boton variante="fantasma" className="relative min-h-9 px-2.5" onClick={onNotices} aria-label={pending ? `${pending} avisos por decidir` : 'Avisos'} title="Avisos">
+        <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-ambar' : ''} />
+        {pending > 0 && <span className="cifras absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-oxido px-1 text-[10px] text-white">{pending}</span>}
+      </Boton>
       <Boton variante="fantasma" className="min-h-9 px-3 text-xs" onClick={() => abrirAjustes(true)} aria-label={`El experto: ${etiqueta}`}>
         <GearSix /> <span className="hidden sm:inline">{etiqueta}</span>
       </Boton>
@@ -137,11 +141,14 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   }
 
   const actual = disenoActual(estado)
-  // Los requisitos no bloquean el dibujo: si el diseño vigente no los cumple, se avisa en la revisión.
   const analisisActual = useMemo(() => analizar(actual, catalogo), [actual, catalogo])
-  const incumplidos = useMemo(() => verificarRequisitos(actual, estado.requisitos), [actual, estado.requisitos])
-  const mostrado = disenoVisible({ estado, versionVista, verPropuesta }) ?? actual
-  const propuesta = versionVista === null && estado.propuesta && verPropuesta ? estado.propuesta.diseno : null
+  const preview = useTienda((s) => s.preview)
+  const previewFix = useTienda((s) => s.previewFix)
+  // A preview belongs to the version it was built on: a new version clears it.
+  useEffect(() => previewFix(null), [estado.actual, previewFix])
+  const mostrado = preview?.design ?? disenoVisible({ estado, versionVista, verPropuesta }) ?? actual
+  const propuesta = preview?.design ?? (versionVista === null && estado.propuesta && verPropuesta ? estado.propuesta.diseno : null)
+  const board = useMemo(() => noticeBoard(estado, catalogo), [estado, catalogo])
   const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analizar(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
   const cambios = useMemo(() => {
     if (!propuesta || !analisisActual.valido || !analisisMostrado.valido) return { agregadas: [], modificadas: [] }
@@ -156,15 +163,12 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
     return () => window.removeEventListener('keydown', alTeclear)
   }, [seleccionarPieza])
 
-  const hallazgos = analisisActual.valido ? analisisActual.hallazgos : []
   const porConfirmar = actual.piezas.filter((p) => p.confianza === 'baja')
   const seleccionar = useTienda((s) => s.seleccionar)
-  const criticos = hallazgos.filter((h) => h.severidad === 'critico').length + incumplidos.length + ('errores' in analisisActual ? analisisActual.errores.length : 0)
 
   const geoMostrada = analisisMostrado.geo
   const problemasMostrados = analisisMostrado.valido ? [] : analisisMostrado.errores
   const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.datos ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
-  const problemasActuales = analisisActual.valido ? [] : analisisActual.errores
 
   const escena = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
@@ -179,7 +183,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <BarraEscena />
-        {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">Viendo la propuesta sin aplicar</span>}
+        {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">{preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar'}</span>}
         {geoMostrada && problemasMostrados.length > 0 && (
           <button
             type="button"
@@ -225,7 +229,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           { id: 'chat', nombre: 'Experto', icono: <ChatCircleText /> },
           { id: 'ficha', nombre: 'Ficha', icono: <SlidersHorizontal /> },
           { id: 'materiales', nombre: 'Materiales', icono: <Stack /> },
-          { id: 'revision', nombre: 'Revisión', icono: <ListChecks /> },
+          { id: 'revision', nombre: 'Avisos', icono: <ListChecks /> },
           { id: 'historial', nombre: 'Historial', icono: <ClockCounterClockwise /> },
         ].map((t) => (
           <Tabs.Trigger
@@ -235,7 +239,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
           >
             <span className="hidden sm:inline-flex">{t.icono}</span>
             {t.nombre}
-            {t.id === 'revision' && criticos > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-oxido text-[10px] text-white">{criticos}</span>}
+            {t.id === 'revision' && board.pending.length > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-oxido text-[10px] text-white">{board.pending.length}</span>}
           </Tabs.Trigger>
         ))}
         {!escritorio && (
@@ -258,7 +262,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         )}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
-        <Revision hallazgos={hallazgos} incumplidos={incumplidos.map((e) => e.mensaje)} problemas={problemasActuales} diseno={actual} alPedir={pedir} />
+        <NoticePanel estado={estado} onAsk={pedir} onAnswer={() => setPestana('chat')} />
       </Tabs.Content>
       <Tabs.Content value="historial" className="min-h-0 flex-1 overflow-y-auto">
         <Historial estado={estado} />
@@ -268,7 +272,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
 
   return (
     <div className="flex h-dvh flex-col">
-      <Encabezado estado={estado} />
+      <Encabezado estado={estado} pending={board.pending.length} onNotices={() => setPestana('revision')} />
       {escritorio ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {escena}

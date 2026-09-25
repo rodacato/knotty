@@ -32,6 +32,7 @@ const estado = (versiones = 1): EstadoDiseno => ({
   propuesta: null,
   dictamen: null,
   trace: [],
+  accepted: [],
 })
 
 describe('repositorio localStorage', () => {

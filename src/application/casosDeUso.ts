@@ -2,7 +2,7 @@ import { analizar } from '../domain/analisis'
 import { DIMENSION_DE_EJE, type Cota, type Dimensiones, type Diseno, type Eje } from '../domain/diseno/esquema'
 import { normalizar } from '../domain/diseno/normalizador'
 import { completeJoints } from '../domain/diseno/joints'
-import type { Hallazgo } from '../domain/estructura/hallazgo'
+import { claveHallazgo, type Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
 import { materialPorId, type Catalogo } from '../domain/materiales/catalogo'
@@ -13,6 +13,7 @@ import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import { describeChange, restorePieces } from '../domain/changes/changes'
+import type { Fix } from '../domain/fixes/fixes'
 import { buildCabinet, CabinetPlan } from '../domain/modules/cabinet'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
@@ -64,7 +65,7 @@ function preguntaDeAlternativas(criticos: Hallazgo[]): Pregunta[] {
 
 /** Con qué se hizo un dictamen: si cambia la versión, los requisitos o los ajustes de corte, hay que repetirlo. */
 export const firmaDictamen = (estado: EstadoDiseno, catalogoEfectivo: Catalogo) =>
-  JSON.stringify([estado.actual, estado.requisitos.map((r) => r.id), catalogoEfectivo.acomodo, catalogoEfectivo.materiales.map((m) => [m.id, m.hoja])])
+  JSON.stringify([estado.actual, estado.requisitos.map((r) => r.id), estado.accepted.map((a) => a.key), catalogoEfectivo.acomodo, catalogoEfectivo.materiales.map((m) => [m.id, m.hoja])])
 
 const ESTADO_COMPROBACION = { ok: 'bien', aviso: 'aviso', falla: 'FALLA' }
 function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[]) {
@@ -357,6 +358,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       propuesta: null,
       dictamen: null,
       trace,
+      accepted: [],
     }
   }
 
@@ -628,6 +630,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       propuesta: null,
       dictamen: null,
       trace: [],
+      accepted: [],
     })
   }
 
@@ -758,6 +761,24 @@ export function crearCasosDeUso(deps: Dependencias) {
     return restoreFromVersion(estado, n, ids)
   }
 
+  /** The person leaves a finding as it is: it stops counting as pending and the verdict mentions it. */
+  function acceptNotice(estado: EstadoDiseno, findings: Hallazgo[], title: string): EstadoDiseno {
+    const keys = new Set(estado.accepted.map((a) => a.key))
+    const added = findings.map(claveHallazgo).filter((k) => !keys.has(k)).map((key) => ({ key, title, at: ahora() }))
+    return guardar({ ...estado, accepted: [...estado.accepted, ...added] })
+  }
+
+  function reopenNotice(estado: EstadoDiseno, findings: Hallazgo[]): EstadoDiseno {
+    const keys = new Set(findings.map(claveHallazgo))
+    return guardar({ ...estado, accepted: estado.accepted.filter((a) => !keys.has(a.key)) })
+  }
+
+  /** A solution Knotty built: applied as one version, with no expert. */
+  function applyFix(estado: EstadoDiseno, fix: Fix): EstadoDiseno {
+    const withVersion = conVersion(estado, fix.design, { resumen: fix.label.slice(0, 90), motivo: `Solución: ${fix.label}`, operaciones: fix.operations, origen: null, ...layered(currentPlan(estado), fix.operations) })
+    return guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Resolví: ${fix.label}.`, { version: withVersion.actual })] })
+  }
+
   function nuevoDiseno() {
     repositorio.borrar()
   }
@@ -769,7 +790,16 @@ export function crearCasosDeUso(deps: Dependencias) {
     if (!analisis.valido) throw new ErrorExperto(`El diseño tiene errores y no se puede revisar la compra: ${analisis.errores[0].mensaje}`)
     const compra = estimarCompra(diseno, analisis.geo, catalogoEfectivo)
     const incumplidos = verificarRequisitos(diseno, estado.requisitos).map((e) => e.mensaje)
-    const viabilidad = revisarViabilidad({ diseno, geo: analisis.geo, catalogo: catalogoEfectivo, compra, hallazgos: analisis.hallazgos, incumplidos })
+    const accepted = new Map(estado.accepted.map((a) => [a.key, a.title]))
+    const viabilidad = revisarViabilidad({
+      diseno,
+      geo: analisis.geo,
+      catalogo: catalogoEfectivo,
+      compra,
+      hallazgos: analisis.hallazgos.filter((h) => !accepted.has(claveHallazgo(h))),
+      incumplidos,
+      accepted: analisis.hallazgos.flatMap((h) => accepted.get(claveHallazgo(h)) ?? []),
+    })
     const base = { firma: firmaDictamen(estado, catalogoEfectivo), comprobaciones: viabilidad.comprobaciones, fecha: ahora() }
     try {
       const r = await deps.llm().dictaminar(
@@ -813,6 +843,9 @@ export function crearCasosDeUso(deps: Dependencias) {
     applyPlan,
     restoreFromVersion,
     undoChange,
+    acceptNotice,
+    reopenNotice,
+    applyFix,
     editPiece,
     resizeFurniture,
     cargar,
