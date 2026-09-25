@@ -4,6 +4,7 @@ import { claveHallazgo, type Hallazgo, type Severidad } from '../domain/estructu
 import type { Catalogo } from '../domain/materiales/catalogo'
 import { verificarRequisitos } from '../domain/requisitos/requisitos'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
+import { noticeItemId, type TrayItem } from '../domain/tray/tray'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.
 
@@ -124,4 +125,15 @@ export function noticeBoard(estado: EstadoDiseno, catalog: Catalogo): NoticeBoar
 
   const sort = (list: Notice[]) => [...list].sort((a, b) => RANK[a.severity] - RANK[b.severity])
   return { pending: sort([...extra, ...all.filter((n) => !isAccepted(n))]), accepted: all.filter(isAccepted), resolved }
+}
+
+/** A notice for the expert: with one of its alternatives, or for the expert to decide how. */
+export function noticeItem(notice: Notice, alternative: string | null): TrayItem {
+  return {
+    id: noticeItemId(notice.key),
+    kind: 'notice',
+    text: alternative ? `${notice.message} ${alternative}.` : `Corrige esto: ${notice.message}`,
+    label: `${notice.title}: ${alternative ?? 'que decida el experto'}`,
+    answers: null,
+  }
 }
