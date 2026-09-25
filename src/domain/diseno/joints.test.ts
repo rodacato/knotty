@@ -41,6 +41,11 @@ describe('completeJoints', () => {
     expect(completeJoints(withoutOne, catalogo).uniones).toHaveLength(librero.uniones.length)
   })
 
+  it('pieces the model grouped into parts still get their joints; only drawer parts are skipped', () => {
+    const grouped = { ...librero, uniones: [], piezas: librero.piezas.map((p) => ({ ...p, grupo: 'casco' })) }
+    expect(signature(completeJoints(grouped, catalogo))).toEqual(signature(completeJoints({ ...librero, uniones: [] }, catalogo)))
+  })
+
   it('is deterministic', () => {
     const empty = { ...librero, uniones: [] }
     expect(completeJoints(empty, catalogo)).toEqual(completeJoints(structuredClone(empty), catalogo))

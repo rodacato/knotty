@@ -1,4 +1,4 @@
-import { CheckCircle, WarningCircle, XCircle } from '@phosphor-icons/react'
+import { CheckCircle, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
 import type { TraceEntry } from '../../domain/trace/trace'
 
 const STEP: Record<TraceEntry['step'], string> = { reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
@@ -40,6 +40,15 @@ export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?:
               {OUTCOME[t.outcome].label}
               {t.promptId ? ` · ${t.promptId}` : ''}
             </span>
+            {t.repairs.length > 0 && (
+              <ul className="flex flex-col gap-0.5 text-xs">
+                {t.repairs.map((r, j) => (
+                  <li key={j} className="flex items-start gap-1.5">
+                    <Wrench className="mt-0.5 shrink-0 text-pizarra" /> {r}
+                  </li>
+                ))}
+              </ul>
+            )}
             {t.errors.length > 0 && (
               <ul className="list-disc pl-5 text-xs">
                 {t.errors.slice(0, 5).map((e, j) => (

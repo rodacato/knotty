@@ -32,6 +32,9 @@ export const ROLES = [
   'puerta', 'frente-cajon', 'costado-cajon', 'fondo-cajon', 'refuerzo', 'otro',
 ] as const
 export const Rol = z.enum(ROLES)
+
+/** Pieces made by the drawer macro: they bring their own joints and clearances. */
+export const isDrawerPart = (p: { rol: string }) => p.rol.endsWith('-cajon')
 export type Rol = z.infer<typeof Rol>
 
 export const Veta = z.enum(['largo', 'ancho', 'libre']).describe('Dirección de la veta respecto al lado largo de la cara')
