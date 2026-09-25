@@ -5,112 +5,112 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Design } from '../../domain/diseno/schema'
 import type { Geometry } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
-import { useTienda, type Vista } from '../tienda'
+import { useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { Hardware } from './Hardware'
 import { PieceMeasures } from './PieceMeasures'
-import { Aserrin } from './Aserrin'
-import { Pieza } from './Pieza'
-import { Saliente } from './Saliente'
-import { useMovimientoReducido, useOscuro, useTactil } from './preferencias'
+import { Sawdust } from './Sawdust'
+import { PieceMesh } from './PieceMesh'
+import { RemovedGhost } from './RemovedGhost'
+import { useReducedMotion, useDark, useTouch } from './preferences'
 
 const MM = 0.001
 
-interface PropsEscena {
-  diseno: Design
+interface SceneProps {
+  design: Design
   geo: Geometry
-  catalogo: Catalog
-  /** Piezas nuevas de una propuesta: fantasma ámbar. */
-  fantasmas: string[]
-  /** Piezas que una propuesta cambia: aristas ámbar. */
-  marcadas: string[]
+  catalog: Catalog
+  /** New pieces from a proposal: amber ghost. */
+  ghosts: string[]
+  /** Pieces a proposal changes: amber edges. */
+  marked: string[]
   /** Pieces with unresolved validation problems. */
-  problemas?: string[]
+  problems?: string[]
 }
 
-/** Cuánto se separa cada pieza en la vista de armado: hacia afuera del centro, sobre todo en la dirección de su espesor, sin bajar del piso. */
-function desplazamientos(geo: Geometry, diseno: Design, activo: boolean) {
-  const cero = new Map(diseno.piezas.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
-  if (!activo) return { empujes: cero, alto: diseno.dimensiones.alto * MM }
-  const { ancho, alto, fondo } = diseno.dimensiones
-  const centro = { x: ancho / 2, y: alto / 2, z: fondo / 2 }
-  const escala = Math.max(ancho, fondo, alto * 0.5)
-  // Los cajones salen enteros hacia el frente, como si se abrieran, en lugar de desarmarse.
-  const cajones = new Map<string, number>()
-  for (const p of diseno.piezas)
+/** How far each piece moves apart in the assembly view: away from the center, mostly along its thickness, never below the floor. */
+function offsets(geo: Geometry, design: Design, active: boolean) {
+  const zero = new Map(design.piezas.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
+  if (!active) return { pushes: zero, height: design.dimensiones.alto * MM }
+  const { ancho: width, alto: height, fondo: background } = design.dimensiones
+  const center = { x: width / 2, y: height / 2, z: background / 2 }
+  const scale = Math.max(width, background, height * 0.5)
+  // Drawers slide out whole towards the front, as if opened, instead of coming apart.
+  const drawers = new Map<string, number>()
+  for (const p of design.piezas)
     if (p.grupo && p.rol === 'costado-cajon' && p.normal === 'x') {
       const c = geo.boxes.get(p.id)!
-      const frente = diseno.piezas.find((q) => q.grupo === p.grupo && q.rol === 'frente-cajon')
-      const f = frente && geo.boxes.get(frente.id)
+      const front = design.piezas.find((q) => q.grupo === p.grupo && q.rol === 'frente-cajon')
+      const f = front && geo.boxes.get(front.id)
       // A drawer on the far side of a bed opens backward.
-      const sentido = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
-      cajones.set(p.grupo, (c.z1 - c.z0) * 0.75 * sentido)
+      const direction = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
+      drawers.set(p.grupo, (c.z1 - c.z0) * 0.75 * direction)
     }
-  const crudos = diseno.piezas.map((p) => {
+  const raw = design.piezas.map((p) => {
     const c = geo.boxes.get(p.id)!
-    const salida = p.grupo ? cajones.get(p.grupo) : undefined
-    if (salida !== undefined) return { id: p.id, c, empuje: { x: 0, y: 0, z: salida } }
-    const d = { x: (c.x0 + c.x1) / 2 - centro.x, y: (c.y0 + c.y1) / 2 - centro.y, z: (c.z0 + c.z1) / 2 - centro.z }
+    const output = p.grupo ? drawers.get(p.grupo) : undefined
+    if (output !== undefined) return { id: p.id, c, push: { x: 0, y: 0, z: output } }
+    const d = { x: (c.x0 + c.x1) / 2 - center.x, y: (c.y0 + c.y1) / 2 - center.y, z: (c.z0 + c.z1) / 2 - center.z }
     const n = p.normal
-    const lado = Math.sign(d[n]) || (n === 'z' ? -1 : 1)
-    const empuje = { x: d.x * 0.3, y: d.y * 0.18, z: d.z * 0.3 }
-    empuje[n] += lado * escala * 0.22 + d[n] * (n === 'y' ? 0.25 : 0.35)
-    return { id: p.id, c, empuje }
+    const side = Math.sign(d[n]) || (n === 'z' ? -1 : 1)
+    const push = { x: d.x * 0.3, y: d.y * 0.18, z: d.z * 0.3 }
+    push[n] += side * scale * 0.22 + d[n] * (n === 'y' ? 0.25 : 0.35)
+    return { id: p.id, c, push }
   })
-  const elevar = Math.max(0, ...crudos.map(({ c, empuje }) => -(c.y0 + empuje.y))) + (crudos.some(({ c, empuje }) => c.y0 + empuje.y < 0) ? 20 : 0)
-  const empujes = new Map(crudos.map(({ id, empuje }) => [id, [empuje.x * MM, (empuje.y + elevar) * MM, empuje.z * MM] as [number, number, number]]))
-  const tope = Math.max(...crudos.map(({ c, empuje }) => c.y1 + empuje.y + elevar))
-  return { empujes, alto: tope * MM }
+  const lift = Math.max(0, ...raw.map(({ c, push }) => -(c.y0 + push.y))) + (raw.some(({ c, push }) => c.y0 + push.y < 0) ? 20 : 0)
+  const pushes = new Map(raw.map(({ id, push }) => [id, [push.x * MM, (push.y + lift) * MM, push.z * MM] as [number, number, number]]))
+  const cap = Math.max(...raw.map(({ c, push }) => c.y1 + push.y + lift))
+  return { pushes, height: cap * MM }
 }
 
-function Camara({ diseno, altoVisible, reducido }: { diseno: Design; altoVisible: number; reducido: boolean }) {
-  const controles = useRef<CameraControls>(null)
-  const vista = useTienda((s) => s.vista)
-  const explosion = useTienda((s) => s.explosion)
-  const { ancho, alto, fondo } = diseno.dimensiones
+function CameraRig({ design, visibleHeight, reduced }: { design: Design; visibleHeight: number; reduced: boolean }) {
+  const controls = useRef<CameraControls>(null)
+  const view = useStore((s) => s.view)
+  const exploded = useStore((s) => s.exploded)
+  const { ancho: width, alto: height, fondo: background } = design.dimensiones
 
   useEffect(() => {
-    const c = controles.current
+    const c = controls.current
     if (!c) return
-    const a = ancho * MM
-    const h = altoVisible
-    const f = fondo * MM
-    const d = Math.max(a * (explosion ? 1.5 : 1), h, f * (explosion ? 1.5 : 1)) * 1.7 + 0.4
-    const posiciones: Record<Vista, [number, number, number]> = {
-      frente: [0, h / 2, d + f / 2],
-      lado: [d + a / 2, h / 2, 0],
-      'tres-cuartos': [d * 0.72, h * 0.7 + d * 0.28, d * 0.82],
-      arriba: [0, d + h, 0.001],
+    const a = width * MM
+    const h = visibleHeight
+    const f = background * MM
+    const d = Math.max(a * (exploded ? 1.5 : 1), h, f * (exploded ? 1.5 : 1)) * 1.7 + 0.4
+    const positions: Record<View, [number, number, number]> = {
+      front: [0, h / 2, d + f / 2],
+      side: [d + a / 2, h / 2, 0],
+      'three-quarter': [d * 0.72, h * 0.7 + d * 0.28, d * 0.82],
+      top: [0, d + h, 0.001],
     }
-    const [x, y, z] = posiciones[vista.nombre]
-    void c.setLookAt(x, y, z, 0, h / 2, 0, !reducido)
-  }, [vista, ancho, alto, fondo, explosion, altoVisible, reducido])
+    const [x, y, z] = positions[view.name]
+    void c.setLookAt(x, y, z, 0, h / 2, 0, !reduced)
+  }, [view, width, height, background, exploded, visibleHeight, reduced])
 
-  return <CameraControls ref={controles} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
+  return <CameraControls ref={controls} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
 }
 
-export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas = [] }: PropsEscena) {
-  const seleccion = useTienda((s) => s.seleccion)
-  const explosion = useTienda((s) => s.explosion)
-  const cotas = useTienda((s) => s.cotas)
-  const cambios = useTienda((s) => s.cambios)
-  const revelado = useTienda((s) => s.revelado)
-  const seleccionar = useTienda((s) => s.seleccionar)
-  const tactil = useTactil()
-  const reducido = useMovimientoReducido()
-  const [calidad, setCalidad] = useState(!tactil)
-  const oscuro = useOscuro()
+export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: SceneProps) {
+  const selection = useStore((s) => s.selection)
+  const exploded = useStore((s) => s.exploded)
+  const dimensions = useStore((s) => s.dimensions)
+  const changes = useStore((s) => s.changes)
+  const reveal = useStore((s) => s.reveal)
+  const select = useStore((s) => s.select)
+  const touch = useTouch()
+  const reduced = useReducedMotion()
+  const [quality, setQuality] = useState(!touch)
+  const dark = useDark()
 
-  const { empujes, alto: altoVisible } = useMemo(() => desplazamientos(geo, diseno, explosion), [geo, diseno, explosion])
-  const tipoDe = (material: string) => (catalogo.materiales.find((m) => m.id === material)?.tipo === 'trasera' ? 'trasera' : 'triplay')
-  const orden = useMemo(() => [...diseno.piezas].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [diseno, geo])
+  const { pushes, height: visibleHeight } = useMemo(() => offsets(geo, design, exploded), [geo, design, exploded])
+  const kindOf = (material: string) => (catalog.materiales.find((m) => m.id === material)?.tipo === 'trasera' ? 'back' : 'plywood')
+  const order = useMemo(() => [...design.piezas].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
-    <Canvas frameloop="demand" shadows dpr={[1, tactil ? 1.5 : calidad ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => seleccionar(null)}>
-      <PerformanceMonitor onDecline={() => setCalidad(false)} onIncline={() => setCalidad(true)} />
-      <Camara diseno={diseno} altoVisible={altoVisible} reducido={reducido} />
-      <hemisphereLight args={[oscuro ? '#6b5f52' : '#fff6e8', oscuro ? '#1a1612' : '#b89a78', oscuro ? 0.5 : 0.8]} />
-      <directionalLight position={[2.5, 4.5, 3.2]} intensity={oscuro ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={tactil ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
+    <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
+      <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
+      <CameraRig design={design} visibleHeight={visibleHeight} reduced={reduced} />
+      <hemisphereLight args={[dark ? '#6b5f52' : '#fff6e8', dark ? '#1a1612' : '#b89a78', dark ? 0.5 : 0.8]} />
+      <directionalLight position={[2.5, 4.5, 3.2]} intensity={dark ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
       </directionalLight>
       <Environment resolution={256} frames={1}>
@@ -119,56 +119,56 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
         <Lightformer form="rect" intensity={0.6} position={[4, 1.5, -1]} rotation-y={-Math.PI / 2} scale={[4, 3, 1]} color="#dfe7ff" />
       </Environment>
 
-      <group position={[(-diseno.dimensiones.ancho / 2) * MM, 0, (-diseno.dimensiones.fondo / 2) * MM]}>
-        {diseno.piezas.map((p) => (
-          <Pieza
-            key={`${p.id}-${revelado}`}
-            pieza={p}
-            caja={geo.boxes.get(p.id)!}
-            tono={tipoDe(p.material)}
-            desplazamiento={empujes.get(p.id)!}
-            seleccionada={seleccion === p.id}
-            atenuada={!!seleccion && seleccion !== p.id}
-            fantasma={fantasmas.includes(p.id)}
-            marcada={marcadas.includes(p.id)}
-            problema={problemas.includes(p.id)}
-            resaltar={cambios.modificadas.includes(p.id) ? cambios.vez : 0}
-            nueva={cambios.agregadas.includes(p.id)}
-            reducido={reducido}
-            retraso={cambios.agregadas.includes(p.id) ? 0 : orden.indexOf(p.id) * 70}
-            onSeleccionar={seleccionar}
+      <group position={[(-design.dimensiones.ancho / 2) * MM, 0, (-design.dimensiones.fondo / 2) * MM]}>
+        {design.piezas.map((p) => (
+          <PieceMesh
+            key={`${p.id}-${reveal}`}
+            piece={p}
+            box={geo.boxes.get(p.id)!}
+            tone={kindOf(p.material)}
+            offset={pushes.get(p.id)!}
+            selected={selection === p.id}
+            dimmed={!!selection && selection !== p.id}
+            ghost={ghosts.includes(p.id)}
+            marked={marked.includes(p.id)}
+            problem={problems.includes(p.id)}
+            highlight={changes.modified.includes(p.id) ? changes.nonce : 0}
+            isNew={changes.added.includes(p.id)}
+            reduced={reduced}
+            delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
+            onSelect={select}
           />
         ))}
-        <Hardware design={diseno} geo={geo} offsets={empujes} selected={seleccion} />
-        {cambios.eliminadas.filter(() => !reducido).map(({ pieza, caja }) => (
-          <Saliente key={`${pieza.id}-${cambios.vez}`} caja={caja} />
+        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} />
+        {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
+          <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}
-        {cambios.agregadas
-          .filter((id) => !reducido && geo.boxes.has(id))
+        {changes.added
+          .filter((id) => !reduced && geo.boxes.has(id))
           .map((id) => {
             const c = geo.boxes.get(id)!
-            const [dx, dy, dz] = empujes.get(id) ?? [0, 0, 0]
-            return <Aserrin key={`${id}-${cambios.vez}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
+            const [dx, dy, dz] = pushes.get(id) ?? [0, 0, 0]
+            return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {cotas && !explosion && <DimensionLines dimensions={diseno.dimensiones} dark={oscuro} />}
-        {cotas && explosion && <PieceMeasures design={diseno} geo={geo} offsets={empujes} dark={oscuro} selected={seleccion} />}
+        {dimensions && !exploded && <DimensionLines dimensions={design.dimensiones} dark={dark} />}
+        {dimensions && exploded && <PieceMeasures design={design} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
       </group>
 
-      <ContactShadows position={[0, 0.0005, 0]} opacity={oscuro ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
+      <ContactShadows position={[0, 0.0005, 0]} opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
       <Grid
         position={[0, 0, 0]}
         args={[20, 20]}
         cellSize={0.1}
         cellThickness={0.6}
-        cellColor={oscuro ? '#3a332c' : '#d9ccb8'}
+        cellColor={dark ? '#3a332c' : '#d9ccb8'}
         sectionSize={0.5}
         sectionThickness={1}
-        sectionColor={oscuro ? '#4a4038' : '#c9b89e'}
+        sectionColor={dark ? '#4a4038' : '#c9b89e'}
         fadeDistance={9}
         fadeStrength={1.5}
         infiniteGrid
       />
-      {calidad && (
+      {quality && (
         <EffectComposer multisampling={0}>
           <N8AO aoRadius={0.25} distanceFalloff={0.6} intensity={2.2} quality="medium" halfRes />
         </EffectComposer>

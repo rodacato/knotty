@@ -3,13 +3,13 @@ import { Edges } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MeshStandardMaterial, Texture } from 'three'
-import type { Axis, Piece as TPieza } from '../../domain/diseno/schema'
+import type { Axis, Piece } from '../../domain/diseno/schema'
 import type { Box } from '../../domain/diseno/resolve'
-import { textura, type TipoTextura, type Tono } from './texturas'
+import { texture, type TextureKind, type Tone } from './textures'
 
 const MM = 0.001
-/** Ejes (u, v) de cada cara de BoxGeometry, en el orden de sus materiales: +x, −x, +y, −y, +z, −z. */
-const CARAS: { normal: Axis; u: Axis; v: Axis }[] = [
+/** (u, v) axes of each BoxGeometry face, in the order of its materials: +x, −x, +y, −y, +z, −z. */
+const FACES: { normal: Axis; u: Axis; v: Axis }[] = [
   { normal: 'x', u: 'z', v: 'y' },
   { normal: 'x', u: 'z', v: 'y' },
   { normal: 'y', u: 'x', v: 'z' },
@@ -17,83 +17,83 @@ const CARAS: { normal: Axis; u: Axis; v: Axis }[] = [
   { normal: 'z', u: 'x', v: 'y' },
   { normal: 'z', u: 'x', v: 'y' },
 ]
-const TAMANO_VETA = 0.45
-const CAIDA = 0.35
+const GRAIN_SIZE = 0.45
+const FALL = 0.35
 
-function texturasDeCaras(p: TPieza, caja: Box, tono: Tono): Texture[] {
-  const m = { x: caja.x1 - caja.x0, y: caja.y1 - caja.y0, z: caja.z1 - caja.z0 }
+function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
+  const m = { x: box.x1 - box.x0, y: box.y1 - box.y0, z: box.z1 - box.z0 }
   if (p.confianza === 'baja')
-    return CARAS.map((cara) => {
-      const t = textura('boceto', tono).clone()
-      t.repeat.set(Math.max(0.2, (m[cara.u] * MM) / 0.25), Math.max(0.2, (m[cara.v] * MM) / 0.25))
+    return FACES.map((face) => {
+      const t = texture('sketch', tone).clone()
+      t.repeat.set(Math.max(0.2, (m[face.u] * MM) / 0.25), Math.max(0.2, (m[face.v] * MM) / 0.25))
       t.needsUpdate = true
       return t
     })
   const [a, b] = (['x', 'y', 'z'] as Axis[]).filter((e) => e !== p.normal)
-  const largo = m[a] >= m[b] ? a : b
-  const vetaEn = p.veta === 'ancho' ? (largo === a ? b : a) : largo
-  return CARAS.map((cara) => {
-    const esCara = cara.normal === p.normal
-    const tipo: TipoTextura = esCara ? (vetaEn === cara.u ? 'veta-u' : 'veta-v') : p.normal === cara.u ? 'capas-u' : 'capas-v'
-    const t = textura(tipo, tono).clone()
-    if (esCara) t.repeat.set((m[cara.u] * MM) / TAMANO_VETA, (m[cara.v] * MM) / TAMANO_VETA)
-    else t.repeat.set(p.normal === cara.u ? 1 : (m[cara.u] * MM) / TAMANO_VETA, p.normal === cara.v ? 1 : (m[cara.v] * MM) / TAMANO_VETA)
-    t.offset.set((caja.x0 + caja.z0) * 0.00037, (caja.y0 + caja.x0) * 0.00053)
+  const length = m[a] >= m[b] ? a : b
+  const grainAlong = p.veta === 'ancho' ? (length === a ? b : a) : length
+  return FACES.map((face) => {
+    const isFace = face.normal === p.normal
+    const kind: TextureKind = isFace ? (grainAlong === face.u ? 'grain-u' : 'grain-v') : p.normal === face.u ? 'plies-u' : 'plies-v'
+    const t = texture(kind, tone).clone()
+    if (isFace) t.repeat.set((m[face.u] * MM) / GRAIN_SIZE, (m[face.v] * MM) / GRAIN_SIZE)
+    else t.repeat.set(p.normal === face.u ? 1 : (m[face.u] * MM) / GRAIN_SIZE, p.normal === face.v ? 1 : (m[face.v] * MM) / GRAIN_SIZE)
+    t.offset.set((box.x0 + box.z0) * 0.00037, (box.y0 + box.x0) * 0.00053)
     t.needsUpdate = true
     return t
   })
 }
 
-export interface PropsPieza {
-  pieza: TPieza
-  caja: Box
-  tono: Tono
-  desplazamiento: [number, number, number]
-  seleccionada: boolean
-  atenuada: boolean
-  fantasma: boolean
-  marcada: boolean
+export interface PieceMeshProps {
+  piece: Piece
+  box: Box
+  tone: Tone
+  offset: [number, number, number]
+  selected: boolean
+  dimmed: boolean
+  ghost: boolean
+  marked: boolean
   /** A piece with an unresolved validation problem: red edges. */
-  problema: boolean
-  resaltar: number
-  /** Pieza recién agregada: cae a su lugar. */
-  nueva: boolean
-  /** Sin animaciones: la persona pidió reducir el movimiento. */
-  reducido: boolean
-  /** Retraso de la aparición del boceto a la madera; el padre remonta la pieza para repetirla. */
-  retraso: number
-  onSeleccionar: (id: string) => void
+  problem: boolean
+  highlight: number
+  /** A piece just added: it falls into place. */
+  isNew: boolean
+  /** No animations: the person asked for reduced motion. */
+  reduced: boolean
+  /** Delay of the reveal from sketch to wood; the parent remounts the piece to repeat it. */
+  delay: number
+  onSelect: (id: string) => void
 }
 
-export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuada, fantasma, marcada, problema, resaltar, nueva, reducido, retraso, onSeleccionar }: PropsPieza) {
-  const [sobre, setSobre] = useState(false)
-  const tamano: [number, number, number] = [(caja.x1 - caja.x0) * MM, (caja.y1 - caja.y0) * MM, (caja.z1 - caja.z0) * MM]
-  const centro: [number, number, number] = [((caja.x0 + caja.x1) / 2) * MM, ((caja.y0 + caja.y1) / 2) * MM, ((caja.z0 + caja.z1) / 2) * MM]
-  const mapas = useMemo(() => texturasDeCaras(pieza, caja, tono), [pieza, caja, tono])
+export function PieceMesh({ piece, box, tone, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, onSelect }: PieceMeshProps) {
+  const [over, setOver] = useState(false)
+  const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
+  const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
+  const maps = useMemo(() => faceTextures(piece, box, tone), [piece, box, tone])
 
-  const boceto = pieza.confianza === 'baja'
-  const opacidadFinal = atenuada ? 0.12 : fantasma ? 0.55 : boceto ? 0.92 : 1
-  const destino: [number, number, number] = [centro[0] + desplazamiento[0], centro[1] + desplazamiento[1], centro[2] + desplazamiento[2]]
-  const { posicion, escala } = useSpring({
-    from: nueva ? { posicion: [destino[0], destino[1] + CAIDA, destino[2]], escala: tamano.map((t) => t * 0.92) } : { posicion: destino, escala: tamano },
-    to: { posicion: destino, escala: tamano },
-    config: nueva ? { mass: 1.2, tension: 260, friction: 13 } : { mass: 1, tension: 170, friction: 16 },
-    immediate: reducido,
+  const sketch = piece.confianza === 'baja'
+  const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1
+  const target: [number, number, number] = [center[0] + offset[0], center[1] + offset[1], center[2] + offset[2]]
+  const { position, scale } = useSpring({
+    from: isNew ? { position: [target[0], target[1] + FALL, target[2]], scale: size.map((t) => t * 0.92) } : { position: target, scale: size },
+    to: { position: target, scale: size },
+    config: isNew ? { mass: 1.2, tension: 260, friction: 13 } : { mass: 1, tension: 170, friction: 16 },
+    immediate: reduced,
   })
-  const { opacidad } = useSpring({ from: { opacidad: reducido ? opacidadFinal : 0 }, to: { opacidad: opacidadFinal }, delay: reducido ? 0 : retraso, immediate: reducido, config: { tension: 120, friction: 20 } })
-  const [{ brillo }] = useSpring(() => ({ from: { brillo: resaltar ? 1 : 0 }, to: { brillo: 0 }, config: { duration: 1800 }, reset: true }), [resaltar])
+  const { opacity } = useSpring({ from: { opacity: reduced ? finalOpacity : 0 }, to: { opacity: finalOpacity }, delay: reduced ? 0 : delay, immediate: reduced, config: { tension: 120, friction: 20 } })
+  const [{ glow }] = useSpring(() => ({ from: { glow: highlight ? 1 : 0 }, to: { glow: 0 }, config: { duration: 1800 }, reset: true }), [highlight])
 
-  const materiales = useRef<(MeshStandardMaterial | null)[]>([])
-  useEffect(() => () => mapas.forEach((m) => m.dispose()), [mapas])
+  const materials = useRef<(MeshStandardMaterial | null)[]>([])
+  useEffect(() => () => maps.forEach((m) => m.dispose()), [maps])
   useFrame(({ invalidate }) => {
-    if (opacidad.isAnimating || brillo.isAnimating) invalidate()
-    const o = opacidad.get()
-    const e = brillo.get() * 0.55 + (sobre && !seleccionada ? 0.08 : 0)
-    for (const m of materiales.current) {
+    if (opacity.isAnimating || glow.isAnimating) invalidate()
+    const o = opacity.get()
+    const e = glow.get() * 0.55 + (over && !selected ? 0.08 : 0)
+    for (const m of materials.current) {
       if (!m) continue
-      const transparente = o < 0.995
-      if (m.transparent !== transparente) {
-        m.transparent = transparente
+      const transparent = o < 0.995
+      if (m.transparent !== transparent) {
+        m.transparent = transparent
         m.needsUpdate = true
       }
       m.opacity = o
@@ -101,43 +101,43 @@ export function Pieza({ pieza, caja, tono, desplazamiento, seleccionada, atenuad
     }
   })
 
-  const alTocar = (e: ThreeEvent<MouseEvent>) => {
+  const onTap = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
-    onSeleccionar(pieza.id)
+    onSelect(piece.id)
   }
 
   return (
     <animated.mesh
-      position={posicion as never}
-      scale={escala as never}
-      castShadow={!atenuada}
+      position={position as never}
+      scale={scale as never}
+      castShadow={!dimmed}
       receiveShadow
-      onClick={alTocar}
-      onPointerOver={(e) => (e.stopPropagation(), setSobre(true), (document.body.style.cursor = 'pointer'))}
-      onPointerOut={() => (setSobre(false), (document.body.style.cursor = ''))}
+      onClick={onTap}
+      onPointerOver={(e) => (e.stopPropagation(), setOver(true), (document.body.style.cursor = 'pointer'))}
+      onPointerOut={() => (setOver(false), (document.body.style.cursor = ''))}
     >
       <boxGeometry />
-      {mapas.map((mapa, i) => (
+      {maps.map((map, i) => (
         <meshStandardMaterial
           key={i}
-          ref={(m) => void (materiales.current[i] = m)}
+          ref={(m) => void (materials.current[i] = m)}
           attach={`material-${i}`}
-          map={mapa}
+          map={map}
           roughness={0.78}
           metalness={0}
           transparent
           opacity={0}
-          depthWrite={opacidadFinal > 0.5}
-          color={fantasma ? '#f2b56b' : '#ffffff'}
+          depthWrite={finalOpacity > 0.5}
+          color={ghost ? '#f2b56b' : '#ffffff'}
           emissive="#d98a2b"
         />
       ))}
       <Edges
         threshold={15}
-        color={problema ? '#b4452f' : seleccionada || fantasma || marcada ? '#d98a2b' : '#2b2825'}
-        lineWidth={seleccionada ? 2.5 : problema ? 2.2 : marcada || boceto ? 1.8 : 1}
+        color={problem ? '#b4452f' : selected || ghost || marked ? '#d98a2b' : '#2b2825'}
+        lineWidth={selected ? 2.5 : problem ? 2.2 : marked || sketch ? 1.8 : 1}
         transparent
-        opacity={atenuada ? 0.15 : seleccionada || marcada || problema || boceto ? 1 : 0.45}
+        opacity={dimmed ? 0.15 : selected || marked || problem || sketch ? 1 : 0.45}
       />
     </animated.mesh>
   )
