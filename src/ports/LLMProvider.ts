@@ -15,9 +15,12 @@ import { CarpenterOpinion, type Check } from '../domain/viability/viability'
 
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 
+/** The design as the expert writes it: what the furniture is (`kind`, `mattress`) is Knotty's data, so its schema stays as it was. */
+const ExpertDesign = Design.omit({ kind: true, mattress: true })
+
 export const ReconstructionResponse = z.object({
   explanation: z.string().describe('What you saw and how you interpreted it, in 2–4 sentences for the person, in Spanish'),
-  design: Design,
+  design: ExpertDesign,
   questions: z.array(Question).describe('What could not be determined from the photos; at most 3'),
   requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
   requirements: z.array(Requirement),

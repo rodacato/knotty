@@ -1,17 +1,17 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent } from '../design/builders'
 import type { FaceRef, Design, Piece } from '../design/schema'
+import { MattressSize } from '../design/kind'
 import { completeJoints } from '../design/joints'
 import type { Catalog } from '../materials/catalog'
-import { MATTRESSES } from '../typology/typology'
 import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import type { FurnitureModule, Labels } from './module'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
 
-const Mattress = z.enum(['individual', 'matrimonial', 'queen', 'king'])
-type Mattress = z.infer<typeof Mattress>
+/** Mattress sizes sold in Mexico, width × length in mm. */
+export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const satisfies Record<MattressSize, readonly [number, number]>
 
 /** The most drawers a side of the base takes. */
 export const MAX_DRAWERS_PER_SIDE = 4
@@ -22,7 +22,7 @@ const MATTRESS_SIZES = Object.entries(MATTRESSES)
 export const BedPlan = z.object({
   kind: z.literal('bed'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Cama individual con cajones"'),
-  mattress: Mattress.describe(`Mattress size: ${MATTRESS_SIZES} cm`),
+  mattress: MattressSize.describe(`Mattress size: ${MATTRESS_SIZES} cm`),
   material: z.string().describe('Plywood id, usually "T18"'),
   height: z.number().positive().describe('Base height in mm, from the floor to where the mattress rests; usually 300–450'),
   drawers: z.object({
@@ -45,7 +45,7 @@ export const BED_LABELS = {
     matrimonial: { option: 'Matrimonial', phrase: 'colchón matrimonial' },
     queen: { option: 'Queen', phrase: 'colchón queen' },
     king: { option: 'King', phrase: 'colchón king' },
-  } satisfies Labels<Mattress>,
+  } satisfies Labels<MattressSize>,
   drawerSide: {
     none: { option: 'Sin cajones', phrase: 'sin cajones' },
     left: { option: 'Izquierda', phrase: 'cajones del lado izquierdo' },
@@ -239,6 +239,8 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     notes: '',
     pieces: pieces,
     joints: [],
+    kind: 'bed',
+    mattress: plan.mattress,
   }
   const placed = addDrawers(design, drawers, catalog)
   notes.push(...placed.notes)
@@ -264,7 +266,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
 
 function benchBeds(): [string, BedPlan][] {
   const variants: [string, BedPlan][] = []
-  for (const mattress of Mattress.options)
+  for (const mattress of MattressSize.options)
     for (const style of BedPlan.shape.headboard.shape.style.options)
       for (const side of BedPlan.shape.drawers.shape.side.options)
         for (const position of BedPlan.shape.drawers.shape.position.options) {

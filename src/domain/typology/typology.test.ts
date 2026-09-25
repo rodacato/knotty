@@ -4,7 +4,9 @@ import { startAt, endAt, makePiece, ref, extent } from '../design/builders'
 import type { Design } from '../design/schema'
 import { completeJoints } from '../design/joints'
 import { testCatalog } from '../fixtures/catalog.test-util'
+import { buildBed, type BedPlan } from '../modules/bed'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
+import { buildTable, type TablePlan } from '../modules/table'
 import type { Cell } from '../reading/reading'
 import { detectKind } from './typology'
 
@@ -28,6 +30,43 @@ describe('detectKind', () => {
     ['Zapatera', 'shoeRack'],
     ['Mueble de TV', null],
   ])('%s → %s', (name, kind) => expect(detectKind({ name })).toBe(kind))
+
+  it('what the design says wins over its name; without it, the name decides', () => {
+    expect(detectKind({ name: 'Mueble', kind: 'wardrobe' })).toBe('wardrobe')
+    expect(detectKind({ name: 'Librero', kind: 'bed' })).toBe('bed')
+    expect(detectKind({ name: 'Librero', kind: undefined })).toBe('bookcase')
+  })
+})
+
+describe('the kind is data, not the name', () => {
+  const bedPlan: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }
+
+  it('a bed the module built keeps its checks and its mattress when renamed', () => {
+    const bed = buildBed(bedPlan, testCatalog).design
+    expect(bed).toMatchObject({ kind: 'bed', mattress: 'individual' })
+    const renamed = { ...bed, name: 'Mueble de la recámara' }
+    expect(detectKind(renamed)).toBe('bed')
+    expect(usage(renamed)).toEqual([])
+    // The mattress comes from the design, not from the name: a king on an individual base does not fit, whatever it is called.
+    expect(usage({ ...renamed, name: 'Cama individual', mattress: 'king' })).toContainEqual(['critical', expect.stringContaining('El colchón king')])
+  })
+
+  it('a cabinet marked as a wardrobe gets the wardrobe checks under any name', () => {
+    const wardrobe = { ...cabinet({ name: 'Mueble', dimensions: { width: 900, height: 1800, depth: 400 } }), kind: 'wardrobe' as const }
+    expect(usage(wardrobe)).toEqual([
+      ['critical', expect.stringContaining('va anclado al muro')],
+      ['recommendation', expect.stringContaining('los ganchos de ropa no caben')],
+    ])
+    expect(usage({ ...wardrobe, kind: undefined })).toEqual([])
+  })
+
+  it('a table says which table it is: a coffee table named "comedor" is judged as a coffee table', () => {
+    const plan: TablePlan = { kind: 'table', use: 'coffee', name: 'Mesa de comedor', material: 'T18', dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 } }
+    const table = buildTable(plan, testCatalog).design
+    expect(table.kind).toBe('coffeeTable')
+    expect(usage(table)).toEqual([])
+    expect(usage({ ...table, kind: undefined })).toEqual([['recommendation', expect.stringContaining('de comedor va de 720 a 770')]])
+  })
 })
 
 describe('typologyRule', () => {

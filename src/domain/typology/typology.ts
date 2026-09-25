@@ -4,13 +4,15 @@ import type { Finding, Rule } from '../structure/finding'
 import { freeSpan } from '../structure/rules/deflection'
 import { antiTipData } from '../structure/rules/usage'
 import type { Catalog } from '../materials/catalog'
+import type { DesignKind } from '../design/kind'
+import { MATTRESSES } from '../modules/bed'
 
 // Checks by kind of furniture: what a bed, a desk or a chest of drawers needs to be usable and safe. Structure and use, not style.
 
-export type Kind = 'bed' | 'desk' | 'table' | 'drawers' | 'wallCabinet' | 'bookcase' | 'wardrobe' | 'shoeRack' | 'bench'
-export type TableKind = 'coffee' | 'dining' | 'side'
+type TableKind = 'coffee' | 'dining' | 'side'
 
-const KINDS: [Kind, RegExp][] = [
+/** Words in a name that say what the furniture is: the fallback for a design that does not say it (designed piece by piece, or saved before designs did). */
+const WORDS: [DesignKind, RegExp][] = [
   ['bed', /\bcama\b|\bbase de cama\b/],
   ['desk', /escritorio/],
   ['wallCabinet', /alacena|gabinete de pared/],
@@ -22,13 +24,17 @@ const KINDS: [Kind, RegExp][] = [
   ['table', /\bmesa\b/],
 ]
 
-export function detectKind(design: Pick<Design, 'name'>): Kind | null {
-  const name = design.name.toLowerCase()
-  return KINDS.find(([, pattern]) => pattern.test(name))?.[0] ?? null
+/** What some words say the furniture is ("Buró con cajón" → drawers); null if they do not say. */
+export function kindFromWords(text: string): DesignKind | null {
+  const words = text.toLowerCase()
+  return WORDS.find(([, pattern]) => pattern.test(words))?.[0] ?? null
 }
 
-/** Mattress sizes sold in Mexico, width × length in mm. */
-export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const
+/** What the furniture is: what its design says, or else what its name suggests. Null: a kind Knotty does not recognize. */
+export function detectKind(design: Pick<Design, 'name'> & Partial<Pick<Design, 'kind'>>): DesignKind | null {
+  return design.kind ?? kindFromWords(design.name)
+}
+
 const TABLE_HEIGHT: Record<TableKind, [number, number]> = { coffee: [350, 500], side: [450, 650], dining: [720, 770] }
 /** Comfortable desk height, in mm. */
 export const DESK_HEIGHT: [number, number] = [700, 780]
@@ -80,8 +86,10 @@ function bed(design: Design, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[]
   if (!platform) return [finding('bed.platform', 'recommendation', [], 'No encuentro la superficie donde va el colchón: una cama necesita una base continua o tablas a lo ancho.')]
   // A bed can lie either way in the room: the short side takes the mattress width.
   const [width, length] = [platform.box.x1 - platform.box.x0, platform.box.z1 - platform.box.z0].sort((a, b) => a - b)
+  // The mattress its plan says; else one named in its name; else the one closest in width.
+  const sizes = Object.keys(MATTRESSES) as (keyof typeof MATTRESSES)[]
   const name = design.name.toLowerCase()
-  const size = (Object.keys(MATTRESSES) as (keyof typeof MATTRESSES)[]).find((k) => name.includes(k)) ?? (Object.keys(MATTRESSES) as (keyof typeof MATTRESSES)[]).sort((a, b) => Math.abs(MATTRESSES[a][0] - width) - Math.abs(MATTRESSES[b][0] - width))[0]
+  const size = design.mattress ?? sizes.find((k) => name.includes(k)) ?? [...sizes].sort((a, b) => Math.abs(MATTRESSES[a][0] - width) - Math.abs(MATTRESSES[b][0] - width))[0]
   const [mw, ml] = MATTRESSES[size]
   const found: Finding[] = []
   if (width < mw - MATTRESS_TOLERANCE.tight || length < ml - MATTRESS_TOLERANCE.tight)
@@ -138,11 +146,14 @@ function desk(design: Design, geo: Geometry): Finding[] {
   return found
 }
 
-function table(design: Design, geo: Geometry): Finding[] {
+const TABLE_OF_KIND: Partial<Record<DesignKind, TableKind>> = { diningTable: 'dining', coffeeTable: 'coffee', sideTable: 'side' }
+
+function table(design: Design, geo: Geometry, furniture: DesignKind): Finding[] {
   const top = topSurface(design, geo, 0.1)
   if (!top) return []
+  // Which table the design says; a table that does not say, by its name.
   const name = design.name.toLowerCase()
-  const kind: TableKind = /centro|caf[eé]/.test(name) ? 'coffee' : /comedor|cocina/.test(name) ? 'dining' : 'side'
+  const kind: TableKind = TABLE_OF_KIND[furniture] ?? (/centro|caf[eé]/.test(name) ? 'coffee' : /comedor|cocina/.test(name) ? 'dining' : 'side')
   const range = TABLE_HEIGHT[kind]
   const label = { coffee: 'de centro', dining: 'de comedor', side: 'lateral' }[kind]
   return outside(top.box.y1, range) ? [finding('table.height', 'recommendation', top.ids, `Una mesa ${label} va de ${range[0]} a ${range[1]} mm de alto; esta queda a ${roundTo(top.box.y1, 0)} mm.`, { height: roundTo(top.box.y1, 0) })] : []
@@ -196,14 +207,19 @@ function bench(design: Design, geo: Geometry): Finding[] {
 /** R10: what this kind of furniture needs to be used safely. */
 export const typologyRule: Rule = (ctx) => {
   const { design, geo } = ctx
-  switch (detectKind(design)) {
+  const kind = detectKind(design)
+  switch (kind) {
     case 'bed':
       return bed(design, geo, ctx)
     case 'desk':
       return desk(design, geo)
     case 'table':
-      return table(design, geo)
+    case 'diningTable':
+    case 'coffeeTable':
+    case 'sideTable':
+      return table(design, geo, kind)
     case 'drawers':
+    case 'nightstand':
       return drawers(design, ctx.catalog)
     case 'wallCabinet':
       return wallCabinet(design)
@@ -215,7 +231,9 @@ export const typologyRule: Rule = (ctx) => {
       return minDepth('shoe-rack.depth', design, SHOE_RACK_DEPTH, (depth, usual) => `Con ${depth} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva ${usual}.`)
     case 'bench':
       return bench(design, geo)
-    default:
+    // A box whose use is not known, or furniture Knotty does not recognize.
+    case 'cabinet':
+    case null:
       return []
   }
 }

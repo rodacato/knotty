@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DesignKind, MattressSize } from './kind'
 
 // Axes: X = width, Y = height, Z = depth (back → front); origin at the bottom-left-back corner; everything in mm.
 // Optional fields are `nullable`, so the same schema works as the models' strict output. Field names are what the expert reads and what is saved; descriptions stay in Spanish until the prompts move to English.
@@ -95,6 +96,10 @@ export const Design = z.object({
   pieces: z.array(Piece),
   joints: z.array(Joint),
   notes: z.string().max(1200).describe('What was seen in the photos and does not fit in the model, in Spanish'),
+  /** What the furniture is, when known: set by the module that built it, not guessed from the name. Knotty's data, not the expert's: its schemas leave it out. */
+  kind: DesignKind.optional(),
+  /** A bed's mattress, from its plan. */
+  mattress: MattressSize.optional(),
 })
 export type Design = z.infer<typeof Design>
 

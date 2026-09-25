@@ -14,10 +14,10 @@ import { updateRequirements, checkRequirements, type Requirement } from '../doma
 import { currentDesign, markAnswered, questionAnswerKey, type PurchaseReview, type DesignState, type Message, type Thumbnail, type Question } from '../domain/session/state'
 import { describeChange, restorePieces } from '../domain/changes/changes'
 import { fixForAlternative, type Fix } from '../domain/fixes/fixes'
-import { buildPlan, describePlanChanges, FurniturePlan, moduleOf } from '../domain/modules/plan'
+import { buildPlan, describePlanChanges, FurniturePlan, MODULE_OF_KIND, moduleOf } from '../domain/modules/plan'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { repairDesign, type Repair } from '../domain/repair/repair'
-import { detectKind } from '../domain/typology/typology'
+import { kindFromWords } from '../domain/typology/typology'
 import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { DesignError } from '../domain/validation/errors'
@@ -231,10 +231,6 @@ export function createUseCases(deps: Dependencies) {
     return mergeReadings(read.filter((r): r is NonNullable<typeof r> => !!r))
   }
 
-  /** Kinds that are not a box with columns: asking for a cabinet plan would only add a wasted call. */
-  /** Kinds with no plan yet: they go straight to piece by piece. */
-  const NOT_CABINETS = new Set(['bench'])
-
   /** The skeleton path: if the expert says it is a cabinet, Knotty builds it. Null means: design it whole. */
   async function designFromPlan(
     input: { measures: Dimensions | null; photos: Photo[]; thumbnails: Thumbnail[]; notes: string },
@@ -245,8 +241,9 @@ export function createUseCases(deps: Dependencies) {
     trace: TraceEntry[],
   ): Promise<DesignState | null> {
     const llm = deps.llm()
-    const hint = detectKind({ name: `${input.notes} ${reading?.kind ?? ''}` })
-    if (!llm.planDesign || (hint && NOT_CABINETS.has(hint))) return null
+    // A kind with no module (a bench) goes straight to piece by piece: asking for a plan would be a wasted call.
+    const hint = kindFromWords(`${input.notes} ${reading?.kind ?? ''}`)
+    if (!llm.planDesign || (hint && !MODULE_OF_KIND[hint])) return null
     onProgress('designing', 0)
     const started = Date.now()
     let plan: ExpertResponse<PlanResponse>

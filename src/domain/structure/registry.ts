@@ -1,5 +1,5 @@
 import type { Rule } from './finding'
-import type { Kind } from '../typology/typology'
+import type { DesignKind } from '../design/kind'
 import { drawerRule } from './rules/drawers'
 import { rackingRule } from './rules/racking'
 import { deflectionRule } from './rules/deflection'
@@ -16,7 +16,7 @@ export interface RuleDefinition<C extends string = string> {
   /** What the notice is called, in Spanish ("Entrepaños que se pandean"). */
   title: string
   /** The kinds of furniture it checks; 'all' for any. */
-  appliesTo: readonly Kind[] | 'all'
+  appliesTo: readonly DesignKind[] | 'all'
   check: Rule
 }
 
@@ -40,4 +40,4 @@ export type RuleCode = (typeof RULES)[number]['code']
 export const ruleTitle = (code: RuleCode) => RULES.find((r) => r.code === code)?.title ?? code
 
 /** Whether a rule checks this kind of furniture (null: a kind Knotty does not recognize). */
-export const appliesTo = (rule: RuleDefinition, kind: Kind | null) => rule.appliesTo === 'all' || (kind !== null && rule.appliesTo.includes(kind))
+export const appliesTo = (rule: RuleDefinition, kind: DesignKind | null) => rule.appliesTo === 'all' || (kind !== null && rule.appliesTo.includes(kind))

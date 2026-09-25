@@ -3,7 +3,7 @@ import { testCatalog } from '../fixtures/catalog.test-util'
 import { Cell } from '../reading/reading'
 import { BED_LABELS, BedPlan } from './bed'
 import { CABINET_LABELS, CabinetConstruction, CabinetPlan } from './cabinet'
-import { buildPlan, describePlanChanges, FurniturePlan, MODULES, moduleOf } from './plan'
+import { buildPlan, describePlanChanges, FurniturePlan, MODULE_OF_KIND, MODULES, moduleOf } from './plan'
 import { TABLE_LABELS, TablePlan } from './table'
 
 describe('the furniture registry', () => {
@@ -15,6 +15,10 @@ describe('the furniture registry', () => {
       expect(module.kind).toBe(option.shape.kind.value)
       expect(module.schema).toBe(option)
     }
+  })
+
+  it('every module kind is a kind of design, built by its own module', () => {
+    for (const kind of Object.keys(MODULES) as (keyof typeof MODULES)[]) expect(MODULE_OF_KIND[kind]).toBe(kind)
   })
 
   it('every bench variant is a valid plan of its module and builds', () => {

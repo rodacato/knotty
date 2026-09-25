@@ -25,6 +25,7 @@ export const exampleWallCabinet: Design = {
   name: 'Alacena de pared',
   dimensions: { width: 760, height: 720, depth: 320 },
   wallAnchored: true,
+  kind: 'wallCabinet',
   notes: 'Alacena para colgar con dos puertas sobrepuestas y un entrepaño ajustable.',
   pieces: [
     makePiece({ id: 'back', name: 'Trasera', role: 'back', material: 'TR6', normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: startAt(ref('furniture.z0')) }),

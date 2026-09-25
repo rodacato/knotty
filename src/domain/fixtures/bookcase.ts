@@ -25,6 +25,7 @@ export const exampleBookcase: Design = {
   name: 'Librero',
   dimensions: { width: 600, height: 1800, depth: 300 },
   wallAnchored: true,
+  kind: 'bookcase',
   notes: 'Librero sencillo de triplay de pino, sin puertas, con zoclo al frente y trasera clavada.',
   pieces: [
     makePiece({ id: 'back', name: 'Trasera', role: 'back', material: 'TR6', normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: startAt(ref('furniture.z0')) }),

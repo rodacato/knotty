@@ -8,6 +8,7 @@ export const exampleNightstand: Design = {
   name: 'Buró',
   dimensions: { width: 450, height: 550, depth: 400 },
   wallAnchored: false,
+  kind: 'nightstand',
   notes: 'Buró con una puerta sobrepuesta, cubierta que tapa los laterales y un entrepaño fijo.',
   pieces: [
     makePiece({ id: 'back', name: 'Trasera', role: 'back', material: 'TR3', normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: startAt(ref('furniture.z0')) }),

@@ -198,6 +198,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     })
   })
 
+  // A cabinet's plan does not say whether it is a bookcase or a wardrobe: its design has no `kind` and the checks by use read its name.
   let design: Design = {
     schema: 1,
     name: plan.name,
