@@ -1,4 +1,5 @@
 import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
+import { angleLabel } from '../../domain/reading/reading'
 import { useEffect, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/sesion/state'
@@ -201,7 +202,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
     setProcessing(true)
     try {
       const r = await images.reduce(file)
-      await adjust(`Te mando la foto: ${angle}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
+      await adjust(`Te mando la foto: ${angleLabel(angle)}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
     } finally {
       setProcessing(false)
     }
@@ -211,7 +212,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
       <p className="flex items-start gap-2 text-sm">
         <Camera className="mt-0.5 shrink-0 text-ambar" weight="duotone" />
         <span>
-          <span className="font-medium">Foto: {angle}.</span> <span className="text-grafito-2">{reason}</span>
+          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-grafito-2">{reason}</span>
         </span>
       </p>
       <div className="flex gap-2">

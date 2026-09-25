@@ -1,6 +1,6 @@
 # Comparativo de modelos: datos en inglés (paso 9a)
 
-Commit 7006177 · prompts esqueleto@5 · 2026-09-25 20:24 UTC
+Commit 7006177 · prompts esqueleto@6 · 2026-09-25 20:24 UTC
 
 | Modelo | Diseños válidos | Segundos (prom.) | Tokens de salida (prom.) | Medidas razonables | Viables |
 |---|---|---|---|---|---|

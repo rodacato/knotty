@@ -6,7 +6,7 @@ import type { Catalog } from '../materiales/catalog'
 import type { Purchase } from '../materiales/purchase'
 
 // The review before buying: what can be checked with arithmetic, no opinions. The carpenter (the model) gives an opinion on top of it, never against it.
-// Check ids are saved in the verdict: they stay as they are until the codes move to English.
+// Check ids are saved in the verdict: renaming one needs a migration.
 
 /** Narrower than this, a strip is dangerous to cut with a circular saw at home. */
 export const MIN_STRIP = 50

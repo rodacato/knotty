@@ -10,11 +10,11 @@ import { TraceLog } from '../estudio/TraceLog'
 import { Silhouette } from './Silhouettes'
 
 const ANGLES = [
-  { id: 'frente', name: 'Frente', hint: 'De frente, a media altura', required: true },
-  { id: '3/4', name: '3/4', hint: 'Desde una esquina: frente y lado', required: true },
-  { id: 'lateral', name: 'Lateral', hint: 'De lado, para ver el fondo', required: false },
-  { id: 'interior', name: 'Interior', hint: 'Abierto: entrepaños y trasera', required: false },
-  { id: 'uniones', name: 'Uniones', hint: 'De cerca: cómo se juntan', required: false },
+  { id: 'front', name: 'Frente', hint: 'De frente, a media altura', required: true },
+  { id: 'three-quarter', name: '3/4', hint: 'Desde una esquina: frente y lado', required: true },
+  { id: 'side', name: 'Lateral', hint: 'De lado, para ver el fondo', required: false },
+  { id: 'inside', name: 'Interior', hint: 'Abierto: entrepaños y trasera', required: false },
+  { id: 'joints', name: 'Uniones', hint: 'De cerca: cómo se juntan', required: false },
 ] as const
 
 const MEASURES: { key: keyof Dimensions; name: string; min: number; max: number }[] = [

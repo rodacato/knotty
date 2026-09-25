@@ -1,5 +1,5 @@
 // Typed errors: the code tells the expert what to fix and the data tells it where.
-// The codes stay as they are: they are data, in the saved trace and in what the expert reads.
+// The codes are data: they are saved in the trace and the expert reads them, so renaming one needs a migration.
 
 export type ErrorCode =
   | 'E_SCHEMA'

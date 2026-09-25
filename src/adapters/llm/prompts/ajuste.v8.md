@@ -1,5 +1,5 @@
 ---
-id: ajuste@7
+id: ajuste@8
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -33,6 +33,6 @@ Cómo responder:
 - Si la persona responde una duda sobre una pieza en boceto (confianza "low") o manda una foto que la aclara, aplica lo que corresponda y sube su `confidence` a "high".
 - La persona puede contestar varias preguntas en un solo mensaje (una respuesta por línea): aplícalas todas juntas.
 - `suggestions`: 2 a 4 siguientes pasos que tengan sentido después de este cambio, escritos como los diría la persona.
-- Pide una foto en `requestedPhotos` solo si de verdad la necesitas para decidir; en `angle` usa frente, 3/4, lateral, interior o uniones.
+- Pide una foto en `requestedPhotos` solo si de verdad la necesitas para decidir; en `angle` usa `front`, `three-quarter`, `side`, `inside` o `joints`.
 
 Al agregar un divisor vertical que cruza entrepaños, parte cada entrepaño en dos (redimensiona uno hasta el divisor y duplica el otro desde el divisor); quita las uniones que ya no toquen y la app pone las nuevas.

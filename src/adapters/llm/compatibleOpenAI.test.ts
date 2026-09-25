@@ -7,7 +7,7 @@ const respuesta = { explanation: 'Veo un librero', design: exampleBookcase, ques
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [{ message: { content: contenido } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
-const solicitud = (fotos = [{ angle: 'frente', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensions, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
+const solicitud = (fotos = [{ angle: 'front', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensions, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
 let host = 0
 const nueva = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', label: 'SheLLM · claude' })
 
@@ -25,7 +25,7 @@ describe('createCompatible', () => {
     })
     vi.stubGlobal('fetch', fetch)
     const experto = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', label: 'SheLLM' })
-    const solicitud = { measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
+    const solicitud = { measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
 
     const r = await experto.reconstruct(solicitud, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
@@ -41,13 +41,13 @@ describe('createCompatible', () => {
   it('builds the request: text and image interleaved in order, JPEG data URL and strict json_schema', async () => {
     let cuerpo: { messages: { role: string; content: { type: string; text?: string; image_url?: { url: string } }[] }[]; response_format: { type: string; json_schema: { name: string; strict: boolean } } } | null = null
     vi.stubGlobal('fetch', async (_: string, init: RequestInit) => ((cuerpo = JSON.parse(init.body as string)), ok(respuesta)))
-    await nueva().reconstruct(solicitud([{ angle: 'frente', base64: 'AAA' }, { angle: '3/4', base64: 'BBB' }]), new AbortController().signal)
+    await nueva().reconstruct(solicitud([{ angle: 'front', base64: 'AAA' }, { angle: 'three-quarter', base64: 'BBB' }]), new AbortController().signal)
     const partes = cuerpo!.messages[1].content
     expect(partes.map((p) => p.text ?? p.image_url?.url)).toEqual([
       expect.stringContaining('Medidas del mueble'),
-      'Foto 1: frente',
+      'Foto 1: front',
       'data:image/jpeg;base64,AAA',
-      'Foto 2: 3/4',
+      'Foto 2: three-quarter',
       'data:image/jpeg;base64,BBB',
     ])
     expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruccion', strict: true } })

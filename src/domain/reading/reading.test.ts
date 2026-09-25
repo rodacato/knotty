@@ -21,8 +21,8 @@ const twoColumns = [
 describe('mergeReadings', () => {
   it('takes the layout from the front and the depth from the side', () => {
     const merged = mergeReadings([
-      { angle: 'lateral', reading: reading({ proportions: { height: 3, width: 1, depth: 0.4 }, doubts: ['¿Trasera clavada?'] }) },
-      { angle: 'frente', reading: reading({ proportions: { height: 3.1, width: 1, depth: null }, columns: twoColumns, base: 'kick', details: ['cubrecanto'] }) },
+      { angle: 'side', reading: reading({ proportions: { height: 3, width: 1, depth: 0.4 }, doubts: ['¿Trasera clavada?'] }) },
+      { angle: 'front', reading: reading({ proportions: { height: 3.1, width: 1, depth: null }, columns: twoColumns, base: 'kick', details: ['cubrecanto'] }) },
     ])
     expect(merged?.columns).toEqual(twoColumns)
     expect(merged?.proportions).toEqual({ height: 3.1, width: 1, depth: 0.4 })
@@ -32,8 +32,8 @@ describe('mergeReadings', () => {
 
   it('prefers a confident view over a doubtful one', () => {
     const merged = mergeReadings([
-      { angle: 'frente', reading: reading({ confidence: 'low', kind: 'alacena' }) },
-      { angle: '3/4', reading: reading({ confidence: 'high', kind: 'librero' }) },
+      { angle: 'front', reading: reading({ confidence: 'low', kind: 'alacena' }) },
+      { angle: 'three-quarter', reading: reading({ confidence: 'high', kind: 'librero' }) },
     ])
     expect(merged?.kind).toBe('librero')
   })

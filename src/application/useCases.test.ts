@@ -51,7 +51,7 @@ describe('reconstruct', () => {
     expect(estado.versions).toHaveLength(1)
     expect(currentDesign(estado).name).toBe('Librero')
     expect(estado.chat[1].questions.flatMap((p) => p.options)).toContain('Libros')
-    expect(estado.chat[1].requestedPhotos).toEqual([{ angle: 'interior', reason: 'Para ver cómo va fijada la trasera' }])
+    expect(estado.chat[1].requestedPhotos).toEqual([{ angle: 'inside', reason: 'Para ver cómo va fijada la trasera' }])
     expect(etapas).toEqual(['reading-photos', 'reading-photos', 'designing', 'designing-pieces', 'checking', 'structure'])
     expect(c.repositorio.estado).toEqual(estado)
   })
@@ -201,12 +201,12 @@ describe('adjust', () => {
     const c = casos(llm)
     const inicial = await libreroInicial(c)
     expect(currentDesign(inicial).pieces.find((p) => p.id === 'trasera')?.confidence).toBe('low')
-    const foto = { angle: 'interior', base64: 'AAA', thumbnail: 'data:image/jpeg;base64,AAA' }
+    const foto = { angle: 'inside', base64: 'AAA', thumbnail: 'data:image/jpeg;base64,AAA' }
     const estado = await c.adjust(inicial, 'Te mando la foto: interior', senal(), undefined, `${inicial.chat[1].id}#f:interior`, foto)
     expect(estado.chat[1]).toMatchObject({ answers: ['f:interior'], answered: false })
     expect(vistas).toEqual([1])
     expect(currentDesign(estado).pieces.find((p) => p.id === 'trasera')?.confidence).toBe('high')
-    expect(estado.thumbnails.map((m) => m.angle)).toContain('interior')
+    expect(estado.thumbnails.map((m) => m.angle)).toContain('inside')
     expect(estado.chat.at(-2)?.thumbnail).toBe(foto.thumbnail)
   })
 
@@ -379,7 +379,7 @@ describe('never throw away a paid design', () => {
 })
 
 describe('photos are read once, in parallel, and not sent again', () => {
-  const dosFotos = { measures: MEDIDAS_LIBRERO, photos: [{ angle: 'frente', base64: 'AAA', note: 'la de abajo es puerta' }, { angle: 'lateral', base64: 'BBB' }], thumbnails: [], notes: 'librero' }
+  const dosFotos = { measures: MEDIDAS_LIBRERO, photos: [{ angle: 'front', base64: 'AAA', note: 'la de abajo es puerta' }, { angle: 'side', base64: 'BBB' }], thumbnails: [], notes: 'librero' }
   const espiando = (falla: (angulo: string) => boolean = () => false) => {
     const simulado = createSimulated(0)
     const lecturas: string[] = []
@@ -402,7 +402,7 @@ describe('photos are read once, in parallel, and not sent again', () => {
   it('reads each photo with its note and designs from the reading, without the images', async () => {
     const { llm, lecturas, disenos } = espiando()
     const estado = await casos(llm).reconstruct(dosFotos, senal())
-    expect(lecturas.sort()).toEqual(['frente:la de abajo es puerta', 'lateral:'])
+    expect(lecturas.sort()).toEqual(['front:la de abajo es puerta', 'side:'])
     expect(disenos).toEqual([{ fotos: 0, lectura: true }])
     expect(estado.chat[0].text).toContain('Sobre la foto frente: la de abajo es puerta')
     expect(estado.trace.filter((t) => t.step === 'read').map((t) => t.subject).sort()).toEqual(['Foto frente', 'Foto lateral'])
@@ -417,9 +417,9 @@ describe('photos are read once, in parallel, and not sent again', () => {
   })
 
   it('a photo that cannot be read is retried alone and then left out', async () => {
-    const { llm, lecturas, disenos } = espiando((angulo) => angulo === 'lateral')
+    const { llm, lecturas, disenos } = espiando((angulo) => angulo === 'side')
     await casos(llm).reconstruct(dosFotos, senal())
-    expect(lecturas.filter((l) => l.startsWith('lateral'))).toHaveLength(2)
+    expect(lecturas.filter((l) => l.startsWith('side'))).toHaveLength(2)
     expect(disenos).toEqual([{ fotos: 0, lectura: true }])
   })
 
@@ -440,7 +440,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
   }
-  const origen = { promptId: 'esqueleto@5', provider: 'x', model: 'm' }
+  const origen = { promptId: 'esqueleto@6', provider: 'x', model: 'm' }
   const conPlan = (cabinet: typeof cabinetPlan | null, falla = false, bed: BedPlan | null = null) => {
     const simulado = createSimulated(0)
     const llamadas: string[] = []
