@@ -1,7 +1,17 @@
 import type { z } from 'zod'
-import { RespuestaAjuste, RespuestaInvalida, RespuestaReconstruccion, type Consumo, type LLMProvider, type SolicitudAjuste, type SolicitudReconstruccion } from '../../../ports/LLMProvider'
+import {
+  RespuestaAjuste,
+  RespuestaDictamen,
+  RespuestaInvalida,
+  RespuestaReconstruccion,
+  type Consumo,
+  type LLMProvider,
+  type SolicitudAjuste,
+  type SolicitudDictamen,
+  type SolicitudReconstruccion,
+} from '../../../ports/LLMProvider'
 import { describirProblemas, esquemaEstricto } from './esquemaJson'
-import { AJUSTE, idPrompt, RECONSTRUCCION, sistemaPara } from './prompts'
+import { AJUSTE, DICTAMEN, idPrompt, RECONSTRUCCION, sistemaPara } from './prompts'
 
 export type Contenido = { tipo: 'texto'; texto: string } | { tipo: 'imagen'; base64: string }
 
@@ -14,6 +24,7 @@ export interface Transporte {
 
 const ESQUEMA_RECONSTRUCCION = esquemaEstricto(RespuestaReconstruccion)
 const ESQUEMA_AJUSTE = esquemaEstricto(RespuestaAjuste)
+const ESQUEMA_DICTAMEN = esquemaEstricto(RespuestaDictamen)
 
 function validar<T>(esquema: z.ZodType<T>, json: unknown): T {
   const r = esquema.safeParse(json)
@@ -61,6 +72,11 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores))
       const { json, consumo, avisos } = await t.completarJSON(sistemaPara(AJUSTE, s.catalogo), contenido, ESQUEMA_AJUSTE, 'ajuste', signal)
       return { valor: validar(RespuestaAjuste, json), origen: { promptId: idPrompt(AJUSTE), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
+    },
+    async dictaminar(s: SolicitudDictamen, signal) {
+      const contenido: Contenido[] = [{ tipo: 'texto', texto: `${s.contexto}\n\n${s.revision}` }]
+      const { json, consumo, avisos } = await t.completarJSON(sistemaPara(DICTAMEN, s.catalogo), contenido, ESQUEMA_DICTAMEN, 'dictamen', signal)
+      return { valor: validar(RespuestaDictamen, json), origen: { promptId: idPrompt(DICTAMEN), proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
   }
 }

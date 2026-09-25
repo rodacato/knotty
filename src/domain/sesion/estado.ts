@@ -3,6 +3,7 @@ import { Diseno, Dimensiones } from '../diseno/esquema'
 import { Decision, Origen, Version } from '../historial/historial'
 import { Operacion } from '../operaciones/esquema'
 import { Requisito } from '../requisitos/requisitos'
+import { Comprobacion, OpinionCarpintero, Veredicto } from '../viabilidad/viabilidad'
 
 // La sesión de diseño completa: lo que se guarda y se recupera al recargar.
 
@@ -68,6 +69,18 @@ export type Propuesta = z.infer<typeof Propuesta>
 export const Miniatura = z.object({ angulo: z.string(), dataUrl: z.string() })
 export type Miniatura = z.infer<typeof Miniatura>
 
+/** La revisión antes de comprar de una versión; `firma` dice con qué versión y ajustes de corte se hizo. */
+export const Dictamen = z.object({
+  firma: z.string(),
+  veredicto: Veredicto,
+  comprobaciones: z.array(Comprobacion),
+  carpintero: OpinionCarpintero.extend({ origen: Origen }).nullable(),
+  /** Si el carpintero no contestó, por qué; las comprobaciones de cuentas valen igual. */
+  error: z.string().nullable(),
+  fecha: z.string(),
+})
+export type Dictamen = z.infer<typeof Dictamen>
+
 export const EstadoDiseno = z.object({
   formato: z.literal(1),
   medidas: Dimensiones,
@@ -78,6 +91,7 @@ export const EstadoDiseno = z.object({
   chat: z.array(Mensaje),
   miniaturas: z.array(Miniatura),
   propuesta: Propuesta.nullable(),
+  dictamen: Dictamen.nullable().default(null),
 })
 export type EstadoDiseno = z.infer<typeof EstadoDiseno>
 

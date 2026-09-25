@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { catalogo } from '../../../domain/fixtures/catalogo.test-util'
 import { librero } from '../../../domain/fixtures/librero'
-import { RespuestaAjuste, RespuestaInvalida } from '../../../ports/LLMProvider'
+import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida } from '../../../ports/LLMProvider'
 import { esquemaEstricto } from './esquemaJson'
 import { crearExperto, type Contenido, type Transporte } from './experto'
 
@@ -13,9 +13,8 @@ function recorrer(nodo: unknown, visitar: (n: Record<string, unknown>) => void) 
 }
 
 describe('esquemaEstricto', () => {
-  it('deja un esquema aceptable para los modos estrictos', () => {
-    const esquema = esquemaEstricto(RespuestaAjuste)
-    recorrer(esquema, (n) => {
+  it.each([RespuestaAjuste, RespuestaDictamen])('deja un esquema aceptable para los modos estrictos', (tipo) => {
+    recorrer(esquemaEstricto(tipo), (n) => {
       for (const prohibida of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(prohibida)
       if (n.type === 'object' && n.properties) {
         expect(n.additionalProperties).toBe(false)
@@ -57,6 +56,15 @@ describe('crearExperto', () => {
     await experto.reconstruir({ medidas: librero.dimensiones, fotos: [], notas: 'librero de 5 repisas', catalogo, correccion: null }, new AbortController().signal)
     expect(llamadas[0].contenido).toEqual([{ tipo: 'texto', texto: expect.stringContaining('No hay fotos: diseña a partir de esta descripción') }])
     expect(llamadas[0].contenido[0]).toMatchObject({ texto: expect.stringContaining('Descripción: librero de 5 repisas') })
+  })
+
+  it('el dictamen manda el contexto con la revisión y usa el prompt del carpintero', async () => {
+    const { experto, llamadas } = falso({ veredicto: 'con-cambios', resumen: 'Sube la repisa', problemas: [], consejos: ['Mide el espesor'] })
+    const r = await experto.dictaminar({ contexto: '## Diseño', revision: '## Lista de corte', diseno: librero, comprobaciones: [], catalogo }, new AbortController().signal)
+    expect(r.valor.veredicto).toBe('con-cambios')
+    expect(r.origen.promptId).toBe('sistema@3+dictamen@1')
+    expect(llamadas[0].sistema).toContain('dictamen antes de comprar')
+    expect(llamadas[0].contenido).toEqual([{ tipo: 'texto', texto: '## Diseño\n\n## Lista de corte' }])
   })
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {

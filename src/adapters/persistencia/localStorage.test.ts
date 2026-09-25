@@ -30,6 +30,7 @@ const estado = (versiones = 1): EstadoDiseno => ({
   chat: [],
   miniaturas: [{ angulo: 'frente', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
   propuesta: null,
+  dictamen: null,
 })
 
 describe('repositorio localStorage', () => {

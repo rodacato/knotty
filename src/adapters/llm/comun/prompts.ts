@@ -1,5 +1,6 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import ajuste from '../prompts/ajuste.v4.md?raw'
+import dictamen from '../prompts/dictamen.v1.md?raw'
 import reconstruccion from '../prompts/reconstruccion.v4.md?raw'
 import sistema from '../prompts/sistema.v3.md?raw'
 
@@ -17,6 +18,7 @@ function leer(crudo: string): Prompt {
 const SISTEMA = leer(sistema)
 export const RECONSTRUCCION = leer(reconstruccion)
 export const AJUSTE = leer(ajuste)
+export const DICTAMEN = leer(dictamen)
 
 function describirCatalogo(c: Catalogo) {
   return [

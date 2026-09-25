@@ -29,6 +29,22 @@ export const Comprobacion = z.object({
 })
 export type Comprobacion = z.infer<typeof Comprobacion>
 
+export const OpinionCarpintero = z.object({
+  veredicto: Veredicto.describe('viable: se puede comprar y armar así; con-cambios: hay que arreglar algo antes; no-viable: tiene un error de origen'),
+  resumen: z.string().describe('El dictamen en 1 o 2 frases, como se lo dirías a la persona en el taller'),
+  problemas: z.array(
+    z.object({
+      titulo: z.string().describe('En 3 a 6 palabras'),
+      detalle: z.string().describe('Qué pasa, por qué importa y cómo se arregla, en 1 a 3 frases'),
+      gravedad: z.enum(['alta', 'media', 'baja']).describe('alta: no se puede armar o es inseguro; media: va a fallar con el uso; baja: conviene mejorarlo'),
+      piezas: z.array(z.string()).describe('Ids de las piezas involucradas'),
+      pedido: z.string().nullable().describe('El cambio para pedirle al experto en el chat, escrito como lo pediría la persona; null si no hay un arreglo claro'),
+    }),
+  ),
+  consejos: z.array(z.string()).describe('2 a 4 consejos para comprar, cortar y armar este mueble en particular'),
+})
+export type OpinionCarpintero = z.infer<typeof OpinionCarpintero>
+
 export const Viabilidad = z.object({ veredicto: Veredicto, comprobaciones: z.array(Comprobacion) })
 export type Viabilidad = z.infer<typeof Viabilidad>
 
