@@ -8,7 +8,7 @@ import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type LLMProvider, type RespuestaAjuste } from '../ports/LLMProvider'
-import { crearCasosDeUso, firmaDictamen } from './casosDeUso'
+import { crearCasosDeUso, currentPlan, firmaDictamen } from './casosDeUso'
 import { construirContexto } from './contexto'
 
 const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
@@ -478,6 +478,38 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
       await casos(llm).reconstruir(pedido('Un librero'), senal())
       expect(llamadas).toEqual(['plan', 'diseno'])
     }
+  })
+
+  it('the plan is kept with the version, and the ficha rebuilds it at once without the expert', async () => {
+    const { llm, llamadas } = conPlan(cabinetPlan)
+    const c = casos(llm)
+    const inicial = await c.reconstruir(pedido('Una cajonera de tres cajones'), senal())
+    expect(currentPlan(inicial)).toMatchObject({ since: 1, diverged: false })
+    const cuatro = { ...currentPlan(inicial).plan!, columns: [{ width: 1, cells: [0, 1, 2, 3].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }
+    const r = c.applyPlan(inicial, { ...cuatro, construction: { ...cuatro.construction, drawerFronts: 'overlay' } })
+    if (!r.ok) throw new Error(r.message)
+    expect(llamadas).toEqual(['plan'])
+    expect(new Set(disenoActual(r.estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
+    expect(r.estado.chat.at(-1)?.texto).toBe('Cambié desde la ficha: frentes de cajón sobrepuestos, 4 cajones.')
+    expect(r.estado.versiones.at(-1)).toMatchObject({ n: 2, resumen: 'Ficha: frentes de cajón sobrepuestos, 4 cajones' })
+    expect(currentPlan(r.estado)).toMatchObject({ since: 2, diverged: false })
+  })
+
+  it('after a free-form change the plan is behind; going back to its version restores it', async () => {
+    const { llm } = conPlan(cabinetPlan)
+    const c = casos(llm)
+    const inicial = await c.reconstruir(pedido('Una cajonera de tres cajones'), senal())
+    const libre = { ...inicial, versiones: [...inicial.versiones, { ...inicial.versiones[0], n: 2, plan: null }], actual: 2 }
+    expect(currentPlan(libre)).toMatchObject({ since: 1, diverged: true })
+    expect(currentPlan(c.volverAVersion(libre, 1))).toMatchObject({ since: 3, diverged: false })
+  })
+
+  it('a plan that cannot be built is refused with the reason', async () => {
+    const { llm } = conPlan(cabinetPlan)
+    const c = casos(llm)
+    const inicial = await c.reconstruir(pedido('Una cajonera'), senal())
+    const r = c.applyPlan(inicial, { ...currentPlan(inicial).plan!, dimensions: { width: 500, height: 3000, depth: 450 } })
+    expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/más grandes? que la hoja\. Trasera mide 3000/) })
   })
 
   it('a bed, a desk or a table skips the skeleton', async () => {

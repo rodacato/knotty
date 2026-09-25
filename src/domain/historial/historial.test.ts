@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { librero } from '../fixtures/librero'
 import { actualizarDecisiones, bitacoraCompacta, podarVersiones, type Version } from './historial'
 
-const version = (n: number): Version => ({ n, diseno: librero, resumen: `cambio ${n}`, motivo: `pedido ${n}`, operaciones: ['x→900 estirar'], fecha: '2026-09-24', origen: null, decisiones: [] })
+const version = (n: number): Version => ({ n, diseno: librero, resumen: `cambio ${n}`, motivo: `pedido ${n}`, operaciones: ['x→900 estirar'], fecha: '2026-09-24', origen: null, decisiones: [], plan: null })
 
 describe('historial', () => {
   it('compacta la bitácora: 8 completas, hasta 30 resumidas y el resto contado', () => {

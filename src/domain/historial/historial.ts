@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Diseno } from '../diseno/esquema'
+import { CabinetPlan } from '../modules/cabinet'
 import type { Operacion } from '../operaciones/esquema'
 
 export const Origen = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
@@ -21,6 +22,8 @@ export const Version = z.object({
   origen: Origen.nullable(),
   /** Las decisiones de diseño viajan con la versión: volver a una versión las restaura. */
   decisiones: z.array(Decision).default([]),
+  /** The plan this version was built from, when it was; later free-form changes leave it null. */
+  plan: CabinetPlan.nullable().default(null),
 })
 export type Version = z.infer<typeof Version>
 
