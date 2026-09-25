@@ -39,8 +39,8 @@ export const BENCH_CASES: BenchCase[] = [
     id: 'cama',
     notes: 'Cama individual con cabecera, para un colchón estándar',
     measures: null,
-    // A single mattress is 990 × 1900 mm: pieces-wise the depth is the bed's length.
-    expected: { width: [990, 1150], depth: [1900, 2100], height: [250, 1200] },
+    // A single mattress is 990 × 1900 mm: pieces-wise the depth is the bed's length, plus up to 300 mm of a bookcase headboard.
+    expected: { width: [990, 1150], depth: [1900, 2350], height: [250, 1200] },
     anyOrientation: true,
   },
   {
