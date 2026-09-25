@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
-import type { DesignState } from '../../domain/sesion/state'
-import saved from '../../domain/sesion/state-v1.fixture.json'
+import type { DesignState } from '../../domain/session/state'
+import saved from '../../domain/session/state-v1.fixture.json'
 import { createLocalRepository } from './localStorage'
 
 function almacen(limite = Infinity): Storage {
@@ -48,7 +48,7 @@ describe('localStorage repository', () => {
 
   it('ignores corrupt data', () => {
     const a = almacen()
-    a.setItem('despiece:v1:diseno', '{"formato":1')
+    a.setItem('knotty:design', '{"formato":1')
     expect(createLocalRepository(a).load()).toBeNull()
   })
 

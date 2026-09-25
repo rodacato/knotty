@@ -1,8 +1,9 @@
-import { LayoutSettings, Catalog, NO_SETTINGS, type CatalogSettings } from '../../domain/materiales/catalog'
+import { LayoutSettings, Catalog, NO_SETTINGS, type CatalogSettings } from '../../domain/materials/catalog'
 import type { MaterialCatalog } from '../../ports/MaterialCatalog'
-import { HARDWARE_IDS_V3 } from '../../domain/sesion/migrate'
+import { HARDWARE_IDS_V3 } from '../../domain/session/migrate'
+import { KEYS, readStored } from '../storedKey'
 
-const SETTINGS_KEY = 'despiece:v1:catalogo'
+const [SETTINGS_KEY, OLDER_KEY] = KEYS.catalogSettings
 
 /** How the version with Spanish fields saved the person's settings; prices were keyed by the old hardware ids. */
 interface SettingsV1 {
@@ -12,7 +13,7 @@ interface SettingsV1 {
 const layoutV1 = (a: SettingsV1['acomodo']) => (a ? { trim: a.refilado, kerf: a.sierra, clearance: a.holgura } : null)
 const pricesV1 = (p: SettingsV1['precios']) => (p && typeof p === 'object' ? Object.fromEntries(Object.entries(p).map(([id, price]) => [HARDWARE_IDS_V3[id] ?? id, price])) : null)
 
-export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalogo/catalogo.json`, storage: Storage = localStorage): MaterialCatalog {
+export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalog/catalog.json`, storage: Storage = localStorage): MaterialCatalog {
   let loaded: Promise<Catalog> | null = null
   return {
     load() {
@@ -26,7 +27,7 @@ export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalogo/cat
     },
     settings() {
       try {
-        const saved = JSON.parse(storage.getItem(SETTINGS_KEY) ?? 'null') as (Partial<CatalogSettings> & SettingsV1) | null
+        const saved = JSON.parse(readStored(storage, SETTINGS_KEY, OLDER_KEY) ?? 'null') as (Partial<CatalogSettings> & SettingsV1) | null
         const layout = LayoutSettings.safeParse(saved?.layout ?? layoutV1(saved?.acomodo))
         const prices = saved?.prices ?? pricesV1(saved?.precios)
         return { prices: prices && typeof prices === 'object' ? prices : {}, layout: layout.success ? layout.data : null }

@@ -105,17 +105,35 @@ describe('model preferences', () => {
     n.local.setItem('despiece:v1:llm', JSON.stringify({ activo: 'shellm', guardado: 'pestana', conexiones: { shellm: { modelo: 'claude-x', apiKey: '', host: 'http://otra:6100' } } }))
     const config = n.abrir().load()
     expect(config).toMatchObject({ active: 'shellm', keyStorage: 'tab', connections: { shellm: { model: 'claude-x', host: 'http://otra:6100' } } })
-    n.local.setItem('despiece:v1:llm', JSON.stringify({ activo: 'simulado', guardado: 'memoria', conexiones: {} }))
-    expect(n.abrir().load()).toMatchObject({ active: 'simulated', keyStorage: 'memory' })
+    const other = navegador()
+    other.local.setItem('despiece:v1:llm', JSON.stringify({ activo: 'simulado', guardado: 'memoria', conexiones: {} }))
+    expect(other.abrir().load()).toMatchObject({ active: 'simulated', keyStorage: 'memory' })
   })
 
   it('opens a vault sealed by the version with Spanish fields', async () => {
     const n = navegador()
     await n.abrir().save(conLlave('encrypted'), 'frase larga y secreta')
-    const sealed = JSON.parse(n.local.getItem('despiece:v1:boveda')!)
+    // The older version kept it under its own key and with its fields in Spanish.
+    const sealed = JSON.parse(n.local.getItem('knotty:vault')!)
+    n.local.removeItem('knotty:vault')
     n.local.setItem('despiece:v1:boveda', JSON.stringify({ v: 1, iter: sealed.iterations, sal: sealed.salt, iv: sealed.iv, datos: sealed.data }))
     const reopened = n.abrir()
     await reopened.unlock('frase larga y secreta')
     expect(reopened.load().connections.anthropic.apiKey).toBe(LLAVE)
+  })
+
+  it('moves what the older version saved to the new keys, keys and vault included', async () => {
+    const n = navegador()
+    await n.abrir().save(conLlave('encrypted'), 'frase larga y secreta')
+    for (const [key, older] of [['knotty:vault', 'despiece:v1:boveda'], ['knotty:expert', 'despiece:v1:llm']]) {
+      n.local.setItem(older, n.local.getItem(key)!)
+      n.local.removeItem(key)
+    }
+    const reopened = n.abrir()
+    expect(reopened.vaultState()).toBe('locked')
+    await reopened.unlock('frase larga y secreta')
+    expect(reopened.load().connections.anthropic.apiKey).toBe(LLAVE)
+    expect(n.local.getItem('despiece:v1:boveda')).toBeNull()
+    expect(n.local.getItem('knotty:vault')).not.toBeNull()
   })
 })

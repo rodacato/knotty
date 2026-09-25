@@ -3,12 +3,13 @@ import { MIN_PASSPHRASE } from '../../../ports/Preferences'
 import { anthropicModels } from '../anthropic'
 import { compatibleModels } from '../compatibleOpenAI'
 import { createVault, type Keyring } from './vault'
+import { KEYS, readStored, removeStored } from '../../storedKey'
 
 // Taken from ai-town: the configuration is saved without keys; keys live in memory, in the tab or encrypted with a passphrase.
 
 const PROVIDERS: RealProvider[] = ['anthropic', 'openai', 'shellm']
-const STORAGE_KEY = 'despiece:v1:llm'
-const TAB_KEY = 'despiece:v1:llaves'
+const [STORAGE_KEY, OLDER_KEY] = KEYS.expert
+const [TAB_KEY, OLDER_TAB_KEY] = KEYS.tabKeys
 
 export const INITIAL_CONFIGURATION: LLMConfiguration = {
   active: 'simulated',
@@ -38,8 +39,8 @@ const OLD_STORAGE: Record<string, KeyStorage> = { memoria: 'memory', pestana: 't
 
 function read(storage: Storage, tab: Storage): LLMConfiguration {
   try {
-    const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as (Partial<LLMConfiguration> & SavedV1) | null
-    const keys = JSON.parse(tab.getItem(TAB_KEY) ?? '{}') as Keyring
+    const saved = JSON.parse(readStored(storage, STORAGE_KEY, OLDER_KEY) ?? 'null') as (Partial<LLMConfiguration> & SavedV1) | null
+    const keys = JSON.parse(readStored(tab, TAB_KEY, OLDER_TAB_KEY) ?? '{}') as Keyring
     const active = saved?.active ?? (saved?.activo ? (OLD_PROVIDER[saved.activo] ?? (saved.activo as Provider)) : INITIAL_CONFIGURATION.active)
     const keyStorage = saved?.keyStorage ?? (saved?.guardado ? OLD_STORAGE[saved.guardado] : undefined) ?? (saved?.recordarEnPestana ? 'tab' : 'memory')
     const connection = (p: RealProvider) => {
@@ -85,7 +86,7 @@ export function createPreferences(storage: Storage = localStorage, tab: Storage 
       try {
         storage.setItem(STORAGE_KEY, JSON.stringify(withoutKeys))
         if (c.keyStorage === 'tab') tab.setItem(TAB_KEY, JSON.stringify(keyring(c)))
-        else tab.removeItem(TAB_KEY)
+        else removeStored(tab, TAB_KEY, OLDER_TAB_KEY)
       } catch {
         /* sin almacenamiento (ventana privada): la configuración dura la sesión */
       }

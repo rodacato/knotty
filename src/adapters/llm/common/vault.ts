@@ -1,6 +1,8 @@
 // Taken from ai-town: remembered keys are encrypted with a passphrase (PBKDF2 + AES-GCM); other pages of the same origin only see ciphertext.
 
-const STORAGE_KEY = 'despiece:v1:boveda'
+import { KEYS, readStored, removeStored } from '../../storedKey'
+
+const [STORAGE_KEY, OLDER_KEY] = KEYS.vault
 /** OWASP's current recommendation for PBKDF2-SHA256; each vault keeps its own. */
 const ITERATIONS = 600_000
 
@@ -35,7 +37,7 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
   return {
     exists() {
       try {
-        return !!storage.getItem(STORAGE_KEY)
+        return !!readStored(storage, STORAGE_KEY, OLDER_KEY)
       } catch {
         return false
       }
@@ -50,7 +52,7 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
     },
     /** Fails if the passphrase is not the right one. */
     async open(passphrase: string): Promise<Keyring> {
-      const saved = JSON.parse(storage.getItem(STORAGE_KEY) ?? 'null') as Sealed | SealedV1 | null
+      const saved = JSON.parse(readStored(storage, STORAGE_KEY, OLDER_KEY) ?? 'null') as Sealed | SealedV1 | null
       if (!saved) return {}
       if (saved.v !== 1 && saved.v !== 2) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
       const sealed = current(saved)
@@ -64,7 +66,7 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
     },
     forget() {
       try {
-        storage.removeItem(STORAGE_KEY)
+        removeStored(storage, STORAGE_KEY, OLDER_KEY)
       } catch {
         /* no había nada guardado */
       }

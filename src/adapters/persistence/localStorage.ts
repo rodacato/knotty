@@ -1,8 +1,9 @@
-import { migrateState } from '../../domain/sesion/migrate'
-import { DesignState } from '../../domain/sesion/state'
+import { migrateState } from '../../domain/session/migrate'
+import { DesignState } from '../../domain/session/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
+import { KEYS, readStored, removeStored } from '../storedKey'
 
-const STORAGE_KEY = 'despiece:v1:diseno'
+const [STORAGE_KEY, OLDER_KEY] = KEYS.design
 
 /** If saving exceeds the quota, thumbnails are dropped first, then the oldest in-between versions. */
 function reduce(state: DesignState): DesignState | null {
@@ -15,7 +16,7 @@ export function createLocalRepository(storage: Storage = localStorage): DesignRe
   return {
     load() {
       try {
-        const raw = storage.getItem(STORAGE_KEY)
+        const raw = readStored(storage, STORAGE_KEY, OLDER_KEY)
         if (!raw) return null
         const r = DesignState.safeParse(migrateState(JSON.parse(raw)))
         return r.success ? r.data : null
@@ -35,7 +36,7 @@ export function createLocalRepository(storage: Storage = localStorage): DesignRe
     },
     clear() {
       try {
-        storage.removeItem(STORAGE_KEY)
+        removeStored(storage, STORAGE_KEY, OLDER_KEY)
       } catch {
         /* nada guardado */
       }
