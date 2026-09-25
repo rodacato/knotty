@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { Bench } from '../application/bench/bench'
 import type { CasosDeUso } from '../application/casosDeUso'
 import type { Catalog } from '../domain/materiales/catalog'
 import type { DebugLog } from '../ports/DebugLog'
@@ -13,6 +14,8 @@ export interface Servicios {
   imagenes: ProcesadorImagen
   preferencias: Preferencias
   debug: DebugLog
+  /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
+  bench: Bench
 }
 
 export const ContextoServicios = createContext<Servicios | null>(null)
