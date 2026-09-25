@@ -6,12 +6,12 @@ import { error, type DesignError } from '../validation/errors'
 // Their fields are saved and written by the expert.
 
 export const Requirement = z.object({
-  id: z.string().min(1).describe('Clave corta y estable, por ejemplo "espacio-ancho"'),
-  text: z.string().min(1).describe('Como lo diría el usuario: "Mi espacio mide 90 cm de ancho"'),
+  id: z.string().min(1).describe('Short, stable key, for example "espacio-ancho"'),
+  text: z.string().min(1).describe('As the person would say it, in Spanish: "Mi espacio mide 90 cm de ancho"'),
   type: z.enum(['space', 'load', 'tool', 'style', 'other']),
-  axis: Axis.nullable().describe('Solo para type space'),
-  min: z.number().nullable().describe('Solo para type space, en mm'),
-  max: z.number().nullable().describe('Solo para type space, en mm'),
+  axis: Axis.nullable().describe('Only for type space'),
+  min: z.number().nullable().describe('Only for type space, in mm'),
+  max: z.number().nullable().describe('Only for type space, in mm'),
 })
 export type Requirement = z.infer<typeof Requirement>
 

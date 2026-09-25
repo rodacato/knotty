@@ -43,27 +43,27 @@ function validate<T>(schema: z.ZodType<T>, json: unknown): T {
 
 const correction = (previous: unknown, errors: string): Content => ({
   kind: 'texto',
-  text: `## Tu respuesta anterior no se pudo usar\n${errors}\n\nRespuesta anterior:\n\`\`\`json\n${JSON.stringify(previous)}\n\`\`\`\nCorrígela y responde completa de nuevo.`,
+  text: `## Your previous answer could not be used\n${errors}\n\nPrevious answer:\n\`\`\`json\n${JSON.stringify(previous)}\n\`\`\`\nFix it and answer again in full.`,
 })
 
 /** What a design or skeleton request carries: measures, the person's words, and the photo reading or the photos themselves. */
 function designRequest(s: ReconstructionRequest): Content[] {
   const measures = s.measures
-    ? `Medidas del mueble: ancho ${s.measures.width} mm, alto ${s.measures.height} mm, fondo ${s.measures.depth} mm.`
-    : 'La persona no sabe las medidas: propón unas típicas para ese mueble y dilo en la explicación.'
+    ? `Furniture measures: width ${s.measures.width} mm, height ${s.measures.height} mm, depth ${s.measures.depth} mm.`
+    : 'The person does not know the measures: propose typical ones for that furniture and say so in the explanation.'
   const reading = s.reading
-    ? `\nNo te mando las fotos: ya se leyeron. Esto es lo que se ve en ellas (proporciones relativas, columnas de izquierda a derecha y huecos de abajo hacia arriba):\n${JSON.stringify(s.reading)}`
+    ? `\nThe photos are not attached: they were already read. This is what they show (relative proportions, columns from left to right and openings from bottom to top):\n${JSON.stringify(s.reading)}`
     : ''
   return [
     {
       kind: 'texto',
       text:
         s.photos.length || s.reading
-          ? `${measures}${s.notes ? `\nNotas de la persona: ${s.notes}` : ''}${reading}`
-          : `${measures}\nNo hay fotos: diseña a partir de esta descripción de la persona.\nDescripción: ${s.notes || '(sin descripción)'}`,
+          ? `${measures}${s.notes ? `\nThe person's notes: ${s.notes}` : ''}${reading}`
+          : `${measures}\nThere are no photos: design from this description by the person.\nDescription: ${s.notes || '(no description)'}`,
     },
     ...s.photos.flatMap((f, i): Content[] => [
-      { kind: 'texto', text: `Foto ${i + 1}: ${f.angle}${f.note ? `. La persona dice: ${f.note}` : ''}` },
+      { kind: 'texto', text: `Photo ${i + 1}: ${f.angle}${f.note ? `. The person says: ${f.note}` : ''}` },
       { kind: 'imagen', base64: f.base64 },
     ]),
   ]
@@ -71,7 +71,7 @@ function designRequest(s: ReconstructionRequest): Content[] {
 
 const materialsText = (catalog: Catalog) => {
   const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
-  return `uno de ${boards.map((m) => `"${m.id}" (${m.espesor} mm)`).join(', ')}`
+  return `one of ${boards.map((m) => `"${m.id}" (${m.espesor} mm)`).join(', ')}`
 }
 
 export function createExpert(t: Transport, label: string): LLMProvider {
@@ -86,9 +86,9 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     },
     async proposeAdjustment(s: AdjustmentRequest, signal) {
       const content: Content[] = [
-        { kind: 'texto', text: `${s.context}\n\n## Pedido de la persona\n${s.request}` },
+        { kind: 'texto', text: `${s.context}\n\n## The person's request\n${s.request}` },
         ...s.photos.flatMap((f): Content[] => [
-          { kind: 'texto', text: `Foto que manda la persona: ${f.angle}` },
+          { kind: 'texto', text: `Photo sent by the person: ${f.angle}` },
           { kind: 'imagen', base64: f.base64 },
         ]),
       ]
@@ -103,13 +103,13 @@ export function createExpert(t: Transport, label: string): LLMProvider {
       return { value: validate(PlanResponse, json), origin: { promptId: SKELETON.id, provider: t.provider, model: t.modelo }, usage: usage, warnings: warnings }
     },
     async adjustPlan(r: PlanAdjustRequest, signal) {
-      const content: Content[] = [{ kind: 'texto', text: `${r.context}\n\n## Ficha actual\n${JSON.stringify(r.plan)}\n\n## Pedido de la persona\n${r.request}` }]
+      const content: Content[] = [{ kind: 'texto', text: `${r.context}\n\n## Current ficha\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]
       const { json, usage: usage, warnings: warnings } = await t.completeJSON(PLAN_ADJUSTMENT.text.replaceAll('{{materiales}}', materialsText(r.catalog)), content, PLAN_ADJUSTMENT_SCHEMA, 'ajuste_ficha', signal)
       return { value: validate(PlanAdjustment, json), origin: { promptId: PLAN_ADJUSTMENT.id, provider: t.provider, model: t.modelo }, usage: usage, warnings: warnings }
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
       const content: Content[] = [
-        { kind: 'texto', text: `Foto: ${r.photo.angle}.${r.photo.note ? ` La persona dice de esta foto: ${r.photo.note}` : ''}${r.context ? `\nLo que la persona busca: ${r.context}` : ''}` },
+        { kind: 'texto', text: `Photo: ${r.photo.angle}.${r.photo.note ? ` The person says about this photo: ${r.photo.note}` : ''}${r.context ? `\nWhat the person is after: ${r.context}` : ''}` },
         { kind: 'imagen', base64: r.photo.base64 },
       ]
       const { json, usage: usage, warnings: warnings } = await t.completeJSON(READING.text, content, READING_SCHEMA, 'lectura', signal)

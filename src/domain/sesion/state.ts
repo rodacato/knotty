@@ -12,7 +12,7 @@ import { Check, CarpenterOpinion, Verdict } from '../viabilidad/viability'
 
 export const Question = z.object({
   text: z.string().min(1),
-  options: z.array(z.string()).nullable().describe('Respuestas rápidas en botón; null si es abierta'),
+  options: z.array(z.string()).nullable().describe('Quick button answers, in Spanish; null if the question is open'),
 })
 export type Question = z.infer<typeof Question>
 

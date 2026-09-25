@@ -10,21 +10,21 @@ export type Axis = z.infer<typeof Axis>
 export const FaceRef = z
   .string()
   .regex(/^[a-z0-9-]+\.[xyz][01]$/, 'Formato "<pieza>.<eje><0|1>", por ejemplo "lat-izq.x1" o "mueble.y0"')
-  .describe('Una cara: 0 = la menor, 1 = la mayor. "mueble" son las caras exteriores del mueble')
+  .describe('A face: 0 = the smaller, 1 = the larger. "mueble" is the outside faces of the furniture')
 export type FaceRef = z.infer<typeof FaceRef>
 
 export const Position = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('mm'), mm: z.number() }).describe('Posición absoluta desde el origen del mueble'),
-  z.object({ type: z.literal('ref'), ref: FaceRef, offset: z.number() }).describe('Una cara de otra pieza o del mueble, más un desplazamiento'),
+  z.object({ type: z.literal('mm'), mm: z.number() }).describe('Absolute position from the origin of the furniture'),
+  z.object({ type: z.literal('ref'), ref: FaceRef, offset: z.number() }).describe('A face of another piece or of the furniture, plus an offset'),
   z
     .object({ type: z.literal('between'), a: FaceRef, b: FaceRef, t: z.number().min(0).max(1), offset: z.number() })
-    .describe('Proporcional entre dos caras: a + t·(b − a) + offset. Un divisor al centro usa t = 0.5'),
+    .describe('Proportional between two faces: a + t·(b − a) + offset. A centered divider uses t = 0.5'),
 ])
 export type Position = z.infer<typeof Position>
 
 export const Extent = z
   .object({ from: Position.nullable(), to: Position.nullable(), length: z.number().positive().nullable() })
-  .describe('En los ejes de la cara van dos de tres; en el eje normal solo from o solo to, porque el largo es el espesor')
+  .describe('On the axes of the face, two of the three are set; on the normal axis only from or only to, because the length is the thickness')
 export type Extent = z.infer<typeof Extent>
 
 export const ROLES = [
@@ -37,8 +37,8 @@ export const Role = z.enum(ROLES)
 export const isDrawerPart = (p: { role: string }) => p.role.startsWith('drawer-')
 export type Role = z.infer<typeof Role>
 
-export const Grain = z.enum(['length', 'width', 'any']).describe('Dirección de la veta respecto al lado largo de la cara')
-export const Load = z.enum(['none', 'light', 'medium', 'heavy']).describe('heavy = libros')
+export const Grain = z.enum(['length', 'width', 'any']).describe('Grain direction relative to the long side of the face')
+export const Load = z.enum(['none', 'light', 'medium', 'heavy']).describe('heavy = books')
 export type Load = z.infer<typeof Load>
 export const Edge = z.enum(['front', 'back', 'left', 'right', 'top', 'bottom'])
 export const PieceConfidence = z.enum(['high', 'medium', 'low'])
@@ -52,15 +52,15 @@ export const Piece = z.object({
   id: PieceId,
   name: z.string().min(1),
   role: Role,
-  material: z.string().describe('Id del catálogo de materiales, por ejemplo "T18"'),
-  normal: Axis.describe('Eje del espesor'),
+  material: z.string().describe('Material catalog id, for example "T18"'),
+  normal: Axis.describe('Thickness axis'),
   x: Extent,
   y: Extent,
   z: Extent,
   grain: Grain,
   load: Load,
   support: z.enum(['fixed', 'movable']),
-  edges: z.array(Edge).describe('Cantos con cubrecanto'),
+  edges: z.array(Edge).describe('Edges with edge banding'),
   group: z.string().nullable(),
   confidence: PieceConfidence,
 })
@@ -75,11 +75,11 @@ export type JointType = z.infer<typeof JointType>
 
 export const Joint = z.object({
   id: z.string().min(1),
-  a: PieceId.describe('La pieza que se fija; en butt-screw, el tornillo la atraviesa'),
-  b: PieceId.describe('La pieza que recibe; en butt-screw, el tornillo entra por su canto'),
+  a: PieceId.describe('The piece being fastened; in butt-screw, the screw goes through it'),
+  b: PieceId.describe('The piece that receives; in butt-screw, the screw goes into its edge'),
   type: JointType,
   glue: z.boolean(),
-  depth: z.number().nonnegative().nullable().describe('Canal o rebaje: cuántos mm entra a en b'),
+  depth: z.number().nonnegative().nullable().describe('Dado or rabbet: how many mm a goes into b'),
   hardware: z.array(z.object({ hardwareId: z.string(), count: z.number().int().positive().nullable() })),
 })
 export type Joint = z.infer<typeof Joint>
@@ -94,7 +94,7 @@ export const Design = z.object({
   wallAnchored: z.boolean(),
   pieces: z.array(Piece),
   joints: z.array(Joint),
-  notes: z.string().max(1200).describe('Lo que se vio en las fotos y no cabe en el modelo'),
+  notes: z.string().max(1200).describe('What was seen in the photos and does not fit in the model, in Spanish'),
 })
 export type Design = z.infer<typeof Design>
 

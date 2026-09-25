@@ -282,7 +282,7 @@ describe('buildContext', () => {
     const c = casos()
     const estado = c.applyProposal(await c.adjust(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal()))
     const texto = buildContext(estado, testCatalog)
-    for (const parte of ['## Diseño actual (v2)', 'lat-der: 882–900', 'R1_SAG', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Usuario: Hazlo de 90 cm']) expect(texto).toContain(parte)
+    for (const parte of ['## Current design (v2)', 'lat-der: 882–900', 'R1_SAG', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Person: Hazlo de 90 cm']) expect(texto).toContain(parte)
   })
 })
 

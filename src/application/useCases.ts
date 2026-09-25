@@ -68,13 +68,13 @@ function questionFromAlternatives(criticals: Finding[]): Question[] {
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
   JSON.stringify([state.current, state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.acomodo, effectiveCatalog.materiales.map((m) => [m.id, m.hoja])])
 
-const CHECK_STATE = { ok: 'bien', warning: 'aviso', fail: 'FALLA' }
+const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
 function reviewText(cut: CutLine[], comprobaciones: Check[]) {
   return [
-    '## Lista de corte (largo × ancho × espesor, mm)',
+    '## Cut list (length × width × thickness, mm)',
     ...cut.map((r) => `- ${r.count} × ${r.name} (${r.material}): ${r.length} × ${r.width} × ${r.thickness}`),
     '',
-    '## Comprobaciones de la app',
+    '## App checks',
     ...comprobaciones.map((c) => `- [${CHECK_STATE[c.status]}] ${c.title}: ${c.detail}`),
   ].join('\n')
 }
@@ -542,9 +542,9 @@ export function createUseCases(deps: Dependencies) {
           correction = {
             previousResponse: r,
             errors: [
-              'El cambio es válido pero deja estos problemas estructurales críticos nuevos:',
-              ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternativas: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`),
-              'Si la solución es clara, inclúyela en las operaciones. Si hay que elegir, deja las operaciones del pedido y ofrece las opciones en preguntas.',
+              'The change is valid but leaves these new critical structural problems:',
+              ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`),
+              'If the fix is clear, include it in the operations. If there is a choice to make, keep the requested operations and offer the options in questions.',
             ].join('\n'),
           }
           continue

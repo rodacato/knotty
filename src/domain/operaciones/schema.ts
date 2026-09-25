@@ -6,12 +6,12 @@ import { FaceRef, Edge, Load, PieceConfidence, Position, Axis, Piece, PieceId, R
 
 export const Operation = z.discriminatedUnion('op', [
   z.object({ op: z.literal('addPiece'), piece: Piece }),
-  z.object({ op: z.literal('removePiece'), id: PieceId }).describe('Quita la pieza y sus uniones; las cotas que la referían quedan fijas en mm'),
+  z.object({ op: z.literal('removePiece'), id: PieceId }).describe('Removes the piece and its joints; positions that referred to it become fixed in mm'),
   z.object({ op: z.literal('removeGroup'), group: z.string() }),
-  z.object({ op: z.literal('duplicatePiece'), id: PieceId, newId: PieceId, name: z.string(), axis: Axis, at: Position }).describe('Copia la pieza y sus uniones y la coloca con su cara menor en la cota'),
-  z.object({ op: z.literal('resize'), id: PieceId, axis: Axis, end: z.enum(['from', 'to']), at: Position }).describe('Mueve un extremo; el otro se queda. No aplica al eje normal'),
-  z.object({ op: z.literal('move'), id: PieceId, axis: Axis, at: Position }).describe('Coloca la cara menor en la cota conservando el largo'),
-  z.object({ op: z.literal('distribute'), ids: z.array(PieceId).min(1), axis: Axis, a: FaceRef, b: FaceRef }).describe('Reparte piezas con huecos iguales entre dos caras, en su eje normal'),
+  z.object({ op: z.literal('duplicatePiece'), id: PieceId, newId: PieceId, name: z.string(), axis: Axis, at: Position }).describe('Copies the piece and its joints and places its smaller face at the position'),
+  z.object({ op: z.literal('resize'), id: PieceId, axis: Axis, end: z.enum(['from', 'to']), at: Position }).describe('Moves one end; the other stays. Does not apply to the normal axis'),
+  z.object({ op: z.literal('move'), id: PieceId, axis: Axis, at: Position }).describe('Places the smaller face at the position, keeping the length'),
+  z.object({ op: z.literal('distribute'), ids: z.array(PieceId).min(1), axis: Axis, a: FaceRef, b: FaceRef }).describe('Spreads pieces with equal gaps between two faces, along their normal axis'),
   z.object({ op: z.literal('changeMaterial'), ids: z.array(PieceId).min(1), material: z.string() }),
   z.object({
     op: z.literal('changeProperties'),
@@ -22,29 +22,29 @@ export const Operation = z.discriminatedUnion('op', [
     load: Load.nullable(),
     support: z.enum(['fixed', 'movable']).nullable(),
     edges: z.array(Edge).nullable(),
-    confidence: PieceConfidence.nullable().describe('"high" cuando la persona o una foto confirman la pieza'),
+    confidence: PieceConfidence.nullable().describe('"high" when the person or a photo confirms the piece'),
   }),
   z.object({ op: z.literal('addJoint'), joint: Joint }),
-  z.object({ op: z.literal('changeJoint'), joint: Joint }).describe('Reemplaza la unión con el mismo id'),
+  z.object({ op: z.literal('changeJoint'), joint: Joint }).describe('Replaces the joint with the same id'),
   z.object({ op: z.literal('removeJoint'), id: z.string() }),
   z
     .object({ op: z.literal('resizeFurniture'), axis: Axis, value: z.number().positive(), rule: z.enum(['stretch', 'proportional']) })
-    .describe('stretch: lo referido a las caras del mueble se estira o se recorre. proportional: además escala las cotas absolutas'),
+    .describe('stretch: whatever refers to the furniture faces stretches or moves. proportional: also scales absolute positions'),
   z.object({ op: z.literal('setWallAnchored'), value: z.boolean() }),
   z
     .object({
       op: z.literal('addDrawer'),
-      group: PieceId.describe('Id del cajón, por ejemplo "cajon-1"; sus piezas se llaman "cajon-1-frente", "cajon-1-costado-izq"…'),
+      group: PieceId.describe('Drawer id, for example "cajon-1"; its pieces are called "cajon-1-frente", "cajon-1-costado-izq"…'),
       name: z.string().describe('"Cajón 1"'),
-      left: FaceRef.describe('Cara x del hueco a la izquierda, por ejemplo "lat-izq.x1"'),
-      right: FaceRef.describe('Cara x del hueco a la derecha, por ejemplo "lat-der.x0"'),
-      bottom: FaceRef.describe('Cara y del hueco abajo, por ejemplo "piso.y1"'),
-      top: FaceRef.describe('Cara y del hueco arriba, por ejemplo "entrepano-1.y0"'),
-      front: FaceRef.describe('Cara z con la que queda al ras el frente, normalmente "mueble.z1"'),
-      back: FaceRef.describe('Cara z del fondo del hueco, normalmente "trasera.z1"'),
-      material: z.string().describe('Frente y caja, por ejemplo "T15"'),
-      bottomMaterial: z.string().describe('Fondo del cajón, por ejemplo "TR6"'),
+      left: FaceRef.describe('x face on the left of the opening, for example "lat-izq.x1"'),
+      right: FaceRef.describe('x face on the right of the opening, for example "lat-der.x0"'),
+      bottom: FaceRef.describe('y face at the bottom of the opening, for example "piso.y1"'),
+      top: FaceRef.describe('y face at the top of the opening, for example "entrepano-1.y0"'),
+      front: FaceRef.describe('z face the front sits flush with, usually "mueble.z1"'),
+      back: FaceRef.describe('z face at the back of the opening, usually "trasera.z1"'),
+      material: z.string().describe('Front and box, for example "T15"'),
+      bottomMaterial: z.string().describe('Drawer bottom, for example "TR6"'),
     })
-    .describe('Arma un cajón completo con frente embutido y correderas telescópicas; la app elige la corredera y calcula las holguras'),
+    .describe('Builds a complete drawer with an inset front and telescopic slides; the app picks the slide and works out the clearances'),
 ])
 export type Operation = z.infer<typeof Operation>

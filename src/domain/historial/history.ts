@@ -7,8 +7,8 @@ export const Origin = z.object({ promptId: z.string(), provider: z.string(), mod
 export type Origin = z.infer<typeof Origin>
 
 export const Decision = z.object({
-  topic: z.string().min(1).describe('Clave corta: "trasera", "espesor-entrepanos"'),
-  text: z.string().min(1).describe('La decisión y su porqué, en una línea'),
+  topic: z.string().min(1).describe('Short key: "trasera", "espesor-entrepanos"'),
+  text: z.string().min(1).describe('The decision and its reason, in one line, in Spanish'),
 })
 export type Decision = z.infer<typeof Decision>
 
@@ -69,10 +69,10 @@ export function abbreviate(op: Operation): string {
 /** The log the expert sees: recent changes in full, older ones in a line, the oldest only counted; what matters already lives in decisions and requirements. */
 export function compactLog(versions: Version[]): string[] {
   const ordered = [...versions].sort((a, b) => b.n - a.n)
-  const full = ordered.slice(0, LIMITS.full).map((v) => `v${v.n}: ${v.summary} — pedido: "${v.reason}" — ${v.operations.join('; ') || 'sin operaciones'}`)
+  const full = ordered.slice(0, LIMITS.full).map((v) => `v${v.n}: ${v.summary} — request: "${v.reason}" — ${v.operations.join('; ') || 'no operations'}`)
   const summarized = ordered.slice(LIMITS.full, LIMITS.summarized).map((v) => `v${v.n}: ${v.summary}`)
   const rest = ordered.length - LIMITS.summarized
-  return [...full, ...summarized, ...(rest > 0 ? [`(${rest} cambios anteriores)`] : [])].reverse()
+  return [...full, ...summarized, ...(rest > 0 ? [`(${rest} earlier changes)`] : [])].reverse()
 }
 
 /** A new decision on a topic replaces the previous one; the most recent are kept. */
