@@ -15,20 +15,20 @@ export type Mattress = z.infer<typeof Mattress>
 
 export const BedPlan = z.object({
   kind: z.literal('bed'),
-  name: z.string().describe('Nombre del mueble para la persona: "Cama individual con cajones"'),
-  mattress: Mattress.describe('Medida del colchón: individual 99 × 190, matrimonial 135 × 190, queen 152 × 200, king 193 × 200 cm'),
-  material: z.string().describe('Id del triplay, normalmente "T18"'),
-  height: z.number().positive().describe('Alto de la base en mm, del piso a donde se apoya el colchón; lo normal, 300–450'),
+  name: z.string().describe('Name of the furniture for the person, in Spanish: "Cama individual con cajones"'),
+  mattress: Mattress.describe('Mattress size: individual 99 × 190, matrimonial 135 × 190, queen 152 × 200, king 193 × 200 cm'),
+  material: z.string().describe('Plywood id, usually "T18"'),
+  height: z.number().positive().describe('Base height in mm, from the floor to where the mattress rests; usually 300–450'),
   drawers: z.object({
-    side: z.enum(['none', 'left', 'right', 'both']).describe('De qué lado abren, viendo la cama desde el pie: none, left, right o both'),
-    count: z.number().int().min(0).max(4).describe('Cuántos cajones por lado; 0 si no lleva'),
-    position: z.enum(['head', 'center', 'foot']).describe('Si no llenan todo el largo, hacia dónde se juntan: cabecera, centro o pie'),
+    side: z.enum(['none', 'left', 'right', 'both']).describe('Which side they open on, seen from the foot of the bed: none, left, right or both'),
+    count: z.number().int().min(0).max(4).describe('How many drawers per side; 0 if there are none'),
+    position: z.enum(['head', 'center', 'foot']).describe('If they do not fill the whole length, where they gather: head, center or foot'),
   }),
   headboard: z.object({
-    style: z.enum(['none', 'plain', 'bookcase', 'storage']).describe('none: sin cabecera; plain: un tablero liso; bookcase: librero con repisas; storage: compartimento cerrado a la altura de la almohada y repisas arriba'),
-    height: z.number().positive().describe('Alto total de la cabecera desde el piso en mm; lo normal, 900–1200'),
-    depth: z.number().nonnegative().describe('Fondo del librero o compartimento en mm; lo normal, 200–300. En una cabecera lisa o sin cabecera no cuenta: 0'),
-    shelves: z.number().int().nonnegative().describe('Repisas del librero o arriba del compartimento'),
+    style: z.enum(['none', 'plain', 'bookcase', 'storage']).describe('none: no headboard; plain: a flat board; bookcase: a bookcase with shelves; storage: a closed compartment at pillow height with shelves above'),
+    height: z.number().positive().describe('Total headboard height from the floor in mm; usually 900–1200'),
+    depth: z.number().nonnegative().describe('Depth of the bookcase or compartment in mm; usually 200–300. It does not count for a plain headboard or none: 0'),
+    shelves: z.number().int().nonnegative().describe('Shelves in the bookcase or above the compartment'),
   }),
 })
 export type BedPlan = z.infer<typeof BedPlan>

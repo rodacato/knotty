@@ -19,17 +19,17 @@ export const Hardware = z.object({
   nombre: z.string(),
   unidad: z.enum(['pieza', 'paquete', 'metro', 'frasco']),
   porPaquete: z.number().int().positive().nullable(),
-  largo: z.number().positive().nullable().default(null).describe('Tornillos y correderas: largo en mm'),
-  holguraLateral: z.number().nonnegative().nullable().default(null).describe('Correderas: espacio por lado entre el cajón y el mueble'),
+  largo: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
+  holguraLateral: z.number().nonnegative().nullable().default(null).describe('Slides: space per side between the drawer and the furniture'),
   sku: z.string().nullable(),
   precio: z.number().nonnegative().nullable(),
 })
 export type Hardware = z.infer<typeof Hardware>
 
 export const LayoutSettings = z.object({
-  refilado: z.number().nonnegative().describe('Canto de fábrica que se recorta por lado'),
-  sierra: z.number().nonnegative().describe('Ancho del corte'),
-  holgura: z.number().nonnegative().describe('Holgura por pieza'),
+  refilado: z.number().nonnegative().describe('Factory edge trimmed per side'),
+  sierra: z.number().nonnegative().describe('Width of the cut'),
+  holgura: z.number().nonnegative().describe('Clearance per piece'),
 })
 export type LayoutSettings = z.infer<typeof LayoutSettings>
 

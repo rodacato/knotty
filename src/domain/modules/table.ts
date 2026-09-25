@@ -10,15 +10,15 @@ import type { Operation } from '../operaciones/schema'
 
 export const TablePlan = z.object({
   kind: z.literal('table'),
-  use: z.enum(['dining', 'coffee', 'side', 'desk']).describe('dining: comedor; coffee: de centro; side: lateral o de noche; desk: escritorio'),
-  name: z.string().describe('Nombre del mueble para la persona: "Escritorio con cajonera", "Mesa de centro"'),
-  material: z.string().describe('Id del triplay, normalmente "T18"'),
-  dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Largo (ancho), alto y fondo exteriores en mm'),
-  overhang: z.number().nonnegative().describe('Cuánto sobresale la cubierta de los costados, en mm; 0 si los costados llegan a la orilla'),
-  shelf: z.boolean().describe('Repisa baja entre los costados (mesas de centro y laterales); un escritorio no la lleva, estorba las piernas'),
+  use: z.enum(['dining', 'coffee', 'side', 'desk']).describe('dining: dining table; coffee: coffee table; side: side table or nightstand; desk: desk'),
+  name: z.string().describe('Name of the furniture for the person, in Spanish: "Escritorio con cajonera", "Mesa de centro"'),
+  material: z.string().describe('Plywood id, usually "T18"'),
+  dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Outside length (width), height and depth in mm'),
+  overhang: z.number().nonnegative().describe('How far the top sticks out past the sides, in mm; 0 if the sides reach the edge'),
+  shelf: z.boolean().describe('Low shelf between the sides (coffee and side tables); a desk has none, it gets in the way of the legs'),
   pedestal: z.object({
-    side: z.enum(['none', 'left', 'right']).describe('De qué lado va la cajonera, viendo el escritorio de frente'),
-    drawers: z.number().int().min(0).max(4).describe('Cuántos cajones lleva la cajonera; 0 si no hay'),
+    side: z.enum(['none', 'left', 'right']).describe('Which side the pedestal goes on, seen from the front of the desk'),
+    drawers: z.number().int().min(0).max(4).describe('How many drawers the pedestal has; 0 if there is none'),
   }),
 })
 export type TablePlan = z.infer<typeof TablePlan>

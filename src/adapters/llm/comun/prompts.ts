@@ -1,11 +1,11 @@
 import type { Catalog } from '../../../domain/materiales/catalog'
-import ajuste from '../prompts/ajuste.v8.md?raw'
-import ajusteFicha from '../prompts/ajuste-ficha.v4.md?raw'
-import dictamen from '../prompts/dictamen.v2.md?raw'
-import esqueleto from '../prompts/esqueleto.v6.md?raw'
-import lectura from '../prompts/lectura.v1.md?raw'
-import reconstruccion from '../prompts/reconstruccion.v8.md?raw'
-import sistema from '../prompts/sistema.v5.md?raw'
+import ajuste from '../prompts/ajuste.v9.md?raw'
+import ajusteFicha from '../prompts/ajuste-ficha.v5.md?raw'
+import dictamen from '../prompts/dictamen.v3.md?raw'
+import esqueleto from '../prompts/esqueleto.v7.md?raw'
+import lectura from '../prompts/lectura.v2.md?raw'
+import reconstruccion from '../prompts/reconstruccion.v9.md?raw'
+import sistema from '../prompts/sistema.v6.md?raw'
 
 interface Prompt {
   id: string

@@ -31,18 +31,18 @@ export const Check = z.object({
 export type Check = z.infer<typeof Check>
 
 export const CarpenterOpinion = z.object({
-  verdict: Verdict.describe('viable: se puede comprar y armar así; needs-changes: hay que arreglar algo antes; not-viable: tiene un error de origen'),
-  summary: z.string().describe('El dictamen en 1 o 2 frases, como se lo dirías a la persona en el taller'),
+  verdict: Verdict.describe('viable: can be bought and built like this; needs-changes: something must be fixed first; not-viable: has a fundamental error'),
+  summary: z.string().describe('The verdict in 1 or 2 sentences, in Spanish, as you would tell the person in the workshop'),
   problems: z.array(
     z.object({
-      title: z.string().describe('En 3 a 6 palabras'),
-      detail: z.string().describe('Qué pasa, por qué importa y cómo se arregla, en 1 a 3 frases'),
-      severity: z.enum(['high', 'medium', 'low']).describe('high: no se puede armar o es inseguro; medium: va a fallar con el uso; low: conviene mejorarlo'),
-      pieces: z.array(z.string()).describe('Ids de las piezas involucradas'),
-      request: z.string().nullable().describe('El cambio para pedirle al experto en el chat, escrito como lo pediría la persona; null si no hay un arreglo claro'),
+      title: z.string().describe('In 3 to 6 words, in Spanish'),
+      detail: z.string().describe('What happens, why it matters and how to fix it, in 1 to 3 sentences, in Spanish'),
+      severity: z.enum(['high', 'medium', 'low']).describe('high: cannot be built or is unsafe; medium: will fail with use; low: worth improving'),
+      pieces: z.array(z.string()).describe('Ids of the pieces involved'),
+      request: z.string().nullable().describe('The change to ask the expert for in the chat, in Spanish, as the person would ask it; null if there is no clear fix'),
     }),
   ),
-  tips: z.array(z.string()).describe('2 a 4 consejos para comprar, cortar y armar este mueble en particular'),
+  tips: z.array(z.string()).describe('2 to 4 tips, in Spanish, for buying, cutting and building this particular piece of furniture'),
 })
 export type CarpenterOpinion = z.infer<typeof CarpenterOpinion>
 

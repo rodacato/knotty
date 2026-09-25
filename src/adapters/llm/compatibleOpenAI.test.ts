@@ -44,10 +44,10 @@ describe('createCompatible', () => {
     await nueva().reconstruct(solicitud([{ angle: 'front', base64: 'AAA' }, { angle: 'three-quarter', base64: 'BBB' }]), new AbortController().signal)
     const partes = cuerpo!.messages[1].content
     expect(partes.map((p) => p.text ?? p.image_url?.url)).toEqual([
-      expect.stringContaining('Medidas del mueble'),
-      'Foto 1: front',
+      expect.stringContaining('Furniture measures'),
+      'Photo 1: front',
       'data:image/jpeg;base64,AAA',
-      'Foto 2: three-quarter',
+      'Photo 2: three-quarter',
       'data:image/jpeg;base64,BBB',
     ])
     expect(cuerpo!.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'reconstruccion', strict: true } })

@@ -12,24 +12,24 @@ import { Column } from '../reading/reading'
 
 /** How a carpenter would build it: each option is a different way of joining the same box. */
 export const CabinetConstruction = z.object({
-  doors: z.enum(['overlay', 'inset']).describe('overlay: la puerta tapa el frente del mueble; inset: la puerta va embutida dentro del hueco'),
-  drawerFronts: z.enum(['inset', 'overlay']).describe('inset: el frente del cajón va embutido en el hueco; overlay: el frente tapa el frente del mueble'),
-  top: z.enum(['between', 'over']).describe('between: el techo va entre los laterales; over: la cubierta va encima de los laterales'),
-  back: z.enum(['nailed', 'none']).describe('nailed: trasera de 6 mm clavada; none: sin trasera'),
-  shelves: z.enum(['movable', 'fixed']).describe('movable: repisas sobre soportes; fixed: atornilladas'),
+  doors: z.enum(['overlay', 'inset']).describe('overlay: the door covers the front of the furniture; inset: the door sits inside the opening'),
+  drawerFronts: z.enum(['inset', 'overlay']).describe('inset: the drawer front sits inside the opening; overlay: the front covers the front of the furniture'),
+  top: z.enum(['between', 'over']).describe('between: the top goes between the sides; over: the top sits on the sides'),
+  back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
+  shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
 })
 export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable' }
 
 export const CabinetPlan = z.object({
-  name: z.string().describe('Nombre del mueble para la persona: "Librero", "Buró con cajón"'),
-  dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Medidas exteriores en mm'),
-  material: z.string().describe('Id del triplay del casco, normalmente "T18"'),
-  base: z.enum(['kick', 'floor']).describe('kick: zoclo al frente; floor: el piso del mueble asienta directo'),
-  wallMounted: z.boolean().describe('Si va anclado o colgado del muro'),
+  name: z.string().describe('Name of the furniture for the person, in Spanish: "Librero", "Buró con cajón"'),
+  dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Outside measures in mm'),
+  material: z.string().describe('Plywood id for the carcass, usually "T18"'),
+  base: z.enum(['kick', 'floor']).describe('kick: kick plate at the front; floor: the bottom of the furniture sits directly on the floor'),
+  wallMounted: z.boolean().describe('Whether it is anchored to or hung from the wall'),
   construction: CabinetConstruction,
-  columns: z.array(Column).min(1).describe('De izquierda a derecha; cada una con sus huecos de abajo hacia arriba'),
+  columns: z.array(Column).min(1).describe('Left to right; each one with its openings from bottom to top'),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 

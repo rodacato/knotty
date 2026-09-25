@@ -5,32 +5,32 @@ import { z } from 'zod'
 const Confidence = z.enum(['high', 'medium', 'low'])
 
 export const Cell = z.object({
-  height: z.number().positive().describe('Alto del hueco como fracción del alto de su columna'),
-  content: z.enum(['open', 'drawer', 'door', 'closed']).describe('open: abierto; drawer: cajón; door: puerta; closed: tapado sin abrir'),
-  shelves: z.number().int().nonnegative().nullable().describe('Repisas dentro de un hueco abierto o detrás de una puerta'),
-  doors: z.number().int().positive().nullable().describe('Cuántas hojas de puerta cubren el hueco'),
+  height: z.number().positive().describe('Height of the opening as a fraction of the height of its column'),
+  content: z.enum(['open', 'drawer', 'door', 'closed']).describe('open: open; drawer: drawer; door: door; closed: covered, not opening'),
+  shelves: z.number().int().nonnegative().nullable().describe('Shelves inside an open opening or behind a door'),
+  doors: z.number().int().positive().nullable().describe('How many door leaves cover the opening'),
 })
 export type Cell = z.infer<typeof Cell>
 
 export const Column = z.object({
-  width: z.number().positive().describe('Ancho de la columna como fracción del ancho total'),
-  cells: z.array(Cell).describe('Huecos de abajo hacia arriba'),
+  width: z.number().positive().describe('Column width as a fraction of the total width'),
+  cells: z.array(Cell).describe('Openings from bottom to top'),
 })
 export type Column = z.infer<typeof Column>
 
 export const PhotoReading = z.object({
-  kind: z.string().describe('Qué mueble es, en una o dos palabras: "librero", "buró", "cama individual"'),
+  kind: z.string().describe('What furniture it is, in one or two words, in Spanish: "librero", "buró", "cama individual"'),
   confidence: Confidence,
-  description: z.string().describe('Lo que se ve del mueble principal, en 1 o 2 frases'),
+  description: z.string().describe('What can be seen of the main piece of furniture, in 1 or 2 sentences, in Spanish'),
   proportions: z
     .object({ height: z.number().positive(), width: z.number().positive(), depth: z.number().positive().nullable() })
     .nullable()
-    .describe('Alto, ancho y fondo relativos, con ancho = 1; null si la vista no deja estimarlo'),
-  base: z.enum(['kick', 'legs', 'floor', 'wheels']).nullable().describe('kick: zoclo; legs: patas; floor: directo al piso; wheels: ruedas'),
-  topOverhangs: z.boolean().nullable().describe('Si la cubierta sobresale de los lados'),
-  columns: z.array(Column).nullable().describe('Divisiones verticales de izquierda a derecha, vistas de frente; null si la vista no las muestra'),
-  details: z.array(z.string()).describe('Acabados, cantos, uniones visibles, jaladeras'),
-  doubts: z.array(z.string()).describe('Lo que la foto no deja saber y conviene preguntar'),
+    .describe('Relative height, width and depth, with width = 1; null if the view does not allow estimating them'),
+  base: z.enum(['kick', 'legs', 'floor', 'wheels']).nullable().describe('kick: kick plate; legs: legs; floor: directly on the floor; wheels: wheels'),
+  topOverhangs: z.boolean().nullable().describe('Whether the top sticks out past the sides'),
+  columns: z.array(Column).nullable().describe('Vertical divisions from left to right, seen from the front; null if the view does not show them'),
+  details: z.array(z.string()).describe('Finishes, edges, visible joints, handles; in Spanish'),
+  doubts: z.array(z.string()).describe('What the photo does not tell and is worth asking, in Spanish'),
 })
 export type PhotoReading = z.infer<typeof PhotoReading>
 
