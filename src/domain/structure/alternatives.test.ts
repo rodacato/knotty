@@ -1,33 +1,12 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { ALTERNATIVES, isBuildKey } from './alternatives'
-
-const DOMAIN = join(import.meta.dirname, '..')
-
-function sources(dir: string): string[] {
-  return readdirSync(dir).flatMap((name) => {
-    const path = join(dir, name)
-    if (statSync(path).isDirectory()) return sources(path)
-    return name.endsWith('.ts') && !/\.test(-util)?\.ts$/.test(name) ? [readFileSync(path, 'utf8')] : []
-  })
-}
+import { ALTERNATIVES } from './alternatives'
 
 describe('alternatives', () => {
-  it('every key a rule offers is declared', () => {
-    const offered = [join(DOMAIN, 'structure', 'rules'), join(DOMAIN, 'typology')].flatMap(sources).flatMap((code) => [...code.matchAll(/\bkey: '([^']+)'/g)].map((m) => m[1]))
-    expect(offered.length).toBeGreaterThan(0)
-    expect(offered.filter((key) => !(key in ALTERNATIVES))).toEqual([])
-  })
-
-  it('every key Knotty builds has its case in fixes, and fixes builds nothing else', () => {
-    const cases = [...readFileSync(join(DOMAIN, 'fixes', 'fixes.ts'), 'utf8').matchAll(/\bcase '([^']+)':/g)].map((m) => m[1])
-    const build = Object.keys(ALTERNATIVES).filter(isBuildKey)
-    expect([...cases].sort()).toEqual([...build].sort())
-  })
+  // The compiler checks the rest: a rule can only offer a declared key (`Alternative.key` is `AlternativeKey`),
+  // and `operationsFor` switches over every build key and nothing else (it ends in `never`).
 
   it('the longest span of a sagging board is data of the finding, not a way out', () => {
     const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
