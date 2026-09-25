@@ -12,6 +12,8 @@ export const TraceEntry = z.object({
   promptId: z.string().nullable(),
   outcome: z.enum(['ok', 'invalid', 'unreadable', 'failed']),
   errors: z.array(z.object({ code: z.string(), message: z.string() })),
+  /** What Knotty fixed by rule after this answer, in words for the person. */
+  repairs: z.array(z.string()).default([]),
 })
 export type TraceEntry = z.infer<typeof TraceEntry>
 

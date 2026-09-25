@@ -12,6 +12,7 @@ import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
+import { repairDesign, type Repair } from '../domain/repair/repair'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
@@ -79,7 +80,15 @@ export class ErrorExperto extends Error {
   }
 }
 
-const traceEntry = (step: TraceEntry['step'], attempt: number, started: number, respuesta: Respuesta<unknown> | null, outcome: TraceEntry['outcome'], errors: TraceEntry['errors']): TraceEntry => ({
+const traceEntry = (
+  step: TraceEntry['step'],
+  attempt: number,
+  started: number,
+  respuesta: Respuesta<unknown> | null,
+  outcome: TraceEntry['outcome'],
+  errors: TraceEntry['errors'],
+  repairs: Repair[] = [],
+): TraceEntry => ({
   at: new Date(started).toISOString(),
   step,
   attempt,
@@ -88,6 +97,7 @@ const traceEntry = (step: TraceEntry['step'], attempt: number, started: number, 
   promptId: respuesta?.origen.promptId ?? null,
   outcome,
   errors,
+  repairs: repairs.map((r) => r.message),
 })
 
 export function crearCasosDeUso(deps: Dependencias) {
@@ -137,7 +147,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     let correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null = null
     const trace: TraceEntry[] = []
     // A design that resolves but did not pass validation: shown with its problems instead of thrown away.
-    let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[] } | null = null
+    let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[]; repairs: Repair[] } | null = null
     for (let intento = 0; intento < INTENTOS; intento++) {
       alAvanzar(intento ? 'corrigiendo' : 'mirando-fotos', intento)
       const started = Date.now()
@@ -156,21 +166,23 @@ export function crearCasosDeUso(deps: Dependencias) {
       }
       alAvanzar('revisando', intento)
       const r = respuesta.valor
-      const diseno = completeJoints(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
+      const propuesto = completeJoints(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
+      // What has an obvious fix is fixed here; only the rest goes back to the model.
+      const { design: diseno, repairs } = repairDesign(propuesto, catalogo, r.requisitos)
       const analisis = analizar(diseno, catalogo, r.requisitos)
       if (!analisis.valido) {
-        trace.push(traceEntry('reconstruct', intento, started, respuesta, 'invalid', traceErrors(analisis.errores)))
-        if (analisis.geo) lastCandidate = { diseno, r, respuesta, errores: analisis.errores }
+        trace.push(traceEntry('reconstruct', intento, started, respuesta, 'invalid', traceErrors(analisis.errores), repairs))
+        if (analisis.geo) lastCandidate = { diseno, r, respuesta, errores: analisis.errores, repairs }
         correccion = { respuestaAnterior: r, errores: analisis.errores }
         continue
       }
-      trace.push(traceEntry('reconstruct', intento, started, respuesta, 'ok', []))
+      trace.push(traceEntry('reconstruct', intento, started, respuesta, 'ok', [], repairs))
       alAvanzar('estructura', intento)
-      return guardar(estadoInicial(entrada, diseno, r, respuesta, [], trace))
+      return guardar(estadoInicial(entrada, diseno, r, respuesta, [], repairs, trace))
     }
     if (lastCandidate) {
-      const { diseno, r, respuesta, errores } = lastCandidate
-      return guardar(estadoInicial(entrada, diseno, r, respuesta, errores, trace))
+      const { diseno, r, respuesta, errores, repairs } = lastCandidate
+      return guardar(estadoInicial(entrada, diseno, r, respuesta, errores, repairs, trace))
     }
     const problemas = describeProblems(trace.at(-1)?.errors ?? [])
     throw new ErrorExperto(
@@ -186,10 +198,12 @@ export function crearCasosDeUso(deps: Dependencias) {
     r: RespuestaReconstruccion,
     respuesta: Respuesta<RespuestaReconstruccion>,
     problemas: ErrorDiseno[],
+    repairs: Repair[],
     trace: TraceEntry[],
   ): EstadoDiseno {
     const { ancho, alto, fondo } = diseno.dimensiones
     const estimadas = entrada.medidas ? [] : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
+    const reparado = repairs.length ? [`Ajusté por mi cuenta ${repairs.length === 1 ? 'un detalle' : `${repairs.length} detalles`}: ${repairs.map((x) => x.message).join(' ')}`] : []
     const pendientes = problemas.length
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problemas))}. Te las marqué en el 3D y en Revisión; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
@@ -202,7 +216,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       decisiones: [],
       chat: [
         mensaje('usuario', pedidoInicial(entrada), { miniatura: entrada.miniaturas[0]?.dataUrl ?? null }),
-        mensaje('experto', [r.explicacion, ...pendientes, ...estimadas, ...(respuesta.avisos ?? [])].join('\n\n'), {
+        mensaje('experto', [r.explicacion, ...reparado, ...pendientes, ...estimadas, ...(respuesta.avisos ?? [])].join('\n\n'), {
           preguntas: r.preguntas.slice(0, 3),
           fotosPedidas: r.fotosSolicitadas.slice(0, 2),
           sugerencias: [...(problemas.length ? ['Corrige las piezas marcadas'] : []), ...r.sugerencias].slice(0, 4),
@@ -274,17 +288,21 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
-        const nuevo = aplicado.ok ? completeJoints(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
+        const aplicadoNormal = aplicado.ok ? completeJoints(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
+        const reparado = aplicadoNormal ? repairDesign(aplicadoNormal, catalogo, requisitos) : null
+        const nuevo = reparado?.design ?? null
+        const repairs = reparado?.repairs ?? []
         const analisis = nuevo ? analizar(nuevo, catalogo, requisitos) : null
         const sinProblemasNuevos = !!analisis && !analisis.valido && !!problemasPrevios && analisis.errores.every((e) => problemasPrevios.has(errorKey(e)))
         if (!aplicado.ok || !nuevo || !analisis || (!analisis.valido && !sinProblemasNuevos)) {
           const errores = !aplicado.ok ? aplicado.errores : analisis && !analisis.valido ? analisis.errores : []
-          trace.push(traceEntry('adjust', intento, started, respuesta, 'invalid', traceErrors(errores)))
+          trace.push(traceEntry('adjust', intento, started, respuesta, 'invalid', traceErrors(errores), repairs))
           correccion = { respuestaAnterior: r, errores: listarErrores(errores) }
           ultimoError = errores[0]?.mensaje ?? 'el cambio no se pudo aplicar'
           continue
         }
-        trace.push(traceEntry('adjust', intento, started, respuesta, 'ok', analisis.valido ? [] : traceErrors(analisis.errores)))
+        trace.push(traceEntry('adjust', intento, started, respuesta, 'ok', analisis.valido ? [] : traceErrors(analisis.errores), repairs))
+        const ajustes = repairs.length ? [`Además ajusté por mi cuenta: ${repairs.map((x) => x.message).join(' ')}`] : []
         const hallazgosNuevos = analisis.valido ? analisis.hallazgos : []
         const quedan = analisis.valido ? [] : [`Todavía quedan ${describeProblems(traceErrors(analisis.errores))}; pídeme que las corrija.`]
 
@@ -322,7 +340,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen })
         const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
-        return responder([r.explicacion, ...quedan, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, sugerencias, version: conCambio.actual }, conCambio)
+        return responder([r.explicacion, ...ajustes, ...quedan, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, sugerencias, version: conCambio.actual }, conCambio)
       }
       const motivo = ultimoError.trim().replace(/\.?$/, '.')
       return responder(`No logré hacer ese cambio sin romper el diseño, así que no apliqué nada. ${motivo.charAt(0).toUpperCase()}${motivo.slice(1)} ¿Lo intentamos de otra forma?`, { error: true })

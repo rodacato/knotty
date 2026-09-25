@@ -102,6 +102,8 @@ interface Resultado {
   reglas: string
   /** Por qué hubo reintentos: los códigos de error que se le devolvieron al modelo. */
   correcciones: string
+  /** Lo que Knotty arregló por reglas sin volver al modelo. */
+  reparaciones: number
   veredicto: string
 }
 
@@ -121,7 +123,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
   const llamadas: Llamada[] = []
   const casos = crearCasosDeUso({ llm: () => medido(proveedor(spec), llamadas), catalogo, repositorio: memoria() })
   const inicio = performance.now()
-  const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, reglas: '', correcciones: '', veredicto: '—' }
+  const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, reglas: '', correcciones: '', reparaciones: 0, veredicto: '—' }
   try {
     const estado = await casos.reconstruir({ medidas: caso.medidas, fotos: [], miniaturas: [], notas: caso.notas }, AbortSignal.timeout(6 * 60_000))
     const segundos = (performance.now() - inicio) / 1000
@@ -138,6 +140,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
       segundos,
       intentos: llamadas.length,
       correcciones: [...new Set(llamadas.flatMap((l) => l.corrige))].join(' '),
+      reparaciones: estado.trace.reduce((n, t) => n + t.repairs.length, 0),
       tokensSalida: tokens.every((t) => t !== null) ? tokens.reduce((s, t) => s! + t!, 0) : null,
       piezas: diseno.piezas.length,
       uniones: diseno.uniones.length,
@@ -164,7 +167,7 @@ async function enLotes<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
 
 function informe(resultados: Resultado[], etiqueta: string) {
   const fila = (r: Resultado) =>
-    `| ${r.modelo} | ${r.caso} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.segundos.toFixed(0)} | ${r.intentos}${r.correcciones ? ` (${r.correcciones})` : ''} | ${r.tokensSalida ?? '—'} | ${r.piezas} | ${r.uniones} | ${r.medidas} | ${r.medidasRazonables === null ? '—' : r.medidasRazonables ? 'sí' : 'NO'} | ${r.criticos}${r.reglas ? ` (${r.reglas})` : ''} | ${r.veredicto} |`
+    `| ${r.modelo} | ${r.caso} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.segundos.toFixed(0)} | ${r.intentos}${r.correcciones ? ` (${r.correcciones})` : ''} | ${r.reparaciones} | ${r.tokensSalida ?? '—'} | ${r.piezas} | ${r.uniones} | ${r.medidas} | ${r.medidasRazonables === null ? '—' : r.medidasRazonables ? 'sí' : 'NO'} | ${r.criticos}${r.reglas ? ` (${r.reglas})` : ''} | ${r.veredicto} |`
   const modelos = [...new Set(resultados.map((r) => r.modelo))]
   const resumen = modelos.map((m) => {
     const rs = resultados.filter((r) => r.modelo === m)
@@ -182,8 +185,8 @@ function informe(resultados: Resultado[], etiqueta: string) {
     '|---|---|---|---|---|---|',
     ...resumen,
     '',
-    '| Modelo | Caso | Listo | s | Intentos | Tokens salida | Piezas | Uniones | Alto × ancho × fondo | Razonables | Críticos | Veredicto |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|',
+    '| Modelo | Caso | Listo | s | Intentos | Reparaciones | Tokens salida | Piezas | Uniones | Alto × ancho × fondo | Razonables | Críticos | Veredicto |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
     ...resultados.map(fila),
     '',
   ].join('\n')

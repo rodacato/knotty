@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
+import { ref } from '../domain/diseno/construir'
 import type { Diseno } from '../domain/diseno/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
@@ -308,21 +309,44 @@ describe('dictaminar', () => {
 })
 
 describe('never throw away a paid design', () => {
-  // A shelf copied on top of another one: it resolves, but the two overlap.
-  const conEncimada = (d: Diseno): Diseno => ({ ...d, piezas: [...d.piezas, { ...d.piezas.find((p) => p.id === 'entrepano-1')!, id: 'entrepano-extra', nombre: 'Entrepaño extra' }] })
-  const encimando = (): LLMProvider => {
+  // A shelf floating in the middle, touching nothing: it resolves, but no rule can say where it should go.
+  const conFlotante = (d: Diseno): Diseno => ({
+    ...d,
+    piezas: [
+      ...d.piezas,
+      {
+        ...d.piezas.find((p) => p.id === 'entrepano-1')!,
+        id: 'entrepano-extra',
+        nombre: 'Entrepaño extra',
+        x: { desde: ref('lat-izq.x1', 60), hasta: ref('lat-der.x0', -60), largo: null },
+        y: { desde: ref('entrepano-1.y1', 100), hasta: null, largo: null },
+        z: { desde: ref('trasera.z1', 60), hasta: ref('mueble.z1', -60), largo: null },
+      },
+    ],
+  })
+  const conEncimada = (d: Diseno): Diseno => ({ ...d, piezas: [...d.piezas, { ...d.piezas.find((p) => p.id === 'entrepano-1')!, id: 'entrepano-copia', nombre: 'Entrepaño copia' }] })
+  const cambiando = (cambio: (d: Diseno) => Diseno): LLMProvider => {
     const simulado = crearSimulado(0)
-    return { ...simulado, reconstruir: async (s, signal) => { const r = await simulado.reconstruir(s, signal); return { ...r, valor: { ...r.valor, diseno: conEncimada(r.valor.diseno) } } } }
+    return { ...simulado, reconstruir: async (s, signal) => { const r = await simulado.reconstruir(s, signal); return { ...r, valor: { ...r.valor, diseno: cambio(r.valor.diseno) } } } }
   }
+  const encimando = () => cambiando(conFlotante)
+
+  it('an overlap is fixed by rule, without asking the model again', async () => {
+    const estado = await libreroInicial(casos(cambiando(conEncimada)))
+    expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-copia')).toBe(false)
+    expect(estado.trace).toHaveLength(1)
+    expect(estado.trace[0]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
+    expect(estado.chat[1].texto).toContain('Ajusté por mi cuenta un detalle')
+  })
 
   it('after every attempt fails validation, keeps the last design and says what is left', async () => {
     const c = casos(encimando())
     const estado = await libreroInicial(c)
     expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(true)
-    expect(estado.chat[1].texto).toContain('quedaron una pieza encimada')
+    expect(estado.chat[1].texto).toContain('quedaron una pieza sin apoyo')
     expect(estado.chat[1].sugerencias[0]).toBe('Corrige las piezas marcadas')
     expect(estado.trace.map((t) => t.outcome)).toEqual(['invalid', 'invalid', 'invalid'])
-    expect(estado.trace[0].errors[0].code).toBe('E_TRASLAPE')
+    expect(estado.trace[0].errors[0].code).toBe('E_FLOTANTE')
   })
 
   it('a change that fixes the problem is applied, and one that adds a new problem is not', async () => {
