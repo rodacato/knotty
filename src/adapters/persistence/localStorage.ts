@@ -30,7 +30,7 @@ export function createLocalRepository(storage: Storage = localStorage): DesignRe
           storage.setItem(STORAGE_KEY, JSON.stringify(current))
           return
         } catch {
-          /* cuota llena: se intenta con menos */
+          /* quota full: try again with less */
         }
       }
     },
@@ -38,7 +38,7 @@ export function createLocalRepository(storage: Storage = localStorage): DesignRe
       try {
         removeStored(storage, STORAGE_KEY, OLDER_KEY)
       } catch {
-        /* nada guardado */
+        /* nothing stored */
       }
     },
   }

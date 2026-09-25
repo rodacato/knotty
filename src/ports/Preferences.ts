@@ -6,7 +6,7 @@ export type RealProvider = Exclude<Provider, 'simulated'>
 export interface Connection {
   model: string
   apiKey: string
-  /** Solo SheLLM: dónde corre. */
+  /** SheLLM only: where it runs. */
   host: string
 }
 

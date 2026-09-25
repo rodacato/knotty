@@ -88,7 +88,7 @@ export function createPreferences(storage: Storage = localStorage, tab: Storage 
         if (c.keyStorage === 'tab') tab.setItem(TAB_KEY, JSON.stringify(keyring(c)))
         else removeStored(tab, TAB_KEY, OLDER_TAB_KEY)
       } catch {
-        /* sin almacenamiento (ventana privada): la configuración dura la sesión */
+        /* no storage (private window): the configuration lasts the session */
       }
     },
     async unlock(attempt) {

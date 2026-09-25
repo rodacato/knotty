@@ -25,5 +25,5 @@ export const strictSchema = (schema: z.ZodType) => clean(z.toJSONSchema(schema, 
 export const describeProblems = (error: z.ZodError) =>
   error.issues
     .slice(0, 12)
-    .map((i) => `- ${i.path.join('.') || '(raíz)'}: ${i.message}`)
+    .map((i) => `- ${i.path.join('.') || '(root)'}: ${i.message}`)
     .join('\n')
