@@ -54,7 +54,7 @@ describe('typologyRule', () => {
   })
 
   it('a bed lying the other way still fits its mattress', () => {
-    const sideways = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1900, height: 350, depth: 1030 } }))
+    const sideways = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1940, height: 350, depth: 1030 } }))
     expect(sideways).not.toContainEqual(['critico', expect.stringContaining('no cabe')])
   })
 
