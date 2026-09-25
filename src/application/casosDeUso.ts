@@ -1,6 +1,6 @@
 import { analizar } from '../domain/analisis'
 import { DIMENSION_DE_EJE, type Cota, type Dimensiones, type Diseno, type Eje } from '../domain/diseno/esquema'
-import { normalizar } from '../domain/diseno/normalizador'
+import { normalize } from '../domain/diseno/normalize'
 import { completeJoints } from '../domain/diseno/joints'
 import { claveHallazgo, type Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
@@ -300,7 +300,7 @@ export function crearCasosDeUso(deps: Dependencias) {
       }
       alAvanzar('revisando', intento)
       const r = respuesta.valor
-      const propuesto = completeJoints(normalizar(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
+      const propuesto = completeJoints(normalize(entrada.medidas ? { ...r.diseno, dimensiones: entrada.medidas } : r.diseno, catalogo), catalogo)
       // What has an obvious fix is fixed here; only the rest goes back to the model.
       const { design: diseno, repairs } = repairDesign(propuesto, catalogo, r.requisitos)
       const analisis = analizar(diseno, catalogo, r.requisitos)
@@ -493,7 +493,7 @@ export function crearCasosDeUso(deps: Dependencias) {
 
         alAvanzar('revisando', intento)
         const aplicado = aplicar(diseno, r.operaciones, catalogo)
-        const aplicadoNormal = aplicado.ok ? completeJoints(normalizar(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
+        const aplicadoNormal = aplicado.ok ? completeJoints(normalize(aplicado.valor.diseno, catalogo), catalogo, diseno) : null
         const reparado = aplicadoNormal ? repairDesign(aplicadoNormal, catalogo, requisitos) : null
         const nuevo = reparado?.design ?? null
         const repairs = reparado?.repairs ?? []
@@ -671,7 +671,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const design = disenoActual(estado)
     const piece = design.piezas.find((p) => p.id === id)
     const analysis = analizar(design, catalogo, estado.requisitos)
-    const box = analysis.geo?.cajas.get(id)
+    const box = analysis.geo?.boxes.get(id)
     if (!piece || !box) return { ok: false, message: 'No encuentro esa pieza en el diseño.', alternatives: [] }
     const size = (axis: Eje) => box[`${axis}1`] - box[`${axis}0`]
     const operaciones: Operacion[] =
@@ -692,7 +692,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           ? `Mover ${piece.nombre.toLowerCase()} ${Math.abs(edit.delta)} mm`
           : `${piece.nombre} de ${Math.round(size(edit.axis))} a ${Math.round(edit.value)} mm`
     const applied = aplicar(design, operaciones, catalogo)
-    const candidate = applied.ok ? completeJoints(normalizar(applied.valor.diseno, catalogo), catalogo, design) : null
+    const candidate = applied.ok ? completeJoints(normalize(applied.valor.diseno, catalogo), catalogo, design) : null
     const after = candidate ? analizar(candidate, catalogo, estado.requisitos) : null
     // An edit may leave the problems a design already had, but it must not add new ones.
     const before = new Set(analysis.valido ? [] : analysis.errores.map(errorKey))
@@ -731,7 +731,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const operaciones: Operacion[] = [{ op: 'cambiarDimensionGlobal', eje: axis, valor: value, regla: 'estirar' }]
     const design = disenoActual(estado)
     const applied = aplicar(design, operaciones, catalogo)
-    const candidate = applied.ok ? completeJoints(normalizar(applied.valor.diseno, catalogo), catalogo, design) : null
+    const candidate = applied.ok ? completeJoints(normalize(applied.valor.diseno, catalogo), catalogo, design) : null
     const after = candidate && analizar(candidate, catalogo, estado.requisitos)
     if (!candidate || !after?.valido) return { ok: false, message: 'Tampoco se puede cambiar la medida del mueble así.', alternatives: [] }
     const dimension = DIMENSION_DE_EJE[axis]

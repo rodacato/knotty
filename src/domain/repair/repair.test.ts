@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { mm, ref, tramo, union } from '../diseno/construir'
+import { mm, ref, extent, makeJoint } from '../diseno/builders'
 import type { Diseno, Pieza } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { alacena } from '../fixtures/alacena'
@@ -13,7 +13,7 @@ const valid = (d: Diseno) => analizar(d, catalogo).valido
 const box = (d: Diseno, id: string) => {
   const a = analizar(d, catalogo)
   if (!a.valido) throw new Error(a.errores[0].mensaje)
-  return a.geo.cajas.get(id)!
+  return a.geo.boxes.get(id)!
 }
 
 describe('repairDesign', () => {
@@ -67,7 +67,7 @@ describe('repairDesign', () => {
   })
 
   it('drops a joint between pieces that do not touch', () => {
-    const broken = { ...librero, uniones: [...librero.uniones, union('u-suelta', 'entrepano-1', 'techo', 'tope-tornillo')] }
+    const broken = { ...librero, uniones: [...librero.uniones, makeJoint('u-suelta', 'entrepano-1', 'techo', 'tope-tornillo')] }
     const { design, repairs } = repairDesign(broken, catalogo)
     expect(valid(design)).toBe(true)
     expect(design.uniones.some((u) => u.id === 'u-suelta')).toBe(false)
@@ -80,7 +80,7 @@ describe('repairDesign', () => {
   })
 
   it('contacts a repair creates get their joints', () => {
-    const broken = withPiece({ ...librero, uniones: librero.uniones.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: tramo(ref('mueble.x0'), ref('mueble.x1')) }))
+    const broken = withPiece({ ...librero, uniones: librero.uniones.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: extent(ref('mueble.x0'), ref('mueble.x1')) }))
     const { design } = repairDesign(broken, catalogo)
     const a = analizar(design, catalogo)
     expect(a.valido && a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])

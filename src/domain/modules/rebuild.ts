@@ -1,6 +1,6 @@
 import type { Diseno } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
-import { normalizar } from '../diseno/normalizador'
+import { normalize } from '../diseno/normalize'
 import type { Catalogo } from '../materiales/catalogo'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
@@ -27,7 +27,7 @@ export function rebuildFromPlan(plan: FurniturePlan, extras: Operacion[], catalo
     if (result.ok) design = result.valor.diseno
     else dropped.push(extra)
   }
-  if (extras.length) design = completeJoints(normalizar(design, catalog), catalog, built.design)
+  if (extras.length) design = completeJoints(normalize(design, catalog), catalog, built.design)
   const { design: repaired, repairs } = repairDesign(design, catalog, requirements)
   const notes = [...built.notes, ...(dropped.length ? [`${dropped.length === 1 ? 'Un cambio hecho con el experto ya no aplica' : `${dropped.length} cambios hechos con el experto ya no aplican`} con la nueva ficha y lo${dropped.length === 1 ? '' : 's'} dejé fuera.`] : [])]
   return { design: repaired, notes, dropped, repairs }

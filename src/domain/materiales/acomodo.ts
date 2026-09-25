@@ -1,5 +1,5 @@
 import type { Diseno } from '../diseno/esquema'
-import { medidasCara, type Geometria } from '../diseno/resolver'
+import { faceSize, type Geometry } from '../diseno/resolve'
 import { hojaUtil, materialPorId, type Catalogo } from './catalogo'
 
 // Estimación de compra, no plano de corte: cortes tipo guillotina sobre la hoja útil, probando varias heurísticas y quedándose con la de menos hojas.
@@ -56,12 +56,12 @@ const ORDENES: Record<Orden, (a: PiezaAcomodo, b: PiezaAcomodo) => number> = {
 }
 
 /** Las piezas de cada material, con su orientación según la veta. */
-export function piezasParaAcomodo(diseno: Diseno, geo: Geometria): Map<string, PiezaAcomodo[]> {
+export function piezasParaAcomodo(diseno: Diseno, geo: Geometry): Map<string, PiezaAcomodo[]> {
   const porMaterial = new Map<string, PiezaAcomodo[]>()
   for (const p of diseno.piezas) {
-    const caja = geo.cajas.get(p.id)
+    const caja = geo.boxes.get(p.id)
     if (!caja) continue
-    const [largo, ancho] = medidasCara(caja, p.normal)
+    const [largo, ancho] = faceSize(caja, p.normal)
     const orientacion = p.veta === 'libre' ? 'libre' : p.veta === 'largo' ? 'fija' : 'girada'
     porMaterial.set(p.material, [...(porMaterial.get(p.material) ?? []), { id: p.id, nombre: p.nombre, largo, ancho, orientacion }])
   }
@@ -116,7 +116,7 @@ function empacar(piezas: PiezaAcomodo[], util: { largo: number; ancho: number },
   return { hojas, sinLugar }
 }
 
-export function acomodar(diseno: Diseno, geo: Geometria, catalogo: Catalogo): AcomodoMaterial[] {
+export function acomodar(diseno: Diseno, geo: Geometry, catalogo: Catalogo): AcomodoMaterial[] {
   const { sierra, holgura } = catalogo.acomodo
   return [...piezasParaAcomodo(diseno, geo)].flatMap(([id, piezas]) => {
     const material = materialPorId(catalogo, id)

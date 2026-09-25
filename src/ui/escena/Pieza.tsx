@@ -4,7 +4,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MeshStandardMaterial, Texture } from 'three'
 import type { Eje, Pieza as TPieza } from '../../domain/diseno/esquema'
-import type { Caja } from '../../domain/diseno/resolver'
+import type { Box } from '../../domain/diseno/resolve'
 import { textura, type TipoTextura, type Tono } from './texturas'
 
 const MM = 0.001
@@ -20,7 +20,7 @@ const CARAS: { normal: Eje; u: Eje; v: Eje }[] = [
 const TAMANO_VETA = 0.45
 const CAIDA = 0.35
 
-function texturasDeCaras(p: TPieza, caja: Caja, tono: Tono): Texture[] {
+function texturasDeCaras(p: TPieza, caja: Box, tono: Tono): Texture[] {
   const m = { x: caja.x1 - caja.x0, y: caja.y1 - caja.y0, z: caja.z1 - caja.z0 }
   if (p.confianza === 'baja')
     return CARAS.map((cara) => {
@@ -46,7 +46,7 @@ function texturasDeCaras(p: TPieza, caja: Caja, tono: Tono): Texture[] {
 
 export interface PropsPieza {
   pieza: TPieza
-  caja: Caja
+  caja: Box
   tono: Tono
   desplazamiento: [number, number, number]
   seleccionada: boolean

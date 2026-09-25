@@ -1,5 +1,5 @@
 import type { Diseno } from './esquema'
-import type { Caja } from './resolver'
+import type { Box } from './resolve'
 
 export interface Diferencias {
   agregadas: string[]
@@ -8,10 +8,10 @@ export interface Diferencias {
 }
 
 const PROPIEDADES = ['nombre', 'rol', 'material', 'veta', 'carga', 'apoyo', 'grupo'] as const
-const cajaCambio = (a: Caja, b: Caja) => (Object.keys(a) as (keyof Caja)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
+const cajaCambio = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
 
 /** Qué piezas cambiaron entre dos versiones, incluidas las que solo se recorrieron por propagación. */
-export function diferencias(antes: Diseno, cajasAntes: Map<string, Caja>, despues: Diseno, cajasDespues: Map<string, Caja>): Diferencias {
+export function diferencias(antes: Diseno, cajasAntes: Map<string, Box>, despues: Diseno, cajasDespues: Map<string, Box>): Diferencias {
   const previas = new Map(antes.piezas.map((p) => [p.id, p]))
   const nuevas = new Map(despues.piezas.map((p) => [p.id, p]))
   return {

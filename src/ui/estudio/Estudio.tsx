@@ -169,7 +169,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
   const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analizar(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
   const cambios = useMemo(() => {
     if (!propuesta || !analisisActual.valido || !analisisMostrado.valido) return { agregadas: [], modificadas: [] }
-    return diferencias(actual, analisisActual.geo.cajas, propuesta, analisisMostrado.geo.cajas)
+    return diferencias(actual, analisisActual.geo.boxes, propuesta, analisisMostrado.geo.boxes)
   }, [propuesta, actual, analisisActual, analisisMostrado])
 
   useEffect(() => {

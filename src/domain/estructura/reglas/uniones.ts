@@ -1,5 +1,5 @@
 import type { Pieza, TipoUnion, Union } from '../../diseno/esquema'
-import { redondear } from '../../diseno/resolver'
+import { roundTo } from '../../diseno/resolve'
 import type { Catalogo } from '../../materiales/catalogo'
 import type { Hallazgo, Regla, Severidad } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
@@ -37,8 +37,8 @@ export const reglaEspesorUnion: Regla = ({ diseno, geo, catalogo }) =>
   diseno.uniones.flatMap((u): Hallazgo[] => {
     const a = diseno.piezas.find((p) => p.id === u.a)
     const b = diseno.piezas.find((p) => p.id === u.b)
-    const ta = geo.espesores.get(u.a)
-    const tb = geo.espesores.get(u.b)
+    const ta = geo.thicknesses.get(u.a)
+    const tb = geo.thicknesses.get(u.b)
     if (!a || !b || ta === undefined || tb === undefined) return []
 
     const delgada = [[a, ta], [b, tb]].find(([, t]) => (t as number) <= SUPUESTOS.espesorDeClavar) as [Pieza, number] | undefined
@@ -70,9 +70,9 @@ export const reglaEspesorUnion: Regla = ({ diseno, geo, catalogo }) =>
           codigo: 'R2_ESPESOR_UNION',
           severidad,
           piezas: [u.a, u.b],
-          mensaje: `El ${u.tipo} de ${u.penetracion} mm debilita ${b.nombre} (${tb} mm); lo recomendable es hasta ${redondear(tb * SUPUESTOS.penetracion.recomendacion)} mm.`,
+          mensaje: `El ${u.tipo} de ${u.penetracion} mm debilita ${b.nombre} (${tb} mm); lo recomendable es hasta ${roundTo(tb * SUPUESTOS.penetracion.recomendacion)} mm.`,
           datos: { union: u.id, tipo: u.tipo, pieza: b.id, espesor: tb, penetracion: u.penetracion },
-          alternativas: [{ clave: 'reducir-penetracion', descripcion: `Hacer el ${u.tipo} de ${redondear(tb * SUPUESTOS.penetracion.recomendacion, 0)} mm`, datos: { penetracion: redondear(tb * SUPUESTOS.penetracion.recomendacion, 0) } }],
+          alternativas: [{ clave: 'reducir-penetracion', descripcion: `Hacer el ${u.tipo} de ${roundTo(tb * SUPUESTOS.penetracion.recomendacion, 0)} mm`, datos: { penetracion: roundTo(tb * SUPUESTOS.penetracion.recomendacion, 0) } }],
         })
     }
     return encontrados

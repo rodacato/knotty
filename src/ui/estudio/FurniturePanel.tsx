@@ -1,7 +1,7 @@
 import { Plus, X } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/casosDeUso'
-import type { Geometria } from '../../domain/diseno/resolver'
+import type { Geometry } from '../../domain/diseno/resolve'
 import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -84,7 +84,7 @@ function Photos({ estado }: { estado: EstadoDiseno }) {
   )
 }
 
-export function FurniturePanel({ estado, geo }: { estado: EstadoDiseno; geo: Geometria | null }) {
+export function FurniturePanel({ estado, geo }: { estado: EstadoDiseno; geo: Geometry | null }) {
   const hasPlan = useMemo(() => !!currentPlan(estado).plan, [estado])
   return (
     <div className="flex flex-col">

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { mm, ref, tramo } from '../diseno/construir'
+import { mm, ref, extent } from '../diseno/builders'
 import type { Diseno } from '../diseno/esquema'
 import { alacena } from '../fixtures/alacena'
 import { buro } from '../fixtures/buro'
@@ -31,7 +31,7 @@ describe('R3 tornillos', () => {
   it('avisa si dos tornillos quedan pegados al extremo de una junta corta', () => {
     const d = structuredClone(librero)
     const zoclo = d.piezas.find((p) => p.id === 'zoclo')!
-    zoclo.y = tramo(ref('mueble.y0'), null, 50)
+    zoclo.y = extent(ref('mueble.y0'), null, 50)
     d.uniones = d.uniones.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', tipo: 'tope-tornillo', herrajes: [{ herrajeId: 'tornillo-8x2', cantidad: 2 }] } : u))
     expect(hallazgos(d, 'R3_TORNILLOS').some((h) => h.datos.junta === 50)).toBe(true)
   })

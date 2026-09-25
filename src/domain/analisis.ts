@@ -1,5 +1,5 @@
 import type { Diseno } from './diseno/esquema'
-import { resolver, type Geometria } from './diseno/resolver'
+import { resolveGeometry, type Geometry } from './diseno/resolve'
 import type { Hallazgo } from './estructura/hallazgo'
 import { revisarEstructura } from './estructura/motor'
 import type { Catalogo } from './materiales/catalogo'
@@ -9,13 +9,13 @@ import type { DesignWarning, DesignError } from './validation/errors'
 import { validateGeometry } from './validation/geometry'
 
 export type Analisis =
-  | { valido: true; geo: Geometria; contactos: Contact[]; avisos: DesignWarning[]; hallazgos: Hallazgo[] }
+  | { valido: true; geo: Geometry; contactos: Contact[]; avisos: DesignWarning[]; hallazgos: Hallazgo[] }
   /** `geo` when the pieces still resolve: an invalid design can be drawn with its problems marked. */
-  | { valido: false; errores: DesignError[]; geo?: Geometria }
+  | { valido: false; errores: DesignError[]; geo?: Geometry }
 
 /** Todo lo que hay que saber de un diseño antes de mostrarlo: geometría, requisitos y estructura. */
 export function analizar(diseno: Diseno, catalogo: Catalogo, requisitos: Requisito[] = []): Analisis {
-  const resuelto = resolver(diseno, catalogo)
+  const resuelto = resolveGeometry(diseno, catalogo)
   if (!resuelto.ok) return { valido: false, errores: resuelto.errores }
   const geo = resuelto.valor
   const { errors: errores, warnings: avisos, contacts: contactos } = validateGeometry(diseno, geo, catalogo)

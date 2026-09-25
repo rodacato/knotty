@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { desde, entre, mm, pieza, ref, tramo, union } from '../diseno/construir'
+import { startAt, partway, mm, makePiece, ref, extent, makeJoint } from '../diseno/builders'
 import { diferencias } from '../diseno/diff'
 import type { Diseno } from '../diseno/esquema'
-import { normalizar } from '../diseno/normalizador'
-import { resolver } from '../diseno/resolver'
+import { normalize } from '../diseno/normalize'
+import { resolveGeometry } from '../diseno/resolve'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
 import { despiece } from '../materiales/despiece'
@@ -17,24 +17,24 @@ const aplicado = (d: Diseno, ops: Operacion[]) => {
   return r.valor
 }
 const cajas = (d: Diseno) => {
-  const r = resolver(d, catalogo)
+  const r = resolveGeometry(d, catalogo)
   if (!r.ok) throw new Error(JSON.stringify(r.errores))
-  return r.valor.cajas
+  return r.valor.boxes
 }
 const valido = (d: Diseno) => {
   const a = analizar(d, catalogo)
   return a.valido ? [] : a.errores.map((e) => e.codigo)
 }
 
-const divisor = pieza({
+const divisor = makePiece({
   id: 'divisor',
   nombre: 'Divisor',
   rol: 'divisor',
   material: 'T18',
   normal: 'x',
-  x: desde(entre('lat-izq.x1', 'lat-der.x0', 0.5, -9)),
-  y: tramo(ref('piso.y1'), ref('techo.y0')),
-  z: tramo(ref('trasera.z1'), ref('mueble.z1')),
+  x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)),
+  y: extent(ref('piso.y1'), ref('techo.y0')),
+  z: extent(ref('trasera.z1'), ref('mueble.z1')),
 })
 
 describe('aplicar', () => {
@@ -54,8 +54,8 @@ describe('aplicar', () => {
   it('divisor completo: partir entrepaños en dos con uniones, y queda válido', () => {
     const ops: Operacion[] = [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }, { op: 'agregarPieza', pieza: divisor }]
     ops.push(
-      { op: 'agregarUnion', union: union('u-div-piso', 'piso', 'divisor', 'tope-tornillo') },
-      { op: 'agregarUnion', union: union('u-div-techo', 'techo', 'divisor', 'tope-tornillo') },
+      { op: 'agregarUnion', union: makeJoint('u-div-piso', 'piso', 'divisor', 'tope-tornillo') },
+      { op: 'agregarUnion', union: makeJoint('u-div-techo', 'techo', 'divisor', 'tope-tornillo') },
     )
     for (let i = 1; i <= 4; i++) {
       const id = `entrepano-${i}`
@@ -64,8 +64,8 @@ describe('aplicar', () => {
         { op: 'duplicarPieza', id, nuevoId: `${id}-der`, nombre: `Entrepaño ${i} derecho`, eje: 'x', cota: ref('divisor.x1') },
         { op: 'redimensionar', id: `${id}-der`, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
         { op: 'eliminarUnion', id: `u-${id}-lat-der` },
-        { op: 'agregarUnion', union: union(`u-${id}-div`, id, 'divisor', 'soporte-repisa') },
-        { op: 'agregarUnion', union: union(`u-${id}-der-div`, `${id}-der`, 'divisor', 'soporte-repisa') },
+        { op: 'agregarUnion', union: makeJoint(`u-${id}-div`, id, 'divisor', 'soporte-repisa') },
+        { op: 'agregarUnion', union: makeJoint(`u-${id}-der-div`, `${id}-der`, 'divisor', 'soporte-repisa') },
       )
     }
     const { diseno } = aplicado(librero, ops)
@@ -124,17 +124,17 @@ describe('aplicar', () => {
   })
 })
 
-describe('normalizar', () => {
+describe('normalize', () => {
   it('ancla cotas absolutas a las caras cercanas sin moverlas y vuelve paramétrico el modelo', () => {
     const plano = structuredClone(librero)
     const actuales = cajas(librero)
     for (const p of plano.piezas) {
       const c = actuales.get(p.id)!
-      p.x = p.normal === 'x' ? desde(mm(c.x0)) : tramo(mm(c.x0), mm(c.x1))
-      p.y = p.normal === 'y' ? desde(mm(c.y0)) : tramo(mm(c.y0), mm(c.y1))
-      p.z = p.normal === 'z' ? desde(mm(c.z0)) : tramo(mm(c.z0), mm(c.z1))
+      p.x = p.normal === 'x' ? startAt(mm(c.x0)) : extent(mm(c.x0), mm(c.x1))
+      p.y = p.normal === 'y' ? startAt(mm(c.y0)) : extent(mm(c.y0), mm(c.y1))
+      p.z = p.normal === 'z' ? startAt(mm(c.z0)) : extent(mm(c.z0), mm(c.z1))
     }
-    const normal = normalizar(plano, catalogo)
+    const normal = normalize(plano, catalogo)
     expect(cajas(normal)).toEqual(actuales)
     const ancho = aplicado(normal, [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }]).diseno
     expect(valido(ancho)).toEqual([])
@@ -144,7 +144,7 @@ describe('normalizar', () => {
 
 describe('despiece', () => {
   it('agrupa piezas iguales', () => {
-    const r = resolver(librero, catalogo)
+    const r = resolveGeometry(librero, catalogo)
     if (!r.ok) throw new Error()
     const lista = despiece(librero, r.valor)
     expect(lista.find((l) => l.ids.includes('entrepano-1'))).toMatchObject({ nombre: 'Entrepaño', cantidad: 4, largo: 564, ancho: 294, espesor: 18 })

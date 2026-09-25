@@ -1,5 +1,5 @@
 import { analizar } from '../domain/analisis'
-import { redondear } from '../domain/diseno/resolver'
+import { roundTo } from '../domain/diseno/resolve'
 import { bitacoraCompacta } from '../domain/historial/historial'
 import type { Catalogo } from '../domain/materiales/catalogo'
 import { versionActual, type EstadoDiseno } from '../domain/sesion/estado'
@@ -22,7 +22,7 @@ export function construirContexto(estado: EstadoDiseno, catalogo: Catalogo): str
     fijo.push(
       '',
       '## Geometría resuelta (solo lectura, mm): id: x0–x1 · y0–y1 · z0–z1 · espesor',
-      ...[...analisis.geo.cajas].map(([id, c]) => `${id}: ${redondear(c.x0)}–${redondear(c.x1)} · ${redondear(c.y0)}–${redondear(c.y1)} · ${redondear(c.z0)}–${redondear(c.z1)} · ${analisis.geo.espesores.get(id)}`),
+      ...[...analisis.geo.boxes].map(([id, c]) => `${id}: ${roundTo(c.x0)}–${roundTo(c.x1)} · ${roundTo(c.y0)}–${roundTo(c.y1)} · ${roundTo(c.z0)}–${roundTo(c.z1)} · ${analisis.geo.thicknesses.get(id)}`),
       '',
       '## Revisión estructural',
       ...(analisis.hallazgos.length

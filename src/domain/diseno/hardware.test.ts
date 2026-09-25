@@ -13,10 +13,10 @@ describe('hardware to draw', () => {
     ], catalogo)
     if (!r.ok) throw new Error('no drawer')
     const geo = analizar(r.valor.diseno, catalogo).geo!
-    const runners = hardwareParts(r.valor.diseno, geo.cajas).filter((h) => h.kind === 'runner')
+    const runners = hardwareParts(r.valor.diseno, geo.boxes).filter((h) => h.kind === 'runner')
     expect(runners).toHaveLength(2)
     const left = runners[0] as Extract<(typeof runners)[number], { kind: 'runner' }>
-    const side = geo.cajas.get('cajon-1-costado-izq')!
+    const side = geo.boxes.get('cajon-1-costado-izq')!
     expect(left.owner).toBe('cajon-1-costado-izq')
     expect(left.box.x0).toBe(18)
     expect(left.box.x1).toBeCloseTo(side.x0, 5)
@@ -28,11 +28,11 @@ describe('hardware to draw', () => {
       catalogo,
     )
     const geo = analizar(design, catalogo).geo!
-    const hinges = hardwareParts(design, geo.cajas).filter((h) => h.kind === 'hinge')
+    const hinges = hardwareParts(design, geo.boxes).filter((h) => h.kind === 'hinge')
     expect(hinges).toHaveLength(4)
     for (const h of hinges) {
       if (h.kind !== 'hinge') continue
-      const door = geo.cajas.get(h.owner)!
+      const door = geo.boxes.get(h.owner)!
       expect(h.center[2]).toBe(door.z0)
       expect(Math.min(h.center[0] - door.x0, door.x1 - h.center[0])).toBeCloseTo(22.5, 5)
     }

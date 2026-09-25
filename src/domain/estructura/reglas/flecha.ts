@@ -1,5 +1,5 @@
 import type { Carga, Pieza } from '../../diseno/esquema'
-import { redondear, type Caja } from '../../diseno/resolver'
+import { roundTo, type Box } from '../../diseno/resolve'
 import type { Catalogo } from '../../materiales/catalogo'
 import type { Alternativa, Hallazgo, Regla, Severidad } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
@@ -26,24 +26,24 @@ export function severidadFlecha(delta: number, claro: number): Severidad | null 
   return null
 }
 
-function moduloSegunVeta(p: Pieza, caja: Caja) {
+function moduloSegunVeta(p: Pieza, caja: Box) {
   const ladoLargoEsX = caja.x1 - caja.x0 >= caja.z1 - caja.z0
   const vetaEnX = p.veta === 'largo' ? ladoLargoEsX : p.veta === 'ancho' ? !ladoLargoEsX : false
   return vetaEnX ? SUPUESTOS.moduloElasticidad.paralela : SUPUESTOS.moduloElasticidad.perpendicular
 }
 
 /** El claro libre más largo entre apoyos verticales: los que tocan sus extremos o la sostienen desde abajo. */
-export function claroLibre(id: string, caja: Caja, ctx: Parameters<Regla>[0]) {
+export function claroLibre(id: string, caja: Box, ctx: Parameters<Regla>[0]) {
   const apoyos = ctx.contactos
     .filter((c) => c.a === id || c.b === id)
     .map((c) => (c.a === id ? c.b : c.a))
     .filter((otro) => {
       const pieza = ctx.diseno.piezas.find((p) => p.id === otro)
-      const o = ctx.geo.cajas.get(otro)
+      const o = ctx.geo.boxes.get(otro)
       if (!pieza || !o || pieza.normal !== 'x' || pieza.rol === 'puerta') return false
       return Math.abs(o.x1 - caja.x0) <= 0.5 || Math.abs(o.x0 - caja.x1) <= 0.5 || Math.abs(o.y1 - caja.y0) <= 0.5
     })
-    .map((otro) => ctx.geo.cajas.get(otro)!)
+    .map((otro) => ctx.geo.boxes.get(otro)!)
     .sort((a, b) => a.x0 - b.x0)
   if (apoyos.length < 2) return null
   let claro = 0
@@ -58,22 +58,22 @@ function alternativas(p: Pieza, claro: number, fondo: number, espesor: number, c
     lista.push({
       clave: 'subir-espesor',
       descripcion: `Subir a ${siguiente.nombre}`,
-      datos: { material: siguiente.id, flecha: redondear(flecha(claro, fondo, siguiente.espesor, carga, moduloE)) },
+      datos: { material: siguiente.id, flecha: roundTo(flecha(claro, fondo, siguiente.espesor, carga, moduloE)) },
     })
   const mitad = (claro - espesor) / 2
   lista.push({
     clave: 'divisor-al-centro',
     descripcion: p.rol === 'piso' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
-    datos: { claro: redondear(mitad, 0), flecha: redondear(flecha(mitad, fondo, espesor, carga, moduloE)) },
+    datos: { claro: roundTo(mitad, 0), flecha: roundTo(flecha(mitad, fondo, espesor, carga, moduloE)) },
   })
-  lista.push({ clave: 'claro-maximo', descripcion: `Claro máximo con ${espesor} mm`, datos: { claro: redondear(claroMaximo(fondo, espesor, carga, moduloE), 0) } })
+  lista.push({ clave: 'claro-maximo', descripcion: `Claro máximo con ${espesor} mm`, datos: { claro: roundTo(claroMaximo(fondo, espesor, carga, moduloE), 0) } })
   return lista
 }
 
 export const reglaFlecha: Regla = (ctx) =>
   ctx.diseno.piezas.flatMap((p): Hallazgo[] => {
-    const caja = ctx.geo.cajas.get(p.id)
-    const espesor = ctx.geo.espesores.get(p.id)
+    const caja = ctx.geo.boxes.get(p.id)
+    const espesor = ctx.geo.thicknesses.get(p.id)
     if (!caja || !espesor || p.normal !== 'y' || p.carga === 'ninguna') return []
     const claro = claroLibre(p.id, caja, ctx)
     if (!claro) return []
@@ -88,8 +88,8 @@ export const reglaFlecha: Regla = (ctx) =>
         codigo: 'R1_FLECHA',
         severidad,
         piezas: [p.id],
-        mensaje: `${p.nombre} se pandearía ~${redondear(delta)} mm con ${NOMBRE_CARGA[p.carga]} en un claro de ${redondear(claro, 0)} mm (lo aceptable es hasta ${redondear(limite)} mm).`,
-        datos: { claro: redondear(claro, 0), fondo: redondear(fondo, 0), espesor, carga: p.carga, flecha: redondear(delta), limite: redondear(limite), moduloE },
+        mensaje: `${p.nombre} se pandearía ~${roundTo(delta)} mm con ${NOMBRE_CARGA[p.carga]} en un claro de ${roundTo(claro, 0)} mm (lo aceptable es hasta ${roundTo(limite)} mm).`,
+        datos: { claro: roundTo(claro, 0), fondo: roundTo(fondo, 0), espesor, carga: p.carga, flecha: roundTo(delta), limite: roundTo(limite), moduloE },
         alternativas: alternativas(p, claro, fondo, espesor, p.carga, moduloE, ctx.catalogo),
       },
     ]

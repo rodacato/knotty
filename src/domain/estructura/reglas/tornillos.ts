@@ -1,4 +1,4 @@
-import { redondear } from '../../diseno/resolver'
+import { roundTo } from '../../diseno/resolve'
 import { contactBetween, jointLength } from '../../validation/contact'
 import type { Hallazgo, Regla } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
@@ -18,14 +18,14 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
     if (u.tipo !== 'tope-tornillo' && u.tipo !== 'bolsillo') return []
     const a = diseno.piezas.find((p) => p.id === u.a)
     const b = diseno.piezas.find((p) => p.id === u.b)
-    const ta = geo.espesores.get(u.a)
-    const cajaA = geo.cajas.get(u.a)
-    const cajaB = geo.cajas.get(u.b)
+    const ta = geo.thicknesses.get(u.a)
+    const cajaA = geo.boxes.get(u.a)
+    const cajaB = geo.boxes.get(u.b)
     if (!a || !b || ta === undefined || !cajaA || !cajaB) return []
     const encontrados: Hallazgo[] = []
     const tornillos = u.herrajes.map((h) => catalogo.herrajes.find((x) => x.id === h.herrajeId)).filter((h) => h?.largo)
 
-    const tb = geo.espesores.get(u.b) ?? 0
+    const tb = geo.thicknesses.get(u.b) ?? 0
     // Si se tocan por la cara de b, el tornillo entra de frente en ella: lo que importa es que no se asome del otro lado.
     const porLaCara = contactBetween(u.a, cajaA, u.b, cajaB)?.axis === b.normal
     for (const t of tornillos) {
@@ -37,8 +37,8 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
           codigo: 'R3_TORNILLOS',
           severidad: 'critico',
           piezas: [u.a, u.b],
-          mensaje: `El ${t!.nombre.toLowerCase()} atraviesa ${a.nombre} (${ta} mm) y entra ${redondear(entra)} mm en la cara de ${b.nombre}, que mide ${tb} mm: se asoma del otro lado.`,
-          datos: { union: u.id, largo, entra: redondear(entra), espesor: tb },
+          mensaje: `El ${t!.nombre.toLowerCase()} atraviesa ${a.nombre} (${ta} mm) y entra ${roundTo(entra)} mm en la cara de ${b.nombre}, que mide ${tb} mm: se asoma del otro lado.`,
+          datos: { union: u.id, largo, entra: roundTo(entra), espesor: tb },
           alternativas: [{ clave: 'tornillo-mas-corto', descripcion: `Un tornillo de ${pulgadas(ta + tb - 5)} o menos`, datos: { largo: ta + tb - 5 } }],
         })
       } else if (u.tipo === 'tope-tornillo') {
@@ -51,8 +51,8 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
           codigo: 'R3_TORNILLOS',
           severidad: 'recomendacion',
           piezas: [u.a, u.b],
-          mensaje: `El ${t!.nombre.toLowerCase()} atraviesa ${a.nombre} (${ta} mm) y solo entra ${redondear(entra)} mm en ${b.nombre}; conviene que entre al menos ${SUPUESTOS.tornillos.penetracionMinima} mm.`,
-          datos: { union: u.id, largo, entra: redondear(entra) },
+          mensaje: `El ${t!.nombre.toLowerCase()} atraviesa ${a.nombre} (${ta} mm) y solo entra ${roundTo(entra)} mm en ${b.nombre}; conviene que entre al menos ${SUPUESTOS.tornillos.penetracionMinima} mm.`,
+          datos: { union: u.id, largo, entra: roundTo(entra) },
           alternativas: sugerido ? [{ clave: 'tornillo-mas-largo', descripcion: `Usar ${sugerido.nombre.toLowerCase()}`, datos: { herrajeId: sugerido.id } }] : [],
         })
       } else {
@@ -76,8 +76,8 @@ export const reglaTornillos: Regla = ({ diseno, geo, catalogo }) =>
         codigo: 'R3_TORNILLOS',
         severidad: 'recomendacion',
         piezas: [u.a, u.b],
-        mensaje: `La junta entre ${a.nombre} y ${b.nombre} mide ${redondear(junta, 0)} mm: dos tornillos quedarían a menos de ${SUPUESTOS.tornillos.distanciaExtremo} mm del extremo y pueden rajar el canto.`,
-        datos: { union: u.id, junta: redondear(junta, 0) },
+        mensaje: `La junta entre ${a.nombre} y ${b.nombre} mide ${roundTo(junta, 0)} mm: dos tornillos quedarían a menos de ${SUPUESTOS.tornillos.distanciaExtremo} mm del extremo y pueden rajar el canto.`,
+        datos: { union: u.id, junta: roundTo(junta, 0) },
         alternativas: [
           { clave: 'un-tornillo', descripcion: 'Un solo tornillo al centro', datos: { cantidad: 1 } },
           { clave: 'tarugo', descripcion: 'Tarugo con pegamento', datos: { tipo: 'tarugo' } },

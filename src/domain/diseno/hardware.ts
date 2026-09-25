@@ -1,6 +1,6 @@
 import { bisagrasPara } from '../estructura/supuestos'
 import type { Diseno } from './esquema'
-import type { Caja } from './resolver'
+import type { Box } from './resolve'
 
 // Where the hardware sits, to draw it: runners in the gap beside each drawer, hinge cups on the inside of each door.
 
@@ -14,10 +14,10 @@ const HINGE_FROM_END = 100
 
 export type HardwarePart =
   /** Moves with `owner` in the exploded view. */
-  | { kind: 'runner'; owner: string; box: Caja }
+  | { kind: 'runner'; owner: string; box: Box }
   | { kind: 'hinge'; owner: string; center: [number, number, number]; diameter: number; depth: number }
 
-export function hardwareParts(design: Diseno, boxes: Map<string, Caja>): HardwarePart[] {
+export function hardwareParts(design: Diseno, boxes: Map<string, Box>): HardwarePart[] {
   const parts: HardwarePart[] = []
   for (const u of design.uniones) {
     const a = boxes.get(u.a)

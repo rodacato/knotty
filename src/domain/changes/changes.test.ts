@@ -15,7 +15,7 @@ const apply = (d: Diseno, ops: Operacion[]) => {
 const box = (d: Diseno, id: string) => {
   const a = analizar(d, catalogo)
   if (!a.valido) throw new Error(a.errores[0].mensaje)
-  return a.geo.cajas.get(id)!
+  return a.geo.boxes.get(id)!
 }
 
 describe('describeChange', () => {

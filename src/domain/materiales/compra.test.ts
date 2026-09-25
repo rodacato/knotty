@@ -64,9 +64,9 @@ describe('acomodo en hojas', () => {
 describe('herrajes y compra', () => {
   it('calcula tornillos y clavos por separación a lo largo de la junta', () => {
     const g = geo(librero)
-    const union = (id: string) => librero.uniones.find((u) => u.id === id)!
-    expect(cantidadPorUnion(union('u-piso-izq'), g)).toBe(2)
-    expect(cantidadPorUnion(union('u-trasera-lat-izq'), g)).toBe(13)
+    const joint = (id: string) => librero.uniones.find((u) => u.id === id)!
+    expect(cantidadPorUnion(joint('u-piso-izq'), g)).toBe(2)
+    expect(cantidadPorUnion(joint('u-trasera-lat-izq'), g)).toBe(13)
   })
 
   it('suma el cubrecanto de los cantos marcados, con merma', () => {

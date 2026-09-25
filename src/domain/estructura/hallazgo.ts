@@ -1,5 +1,5 @@
 import type { Diseno } from '../diseno/esquema'
-import type { Geometria } from '../diseno/resolver'
+import type { Geometry } from '../diseno/resolve'
 import type { Catalogo } from '../materiales/catalogo'
 import type { Contact } from '../validation/contact'
 
@@ -23,7 +23,7 @@ export interface Hallazgo {
 
 export interface Contexto {
   diseno: Diseno
-  geo: Geometria
+  geo: Geometry
   catalogo: Catalogo
   contactos: Contact[]
 }

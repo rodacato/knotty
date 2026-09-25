@@ -1,4 +1,4 @@
-import { medidasCara, redondear } from '../../diseno/resolver'
+import { faceSize, roundTo } from '../../diseno/resolve'
 import type { Hallazgo, Regla } from '../hallazgo'
 import { bisagrasPara, SUPUESTOS } from '../supuestos'
 import { claroLibre } from './flecha'
@@ -15,8 +15,8 @@ export const reglaVuelco: Regla = ({ diseno }): Hallazgo[] => {
       codigo: 'R4_VUELCO',
       severidad: critico ? 'critico' : 'recomendacion',
       piezas: diseno.piezas.filter((p) => p.rol === 'lateral').map((p) => p.id),
-      mensaje: `Mide ${alto} mm de alto y solo ${fondo} de fondo (${redondear(relacion)} a 1): se puede ir de frente si no va anclado al muro.`,
-      datos: { alto, fondo, relacion: redondear(relacion) },
+      mensaje: `Mide ${alto} mm de alto y solo ${fondo} de fondo (${roundTo(relacion)} a 1): se puede ir de frente si no va anclado al muro.`,
+      datos: { alto, fondo, relacion: roundTo(relacion) },
       alternativas: [
         { clave: 'anclar-muro', descripcion: 'Anclarlo al muro con un kit antivuelco', datos: { herrajeId: 'kit-antivuelco' } },
         { clave: 'mas-fondo', descripcion: `Darle al menos ${Math.ceil(alto / relacionRecomendacion / 10) * 10} mm de fondo`, datos: { fondo: Math.ceil(alto / relacionRecomendacion / 10) * 10 } },
@@ -30,7 +30,7 @@ export const reglaPuertas: Regla = ({ diseno, geo }) =>
   diseno.piezas
     .filter((p) => p.rol === 'puerta')
     .flatMap((p): Hallazgo[] => {
-      const caja = geo.cajas.get(p.id)
+      const caja = geo.boxes.get(p.id)
       if (!caja) return []
       const alto = caja.y1 - caja.y0
       const ancho = caja.x1 - caja.x0
@@ -64,12 +64,12 @@ export const reglaBase: Regla = (ctx) =>
   ctx.diseno.piezas
     .filter((p) => p.rol === 'piso' && p.normal === 'y')
     .flatMap((p): Hallazgo[] => {
-      const caja = ctx.geo.cajas.get(p.id)
+      const caja = ctx.geo.boxes.get(p.id)
       if (!caja || caja.y0 <= 0.5) return []
       const largo = caja.x1 - caja.x0
       const corrido = ctx.contactos.some((c) => {
         if (c.a !== p.id && c.b !== p.id) return false
-        const otra = ctx.geo.cajas.get(c.a === p.id ? c.b : c.a)!
+        const otra = ctx.geo.boxes.get(c.a === p.id ? c.b : c.a)!
         return Math.abs(otra.y1 - caja.y0) <= 0.5 && Math.min(otra.x1, caja.x1) - Math.max(otra.x0, caja.x0) >= largo * 0.8
       })
       const claro = claroLibre(p.id, caja, ctx)
@@ -79,8 +79,8 @@ export const reglaBase: Regla = (ctx) =>
           codigo: 'R7_BASE',
           severidad: 'recomendacion',
           piezas: [p.id],
-          mensaje: `${p.nombre} cruza ${redondear(claro, 0)} mm sin nada debajo: con peso encima tiende a vencerse.`,
-          datos: { claro: redondear(claro, 0), maximo: SUPUESTOS.claroPiso },
+          mensaje: `${p.nombre} cruza ${roundTo(claro, 0)} mm sin nada debajo: con peso encima tiende a vencerse.`,
+          datos: { claro: roundTo(claro, 0), maximo: SUPUESTOS.claroPiso },
           alternativas: [
             { clave: 'apoyo-central', descripcion: 'Agregar un apoyo al centro, debajo del piso', datos: {} },
             { clave: 'zoclo', descripcion: 'Agregar un zoclo corrido al frente', datos: {} },
@@ -94,9 +94,9 @@ const VETA_VISIBLE = new Set(['lateral', 'entrepano', 'piso', 'techo', 'divisor'
 /** R8: la veta a lo ancho se ve rara en piezas largas y las hace menos rígidas. */
 export const reglaVeta: Regla = ({ diseno, geo }) =>
   diseno.piezas.flatMap((p): Hallazgo[] => {
-    const caja = geo.cajas.get(p.id)
+    const caja = geo.boxes.get(p.id)
     if (!caja || p.veta !== 'ancho' || !VETA_VISIBLE.has(p.rol)) return []
-    const [largo, ancho] = medidasCara(caja, p.normal)
+    const [largo, ancho] = faceSize(caja, p.normal)
     if (largo < ancho * 1.5) return []
     return [
       {

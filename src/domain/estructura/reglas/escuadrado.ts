@@ -15,7 +15,7 @@ export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
   // A full board in the back plane braces like a back: the spine of a bed base, screwed to both ends and the platform.
   const traseras = diseno.piezas.filter((p) => p.rol === 'trasera' || (p.rol === 'divisor' && p.normal === 'z'))
   const traseraRigida = traseras.some((t) => {
-    const espesor = geo.espesores.get(t.id) ?? 0
+    const espesor = geo.thicknesses.get(t.id) ?? 0
     const perimetro = (ids: Set<string>) => [...ids].filter((id) => PERIMETRO.has(rol.get(id) ?? 'otro')).length
     if (espesor >= 6) return perimetro(unidasA(t.id, () => true)) >= 3
     return perimetro(unidasA(t.id, (tipo, pegamento) => (tipo === 'rebaje' || tipo === 'canal') && pegamento)) >= 3
@@ -26,7 +26,7 @@ export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
 
   if (traseraRigida || marcoRigido) return []
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
-  const alto = Math.max(...laterales.map((id) => geo.cajas.get(id)?.y1 ?? 0)) || diseno.dimensiones.alto
+  const alto = Math.max(...laterales.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || diseno.dimensiones.alto
   const hallazgo: Hallazgo = {
     codigo: 'R5_ESCUADRADO',
     severidad: alto > SUPUESTOS.altoEscuadradoCritico ? 'critico' : 'recomendacion',

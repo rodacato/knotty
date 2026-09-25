@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { desde, hasta, pieza, ref, tramo } from '../diseno/construir'
+import { startAt, endAt, makePiece, ref, extent } from '../diseno/builders'
 import type { Diseno } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { catalogo } from '../fixtures/catalogo.test-util'
@@ -69,10 +69,10 @@ describe('typologyRule', () => {
         observaciones: '',
         uniones: [],
         piezas: [
-          pieza({ id: 'lat-izq', nombre: 'Pata izquierda', rol: 'lateral', material: 'T18', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('cubierta.y0')), z: tramo(ref('mueble.z0'), ref('mueble.z1')) }),
-          pieza({ id: 'lat-der', nombre: 'Pata derecha', rol: 'lateral', material: 'T18', normal: 'x', x: hasta(ref('mueble.x1')), y: tramo(ref('mueble.y0'), ref('cubierta.y0')), z: tramo(ref('mueble.z0'), ref('mueble.z1')) }),
-          pieza({ id: 'cubierta', nombre: 'Cubierta', rol: 'techo', material: 'T18', normal: 'y', x: tramo(ref('mueble.x0'), ref('mueble.x1')), y: hasta(ref('mueble.y1')), z: tramo(ref('mueble.z0'), ref('mueble.z1')) }),
-          pieza({ id: 'faldon', nombre: 'Faldón', rol: 'faja', material: 'T18', normal: 'z', x: tramo(ref('lat-izq.x1'), ref('lat-der.x0')), y: tramo(null, ref('cubierta.y0'), 150), z: desde(ref('mueble.z0')) }),
+          makePiece({ id: 'lat-izq', nombre: 'Pata izquierda', rol: 'lateral', material: 'T18', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'lat-der', nombre: 'Pata derecha', rol: 'lateral', material: 'T18', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'cubierta', nombre: 'Cubierta', rol: 'techo', material: 'T18', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')) }),
+          makePiece({ id: 'faldon', nombre: 'Faldón', rol: 'faja', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('cubierta.y0'), 150), z: startAt(ref('mueble.z0')) }),
         ],
       },
       catalogo,
