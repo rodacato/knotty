@@ -61,6 +61,19 @@ describe('reconstruir sin fotos', () => {
     const conCajon = await c.ajustar(estado, 'Agrega un cajón abajo', senal(), undefined, `${estado.chat[1].id}#p1`)
     expect(disenoActual(conCajon).piezas.some((p) => p.grupo === 'cajon-1')).toBe(true)
   })
+
+  it('la descripción queda en el chat y, sin medidas, el experto las estima y lo dice', async () => {
+    const estado = await casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un buró sencillo con una repisa' }, senal())
+    expect(estado.chat[0]).toMatchObject({ autor: 'usuario', texto: 'Un buró sencillo con una repisa\n\nNo sé las medidas.' })
+    expect(disenoActual(estado).nombre).toBe('Buró')
+    expect(estado.medidas).toEqual(disenoActual(estado).dimensiones)
+    expect(estado.chat[1].texto).toContain('las estimé')
+    expect(estado.chat[1].sugerencias.length).toBeGreaterThan(0)
+  })
+
+  it('el simulado no inventa un librero cuando le piden otro mueble', async () => {
+    await expect(casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Una cama individual con cabecera' }, senal())).rejects.toThrow(/conecta un experto real/)
+  })
 })
 
 describe('avisos del proveedor', () => {
@@ -201,6 +214,8 @@ describe('ajustar', () => {
     expect(estado.chat[1].respondida).toBe(true)
     const porPartes = await c.ajustar(inicial, 'Libros', senal(), undefined, `${inicial.chat[1].id}#p1`)
     expect(porPartes.chat[1]).toMatchObject({ respuestas: ['p1'], respondida: false })
+    const juntas = await c.ajustar(inicial, 'Libros', senal(), undefined, `${inicial.chat[1].id}#p0,p1`)
+    expect(juntas.chat[1].respuestas).toEqual(['p0', 'p1'])
     expect(estado.requisitos.map((r) => r.id)).toContain('carga-libros')
   })
 })

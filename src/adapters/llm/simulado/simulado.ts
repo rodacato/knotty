@@ -37,9 +37,12 @@ export class MuebleDesconocido extends Error {
 
 function elegirFixture(medidas: { ancho: number; alto: number } | null, descripcion = ''): Diseno {
   const d = descripcion.toLowerCase()
-  if (/librer|repisa|libros/.test(d)) return librero
+  // Primero el nombre del mueble: "repisa" o "puertas" también salen al describir un buró.
   if (/bur[oó]|mesa de noche|mesita/.test(d)) return buro
-  if (/alacena|gabinete|puertas/.test(d)) return alacena
+  if (/alacena|gabinete/.test(d)) return alacena
+  if (/librer|estante|libros/.test(d)) return librero
+  if (/repisa/.test(d)) return librero
+  if (/puertas/.test(d)) return alacena
   if (d.trim()) throw new MuebleDesconocido()
   if (!medidas) return librero
   const { ancho, alto } = medidas

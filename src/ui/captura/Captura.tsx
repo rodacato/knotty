@@ -1,5 +1,5 @@
-import { ArrowLeft, ArrowRight, Key, Trash, Warning } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { ArrowClockwise, ArrowLeft, ArrowRight, Key, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
 import type { Dimensiones } from '../../domain/diseno/esquema'
 import { faltante } from '../../ports/Preferencias'
 import { useServicios } from '../servicios'
@@ -101,13 +101,21 @@ export function Captura() {
   const reconstruir = useTienda((s) => s.reconstruir)
   const error = useTienda((s) => s.errorReconstruccion)
   const abrirAjustes = useTienda((s) => s.abrirAjustes)
-  const [paso, setPaso] = useState<'medidas' | 'fotos'>('medidas')
-  const [medidas, setMedidas] = useState<Dimensiones>({ ancho: 600, alto: 1800, fondo: 300 })
-  const [fotos, setFotos] = useState<FotoTomada[]>([])
-  const [notas, setNotas] = useState('')
+  const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
+  const borrador = useTienda((s) => s.borrador)
+  const [paso, setPaso] = useState<'medidas' | 'fotos'>(borrador ? 'fotos' : 'medidas')
+  const [medidas, setMedidas] = useState<Dimensiones>(borrador?.medidas ?? { ancho: 600, alto: 1800, fondo: 300 })
+  const [conMedidas, setConMedidas] = useState(!borrador || borrador.medidas !== null)
+  const [fotos, setFotos] = useState<FotoTomada[]>(
+    () => borrador?.fotos.map((f) => ({ ...f, miniatura: borrador.miniaturas.find((m) => m.angulo === f.angulo)?.dataUrl ?? '' })) ?? [],
+  )
+  const [notas, setNotas] = useState(borrador?.notas ?? '')
   const [procesando, setProcesando] = useState(false)
-  const config = preferencias.cargar()
+  const [conSimulado, setConSimulado] = useState(borrador !== null)
+  // Se relee al cerrar los ajustes para que el aviso desaparezca en cuanto conectes un experto.
+  const config = useMemo(() => preferencias.cargar(), [preferencias, ajustesAbiertos])
   const falta = faltante(config)
+  const simulado = config.activo === 'simulado'
 
   const agregar = async (angulo: string, archivo: File) => {
     setProcesando(true)
@@ -121,11 +129,11 @@ export function Captura() {
 
   const sinFotos = fotos.length === 0
   const descripcionSuficiente = notas.trim().length >= MINIMO_DESCRIPCION
-  const puedeAnalizar = !falta && !procesando && (!sinFotos || descripcionSuficiente || config.activo === 'simulado')
+  const puedeAnalizar = !falta && !procesando && (!simulado || conSimulado) && (!sinFotos || descripcionSuficiente || simulado)
   const medidasValidas = MEDIDAS.every((m) => medidas[m.clave] >= m.min && medidas[m.clave] <= m.max)
   const faltanRequeridas = ANGULOS.filter((a) => a.requerida && !fotos.some((f) => f.angulo === a.id))
   const analizar = () =>
-    reconstruir({ medidas, fotos: fotos.map((f) => ({ angulo: f.angulo, base64: f.base64 })), miniaturas: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notas: notas.trim() })
+    reconstruir({ medidas: conMedidas ? medidas : null, fotos: fotos.map((f) => ({ angulo: f.angulo, base64: f.base64 })), miniaturas: fotos.map((f) => ({ angulo: f.angulo, dataUrl: f.miniatura })), notas: notas.trim() })
 
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
@@ -133,6 +141,26 @@ export function Captura() {
         <span className="cifras rounded-full bg-grafito px-2.5 py-1 text-xs text-hueso">{paso === 'medidas' ? '1' : '2'} / 2</span>
         <Titulo>{paso === 'medidas' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Titulo>
       </header>
+
+      {simulado && !conSimulado && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-ambar/40 bg-ambar-suave p-4">
+          <p className="flex items-start gap-2 font-medium">
+            <Robot className="mt-0.5 shrink-0" weight="bold" /> Conecta tu experto para diseñar tu mueble
+          </p>
+          <p className="text-sm text-grafito-2">
+            Sin una API key solo responde el modo simulado, que no entiende tu mueble: arma uno de tres ejemplos (librero, buró o alacena). Con Claude, OpenAI o SheLLM el experto sí lee
+            tus fotos y tu descripción.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Boton variante="primario" onClick={() => abrirAjustes(true)}>
+              <Key weight="bold" /> Conectar experto
+            </Boton>
+            <Boton variante="fantasma" className="underline" onClick={() => setConSimulado(true)}>
+              Probar con los ejemplos simulados
+            </Boton>
+          </div>
+        </div>
+      )}
 
       {paso === 'medidas' ? (
         <>
@@ -142,15 +170,35 @@ export function Captura() {
               <CampoMedida key={m.clave} nombre={m.nombre} valor={medidas[m.clave]} min={m.min} max={m.max} onCambio={(v) => setMedidas((d) => ({ ...d, [m.clave]: v }))} />
             ))}
           </div>
-          <div className="flex justify-end">
-            <Boton variante="primario" className="min-h-12 px-6" disabled={!medidasValidas} onClick={() => setPaso('fotos')}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Boton
+              variante="fantasma"
+              onClick={() => {
+                setConMedidas(false)
+                setPaso('fotos')
+              }}
+            >
+              <Question /> No sé las medidas
+            </Boton>
+            <Boton
+              variante="primario"
+              className="min-h-12 px-6"
+              disabled={!medidasValidas}
+              onClick={() => {
+                setConMedidas(true)
+                setPaso('fotos')
+              }}
+            >
               Siguiente <ArrowRight weight="bold" />
             </Boton>
           </div>
         </>
       ) : (
         <>
-          <p className="-mt-4 text-grafito-2">
+          {!conMedidas && (
+            <p className="-mt-4 text-sm text-grafito-2">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
+          )}
+          <p className={conMedidas ? '-mt-4 text-grafito-2' : 'text-grafito-2'}>
             Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -186,7 +234,15 @@ export function Captura() {
           </label>
           {error && (
             <p className="flex items-start gap-2 rounded-xl border border-oxido/30 bg-oxido/10 p-3 text-sm text-oxido">
-              <Warning className="mt-0.5 shrink-0" weight="bold" /> {error}
+              <Warning className="mt-0.5 shrink-0" weight="bold" />
+              <span className="flex-1">
+                {error} Tus fotos y tu descripción siguen aquí.
+              </span>
+              {puedeAnalizar && (
+                <Boton variante="fantasma" className="min-h-8 shrink-0 px-2 text-oxido underline" onClick={analizar}>
+                  <ArrowClockwise weight="bold" /> Reintentar
+                </Boton>
+              )}
             </p>
           )}
           {falta && (
@@ -199,7 +255,7 @@ export function Captura() {
           )}
           <div className="flex items-center justify-between gap-3">
             <Boton variante="fantasma" onClick={() => setPaso('medidas')}>
-              <ArrowLeft /> Medidas
+              <ArrowLeft /> {conMedidas ? 'Medidas' : 'Poner medidas'}
             </Boton>
             <div className="flex items-center gap-3">
               {faltanRequeridas.length > 0 && fotos.length > 0 && <span className="hidden text-xs text-grafito-2 sm:inline">Falta: {faltanRequeridas.map((a) => a.nombre).join(', ')}</span>}

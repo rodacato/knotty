@@ -39,14 +39,14 @@ export const Mensaje = z.object({
 export const clavePregunta = (indice: number) => `p${indice}`
 export const claveFoto = (angulo: string) => `f:${angulo}`
 
-/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave". */
+/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave,clave". */
 export function marcarRespondida(chat: Mensaje[], respondeA: string | null): Mensaje[] {
   if (!respondeA) return chat
-  const [id, clave] = respondeA.split('#')
+  const [id, claves] = respondeA.split('#')
   return chat.map((m) => {
     if (m.id !== id) return m
-    if (!clave) return { ...m, respondida: true }
-    const respuestas = [...new Set([...m.respuestas, clave])]
+    if (!claves) return { ...m, respondida: true }
+    const respuestas = [...new Set([...m.respuestas, ...claves.split(',')])]
     const total = m.preguntas.filter((p) => p.opciones).length + m.fotosPedidas.length
     return { ...m, respuestas, respondida: respuestas.length >= total }
   })
