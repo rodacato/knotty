@@ -35,9 +35,11 @@ export type BedPlan = z.infer<typeof BedPlan>
 
 /** Room around the mattress so it goes in and comes out. */
 const MATTRESS_PLAY = 20
-const KICK_HEIGHT = 60
+const KICK_HEIGHT = 80
 /** The platform carries people: it needs something under it at least this often, and drawers are no wider. */
 const MAX_SPAN = 600
+/** As wide as a drawer gets to fill its side: past it, the platform over the drawer bends more than it should. */
+const WIDEST_DRAWER = 640
 /** The pillow-level compartment of a storage headboard. */
 const COMPARTMENT = 280
 /** Past this, the platform does not fit one sheet across and goes in two halves over the spine. */
@@ -72,34 +74,36 @@ export function buildBed(plan: BedPlan, catalog: Catalogo): BuiltBed {
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
   const panel = (p: Omit<Parameters<typeof pieza>[0], 'material'>) => pieza({ material: plan.material, cantos: ['frente'], ...p })
+  // The headboard is its own part: its floor is level with the platform but is not where the mattress goes.
+  const headboardPanel = (p: Omit<Parameters<typeof pieza>[0], 'material'>) => panel({ grupo: 'cabecera', ...p })
   const pieces: Pieza[] = []
   const notes: string[] = []
   const style = plan.headboard.style
   const deep = style === 'bookcase' || style === 'storage'
 
   // Headboard: a plain board, or a shallow box open toward the mattress.
-  if (style === 'plain') pieces.push(panel({ id: 'cabecera', nombre: 'Cabecera', rol: 'otro', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: tramo(ref('mueble.z0'), ref('mueble.z1')), veta: 'largo' }))
+  if (style === 'plain') pieces.push(headboardPanel({ id: 'cabecera', nombre: 'Cabecera', rol: 'lateral', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: tramo(ref('mueble.z0'), ref('mueble.z1')), veta: 'largo' }))
   if (deep) {
     const between = tramo(ref('cab-lat-der.z1'), ref('cab-lat-izq.z0'))
     const inside = tramo(ref('cab-fondo.x1'), ref('mueble.x0', hd))
     pieces.push(
-      panel({ id: 'cab-lat-izq', nombre: 'Costado izquierdo de la cabecera', rol: 'lateral', normal: 'z', x: tramo(ref('mueble.x0'), ref('mueble.x0', hd)), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: hasta(ref('mueble.z1')) }),
-      panel({ id: 'cab-lat-der', nombre: 'Costado derecho de la cabecera', rol: 'lateral', normal: 'z', x: tramo(ref('mueble.x0'), ref('mueble.x0', hd)), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: desde(ref('mueble.z0')) }),
-      panel({ id: 'cab-fondo', nombre: 'Fondo de la cabecera', rol: 'trasera', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: between, veta: 'largo' }),
-      panel({ id: 'cab-techo', nombre: 'Techo de la cabecera', rol: 'techo', normal: 'y', x: inside, y: hasta(ref('mueble.y1')), z: between }),
+      headboardPanel({ id: 'cab-lat-izq', nombre: 'Costado izquierdo de la cabecera', rol: 'lateral', normal: 'z', x: tramo(ref('mueble.x0'), ref('mueble.x0', hd)), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: hasta(ref('mueble.z1')) }),
+      headboardPanel({ id: 'cab-lat-der', nombre: 'Costado derecho de la cabecera', rol: 'lateral', normal: 'z', x: tramo(ref('mueble.x0'), ref('mueble.x0', hd)), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: desde(ref('mueble.z0')) }),
+      headboardPanel({ id: 'cab-fondo', nombre: 'Fondo de la cabecera', rol: 'trasera', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: between, veta: 'largo' }),
+      headboardPanel({ id: 'cab-techo', nombre: 'Techo de la cabecera', rol: 'techo', normal: 'y', x: inside, y: hasta(ref('mueble.y1')), z: between }),
     )
     const shelfFloor: CaraRef = style === 'storage' ? 'cab-sep.y1' : 'cab-piso.y1'
     // The compartment is closed by a board in front, so its floor and lid stop behind it.
     const inner = style === 'storage' ? tramo(ref('cab-fondo.x1'), ref('cab-tapa.x0')) : inside
-    pieces.push(panel({ id: 'cab-piso', nombre: 'Piso de la cabecera', rol: 'piso', normal: 'y', x: inner, y: hasta(ref('mueble.y0', plan.height)), z: between, carga: 'media' }))
+    pieces.push(headboardPanel({ id: 'cab-piso', nombre: 'Piso de la cabecera', rol: 'piso', normal: 'y', x: inner, y: hasta(ref('mueble.y0', plan.height)), z: between, carga: 'media' }))
     if (style === 'storage')
       pieces.push(
-        panel({ id: 'cab-sep', nombre: 'Tapa del compartimento', rol: 'entrepano', normal: 'y', x: inner, y: desde(ref('cab-piso.y1', COMPARTMENT)), z: between, carga: 'media' }),
-        panel({ id: 'cab-tapa', nombre: 'Frente del compartimento', rol: 'otro', normal: 'x', x: hasta(ref('mueble.x0', hd)), y: tramo(ref('cab-piso.y0'), ref('cab-sep.y1')), z: between, veta: 'largo' }),
+        headboardPanel({ id: 'cab-sep', nombre: 'Tapa del compartimento', rol: 'entrepano', normal: 'y', x: inner, y: desde(ref('cab-piso.y1', COMPARTMENT)), z: between, carga: 'media' }),
+        headboardPanel({ id: 'cab-tapa', nombre: 'Frente del compartimento', rol: 'otro', normal: 'x', x: hasta(ref('mueble.x0', hd)), y: tramo(ref('cab-piso.y0'), ref('cab-sep.y1')), z: between, veta: 'largo' }),
       )
     const n = plan.headboard.shelves
     for (let k = 1; k <= n; k++)
-      pieces.push(panel({ id: `cab-rep-${k}`, nombre: `Repisa ${k} de la cabecera`, rol: 'entrepano', normal: 'y', x: inside, y: desde(entre(shelfFloor, 'cab-techo.y0', k / (n + 1), -t / 2)), z: between, carga: 'media', apoyo: 'fijo' }))
+      pieces.push(headboardPanel({ id: `cab-rep-${k}`, nombre: `Repisa ${k} de la cabecera`, rol: 'entrepano', normal: 'y', x: inside, y: desde(entre(shelfFloor, 'cab-techo.y0', k / (n + 1), -t / 2)), z: between, carga: 'media', apoyo: 'fijo' }))
     if (plan.headboard.height - plan.height < COMPARTMENT + 2 * t && style === 'storage') notes.push('La cabecera es baja para un compartimento arriba de la base: súbela o hazla librero.')
   }
 
@@ -140,7 +144,9 @@ export function buildBed(plan: BedPlan, catalog: Catalogo): BuiltBed {
       continue
     }
     const n = plan.drawers.count
-    const width = Math.min(MAX_SPAN, (inner - (n - 1) * t) / n)
+    const full = (inner - (n - 1) * t) / n
+    // Drawers a little wider than the span fill the side instead of leaving a sliver; the platform still holds over them.
+    const width = full <= WIDEST_DRAWER ? full : MAX_SPAN
     const group = n * width + (n - 1) * t
     const rest = inner - group
     // Where the drawers gather: the free length goes to the other end, closed by a rail.

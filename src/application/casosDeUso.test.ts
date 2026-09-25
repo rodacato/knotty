@@ -52,7 +52,7 @@ describe('reconstruir', () => {
     expect(disenoActual(estado).nombre).toBe('Librero')
     expect(estado.chat[1].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
     expect(estado.chat[1].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
-    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'disenando-piezas', 'revisando', 'estructura'])
+    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'mirando-fotos', 'disenando-piezas', 'revisando', 'estructura'])
     expect(c.repositorio.estado).toEqual(estado)
   })
 })
@@ -83,7 +83,7 @@ describe('reconstruir sin fotos', () => {
   })
 
   it('el simulado no inventa un librero cuando le piden otro mueble', async () => {
-    await expect(casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Una cama individual con cabecera' }, senal())).rejects.toThrow(/conecta un experto real/)
+    await expect(casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un escritorio con dos cajones' }, senal())).rejects.toThrow(/conecta un experto real/)
   })
 })
 
@@ -342,8 +342,8 @@ describe('never throw away a paid design', () => {
   it('an overlap is fixed by rule, without asking the model again', async () => {
     const estado = await libreroInicial(casos(cambiando(conEncimada)))
     expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-copia')).toBe(false)
-    expect(estado.trace.map((t) => t.step)).toEqual(['read', 'reconstruct'])
-    expect(estado.trace[1]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
+    expect(estado.trace.map((t) => t.step)).toEqual(['read', 'plan', 'reconstruct'])
+    expect(estado.trace[2]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
     expect(estado.chat[1].texto).toContain('Ajusté por mi cuenta un detalle')
   })
 
@@ -374,7 +374,7 @@ describe('never throw away a paid design', () => {
 
   it('a provider failure carries the trace so far', async () => {
     const llm: LLMProvider = { ...crearSimulado(0), reconstruir: async () => Promise.reject(new Error('No se pudo conectar')) }
-    await expect(libreroInicial(casos(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ step: 'read', outcome: 'ok' }, { outcome: 'failed', step: 'reconstruct' }] })
+    await expect(libreroInicial(casos(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ step: 'read', outcome: 'ok' }, { step: 'plan', outcome: 'ok' }, { outcome: 'failed', step: 'reconstruct' }] })
   })
 })
 

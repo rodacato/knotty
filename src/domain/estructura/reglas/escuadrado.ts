@@ -12,7 +12,8 @@ export const reglaEscuadrado: Regla = ({ diseno, geo }) => {
   const unidasA = (id: string, filtro: (tipo: string, pegamento: boolean) => boolean) =>
     new Set(diseno.uniones.filter((u) => (u.a === id || u.b === id) && filtro(u.tipo, u.pegamento)).map((u) => (u.a === id ? u.b : u.a)))
 
-  const traseras = diseno.piezas.filter((p) => p.rol === 'trasera')
+  // A full board in the back plane braces like a back: the spine of a bed base, screwed to both ends and the platform.
+  const traseras = diseno.piezas.filter((p) => p.rol === 'trasera' || (p.rol === 'divisor' && p.normal === 'z'))
   const traseraRigida = traseras.some((t) => {
     const espesor = geo.espesores.get(t.id) ?? 0
     const perimetro = (ids: Set<string>) => [...ids].filter((id) => PERIMETRO.has(rol.get(id) ?? 'otro')).length

@@ -19,12 +19,12 @@ const SIDES = ['none', 'left', 'right', 'both'] as const
 const MATTRESSES = ['individual', 'matrimonial', 'queen', 'king'] as const
 
 describe('buildBed', () => {
-  it.each(MATTRESSES.flatMap((mattress) => STYLES.flatMap((style) => SIDES.map((side) => [mattress, style, side] as const))))('%s, headboard %s, drawers %s: valid, nothing critical', (mattress, style, side) => {
+  it.each(MATTRESSES.flatMap((mattress) => STYLES.flatMap((style) => SIDES.map((side) => [mattress, style, side] as const))))('%s, headboard %s, drawers %s: valid, with nothing to warn about', (mattress, style, side) => {
     const { design, notes } = buildBed(bed({ mattress, drawers: { side, count: 3, position: 'head' }, headboard: { style, height: 1100, depth: 250, shelves: 2 } }), catalogo)
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(JSON.stringify(a.errores.slice(0, 3)))
     expect(notes).toEqual([])
-    expect(a.hallazgos.filter((h) => h.severidad === 'critico').map((h) => h.mensaje)).toEqual([])
+    expect(a.hallazgos.map((h) => h.mensaje)).toEqual([])
   })
   it('puts the drawers of the right side (seen from the foot) opening backward, and the left ones forward', () => {
     const { design } = buildBed(bed({ drawers: { side: 'both', count: 3, position: 'head' } }), catalogo)

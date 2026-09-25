@@ -338,7 +338,12 @@ export function crearCasosDeUso(deps: Dependencias) {
     plan: FurniturePlan | null = null,
   ): EstadoDiseno {
     const { ancho, alto, fondo } = diseno.dimensiones
-    const estimadas = entrada.medidas ? [] : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
+    const estimadas =
+      plan && isBed(plan)
+        ? [`Las medidas salen del colchón ${plan.mattress}: la cama mide ${fondo / 10} × ${ancho / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${alto / 10} cm de alto con la cabecera`}.`]
+        : entrada.medidas
+          ? []
+          : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
     const reparado = repairs.length ? [`Ajusté por mi cuenta ${repairs.length === 1 ? 'un detalle' : `${repairs.length} detalles`}: ${repairs.map((x) => x.message).join(' ')}`] : []
     const pendientes = problemas.length
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problemas))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]

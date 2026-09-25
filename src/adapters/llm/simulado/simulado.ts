@@ -6,7 +6,8 @@ import { librero } from '../../../domain/fixtures/librero'
 import type { Operacion } from '../../../domain/operaciones/esquema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { veredictoDe } from '../../../domain/viabilidad/viabilidad'
-import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
+import type { BedPlan } from '../../../domain/modules/bed'
+import type { LLMProvider, Respuesta, RespuestaAjuste, RespuestaDictamen, RespuestaPlan, RespuestaReconstruccion, SolicitudDictamen } from '../../../ports/LLMProvider'
 
 // Respuestas fijas para desarrollar sin API: reconoce unos cuantos pedidos por palabras clave sobre los muebles de ejemplo.
 
@@ -29,6 +30,42 @@ const ajuste = (parcial: Partial<RespuestaAjuste> & Pick<RespuestaAjuste, 'expli
   aceptaRiesgo: [],
   ...parcial,
 })
+
+const HEADBOARD: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera tipo librero', storage: 'cabecera con un compartimento a la altura de la almohada y repisas arriba' }
+const WORDS: Record<string, number> = { un: 1, uno: 1, dos: 2, tres: 3, cuatro: 4 }
+
+/** "3 cajones", "dos entrepaños": the number said right before a word. */
+function countBefore(text: string, word: string): number | null {
+  const said = new RegExp(`(\\d|un|uno|dos|tres|cuatro)\\s+${word}`).exec(text)?.[1]
+  return said ? (WORDS[said] ?? Number(said)) : null
+}
+
+/** A bed read from the request's words, or null if it is not a bed. */
+function bedFrom(notes: string): BedPlan | null {
+  const text = notes.toLowerCase()
+  if (!/\bcama\b/.test(text)) return null
+  const mattress = (['king', 'queen', 'matrimonial', 'individual'] as const).find((m) => text.includes(m)) ?? 'individual'
+  const drawers = /caj[oó]n/.test(text)
+  const both = /(dos|ambos) lados|cada lado/.test(text)
+  return {
+    kind: 'bed',
+    name: `Cama ${mattress}${drawers ? ' con cajones' : ''}`,
+    mattress,
+    material: 'T18',
+    height: 400,
+    drawers: {
+      side: !drawers ? 'none' : both ? 'both' : /derech/.test(text) ? 'right' : 'left',
+      count: Math.min(4, Math.max(1, countBefore(text, 'caj') ?? 3)),
+      position: /\bpie\b/.test(text) ? 'foot' : /centro/.test(text) ? 'center' : 'head',
+    },
+    headboard: {
+      style: /sin cabecera/.test(text) ? 'none' : /cerrad|compartimento|almohada/.test(text) ? 'storage' : /librer|repisa|entrepa/.test(text) ? 'bookcase' : 'plain',
+      height: 1100,
+      depth: 250,
+      shelves: countBefore(text, 'entrepa') ?? countBefore(text, 'repisa') ?? 2,
+    },
+  }
+}
 
 /** El simulado solo conoce sus tres muebles de ejemplo; ante otra cosa lo dice en vez de inventar un librero. */
 export class MuebleDesconocido extends Error {
@@ -263,8 +300,22 @@ export function crearSimulado(retraso = 900): LLMProvider {
       await espera(retraso, signal)
       return respuesta(proponer(s.peticion, s.diseno, s.propuesta, s.fotos.length > 0))
     },
-    // Its demo adjustments name the pieces of its fixtures, so it designs them whole instead of from a plan.
-    planDesign: null,
+    // Only beds come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
+    async planDesign(s, signal) {
+      await espera(retraso, signal)
+      const bed = bedFrom(s.notas)
+      return respuesta<RespuestaPlan>({
+        explicacion: bed
+          ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${HEADBOARD[bed.headboard.style]}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
+          : '',
+        cabinet: null,
+        bed,
+        preguntas: bed ? [{ texto: '¿Cuánto peso va a cargar la cama?', opciones: ['Una persona', 'Dos personas'] }] : [],
+        fotosSolicitadas: [],
+        requisitos: [],
+        sugerencias: bed ? ['Súbela a 45 cm', 'Cabecera tipo librero', 'Cajones de los dos lados'] : [],
+      })
+    },
     adjustPlan: null,
     async readPhoto(r, signal) {
       await espera(retraso, signal)
