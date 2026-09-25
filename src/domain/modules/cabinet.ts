@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
 import type { CaraRef, Cota, Diseno, Pieza, Union } from '../diseno/esquema'
+import { analizar } from '../analisis'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
 import { applyOperations } from '../operaciones/apply'
@@ -38,6 +39,8 @@ const KICK_SETBACK = 30
 const GAP = 2
 const SHELF_SETBACK = 5
 const INSET_HINGE = 'bisagra-cazoleta-35-supercodo'
+/** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
+const HANGING_RAIL = 80
 
 /** Fractions as given may not add up to 1; they are scaled so they do. */
 const shares = (values: number[]) => {
@@ -204,6 +207,19 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       const frontId = `${drawer.operation.grupo}-frente`
       design = { ...design, piezas: design.piezas.map((p) => (p.id === frontId ? { ...p, x: drawer.overlay.x, y: drawer.overlay.y, z: endAt(ref('mueble.z1')) } : p)) }
     }
+  }
+  // What a carpenter adds without being asked, each kept only if the design still holds with it:
+  // on a kick, the floor rests on a support under each divider; hung on the wall, a rail at the top and back takes the screws.
+  const extras: Operation[] = []
+  if (plan.base === 'kick')
+    columnEdges.slice(0, -1).forEach((_, i) =>
+      extras.push({ op: 'agregarPieza', pieza: panel({ id: `apoyo-piso-${i + 1}`, nombre: `Apoyo del piso ${i + 1}`, rol: 'divisor', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('mueble.y0'), ref('piso.y0')), z: extent(ref(backFace), ref('zoclo.z0')) }) }),
+    )
+  if (plan.wallMounted && plan.base === 'floor')
+    extras.push({ op: 'agregarPieza', pieza: panel({ id: 'liston-colgar', nombre: 'Listón de colgar', rol: 'refuerzo', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('techo.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
+  for (const extra of extras) {
+    const result = applyOperations(design, [extra], catalog)
+    if (result.ok && analizar(completeJoints(result.value.design, catalog), catalog).valido) design = result.value.design
   }
   return { design: completeJoints(design, catalog), notes }
 }
