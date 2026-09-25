@@ -1,4 +1,4 @@
-import { DIMENSION_DE_EJE, EJES, type Diseno } from '../diseno/esquema'
+import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno } from '../diseno/esquema'
 import { medidasCara, redondear, type Geometria } from '../diseno/resolver'
 import { hojaUtil, materialPorId, type Catalogo } from '../materiales/catalogo'
 import { contactos, mismoPar, separacionEntre, TOLERANCIA_CONTACTO, type Contacto } from './contacto'
@@ -80,8 +80,10 @@ export function validarGeometria(diseno: Diseno, geo: Geometria, catalogo: Catal
       }
     }
   }
+  // A drawer hangs from its runners: whether it has something to hang from is a drawer rule (R9), with a way to fix it.
+  const drawerParts = new Set(diseno.piezas.filter((p) => isDrawerPart(p) && p.grupo).map((p) => p.id))
   for (const id of geo.cajas.keys())
-    if (!alcanzadas.has(id)) errores.push(error('E_FLOTANTE', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { pieza: id }))
+    if (!alcanzadas.has(id) && !drawerParts.has(id)) errores.push(error('E_FLOTANTE', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { pieza: id }))
 
   for (const p of diseno.piezas) {
     const caja = geo.cajas.get(p.id)

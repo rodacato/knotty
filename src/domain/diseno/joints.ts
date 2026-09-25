@@ -3,6 +3,7 @@ import type { Catalogo } from '../materiales/catalogo'
 import { contactos, type Contacto } from '../validacion/contacto'
 import { union } from './construir'
 import { isDrawerPart, type Diseno, type Pieza, type Union } from './esquema'
+import { drawerSides } from './drawers'
 import { resolver, type Caja } from './resolver'
 
 // Common joints come from geometry, not from the expert, so they are the same with any model. The expert only declares special ones.
@@ -89,6 +90,18 @@ export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Dis
     if ([...joined].some((k) => k.split('|').includes(door.id))) continue
     const neighbours = touching.filter((c) => c.a === door.id || c.b === door.id).map((c) => byId.get(c.a === door.id ? c.b : c.a)!)
     add(hinge(door, boxes.get(door.id)!, neighbours.map((piece) => ({ piece, box: boxes.get(piece.id)! }))))
+  }
+
+  // A drawer that came without runners gets them on the pieces beside its box; R9 then checks the gap.
+  const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
+  const withRunner = new Set(design.uniones.filter((u) => u.tipo === 'corredera').flatMap((u) => [u.a, u.b]))
+  const groupsWithHardware = new Set(design.uniones.filter((u) => u.tipo === 'corredera' && u.herrajes.length).flatMap((u) => [byId.get(u.a)?.grupo, byId.get(u.b)?.grupo]))
+  for (const { group, side, support } of drawerSides(design, boxes)) {
+    if (!runner || !support || withRunner.has(side.id)) continue
+    // One runner in the catalog is a pair: the first side carries it, the other goes without hardware.
+    const hardware = groupsWithHardware.has(group) ? [] : [{ herrajeId: runner.id, cantidad: 1 }]
+    groupsWithHardware.add(group)
+    add({ a: side.id, b: support.piece.id, tipo: 'corredera', pegamento: false, herrajes: hardware, penetracion: null })
   }
 
   return added.length ? { ...design, uniones: [...design.uniones, ...added] } : design
