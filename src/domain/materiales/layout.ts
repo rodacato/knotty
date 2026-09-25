@@ -58,12 +58,12 @@ const ORDERS: Record<Order, (a: LayoutPiece, b: LayoutPiece) => number> = {
 /** Each material's pieces, turned as their grain allows. */
 export function layoutPieces(design: Design, geo: Geometry): Map<string, LayoutPiece[]> {
   const byMaterial = new Map<string, LayoutPiece[]>()
-  for (const p of design.piezas) {
+  for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
     if (!box) continue
     const [length, width] = faceSize(box, p.normal)
-    const orientation = p.veta === 'libre' ? 'free' : p.veta === 'largo' ? 'fixed' : 'turned'
-    byMaterial.set(p.material, [...(byMaterial.get(p.material) ?? []), { id: p.id, name: p.nombre, length, width, orientation }])
+    const orientation = p.grain === 'any' ? 'free' : p.grain === 'length' ? 'fixed' : 'turned'
+    byMaterial.set(p.material, [...(byMaterial.get(p.material) ?? []), { id: p.id, name: p.name, length, width, orientation }])
   }
   return byMaterial
 }

@@ -8,21 +8,21 @@ export const ASSUMPTIONS = {
   /** A load held for months (books) makes the sag grow. */
   creep: 1.5,
   /** kg/m² on the shelf. */
-  loads: { ninguna: 0, ligera: 50, media: 100, pesada: 150 } satisfies Record<Load, number>,
+  loads: { none: 0, light: 50, medium: 100, heavy: 150 } satisfies Record<Load, number>,
   gravity: 9.81,
   /** Sag is compared with span / limit. */
   deflectionLimit: { recommended: 360, critical: 200 },
   /** From this height up, a carcass that can rack is critical. */
   criticalRackingHeight: 600,
   joints: {
-    'tope-tornillo': { b: 15, bCritical: 12 },
-    bolsillo: { a: 12, b: 12 },
-    tarugo: { a: 15, b: 15 },
-    minifix: { a: 15, b: 15 },
-    canal: { b: 15 },
-    rebaje: { b: 15 },
-    'bisagra-cazoleta': { a: 15 },
-    'soporte-repisa': { b: 15 },
+    'butt-screw': { b: 15, bCritical: 12 },
+    'pocket-screw': { a: 12, b: 12 },
+    dowel: { a: 15, b: 15 },
+    'cam-lock': { a: 15, b: 15 },
+    dado: { b: 15 },
+    rabbet: { b: 15 },
+    'cup-hinge': { a: 15 },
+    'shelf-pin': { b: 15 },
   } satisfies Partial<Record<JointType, { a?: number; b?: number; bCritical?: number }>>,
   /** Depth of a groove or rabbet as a fraction of the thickness that takes it. */
   penetration: { recommended: 1 / 3, critical: 1 / 2 },
@@ -57,4 +57,4 @@ export const ASSUMPTIONS = {
 
 export const hingesFor = (alto: number) => ASSUMPTIONS.doors.hinges.find((b) => alto <= b.upTo)!.n
 
-export const RIGID_JOINTS: JointType[] = ['bolsillo', 'tarugo', 'minifix', 'canal', 'rebaje', 'escuadra']
+export const RIGID_JOINTS: JointType[] = ['pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket']

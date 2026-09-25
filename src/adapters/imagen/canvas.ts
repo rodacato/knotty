@@ -10,14 +10,14 @@ const QUALITIES = [0.85, 0.75, 0.65, 0.55]
 /** Measures so the long side stays within the limit, never enlarging the photo. */
 export function reducedDimensions(width: number, height: number, longSide: number) {
   const scale = Math.min(1, longSide / Math.max(width, height))
-  return { ancho: Math.max(1, Math.round(width * scale)), alto: Math.max(1, Math.round(height * scale)) }
+  return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) }
 }
 
 /** The real bytes of a base64 string, without the padding. */
 export const bytesFromBase64 = (b64: string) => Math.floor((b64.length * 3) / 4) - (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0)
 
 function draw(image: ImageBitmap, longSide: number, quality: number) {
-  const { ancho: width, alto: height } = reducedDimensions(image.width, image.height, longSide)
+  const { width, height } = reducedDimensions(image.width, image.height, longSide)
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height

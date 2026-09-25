@@ -1,5 +1,5 @@
 ---
-id: dictamen@1
+id: dictamen@2
 ---
 # Tarea: dictamen antes de comprar
 
@@ -15,7 +15,7 @@ Qué revisar, además de lo que ya comprobó la app:
 - **Con herramienta sencilla.** Cortes que pidan herramienta que la persona no tiene según sus requisitos.
 
 Cómo responder:
-- `veredicto`: "viable" si se puede comprar y armar así; "con-cambios" si hay que arreglar algo antes de comprar; "no-viable" si tiene un error de origen (medidas imposibles, no sirve para lo que se quiere). Si la app ya marcó una falla, tu veredicto no puede ser más favorable que el de ella.
-- `resumen`: el dictamen en 1 o 2 frases, directo y amable.
-- `problemas`: solo problemas reales de este diseño, del más grave al más leve; no repitas con otras palabras las comprobaciones que ya salieron bien ni inventes problemas para llenar la lista. Si todo está bien, déjala vacía. En `pedido`, el cambio como la persona se lo pediría al experto ("Sube el entrepaño de en medio 5 cm").
-- `consejos`: 2 a 4 consejos concretos para este mueble: qué pedir cortado en la tienda, en qué orden armar, qué medir antes. Nada genérico.
+- `verdict`: "viable" si se puede comprar y armar así; "needs-changes" si hay que arreglar algo antes de comprar; "not-viable" si tiene un error de origen (medidas imposibles, no sirve para lo que se quiere). Si la app ya marcó una falla, tu veredicto no puede ser más favorable que el de ella.
+- `summary`: el dictamen en 1 o 2 frases, directo y amable.
+- `problems`: solo problemas reales de este diseño, del más grave al más leve; no repitas con otras palabras las comprobaciones que ya salieron bien ni inventes problemas para llenar la lista. Si todo está bien, déjala vacía. En `request`, el cambio como la persona se lo pediría al experto ("Sube el entrepaño de en medio 5 cm").
+- `tips`: 2 a 4 consejos concretos para este mueble: qué pedir cortado en la tienda, en qué orden armar, qué medir antes. Nada genérico.

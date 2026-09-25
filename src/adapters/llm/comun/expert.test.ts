@@ -49,10 +49,10 @@ describe('createExpert', () => {
   }
 
   it('sends measures, angle labels and images, with the catalog in the system prompt', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', diseno: exampleBookcase, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
-    const r = await experto.reconstruct({ measures: exampleBookcase.dimensiones, photos: [{ angle: 'frente', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(r.value.diseno.nombre).toBe('Librero')
-    expect(r.origin.promptId).toBe('sistema@4+reconstruccion@6')
+    const { experto, llamadas } = falso({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
+    const r = await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'AAA' }], notes: 'para libros', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
+    expect(r.value.design.name).toBe('Librero')
+    expect(r.origin.promptId).toBe('sistema@5+reconstruccion@7')
     expect(llamadas[0].sistema).toContain('T18: Triplay de pino 18 mm')
     expect(llamadas[0].contenido).toEqual([
       { kind: 'texto', text: 'Medidas del mueble: ancho 600 mm, alto 1800 mm, fondo 300 mm.\nNotas de la persona: para libros' },
@@ -62,17 +62,17 @@ describe('createExpert', () => {
   })
 
   it('without photos it sends the description and tells the expert to design from it', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', diseno: exampleBookcase, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
-    await experto.reconstruct({ measures: exampleBookcase.dimensiones, photos: [], notes: 'librero de 5 repisas', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
+    const { experto, llamadas } = falso({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
+    await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [], notes: 'librero de 5 repisas', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(llamadas[0].contenido).toEqual([{ kind: 'texto', text: expect.stringContaining('No hay fotos: diseña a partir de esta descripción') }])
     expect(llamadas[0].contenido[0]).toMatchObject({ text: expect.stringContaining('Descripción: librero de 5 repisas') })
   })
 
   it('the purchase review sends the context with the review and uses the carpenter prompt', async () => {
-    const { experto, llamadas } = falso({ veredicto: 'con-cambios', resumen: 'Sube la repisa', problemas: [], consejos: ['Mide el espesor'] })
-    const r = await experto.reviewPurchase({ context: '## Diseño', review: '## Lista de corte', design: exampleBookcase, comprobaciones: [], catalog: testCatalog }, new AbortController().signal)
-    expect(r.value.veredicto).toBe('con-cambios')
-    expect(r.origin.promptId).toBe('sistema@4+dictamen@1')
+    const { experto, llamadas } = falso({ verdict: 'needs-changes', summary: 'Sube la repisa', problems: [], tips: ['Mide el espesor'] })
+    const r = await experto.reviewPurchase({ context: '## Diseño', review: '## Lista de corte', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal)
+    expect(r.value.verdict).toBe('needs-changes')
+    expect(r.origin.promptId).toBe('sistema@5+dictamen@2')
     expect(llamadas[0].sistema).toContain('dictamen antes de comprar')
     expect(llamadas[0].contenido).toEqual([{ kind: 'texto', text: '## Diseño\n\n## Lista de corte' }])
   })
@@ -91,35 +91,35 @@ describe('createExpert', () => {
   })
 
   it('with a reading, the design request carries it and no images', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', diseno: exampleBookcase, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
+    const { experto, llamadas } = falso({ explanation: 'x', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const lectura = { kind: 'librero', confidence: 'high' as const, description: 'Un librero', proportions: null, base: null, topOverhangs: null, columns: null, details: [], doubts: [] }
-    await experto.reconstruct({ measures: exampleBookcase.dimensiones, photos: [], notes: '', reading: lectura, catalog: testCatalog, correction: null }, new AbortController().signal)
+    await experto.reconstruct({ measures: exampleBookcase.dimensions, photos: [], notes: '', reading: lectura, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(llamadas[0].contenido).toHaveLength(1)
     expect(llamadas[0].contenido[0]).toMatchObject({ text: expect.stringContaining('No te mando las fotos: ya se leyeron') })
   })
 
   it('asks for the skeleton with its own short prompt and the board thicknesses of the catalog', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', cabinet: null, bed: null, table: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
+    const { experto, llamadas } = falso({ explanation: 'x', cabinet: null, bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await experto.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('esqueleto@4')
+    expect(r.origin.promptId).toBe('esqueleto@5')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
     expect(llamadas[0].sistema).not.toContain('{{materiales}}')
   })
 
   it('edits the ficha with its own short prompt: the context, the current plan and the request', async () => {
-    const { experto, llamadas } = falso({ explicacion: 'x', resumen: 'r', action: 'answer', plan: null, bed: null, table: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [] })
+    const { experto, llamadas } = falso({ explanation: 'x', summary: 'r', action: 'answer', cabinet: null, bed: null, table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await experto.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('ajuste-ficha@3')
+    expect(r.origin.promptId).toBe('ajuste-ficha@4')
     expect(llamadas[0].sistema).toContain('"T15" (15 mm)')
     expect(llamadas[0].contenido[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Ficha actual\n\{"name":"Buró"[\s\S]*## Pedido de la persona\n¿Aguanta\?/) })
   })
 
   it('an answer that does not match the schema throws InvalidResponse with the problems', async () => {
-    const { experto } = falso({ explicacion: 'x', operaciones: [{ op: 'volar' }] })
+    const { experto } = falso({ explanation: 'x', operations: [{ op: 'volar' }] })
     const promesa = experto.proposeAdjustment({ context: '', request: 'x', design: exampleBookcase, proposal: null, photos: [], catalog: testCatalog, correction: null }, new AbortController().signal)
     await expect(promesa).rejects.toBeInstanceOf(InvalidResponse)
-    await expect(promesa).rejects.toMatchObject({ problems: expect.stringContaining('resumen') })
+    await expect(promesa).rejects.toMatchObject({ problems: expect.stringContaining('summary') })
   })
 })

@@ -29,10 +29,10 @@ describe('buildBed', () => {
   it('puts the drawers of the right side (seen from the foot) opening backward, and the left ones forward', () => {
     const { design } = buildBed(bed({ drawers: { side: 'both', count: 3, position: 'head' } }), testCatalog)
     const geo = analyze(design, testCatalog).geo!
-    const fronts = design.piezas.filter((p) => p.rol === 'frente-cajon')
+    const fronts = design.pieces.filter((p) => p.role === 'drawer-front')
     expect(fronts).toHaveLength(6)
-    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z0 === 0).map((p) => p.grupo)).toEqual(['cajon-der-1', 'cajon-der-2', 'cajon-der-3'])
-    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z1 === design.dimensiones.fondo)).toHaveLength(3)
+    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z0 === 0).map((p) => p.group)).toEqual(['cajon-der-1', 'cajon-der-2', 'cajon-der-3'])
+    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z1 === design.dimensions.depth)).toHaveLength(3)
   })
 
   it('gathers fewer drawers toward the foot and closes the rest of the side, with cross members under the platform', () => {
@@ -40,8 +40,8 @@ describe('buildBed', () => {
     const geo = analyze(design, testCatalog).geo!
     const front = geo.boxes.get('cajon-izq-1-frente')!
     expect(geo.boxes.get('base-pie')!.x0 - front.x1).toBeCloseTo(2, 5)
-    expect(design.piezas.some((p) => p.id === 'costado-izq-1')).toBe(true)
-    expect(design.piezas.filter((p) => p.id.startsWith('travesano-izq')).length).toBeGreaterThan(0)
+    expect(design.pieces.some((p) => p.id === 'costado-izq-1')).toBe(true)
+    expect(design.pieces.filter((p) => p.id.startsWith('travesano-izq')).length).toBeGreaterThan(0)
   })
 
   it('makes a storage headboard with a closed compartment at pillow level and shelves above', () => {
@@ -50,8 +50,8 @@ describe('buildBed', () => {
     const floor = geo.boxes.get('cab-piso')!
     expect(floor.y1).toBe(400)
     expect(geo.boxes.get('cab-sep')!.y0).toBe(400 + 280)
-    expect(design.piezas.filter((p) => p.id.startsWith('cab-rep-'))).toHaveLength(2)
-    expect(design.dimensiones).toEqual({ ancho: 250 + 1900 + 20 + 18, alto: 1200, fondo: 990 + 20 })
+    expect(design.pieces.filter((p) => p.id.startsWith('cab-rep-'))).toHaveLength(2)
+    expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1200, depth: 990 + 20 })
   })
   it('takes the ficha a real expert sends for a plain bed: no drawers as count 0, no depth for a plain headboard', () => {
     // Sent by Claude through SheLLM on 2026-09-25 for "Cama individual con cabecera"; it was rejected before and the bed went piece by piece.
@@ -59,6 +59,6 @@ describe('buildBed', () => {
     const plan = BedPlan.parse(sent)
     const a = analyze(buildBed(plan, testCatalog).design, testCatalog)
     expect(a.valid && a.findings).toEqual([])
-    expect(buildBed({ ...plan, headboard: { style: 'bookcase', height: 1100, depth: 0, shelves: 2 } }, testCatalog).design.dimensiones.ancho).toBe(250 + 1900 + 20 + 18)
+    expect(buildBed({ ...plan, headboard: { style: 'bookcase', height: 1100, depth: 0, shelves: 2 } }, testCatalog).design.dimensions.width).toBe(250 + 1900 + 20 + 18)
   })
 })

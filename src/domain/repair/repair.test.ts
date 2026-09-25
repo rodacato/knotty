@@ -7,8 +7,8 @@ import { exampleWallCabinet } from '../fixtures/wallCabinet'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { repairDesign } from './repair'
 
-const shelf = (d: Design) => d.piezas.find((p) => p.id === 'entrepano-1')!
-const withPiece = (d: Design, id: string, change: (p: Piece) => Piece): Design => ({ ...d, piezas: d.piezas.map((p) => (p.id === id ? change(p) : p)) })
+const shelf = (d: Design) => d.pieces.find((p) => p.id === 'entrepano-1')!
+const withPiece = (d: Design, id: string, change: (p: Piece) => Piece): Design => ({ ...d, pieces: d.pieces.map((p) => (p.id === id ? change(p) : p)) })
 const valid = (d: Design) => analyze(d, testCatalog).valid
 const box = (d: Design, id: string) => {
   const a = analyze(d, testCatalog)
@@ -18,16 +18,16 @@ const box = (d: Design, id: string) => {
 
 describe('repairDesign', () => {
   it('removes a piece that is a copy inside another one', () => {
-    const broken = { ...exampleBookcase, piezas: [...exampleBookcase.piezas, { ...shelf(exampleBookcase), id: 'entrepano-extra', nombre: 'Entrepaño extra' }] }
+    const broken = { ...exampleBookcase, pieces: [...exampleBookcase.pieces, { ...shelf(exampleBookcase), id: 'entrepano-extra', name: 'Entrepaño extra' }] }
     expect(valid(broken)).toBe(false)
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
-    expect(design.piezas.some((p) => p.id === 'entrepano-extra')).toBe(false)
+    expect(design.pieces.some((p) => p.id === 'entrepano-extra')).toBe(false)
     expect(repairs.map((r) => r.message)).toEqual(['Quité Entrepaño extra: estaba completa dentro de Entrepaño 1.'])
   })
 
   it('trims a shelf that runs into the side, up to the side', () => {
-    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, x: { ...p.x, hasta: ref('mueble.x1') } }))
+    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, x: { ...p.x, to: ref('mueble.x1') } }))
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     expect(box(design, 'entrepano-1').x1).toBe(box(exampleBookcase, 'lat-der').x0)
@@ -35,7 +35,7 @@ describe('repairDesign', () => {
   })
 
   it('moves a shelf that sinks into the bottom so it sits on it, keeping its thickness', () => {
-    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, y: { desde: ref('piso.y1', -10), hasta: null, largo: null } }))
+    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, y: { from: ref('piso.y1', -10), to: null, length: null } }))
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     const fixed = box(design, 'entrepano-1')
@@ -47,7 +47,7 @@ describe('repairDesign', () => {
   it('an overlay door sunk into the carcass with no room in front: the carcass steps back, the door keeps its size', () => {
     const door = box(exampleWallCabinet, 'puerta-izq')
     const into = mm(door.z0 + 16)
-    const broken = ['lat-izq', 'lat-der', 'piso', 'techo'].reduce((d, id) => withPiece(d, id, (p) => ({ ...p, z: { ...p.z, hasta: into } })), exampleWallCabinet)
+    const broken = ['lat-izq', 'lat-der', 'piso', 'techo'].reduce((d, id) => withPiece(d, id, (p) => ({ ...p, z: { ...p.z, to: into } })), exampleWallCabinet)
     expect(valid(broken)).toBe(false)
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
@@ -58,7 +58,7 @@ describe('repairDesign', () => {
 
   it('a shelf that runs into a door is trimmed back; the door keeps its size', () => {
     const door = box(exampleWallCabinet, 'puerta-izq')
-    const broken = withPiece(exampleWallCabinet, 'entrepano', (p) => ({ ...p, z: { ...p.z, hasta: mm(door.z1) } }))
+    const broken = withPiece(exampleWallCabinet, 'entrepano', (p) => ({ ...p, z: { ...p.z, to: mm(door.z1) } }))
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     expect(box(design, 'puerta-izq')).toEqual(door)
@@ -67,24 +67,24 @@ describe('repairDesign', () => {
   })
 
   it('drops a joint between pieces that do not touch', () => {
-    const broken = { ...exampleBookcase, uniones: [...exampleBookcase.uniones, makeJoint('u-suelta', 'entrepano-1', 'techo', 'tope-tornillo')] }
+    const broken = { ...exampleBookcase, joints: [...exampleBookcase.joints, makeJoint('u-suelta', 'entrepano-1', 'techo', 'butt-screw')] }
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
-    expect(design.uniones.some((u) => u.id === 'u-suelta')).toBe(false)
+    expect(design.joints.some((u) => u.id === 'u-suelta')).toBe(false)
     expect(repairs[0].code).toBe('E_UNION_SIN_CONTACTO')
   })
 
   it('also repairs pieces the model grouped into parts', () => {
-    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, grupo: 'casco', x: { ...p.x, hasta: ref('mueble.x1') } }))
+    const broken = withPiece(exampleBookcase, 'entrepano-1', (p) => ({ ...p, group: 'casco', x: { ...p.x, to: ref('mueble.x1') } }))
     expect(valid(repairDesign(broken, testCatalog).design)).toBe(true)
   })
 
   it('contacts a repair creates get their joints', () => {
-    const broken = withPiece({ ...exampleBookcase, uniones: exampleBookcase.uniones.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: extent(ref('mueble.x0'), ref('mueble.x1')) }))
+    const broken = withPiece({ ...exampleBookcase, joints: exampleBookcase.joints.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: extent(ref('mueble.x0'), ref('mueble.x1')) }))
     const { design } = repairDesign(broken, testCatalog)
     const a = analyze(design, testCatalog)
     expect(a.valid && a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
-    expect(design.uniones.some((u) => [u.a, u.b].includes('techo') && u.tipo === 'tope-tornillo')).toBe(true)
+    expect(design.joints.some((u) => [u.a, u.b].includes('techo') && u.type === 'butt-screw')).toBe(true)
   })
 
   it('leaves a valid design alone', () => {

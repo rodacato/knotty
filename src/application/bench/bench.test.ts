@@ -16,7 +16,7 @@ describe('the bench', () => {
   it('runs a case and grades it: a bookcase designed piece by piece', async () => {
     const r = await bench.runCase(bench.cases.find((c) => c.id === 'librero')!, signal())
     expect(r).toMatchObject({ ok: true, path: 'pieces', reasonable: true, verdict: expect.any(String) })
-    expect(r.state?.versiones).toHaveLength(1)
+    expect(r.state?.versions).toHaveLength(1)
   })
 
   it('a bed goes through its ficha', async () => {

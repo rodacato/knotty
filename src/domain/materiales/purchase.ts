@@ -11,7 +11,7 @@ const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
-const EDGE_AXIS: Record<string, Axis> = { frente: 'z', atras: 'z', izq: 'x', der: 'x', arriba: 'y', abajo: 'y' }
+const EDGE_AXIS: Record<string, Axis> = { front: 'z', back: 'z', left: 'x', right: 'x', top: 'y', bottom: 'y' }
 
 export interface SheetLine {
   material: BoardMaterial
@@ -43,26 +43,26 @@ export function hardwarePerJoint(u: Joint, geo: Geometry): number {
   const b = geo.boxes.get(u.b)
   const length = a && b ? jointLength(a, b) : 0
   const bySpacing = (spacing: number, minimum: number) => Math.max(minimum, Math.ceil((length - 2 * END_MARGIN) / spacing) + 1)
-  switch (u.tipo) {
-    case 'tope-tornillo':
-    case 'bolsillo':
+  switch (u.type) {
+    case 'butt-screw':
+    case 'pocket-screw':
       return bySpacing(SPACING.screw, 2)
-    case 'tarugo':
-    case 'minifix':
+    case 'dowel':
+    case 'cam-lock':
       return bySpacing(SPACING.dowel, 2)
-    case 'clavo-pegamento':
+    case 'glue-nail':
       return bySpacing(SPACING.nail, 2)
-    case 'soporte-repisa':
+    case 'shelf-pin':
       return 2
-    case 'bisagra-cazoleta': {
+    case 'cup-hinge': {
       const door = geo.boxes.get(u.a)
       return hingesFor(door ? door.y1 - door.y0 : 0)
     }
-    case 'escuadra':
+    case 'bracket':
       return 2
-    case 'corredera':
-    case 'canal':
-    case 'rebaje':
+    case 'drawer-slide':
+    case 'dado':
+    case 'rabbet':
       return 1
   }
 }
@@ -70,10 +70,10 @@ export function hardwarePerJoint(u: Joint, geo: Geometry): number {
 /** Metres of edge banding: the marked edges of every piece added up. */
 export function edgeBandingMeters(design: Design, geo: Geometry) {
   let mm = 0
-  for (const p of design.piezas) {
+  for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
     if (!box) continue
-    for (const edge of p.cantos) {
+    for (const edge of p.edges) {
       const axis = EDGE_AXIS[edge]
       if (axis === p.normal) continue
       const along = AXES.find((e) => e !== axis && e !== p.normal)!
@@ -102,8 +102,8 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
 
   const counts = new Map<string, number>()
   const add = (id: string, n: number) => counts.set(id, (counts.get(id) ?? 0) + n)
-  for (const u of design.uniones) for (const h of u.herrajes) add(h.herrajeId, h.cantidad ?? hardwarePerJoint(u, geo))
-  const glued = design.uniones.filter((u) => u.pegamento).length
+  for (const u of design.joints) for (const h of u.hardware) add(h.hardwareId, h.count ?? hardwarePerJoint(u, geo))
+  const glued = design.joints.filter((u) => u.glue).length
   if (glued) add('pegamento-blanco', Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
   const edgeBanding = edgeBandingMeters(design, geo)
 

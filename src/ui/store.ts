@@ -9,7 +9,7 @@ import { analyze } from '../domain/analysis'
 import type { Dimensions, Design, Axis, Piece } from '../domain/diseno/schema'
 import type { Box } from '../domain/diseno/resolve'
 import { differences } from '../domain/diseno/diff'
-import { currentDesign, markAnswered, type DesignState, type Thumbnail } from '../domain/sesion/state'
+import { currentDesign, markAnswered, type DesignState, type Message, type Thumbnail } from '../domain/sesion/state'
 import type { Photo } from '../ports/LLMProvider'
 import type { VaultState } from '../ports/Preferences'
 import { applySettings, NO_SETTINGS, type CatalogSettings } from '../domain/materiales/catalog'
@@ -118,13 +118,13 @@ export interface SceneChanges {
   nonce: number
 }
 
-const shownDesign = (e: DesignState) => e.propuesta?.diseno ?? currentDesign(e)
+const shownDesign = (e: DesignState) => e.proposal?.design ?? currentDesign(e)
 
 /** What the scene shows: a previous version, the proposal or the current design. */
 export function visibleDesign(s: Pick<Store, 'state' | 'viewedVersion' | 'showProposal'>): Design | null {
   if (!s.state) return null
-  if (s.viewedVersion !== null) return s.state.versiones.find((v) => v.n === s.viewedVersion)?.diseno ?? currentDesign(s.state)
-  return s.state.propuesta && s.showProposal ? s.state.propuesta.diseno : currentDesign(s.state)
+  if (s.viewedVersion !== null) return s.state.versions.find((v) => v.n === s.viewedVersion)?.design ?? currentDesign(s.state)
+  return s.state.proposal && s.showProposal ? s.state.proposal.design : currentDesign(s.state)
 }
 
 /** What changes from one design to another, with the box of what disappears to draw its ghost. */
@@ -133,7 +133,7 @@ function transition(before: Design, after: Design, catalog: Services['catalog'],
   const gb = analyze(after, catalog)
   if (!ga.valid || !gb.valid) return { added: [], modified: [], removed: [], nonce }
   const d = differences(before, ga.geo.boxes, after, gb.geo.boxes)
-  const removed = d.removed.map((id) => ({ piece: before.piezas.find((p) => p.id === id)!, box: ga.geo.boxes.get(id)! }))
+  const removed = d.removed.map((id) => ({ piece: before.pieces.find((p) => p.id === id)!, box: ga.geo.boxes.get(id)! }))
   return { added: d.added, modified: d.changed, removed, nonce }
 }
 
@@ -145,7 +145,7 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
   const { services, state, thinking } = get()
   if (!services || !state || thinking) return
   const controller = new AbortController()
-  const pending = { id: 'pendiente', autor: 'usuario' as const, texto: text, fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: thumbnail, respuestas: [], sugerencias: [] }
+  const pending: Message = { id: 'pendiente', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [] }
   const optimistic = { ...state, tray: [], chat: [...markAnswered(state.chat, replyTo), pending] }
   set({ thinking: true, controller, stage: { name: 'proponiendo', attempt: 0 }, state: optimistic })
   const fresh = await call(controller.signal, (name, attempt) => set({ stage: { name, attempt } }))
@@ -324,7 +324,7 @@ export const useStore = create<Store>((set, get) => ({
     const { services, state, viewedVersion } = get()
     if (!services || !state) return
     const fresh = services.useCases.backToVersion(state, n)
-    const before = viewedVersion !== null ? (state.versiones.find((v) => v.n === viewedVersion)?.diseno ?? shownDesign(state)) : shownDesign(state)
+    const before = viewedVersion !== null ? (state.versions.find((v) => v.n === viewedVersion)?.design ?? shownDesign(state)) : shownDesign(state)
     set((s) => ({ state: fresh, viewedVersion: null, changes: transition(before, shownDesign(fresh), services.catalog, s.changes.nonce + 1) }))
   },
 

@@ -84,9 +84,9 @@ const inMemory = () => {
   return { load: () => state, save: (x: DesignState) => void (state = x), clear: () => void (state = null) }
 }
 
-export function withinExpected(c: BenchCase, d: Design['dimensiones']) {
-  const inside = (m: Design['dimensiones']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
-  return inside(d) || (!!c.anyOrientation && inside({ ...d, ancho: d.fondo, fondo: d.ancho }))
+export function withinExpected(c: BenchCase, d: Design['dimensions']) {
+  const inside = (m: Design['dimensions']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
+  return inside(d) || (!!c.anyOrientation && inside({ ...d, width: d.depth, depth: d.width }))
 }
 
 export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) {
@@ -102,7 +102,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
       const design = currentDesign(state)
-      const d = design.dimensiones
+      const d = design.dimensions
       const tokens = calls.map((l) => l.output)
       const common = {
         caseId: c.id,
@@ -111,10 +111,10 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         seconds,
         calls: calls.length,
         outputTokens: tokens.length && tokens.every((t) => t !== null) ? tokens.reduce((s, t) => s! + t!, 0) : null,
-        path: state.versiones[0].plan ? ('ficha' as const) : ('pieces' as const),
-        pieces: design.piezas.length,
-        joints: design.uniones.length,
-        measures: `${d.alto} × ${d.ancho} × ${d.fondo}`,
+        path: state.versions[0].plan ? ('ficha' as const) : ('pieces' as const),
+        pieces: design.pieces.length,
+        joints: design.joints.length,
+        measures: `${d.height} × ${d.width} × ${d.depth}`,
         reasonable: withinExpected(c, d),
         corrections: [...new Set(calls.flatMap((l) => l.corrects))],
         repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
@@ -125,7 +125,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       const purchase = estimatePurchase(design, a.geo, catalog)
       const viability = reviewViability({ design, geo: a.geo, catalog, purchase, findings: a.findings, unmet: [] })
       const criticals = a.findings.filter((h) => h.severity === 'critico')
-      return { ...common, criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.veredicto }
+      return { ...common, criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.verdict }
     } catch (e) {
       return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length }
     }

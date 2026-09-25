@@ -45,15 +45,15 @@ function Dimension({ from, to, out, value, dark }: { from: Point; to: Point; out
 }
 
 export function DimensionLines({ dimensions, dark }: { dimensions: Dimensions; dark: boolean }) {
-  const w = dimensions.ancho * MM
-  const h = dimensions.alto * MM
-  const d = dimensions.fondo * MM
+  const w = dimensions.width * MM
+  const h = dimensions.height * MM
+  const d = dimensions.depth * MM
   const y = 2 * MM
   return (
     <group>
-      <Dimension from={[0, y, d]} to={[w, y, d]} out={[0, 0, 1]} value={dimensions.ancho} dark={dark} />
-      <Dimension from={[0, 0, d]} to={[0, h, d]} out={[-1, 0, 0]} value={dimensions.alto} dark={dark} />
-      <Dimension from={[w, y, 0]} to={[w, y, d]} out={[1, 0, 0]} value={dimensions.fondo} dark={dark} />
+      <Dimension from={[0, y, d]} to={[w, y, d]} out={[0, 0, 1]} value={dimensions.width} dark={dark} />
+      <Dimension from={[0, 0, d]} to={[0, h, d]} out={[-1, 0, 0]} value={dimensions.height} dark={dark} />
+      <Dimension from={[w, y, 0]} to={[w, y, d]} out={[1, 0, 0]} value={dimensions.depth} dark={dark} />
     </group>
   )
 }

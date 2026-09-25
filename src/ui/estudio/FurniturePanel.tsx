@@ -32,8 +32,8 @@ function Memory({ state }: { state: DesignState }) {
       </div>
       <div className="flex flex-col gap-1.5">
         <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Tus requisitos</p>
-        {state.requisitos.length ? (
-          <ul className="flex flex-col gap-1.5">{state.requisitos.map((r) => item(r.texto, () => removeNote(r.id), r.id))}</ul>
+        {state.requirements.length ? (
+          <ul className="flex flex-col gap-1.5">{state.requirements.map((r) => item(r.text, () => removeNote(r.id), r.id))}</ul>
         ) : (
           <p className="text-sm text-grafito-2">Nada todavía: dile al experto cosas como «mi espacio mide 90 cm».</p>
         )}
@@ -57,10 +57,10 @@ function Memory({ state }: { state: DesignState }) {
           </Button>
         </form>
       </div>
-      {state.decisiones.length > 0 && (
+      {state.decisions.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Decisiones de diseño</p>
-          <ul className="flex flex-col gap-1.5">{state.decisiones.map((d) => item(d.texto, () => removeDecision(d.tema), d.tema))}</ul>
+          <ul className="flex flex-col gap-1.5">{state.decisions.map((d) => item(d.text, () => removeDecision(d.topic), d.topic))}</ul>
         </div>
       )}
     </section>
@@ -68,15 +68,15 @@ function Memory({ state }: { state: DesignState }) {
 }
 
 function Photos({ state }: { state: DesignState }) {
-  if (!state.miniaturas.length) return null
+  if (!state.thumbnails.length) return null
   return (
     <section className="flex flex-col gap-2">
       <h3 className="font-titulo text-base font-semibold">Tus fotos</h3>
       <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-        {state.miniaturas.map((m) => (
-          <figure key={m.angulo} className="flex shrink-0 flex-col items-center gap-1">
-            <img src={m.dataUrl} alt={`Foto ${m.angulo}`} className="size-20 rounded-xl border border-linea object-cover" />
-            <figcaption className="text-[11px] text-grafito-2">{m.angulo}</figcaption>
+        {state.thumbnails.map((m) => (
+          <figure key={m.angle} className="flex shrink-0 flex-col items-center gap-1">
+            <img src={m.dataUrl} alt={`Foto ${m.angle}`} className="size-20 rounded-xl border border-linea object-cover" />
+            <figcaption className="text-[11px] text-grafito-2">{m.angle}</figcaption>
           </figure>
         ))}
       </div>

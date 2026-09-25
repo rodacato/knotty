@@ -7,17 +7,17 @@ import { useStore } from '../store'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: React.ReactNode }> = {
   viable: { title: 'Se puede hacer', className: 'border-pizarra/40 bg-pizarra/10 text-pizarra', icon: <CheckCircle weight="fill" /> },
-  'con-cambios': { title: 'Arréglalo antes de comprar', className: 'border-ambar/50 bg-ambar-suave text-grafito', icon: <WarningCircle weight="fill" className="text-ambar" /> },
-  'no-viable': { title: 'Así no se puede hacer', className: 'border-oxido/40 bg-oxido/10 text-oxido', icon: <XCircle weight="fill" /> },
+  'needs-changes': { title: 'Arréglalo antes de comprar', className: 'border-ambar/50 bg-ambar-suave text-grafito', icon: <WarningCircle weight="fill" className="text-ambar" /> },
+  'not-viable': { title: 'Así no se puede hacer', className: 'border-oxido/40 bg-oxido/10 text-oxido', icon: <XCircle weight="fill" /> },
 }
 
-const CHECK_ICON: Record<Check['estado'], React.ReactNode> = {
+const CHECK_ICON: Record<Check['status'], React.ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-pizarra" />,
-  aviso: <WarningCircle weight="fill" className="text-ambar" />,
-  falla: <XCircle weight="fill" className="text-oxido" />,
+  warning: <WarningCircle weight="fill" className="text-ambar" />,
+  fail: <XCircle weight="fill" className="text-oxido" />,
 }
 
-const GRAVITY = { alta: 'border-oxido/40 text-oxido', media: 'border-ambar/60 text-grafito', baja: 'border-linea text-grafito-2' }
+const GRAVITY = { high: 'border-oxido/40 text-oxido', medium: 'border-ambar/60 text-grafito', low: 'border-linea text-grafito-2' }
 
 const WHAT_IT_CHECKS = ['Que las medidas cierren', 'Que cada pieza quepa en la hoja real', 'Estructura y estabilidad', 'Que se pueda cortar y armar', 'Que las medidas tengan sentido para ese mueble']
 
@@ -69,21 +69,21 @@ export function ReviewGate({ stale }: { stale: boolean }) {
 function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onRequest: (text: string) => void }) {
   const select = useStore((s) => s.select)
   const thinking = useStore((s) => s.thinking)
-  const piece = c.piezas.find((id) => design.piezas.some((p) => p.id === id))
+  const piece = c.pieces.find((id) => design.pieces.some((p) => p.id === id))
   return (
     <li className="flex items-start gap-2 py-2 text-sm">
-      <span className="mt-0.5 shrink-0">{CHECK_ICON[c.estado]}</span>
+      <span className="mt-0.5 shrink-0">{CHECK_ICON[c.status]}</span>
       <span className="min-w-0 flex-1">
-        <span className="font-medium">{c.titulo}</span>
-        <span className={`block text-xs ${c.estado === 'ok' ? 'text-grafito-2' : ''}`}>{c.detalle}</span>
+        <span className="font-medium">{c.title}</span>
+        <span className={`block text-xs ${c.status === 'ok' ? 'text-grafito-2' : ''}`}>{c.detail}</span>
         {piece && (
           <button type="button" className="text-xs text-grafito-2 underline" onClick={() => select(piece)}>
             Ver en 3D
           </button>
         )}
-        {c.estado !== 'ok' && c.pedido && (
-          <Button variant="secondary" className="mt-1.5 min-h-8 text-xs" disabled={thinking} onClick={() => onRequest(c.pedido!)}>
-            <Wrench /> {c.pedido}
+        {c.status !== 'ok' && c.request && (
+          <Button variant="secondary" className="mt-1.5 min-h-8 text-xs" disabled={thinking} onClick={() => onRequest(c.request!)}>
+            <Wrench /> {c.request}
           </Button>
         )}
       </span>
@@ -95,8 +95,8 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
   const review = useStore((s) => s.review)
   const reviewing = useStore((s) => s.reviewing)
   const thinking = useStore((s) => s.thinking)
-  const v = VERDICTS[verdict.veredicto]
-  const c = verdict.carpintero
+  const v = VERDICTS[verdict.verdict]
+  const c = verdict.carpenter
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-linea bg-hueso p-4">
@@ -104,22 +104,22 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
         {v.icon} {v.title}
       </div>
       {c ? (
-        <p className="text-[15px] leading-relaxed">{c.resumen}</p>
+        <p className="text-[15px] leading-relaxed">{c.summary}</p>
       ) : (
         <p className="text-sm text-grafito-2">
           El carpintero no contestó{verdict.error ? `: ${verdict.error}` : '.'} Lo de abajo son las cuentas, que valen igual.
         </p>
       )}
 
-      {c && c.problemas.length > 0 && (
+      {c && c.problems.length > 0 && (
         <ul className="flex flex-col gap-2">
-          {c.problemas.map((p, i) => (
-            <li key={i} className={`flex flex-col gap-1.5 rounded-xl border bg-papel/60 p-3 ${GRAVITY[p.gravedad]}`}>
-              <span className="text-sm font-medium">{p.titulo}</span>
-              <span className="text-sm text-grafito">{p.detalle}</span>
-              {p.pedido && (
-                <Button variant="secondary" className="min-h-8 self-start text-xs" disabled={thinking} onClick={() => onRequest(p.pedido!)}>
-                  <Wrench /> {p.pedido}
+          {c.problems.map((p, i) => (
+            <li key={i} className={`flex flex-col gap-1.5 rounded-xl border bg-papel/60 p-3 ${GRAVITY[p.severity]}`}>
+              <span className="text-sm font-medium">{p.title}</span>
+              <span className="text-sm text-grafito">{p.detail}</span>
+              {p.request && (
+                <Button variant="secondary" className="min-h-8 self-start text-xs" disabled={thinking} onClick={() => onRequest(p.request!)}>
+                  <Wrench /> {p.request}
                 </Button>
               )}
             </li>
@@ -130,19 +130,19 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
       <div>
         <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Las cuentas</p>
         <ul className="divide-y divide-linea">
-          {verdict.comprobaciones.map((x) => (
+          {verdict.checks.map((x) => (
             <CheckRow key={x.id} c={x} design={design} onRequest={onRequest} />
           ))}
         </ul>
       </div>
 
-      {c && c.consejos.length > 0 && (
+      {c && c.tips.length > 0 && (
         <div className="flex flex-col gap-1.5 rounded-xl bg-ambar-suave px-3 py-2">
           <p className="flex items-center gap-1.5 text-xs font-medium">
             <Lightbulb weight="fill" className="text-ambar" /> Para el taller
           </p>
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm">
-            {c.consejos.map((x) => (
+            {c.tips.map((x) => (
               <li key={x}>{x}</li>
             ))}
           </ul>

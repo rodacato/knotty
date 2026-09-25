@@ -19,14 +19,14 @@ describe('sheet layout', () => {
     const g = geo(d)
     for (const m of layOut(d, g, testCatalog)) {
       expect(m.unplaced).toEqual([])
-      const piezas = d.piezas.filter((p) => p.material === m.material)
+      const piezas = d.pieces.filter((p) => p.material === m.material)
       expect(m.sheets.flatMap((h) => h.placed).map((c) => c.id).sort()).toEqual(piezas.map((p) => p.id).sort())
       for (const h of m.sheets) {
         for (const c of h.placed) {
           expect(c.x + c.w).toBeLessThanOrEqual(m.usable.largo)
           expect(c.y + c.h).toBeLessThanOrEqual(m.usable.ancho)
           const p = piezas.find((x) => x.id === c.id)!
-          if (p.veta === 'largo') expect(c.w).toBeGreaterThanOrEqual(c.h)
+          if (p.grain === 'length') expect(c.w).toBeGreaterThanOrEqual(c.h)
         }
         for (const [i, a] of h.placed.entries())
           for (const b of h.placed.slice(i + 1)) {
@@ -48,7 +48,7 @@ describe('sheet layout', () => {
   })
 
   it('wider takes more sheets', () => {
-    const ancho = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 1100 } }
+    const ancho = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
     const hojas = estimatePurchase(ancho, geo(ancho), testCatalog).sheets.find((h) => h.material.id === 'T18')!.sheets
     expect(hojas).toBe(2)
   })
@@ -64,7 +64,7 @@ describe('sheet layout', () => {
 describe('hardware and purchase', () => {
   it('works out screws and nails by spacing along the joint', () => {
     const g = geo(exampleBookcase)
-    const joint = (id: string) => exampleBookcase.uniones.find((u) => u.id === id)!
+    const joint = (id: string) => exampleBookcase.joints.find((u) => u.id === id)!
     expect(hardwarePerJoint(joint('u-piso-izq'), g)).toBe(2)
     expect(hardwarePerJoint(joint('u-trasera-lat-izq'), g)).toBe(13)
   })

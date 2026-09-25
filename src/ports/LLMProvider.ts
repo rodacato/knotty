@@ -16,25 +16,25 @@ import { CarpenterOpinion, type Check } from '../domain/viabilidad/viability'
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 
 export const ReconstructionResponse = z.object({
-  explicacion: z.string().describe('Qué viste y cómo lo interpretaste, en 2–4 frases para el usuario'),
-  diseno: Design,
-  preguntas: z.array(Question).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
-  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
-  requisitos: z.array(Requirement),
-  sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
+  explanation: z.string().describe('Qué viste y cómo lo interpretaste, en 2–4 frases para el usuario'),
+  design: Design,
+  questions: z.array(Question).describe('Lo que no se pudo determinar con las fotos; máximo 3'),
+  requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
+  requirements: z.array(Requirement),
+  suggestions: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
 export type ReconstructionResponse = z.infer<typeof ReconstructionResponse>
 
 export const AdjustmentResponse = z.object({
-  explicacion: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
-  resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
-  operaciones: z.array(Operation),
-  preguntas: z.array(Question),
-  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
-  sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir, escritos como ella los pediría'),
-  requisitos: z.object({ agregar: z.array(Requirement), quitar: z.array(z.string()) }),
-  decisiones: z.array(Decision),
-  aceptaRiesgo: z.array(z.object({ codigo: z.string(), justificacion: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
+  explanation: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
+  summary: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
+  operations: z.array(Operation),
+  questions: z.array(Question),
+  requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
+  suggestions: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir, escritos como ella los pediría'),
+  requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
+  decisions: z.array(Decision),
+  acceptedRisks: z.array(z.object({ code: z.string(), justification: z.string() })).describe('Solo si el usuario eligió dejar un crítico bajo su riesgo'),
 })
 export type AdjustmentResponse = z.infer<typeof AdjustmentResponse>
 
@@ -49,35 +49,35 @@ export interface ReviewRequest {
   review: string
   design: Design
   /** The arithmetic checks, for whoever does not read text (the simulated expert). */
-  comprobaciones: Check[]
+  checks: Check[]
   catalog: Catalog
 }
 
 /** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
 export const PlanResponse = z.object({
-  explicacion: z.string().describe('Qué entendiste y qué decidiste, en 2–4 frases para la persona'),
+  explanation: z.string().describe('Qué entendiste y qué decidiste, en 2–4 frases para la persona'),
   cabinet: CabinetPlan.nullable().describe('El plan si el mueble es un gabinete (caja con columnas y huecos); null si no lo es'),
   bed: BedPlan.nullable().describe('La ficha si el mueble es una cama (base con o sin cajones y cabecera); null si no lo es'),
   table: TablePlan.nullable().describe('La ficha si el mueble es una mesa o un escritorio; null si no lo es'),
-  preguntas: z.array(Question).describe('Lo que más cambia el diseño o la compra; máximo 3'),
-  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
-  requisitos: z.array(Requirement),
-  sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
+  questions: z.array(Question).describe('Lo que más cambia el diseño o la compra; máximo 3'),
+  requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
+  requirements: z.array(Requirement),
+  suggestions: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
 })
 export type PlanResponse = z.infer<typeof PlanResponse>
 
 /** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. */
 export const PlanAdjustment = z.object({
-  explicacion: z.string().describe('Qué cambia y por qué, breve, como carpintero; o la respuesta si la persona solo preguntó'),
-  resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Agregar un cajón"'),
-  action: z.enum(['plan', 'freeform', 'answer']).describe('plan: el cambio cabe en la ficha y va en `plan`; freeform: pide algo que la ficha no expresa; answer: no pidió un cambio'),
-  plan: CabinetPlan.nullable().describe('La ficha completa del gabinete con el cambio, cuando action es "plan" y el mueble es un gabinete; null en otro caso'),
+  explanation: z.string().describe('Qué cambia y por qué, breve, como carpintero; o la respuesta si la persona solo preguntó'),
+  summary: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Agregar un cajón"'),
+  action: z.enum(['plan', 'freeform', 'answer']).describe('plan: el cambio cabe en la ficha y va en `cabinet`, `bed` o `table`; freeform: pide algo que la ficha no expresa; answer: no pidió un cambio'),
+  cabinet: CabinetPlan.nullable().describe('La ficha completa del gabinete con el cambio, cuando action es "plan" y el mueble es un gabinete; null en otro caso'),
   bed: BedPlan.nullable().describe('La ficha completa de la cama con el cambio, cuando action es "plan" y el mueble es una cama; null en otro caso'),
   table: TablePlan.nullable().describe('La ficha completa de la mesa o escritorio con el cambio, cuando action es "plan" y el mueble es una mesa; null en otro caso'),
-  preguntas: z.array(Question),
-  sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir'),
-  requisitos: z.object({ agregar: z.array(Requirement), quitar: z.array(z.string()) }),
-  decisiones: z.array(Decision),
+  questions: z.array(Question),
+  suggestions: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir'),
+  requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
+  decisions: z.array(Decision),
 })
 export type PlanAdjustment = z.infer<typeof PlanAdjustment>
 
@@ -136,7 +136,7 @@ export interface Usage {
 
 export interface ExpertResponse<T> {
   value: T
-  origin: { promptId: string; proveedor: string; modelo: string }
+  origin: { promptId: string; provider: string; model: string }
   usage: Usage
   /** What the provider could not do and the person should know, for example that it did not see the photos. */
   warnings?: string[]

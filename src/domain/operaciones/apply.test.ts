@@ -28,8 +28,8 @@ const valido = (d: Design) => {
 
 const divisor = makePiece({
   id: 'divisor',
-  nombre: 'Divisor',
-  rol: 'divisor',
+  name: 'Divisor',
+  role: 'divider',
   material: 'T18',
   normal: 'x',
   x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)),
@@ -39,7 +39,7 @@ const divisor = makePiece({
 
 describe('applyOperations', () => {
   it('stretching wider carries to the sides and shelves and leaves the rest alone', () => {
-    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }])
+    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'resizeFurniture', axis: 'x', value: 900, rule: 'stretch' }])
     expect(valido(diseno)).toEqual([])
     const d = differences(exampleBookcase, cajas(exampleBookcase), diseno, cajas(diseno))
     expect(d.changed).toEqual(expect.arrayContaining(['lat-der', 'piso', 'techo', 'zoclo', 'trasera', 'entrepano-1']))
@@ -47,25 +47,25 @@ describe('applyOperations', () => {
   })
 
   it('adding a divider requires splitting the shelves it crosses', () => {
-    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'agregarPieza', pieza: divisor }])
+    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'addPiece', piece: divisor }])
     expect(valido(diseno)).toContain('E_TRASLAPE')
   })
 
   it('a full divider: shelves split in two with joints, and it stays valid', () => {
-    const ops: Operation[] = [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }, { op: 'agregarPieza', pieza: divisor }]
+    const ops: Operation[] = [{ op: 'resizeFurniture', axis: 'x', value: 900, rule: 'stretch' }, { op: 'addPiece', piece: divisor }]
     ops.push(
-      { op: 'agregarUnion', union: makeJoint('u-div-piso', 'piso', 'divisor', 'tope-tornillo') },
-      { op: 'agregarUnion', union: makeJoint('u-div-techo', 'techo', 'divisor', 'tope-tornillo') },
+      { op: 'addJoint', joint: makeJoint('u-div-piso', 'piso', 'divisor', 'butt-screw') },
+      { op: 'addJoint', joint: makeJoint('u-div-techo', 'techo', 'divisor', 'butt-screw') },
     )
     for (let i = 1; i <= 4; i++) {
       const id = `entrepano-${i}`
       ops.push(
-        { op: 'redimensionar', id, eje: 'x', extremo: 'hasta', cota: ref('divisor.x0') },
-        { op: 'duplicarPieza', id, nuevoId: `${id}-der`, nombre: `Entrepaño ${i} derecho`, eje: 'x', cota: ref('divisor.x1') },
-        { op: 'redimensionar', id: `${id}-der`, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
-        { op: 'eliminarUnion', id: `u-${id}-lat-der` },
-        { op: 'agregarUnion', union: makeJoint(`u-${id}-div`, id, 'divisor', 'soporte-repisa') },
-        { op: 'agregarUnion', union: makeJoint(`u-${id}-der-div`, `${id}-der`, 'divisor', 'soporte-repisa') },
+        { op: 'resize', id, axis: 'x', end: 'to', at: ref('divisor.x0') },
+        { op: 'duplicatePiece', id, newId: `${id}-der`, name: `Entrepaño ${i} derecho`, axis: 'x', at: ref('divisor.x1') },
+        { op: 'resize', id: `${id}-der`, axis: 'x', end: 'to', at: ref('lat-der.x0') },
+        { op: 'removeJoint', id: `u-${id}-lat-der` },
+        { op: 'addJoint', joint: makeJoint(`u-${id}-div`, id, 'divisor', 'shelf-pin') },
+        { op: 'addJoint', joint: makeJoint(`u-${id}-der-div`, `${id}-der`, 'divisor', 'shelf-pin') },
       )
     }
     const { design: diseno } = aplicado(exampleBookcase, ops)
@@ -76,50 +76,50 @@ describe('applyOperations', () => {
   })
 
   it('removing a piece freezes the cotas that referred to it and warns', () => {
-    const { design: diseno, warnings: avisos } = aplicado(exampleBookcase, [{ op: 'eliminarPieza', id: 'zoclo' }])
-    expect(diseno.piezas.find((p) => p.id === 'piso')!.y.desde).toEqual(mm(70))
-    expect(diseno.uniones.some((u) => u.a === 'zoclo' || u.b === 'zoclo')).toBe(false)
+    const { design: diseno, warnings: avisos } = aplicado(exampleBookcase, [{ op: 'removePiece', id: 'zoclo' }])
+    expect(diseno.pieces.find((p) => p.id === 'piso')!.y.from).toEqual(mm(70))
+    expect(diseno.joints.some((u) => u.a === 'zoclo' || u.b === 'zoclo')).toBe(false)
     expect(avisos[0].code).toBe('A_REFERENCIA_CONGELADA')
   })
 
   it('moving keeps the length and a lowered shelf stays valid', () => {
-    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'mover', id: 'entrepano-1', eje: 'y', cota: mm(300) }])
+    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'move', id: 'entrepano-1', axis: 'y', at: mm(300) }])
     expect(cajas(diseno).get('entrepano-1')).toMatchObject({ y0: 300, y1: 318 })
     expect(valido(diseno)).toEqual([])
   })
 
   it('distributing spaces evenly', () => {
     const conCinco = aplicado(exampleBookcase, [
-      { op: 'duplicarPieza', id: 'entrepano-4', nuevoId: 'entrepano-5', nombre: 'Entrepaño 5', eje: 'y', cota: mm(1700) },
-      { op: 'distribuir', ids: ['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'entrepano-5'], eje: 'y', a: 'piso.y1', b: 'techo.y0' },
+      { op: 'duplicatePiece', id: 'entrepano-4', newId: 'entrepano-5', name: 'Entrepaño 5', axis: 'y', at: mm(1700) },
+      { op: 'distribute', ids: ['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'entrepano-5'], axis: 'y', a: 'piso.y1', b: 'techo.y0' },
     ]).design
     const c = cajas(conCinco)
     const ys = ['piso', 'entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'entrepano-5', 'techo'].map((id) => c.get(id)!)
     const huecos = ys.slice(1).map((caja, i) => caja.y0 - ys[i].y1)
     for (const h of huecos) expect(h).toBeCloseTo(huecos[0], 5)
-    expect(conCinco.uniones.filter((u) => u.a === 'entrepano-5')).toHaveLength(2)
+    expect(conCinco.joints.filter((u) => u.a === 'entrepano-5')).toHaveLength(2)
   })
 
   it('changing thickness carries to what refers to it', () => {
-    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'cambiarEspesor', ids: ['lat-izq', 'lat-der'], material: 'T15' }])
+    const { design: diseno } = aplicado(exampleBookcase, [{ op: 'changeMaterial', ids: ['lat-izq', 'lat-der'], material: 'T15' }])
     expect(cajas(diseno).get('piso')).toMatchObject({ x0: 15, x1: 585 })
   })
 
   it('proportional scales the absolute cotas', () => {
-    const conMm = aplicado(exampleBookcase, [{ op: 'mover', id: 'entrepano-1', eje: 'y', cota: mm(400) }]).design
-    const { design: diseno } = aplicado(conMm, [{ op: 'cambiarDimensionGlobal', eje: 'y', valor: 900, regla: 'proporcional' }])
+    const conMm = aplicado(exampleBookcase, [{ op: 'move', id: 'entrepano-1', axis: 'y', at: mm(400) }]).design
+    const { design: diseno } = aplicado(conMm, [{ op: 'resizeFurniture', axis: 'y', value: 900, rule: 'proportional' }])
     expect(cajas(diseno).get('entrepano-1')!.y0).toBe(200)
   })
 
   it('fails without applying anything and names the operation', () => {
-    const r = applyOperations(exampleBookcase, [{ op: 'cambiarAnclajeMuro', valor: false }, { op: 'eliminarPieza', id: 'no-existe' }], testCatalog)
+    const r = applyOperations(exampleBookcase, [{ op: 'setWallAnchored', value: false }, { op: 'removePiece', id: 'no-existe' }], testCatalog)
     expect(r.ok).toBe(false)
     if (!r.ok) expect(r.errors[0]).toMatchObject({ code: 'E_PIEZA_INEXISTENTE', data: { operacion: 1 } })
-    expect(exampleBookcase.anclajeMuro).toBe(true)
+    expect(exampleBookcase.wallAnchored).toBe(true)
   })
 
   it('does not resize along the thickness axis', () => {
-    const r = applyOperations(exampleBookcase, [{ op: 'redimensionar', id: 'piso', eje: 'y', extremo: 'hasta', cota: mm(200) }], testCatalog)
+    const r = applyOperations(exampleBookcase, [{ op: 'resize', id: 'piso', axis: 'y', end: 'to', at: mm(200) }], testCatalog)
     expect(r.ok || r.errors[0].code).toBe('E_OPERACION_INVALIDA')
   })
 })
@@ -128,7 +128,7 @@ describe('normalize', () => {
   it('ties absolute cotas to nearby faces without moving them and makes the model parametric', () => {
     const plano = structuredClone(exampleBookcase)
     const actuales = cajas(exampleBookcase)
-    for (const p of plano.piezas) {
+    for (const p of plano.pieces) {
       const c = actuales.get(p.id)!
       p.x = p.normal === 'x' ? startAt(mm(c.x0)) : extent(mm(c.x0), mm(c.x1))
       p.y = p.normal === 'y' ? startAt(mm(c.y0)) : extent(mm(c.y0), mm(c.y1))
@@ -136,7 +136,7 @@ describe('normalize', () => {
     }
     const normal = normalize(plano, testCatalog)
     expect(cajas(normal)).toEqual(actuales)
-    const ancho = aplicado(normal, [{ op: 'cambiarDimensionGlobal', eje: 'x', valor: 900, regla: 'estirar' }]).design
+    const ancho = aplicado(normal, [{ op: 'resizeFurniture', axis: 'x', value: 900, rule: 'stretch' }]).design
     expect(valido(ancho)).toEqual([])
     expect(cajas(ancho).get('entrepano-3')).toMatchObject({ x0: 18, x1: 882 })
   })

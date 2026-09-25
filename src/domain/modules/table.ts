@@ -38,12 +38,12 @@ const KICK_SETBACK = 30
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
 
-const LOAD: Record<TablePlan['use'], Piece['carga']> = { dining: 'media', coffee: 'ligera', side: 'ligera', desk: 'media' }
+const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium' }
 
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
   const t = materialById(catalog, plan.material)?.espesor ?? 18
   const { width, height, depth } = plan.dimensions
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })
+  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
   const pieces: Piece[] = []
   const joints: Joint[] = []
   const notes: string[] = []
@@ -54,9 +54,9 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   let drawers: Operation[] = []
 
   pieces.push(
-    panel({ id: 'cubierta', nombre: 'Cubierta', rol: 'techo', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')), carga: LOAD[plan.use], cantos: ['frente', 'atras', 'izq', 'der'] }),
-    panel({ id: 'lat-izq', nombre: 'Costado izquierdo', rol: 'lateral', normal: 'x', x: startAt(ref('mueble.x0', plan.overhang)), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
-    panel({ id: 'lat-der', nombre: 'Costado derecho', rol: 'lateral', normal: 'x', x: endAt(ref('mueble.x1', -plan.overhang)), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
+    panel({ id: 'cubierta', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] }),
+    panel({ id: 'lat-izq', name: 'Costado izquierdo', role: 'side', normal: 'x', x: startAt(ref('mueble.x0', plan.overhang)), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
+    panel({ id: 'lat-der', name: 'Costado derecho', role: 'side', normal: 'x', x: endAt(ref('mueble.x1', -plan.overhang)), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
   )
 
   // The open part between the ends, or between the pedestal and the far end.
@@ -67,27 +67,27 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
     const between = pedestal === 'left' ? extent(ref('lat-izq.x1'), ref('ped-div.x0')) : extent(ref('ped-div.x1'), ref('lat-der.x0'))
     const zBox = extent(ref('ped-fondo.z1'), ref(`${outer}.z1`))
     pieces.push(
-      panel({ id: 'ped-div', nombre: 'Costado interior de la cajonera', rol: 'divisor', normal: 'x', x: pedestal === 'left' ? startAt(ref('lat-izq.x1', PEDESTAL - 2 * t)) : endAt(ref('lat-der.x0', -(PEDESTAL - 2 * t))), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
-      panel({ id: 'ped-fondo', nombre: 'Fondo de la cajonera', rol: 'trasera', normal: 'z', x: between, y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: startAt(ref(`${outer}.z0`)) }),
-      panel({ id: 'ped-zoclo', nombre: 'Zoclo de la cajonera', rol: 'zoclo', normal: 'z', x: between, y: extent(ref('mueble.y0'), null, KICK), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
-      panel({ id: 'ped-piso', nombre: 'Piso de la cajonera', rol: 'piso', normal: 'y', x: between, y: startAt(ref('ped-zoclo.y1')), z: zBox, carga: 'media' }),
+      panel({ id: 'ped-div', name: 'Costado interior de la cajonera', role: 'divider', normal: 'x', x: pedestal === 'left' ? startAt(ref('lat-izq.x1', PEDESTAL - 2 * t)) : endAt(ref('lat-der.x0', -(PEDESTAL - 2 * t))), y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: endsZ }),
+      panel({ id: 'ped-fondo', name: 'Fondo de la cajonera', role: 'back', normal: 'z', x: between, y: extent(ref('mueble.y0'), ref('cubierta.y0')), z: startAt(ref(`${outer}.z0`)) }),
+      panel({ id: 'ped-zoclo', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('mueble.y0'), null, KICK), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
+      panel({ id: 'ped-piso', name: 'Piso de la cajonera', role: 'bottom', normal: 'y', x: between, y: startAt(ref('ped-zoclo.y1')), z: zBox, load: 'medium' }),
     )
     const n = plan.pedestal.drawers
     for (let k = 1; k < n; k++)
-      pieces.push(panel({ id: `ped-sep-${k}`, nombre: `Separador ${k} de la cajonera`, rol: 'entrepano', normal: 'y', x: between, y: startAt(partway('ped-piso.y1', 'cubierta.y0', k / n, -t / 2)), z: zBox, carga: 'ligera' }))
+      pieces.push(panel({ id: `ped-sep-${k}`, name: `Separador ${k} de la cajonera`, role: 'shelf', normal: 'y', x: between, y: startAt(partway('ped-piso.y1', 'cubierta.y0', k / n, -t / 2)), z: zBox, load: 'light' }))
     const [left, right]: [FaceRef, FaceRef] = pedestal === 'left' ? ['lat-izq.x1', 'ped-div.x0'] : ['ped-div.x1', 'lat-der.x0']
     drawers = Array.from({ length: n }, (_, i) => ({
-      op: 'agregarCajon' as const,
-      grupo: `cajon-${i + 1}`,
-      nombre: `Cajón ${i + 1}`,
-      izquierda: left,
-      derecha: right,
-      abajo: i === 0 ? 'ped-piso.y1' : `ped-sep-${i}.y1`,
-      arriba: i === n - 1 ? 'cubierta.y0' : `ped-sep-${i + 1}.y0`,
-      frente: `${outer}.z1`,
-      fondo: 'ped-fondo.z1',
+      op: 'addDrawer' as const,
+      group: `cajon-${i + 1}`,
+      name: `Cajón ${i + 1}`,
+      left,
+      right,
+      bottom: i === 0 ? 'ped-piso.y1' : `ped-sep-${i}.y1`,
+      top: i === n - 1 ? 'cubierta.y0' : `ped-sep-${i + 1}.y0`,
+      front: `${outer}.z1`,
+      back: 'ped-fondo.z1',
       material: plan.material,
-      materialFondo: 'TR6',
+      bottomMaterial: 'TR6',
     }))
     openLeft = pedestal === 'left' ? 'ped-div.x1' : 'lat-izq.x1'
     openRight = pedestal === 'left' ? 'lat-der.x0' : 'ped-div.x0'
@@ -96,33 +96,33 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   // Aprons front and back tie the ends; screwed from inside with pocket screws, they keep the table square.
   const apronX = extent(ref(openLeft), ref(openRight))
   pieces.push(
-    panel({ id: 'faldon-frente', nombre: 'Faldón del frente', rol: 'faja', normal: 'z', x: apronX, y: extent(null, ref('cubierta.y0'), APRON), z: endAt(ref('lat-der.z1')) }),
-    panel({ id: 'faldon-atras', nombre: desk ? 'Faldón trasero' : 'Faldón de atrás', rol: 'faja', normal: 'z', x: apronX, y: extent(null, ref('cubierta.y0'), desk ? MODESTY : APRON), z: startAt(ref('lat-der.z0')) }),
+    panel({ id: 'faldon-frente', name: 'Faldón del frente', role: 'apron', normal: 'z', x: apronX, y: extent(null, ref('cubierta.y0'), APRON), z: endAt(ref('lat-der.z1')) }),
+    panel({ id: 'faldon-atras', name: desk ? 'Faldón trasero' : 'Faldón de atrás', role: 'apron', normal: 'z', x: apronX, y: extent(null, ref('cubierta.y0'), desk ? MODESTY : APRON), z: startAt(ref('lat-der.z0')) }),
   )
   for (const apron of ['faldon-frente', 'faldon-atras'])
     for (const end of [openLeft, openRight].map((f) => f.split('.')[0]))
-      joints.push(makeJoint(`u-${apron}-${end}`, apron, end, 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]))
+      joints.push(makeJoint(`u-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]))
 
   // Cleats between the aprons, so the top never spans more than it can.
   const openWidth = width - 2 * plan.overhang - 2 * t - (pedestal ? PEDESTAL - t : 0)
   const cleats = Math.ceil(openWidth / (MAX_SPAN + t)) - 1
   for (let k = 1; k <= cleats; k++)
-    pieces.push(panel({ id: `travesano-${k}`, nombre: `Travesaño ${k}`, rol: 'divisor', normal: 'x', x: startAt(partway(openLeft, openRight, k / (cleats + 1), -t / 2)), y: extent(ref('faldon-frente.y0'), ref('cubierta.y0')), z: extent(ref('faldon-atras.z1'), ref('faldon-frente.z0')) }))
+    pieces.push(panel({ id: `travesano-${k}`, name: `Travesaño ${k}`, role: 'divider', normal: 'x', x: startAt(partway(openLeft, openRight, k / (cleats + 1), -t / 2)), y: extent(ref('faldon-frente.y0'), ref('cubierta.y0')), z: extent(ref('faldon-atras.z1'), ref('faldon-frente.z0')) }))
 
   if (plan.shelf && !desk) {
-    pieces.push(panel({ id: 'repisa-baja', nombre: 'Repisa baja', rol: 'entrepano', normal: 'y', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: startAt(ref('mueble.y0', SHELF_HEIGHT)), z: endsZ, carga: 'ligera' }))
+    pieces.push(panel({ id: 'repisa-baja', name: 'Repisa baja', role: 'shelf', normal: 'y', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: startAt(ref('mueble.y0', SHELF_HEIGHT)), z: endsZ, load: 'light' }))
     // The shelf sits close to the floor: short feet under it are simpler than anything above.
     const feet = Math.ceil((width - 2 * plan.overhang - 2 * t) / (MAX_SPAN + t)) - 1
     for (let k = 1; k <= feet; k++)
-      pieces.push(panel({ id: `pata-repisa-${k}`, nombre: `Apoyo ${k} de la repisa`, rol: 'divisor', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', k / (feet + 1), -t / 2)), y: extent(ref('mueble.y0'), ref('repisa-baja.y0')), z: endsZ }))
+      pieces.push(panel({ id: `pata-repisa-${k}`, name: `Apoyo ${k} de la repisa`, role: 'divider', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', k / (feet + 1), -t / 2)), y: extent(ref('mueble.y0'), ref('repisa-baja.y0')), z: endsZ }))
   }
   if (plan.shelf && desk) notes.push('Un escritorio no lleva repisa baja: estorba las piernas.')
 
-  let design: Design = { esquema: 1, nombre: plan.name, dimensiones: { ancho: width, alto: height, fondo: depth }, anclajeMuro: false, observaciones: '', piezas: pieces, uniones: joints }
+  let design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints }
   for (const drawer of drawers) {
     const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.op === 'addDrawer' ? drawer.name : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
     design = result.value.design

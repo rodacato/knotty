@@ -3,11 +3,11 @@ import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
 import { createCompatible } from './compatibleOpenAI'
 
-const respuesta = { explicacion: 'Veo un librero', diseno: exampleBookcase, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }
+const respuesta = { explanation: 'Veo un librero', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [{ message: { content: contenido } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
-const solicitud = (fotos = [{ angle: 'frente', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensiones, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
+const solicitud = (fotos = [{ angle: 'frente', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensions, photos: fotos, notes: '', reading: null, catalog: testCatalog, correction: null })
 let host = 0
 const nueva = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', modelo: 'claude', label: 'SheLLM · claude' })
 
@@ -25,10 +25,10 @@ describe('createCompatible', () => {
     })
     vi.stubGlobal('fetch', fetch)
     const experto = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', modelo: 'claude', label: 'SheLLM' })
-    const solicitud = { measures: exampleBookcase.dimensiones, photos: [{ angle: 'frente', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
+    const solicitud = { measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
 
     const r = await experto.reconstruct(solicitud, new AbortController().signal)
-    expect(r.value.diseno.nombre).toBe('Librero')
+    expect(r.value.design.name).toBe('Librero')
     expect(cuerpos.map((c) => c.response_format.type)).toEqual(['json_schema', 'json_object', 'json_object'])
     expect(JSON.stringify(cuerpos[2].messages)).toContain('no puede verlas')
     expect(JSON.stringify(cuerpos[2].messages[0])).toContain('JSON Schema')
@@ -114,7 +114,7 @@ describe('createCompatible', () => {
       }),
     )
     const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
-    expect(r.value.diseno.nombre).toBe('Librero')
+    expect(r.value.design.name).toBe('Librero')
     expect(r.usage).toEqual({ inputTokens: 900, outputTokens: 3100 })
     expect(cuerpos[0]).toMatchObject({ stream: true, stream_options: { include_usage: true } })
   })
@@ -146,20 +146,20 @@ describe('createCompatible', () => {
     const intentos = `${JSON.stringify({ $PARAMETER_NAME: JSON.stringify(respuesta, null, 2) })}${texto}`
     vi.stubGlobal('fetch', vi.fn(async () => conTexto(intentos)))
     const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
-    expect(r.value.diseno.nombre).toBe('Librero')
+    expect(r.value.design.name).toBe('Librero')
   })
 
   it('a raw newline inside a string does not break the answer', async () => {
-    const texto = JSON.stringify({ ...respuesta, explicacion: 'Veo un librero__SALTO__con zoclo' }).replace('__SALTO__', '\n\t')
+    const texto = JSON.stringify({ ...respuesta, explanation: 'Veo un librero__SALTO__con zoclo' }).replace('__SALTO__', '\n\t')
     vi.stubGlobal('fetch', vi.fn(async () => conTexto(texto)))
     const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
-    expect(r.value.explicacion).toBe('Veo un librero\n\tcon zoclo')
+    expect(r.value.explanation).toBe('Veo un librero\n\tcon zoclo')
   })
 
   it('a single attempt wrapped as text is unwrapped too', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ok({ $PARAMETER_NAME: JSON.stringify(respuesta) })))
     const r = await nueva().reconstruct(solicitud([]), new AbortController().signal)
-    expect(r.value.explicacion).toBe('Veo un librero')
+    expect(r.value.explanation).toBe('Veo un librero')
   })
 
   it('invalid JSON says how much arrived and how it ends, to tell a cut apart', async () => {
@@ -187,7 +187,7 @@ describe('createCompatible', () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)
     await createCompatible({ provider: 'openai', host: 'https://api.openai.com', apiKey: 'sk-x', modelo: 'gpt', label: 'OpenAI' }).reconstruct(
-      { measures: exampleBookcase.dimensiones, photos: [], notes: '', reading: null, catalog: testCatalog, correction: null },
+      { measures: exampleBookcase.dimensions, photos: [], notes: '', reading: null, catalog: testCatalog, correction: null },
       new AbortController().signal,
     )
     expect((fetch.mock.calls[0] as unknown as [string, RequestInit])[1].headers).toMatchObject({ authorization: 'Bearer sk-x' })

@@ -9,17 +9,17 @@ import { ASSUMPTIONS } from '../assumptions'
 /** R9: the runner fits exactly, the bottom holds, and neither the front nor the box rubs. */
 export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   const found: Finding[] = []
-  const groups = [...new Set(design.piezas.filter((p) => p.rol === 'frente-cajon' && p.grupo).map((p) => p.grupo!))]
+  const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group!))]
 
-  for (const u of design.uniones.filter((x) => x.tipo === 'corredera')) {
+  for (const u of design.joints.filter((x) => x.type === 'drawer-slide')) {
     const a = geo.boxes.get(u.a)
     const b = geo.boxes.get(u.b)
     const gap = a && b ? gapBetween(a, b) : null
-    const runner = catalog.herrajes.find((h) => u.herrajes.some((x) => x.herrajeId === h.id) && h.holguraLateral !== null) ?? catalog.herrajes.find((h) => h.holguraLateral !== null)
+    const runner = catalog.herrajes.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.holguraLateral !== null) ?? catalog.herrajes.find((h) => h.holguraLateral !== null)
     if (!gap || !runner?.holguraLateral) continue
     const off = gap.distance - runner.holguraLateral
     if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
-    const name = design.piezas.find((p) => p.id === u.a)?.nombre ?? u.a
+    const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
       code: 'R9_CAJONES',
       severity: 'critico',
@@ -36,7 +36,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   found.push(...runnerSupport(design, geo, catalog), ...floorClearance(design, geo))
 
   for (const g of groups) {
-    const bottom = design.piezas.find((p) => p.grupo === g && p.rol === 'fondo-cajon')
+    const bottom = design.pieces.find((p) => p.group === g && p.role === 'drawer-bottom')
     const bottomBox = bottom && geo.boxes.get(bottom.id)
     const thickness = bottom && geo.thicknesses.get(bottom.id)
     if (bottom && bottomBox && thickness !== undefined && thickness < ASSUMPTIONS.drawers.minBottom && bottomBox.x1 - bottomBox.x0 > ASSUMPTIONS.drawers.thinBottomWidth)
@@ -44,33 +44,33 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         code: 'R9_CAJONES',
         severity: 'recomendacion',
         pieces: [bottom.id],
-        message: `${bottom.nombre} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
+        message: `${bottom.name} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
         data: { espesor: thickness, ancho: Math.round(bottomBox.x1 - bottomBox.x0) },
         alternatives: [{ key: 'fondo-6', description: 'Fondo de 6 mm', data: { material: 'TR6' } }],
       })
 
-    const front = design.piezas.find((p) => p.grupo === g && p.rol === 'frente-cajon')
+    const front = design.pieces.find((p) => p.group === g && p.role === 'drawer-front')
     if (!front) continue
-    const frontRubs = contacts.filter((c) => (c.a === front.id || c.b === front.id) && design.piezas.find((p) => p.id === (c.a === front.id ? c.b : c.a))?.grupo !== g)
+    const frontRubs = contacts.filter((c) => (c.a === front.id || c.b === front.id) && design.pieces.find((p) => p.id === (c.a === front.id ? c.b : c.a))?.group !== g)
     if (frontRubs.length)
       found.push({
         code: 'R9_CAJONES',
         severity: 'recomendacion',
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
-        message: `${front.nombre} toca otras piezas sin holgura: va a rozar al abrir.`,
+        message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
         data: { toca: frontRubs.length },
         alternatives: [{ key: 'holgura-frente', description: 'Dejar 2 mm de holgura alrededor del frente', data: { holgura: 2 } }],
       })
 
-    const box = design.piezas.filter((p) => p.grupo === g && p.rol !== 'frente-cajon').map((p) => p.id)
-    const rubs = contacts.filter((c) => box.includes(c.a) !== box.includes(c.b) && [c.a, c.b].some((id) => design.piezas.find((p) => p.id === id)?.grupo !== g))
+    const box = design.pieces.filter((p) => p.group === g && p.role !== 'drawer-front').map((p) => p.id)
+    const rubs = contacts.filter((c) => box.includes(c.a) !== box.includes(c.b) && [c.a, c.b].some((id) => design.pieces.find((p) => p.id === id)?.group !== g))
     if (rubs.length) {
       const others = [...new Set(rubs.map((c) => (box.includes(c.a) ? c.b : c.a)))]
       found.push({
         code: 'R9_CAJONES',
         severity: 'recomendacion',
         pieces: [...new Set(rubs.map((c) => (box.includes(c.a) ? c.a : c.b))), ...others],
-        message: `La caja de ${drawerName(design, g)} toca ${others.map((id) => design.piezas.find((p) => p.id === id)?.nombre ?? id).join(', ')}: va a rozar al abrir. Con correderas laterales la caja va separada de todo.`,
+        message: `La caja de ${drawerName(design, g)} toca ${others.map((id) => design.pieces.find((p) => p.id === id)?.name ?? id).join(', ')}: va a rozar al abrir. Con correderas laterales la caja va separada de todo.`,
         data: { toca: others.length },
         alternatives: [],
       })
@@ -80,8 +80,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
 }
 
 const drawerName = (design: Design, group: string) => {
-  const front = design.piezas.find((p) => p.grupo === group && p.rol === 'frente-cajon')
-  return front ? front.nombre.replace(/^Frente de /i, '') : group
+  const front = design.pieces.find((p) => p.group === group && p.role === 'drawer-front')
+  return front ? front.name.replace(/^Frente de /i, '') : group
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
 function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
@@ -90,7 +90,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
   const gap = runner.holguraLateral
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
     // A declared runner joint is checked above, with its own hardware.
-    if (support && design.uniones.some((u) => u.tipo === 'corredera' && [u.a, u.b].includes(side.id))) return []
+    if (support && design.joints.some((u) => u.type === 'drawer-slide' && [u.a, u.b].includes(side.id))) return []
     const lado = towards < 0 ? 'izq' : 'der'
     if (!support)
       return [
@@ -111,8 +111,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
         pieces: [side.id, support.piece.id],
         message:
           support.distance < gap
-            ? `La corredera necesita ${gap} mm junto a ${support.piece.nombre} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
-            : `Junto a ${support.piece.nombre} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
+            ? `La corredera necesita ${gap} mm junto a ${support.piece.name} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
+            : `Junto a ${support.piece.name} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
         data: { hueco: roundTo(support.distance), necesita: gap, grupo: group },
         alternatives: [{ key: 'ajustar-caja', description: `Dejar ${gap} mm por lado entre la caja y el mueble`, data: { holgura: gap } }],
       },
@@ -122,9 +122,9 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
 
 /** A drawer that reaches the ground drags on it when it opens. */
 function floorClearance(design: Design, geo: Geometry): Finding[] {
-  const groups = [...new Set(design.piezas.filter((p) => p.rol === 'frente-cajon' && p.grupo).map((p) => p.grupo!))]
+  const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group!))]
   return groups.flatMap((g): Finding[] => {
-    const pieces = design.piezas.filter((p) => p.grupo === g && geo.boxes.has(p.id))
+    const pieces = design.pieces.filter((p) => p.group === g && geo.boxes.has(p.id))
     const bottom = Math.min(...pieces.map((p) => geo.boxes.get(p.id)!.y0))
     if (bottom >= ASSUMPTIONS.drawers.floorClearance) return []
     return [

@@ -17,10 +17,10 @@ const finding = (d: Design, code: RuleCode) => findings(d).find((h) => h.code ==
 
 describe('fixesFor', () => {
   it('a sagging shelf gets a support under its middle, and stops sagging', () => {
-    const wide = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 1100 } }
+    const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
     const sag = finding(wide, 'R1_FLECHA')
     const fix = fixesFor(wide, testCatalog, sag).find((f) => f.key === 'divisor-al-centro')!
-    expect(fix.design.piezas.some((p) => p.id === `apoyo-${sag.pieces[0]}`)).toBe(true)
+    expect(fix.design.pieces.some((p) => p.id === `apoyo-${sag.pieces[0]}`)).toBe(true)
     expect(findings(fix.design).some((h) => h.code === 'R1_FLECHA' && h.pieces.includes(sag.pieces[0]))).toBe(false)
   })
 
@@ -34,13 +34,13 @@ describe('fixesFor', () => {
   it('a box that can rack gets a rigid rail with pocket screws, and is square', () => {
     const racking = finding(exampleNightstand, 'R5_ESCUADRADO')
     const fix = fixesFor(exampleNightstand, testCatalog, racking).find((f) => f.key === 'faja-rigida')!
-    expect(fix.design.uniones.filter((u) => u.tipo === 'bolsillo')).toHaveLength(2)
+    expect(fix.design.joints.filter((u) => u.type === 'pocket-screw')).toHaveLength(2)
     expect(findings(fix.design).some((h) => h.code === 'R5_ESCUADRADO')).toBe(false)
   })
 
   it('a tall piece is anchored to the wall', () => {
-    const loose = { ...exampleBookcase, anclajeMuro: false }
+    const loose = { ...exampleBookcase, wallAnchored: false }
     const [fix] = fixesFor(loose, testCatalog, finding(loose, 'R4_VUELCO'))
-    expect(fix.design.anclajeMuro).toBe(true)
+    expect(fix.design.wallAnchored).toBe(true)
   })
 })

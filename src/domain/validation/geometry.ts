@@ -1,4 +1,4 @@
-import { DIMENSION_OF_AXIS, AXES, isDrawerPart, type Design } from '../diseno/schema'
+import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Design } from '../diseno/schema'
 import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 import { usableSheet, materialById, type Catalog } from '../materiales/catalog'
 import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
@@ -12,7 +12,7 @@ const MEASURE_TOLERANCE = 1
 const RUNNER_GAP = 20
 /** An inset door hangs in its opening with this much gap all around: its hinge joins pieces that do not touch. */
 const HINGE_GAP = 4
-const NO_JOINT_WARNING = new Set(['puerta', 'frente-cajon'])
+const NO_JOINT_WARNING = new Set(['door', 'drawer-front'])
 
 export interface GeometryValidation {
   errors: DesignError[]
@@ -24,16 +24,16 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   const errors: DesignError[] = []
   const warnings: DesignWarning[] = []
   const all = contacts(geo.boxes)
-  const byId = new Map(design.piezas.map((p) => [p.id, p]))
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
 
   const boxes = [...geo.boxes.values()]
   for (const axis of AXES) {
     const min = Math.min(...boxes.map((c) => c[`${axis}0`]))
     const max = Math.max(...boxes.map((c) => c[`${axis}1`]))
-    const expected = design.dimensiones[DIMENSION_OF_AXIS[axis]]
+    const expected = design.dimensions[DIMENSION_OF_AXIS[axis]]
     if (boxes.length && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
       errors.push(
-        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_OF_AXIS[axis]}, pero el mueble mide ${expected} mm.`, {
+        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_LABEL[DIMENSION_OF_AXIS[axis]]}, pero el mueble mide ${expected} mm.`, {
           eje: axis,
           desde: roundTo(min),
           hasta: roundTo(max),
@@ -42,19 +42,19 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
       )
   }
 
-  for (const u of design.uniones) {
+  for (const u of design.joints) {
     const missing = [u.a, u.b].filter((id) => !byId.has(id))
     if (missing.length) {
       errors.push(error('E_PIEZA_INEXISTENTE', `La unión "${u.id}" refiere ${missing.map((f) => `"${f}"`).join(' y ')}, que no existe.`, { union: u.id, piezas: missing }))
       continue
     }
-    if (u.tipo === 'corredera') {
+    if (u.type === 'drawer-slide') {
       const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.axis !== 'x' || gap.distance > RUNNER_GAP)
         errors.push(error('E_UNION_SIN_CONTACTO', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${RUNNER_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
       continue
     }
-    if (u.tipo === 'bisagra-cazoleta' && !all.some((c) => samePair(c, u.a, u.b))) {
+    if (u.type === 'cup-hinge' && !all.some((c) => samePair(c, u.a, u.b))) {
       const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.distance > HINGE_GAP)
         errors.push(error('E_UNION_SIN_CONTACTO', `La bisagra "${u.id}" necesita a "${u.a}" junto a "${u.b}", a menos de ${HINGE_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
@@ -67,13 +67,13 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   // Touching pieces connect; overlapping ones only where a joint lets one go into the other (a groove, a rabbet).
   const connections = all.filter((c) => {
     if (c.axis) return true
-    const allowed = design.uniones.some((u) => samePair(u, c.a, c.b) && u.penetracion !== null && c.depth <= u.penetracion + CONTACT_TOLERANCE)
+    const allowed = design.joints.some((u) => samePair(u, c.a, c.b) && u.depth !== null && c.depth <= u.depth + CONTACT_TOLERANCE)
     if (!allowed) errors.push(error('E_TRASLAPE', `"${c.a}" y "${c.b}" se enciman ${roundTo(c.depth)} mm.`, { a: c.a, b: c.b, profundidad: roundTo(c.depth) }))
     return allowed
   })
 
   // Runners and hinges hold pieces that do not touch; from the floor up, whatever is not reached floats.
-  const hanging = design.uniones.filter((u) => (u.tipo === 'corredera' || u.tipo === 'bisagra-cazoleta') && geo.boxes.has(u.a) && geo.boxes.has(u.b))
+  const hanging = design.joints.filter((u) => (u.type === 'drawer-slide' || u.type === 'cup-hinge') && geo.boxes.has(u.a) && geo.boxes.has(u.b))
   connections.push(...hanging.map((u) => ({ a: u.a, b: u.b, axis: 'x' as const, depth: 0 })))
   const reached = new Set([...geo.boxes].filter(([, c]) => c.y0 <= CONTACT_TOLERANCE).map(([id]) => id))
   for (let changed = true; changed; ) {
@@ -86,11 +86,11 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     }
   }
   // A drawer hangs from its runners: whether it has something to hang from is a drawer rule (R9), with a way to fix it.
-  const drawerParts = new Set(design.piezas.filter((p) => isDrawerPart(p) && p.grupo).map((p) => p.id))
+  const drawerParts = new Set(design.pieces.filter((p) => isDrawerPart(p) && p.group).map((p) => p.id))
   for (const id of geo.boxes.keys())
     if (!reached.has(id) && !drawerParts.has(id)) errors.push(error('E_FLOTANTE', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { pieza: id }))
 
-  for (const p of design.piezas) {
+  for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
     const material = materialById(catalog, p.material)
     if (!box || !material) continue
@@ -110,8 +110,8 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   for (const c of connections) {
     const a = byId.get(c.a)!
     const b = byId.get(c.b)!
-    if ([a, b].some((p) => NO_JOINT_WARNING.has(p.rol) || p.apoyo === 'movil')) continue
-    if (!design.uniones.some((u) => samePair(u, c.a, c.b)))
+    if ([a, b].some((p) => NO_JOINT_WARNING.has(p.role) || p.support === 'movable')) continue
+    if (!design.joints.some((u) => samePair(u, c.a, c.b)))
       warnings.push({ code: 'A_CONTACTO_SIN_UNION', message: `"${c.a}" y "${c.b}" se tocan pero no tienen unión.`, data: { a: c.a, b: c.b } })
   }
 

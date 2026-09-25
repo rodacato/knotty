@@ -7,7 +7,7 @@ import { referencedPieces, resolveGeometry, roundTo, type Box } from './resolve'
 /** How close a face has to be for a cota to snap to it. */
 const SNAP = 3
 
-type End = 'desde' | 'hasta'
+type End = 'from' | 'to'
 interface Candidate {
   ref: FaceRef
   value: number
@@ -19,7 +19,7 @@ export function normalize(original: Design, catalog: Catalog): Design {
   if (!r.ok) return original
   const { boxes } = r.value
   const design = structuredClone(original)
-  const byId = new Map(design.piezas.map((p) => [p.id, p]))
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
 
   const dependsOn = (from: string, target: string, axis: Axis, seen = new Set<string>()): boolean => {
     if (from === target) return true
@@ -30,10 +30,10 @@ export function normalize(original: Design, catalog: Catalog): Design {
   }
 
   const candidates = (p: Piece, axis: Axis, end: End, outsideOnly: boolean): Candidate[] => {
-    const opposite = end === 'desde' ? 1 : 0
+    const opposite = end === 'from' ? 1 : 0
     const outside: Candidate[] = [
       { ref: `mueble.${axis}0`, value: 0, preference: 0 },
-      { ref: `mueble.${axis}1`, value: design.dimensiones[DIMENSION_OF_AXIS[axis]], preference: 0 },
+      { ref: `mueble.${axis}1`, value: design.dimensions[DIMENSION_OF_AXIS[axis]], preference: 0 },
     ]
     if (outsideOnly) return outside
     return [
@@ -53,11 +53,11 @@ export function normalize(original: Design, catalog: Catalog): Design {
   const anchor = (p: Piece, axis: Axis, box: Box, outsideOnly: boolean) => {
     const t = p[axis]
     if (axis === p.normal) {
-      const current = t.desde ?? t.hasta
-      if (current?.tipo !== 'mm') return
-      const options = (['desde', 'hasta'] as const)
+      const current = t.from ?? t.to
+      if (current?.type !== 'mm') return
+      const options = (['from', 'to'] as const)
         .map((end) => {
-          const value = end === 'desde' ? box[`${axis}0`] : box[`${axis}1`]
+          const value = end === 'from' ? box[`${axis}0`] : box[`${axis}1`]
           const c = best(value, candidates(p, axis, end, outsideOnly))
           return c && { end, value, c }
         })
@@ -65,21 +65,21 @@ export function normalize(original: Design, catalog: Catalog): Design {
         .sort((a, b) => a.c.distance - b.c.distance || a.c.preference - b.c.preference)
       const chosen = options[0]
       if (!chosen) return
-      const cota = { tipo: 'ref' as const, ref: chosen.c.ref, mas: roundTo(chosen.value - chosen.c.value) }
-      p[axis] = { desde: chosen.end === 'desde' ? cota : null, hasta: chosen.end === 'hasta' ? cota : null, largo: null }
+      const cota = { type: 'ref' as const, ref: chosen.c.ref, offset: roundTo(chosen.value - chosen.c.value) }
+      p[axis] = { from: chosen.end === 'from' ? cota : null, to: chosen.end === 'to' ? cota : null, length: null }
       return
     }
-    for (const end of ['desde', 'hasta'] as const) {
+    for (const end of ['from', 'to'] as const) {
       const cota = t[end]
-      if (cota?.tipo !== 'mm') continue
+      if (cota?.type !== 'mm') continue
       const c = best(cota.mm, candidates(p, axis, end, outsideOnly))
-      if (c) t[end] = { tipo: 'ref', ref: c.ref, mas: roundTo(cota.mm - c.value) }
+      if (c) t[end] = { type: 'ref', ref: c.ref, offset: roundTo(cota.mm - c.value) }
     }
   }
 
   // First to the outside of the piece of furniture, then to the other pieces: outer measures win when both are close.
   for (const outsideOnly of [true, false])
-    for (const p of design.piezas)
+    for (const p of design.pieces)
       for (const axis of AXES) anchor(p, axis, boxes.get(p.id)!, outsideOnly)
   return design
 }
