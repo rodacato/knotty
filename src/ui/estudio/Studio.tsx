@@ -7,62 +7,62 @@ import { differences } from '../../domain/diseno/diff'
 import { currentDesign, type DesignState } from '../../domain/sesion/state'
 import { activeLabel } from '../../ports/Preferences'
 import { Chat } from '../chat/Chat'
-import { BordeEscena } from '../escena/BordeEscena'
-import { Escena } from '../escena/Escena'
-import { useServicios } from '../servicios'
-import { Boton, cm } from '../sistema/componentes'
-import { Simbolo } from '../sistema/Marca'
-import { disenoVisible, useTienda, type Vista } from '../tienda'
+import { SceneBoundary } from '../escena/SceneBoundary'
+import { Scene } from '../escena/Scene'
+import { useServices } from '../services'
+import { Button, cm } from '../sistema/components'
+import { Emblem } from '../sistema/Brand'
+import { visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
-import { Materiales } from './Materiales'
-import { FichaPieza } from './Paneles'
+import { Materials } from './Materials'
+import { PieceCard } from './Panels'
 import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
 import { isBed } from '../../domain/modules/plan'
 import { NoticePanel } from './NoticePanel'
 
-const VISTAS: { id: Vista; nombre: string }[] = [
-  { id: 'frente', nombre: 'Frente' },
-  { id: 'lado', nombre: 'Lado' },
-  { id: 'tres-cuartos', nombre: '3/4' },
-  { id: 'arriba', nombre: 'Arriba' },
+const VIEWS: { id: View; name: string }[] = [
+  { id: 'front', name: 'Frente' },
+  { id: 'side', name: 'Lado' },
+  { id: 'three-quarter', name: '3/4' },
+  { id: 'top', name: 'Arriba' },
 ]
 
-function useEscritorio() {
-  const consulta = '(min-width: 768px)'
-  const [si, setSi] = useState(() => matchMedia(consulta).matches)
+function useDesktop() {
+  const query = '(min-width: 768px)'
+  const [matches, setMatches] = useState(() => matchMedia(query).matches)
   useEffect(() => {
-    const m = matchMedia(consulta)
-    const cambio = () => setSi(m.matches)
-    m.addEventListener('change', cambio)
-    return () => m.removeEventListener('change', cambio)
+    const m = matchMedia(query)
+    const change = () => setMatches(m.matches)
+    m.addEventListener('change', change)
+    return () => m.removeEventListener('change', change)
   }, [])
-  return si
+  return matches
 }
 
-function BarraEscena() {
-  const vista = useTienda((s) => s.vista.nombre)
-  const verDesde = useTienda((s) => s.verDesde)
-  const explosion = useTienda((s) => s.explosion)
-  const alternarExplosion = useTienda((s) => s.alternarExplosion)
-  const cotas = useTienda((s) => s.cotas)
-  const alternarCotas = useTienda((s) => s.alternarCotas)
-  const boton = (activo: boolean) => `grid min-h-9 min-w-9 place-items-center rounded-full px-3 text-xs font-medium transition ${activo ? 'bg-grafito text-hueso' : 'text-grafito hover:bg-kraft'}`
+function SceneBar() {
+  const view = useStore((s) => s.view.name)
+  const viewFrom = useStore((s) => s.viewFrom)
+  const exploded = useStore((s) => s.exploded)
+  const toggleExploded = useStore((s) => s.toggleExploded)
+  const dimensions = useStore((s) => s.dimensions)
+  const toggleDimensions = useStore((s) => s.toggleDimensions)
+  const button = (active: boolean) => `grid min-h-9 min-w-9 place-items-center rounded-full px-3 text-xs font-medium transition ${active ? 'bg-grafito text-hueso' : 'text-grafito hover:bg-kraft'}`
   return (
     <div className="pointer-events-auto flex flex-wrap items-center gap-2">
       <div className="flex items-center rounded-full border border-linea bg-hueso/90 p-1 shadow-sm backdrop-blur" role="group" aria-label="Vistas">
-        {VISTAS.map((v) => (
-          <button key={v.id} type="button" className={boton(vista === v.id)} onClick={() => verDesde(v.id)} aria-pressed={vista === v.id}>
-            {v.nombre}
+        {VIEWS.map((v) => (
+          <button key={v.id} type="button" className={button(view === v.id)} onClick={() => viewFrom(v.id)} aria-pressed={view === v.id}>
+            {v.name}
           </button>
         ))}
       </div>
       <div className="flex items-center rounded-full border border-linea bg-hueso/90 p-1 shadow-sm backdrop-blur">
-        <button type="button" className={`${boton(explosion)} gap-1.5 [grid-auto-flow:column]`} onClick={alternarExplosion} aria-pressed={explosion}>
-          {explosion ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
+        <button type="button" className={`${button(exploded)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleExploded} aria-pressed={exploded}>
+          {exploded ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
         </button>
-        <button type="button" className={boton(cotas)} onClick={alternarCotas} aria-pressed={cotas} aria-label="Cotas">
+        <button type="button" className={button(dimensions)} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas">
           <Ruler weight="bold" />
         </button>
       </div>
@@ -70,8 +70,8 @@ function BarraEscena() {
   )
 }
 
-function ConfirmarNuevo({ children }: { children: ReactNode }) {
-  const nuevoDiseno = useTienda((s) => s.nuevoDiseno)
+function ConfirmNew({ children }: { children: ReactNode }) {
+  const newDesign = useStore((s) => s.newDesign)
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
@@ -82,11 +82,11 @@ function ConfirmarNuevo({ children }: { children: ReactNode }) {
           <Dialog.Description className="text-sm text-grafito-2">Se borran este diseño, su historial y la conversación. No se puede deshacer.</Dialog.Description>
           <div className="mt-2 flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Boton variante="fantasma">Conservar</Boton>
+              <Button variant="ghost">Conservar</Button>
             </Dialog.Close>
-            <Boton variante="peligro" onClick={nuevoDiseno}>
+            <Button variant="danger" onClick={newDesign}>
               Empezar de cero
-            </Boton>
+            </Button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -96,144 +96,144 @@ function ConfirmarNuevo({ children }: { children: ReactNode }) {
 
 type Overlay = 'notices' | 'history'
 
-function Encabezado({ estado, pending, overlay, onOpen }: { estado: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
-  const { preferencias } = useServicios()
-  const abrirAjustes = useTienda((s) => s.abrirAjustes)
-  const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
-  const diseno = currentDesign(estado)
-  const { ancho, alto, fondo } = diseno.dimensiones
-  const plan = currentPlan(estado).plan
+function Header({ state, pending, overlay, onOpen }: { state: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
+  const { preferences } = useServices()
+  const openSettings = useStore((s) => s.openSettings)
+  const settingsOpen = useStore((s) => s.settingsOpen)
+  const design = currentDesign(state)
+  const { ancho: width, alto: height, fondo: background } = design.dimensiones
+  const plan = currentPlan(state).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
-  const bed = plan && isBed(plan) && !currentPlan(estado).diverged ? plan : null
-  const etiqueta = useMemo(() => activeLabel(preferencias.load()), [preferencias, ajustesAbiertos])
+  const bed = plan && isBed(plan) && !currentPlan(state).diverged ? plan : null
+  const label = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
   return (
     <header className="flex items-center gap-1 border-b border-linea bg-hueso/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
-      <Simbolo className="size-7 shrink-0 sm:size-8" />
+      <Emblem className="size-7 shrink-0 sm:size-8" />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-titulo text-lg leading-tight font-semibold">{diseno.nombre}</p>
+        <p className="truncate font-titulo text-lg leading-tight font-semibold">{design.nombre}</p>
         <p className="cifras truncate text-[11px] text-grafito-2">
-          {bed ? `${cm(fondo)} × ${cm(ancho)} · colchón ${bed.mattress}` : `${alto} × ${ancho} × ${fondo} mm · ${cm(ancho)} de ancho`}
+          {bed ? `${cm(background)} × ${cm(width)} · colchón ${bed.mattress}` : `${height} × ${width} × ${background} mm · ${cm(width)} de ancho`}
         </p>
       </div>
-      <Boton variante="fantasma" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${estado.actual}: ver el historial`} title="Historial">
-        <ClockCounterClockwise /> <span className="cifras">v{estado.actual}</span>
-      </Boton>
-      <Boton variante="fantasma" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
+      <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.actual}: ver el historial`} title="Historial">
+        <ClockCounterClockwise /> <span className="cifras">v{state.actual}</span>
+      </Button>
+      <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-ambar' : ''} />
         {pending > 0 && <span className="cifras absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-oxido px-1 text-[10px] text-white">{pending}</span>}
-      </Boton>
-      <Boton variante="fantasma" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => abrirAjustes(true)} aria-label={`El experto: ${etiqueta}`}>
-        <GearSix /> <span className="hidden sm:inline">{etiqueta}</span>
-      </Boton>
-      <ConfirmarNuevo>
-        <Boton variante="secundario" className="min-h-9 px-2.5 text-xs sm:px-3" aria-label="Nuevo diseño">
+      </Button>
+      <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
+        <GearSix /> <span className="hidden sm:inline">{label}</span>
+      </Button>
+      <ConfirmNew>
+        <Button variant="secondary" className="min-h-9 px-2.5 text-xs sm:px-3" aria-label="Nuevo diseño">
           <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
-        </Boton>
-      </ConfirmarNuevo>
+        </Button>
+      </ConfirmNew>
     </header>
   )
 }
 
-export function Estudio({ estado }: { estado: DesignState }) {
-  const { catalogo } = useServicios()
-  const verPropuesta = useTienda((s) => s.verPropuesta)
-  const versionVista = useTienda((s) => s.versionVista)
-  const verVersion = useTienda((s) => s.verVersion)
-  const volverAVersion = useTienda((s) => s.volverAVersion)
-  const escritorio = useEscritorio()
-  const [panelAlto, setPanelAlto] = useState(false)
-  const [pestana, setPestana] = useState('chat')
+export function Studio({ state }: { state: DesignState }) {
+  const { catalog } = useServices()
+  const showProposal = useStore((s) => s.showProposal)
+  const viewedVersion = useStore((s) => s.viewedVersion)
+  const viewVersion = useStore((s) => s.viewVersion)
+  const backToVersion = useStore((s) => s.backToVersion)
+  const desktop = useDesktop()
+  const [tallPanel, setTallPanel] = useState(false)
+  const [tab, setTab] = useState('chat')
   // Notices and history take the place of the tabs, so the 3D stays in sight to preview what they offer.
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const toggleOverlay = (o: Overlay) => setOverlay((v) => (v === o ? null : o))
   const toChat = () => {
     setOverlay(null)
-    setPestana('chat')
+    setTab('chat')
   }
-  const ajustar = useTienda((s) => s.ajustar)
-  const seleccionarPieza = useTienda((s) => s.seleccionar)
-  const pedir = (texto: string) => {
+  const adjust = useStore((s) => s.adjust)
+  const selectPiece = useStore((s) => s.select)
+  const request = (text: string) => {
     toChat()
-    void ajustar(texto)
+    void adjust(text)
   }
 
-  const actual = currentDesign(estado)
-  const analisisActual = useMemo(() => analyze(actual, catalogo), [actual, catalogo])
-  const preview = useTienda((s) => s.preview)
-  const previewFix = useTienda((s) => s.previewFix)
+  const current = currentDesign(state)
+  const currentAnalysis = useMemo(() => analyze(current, catalog), [current, catalog])
+  const preview = useStore((s) => s.preview)
+  const previewFix = useStore((s) => s.previewFix)
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
-  useEffect(() => previewFix(null), [estado.actual, overlay, previewFix])
-  const mostrado = preview?.design ?? disenoVisible({ estado, versionVista, verPropuesta }) ?? actual
-  const propuesta = preview?.design ?? (versionVista === null && estado.propuesta && verPropuesta ? estado.propuesta.diseno : null)
-  const board = useMemo(() => noticeBoard(estado, catalogo), [estado, catalogo])
-  const analisisMostrado = useMemo(() => (mostrado === actual ? analisisActual : analyze(mostrado, catalogo)), [mostrado, actual, catalogo, analisisActual])
-  const cambios = useMemo(() => {
-    if (!propuesta || !analisisActual.valid || !analisisMostrado.valid) return { added: [], changed: [] }
-    return differences(actual, analisisActual.geo.boxes, propuesta, analisisMostrado.geo.boxes)
-  }, [propuesta, actual, analisisActual, analisisMostrado])
+  useEffect(() => previewFix(null), [state.actual, overlay, previewFix])
+  const shownDesign = preview?.design ?? visibleDesign({ state, viewedVersion, showProposal }) ?? current
+  const proposal = preview?.design ?? (viewedVersion === null && state.propuesta && showProposal ? state.propuesta.diseno : null)
+  const board = useMemo(() => noticeBoard(state, catalog), [state, catalog])
+  const shownAnalysis = useMemo(() => (shownDesign === current ? currentAnalysis : analyze(shownDesign, catalog)), [shownDesign, current, catalog, currentAnalysis])
+  const changes = useMemo(() => {
+    if (!proposal || !currentAnalysis.valid || !shownAnalysis.valid) return { added: [], changed: [] }
+    return differences(current, currentAnalysis.geo.boxes, proposal, shownAnalysis.geo.boxes)
+  }, [proposal, current, currentAnalysis, shownAnalysis])
 
   useEffect(() => {
-    const alTeclear = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') seleccionarPieza(null)
+    const onType = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') selectPiece(null)
     }
-    window.addEventListener('keydown', alTeclear)
-    return () => window.removeEventListener('keydown', alTeclear)
-  }, [seleccionarPieza])
+    window.addEventListener('keydown', onType)
+    return () => window.removeEventListener('keydown', onType)
+  }, [selectPiece])
 
-  const porConfirmar = actual.piezas.filter((p) => p.confianza === 'baja')
-  const seleccionar = useTienda((s) => s.seleccionar)
+  const toConfirm = current.piezas.filter((p) => p.confianza === 'baja')
+  const select = useStore((s) => s.select)
 
-  const geoMostrada = analisisMostrado.geo
-  const problemasMostrados = analisisMostrado.valid ? [] : analisisMostrado.errors
-  const piezasConProblema = [...new Set(problemasMostrados.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && mostrado.piezas.some((p) => p.id === v))))]
+  const shownGeo = shownAnalysis.geo
+  const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
+  const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.piezas.some((p) => p.id === v))))]
 
-  const escena = (
+  const scene = (
     <div className="relative h-full min-h-0 bg-[var(--fondo-escena)]">
-      {geoMostrada ? (
-        <div className="h-full" role="img" aria-label={`${mostrado.nombre} en 3D: ${mostrado.dimensiones.alto} × ${mostrado.dimensiones.ancho} × ${mostrado.dimensiones.fondo} mm, ${mostrado.piezas.length} piezas. La lista completa está en Materiales.`}>
-          <BordeEscena>
-            <Escena diseno={mostrado} geo={geoMostrada} catalogo={catalogo} fantasmas={cambios.added} marcadas={cambios.changed} problemas={piezasConProblema} />
-          </BordeEscena>
+      {shownGeo ? (
+        <div className="h-full" role="img" aria-label={`${shownDesign.nombre} en 3D: ${shownDesign.dimensiones.alto} × ${shownDesign.dimensiones.ancho} × ${shownDesign.dimensiones.fondo} mm, ${shownDesign.piezas.length} piezas. La lista completa está en Materiales.`}>
+          <SceneBoundary>
+            <Scene design={shownDesign} geo={shownGeo} catalog={catalog} ghosts={changes.added} marked={changes.changed} problems={problemPieces} />
+          </SceneBoundary>
         </div>
       ) : (
-        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {problemasMostrados[0]?.message}</div>
+        <div className="grid h-full place-items-center p-6 text-center text-sm text-oxido">Este diseño tiene errores: {shownProblems[0]?.message}</div>
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        <BarraEscena />
-        {propuesta && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">{preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar'}</span>}
-        {geoMostrada && problemasMostrados.length > 0 && (
+        <SceneBar />
+        {proposal && <span className="animate-aparecer rounded-full bg-ambar px-3 py-1 text-xs font-medium text-grafito shadow">{preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar'}</span>}
+        {shownGeo && shownProblems.length > 0 && (
           <button
             type="button"
             onClick={() => setOverlay('notices')}
             className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full bg-oxido px-3 py-1 text-xs font-medium text-white shadow"
           >
-            <Warning weight="bold" /> {problemasMostrados.length === 1 ? 'Un problema sin resolver' : `${problemasMostrados.length} problemas sin resolver`}
+            <Warning weight="bold" /> {shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`}
           </button>
         )}
-        {porConfirmar.length > 0 && versionVista === null && !propuesta && (
+        {toConfirm.length > 0 && viewedVersion === null && !proposal && (
           <button
             type="button"
-            onClick={() => seleccionar(porConfirmar[0].id)}
+            onClick={() => select(toConfirm[0].id)}
             className="animate-aparecer pointer-events-auto flex items-center gap-1.5 rounded-full border border-grafito/30 bg-papel px-3 py-1 text-xs font-medium text-grafito shadow-sm"
           >
-            <PencilSimpleLine /> {porConfirmar.length === 1 ? `${porConfirmar[0].nombre} por confirmar` : `${porConfirmar.length} piezas por confirmar`}
+            <PencilSimpleLine /> {toConfirm.length === 1 ? `${toConfirm[0].nombre} por confirmar` : `${toConfirm.length} piezas por confirmar`}
           </button>
         )}
-        {versionVista !== null && (
+        {viewedVersion !== null && (
           <span className="animate-aparecer pointer-events-auto flex items-center gap-1 rounded-full bg-grafito py-1 pr-1 pl-3 text-xs font-medium text-hueso shadow">
-            Viendo v{versionVista}
-            <button type="button" onClick={() => volverAVersion(versionVista)} className="flex items-center gap-1 rounded-full bg-hueso/15 px-2 py-0.5 hover:bg-hueso/25">
+            Viendo v{viewedVersion}
+            <button type="button" onClick={() => backToVersion(viewedVersion)} className="flex items-center gap-1 rounded-full bg-hueso/15 px-2 py-0.5 hover:bg-hueso/25">
               <ArrowCounterClockwise /> Volver a esta
             </button>
-            <button type="button" onClick={() => verVersion(null)} aria-label="Dejar de ver" className="grid size-6 place-items-center rounded-full hover:bg-hueso/20">
+            <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="grid size-6 place-items-center rounded-full hover:bg-hueso/20">
               <X />
             </button>
           </span>
         )}
       </div>
-      {geoMostrada && (
+      {shownGeo && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
-          <FichaPieza diseno={mostrado} geo={geoMostrada} catalogo={catalogo} editable={versionVista === null && !propuesta} />
+          <PieceCard design={shownDesign} geo={shownGeo} catalog={catalog} editable={viewedVersion === null && !proposal} />
         </div>
       )}
     </div>
@@ -248,45 +248,45 @@ export function Estudio({ estado }: { estado: DesignState }) {
           <X />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel estado={estado} onAnswer={toChat} /> : <HistoryPanel estado={estado} />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel state={state} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
     </section>
   )
 
   const panel = (
     <>
       {overlayPanel}
-      <Tabs.Root value={pestana} onValueChange={setPestana} className={`h-full min-h-0 flex-col bg-hueso/60 ${overlay ? 'hidden' : 'flex'}`}>
+      <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-hueso/60 ${overlay ? 'hidden' : 'flex'}`}>
         <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-linea px-2 [scrollbar-width:none]" aria-label="Panel">
           {[
-            { id: 'chat', nombre: 'Conversación', icono: <ChatCircleText /> },
-            { id: 'mueble', nombre: 'Mueble', icono: <Armchair /> },
-            { id: 'materiales', nombre: 'Materiales', icono: <Stack /> },
+            { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
+            { id: 'mueble', name: 'Mueble', icon: <Armchair /> },
+            { id: 'materiales', name: 'Materiales', icon: <Stack /> },
           ].map((t) => (
             <Tabs.Trigger
               key={t.id}
               value={t.id}
               className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-grafito-2 transition data-[state=active]:font-medium data-[state=active]:text-grafito data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-ambar"
             >
-              <span className="hidden sm:inline-flex">{t.icono}</span>
-              {t.nombre}
-              {t.id === 'chat' && estado.tray.length > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-ambar text-[10px] text-grafito" title="En la bandeja">{estado.tray.length}</span>}
+              <span className="hidden sm:inline-flex">{t.icon}</span>
+              {t.name}
+              {t.id === 'chat' && state.tray.length > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-ambar text-[10px] text-grafito" title="En la bandeja">{state.tray.length}</span>}
             </Tabs.Trigger>
           ))}
-          {!escritorio && (
-            <button type="button" onClick={() => setPanelAlto((v) => !v)} className="ml-auto grid size-9 place-items-center rounded-full text-grafito-2 hover:bg-kraft" aria-label={panelAlto ? 'Agrandar el 3D' : 'Agrandar el panel'}>
-              {panelAlto ? <CaretDown /> : <CaretUp />}
+          {!desktop && (
+            <button type="button" onClick={() => setTallPanel((v) => !v)} className="ml-auto grid size-9 place-items-center rounded-full text-grafito-2 hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
+              {tallPanel ? <CaretDown /> : <CaretUp />}
             </button>
           )}
         </Tabs.List>
         <Tabs.Content value="chat" className="min-h-0 flex-1">
-          <Chat estado={estado} />
+          <Chat state={state} />
         </Tabs.Content>
         <Tabs.Content value="mueble" className="min-h-0 flex-1 overflow-y-auto">
-          <FurniturePanel estado={estado} geo={analisisActual.geo ?? null} />
+          <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
         </Tabs.Content>
         <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
-          {analisisActual.valid ? (
-            <Materiales estado={estado} diseno={actual} geo={analisisActual.geo} catalogo={catalogo} alPedir={pedir} />
+          {currentAnalysis.valid ? (
+            <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
           ) : (
             <p className="p-4 text-sm text-grafito-2">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
           )}
@@ -297,16 +297,16 @@ export function Estudio({ estado }: { estado: DesignState }) {
 
   return (
     <div className="flex h-dvh flex-col">
-      <Encabezado estado={estado} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
-      {escritorio ? (
+      <Header state={state} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
+      {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
-          {escena}
+          {scene}
           <aside className="min-h-0 border-l border-linea">{panel}</aside>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 transition-[height] duration-300 ease-out" style={{ height: panelAlto ? '30%' : '52%' }}>
-            {escena}
+          <div className="min-h-0 transition-[height] duration-300 ease-out" style={{ height: tallPanel ? '30%' : '52%' }}>
+            {scene}
           </div>
           <div className="min-h-0 flex-1 border-t border-linea">{panel}</div>
         </div>

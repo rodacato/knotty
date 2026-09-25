@@ -3,11 +3,11 @@ import type { Design, JointType } from '../../domain/diseno/schema'
 import { faceSize, type Geometry } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
 import { cutList } from '../../domain/materiales/cutList'
-import { cm } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { cm } from '../sistema/components'
+import { useStore } from '../store'
 import { PieceEditor } from './PieceEditor'
 
-const UNIONES: Record<JointType, string> = {
+const JOINTS: Record<JointType, string> = {
   'tope-tornillo': 'tornillo al canto',
   bolsillo: 'tornillo de bolsillo',
   tarugo: 'tarugos',
@@ -21,25 +21,25 @@ const UNIONES: Record<JointType, string> = {
   corredera: 'corredera',
 }
 
-const VETA = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
+const GRAIN = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
 
-export function Piezas({ diseno, geo }: { diseno: Design; geo: Geometry }) {
-  const seleccionar = useTienda((s) => s.seleccionar)
-  const seleccion = useTienda((s) => s.seleccion)
-  const lista = cutList(diseno, geo)
-  const total = lista.reduce((n, r) => n + r.count, 0)
+export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
+  const select = useStore((s) => s.select)
+  const selection = useStore((s) => s.selection)
+  const list = cutList(design, geo)
+  const total = list.reduce((n, r) => n + r.count, 0)
   return (
     <div className="flex flex-col gap-3 p-4">
       <p className="text-sm text-grafito-2">
-        {total} piezas en {new Set(lista.map((r) => r.thickness)).size} espesores. Toca una para verla.
+        {total} piezas en {new Set(list.map((r) => r.thickness)).size} espesores. Toca una para verla.
       </p>
       <ul className="flex flex-col divide-y divide-linea overflow-hidden rounded-2xl border border-linea bg-hueso">
-        {lista.map((r) => (
+        {list.map((r) => (
           <li key={r.ids.join()}>
             <button
               type="button"
-              onClick={() => seleccionar(r.ids[0])}
-              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(seleccion ?? '') ? 'bg-ambar-suave' : ''}`}
+              onClick={() => select(r.ids[0])}
+              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'bg-ambar-suave' : ''}`}
             >
               <span className="cifras grid size-8 shrink-0 place-items-center rounded-lg bg-kraft text-sm font-medium">{r.count}×</span>
               <span className="min-w-0 flex-1">
@@ -57,17 +57,17 @@ export function Piezas({ diseno, geo }: { diseno: Design; geo: Geometry }) {
   )
 }
 
-export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Design; geo: Geometry; catalogo: Catalog; editable?: boolean }) {
-  const confirmarPieza = useTienda((s) => s.confirmarPieza)
-  const seleccion = useTienda((s) => s.seleccion)
-  const seleccionar = useTienda((s) => s.seleccionar)
-  const p = diseno.piezas.find((x) => x.id === seleccion)
-  const caja = p && geo.boxes.get(p.id)
-  if (!p || !caja) return null
-  const [largo, ancho] = faceSize(caja, p.normal)
-  const material = catalogo.materiales.find((m) => m.id === p.material)
-  const nombre = (id: string) => diseno.piezas.find((x) => x.id === id)?.nombre ?? id
-  const uniones = diseno.uniones.filter((u) => u.a === p.id || u.b === p.id)
+export function PieceCard({ design, geo, catalog, editable = false }: { design: Design; geo: Geometry; catalog: Catalog; editable?: boolean }) {
+  const confirmPiece = useStore((s) => s.confirmPiece)
+  const selection = useStore((s) => s.selection)
+  const select = useStore((s) => s.select)
+  const p = design.piezas.find((x) => x.id === selection)
+  const box = p && geo.boxes.get(p.id)
+  if (!p || !box) return null
+  const [length, width] = faceSize(box, p.normal)
+  const material = catalog.materiales.find((m) => m.id === p.material)
+  const name = (id: string) => design.piezas.find((x) => x.id === id)?.nombre ?? id
+  const joints = design.uniones.filter((u) => u.a === p.id || u.b === p.id)
   return (
     <div className="animate-aparecer pointer-events-auto w-full max-w-sm rounded-2xl md:w-80 border border-linea bg-hueso/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
       <div className="flex items-start justify-between gap-2">
@@ -75,14 +75,14 @@ export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno
           <p className="font-titulo text-lg font-semibold">{p.nombre}</p>
           <p className="text-xs text-grafito-2">{material?.nombre ?? p.material}</p>
         </div>
-        <button type="button" onClick={() => seleccionar(null)} aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
+        <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="grid size-8 place-items-center rounded-full hover:bg-kraft">
           <X />
         </button>
       </div>
       <dl className="cifras mt-3 grid grid-cols-3 gap-2 text-center">
         {[
-          ['Largo', largo],
-          ['Ancho', ancho],
+          ['Largo', length],
+          ['Ancho', width],
           ['Espesor', geo.thicknesses.get(p.id)!],
         ].map(([k, v]) => (
           <div key={k} className="rounded-xl bg-kraft px-2 py-2">
@@ -92,30 +92,30 @@ export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno
           </div>
         ))}
       </dl>
-      <p className="mt-2 text-xs text-grafito-2">Veta {VETA[p.veta]}</p>
-      <PieceEditor key={p.id} piece={p} box={caja} catalog={catalogo} enabled={editable} />
+      <p className="mt-2 text-xs text-grafito-2">Veta {GRAIN[p.veta]}</p>
+      <PieceEditor key={p.id} piece={p} box={box} catalog={catalog} enabled={editable} />
       {p.confianza === 'baja' && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-papel px-3 py-2 text-xs text-grafito">
           <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>
-          <button type="button" onClick={() => confirmarPieza(p.id)} className="rounded-full bg-grafito px-3 py-1 font-medium text-hueso">
+          <button type="button" onClick={() => confirmPiece(p.id)} className="rounded-full bg-grafito px-3 py-1 font-medium text-hueso">
             Está bien así
           </button>
         </div>
       )}
-      {uniones.length > 0 && (
+      {joints.length > 0 && (
         <ul className="mt-3 flex max-h-36 flex-col gap-1 overflow-y-auto border-t border-linea pt-3 text-sm">
-          {uniones.map((u) => {
-            const otra = u.a === p.id ? u.b : u.a
-            const cantidad = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 0), 0)
+          {joints.map((u) => {
+            const other = u.a === p.id ? u.b : u.a
+            const count = u.herrajes.reduce((n, h) => n + (h.cantidad ?? 0), 0)
             return (
               <li key={u.id} className="flex gap-2">
                 <span className="text-ambar">→</span>
                 <span>
-                  <button type="button" className="font-medium underline decoration-linea underline-offset-2 hover:decoration-ambar" onClick={() => seleccionar(otra)}>
-                    {nombre(otra)}
+                  <button type="button" className="font-medium underline decoration-linea underline-offset-2 hover:decoration-ambar" onClick={() => select(other)}>
+                    {name(other)}
                   </button>
-                  : {cantidad && u.tipo !== 'corredera' ? `${cantidad} ` : ''}
-                  {UNIONES[u.tipo]}
+                  : {count && u.tipo !== 'corredera' ? `${count} ` : ''}
+                  {JOINTS[u.tipo]}
                   {u.pegamento && u.tipo !== 'clavo-pegamento' ? ' con pegamento' : ''}
                 </span>
               </li>

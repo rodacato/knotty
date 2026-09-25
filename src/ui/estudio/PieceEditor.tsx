@@ -4,8 +4,8 @@ import type { PieceEditResult } from '../../application/useCases'
 import { AXES, type Axis, type Piece } from '../../domain/diseno/schema'
 import type { Box } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
-import { Boton } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { Button } from '../sistema/components'
+import { useStore } from '../store'
 
 // Hand edits on the selected piece: its length, width, thickness and position, applied at once and checked like any change.
 
@@ -43,9 +43,9 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
 }
 
 export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; box: Box; catalog: Catalog; enabled: boolean }) {
-  const editPiece = useTienda((s) => s.editPiece)
-  const resizeFurniture = useTienda((s) => s.resizeFurniture)
-  const pensando = useTienda((s) => s.pensando)
+  const editPiece = useStore((s) => s.editPiece)
+  const resizeFurniture = useStore((s) => s.resizeFurniture)
+  const thinking = useStore((s) => s.thinking)
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(10)
   const [result, setResult] = useState<PieceEditResult | null>(null)
@@ -59,9 +59,9 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
   if (!enabled) return null
   if (!open)
     return (
-      <Boton variante="fantasma" className="mt-2 min-h-8 px-2 text-xs" onClick={() => setOpen(true)} disabled={pensando}>
+      <Button variant="ghost" className="mt-2 min-h-8 px-2 text-xs" onClick={() => setOpen(true)} disabled={thinking}>
         <PencilSimple /> Editar a mano
-      </Boton>
+      </Button>
     )
 
   const [less, more, lessIcon, moreIcon] = MOVE[piece.normal]
@@ -88,12 +88,12 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="text-grafito-2">Mover</span>
-        <Boton variante="secundario" className="min-h-8 px-2 text-xs" aria-label={less} title={less} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: -step }))}>
+        <Button variant="secondary" className="min-h-8 px-2 text-xs" aria-label={less} title={less} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: -step }))}>
           {lessIcon}
-        </Boton>
-        <Boton variante="secundario" className="min-h-8 px-2 text-xs" aria-label={more} title={more} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: step }))}>
+        </Button>
+        <Button variant="secondary" className="min-h-8 px-2 text-xs" aria-label={more} title={more} onClick={() => run(editPiece(piece.id, { kind: 'move', axis: piece.normal, delta: step }))}>
           {moreIcon}
-        </Boton>
+        </Button>
         <label className="flex items-center gap-1 text-grafito-2">
           de
           <input type="number" min={1} value={step} onChange={(e) => setStep(Math.max(1, Number(e.target.value)))} aria-label="Paso en milímetros" className="cifras w-14 rounded-lg border border-linea bg-papel px-1 py-0.5 text-right" />
@@ -104,9 +104,9 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
         <div className="flex flex-col gap-1.5 rounded-xl bg-oxido/10 p-2 text-xs text-oxido">
           <span>{result.message}</span>
           {result.alternatives.map((a) => (
-            <Boton key={a.label} variante="secundario" className="min-h-8 self-start text-xs" onClick={() => run(resizeFurniture(a.axis, a.value))}>
+            <Button key={a.label} variant="secondary" className="min-h-8 self-start text-xs" onClick={() => run(resizeFurniture(a.axis, a.value))}>
               {a.label}
-            </Boton>
+            </Button>
           ))}
         </div>
       )}

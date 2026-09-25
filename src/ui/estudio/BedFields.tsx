@@ -1,5 +1,5 @@
 import type { BedPlan } from '../../domain/modules/bed'
-import { useServicios } from '../servicios'
+import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
 // A bed's ficha: the mattress sets its size; the base, its drawers and the headboard are choices.
@@ -38,8 +38,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partial<BedPlan>) => void }) {
-  const { catalogo } = useServicios()
-  const boards = catalogo.materiales.filter((m) => m.tipo === 'triplay')
+  const { catalog } = useServices()
+  const boards = catalog.materiales.filter((m) => m.tipo === 'triplay')
   const drawers = draft.drawers
   const headboard = draft.headboard
   const deep = headboard.style === 'bookcase' || headboard.style === 'storage'

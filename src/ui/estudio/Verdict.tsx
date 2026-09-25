@@ -1,43 +1,43 @@
 import { ArrowClockwise, CheckCircle, Hammer, Lightbulb, Stop, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
 import type { Design } from '../../domain/diseno/schema'
-import type { PurchaseReview as DatosDictamen } from '../../domain/sesion/state'
+import type { PurchaseReview } from '../../domain/sesion/state'
 import type { Check, Verdict } from '../../domain/viabilidad/viability'
-import { Boton, Lapiz } from '../sistema/componentes'
-import { useTienda } from '../tienda'
+import { Button, Pencil } from '../sistema/components'
+import { useStore } from '../store'
 
-const VEREDICTOS: Record<Verdict, { titulo: string; clase: string; icono: React.ReactNode }> = {
-  viable: { titulo: 'Se puede hacer', clase: 'border-pizarra/40 bg-pizarra/10 text-pizarra', icono: <CheckCircle weight="fill" /> },
-  'con-cambios': { titulo: 'Arréglalo antes de comprar', clase: 'border-ambar/50 bg-ambar-suave text-grafito', icono: <WarningCircle weight="fill" className="text-ambar" /> },
-  'no-viable': { titulo: 'Así no se puede hacer', clase: 'border-oxido/40 bg-oxido/10 text-oxido', icono: <XCircle weight="fill" /> },
+const VERDICTS: Record<Verdict, { title: string; className: string; icon: React.ReactNode }> = {
+  viable: { title: 'Se puede hacer', className: 'border-pizarra/40 bg-pizarra/10 text-pizarra', icon: <CheckCircle weight="fill" /> },
+  'con-cambios': { title: 'Arréglalo antes de comprar', className: 'border-ambar/50 bg-ambar-suave text-grafito', icon: <WarningCircle weight="fill" className="text-ambar" /> },
+  'no-viable': { title: 'Así no se puede hacer', className: 'border-oxido/40 bg-oxido/10 text-oxido', icon: <XCircle weight="fill" /> },
 }
 
-const ICONO_COMPROBACION: Record<Check['estado'], React.ReactNode> = {
+const CHECK_ICON: Record<Check['estado'], React.ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-pizarra" />,
   aviso: <WarningCircle weight="fill" className="text-ambar" />,
   falla: <XCircle weight="fill" className="text-oxido" />,
 }
 
-const GRAVEDAD = { alta: 'border-oxido/40 text-oxido', media: 'border-ambar/60 text-grafito', baja: 'border-linea text-grafito-2' }
+const GRAVITY = { alta: 'border-oxido/40 text-oxido', media: 'border-ambar/60 text-grafito', baja: 'border-linea text-grafito-2' }
 
-const QUE_REVISA = ['Que las medidas cierren', 'Que cada pieza quepa en la hoja real', 'Estructura y estabilidad', 'Que se pueda cortar y armar', 'Que las medidas tengan sentido para ese mueble']
+const WHAT_IT_CHECKS = ['Que las medidas cierren', 'Que cada pieza quepa en la hoja real', 'Estructura y estabilidad', 'Que se pueda cortar y armar', 'Que las medidas tengan sentido para ese mueble']
 
-/** Antes de la lista de compra: nadie debería comprar sin que alguien revise el plano. */
-export function PuertaRevision({ desactualizado }: { desactualizado: boolean }) {
-  const dictaminar = useTienda((s) => s.dictaminar)
-  const cancelar = useTienda((s) => s.cancelarDictamen)
-  const dictaminando = useTienda((s) => s.dictaminando)
-  const error = useTienda((s) => s.errorDictamen)
+/** Before the shopping list: nobody should buy without someone reviewing the plan. */
+export function ReviewGate({ stale }: { stale: boolean }) {
+  const review = useStore((s) => s.review)
+  const cancel = useStore((s) => s.cancelReview)
+  const reviewing = useStore((s) => s.reviewing)
+  const error = useStore((s) => s.verdictError)
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-linea bg-hueso p-4">
       <p className="flex items-start gap-2 font-medium">
-        <Hammer weight="duotone" className="mt-1 shrink-0 text-ambar" /> {desactualizado ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
+        <Hammer weight="duotone" className="mt-1 shrink-0 text-ambar" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
       </p>
       <p className="text-sm text-grafito-2">
         Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar. Tarda unos segundos; con tu experto conectado, hasta un par de minutos.
       </p>
       <ul className="flex flex-col gap-1 text-sm">
-        {QUE_REVISA.map((q) => (
+        {WHAT_IT_CHECKS.map((q) => (
           <li key={q} className="flex items-center gap-2 text-grafito-2">
             <CheckCircle className="shrink-0 text-grafito/30" /> {q}
           </li>
@@ -48,79 +48,79 @@ export function PuertaRevision({ desactualizado }: { desactualizado: boolean }) 
           <Warning className="mt-0.5 shrink-0" weight="bold" /> {error}
         </p>
       )}
-      {dictaminando ? (
+      {reviewing ? (
         <div className="flex items-center justify-between gap-3 rounded-xl bg-kraft/60 px-3 py-2 text-sm" aria-live="polite">
           <span className="flex items-center gap-2">
-            <Lapiz className="h-5 w-12 text-ambar" /> Revisando el plano…
+            <Pencil className="h-5 w-12 text-ambar" /> Revisando el plano…
           </span>
-          <Boton variante="fantasma" className="min-h-8 px-2 text-xs" onClick={cancelar}>
+          <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={cancel}>
             <Stop weight="fill" /> Cancelar
-          </Boton>
+          </Button>
         </div>
       ) : (
-        <Boton variante="primario" className="min-h-11 self-start px-5" onClick={() => void dictaminar()}>
-          {error ? <ArrowClockwise weight="bold" /> : <Hammer weight="bold" />} {error ? 'Reintentar' : desactualizado ? 'Revisar de nuevo' : 'Revisar y ver materiales'}
-        </Boton>
+        <Button variant="primary" className="min-h-11 self-start px-5" onClick={() => void review()}>
+          {error ? <ArrowClockwise weight="bold" /> : <Hammer weight="bold" />} {error ? 'Reintentar' : stale ? 'Revisar de nuevo' : 'Revisar y ver materiales'}
+        </Button>
       )}
     </section>
   )
 }
 
-function Renglon({ c, diseno, alPedir }: { c: Check; diseno: Design; alPedir: (texto: string) => void }) {
-  const seleccionar = useTienda((s) => s.seleccionar)
-  const pensando = useTienda((s) => s.pensando)
-  const pieza = c.piezas.find((id) => diseno.piezas.some((p) => p.id === id))
+function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onRequest: (text: string) => void }) {
+  const select = useStore((s) => s.select)
+  const thinking = useStore((s) => s.thinking)
+  const piece = c.piezas.find((id) => design.piezas.some((p) => p.id === id))
   return (
     <li className="flex items-start gap-2 py-2 text-sm">
-      <span className="mt-0.5 shrink-0">{ICONO_COMPROBACION[c.estado]}</span>
+      <span className="mt-0.5 shrink-0">{CHECK_ICON[c.estado]}</span>
       <span className="min-w-0 flex-1">
         <span className="font-medium">{c.titulo}</span>
         <span className={`block text-xs ${c.estado === 'ok' ? 'text-grafito-2' : ''}`}>{c.detalle}</span>
-        {pieza && (
-          <button type="button" className="text-xs text-grafito-2 underline" onClick={() => seleccionar(pieza)}>
+        {piece && (
+          <button type="button" className="text-xs text-grafito-2 underline" onClick={() => select(piece)}>
             Ver en 3D
           </button>
         )}
         {c.estado !== 'ok' && c.pedido && (
-          <Boton variante="secundario" className="mt-1.5 min-h-8 text-xs" disabled={pensando} onClick={() => alPedir(c.pedido!)}>
+          <Button variant="secondary" className="mt-1.5 min-h-8 text-xs" disabled={thinking} onClick={() => onRequest(c.pedido!)}>
             <Wrench /> {c.pedido}
-          </Boton>
+          </Button>
         )}
       </span>
     </li>
   )
 }
 
-export function TarjetaDictamen({ dictamen, diseno, alPedir }: { dictamen: DatosDictamen; diseno: Design; alPedir: (texto: string) => void }) {
-  const dictaminar = useTienda((s) => s.dictaminar)
-  const dictaminando = useTienda((s) => s.dictaminando)
-  const pensando = useTienda((s) => s.pensando)
-  const v = VEREDICTOS[dictamen.veredicto]
-  const c = dictamen.carpintero
+export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void }) {
+  const review = useStore((s) => s.review)
+  const reviewing = useStore((s) => s.reviewing)
+  const thinking = useStore((s) => s.thinking)
+  const v = VERDICTS[verdict.veredicto]
+  const c = verdict.carpintero
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-linea bg-hueso p-4">
-      <div className={`flex items-center gap-2 self-start rounded-full border px-3 py-1 text-sm font-medium ${v.clase}`}>
-        {v.icono} {v.titulo}
+      <div className={`flex items-center gap-2 self-start rounded-full border px-3 py-1 text-sm font-medium ${v.className}`}>
+        {v.icon} {v.title}
       </div>
       {c ? (
         <p className="text-[15px] leading-relaxed">{c.resumen}</p>
       ) : (
         <p className="text-sm text-grafito-2">
-          El carpintero no contestó{dictamen.error ? `: ${dictamen.error}` : '.'} Lo de abajo son las cuentas, que valen igual.
+          El carpintero no contestó{verdict.error ? `: ${verdict.error}` : '.'} Lo de abajo son las cuentas, que valen igual.
         </p>
       )}
 
       {c && c.problemas.length > 0 && (
         <ul className="flex flex-col gap-2">
           {c.problemas.map((p, i) => (
-            <li key={i} className={`flex flex-col gap-1.5 rounded-xl border bg-papel/60 p-3 ${GRAVEDAD[p.gravedad]}`}>
+            <li key={i} className={`flex flex-col gap-1.5 rounded-xl border bg-papel/60 p-3 ${GRAVITY[p.gravedad]}`}>
               <span className="text-sm font-medium">{p.titulo}</span>
               <span className="text-sm text-grafito">{p.detalle}</span>
               {p.pedido && (
-                <Boton variante="secundario" className="min-h-8 self-start text-xs" disabled={pensando} onClick={() => alPedir(p.pedido!)}>
+                <Button variant="secondary" className="min-h-8 self-start text-xs" disabled={thinking} onClick={() => onRequest(p.pedido!)}>
                   <Wrench /> {p.pedido}
-                </Boton>
+                </Button>
               )}
             </li>
           ))}
@@ -130,8 +130,8 @@ export function TarjetaDictamen({ dictamen, diseno, alPedir }: { dictamen: Datos
       <div>
         <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Las cuentas</p>
         <ul className="divide-y divide-linea">
-          {dictamen.comprobaciones.map((x) => (
-            <Renglon key={x.id} c={x} diseno={diseno} alPedir={alPedir} />
+          {verdict.comprobaciones.map((x) => (
+            <CheckRow key={x.id} c={x} design={design} onRequest={onRequest} />
           ))}
         </ul>
       </div>
@@ -149,9 +149,9 @@ export function TarjetaDictamen({ dictamen, diseno, alPedir }: { dictamen: Datos
         </div>
       )}
 
-      <Boton variante="fantasma" className="min-h-8 self-start px-2 text-xs text-grafito-2" disabled={!!dictaminando} onClick={() => void dictaminar()}>
-        <ArrowClockwise /> {dictaminando ? 'Revisando…' : 'Revisar de nuevo'}
-      </Boton>
+      <Button variant="ghost" className="min-h-8 self-start px-2 text-xs text-grafito-2" disabled={!!reviewing} onClick={() => void review()}>
+        <ArrowClockwise /> {reviewing ? 'Revisando…' : 'Revisar de nuevo'}
+      </Button>
     </section>
   )
 }
