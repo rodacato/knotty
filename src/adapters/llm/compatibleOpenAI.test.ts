@@ -124,6 +124,22 @@ describe('crearCompatible', () => {
     await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/se cortó a media respuesta/)
   })
 
+  it('pide razonamiento bajo y, si el modelo no lo acepta, lo deja de pedir', async () => {
+    const cuerpos: { reasoning_effort?: string }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        const cuerpo = JSON.parse(init.body as string)
+        cuerpos.push(cuerpo)
+        return cuerpo.reasoning_effort ? rechazo("Unsupported parameter: 'reasoning_effort' is not supported with this model.") : ok(respuesta)
+      }),
+    )
+    const experto = nueva()
+    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    await experto.reconstruir(solicitud([]), new AbortController().signal)
+    expect(cuerpos.map((c) => c.reasoning_effort ?? null)).toEqual(['low', null, null])
+  })
+
   it('si el host no acepta stream, lo deja de pedir y lo recuerda', async () => {
     const cuerpos: { stream?: boolean }[] = []
     vi.stubGlobal(
