@@ -1,16 +1,15 @@
 import { Copy, DownloadSimple, Trash, X } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { DebugEvent, DebugKind } from '../../ports/DebugLog'
 import { useServicios } from '../servicios'
 import { Boton } from '../sistema/componentes'
 import { Nudo } from '../sistema/Marca'
 import { useTienda } from '../tienda'
 import { captureGlobalErrors, instrumentStore } from './instrument'
+import { KonamiTrail } from './KonamiTrail'
 
 // A development tool: hidden until asked for (Konami code, Ctrl+Shift+D, settings or ?debug), it shows and exports everything the session did.
-
-const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 
 /** Other parts of the app (the settings switch) show or hide the panel through this event. */
 export const DEBUG_VISIBILITY = 'knotty:debug-visibility'
@@ -63,17 +62,9 @@ export function DebugPanel() {
         debug.setVisible(!v)
         return !v
       })
-    let typed: string[] = []
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
-        toggle()
-        return
-      }
-      // The Konami code opens the wood's insides from any screen, even while the expert is working.
-      typed = [...typed, e.key.length === 1 ? e.key.toLowerCase() : e.key].slice(-KONAMI.length)
-      if (typed.join() === KONAMI.join()) {
-        typed = []
         toggle()
       }
     }
@@ -86,6 +77,13 @@ export function DebugPanel() {
     }
   }, [debug])
 
+  // The Konami code goes straight to the insides: shown and open.
+  const openFromKonami = useCallback(() => {
+    debug.setVisible(true)
+    setVisible(true)
+    setOpen(true)
+  }, [debug])
+
   // While open, the list follows new events.
   useEffect(() => {
     if (!open) return
@@ -93,7 +91,8 @@ export function DebugPanel() {
     return () => clearInterval(timer)
   }, [open])
 
-  if (!visible) return null
+  const trail = <KonamiTrail onComplete={openFromKonami} />
+  if (!visible) return trail
   const events = debug.events()
   const shown = [...events].reverse().filter((e) => kinds.has(e.kind))
   const bundle = () => JSON.stringify(exportBundle(events, preferencias.cargar(), estado), null, 2)
@@ -113,6 +112,8 @@ export function DebugPanel() {
   }
 
   return (
+    <>
+    {trail}
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">
@@ -184,5 +185,6 @@ export function DebugPanel() {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+    </>
   )
 }
