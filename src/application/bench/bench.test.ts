@@ -24,8 +24,14 @@ describe('the bench', () => {
     expect(r).toMatchObject({ ok: true, path: 'ficha', reasonable: true, verdict: 'viable' })
   })
 
+  it('a case that names its path is not reasonable when the design took the other one', async () => {
+    const bed = bench.cases.find((c) => c.id === 'bed')!
+    expect(await bench.runCase({ ...bed, path: 'pieces' }, signal())).toMatchObject({ path: 'ficha', reasonable: false })
+    expect(await bench.runCase({ ...bed, path: 'ficha' }, signal())).toMatchObject({ path: 'ficha', reasonable: true })
+  })
+
   it('a case the expert cannot do is reported, not thrown', async () => {
-    const r = await bench.runCase({ id: 'banca', notes: 'Una banca para el recibidor', measures: null, expected: {} }, signal())
+    const r = await bench.runCase({ id: 'bench', notes: 'Una banca para el recibidor', measures: null, expected: {} }, signal())
     expect(r).toMatchObject({ ok: false, error: expect.stringContaining('conecta un experto real') })
   })
 })

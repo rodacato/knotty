@@ -9,7 +9,7 @@ export const Requirement = z.object({
   id: z.string().min(1).describe('Short, stable key, for example "espacio-ancho"'),
   text: z.string().min(1).describe('As the person would say it, in Spanish: "Mi espacio mide 90 cm de ancho"'),
   type: z.enum(['space', 'load', 'tool', 'style', 'other']),
-  axis: Axis.nullable().describe('Only for type space'),
+  axis: Axis.nullable().describe('Only for type space: the outside size of the whole furniture, never of a part'),
   min: z.number().nullable().describe('Only for type space, in mm'),
   max: z.number().nullable().describe('Only for type space, in mm'),
 })

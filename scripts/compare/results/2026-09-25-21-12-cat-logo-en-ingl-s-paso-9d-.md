@@ -1,6 +1,6 @@
 # Comparativo de modelos: catálogo en inglés (paso 9d)
 
-Commit 7160b08 · prompts skeleton@8 · 2026-09-25 21:12 UTC
+Commit 7160b08 · prompts esqueleto@7 · 2026-09-25 21:12 UTC
 
 | Modelo | Diseños válidos | Segundos (prom.) | Tokens de salida (prom.) | Medidas razonables | Viables |
 |---|---|---|---|---|---|

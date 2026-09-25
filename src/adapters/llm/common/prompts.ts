@@ -1,11 +1,11 @@
 import type { Catalog } from '../../../domain/materials/catalog'
 import adjust from '../prompts/adjust.v10.md?raw'
-import planAdjust from '../prompts/plan-adjust.v6.md?raw'
+import planAdjust from '../prompts/plan-adjust.v7.md?raw'
 import review from '../prompts/review.v4.md?raw'
-import skeleton from '../prompts/skeleton.v8.md?raw'
+import skeleton from '../prompts/skeleton.v9.md?raw'
 import reading from '../prompts/reading.v3.md?raw'
 import reconstruction from '../prompts/reconstruction.v11.md?raw'
-import system from '../prompts/system.v8.md?raw'
+import system from '../prompts/system.v9.md?raw'
 
 interface Prompt {
   id: string

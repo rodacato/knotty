@@ -1,6 +1,6 @@
 # Comparativo de modelos: camas con vocabulario (paso 9c)
 
-Commit de594d6 · prompts skeleton@8 · 2026-09-25 21:02 UTC
+Commit de594d6 · prompts esqueleto@7 · 2026-09-25 21:02 UTC
 
 | Modelo | Diseños válidos | Segundos (prom.) | Tokens de salida (prom.) | Medidas razonables | Viables |
 |---|---|---|---|---|---|
