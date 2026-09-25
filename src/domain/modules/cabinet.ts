@@ -3,8 +3,8 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import type { CaraRef, Cota, Diseno, Pieza, Union } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
-import { aplicar } from '../operaciones/aplicar'
-import type { Operacion } from '../operaciones/esquema'
+import { applyOperations } from '../operaciones/apply'
+import type { Operation } from '../operaciones/schema'
 import { Column } from '../reading/reading'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
@@ -102,7 +102,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     pieces.push(panel({ id: `div-${i + 1}`, nombre: `Divisor ${i + 1}`, rol: 'divisor', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', share, -half)), y: extent(ref('piso.y1'), ref('techo.y0')), z: depth() })),
   )
 
-  const drawers: { operation: Extract<Operacion, { op: 'agregarCajon' }>; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
+  const drawers: { operation: Extract<Operation, { op: 'agregarCajon' }>; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
   const notes: string[] = []
   plan.columns.forEach((column, i) => {
     const n = plan.columns.length
@@ -193,12 +193,12 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   }
   // Drawers go one by one: one that does not fit leaves its cell open instead of failing the whole cabinet.
   for (const drawer of drawers) {
-    const result = aplicar(design, [drawer.operation], catalog)
+    const result = applyOperations(design, [drawer.operation], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.operation.nombre}: ${result.errores[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.operation.nombre}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
-    design = result.valor.diseno
+    design = result.value.design
     // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
     if (build.drawerFronts === 'overlay') {
       const frontId = `${drawer.operation.grupo}-frente`

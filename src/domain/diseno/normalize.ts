@@ -17,7 +17,7 @@ interface Candidate {
 export function normalize(original: Diseno, catalog: Catalog): Diseno {
   const r = resolveGeometry(original, catalog)
   if (!r.ok) return original
-  const { boxes } = r.valor
+  const { boxes } = r.value
   const design = structuredClone(original)
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
 

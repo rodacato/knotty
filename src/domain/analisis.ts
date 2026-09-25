@@ -16,8 +16,8 @@ export type Analisis =
 /** Todo lo que hay que saber de un diseño antes de mostrarlo: geometría, requisitos y estructura. */
 export function analizar(diseno: Diseno, catalogo: Catalog, requisitos: Requisito[] = []): Analisis {
   const resuelto = resolveGeometry(diseno, catalogo)
-  if (!resuelto.ok) return { valido: false, errores: resuelto.errores }
-  const geo = resuelto.valor
+  if (!resuelto.ok) return { valido: false, errores: resuelto.errors }
+  const geo = resuelto.value
   const { errors: errores, warnings: avisos, contacts: contactos } = validateGeometry(diseno, geo, catalogo)
   errores.push(...verificarRequisitos(diseno, requisitos))
   if (errores.length) return { valido: false, errores, geo }

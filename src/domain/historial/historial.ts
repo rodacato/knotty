@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Diseno } from '../diseno/esquema'
 import { FurniturePlan } from '../modules/plan'
-import { Operacion } from '../operaciones/esquema'
+import { Operation } from '../operaciones/schema'
 
 export const Origen = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
 export type Origen = z.infer<typeof Origen>
@@ -25,13 +25,13 @@ export const Version = z.object({
   /** The plan this version was built from, when it was; later free-form changes leave it null. */
   plan: FurniturePlan.nullable().default(null),
   /** Free-form changes made on top of the plan, replayed every time the plan is rebuilt. */
-  extras: z.array(Operacion).default([]),
+  extras: z.array(Operation).default([]),
 })
 export type Version = z.infer<typeof Version>
 
 const LIMITES = { completas: 8, resumidas: 30, versiones: 40, decisiones: 15 }
 
-export function abreviar(op: Operacion): string {
+export function abreviar(op: Operation): string {
   switch (op.op) {
     case 'agregarPieza':
       return `+${op.pieza.id}`

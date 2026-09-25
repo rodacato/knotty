@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { Diseno, type Dimensiones } from '../domain/diseno/esquema'
 import { Decision } from '../domain/historial/historial'
 import type { Catalog } from '../domain/materiales/catalog'
-import { Operacion } from '../domain/operaciones/esquema'
+import { Operation } from '../domain/operaciones/schema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
 import type { DesignError } from '../domain/validation/errors'
@@ -28,7 +28,7 @@ export type RespuestaReconstruccion = z.infer<typeof RespuestaReconstruccion>
 export const RespuestaAjuste = z.object({
   explicacion: z.string().describe('Qué cambia y por qué, en tono de carpintero, breve'),
   resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Ensanchar a 90 cm"'),
-  operaciones: z.array(Operacion),
+  operaciones: z.array(Operation),
   preguntas: z.array(Pregunta),
   fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })).describe('Solo si una foto resolvería una duda que no se puede preguntar en botones'),
   sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir, escritos como ella los pediría'),
@@ -122,7 +122,7 @@ export interface SolicitudAjuste {
   /** El diseño vigente, para quien necesite leerlo sin parsear el contexto (el simulado). */
   diseno: Diseno
   /** Operaciones de la propuesta sin aplicar, si la hay; también van descritas en el contexto. */
-  propuesta: Operacion[] | null
+  propuesta: Operation[] | null
   /** Fotos que la persona manda con este pedido, casi siempre porque el experto las pidió. */
   fotos: Foto[]
   catalogo: Catalog

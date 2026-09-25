@@ -5,10 +5,10 @@ import type { Diseno } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
 import { estimatePurchase } from '../materiales/purchase'
-import { aplicar } from './aplicar'
-import type { Operacion } from './esquema'
+import { applyOperations } from './apply'
+import type { Operation } from './schema'
 
-const cajon = (extra: Partial<Extract<Operacion, { op: 'agregarCajon' }>> = {}): Operacion => ({
+const cajon = (extra: Partial<Extract<Operation, { op: 'agregarCajon' }>> = {}): Operation => ({
   op: 'agregarCajon',
   grupo: 'cajon-1',
   nombre: 'Cajón 1',
@@ -25,10 +25,10 @@ const cajon = (extra: Partial<Extract<Operacion, { op: 'agregarCajon' }>> = {}):
 
 const hondo: Diseno = { ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }
 
-const conCajon = (base: Diseno, ops: Operacion[] = [cajon()]) => {
-  const r = aplicar(base, ops, catalogo)
-  if (!r.ok) throw new Error(JSON.stringify(r.errores))
-  return r.valor.diseno
+const conCajon = (base: Diseno, ops: Operation[] = [cajon()]) => {
+  const r = applyOperations(base, ops, catalogo)
+  if (!r.ok) throw new Error(JSON.stringify(r.errors))
+  return r.value.design
 }
 const analisis = (d: Diseno) => {
   const a = analizar(d, catalogo)
@@ -37,7 +37,7 @@ const analisis = (d: Diseno) => {
 }
 
 describe('agregarCajon', () => {
-  it('arma seis piezas agrupadas, válidas y sin observaciones, con la corredera más larga que cabe', () => {
+  it('builds six grouped pieces, valid and with nothing to report, with the longest runner that fits', () => {
     const d = conCajon(hondo)
     const piezas = d.piezas.filter((p) => p.grupo === 'cajon-1')
     expect(piezas.map((p) => p.id).sort()).toEqual(['cajon-1-contra', 'cajon-1-costado-der', 'cajon-1-costado-izq', 'cajon-1-fondo', 'cajon-1-frente', 'cajon-1-trasera'])
@@ -51,49 +51,49 @@ describe('agregarCajon', () => {
     expect(costado.x0).toBeCloseTo(18 + 12.7, 5)
   })
 
-  it('se ajusta solo si el mueble se ensancha', () => {
+  it('follows by itself when the furniture gets wider', () => {
     const d = conCajon(hondo, [cajon(), { op: 'cambiarDimensionGlobal', eje: 'x', valor: 800, regla: 'estirar' }])
     const a = analisis(d)
     expect(a.geo.boxes.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
     expect(a.hallazgos.filter((h) => h.code === 'R9_CAJONES')).toEqual([])
   })
 
-  it('entra en la compra: correderas y piezas del cajón', () => {
+  it('goes into the purchase: runners and drawer pieces', () => {
     const d = conCajon(hondo)
     const compra = estimatePurchase(d, analisis(d).geo, catalogo)
     expect(compra.hardware.find((h) => h.hardware.id === 'corredera-telescopica-45')?.count).toBe(1)
     expect(compra.sheets.map((h) => h.material.id)).toContain('T15')
   })
 
-  it('se quita completo con eliminarGrupo', () => {
+  it('comes out whole with eliminarGrupo', () => {
     const d = conCajon(conCajon(hondo), [{ op: 'eliminarGrupo', grupo: 'cajon-1' }])
     expect(d.piezas.some((p) => p.grupo === 'cajon-1')).toBe(false)
     expect(d.uniones.some((u) => u.id.includes('cajon-1'))).toBe(false)
     expect(analizar(d, catalogo).valido).toBe(true)
   })
 
-  it('no cabe en un mueble muy poco profundo', () => {
-    const r = aplicar(librero, [cajon()], catalogo)
-    expect(r.ok || r.errores[0]).toMatchObject({ code: 'E_OPERACION_INVALIDA', message: expect.stringContaining('No cabe un cajón') })
+  it('does not fit in a very shallow piece', () => {
+    const r = applyOperations(librero, [cajon()], catalogo)
+    expect(r.ok || r.errors[0]).toMatchObject({ code: 'E_OPERACION_INVALIDA', message: expect.stringContaining('No cabe un cajón') })
   })
 })
 
-describe('R9 cajones y tornillos por la cara', () => {
+describe('R9 drawers and screws into a face', () => {
   const hallazgos = (d: Diseno) => analisis(d).hallazgos
 
-  it('una corredera sin su holgura exacta es crítica', () => {
+  it('a runner without its exact gap is critical', () => {
     const d = conCajon(hondo)
     d.piezas.find((p) => p.id === 'cajon-1-costado-izq')!.x = startAt(ref('lat-izq.x1', 8))
     const r9 = hallazgos(d).filter((h) => h.code === 'R9_CAJONES')
     expect(r9).toEqual([expect.objectContaining({ severity: 'critico', message: expect.stringContaining('no entra') })])
   })
 
-  it('un fondo de 3 mm en un cajón ancho se vence', () => {
+  it('a 3 mm bottom in a wide drawer sags', () => {
     const d = conCajon({ ...hondo, dimensiones: { ...hondo.dimensiones, ancho: 700 } }, [cajon({ materialFondo: 'TR3' })])
     expect(hallazgos(d).filter((h) => h.code === 'R9_CAJONES').map((h) => [h.severity, h.pieces[0]])).toEqual([['recomendacion', 'cajon-1-fondo']])
   })
 
-  it('un tornillo que entra por la cara no debe asomarse del otro lado', () => {
+  it('a screw into a face must not come out the other side', () => {
     const d = conCajon(hondo)
     d.uniones = d.uniones.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, herrajes: [{ herrajeId: 'tornillo-8x2', cantidad: 4 }] } : u))
     expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.union])).toEqual([['R3_TORNILLOS', 'critico', 'u-cajon-1-contra-frente']])

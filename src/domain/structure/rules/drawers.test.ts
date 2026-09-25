@@ -6,10 +6,10 @@ import { catalogo } from '../../fixtures/catalogo.test-util'
 import { librero } from '../../fixtures/librero'
 import { completeJoints } from '../../diseno/joints'
 import { fixesFor } from '../../fixes/fixes'
-import { aplicar } from '../../operaciones/aplicar'
-import type { Operacion } from '../../operaciones/esquema'
+import { applyOperations } from '../../operaciones/apply'
+import type { Operation } from '../../operaciones/schema'
 
-const drawer = (extra: Partial<Extract<Operacion, { op: 'agregarCajon' }>> = {}): Operacion => ({
+const drawer = (extra: Partial<Extract<Operation, { op: 'agregarCajon' }>> = {}): Operation => ({
   op: 'agregarCajon',
   grupo: 'cajon-1',
   nombre: 'Cajón 1',
@@ -24,10 +24,10 @@ const drawer = (extra: Partial<Extract<Operacion, { op: 'agregarCajon' }>> = {})
   ...extra,
 })
 const deep: Diseno = { ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }
-const build = (base: Diseno, ops: Operacion[]) => {
-  const r = aplicar(base, ops, catalogo)
-  if (!r.ok) throw new Error(JSON.stringify(r.errores))
-  return r.valor.diseno
+const build = (base: Diseno, ops: Operation[]) => {
+  const r = applyOperations(base, ops, catalogo)
+  if (!r.ok) throw new Error(JSON.stringify(r.errors))
+  return r.value.design
 }
 /** A drawer as a freeform design would have it: its pieces, but no runner joints. */
 const freeform = (d: Diseno): Diseno => ({ ...d, uniones: d.uniones.filter((u) => u.tipo !== 'corredera') })

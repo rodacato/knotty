@@ -3,17 +3,17 @@ import { analizar } from '../analisis'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
 import { buildCabinet, DEFAULT_CONSTRUCTION } from '../modules/cabinet'
-import { aplicar } from '../operaciones/aplicar'
+import { applyOperations } from '../operaciones/apply'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {
   it('puts a runner in the gap beside each drawer side, as long as the side', () => {
-    const r = aplicar({ ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }, [
+    const r = applyOperations({ ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }, [
       { op: 'agregarCajon', grupo: 'cajon-1', nombre: 'Cajón 1', izquierda: 'lat-izq.x1', derecha: 'lat-der.x0', abajo: 'piso.y1', arriba: 'entrepano-1.y0', frente: 'mueble.z1', fondo: 'trasera.z1', material: 'T15', materialFondo: 'TR6' },
     ], catalogo)
     if (!r.ok) throw new Error('no drawer')
-    const geo = analizar(r.valor.diseno, catalogo).geo!
-    const runners = hardwareParts(r.valor.diseno, geo.boxes).filter((h) => h.kind === 'runner')
+    const geo = analizar(r.value.design, catalogo).geo!
+    const runners = hardwareParts(r.value.design, geo.boxes).filter((h) => h.kind === 'runner')
     expect(runners).toHaveLength(2)
     const left = runners[0] as Extract<(typeof runners)[number], { kind: 'runner' }>
     const side = geo.boxes.get('cajon-1-costado-izq')!

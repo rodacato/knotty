@@ -3,7 +3,7 @@ import type { Diseno } from '../../../domain/diseno/esquema'
 import { alacena } from '../../../domain/fixtures/alacena'
 import { buro } from '../../../domain/fixtures/buro'
 import { librero } from '../../../domain/fixtures/librero'
-import type { Operacion } from '../../../domain/operaciones/esquema'
+import type { Operation } from '../../../domain/operaciones/schema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viabilidad/viability'
 import type { BedPlan } from '../../../domain/modules/bed'
@@ -121,8 +121,8 @@ function elegirFixture(medidas: { ancho: number; alto: number } | null, descripc
 const horizontalesConCarga = (d: Diseno) => d.piezas.filter((p) => p.normal === 'y' && (p.rol === 'entrepano' || p.rol === 'piso'))
 const entrepanos = (d: Diseno) => d.piezas.filter((p) => p.rol === 'entrepano').sort((a, b) => a.id.localeCompare(b.id))
 
-function opsDivisor(d: Diseno): Operacion[] {
-  const ops: Operacion[] = [
+function opsDivisor(d: Diseno): Operation[] {
+  const ops: Operation[] = [
     {
       op: 'agregarPieza',
       pieza: makePiece({ id: 'divisor', nombre: 'Divisor', rol: 'divisor', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
@@ -147,7 +147,7 @@ function opsDivisor(d: Diseno): Operacion[] {
       { op: 'redimensionar', id: e.id, eje: 'x', extremo: 'hasta', cota: ref('divisor.x0') },
       { op: 'duplicarPieza', id: e.id, nuevoId: der, nombre: `${e.nombre} derecho`, eje: 'x', cota: ref('divisor.x1') },
       { op: 'redimensionar', id: der, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
-      ...d.uniones.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operacion => ({ op: 'eliminarUnion', id: u.id })),
+      ...d.uniones.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operation => ({ op: 'eliminarUnion', id: u.id })),
       { op: 'agregarUnion', union: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
       { op: 'agregarUnion', union: makeJoint(`u-${der}-div`, der, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
     )
@@ -157,7 +157,7 @@ function opsDivisor(d: Diseno): Operacion[] {
 
 const PREGUNTA_TRASERA = '¿La trasera va clavada por detrás o metida en un canal?'
 
-function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, conFoto: boolean): RespuestaAjuste {
+function proponer(peticion: string, d: Diseno, pendientes: Operation[] | null, conFoto: boolean): RespuestaAjuste {
   const texto = peticion.toLowerCase()
   const trasera = d.piezas.find((p) => p.id === 'trasera' && p.confianza !== 'alta')
   if (trasera && (conFoto || /clavada|canal|no sé|trasera/.test(texto))) {
@@ -231,7 +231,7 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
     return ajuste({
       explicacion: 'Marco los entrepaños y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
       resumen: 'Preparar para libros',
-      operaciones: horizontalesConCarga(d).map((p): Operacion => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null, confianza: null })),
+      operaciones: horizontalesConCarga(d).map((p): Operation => ({ op: 'cambiarPropiedades', id: p.id, nombre: null, rol: null, veta: null, carga: 'pesada', apoyo: null, cantos: null, confianza: null })),
       requisitos: { agregar: [{ id: 'carga-libros', texto: 'Va a cargar libros', tipo: 'carga', eje: null, min: null, max: null }], quitar: [] },
     })
 

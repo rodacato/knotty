@@ -10,8 +10,8 @@ import { validateGeometry } from './geometry'
 
 const validate = (d: Diseno) => {
   const r = resolveGeometry(d, catalogo)
-  if (!r.ok) throw new Error(JSON.stringify(r.errores))
-  return validateGeometry(d, r.valor, catalogo)
+  if (!r.ok) throw new Error(JSON.stringify(r.errors))
+  return validateGeometry(d, r.value, catalogo)
 }
 const codes = (d: Diseno) => validate(d).errors.map((e) => e.code)
 

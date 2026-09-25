@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Diseno, Dimensiones } from '../diseno/esquema'
 import { Decision, Origen, Version } from '../historial/historial'
-import { Operacion } from '../operaciones/esquema'
+import { Operation } from '../operaciones/schema'
 import { FurniturePlan } from '../modules/plan'
 import { Requisito } from '../requisitos/requisitos'
 import { TraceEntry } from '../trace/trace'
@@ -60,7 +60,7 @@ export type Mensaje = z.infer<typeof Mensaje>
 
 export const Propuesta = z.object({
   diseno: Diseno,
-  operaciones: z.array(Operacion),
+  operaciones: z.array(Operation),
   resumen: z.string(),
   motivo: z.string(),
   criticos: z.array(z.object({ codigo: z.string(), mensaje: z.string(), piezas: z.array(z.string()) })),
@@ -69,7 +69,7 @@ export const Propuesta = z.object({
   origen: Origen.nullable(),
   /** The plan and extras the proposed design comes from, so applying it keeps the ficha alive. */
   plan: FurniturePlan.nullable().default(null),
-  extras: z.array(Operacion).default([]),
+  extras: z.array(Operation).default([]),
   /** Why it waits for the person besides critical problems: structure removed that was not asked for, open questions. */
   holds: z.array(z.string()).default([]),
 })

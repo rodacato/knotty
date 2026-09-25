@@ -5,7 +5,7 @@ import { startAt, makePiece, ref, extent } from '../domain/diseno/builders'
 import type { BedPlan } from '../domain/modules/bed'
 import { DEFAULT_CONSTRUCTION, type CabinetPlan } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
-import type { Operacion } from '../domain/operaciones/esquema'
+import type { Operation } from '../domain/operaciones/schema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { librero } from '../domain/fixtures/librero'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
@@ -557,7 +557,7 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
   })
   const origen = { promptId: 'x', proveedor: 'x', modelo: 'm' }
   const hanger = makePiece({ id: 'liston', nombre: 'Listón de colgar', rol: 'refuerzo', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('techo.y0'), 80), z: startAt(ref('trasera.z1')) })
-  const expert = (adjust: Partial<PlanAdjustment> | null, operaciones: Operacion[] = []) => {
+  const expert = (adjust: Partial<PlanAdjustment> | null, operaciones: Operation[] = []) => {
     const simulado = crearSimulado(0)
     const calls: string[] = []
     const llm: LLMProvider = {
@@ -683,7 +683,7 @@ describe('trust: nothing structural goes unasked, and any change can be undone i
     const simulado = crearSimulado(0)
     return casos({ ...simulado, proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Cambio', ...valor }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
   }
-  const removeKick: Operacion[] = [{ op: 'eliminarPieza', id: 'zoclo' }]
+  const removeKick: Operation[] = [{ op: 'eliminarPieza', id: 'zoclo' }]
 
   it('taking away structure that was not asked for waits for the person, and one click applies it', () => {
     const c = answering({ operaciones: removeKick })
