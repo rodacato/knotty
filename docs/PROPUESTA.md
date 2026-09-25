@@ -122,30 +122,33 @@ knotty/
 ├─ scripts/compare/          models.compare.ts: el banco contra expertos reales (npm run compare) · results/
 └─ src/
    ├─ domain/                TypeScript puro: sin React, sin LLM, sin navegador
-   │  ├─ design/             esquema · resolve (cotas → geometría) · normalize · joints · hardware · diff
-   │  ├─ modules/            fichas de gabinete, cama y mesa, y cómo se arman (buildPlan, rebuild)
-   │  ├─ operations/         esquema · apply · drawer (macro de cajón)
+   │  ├─ design/             schema · resolve (cotas → geometría) · normalize · builders · drawers · joints · hardware · diff
+   │  ├─ modules/            fichas de gabinete, cama y mesa (cabinet, bed, table), cómo se arman (plan, rebuild) y sus cambios (planChanges)
+   │  ├─ operations/         schema · apply · drawer (macro de cajón)
    │  ├─ validation/         geometry · contact (grafo) · errors
-   │  ├─ structure/          assumptions · review · rules/* (R1–R10) · finding
+   │  ├─ structure/          assumptions · review · finding · rules/ (deflection, jointThickness, racking, screws, drawers, usage)
    │  ├─ repair/ · fixes/    reparaciones por reglas y soluciones que Knotty construye para cada aviso
    │  ├─ materials/          catalog · cutList · layout (acomodo en hoja) · purchase
    │  ├─ viability/          revisión antes de comprar
    │  ├─ session/            estado guardado (state) y migración de formatos viejos (migrate)
    │  ├─ history/ · requirements/ · changes/ · reading/ · trace/ · tray/ · typology/
-   │  └─ fixtures/           ejemplos (librero, buró, alacena) y catálogo de prueba
+   │  ├─ fixtures/           ejemplos (bookcase, nightstand, wallCabinet) y catálogo de prueba
+   │  └─ analysis.ts         análisis completo de un diseño: geometría, contactos, avisos, reglas y requisitos
    ├─ application/           useCases (reconstruct, adjust, applyPlan, reviewPurchase…) · context · notices
    │  └─ bench/              casos fijos y banco de pruebas (también lo usa scripts/compare)
-   ├─ ports/                 LLMProvider · DesignRepository · MaterialCatalog · ImageProcessor · Preferences
+   ├─ ports/                 LLMProvider · DesignRepository · MaterialCatalog · ImageProcessor · Preferences · DebugLog
    ├─ adapters/
-   │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/ · prompts/*.md
-   │  │  └─ common/          expert (arma los pedidos) · configuration · vault · jsonSchema · errors
+   │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/
+   │  │  ├─ common/          expert (arma los pedidos) · prompts · configuration · vault · jsonSchema · errors
+   │  │  └─ prompts/         system.v9 · reconstruction.v11 · skeleton.v10 · adjust.v10 · plan-adjust.v8 · reading.v3 · review.v4
    │  ├─ persistence/        localStorage, con migración de formatos
    │  ├─ catalog/            catálogo JSON y ajustes de precio y corte de la persona
    │  ├─ image/              reducción de fotos y miniaturas
-   │  ├─ debug/              bitácora de depuración
+   │  ├─ debug/              bitácora de depuración (localDebugLog) y proveedor que la alimenta (loggedProvider)
    │  └─ storedKey.ts        claves de localStorage (y mueve las de Despiece)
-   ├─ ui/                    capture/ · studio/ · scene/ · chat/ · settings/ · system/ · debug/ · store.ts
+   ├─ ui/                    system/ · capture/ · studio/ · scene/ · chat/ · settings/ · debug/ · store.ts · services.ts
    ├─ composition.ts         raíz de composición: instancia adapters e inyecta casos de uso
+   ├─ main.tsx               arranque de React y del service worker
    └─ architecture.test.ts   fronteras entre capas
 ```
 
@@ -466,7 +469,7 @@ Bóveda cifrada con frase de paso y pendientes de `ai-town/docs/REVIEW-1.0.md` �
 
 ### Fase 8 — Diseño por pasos
 
-Lo que mostró el comparativo con SheLLM (9 pedidos fijos, `npm run comparar`): los diseños salen válidos con medidas razonables, pero 4 de 9 necesitaron reintentos por piezas encimadas y cada reintento reescribe el diseño completo (60–90 s y ~$0.13 USD cada uno). La fase cambia un pedido grande por pasos chicos, con Knotty haciendo lo que se puede hacer sin modelo.
+Lo que mostró el comparativo con SheLLM (9 pedidos fijos, `npm run compare`): los diseños salen válidos con medidas razonables, pero 4 de 9 necesitaron reintentos por piezas encimadas y cada reintento reescribe el diseño completo (60–90 s y ~$0.13 USD cada uno). La fase cambia un pedido grande por pasos chicos, con Knotty haciendo lo que se puede hacer sin modelo.
 
 | Paso | Quién | Qué ve la persona |
 |---|---|---|
@@ -582,7 +585,7 @@ Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 camb
 
 ### Fase 4 — implementada (2026-09-24)
 
-- Reglas nuevas: R3 tornillos (penetración ≥ 25 mm, tornillo de bolsillo según espesor, juntas cortas), R4 vuelco, R6 puertas (bisagras por alto, ancho máximo), R7 base (piso elevado sin apoyo) y R8 veta. Supuestos en `supuestos.ts`; largo de tornillos en el catálogo.
+- Reglas nuevas: R3 tornillos (penetración ≥ 25 mm, tornillo de bolsillo según espesor, juntas cortas), R4 vuelco, R6 puertas (bisagras por alto, ancho máximo), R7 base (piso elevado sin apoyo) y R8 veta. Supuestos en `domain/structure/assumptions.ts`; largo de tornillos en el catálogo.
 - Revisión como reporte: conteo por severidad, hallazgos de la misma regla agrupados con sus piezas (tocables), alternativas como botones que mandan el pedido al experto, y «que el experto decida».
 - Prompt del sistema a `sistema@2` con las reglas nuevas; el simulado entiende «anclar al muro».
 
@@ -609,7 +612,7 @@ Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 camb
 - Accesibilidad: respeta «reducir movimiento» (sin resortes, caída, aserrín ni transiciones de cámara), la escena tiene descripción, Escape suelta la pieza, el chat es una región viva, los botones de solo ícono tienen nombre.
 - Modo oscuro completo: cotas y papel de boceto con tokens del tema.
 - Si el navegador no puede dibujar 3D, un aviso reemplaza la escena y el resto del estudio sigue funcionando.
-- PWA: manifest, íconos generados con `scripts/iconos.py` (hoy `scripts/brand/generate.sh`) y service worker que abre la app sin conexión sin guardar llamadas a proveedores.
+- PWA: manifest, íconos generados con `scripts/brand/generate.sh` (y `ico.py` para el favicon) y service worker que abre la app sin conexión sin guardar llamadas a proveedores.
 
 Pendiente de validar con una API key real:
 - Que el esquema estricto de la respuesta lo acepten ambos proveedores (es grande: 15 operaciones y cotas anidadas). Validado con SheLLM (compatible con OpenAI); falta Anthropic y OpenAI directos.
