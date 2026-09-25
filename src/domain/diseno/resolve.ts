@@ -52,7 +52,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   const face = (ref: FaceRef, axis: Axis, who: string): number => {
     const { piece, axis: refAxis, side } = parseFace(ref)
     if (refAxis !== axis) throw new ResolveFailure(error('E_REF_AXIS', `"${who}" usa "${ref}" en el eje ${axis}; una cota solo puede referir caras del mismo eje.`, { piece: who, ref, axis: axis }))
-    if (piece === 'mueble') return side === 0 ? 0 : design.dimensions[DIMENSION_OF_AXIS[axis]]
+    if (piece === 'furniture') return side === 0 ? 0 : design.dimensions[DIMENSION_OF_AXIS[axis]]
     const other = byId.get(piece)
     if (!other) throw new ResolveFailure(error('E_UNKNOWN_REF', `"${who}" refiere "${ref}", pero no existe la pieza "${piece}".`, { piece: who, ref }))
     return extentOf(other, axis)[side]

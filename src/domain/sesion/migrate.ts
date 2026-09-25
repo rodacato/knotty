@@ -1,6 +1,7 @@
 // Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 had them in English but kept
 // the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 kept the catalog's hardware ids and the
-// simulated provider in Spanish; format 4 has everything in English.
+// simulated provider in Spanish; format 4 still called the furniture's own faces "mueble"; format 5 has everything in English.
+// Piece ids are the design's own data: the ones saved in Spanish stay as they were and still work.
 // Only names change: the numbers, ids and texts for the person stay as they were.
 
 type Raw = Record<string, unknown>
@@ -286,11 +287,26 @@ const stateV3 = fields({
   review: ['review', nullable(fields({ carpenter: ['carpenter', nullable(fields({ origin: ['origin', originV3] }))] }))],
 })
 
+// Format 4 → 5: the furniture's own faces were "mueble.x0"; any position or operation can refer to them.
+const FACE_V4 = /^mueble\.([xyz][01])$/
+const faces = (v: unknown): unknown => {
+  if (typeof v === 'string') return v.replace(FACE_V4, 'furniture.$1')
+  if (Array.isArray(v)) return v.map(faces)
+  if (isObject(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, faces(x)]))
+  return v
+}
+const stateV4 = fields({
+  format: ['format', () => 5],
+  versions: ['versions', list(fields({ design: ['design', faces], extras: ['extras', faces] }))],
+  proposal: ['proposal', nullable(fields({ design: ['design', faces], operations: ['operations', faces], extras: ['extras', faces] }))],
+})
+
 /** Brings a saved session up to the current format, one format at a time; anything it does not recognize is returned as is for the schema to judge. */
 export function migrateState(raw: unknown): unknown {
   let state = raw
   if (isObject(state) && state.formato === 1) state = stateV1(state)
   if (isObject(state) && state.format === 2) state = stateV2(state)
   if (isObject(state) && state.format === 3) state = stateV3(state)
+  if (isObject(state) && state.format === 4) state = stateV4(state)
   return state
 }
