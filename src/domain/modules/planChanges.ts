@@ -1,4 +1,6 @@
+import type { BedPlan } from './bed'
 import type { CabinetConstruction, CabinetPlan } from './cabinet'
+import { isBed, type FurniturePlan } from './plan'
 import type { Cell } from '../reading/reading'
 
 // What changed between two plans, in words for the person and for the expert's context.
@@ -15,7 +17,34 @@ const CONSTRUCTION: { [K in keyof CabinetConstruction]: [string, Record<CabinetC
 const count = (plan: CabinetPlan, content: Cell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
 const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
 
-export function describePlanChanges(before: CabinetPlan, after: CabinetPlan): string[] {
+const DRAWER_SIDE: Record<BedPlan['drawers']['side'], string> = { none: 'sin cajones', left: 'cajones del lado izquierdo', right: 'cajones del lado derecho', both: 'cajones de los dos lados' }
+const DRAWER_POSITION: Record<BedPlan['drawers']['position'], string> = { head: 'hacia la cabecera', center: 'al centro', foot: 'hacia el pie' }
+const HEADBOARD: Record<BedPlan['headboard']['style'], string> = { none: 'sin cabecera', plain: 'cabecera lisa', bookcase: 'cabecera librero', storage: 'cabecera con compartimento' }
+
+function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
+  const changes: string[] = []
+  if (before.mattress !== after.mattress) changes.push(`colchón ${after.mattress}`)
+  if (before.height !== after.height) changes.push(`base de ${after.height} mm`)
+  if (before.material !== after.material) changes.push(`material ${after.material}`)
+  const [a, b] = [before.drawers, after.drawers]
+  if (a.side !== b.side) changes.push(DRAWER_SIDE[b.side])
+  if (b.side !== 'none' && a.count !== b.count) changes.push(`${b.count} ${b.count === 1 ? 'cajón' : 'cajones'} por lado`)
+  if (b.side !== 'none' && a.position !== b.position) changes.push(`cajones ${DRAWER_POSITION[b.position]}`)
+  const [h, k] = [before.headboard, after.headboard]
+  if (h.style !== k.style) changes.push(HEADBOARD[k.style])
+  if (k.style !== 'none' && h.height !== k.height) changes.push(`cabecera de ${k.height} mm`)
+  if ((k.style === 'bookcase' || k.style === 'storage') && h.depth !== k.depth) changes.push(`cabecera de ${k.depth} mm de fondo`)
+  if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
+  return changes
+}
+
+export function describePlanChanges(before: FurniturePlan, after: FurniturePlan): string[] {
+  if (isBed(before) && isBed(after)) return describeBedChanges(before, after)
+  if (isBed(before) || isBed(after)) return [isBed(after) ? 'ahora es una cama' : 'ahora es un gabinete']
+  return describeCabinetChanges(before, after)
+}
+
+function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
   const changes: string[] = []
   const a = before.dimensions
   const b = after.dimensions

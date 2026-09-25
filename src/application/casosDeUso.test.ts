@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { analizar } from '../domain/analisis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
 import { desde, pieza, ref, tramo } from '../domain/diseno/construir'
-import { DEFAULT_CONSTRUCTION } from '../domain/modules/cabinet'
+import type { BedPlan } from '../domain/modules/bed'
+import { DEFAULT_CONSTRUCTION, type CabinetPlan } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
@@ -439,8 +440,8 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
   }
-  const origen = { promptId: 'esqueleto@2', proveedor: 'x', modelo: 'm' }
-  const conPlan = (cabinet: typeof cabinetPlan | null, falla = false) => {
+  const origen = { promptId: 'esqueleto@3', proveedor: 'x', modelo: 'm' }
+  const conPlan = (cabinet: typeof cabinetPlan | null, falla = false, bed: BedPlan | null = null) => {
     const simulado = crearSimulado(0)
     const llamadas: string[] = []
     const llm: LLMProvider = {
@@ -448,7 +449,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
       planDesign: async () => {
         llamadas.push('plan')
         if (falla) throw new Error('sin conexión')
-        return { valor: { explicacion: 'Una cajonera de tres cajones.', cabinet, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: ['Hazla más alta'] }, origen, consumo: { tokensSalida: 400 } }
+        return { valor: { explicacion: 'Una cajonera de tres cajones.', cabinet, bed, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: ['Hazla más alta'] }, origen, consumo: { tokensSalida: 400 } }
       },
       reconstruir: async (s, signal) => {
         llamadas.push('diseno')
@@ -490,7 +491,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const c = casos(llm)
     const inicial = await c.reconstruir(pedido('Una cajonera de tres cajones'), senal())
     expect(currentPlan(inicial)).toMatchObject({ since: 1, diverged: false })
-    const cuatro = { ...currentPlan(inicial).plan!, columns: [{ width: 1, cells: [0, 1, 2, 3].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }
+    const cuatro = { ...(currentPlan(inicial).plan as CabinetPlan), columns: [{ width: 1, cells: [0, 1, 2, 3].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }
     const r = c.applyPlan(inicial, { ...cuatro, construction: { ...cuatro.construction, drawerFronts: 'overlay' } })
     if (!r.ok) throw new Error(r.message)
     expect(llamadas).toEqual(['plan'])
@@ -517,10 +518,21 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/más grandes? que la hoja\. Trasera mide 3000/) })
   })
 
-  it('a bed, a desk or a table skips the skeleton', async () => {
+  it('a desk or a table skips the skeleton', async () => {
     const { llm, llamadas } = conPlan(cabinetPlan)
-    await expect(casos(llm).reconstruir(pedido('Una cama individual con cabecera'), senal())).rejects.toThrow()
+    await expect(casos(llm).reconstruir(pedido('Un escritorio con un cajón'), senal())).rejects.toThrow()
     expect(llamadas).toEqual(['diseno'])
+  })
+
+  it('a bed goes through its own ficha and Knotty builds it, measures from the mattress', async () => {
+    const bed: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'left', count: 3, position: 'head' }, headboard: { style: 'storage', height: 1100, depth: 250, shelves: 2 } }
+    const { llm, llamadas } = conPlan(null, false, bed)
+    const estado = await casos(llm).reconstruir(pedido('Una cama individual con cajones y cabecera librero'), senal())
+    expect(llamadas).toEqual(['plan'])
+    expect(currentPlan(estado).plan).toMatchObject({ kind: 'bed', mattress: 'individual' })
+    const design = disenoActual(estado)
+    expect(design.piezas.filter((p) => p.rol === 'frente-cajon')).toHaveLength(3)
+    expect(design.dimensiones).toEqual({ ancho: 250 + 1900 + 20 + 18, alto: 1100, fondo: 1010 })
   })
 })
 
@@ -541,11 +553,11 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     const calls: string[] = []
     const llm: LLMProvider = {
       ...simulado,
-      planDesign: async () => ({ valor: { explicacion: 'Cajonera.', cabinet: drawers(3), preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen, consumo: {} }),
+      planDesign: async () => ({ valor: { explicacion: 'Cajonera.', cabinet: drawers(3), bed: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen, consumo: {} }),
       adjustPlan: adjust
         ? async () => {
             calls.push('ficha')
-            return { valor: { explicacion: 'Listo.', resumen: 'Cambio', action: 'plan', plan: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], ...adjust }, origen, consumo: {} }
+            return { valor: { explicacion: 'Listo.', resumen: 'Cambio', action: 'plan', plan: null, bed: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], ...adjust }, origen, consumo: {} }
           }
         : null,
       proponerAjuste: async () => {
@@ -645,14 +657,14 @@ describe('editing a piece by hand, without the expert', () => {
   it('on a design with a ficha, the hand edit rides on top as an extra, and widening goes through the ficha', async () => {
     const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
     const simulado = crearSimulado(0)
-    const c = casos({ ...simulado, planDesign: async () => ({ valor: { explicacion: 'Librero.', cabinet: plan, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
+    const c = casos({ ...simulado, planDesign: async () => ({ valor: { explicacion: 'Librero.', cabinet: plan, bed: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen: { promptId: 'x', proveedor: 'x', modelo: 'm' }, consumo: {} }) })
     const inicial = await c.reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un librero' }, senal())
     const moved = c.editPiece(inicial, 'c1-h1-rep-1', { kind: 'move', axis: 'y', delta: 40 })
     if (!moved.ok) throw new Error(moved.message)
     expect(currentPlan(moved.estado)).toMatchObject({ diverged: false, extras: [{ op: 'mover', id: 'c1-h1-rep-1' }] })
     const wider = c.resizeFurniture(moved.estado, 'x', 800)
     if (!wider.ok) throw new Error(wider.message)
-    expect(currentPlan(wider.estado).plan?.dimensions.width).toBe(800)
+    expect((currentPlan(wider.estado).plan as CabinetPlan).dimensions.width).toBe(800)
     expect(currentPlan(wider.estado).extras).toHaveLength(1)
   })
 })

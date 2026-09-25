@@ -99,12 +99,12 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
     async planDesign(s: SolicitudReconstruccion, signal) {
       const contenido = designRequest(s)
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`).join('\n')))
-      const { json, consumo, avisos } = await t.completarJSON(ESQUELETO.texto.replace('{{materiales}}', materialsText(s.catalogo)), contenido, PLAN_SCHEMA, 'esqueleto', signal)
+      const { json, consumo, avisos } = await t.completarJSON(ESQUELETO.texto.replaceAll('{{materiales}}', materialsText(s.catalogo)), contenido, PLAN_SCHEMA, 'esqueleto', signal)
       return { valor: validar(RespuestaPlan, json), origen: { promptId: ESQUELETO.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
     async adjustPlan(r: PlanAdjustRequest, signal) {
       const contenido: Contenido[] = [{ tipo: 'texto', texto: `${r.contexto}\n\n## Ficha actual\n${JSON.stringify(r.plan)}\n\n## Pedido de la persona\n${r.peticion}` }]
-      const { json, consumo, avisos } = await t.completarJSON(AJUSTE_FICHA.texto.replace('{{materiales}}', materialsText(r.catalogo)), contenido, PLAN_ADJUSTMENT_SCHEMA, 'ajuste_ficha', signal)
+      const { json, consumo, avisos } = await t.completarJSON(AJUSTE_FICHA.texto.replaceAll('{{materiales}}', materialsText(r.catalogo)), contenido, PLAN_ADJUSTMENT_SCHEMA, 'ajuste_ficha', signal)
       return { valor: validar(PlanAdjustment, json), origen: { promptId: AJUSTE_FICHA.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
