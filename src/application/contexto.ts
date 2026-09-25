@@ -4,7 +4,8 @@ import { bitacoraCompacta } from '../domain/historial/historial'
 import type { Catalogo } from '../domain/materiales/catalogo'
 import { versionActual, type EstadoDiseno } from '../domain/sesion/estado'
 
-const PRESUPUESTO_TOKENS = 14_000
+// Con margen bajo los 50,000 caracteres que SheLLM acepta por mensaje de usuario.
+const PRESUPUESTO_TOKENS = 12_000
 const MENSAJES_RECIENTES = 6
 const tokens = (texto: string) => Math.ceil(texto.length / 3.5)
 

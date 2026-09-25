@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { it } from 'vitest'
@@ -56,7 +57,16 @@ function medido(llm: LLMProvider, llamadas: Llamada[]): LLMProvider {
   return { ...llm, reconstruir: medir(llm.reconstruir.bind(llm)), proponerAjuste: medir(llm.proponerAjuste.bind(llm)), dictaminar: medir(llm.dictaminar.bind(llm)) }
 }
 
+const commit = () => {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+  } catch {
+    return '—'
+  }
+}
+
 interface Resultado {
+  prompt: string | null
   modelo: string
   caso: string
   ok: boolean
@@ -81,7 +91,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
   const llamadas: Llamada[] = []
   const casos = crearCasosDeUso({ llm: () => medido(proveedor(spec), llamadas), catalogo, repositorio: memoria() })
   const inicio = performance.now()
-  const base = { modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, veredicto: '—' }
+  const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, veredicto: '—' }
   try {
     const estado = await casos.reconstruir({ medidas: caso.medidas, fotos: [], miniaturas: [], notas: caso.notas }, AbortSignal.timeout(6 * 60_000))
     const segundos = (performance.now() - inicio) / 1000
@@ -92,6 +102,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
     const tokens = llamadas.map((l) => l.salida)
     const resultado = {
       ...base,
+      prompt: estado.versiones[0].origen?.promptId ?? null,
       ok: true,
       error: null,
       segundos,
@@ -131,6 +142,8 @@ function informe(resultados: Resultado[], etiqueta: string) {
   })
   return [
     `# Comparativo de modelos: ${etiqueta}`,
+    '',
+    `Commit ${commit()} · prompts ${[...new Set(resultados.map((r) => r.prompt).filter(Boolean))].join(', ') || '—'} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
     '',
     '| Modelo | Diseños válidos | Segundos (prom.) | Tokens de salida (prom.) | Medidas razonables | Viables |',
     '|---|---|---|---|---|---|',

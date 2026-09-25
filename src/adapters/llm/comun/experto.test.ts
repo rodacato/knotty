@@ -4,6 +4,7 @@ import { librero } from '../../../domain/fixtures/librero'
 import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida } from '../../../ports/LLMProvider'
 import { esquemaEstricto } from './esquemaJson'
 import { crearExperto, type Contenido, type Transporte } from './experto'
+import { AJUSTE, DICTAMEN, RECONSTRUCCION, sistemaPara } from './prompts'
 
 function recorrer(nodo: unknown, visitar: (n: Record<string, unknown>) => void) {
   if (Array.isArray(nodo)) return nodo.forEach((n) => recorrer(n, visitar))
@@ -21,6 +22,13 @@ describe('esquemaEstricto', () => {
         expect(n.required).toEqual(Object.keys(n.properties as object))
       }
     })
+  })
+})
+
+describe('prompts', () => {
+  // SheLLM pasa el sistema como argumento de línea de comandos y Linux lo limita a 128 KiB.
+  it.each([RECONSTRUCCION, AJUSTE, DICTAMEN])('el sistema de $id cabe con holgura en un argumento de línea de comandos', (tarea) => {
+    expect(new TextEncoder().encode(sistemaPara(tarea, catalogo)).length).toBeLessThan(64 * 1024)
   })
 })
 
