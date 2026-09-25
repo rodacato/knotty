@@ -1,11 +1,11 @@
 import { analizar } from '../domain/analisis'
-import type { Dimensiones, Diseno } from '../domain/diseno/esquema'
+import { DIMENSION_DE_EJE, type Cota, type Dimensiones, type Diseno, type Eje } from '../domain/diseno/esquema'
 import { normalizar } from '../domain/diseno/normalizador'
 import { completeJoints } from '../domain/diseno/joints'
 import type { Hallazgo } from '../domain/estructura/hallazgo'
 import { criticosNuevos } from '../domain/estructura/motor'
 import { abreviar, actualizarDecisiones, podarVersiones, type Decision, type Origen } from '../domain/historial/historial'
-import type { Catalogo } from '../domain/materiales/catalogo'
+import { materialPorId, type Catalogo } from '../domain/materiales/catalogo'
 import { estimarCompra } from '../domain/materiales/compra'
 import { despiece, type RenglonDespiece } from '../domain/materiales/despiece'
 import { aplicar } from '../domain/operaciones/aplicar'
@@ -89,6 +89,12 @@ export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; e
 /** A free-form change on a design that has a plan keeps the plan and joins its extras. */
 const layered = (vigente: ReturnType<typeof currentPlan>, operaciones: Operacion[]) =>
   vigente.plan && !vigente.diverged ? { plan: vigente.plan, extras: [...vigente.extras, ...operaciones] } : { plan: null, extras: [] }
+
+/** A cota tied to an outer face of the piece of furniture. */
+const toOutside = (cota: Cota | null) => cota?.tipo === 'ref' && cota.ref.startsWith('mueble.')
+
+export type PieceEdit = { kind: 'length'; axis: Eje; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Eje; delta: number }
+export type PieceEditResult = { ok: true; estado: EstadoDiseno } | { ok: false; message: string; alternatives: { label: string; axis: Eje; value: number }[] }
 
 /** El experto no logró algo y lo dice; el mensaje es para el usuario. */
 export class ErrorExperto extends Error {
@@ -614,6 +620,72 @@ export function crearCasosDeUso(deps: Dependencias) {
     return { ok: true, estado: guardar({ ...withVersion, medidas: design.dimensiones, chat }), notes }
   }
 
+  /** A hand edit on one piece, with no expert: the edit if it holds, or the ways it could. */
+  function editPiece(estado: EstadoDiseno, id: string, edit: PieceEdit): PieceEditResult {
+    const design = disenoActual(estado)
+    const piece = design.piezas.find((p) => p.id === id)
+    const analysis = analizar(design, catalogo, estado.requisitos)
+    const box = analysis.geo?.cajas.get(id)
+    if (!piece || !box) return { ok: false, message: 'No encuentro esa pieza en el diseño.', alternatives: [] }
+    const size = (axis: Eje) => box[`${axis}1`] - box[`${axis}0`]
+    const operaciones: Operacion[] =
+      edit.kind === 'thickness'
+        ? [{ op: 'cambiarEspesor', ids: [id], material: edit.material }]
+        : edit.kind === 'move'
+          ? [{ op: 'mover', id, eje: edit.axis, cota: { tipo: 'mm', mm: box[`${edit.axis}0`] + edit.delta } }]
+          : [
+              // The end tied to the outside of the piece stays; the other one moves.
+              toOutside(piece[edit.axis].hasta) && !toOutside(piece[edit.axis].desde)
+                ? { op: 'redimensionar', id, eje: edit.axis, extremo: 'desde', cota: { tipo: 'mm', mm: box[`${edit.axis}1`] - edit.value } }
+                : { op: 'redimensionar', id, eje: edit.axis, extremo: 'hasta', cota: { tipo: 'mm', mm: box[`${edit.axis}0`] + edit.value } },
+            ]
+    const summary =
+      edit.kind === 'thickness'
+        ? `${piece.nombre} de ${materialPorId(catalogo, edit.material)?.espesor ?? '?'} mm`
+        : edit.kind === 'move'
+          ? `Mover ${piece.nombre.toLowerCase()} ${Math.abs(edit.delta)} mm`
+          : `${piece.nombre} de ${Math.round(size(edit.axis))} a ${Math.round(edit.value)} mm`
+    const applied = aplicar(design, operaciones, catalogo)
+    const candidate = applied.ok ? completeJoints(normalizar(applied.valor.diseno, catalogo), catalogo, design) : null
+    const after = candidate ? analizar(candidate, catalogo, estado.requisitos) : null
+    // An edit may leave the problems a design already had, but it must not add new ones.
+    const before = new Set(analysis.valido ? [] : analysis.errores.map(errorKey))
+    const holds = !!after && (after.valido || after.errores.every((e) => before.has(errorKey(e))))
+    if (candidate && holds) {
+      const vigente = currentPlan(estado)
+      const withVersion = conVersion(estado, candidate, { resumen: summary.slice(0, 90), motivo: `A mano: ${summary}`, operaciones, origen: null, ...layered(vigente, operaciones) })
+      return { ok: true, estado: guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`)] }) }
+    }
+    const reason = !applied.ok ? applied.errores[0]?.mensaje : after && !after.valido ? after.errores.find((e) => !before.has(errorKey(e)))?.mensaje : undefined
+    const named = (text = '') => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
+    // Tied to the outside of the piece: what can change is the whole piece of furniture.
+    const alternatives: { label: string; axis: Eje; value: number }[] =
+      edit.kind === 'length'
+        ? [{ label: `Cambiar el ${DIMENSION_DE_EJE[edit.axis]} del mueble en ${edit.value - Math.round(size(edit.axis)) > 0 ? '+' : ''}${Math.round(edit.value - size(edit.axis))} mm`, axis: edit.axis, value: Math.round(design.dimensiones[DIMENSION_DE_EJE[edit.axis]] + edit.value - size(edit.axis)) }]
+        : []
+    return { ok: false, message: `Así no queda: ${(named(reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
+  }
+
+  /** The whole piece of furniture grows or shrinks along one axis; through the ficha when there is one. */
+  function resizeFurniture(estado: EstadoDiseno, axis: Eje, value: number): PieceEditResult {
+    const vigente = currentPlan(estado)
+    if (vigente.plan && !vigente.diverged) {
+      const key = { x: 'width', y: 'height', z: 'depth' } as const
+      const r = applyPlan(estado, { ...vigente.plan, dimensions: { ...vigente.plan.dimensions, [key[axis]]: value } })
+      return r.ok ? { ok: true, estado: r.estado } : { ok: false, message: r.message, alternatives: [] }
+    }
+    const operaciones: Operacion[] = [{ op: 'cambiarDimensionGlobal', eje: axis, valor: value, regla: 'estirar' }]
+    const design = disenoActual(estado)
+    const applied = aplicar(design, operaciones, catalogo)
+    const candidate = applied.ok ? completeJoints(normalizar(applied.valor.diseno, catalogo), catalogo, design) : null
+    const after = candidate && analizar(candidate, catalogo, estado.requisitos)
+    if (!candidate || !after?.valido) return { ok: false, message: 'Tampoco se puede cambiar la medida del mueble así.', alternatives: [] }
+    const dimension = DIMENSION_DE_EJE[axis]
+    const summary = `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)} del mueble a ${value} mm`
+    const withVersion = conVersion(estado, candidate, { resumen: summary, motivo: `A mano: ${summary}`, operaciones, origen: null })
+    return { ok: true, estado: guardar({ ...withVersion, medidas: candidate.dimensiones, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`)] }) }
+  }
+
   function nuevoDiseno() {
     repositorio.borrar()
   }
@@ -667,6 +739,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     dictaminar,
     guardarDictamen,
     applyPlan,
+    editPiece,
+    resizeFurniture,
     cargar,
     preguntasPendientes,
   }

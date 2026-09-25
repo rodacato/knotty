@@ -212,7 +212,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
       </div>
       {geoMostrada && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
-          <FichaPieza diseno={mostrado} geo={geoMostrada} catalogo={catalogo} />
+          <FichaPieza diseno={mostrado} geo={geoMostrada} catalogo={catalogo} editable={versionVista === null && !propuesta} />
         </div>
       )}
     </div>

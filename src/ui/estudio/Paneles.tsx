@@ -5,6 +5,7 @@ import type { Catalogo } from '../../domain/materiales/catalogo'
 import { despiece } from '../../domain/materiales/despiece'
 import { cm } from '../sistema/componentes'
 import { useTienda } from '../tienda'
+import { PieceEditor } from './PieceEditor'
 
 const UNIONES: Record<TipoUnion, string> = {
   'tope-tornillo': 'tornillo al canto',
@@ -56,7 +57,7 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
   )
 }
 
-export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geometria; catalogo: Catalogo }) {
+export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometria; catalogo: Catalogo; editable?: boolean }) {
   const confirmarPieza = useTienda((s) => s.confirmarPieza)
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)
@@ -92,6 +93,7 @@ export function FichaPieza({ diseno, geo, catalogo }: { diseno: Diseno; geo: Geo
         ))}
       </dl>
       <p className="mt-2 text-xs text-grafito-2">Veta {VETA[p.veta]}</p>
+      <PieceEditor key={p.id} piece={p} box={caja} catalog={catalogo} enabled={editable} />
       {p.confianza === 'baja' && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-papel px-3 py-2 text-xs text-grafito">
           <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>

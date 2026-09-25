@@ -1,9 +1,9 @@
 import { create } from 'zustand'
-import { ErrorExperto, type Etapa, type FotoEnviada } from '../application/casosDeUso'
+import { ErrorExperto, type Etapa, type FotoEnviada, type PieceEdit, type PieceEditResult } from '../application/casosDeUso'
 import type { CabinetPlan } from '../domain/modules/cabinet'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
-import type { Dimensiones, Diseno, Pieza } from '../domain/diseno/esquema'
+import type { Dimensiones, Diseno, Eje, Pieza } from '../domain/diseno/esquema'
 import type { Caja } from '../domain/diseno/resolver'
 import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
@@ -88,6 +88,9 @@ interface Tienda {
   dictaminar(): Promise<void>
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: CabinetPlan): { ok: true; notes: string[] } | { ok: false; message: string }
+  /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
+  editPiece(id: string, edit: PieceEdit): PieceEditResult
+  resizeFurniture(axis: Eje, value: number): PieceEditResult
   cancelarDictamen(): void
 }
 
@@ -298,6 +301,22 @@ export const useTienda = create<Tienda>((set, get) => ({
   quitarDecision(tema) {
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
+
+  editPiece(id, edit) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
+    const r = servicios.casos.editPiece(estado, id, edit)
+    if (r.ok) set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    return r
+  },
+
+  resizeFurniture(axis, value) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return { ok: false, message: 'No hay un diseño abierto.', alternatives: [] }
+    const r = servicios.casos.resizeFurniture(estado, axis, value)
+    if (r.ok) set((s) => ({ estado: r.estado, versionVista: null, cambios: transicion(mostrado(estado), mostrado(r.estado), servicios.catalogo, s.cambios.vez + 1) }))
+    return r
   },
 
   applyPlan(plan) {
