@@ -142,11 +142,13 @@ class StreamCortado extends Error {
 function extraerJSON(texto: string) {
   const inicio = texto.indexOf('{')
   const fin = texto.lastIndexOf('}')
-  if (inicio < 0 || fin <= inicio) throw new Error('El modelo no devolvió JSON.')
+  // Con cuánto llegó y cómo termina se distingue una respuesta cortada de una mal escrita.
+  const muestra = `${texto.length.toLocaleString('es-MX')} caracteres, termina en «${texto.slice(-40).replace(/\s+/g, ' ')}»`
+  if (inicio < 0 || fin <= inicio) throw new Error(`El modelo no devolvió JSON (${muestra}).`)
   try {
     return JSON.parse(texto.slice(inicio, fin + 1))
   } catch {
-    throw new Error('El modelo devolvió un JSON inválido.')
+    throw new Error(`El modelo devolvió un JSON inválido (${muestra}).`)
   }
 }
 

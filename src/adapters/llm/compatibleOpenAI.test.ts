@@ -140,6 +140,11 @@ describe('crearCompatible', () => {
     expect(cuerpos.map((c) => c.reasoning_effort ?? null)).toEqual(['low', null, null])
   })
 
+  it('un JSON inválido dice cuánto llegó y cómo termina, para distinguir un corte', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"explicacion": "Veo un buró", "diseno": {"dimensiones": {"alto": 500}, "piezas": [' } }] }), { status: 200 })))
+    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/JSON inválido \(\d+ caracteres, termina en «.*piezas": \[»\)/)
+  })
+
   it('si el host no acepta stream, lo deja de pedir y lo recuerda', async () => {
     const cuerpos: { stream?: boolean }[] = []
     vi.stubGlobal(
