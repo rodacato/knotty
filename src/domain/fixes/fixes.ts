@@ -5,6 +5,7 @@ import { drawerSides } from '../design/drawers'
 import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
 import { findingKey, type Alternative, type Finding } from '../structure/finding'
+import { isBuildKey, type AlternativeKey } from '../structure/alternatives'
 import { materialById, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
@@ -14,7 +15,7 @@ import type { Operation } from '../operations/schema'
 
 export interface Fix {
   /** The alternative it implements, as the rule named it. */
-  key: string
+  key: AlternativeKey
   label: string
   operations: Operation[]
   design: Design
@@ -122,7 +123,10 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
 
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
   const pieces = finding.pieces.map((id) => design.pieces.find((p) => p.id === id)).filter((p): p is Piece => !!p)
-  switch (alternative.key) {
+  const key = alternative.key
+  if (!isBuildKey(key)) return []
+  // One case per key declared 'build': a new one does not compile until it is built here.
+  switch (key) {
     case 'thicker-board': {
       // R2 names the one piece that is too thin for the joint; R1 names none, and every sagging piece of the finding gets the board.
       const { material, piece } = alternative.data
@@ -141,8 +145,10 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
       return backRail(design, catalog, 'apron', 'Faja trasera')
     case 'slide-support':
       return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
-    default:
-      return []
+    default: {
+      const unbuilt: never = key
+      return unbuilt
+    }
   }
 }
 
