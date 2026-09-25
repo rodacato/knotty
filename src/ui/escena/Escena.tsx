@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Diseno } from '../../domain/diseno/esquema'
-import type { Geometria } from '../../domain/diseno/resolver'
+import type { Geometry } from '../../domain/diseno/resolve'
 import type { Catalogo } from '../../domain/materiales/catalogo'
 import { useTienda, type Vista } from '../tienda'
 import { DimensionLines } from './DimensionLines'
@@ -18,7 +18,7 @@ const MM = 0.001
 
 interface PropsEscena {
   diseno: Diseno
-  geo: Geometria
+  geo: Geometry
   catalogo: Catalogo
   /** Piezas nuevas de una propuesta: fantasma ámbar. */
   fantasmas: string[]
@@ -29,7 +29,7 @@ interface PropsEscena {
 }
 
 /** Cuánto se separa cada pieza en la vista de armado: hacia afuera del centro, sobre todo en la dirección de su espesor, sin bajar del piso. */
-function desplazamientos(geo: Geometria, diseno: Diseno, activo: boolean) {
+function desplazamientos(geo: Geometry, diseno: Diseno, activo: boolean) {
   const cero = new Map(diseno.piezas.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
   if (!activo) return { empujes: cero, alto: diseno.dimensiones.alto * MM }
   const { ancho, alto, fondo } = diseno.dimensiones
@@ -39,15 +39,15 @@ function desplazamientos(geo: Geometria, diseno: Diseno, activo: boolean) {
   const cajones = new Map<string, number>()
   for (const p of diseno.piezas)
     if (p.grupo && p.rol === 'costado-cajon' && p.normal === 'x') {
-      const c = geo.cajas.get(p.id)!
+      const c = geo.boxes.get(p.id)!
       const frente = diseno.piezas.find((q) => q.grupo === p.grupo && q.rol === 'frente-cajon')
-      const f = frente && geo.cajas.get(frente.id)
+      const f = frente && geo.boxes.get(frente.id)
       // A drawer on the far side of a bed opens backward.
       const sentido = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
       cajones.set(p.grupo, (c.z1 - c.z0) * 0.75 * sentido)
     }
   const crudos = diseno.piezas.map((p) => {
-    const c = geo.cajas.get(p.id)!
+    const c = geo.boxes.get(p.id)!
     const salida = p.grupo ? cajones.get(p.grupo) : undefined
     if (salida !== undefined) return { id: p.id, c, empuje: { x: 0, y: 0, z: salida } }
     const d = { x: (c.x0 + c.x1) / 2 - centro.x, y: (c.y0 + c.y1) / 2 - centro.y, z: (c.z0 + c.z1) / 2 - centro.z }
@@ -103,7 +103,7 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
 
   const { empujes, alto: altoVisible } = useMemo(() => desplazamientos(geo, diseno, explosion), [geo, diseno, explosion])
   const tipoDe = (material: string) => (catalogo.materiales.find((m) => m.id === material)?.tipo === 'trasera' ? 'trasera' : 'triplay')
-  const orden = useMemo(() => [...diseno.piezas].sort((a, b) => geo.cajas.get(a.id)!.y0 - geo.cajas.get(b.id)!.y0).map((p) => p.id), [diseno, geo])
+  const orden = useMemo(() => [...diseno.piezas].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [diseno, geo])
 
   return (
     <Canvas frameloop="demand" shadows dpr={[1, tactil ? 1.5 : calidad ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => seleccionar(null)}>
@@ -124,7 +124,7 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
           <Pieza
             key={`${p.id}-${revelado}`}
             pieza={p}
-            caja={geo.cajas.get(p.id)!}
+            caja={geo.boxes.get(p.id)!}
             tono={tipoDe(p.material)}
             desplazamiento={empujes.get(p.id)!}
             seleccionada={seleccion === p.id}
@@ -144,9 +144,9 @@ export function Escena({ diseno, geo, catalogo, fantasmas, marcadas, problemas =
           <Saliente key={`${pieza.id}-${cambios.vez}`} caja={caja} />
         ))}
         {cambios.agregadas
-          .filter((id) => !reducido && geo.cajas.has(id))
+          .filter((id) => !reducido && geo.boxes.has(id))
           .map((id) => {
-            const c = geo.cajas.get(id)!
+            const c = geo.boxes.get(id)!
             const [dx, dy, dz] = empujes.get(id) ?? [0, 0, 0]
             return <Aserrin key={`${id}-${cambios.vez}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}

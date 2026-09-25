@@ -1,8 +1,8 @@
 import { analizar } from '../analisis'
 import type { Diseno, Pieza } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
-import { normalizar } from '../diseno/normalizador'
-import { medidasCara, redondear, type Caja } from '../diseno/resolver'
+import { normalize } from '../diseno/normalize'
+import { faceSize, roundTo, type Box } from '../diseno/resolve'
 import type { Catalogo } from '../materiales/catalogo'
 import { aplicar } from '../operaciones/aplicar'
 import type { DesignError } from '../validation/errors'
@@ -28,17 +28,17 @@ export interface Change {
 
 const PROPERTIES = ['nombre', 'rol', 'material', 'normal', 'veta', 'carga', 'apoyo', 'grupo', 'confianza'] as const
 const definitionChanged = (a: Pieza, b: Pieza) => PROPERTIES.some((k) => a[k] !== b[k]) || JSON.stringify([a.x, a.y, a.z, a.cantos]) !== JSON.stringify([b.x, b.y, b.z, b.cantos])
-const boxChanged = (a: Caja, b: Caja) => (Object.keys(a) as (keyof Caja)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
-const face = (p: Pieza, box: Caja) => medidasCara(box, p.normal).map((m) => redondear(m, 0)).join(' × ')
-const thickness = (p: Pieza, box: Caja) => redondear(box[`${p.normal}1`] - box[`${p.normal}0`], 0)
+const boxChanged = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
+const face = (p: Pieza, box: Box) => faceSize(box, p.normal).map((m) => roundTo(m, 0)).join(' × ')
+const thickness = (p: Pieza, box: Box) => roundTo(box[`${p.normal}1`] - box[`${p.normal}0`], 0)
 
-function detail(before: Pieza, after: Pieza, a: Caja | undefined, b: Caja | undefined): string {
+function detail(before: Pieza, after: Pieza, a: Box | undefined, b: Box | undefined): string {
   const parts: string[] = []
   if (a && b) {
     if (face(before, a) !== face(after, b)) parts.push(`${face(before, a)} → ${face(after, b)} mm`)
     if (thickness(before, a) !== thickness(after, b)) parts.push(`${thickness(before, a)} → ${thickness(after, b)} mm de espesor`)
     const moved = (['x', 'y', 'z'] as const).map((e) => b[`${e}0`] - a[`${e}0`]).find((d) => Math.abs(d) > 0.5)
-    if (!parts.length && moved !== undefined) parts.push(`se movió ${redondear(Math.abs(moved), 0)} mm`)
+    if (!parts.length && moved !== undefined) parts.push(`se movió ${roundTo(Math.abs(moved), 0)} mm`)
   }
   if (before.nombre !== after.nombre) parts.push(`ahora «${after.nombre}»`)
   if (before.apoyo !== after.apoyo) parts.push(after.apoyo === 'movil' ? 'ahora móvil' : 'ahora fija')
@@ -47,8 +47,8 @@ function detail(before: Pieza, after: Pieza, a: Caja | undefined, b: Caja | unde
 }
 
 export function describeChange(before: Diseno, after: Diseno, catalog: Catalogo): Change {
-  const boxesBefore = analizar(before, catalog).geo?.cajas ?? new Map<string, Caja>()
-  const boxesAfter = analizar(after, catalog).geo?.cajas ?? new Map<string, Caja>()
+  const boxesBefore = analizar(before, catalog).geo?.boxes ?? new Map<string, Box>()
+  const boxesAfter = analizar(after, catalog).geo?.boxes ?? new Map<string, Box>()
   const previous = new Map(before.piezas.map((p) => [p.id, p]))
   const next = new Map(after.piezas.map((p) => [p.id, p]))
   const direct: ChangeItem[] = []
@@ -85,5 +85,5 @@ export function restorePieces(current: Diseno, source: Diseno, ids: string[], ca
   const candidate = { ...design, piezas: pieces, uniones: joints }
   const analysis = analizar(candidate, catalog)
   if (!analysis.geo) return { ok: false, errors: analysis.valido ? [] : analysis.errores }
-  return { ok: true, design: completeJoints(normalizar(candidate, catalog), catalog, current) }
+  return { ok: true, design: completeJoints(normalize(candidate, catalog), catalog, current) }
 }

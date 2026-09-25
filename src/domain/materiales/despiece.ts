@@ -1,5 +1,5 @@
 import type { Diseno } from '../diseno/esquema'
-import { medidasCara, redondear, type Geometria } from '../diseno/resolver'
+import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 
 export interface RenglonDespiece {
   ids: string[]
@@ -12,19 +12,19 @@ export interface RenglonDespiece {
 }
 
 /** Lista de corte: piezas iguales (material y medidas) se agrupan. */
-export function despiece(diseno: Diseno, geo: Geometria): RenglonDespiece[] {
+export function despiece(diseno: Diseno, geo: Geometry): RenglonDespiece[] {
   const renglones = new Map<string, RenglonDespiece>()
   for (const p of diseno.piezas) {
-    const caja = geo.cajas.get(p.id)
+    const caja = geo.boxes.get(p.id)
     if (!caja) continue
-    const [largo, ancho] = medidasCara(caja, p.normal).map((m) => redondear(m, 0))
+    const [largo, ancho] = faceSize(caja, p.normal).map((m) => roundTo(m, 0))
     const clave = `${p.material}|${largo}|${ancho}|${p.rol}`
     const existente = renglones.get(clave)
     if (existente) {
       existente.ids.push(p.id)
       existente.cantidad++
       existente.nombre = nombreComun(existente.nombre, p.nombre)
-    } else renglones.set(clave, { ids: [p.id], nombre: p.nombre, material: p.material, largo, ancho, espesor: geo.espesores.get(p.id)!, cantidad: 1 })
+    } else renglones.set(clave, { ids: [p.id], nombre: p.nombre, material: p.material, largo, ancho, espesor: geo.thicknesses.get(p.id)!, cantidad: 1 })
   }
   return [...renglones.values()].sort((a, b) => b.espesor - a.espesor || b.largo * b.ancho - a.largo * a.ancho)
 }

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Diseno } from '../../domain/diseno/esquema'
 import { hardwareParts } from '../../domain/diseno/hardware'
-import type { Geometria } from '../../domain/diseno/resolver'
+import type { Geometry } from '../../domain/diseno/resolve'
 
 // Runners and hinges drawn in metal, so a drawer shows what it slides on and a door what it swings on.
 
@@ -10,8 +10,8 @@ const METAL = { color: '#a19e98', metalness: 0.75, roughness: 0.35 }
 /** The hinge arm, from the cup toward the side it is screwed to. */
 const ARM = { length: 45, width: 16, thickness: 10 }
 
-export function Hardware({ design, geo, offsets, selected }: { design: Diseno; geo: Geometria; offsets: Map<string, [number, number, number]>; selected: string | null }) {
-  const parts = useMemo(() => hardwareParts(design, geo.cajas), [design, geo])
+export function Hardware({ design, geo, offsets, selected }: { design: Diseno; geo: Geometry; offsets: Map<string, [number, number, number]>; selected: string | null }) {
+  const parts = useMemo(() => hardwareParts(design, geo.boxes), [design, geo])
   return (
     <group>
       {parts.map((part, i) => {
@@ -28,7 +28,7 @@ export function Hardware({ design, geo, offsets, selected }: { design: Diseno; g
             </mesh>
           )
         }
-        const door = geo.cajas.get(part.owner)
+        const door = geo.boxes.get(part.owner)
         const towardsLeft = door ? part.center[0] - door.x0 < door.x1 - part.center[0] : true
         const [x, y, z] = part.center
         return (

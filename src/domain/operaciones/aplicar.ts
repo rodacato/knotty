@@ -1,6 +1,6 @@
-import { entre } from '../diseno/construir'
+import { partway } from '../diseno/builders'
 import { DIMENSION_DE_EJE, EJES, type Cota, type Diseno, type Eje, type Pieza, type Tramo } from '../diseno/esquema'
-import { parseCara, resolver, type Geometria } from '../diseno/resolver'
+import { parseFace, resolveGeometry, type Geometry } from '../diseno/resolve'
 import { materialPorId, type Catalogo } from '../materiales/catalogo'
 import { contactBetween } from '../validation/contact'
 import { error, success, failure, type DesignWarning, type DesignError, type Result } from '../validation/errors'
@@ -21,15 +21,15 @@ class OperacionInvalida extends Error {
 const invalida = (codigo: DesignError['codigo'], mensaje: string, datos?: Record<string, unknown>) => new OperacionInvalida(error(codigo, mensaje, datos))
 
 const refiereA = (cota: Cota | null, id: string) =>
-  !!cota && ((cota.tipo === 'ref' && parseCara(cota.ref).pieza === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseCara(r).pieza === id)))
+  !!cota && ((cota.tipo === 'ref' && parseFace(cota.ref).piece === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
 
 /** Aplica las operaciones en orden sobre una copia. Si una falla, no se aplica ninguna. */
 export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Catalogo): Result<Aplicado> {
   const diseno = structuredClone(original)
   const avisos: DesignWarning[] = []
 
-  const geometria = (): Geometria => {
-    const r = resolver(diseno, catalogo)
+  const geometria = (): Geometry => {
+    const r = resolveGeometry(diseno, catalogo)
     if (!r.ok) throw new OperacionInvalida(r.errores[0])
     return r.valor
   }
@@ -52,7 +52,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
         for (const extremo of ['desde', 'hasta'] as const) {
           const cota = p[eje][extremo]
           if (!refiereA(cota, id)) continue
-          p[eje][extremo] = { tipo: 'mm', mm: geo.valor(cota!, eje) }
+          p[eje][extremo] = { tipo: 'mm', mm: geo.measure(cota!, eje) }
           congeladas.add(p.id)
         }
     }
@@ -65,7 +65,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
   function colocar(p: Pieza, eje: Eje, cota: Cota, largo: number) {
     p[eje] = eje === p.normal ? { desde: cota, hasta: null, largo: null } : { desde: cota, hasta: null, largo }
   }
-  const largoDe = (id: string, eje: Eje, geo: Geometria) => geo.cajas.get(id)![`${eje}1`] - geo.cajas.get(id)![`${eje}0`]
+  const largoDe = (id: string, eje: Eje, geo: Geometry) => geo.boxes.get(id)![`${eje}1`] - geo.boxes.get(id)![`${eje}0`]
 
   const aplicarUna = (op: Operacion) => {
     switch (op.op) {
@@ -90,11 +90,11 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
         const copiadas = diseno.uniones
           .filter((u) => u.a === op.id || u.b === op.id)
           .map((u) => ({ ...structuredClone(u), id: `${u.id}-${op.nuevoId}`, a: u.a === op.id ? op.nuevoId : u.a, b: u.b === op.id ? op.nuevoId : u.b }))
-        const despues = resolver(diseno, catalogo)
+        const despues = resolveGeometry(diseno, catalogo)
         diseno.uniones.push(
           ...copiadas.filter((u) => {
             if (!despues.ok) return true
-            const { cajas } = despues.valor
+            const { boxes: cajas } = despues.valor
             return !!cajas.get(u.a) && !!cajas.get(u.b) && !!contactBetween(u.a, cajas.get(u.a)!, u.b, cajas.get(u.b)!)
           }),
         )
@@ -103,7 +103,7 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
       case 'redimensionar': {
         const p = pieza(op.id)
         if (op.eje === p.normal) throw invalida('E_OPERACION_INVALIDA', `"${p.id}" tiene su espesor en ${op.eje}; para eso usa cambiarEspesor o mover.`, { pieza: p.id, eje: op.eje })
-        const caja = geometria().cajas.get(p.id)!
+        const caja = geometria().boxes.get(p.id)!
         const actual = p[op.eje]
         const nuevo: Tramo =
           op.extremo === 'desde'
@@ -123,10 +123,10 @@ export function aplicar(original: Diseno, operaciones: Operacion[], catalogo: Ca
         const geo = geometria()
         const n = piezas.length
         piezas
-          .sort((a, b) => geo.cajas.get(a.id)![`${op.eje}0`] - geo.cajas.get(b.id)![`${op.eje}0`])
+          .sort((a, b) => geo.boxes.get(a.id)![`${op.eje}0`] - geo.boxes.get(b.id)![`${op.eje}0`])
           .forEach((p, i) => {
-            const espesor = geo.espesores.get(p.id)!
-            p[op.eje] = { desde: entre(op.a, op.b, (i + 1) / (n + 1), (espesor * (i - n)) / (n + 1)), hasta: null, largo: null }
+            const espesor = geo.thicknesses.get(p.id)!
+            p[op.eje] = { desde: partway(op.a, op.b, (i + 1) / (n + 1), (espesor * (i - n)) / (n + 1)), hasta: null, largo: null }
           })
         return
       }

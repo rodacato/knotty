@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../domain/analisis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
-import { desde, pieza, ref, tramo } from '../domain/diseno/construir'
+import { startAt, makePiece, ref, extent } from '../domain/diseno/builders'
 import type { BedPlan } from '../domain/modules/bed'
 import { DEFAULT_CONSTRUCTION, type CabinetPlan } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
@@ -556,7 +556,7 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     columns: [{ width: 1, cells: Array.from({ length: n }, () => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
   })
   const origen = { promptId: 'x', proveedor: 'x', modelo: 'm' }
-  const hanger = pieza({ id: 'liston', nombre: 'Listón de colgar', rol: 'refuerzo', material: 'T18', normal: 'z', x: tramo(ref('lat-izq.x1'), ref('lat-der.x0')), y: tramo(null, ref('techo.y0'), 80), z: desde(ref('trasera.z1')) })
+  const hanger = makePiece({ id: 'liston', nombre: 'Listón de colgar', rol: 'refuerzo', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('techo.y0'), 80), z: startAt(ref('trasera.z1')) })
   const expert = (adjust: Partial<PlanAdjustment> | null, operaciones: Operacion[] = []) => {
     const simulado = crearSimulado(0)
     const calls: string[] = []
@@ -633,7 +633,7 @@ describe('editing a piece by hand, without the expert', () => {
   const box = (estado: EstadoDiseno, id: string) => {
     const a = analizar(disenoActual(estado), catalogo)
     if (!a.valido) throw new Error(a.errores[0].mensaje)
-    return a.geo.cajas.get(id)!
+    return a.geo.boxes.get(id)!
   }
   const start = () => {
     const c = casos()

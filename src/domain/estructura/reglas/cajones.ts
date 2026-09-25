@@ -1,8 +1,8 @@
-import { redondear } from '../../diseno/resolver'
+import { roundTo } from '../../diseno/resolve'
 import { gapBetween } from '../../validation/contact'
 import type { Diseno } from '../../diseno/esquema'
 import { drawerSides } from '../../diseno/drawers'
-import type { Geometria } from '../../diseno/resolver'
+import type { Geometry } from '../../diseno/resolve'
 import type { Hallazgo, Regla } from '../hallazgo'
 import { SUPUESTOS } from '../supuestos'
 
@@ -12,8 +12,8 @@ export const reglaCajones: Regla = ({ diseno, geo, catalogo, contactos }) => {
   const grupos = [...new Set(diseno.piezas.filter((p) => p.rol === 'frente-cajon' && p.grupo).map((p) => p.grupo!))]
 
   for (const u of diseno.uniones.filter((x) => x.tipo === 'corredera')) {
-    const a = geo.cajas.get(u.a)
-    const b = geo.cajas.get(u.b)
+    const a = geo.boxes.get(u.a)
+    const b = geo.boxes.get(u.b)
     const hueco = a && b ? gapBetween(a, b) : null
     const herraje = catalogo.herrajes.find((h) => u.herrajes.some((x) => x.herrajeId === h.id) && h.holguraLateral !== null) ?? catalogo.herrajes.find((h) => h.holguraLateral !== null)
     if (!hueco || !herraje?.holguraLateral) continue
@@ -26,9 +26,9 @@ export const reglaCajones: Regla = ({ diseno, geo, catalogo, contactos }) => {
       piezas: [u.a, u.b],
       mensaje:
         diferencia < 0
-          ? `La corredera necesita ${herraje.holguraLateral} mm junto a ${nombre} y solo hay ${redondear(hueco.distance)}: el cajón no entra.`
-          : `Junto a ${nombre} hay ${redondear(hueco.distance)} mm y la corredera ocupa ${herraje.holguraLateral}: el cajón quedaría flojo.`,
-      datos: { union: u.id, hueco: redondear(hueco.distance), necesita: herraje.holguraLateral },
+          ? `La corredera necesita ${herraje.holguraLateral} mm junto a ${nombre} y solo hay ${roundTo(hueco.distance)}: el cajón no entra.`
+          : `Junto a ${nombre} hay ${roundTo(hueco.distance)} mm y la corredera ocupa ${herraje.holguraLateral}: el cajón quedaría flojo.`,
+      datos: { union: u.id, hueco: roundTo(hueco.distance), necesita: herraje.holguraLateral },
       alternativas: [{ clave: 'ajustar-caja', descripcion: `Dejar ${herraje.holguraLateral} mm por lado entre la caja y el mueble`, datos: { holgura: herraje.holguraLateral } }],
     })
   }
@@ -37,8 +37,8 @@ export const reglaCajones: Regla = ({ diseno, geo, catalogo, contactos }) => {
 
   for (const g of grupos) {
     const fondo = diseno.piezas.find((p) => p.grupo === g && p.rol === 'fondo-cajon')
-    const caja = fondo && geo.cajas.get(fondo.id)
-    const espesor = fondo && geo.espesores.get(fondo.id)
+    const caja = fondo && geo.boxes.get(fondo.id)
+    const espesor = fondo && geo.thicknesses.get(fondo.id)
     if (fondo && caja && espesor !== undefined && espesor < SUPUESTOS.cajones.fondoMinimo && caja.x1 - caja.x0 > SUPUESTOS.cajones.anchoFondoDelgado)
       encontrados.push({
         codigo: 'R9_CAJONES',
@@ -84,11 +84,11 @@ const drawerName = (design: Diseno, group: string) => {
   return front ? front.nombre.replace(/^Frente de /i, '') : group
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
-function runnerSupport(design: Diseno, geo: Geometria, catalog: Parameters<Regla>[0]['catalogo']): Hallazgo[] {
+function runnerSupport(design: Diseno, geo: Geometry, catalog: Parameters<Regla>[0]['catalogo']): Hallazgo[] {
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
   if (!runner?.holguraLateral) return []
   const gap = runner.holguraLateral
-  return drawerSides(design, geo.cajas).flatMap(({ group, side, towards, support }): Hallazgo[] => {
+  return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Hallazgo[] => {
     // A declared runner joint is checked above, with its own hardware.
     if (support && design.uniones.some((u) => u.tipo === 'corredera' && [u.a, u.b].includes(side.id))) return []
     const lado = towards < 0 ? 'izq' : 'der'
@@ -111,9 +111,9 @@ function runnerSupport(design: Diseno, geo: Geometria, catalog: Parameters<Regla
         piezas: [side.id, support.piece.id],
         mensaje:
           support.distance < gap
-            ? `La corredera necesita ${gap} mm junto a ${support.piece.nombre} y solo hay ${redondear(support.distance)}: ${drawerName(design, group)} no entra.`
-            : `Junto a ${support.piece.nombre} hay ${redondear(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
-        datos: { hueco: redondear(support.distance), necesita: gap, grupo: group },
+            ? `La corredera necesita ${gap} mm junto a ${support.piece.nombre} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
+            : `Junto a ${support.piece.nombre} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
+        datos: { hueco: roundTo(support.distance), necesita: gap, grupo: group },
         alternativas: [{ clave: 'ajustar-caja', descripcion: `Dejar ${gap} mm por lado entre la caja y el mueble`, datos: { holgura: gap } }],
       },
     ]
@@ -121,19 +121,19 @@ function runnerSupport(design: Diseno, geo: Geometria, catalog: Parameters<Regla
 }
 
 /** A drawer that reaches the ground drags on it when it opens. */
-function floorClearance(design: Diseno, geo: Geometria): Hallazgo[] {
+function floorClearance(design: Diseno, geo: Geometry): Hallazgo[] {
   const groups = [...new Set(design.piezas.filter((p) => p.rol === 'frente-cajon' && p.grupo).map((p) => p.grupo!))]
   return groups.flatMap((g): Hallazgo[] => {
-    const pieces = design.piezas.filter((p) => p.grupo === g && geo.cajas.has(p.id))
-    const bottom = Math.min(...pieces.map((p) => geo.cajas.get(p.id)!.y0))
+    const pieces = design.piezas.filter((p) => p.grupo === g && geo.boxes.has(p.id))
+    const bottom = Math.min(...pieces.map((p) => geo.boxes.get(p.id)!.y0))
     if (bottom >= SUPUESTOS.cajones.holguraSuelo) return []
     return [
       {
         codigo: 'R9_CAJONES',
         severidad: 'critico',
         piezas: pieces.map((p) => p.id),
-        mensaje: `${drawerName(design, g).replace(/^./, (c) => c.toUpperCase())} llega al suelo (queda a ${redondear(bottom)} mm): arrastraría al abrir. Deja al menos ${SUPUESTOS.cajones.holguraSuelo} mm abajo.`,
-        datos: { abajo: redondear(bottom), grupo: g },
+        mensaje: `${drawerName(design, g).replace(/^./, (c) => c.toUpperCase())} llega al suelo (queda a ${roundTo(bottom)} mm): arrastraría al abrir. Deja al menos ${SUPUESTOS.cajones.holguraSuelo} mm abajo.`,
+        datos: { abajo: roundTo(bottom), grupo: g },
         alternativas: [{ clave: 'subir-cajon', descripcion: `Subir el cajón ${SUPUESTOS.cajones.holguraSuelo} mm sobre el suelo`, datos: { holgura: SUPUESTOS.cajones.holguraSuelo } }],
       },
     ]

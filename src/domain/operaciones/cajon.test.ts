@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
-import { desde, ref } from '../diseno/construir'
+import { startAt, ref } from '../diseno/builders'
 import type { Diseno } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
@@ -44,17 +44,17 @@ describe('agregarCajon', () => {
     const a = analisis(d)
     expect(a.hallazgos).toEqual([])
     expect(d.uniones.find((u) => u.id === 'u-cajon-1-corredera-izq')?.herrajes[0].herrajeId).toBe('corredera-telescopica-45')
-    const frente = a.geo.cajas.get('cajon-1-frente')!
+    const frente = a.geo.boxes.get('cajon-1-frente')!
     expect(frente.z1).toBe(500)
     expect(frente.x0).toBe(20)
-    const costado = a.geo.cajas.get('cajon-1-costado-izq')!
+    const costado = a.geo.boxes.get('cajon-1-costado-izq')!
     expect(costado.x0).toBeCloseTo(18 + 12.7, 5)
   })
 
   it('se ajusta solo si el mueble se ensancha', () => {
     const d = conCajon(hondo, [cajon(), { op: 'cambiarDimensionGlobal', eje: 'x', valor: 800, regla: 'estirar' }])
     const a = analisis(d)
-    expect(a.geo.cajas.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
+    expect(a.geo.boxes.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
     expect(a.hallazgos.filter((h) => h.codigo === 'R9_CAJONES')).toEqual([])
   })
 
@@ -83,7 +83,7 @@ describe('R9 cajones y tornillos por la cara', () => {
 
   it('una corredera sin su holgura exacta es crítica', () => {
     const d = conCajon(hondo)
-    d.piezas.find((p) => p.id === 'cajon-1-costado-izq')!.x = desde(ref('lat-izq.x1', 8))
+    d.piezas.find((p) => p.id === 'cajon-1-costado-izq')!.x = startAt(ref('lat-izq.x1', 8))
     const r9 = hallazgos(d).filter((h) => h.codigo === 'R9_CAJONES')
     expect(r9).toEqual([expect.objectContaining({ severidad: 'critico', mensaje: expect.stringContaining('no entra') })])
   })

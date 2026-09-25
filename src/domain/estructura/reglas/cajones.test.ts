@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../../analisis'
-import { desde, hasta, pieza, ref, tramo, union } from '../../diseno/construir'
+import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../diseno/builders'
 import type { Diseno } from '../../diseno/esquema'
 import { catalogo } from '../../fixtures/catalogo.test-util'
 import { librero } from '../../fixtures/librero'
@@ -54,7 +54,7 @@ describe('R9 for freeform drawers', () => {
     const d = freeform(build(deep, [drawer()]))
     // The box sits 100 mm in from the left side, with nothing beside it.
     d.piezas = d.piezas.map((p) =>
-      p.id === 'cajon-1-costado-izq' ? { ...p, x: desde({ tipo: 'mm', mm: 120 }) } : p.id === 'cajon-1-fondo' ? { ...p, x: tramo(ref('cajon-1-costado-izq.x0'), ref('cajon-1-costado-der.x1')) } : p,
+      p.id === 'cajon-1-costado-izq' ? { ...p, x: startAt({ tipo: 'mm', mm: 120 }) } : p.id === 'cajon-1-fondo' ? { ...p, x: extent(ref('cajon-1-costado-izq.x0'), ref('cajon-1-costado-der.x1')) } : p,
     )
     const [finding] = r9(d)
     expect(finding).toMatchObject({ severidad: 'critico', mensaje: expect.stringContaining('no tiene dónde atornillar la corredera') })
@@ -72,12 +72,12 @@ describe('R9 for freeform drawers', () => {
       anclajeMuro: false,
       observaciones: '',
       piezas: [
-        pieza({ id: 'trasera', nombre: 'Trasera', rol: 'trasera', material: 'TR6', normal: 'z', x: tramo(ref('mueble.x0'), ref('mueble.x1')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: desde(ref('mueble.z0')) }),
-        pieza({ id: 'lat-izq', nombre: 'Lateral izquierdo', rol: 'lateral', material: 'T18', normal: 'x', x: desde(ref('mueble.x0')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: tramo(ref('trasera.z1'), ref('mueble.z1')) }),
-        pieza({ id: 'lat-der', nombre: 'Lateral derecho', rol: 'lateral', material: 'T18', normal: 'x', x: hasta(ref('mueble.x1')), y: tramo(ref('mueble.y0'), ref('mueble.y1')), z: tramo(ref('trasera.z1'), ref('mueble.z1')) }),
-        pieza({ id: 'techo', nombre: 'Techo', rol: 'techo', material: 'T18', normal: 'y', x: tramo(ref('lat-izq.x1'), ref('lat-der.x0')), y: hasta(ref('mueble.y1')), z: tramo(ref('trasera.z1'), ref('mueble.z1')) }),
+        makePiece({ id: 'trasera', nombre: 'Trasera', rol: 'trasera', material: 'TR6', normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: startAt(ref('mueble.z0')) }),
+        makePiece({ id: 'lat-izq', nombre: 'Lateral izquierdo', rol: 'lateral', material: 'T18', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
+        makePiece({ id: 'lat-der', nombre: 'Lateral derecho', rol: 'lateral', material: 'T18', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
+        makePiece({ id: 'techo', nombre: 'Techo', rol: 'techo', material: 'T18', normal: 'y', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: endAt(ref('mueble.y1')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
       ],
-      uniones: [union('u-techo-izq', 'lat-izq', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]), union('u-techo-der', 'lat-der', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }])],
+      uniones: [makeJoint('u-techo-izq', 'lat-izq', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]), makeJoint('u-techo-der', 'lat-der', 'techo', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }])],
     }
     const d = build(low, [drawer({ abajo: 'mueble.y0', arriba: 'techo.y0' })])
     expect(r9(d).map((h) => h.mensaje)).toEqual([expect.stringContaining('llega al suelo')])

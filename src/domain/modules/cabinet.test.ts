@@ -52,7 +52,7 @@ describe('buildCabinet', () => {
     const { design } = buildCabinet(plan({ columns: [{ width: 2, cells: [cell('open', 3)] }, { width: 2, cells: [cell('open', 3)] }] }), catalogo)
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(a.errores[0].mensaje)
-    expect(a.geo.cajas.get('div-1')!.x0).toBe(291)
+    expect(a.geo.boxes.get('div-1')!.x0).toBe(291)
   })
 })
 
@@ -91,8 +91,8 @@ describe('construction variants', () => {
     const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, catalogo)
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(a.errores[0].mensaje)
-    const door = a.geo.cajas.get('c1-h1-puerta-izq')!
-    expect(door.x0).toBe(a.geo.cajas.get('lat-izq')!.x1 + 2)
+    const door = a.geo.boxes.get('c1-h1-puerta-izq')!
+    expect(door.x0).toBe(a.geo.boxes.get('lat-izq')!.x1 + 2)
     expect(door.z1).toBe(320)
     expect(design.uniones.filter((u) => u.tipo === 'bisagra-cazoleta').map((u) => u.herrajes[0].herrajeId)).toEqual(['bisagra-cazoleta-35-supercodo', 'bisagra-cazoleta-35-supercodo'])
   })
@@ -101,7 +101,7 @@ describe('construction variants', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
       const a = analizar(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, catalogo).design, catalogo)
       if (!a.valido) throw new Error(a.errores[0].mensaje)
-      return a.geo.cajas.get('cajon-1-frente')!
+      return a.geo.boxes.get('cajon-1-frente')!
     }
     expect(front('overlay').x0).toBe(2)
     expect(front('inset').x0).toBeGreaterThan(18)

@@ -7,7 +7,7 @@ import type { FurniturePlan } from '../domain/modules/plan'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno, Eje, Pieza } from '../domain/diseno/esquema'
-import type { Caja } from '../domain/diseno/resolver'
+import type { Box } from '../domain/diseno/resolve'
 import { diferencias } from '../domain/diseno/diff'
 import { disenoActual, marcarRespondida, type EstadoDiseno, type Miniatura } from '../domain/sesion/estado'
 import type { Foto } from '../ports/LLMProvider'
@@ -112,7 +112,7 @@ interface Tienda {
 export interface Cambios {
   agregadas: string[]
   modificadas: string[]
-  eliminadas: { pieza: Pieza; caja: Caja }[]
+  eliminadas: { pieza: Pieza; caja: Box }[]
   vez: number
 }
 
@@ -130,8 +130,8 @@ function transicion(antes: Diseno, despues: Diseno, catalogo: Servicios['catalog
   const ga = analizar(antes, catalogo)
   const gb = analizar(despues, catalogo)
   if (!ga.valido || !gb.valido) return { agregadas: [], modificadas: [], eliminadas: [], vez }
-  const d = diferencias(antes, ga.geo.cajas, despues, gb.geo.cajas)
-  const eliminadas = d.eliminadas.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.cajas.get(id)! }))
+  const d = diferencias(antes, ga.geo.boxes, despues, gb.geo.boxes)
+  const eliminadas = d.eliminadas.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.boxes.get(id)! }))
   return { agregadas: d.agregadas, modificadas: d.modificadas, eliminadas, vez }
 }
 

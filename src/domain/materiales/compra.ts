@@ -1,5 +1,5 @@
 import { EJES, type Diseno, type Eje, type Union } from '../diseno/esquema'
-import { redondear, type Geometria } from '../diseno/resolver'
+import { roundTo, type Geometry } from '../diseno/resolve'
 import { jointLength } from '../validation/contact'
 import { bisagrasPara } from '../estructura/supuestos'
 import { acomodar, type AcomodoMaterial } from './acomodo'
@@ -38,9 +38,9 @@ export interface Compra {
 }
 
 /** Cuántos herrajes lleva una unión cuando el modelo no lo dice: por separación a lo largo de la junta. */
-export function cantidadPorUnion(u: Union, geo: Geometria): number {
-  const a = geo.cajas.get(u.a)
-  const b = geo.cajas.get(u.b)
+export function cantidadPorUnion(u: Union, geo: Geometry): number {
+  const a = geo.boxes.get(u.a)
+  const b = geo.boxes.get(u.b)
   const largo = a && b ? jointLength(a, b) : 0
   const porSeparacion = (sep: number, minimo: number) => Math.max(minimo, Math.ceil((largo - 2 * MARGEN_EXTREMO) / sep) + 1)
   switch (u.tipo) {
@@ -55,7 +55,7 @@ export function cantidadPorUnion(u: Union, geo: Geometria): number {
     case 'soporte-repisa':
       return 2
     case 'bisagra-cazoleta': {
-      const puerta = geo.cajas.get(u.a)
+      const puerta = geo.boxes.get(u.a)
       const alto = puerta ? puerta.y1 - puerta.y0 : 0
       return bisagrasPara(alto)
     }
@@ -69,10 +69,10 @@ export function cantidadPorUnion(u: Union, geo: Geometria): number {
 }
 
 /** Metros de cubrecanto: la suma de los cantos marcados de cada pieza. */
-export function metrosDeCubrecanto(diseno: Diseno, geo: Geometria) {
+export function metrosDeCubrecanto(diseno: Diseno, geo: Geometry) {
   let mm = 0
   for (const p of diseno.piezas) {
-    const caja = geo.cajas.get(p.id)
+    const caja = geo.boxes.get(p.id)
     if (!caja) continue
     for (const canto of p.cantos) {
       const eje = CANTO_EJE[canto]
@@ -81,10 +81,10 @@ export function metrosDeCubrecanto(diseno: Diseno, geo: Geometria) {
       mm += caja[`${largoDelCanto}1`] - caja[`${largoDelCanto}0`]
     }
   }
-  return redondear((mm / 1000) * MERMA_CUBRECANTO, 1)
+  return roundTo((mm / 1000) * MERMA_CUBRECANTO, 1)
 }
 
-export function estimarCompra(diseno: Diseno, geo: Geometria, catalogo: Catalogo): Compra {
+export function estimarCompra(diseno: Diseno, geo: Geometry, catalogo: Catalogo): Compra {
   const faltanPrecios: string[] = []
   const acomodo = acomodar(diseno, geo, catalogo)
   const espesorDe = (id: string) => catalogo.materiales.find((m) => m.id === id)?.espesor ?? 0
@@ -122,5 +122,5 @@ export function estimarCompra(diseno: Diseno, geo: Geometria, catalogo: Catalogo
   }
 
   const total = [...hojas, ...herrajes].reduce((s, r) => s + (r.costo ?? 0), 0)
-  return { acomodo, hojas, herrajes, cubrecanto, costo: { total: redondear(total, 0), faltanPrecios } }
+  return { acomodo, hojas, herrajes, cubrecanto, costo: { total: roundTo(total, 0), faltanPrecios } }
 }

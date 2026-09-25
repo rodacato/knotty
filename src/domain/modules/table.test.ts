@@ -39,7 +39,7 @@ describe('buildTable', () => {
   it('carries a long top on cleats between the aprons, never more than 60 cm apart', () => {
     const { design } = buildTable(table({ dimensions: { width: 1800, height: 750, depth: 900 } }), catalogo)
     const geo = analizar(design, catalogo).geo!
-    const supports = design.piezas.filter((p) => p.id.startsWith('travesano') || p.rol === 'lateral').map((p) => geo.cajas.get(p.id)!).sort((a, b) => a.x0 - b.x0)
+    const supports = design.piezas.filter((p) => p.id.startsWith('travesano') || p.rol === 'lateral').map((p) => geo.boxes.get(p.id)!).sort((a, b) => a.x0 - b.x0)
     const gaps = supports.slice(1).map((b, i) => b.x0 - supports[i].x1)
     expect(Math.max(...gaps)).toBeLessThanOrEqual(600)
     expect(design.uniones.filter((u) => u.tipo === 'bolsillo')).toHaveLength(4)
@@ -48,10 +48,10 @@ describe('buildTable', () => {
   it('a desk with a pedestal keeps room for the legs and its drawers open to the front', () => {
     const { design } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'right', drawers: 3 } }), catalogo)
     const geo = analizar(design, catalogo).geo!
-    const fronts = design.piezas.filter((p) => p.rol === 'frente-cajon').map((p) => geo.cajas.get(p.id)!)
+    const fronts = design.piezas.filter((p) => p.rol === 'frente-cajon').map((p) => geo.boxes.get(p.id)!)
     expect(fronts).toHaveLength(3)
     expect(fronts.every((b) => b.z1 === 600 && b.x0 > 1300 - 420)).toBe(true)
-    expect(geo.cajas.get('ped-div')!.x0 - geo.cajas.get('lat-izq')!.x1).toBeGreaterThanOrEqual(600)
+    expect(geo.boxes.get('ped-div')!.x0 - geo.boxes.get('lat-izq')!.x1).toBeGreaterThanOrEqual(600)
   })
 
   it('a desk does not take a low shelf: it would be in the way of the legs', () => {

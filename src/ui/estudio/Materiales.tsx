@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Check, Info, PencilSimple, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import type { Diseno } from '../../domain/diseno/esquema'
-import type { Geometria } from '../../domain/diseno/resolver'
+import type { Geometry } from '../../domain/diseno/resolve'
 import type { AcomodoMaterial } from '../../domain/materiales/acomodo'
 import { aplicarAjustes, type Acomodo, type Catalogo } from '../../domain/materiales/catalogo'
 import { firmaDictamen } from '../../application/casosDeUso'
@@ -167,7 +167,7 @@ function AjustesCorte({ base }: { base: Acomodo }) {
   )
 }
 
-export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometria; catalogo: Catalogo; alPedir: (texto: string) => void }) {
+export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometry; catalogo: Catalogo; alPedir: (texto: string) => void }) {
   const ajustes = useTienda((s) => s.ajustesCatalogo)
   const efectivo = useMemo(() => aplicarAjustes(catalogo, ajustes), [catalogo, ajustes])
   const compra = useMemo(() => estimarCompra(diseno, geo, efectivo), [diseno, geo, efectivo])

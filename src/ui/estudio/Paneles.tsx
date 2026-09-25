@@ -1,6 +1,6 @@
 import { X } from '@phosphor-icons/react'
 import type { Diseno, TipoUnion } from '../../domain/diseno/esquema'
-import { medidasCara, type Geometria } from '../../domain/diseno/resolver'
+import { faceSize, type Geometry } from '../../domain/diseno/resolve'
 import type { Catalogo } from '../../domain/materiales/catalogo'
 import { despiece } from '../../domain/materiales/despiece'
 import { cm } from '../sistema/componentes'
@@ -23,7 +23,7 @@ const UNIONES: Record<TipoUnion, string> = {
 
 const VETA = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
 
-export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
+export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometry }) {
   const seleccionar = useTienda((s) => s.seleccionar)
   const seleccion = useTienda((s) => s.seleccion)
   const lista = despiece(diseno, geo)
@@ -57,14 +57,14 @@ export function Piezas({ diseno, geo }: { diseno: Diseno; geo: Geometria }) {
   )
 }
 
-export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometria; catalogo: Catalogo; editable?: boolean }) {
+export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno: Diseno; geo: Geometry; catalogo: Catalogo; editable?: boolean }) {
   const confirmarPieza = useTienda((s) => s.confirmarPieza)
   const seleccion = useTienda((s) => s.seleccion)
   const seleccionar = useTienda((s) => s.seleccionar)
   const p = diseno.piezas.find((x) => x.id === seleccion)
-  const caja = p && geo.cajas.get(p.id)
+  const caja = p && geo.boxes.get(p.id)
   if (!p || !caja) return null
-  const [largo, ancho] = medidasCara(caja, p.normal)
+  const [largo, ancho] = faceSize(caja, p.normal)
   const material = catalogo.materiales.find((m) => m.id === p.material)
   const nombre = (id: string) => diseno.piezas.find((x) => x.id === id)?.nombre ?? id
   const uniones = diseno.uniones.filter((u) => u.a === p.id || u.b === p.id)
@@ -83,7 +83,7 @@ export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno
         {[
           ['Largo', largo],
           ['Ancho', ancho],
-          ['Espesor', geo.espesores.get(p.id)!],
+          ['Espesor', geo.thicknesses.get(p.id)!],
         ].map(([k, v]) => (
           <div key={k} className="rounded-xl bg-kraft px-2 py-2">
             <dt className="font-sans text-[10px] tracking-wide text-grafito-2 uppercase">{k}</dt>

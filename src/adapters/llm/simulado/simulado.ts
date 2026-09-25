@@ -1,4 +1,4 @@
-import { desde, entre, pieza, ref, tramo, union } from '../../../domain/diseno/construir'
+import { startAt, partway, makePiece, ref, extent, makeJoint } from '../../../domain/diseno/builders'
 import type { Diseno } from '../../../domain/diseno/esquema'
 import { alacena } from '../../../domain/fixtures/alacena'
 import { buro } from '../../../domain/fixtures/buro'
@@ -125,21 +125,21 @@ function opsDivisor(d: Diseno): Operacion[] {
   const ops: Operacion[] = [
     {
       op: 'agregarPieza',
-      pieza: pieza({ id: 'divisor', nombre: 'Divisor', rol: 'divisor', material: 'T18', normal: 'x', x: desde(entre('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: tramo(ref('piso.y1'), ref('techo.y0')), z: tramo(ref('trasera.z1'), ref('mueble.z1')) }),
+      pieza: makePiece({ id: 'divisor', nombre: 'Divisor', rol: 'divisor', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
     },
-    { op: 'agregarUnion', union: union('u-div-piso', 'piso', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
-    { op: 'agregarUnion', union: union('u-div-techo', 'techo', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
-    { op: 'agregarUnion', union: union('u-div-trasera', 'trasera', 'divisor', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
+    { op: 'agregarUnion', union: makeJoint('u-div-piso', 'piso', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+    { op: 'agregarUnion', union: makeJoint('u-div-techo', 'techo', 'divisor', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+    { op: 'agregarUnion', union: makeJoint('u-div-trasera', 'trasera', 'divisor', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
   ]
   if (d.piezas.some((p) => p.id === 'zoclo'))
     ops.push(
       {
         op: 'agregarPieza',
-        pieza: pieza({ id: 'apoyo-piso', nombre: 'Apoyo central del piso', rol: 'refuerzo', material: 'T18', normal: 'x', x: desde(entre('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: tramo(ref('mueble.y0'), ref('piso.y0')), z: tramo(ref('trasera.z1'), ref('zoclo.z0')) }),
+        pieza: makePiece({ id: 'apoyo-piso', nombre: 'Apoyo central del piso', rol: 'refuerzo', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('mueble.y0'), ref('piso.y0')), z: extent(ref('trasera.z1'), ref('zoclo.z0')) }),
       },
-      { op: 'agregarUnion', union: union('u-apoyo-piso', 'piso', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
-      { op: 'agregarUnion', union: union('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: 2 }]) },
-      { op: 'agregarUnion', union: union('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
+      { op: 'agregarUnion', union: makeJoint('u-apoyo-piso', 'piso', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+      { op: 'agregarUnion', union: makeJoint('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: 2 }]) },
+      { op: 'agregarUnion', union: makeJoint('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
     )
   for (const e of entrepanos(d)) {
     const der = `${e.id}-der`
@@ -148,8 +148,8 @@ function opsDivisor(d: Diseno): Operacion[] {
       { op: 'duplicarPieza', id: e.id, nuevoId: der, nombre: `${e.nombre} derecho`, eje: 'x', cota: ref('divisor.x1') },
       { op: 'redimensionar', id: der, eje: 'x', extremo: 'hasta', cota: ref('lat-der.x0') },
       ...d.uniones.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operacion => ({ op: 'eliminarUnion', id: u.id })),
-      { op: 'agregarUnion', union: union(`u-${e.id}-div`, e.id, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
-      { op: 'agregarUnion', union: union(`u-${der}-div`, der, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
+      { op: 'agregarUnion', union: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
+      { op: 'agregarUnion', union: makeJoint(`u-${der}-div`, der, 'divisor', 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }]) },
     )
   }
   return ops
@@ -263,12 +263,12 @@ function proponer(peticion: string, d: Diseno, pendientes: Operacion[] | null, c
       operaciones: [
         {
           op: 'agregarPieza',
-          pieza: pieza({ id: 'refuerzo-base', nombre: 'Travesaño trasero', rol: 'refuerzo', material: 'T18', normal: 'z', x: tramo(ref('lat-izq.x1'), ref('lat-der.x0')), y: tramo(ref('mueble.y0'), ref('piso.y0')), z: desde(ref('trasera.z1')) }),
+          pieza: makePiece({ id: 'refuerzo-base', nombre: 'Travesaño trasero', rol: 'refuerzo', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(ref('mueble.y0'), ref('piso.y0')), z: startAt(ref('trasera.z1')) }),
         },
-        { op: 'agregarUnion', union: union('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
-        { op: 'agregarUnion', union: union('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
-        { op: 'agregarUnion', union: union('u-refuerzo-piso', 'piso', 'refuerzo-base', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
-        { op: 'agregarUnion', union: union('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
+        { op: 'agregarUnion', union: makeJoint('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
+        { op: 'agregarUnion', union: makeJoint('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) },
+        { op: 'agregarUnion', union: makeJoint('u-refuerzo-piso', 'piso', 'refuerzo-base', 'tope-tornillo', [{ herrajeId: 'tornillo-8x2', cantidad: null }]) },
+        { op: 'agregarUnion', union: makeJoint('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'clavo-pegamento', [{ herrajeId: 'clavo-sin-cabeza-1', cantidad: null }]) },
       ],
       decisiones: [{ tema: 'base', texto: 'Travesaño trasero bajo el piso además del zoclo' }],
     })

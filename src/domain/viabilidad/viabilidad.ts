@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { Diseno } from '../diseno/esquema'
-import { medidasCara, redondear, type Geometria } from '../diseno/resolver'
+import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 import type { Hallazgo } from '../estructura/hallazgo'
 import type { Catalogo } from '../materiales/catalogo'
 import type { Compra } from '../materiales/compra'
@@ -50,7 +50,7 @@ export type Viabilidad = z.infer<typeof Viabilidad>
 
 interface Entrada {
   diseno: Diseno
-  geo: Geometria
+  geo: Geometry
   /** Con los ajustes de corte de la persona: el refilado cambia lo que cabe. */
   catalogo: Catalogo
   compra: Compra
@@ -60,14 +60,14 @@ interface Entrada {
   accepted?: string[]
 }
 
-const cm = (mm: number) => `${redondear(mm / 10, 1)} cm`
+const cm = (mm: number) => `${roundTo(mm / 10, 1)} cm`
 const lista = (nombres: string[]) => (nombres.length <= 3 ? nombres.join(', ') : `${nombres.slice(0, 3).join(', ')} y ${nombres.length - 3} más`)
 
 const comprobacion = (c: Omit<Comprobacion, 'piezas' | 'pedido' | 'imposible'> & Partial<Comprobacion>): Comprobacion => ({ piezas: [], pedido: null, imposible: false, ...c })
 
 function medidas({ diseno, geo }: Entrada): Comprobacion {
-  const cajas = [...geo.cajas.values()]
-  const extension = (e: 'x' | 'y' | 'z') => Math.max(...cajas.map((c) => c[`${e}1`])) - Math.min(...cajas.map((c) => c[`${e}0`]))
+  const boxes = [...geo.boxes.values()]
+  const extension = (e: 'x' | 'y' | 'z') => Math.max(...boxes.map((c) => c[`${e}1`])) - Math.min(...boxes.map((c) => c[`${e}0`]))
   const real = { ancho: extension('x'), alto: extension('y'), fondo: extension('z') }
   const { ancho, alto, fondo } = diseno.dimensiones
   const difieren = (['alto', 'ancho', 'fondo'] as const).filter((k) => Math.abs(real[k] - diseno.dimensiones[k]) > TOLERANCIA_MEDIDAS)
@@ -77,7 +77,7 @@ function medidas({ diseno, geo }: Entrada): Comprobacion {
     titulo: 'Las medidas no cierran',
     estado: 'falla',
     imposible: true,
-    detalle: `Las piezas suman ${redondear(real.alto)} × ${redondear(real.ancho)} × ${redondear(real.fondo)} mm y el mueble dice ${alto} × ${ancho} × ${fondo} mm; no coincide el ${difieren.join(' ni el ')}.`,
+    detalle: `Las piezas suman ${roundTo(real.alto)} × ${roundTo(real.ancho)} × ${roundTo(real.fondo)} mm y el mueble dice ${alto} × ${ancho} × ${fondo} mm; no coincide el ${difieren.join(' ni el ')}.`,
     pedido: `Haz que las piezas cierren exacto en ${alto} × ${ancho} × ${fondo} mm`,
   })
 }
@@ -101,15 +101,15 @@ function hoja({ catalogo, compra }: Entrada): Comprobacion {
     estado: 'falla',
     imposible: true,
     piezas: sinLugar.map((x) => x.id),
-    detalle: `${lista(sinLugar.map((x) => x.nombre))}: ${p.nombre.toLowerCase()} mide ${redondear(p.largo)} × ${redondear(p.ancho)} mm y lo más que sale de una hoja es ${p.util.largo} × ${p.util.ancho} mm (se recortan ${refilado} mm por orilla).`,
+    detalle: `${lista(sinLugar.map((x) => x.nombre))}: ${p.nombre.toLowerCase()} mide ${roundTo(p.largo)} × ${roundTo(p.ancho)} mm y lo más que sale de una hoja es ${p.util.largo} × ${p.util.ancho} mm (se recortan ${refilado} mm por orilla).`,
     pedido: `Haz que ${p.nombre.toLowerCase()} quepa en una hoja: máximo ${p.util.largo} × ${p.util.ancho} mm`,
   })
 }
 
 function tiras({ diseno, geo }: Entrada): Comprobacion {
   const angostas = diseno.piezas.filter((p) => {
-    const caja = geo.cajas.get(p.id)
-    return caja && Math.min(...medidasCara(caja, p.normal)) < TIRA_MINIMA
+    const caja = geo.boxes.get(p.id)
+    return caja && Math.min(...faceSize(caja, p.normal)) < TIRA_MINIMA
   })
   if (!angostas.length) return comprobacion({ id: 'tiras', titulo: 'Cortes seguros', estado: 'ok', detalle: `Ninguna pieza es una tira de menos de ${cm(TIRA_MINIMA)}, que son las riesgosas de cortar.` })
   return comprobacion({

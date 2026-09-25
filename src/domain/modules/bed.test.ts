@@ -31,15 +31,15 @@ describe('buildBed', () => {
     const geo = analizar(design, catalogo).geo!
     const fronts = design.piezas.filter((p) => p.rol === 'frente-cajon')
     expect(fronts).toHaveLength(6)
-    expect(fronts.filter((p) => geo.cajas.get(p.id)!.z0 === 0).map((p) => p.grupo)).toEqual(['cajon-der-1', 'cajon-der-2', 'cajon-der-3'])
-    expect(fronts.filter((p) => geo.cajas.get(p.id)!.z1 === design.dimensiones.fondo)).toHaveLength(3)
+    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z0 === 0).map((p) => p.grupo)).toEqual(['cajon-der-1', 'cajon-der-2', 'cajon-der-3'])
+    expect(fronts.filter((p) => geo.boxes.get(p.id)!.z1 === design.dimensiones.fondo)).toHaveLength(3)
   })
 
   it('gathers fewer drawers toward the foot and closes the rest of the side, with cross members under the platform', () => {
     const { design } = buildBed(bed({ drawers: { side: 'left', count: 1, position: 'foot' } }), catalogo)
     const geo = analizar(design, catalogo).geo!
-    const front = geo.cajas.get('cajon-izq-1-frente')!
-    expect(geo.cajas.get('base-pie')!.x0 - front.x1).toBeCloseTo(2, 5)
+    const front = geo.boxes.get('cajon-izq-1-frente')!
+    expect(geo.boxes.get('base-pie')!.x0 - front.x1).toBeCloseTo(2, 5)
     expect(design.piezas.some((p) => p.id === 'costado-izq-1')).toBe(true)
     expect(design.piezas.filter((p) => p.id.startsWith('travesano-izq')).length).toBeGreaterThan(0)
   })
@@ -47,9 +47,9 @@ describe('buildBed', () => {
   it('makes a storage headboard with a closed compartment at pillow level and shelves above', () => {
     const { design } = buildBed(bed({ headboard: { style: 'storage', height: 1200, depth: 250, shelves: 2 } }), catalogo)
     const geo = analizar(design, catalogo).geo!
-    const floor = geo.cajas.get('cab-piso')!
+    const floor = geo.boxes.get('cab-piso')!
     expect(floor.y1).toBe(400)
-    expect(geo.cajas.get('cab-sep')!.y0).toBe(400 + 280)
+    expect(geo.boxes.get('cab-sep')!.y0).toBe(400 + 280)
     expect(design.piezas.filter((p) => p.id.startsWith('cab-rep-'))).toHaveLength(2)
     expect(design.dimensiones).toEqual({ ancho: 250 + 1900 + 20 + 18, alto: 1200, fondo: 990 + 20 })
   })

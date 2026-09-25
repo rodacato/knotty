@@ -506,7 +506,7 @@ Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompt
 
 1. ✅ `domain/trace` (nació en inglés) y `domain/diseno/uniones.ts` → `joints.ts`.
 2. ✅ Validación y contacto: `domain/validacion` → `domain/validation` (`contact`, `errors`, `geometry`). Los campos del error (`codigo`, `mensaje`, `datos`) y sus códigos (`E_FLOTANTE`…) quedan en español hasta el paso 4, porque comparten forma con los hallazgos y el experto los lee; los campos de `Result` (`valor`, `errores`), hasta el paso 6, con `aplicar`.
-3. Resolución y normalización (`domain/diseno/resolver`, `normalizador`, `construir`).
+3. ✅ Resolución y normalización: `resolver` → `resolve` (`resolveGeometry`, `Geometry` con `boxes`, `thicknesses` y `measure`, `Box`, `faceSize`, `roundTo`), `normalizador` → `normalize` y `construir` → `builders` (`makePiece`, `makeJoint`, `extent`, `startAt`, `endAt`, `partway`). Los campos de las cotas (`desde`, `hasta`, `largo`, `tipo`, `mas`) son del esquema y cambian en el paso 7.
 4. Reglas estructurales (`domain/estructura`).
 5. Materiales y viabilidad (`domain/materiales`, `domain/viabilidad`); el dictamen guardado cambia de formato.
 6. Operaciones (`domain/operaciones`): los nombres de las operaciones los escribe el LLM, así que cambian con una versión nueva de los prompts.

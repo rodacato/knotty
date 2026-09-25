@@ -1,5 +1,5 @@
 import { DIMENSION_DE_EJE, EJES, isDrawerPart, type Diseno } from '../diseno/esquema'
-import { medidasCara, redondear, type Geometria } from '../diseno/resolver'
+import { faceSize, roundTo, type Geometry } from '../diseno/resolve'
 import { hojaUtil, materialPorId, type Catalogo } from '../materiales/catalogo'
 import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
@@ -20,23 +20,23 @@ export interface GeometryValidation {
   contacts: Contact[]
 }
 
-export function validateGeometry(design: Diseno, geo: Geometria, catalog: Catalogo): GeometryValidation {
+export function validateGeometry(design: Diseno, geo: Geometry, catalog: Catalogo): GeometryValidation {
   const errors: DesignError[] = []
   const warnings: DesignWarning[] = []
-  const all = contacts(geo.cajas)
+  const all = contacts(geo.boxes)
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
 
-  const boxes = [...geo.cajas.values()]
+  const boxes = [...geo.boxes.values()]
   for (const axis of EJES) {
     const min = Math.min(...boxes.map((c) => c[`${axis}0`]))
     const max = Math.max(...boxes.map((c) => c[`${axis}1`]))
     const expected = design.dimensiones[DIMENSION_DE_EJE[axis]]
     if (boxes.length && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
       errors.push(
-        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${redondear(min)} a ${redondear(max)} mm en ${DIMENSION_DE_EJE[axis]}, pero el mueble mide ${expected} mm.`, {
+        error('E_MEDIDA_GLOBAL', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_DE_EJE[axis]}, pero el mueble mide ${expected} mm.`, {
           eje: axis,
-          desde: redondear(min),
-          hasta: redondear(max),
+          desde: roundTo(min),
+          hasta: roundTo(max),
           esperado: expected,
         }),
       )
@@ -49,13 +49,13 @@ export function validateGeometry(design: Diseno, geo: Geometria, catalog: Catalo
       continue
     }
     if (u.tipo === 'corredera') {
-      const gap = gapBetween(geo.cajas.get(u.a)!, geo.cajas.get(u.b)!)
+      const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.axis !== 'x' || gap.distance > RUNNER_GAP)
         errors.push(error('E_UNION_SIN_CONTACTO', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${RUNNER_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
       continue
     }
     if (u.tipo === 'bisagra-cazoleta' && !all.some((c) => samePair(c, u.a, u.b))) {
-      const gap = gapBetween(geo.cajas.get(u.a)!, geo.cajas.get(u.b)!)
+      const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.distance > HINGE_GAP)
         errors.push(error('E_UNION_SIN_CONTACTO', `La bisagra "${u.id}" necesita a "${u.a}" junto a "${u.b}", a menos de ${HINGE_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
       continue
@@ -68,14 +68,14 @@ export function validateGeometry(design: Diseno, geo: Geometria, catalog: Catalo
   const connections = all.filter((c) => {
     if (c.axis) return true
     const allowed = design.uniones.some((u) => samePair(u, c.a, c.b) && u.penetracion !== null && c.depth <= u.penetracion + CONTACT_TOLERANCE)
-    if (!allowed) errors.push(error('E_TRASLAPE', `"${c.a}" y "${c.b}" se enciman ${redondear(c.depth)} mm.`, { a: c.a, b: c.b, profundidad: redondear(c.depth) }))
+    if (!allowed) errors.push(error('E_TRASLAPE', `"${c.a}" y "${c.b}" se enciman ${roundTo(c.depth)} mm.`, { a: c.a, b: c.b, profundidad: roundTo(c.depth) }))
     return allowed
   })
 
   // Runners and hinges hold pieces that do not touch; from the floor up, whatever is not reached floats.
-  const hanging = design.uniones.filter((u) => (u.tipo === 'corredera' || u.tipo === 'bisagra-cazoleta') && geo.cajas.has(u.a) && geo.cajas.has(u.b))
+  const hanging = design.uniones.filter((u) => (u.tipo === 'corredera' || u.tipo === 'bisagra-cazoleta') && geo.boxes.has(u.a) && geo.boxes.has(u.b))
   connections.push(...hanging.map((u) => ({ a: u.a, b: u.b, axis: 'x' as const, depth: 0 })))
-  const reached = new Set([...geo.cajas].filter(([, c]) => c.y0 <= CONTACT_TOLERANCE).map(([id]) => id))
+  const reached = new Set([...geo.boxes].filter(([, c]) => c.y0 <= CONTACT_TOLERANCE).map(([id]) => id))
   for (let changed = true; changed; ) {
     changed = false
     for (const c of connections) {
@@ -87,21 +87,21 @@ export function validateGeometry(design: Diseno, geo: Geometria, catalog: Catalo
   }
   // A drawer hangs from its runners: whether it has something to hang from is a drawer rule (R9), with a way to fix it.
   const drawerParts = new Set(design.piezas.filter((p) => isDrawerPart(p) && p.grupo).map((p) => p.id))
-  for (const id of geo.cajas.keys())
+  for (const id of geo.boxes.keys())
     if (!reached.has(id) && !drawerParts.has(id)) errors.push(error('E_FLOTANTE', `"${id}" no se apoya en nada: no toca ninguna pieza conectada al piso.`, { pieza: id }))
 
   for (const p of design.piezas) {
-    const box = geo.cajas.get(p.id)
+    const box = geo.boxes.get(p.id)
     const material = materialPorId(catalog, p.material)
     if (!box || !material) continue
-    const [length, width] = medidasCara(box, p.normal)
+    const [length, width] = faceSize(box, p.normal)
     const sheet = hojaUtil(catalog, material)
     if (length > sheet.largo || width > sheet.ancho)
       errors.push(
-        error('E_NO_CABE_EN_HOJA', `"${p.id}" mide ${redondear(length)} × ${redondear(width)} mm y la hoja útil es de ${sheet.largo} × ${sheet.ancho} mm.`, {
+        error('E_NO_CABE_EN_HOJA', `"${p.id}" mide ${roundTo(length)} × ${roundTo(width)} mm y la hoja útil es de ${sheet.largo} × ${sheet.ancho} mm.`, {
           pieza: p.id,
-          largo: redondear(length),
-          ancho: redondear(width),
+          largo: roundTo(length),
+          ancho: roundTo(width),
           hoja: sheet,
         }),
       )
