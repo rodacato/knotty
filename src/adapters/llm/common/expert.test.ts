@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../../../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../../domain/fixtures/bookcase'
-import { PlanAdjustment, AdjustmentResponse, ReviewResponse, InvalidResponse, PlanResponse } from '../../../ports/LLMProvider'
+import { PlanAdjustment, AdjustmentResponse, ReviewResponse, InvalidResponse, PlanResponse, ReconstructionResponse } from '../../../ports/LLMProvider'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/modules/cabinet'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { strictSchema } from './jsonSchema'
@@ -16,7 +16,7 @@ function walk(node: unknown, visit: (n: Record<string, unknown>) => void) {
 }
 
 describe('strictSchema', () => {
-  it.each([AdjustmentResponse, ReviewResponse, PhotoReading, PlanResponse, PlanAdjustment])('leaves a schema the strict modes accept', (schema) => {
+  it.each([AdjustmentResponse, ReviewResponse, PhotoReading, PlanResponse, PlanAdjustment, ReconstructionResponse])('leaves a schema the strict modes accept', (schema) => {
     const objects: Record<string, unknown>[] = []
     walk(strictSchema(schema), (n) => {
       for (const forbidden of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(forbidden)
