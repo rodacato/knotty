@@ -18,6 +18,8 @@ import { HistoryPanel } from './HistoryPanel'
 import { Materiales } from './Materiales'
 import { FichaPieza } from './Paneles'
 import { noticeBoard } from '../../application/notices'
+import { currentPlan } from '../../application/casosDeUso'
+import { isBed } from '../../domain/modules/plan'
 import { NoticePanel } from './NoticePanel'
 
 const VISTAS: { id: Vista; nombre: string }[] = [
@@ -100,6 +102,9 @@ function Encabezado({ estado, pending, overlay, onOpen }: { estado: EstadoDiseno
   const ajustesAbiertos = useTienda((s) => s.ajustesAbiertos)
   const diseno = disenoActual(estado)
   const { ancho, alto, fondo } = diseno.dimensiones
+  const plan = currentPlan(estado).plan
+  // A bed reads as its width by its length and its mattress; along x runs its length.
+  const bed = plan && isBed(plan) && !currentPlan(estado).diverged ? plan : null
   const etiqueta = useMemo(() => etiquetaActiva(preferencias.cargar()), [preferencias, ajustesAbiertos])
   return (
     <header className="flex items-center gap-1 border-b border-linea bg-hueso/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
@@ -107,7 +112,7 @@ function Encabezado({ estado, pending, overlay, onOpen }: { estado: EstadoDiseno
       <div className="min-w-0 flex-1">
         <p className="truncate font-titulo text-lg leading-tight font-semibold">{diseno.nombre}</p>
         <p className="cifras truncate text-[11px] text-grafito-2">
-          {alto} × {ancho} × {fondo} mm · {cm(ancho)} de ancho
+          {bed ? `${cm(fondo)} × ${cm(ancho)} · colchón ${bed.mattress}` : `${alto} × ${ancho} × ${fondo} mm · ${cm(ancho)} de ancho`}
         </p>
       </div>
       <Boton variante="fantasma" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${estado.actual}: ver el historial`} title="Historial">

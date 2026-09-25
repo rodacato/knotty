@@ -6,7 +6,7 @@ import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import { repairDesign, type Repair } from '../repair/repair'
 import type { Requisito } from '../requisitos/requisitos'
-import { buildCabinet, type CabinetPlan } from './cabinet'
+import { buildPlan, type FurniturePlan } from './plan'
 
 // The design is its plan plus the free-form changes made on top: rebuilding replays them, so neither the ficha nor the freedom is lost.
 
@@ -18,8 +18,8 @@ export interface Rebuilt {
   repairs: Repair[]
 }
 
-export function rebuildFromPlan(plan: CabinetPlan, extras: Operacion[], catalog: Catalogo, requirements: Requisito[] = []): Rebuilt {
-  const built = buildCabinet(plan, catalog)
+export function rebuildFromPlan(plan: FurniturePlan, extras: Operacion[], catalog: Catalogo, requirements: Requisito[] = []): Rebuilt {
+  const built = buildPlan(plan, catalog)
   let design = built.design
   const dropped: Operacion[] = []
   for (const extra of extras) {

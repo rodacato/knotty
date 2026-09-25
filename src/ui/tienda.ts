@@ -3,7 +3,7 @@ import { ErrorExperto, type AlAvanzar, type Etapa, type FotoEnviada, type PieceE
 import type { Notice } from '../application/notices'
 import type { Fix } from '../domain/fixes/fixes'
 import { trayRequest, type TrayItem } from '../domain/tray/tray'
-import type { CabinetPlan } from '../domain/modules/cabinet'
+import type { FurniturePlan } from '../domain/modules/plan'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
 import type { Dimensiones, Diseno, Eje, Pieza } from '../domain/diseno/esquema'
@@ -90,7 +90,7 @@ interface Tienda {
   guardarAjustesCatalogo(a: AjustesCatalogo): void
   dictaminar(): Promise<void>
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
-  applyPlan(plan: CabinetPlan): { ok: true; notes: string[] } | { ok: false; message: string }
+  applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   /** A solution shown in 3D before applying it. */
   preview: { design: Diseno; label: string } | null

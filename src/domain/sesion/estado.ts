@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { Diseno, Dimensiones } from '../diseno/esquema'
 import { Decision, Origen, Version } from '../historial/historial'
 import { Operacion } from '../operaciones/esquema'
-import { CabinetPlan } from '../modules/cabinet'
+import { FurniturePlan } from '../modules/plan'
 import { Requisito } from '../requisitos/requisitos'
 import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
@@ -68,7 +68,7 @@ export const Propuesta = z.object({
   decisiones: z.array(Decision),
   origen: Origen.nullable(),
   /** The plan and extras the proposed design comes from, so applying it keeps the ficha alive. */
-  plan: CabinetPlan.nullable().default(null),
+  plan: FurniturePlan.nullable().default(null),
   extras: z.array(Operacion).default([]),
   /** Why it waits for the person besides critical problems: structure removed that was not asked for, open questions. */
   holds: z.array(z.string()).default([]),

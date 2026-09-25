@@ -14,7 +14,7 @@ import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../do
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import { describeChange, restorePieces } from '../domain/changes/changes'
 import type { Fix } from '../domain/fixes/fixes'
-import { buildCabinet, CabinetPlan } from '../domain/modules/cabinet'
+import { buildPlan, FurniturePlan, isBed } from '../domain/modules/plan'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
@@ -83,7 +83,7 @@ function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[])
  * The plan behind the current design. `since` is the version it comes from; if later versions changed the design
  * freely, applying the plan again drops those changes.
  */
-export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; extras: Operacion[]; since: number | null; diverged: boolean } {
+export function currentPlan(estado: EstadoDiseno): { plan: FurniturePlan | null; extras: Operacion[]; since: number | null; diverged: boolean } {
   const ordered = [...estado.versiones].sort((a, b) => b.n - a.n).filter((v) => v.n <= estado.actual)
   const source = ordered.find((v) => v.plan)
   return { plan: source?.plan ?? null, extras: source?.extras ?? [], since: source?.n ?? null, diverged: !!source && source.n !== estado.actual }
@@ -166,7 +166,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   function conVersion(
     estado: EstadoDiseno,
     diseno: Diseno,
-    datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null; plan?: CabinetPlan | null; extras?: Operacion[] },
+    datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null; plan?: FurniturePlan | null; extras?: Operacion[] },
   ): EstadoDiseno {
     const n = Math.max(...estado.versiones.map((v) => v.n)) + 1
     const versiones = podarVersiones([
@@ -218,7 +218,8 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   /** Kinds that are not a box with columns: asking for a cabinet plan would only add a wasted call. */
-  const NOT_CABINETS = new Set(['bed', 'desk', 'table', 'bench'])
+  /** Kinds with no ficha yet: they go straight to piece by piece. */
+  const NOT_CABINETS = new Set(['desk', 'table', 'bench'])
 
   /** The skeleton path: if the expert says it is a cabinet, Knotty builds it. Null means: design it whole. */
   async function designFromPlan(
@@ -242,25 +243,28 @@ export function crearCasosDeUso(deps: Dependencias) {
       trace.push(traceEntry('plan', 0, started, null, e instanceof RespuestaInvalida ? 'unreadable' : 'failed', [{ code: 'E_PLAN', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }]))
       return null
     }
-    const cabinet = plan.valor.cabinet
-    if (!cabinet) {
-      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No es un gabinete: se diseña pieza por pieza'))
+    const { cabinet, bed } = plan.valor
+    if (!cabinet && !bed) {
+      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No es un gabinete ni una cama: se diseña pieza por pieza'))
       return null
     }
     alAvanzar('revisando', 0)
-    const medidas = entrada.medidas ? { width: entrada.medidas.ancho, height: entrada.medidas.alto, depth: entrada.medidas.fondo } : cabinet.dimensions
-    const { design: built, notes } = buildCabinet({ ...cabinet, dimensions: medidas }, catalogo)
+    // A cabinet takes the measures given; a bed takes them from its mattress.
+    const furniture: FurniturePlan = bed
+      ? bed
+      : { ...cabinet!, dimensions: entrada.medidas ? { width: entrada.medidas.ancho, height: entrada.medidas.alto, depth: entrada.medidas.fondo } : cabinet!.dimensions }
+    const { design: built, notes } = buildPlan(furniture, catalogo)
     const { design, repairs } = repairDesign(built, catalogo, plan.valor.requisitos)
     const analisis = analizar(design, catalogo, plan.valor.requisitos)
     if (!analisis.valido) {
       trace.push(traceEntry('plan', 0, started, plan, 'invalid', traceErrors(analisis.errores), repairs))
       return null
     }
-    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, `Gabinete de ${cabinet.columns.length} ${cabinet.columns.length === 1 ? 'columna' : 'columnas'}`))
+    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, bed ? `Cama ${bed.mattress}` : `Gabinete de ${cabinet!.columns.length} ${cabinet!.columns.length === 1 ? 'columna' : 'columnas'}`))
     alAvanzar('estructura', 0)
     const { explicacion, preguntas, fotosSolicitadas, requisitos, sugerencias } = plan.valor
     const r: RespuestaReconstruccion = { explicacion: [explicacion, ...notes].join('\n\n'), diseno: design, preguntas, fotosSolicitadas, requisitos, sugerencias }
-    return estadoInicial(entrada, design, r, { ...plan, valor: r }, [], repairs, trace, { ...cabinet, dimensions: medidas })
+    return estadoInicial(entrada, design, r, { ...plan, valor: r }, [], repairs, trace, furniture)
   }
 
   async function reconstruir(
@@ -331,10 +335,15 @@ export function crearCasosDeUso(deps: Dependencias) {
     problemas: ErrorDiseno[],
     repairs: Repair[],
     trace: TraceEntry[],
-    plan: CabinetPlan | null = null,
+    plan: FurniturePlan | null = null,
   ): EstadoDiseno {
     const { ancho, alto, fondo } = diseno.dimensiones
-    const estimadas = entrada.medidas ? [] : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
+    const estimadas =
+      plan && isBed(plan)
+        ? [`Las medidas salen del colchón ${plan.mattress}: la cama mide ${fondo / 10} × ${ancho / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${alto / 10} cm de alto con la cabecera`}.`]
+        : entrada.medidas
+          ? []
+          : [`Como no tenías las medidas, las estimé: ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`]
     const reparado = repairs.length ? [`Ajusté por mi cuenta ${repairs.length === 1 ? 'un detalle' : `${repairs.length} detalles`}: ${repairs.map((x) => x.message).join(' ')}`] : []
     const pendientes = problemas.length
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problemas))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
@@ -412,7 +421,8 @@ export function crearCasosDeUso(deps: Dependencias) {
       const requisitos = actualizarRequisitos(conPeticion.requisitos, r.requisitos)
       const base = { ...conPeticion, requisitos, decisiones: actualizarDecisiones(conPeticion.decisiones, r.decisiones) }
       const sugerencias = r.sugerencias.slice(0, 4)
-      if (r.action === 'freeform' || (r.action === 'plan' && !r.plan)) {
+      const next: FurniturePlan | null = isBed(plan) ? r.bed : r.plan
+      if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
         trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
         return null
       }
@@ -421,7 +431,7 @@ export function crearCasosDeUso(deps: Dependencias) {
         return responder(r.explicacion, { preguntas: r.preguntas, sugerencias }, base)
       }
       alAvanzar('revisando', 0)
-      const rebuilt = rebuildFromPlan(r.plan!, vigentePlan.extras, catalogo, requisitos)
+      const rebuilt = rebuildFromPlan(next!, vigentePlan.extras, catalogo, requisitos)
       const analysis = analizar(rebuilt.design, catalogo, requisitos)
       if (!analysis.valido) {
         trace.push(traceEntry('adjust', 0, started, respuesta, 'invalid', traceErrors(analysis.errores), rebuilt.repairs, 'Ficha'))
@@ -441,14 +451,14 @@ export function crearCasosDeUso(deps: Dependencias) {
           requisitos,
           decisiones: r.decisiones,
           origen: respuesta.origen,
-          plan: r.plan!,
+          plan: next!,
           extras,
           holds: [],
         }
         const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
         return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
       }
-      const conCambio = conVersion(base, rebuilt.design, { resumen: r.resumen, motivo: peticion, operaciones: [], origen: respuesta.origen, plan: r.plan!, extras })
+      const conCambio = conVersion(base, rebuilt.design, { resumen: r.resumen, motivo: peticion, operaciones: [], origen: respuesta.origen, plan: next!, extras })
       return responder([r.explicacion, ...rebuilt.notes].join('\n\n'), { preguntas: r.preguntas, sugerencias, version: conCambio.actual }, conCambio)
     }
 
@@ -638,8 +648,8 @@ export function crearCasosDeUso(deps: Dependencias) {
   }
 
   /** A change made on the plan itself: rebuilt at once, no expert involved. */
-  function applyPlan(estado: EstadoDiseno, plan: CabinetPlan): { ok: true; estado: EstadoDiseno; notes: string[] } | { ok: false; message: string } {
-    const parsed = CabinetPlan.safeParse(plan)
+  function applyPlan(estado: EstadoDiseno, plan: FurniturePlan): { ok: true; estado: EstadoDiseno; notes: string[] } | { ok: false; message: string } {
+    const parsed = FurniturePlan.safeParse(plan)
     if (!parsed.success) return { ok: false, message: 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
     const vigente = currentPlan(estado)
     const { design, notes, dropped } = rebuildFromPlan(parsed.data, vigente.diverged ? [] : vigente.extras, catalogo, estado.requisitos)
@@ -707,8 +717,16 @@ export function crearCasosDeUso(deps: Dependencias) {
   function resizeFurniture(estado: EstadoDiseno, axis: Eje, value: number): PieceEditResult {
     const vigente = currentPlan(estado)
     if (vigente.plan && !vigente.diverged) {
+      const plan = vigente.plan
       const key = { x: 'width', y: 'height', z: 'depth' } as const
-      const r = applyPlan(estado, { ...vigente.plan, dimensions: { ...vigente.plan.dimensions, [key[axis]]: value } })
+      // A bed's length and width come from its mattress; its height is the headboard's, or the base's without one.
+      if (isBed(plan) && axis !== 'y') return { ok: false, message: 'El largo y el ancho de la cama salen del colchón: cambia el colchón en la ficha.', alternatives: [] }
+      const resized: FurniturePlan = isBed(plan)
+        ? plan.headboard.style === 'none'
+          ? { ...plan, height: value }
+          : { ...plan, headboard: { ...plan.headboard, height: value } }
+        : { ...plan, dimensions: { ...plan.dimensions, [key[axis]]: value } }
+      const r = applyPlan(estado, resized)
       return r.ok ? { ok: true, estado: r.estado } : { ok: false, message: r.message, alternatives: [] }
     }
     const operaciones: Operacion[] = [{ op: 'cambiarDimensionGlobal', eje: axis, valor: value, regla: 'estirar' }]
