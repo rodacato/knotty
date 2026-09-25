@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import type { LLMProvider } from '../../ports/LLMProvider'
-import { createExpert, type Content, type Transport } from './common/expert'
+import { InvalidResponse, type LLMProvider } from '../../ports/LLMProvider'
+import { createExpert, invalidJSON, type Content, type Transport } from './common/expert'
 import { ProviderError } from './common/errors'
 
 // Models that sometimes refuse because of safety classifiers: the API retries on another model by itself.
@@ -10,6 +10,15 @@ const WITH_FALLBACK = ['claude-opus-5', 'claude-fable-5-1']
 async function client(apiKey: string) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk')
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 300_000 })
+}
+
+/** The model's text as JSON; text that does not parse goes back to the model to be corrected, like a schema mismatch. */
+export function parseJSON(text: string): unknown {
+  try {
+    return JSON.parse(text)
+  } catch {
+    throw invalidJSON(text)
+  }
 }
 
 const block = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
@@ -36,9 +45,9 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         if (final.stop_reason === 'refusal') throw new Error('El modelo se negó a responder esta petición.')
         if (final.stop_reason === 'max_tokens') throw new Error('La respuesta se cortó por el límite de tokens.')
         const text = final.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
-        return { json: JSON.parse(text), usage: { inputTokens: final.usage.input_tokens, outputTokens: final.usage.output_tokens } }
+        return { json: parseJSON(text), usage: { inputTokens: final.usage.input_tokens, outputTokens: final.usage.output_tokens } }
       } catch (e) {
-        if (e instanceof SyntaxError) throw new Error('El modelo devolvió un JSON inválido.')
+        if (e instanceof InvalidResponse) throw e
         throw new ProviderError(e)
       }
     },

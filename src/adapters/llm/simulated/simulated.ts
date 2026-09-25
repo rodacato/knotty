@@ -96,7 +96,7 @@ function bedFrom(notes: string): BedPlan | null {
 }
 
 /** The simulated expert only knows its three example pieces; for anything else it says so instead of making up a bookcase. */
-export class UnknownFurniture extends Error {
+class UnknownFurniture extends Error {
   constructor() {
     super('El modo simulado solo sabe armar libreros, burós y alacenas de ejemplo. Para diseñar este mueble conecta un experto real (Claude, OpenAI o SheLLM) en el engrane.')
   }

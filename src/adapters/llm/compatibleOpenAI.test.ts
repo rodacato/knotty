@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
+import { InvalidResponse } from '../../ports/LLMProvider'
 import { createCompatible } from './compatibleOpenAI'
 
 const answer = { explanation: 'Veo un librero', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }
@@ -162,9 +163,17 @@ describe('createCompatible', () => {
     expect(r.value.explanation).toBe('Veo un librero')
   })
 
-  it('invalid JSON says how much arrived and how it ends, to tell a cut apart', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"explanation": "Veo un buró", "design": {"dimensions": {"height": 500}, "pieces": [' } }] }), { status: 200 })))
-    await expect(fresh().reconstruct(request([]), new AbortController().signal)).rejects.toThrow(/JSON inválido \(\d+ caracteres, termina en «.*pieces": \[»\)/)
+  it('invalid JSON goes back to be corrected, saying how much arrived and how it ends, to tell a cut apart', async () => {
+    const content = '{"explanation": "Veo un buró", "design": {"dimensions": {"height": 500}, "pieces": ['
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 })))
+    const error = await fresh().reconstruct(request([]), new AbortController().signal).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(InvalidResponse)
+    expect(error).toMatchObject({ response: content, problems: expect.stringMatching(/not valid JSON \(\d+ characters, ends in «.*pieces": \[»\)/) })
+  })
+
+  it('an answer without JSON goes back to be corrected too', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => withText('Claro, aquí va tu diseño.')))
+    await expect(fresh().reconstruct(request([]), new AbortController().signal)).rejects.toMatchObject({ problems: expect.stringContaining('no JSON object') })
   })
 
   it('if the host does not take streams, it stops asking and remembers it', async () => {

@@ -1,10 +1,10 @@
 import type { LLMProvider } from '../../ports/LLMProvider'
-import { createExpert, type Content, type Transport } from './common/expert'
+import { createExpert, invalidJSON, type Content, type Transport } from './common/expert'
 import { ProviderError } from './common/errors'
 
 // OpenAI and any compatible API (SheLLM). If the host does not take strict schemas or images, it falls back by itself and remembers it.
 
-export interface CompatibleConnection {
+interface CompatibleConnection {
   provider: 'openai' | 'shellm'
   host: string
   apiKey: string
@@ -18,7 +18,7 @@ interface Completed {
 }
 
 const capabilities = new Map<string, { schema: boolean; images: boolean; stream: boolean; reasoning: boolean }>()
-export const normalizeHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
+const normalizeHost = (host: string) => host.trim().replace(/\/+$/, '').replace(/\/v1$/, '')
 
 class Refusal extends Error {
   constructor(
@@ -187,12 +187,13 @@ function unwrap(value: unknown): unknown {
   }
 }
 
-/** Strips code fences and other text; if several attempts came in a row, keeps the last one that can be read. */
+/**
+ * Strips code fences and other text; if several attempts came in a row, keeps the last one that can be read.
+ * Text that cannot be read goes back to the model to be corrected, like a schema mismatch.
+ */
 function extractJSON(text: string) {
-  // How much arrived and how it ends tell a cut answer from a badly written one.
-  const sample = `${text.length.toLocaleString('es-MX')} caracteres, termina en «${text.slice(-40).replace(/\s+/g, ' ')}»`
   const candidates = topLevelObjects(text)
-  if (!text.includes('{')) throw new Error(`El modelo no devolvió JSON (${sample}).`)
+  if (!text.includes('{')) throw invalidJSON(text, 'The answer has no JSON object')
   for (const candidate of candidates.reverse()) {
     for (const version of [candidate, escapeControls(candidate)]) {
       try {
@@ -202,7 +203,7 @@ function extractJSON(text: string) {
       }
     }
   }
-  throw new Error(`El modelo devolvió un JSON inválido (${sample}).`)
+  throw invalidJSON(text)
 }
 
 export function createCompatible(c: CompatibleConnection): LLMProvider {

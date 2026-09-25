@@ -8,6 +8,8 @@ import type { Design } from '../domain/design/schema'
 import type { Operation } from '../domain/operations/schema'
 import { testCatalog } from '../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/fixtures/bookcase'
+import { exampleWallCabinet } from '../domain/fixtures/wallCabinet'
+import { findingKey } from '../domain/structure/finding'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
@@ -299,6 +301,18 @@ describe('reviewPurchase', () => {
     expect(reviewSignature(changed, testCatalog)).not.toBe(state.review!.signature)
   })
 
+  it('the signature follows the design, not the version number', async () => {
+    const c = setup()
+    const v1 = await initialBookcase(c)
+    const v2 = await c.adjust(v1, 'Refuerza la base', newSignal())
+    const v3 = c.backToVersion(v2, 1)
+    expect(v3.current).not.toBe(v1.current)
+    expect(reviewSignature(v3, testCatalog)).toBe(reviewSignature(v1, testCatalog))
+    const design = currentDesign(v1)
+    const moved = { ...v1, versions: v1.versions.map((v) => (v.n === v1.current ? { ...v, design: { ...design, pieces: design.pieces.map((p, i) => (i === 0 ? { ...p, name: `${p.name} bis` } : p)) } } : v)) }
+    expect(reviewSignature(moved, testCatalog)).not.toBe(reviewSignature(v1, testCatalog))
+  })
+
   it('the carpenter cannot approve what the arithmetic marks impossible', async () => {
     const simulated = createSimulated(0)
     const llm: LLMProvider = { ...simulated, reviewPurchase: async (s, signal) => ({ ...(await simulated.reviewPurchase(s, signal)), value: { verdict: 'viable', summary: 'Todo bien', problems: [], tips: [] } }) }
@@ -375,6 +389,23 @@ describe('never throw away a paid design', () => {
   it('a provider failure carries the trace so far', async () => {
     const llm: LLMProvider = { ...createSimulated(0), reconstruct: async () => Promise.reject(new Error('No se pudo conectar')) }
     await expect(initialBookcase(setup(llm))).rejects.toMatchObject({ message: 'No se pudo conectar', trace: [{ step: 'read', outcome: 'ok' }, { step: 'plan', outcome: 'ok' }, { outcome: 'failed', step: 'reconstruct' }] })
+  })
+
+  it('an unreadable answer (such as invalid JSON) goes back to be corrected instead of aborting', async () => {
+    const simulated = createSimulated(0)
+    const corrections: (string | undefined)[] = []
+    const llm: LLMProvider = {
+      ...simulated,
+      planDesign: null,
+      reconstruct: async (s, signal) => {
+        corrections.push(s.correction?.errors[0]?.message)
+        if (corrections.length === 1) throw new InvalidResponse('{"explanation": "Veo', 'The answer is not valid JSON')
+        return simulated.reconstruct(s, signal)
+      },
+    }
+    const state = await initialBookcase(setup(llm))
+    expect(corrections).toEqual([undefined, 'The answer is not valid JSON'])
+    expect(state.trace.filter((t) => t.step === 'reconstruct').map((t) => t.outcome)).toEqual(['unreadable', 'ok'])
   })
 })
 
@@ -755,6 +786,29 @@ describe('notices: one place for what waits for a decision', () => {
     const accepted = c.acceptNotice(initial, tipping.findings, tipping.title)
     const verdict = await c.reviewPurchase(accepted, testCatalog, newSignal())
     expect(verdict.checks.find((x) => x.id === 'accepted')?.detail).toBe('Lo dejaste así, bajo tu riesgo: Riesgo de vuelco.')
+  })
+
+  it('two checks of one rule on the same pieces are accepted apart: leaving the wall cabinet unanchored does not drop its hanging rail', () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
+    const use = analyze(currentDesign(initial), testCatalog)
+    const [anchor, rail] = ['wall-cabinet.anchor', 'wall-cabinet.hanging-rail'].map((check) => use.valid && use.findings.find((h) => h.code === 'R10_USE' && h.check === check))
+    expect(anchor && rail && findingKey(anchor) !== findingKey(rail)).toBe(true)
+
+    const pending = () => noticeBoard(initial, testCatalog).pending.filter((n) => n.title === 'Uso del mueble')
+    const [critical, recommendation] = [...pending()].sort((a, b) => a.severity.localeCompare(b.severity))
+    expect([critical.severity, recommendation.severity]).toEqual(['critical', 'recommendation'])
+    const accepted = c.acceptNotice(initial, critical.findings, critical.title)
+    const board = noticeBoard(accepted, testCatalog)
+    expect(board.accepted.map((n) => n.key)).toEqual([critical.key])
+    expect(board.pending.map((n) => n.key)).toContain(recommendation.key)
+  })
+
+  it('a key saved before checks had ids (R10_USE:) hides neither finding: both show again once', () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
+    const legacy = { ...initial, accepted: [{ key: 'R10_USE:', title: 'Uso del mueble', at: '2026-09-01T10:00:00Z' }] }
+    expect(noticeBoard(legacy, testCatalog).pending.filter((n) => n.title === 'Uso del mueble')).toHaveLength(2)
   })
 
   it("the expert's pending proposal and unanswered questions are notices too", async () => {
