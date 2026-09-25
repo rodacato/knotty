@@ -8,7 +8,7 @@ import type { Catalogo } from '../materiales/catalogo'
 import { aplicar } from '../operaciones/aplicar'
 import type { Operacion } from '../operaciones/esquema'
 import type { Requisito } from '../requisitos/requisitos'
-import type { ErrorDiseno } from '../validacion/errores'
+import type { DesignError } from '../validation/errors'
 
 // Fixes by rule the validation errors that have an obvious fix, so they never go back to the model.
 
@@ -29,7 +29,7 @@ const MAX_ROUNDS = 12
 
 type Fix = { operations: Operacion[]; repair: Repair } | null
 
-function fixLooseJoint(e: ErrorDiseno, design: Diseno): Fix {
+function fixLooseJoint(e: DesignError, design: Diseno): Fix {
   const joint = design.uniones.find((u) => u.id === e.datos?.union)
   if (!joint || joint.tipo === 'corredera') return null
   const name = (id: string) => design.piezas.find((p) => p.id === id)?.nombre ?? id
@@ -39,7 +39,7 @@ function fixLooseJoint(e: ErrorDiseno, design: Diseno): Fix {
   }
 }
 
-function fixOverlap(e: ErrorDiseno, design: Diseno, boxes: Map<string, Caja>): Fix {
+function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Caja>): Fix {
   const [p, q] = [e.datos?.a, e.datos?.b].map((id) => design.piezas.find((x) => x.id === id))
   if (!p || !q || isDrawerPart(p) || isDrawerPart(q)) return null
   const [pb, qb] = [boxes.get(p.id)!, boxes.get(q.id)!]

@@ -1,5 +1,5 @@
 import { redondear } from '../../diseno/resolver'
-import { separacionEntre } from '../../validacion/contacto'
+import { gapBetween } from '../../validation/contact'
 import type { Diseno } from '../../diseno/esquema'
 import { drawerSides } from '../../diseno/drawers'
 import type { Geometria } from '../../diseno/resolver'
@@ -14,10 +14,10 @@ export const reglaCajones: Regla = ({ diseno, geo, catalogo, contactos }) => {
   for (const u of diseno.uniones.filter((x) => x.tipo === 'corredera')) {
     const a = geo.cajas.get(u.a)
     const b = geo.cajas.get(u.b)
-    const hueco = a && b ? separacionEntre(a, b) : null
+    const hueco = a && b ? gapBetween(a, b) : null
     const herraje = catalogo.herrajes.find((h) => u.herrajes.some((x) => x.herrajeId === h.id) && h.holguraLateral !== null) ?? catalogo.herrajes.find((h) => h.holguraLateral !== null)
     if (!hueco || !herraje?.holguraLateral) continue
-    const diferencia = hueco.distancia - herraje.holguraLateral
+    const diferencia = hueco.distance - herraje.holguraLateral
     if (Math.abs(diferencia) <= SUPUESTOS.cajones.toleranciaCorredera) continue
     const nombre = diseno.piezas.find((p) => p.id === u.a)?.nombre ?? u.a
     encontrados.push({
@@ -26,9 +26,9 @@ export const reglaCajones: Regla = ({ diseno, geo, catalogo, contactos }) => {
       piezas: [u.a, u.b],
       mensaje:
         diferencia < 0
-          ? `La corredera necesita ${herraje.holguraLateral} mm junto a ${nombre} y solo hay ${redondear(hueco.distancia)}: el cajón no entra.`
-          : `Junto a ${nombre} hay ${redondear(hueco.distancia)} mm y la corredera ocupa ${herraje.holguraLateral}: el cajón quedaría flojo.`,
-      datos: { union: u.id, hueco: redondear(hueco.distancia), necesita: herraje.holguraLateral },
+          ? `La corredera necesita ${herraje.holguraLateral} mm junto a ${nombre} y solo hay ${redondear(hueco.distance)}: el cajón no entra.`
+          : `Junto a ${nombre} hay ${redondear(hueco.distance)} mm y la corredera ocupa ${herraje.holguraLateral}: el cajón quedaría flojo.`,
+      datos: { union: u.id, hueco: redondear(hueco.distance), necesita: herraje.holguraLateral },
       alternativas: [{ clave: 'ajustar-caja', descripcion: `Dejar ${herraje.holguraLateral} mm por lado entre la caja y el mueble`, datos: { holgura: herraje.holguraLateral } }],
     })
   }

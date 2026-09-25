@@ -1,6 +1,6 @@
 import { EJES, type Diseno, type Eje, type Union } from '../diseno/esquema'
 import { redondear, type Geometria } from '../diseno/resolver'
-import { largoDeJunta } from '../validacion/contacto'
+import { jointLength } from '../validation/contact'
 import { bisagrasPara } from '../estructura/supuestos'
 import { acomodar, type AcomodoMaterial } from './acomodo'
 import type { Catalogo, Herraje, MaterialTablero } from './catalogo'
@@ -41,7 +41,7 @@ export interface Compra {
 export function cantidadPorUnion(u: Union, geo: Geometria): number {
   const a = geo.cajas.get(u.a)
   const b = geo.cajas.get(u.b)
-  const largo = a && b ? largoDeJunta(a, b) : 0
+  const largo = a && b ? jointLength(a, b) : 0
   const porSeparacion = (sep: number, minimo: number) => Math.max(minimo, Math.ceil((largo - 2 * MARGEN_EXTREMO) / sep) + 1)
   switch (u.tipo) {
     case 'tope-tornillo':

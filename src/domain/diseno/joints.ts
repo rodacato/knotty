@@ -1,6 +1,6 @@
 import { SUPUESTOS } from '../estructura/supuestos'
 import type { Catalogo } from '../materiales/catalogo'
-import { contactos, type Contacto } from '../validacion/contacto'
+import { contacts, type Contact } from '../validation/contact'
 import { union } from './construir'
 import { isDrawerPart, type Diseno, type Pieza, type Union } from './esquema'
 import { drawerSides } from './drawers'
@@ -17,7 +17,7 @@ function screwFor(catalog: Catalogo, thicknessA: number, thicknessB: number, int
   return screws.find((t) => t.largo! - thicknessA >= SUPUESTOS.tornillos.penetracionMinima) ?? screws.at(-1)
 }
 
-function inferJoint(c: Contacto, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalogo): Omit<Union, 'id'> | null {
+function inferJoint(c: Contact, p: Pieza, q: Pieza, thicknesses: Map<string, number>, catalog: Catalogo): Omit<Union, 'id'> | null {
   const back = p.rol === 'trasera' ? p : q.rol === 'trasera' ? q : null
   if (back) {
     const other = back === p ? q : p
@@ -29,12 +29,12 @@ function inferJoint(c: Contacto, p: Pieza, q: Pieza, thicknesses: Map<string, nu
   const movable = p.apoyo === 'movil' ? p : q.apoyo === 'movil' ? q : null
   if (movable) {
     const other = movable === p ? q : p
-    if (movable.rol !== 'entrepano' || other.normal !== 'x' || c.eje !== 'x') return null
+    if (movable.rol !== 'entrepano' || other.normal !== 'x' || c.axis !== 'x') return null
     return union('', movable.id, other.id, 'soporte-repisa', [{ herrajeId: 'soporte-repisa-5', cantidad: 2 }])
   }
 
   // The screw goes through the piece that touches with its face and into the other's edge; edge to edge is not screwed.
-  const byFace = [p, q].filter((x) => x.normal === c.eje)
+  const byFace = [p, q].filter((x) => x.normal === c.axis)
   if (!byFace.length) return null
   const a = byFace.length === 1 ? byFace[0] : [p, q].sort((x, y) => thicknesses.get(x.id)! - thicknesses.get(y.id)! || x.id.localeCompare(y.id))[0]
   const b = a === p ? q : p
@@ -65,7 +65,7 @@ export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Dis
   const ids = new Set(design.uniones.map((u) => u.id))
   const before = previous && resolver(previous, catalog)
   // Only real contacts count as earlier: two pieces that overlapped were not joined, they were wrong.
-  const earlierContacts = new Set(before && before.ok ? contactos(before.valor.cajas).filter((c) => c.eje !== null).map((c) => pairKey(c.a, c.b)) : [])
+  const earlierContacts = new Set(before && before.ok ? contacts(before.valor.cajas).filter((c) => c.axis !== null).map((c) => pairKey(c.a, c.b)) : [])
 
   const added: Union[] = []
   const add = (u: Omit<Union, 'id'> | null) => {
@@ -77,7 +77,7 @@ export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Dis
     added.push({ ...u, id })
   }
 
-  const touching = contactos(boxes).filter((c) => c.eje !== null && !joined.has(pairKey(c.a, c.b)) && !earlierContacts.has(pairKey(c.a, c.b)))
+  const touching = contacts(boxes).filter((c) => c.axis !== null && !joined.has(pairKey(c.a, c.b)) && !earlierContacts.has(pairKey(c.a, c.b)))
   for (const c of touching) {
     const p = byId.get(c.a)!
     const q = byId.get(c.b)!

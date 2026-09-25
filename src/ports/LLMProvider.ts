@@ -5,7 +5,7 @@ import type { Catalogo } from '../domain/materiales/catalogo'
 import { Operacion } from '../domain/operaciones/esquema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
-import type { ErrorDiseno } from '../domain/validacion/errores'
+import type { DesignError } from '../domain/validation/errors'
 import { BedPlan } from '../domain/modules/bed'
 import { CabinetPlan } from '../domain/modules/cabinet'
 import { TablePlan } from '../domain/modules/table'
@@ -112,7 +112,7 @@ export interface SolicitudReconstruccion {
   lectura: PhotoReading | null
   catalogo: Catalogo
   /** En un reintento: lo que salió mal con la respuesta anterior. */
-  correccion: { respuestaAnterior: unknown; errores: ErrorDiseno[] } | null
+  correccion: { respuestaAnterior: unknown; errores: DesignError[] } | null
 }
 
 export interface SolicitudAjuste {

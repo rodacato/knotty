@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { DIMENSION_DE_EJE, Eje, type Diseno } from '../diseno/esquema'
-import { error, type ErrorDiseno } from '../validacion/errores'
+import { error, type DesignError } from '../validation/errors'
 
 // Hechos que expresó el usuario. Sobreviven a volver de versión: "mi espacio mide 90 cm" sigue siendo cierto.
 
@@ -14,7 +14,7 @@ export const Requisito = z.object({
 })
 export type Requisito = z.infer<typeof Requisito>
 
-export function verificarRequisitos(diseno: Diseno, requisitos: Requisito[]): ErrorDiseno[] {
+export function verificarRequisitos(diseno: Diseno, requisitos: Requisito[]): DesignError[] {
   return requisitos.flatMap((r) => {
     if (r.tipo !== 'espacio' || !r.eje) return []
     const medida = diseno.dimensiones[DIMENSION_DE_EJE[r.eje]]

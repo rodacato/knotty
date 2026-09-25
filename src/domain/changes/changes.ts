@@ -5,7 +5,7 @@ import { normalizar } from '../diseno/normalizador'
 import { medidasCara, redondear, type Caja } from '../diseno/resolver'
 import type { Catalogo } from '../materiales/catalogo'
 import { aplicar } from '../operaciones/aplicar'
-import type { ErrorDiseno } from '../validacion/errores'
+import type { DesignError } from '../validation/errors'
 
 // What a change did to the pieces, in words, and how to bring pieces back from before it without touching the rest.
 
@@ -66,7 +66,7 @@ export function describeChange(before: Diseno, after: Diseno, catalog: Catalogo)
 }
 
 /** Brings pieces back as they were in `source` (removed ones return, changed ones revert, added ones go); the rest stays. */
-export function restorePieces(current: Diseno, source: Diseno, ids: string[], catalog: Catalogo): { ok: true; design: Diseno } | { ok: false; errors: ErrorDiseno[] } {
+export function restorePieces(current: Diseno, source: Diseno, ids: string[], catalog: Catalogo): { ok: true; design: Diseno } | { ok: false; errors: DesignError[] } {
   const was = new Map(source.piezas.map((p) => [p.id, p]))
   const toRemove = ids.filter((id) => !was.has(id) && current.piezas.some((p) => p.id === id))
   let design = current

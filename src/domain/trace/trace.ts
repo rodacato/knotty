@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { ErrorDiseno } from '../validacion/errores'
+import type { DesignError } from '../validation/errors'
 
 // What each call to the expert did, kept with the design so a person can see why something took long or failed.
 
@@ -23,10 +23,10 @@ const MAX_ENTRIES = 60
 
 export const appendTrace = (trace: TraceEntry[], entries: TraceEntry[]) => [...trace, ...entries].slice(-MAX_ENTRIES)
 
-export const traceErrors = (errors: ErrorDiseno[]) => errors.map((e) => ({ code: e.codigo, message: e.mensaje }))
+export const traceErrors = (errors: DesignError[]) => errors.map((e) => ({ code: e.codigo, message: e.mensaje }))
 
 /** Piece ids an error talks about, so the same problem is recognized after a partial fix. */
-export function errorKey(e: ErrorDiseno) {
+export function errorKey(e: DesignError) {
   const ids = Object.values(e.datos ?? {})
     .filter((v): v is string => typeof v === 'string')
     .sort()
