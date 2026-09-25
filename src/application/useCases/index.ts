@@ -119,6 +119,35 @@ const ASKS_REMOVAL = /\b(quit|elimin|sac|borr|remuev|remov|sin )/i
 /** A cota tied to an outer face of the piece of furniture. */
 const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
 
+type Proposal = NonNullable<DesignState['proposal']>
+
+/** What the expert proposed, kept aside until the person decides; its requirements and decisions apply only with it. */
+function proposalFrom(p: {
+  design: Design
+  operations: Operation[]
+  response: { summary: string; decisions: Decision[] }
+  request: string
+  critical: Finding[]
+  requirements: Requirement[]
+  origin: Origin
+  plan: { plan: FurniturePlan | null; extras: Operation[] }
+  holds: string[]
+}): Proposal {
+  return {
+    design: p.design,
+    operations: p.operations,
+    summary: p.response.summary,
+    reason: p.request,
+    critical: p.critical.map((h) => ({ code: h.code, message: h.message, pieces: h.pieces })),
+    requirements: p.requirements,
+    decisions: p.response.decisions,
+    origin: p.origin,
+    plan: p.plan.plan,
+    extras: p.plan.extras,
+    holds: p.holds,
+  }
+}
+
 export type PieceEdit = { kind: 'length'; axis: Axis; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Axis; delta: number }
 export type PieceEditResult = { ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
 
@@ -419,20 +448,8 @@ export function createUseCases(deps: Dependencies) {
       const extras = currentPlanInfo.extras.filter((e) => !rebuilt.dropped.includes(e))
       const criticals = newCriticals(before, analysis.findings)
       if (criticals.length) {
-        const proposal = {
-          design: rebuilt.design,
-          operations: [],
-          summary: r.summary,
-          reason: request,
-          critical: criticals.map((h) => ({ code: h.code, message: h.message, pieces: h.pieces })),
-          requirements: requirements,
-          decisions: r.decisions,
-          origin: response.origin,
-          plan: next!,
-          extras,
-          holds: [],
-        }
-        const pending = { ...base, requirements: withRequest.requirements, decisions: withRequest.decisions, proposal }
+        const proposal = proposalFrom({ design: rebuilt.design, operations: [], response: r, request, critical: criticals, requirements, origin: response.origin, plan: { plan: next!, extras }, holds: [] })
+        const pending = { ...withRequest, proposal }
         return reply(r.explanation, { ...(r.questions.length ? { questions: r.questions } : questionFromAlternatives(criticals, rebuilt.design, catalog)), proposal: 'pending' }, pending)
       }
       const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
@@ -493,19 +510,8 @@ export function createUseCases(deps: Dependencies) {
           ...(r.questions.length ? ['Hizo preguntas: el cambio espera tus respuestas.'] : []),
         ]
         if (holds.length) {
-          const proposal = {
-            design: next,
-            operations: r.operations,
-            summary: r.summary,
-            reason: request,
-            critical: [],
-            requirements: requirements,
-            decisions: r.decisions,
-            origin: response.origin,
-            ...layered(currentPlanInfo, r.operations),
-            holds,
-          }
-          const pending = { ...base, requirements: withRequest.requirements, decisions: withRequest.decisions, proposal }
+          const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: [], requirements, origin: response.origin, plan: layered(currentPlanInfo, r.operations), holds })
+          const pending = { ...withRequest, proposal }
           return reply(r.explanation, { questions: r.questions, proposal: 'pending', suggestions: suggestions }, pending)
         }
         const accepted = new Set(r.acceptedRisks.map((a) => a.code))
@@ -525,19 +531,8 @@ export function createUseCases(deps: Dependencies) {
         }
 
         if (criticals.length) {
-          const proposal = {
-            design: next,
-            operations: r.operations,
-            summary: r.summary,
-            reason: request,
-            critical: criticals.map((h) => ({ code: h.code, message: h.message, pieces: h.pieces })),
-            requirements: requirements,
-            decisions: r.decisions,
-            origin: response.origin,
-            ...layered(currentPlanInfo, r.operations),
-            holds: [],
-          }
-          const pending = { ...base, requirements: withRequest.requirements, decisions: withRequest.decisions, proposal }
+          const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: criticals, requirements, origin: response.origin, plan: layered(currentPlanInfo, r.operations), holds: [] })
+          const pending = { ...withRequest, proposal }
           return reply(r.explanation, { ...(r.questions.length ? { questions: r.questions } : questionFromAlternatives(criticals, next, catalog)), proposal: 'pending' }, pending)
         }
 
