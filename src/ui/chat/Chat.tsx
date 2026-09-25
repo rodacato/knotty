@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Etapa } from '../../application/casosDeUso'
 import { claveFoto, clavePregunta, type EstadoDiseno, type Mensaje } from '../../domain/sesion/estado'
@@ -24,8 +24,80 @@ function agrupar<T extends { codigo: string }>(criticos: T[]) {
   return [...grupos.values()].map((g) => ({ primero: g[0], mas: g.length - 1 }))
 }
 
-function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
+/** Segundos desde que empezó a pensar, para que una espera larga no parezca colgada. */
+function useSegundos(activo: boolean) {
+  const [segundos, setSegundos] = useState(0)
+  useEffect(() => {
+    if (!activo) return
+    const inicio = Date.now()
+    const reloj = setInterval(() => setSegundos(Math.floor((Date.now() - inicio) / 1000)), 1000)
+    return () => {
+      clearInterval(reloj)
+      setSegundos(0)
+    }
+  }, [activo])
+  return segundos
+}
+
+/** Con varias preguntas se eligen las respuestas y se mandan juntas en un solo mensaje. */
+function Preguntas({ m }: { m: Mensaje }) {
   const ajustar = useTienda((s) => s.ajustar)
+  const pensando = useTienda((s) => s.pensando)
+  const [elegidas, setElegidas] = useState<Record<number, string>>({})
+  const abiertas = m.preguntas.map((p, i) => ({ p, i })).filter(({ p, i }) => p.opciones && !m.respuestas.includes(clavePregunta(i)))
+  const juntas = !m.respondida && abiertas.length > 1
+  const listas = Object.keys(elegidas).map(Number)
+
+  const enviarJuntas = () => {
+    const texto = listas.map((i) => `${m.preguntas[i].texto} ${elegidas[i]}`).join('\n')
+    setElegidas({})
+    void ajustar(texto, `${m.id}#${listas.map(clavePregunta).join(',')}`)
+  }
+
+  return (
+    <>
+      {m.preguntas.map((p, i) => {
+        const hecha = m.respondida || m.respuestas.includes(clavePregunta(i))
+        return (
+          <div key={i} className="flex flex-col gap-2">
+            {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
+            {p.opciones && (
+              <div className="flex flex-wrap gap-2">
+                {p.opciones.map((o) => (
+                  <Chip
+                    key={o}
+                    activo={elegidas[i] === o}
+                    aria-pressed={juntas ? elegidas[i] === o : undefined}
+                    disabled={hecha || pensando}
+                    onClick={() =>
+                      juntas
+                        ? setElegidas(({ [i]: previa, ...resto }) => (previa === o ? resto : { ...resto, [i]: o }))
+                        : void ajustar(o, `${m.id}#${clavePregunta(i)}`)
+                    }
+                  >
+                    {o}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      {juntas && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Boton variante="primario" className="min-h-9 text-xs" disabled={!listas.length || pensando} onClick={enviarJuntas}>
+            <PaperPlaneRight weight="fill" /> {listas.length > 1 ? `Enviar ${listas.length} respuestas` : 'Enviar respuesta'}
+          </Boton>
+          <span className="text-xs text-grafito-2">
+            {listas.length < abiertas.length ? 'Contesta las que sepas; el resto lo decide el experto.' : 'Listo, mándalas juntas.'}
+          </span>
+        </div>
+      )}
+    </>
+  )
+}
+
+function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; reintentar: (() => void) | null }) {
   const pensando = useTienda((s) => s.pensando)
   const aplicarPropuesta = useTienda((s) => s.aplicarPropuesta)
   const descartarPropuesta = useTienda((s) => s.descartarPropuesta)
@@ -38,7 +110,7 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
     return (
       <div className="animate-aparecer ml-10 flex flex-col items-end gap-1.5 self-end">
         {m.miniatura && <img src={m.miniatura} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
-        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug text-hueso shadow-sm">{m.texto}</div>
+        <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.texto}</div>
       </div>
     )
 
@@ -71,6 +143,11 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
             {p}
           </p>
         ))}
+        {reintentar && (
+          <Boton variante="secundario" className="mt-3 min-h-9 text-xs" onClick={reintentar} disabled={pensando}>
+            <ArrowClockwise weight="bold" /> Reintentar
+          </Boton>
+        )}
       </div>
 
       {pendiente && (
@@ -105,20 +182,7 @@ function Burbuja({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
         <FotoPedida key={f.angulo} angulo={f.angulo} motivo={f.motivo} mensaje={m} />
       ))}
 
-      {m.preguntas.map((p, i) => (
-        <div key={i} className="flex flex-col gap-2">
-          {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
-          {p.opciones && (
-            <div className="flex flex-wrap gap-2">
-              {p.opciones.map((o) => (
-                <Chip key={o} disabled={m.respondida || m.respuestas.includes(clavePregunta(i)) || pensando} onClick={() => void ajustar(o, `${m.id}#${clavePregunta(i)}`)}>
-                  {o}
-                </Chip>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+      <Preguntas m={m} />
     </div>
   )
 }
@@ -160,6 +224,12 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
   const cancelar = useTienda((s) => s.cancelar)
   const [texto, setTexto] = useState('')
   const lista = useRef<HTMLDivElement>(null)
+  const segundos = useSegundos(pensando)
+  const ultimo = estado.chat.at(-1)
+  const anterior = estado.chat.at(-2)
+  // Si el último intento falló, se reenvía el mismo pedido con un clic.
+  const reintentar = ultimo?.error && anterior?.autor === 'usuario' ? () => void ajustar(anterior.texto) : null
+  const sugerencias = pensando || ultimo?.autor !== 'experto' || ultimo.error ? [] : ultimo.sugerencias.length ? ultimo.sugerencias : estado.versiones.length <= 1 ? SUGERENCIAS : []
 
   useEffect(() => {
     lista.current?.scrollTo({ top: lista.current.scrollHeight, behavior: 'smooth' })
@@ -175,17 +245,18 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
     <div className="flex h-full min-h-0 flex-col">
       <div ref={lista} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
         {estado.chat.map((m) => (
-          <Burbuja key={m.id} m={m} estado={estado} />
+          <Burbuja key={m.id} m={m} estado={estado} reintentar={m === ultimo ? reintentar : null} />
         ))}
         {pensando && (
           <div className="flex items-center gap-2 self-start rounded-2xl border border-linea bg-hueso px-4 py-2.5 text-sm text-grafito-2" aria-live="polite">
             <Lapiz className="h-5 w-12 text-ambar" /> {etapa ? ETAPAS[etapa.nombre] : 'Pensando…'}
+            {segundos >= 10 && <span className="cifras text-xs">· {segundos} s</span>}
           </div>
         )}
       </div>
-      {estado.chat.length <= 1 && !pensando && (
-        <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
-          {SUGERENCIAS.map((s) => (
+      {sugerencias.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]" aria-label="Sugerencias">
+          {sugerencias.map((s) => (
             <Chip key={s} className="shrink-0" onClick={() => void ajustar(s)}>
               {s}
             </Chip>

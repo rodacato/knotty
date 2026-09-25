@@ -29,11 +29,27 @@ class Rechazo extends Error {
   }
 }
 
-async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'>, ruta: string, init: RequestInit = {}) {
+const LIMITE_MS = 5 * 60_000
+
+/** Si no se pudo ni conectar, con SheLLM casi siempre es el host apagado o el origen fuera de su lista de CORS. */
+function sinConexion(c: Pick<ConexionCompatible, 'host'> & { proveedor?: ConexionCompatible['proveedor'] }) {
+  if (c.proveedor !== 'shellm') return 'No se pudo conectar desde el navegador: revisa tu conexión a internet.'
+  const origen = typeof location === 'undefined' ? 'el origen de Knotty' : location.origin
+  return `No se pudo conectar con SheLLM en ${normalizarHost(c.host)}. Revisa que esté corriendo y que SHELLM_CORS_ORIGINS incluya ${origen}. Si pasa después de mucho rato, el túnel o proxy pudo cortar la conexión por tiempo.`
+}
+
+async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedor?: ConexionCompatible['proveedor'] }, ruta: string, init: RequestInit = {}) {
   let respuesta: Response
+  const limite = AbortSignal.timeout(LIMITE_MS)
   try {
-    respuesta = await fetch(`${normalizarHost(c.host)}/v1${ruta}`, { ...init, headers: { 'content-type': 'application/json', ...(c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {}) } })
+    respuesta = await fetch(`${normalizarHost(c.host)}/v1${ruta}`, {
+      ...init,
+      signal: init.signal ? AbortSignal.any([init.signal, limite]) : limite,
+      headers: { 'content-type': 'application/json', ...(c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {}) },
+    })
   } catch (e) {
+    if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
+    if (e instanceof TypeError) throw new Error(sinConexion(c))
     throw new ErrorProveedor(e)
   }
   if (respuesta.status === 401 || respuesta.status === 403) throw new Error(c.apiKey ? 'La API key no es válida.' : 'El host pide una API key.')

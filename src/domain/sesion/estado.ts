@@ -31,20 +31,22 @@ export const Mensaje = z.object({
   miniatura: z.string().nullable().default(null),
   /** Qué preguntas ("p0") y fotos ("f:interior") de este mensaje ya se respondieron; con todas, queda `respondida`. */
   respuestas: z.array(z.string()).default([]),
+  /** Siguientes pasos que el experto sugiere; se muestran como botones bajo su último mensaje. */
+  sugerencias: z.array(z.string()).default([]),
 })
 
 /** Clave de lo que se responde dentro de un mensaje del experto. */
 export const clavePregunta = (indice: number) => `p${indice}`
 export const claveFoto = (angulo: string) => `f:${angulo}`
 
-/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave". */
+/** Marca respondida una pregunta o foto de un mensaje; `respondeA` es "idMensaje" o "idMensaje#clave,clave". */
 export function marcarRespondida(chat: Mensaje[], respondeA: string | null): Mensaje[] {
   if (!respondeA) return chat
-  const [id, clave] = respondeA.split('#')
+  const [id, claves] = respondeA.split('#')
   return chat.map((m) => {
     if (m.id !== id) return m
-    if (!clave) return { ...m, respondida: true }
-    const respuestas = [...new Set([...m.respuestas, clave])]
+    if (!claves) return { ...m, respondida: true }
+    const respuestas = [...new Set([...m.respuestas, ...claves.split(',')])]
     const total = m.preguntas.filter((p) => p.opciones).length + m.fotosPedidas.length
     return { ...m, respuestas, respondida: respuestas.length >= total }
   })

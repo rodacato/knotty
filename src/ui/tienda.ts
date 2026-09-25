@@ -13,6 +13,13 @@ import type { Servicios } from './servicios'
 export type Fase = 'inicio' | 'captura' | 'analizando' | 'estudio'
 export type Vista = 'frente' | 'lado' | 'tres-cuartos' | 'arriba'
 
+export interface EntradaCaptura {
+  medidas: Dimensiones | null
+  fotos: Foto[]
+  miniaturas: Miniatura[]
+  notas: string
+}
+
 interface Tienda {
   servicios: Servicios | null
   estado: EstadoDiseno | null
@@ -20,6 +27,8 @@ interface Tienda {
   etapa: { nombre: Etapa; intento: number } | null
   pensando: boolean
   errorReconstruccion: string | null
+  /** Lo último que se mandó a diseñar, para no perderlo si falla y poder reintentar. */
+  borrador: EntradaCaptura | null
   controlador: AbortController | null
   seleccion: string | null
   explosion: boolean
@@ -43,7 +52,7 @@ interface Tienda {
   nuevoDiseno(): void
   empezarCaptura(): void
   desdeEjemplo(diseno: Diseno): void
-  reconstruir(entrada: { medidas: Dimensiones; fotos: Foto[]; miniaturas: Miniatura[]; notas: string }): Promise<void>
+  reconstruir(entrada: EntradaCaptura): Promise<void>
   ajustar(peticion: string, respondeA?: string | null, foto?: FotoEnviada | null): Promise<void>
   cancelar(): void
   aplicarPropuesta(): void
@@ -102,6 +111,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   etapa: null,
   pensando: false,
   errorReconstruccion: null,
+  borrador: null,
   controlador: null,
   seleccion: null,
   explosion: false,
@@ -124,10 +134,10 @@ export const useTienda = create<Tienda>((set, get) => ({
   nuevoDiseno() {
     get().controlador?.abort()
     get().servicios?.casos.nuevoDiseno()
-    set({ estado: null, fase: 'captura', seleccion: null, explosion: false, errorReconstruccion: null, pensando: false, etapa: null })
+    set({ estado: null, fase: 'captura', seleccion: null, explosion: false, errorReconstruccion: null, borrador: null, pensando: false, etapa: null })
   },
 
-  empezarCaptura: () => set({ fase: 'captura', errorReconstruccion: null }),
+  empezarCaptura: () => set({ fase: 'captura', errorReconstruccion: null, borrador: null }),
 
   desdeEjemplo(diseno) {
     const { servicios } = get()
@@ -139,10 +149,10 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios } = get()
     if (!servicios) return
     const controlador = new AbortController()
-    set({ fase: 'analizando', controlador, etapa: { nombre: 'mirando-fotos', intento: 0 }, errorReconstruccion: null })
+    set({ fase: 'analizando', controlador, etapa: { nombre: 'mirando-fotos', intento: 0 }, errorReconstruccion: null, borrador: entrada })
     try {
       const estado = await servicios.casos.reconstruir(entrada, controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }))
-      set((s) => ({ estado, fase: 'estudio', etapa: null, controlador: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
+      set((s) => ({ estado, fase: 'estudio', etapa: null, controlador: null, borrador: null, revelado: s.revelado + 1, vista: { nombre: 'tres-cuartos', vez: s.vista.vez + 1 } }))
     } catch (e) {
       const cancelado = controlador.signal.aborted
       set({ fase: 'captura', etapa: null, controlador: null, errorReconstruccion: cancelado ? null : e instanceof Error ? e.message : 'Algo falló al analizar las fotos.' })
@@ -153,7 +163,7 @@ export const useTienda = create<Tienda>((set, get) => ({
     const { servicios, estado, pensando } = get()
     if (!servicios || !estado || pensando || !peticion.trim()) return
     const controlador = new AbortController()
-    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [] }
+    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [], sugerencias: [] }
     const optimista = { ...estado, chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
     set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
     const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA, foto)

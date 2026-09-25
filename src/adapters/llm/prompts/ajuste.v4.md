@@ -1,5 +1,5 @@
 ---
-id: ajuste@3
+id: ajuste@4
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -27,6 +27,8 @@ Cómo responder:
 - Usa `aceptaRiesgo` solo si la persona dijo explícitamente que lo quiere así aunque tenga el problema.
 - Si una pregunta de la persona no pide cambios, responde en `explicacion` con `operaciones` vacía.
 - Si la persona responde una duda sobre una pieza en boceto (confianza "baja") o manda una foto que la aclara, aplica lo que corresponda y sube su `confianza` a "alta".
+- La persona puede contestar varias preguntas en un solo mensaje (una respuesta por línea): aplícalas todas juntas.
+- `sugerencias`: 2 a 4 siguientes pasos que tengan sentido después de este cambio, escritos como los diría la persona.
 - Pide una foto en `fotosSolicitadas` solo si de verdad la necesitas para decidir; en `angulo` usa frente, 3/4, lateral, interior o uniones.
 
 Al agregar un divisor vertical que cruza entrepaños, parte cada entrepaño en dos (redimensiona uno hasta el divisor y duplica el otro desde el divisor) y ajusta sus uniones.
