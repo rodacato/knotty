@@ -138,18 +138,71 @@ class StreamCortado extends Error {
   }
 }
 
-/** Quita cercas de código u otro texto alrededor del objeto JSON. */
+/** Los objetos JSON de primer nivel en el texto, respetando llaves dentro de cadenas. */
+function objetosDeNivelSuperior(texto: string): string[] {
+  const objetos: string[] = []
+  let profundidad = 0
+  let inicio = -1
+  let enCadena = false
+  for (let i = 0; i < texto.length; i++) {
+    const c = texto[i]
+    if (enCadena) {
+      if (c === '\\') i++
+      else if (c === '"') enCadena = false
+    } else if (c === '"') enCadena = profundidad > 0
+    else if (c === '{' && profundidad++ === 0) inicio = i
+    else if (c === '}' && profundidad > 0 && --profundidad === 0) objetos.push(texto.slice(inicio, i + 1))
+  }
+  return objetos
+}
+
+const ESCAPES: Record<string, string> = { '\n': '\\n', '\t': '\\t', '\r': '\\r' }
+
+/** Escapa saltos y tabuladores crudos dentro de las cadenas: el JSON los prohíbe, pero algunos modelos los escriben. */
+function escaparControles(json: string) {
+  let salida = ''
+  let enCadena = false
+  for (let i = 0; i < json.length; i++) {
+    const c = json[i]
+    if (enCadena && c === '\\') {
+      salida += c + (json[++i] ?? '')
+      continue
+    }
+    if (c === '"') enCadena = !enCadena
+    salida += enCadena && ESCAPES[c] ? ESCAPES[c] : c
+  }
+  return salida
+}
+
+/** Un objeto con una sola llave cuyo valor es el JSON escrito como texto: el modelo lo envolvió de más. */
+function desenvolver(valor: unknown): unknown {
+  if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return valor
+  const valores = Object.values(valor)
+  if (valores.length !== 1 || typeof valores[0] !== 'string') return valor
+  try {
+    const dentro = JSON.parse(valores[0])
+    return dentro && typeof dentro === 'object' ? dentro : valor
+  } catch {
+    return valor
+  }
+}
+
+/** Quita cercas de código u otro texto; si llegaron varios intentos seguidos, se queda con el último que se pueda leer. */
 function extraerJSON(texto: string) {
-  const inicio = texto.indexOf('{')
-  const fin = texto.lastIndexOf('}')
   // Con cuánto llegó y cómo termina se distingue una respuesta cortada de una mal escrita.
   const muestra = `${texto.length.toLocaleString('es-MX')} caracteres, termina en «${texto.slice(-40).replace(/\s+/g, ' ')}»`
-  if (inicio < 0 || fin <= inicio) throw new Error(`El modelo no devolvió JSON (${muestra}).`)
-  try {
-    return JSON.parse(texto.slice(inicio, fin + 1))
-  } catch {
-    throw new Error(`El modelo devolvió un JSON inválido (${muestra}).`)
+  const candidatos = objetosDeNivelSuperior(texto)
+  if (!texto.includes('{')) throw new Error(`El modelo no devolvió JSON (${muestra}).`)
+  for (const candidato of candidatos.reverse()) {
+    for (const version of [candidato, escaparControles(candidato)]) {
+      try {
+        return desenvolver(JSON.parse(version))
+      } catch {
+        // Un intento roto: se prueba corregido y luego el anterior.
+      }
+    }
   }
+  throw new Error(`El modelo devolvió un JSON inválido (${muestra}).`)
 }
 
 export function crearCompatible(c: ConexionCompatible): LLMProvider {

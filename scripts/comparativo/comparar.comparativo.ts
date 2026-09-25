@@ -20,6 +20,21 @@ import { CASOS, type Caso } from './casos'
 // Las llaves van en .env (ignorado por git), nunca en la línea de comandos ni en el código.
 if (existsSync('.env')) process.loadEnvFile('.env')
 
+// Con KNOTTY_CRUDO=1 guarda el stream tal como llegó, para reportar al proveedor una respuesta rota.
+if (process.env.KNOTTY_CRUDO) {
+  const original = globalThis.fetch
+  let n = 0
+  globalThis.fetch = async (url, init) => {
+    const r = await original(url, init)
+    if (!(r.headers.get('content-type') ?? '').includes('text/event-stream')) return r
+    const texto = await r.text()
+    const carpeta = join(import.meta.dirname, 'resultados', 'crudo')
+    mkdirSync(carpeta, { recursive: true })
+    writeFileSync(join(carpeta, `${Date.now()}-${++n}.sse`), texto)
+    return new Response(texto, { status: r.status, headers: r.headers })
+  }
+}
+
 const catalogo = Catalogo.parse(datos)
 const env = process.env
 
@@ -37,6 +52,8 @@ function proveedor(spec: string): LLMProvider {
 interface Llamada {
   segundos: number
   salida: number | null
+  /** Si esta llamada fue un reintento, los errores del intento anterior. */
+  corrige: string[]
 }
 
 /** Envuelve al proveedor para medir cada llamada: el caso de uso reintenta y cada intento cuenta. */
@@ -45,12 +62,14 @@ function medido(llm: LLMProvider, llamadas: Llamada[]): LLMProvider {
     <A extends unknown[], R extends { consumo: { tokensSalida?: number } }>(f: (...a: A) => Promise<R>) =>
     async (...a: A) => {
       const inicio = performance.now()
+      const previa = (a[0] as { correccion?: { errores: unknown } | null }).correccion?.errores
+      const corrige = Array.isArray(previa) ? previa.map((e: { codigo: string }) => e.codigo) : typeof previa === 'string' ? [previa.slice(0, 40)] : []
       try {
         const r = await f(...a)
-        llamadas.push({ segundos: (performance.now() - inicio) / 1000, salida: r.consumo.tokensSalida ?? null })
+        llamadas.push({ segundos: (performance.now() - inicio) / 1000, salida: r.consumo.tokensSalida ?? null, corrige })
         return r
       } catch (e) {
-        llamadas.push({ segundos: (performance.now() - inicio) / 1000, salida: null })
+        llamadas.push({ segundos: (performance.now() - inicio) / 1000, salida: null, corrige })
         throw e
       }
     }
@@ -79,7 +98,18 @@ interface Resultado {
   medidas: string
   medidasRazonables: boolean | null
   criticos: number
+  /** Qué reglas dieron los críticos, para saber si es interpretación del modelo o algo que las reglas deberían resolver. */
+  reglas: string
+  /** Por qué hubo reintentos: los códigos de error que se le devolvieron al modelo. */
+  correcciones: string
   veredicto: string
+}
+
+/** Cada diseño se guarda (fuera de git) para revisar después qué armó el modelo. */
+function guardarDiseno(spec: string, caso: string, estado: EstadoDiseno) {
+  const carpeta = join(import.meta.dirname, 'resultados', 'disenos')
+  mkdirSync(carpeta, { recursive: true })
+  writeFileSync(join(carpeta, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${spec.replace(/\W+/g, '-')}-${caso}.json`), JSON.stringify(estado, null, 2))
 }
 
 const memoria = () => {
@@ -91,7 +121,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
   const llamadas: Llamada[] = []
   const casos = crearCasosDeUso({ llm: () => medido(proveedor(spec), llamadas), catalogo, repositorio: memoria() })
   const inicio = performance.now()
-  const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, veredicto: '—' }
+  const base = { prompt: null, modelo: spec, caso: caso.id, intentos: 0, tokensSalida: null, piezas: 0, uniones: 0, medidas: '—', medidasRazonables: null, criticos: 0, reglas: '', correcciones: '', veredicto: '—' }
   try {
     const estado = await casos.reconstruir({ medidas: caso.medidas, fotos: [], miniaturas: [], notas: caso.notas }, AbortSignal.timeout(6 * 60_000))
     const segundos = (performance.now() - inicio) / 1000
@@ -107,6 +137,7 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
       error: null,
       segundos,
       intentos: llamadas.length,
+      correcciones: [...new Set(llamadas.flatMap((l) => l.corrige))].join(' '),
       tokensSalida: tokens.every((t) => t !== null) ? tokens.reduce((s, t) => s! + t!, 0) : null,
       piezas: diseno.piezas.length,
       uniones: diseno.uniones.length,
@@ -116,7 +147,9 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
     if (!a.valido) return { ...resultado, veredicto: 'inválido' }
     const compra = estimarCompra(diseno, a.geo, catalogo)
     const v = revisarViabilidad({ diseno, geo: a.geo, catalogo, compra, hallazgos: a.hallazgos, incumplidos: [] })
-    return { ...resultado, criticos: a.hallazgos.filter((h) => h.severidad === 'critico').length, veredicto: v.veredicto }
+    const criticos = a.hallazgos.filter((h) => h.severidad === 'critico')
+    guardarDiseno(spec, caso.id, estado)
+    return { ...resultado, criticos: criticos.length, reglas: [...new Set(criticos.map((h) => h.codigo))].join(' '), veredicto: v.veredicto }
   } catch (e) {
     return { ...base, ok: false, error: e instanceof Error ? e.message : String(e), segundos: (performance.now() - inicio) / 1000, intentos: llamadas.length }
   }
@@ -131,7 +164,7 @@ async function enLotes<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
 
 function informe(resultados: Resultado[], etiqueta: string) {
   const fila = (r: Resultado) =>
-    `| ${r.modelo} | ${r.caso} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.segundos.toFixed(0)} | ${r.intentos} | ${r.tokensSalida ?? '—'} | ${r.piezas} | ${r.uniones} | ${r.medidas} | ${r.medidasRazonables === null ? '—' : r.medidasRazonables ? 'sí' : 'NO'} | ${r.criticos} | ${r.veredicto} |`
+    `| ${r.modelo} | ${r.caso} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.segundos.toFixed(0)} | ${r.intentos}${r.correcciones ? ` (${r.correcciones})` : ''} | ${r.tokensSalida ?? '—'} | ${r.piezas} | ${r.uniones} | ${r.medidas} | ${r.medidasRazonables === null ? '—' : r.medidasRazonables ? 'sí' : 'NO'} | ${r.criticos}${r.reglas ? ` (${r.reglas})` : ''} | ${r.veredicto} |`
   const modelos = [...new Set(resultados.map((r) => r.modelo))]
   const resumen = modelos.map((m) => {
     const rs = resultados.filter((r) => r.modelo === m)

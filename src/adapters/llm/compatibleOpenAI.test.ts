@@ -5,6 +5,7 @@ import { crearCompatible } from './compatibleOpenAI'
 
 const respuesta = { explicacion: 'Veo un librero', diseno: librero, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
+const conTexto = (contenido: string) => new Response(JSON.stringify({ choices: [{ message: { content: contenido } }] }), { status: 200 })
 const rechazo = (texto: string, status = 400) => new Response(texto, { status })
 const solicitud = (fotos = [{ angulo: 'frente', base64: 'AAA' }]) => ({ medidas: librero.dimensiones, fotos, notas: '', catalogo, correccion: null })
 let host = 0
@@ -138,6 +139,27 @@ describe('crearCompatible', () => {
     await experto.reconstruir(solicitud([]), new AbortController().signal)
     await experto.reconstruir(solicitud([]), new AbortController().signal)
     expect(cuerpos.map((c) => c.reasoning_effort ?? null)).toEqual(['low', null, null])
+  })
+
+  it('si llegan dos intentos pegados, el primero envuelto como texto, se queda con el bueno', async () => {
+    const texto = JSON.stringify(respuesta)
+    const intentos = `${JSON.stringify({ $PARAMETER_NAME: JSON.stringify(respuesta, null, 2) })}${texto}`
+    vi.stubGlobal('fetch', vi.fn(async () => conTexto(intentos)))
+    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
+    expect(r.valor.diseno.nombre).toBe('Librero')
+  })
+
+  it('un salto de línea crudo dentro de un texto no tumba la respuesta', async () => {
+    const texto = JSON.stringify({ ...respuesta, explicacion: 'Veo un librero__SALTO__con zoclo' }).replace('__SALTO__', '\n\t')
+    vi.stubGlobal('fetch', vi.fn(async () => conTexto(texto)))
+    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
+    expect(r.valor.explicacion).toBe('Veo un librero\n\tcon zoclo')
+  })
+
+  it('un solo intento envuelto como texto también se desenvuelve', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ok({ $PARAMETER_NAME: JSON.stringify(respuesta) })))
+    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
+    expect(r.valor.explicacion).toBe('Veo un librero')
   })
 
   it('un JSON inválido dice cuánto llegó y cómo termina, para distinguir un corte', async () => {
