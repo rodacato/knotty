@@ -32,9 +32,24 @@ function keys(value: unknown, found = new Set<string>()): Set<string> {
 describe('migrateState', () => {
   const migrated = DesignState.safeParse(migrateState(saved))
 
-  it('reads a format 1 session as format 2', () => {
+  it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(2)
+    expect(migrated.data?.format).toBe(3)
+  })
+
+  it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
+    const older = structuredClone(saved) as typeof saved & { trace: unknown[]; tray: unknown[] }
+    older.trace.push({ at: '', step: 'adjust', subject: null, attempt: 0, seconds: 1, outputTokens: null, promptId: null, outcome: 'invalid', errors: [{ code: 'E_TRASLAPE', message: 'x' }], repairs: [] })
+    older.tray.push({ id: 'notice:finding:critico:R1_FLECHA:piso+R1_FLECHA:techo', kind: 'notice', text: 'x', label: 'x', answers: null })
+    const answered = older.chat[1] as { respuestas: string[] }
+    answered.respuestas = ['p0', 'f:interior']
+    const state = DesignState.parse(migrateState(older))
+    expect(state.accepted[0].key).toBe('R1_SAG:piso')
+    expect(state.tray.at(-1)?.id).toBe('notice:finding:critical:R1_SAG:piso+R1_SAG:techo')
+    expect(state.trace.at(-1)?.errors[0].code).toBe('E_OVERLAP')
+    expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin'])
+    expect(state.thumbnails[0].angle).toBe('front')
+    expect(state.chat[1].answers).toEqual(['p0', 'f:inside'])
   })
 
   it('leaves no Spanish field names behind', () => {
@@ -58,7 +73,7 @@ describe('migrateState', () => {
     const roles = new Set(currentDesign(state).pieces.map((p) => p.role))
     expect([...roles].every((r) => ['side', 'bottom', 'top', 'shelf', 'back', 'kick'].includes(r))).toBe(true)
     expect(state.chat.map((m) => m.author)).toEqual(saved.chat.map((m) => (m.autor === 'usuario' ? 'user' : 'expert')))
-    expect(state.chat.find((m) => m.requestedPhotos.length)?.requestedPhotos).toEqual([{ angle: 'interior', reason: 'Ver cómo va la trasera' }])
+    expect(state.chat.find((m) => m.requestedPhotos.length)?.requestedPhotos).toEqual([{ angle: 'inside', reason: 'Ver cómo va la trasera' }])
     expect(state.proposal?.operations[0].op).toBe('resizeFurniture')
     expect(state.review).toMatchObject({ verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', problems: [{ severity: 'medium' }], tips: ['Mide el espesor real'] } })
     expect(state.review?.checks[0]).toMatchObject({ status: 'fail', impossible: true })
@@ -72,7 +87,7 @@ describe('migrateState', () => {
     expect(extras[14]).toMatchObject({ group: 'cajon-1', left: 'lat-izq.x1', back: 'trasera.z1', bottomMaterial: 'TR6' })
   })
 
-  it('leaves format 2 as it is', () => {
+  it('leaves the current format as it is', () => {
     expect(migrateState(migrated.data)).toBe(migrated.data)
   })
 })

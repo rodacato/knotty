@@ -19,7 +19,7 @@ import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
-import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
+import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { DesignError } from '../domain/validation/errors'
 import { worst, reviewViability, type Check } from '../domain/viabilidad/viability'
@@ -53,8 +53,8 @@ const listErrors = (errors: DesignError[]) => errors.map((e) => `- ${e.code}: ${
 /** What the person asked for at the start, as the first chat message. */
 function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; notes: string }) {
   const measures = input.measures ? `Mide ${input.measures.height} × ${input.measures.width} × ${input.measures.depth} mm (alto, ancho, fondo).` : 'No sé las medidas.'
-  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`} (${input.photos.map((f) => f.angle).join(', ')}).` : ''
-  const photoNotes = input.photos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${f.angle}: ${f.note!.trim()}`)
+  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`} (${input.photos.map((f) => angleLabel(f.angle)).join(', ')}).` : ''
+  const photoNotes = input.photos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${angleLabel(f.angle)}: ${f.note!.trim()}`)
   return [input.notes.trim(), photos, ...photoNotes, measures].filter(Boolean).join('\n\n')
 }
 
@@ -193,7 +193,7 @@ export function createUseCases(deps: Dependencies) {
     advance()
     const readOne = async (photo: Photo) => {
       const key = photoKey(photo.base64, photo.note ?? '')
-      const subject = `Foto ${photo.angle}`
+      const subject = `Foto ${angleLabel(photo.angle)}`
       const cached = readings.get(key)
       for (let attempt = 0; !cached && attempt < 2; attempt++) {
         const started = Date.now()
@@ -348,7 +348,7 @@ export function createUseCases(deps: Dependencies) {
       ? [`No logré que todo cerrara: quedaron ${describeProblems(traceErrors(problems))}. Te las marqué en el 3D y en los avisos; pídeme que las corrija y lo arreglo sin empezar de cero.`]
       : []
     return {
-      format: 2,
+      format: 3,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -630,7 +630,7 @@ export function createUseCases(deps: Dependencies) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 2,
+      format: 3,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,
