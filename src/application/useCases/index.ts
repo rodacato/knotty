@@ -19,7 +19,7 @@ import { rebuildFromPlan } from '../../domain/modules/rebuild'
 import { repairDesign, type Repair } from '../../domain/repair/repair'
 import { kindFromWords } from '../../domain/typology/typology'
 import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../../domain/reading/reading'
-import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../../domain/trace/trace'
+import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/trace/trace'
 import type { DesignError } from '../../domain/validation/errors'
 import { worst, reviewViability, type Check } from '../../domain/viability/viability'
 import { toggleInTray, trayRequest, type TrayItem } from '../../domain/tray/tray'
@@ -27,6 +27,7 @@ import type { DesignRepository } from '../../ports/DesignRepository'
 import { expertPlans, type Photo, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { buildContext, describeAlternatives } from '../context'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
+import { knownErrors, newErrors, tryCandidate } from './candidate'
 
 export { ExpertError }
 import { named } from '../named'
@@ -367,7 +368,7 @@ export function createUseCases(deps: Dependencies) {
     const currentPlanInfo = currentPlan(withRequest)
     // If the current design has unresolved problems, a change that fixes some and adds none is progress.
     const current = analyze(design, catalog, withRequest.requirements)
-    const previousProblems = current.valid ? null : new Set(current.errors.map(errorKey))
+    const previousProblems = knownErrors(current)
     const context = buildContext(withRequest, catalog)
     const trace: TraceEntry[] = []
     const reply = (text: string, extra: Partial<Message> = {}, base: DesignState = withRequest) =>
@@ -470,20 +471,15 @@ export function createUseCases(deps: Dependencies) {
         }
 
         onProgress('checking', attempt)
-        const applied = applyOperations(design, r.operations, catalog)
-        const appliedNormally = applied.ok ? completeJoints(normalize(applied.value.design, catalog), catalog, design) : null
-        const repaired = appliedNormally ? repairDesign(appliedNormally, catalog, requirements) : null
-        const next = repaired?.design ?? null
-        const repairs = repaired?.repairs ?? []
-        const analysis = next ? analyze(next, catalog, requirements) : null
-        const noNewProblems = !!analysis && !analysis.valid && !!previousProblems && analysis.errors.every((e) => previousProblems.has(errorKey(e)))
-        if (!applied.ok || !next || !analysis || (!analysis.valid && !noNewProblems)) {
-          const errors = !applied.ok ? applied.errors : analysis && !analysis.valid ? analysis.errors : []
-          trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(errors), repairs))
+        const candidate = tryCandidate(design, r.operations, catalog, requirements, { known: previousProblems, repair: true })
+        if (!candidate.ok) {
+          const { errors } = candidate
+          trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(errors), candidate.repairs))
           correction = { previousResponse: r, errors: listErrors(errors) }
           lastError = errors[0]?.message ?? 'el cambio no se pudo aplicar'
           continue
         }
+        const { design: next, analysis, repairs } = candidate
         trace.push(traceEntry('adjust', attempt, started, response, 'ok', analysis.valid ? [] : traceErrors(analysis.errors), repairs))
         const settings = repairs.length ? [`Además ajusté por mi cuenta: ${repairs.map((x) => x.message).join(' ')}`] : []
         const newFindings = analysis.valid ? analysis.findings : []
@@ -546,7 +542,7 @@ export function createUseCases(deps: Dependencies) {
         }
 
         const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...layered(currentPlanInfo, r.operations) })
-        const warnings = applied.value.warnings.map((a) => a.message)
+        const warnings = candidate.warnings.map((a) => a.message)
         return reply([r.explanation, ...settings, ...remaining, ...warnings].join('\n\n'), { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions, version: withChange.current }, withChange)
       }
       const reason = lastError.trim().replace(/\.?$/, '.')
@@ -685,18 +681,13 @@ export function createUseCases(deps: Dependencies) {
         : edit.kind === 'move'
           ? `Mover ${piece.name.toLowerCase()} ${Math.abs(edit.delta)} mm`
           : `${piece.name} de ${Math.round(size(edit.axis))} a ${Math.round(edit.value)} mm`
-    const applied = applyOperations(design, operations, catalog)
-    const candidate = applied.ok ? completeJoints(normalize(applied.value.design, catalog), catalog, design) : null
-    const after = candidate ? analyze(candidate, catalog, state.requirements) : null
-    // An edit may leave the problems a design already had, but it must not add new ones.
-    const before = new Set(analysis.valid ? [] : analysis.errors.map(errorKey))
-    const holds = !!after && (after.valid || after.errors.every((e) => before.has(errorKey(e))))
-    if (candidate && holds) {
+    const candidate = tryCandidate(design, operations, catalog, state.requirements, { known: knownErrors(analysis) })
+    if (candidate.ok) {
       const current = currentPlan(state)
-      const withVersion = addVersion(state, candidate, { summary: summary.slice(0, 90), reason: `A mano: ${summary}`, operations: operations, origin: null, ...layered(current, operations) })
+      const withVersion = addVersion(state, candidate.design, { summary: summary.slice(0, 90), reason: `A mano: ${summary}`, operations: operations, origin: null, ...layered(current, operations) })
       return { ok: true, state: save({ ...withVersion, chat: [...withVersion.chat, message('user', `Cambié a mano: ${summary}.`, { version: withVersion.current })] }) }
     }
-    const reason = !applied.ok ? applied.errors[0]?.message : after && !after.valid ? after.errors.find((e) => !before.has(errorKey(e)))?.message : undefined
+    const reason = candidate.added[0]?.message
     // Tied to the outside of the piece: what can change is the whole piece of furniture.
     const alternatives: { label: string; axis: Axis; value: number }[] =
       edit.kind === 'length'
@@ -717,14 +708,12 @@ export function createUseCases(deps: Dependencies) {
     }
     const operations: Operation[] = [{ op: 'resizeFurniture', axis: axis, value: value, rule: 'stretch' }]
     const design = currentDesign(state)
-    const applied = applyOperations(design, operations, catalog)
-    const candidate = applied.ok ? completeJoints(normalize(applied.value.design, catalog), catalog, design) : null
-    const after = candidate && analyze(candidate, catalog, state.requirements)
-    if (!candidate || !after?.valid) return { ok: false, message: 'Tampoco se puede cambiar la medida del mueble así.', alternatives: [] }
+    const candidate = tryCandidate(design, operations, catalog, state.requirements)
+    if (!candidate.ok || !candidate.analysis.valid) return { ok: false, message: 'Tampoco se puede cambiar la medida del mueble así.', alternatives: [] }
     const dimension = DIMENSION_OF_AXIS[axis]
     const summary = `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)} del mueble a ${value} mm`
-    const withVersion = addVersion(state, candidate, { summary: summary, reason: `A mano: ${summary}`, operations: operations, origin: null })
-    return { ok: true, state: save({ ...withVersion, measures: candidate.dimensions, chat: [...withVersion.chat, message('user', `Cambié a mano: ${summary}.`, { version: withVersion.current })] }) }
+    const withVersion = addVersion(state, candidate.design, { summary: summary, reason: `A mano: ${summary}`, operations: operations, origin: null })
+    return { ok: true, state: save({ ...withVersion, measures: candidate.design.dimensions, chat: [...withVersion.chat, message('user', `Cambié a mano: ${summary}.`, { version: withVersion.current })] }) }
   }
 
   /** The version a given one was made from: the one just before it in the timeline. */
@@ -742,10 +731,8 @@ export function createUseCases(deps: Dependencies) {
     const r = restorePieces(current, before.design, ids, catalog)
     const pieces = current.pieces.concat(before.design.pieces)
     if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(pieces, r.errors[0]?.message) || 'choca con lo que cambió después'}` }
-    const previousErrors = analyze(current, catalog, state.requirements)
-    const known = new Set(previousErrors.valid ? [] : previousErrors.errors.map(errorKey))
-    const after = analyze(r.design, catalog, state.requirements)
-    if (!after.valid && !after.errors.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(pieces, after.errors.find((e) => !known.has(errorKey(e)))?.message)}` }
+    const added = newErrors(analyze(r.design, catalog, state.requirements), knownErrors(analyze(current, catalog, state.requirements)))
+    if (added.length) return { ok: false, message: `No se puede regresar así: ${named(pieces, added[0].message)}` }
     const names = ids.map((id) => before.design.pieces.find((p) => p.id === id)?.name ?? current.pieces.find((p) => p.id === id)?.name ?? id)
     const summary = `Regresar ${names.join(', ')}`
     const operations: Operation[] = ids.flatMap((id): Operation[] => {
