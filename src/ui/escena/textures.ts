@@ -90,7 +90,7 @@ export function texture(kind: TextureKind, tone: Tone): Texture {
     ctx.rotate(Math.PI / 2)
   }
   if (kind === 'sketch') sketch(ctx)
-  else if (kind.startsWith('veta')) grain(ctx, tone)
+  else if (kind === 'grain-u' || kind === 'grain-v') grain(ctx, tone)
   else layers(ctx, tone)
   const t = new CanvasTexture(canvas)
   t.colorSpace = SRGBColorSpace
