@@ -25,7 +25,7 @@ export function KonamiTrail({ onComplete }: { onComplete: () => void }) {
     let timer: ReturnType<typeof setTimeout> | undefined
     const onKey = (e: KeyboardEvent) => {
       // Typing in a field is not playing.
-      if ((e.target as HTMLElement | null)?.closest('input, textarea, select, [contenteditable]')) return
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return
       typed = [...typed, e.key.length === 1 ? e.key.toLowerCase() : e.key].slice(-KONAMI.length)
       const n = progress(typed)
       clearTimeout(timer)

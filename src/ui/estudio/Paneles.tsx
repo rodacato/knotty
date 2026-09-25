@@ -18,7 +18,7 @@ const UNIONES: Record<TipoUnion, string> = {
   'clavo-pegamento': 'clavo y pegamento',
   'soporte-repisa': 'soportes de repisa',
   'bisagra-cazoleta': 'bisagras de cazoleta',
-  corredera: 'correderas',
+  corredera: 'corredera',
 }
 
 const VETA = { largo: 'a lo largo', ancho: 'a lo ancho', libre: 'libre' }
@@ -114,7 +114,7 @@ export function FichaPieza({ diseno, geo, catalogo, editable = false }: { diseno
                   <button type="button" className="font-medium underline decoration-linea underline-offset-2 hover:decoration-ambar" onClick={() => seleccionar(otra)}>
                     {nombre(otra)}
                   </button>
-                  : {cantidad ? `${cantidad} ` : ''}
+                  : {cantidad && u.tipo !== 'corredera' ? `${cantidad} ` : ''}
                   {UNIONES[u.tipo]}
                   {u.pegamento && u.tipo !== 'clavo-pegamento' ? ' con pegamento' : ''}
                 </span>

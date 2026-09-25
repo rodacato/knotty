@@ -50,6 +50,8 @@ export const SUPUESTOS = {
     fondoMinimo: 6,
     /** Arriba de este ancho, un fondo más delgado que el mínimo se vence. */
     anchoFondoDelgado: 450,
+    /** Minimum gap between a drawer and the ground, so it opens without dragging. */
+    holguraSuelo: 10,
   },
 } as const
 

@@ -496,7 +496,7 @@ Nace de la revisión de uso del 2026-09-25. Todo gira alrededor de un solo model
 2. ✅ **Avisos con estado:** burbuja en el encabezado, estados, «Aceptar así», catálogo de soluciones que Knotty construye con vista previa en 3D y flecha nueva, y las propuestas y preguntas del experto como avisos.
 3. ✅ **Bandeja:** decisiones que piden criterio agrupadas en un pedido; las respuestas del experto resuelven sus avisos. Con una sola pregunta abierta y la bandeja vacía, la respuesta se manda al momento; con más, todo espera en la bandeja.
 4. ✅ **Acomodo de la pantalla:** tres pestañas, historial en el encabezado, avisos fuera de las pestañas. Avisos e historial ocupan el lugar de las pestañas, no el del 3D, para que la vista previa de una solución siga a la vista.
-5. **El 3D se entiende:** cotas legibles, medidas en la vista de armado, herrajes dibujados, reglas de cajón (pieza entre cajones, holgura al piso, correderas) también para diseños libres.
+5. ✅ **El 3D se entiende:** cotas legibles, medidas en la vista de armado, herrajes dibujados, reglas de cajón (pieza entre cajones, holgura al piso, correderas) también para diseños libres. Un cajón sin correderas declaradas las recibe de las piezas junto a su caja; si un lado no tiene dónde atornillarla, Knotty ofrece la pieza como solución instantánea.
 6. **Módulo de cama** con variantes y ficha (base con cajones de un lado o de los dos, hacia la cabecera o el pie; cabecera lisa, librero o con compartimento). Después mesas y escritorios.
 7. **Código en inglés:** cada entrega migra los módulos que toca (D33).
 
