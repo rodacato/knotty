@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analizar } from '../domain/analisis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
 import { ref } from '../domain/diseno/construir'
+import { DEFAULT_CONSTRUCTION } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
@@ -430,9 +431,10 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     material: 'T18',
     base: 'kick' as const,
     wallMounted: true,
+    construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
   }
-  const origen = { promptId: 'esqueleto@1', proveedor: 'x', modelo: 'm' }
+  const origen = { promptId: 'esqueleto@2', proveedor: 'x', modelo: 'm' }
   const conPlan = (cabinet: typeof cabinetPlan | null, falla = false) => {
     const simulado = crearSimulado(0)
     const llamadas: string[] = []

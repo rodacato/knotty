@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import type { Cell } from '../reading/reading'
-import { buildCabinet, type CabinetPlan } from './cabinet'
+import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetConstruction, type CabinetPlan } from './cabinet'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
-const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
+const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
 
 const PLANS: Record<string, CabinetPlan> = {
   librero: plan({ name: 'Librero' }),
@@ -53,5 +53,57 @@ describe('buildCabinet', () => {
     const a = analizar(design, catalogo)
     if (!a.valido) throw new Error(a.errores[0].mensaje)
     expect(a.geo.cajas.get('div-1')!.x0).toBe(291)
+  })
+})
+
+describe('construction variants', () => {
+  const options: { [K in keyof CabinetConstruction]: CabinetConstruction[K][] } = {
+    doors: ['overlay', 'inset'],
+    drawerFronts: ['inset', 'overlay'],
+    top: ['between', 'over'],
+    back: ['nailed', 'none'],
+    shelves: ['movable', 'fixed'],
+  }
+  const combos = Object.entries(options).reduce<CabinetConstruction[]>(
+    (all, [key, values]) => all.flatMap((c) => values.map((v) => ({ ...c, [key]: v }))),
+    [DEFAULT_CONSTRUCTION],
+  )
+  // Every kind of cell in one cabinet, so each variant meets every other.
+  const mixed = plan({
+    name: 'Gabinete',
+    dimensions: { width: 900, height: 900, depth: 450 },
+    wallMounted: false,
+    columns: [
+      { width: 0.5, cells: [cell('drawer', 0.3), cell('door', 0.7, { doors: 1, shelves: 1 })] },
+      { width: 0.5, cells: [cell('closed', 0.3), cell('open', 0.4, { shelves: 1 }), cell('door', 0.3, { doors: 2 })] },
+    ],
+  })
+
+  it.each(combos.map((c) => [Object.values(c).join(' · '), c] as const))('%s is valid, with nothing overlapping and every contact joined', (_, construction) => {
+    const { design, notes } = buildCabinet({ ...mixed, construction }, catalogo)
+    const a = analizar(design, catalogo)
+    if (!a.valido) throw new Error(a.errores.map((e) => e.mensaje).join('\n'))
+    expect(a.avisos.filter((w) => w.codigo === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(notes).toEqual([])
+  })
+
+  it('inset doors sit inside their opening and hang on declared hinges', () => {
+    const { design } = buildCabinet({ ...PLANS.alacena, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } }, catalogo)
+    const a = analizar(design, catalogo)
+    if (!a.valido) throw new Error(a.errores[0].mensaje)
+    const door = a.geo.cajas.get('c1-h1-puerta-izq')!
+    expect(door.x0).toBe(a.geo.cajas.get('lat-izq')!.x1 + 2)
+    expect(door.z1).toBe(320)
+    expect(design.uniones.filter((u) => u.tipo === 'bisagra-cazoleta').map((u) => u.herrajes[0].herrajeId)).toEqual(['bisagra-cazoleta-35-supercodo', 'bisagra-cazoleta-35-supercodo'])
+  })
+
+  it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {
+    const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
+      const a = analizar(buildCabinet({ ...PLANS.cajonera, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, catalogo).design, catalogo)
+      if (!a.valido) throw new Error(a.errores[0].mensaje)
+      return a.geo.cajas.get('cajon-1-frente')!
+    }
+    expect(front('overlay').x0).toBe(2)
+    expect(front('inset').x0).toBeGreaterThan(18)
   })
 })

@@ -7,6 +7,8 @@ import { error, type AvisoDiseno, type ErrorDiseno } from './errores'
 const TOLERANCIA_MEDIDA = 1
 /** Separación máxima entre cajón y mueble que una corredera puede salvar. */
 const HUECO_CORREDERA = 20
+/** An inset door hangs in its opening with this much gap all around: its hinge joins pieces that do not touch. */
+const HINGE_GAP = 4
 const SIN_AVISO_DE_UNION = new Set(['puerta', 'frente-cajon'])
 
 export interface ValidacionGeometrica {
@@ -49,6 +51,12 @@ export function validarGeometria(diseno: Diseno, geo: Geometria, catalogo: Catal
         errores.push(error('E_UNION_SIN_CONTACTO', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${HUECO_CORREDERA} mm.`, { union: u.id, a: u.a, b: u.b }))
       continue
     }
+    if (u.tipo === 'bisagra-cazoleta' && !todos.some((c) => mismoPar(c, u.a, u.b))) {
+      const gap = separacionEntre(geo.cajas.get(u.a)!, geo.cajas.get(u.b)!)
+      if (!gap || gap.distancia > HINGE_GAP)
+        errores.push(error('E_UNION_SIN_CONTACTO', `La bisagra "${u.id}" necesita a "${u.a}" junto a "${u.b}", a menos de ${HINGE_GAP} mm.`, { union: u.id, a: u.a, b: u.b }))
+      continue
+    }
     if (!todos.some((c) => mismoPar(c, u.a, u.b)))
       errores.push(error('E_UNION_SIN_CONTACTO', `La unión "${u.id}" junta "${u.a}" y "${u.b}", pero no se tocan.`, { union: u.id, a: u.a, b: u.b }))
   }
@@ -60,7 +68,7 @@ export function validarGeometria(diseno: Diseno, geo: Geometria, catalogo: Catal
     return permitido
   })
 
-  const correderas = diseno.uniones.filter((u) => u.tipo === 'corredera' && geo.cajas.has(u.a) && geo.cajas.has(u.b))
+  const correderas = diseno.uniones.filter((u) => (u.tipo === 'corredera' || u.tipo === 'bisagra-cazoleta') && geo.cajas.has(u.a) && geo.cajas.has(u.b))
   conexiones.push(...correderas.map((u) => ({ a: u.a, b: u.b, eje: 'x' as const, profundidad: 0 })))
   const alcanzadas = new Set([...geo.cajas].filter(([, c]) => c.y0 <= TOLERANCIA_CONTACTO).map(([id]) => id))
   for (let cambio = true; cambio; ) {

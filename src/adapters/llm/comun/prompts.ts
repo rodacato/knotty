@@ -1,7 +1,7 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import ajuste from '../prompts/ajuste.v5.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
-import esqueleto from '../prompts/esqueleto.v1.md?raw'
+import esqueleto from '../prompts/esqueleto.v2.md?raw'
 import lectura from '../prompts/lectura.v1.md?raw'
 import reconstruccion from '../prompts/reconstruccion.v6.md?raw'
 import sistema from '../prompts/sistema.v4.md?raw'

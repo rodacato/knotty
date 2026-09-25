@@ -4,13 +4,13 @@ import { desde, hasta, pieza, ref, tramo } from '../diseno/construir'
 import type { Diseno } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { catalogo } from '../fixtures/catalogo.test-util'
-import { buildCabinet, type CabinetPlan } from '../modules/cabinet'
+import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
 import type { Cell } from '../reading/reading'
 import { detectKind } from './typology'
 
 const cell = (content: Cell['content'], extra: Partial<Cell> = {}): Cell => ({ height: 1, content, shelves: null, doors: null, ...extra })
 const cabinet = (p: Partial<CabinetPlan>) =>
-  buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, columns: [{ width: 1, cells: [cell('open')] }], ...p }, catalogo).design
+  buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, catalogo).design
 const usage = (d: Diseno) => {
   const a = analizar(d, catalogo)
   if (!a.valido) throw new Error(a.errores[0].mensaje)
