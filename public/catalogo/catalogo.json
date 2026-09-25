@@ -7,7 +7,7 @@
       "espesor": 12,
       "hoja": {
         "largo": 2440,
-        "ancho": 1220
+        "ancho": 1218
       },
       "sku": null,
       "precio": 720
@@ -19,7 +19,7 @@
       "espesor": 15,
       "hoja": {
         "largo": 2440,
-        "ancho": 1220
+        "ancho": 1218
       },
       "sku": null,
       "precio": 860
@@ -31,7 +31,7 @@
       "espesor": 18,
       "hoja": {
         "largo": 2440,
-        "ancho": 1220
+        "ancho": 1218
       },
       "sku": null,
       "precio": 1050
@@ -43,7 +43,7 @@
       "espesor": 3,
       "hoja": {
         "largo": 2440,
-        "ancho": 1220
+        "ancho": 1218
       },
       "sku": null,
       "precio": 330
@@ -55,7 +55,7 @@
       "espesor": 6,
       "hoja": {
         "largo": 2440,
-        "ancho": 1220
+        "ancho": 1218
       },
       "sku": null,
       "precio": 480
@@ -294,7 +294,7 @@
     }
   ],
   "acomodo": {
-    "refilado": 10,
+    "refilado": 15,
     "sierra": 4,
     "holgura": 2
   },
