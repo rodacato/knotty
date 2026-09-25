@@ -73,8 +73,8 @@ export function Settings() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-grafito/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-aparecer fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col gap-5 overflow-y-auto rounded-3xl border border-linea bg-hueso p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col gap-5 overflow-y-auto rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-center justify-between">
             <Dialog.Title asChild>
               <Title className="text-xl">El experto</Title>
@@ -83,7 +83,7 @@ export function Settings() {
               <X />
             </Dialog.Close>
           </div>
-          <Dialog.Description className="-mt-3 text-sm text-grafito-2">
+          <Dialog.Description className="-mt-3 text-sm text-graphite-2">
             Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
           </Dialog.Description>
 
@@ -98,10 +98,10 @@ export function Settings() {
                 aria-checked={active === p}
                 aria-label={PRESETS[p].label}
                 onClick={() => setDraft((b) => ({ ...b, active: p }))}
-                className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}
+                className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
               >
                 <span className="font-medium">{PRESETS[p].label}</span>
-                <span className="text-xs text-grafito-2">{PRESETS[p].description}</span>
+                <span className="text-xs text-graphite-2">{PRESETS[p].description}</span>
               </button>
             ))}
           </div>
@@ -111,8 +111,8 @@ export function Settings() {
           {connection && active !== 'simulated' && (
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">API key{!PRESETS[active].needsKey && <span className="font-normal text-grafito-2"> (opcional)</span>}</span>
-                <span className="flex items-center gap-2 rounded-xl border border-linea bg-hueso px-3 focus-within:border-ambar">
+                <span className="text-sm font-medium">API key{!PRESETS[active].needsKey && <span className="font-normal text-graphite-2"> (opcional)</span>}</span>
+                <span className="flex items-center gap-2 rounded-xl border border-line bg-bone px-3 focus-within:border-amber">
                   <input
                     type={showKey ? 'text' : 'password'}
                     autoComplete="off"
@@ -120,9 +120,9 @@ export function Settings() {
                     value={connection.apiKey}
                     onChange={(e) => change({ apiKey: e.target.value.trim() })}
                     placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
-                    className="cifras min-h-11 flex-1 bg-transparent text-sm outline-none"
+                    className="numerals min-h-11 flex-1 bg-transparent text-sm outline-none"
                   />
-                  <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-grafito-2">
+                  <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-graphite-2">
                     {showKey ? <EyeSlash /> : <Eye />}
                   </button>
                 </span>
@@ -130,12 +130,12 @@ export function Settings() {
               <label className="flex flex-col gap-1.5">
                 <span className="flex items-center justify-between text-sm font-medium">
                   Modelo
-                  <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs font-normal text-grafito-2 underline disabled:opacity-40">
+                  <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs font-normal text-graphite-2 underline disabled:opacity-40">
                     <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
                   </button>
                 </span>
                 {models.kind === 'ready' ? (
-                  <select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm">
+                  <select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm">
                     {!models.models.includes(connection.model) && <option value={connection.model}>{connection.model || 'Elige un modelo'}</option>}
                     {models.models.map((m) => (
                       <option key={m}>{m}</option>
@@ -146,25 +146,25 @@ export function Settings() {
                     value={connection.model}
                     onChange={(e) => change({ model: e.target.value.trim() })}
                     placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'}
-                    className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
+                    className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber"
                   />
                 )}
-                {models.kind === 'error' && <span className="text-xs text-oxido">{models.message}</span>}
+                {models.kind === 'error' && <span className="text-xs text-rust">{models.message}</span>}
               </label>
               <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
                 {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                  <p className="text-xs text-grafito-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
+                  <p className="text-xs text-graphite-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
                 ) : locked ? (
-                  <p className="text-xs text-oxido">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
+                  <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
                 <div className="grid gap-1.5">
                   {SAVED.map((g) => (
-                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-ambar bg-ambar-suave' : 'border-linea hover:bg-kraft'}`}>
-                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-ambar" />
+                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}>
+                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-amber" />
                       <span>
                         {g.name}
-                        <span className="block text-xs text-grafito-2">{g.detail}</span>
+                        <span className="block text-xs text-graphite-2">{g.detail}</span>
                       </span>
                     </label>
                   ))}
@@ -177,15 +177,15 @@ export function Settings() {
                     placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
                     autoComplete="new-password"
                     aria-label="Frase para cifrar las llaves"
-                    className="min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar"
+                    className="min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber"
                   />
                 )}
-                <p className="text-xs text-grafito-2">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+                <p className="text-xs text-graphite-2">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
               </fieldset>
             </div>
           )}
 
-          <label className="flex items-center gap-2 border-t border-linea pt-3 text-xs text-grafito-2">
+          <label className="flex items-center gap-2 border-t border-line pt-3 text-xs text-graphite-2">
             <input
               type="checkbox"
               checked={debugVisible}
@@ -198,7 +198,7 @@ export function Settings() {
             Mostrar las entrañas de la madera: la bitácora para mandar reportes de lo que pasó
           </label>
 
-          {error && <p className="text-sm text-oxido">{error}</p>}
+          {error && <p className="text-sm text-rust">{error}</p>}
           <div className="flex justify-end gap-2">
             <Dialog.Close asChild>
               <Button variant="ghost">Cancelar</Button>
@@ -224,22 +224,22 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
     setTimeout(() => setCopied(false), 1500)
   }
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-ambar/40 bg-ambar-suave p-4 text-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-amber/40 bg-amber-soft p-4 text-sm">
       <p>
         <span className="font-medium">SheLLM</span> convierte tu suscripción de Claude Code o Codex en una API local, así el experto no gasta créditos de API.{' '}
-        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline decoration-ambar underline-offset-2">
+        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline decoration-amber underline-offset-2">
           Conoce SheLLM <ArrowSquareOut />
         </a>
       </p>
       <label className="flex flex-col gap-1.5">
         <span className="font-medium">Dirección</span>
-        <input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="cifras min-h-11 rounded-xl border border-linea bg-hueso px-3 text-sm outline-none focus:border-ambar" />
+        <input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber" />
       </label>
       <div className="flex flex-col gap-1.5">
         <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
-        <span className="flex items-center gap-2 rounded-xl bg-hueso px-3 py-2">
-          <code className="cifras flex-1 truncate text-xs">{line}</code>
-          <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-grafito-2 hover:text-grafito">
+        <span className="flex items-center gap-2 rounded-xl bg-bone px-3 py-2">
+          <code className="numerals flex-1 truncate text-xs">{line}</code>
+          <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-graphite-2 hover:text-graphite">
             {copied ? <Check /> : <Copy />}
           </button>
         </span>

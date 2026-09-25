@@ -35,7 +35,7 @@ const percent = (value: number, all: number[]) => Math.round((value / (all.reduc
 
 function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; heights: number[]; index: number; onChange: (c: Cell) => void; onRemove: (() => void) | null }) {
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-xl bg-hueso px-2 py-1.5">
+    <li className="flex flex-wrap items-center gap-2 rounded-xl bg-bone px-2 py-1.5">
       <select
         aria-label={`Hueco ${index + 1}`}
         value={cell.content}
@@ -43,7 +43,7 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
           const content = e.target.value as Cell['content']
           onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
         }}
-        className="rounded-lg border border-linea bg-papel px-1.5 py-1 text-xs"
+        className="rounded-lg border border-line bg-paper px-1.5 py-1 text-xs"
       >
         {CONTENTS.map(([id, text]) => (
           <option key={id} value={id}>
@@ -51,7 +51,7 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
           </option>
         ))}
       </select>
-      <label className="flex items-center gap-1 text-xs text-grafito-2">
+      <label className="flex items-center gap-1 text-xs text-graphite-2">
         alto
         <input
           type="number"
@@ -60,18 +60,18 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
           value={percent(cell.height, heights)}
           onChange={(e) => onChange({ ...cell, height: Math.max(1, Number(e.target.value)) / 100 })}
           aria-label={`Alto del hueco ${index + 1} en porcentaje`}
-          className="cifras w-14 rounded-lg border border-linea bg-papel px-1 py-0.5 text-right text-xs"
+          className="numerals w-14 rounded-lg border border-line bg-paper px-1 py-0.5 text-right text-xs"
         />
         %
       </label>
       {(cell.content === 'open' || cell.content === 'door') && (
-        <span className="flex items-center gap-1 text-xs text-grafito-2">
+        <span className="flex items-center gap-1 text-xs text-graphite-2">
           repisas <Stepper value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => onChange({ ...cell, shelves })} label="repisas" />
         </span>
       )}
       {cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
       {onRemove && (
-        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="ml-auto text-grafito-2 hover:text-oxido">
+        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="ml-auto text-graphite-2 hover:text-rust">
           <Trash size={14} />
         </button>
       )}
@@ -87,7 +87,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
   return (
     <>
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Medidas</h3>
+        <h3 className="font-display text-base font-semibold">Medidas</h3>
         <div className="grid grid-cols-3 gap-2">
           <NumberField label="Alto" suffix="mm" value={draft.dimensions.height} onChange={(height) => set({ dimensions: { ...draft.dimensions, height } })} />
           <NumberField label="Ancho" suffix="mm" value={draft.dimensions.width} onChange={(width) => set({ dimensions: { ...draft.dimensions, width } })} />
@@ -96,7 +96,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="font-titulo text-base font-semibold">Cómo se arma</h3>
+        <h3 className="font-display text-base font-semibold">Cómo se arma</h3>
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span>Triplay</span>
@@ -121,7 +121,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h3 className="font-titulo text-base font-semibold">Columnas y huecos</h3>
+          <h3 className="font-display text-base font-semibold">Columnas y huecos</h3>
           <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={() => set({ columns: [...draft.columns, { width: draft.columns.reduce((s, c) => s + c.width, 0) / draft.columns.length, cells: [newCell()] }] })}>
             <Plus /> Columna
           </Button>
@@ -129,10 +129,10 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
         {draft.columns.map((column, i) => {
           const heights = column.cells.map((c) => c.height)
           return (
-            <div key={i} className="flex flex-col gap-1.5 rounded-2xl border border-linea bg-kraft/40 p-2">
+            <div key={i} className="flex flex-col gap-1.5 rounded-2xl border border-line bg-kraft/40 p-2">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium">Columna {i + 1}</span>
-                <label className="flex items-center gap-1 text-xs text-grafito-2">
+                <label className="flex items-center gap-1 text-xs text-graphite-2">
                   ancho
                   <input
                     type="number"
@@ -141,17 +141,17 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
                     value={percent(column.width, widths)}
                     onChange={(e) => setColumn(i, { ...column, width: Math.max(1, Number(e.target.value)) / 100 })}
                     aria-label={`Ancho de la columna ${i + 1} en porcentaje`}
-                    className="cifras w-14 rounded-lg border border-linea bg-papel px-1 py-0.5 text-right text-xs"
+                    className="numerals w-14 rounded-lg border border-line bg-paper px-1 py-0.5 text-right text-xs"
                   />
                   %
                 </label>
                 {draft.columns.length > 1 && (
-                  <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => set({ columns: draft.columns.filter((_, j) => j !== i) })} className="ml-auto text-grafito-2 hover:text-oxido">
+                  <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => set({ columns: draft.columns.filter((_, j) => j !== i) })} className="ml-auto text-graphite-2 hover:text-rust">
                     <Trash size={14} />
                   </button>
                 )}
               </div>
-              <p className="text-[11px] text-grafito-2">De arriba hacia abajo</p>
+              <p className="text-[11px] text-graphite-2">De arriba hacia abajo</p>
               <ol className="flex flex-col gap-1">
                 {column.cells
                   .map((cell, j) => ({ cell, j }))
@@ -167,7 +167,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
                     />
                   ))}
               </ol>
-              <button type="button" onClick={() => setColumn(i, { ...column, cells: [...column.cells, newCell()] })} className="self-start text-xs text-grafito-2 underline">
+              <button type="button" onClick={() => setColumn(i, { ...column, cells: [...column.cells, newCell()] })} className="self-start text-xs text-graphite-2 underline">
                 Agregar un hueco arriba
               </button>
             </div>
@@ -187,8 +187,8 @@ export function PlanSheet({ state }: { state: DesignState }) {
 
   if (!source.plan || !draft)
     return (
-      <div className="flex flex-col gap-2 p-6 text-center text-sm text-grafito-2">
-        <p className="font-medium text-grafito">Este mueble no tiene ficha</p>
+      <div className="flex flex-col gap-2 p-6 text-center text-sm text-graphite-2">
+        <p className="font-medium text-graphite">Este mueble no tiene ficha</p>
         <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…), una cama, una mesa o un escritorio. Lo demás se ajusta con el experto.</p>
       </div>
     )
@@ -207,22 +207,22 @@ export function PlanSheet({ state }: { state: DesignState }) {
   return (
     <div className="flex flex-col gap-5 p-4 pb-28">
       {source.diverged && (
-        <p className="flex items-start gap-2 rounded-xl border border-ambar/40 bg-ambar-suave p-3 text-xs">
+        <p className="flex items-start gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-xs">
           <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
         </p>
       )}
 
       {!source.diverged && source.extras.length > 0 && (
-        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-grafito-2">
+        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite-2">
           Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
         </p>
       )}
 
       {isBed(draft) ? <BedFields draft={draft} set={set} /> : isTable(draft) ? <TableFields draft={draft} set={set} /> : <CabinetFields draft={draft} set={set} />}
 
-      <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-linea bg-papel/95 px-4 py-3 backdrop-blur">
-        {message && <p className={`text-xs ${message.kind === 'error' ? 'text-oxido' : 'text-grafito-2'}`}>{message.text}</p>}
-        <p className="text-xs text-grafito-2">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
+      <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
+        {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite-2'}`}>{message.text}</p>}
+        <p className="text-xs text-graphite-2">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         <div className="flex gap-2">
           <Button variant="primary" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
             <Check weight="bold" /> Aplicar

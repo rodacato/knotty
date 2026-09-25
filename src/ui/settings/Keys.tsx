@@ -29,7 +29,7 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
 
   return (
     <form
-      className="flex flex-col gap-3 rounded-2xl border border-linea bg-hueso p-4 text-sm"
+      className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4 text-sm"
       onSubmit={(e) => {
         e.preventDefault()
         void setOpen()
@@ -45,25 +45,25 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
           aria-label="Frase secreta"
           autoComplete="current-password"
           autoFocus={autoFocus}
-          className={`min-h-11 flex-1 rounded-xl border bg-hueso px-3 outline-none focus:border-ambar ${error ? 'border-oxido' : 'border-linea'}`}
+          className={`min-h-11 flex-1 rounded-xl border bg-bone px-3 outline-none focus:border-amber ${error ? 'border-rust' : 'border-line'}`}
         />
         <Button type="submit" variant="secondary" disabled={!passphrase || opening}>
           {opening ? 'Abriendo…' : 'Desbloquear'}
         </Button>
       </div>
-      {error && <p className="text-xs text-oxido">{error}</p>}
+      {error && <p className="text-xs text-rust">{error}</p>}
       {forgetting ? (
         <p className="flex flex-wrap items-center gap-2 text-xs">
           ¿Borrar las llaves guardadas? No se pueden recuperar.
           <button type="button" className="font-medium underline" onClick={() => setForgetting(false)}>
             No
           </button>
-          <button type="button" className="font-medium text-oxido underline" onClick={forgetKeys}>
+          <button type="button" className="font-medium text-rust underline" onClick={forgetKeys}>
             Sí, borrarlas
           </button>
         </p>
       ) : (
-        <button type="button" className="self-start text-xs font-medium text-oxido" onClick={() => setForgetting(true)}>
+        <button type="button" className="self-start text-xs font-medium text-rust" onClick={() => setForgetting(true)}>
           Olvidé la frase: borrar las llaves guardadas
         </button>
       )}
@@ -89,15 +89,15 @@ export function KeysGate() {
   return (
     <Dialog.Root open={visible} onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-grafito/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-aparecer fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-linea bg-hueso p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-start gap-3">
-            <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-ambar" />
+            <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-amber" />
             <div>
               <Dialog.Title asChild>
                 <Title className="text-xl">{locked ? 'Tus llaves están guardadas' : `Falta tu llave de ${name}`}</Title>
               </Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-grafito-2">
+              <Dialog.Description className="mt-1 text-sm text-graphite-2">
                 {locked
                   ? 'Están cifradas en este navegador; sin tu frase nadie puede leerlas, ni esta página.'
                   : 'Una llave que no guardas vive solo en la pestaña y se pierde al recargar. Sin ella, el experto no puede responder.'}
@@ -107,10 +107,10 @@ export function KeysGate() {
           {locked ? (
             <Unlock onOpen={close} autoFocus />
           ) : (
-            <p className="text-sm text-grafito-2">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
+            <p className="text-sm text-graphite-2">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
           )}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-linea pt-4">
-            <button type="button" className="text-sm font-medium text-oxido" onClick={close}>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+            <button type="button" className="text-sm font-medium text-rust" onClick={close}>
               Ahora no
             </button>
             <div className="flex gap-2">

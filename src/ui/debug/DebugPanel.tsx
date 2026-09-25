@@ -23,7 +23,7 @@ const KINDS: { id: DebugKind; label: string }[] = [
   { id: 'error', label: 'Errores' },
   { id: 'app', label: 'App' },
 ]
-const COLOR: Record<DebugKind, string> = { llm: 'bg-ambar-suave', action: 'bg-kraft', stage: 'bg-hueso', error: 'bg-oxido/15 text-oxido', app: 'bg-pizarra/15' }
+const COLOR: Record<DebugKind, string> = { llm: 'bg-amber-soft', action: 'bg-kraft', stage: 'bg-bone', error: 'bg-rust/15 text-rust', app: 'bg-slate/15' }
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 /** Everything needed to understand or rebuild a session, without API keys. */
@@ -119,17 +119,17 @@ export function DebugPanel() {
     <BenchPanel />
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-grafito px-3 py-1.5 text-xs font-medium text-hueso shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">
-          <Knot className="size-4" /> Entrañas <span className="cifras opacity-70">{events.length}</span>
+        <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-graphite px-3 py-1.5 text-xs font-medium text-bone shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">
+          <Knot className="size-4" /> Entrañas <span className="numerals opacity-70">{events.length}</span>
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-grafito/30" />
-        <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-full max-w-xl flex-col bg-papel shadow-2xl">
-          <div className="flex items-center gap-2 border-b border-linea p-3">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-graphite/30" />
+        <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-full max-w-xl flex-col bg-paper shadow-2xl">
+          <div className="flex items-center gap-2 border-b border-line p-3">
             <Dialog.Title className="flex-1">
-              <span className="block font-titulo text-lg font-semibold">Entrañas de la madera</span>
-              <span className="block text-xs text-grafito-2">Todo lo que pasó por dentro, anillo por anillo</span>
+              <span className="block font-display text-lg font-semibold">Entrañas de la madera</span>
+              <span className="block text-xs text-graphite-2">Todo lo que pasó por dentro, anillo por anillo</span>
             </Dialog.Title>
             <Dialog.Description className="sr-only">Todo lo que pasó en esta sesión, para exportarlo y revisarlo.</Dialog.Description>
             <Button variant="secondary" className="min-h-8 px-2 text-xs" onClick={download}>
@@ -154,36 +154,36 @@ export function DebugPanel() {
               </button>
             </Dialog.Close>
           </div>
-          <div className="flex flex-wrap gap-1.5 border-b border-linea px-3 py-2">
+          <div className="flex flex-wrap gap-1.5 border-b border-line px-3 py-2">
             {KINDS.map((k) => (
               <button
                 key={k.id}
                 type="button"
                 aria-pressed={kinds.has(k.id)}
                 onClick={() => setKinds((s) => (s.has(k.id) ? new Set([...s].filter((x) => x !== k.id)) : new Set([...s, k.id])))}
-                className={`rounded-full border px-2.5 py-0.5 text-xs ${kinds.has(k.id) ? 'border-grafito bg-grafito text-hueso' : 'border-linea text-grafito-2'}`}
+                className={`rounded-full border px-2.5 py-0.5 text-xs ${kinds.has(k.id) ? 'border-graphite bg-graphite text-bone' : 'border-line text-graphite-2'}`}
               >
-                {k.label} <span className="cifras">{events.filter((e) => e.kind === k.id).length}</span>
+                {k.label} <span className="numerals">{events.filter((e) => e.kind === k.id).length}</span>
               </button>
             ))}
-            <span className="ml-auto self-center text-[11px] text-grafito-2">
+            <span className="ml-auto self-center text-[11px] text-graphite-2">
               {__APP_COMMIT__} · se oculta con el código Konami, Ctrl+Shift+D o en ajustes
             </span>
           </div>
-          <ol className="flex-1 divide-y divide-linea overflow-y-auto">
+          <ol className="flex-1 divide-y divide-line overflow-y-auto">
             {shown.map((e, i) => (
               <li key={`${e.at}-${i}`} className="px-3 py-2 text-sm">
                 <details>
                   <summary className="flex cursor-pointer list-none items-start gap-2">
                     <span className={`shrink-0 rounded px-1.5 py-px text-[10px] font-medium uppercase ${COLOR[e.kind]}`}>{KINDS.find((k) => k.id === e.kind)?.label}</span>
                     <span className="flex-1 leading-snug">{e.summary}</span>
-                    <span className="cifras shrink-0 text-[11px] text-grafito-2">{time.format(new Date(e.at))}</span>
+                    <span className="numerals shrink-0 text-[11px] text-graphite-2">{time.format(new Date(e.at))}</span>
                   </summary>
-                  {e.data !== undefined && <pre className="mt-2 max-h-96 overflow-auto rounded-lg bg-grafito/5 p-2 text-[11px] leading-snug whitespace-pre-wrap">{JSON.stringify(e.data, null, 2)}</pre>}
+                  {e.data !== undefined && <pre className="mt-2 max-h-96 overflow-auto rounded-lg bg-graphite/5 p-2 text-[11px] leading-snug whitespace-pre-wrap">{JSON.stringify(e.data, null, 2)}</pre>}
                 </details>
               </li>
             ))}
-            {!shown.length && <li className="p-6 text-center text-sm text-grafito-2">Sin eventos.</li>}
+            {!shown.length && <li className="p-6 text-center text-sm text-graphite-2">Sin eventos.</li>}
           </ol>
         </Dialog.Content>
       </Dialog.Portal>

@@ -19,8 +19,8 @@ function FixButton({ fix }: { fix: Fix }) {
   const thinking = useStore((s) => s.thinking)
   const showing = preview?.label === fix.label
   return (
-    <div className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-1.5 ${showing ? 'border-ambar bg-ambar-suave' : 'border-linea bg-hueso'}`}>
-      <Lightning className="shrink-0 text-ambar" weight="fill" />
+    <div className={`flex flex-wrap items-center gap-2 rounded-xl border px-2 py-1.5 ${showing ? 'border-amber bg-amber-soft' : 'border-line bg-bone'}`}>
+      <Lightning className="shrink-0 text-amber" weight="fill" />
       <span className="min-w-0 flex-1 text-sm">{fix.label}</span>
       <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={() => previewFix(showing ? null : fix)} aria-pressed={showing}>
         <Eye /> {showing ? 'Ocultar' : 'Ver'}
@@ -60,10 +60,10 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
 
   return (
-    <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critical' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
+    <li className={`animate-appear flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critical' ? 'border-rust/30 bg-rust/5' : notice.severity === 'decision' ? 'border-amber/40 bg-amber-soft/40' : 'border-line bg-bone'}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">
-          {KIND[notice.kind] && <span className="mr-1.5 text-xs text-grafito-2">{KIND[notice.kind]} ·</span>}
+          {KIND[notice.kind] && <span className="mr-1.5 text-xs text-graphite-2">{KIND[notice.kind]} ·</span>}
           {notice.title}
         </span>
         {notice.severity !== 'decision' && <Stamp severity={notice.severity} />}
@@ -72,7 +72,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
       {notice.pieces.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {notice.pieces.map((id) => (
-            <button key={id} type="button" onClick={() => select(id)} className="rounded-full border border-linea px-2.5 py-0.5 text-xs text-grafito-2 transition hover:border-ambar hover:text-grafito">
+            <button key={id} type="button" onClick={() => select(id)} className="rounded-full border border-line px-2.5 py-0.5 text-xs text-graphite-2 transition hover:border-amber hover:text-graphite">
               {name(id)}
             </button>
           ))}
@@ -81,7 +81,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
 
       {fixes.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Al instante</p>
+          <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">Al instante</p>
           {fixes.map((f) => (
             <FixButton key={f.label} fix={f} />
           ))}
@@ -111,7 +111,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
               </Chip>
             ))}
           </div>
-          <button type="button" onClick={onAnswer} className="flex items-center gap-1 self-start text-xs text-grafito-2 underline hover:text-grafito">
+          <button type="button" onClick={onAnswer} className="flex items-center gap-1 self-start text-xs text-graphite-2 underline hover:text-graphite">
             <ChatCircleText /> Ver en la conversación
           </button>
         </div>
@@ -119,7 +119,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
 
       {(notice.kind === 'finding' || notice.kind === 'requirement' || notice.kind === 'problem') && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">A la bandeja, para el experto</p>
+          <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">A la bandeja, para el experto</p>
           <div className="flex flex-wrap gap-2">
             {forExpert.map((a) => {
               const item = noticeItem(notice, a.description)
@@ -137,7 +137,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
       )}
 
       {notice.kind === 'finding' && (
-        <button type="button" onClick={() => acceptNotice(notice)} className="self-start text-xs text-grafito-2 underline hover:text-grafito">
+        <button type="button" onClick={() => acceptNotice(notice)} className="self-start text-xs text-graphite-2 underline hover:text-graphite">
           Aceptar así, bajo mi riesgo
         </button>
       )}
@@ -156,7 +156,7 @@ export function NoticePanel({ state, onAnswer }: { state: DesignState; onAnswer:
   return (
     <div className="flex flex-col gap-4 p-4">
       {board.resolved.length > 0 && (
-        <ul className="flex flex-col gap-1.5 rounded-2xl border border-pizarra/30 bg-pizarra/10 p-3 text-sm text-pizarra">
+        <ul className="flex flex-col gap-1.5 rounded-2xl border border-slate/30 bg-slate/10 p-3 text-sm text-slate">
           {board.resolved.map((r) => (
             <li key={r} className="flex items-start gap-2">
               <CheckCircle className="mt-0.5 shrink-0" weight="fill" /> Resuelto: {r}
@@ -166,9 +166,9 @@ export function NoticePanel({ state, onAnswer }: { state: DesignState; onAnswer:
       )}
 
       {board.pending.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 p-6 text-center text-grafito-2">
-          <Wrench size={28} weight="duotone" className="text-ambar" />
-          <p className="font-medium text-grafito">Nada pendiente</p>
+        <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite-2">
+          <Wrench size={28} weight="duotone" className="text-amber" />
+          <p className="font-medium text-graphite">Nada pendiente</p>
           <p className="text-sm">Revisé flecha de entrepaños, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>
         </div>
       ) : (
@@ -180,8 +180,8 @@ export function NoticePanel({ state, onAnswer }: { state: DesignState; onAnswer:
       )}
 
       {board.accepted.length > 0 && (
-        <div className="rounded-2xl border border-linea bg-hueso/60 p-3 text-sm">
-          <button type="button" className="text-xs text-grafito-2 underline" onClick={() => setShowAccepted((v) => !v)}>
+        <div className="rounded-2xl border border-line bg-bone/60 p-3 text-sm">
+          <button type="button" className="text-xs text-graphite-2 underline" onClick={() => setShowAccepted((v) => !v)}>
             {showAccepted ? 'Ocultar' : 'Ver'} lo que aceptaste así ({board.accepted.length})
           </button>
           {showAccepted && (
@@ -202,9 +202,9 @@ export function NoticePanel({ state, onAnswer }: { state: DesignState; onAnswer:
       )}
 
       {state.tray.length > 0 && (
-        <div className="sticky bottom-3 flex items-center justify-between gap-2 rounded-2xl border border-ambar/60 bg-hueso p-3 shadow-md">
+        <div className="sticky bottom-3 flex items-center justify-between gap-2 rounded-2xl border border-amber/60 bg-bone p-3 shadow-md">
           <span className="flex items-center gap-1.5 text-sm">
-            <Tray weight="duotone" className="text-ambar" /> {state.tray.length} en la bandeja
+            <Tray weight="duotone" className="text-amber" /> {state.tray.length} en la bandeja
           </span>
           <Button
             variant="primary"

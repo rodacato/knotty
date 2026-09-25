@@ -16,7 +16,7 @@ export function Knot({ className = '' }: { className?: string }) {
 /** «Knotty» with the knot in place of the «o». */
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-baseline font-titulo font-semibold tracking-tight [font-variation-settings:'opsz'_144] ${className}`} aria-label="Knotty" role="img">
+    <span className={`inline-flex items-baseline font-display font-semibold tracking-tight [font-variation-settings:'opsz'_144] ${className}`} aria-label="Knotty" role="img">
       <span aria-hidden>Kn</span>
       <Knot className="mx-[0.015em] inline-block size-[0.56em] translate-y-[0.03em] dark:brightness-150" />
       <span aria-hidden>tty</span>
