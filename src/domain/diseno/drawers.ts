@@ -18,9 +18,9 @@ export interface DrawerSide {
 const overlap = (a: Box, b: Box, axis: 'y' | 'z') => Math.min(a[`${axis}1`], b[`${axis}1`]) - Math.max(a[`${axis}0`], b[`${axis}0`]) > 0
 
 export function drawerSides(design: Design, boxes: Map<string, Box>): DrawerSide[] {
-  const groups = [...new Set(design.piezas.filter((p) => p.rol === 'costado-cajon' && p.grupo).map((p) => p.grupo!))]
+  const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-side' && p.group).map((p) => p.group!))]
   return groups.flatMap((group) => {
-    const sides = design.piezas.filter((p) => p.grupo === group && p.rol === 'costado-cajon' && p.normal === 'x' && boxes.has(p.id)).sort((a, b) => boxes.get(a.id)!.x0 - boxes.get(b.id)!.x0)
+    const sides = design.pieces.filter((p) => p.group === group && p.role === 'drawer-side' && p.normal === 'x' && boxes.has(p.id)).sort((a, b) => boxes.get(a.id)!.x0 - boxes.get(b.id)!.x0)
     if (sides.length < 2) return []
     return ([
       [sides[0], -1],
@@ -28,8 +28,8 @@ export function drawerSides(design: Design, boxes: Map<string, Box>): DrawerSide
     ] as const).map(([side, towards]) => {
       const box = boxes.get(side.id)!
       const support =
-        design.piezas
-          .filter((p) => p.grupo !== group && p.normal === 'x' && boxes.has(p.id))
+        design.pieces
+          .filter((p) => p.group !== group && p.normal === 'x' && boxes.has(p.id))
           .map((piece) => ({ piece, b: boxes.get(piece.id)! }))
           .filter(({ b }) => overlap(b, box, 'y') && overlap(b, box, 'z'))
           .map(({ piece, b }) => ({ piece, distance: towards < 0 ? box.x0 - b.x1 : b.x0 - box.x1 }))

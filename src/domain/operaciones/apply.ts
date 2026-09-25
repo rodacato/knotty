@@ -7,7 +7,7 @@ import { error, success, failure, type DesignWarning, type DesignError, type Res
 import { expandDrawer } from './drawer'
 import type { Operation } from './schema'
 
-// The operations the expert (or Knotty) asks for, applied in order on a copy. Their names and fields are the expert's and stay as they are.
+// The operations the expert (or Knotty) asks for, applied in order on a copy.
 
 export interface Applied {
   design: Design
@@ -23,7 +23,7 @@ class InvalidOperation extends Error {
 const invalid = (code: DesignError['code'], message: string, data?: Record<string, unknown>) => new InvalidOperation(error(code, message, data))
 
 const refersTo = (cota: Position | null, id: string) =>
-  !!cota && ((cota.tipo === 'ref' && parseFace(cota.ref).piece === id) || (cota.tipo === 'entre' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
+  !!cota && ((cota.type === 'ref' && parseFace(cota.ref).piece === id) || (cota.type === 'between' && [cota.a, cota.b].some((r) => parseFace(r).piece === id)))
 
 /** Applies the operations in order on a copy. If one fails, none is applied. */
 export function applyOperations(original: Design, operations: Operation[], catalog: Catalog): Result<Applied> {
@@ -36,12 +36,12 @@ export function applyOperations(original: Design, operations: Operation[], catal
     return r.value
   }
   const piece = (id: string) => {
-    const p = design.piezas.find((x) => x.id === id)
+    const p = design.pieces.find((x) => x.id === id)
     if (!p) throw invalid('E_PIEZA_INEXISTENTE', `No existe la pieza "${id}".`, { pieza: id })
     return p
   }
   const assertFreeId = (id: string) => {
-    if (design.piezas.some((p) => p.id === id)) throw invalid('E_ID_DUPLICADO', `Ya existe una pieza "${id}".`, { pieza: id })
+    if (design.pieces.some((p) => p.id === id)) throw invalid('E_ID_DUPLICADO', `Ya existe una pieza "${id}".`, { pieza: id })
   }
 
   /** Removing a piece freezes in millimetres whatever was tied to its faces, so nothing else moves. */
@@ -49,53 +49,53 @@ export function applyOperations(original: Design, operations: Operation[], catal
     piece(id)
     const geo = geometry()
     const frozen = new Set<string>()
-    for (const p of design.piezas) {
+    for (const p of design.pieces) {
       if (p.id === id) continue
       for (const axis of AXES)
-        for (const end of ['desde', 'hasta'] as const) {
+        for (const end of ['from', 'to'] as const) {
           const cota = p[axis][end]
           if (!refersTo(cota, id)) continue
-          p[axis][end] = { tipo: 'mm', mm: geo.measure(cota!, axis) }
+          p[axis][end] = { type: 'mm', mm: geo.measure(cota!, axis) }
           frozen.add(p.id)
         }
     }
-    design.piezas = design.piezas.filter((p) => p.id !== id)
-    design.uniones = design.uniones.filter((u) => u.a !== id && u.b !== id)
+    design.pieces = design.pieces.filter((p) => p.id !== id)
+    design.joints = design.joints.filter((u) => u.a !== id && u.b !== id)
     if (frozen.size)
       warnings.push({ code: 'A_REFERENCIA_CONGELADA', message: `Al quitar "${id}", ${[...frozen].join(', ')} quedaron fijas en mm.`, data: { pieza: id, afectadas: [...frozen] } })
   }
 
   function place(p: Piece, axis: Axis, cota: Position, length: number) {
-    p[axis] = axis === p.normal ? { desde: cota, hasta: null, largo: null } : { desde: cota, hasta: null, largo: length }
+    p[axis] = axis === p.normal ? { from: cota, to: null, length: null } : { from: cota, to: null, length: length }
   }
   const lengthOf = (id: string, axis: Axis, geo: Geometry) => geo.boxes.get(id)![`${axis}1`] - geo.boxes.get(id)![`${axis}0`]
 
   const applyOne = (op: Operation) => {
     switch (op.op) {
-      case 'agregarPieza':
-        assertFreeId(op.pieza.id)
-        design.piezas.push(structuredClone(op.pieza))
+      case 'addPiece':
+        assertFreeId(op.piece.id)
+        design.pieces.push(structuredClone(op.piece))
         return
-      case 'eliminarPieza':
+      case 'removePiece':
         return remove(op.id)
-      case 'eliminarGrupo': {
-        const ids = design.piezas.filter((p) => p.grupo === op.grupo).map((p) => p.id)
-        if (!ids.length) throw invalid('E_PIEZA_INEXISTENTE', `No hay piezas en el grupo "${op.grupo}".`, { grupo: op.grupo })
+      case 'removeGroup': {
+        const ids = design.pieces.filter((p) => p.group === op.group).map((p) => p.id)
+        if (!ids.length) throw invalid('E_PIEZA_INEXISTENTE', `No hay piezas en el grupo "${op.group}".`, { grupo: op.group })
         return ids.forEach(remove)
       }
-      case 'duplicarPieza': {
+      case 'duplicatePiece': {
         const source = piece(op.id)
-        assertFreeId(op.nuevoId)
+        assertFreeId(op.newId)
         const geo = geometry()
-        const copy: Piece = { ...structuredClone(source), id: op.nuevoId, nombre: op.nombre }
-        place(copy, op.eje, op.cota, lengthOf(op.id, op.eje, geo))
-        design.piezas.push(copy)
-        const copied = design.uniones
+        const copy: Piece = { ...structuredClone(source), id: op.newId, name: op.name }
+        place(copy, op.axis, op.at, lengthOf(op.id, op.axis, geo))
+        design.pieces.push(copy)
+        const copied = design.joints
           .filter((u) => u.a === op.id || u.b === op.id)
-          .map((u) => ({ ...structuredClone(u), id: `${u.id}-${op.nuevoId}`, a: u.a === op.id ? op.nuevoId : u.a, b: u.b === op.id ? op.nuevoId : u.b }))
+          .map((u) => ({ ...structuredClone(u), id: `${u.id}-${op.newId}`, a: u.a === op.id ? op.newId : u.a, b: u.b === op.id ? op.newId : u.b }))
         const after = resolveGeometry(design, catalog)
         // A copied joint stays only where the copy still touches that piece.
-        design.uniones.push(
+        design.joints.push(
           ...copied.filter((u) => {
             if (!after.ok) return true
             const { boxes } = after.value
@@ -104,84 +104,84 @@ export function applyOperations(original: Design, operations: Operation[], catal
         )
         return
       }
-      case 'redimensionar': {
+      case 'resize': {
         const p = piece(op.id)
-        if (op.eje === p.normal) throw invalid('E_OPERACION_INVALIDA', `"${p.id}" tiene su espesor en ${op.eje}; para eso usa cambiarEspesor o mover.`, { pieza: p.id, eje: op.eje })
+        if (op.axis === p.normal) throw invalid('E_OPERACION_INVALIDA', `"${p.id}" tiene su espesor en ${op.axis}; para eso usa changeMaterial o move.`, { pieza: p.id, eje: op.axis })
         const box = geometry().boxes.get(p.id)!
-        const current = p[op.eje]
+        const current = p[op.axis]
         const next: Extent =
-          op.extremo === 'desde'
-            ? { desde: op.cota, hasta: current.hasta ?? { tipo: 'mm', mm: box[`${op.eje}1`] }, largo: null }
-            : { desde: current.desde ?? { tipo: 'mm', mm: box[`${op.eje}0`] }, hasta: op.cota, largo: null }
-        p[op.eje] = next
+          op.end === 'from'
+            ? { from: op.at, to: current.to ?? { type: 'mm', mm: box[`${op.axis}1`] }, length: null }
+            : { from: current.from ?? { type: 'mm', mm: box[`${op.axis}0`] }, to: op.at, length: null }
+        p[op.axis] = next
         return
       }
-      case 'mover': {
+      case 'move': {
         const p = piece(op.id)
-        return place(p, op.eje, op.cota, lengthOf(p.id, op.eje, geometry()))
+        return place(p, op.axis, op.at, lengthOf(p.id, op.axis, geometry()))
       }
-      case 'distribuir': {
+      case 'distribute': {
         const pieces = op.ids.map(piece)
-        const across = pieces.find((p) => p.normal !== op.eje)
-        if (across) throw invalid('E_OPERACION_INVALIDA', `Solo se reparte en el eje del espesor; "${across.id}" lo tiene en ${across.normal}.`, { pieza: across.id, eje: op.eje })
+        const across = pieces.find((p) => p.normal !== op.axis)
+        if (across) throw invalid('E_OPERACION_INVALIDA', `Solo se reparte en el eje del espesor; "${across.id}" lo tiene en ${across.normal}.`, { pieza: across.id, eje: op.axis })
         const geo = geometry()
         const n = pieces.length
         pieces
-          .sort((a, b) => geo.boxes.get(a.id)![`${op.eje}0`] - geo.boxes.get(b.id)![`${op.eje}0`])
+          .sort((a, b) => geo.boxes.get(a.id)![`${op.axis}0`] - geo.boxes.get(b.id)![`${op.axis}0`])
           .forEach((p, i) => {
             const thickness = geo.thicknesses.get(p.id)!
-            p[op.eje] = { desde: partway(op.a, op.b, (i + 1) / (n + 1), (thickness * (i - n)) / (n + 1)), hasta: null, largo: null }
+            p[op.axis] = { from: partway(op.a, op.b, (i + 1) / (n + 1), (thickness * (i - n)) / (n + 1)), to: null, length: null }
           })
         return
       }
-      case 'cambiarEspesor': {
+      case 'changeMaterial': {
         if (!materialById(catalog, op.material)) throw invalid('E_ESPESOR_CATALOGO', `El material "${op.material}" no está en el catálogo.`, { material: op.material })
         return op.ids.forEach((id) => (piece(id).material = op.material))
       }
-      case 'cambiarPropiedades': {
+      case 'changeProperties': {
         const p = piece(op.id)
-        for (const field of ['nombre', 'rol', 'veta', 'carga', 'apoyo', 'cantos', 'confianza'] as const) if (op[field] !== null) Object.assign(p, { [field]: op[field] })
+        for (const field of ['name', 'role', 'grain', 'load', 'support', 'edges', 'confidence'] as const) if (op[field] !== null) Object.assign(p, { [field]: op[field] })
         return
       }
-      case 'agregarUnion':
-        if (design.uniones.some((u) => u.id === op.union.id)) throw invalid('E_ID_DUPLICADO', `Ya existe una unión "${op.union.id}".`, { union: op.union.id })
-        design.uniones.push(structuredClone(op.union))
+      case 'addJoint':
+        if (design.joints.some((u) => u.id === op.joint.id)) throw invalid('E_ID_DUPLICADO', `Ya existe una unión "${op.joint.id}".`, { union: op.joint.id })
+        design.joints.push(structuredClone(op.joint))
         return
-      case 'cambiarUnion': {
-        const i = design.uniones.findIndex((u) => u.id === op.union.id)
-        if (i < 0) throw invalid('E_UNION_INEXISTENTE', `No existe la unión "${op.union.id}".`, { union: op.union.id })
-        design.uniones[i] = structuredClone(op.union)
+      case 'changeJoint': {
+        const i = design.joints.findIndex((u) => u.id === op.joint.id)
+        if (i < 0) throw invalid('E_UNION_INEXISTENTE', `No existe la unión "${op.joint.id}".`, { union: op.joint.id })
+        design.joints[i] = structuredClone(op.joint)
         return
       }
-      case 'eliminarUnion':
-        if (!design.uniones.some((u) => u.id === op.id)) throw invalid('E_UNION_INEXISTENTE', `No existe la unión "${op.id}".`, { union: op.id })
-        design.uniones = design.uniones.filter((u) => u.id !== op.id)
+      case 'removeJoint':
+        if (!design.joints.some((u) => u.id === op.id)) throw invalid('E_UNION_INEXISTENTE', `No existe la unión "${op.id}".`, { union: op.id })
+        design.joints = design.joints.filter((u) => u.id !== op.id)
         return
-      case 'cambiarDimensionGlobal': {
-        const key = DIMENSION_OF_AXIS[op.eje]
-        const factor = op.valor / design.dimensiones[key]
-        design.dimensiones[key] = op.valor
-        if (op.regla === 'proporcional')
-          for (const p of design.piezas) {
-            const t = p[op.eje]
-            for (const end of ['desde', 'hasta'] as const) {
+      case 'resizeFurniture': {
+        const key = DIMENSION_OF_AXIS[op.axis]
+        const factor = op.value / design.dimensions[key]
+        design.dimensions[key] = op.value
+        if (op.rule === 'proportional')
+          for (const p of design.pieces) {
+            const t = p[op.axis]
+            for (const end of ['from', 'to'] as const) {
               const cota = t[end]
-              if (cota?.tipo === 'mm') t[end] = { tipo: 'mm', mm: cota.mm * factor }
+              if (cota?.type === 'mm') t[end] = { type: 'mm', mm: cota.mm * factor }
             }
-            if (t.largo !== null && op.eje !== p.normal) t.largo *= factor
+            if (t.length !== null && op.axis !== p.normal) t.length *= factor
           }
         return
       }
-      case 'cambiarAnclajeMuro':
-        design.anclajeMuro = op.valor
+      case 'setWallAnchored':
+        design.wallAnchored = op.value
         return
-      case 'agregarCajon': {
-        if (design.piezas.some((p) => p.grupo === op.grupo)) throw invalid('E_ID_DUPLICADO', `Ya existe un cajón "${op.grupo}".`, { grupo: op.grupo })
+      case 'addDrawer': {
+        if (design.pieces.some((p) => p.group === op.group)) throw invalid('E_ID_DUPLICADO', `Ya existe un cajón "${op.group}".`, { grupo: op.group })
         const drawer = expandDrawer(op, geometry(), catalog)
         if ('code' in drawer) throw new InvalidOperation(drawer)
-        for (const p of drawer.piezas) assertFreeId(p.id)
-        design.piezas.push(...drawer.piezas)
-        design.uniones.push(...drawer.uniones)
+        for (const p of drawer.pieces) assertFreeId(p.id)
+        design.pieces.push(...drawer.pieces)
+        design.joints.push(...drawer.joints)
         return
       }
     }

@@ -14,17 +14,17 @@ export interface CutLine {
 /** The cut list: equal pieces (same material and measures) share a line. */
 export function cutList(design: Design, geo: Geometry): CutLine[] {
   const lines = new Map<string, CutLine>()
-  for (const p of design.piezas) {
+  for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
     if (!box) continue
     const [length, width] = faceSize(box, p.normal).map((m) => roundTo(m, 0))
-    const key = `${p.material}|${length}|${width}|${p.rol}`
+    const key = `${p.material}|${length}|${width}|${p.role}`
     const line = lines.get(key)
     if (line) {
       line.ids.push(p.id)
       line.count++
-      line.name = sharedName(line.name, p.nombre)
-    } else lines.set(key, { ids: [p.id], name: p.nombre, material: p.material, length, width, thickness: geo.thicknesses.get(p.id)!, count: 1 })
+      line.name = sharedName(line.name, p.name)
+    } else lines.set(key, { ids: [p.id], name: p.name, material: p.material, length, width, thickness: geo.thicknesses.get(p.id)!, count: 1 })
   }
   return [...lines.values()].sort((a, b) => b.thickness - a.thickness || b.length * b.width - a.length * a.width)
 }

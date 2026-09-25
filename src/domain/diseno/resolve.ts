@@ -36,10 +36,10 @@ export function parseFace(face: FaceRef) {
 }
 
 export const referencedPieces = (extent: Extent) =>
-  [extent.desde, extent.hasta].flatMap((c) => (!c ? [] : c.tipo === 'ref' ? [c.ref] : c.tipo === 'entre' ? [c.a, c.b] : [])).map((r) => parseFace(r).piece)
+  [extent.from, extent.to].flatMap((c) => (!c ? [] : c.type === 'ref' ? [c.ref] : c.type === 'between' ? [c.a, c.b] : [])).map((r) => parseFace(r).piece)
 
 export function resolveGeometry(design: Design, catalog: Catalog): Result<Geometry> {
-  const byId = new Map(design.piezas.map((p) => [p.id, p]))
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
   const extents = new Map<string, [number, number]>()
   const visiting: string[] = []
 
@@ -52,17 +52,17 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   const face = (ref: FaceRef, axis: Axis, who: string): number => {
     const { piece, axis: refAxis, side } = parseFace(ref)
     if (refAxis !== axis) throw new ResolveFailure(error('E_REF_EJE', `"${who}" usa "${ref}" en el eje ${axis}; una cota solo puede referir caras del mismo eje.`, { pieza: who, ref, eje: axis }))
-    if (piece === 'mueble') return side === 0 ? 0 : design.dimensiones[DIMENSION_OF_AXIS[axis]]
+    if (piece === 'mueble') return side === 0 ? 0 : design.dimensions[DIMENSION_OF_AXIS[axis]]
     const other = byId.get(piece)
     if (!other) throw new ResolveFailure(error('E_REF_INEXISTENTE', `"${who}" refiere "${ref}", pero no existe la pieza "${piece}".`, { pieza: who, ref }))
     return extentOf(other, axis)[side]
   }
 
   const value = (cota: Position, axis: Axis, who: string): number => {
-    if (cota.tipo === 'mm') return cota.mm
-    if (cota.tipo === 'ref') return face(cota.ref, axis, who) + cota.mas
+    if (cota.type === 'mm') return cota.mm
+    if (cota.type === 'ref') return face(cota.ref, axis, who) + cota.offset
     const a = face(cota.a, axis, who)
-    return a + cota.t * (face(cota.b, axis, who) - a) + cota.mas
+    return a + cota.t * (face(cota.b, axis, who) - a) + cota.offset
   }
 
   function extentOf(p: Piece, axis: Axis): [number, number] {
@@ -88,7 +88,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   /** Along its normal a piece is as thick as its board: one end is enough. */
   function normalExtent(p: Piece, axis: Axis): [number, number] {
     const thickness = thicknessOf(p)
-    const { desde: start, hasta: end } = p[axis]
+    const { from: start, to: end } = p[axis]
     if (start) {
       const s = value(start, axis, p.id)
       if (end && Math.abs(value(end, axis, p.id) - s - thickness) > TOLERANCE)
@@ -104,7 +104,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
 
   /** Across its face a piece needs two of: where it starts, where it ends, how long it is. */
   function faceExtent(p: Piece, axis: Axis): [number, number] {
-    const { desde: start, hasta: end, largo: length } = p[axis]
+    const { from: start, to: end, length: length } = p[axis]
     if (start && end) {
       const s = value(start, axis, p.id)
       const e = value(end, axis, p.id)
@@ -127,7 +127,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   const boxes = new Map<string, Box>()
   const thicknesses = new Map<string, number>()
   const seen = new Set<string>()
-  for (const p of design.piezas) {
+  for (const p of design.pieces) {
     if (seen.has(p.id)) errors.push(error('E_ID_DUPLICADO', `Hay dos piezas con el id "${p.id}".`, { pieza: p.id }))
     seen.add(p.id)
     const perAxis = AXES.map((axis) => {

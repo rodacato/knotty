@@ -1,32 +1,32 @@
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS, RIGID_JOINTS } from '../assumptions'
 
-const PERIMETER = new Set(['lateral', 'piso', 'techo'])
-const RAILS = new Set(['piso', 'techo', 'entrepano', 'faja', 'zoclo'])
+const PERIMETER = new Set(['side', 'bottom', 'top'])
+const RAILS = new Set(['bottom', 'top', 'shelf', 'apron', 'kick'])
 
 /** R5: a carcass with no rigid back and no rigid frame racks like a parallelogram when pushed sideways. */
 export const rackingRule: Rule = ({ design, geo }) => {
-  const sides = design.piezas.filter((p) => p.rol === 'lateral').map((p) => p.id)
+  const sides = design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
   if (sides.length < 2) return []
-  const role = new Map(design.piezas.map((p) => [p.id, p.rol]))
+  const role = new Map(design.pieces.map((p) => [p.id, p.role]))
   const joinedTo = (id: string, filter: (type: string, glued: boolean) => boolean) =>
-    new Set(design.uniones.filter((u) => (u.a === id || u.b === id) && filter(u.tipo, u.pegamento)).map((u) => (u.a === id ? u.b : u.a)))
+    new Set(design.joints.filter((u) => (u.a === id || u.b === id) && filter(u.type, u.glue)).map((u) => (u.a === id ? u.b : u.a)))
 
   // A full board in the back plane braces like a back: the spine of a bed base, screwed to both ends and the platform.
-  const backs = design.piezas.filter((p) => p.rol === 'trasera' || (p.rol === 'divisor' && p.normal === 'z'))
+  const backs = design.pieces.filter((p) => p.role === 'back' || (p.role === 'divider' && p.normal === 'z'))
   const rigidBack = backs.some((b) => {
     const thickness = geo.thicknesses.get(b.id) ?? 0
-    const onPerimeter = (ids: Set<string>) => [...ids].filter((id) => PERIMETER.has(role.get(id) ?? 'otro')).length
+    const onPerimeter = (ids: Set<string>) => [...ids].filter((id) => PERIMETER.has(role.get(id) ?? 'other')).length
     if (thickness >= 6) return onPerimeter(joinedTo(b.id, () => true)) >= 3
-    return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rebaje' || type === 'canal') && glued)) >= 3
+    return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rabbet' || type === 'dado') && glued)) >= 3
   })
 
-  const rails = design.piezas.filter((p) => RAILS.has(p.rol) && p.apoyo === 'fijo' && sides.every((side) => joinedTo(p.id, (type) => RIGID_JOINTS.includes(type as never)).has(side)))
-  const rigidFrame = rails.length >= 2 && rails.some((p) => p.rol === 'faja' || p.rol === 'zoclo')
+  const rails = design.pieces.filter((p) => RAILS.has(p.role) && p.support === 'fixed' && sides.every((side) => joinedTo(p.id, (type) => RIGID_JOINTS.includes(type as never)).has(side)))
+  const rigidFrame = rails.length >= 2 && rails.some((p) => p.role === 'apron' || p.role === 'kick')
 
   if (rigidBack || rigidFrame) return []
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
-  const height = Math.max(...sides.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensiones.alto
+  const height = Math.max(...sides.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
   const finding: Finding = {
     code: 'R5_ESCUADRADO',
     severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critico' : 'recomendacion',

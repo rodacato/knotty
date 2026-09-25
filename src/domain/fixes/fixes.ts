@@ -24,7 +24,7 @@ const RAIL_HEIGHT = 80
 const MIN_SUPPORT_DEPTH = 100
 const uniqueId = (design: Design, base: string) => {
   let id = base
-  for (let n = 2; design.piezas.some((p) => p.id === id); n++) id = `${base}-${n}`
+  for (let n = 2; design.pieces.some((p) => p.id === id); n++) id = `${base}-${n}`
   return id
 }
 
@@ -48,40 +48,40 @@ function centerSupport(design: Design, catalog: Catalog, target: Piece): Operati
   if (z1 - z0 < MIN_SUPPORT_DEPTH) return []
   const support = makePiece({
     id: uniqueId(design, `apoyo-${target.id}`),
-    nombre: `Apoyo de ${target.nombre.toLowerCase()}`,
-    rol: 'divisor',
+    name: `Apoyo de ${target.name.toLowerCase()}`,
+    role: 'divider',
     material: target.material,
     normal: 'x',
-    x: startAt({ tipo: 'mm', mm: x0 }),
+    x: startAt({ type: 'mm', mm: x0 }),
     y: extent(base ? ref(`${base[0]}.y1`) : ref('mueble.y0'), ref(`${target.id}.y0`)),
-    z: extent({ tipo: 'mm', mm: Math.round(z0) }, { tipo: 'mm', mm: Math.round(z1) }),
-    cantos: ['frente'],
+    z: extent({ type: 'mm', mm: Math.round(z0) }, { type: 'mm', mm: Math.round(z1) }),
+    edges: ['front'],
   })
-  return [{ op: 'agregarPieza', pieza: support }]
+  return [{ op: 'addPiece', piece: support }]
 }
 
 /** A rail across the back, just under the top: to hang the piece from the wall or to keep it square. */
-function backRail(design: Design, role: 'refuerzo' | 'faja', name: string): Operation[] {
-  const sides = design.piezas.filter((p) => p.rol === 'lateral' && p.normal === 'x')
-  const top = design.piezas.find((p) => p.rol === 'techo')
+function backRail(design: Design, role: 'brace' | 'apron', name: string): Operation[] {
+  const sides = design.pieces.filter((p) => p.role === 'side' && p.normal === 'x')
+  const top = design.pieces.find((p) => p.role === 'top')
   if (sides.length < 2 || !top) return []
   const [left, right] = [sides[0], sides[sides.length - 1]]
-  const back = design.piezas.find((p) => p.rol === 'trasera')
-  const id = uniqueId(design, role === 'refuerzo' ? 'liston-colgar' : 'faja-trasera')
+  const back = design.pieces.find((p) => p.role === 'back')
+  const id = uniqueId(design, role === 'brace' ? 'liston-colgar' : 'faja-trasera')
   const rail = makePiece({
     id,
-    nombre: name,
-    rol: role,
+    name: name,
+    role: role,
     material: left.material,
     normal: 'z',
     x: extent(ref(`${left.id}.x1`), ref(`${right.id}.x0`)),
     y: extent(null, ref(`${top.id}.y0`), RAIL_HEIGHT),
     z: startAt(back ? ref(`${back.id}.z1`) : ref('mueble.z0')),
   })
-  const operations: Operation[] = [{ op: 'agregarPieza', pieza: rail }]
+  const operations: Operation[] = [{ op: 'addPiece', piece: rail }]
   // A rigid rail is what keeps a box square: pocket screws into both sides, not butt screws.
-  if (role === 'faja')
-    for (const side of [left, right]) operations.push({ op: 'agregarUnion', union: makeJoint(`u-${id}-${side.id}`, id, side.id, 'bolsillo', [{ herrajeId: 'tornillo-bolsillo-1-1/4', cantidad: 2 }]) })
+  if (role === 'apron')
+    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`u-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'tornillo-bolsillo-1-1/4', count: 2 }]) })
   return operations
 }
 
@@ -91,10 +91,10 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'izq' ? -1 : 1))
   if (!geo || !runner?.holguraLateral || !found) return []
-  const material = design.piezas.find((p) => p.rol === 'lateral')?.material ?? found.side.material
+  const material = design.pieces.find((p) => p.role === 'side')?.material ?? found.side.material
   const thickness = catalog.materiales.find((m) => m.id === material)?.espesor ?? 18
   const box = geo.boxes.get(found.side.id)!
-  const drawer = design.piezas.filter((p) => p.grupo === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
+  const drawer = design.pieces.filter((p) => p.group === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
   const [bottom, top] = [Math.min(...drawer.map((b) => b.y0)), Math.max(...drawer.map((b) => b.y1))]
   const x0 = side === 'izq' ? box.x0 - runner.holguraLateral - thickness : box.x1 + runner.holguraLateral
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => !drawer.includes(b) && id !== found.side.id && b.x0 < x0 + thickness && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
@@ -103,36 +103,36 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
   const id = uniqueId(design, `apoyo-${group}-${side}`)
   const support = makePiece({
     id,
-    nombre: `Apoyo de corredera ${side === 'izq' ? 'izquierdo' : 'derecho'}`,
-    rol: 'divisor',
+    name: `Apoyo de corredera ${side === 'izq' ? 'izquierdo' : 'derecho'}`,
+    role: 'divider',
     material,
     normal: 'x',
-    x: startAt({ tipo: 'mm', mm: Math.round(x0 * 10) / 10 }),
-    y: extent(below ? ref(`${below[0]}.y1`) : ref('mueble.y0'), above ? ref(`${above[0]}.y0`) : { tipo: 'mm', mm: Math.round(top) }),
-    z: extent({ tipo: 'mm', mm: Math.round(box.z0) }, { tipo: 'mm', mm: Math.round(box.z1) }),
-    cantos: ['frente'],
+    x: startAt({ type: 'mm', mm: Math.round(x0 * 10) / 10 }),
+    y: extent(below ? ref(`${below[0]}.y1`) : ref('mueble.y0'), above ? ref(`${above[0]}.y0`) : { type: 'mm', mm: Math.round(top) }),
+    z: extent({ type: 'mm', mm: Math.round(box.z0) }, { type: 'mm', mm: Math.round(box.z1) }),
+    edges: ['front'],
   })
-  const hasHardware = design.uniones.some((u) => u.tipo === 'corredera' && u.herrajes.length && design.piezas.find((p) => p.id === u.a || p.id === u.b)?.grupo === group)
+  const hasHardware = design.joints.some((u) => u.type === 'drawer-slide' && u.hardware.length && design.pieces.find((p) => p.id === u.a || p.id === u.b)?.group === group)
   return [
-    { op: 'agregarPieza', pieza: support },
-    { op: 'agregarUnion', union: makeJoint(`u-${group}-corredera-${side}`, found.side.id, id, 'corredera', hasHardware ? [] : [{ herrajeId: runner.id, cantidad: 1 }]) },
+    { op: 'addPiece', piece: support },
+    { op: 'addJoint', joint: makeJoint(`u-${group}-corredera-${side}`, found.side.id, id, 'drawer-slide', hasHardware ? [] : [{ hardwareId: runner.id, count: 1 }]) },
   ]
 }
 
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
-  const pieces = finding.pieces.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Piece => !!p)
+  const pieces = finding.pieces.map((id) => design.pieces.find((p) => p.id === id)).filter((p): p is Piece => !!p)
   switch (alternative.key) {
     case 'subir-espesor':
-      return typeof alternative.data.material === 'string' ? [{ op: 'cambiarEspesor', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
+      return typeof alternative.data.material === 'string' ? [{ op: 'changeMaterial', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
     case 'divisor-al-centro':
     case 'apoyo-central':
       return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupport(design, catalog, p))
     case 'anclar-muro':
-      return design.anclajeMuro ? [] : [{ op: 'cambiarAnclajeMuro', valor: true }]
+      return design.wallAnchored ? [] : [{ op: 'setWallAnchored', value: true }]
     case 'liston-colgar':
-      return backRail(design, 'refuerzo', 'Listón de colgar')
+      return backRail(design, 'brace', 'Listón de colgar')
     case 'faja-rigida':
-      return backRail(design, 'faja', 'Faja trasera')
+      return backRail(design, 'apron', 'Faja trasera')
     case 'apoyo-corredera':
       return typeof alternative.data.grupo === 'string' && (alternative.data.lado === 'izq' || alternative.data.lado === 'der') ? runnerSupportPiece(design, catalog, alternative.data.grupo, alternative.data.lado) : []
     default:

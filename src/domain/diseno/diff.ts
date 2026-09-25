@@ -7,13 +7,13 @@ export interface Differences {
   changed: string[]
 }
 
-const PROPERTIES = ['nombre', 'rol', 'material', 'veta', 'carga', 'apoyo', 'grupo'] as const
+const PROPERTIES = ['name', 'role', 'material', 'grain', 'load', 'support', 'group'] as const
 const boxChanged = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
 
 /** Which pieces changed between two versions, those that only moved along included. */
 export function differences(before: Design, boxesBefore: Map<string, Box>, after: Design, boxesAfter: Map<string, Box>): Differences {
-  const previous = new Map(before.piezas.map((p) => [p.id, p]))
-  const next = new Map(after.piezas.map((p) => [p.id, p]))
+  const previous = new Map(before.pieces.map((p) => [p.id, p]))
+  const next = new Map(after.pieces.map((p) => [p.id, p]))
   return {
     added: [...next.keys()].filter((id) => !previous.has(id)),
     removed: [...previous.keys()].filter((id) => !next.has(id)),

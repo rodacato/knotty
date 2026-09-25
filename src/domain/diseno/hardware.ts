@@ -19,20 +19,20 @@ export type HardwarePart =
 
 export function hardwareParts(design: Design, boxes: Map<string, Box>): HardwarePart[] {
   const parts: HardwarePart[] = []
-  for (const u of design.uniones) {
+  for (const u of design.joints) {
     const a = boxes.get(u.a)
     const b = boxes.get(u.b)
     if (!a || !b) continue
-    if (u.tipo === 'corredera') {
+    if (u.type === 'drawer-slide') {
       // The drawer side and its support, whichever order the joint names them in.
-      const [side, support] = design.piezas.find((p) => p.id === u.a)?.grupo ? [a, b] : [b, a]
+      const [side, support] = design.pieces.find((p) => p.id === u.a)?.group ? [a, b] : [b, a]
       const [x0, x1] = side.x0 >= support.x1 ? [support.x1, side.x0] : [side.x1, support.x0]
       if (x1 - x0 <= 0) continue
       const middle = (side.y0 + side.y1) / 2
       const height = Math.min(RUNNER_HEIGHT, side.y1 - side.y0)
       parts.push({ kind: 'runner', owner: side === a ? u.a : u.b, box: { x0, x1, y0: middle - height / 2, y1: middle + height / 2, z0: side.z0, z1: side.z1 } })
     }
-    if (u.tipo === 'bisagra-cazoleta') {
+    if (u.type === 'cup-hinge') {
       const door = a
       const onLeft = Math.abs((b.x0 + b.x1) / 2 - door.x0) <= Math.abs((b.x0 + b.x1) / 2 - door.x1)
       const x = onLeft ? door.x0 + CUP_INSET : door.x1 - CUP_INSET

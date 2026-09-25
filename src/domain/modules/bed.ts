@@ -77,57 +77,57 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const t = materialById(catalog, plan.material)?.espesor ?? 18
   const size = bedSize(plan, t)
   const hd = headboardDepth(plan, t)
-  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, cantos: ['frente'], ...p })
+  const panel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => makePiece({ material: plan.material, edges: ['front'], ...p })
   // The headboard is its own part: its floor is level with the platform but is not where the mattress goes.
-  const headboardPanel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => panel({ grupo: 'cabecera', ...p })
+  const headboardPanel = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => panel({ group: 'cabecera', ...p })
   const pieces: Piece[] = []
   const notes: string[] = []
   const style = plan.headboard.style
   const deep = style === 'bookcase' || style === 'storage'
 
   // Headboard: a plain board, or a shallow box open toward the mattress.
-  if (style === 'plain') pieces.push(headboardPanel({ id: 'cabecera', nombre: 'Cabecera', rol: 'lateral', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')), veta: 'largo' }))
+  if (style === 'plain') pieces.push(headboardPanel({ id: 'cabecera', name: 'Cabecera', role: 'side', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')), grain: 'length' }))
   if (deep) {
     const between = extent(ref('cab-lat-der.z1'), ref('cab-lat-izq.z0'))
     const inside = extent(ref('cab-fondo.x1'), ref('mueble.x0', hd))
     pieces.push(
-      headboardPanel({ id: 'cab-lat-izq', nombre: 'Costado izquierdo de la cabecera', rol: 'lateral', normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x0', hd)), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: endAt(ref('mueble.z1')) }),
-      headboardPanel({ id: 'cab-lat-der', nombre: 'Costado derecho de la cabecera', rol: 'lateral', normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x0', hd)), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: startAt(ref('mueble.z0')) }),
-      headboardPanel({ id: 'cab-fondo', nombre: 'Fondo de la cabecera', rol: 'trasera', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: between, veta: 'largo' }),
-      headboardPanel({ id: 'cab-techo', nombre: 'Techo de la cabecera', rol: 'techo', normal: 'y', x: inside, y: endAt(ref('mueble.y1')), z: between }),
+      headboardPanel({ id: 'cab-lat-izq', name: 'Costado izquierdo de la cabecera', role: 'side', normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x0', hd)), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: endAt(ref('mueble.z1')) }),
+      headboardPanel({ id: 'cab-lat-der', name: 'Costado derecho de la cabecera', role: 'side', normal: 'z', x: extent(ref('mueble.x0'), ref('mueble.x0', hd)), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: startAt(ref('mueble.z0')) }),
+      headboardPanel({ id: 'cab-fondo', name: 'Fondo de la cabecera', role: 'back', normal: 'x', x: startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y1')), z: between, grain: 'length' }),
+      headboardPanel({ id: 'cab-techo', name: 'Techo de la cabecera', role: 'top', normal: 'y', x: inside, y: endAt(ref('mueble.y1')), z: between }),
     )
     const shelfFloor: FaceRef = style === 'storage' ? 'cab-sep.y1' : 'cab-piso.y1'
     // The compartment is closed by a board in front, so its floor and lid stop behind it.
     const inner = style === 'storage' ? extent(ref('cab-fondo.x1'), ref('cab-tapa.x0')) : inside
-    pieces.push(headboardPanel({ id: 'cab-piso', nombre: 'Piso de la cabecera', rol: 'piso', normal: 'y', x: inner, y: endAt(ref('mueble.y0', plan.height)), z: between, carga: 'media' }))
+    pieces.push(headboardPanel({ id: 'cab-piso', name: 'Piso de la cabecera', role: 'bottom', normal: 'y', x: inner, y: endAt(ref('mueble.y0', plan.height)), z: between, load: 'medium' }))
     if (style === 'storage')
       pieces.push(
-        headboardPanel({ id: 'cab-sep', nombre: 'Tapa del compartimento', rol: 'entrepano', normal: 'y', x: inner, y: startAt(ref('cab-piso.y1', COMPARTMENT)), z: between, carga: 'media' }),
-        headboardPanel({ id: 'cab-tapa', nombre: 'Frente del compartimento', rol: 'otro', normal: 'x', x: endAt(ref('mueble.x0', hd)), y: extent(ref('cab-piso.y0'), ref('cab-sep.y1')), z: between, veta: 'largo' }),
+        headboardPanel({ id: 'cab-sep', name: 'Tapa del compartimento', role: 'shelf', normal: 'y', x: inner, y: startAt(ref('cab-piso.y1', COMPARTMENT)), z: between, load: 'medium' }),
+        headboardPanel({ id: 'cab-tapa', name: 'Frente del compartimento', role: 'other', normal: 'x', x: endAt(ref('mueble.x0', hd)), y: extent(ref('cab-piso.y0'), ref('cab-sep.y1')), z: between, grain: 'length' }),
       )
     const n = plan.headboard.shelves
     for (let k = 1; k <= n; k++)
-      pieces.push(headboardPanel({ id: `cab-rep-${k}`, nombre: `Repisa ${k} de la cabecera`, rol: 'entrepano', normal: 'y', x: inside, y: startAt(partway(shelfFloor, 'cab-techo.y0', k / (n + 1), -t / 2)), z: between, carga: 'media', apoyo: 'fijo' }))
+      pieces.push(headboardPanel({ id: `cab-rep-${k}`, name: `Repisa ${k} de la cabecera`, role: 'shelf', normal: 'y', x: inside, y: startAt(partway(shelfFloor, 'cab-techo.y0', k / (n + 1), -t / 2)), z: between, load: 'medium', support: 'fixed' }))
     if (plan.headboard.height - plan.height < COMPARTMENT + 2 * t && style === 'storage') notes.push('La cabecera es baja para un compartimento arriba de la base: súbela o hazla librero.')
   }
 
   // Base: head and foot ends, a spine down the middle and the platform on top.
   const headEnd: FaceRef = style === 'plain' ? 'cabecera.x1' : 'base-cabeza.x1'
   if (style !== 'plain')
-    pieces.push(panel({ id: 'base-cabeza', nombre: 'Cabecero de la base', rol: 'lateral', normal: 'x', x: deep ? endAt(ref('mueble.x0', hd)) : startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y0', plan.height - t)), z: deep ? extent(ref('cab-lat-der.z1'), ref('cab-lat-izq.z0')) : extent(ref('mueble.z0'), ref('mueble.z1')) }))
-  pieces.push(panel({ id: 'base-pie', nombre: 'Piecero', rol: 'lateral', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y0', plan.height - t)), z: extent(ref('mueble.z0'), ref('mueble.z1')) }))
+    pieces.push(panel({ id: 'base-cabeza', name: 'Cabecero de la base', role: 'side', normal: 'x', x: deep ? endAt(ref('mueble.x0', hd)) : startAt(ref('mueble.x0')), y: extent(ref('mueble.y0'), ref('mueble.y0', plan.height - t)), z: deep ? extent(ref('cab-lat-der.z1'), ref('cab-lat-izq.z0')) : extent(ref('mueble.z0'), ref('mueble.z1')) }))
+  pieces.push(panel({ id: 'base-pie', name: 'Piecero', role: 'side', normal: 'x', x: endAt(ref('mueble.x1')), y: extent(ref('mueble.y0'), ref('mueble.y0', plan.height - t)), z: extent(ref('mueble.z0'), ref('mueble.z1')) }))
   const platformX = extent(ref(style === 'none' ? 'base-cabeza.x0' : headEnd), ref('mueble.x1'))
   const platformY = endAt(ref('mueble.y0', plan.height))
   const split = size.length > ONE_SHEET
   const middle = size.length / 2
   if (split)
     pieces.push(
-      panel({ id: 'plataforma-izq', nombre: 'Plataforma izquierda', rol: 'piso', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0', middle), ref('mueble.z1')), carga: 'pesada', veta: 'largo' }),
-      panel({ id: 'plataforma-der', nombre: 'Plataforma derecha', rol: 'piso', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0'), ref('mueble.z0', middle)), carga: 'pesada', veta: 'largo' }),
+      panel({ id: 'plataforma-izq', name: 'Plataforma izquierda', role: 'bottom', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0', middle), ref('mueble.z1')), load: 'heavy', grain: 'length' }),
+      panel({ id: 'plataforma-der', name: 'Plataforma derecha', role: 'bottom', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0'), ref('mueble.z0', middle)), load: 'heavy', grain: 'length' }),
     )
-  else pieces.push(panel({ id: 'plataforma', nombre: 'Plataforma', rol: 'piso', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0'), ref('mueble.z1')), carga: 'pesada', veta: 'largo' }))
+  else pieces.push(panel({ id: 'plataforma', name: 'Plataforma', role: 'bottom', normal: 'y', x: platformX, y: platformY, z: extent(ref('mueble.z0'), ref('mueble.z1')), load: 'heavy', grain: 'length' }))
   const under = (side: 'izq' | 'der'): FaceRef => (split ? `plataforma-${side}.y0` : 'plataforma.y0')
-  pieces.push(panel({ id: 'espina', nombre: 'Espina central', rol: 'divisor', normal: 'z', x: extent(ref(headEnd), ref('base-pie.x0')), y: extent(ref('mueble.y0'), ref(under('izq'))), z: startAt(ref('mueble.z0', middle - t / 2)), veta: 'largo' }))
+  pieces.push(panel({ id: 'espina', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref('base-pie.x0')), y: extent(ref('mueble.y0'), ref(under('izq'))), z: startAt(ref('mueble.z0', middle - t / 2)), grain: 'length' }))
 
   // Each side: drawers between dividers, or a closed rail.
   const drawers: Operation[] = []
@@ -140,10 +140,10 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const crossMembers = (from: number, to: number, span: number) => {
       const count = Math.ceil((to - from) / (MAX_SPAN + t)) - 1
       for (let k = 1; k <= count; k++)
-        pieces.push(panel({ id: `travesano-${side}-${span}-${k}`, nombre: `Travesaño ${label} ${span}.${k}`, rol: 'divisor', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(ref('mueble.y0'), ref(under(side))), z: side === 'izq' ? extent(ref('espina.z1'), ref(`costado-${side}-${span}.z0`)) : extent(ref(`costado-${side}-${span}.z1`), ref('espina.z0')) }))
+        pieces.push(panel({ id: `travesano-${side}-${span}-${k}`, name: `Travesaño ${label} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(ref('mueble.y0'), ref(under(side))), z: side === 'izq' ? extent(ref('espina.z1'), ref(`costado-${side}-${span}.z0`)) : extent(ref(`costado-${side}-${span}.z1`), ref('espina.z0')) }))
     }
     if (!hasDrawers) {
-      pieces.push(panel({ id: `costado-${side}-1`, nombre: `Costado ${label}`, rol: 'lateral', normal: 'z', z: faceZ, x: extent(ref(headEnd), ref('base-pie.x0')), y: extent(ref('mueble.y0'), ref(under(side))), veta: 'largo' }))
+      pieces.push(panel({ id: `costado-${side}-1`, name: `Costado ${label}`, role: 'side', normal: 'z', z: faceZ, x: extent(ref(headEnd), ref('base-pie.x0')), y: extent(ref('mueble.y0'), ref(under(side))), grain: 'length' }))
       crossMembers(0, inner, 1)
       continue
     }
@@ -159,7 +159,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const before = plan.drawers.position === 'foot' ? rest : centered ? rest / 2 : 0
     const edges: FaceRef[] = []
     const addDivider = (id: string, at: number) => {
-      pieces.push(panel({ id, nombre: `Divisor ${label} ${edges.length + 1}`, rol: 'divisor', normal: 'x', x: startAt(ref(headEnd, at)), y: extent(ref('mueble.y0'), ref(under(side))), z: side === 'izq' ? extent(ref('espina.z1'), ref('mueble.z1')) : extent(ref('mueble.z0'), ref('espina.z0')) }))
+      pieces.push(panel({ id, name: `Divisor ${label} ${edges.length + 1}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, at)), y: extent(ref('mueble.y0'), ref(under(side))), z: side === 'izq' ? extent(ref('espina.z1'), ref('mueble.z1')) : extent(ref('mueble.z0'), ref('espina.z0')) }))
     }
     const closedSpans: [FaceRef, FaceRef, number, number][] = []
     let left: FaceRef = headEnd
@@ -180,41 +180,41 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
       }
       edges.push(right)
       const bay = `${side}-${k}`
-      pieces.push(panel({ id: `zoclo-${bay}`, nombre: `Zoclo ${label} ${k}`, rol: 'zoclo', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('mueble.y0'), null, KICK_HEIGHT), veta: 'largo' }))
+      pieces.push(panel({ id: `zoclo-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: faceZ, x: extent(ref(left), ref(right)), y: extent(ref('mueble.y0'), null, KICK_HEIGHT), grain: 'length' }))
       drawers.push({
-        op: 'agregarCajon',
-        grupo: `cajon-${side}-${k}`,
-        nombre: `Cajón ${label} ${k}`,
-        izquierda: left,
-        derecha: right,
-        abajo: `zoclo-${bay}.y1`,
-        arriba: under(side),
-        frente: side === 'izq' ? 'mueble.z1' : 'mueble.z0',
-        fondo: side === 'izq' ? 'espina.z1' : 'espina.z0',
+        op: 'addDrawer',
+        group: `cajon-${side}-${k}`,
+        name: `Cajón ${label} ${k}`,
+        left: left,
+        right: right,
+        bottom: `zoclo-${bay}.y1`,
+        top: under(side),
+        front: side === 'izq' ? 'mueble.z1' : 'mueble.z0',
+        back: side === 'izq' ? 'espina.z1' : 'espina.z0',
         material: plan.material,
-        materialFondo: BACK,
+        bottomMaterial: BACK,
       })
       left = right === 'base-pie.x0' ? left : `div-${side}-${k}.x1`
     }
     closedSpans.forEach(([from, to, start, end], i) => {
-      pieces.push(panel({ id: `costado-${side}-${i + 1}`, nombre: `Costado ${label} ${i + 1}`, rol: 'lateral', normal: 'z', z: faceZ, x: extent(ref(from), ref(to)), y: extent(ref('mueble.y0'), ref(under(side))), veta: 'largo' }))
+      pieces.push(panel({ id: `costado-${side}-${i + 1}`, name: `Costado ${label} ${i + 1}`, role: 'side', normal: 'z', z: faceZ, x: extent(ref(from), ref(to)), y: extent(ref('mueble.y0'), ref(under(side))), grain: 'length' }))
       crossMembers(start, end, i + 1)
     })
   }
 
   let design: Design = {
-    esquema: 1,
-    nombre: plan.name,
-    dimensiones: { ancho: size.width, alto: size.height, fondo: size.length },
-    anclajeMuro: false,
-    observaciones: '',
-    piezas: pieces,
-    uniones: [],
+    schema: 1,
+    name: plan.name,
+    dimensions: { width: size.width, height: size.height, depth: size.length },
+    wallAnchored: false,
+    notes: '',
+    pieces: pieces,
+    joints: [],
   }
   for (const drawer of drawers) {
     const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.op === 'addDrawer' ? drawer.name : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
     design = result.value.design
