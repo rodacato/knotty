@@ -29,10 +29,16 @@ export function despiece(diseno: Diseno, geo: Geometria): RenglonDespiece[] {
   return [...renglones.values()].sort((a, b) => b.espesor - a.espesor || b.largo * b.ancho - a.largo * a.ancho)
 }
 
-/** "Entrepaño 1" + "Entrepaño 2" → "Entrepaño". */
+/** "Entrepaño 1" + "Entrepaño 2" → "Entrepaño"; "Contrafrente de cajón 1" + "Trasera de cajón 1" → "Contrafrente y trasera de cajón 1". */
 function nombreComun(a: string, b: string) {
-  const palabras = a.split(' ')
-  const otras = b.split(' ')
-  const comunes = palabras.filter((w, i) => otras[i] === w)
-  return comunes.length ? comunes.join(' ') : a
+  const [x, y] = [a.split(' '), b.split(' ')]
+  let head = 0
+  while (head < Math.min(x.length, y.length) && x[head] === y[head]) head++
+  let tail = 0
+  while (tail < Math.min(x.length, y.length) - head && x[x.length - 1 - tail] === y[y.length - 1 - tail]) tail++
+  const suffix = x.slice(x.length - tail)
+  if (head) return [...x.slice(0, head), ...suffix].join(' ')
+  const [restA, restB] = [x.slice(0, x.length - tail).join(' '), y.slice(0, y.length - tail).join(' ')]
+  if (restA.split(' y ').includes(restB.toLowerCase()) || restA === restB) return a
+  return [`${restA} y ${restB.toLowerCase()}`, ...suffix].join(' ')
 }
