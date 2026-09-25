@@ -38,6 +38,22 @@ function sinConexion(c: Pick<ConexionCompatible, 'host'> & { proveedor?: Conexio
   return `No se pudo conectar con SheLLM en ${normalizarHost(c.host)}. Revisa que esté corriendo y que SHELLM_CORS_ORIGINS incluya ${origen}. Si pasa después de mucho rato, el túnel o proxy pudo cortar la conexión por tiempo.`
 }
 
+/** ¿El host contesta a un GET? Si sí, lo que falló fue el POST en particular. */
+async function responde(c: Pick<ConexionCompatible, 'host' | 'apiKey'>) {
+  try {
+    const r = await fetch(`${normalizarHost(c.host)}/v1/models`, { signal: AbortSignal.timeout(5000), headers: c.apiKey ? { authorization: `Bearer ${c.apiKey}` } : {} })
+    return r.ok || r.status === 304
+  } catch {
+    return false
+  }
+}
+
+function postBloqueado(c: Pick<ConexionCompatible, 'host'> & { proveedor?: ConexionCompatible['proveedor'] }, cuerpo: RequestInit['body']) {
+  const kb = typeof cuerpo === 'string' ? Math.round(cuerpo.length / 1024) : null
+  const nombre = c.proveedor === 'shellm' ? 'SheLLM' : 'El host'
+  return `${nombre} responde, pero el navegador no pudo mandarle el pedido${kb ? ` (${kb} KB)` : ''}. Suele ser CORS del POST: que permita las cabeceras Content-Type y Authorization desde ${typeof location === 'undefined' ? 'este sitio' : location.origin}. Si hay un proxy o túnel enfrente, revisa también su límite de tamaño y de tiempo.`
+}
+
 async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedor?: ConexionCompatible['proveedor'] }, ruta: string, init: RequestInit = {}) {
   let respuesta: Response
   const limite = AbortSignal.timeout(LIMITE_MS)
@@ -49,7 +65,7 @@ async function pedir(c: Pick<ConexionCompatible, 'host' | 'apiKey'> & { proveedo
     })
   } catch (e) {
     if (limite.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMITE_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
-    if (e instanceof TypeError) throw new Error(sinConexion(c))
+    if (e instanceof TypeError) throw new Error(init.method === 'POST' && (await responde(c)) ? postBloqueado(c, init.body) : sinConexion(c))
     throw new ErrorProveedor(e)
   }
   if (respuesta.status === 401 || respuesta.status === 403) throw new Error(c.apiKey ? 'La API key no es válida.' : 'El host pide una API key.')

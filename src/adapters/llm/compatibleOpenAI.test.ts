@@ -81,6 +81,11 @@ describe('crearCompatible', () => {
     await expect(nueva().reconstruir(solicitud(), new AbortController().signal)).rejects.toThrow(/SheLLM en http:\/\/127\.0\.0\.1:\d+.*SHELLM_CORS_ORIGINS/)
   })
 
+  it('si el GET contesta pero el POST no sale, apunta a CORS del POST y dice el tamaño', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => (init?.method === 'POST' ? Promise.reject(new TypeError('Failed to fetch')) : new Response('{"data":[]}', { status: 200 }))))
+    await expect(nueva().reconstruir(solicitud([]), new AbortController().signal)).rejects.toThrow(/SheLLM responde.*\(\d+ KB\).*Content-Type y Authorization/)
+  })
+
   it('manda la llave solo si hay', async () => {
     const fetch = vi.fn(async () => ok(respuesta))
     vi.stubGlobal('fetch', fetch)
