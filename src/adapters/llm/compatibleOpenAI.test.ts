@@ -149,6 +149,13 @@ describe('crearCompatible', () => {
     expect(r.valor.diseno.nombre).toBe('Librero')
   })
 
+  it('un salto de línea crudo dentro de un texto no tumba la respuesta', async () => {
+    const texto = JSON.stringify({ ...respuesta, explicacion: 'Veo un librero__SALTO__con zoclo' }).replace('__SALTO__', '\n\t')
+    vi.stubGlobal('fetch', vi.fn(async () => conTexto(texto)))
+    const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)
+    expect(r.valor.explicacion).toBe('Veo un librero\n\tcon zoclo')
+  })
+
   it('un solo intento envuelto como texto también se desenvuelve', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ok({ $PARAMETER_NAME: JSON.stringify(respuesta) })))
     const r = await nueva().reconstruir(solicitud([]), new AbortController().signal)

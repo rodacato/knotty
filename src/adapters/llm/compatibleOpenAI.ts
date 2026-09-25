@@ -156,6 +156,24 @@ function objetosDeNivelSuperior(texto: string): string[] {
   return objetos
 }
 
+const ESCAPES: Record<string, string> = { '\n': '\\n', '\t': '\\t', '\r': '\\r' }
+
+/** Escapa saltos y tabuladores crudos dentro de las cadenas: el JSON los prohíbe, pero algunos modelos los escriben. */
+function escaparControles(json: string) {
+  let salida = ''
+  let enCadena = false
+  for (let i = 0; i < json.length; i++) {
+    const c = json[i]
+    if (enCadena && c === '\\') {
+      salida += c + (json[++i] ?? '')
+      continue
+    }
+    if (c === '"') enCadena = !enCadena
+    salida += enCadena && ESCAPES[c] ? ESCAPES[c] : c
+  }
+  return salida
+}
+
 /** Un objeto con una sola llave cuyo valor es el JSON escrito como texto: el modelo lo envolvió de más. */
 function desenvolver(valor: unknown): unknown {
   if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return valor
@@ -176,10 +194,12 @@ function extraerJSON(texto: string) {
   const candidatos = objetosDeNivelSuperior(texto)
   if (!texto.includes('{')) throw new Error(`El modelo no devolvió JSON (${muestra}).`)
   for (const candidato of candidatos.reverse()) {
-    try {
-      return desenvolver(JSON.parse(candidato))
-    } catch {
-      // Un intento roto: se prueba el anterior.
+    for (const version of [candidato, escaparControles(candidato)]) {
+      try {
+        return desenvolver(JSON.parse(version))
+      } catch {
+        // Un intento roto: se prueba corregido y luego el anterior.
+      }
     }
   }
   throw new Error(`El modelo devolvió un JSON inválido (${muestra}).`)
