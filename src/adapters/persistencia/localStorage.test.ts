@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../domain/fixtures/bookcase'
 import type { DesignState } from '../../domain/sesion/state'
+import saved from '../../domain/sesion/state-v1.fixture.json'
 import { createLocalRepository } from './localStorage'
 
 function almacen(limite = Infinity): Storage {
@@ -21,16 +22,16 @@ function almacen(limite = Infinity): Storage {
 }
 
 const estado = (versiones = 1): DesignState => ({
-  formato: 1,
-  medidas: exampleBookcase.dimensiones,
-  versiones: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, diseno: exampleBookcase, resumen: `v${i + 1}`, motivo: '', operaciones: [], fecha: '', origen: null, decisiones: [], plan: null, extras: [] })),
-  actual: versiones,
-  requisitos: [],
-  decisiones: [],
+  format: 2,
+  measures: exampleBookcase.dimensions,
+  versions: Array.from({ length: versiones }, (_, i) => ({ n: i + 1, design: exampleBookcase, summary: `v${i + 1}`, reason: '', operations: [], date: '', origin: null, decisions: [], plan: null, extras: [] })),
+  current: versiones,
+  requirements: [],
+  decisions: [],
   chat: [],
-  miniaturas: [{ angulo: 'frente', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
-  propuesta: null,
-  dictamen: null,
+  thumbnails: [{ angle: 'frente', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
+  proposal: null,
+  review: null,
   trace: [],
   accepted: [],
   tray: [],
@@ -45,18 +46,26 @@ describe('localStorage repository', () => {
     expect(repo.load()).toBeNull()
   })
 
-  it('ignora datos corruptos', () => {
+  it('ignores corrupt data', () => {
     const a = almacen()
     a.setItem('despiece:v1:diseno', '{"formato":1')
     expect(createLocalRepository(a).load()).toBeNull()
   })
 
+  it('reads a session an older Knotty saved and migrates it', () => {
+    const a = almacen()
+    a.setItem('despiece:v1:diseno', JSON.stringify(saved))
+    const loaded = createLocalRepository(a).load()
+    expect(loaded?.format).toBe(2)
+    expect(loaded?.versions).toHaveLength(saved.versiones.length)
+  })
+
   it('if it does not fit, drops thumbnails and then old versions', () => {
-    const tamano = JSON.stringify({ ...estado(6), miniaturas: [] }).length
+    const tamano = JSON.stringify({ ...estado(6), thumbnails: [] }).length
     const repo = createLocalRepository(almacen(tamano - 100))
     repo.save(estado(6))
     const cargado = repo.load()!
-    expect(cargado.miniaturas).toEqual([])
-    expect(cargado.versiones.map((v) => v.n)).toEqual([1, 3, 4, 5, 6])
+    expect(cargado.thumbnails).toEqual([])
+    expect(cargado.versions.map((v) => v.n)).toEqual([1, 3, 4, 5, 6])
   })
 })

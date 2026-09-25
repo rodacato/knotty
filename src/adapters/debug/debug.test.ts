@@ -50,7 +50,7 @@ describe('createDebugLog', () => {
     const storage = memoryStorage()
     const log = fromStorage(storage)
     const saved = () => JSON.parse(storage.getItem('knotty:debug:events') ?? '[]') as { summary: string }[]
-    log.record({ kind: 'llm', summary: 'grande', data: { texto: 'x'.repeat(100_000) } })
+    log.record({ kind: 'llm', summary: 'grande', data: { text: 'x'.repeat(100_000) } })
     expect(JSON.stringify(saved()[0]).length).toBeLessThan(60_000)
     expect(JSON.stringify(log.events()[0]).length).toBeGreaterThan(100_000)
     for (let i = 0; i < 80; i++) log.record({ kind: 'llm', summary: `n${i}`, data: { a: 'y'.repeat(3_900), b: 'z'.repeat(3_900), c: 'w'.repeat(3_900), d: 'v'.repeat(3_900), e: 'u'.repeat(3_900), f: 't'.repeat(3_900) } })
@@ -63,20 +63,20 @@ describe('withDebugLog', () => {
   it('records each call with the request and the answer, leaving out photos and the catalog', async () => {
     const log = fromStorage(memoryStorage())
     const llm = withDebugLog(createSimulated(0), log)
-    await llm.reconstruct({ measures: exampleBookcase.dimensiones, photos: [{ angle: 'frente', base64: 'A'.repeat(4096) }], notes: 'librero', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
+    await llm.reconstruct({ measures: exampleBookcase.dimensions, photos: [{ angle: 'frente', base64: 'A'.repeat(4096) }], notes: 'librero', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     const [event] = log.events()
     expect(event.kind).toBe('llm')
     expect(event.summary).toMatch(/^Diseño completo · Simulado/)
-    const data = event.data as { request: { photos: { base64: string }[]; catalog: string }; answer: { value: { diseno: { nombre: string } } } }
+    const data = event.data as { request: { photos: { base64: string }[]; catalog: string }; answer: { value: { design: { name: string } } } }
     expect(data.request.photos[0].base64).toBe('[JPEG de 3 KB]')
     expect(data.request.catalog).toBe('[catálogo]')
-    expect(data.answer.value.diseno.nombre).toBe('Librero')
+    expect(data.answer.value.design.name).toBe('Librero')
   })
 
   it('records a failed call as an error and still throws it', async () => {
     const log = fromStorage(memoryStorage())
     const llm = withDebugLog({ ...createSimulated(0), reviewPurchase: async () => Promise.reject(new Error('sin conexión')) }, log)
-    await expect(llm.reviewPurchase({ context: '', review: '', design: exampleBookcase, comprobaciones: [], catalog: testCatalog }, new AbortController().signal)).rejects.toThrow('sin conexión')
+    await expect(llm.reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal)).rejects.toThrow('sin conexión')
     expect(log.events()[0]).toMatchObject({ kind: 'error', summary: expect.stringContaining('Revisión antes de comprar falló') })
   })
 })
