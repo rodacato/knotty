@@ -20,7 +20,7 @@ describe('the tray', () => {
   })
 
   it('marks the questions of several messages answered at once', () => {
-    const message = (id: string): Message => ({ id, author: 'expert', text: '', date: '', questions: [{ text: '¿?', options: ['a', 'b'] }], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail: null, answers: [], suggestions: [] })
+    const message = (id: string): Message => ({ id, author: 'expert', text: '', date: '', questions: [{ text: '¿?', options: ['a', 'b'] }], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail: null, answers: [], suggestions: [], solutions: [] })
     const chat = markAnswered([message('m1'), message('m2')], 'm1#p0;m2#p0')
     expect(chat.map((m) => m.answered)).toEqual([true, true])
   })

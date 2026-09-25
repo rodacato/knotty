@@ -11,9 +11,9 @@ import { cutList, type CutLine } from '../domain/materials/cutList'
 import { applyOperations } from '../domain/operations/apply'
 import type { Operation } from '../domain/operations/schema'
 import { updateRequirements, checkRequirements, type Requirement } from '../domain/requirements/requirements'
-import { currentDesign, markAnswered, type PurchaseReview, type DesignState, type Message, type Thumbnail, type Question } from '../domain/session/state'
+import { currentDesign, markAnswered, questionAnswerKey, type PurchaseReview, type DesignState, type Message, type Thumbnail, type Question } from '../domain/session/state'
 import { describeChange, restorePieces } from '../domain/changes/changes'
-import type { Fix } from '../domain/fixes/fixes'
+import { fixForAlternative, type Fix } from '../domain/fixes/fixes'
 import { buildPlan, FurniturePlan, isBed, isTable } from '../domain/modules/plan'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
@@ -58,10 +58,14 @@ function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; n
   return [input.notes.trim(), photos, ...photoNotes, measures].filter(Boolean).join('\n\n')
 }
 
-/** If the expert offered no options for a critical finding, the alternatives the rules worked out are offered. */
-function questionFromAlternatives(criticals: Finding[]): Question[] {
-  const options = [...new Set(criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'max-span').map((a) => a.description)))].slice(0, 3)
-  return options.length ? [{ text: '¿Cómo lo resolvemos?', options: options }] : []
+/** If the expert offered no options for a critical finding, the rules' alternatives are offered, those Knotty can build first. */
+function questionFromAlternatives(criticals: Finding[], design: Design, catalog: Catalog): Pick<Message, 'questions' | 'solutions'> {
+  const alternatives = criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'max-span'))
+  const built = [...new Set(alternatives.map((a) => a.key))].flatMap((key) => fixForAlternative(design, catalog, criticals, key) ?? [])
+  const options = [...new Set([...built.map((f) => f.label), ...alternatives.map((a) => a.description)])].slice(0, 3)
+  if (!options.length) return { questions: [], solutions: [] }
+  const solutions = built.filter((f) => options.includes(f.label)).map((f) => ({ question: 0, option: f.label, alternative: f.key }))
+  return { questions: [{ text: '¿Cómo lo resolvemos?', options }], solutions }
 }
 
 /** A short, stable fingerprint of a text (FNV-1a plus its length). */
@@ -165,6 +169,7 @@ export function createUseCases(deps: Dependencies) {
     thumbnail: null,
     answers: [],
     suggestions: [],
+    solutions: [],
     ...extra,
   })
 
@@ -465,7 +470,7 @@ export function createUseCases(deps: Dependencies) {
           holds: [],
         }
         const pending = { ...base, requirements: withRequest.requirements, decisions: withRequest.decisions, proposal }
-        return reply(r.explanation, { questions: r.questions.length ? r.questions : questionFromAlternatives(criticals), proposal: 'pending' }, pending)
+        return reply(r.explanation, { ...(r.questions.length ? { questions: r.questions } : questionFromAlternatives(criticals, rebuilt.design, catalog)), proposal: 'pending' }, pending)
       }
       const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
       return reply([r.explanation, ...rebuilt.notes].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
@@ -574,7 +579,7 @@ export function createUseCases(deps: Dependencies) {
             holds: [],
           }
           const pending = { ...base, requirements: withRequest.requirements, decisions: withRequest.decisions, proposal }
-          return reply(r.explanation, { questions: r.questions.length ? r.questions : questionFromAlternatives(criticals), proposal: 'pending' }, pending)
+          return reply(r.explanation, { ...(r.questions.length ? { questions: r.questions } : questionFromAlternatives(criticals, next, catalog)), proposal: 'pending' }, pending)
         }
 
         const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...layered(currentPlanInfo, r.operations) })
@@ -589,18 +594,34 @@ export function createUseCases(deps: Dependencies) {
     }
   }
 
-  function applyProposal(state: DesignState): DesignState {
-    const p = state.proposal
-    if (!p) return state
+  /** The pending proposal as a new version, unsaved; `ending` closes the note, which depends on what comes after. */
+  function withProposal(state: DesignState, ending: string): DesignState {
+    const p = state.proposal!
     const base = { ...state, requirements: p.requirements, decisions: updateDecisions(state.decisions, p.decisions as Decision[]) }
     const withChange = addVersion(base, p.design, { summary: p.summary, reason: p.reason, operations: p.operations, origin: p.origin, plan: p.plan, extras: p.extras })
-    return save({
+    return {
       ...withChange,
-      chat: [
-        ...state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'applied' as const, answered: true } : m)),
-        message('expert', `Listo, apliqué "${p.summary}" como lo pediste. Los puntos críticos siguen marcados en la revisión.`, { version: withChange.current }),
-      ],
-    })
+      chat: [...state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'applied' as const, answered: true } : m)), message('expert', `Listo, apliqué "${p.summary}"${ending}`, { version: withChange.current })],
+    }
+  }
+
+  function applyProposal(state: DesignState): DesignState {
+    if (!state.proposal) return state
+    return save(withProposal(state, ' como lo pediste. Los puntos críticos siguen marcados en la revisión.'))
+  }
+
+  /** A rules option Knotty can build: the proposal, then the solution, each its own version, no expert. Null sends the option to the expert. */
+  function answerWithFix(state: DesignState, messageId: string, question: number, option: string): DesignState | null {
+    const m = state.chat.find((x) => x.id === messageId)
+    const link = m?.solutions.find((s) => s.question === question && s.option === option)
+    const p = state.proposal
+    if (!m || !link || m.proposal !== 'pending' || !p) return null
+    const criticals = newCriticals(findingsOf(currentDesign(state), state.requirements), findingsOf(p.design, p.requirements))
+    const fix = fixForAlternative(p.design, catalog, criticals, link.alternative)
+    if (!fix || fix.label !== option) return null
+    const accepted = withProposal({ ...state, chat: markAnswered(state.chat, `${messageId}#${questionAnswerKey(question)}`) }, '.')
+    const withFix = addVersion(accepted, fix.design, { summary: fix.label.slice(0, 90), reason: `Solución: ${fix.label}`, operations: fix.operations, origin: null, ...layered(currentPlan(accepted), fix.operations) })
+    return save({ ...withFix, chat: [...withFix.chat, message('user', `Resolví: ${fix.label}.`, { version: withFix.current })] })
   }
 
   function discardProposal(state: DesignState): DesignState {
@@ -875,6 +896,7 @@ export function createUseCases(deps: Dependencies) {
     reconstruct,
     adjust,
     applyProposal,
+    answerWithFix,
     discardProposal,
     backToVersion,
     confirmPiece,

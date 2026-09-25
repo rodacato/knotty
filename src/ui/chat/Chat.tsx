@@ -48,9 +48,9 @@ function useSeconds(active: boolean) {
 /** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
 const openQuestions = (state: DesignState) => state.chat.filter((m) => m.author === 'expert' && !m.answered).flatMap((m) => m.questions.filter((p, i) => p.options && !m.answers.includes(questionAnswerKey(i))))
 
-/** One question answers at once; with several, or with something already in the tray, answers join the tray. */
+/** One question answers at once (Knotty builds the option if it can); with several, or a tray, answers wait there as text for the expert. */
 function Questions({ m, state }: { m: Message; state: DesignState }) {
-  const adjust = useStore((s) => s.adjust)
+  const chooseOption = useStore((s) => s.chooseOption)
   const toggleTray = useStore((s) => s.toggleTray)
   const thinking = useStore((s) => s.thinking)
   const batch = state.tray.length > 0 || openQuestions(state).length > 1
@@ -71,7 +71,7 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
                     active={chosen(i) === o}
                     aria-pressed={batch ? chosen(i) === o : undefined}
                     disabled={taken || thinking}
-                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.text, o)) : void adjust(o, `${m.id}#${questionAnswerKey(i)}`))}
+                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.text, o)) : void chooseOption(m.id, i, o))}
                   >
                     {o}
                   </Chip>
