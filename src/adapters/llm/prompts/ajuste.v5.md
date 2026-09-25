@@ -1,5 +1,5 @@
 ---
-id: ajuste@4
+id: ajuste@5
 ---
 # Tarea: ajustar el diseño con operaciones
 
@@ -12,7 +12,7 @@ Operaciones:
 - `mover`: coloca la cara menor en `cota` conservando el largo. Para bajar 10 cm un entrepaño con cota "entre", usa la misma cota con `mas` 100 menor.
 - `distribuir`: reparte piezas con huecos iguales entre dos caras, en su eje normal.
 - `cambiarEspesor` (ids, material), `cambiarPropiedades` (null en lo que no cambia; `confianza` "alta" confirma una pieza que estaba en boceto).
-- `agregarUnion`, `cambiarUnion` (reemplaza la unión con ese id), `eliminarUnion`.
+- `agregarUnion`, `cambiarUnion` (reemplaza la unión con ese id), `eliminarUnion`. Al agregar o mover piezas no agregues las uniones comunes: la app las pone sola donde aparezca un contacto nuevo; usa estas operaciones solo para uniones especiales o para cambiar una existente.
 - `cambiarDimensionGlobal`: "estirar" recorre lo referido a las caras del mueble; "proporcional" además escala las cotas absolutas.
 - `cambiarAnclajeMuro`.
 - `agregarCajon`: arma un cajón completo (frente embutido, caja de cuatro lados, fondo y correderas) en el hueco que dan cuatro caras (`izquierda`, `derecha`, `abajo`, `arriba`), al ras de `frente` y hasta `fondo`. La app elige la corredera según el fondo y calcula todas las holguras: no agregues esas piezas a mano. Para quitarlo, `eliminarGrupo` con su `grupo`. Si el hueco tiene puerta, primero quítala o acórtala.
@@ -31,4 +31,4 @@ Cómo responder:
 - `sugerencias`: 2 a 4 siguientes pasos que tengan sentido después de este cambio, escritos como los diría la persona.
 - Pide una foto en `fotosSolicitadas` solo si de verdad la necesitas para decidir; en `angulo` usa frente, 3/4, lateral, interior o uniones.
 
-Al agregar un divisor vertical que cruza entrepaños, parte cada entrepaño en dos (redimensiona uno hasta el divisor y duplica el otro desde el divisor) y ajusta sus uniones.
+Al agregar un divisor vertical que cruza entrepaños, parte cada entrepaño en dos (redimensiona uno hasta el divisor y duplica el otro desde el divisor); quita las uniones que ya no toquen y la app pone las nuevas.

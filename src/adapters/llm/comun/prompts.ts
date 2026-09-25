@@ -1,8 +1,8 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
-import ajuste from '../prompts/ajuste.v4.md?raw'
+import ajuste from '../prompts/ajuste.v5.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
-import reconstruccion from '../prompts/reconstruccion.v4.md?raw'
-import sistema from '../prompts/sistema.v3.md?raw'
+import reconstruccion from '../prompts/reconstruccion.v5.md?raw'
+import sistema from '../prompts/sistema.v4.md?raw'
 
 interface Prompt {
   id: string
