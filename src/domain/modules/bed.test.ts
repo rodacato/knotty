@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../analisis'
 import { catalogo } from '../fixtures/catalogo.test-util'
-import { buildBed, type BedPlan } from './bed'
+import { BedPlan, buildBed } from './bed'
 
 const bed = (p: Partial<BedPlan> = {}): BedPlan => ({
   kind: 'bed',
@@ -52,5 +52,13 @@ describe('buildBed', () => {
     expect(geo.boxes.get('cab-sep')!.y0).toBe(400 + 280)
     expect(design.piezas.filter((p) => p.id.startsWith('cab-rep-'))).toHaveLength(2)
     expect(design.dimensiones).toEqual({ ancho: 250 + 1900 + 20 + 18, alto: 1200, fondo: 990 + 20 })
+  })
+  it('takes the ficha a real expert sends for a plain bed: no drawers as count 0, no depth for a plain headboard', () => {
+    // Sent by Claude through SheLLM on 2026-09-25 for "Cama individual con cabecera"; it was rejected before and the bed went piece by piece.
+    const sent = { kind: 'bed', name: 'Cama individual con cabecera', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }
+    const plan = BedPlan.parse(sent)
+    const a = analizar(buildBed(plan, catalogo).design, catalogo)
+    expect(a.valido && a.hallazgos).toEqual([])
+    expect(buildBed({ ...plan, headboard: { style: 'bookcase', height: 1100, depth: 0, shelves: 2 } }, catalogo).design.dimensiones.ancho).toBe(250 + 1900 + 20 + 18)
   })
 })

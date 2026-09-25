@@ -21,13 +21,13 @@ export const BedPlan = z.object({
   height: z.number().positive().describe('Alto de la base en mm, del piso a donde se apoya el colchón; lo normal, 300–450'),
   drawers: z.object({
     side: z.enum(['none', 'left', 'right', 'both']).describe('De qué lado abren, viendo la cama desde el pie: none, left, right o both'),
-    count: z.number().int().min(1).max(4).describe('Cuántos cajones por lado'),
+    count: z.number().int().min(0).max(4).describe('Cuántos cajones por lado; 0 si no lleva'),
     position: z.enum(['head', 'center', 'foot']).describe('Si no llenan todo el largo, hacia dónde se juntan: cabecera, centro o pie'),
   }),
   headboard: z.object({
     style: z.enum(['none', 'plain', 'bookcase', 'storage']).describe('none: sin cabecera; plain: un tablero liso; bookcase: librero con repisas; storage: compartimento cerrado a la altura de la almohada y repisas arriba'),
     height: z.number().positive().describe('Alto total de la cabecera desde el piso en mm; lo normal, 900–1200'),
-    depth: z.number().positive().describe('Fondo del librero o compartimento en mm; lo normal, 200–300. En una cabecera lisa no cuenta'),
+    depth: z.number().nonnegative().describe('Fondo del librero o compartimento en mm; lo normal, 200–300. En una cabecera lisa o sin cabecera no cuenta: 0'),
     shelves: z.number().int().nonnegative().describe('Repisas del librero o arriba del compartimento'),
   }),
 })
@@ -52,7 +52,9 @@ export interface BedSize {
   height: number
 }
 
-const headboardDepth = (plan: BedPlan, t: number) => (plan.headboard.style === 'none' ? 0 : plan.headboard.style === 'plain' ? t : plan.headboard.depth)
+/** A bookcase or storage headboard the expert left without depth gets the usual one. */
+const HEADBOARD_DEPTH = 250
+const headboardDepth = (plan: BedPlan, t: number) => (plan.headboard.style === 'none' ? 0 : plan.headboard.style === 'plain' ? t : plan.headboard.depth || HEADBOARD_DEPTH)
 
 /** Outer measures from the mattress, the base and the headboard, as the mueble's width (x), height and depth (z). */
 export function bedSize(plan: BedPlan, t: number): BedSize {
@@ -130,7 +132,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const inner = size.width - hd - t - (style === 'plain' ? 0 : deep ? 0 : t)
   for (const side of ['izq', 'der'] as const) {
     const faceZ = side === 'izq' ? endAt(ref('mueble.z1')) : startAt(ref('mueble.z0'))
-    const hasDrawers = plan.drawers.side === 'both' || plan.drawers.side === (side === 'izq' ? 'left' : 'right')
+    const hasDrawers = plan.drawers.count > 0 && (plan.drawers.side === 'both' || plan.drawers.side === (side === 'izq' ? 'left' : 'right'))
     const label = side === 'izq' ? 'izquierdo' : 'derecho'
     /** Cross members over a closed stretch of the side, so the platform never spans more than it can. */
     const crossMembers = (from: number, to: number, span: number) => {
