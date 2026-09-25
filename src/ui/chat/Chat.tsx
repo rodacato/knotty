@@ -10,6 +10,7 @@ import { useTienda } from '../tienda'
 const ETAPAS: Record<Etapa, string> = {
   'leyendo-fotos': 'Mirando la foto…',
   'mirando-fotos': 'Mirando las fotos…',
+  'disenando-piezas': 'Diseñando pieza por pieza…',
   proponiendo: 'Pensando el cambio…',
   revisando: 'Revisando que todo cierre…',
   estructura: 'Revisando la estructura…',

@@ -5,6 +5,7 @@ import { FRASE_MINIMA, PRESETS, SHELLM_URL, type ConfiguracionLLM, type Conexion
 import { Desbloquear } from './Llaves'
 import { useServicios } from '../servicios'
 import { Boton, Titulo } from '../sistema/componentes'
+import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useTienda } from '../tienda'
 
 const PROVEEDORES: Proveedor[] = ['simulado', 'anthropic', 'openai', 'shellm']
@@ -18,7 +19,8 @@ const GUARDADOS: { id: GuardadoLlaves; nombre: string; detalle: string }[] = [
 type EstadoModelos = { tipo: 'nada' | 'cargando' } | { tipo: 'listo'; modelos: string[] } | { tipo: 'error'; mensaje: string }
 
 export function Ajustes() {
-  const { preferencias } = useServicios()
+  const { preferencias, debug } = useServicios()
+  const [depuracion, setDepuracion] = useState(() => debug.visible())
   const abierto = useTienda((s) => s.ajustesAbiertos)
   const abrir = useTienda((s) => s.abrirAjustes)
   const [borrador, setBorrador] = useState<ConfiguracionLLM>(preferencias.cargar())
@@ -182,6 +184,19 @@ export function Ajustes() {
               </fieldset>
             </div>
           )}
+
+          <label className="flex items-center gap-2 border-t border-linea pt-3 text-xs text-grafito-2">
+            <input
+              type="checkbox"
+              checked={depuracion}
+              onChange={(e) => {
+                debug.setVisible(e.target.checked)
+                setDepuracion(e.target.checked)
+                dispatchEvent(new CustomEvent(DEBUG_VISIBILITY, { detail: e.target.checked }))
+              }}
+            />
+            Mostrar las entrañas de la madera: la bitácora para mandar reportes de lo que pasó
+          </label>
 
           {error && <p className="text-sm text-oxido">{error}</p>}
           <div className="flex justify-end gap-2">

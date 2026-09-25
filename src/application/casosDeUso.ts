@@ -25,7 +25,7 @@ import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type Foto, type LLMProvider, type PlanAdjustment, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
 
-export type Etapa = 'leyendo-fotos' | 'mirando-fotos' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
+export type Etapa = 'leyendo-fotos' | 'mirando-fotos' | 'disenando-piezas' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
 export type AlAvanzar = (etapa: Etapa, intento: number, progress?: { done: number; total: number }) => void
 
 export interface Dependencias {
@@ -36,7 +36,7 @@ export interface Dependencias {
   nuevoId?: () => string
 }
 
-const INTENTOS = 3
+export const INTENTOS = 3
 const MAX_MINIATURAS = 8
 
 /** Una foto que la persona manda en medio de la conversación, casi siempre porque el experto la pidió. */
@@ -271,7 +271,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     // A design that resolves but did not pass validation: shown with its problems instead of thrown away.
     let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[]; repairs: Repair[] } | null = null
     for (let intento = 0; intento < INTENTOS; intento++) {
-      alAvanzar(intento ? 'corrigiendo' : 'mirando-fotos', intento)
+      // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
+      alAvanzar(intento ? 'corrigiendo' : 'disenando-piezas', intento)
       const started = Date.now()
       let respuesta
       try {

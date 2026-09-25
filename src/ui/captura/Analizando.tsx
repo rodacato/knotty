@@ -1,19 +1,18 @@
-import { ArrowClockwise, Check } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
-import type { Etapa } from '../../application/casosDeUso'
+import { Check } from '@phosphor-icons/react'
+import { useEffect, useMemo, useState } from 'react'
+import { INTENTOS, type Etapa } from '../../application/casosDeUso'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-const etapas = (conFotos: boolean): { id: Etapa; texto: string }[] => [
+const etapas = (conFotos: boolean, piezaPorPieza: boolean): { id: Etapa; texto: string }[] => [
   ...(conFotos ? [{ id: 'leyendo-fotos' as const, texto: 'Mirando las fotos' }] : []),
-  { id: 'mirando-fotos', texto: 'Pensando el diseño' },
+  piezaPorPieza ? { id: 'disenando-piezas', texto: 'Diseñando pieza por pieza' } : { id: 'mirando-fotos', texto: 'Pensando el diseño' },
   { id: 'revisando', texto: 'Midiendo que todo cierre' },
   { id: 'estructura', texto: 'Revisando la estructura' },
 ]
 
-/** A partir de aquí se avisa que tarda; a partir de LENTO se ofrece reintentar. */
-const PACIENCIA = 45
-const LENTO = 180
+/** From here on the wait explains itself; there is no retry while the expert is still answering: its own time limit ends a stuck call. */
+const PACIENCIA = 30
 
 /** Segundos desde que empezó el intento; `intento` cambia en cada reintento y reinicia la cuenta. */
 function useSegundos(intento: unknown) {
@@ -45,11 +44,18 @@ function Trazo() {
 export function Analizando() {
   const etapa = useTienda((s) => s.etapa)
   const cancelar = useTienda((s) => s.cancelar)
-  const reintentar = useTienda((s) => s.reintentarReconstruccion)
   const conFotos = useTienda((s) => (s.borrador?.fotos.length ?? 0) > 0)
   const controlador = useTienda((s) => s.controlador)
   const segundos = useSegundos(controlador)
-  const ETAPAS = etapas(conFotos)
+  // La lentitud se mide por intento: una corrección que avanza no es un experto atorado.
+  const intento = useMemo(() => ({}), [controlador, etapa?.intento])
+  const delIntento = useSegundos(intento)
+  // Once the expert writes piece by piece, the stage is named that way from then on.
+  const [piezaPorPieza, setPiezaPorPieza] = useState(false)
+  useEffect(() => {
+    if (etapa?.nombre === 'disenando-piezas') setPiezaPorPieza(true)
+  }, [etapa?.nombre])
+  const ETAPAS = etapas(conFotos, piezaPorPieza)
   const actual = ETAPAS.findIndex((e) => e.id === etapa?.nombre)
   return (
     <main className="flex min-h-full flex-col items-center justify-center gap-8 px-6" aria-live="polite">
@@ -76,20 +82,23 @@ export function Analizando() {
           )
         })}
       </ol>
-      {etapa?.nombre === 'corrigiendo' && <p className="text-sm text-grafito-2">Ajustando algunas piezas que no cerraban (intento {etapa.intento + 1})…</p>}
+      {etapa?.nombre === 'corrigiendo' && (
+        <p className="max-w-xs text-center text-sm text-grafito-2">
+          Intento {etapa.intento + 1} de {INTENTOS}: el experto está corrigiendo piezas que no cerraban.
+        </p>
+      )}
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="cifras text-sm text-grafito-2">{reloj(segundos)}</p>
-        {segundos >= LENTO ? (
-          <p className="max-w-xs text-sm text-grafito-2">Está tardando más de lo normal. Puede que el experto se haya atorado: vuelve a pedirlo con lo mismo.</p>
-        ) : (
-          segundos >= PACIENCIA && <p className="max-w-xs text-sm text-grafito-2">Armar el modelo completo puede tomar 2 o 3 minutos.</p>
+        {delIntento >= PACIENCIA && (
+          <p className="max-w-xs text-sm text-grafito-2">
+            {piezaPorPieza
+              ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'
+              : etapa?.nombre === 'corrigiendo'
+                ? 'Cada corrección vuelve a escribir el diseño completo; tarda lo mismo que el primer intento.'
+                : 'Sigue trabajando; esto suele tomar menos de un minuto.'}
+          </p>
         )}
         <div className="flex gap-2">
-          {segundos >= LENTO && (
-            <Boton variante="primario" onClick={reintentar}>
-              <ArrowClockwise weight="bold" /> Reintentar
-            </Boton>
-          )}
           <Boton variante="fantasma" onClick={cancelar}>
             Cancelar
           </Boton>
