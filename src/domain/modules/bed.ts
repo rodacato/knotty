@@ -3,8 +3,8 @@ import { startAt, partway, endAt, makePiece, ref, extent } from '../diseno/build
 import type { CaraRef, Diseno, Pieza } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
-import { aplicar } from '../operaciones/aplicar'
-import type { Operacion } from '../operaciones/esquema'
+import { applyOperations } from '../operaciones/apply'
+import type { Operation } from '../operaciones/schema'
 import { MATTRESSES } from '../typology/typology'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
@@ -128,7 +128,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   pieces.push(panel({ id: 'espina', nombre: 'Espina central', rol: 'divisor', normal: 'z', x: extent(ref(headEnd), ref('base-pie.x0')), y: extent(ref('mueble.y0'), ref(under('izq'))), z: startAt(ref('mueble.z0', middle - t / 2)), veta: 'largo' }))
 
   // Each side: drawers between dividers, or a closed rail.
-  const drawers: Operacion[] = []
+  const drawers: Operation[] = []
   const inner = size.width - hd - t - (style === 'plain' ? 0 : deep ? 0 : t)
   for (const side of ['izq', 'der'] as const) {
     const faceZ = side === 'izq' ? endAt(ref('mueble.z1')) : startAt(ref('mueble.z0'))
@@ -208,12 +208,12 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     uniones: [],
   }
   for (const drawer of drawers) {
-    const result = aplicar(design, [drawer], catalog)
+    const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errores[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
-    design = result.valor.diseno
+    design = result.value.design
   }
   return { design: completeJoints(design, catalog), notes }
 }

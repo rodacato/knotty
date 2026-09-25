@@ -3,14 +3,14 @@ import { analizar } from '../analisis'
 import type { Diseno } from '../diseno/esquema'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
-import { aplicar } from '../operaciones/aplicar'
-import type { Operacion } from '../operaciones/esquema'
+import { applyOperations } from '../operaciones/apply'
+import type { Operation } from '../operaciones/schema'
 import { describeChange, restorePieces } from './changes'
 
-const apply = (d: Diseno, ops: Operacion[]) => {
-  const r = aplicar(d, ops, catalogo)
-  if (!r.ok) throw new Error(r.errores[0].message)
-  return r.valor.diseno
+const apply = (d: Diseno, ops: Operation[]) => {
+  const r = applyOperations(d, ops, catalogo)
+  if (!r.ok) throw new Error(r.errors[0].message)
+  return r.value.design
 }
 const box = (d: Diseno, id: string) => {
   const a = analizar(d, catalogo)

@@ -4,7 +4,7 @@ import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import { faceSize, roundTo, type Box } from '../diseno/resolve'
 import type { Catalog } from '../materiales/catalog'
-import { aplicar } from '../operaciones/aplicar'
+import { applyOperations } from '../operaciones/apply'
 import type { DesignError } from '../validation/errors'
 
 // What a change did to the pieces, in words, and how to bring pieces back from before it without touching the rest.
@@ -71,9 +71,9 @@ export function restorePieces(current: Diseno, source: Diseno, ids: string[], ca
   const toRemove = ids.filter((id) => !was.has(id) && current.piezas.some((p) => p.id === id))
   let design = current
   if (toRemove.length) {
-    const removed = aplicar(design, toRemove.map((id) => ({ op: 'eliminarPieza' as const, id })), catalog)
-    if (!removed.ok) return { ok: false, errors: removed.errores }
-    design = removed.valor.diseno
+    const removed = applyOperations(design, toRemove.map((id) => ({ op: 'eliminarPieza' as const, id })), catalog)
+    if (!removed.ok) return { ok: false, errors: removed.errors }
+    design = removed.value.design
   }
   const back = ids.filter((id) => was.has(id))
   const pieces = [...design.piezas.filter((p) => !back.includes(p.id)), ...back.map((id) => was.get(id)!)]

@@ -5,8 +5,8 @@ import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
 import { roundTo, type Box } from '../diseno/resolve'
 import type { Catalog } from '../materiales/catalog'
-import { aplicar } from '../operaciones/aplicar'
-import type { Operacion } from '../operaciones/esquema'
+import { applyOperations } from '../operaciones/apply'
+import type { Operation } from '../operaciones/schema'
 import type { Requisito } from '../requisitos/requisitos'
 import type { DesignError } from '../validation/errors'
 
@@ -27,7 +27,7 @@ const volume = (c: Box) => (c.x1 - c.x0) * (c.y1 - c.y0) * (c.z1 - c.z0)
 const MIN_LENGTH = 30
 const MAX_ROUNDS = 12
 
-type Fix = { operations: Operacion[]; repair: Repair } | null
+type Fix = { operations: Operation[]; repair: Repair } | null
 
 function fixLooseJoint(e: DesignError, design: Diseno): Fix {
   const joint = design.uniones.find((u) => u.id === e.data?.union)
@@ -81,7 +81,7 @@ function fixOverlap(e: DesignError, design: Diseno, boxes: Map<string, Box>): Fi
   const options = EJES.filter((axis) => axis !== normal).map((axis) => {
     const remaining = before(axis) ? k[`${axis}0`] - g[`${axis}0`] : g[`${axis}1`] - k[`${axis}1`]
     if (remaining < MIN_LENGTH || overlap(axis) <= 0) return null
-    const operation: Operacion = { op: 'redimensionar', id: give.id, eje: axis, extremo: before(axis) ? 'hasta' : 'desde', cota: mm(roundTo(before(axis) ? k[`${axis}0`] : k[`${axis}1`])) }
+    const operation: Operation = { op: 'redimensionar', id: give.id, eje: axis, extremo: before(axis) ? 'hasta' : 'desde', cota: mm(roundTo(before(axis) ? k[`${axis}0`] : k[`${axis}1`])) }
     return { cost: overlap(axis), operation }
   }).filter((o): o is NonNullable<typeof o> => !!o)
   const best = options.sort((a, b) => a.cost - b.cost)[0]
@@ -105,9 +105,9 @@ export function repairDesign(original: Diseno, catalog: Catalog, requirements: R
     for (const e of analysis.errores) {
       const fix = e.code === 'E_UNION_SIN_CONTACTO' ? fixLooseJoint(e, design) : e.code === 'E_TRASLAPE' ? fixOverlap(e, design, geo.boxes) : null
       if (!fix) continue
-      const result = aplicar(design, fix.operations, catalog)
+      const result = applyOperations(design, fix.operations, catalog)
       if (!result.ok) continue
-      const candidate = normalize(result.valor.diseno, catalog)
+      const candidate = normalize(result.value.design, catalog)
       const after = analizar(candidate, catalog, requirements)
       // A fix must not make things worse: fewer errors, or the design becomes valid.
       if (!after.valido && (!after.geo || after.errores.length >= errorCount)) continue

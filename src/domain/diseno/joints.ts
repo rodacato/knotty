@@ -59,13 +59,13 @@ function hinge(door: Pieza, box: Box, neighbours: { piece: Pieza; box: Box }[]):
 export function completeJoints(design: Diseno, catalog: Catalog, previous?: Diseno): Diseno {
   const resolved = resolveGeometry(design, catalog)
   if (!resolved.ok) return design
-  const { boxes, thicknesses } = resolved.valor
+  const { boxes, thicknesses } = resolved.value
   const byId = new Map(design.piezas.map((p) => [p.id, p]))
   const joined = new Set(design.uniones.map((u) => pairKey(u.a, u.b)))
   const ids = new Set(design.uniones.map((u) => u.id))
   const before = previous && resolveGeometry(previous, catalog)
   // Only real contacts count as earlier: two pieces that overlapped were not joined, they were wrong.
-  const earlierContacts = new Set(before && before.ok ? contacts(before.valor.boxes).filter((c) => c.axis !== null).map((c) => pairKey(c.a, c.b)) : [])
+  const earlierContacts = new Set(before && before.ok ? contacts(before.value.boxes).filter((c) => c.axis !== null).map((c) => pairKey(c.a, c.b)) : [])
 
   const added: Union[] = []
   const add = (u: Omit<Union, 'id'> | null) => {

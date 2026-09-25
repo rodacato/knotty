@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { CaraRef, Canto, Carga, Confianza, Cota, Eje, Pieza, PiezaId, Rol, Union, Veta } from '../diseno/esquema'
 
-// Lo único que el LLM puede hacer con un diseño existente. Todos los campos van siempre (nullable si no aplica) por la salida estricta.
+// All the expert can do to an existing design. Every field is always there (nullable when it does not apply) for strict output.
+// Operation names and fields are what the expert writes: they stay in Spanish until the data moves to English (step 9).
 
-export const Operacion = z.discriminatedUnion('op', [
+export const Operation = z.discriminatedUnion('op', [
   z.object({ op: z.literal('agregarPieza'), pieza: Pieza }),
   z.object({ op: z.literal('eliminarPieza'), id: PiezaId }).describe('Quita la pieza y sus uniones; las cotas que la referían quedan fijas en mm'),
   z.object({ op: z.literal('eliminarGrupo'), grupo: z.string() }),
@@ -46,4 +47,4 @@ export const Operacion = z.discriminatedUnion('op', [
     })
     .describe('Arma un cajón completo con frente embutido y correderas telescópicas; la app elige la corredera y calcula las holguras'),
 ])
-export type Operacion = z.infer<typeof Operacion>
+export type Operation = z.infer<typeof Operation>

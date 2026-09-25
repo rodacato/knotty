@@ -3,8 +3,8 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import type { CaraRef, Diseno, Pieza, Union } from '../diseno/esquema'
 import { completeJoints } from '../diseno/joints'
 import { materialById, type Catalog } from '../materiales/catalog'
-import { aplicar } from '../operaciones/aplicar'
-import type { Operacion } from '../operaciones/esquema'
+import { applyOperations } from '../operaciones/apply'
+import type { Operation } from '../operaciones/schema'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 
@@ -51,7 +51,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno;
   const inset = Math.min(plan.overhang, MAX_END_INSET)
   const endsZ = extent(ref('mueble.z0', desk ? 0 : inset), ref('mueble.z1', -inset))
   const pedestal = desk && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0 ? plan.pedestal.side : null
-  let drawers: Operacion[] = []
+  let drawers: Operation[] = []
 
   pieces.push(
     panel({ id: 'cubierta', nombre: 'Cubierta', rol: 'techo', normal: 'y', x: extent(ref('mueble.x0'), ref('mueble.x1')), y: endAt(ref('mueble.y1')), z: extent(ref('mueble.z0'), ref('mueble.z1')), carga: LOAD[plan.use], cantos: ['frente', 'atras', 'izq', 'der'] }),
@@ -120,12 +120,12 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Diseno;
 
   let design: Diseno = { esquema: 1, nombre: plan.name, dimensiones: { ancho: width, alto: height, fondo: depth }, anclajeMuro: false, observaciones: '', piezas: pieces, uniones: joints }
   for (const drawer of drawers) {
-    const result = aplicar(design, [drawer], catalog)
+    const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errores[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.op === 'agregarCajon' ? drawer.nombre : 'Un cajón'}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
-    design = result.valor.diseno
+    design = result.value.design
   }
   return { design: completeJoints(design, catalog), notes }
 }

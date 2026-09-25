@@ -36,7 +36,7 @@ export interface DesignWarning {
 export const error = (code: ErrorCode, message: string, data?: Record<string, unknown>): DesignError => ({ code, message, ...(data ? { data } : {}) })
 
 /** What comes of something that can fail with several errors at once. */
-export type Result<T> = { ok: true; valor: T } | { ok: false; errores: DesignError[] }
+export type Result<T> = { ok: true; value: T } | { ok: false; errors: DesignError[] }
 
-export const success = <T>(valor: T): Result<T> => ({ ok: true, valor })
-export const failure = <T = never>(errores: DesignError[]): Result<T> => ({ ok: false, errores })
+export const success = <T>(value: T): Result<T> => ({ ok: true, value })
+export const failure = <T = never>(errors: DesignError[]): Result<T> => ({ ok: false, errors })
