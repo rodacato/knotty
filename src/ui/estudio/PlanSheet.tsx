@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/casosDeUso'
 import type { BedPlan } from '../../domain/modules/bed'
 import type { CabinetConstruction, CabinetPlan } from '../../domain/modules/cabinet'
-import { isBed, type FurniturePlan } from '../../domain/modules/plan'
+import { isBed, isTable, type FurniturePlan } from '../../domain/modules/plan'
+import type { TablePlan } from '../../domain/modules/table'
+import { TableFields } from './TableFields'
 import { BedFields } from './BedFields'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 import { describePlanChanges } from '../../domain/modules/planChanges'
@@ -187,12 +189,12 @@ export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
     return (
       <div className="flex flex-col gap-2 p-6 text-center text-sm text-grafito-2">
         <p className="font-medium text-grafito">Este mueble no tiene ficha</p>
-        <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…) o una cama. Mesas y escritorios se ajustan por ahora con el experto.</p>
+        <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…), una cama, una mesa o un escritorio. Lo demás se ajusta con el experto.</p>
       </div>
     )
 
   const changes = describePlanChanges(source.plan, draft)
-  const set = (change: Partial<CabinetPlan> | Partial<BedPlan>) => {
+  const set = (change: Partial<CabinetPlan> | Partial<BedPlan> | Partial<TablePlan>) => {
     setMessage(null)
     setDraft({ ...draft, ...change } as FurniturePlan)
   }
@@ -216,7 +218,7 @@ export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
         </p>
       )}
 
-      {isBed(draft) ? <BedFields draft={draft} set={set} /> : <CabinetFields draft={draft} set={set} />}
+      {isBed(draft) ? <BedFields draft={draft} set={set} /> : isTable(draft) ? <TableFields draft={draft} set={set} /> : <CabinetFields draft={draft} set={set} />}
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-linea bg-papel/95 px-4 py-3 backdrop-blur">
         {message && <p className={`text-xs ${message.kind === 'error' ? 'text-oxido' : 'text-grafito-2'}`}>{message.text}</p>}
