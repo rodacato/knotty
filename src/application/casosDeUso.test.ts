@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { analizar } from '../domain/analisis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
-import { ref } from '../domain/diseno/construir'
+import { desde, pieza, ref, tramo } from '../domain/diseno/construir'
 import { DEFAULT_CONSTRUCTION } from '../domain/modules/cabinet'
 import type { Diseno } from '../domain/diseno/esquema'
+import type { Operacion } from '../domain/operaciones/esquema'
 import { catalogo } from '../domain/fixtures/catalogo.test-util'
 import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { RespuestaInvalida, type LLMProvider, type RespuestaAjuste } from '../ports/LLMProvider'
+import { RespuestaInvalida, type LLMProvider, type PlanAdjustment, type RespuestaAjuste } from '../ports/LLMProvider'
 import { crearCasosDeUso, currentPlan, firmaDictamen } from './casosDeUso'
 import { construirContexto } from './contexto'
 
@@ -516,5 +517,89 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const { llm, llamadas } = conPlan(cabinetPlan)
     await expect(casos(llm).reconstruir(pedido('Una cama individual con cabecera'), senal())).rejects.toThrow()
     expect(llamadas).toEqual(['diseno'])
+  })
+})
+
+describe('the ficha stays alive: chat edits it, and free changes ride on top', () => {
+  const drawers = (n: number) => ({
+    name: 'Cajonera',
+    dimensions: { width: 500, height: 900, depth: 450 },
+    material: 'T18',
+    base: 'kick' as const,
+    wallMounted: true,
+    construction: DEFAULT_CONSTRUCTION,
+    columns: [{ width: 1, cells: Array.from({ length: n }, () => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
+  })
+  const origen = { promptId: 'x', proveedor: 'x', modelo: 'm' }
+  const hanger = pieza({ id: 'liston', nombre: 'Listón de colgar', rol: 'refuerzo', material: 'T18', normal: 'z', x: tramo(ref('lat-izq.x1'), ref('lat-der.x0')), y: tramo(null, ref('techo.y0'), 80), z: desde(ref('trasera.z1')) })
+  const expert = (adjust: Partial<PlanAdjustment> | null, operaciones: Operacion[] = []) => {
+    const simulado = crearSimulado(0)
+    const calls: string[] = []
+    const llm: LLMProvider = {
+      ...simulado,
+      planDesign: async () => ({ valor: { explicacion: 'Cajonera.', cabinet: drawers(3), preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] }, origen, consumo: {} }),
+      adjustPlan: adjust
+        ? async () => {
+            calls.push('ficha')
+            return { valor: { explicacion: 'Listo.', resumen: 'Cambio', action: 'plan', plan: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [], ...adjust }, origen, consumo: {} }
+          }
+        : null,
+      proponerAjuste: async () => {
+        calls.push('piezas')
+        return { valor: { ...ajusteVacio, resumen: 'Agregar listón', operaciones }, origen, consumo: {} }
+      },
+    }
+    return { llm, calls }
+  }
+  const start = async (llm: LLMProvider) => {
+    const c = casos(llm)
+    return { c, inicial: await c.reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Una cajonera' }, senal()) }
+  }
+
+  it('a change the ficha can express comes back as a new ficha, with no pieces asked', async () => {
+    const { llm, calls } = expert({ action: 'plan', plan: drawers(4), resumen: 'Agregar un cajón' })
+    const { c, inicial } = await start(llm)
+    const estado = await c.ajustar(inicial, 'Ponle un cajón más', senal())
+    expect(calls).toEqual(['ficha'])
+    expect(currentPlan(estado)).toMatchObject({ since: 2, diverged: false })
+    expect(new Set(disenoActual(estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
+  })
+
+  it('a question gets an answer and no new version', async () => {
+    const { llm, calls } = expert({ action: 'answer', explicacion: 'Las correderas son de 40 cm.' })
+    const { c, inicial } = await start(llm)
+    const estado = await c.ajustar(inicial, '¿De qué largo son las correderas?', senal())
+    expect(calls).toEqual(['ficha'])
+    expect(estado.versiones).toHaveLength(1)
+    expect(estado.chat.at(-1)?.texto).toBe('Las correderas son de 40 cm.')
+  })
+
+  it('what the ficha cannot express goes piece by piece and rides on top as an extra that survives the ficha', async () => {
+    const { llm, calls } = expert({ action: 'freeform' }, [{ op: 'agregarPieza', pieza: hanger }])
+    const { c, inicial } = await start(llm)
+    const conListon = await c.ajustar(inicial, 'Ponle un listón para colgarla', senal())
+    expect(calls).toEqual(['ficha', 'piezas'])
+    expect(currentPlan(conListon)).toMatchObject({ diverged: false, extras: [{ op: 'agregarPieza' }] })
+    const r = c.applyPlan(conListon, { ...drawers(3), dimensions: { width: 600, height: 900, depth: 450 } })
+    if (!r.ok) throw new Error(r.message)
+    expect(disenoActual(r.estado).piezas.some((p) => p.id === 'liston')).toBe(true)
+    expect(analizar(disenoActual(r.estado), catalogo).valido).toBe(true)
+  })
+
+  it('an extra that no longer applies to the new ficha is left out, and said', async () => {
+    const { llm } = expert({ action: 'freeform' }, [{ op: 'eliminarGrupo', grupo: 'cajon-3' }])
+    const { c, inicial } = await start(llm)
+    const sinTercero = await c.ajustar(inicial, 'Quita el cajón de arriba y deja el hueco', senal())
+    const r = c.applyPlan(sinTercero, drawers(2))
+    if (!r.ok) throw new Error(r.message)
+    expect(r.notes.join(' ')).toContain('ya no aplica')
+    expect(currentPlan(r.estado).extras).toEqual([])
+  })
+
+  it('a ficha that cannot be built falls back to pieces', async () => {
+    const { llm, calls } = expert({ action: 'plan', plan: { ...drawers(3), dimensions: { width: 500, height: 3000, depth: 450 } } }, [{ op: 'agregarPieza', pieza: hanger }])
+    const { c, inicial } = await start(llm)
+    await c.ajustar(inicial, 'Hazla de 3 metros', senal())
+    expect(calls).toEqual(['ficha', 'piezas'])
   })
 })

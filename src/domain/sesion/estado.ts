@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { Diseno, Dimensiones } from '../diseno/esquema'
 import { Decision, Origen, Version } from '../historial/historial'
 import { Operacion } from '../operaciones/esquema'
+import { CabinetPlan } from '../modules/cabinet'
 import { Requisito } from '../requisitos/requisitos'
 import { TraceEntry } from '../trace/trace'
 import { Comprobacion, OpinionCarpintero, Veredicto } from '../viabilidad/viabilidad'
@@ -64,6 +65,9 @@ export const Propuesta = z.object({
   requisitos: z.array(Requisito),
   decisiones: z.array(Decision),
   origen: Origen.nullable(),
+  /** The plan and extras the proposed design comes from, so applying it keeps the ficha alive. */
+  plan: CabinetPlan.nullable().default(null),
+  extras: z.array(Operacion).default([]),
 })
 export type Propuesta = z.infer<typeof Propuesta>
 

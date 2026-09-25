@@ -1,5 +1,6 @@
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import ajuste from '../prompts/ajuste.v5.md?raw'
+import ajusteFicha from '../prompts/ajuste-ficha.v1.md?raw'
 import dictamen from '../prompts/dictamen.v1.md?raw'
 import esqueleto from '../prompts/esqueleto.v2.md?raw'
 import lectura from '../prompts/lectura.v1.md?raw'
@@ -25,6 +26,8 @@ export const DICTAMEN = leer(dictamen)
 export const LECTURA = leer(lectura)
 /** Stands alone too: the skeleton only needs the board thicknesses, filled in as {{materiales}}. */
 export const ESQUELETO = leer(esqueleto)
+/** Standalone as well: editing the ficha needs the board thicknesses, not the piece rules. */
+export const AJUSTE_FICHA = leer(ajusteFicha)
 
 function describirCatalogo(c: Catalogo) {
   return [

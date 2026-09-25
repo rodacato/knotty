@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Diseno } from '../diseno/esquema'
 import { CabinetPlan } from '../modules/cabinet'
-import type { Operacion } from '../operaciones/esquema'
+import { Operacion } from '../operaciones/esquema'
 
 export const Origen = z.object({ promptId: z.string(), proveedor: z.string(), modelo: z.string() })
 export type Origen = z.infer<typeof Origen>
@@ -24,6 +24,8 @@ export const Version = z.object({
   decisiones: z.array(Decision).default([]),
   /** The plan this version was built from, when it was; later free-form changes leave it null. */
   plan: CabinetPlan.nullable().default(null),
+  /** Free-form changes made on top of the plan, replayed every time the plan is rebuilt. */
+  extras: z.array(Operacion).default([]),
 })
 export type Version = z.infer<typeof Version>
 

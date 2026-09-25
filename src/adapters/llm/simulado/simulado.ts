@@ -265,6 +265,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
     },
     // Its demo adjustments name the pieces of its fixtures, so it designs them whole instead of from a plan.
     planDesign: null,
+    adjustPlan: null,
     async readPhoto(r, signal) {
       await espera(retraso, signal)
       const base = elegirFixture(null, `${r.context} ${r.photo.note ?? ''}`)

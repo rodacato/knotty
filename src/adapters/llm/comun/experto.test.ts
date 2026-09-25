@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { catalogo } from '../../../domain/fixtures/catalogo.test-util'
 import { librero } from '../../../domain/fixtures/librero'
-import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida, RespuestaPlan } from '../../../ports/LLMProvider'
+import { PlanAdjustment, RespuestaAjuste, RespuestaDictamen, RespuestaInvalida, RespuestaPlan } from '../../../ports/LLMProvider'
+import { DEFAULT_CONSTRUCTION } from '../../../domain/modules/cabinet'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { esquemaEstricto } from './esquemaJson'
 import { crearExperto, type Contenido, type Transporte } from './experto'
@@ -15,7 +16,7 @@ function recorrer(nodo: unknown, visitar: (n: Record<string, unknown>) => void) 
 }
 
 describe('esquemaEstricto', () => {
-  it.each([RespuestaAjuste, RespuestaDictamen, PhotoReading, RespuestaPlan])('deja un esquema aceptable para los modos estrictos', (tipo) => {
+  it.each([RespuestaAjuste, RespuestaDictamen, PhotoReading, RespuestaPlan, PlanAdjustment])('deja un esquema aceptable para los modos estrictos', (tipo) => {
     recorrer(esquemaEstricto(tipo), (n) => {
       for (const prohibida of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(prohibida)
       if (n.type === 'object' && n.properties) {
@@ -104,6 +105,15 @@ describe('crearExperto', () => {
     expect(r.origen.promptId).toBe('esqueleto@2')
     expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
     expect(llamadas[0].sistema).not.toContain('{{materiales}}')
+  })
+
+  it('edits the ficha with its own short prompt: the context, the current plan and the request', async () => {
+    const { experto, llamadas } = falso({ explicacion: 'x', resumen: 'r', action: 'answer', plan: null, preguntas: [], sugerencias: [], requisitos: { agregar: [], quitar: [] }, decisiones: [] })
+    const plan = { name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
+    const r = await experto.adjustPlan!({ contexto: '## Diseño', peticion: '¿Aguanta?', plan, catalogo }, new AbortController().signal)
+    expect(r.origen.promptId).toBe('ajuste-ficha@1')
+    expect(llamadas[0].sistema).toContain('"T15" (15 mm)')
+    expect(llamadas[0].contenido[0]).toMatchObject({ texto: expect.stringMatching(/## Diseño[\s\S]*## Ficha actual\n\{"name":"Buró"[\s\S]*## Pedido de la persona\n¿Aguanta\?/) })
   })
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {
