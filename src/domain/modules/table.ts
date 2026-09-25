@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../design/builders'
 import { DIMENSION_OF_AXIS, type FaceRef, type Design, type Piece, type Joint } from '../design/schema'
 import { completeJoints } from '../design/joints'
+import type { DesignKind } from '../design/kind'
 import type { Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
@@ -28,7 +29,7 @@ export const TablePlan = z.object({
 export type TablePlan = z.infer<typeof TablePlan>
 
 export const TABLE_LABELS = {
-  /** `name` is what each use is called, and also how the checks by kind of furniture recognize it. */
+  /** `name` is what each use is called. */
   use: {
     dining: { option: 'Comedor', name: 'Mesa de comedor' },
     coffee: { option: 'Centro', name: 'Mesa de centro' },
@@ -57,6 +58,9 @@ const SHELF_HEIGHT = 120
 const PEDESTAL = 420
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
+
+/** What each use is, for the checks by kind of furniture: the design says it, so renaming it does not change them. */
+const KIND: Record<TablePlan['use'], DesignKind> = { dining: 'diningTable', coffee: 'coffeeTable', side: 'sideTable', desk: 'desk' }
 
 const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium' }
 
@@ -138,7 +142,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   }
   if (plan.shelf && desk) notes.push('Un escritorio no lleva repisa baja: estorba las piernas.')
 
-  const design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints }
+  const design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints, kind: KIND[plan.use] }
   const placed = addDrawers(design, drawers, catalog)
   notes.push(...placed.notes)
   return { design: completeJoints(placed.design, catalog), notes }
