@@ -11,13 +11,13 @@ import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
 
 const STAGES: Record<Stage, string> = {
-  'leyendo-fotos': 'Mirando la foto…',
-  'mirando-fotos': 'Mirando las fotos…',
-  'disenando-piezas': 'Diseñando pieza por pieza…',
-  proponiendo: 'Pensando el cambio…',
-  revisando: 'Revisando que todo cierre…',
-  estructura: 'Revisando la estructura…',
-  corrigiendo: 'Corrigiendo un detalle…',
+  'reading-photos': 'Mirando la foto…',
+  designing: 'Mirando las fotos…',
+  'designing-pieces': 'Diseñando pieza por pieza…',
+  proposing: 'Pensando el cambio…',
+  checking: 'Revisando que todo cierre…',
+  structure: 'Revisando la estructura…',
+  correcting: 'Corrigiendo un detalle…',
 }
 
 const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
@@ -158,7 +158,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
           <ul className="flex flex-col gap-2">
             {groupByCode(state.proposal!.critical).map(({ first, more }, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
-                <Stamp severity="critico" />
+                <Stamp severity="critical" />
                 <span>
                   {first.message}
                   {more > 0 && <span className="text-grafito-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}

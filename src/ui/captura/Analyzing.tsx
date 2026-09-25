@@ -5,10 +5,10 @@ import { Button } from '../sistema/components'
 import { useStore } from '../store'
 
 const stages = (withPhotos: boolean, pieceByPiece: boolean): { id: Stage; text: string }[] => [
-  ...(withPhotos ? [{ id: 'leyendo-fotos' as const, text: 'Mirando las fotos' }] : []),
-  pieceByPiece ? { id: 'disenando-piezas', text: 'Diseñando pieza por pieza' } : { id: 'mirando-fotos', text: 'Pensando el diseño' },
-  { id: 'revisando', text: 'Midiendo que todo cierre' },
-  { id: 'estructura', text: 'Revisando la estructura' },
+  ...(withPhotos ? [{ id: 'reading-photos' as const, text: 'Mirando las fotos' }] : []),
+  pieceByPiece ? { id: 'designing-pieces', text: 'Diseñando pieza por pieza' } : { id: 'designing', text: 'Pensando el diseño' },
+  { id: 'checking', text: 'Midiendo que todo cierre' },
+  { id: 'structure', text: 'Revisando la estructura' },
 ]
 
 /** From here on the wait explains itself; there is no retry while the expert is still answering: its own time limit ends a stuck call. */
@@ -53,7 +53,7 @@ export function Analyzing() {
   // Once the expert writes piece by piece, the stage is named that way from then on.
   const [pieceByPiece, setPieceByPiece] = useState(false)
   useEffect(() => {
-    if (stage?.name === 'disenando-piezas') setPieceByPiece(true)
+    if (stage?.name === 'designing-pieces') setPieceByPiece(true)
   }, [stage?.name])
   const STAGES = stages(withPhotos, pieceByPiece)
   const current = STAGES.findIndex((e) => e.id === stage?.name)
@@ -63,7 +63,7 @@ export function Analyzing() {
       <ol className="flex flex-col gap-3">
         {STAGES.map((e, i) => {
           const taken = current > i
-          const inProgress = current === i || (stage?.name === 'corrigiendo' && e.id === 'revisando')
+          const inProgress = current === i || (stage?.name === 'correcting' && e.id === 'checking')
           return (
             <li key={e.id} className={`flex items-center gap-3 transition ${taken || inProgress ? 'text-grafito' : 'text-grafito-2/50'}`}>
               <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-grafito bg-grafito text-hueso' : inProgress ? 'border-ambar' : 'border-linea'}`}>
@@ -71,7 +71,7 @@ export function Analyzing() {
               </span>
               <span className={inProgress ? 'font-medium' : ''}>
                 {e.text}
-                {e.id === 'leyendo-fotos' && stage?.progress && inProgress && (
+                {e.id === 'reading-photos' && stage?.progress && inProgress && (
                   <span className="cifras text-grafito-2">
                     {' '}
                     ({Math.min(stage.progress.done + 1, stage.progress.total)} de {stage.progress.total})
@@ -82,7 +82,7 @@ export function Analyzing() {
           )
         })}
       </ol>
-      {stage?.name === 'corrigiendo' && (
+      {stage?.name === 'correcting' && (
         <p className="max-w-xs text-center text-sm text-grafito-2">
           Intento {stage.attempt + 1} de {ATTEMPTS}: el experto está corrigiendo piezas que no cerraban.
         </p>
@@ -93,7 +93,7 @@ export function Analyzing() {
           <p className="max-w-xs text-sm text-grafito-2">
             {pieceByPiece
               ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'
-              : stage?.name === 'corrigiendo'
+              : stage?.name === 'correcting'
                 ? 'Cada corrección vuelve a escribir el diseño completo; tarda lo mismo que el primer intento.'
                 : 'Sigue trabajando; esto suele tomar menos de un minuto.'}
           </p>

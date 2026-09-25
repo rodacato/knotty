@@ -26,7 +26,7 @@ const thinnestBoard = (catalog: Catalog, thickness: number) =>
 function tooThin(u: Joint, piece: Piece, thickness: number, minimum: number, severity: Severity, catalog: Catalog): Finding {
   const suggested = thinnestBoard(catalog, minimum)
   return {
-    code: 'R2_ESPESOR_UNION',
+    code: 'R2_JOINT_THICKNESS',
     severity,
     pieces: [u.a, u.b],
     message: `Una unión con ${JOINT_NAME[u.type]} necesita al menos ${minimum} mm en ${piece.name}, que es de ${thickness} mm.`,
@@ -47,8 +47,8 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
     if (thin && !['glue-nail', 'dado', 'rabbet'].includes(u.type))
       return [
         {
-          code: 'R2_ESPESOR_UNION',
-          severity: 'recomendacion',
+          code: 'R2_JOINT_THICKNESS',
+          severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `${thin[0].name} es de ${thin[1]} mm: se fija con clavo y pegamento, o en canal o rebaje; el ${JOINT_NAME[u.type]} no agarra.`,
           data: { union: u.id, tipo: u.type, pieza: thin[0].id, espesor: thin[1] },
@@ -59,17 +59,17 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
     const minimums = ASSUMPTIONS.joints[u.type as keyof typeof ASSUMPTIONS.joints] as { a?: number; b?: number; bCritical?: number } | undefined
     if (!minimums) return []
     const found: Finding[] = []
-    if (minimums.a !== undefined && ta < minimums.a) found.push(tooThin(u, a, ta, minimums.a, 'critico', catalog))
+    if (minimums.a !== undefined && ta < minimums.a) found.push(tooThin(u, a, ta, minimums.a, 'critical', catalog))
     if (minimums.b !== undefined && tb < minimums.b) {
-      const severity = minimums.bCritical !== undefined && tb >= minimums.bCritical ? 'recomendacion' : 'critico'
+      const severity = minimums.bCritical !== undefined && tb >= minimums.bCritical ? 'recommendation' : 'critical'
       found.push(tooThin(u, b, tb, minimums.b, severity, catalog))
     }
     if ((u.type === 'dado' || u.type === 'rabbet') && u.depth !== null) {
       const fraction = u.depth / tb
-      const severity: Severity | null = fraction > ASSUMPTIONS.penetration.critical ? 'critico' : fraction > ASSUMPTIONS.penetration.recommended ? 'recomendacion' : null
+      const severity: Severity | null = fraction > ASSUMPTIONS.penetration.critical ? 'critical' : fraction > ASSUMPTIONS.penetration.recommended ? 'recommendation' : null
       if (severity)
         found.push({
-          code: 'R2_ESPESOR_UNION',
+          code: 'R2_JOINT_THICKNESS',
           severity,
           pieces: [u.a, u.b],
           message: `El ${u.type} de ${u.depth} mm debilita ${b.name} (${tb} mm); lo recomendable es hasta ${roundTo(tb * ASSUMPTIONS.penetration.recommended)} mm.`,

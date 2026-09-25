@@ -71,7 +71,7 @@ describe('repairDesign', () => {
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     expect(design.joints.some((u) => u.id === 'u-suelta')).toBe(false)
-    expect(repairs[0].code).toBe('E_UNION_SIN_CONTACTO')
+    expect(repairs[0].code).toBe('E_JOINT_WITHOUT_CONTACT')
   })
 
   it('also repairs pieces the model grouped into parts', () => {
@@ -83,7 +83,7 @@ describe('repairDesign', () => {
     const broken = withPiece({ ...exampleBookcase, joints: exampleBookcase.joints.filter((u) => !(u.b === 'techo' && u.a.startsWith('lat'))) }, 'techo', (p) => ({ ...p, x: extent(ref('mueble.x0'), ref('mueble.x1')) }))
     const { design } = repairDesign(broken, testCatalog)
     const a = analyze(design, testCatalog)
-    expect(a.valid && a.warnings.filter((w) => w.code === 'A_CONTACTO_SIN_UNION')).toEqual([])
+    expect(a.valid && a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
     expect(design.joints.some((u) => [u.a, u.b].includes('techo') && u.type === 'butt-screw')).toBe(true)
   })
 

@@ -144,7 +144,7 @@ export function Capture() {
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
-  const [step, setStep] = useState<'medidas' | 'fotos'>(draft ? 'fotos' : 'medidas')
+  const [step, setStep] = useState<'measures' | 'photos'>(draft ? 'photos' : 'measures')
   const [measures, setMeasures] = useState<Dimensions>(draft?.measures ?? { width: 600, height: 1800, depth: 300 })
   const [withMeasures, setWithMeasures] = useState(!draft || draft.measures !== null)
   const [photos, setPhotos] = useState<TakenPhoto[]>(
@@ -179,8 +179,8 @@ export function Capture() {
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
       <header className="flex items-center gap-3">
-        <span className="cifras rounded-full bg-grafito px-2.5 py-1 text-xs text-hueso">{step === 'medidas' ? '1' : '2'} / 2</span>
-        <Title>{step === 'medidas' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Title>
+        <span className="cifras rounded-full bg-grafito px-2.5 py-1 text-xs text-hueso">{step === 'measures' ? '1' : '2'} / 2</span>
+        <Title>{step === 'measures' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Title>
       </header>
 
       {simulated && !withSimulated && (
@@ -203,7 +203,7 @@ export function Capture() {
         </div>
       )}
 
-      {step === 'medidas' ? (
+      {step === 'measures' ? (
         <>
           <p className="-mt-4 text-grafito-2">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -216,7 +216,7 @@ export function Capture() {
               variant="ghost"
               onClick={() => {
                 setWithMeasures(false)
-                setStep('fotos')
+                setStep('photos')
               }}
             >
               <Question /> No sé las medidas
@@ -227,7 +227,7 @@ export function Capture() {
               disabled={!validMeasures}
               onClick={() => {
                 setWithMeasures(true)
-                setStep('fotos')
+                setStep('photos')
               }}
             >
               Siguiente <ArrowRight weight="bold" />
@@ -306,7 +306,7 @@ export function Capture() {
             </p>
           )}
           <div className="flex items-center justify-between gap-3">
-            <Button variant="ghost" onClick={() => setStep('medidas')}>
+            <Button variant="ghost" onClick={() => setStep('measures')}>
               <ArrowLeft /> {withMeasures ? 'Medidas' : 'Poner medidas'}
             </Button>
             <div className="flex items-center gap-3">

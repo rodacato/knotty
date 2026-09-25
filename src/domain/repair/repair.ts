@@ -103,7 +103,7 @@ export function repairDesign(original: Design, catalog: Catalog, requirements: R
     const errorCount = analysis.errors.length
     let applied = false
     for (const e of analysis.errors) {
-      const fix = e.code === 'E_UNION_SIN_CONTACTO' ? fixLooseJoint(e, design) : e.code === 'E_TRASLAPE' ? fixOverlap(e, design, geo.boxes) : null
+      const fix = e.code === 'E_JOINT_WITHOUT_CONTACT' ? fixLooseJoint(e, design) : e.code === 'E_OVERLAP' ? fixOverlap(e, design, geo.boxes) : null
       if (!fix) continue
       const result = applyOperations(design, fix.operations, catalog)
       if (!result.ok) continue

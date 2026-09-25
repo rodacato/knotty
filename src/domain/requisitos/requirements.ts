@@ -20,7 +20,7 @@ export function checkRequirements(design: Design, requirements: Requirement[]): 
     if (r.type !== 'space' || !r.axis) return []
     const measure = design.dimensions[DIMENSION_OF_AXIS[r.axis]]
     const outside = (r.max !== null && measure > r.max) || (r.min !== null && measure < r.min)
-    return outside ? [error('E_REQUISITO', `El ${DIMENSION_LABEL[DIMENSION_OF_AXIS[r.axis]]} de ${measure} mm no respeta "${r.text}".`, { requisito: r.id, medida: measure, min: r.min, max: r.max })] : []
+    return outside ? [error('E_REQUIREMENT', `El ${DIMENSION_LABEL[DIMENSION_OF_AXIS[r.axis]]} de ${measure} mm no respeta "${r.text}".`, { requisito: r.id, medida: measure, min: r.min, max: r.max })] : []
   })
 }
 

@@ -52,7 +52,7 @@ describe('reconstruct', () => {
     expect(currentDesign(estado).name).toBe('Librero')
     expect(estado.chat[1].questions.flatMap((p) => p.options)).toContain('Libros')
     expect(estado.chat[1].requestedPhotos).toEqual([{ angle: 'interior', reason: 'Para ver cómo va fijada la trasera' }])
-    expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'mirando-fotos', 'disenando-piezas', 'revisando', 'estructura'])
+    expect(etapas).toEqual(['reading-photos', 'reading-photos', 'designing', 'designing-pieces', 'checking', 'structure'])
     expect(c.repositorio.estado).toEqual(estado)
   })
 })
@@ -102,7 +102,7 @@ describe('adjust', () => {
     const c = casos()
     const inicial = await libreroInicial(c)
     const ancho = await c.adjust(inicial, 'Hazlo de 90 cm de ancho para mi espacio', senal())
-    expect(ancho.proposal?.critical.map((x) => x.code)).toContain('R1_FLECHA')
+    expect(ancho.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
     expect(ancho.versions).toHaveLength(1)
     expect(ancho.chat.at(-1)?.proposal).toBe('pending')
 
@@ -282,7 +282,7 @@ describe('buildContext', () => {
     const c = casos()
     const estado = c.applyProposal(await c.adjust(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal()))
     const texto = buildContext(estado, testCatalog)
-    for (const parte of ['## Diseño actual (v2)', 'lat-der: 882–900', 'R1_FLECHA', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Usuario: Hazlo de 90 cm']) expect(texto).toContain(parte)
+    for (const parte of ['## Diseño actual (v2)', 'lat-der: 882–900', 'R1_SAG', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Usuario: Hazlo de 90 cm']) expect(texto).toContain(parte)
   })
 })
 
@@ -292,7 +292,7 @@ describe('reviewPurchase', () => {
     const inicial = await libreroInicial(c)
     const estado = c.saveReview(inicial, await c.reviewPurchase(inicial, testCatalog, senal()))
     expect(estado.review).toMatchObject({ verdict: 'viable', error: null, signature: reviewSignature(inicial, testCatalog) })
-    expect(estado.review!.checks.find((x) => x.id === 'confirmadas')?.status).toBe('warning')
+    expect(estado.review!.checks.find((x) => x.id === 'confirmed')?.status).toBe('warning')
     expect(estado.review!.carpenter?.tips.length).toBeGreaterThan(0)
     expect(c.repositorio.estado?.review).toEqual(estado.review)
     const cambiado = await c.adjust(estado, 'Refuerza la base', senal())
@@ -355,7 +355,7 @@ describe('never throw away a paid design', () => {
     expect(estado.chat[1].suggestions[0]).toBe('Corrige las piezas marcadas')
     const disenos = estado.trace.filter((t) => t.step === 'reconstruct')
     expect(disenos.map((t) => t.outcome)).toEqual(['invalid', 'invalid', 'invalid'])
-    expect(disenos[0].errors[0].code).toBe('E_FLOTANTE')
+    expect(disenos[0].errors[0].code).toBe('E_FLOATING')
   })
 
   it('a change that fixes the problem is applied, and one that adds a new problem is not', async () => {

@@ -48,7 +48,7 @@ describe('resolveGeometry', () => {
     d.pieces.push(makePiece({ id: 'extra', name: 'Extra', role: 'other', material: 'T18', normal: 'y', x: extent(ref('fantasma.x1'), ref('mueble.x1')), y: startAt(mm(500)), z: extent(ref('mueble.y0'), ref('mueble.z1')) }))
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errors.map((e) => e.code).sort()).toEqual(['E_REF_EJE', 'E_REF_INEXISTENTE'])
+    if (!r.ok) expect(r.errors.map((e) => e.code).sort()).toEqual(['E_REF_AXIS', 'E_UNKNOWN_REF'])
   })
 
   it('finds reference cycles', () => {
@@ -57,7 +57,7 @@ describe('resolveGeometry', () => {
     lat.x = startAt(ref('piso.x0', -18))
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.errors[0].code).toBe('E_CICLO')
+    if (!r.ok) expect(r.errors[0].code).toBe('E_CYCLE')
   })
 
   it('rejects extents with zero or negative length and materials outside the catalog', () => {
@@ -66,7 +66,7 @@ describe('resolveGeometry', () => {
     d.pieces.find((p) => p.id === 'techo')!.material = 'T25'
     const r = resolveGeometry(d, testCatalog)
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(new Set(r.errors.map((e) => e.code))).toEqual(new Set(['E_TRAMO_INVALIDO', 'E_ESPESOR_CATALOGO']))
+    if (!r.ok) expect(new Set(r.errors.map((e) => e.code))).toEqual(new Set(['E_INVALID_EXTENT', 'E_UNKNOWN_MATERIAL']))
   })
 
   it('accepts start + length and end + length across the face', () => {

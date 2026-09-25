@@ -55,7 +55,7 @@ describe('addDrawer', () => {
     const d = conCajon(hondo, [cajon(), { op: 'resizeFurniture', axis: 'x', value: 800, rule: 'stretch' }])
     const a = analisis(d)
     expect(a.geo.boxes.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
-    expect(a.findings.filter((h) => h.code === 'R9_CAJONES')).toEqual([])
+    expect(a.findings.filter((h) => h.code === 'R9_DRAWERS')).toEqual([])
   })
 
   it('goes into the purchase: runners and drawer pieces', () => {
@@ -74,7 +74,7 @@ describe('addDrawer', () => {
 
   it('does not fit in a very shallow piece', () => {
     const r = applyOperations(exampleBookcase, [cajon()], testCatalog)
-    expect(r.ok || r.errors[0]).toMatchObject({ code: 'E_OPERACION_INVALIDA', message: expect.stringContaining('No cabe un cajón') })
+    expect(r.ok || r.errors[0]).toMatchObject({ code: 'E_INVALID_OPERATION', message: expect.stringContaining('No cabe un cajón') })
   })
 })
 
@@ -84,18 +84,18 @@ describe('R9 drawers and screws into a face', () => {
   it('a runner without its exact gap is critical', () => {
     const d = conCajon(hondo)
     d.pieces.find((p) => p.id === 'cajon-1-costado-izq')!.x = startAt(ref('lat-izq.x1', 8))
-    const r9 = hallazgos(d).filter((h) => h.code === 'R9_CAJONES')
-    expect(r9).toEqual([expect.objectContaining({ severity: 'critico', message: expect.stringContaining('no entra') })])
+    const r9 = hallazgos(d).filter((h) => h.code === 'R9_DRAWERS')
+    expect(r9).toEqual([expect.objectContaining({ severity: 'critical', message: expect.stringContaining('no entra') })])
   })
 
   it('a 3 mm bottom in a wide drawer sags', () => {
     const d = conCajon({ ...hondo, dimensions: { ...hondo.dimensions, width: 700 } }, [cajon({ bottomMaterial: 'TR3' })])
-    expect(hallazgos(d).filter((h) => h.code === 'R9_CAJONES').map((h) => [h.severity, h.pieces[0]])).toEqual([['recomendacion', 'cajon-1-fondo']])
+    expect(hallazgos(d).filter((h) => h.code === 'R9_DRAWERS').map((h) => [h.severity, h.pieces[0]])).toEqual([['recommendation', 'cajon-1-fondo']])
   })
 
   it('a screw into a face must not come out the other side', () => {
     const d = conCajon(hondo)
     d.joints = d.joints.map((u) => (u.id === 'u-cajon-1-contra-frente' ? { ...u, hardware: [{ hardwareId: 'tornillo-8x2', count: 4 }] } : u))
-    expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.union])).toEqual([['R3_TORNILLOS', 'critico', 'u-cajon-1-contra-frente']])
+    expect(hallazgos(d).map((h) => [h.code, h.severity, h.data.union])).toEqual([['R3_SCREWS', 'critical', 'u-cajon-1-contra-frente']])
   })
 })

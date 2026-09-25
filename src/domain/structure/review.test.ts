@@ -24,8 +24,8 @@ describe('R1 shelf sag', () => {
 
   it('grades by span', () => {
     expect(deflectionSeverity(1.28, 600)).toBeNull()
-    expect(deflectionSeverity(2.21, 600)).toBe('recomendacion')
-    expect(deflectionSeverity(6.47, 900)).toBe('critico')
+    expect(deflectionSeverity(2.21, 600)).toBe('recommendation')
+    expect(deflectionSeverity(6.47, 900)).toBe('critical')
   })
 
   it('the longest span leaves the sag right at the recommended limit', () => {
@@ -35,9 +35,9 @@ describe('R1 shelf sag', () => {
 
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {
     const ancho = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } }
-    const r1 = findings(ancho).filter((h) => h.code === 'R1_FLECHA')
+    const r1 = findings(ancho).filter((h) => h.code === 'R1_SAG')
     expect(r1.map((h) => h.pieces[0]).sort()).toEqual(['entrepano-1', 'entrepano-2', 'entrepano-3', 'entrepano-4', 'piso'])
-    expect(r1.every((h) => h.severity === 'critico')).toBe(true)
+    expect(r1.every((h) => h.severity === 'critical')).toBe(true)
     const divisor = r1[0].alternatives.find((a) => a.key === 'divisor-al-centro')!
     expect(divisor.data.flecha).toBeLessThan(1)
   })
@@ -56,34 +56,34 @@ describe('R2 thickness per joint', () => {
   it('asks for at least 15 mm for a dowel and 15 mm to take an edge screw', () => {
     const d = structuredClone(exampleNightstand)
     for (const p of d.pieces) if (p.role === 'side') p.material = 'T12'
-    const r2 = findings(d).filter((h) => h.code === 'R2_ESPESOR_UNION')
+    const r2 = findings(d).filter((h) => h.code === 'R2_JOINT_THICKNESS')
     const porUnion = Object.fromEntries(r2.map((h) => [h.data.union, h.severity]))
-    expect(porUnion['u-entrepano-izq']).toBe('critico')
-    expect(porUnion['u-techo-izq']).toBe('recomendacion')
+    expect(porUnion['u-entrepano-izq']).toBe('critical')
+    expect(porUnion['u-techo-izq']).toBe('recommendation')
     expect(r2[0].alternatives[0].data.material).toBe('T15')
   })
 
   it('does not take screws in a 3 mm back', () => {
     const d = structuredClone(exampleNightstand)
     d.joints = d.joints.map((u) => (u.id === 'u-trasera-piso' ? { ...u, type: 'butt-screw' } : u))
-    expect(findings(d).some((h) => h.code === 'R2_ESPESOR_UNION' && h.data.pieza === 'trasera')).toBe(true)
+    expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.pieza === 'trasera')).toBe(true)
   })
 })
 
 describe('R5 racking', () => {
   it('the fixtures with a fixed 6 mm back are fine', () => {
     expect(findings(exampleBookcase)).toEqual([])
-    expect(findings(exampleWallCabinet).filter((h) => h.code === 'R5_ESCUADRADO')).toEqual([])
+    expect(findings(exampleWallCabinet).filter((h) => h.code === 'R5_RACKING')).toEqual([])
   })
 
   it('the nightstand with a nailed 3 mm back is a recommendation because it is low', () => {
-    expect(findings(exampleNightstand).map((h) => [h.code, h.severity])).toEqual([['R5_ESCUADRADO', 'recomendacion']])
+    expect(findings(exampleNightstand).map((h) => [h.code, h.severity])).toEqual([['R5_RACKING', 'recommendation']])
   })
 
   it('is critical in a tall piece', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.find((p) => p.id === 'trasera')!.material = 'TR3'
-    expect(findings(d).find((h) => h.code === 'R5_ESCUADRADO')?.severity).toBe('critico')
+    expect(findings(d).find((h) => h.code === 'R5_RACKING')?.severity).toBe('critical')
   })
 })
 

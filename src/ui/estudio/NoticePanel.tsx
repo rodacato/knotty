@@ -60,7 +60,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
 
   return (
-    <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critico' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
+    <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critical' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium">
           {KIND[notice.kind] && <span className="mr-1.5 text-xs text-grafito-2">{KIND[notice.kind]} ·</span>}

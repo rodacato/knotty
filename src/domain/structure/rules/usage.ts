@@ -14,8 +14,8 @@ export const tippingRule: Rule = ({ design }): Finding[] => {
   const critical = height > criticalHeight && ratio >= criticalRatio
   return [
     {
-      code: 'R4_VUELCO',
-      severity: critical ? 'critico' : 'recomendacion',
+      code: 'R4_TIPPING',
+      severity: critical ? 'critical' : 'recommendation',
       pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
       message: `Mide ${height} mm de alto y solo ${depth} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
       data: { alto: height, fondo: depth, relacion: roundTo(ratio) },
@@ -42,8 +42,8 @@ export const doorRule: Rule = ({ design, geo }) =>
       const needed = hingesFor(height)
       if (hinges.length && fitted < needed)
         found.push({
-          code: 'R6_PUERTAS',
-          severity: needed - fitted >= 2 ? 'critico' : 'recomendacion',
+          code: 'R6_DOORS',
+          severity: needed - fitted >= 2 ? 'critical' : 'recommendation',
           pieces: [p.id],
           message: `${p.name} mide ${Math.round(height)} mm de alto y lleva ${fitted} bisagras; con esa altura van ${needed} para que no se descuelgue.`,
           data: { alto: Math.round(height), puestas: fitted, necesarias: needed },
@@ -51,8 +51,8 @@ export const doorRule: Rule = ({ design, geo }) =>
         })
       if (width > ASSUMPTIONS.doors.maxWidth)
         found.push({
-          code: 'R6_PUERTAS',
-          severity: 'recomendacion',
+          code: 'R6_DOORS',
+          severity: 'recommendation',
           pieces: [p.id],
           message: `${p.name} mide ${Math.round(width)} mm de ancho: una hoja tan ancha pesa en las bisagras y estorba al abrir.`,
           data: { ancho: Math.round(width), maximo: ASSUMPTIONS.doors.maxWidth },
@@ -79,7 +79,7 @@ export const baseRule: Rule = (ctx) =>
       return [
         {
           code: 'R7_BASE',
-          severity: 'recomendacion',
+          severity: 'recommendation',
           pieces: [p.id],
           message: `${p.name} cruza ${roundTo(span, 0)} mm sin nada debajo: con peso encima tiende a vencerse.`,
           data: { claro: roundTo(span, 0), maximo: ASSUMPTIONS.floorSpan },
@@ -102,8 +102,8 @@ export const grainRule: Rule = ({ design, geo }) =>
     if (length < width * 1.5) return []
     return [
       {
-        code: 'R8_VETA',
-        severity: 'detalle',
+        code: 'R8_GRAIN',
+        severity: 'detail',
         pieces: [p.id],
         message: `En ${p.name} la veta corre a lo ancho: se ve menos natural y la pieza es menos rígida.`,
         data: { largo: Math.round(length), ancho: Math.round(width) },

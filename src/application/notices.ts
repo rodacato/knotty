@@ -32,18 +32,18 @@ export interface NoticeBoard {
 }
 
 const TITLES: Record<string, string> = {
-  R1_FLECHA: 'Entrepaños que se pandean',
-  R2_ESPESOR_UNION: 'Espesor para la unión',
-  R3_TORNILLOS: 'Tornillos',
-  R4_VUELCO: 'Riesgo de vuelco',
-  R5_ESCUADRADO: 'Escuadrado',
-  R6_PUERTAS: 'Puertas',
+  R1_SAG: 'Entrepaños que se pandean',
+  R2_JOINT_THICKNESS: 'Espesor para la unión',
+  R3_SCREWS: 'Tornillos',
+  R4_TIPPING: 'Riesgo de vuelco',
+  R5_RACKING: 'Escuadrado',
+  R6_DOORS: 'Puertas',
   R7_BASE: 'Base',
-  R8_VETA: 'Veta',
-  R9_CAJONES: 'Cajones',
-  R10_USO: 'Uso del mueble',
+  R8_GRAIN: 'Veta',
+  R9_DRAWERS: 'Cajones',
+  R10_USE: 'Uso del mueble',
 }
-const RANK = { critico: 0, decision: 1, recomendacion: 2, detalle: 3 }
+const RANK = { critical: 0, decision: 1, recommendation: 2, detail: 3 }
 
 const named = (design: Design, text: string) => design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
 
@@ -72,14 +72,14 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog): Notice
     notices.push({
       key: 'problems',
       kind: 'problem',
-      severity: 'critico',
+      severity: 'critical',
       title: 'Problemas sin resolver',
       message: analysis.errors.map((e) => named(design, e.message)).join(' '),
       pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.pieces.some((p) => p.id === v))))],
       findings: [],
     })
   for (const e of checkRequirements(design, state.requirements))
-    notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critico', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
+    notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critical', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
   if (analysis.valid) notices.push(...findingNotices(analysis.findings))
   return notices
 }

@@ -23,8 +23,8 @@ export function maxSpan(depth: number, thickness: number, load: Load, modulus: n
 }
 
 export function deflectionSeverity(delta: number, span: number): Severity | null {
-  if (delta > span / ASSUMPTIONS.deflectionLimit.critical) return 'critico'
-  if (delta > span / ASSUMPTIONS.deflectionLimit.recommended) return 'recomendacion'
+  if (delta > span / ASSUMPTIONS.deflectionLimit.critical) return 'critical'
+  if (delta > span / ASSUMPTIONS.deflectionLimit.recommended) return 'recommendation'
   return null
 }
 
@@ -87,7 +87,7 @@ export const deflectionRule: Rule = (ctx) =>
     const limit = span / ASSUMPTIONS.deflectionLimit.recommended
     return [
       {
-        code: 'R1_FLECHA',
+        code: 'R1_SAG',
         severity,
         pieces: [p.id],
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.load]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,

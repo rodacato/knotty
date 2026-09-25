@@ -19,18 +19,18 @@ const estado = (v: ReturnType<typeof revisar>, id: string) => v.checks.find((c) 
 describe('reviewViability', () => {
   it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('the examples add up and fit the sheet: $nombre', (diseno) => {
     const v = revisar(diseno)
-    expect(estado(v, 'medidas').status).toBe('ok')
-    expect(estado(v, 'hoja').status).toBe('ok')
+    expect(estado(v, 'measures').status).toBe('ok')
+    expect(estado(v, 'sheet').status).toBe('ok')
     expect(v.verdict).not.toBe('not-viable')
   })
 
   it('with more trim, a long piece stops fitting and the design is not viable', async () => {
     const alto = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, height: 2400 } }
     const holgado = revisar(alto)
-    expect(estado(holgado, 'hoja').status).toBe('ok')
+    expect(estado(holgado, 'sheet').status).toBe('ok')
     const v = revisar(alto, { ...testCatalog, acomodo: { ...testCatalog.acomodo, refilado: 50 } })
-    expect(estado(v, 'hoja')).toMatchObject({ status: 'fail', impossible: true })
-    expect(estado(v, 'hoja').detail).toContain('2340')
+    expect(estado(v, 'sheet')).toMatchObject({ status: 'fail', impossible: true })
+    expect(estado(v, 'sheet').detail).toContain('2340')
     expect(v.verdict).toBe('not-viable')
   })
 
@@ -39,7 +39,7 @@ describe('reviewViability', () => {
     if (!a.valid) throw new Error()
     const dice = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 650 } }
     const v = reviewViability({ design: dice, geo: a.geo, catalog: testCatalog, purchase: estimatePurchase(exampleBookcase, a.geo, testCatalog), findings: [], unmet: [] })
-    expect(estado(v, 'medidas')).toMatchObject({ status: 'fail', impossible: true, request: 'Haz que las piezas cierren exacto en 1800 × 650 × 300 mm' })
+    expect(estado(v, 'measures')).toMatchObject({ status: 'fail', impossible: true, request: 'Haz que las piezas cierren exacto en 1800 × 650 × 300 mm' })
     expect(v.verdict).toBe('not-viable')
   })
 

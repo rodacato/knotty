@@ -2,24 +2,24 @@
 // The codes stay as they are: they are data, in the saved trace and in what the expert reads.
 
 export type ErrorCode =
-  | 'E_ESQUEMA'
-  | 'E_ID_DUPLICADO'
-  | 'E_PIEZA_INEXISTENTE'
-  | 'E_UNION_INEXISTENTE'
-  | 'E_REF_INEXISTENTE'
-  | 'E_REF_EJE'
-  | 'E_CICLO'
-  | 'E_TRAMO_INVALIDO'
-  | 'E_TRASLAPE'
-  | 'E_FLOTANTE'
-  | 'E_MEDIDA_GLOBAL'
-  | 'E_ESPESOR_CATALOGO'
-  | 'E_NO_CABE_EN_HOJA'
-  | 'E_UNION_SIN_CONTACTO'
-  | 'E_REQUISITO'
-  | 'E_OPERACION_INVALIDA'
+  | 'E_SCHEMA'
+  | 'E_DUPLICATE_ID'
+  | 'E_UNKNOWN_PIECE'
+  | 'E_UNKNOWN_JOINT'
+  | 'E_UNKNOWN_REF'
+  | 'E_REF_AXIS'
+  | 'E_CYCLE'
+  | 'E_INVALID_EXTENT'
+  | 'E_OVERLAP'
+  | 'E_FLOATING'
+  | 'E_OVERALL_SIZE'
+  | 'E_UNKNOWN_MATERIAL'
+  | 'E_TOO_BIG_FOR_SHEET'
+  | 'E_JOINT_WITHOUT_CONTACT'
+  | 'E_REQUIREMENT'
+  | 'E_INVALID_OPERATION'
 
-export type WarningCode = 'A_CONTACTO_SIN_UNION' | 'A_REFERENCIA_CONGELADA'
+export type WarningCode = 'W_CONTACT_WITHOUT_JOINT' | 'W_FROZEN_REFERENCE'
 
 export interface DesignError {
   code: ErrorCode

@@ -72,9 +72,9 @@ function measures({ design, geo }: ViabilityInput): Check {
   const real = { width: span('x'), height: span('y'), depth: span('z') }
   const { width: ancho, height: alto, depth: fondo } = design.dimensions
   const off = (['height', 'width', 'depth'] as const).filter((k) => Math.abs(real[k] - design.dimensions[k]) > MEASURE_TOLERANCE)
-  if (!off.length) return check({ id: 'medidas', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo).` })
+  if (!off.length) return check({ id: 'measures', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${alto} × ${ancho} × ${fondo} mm (alto, ancho, fondo).` })
   return check({
-    id: 'medidas',
+    id: 'measures',
     title: 'Las medidas no cierran',
     status: 'fail',
     impossible: true,
@@ -89,7 +89,7 @@ function sheet({ catalog, purchase }: ViabilityInput): Check {
   if (!unplaced.length) {
     const usable = purchase.layout[0]?.usable
     return check({
-      id: 'hoja',
+      id: 'sheet',
       title: 'Todo cabe en la hoja',
       status: 'ok',
       detail: usable ? `Cada pieza cabe en la parte buena de la hoja (${usable.largo} × ${usable.ancho} mm), ya sin los ${trim} mm por orilla que se recortan.` : 'No hay piezas de triplay que acomodar.',
@@ -97,7 +97,7 @@ function sheet({ catalog, purchase }: ViabilityInput): Check {
   }
   const p = unplaced[0]
   return check({
-    id: 'hoja',
+    id: 'sheet',
     title: 'Hay piezas más grandes que la hoja',
     status: 'fail',
     impossible: true,
@@ -112,9 +112,9 @@ function strips({ design, geo }: ViabilityInput): Check {
     const box = geo.boxes.get(p.id)
     return box && Math.min(...faceSize(box, p.normal)) < MIN_STRIP
   })
-  if (!narrow.length) return check({ id: 'tiras', title: 'Cortes seguros', status: 'ok', detail: `Ninguna pieza es una tira de menos de ${cm(MIN_STRIP)}, que son las riesgosas de cortar.` })
+  if (!narrow.length) return check({ id: 'strips', title: 'Cortes seguros', status: 'ok', detail: `Ninguna pieza es una tira de menos de ${cm(MIN_STRIP)}, que son las riesgosas de cortar.` })
   return check({
-    id: 'tiras',
+    id: 'strips',
     title: 'Tiras angostas',
     status: 'warning',
     pieces: narrow.map((p) => p.id),
@@ -123,13 +123,13 @@ function strips({ design, geo }: ViabilityInput): Check {
 }
 
 function structure({ findings, unmet }: ViabilityInput): Check {
-  const critical = findings.filter((h) => h.severity === 'critico')
-  const recommended = findings.filter((h) => h.severity === 'recomendacion')
+  const critical = findings.filter((h) => h.severity === 'critical')
+  const recommended = findings.filter((h) => h.severity === 'recommendation')
   if (critical.length || unmet.length) {
     const messages = [...unmet, ...critical.map((h) => h.message)]
     const first = critical[0]?.alternatives[0]
     return check({
-      id: 'estructura',
+      id: 'structure',
       title: critical.length + unmet.length === 1 ? 'Un problema de estructura' : `${critical.length + unmet.length} problemas de estructura`,
       status: 'fail',
       pieces: [...new Set(critical.flatMap((h) => h.pieces))],
@@ -139,20 +139,20 @@ function structure({ findings, unmet }: ViabilityInput): Check {
   }
   if (recommended.length)
     return check({
-      id: 'estructura',
+      id: 'structure',
       title: 'Estructura firme, con recomendaciones',
       status: 'warning',
       pieces: [...new Set(recommended.flatMap((h) => h.pieces))],
       detail: `Aguanta, pero hay ${recommended.length === 1 ? 'una mejora recomendada' : `${recommended.length} mejoras recomendadas`}: ${recommended[0].message}`,
     })
-  return check({ id: 'estructura', title: 'Estructura firme', status: 'ok', detail: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
+  return check({ id: 'structure', title: 'Estructura firme', status: 'ok', detail: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
 }
 
 function confirmed({ design }: ViabilityInput): Check {
   const sketched = design.pieces.filter((p) => p.confidence === 'low')
-  if (!sketched.length) return check({ id: 'confirmadas', title: 'Piezas confirmadas', status: 'ok', detail: 'No queda ninguna pieza en boceto.' })
+  if (!sketched.length) return check({ id: 'confirmed', title: 'Piezas confirmadas', status: 'ok', detail: 'No queda ninguna pieza en boceto.' })
   return check({
-    id: 'confirmadas',
+    id: 'confirmed',
     title: 'Piezas por confirmar',
     status: 'warning',
     pieces: sketched.map((p) => p.id),
@@ -168,9 +168,9 @@ function margin({ catalog, purchase }: ViabilityInput): Check {
     const material = catalog.materiales.find((m) => m.id === a.material)
     return used >= TIGHT_YIELD ? [{ name: material?.nombre ?? a.material, used }] : []
   })
-  if (!tight.length) return check({ id: 'margen', title: 'Material de sobra', status: 'ok', detail: 'Si un corte sale mal, queda sobrante para repetirlo.' })
+  if (!tight.length) return check({ id: 'margin', title: 'Material de sobra', status: 'ok', detail: 'Si un corte sale mal, queda sobrante para repetirlo.' })
   return check({
-    id: 'margen',
+    id: 'margin',
     title: 'Vas justo de material',
     status: 'warning',
     detail: `${tight.map((j) => `${j.name} (aprovechas ${Math.round(j.used * 100)} %)`).join(', ')}: si un corte sale mal no hay de dónde sacar. Considera comprar una hoja de más.`,

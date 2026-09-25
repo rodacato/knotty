@@ -35,7 +35,7 @@ const BED_SPAN = 800
 const BENCH_HEIGHT: [number, number] = [420, 480]
 
 const finding = (severidad: Finding['severity'], piezas: string[], mensaje: string, datos: Finding['data'] = {}, alternativas: Finding['alternatives'] = []): Finding => ({
-  code: 'R10_USO',
+  code: 'R10_USE',
   severity: severidad,
   pieces: piezas,
   message: mensaje,
@@ -66,7 +66,7 @@ const outside = (value: number, [min, max]: [number, number]) => value < min || 
 
 function bed(design: Design, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[] {
   const platform = topSurface(design, geo, 0.6)
-  if (!platform) return [finding('recomendacion', [], 'No encuentro la superficie donde va el colchón: una cama necesita una base continua o tablas a lo ancho.')]
+  if (!platform) return [finding('recommendation', [], 'No encuentro la superficie donde va el colchón: una cama necesita una base continua o tablas a lo ancho.')]
   // A bed can lie either way in the room: the short side takes the mattress width.
   const [width, length] = [platform.box.x1 - platform.box.x0, platform.box.z1 - platform.box.z0].sort((a, b) => a - b)
   const name = design.name.toLowerCase()
@@ -75,22 +75,22 @@ function bed(design: Design, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[]
   const found: Finding[] = []
   if (width < mw - MATTRESS_TOLERANCE.tight || length < ml - MATTRESS_TOLERANCE.tight)
     found.push(
-      finding('critico', platform.ids, `El colchón ${size} (${mw} × ${ml} mm) no cabe: la base mide ${roundTo(width, 0)} × ${roundTo(length, 0)} mm.`, { ancho: roundTo(width, 0), largo: roundTo(length, 0), colchon: size }, [
+      finding('critical', platform.ids, `El colchón ${size} (${mw} × ${ml} mm) no cabe: la base mide ${roundTo(width, 0)} × ${roundTo(length, 0)} mm.`, { ancho: roundTo(width, 0), largo: roundTo(length, 0), colchon: size }, [
         { key: 'medida-colchon', description: `Hacer la base de ${mw} × ${ml} mm`, data: { ancho: mw, largo: ml } },
       ]),
     )
   else if (width > mw + MATTRESS_TOLERANCE.loose || length > ml + MATTRESS_TOLERANCE.loose)
-    found.push(finding('recomendacion', platform.ids, `La base mide ${roundTo(width, 0)} × ${roundTo(length, 0)} mm y el colchón ${size} ${mw} × ${ml}: le sobra espacio y se va a correr.`, { colchon: size }))
+    found.push(finding('recommendation', platform.ids, `La base mide ${roundTo(width, 0)} × ${roundTo(length, 0)} mm y el colchón ${size} ${mw} × ${ml}: le sobra espacio y se va a correr.`, { colchon: size }))
   for (const id of platform.ids) {
     const piece = design.pieces.find((p) => p.id === id)!
     const span = freeSpan(id, geo.boxes.get(id)!, ctx)
     if (span && span > BED_SPAN)
       found.push(
-        finding('critico', [id], `${piece.name} cruza ${roundTo(span, 0)} mm sin apoyo: con una persona encima se va a vencer.`, { claro: roundTo(span, 0), maximo: BED_SPAN }, [
+        finding('critical', [id], `${piece.name} cruza ${roundTo(span, 0)} mm sin apoyo: con una persona encima se va a vencer.`, { claro: roundTo(span, 0), maximo: BED_SPAN }, [
           { key: 'apoyo-central', description: 'Agregar un travesaño o una pata al centro, debajo de la base', data: {} },
         ]),
       )
-    else if (piece.load !== 'heavy') found.push(finding('recomendacion', [id], `${piece.name} carga el colchón y a una persona: márcala con carga pesada para revisar su flecha.`))
+    else if (piece.load !== 'heavy') found.push(finding('recommendation', [id], `${piece.name} carga el colchón y a una persona: márcala con carga pesada para revisar su flecha.`))
   }
   return found
 }
@@ -116,11 +116,11 @@ function desk(design: Design, geo: Geometry): Finding[] {
   if (!top) return []
   const found: Finding[] = []
   const height = top.box.y1
-  if (outside(height, DESK_HEIGHT)) found.push(finding('recomendacion', top.ids, `La cubierta queda a ${roundTo(height, 0)} mm; un escritorio cómodo va de ${DESK_HEIGHT[0]} a ${DESK_HEIGHT[1]} mm.`, { alto: roundTo(height, 0) }))
+  if (outside(height, DESK_HEIGHT)) found.push(finding('recommendation', top.ids, `La cubierta queda a ${roundTo(height, 0)} mm; un escritorio cómodo va de ${DESK_HEIGHT[0]} a ${DESK_HEIGHT[1]} mm.`, { alto: roundTo(height, 0) }))
   const free = kneeSpace(design, geo, top.box)
   if (free < KNEE.width)
     found.push(
-      finding('critico', top.ids, `Debajo de la cubierta no queda espacio para las piernas: hace falta un hueco libre de ${KNEE.width} mm de ancho, ${KNEE.height} de alto y ${KNEE.depth} de fondo, y el más ancho mide ${roundTo(free, 0)} mm.`, { libre: roundTo(free, 0) }, [
+      finding('critical', top.ids, `Debajo de la cubierta no queda espacio para las piernas: hace falta un hueco libre de ${KNEE.width} mm de ancho, ${KNEE.height} de alto y ${KNEE.depth} de fondo, y el más ancho mide ${roundTo(free, 0)} mm.`, { libre: roundTo(free, 0) }, [
         { key: 'hueco-piernas', description: `Dejar un hueco libre de al menos ${KNEE.width} mm de ancho debajo de la cubierta`, data: { ancho: KNEE.width } },
       ]),
     )
@@ -134,14 +134,14 @@ function table(design: Design, geo: Geometry): Finding[] {
   const kind: TableKind = /centro|caf[eé]/.test(name) ? 'coffee' : /comedor|cocina/.test(name) ? 'dining' : 'side'
   const range = TABLE_HEIGHT[kind]
   const label = { coffee: 'de centro', dining: 'de comedor', side: 'lateral' }[kind]
-  return outside(top.box.y1, range) ? [finding('recomendacion', top.ids, `Una mesa ${label} va de ${range[0]} a ${range[1]} mm de alto; esta queda a ${roundTo(top.box.y1, 0)} mm.`, { alto: roundTo(top.box.y1, 0) })] : []
+  return outside(top.box.y1, range) ? [finding('recommendation', top.ids, `Una mesa ${label} va de ${range[0]} a ${range[1]} mm de alto; esta queda a ${roundTo(top.box.y1, 0)} mm.`, { alto: roundTo(top.box.y1, 0) })] : []
 }
 
 function drawers(design: Design): Finding[] {
   const count = new Set(design.pieces.map((p) => p.group).filter((g): g is string => !!g && g.startsWith('cajon'))).size
   if (count < 2 || design.dimensions.height <= 700 || design.wallAnchored) return []
   return [
-    finding('critico', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { cajones: count }, [
+    finding('critical', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { cajones: count }, [
       { key: 'anclar-muro', description: 'Anclarla al muro con un kit antivuelco', data: { herrajeId: 'kit-antivuelco' } },
     ]),
   ]
@@ -149,10 +149,10 @@ function drawers(design: Design): Finding[] {
 
 function wallCabinet(design: Design): Finding[] {
   const found: Finding[] = []
-  if (!design.wallAnchored) found.push(finding('critico', [], 'Una alacena de pared va colgada del muro: márcala como anclada para revisar cómo se sostiene.', {}, [{ key: 'anclar-muro', description: 'Colgarla del muro', data: {} }]))
+  if (!design.wallAnchored) found.push(finding('critical', [], 'Una alacena de pared va colgada del muro: márcala como anclada para revisar cómo se sostiene.', {}, [{ key: 'anclar-muro', description: 'Colgarla del muro', data: {} }]))
   if (!design.pieces.some((p) => p.role === 'brace'))
     found.push(
-      finding('recomendacion', [], 'Para colgarla, conviene un listón de triplay arriba y atrás, por dentro: ahí van los tornillos al muro y no en la trasera delgada.', {}, [
+      finding('recommendation', [], 'Para colgarla, conviene un listón de triplay arriba y atrás, por dentro: ahí van los tornillos al muro y no en la trasera delgada.', {}, [
         { key: 'liston-colgar', description: 'Agregar un listón de colgar arriba, atrás', data: {} },
       ]),
     )
@@ -160,12 +160,12 @@ function wallCabinet(design: Design): Finding[] {
 }
 
 const minDepth = (design: Design, min: number, message: string): Finding[] =>
-  design.dimensions.depth < min ? [finding('recomendacion', [], message.replace('{fondo}', String(design.dimensions.depth)), { fondo: design.dimensions.depth, minimo: min })] : []
+  design.dimensions.depth < min ? [finding('recommendation', [], message.replace('{fondo}', String(design.dimensions.depth)), { fondo: design.dimensions.depth, minimo: min })] : []
 
 function wardrobe(design: Design): Finding[] {
   const found = minDepth(design, 550, 'Con {fondo} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos 550–600 mm.')
   if (design.dimensions.height > 1500 && !design.wallAnchored)
-    found.push(finding('critico', [], `Un clóset de ${design.dimensions.height} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`, {}, [{ key: 'anclar-muro', description: 'Anclarlo al muro', data: {} }]))
+    found.push(finding('critical', [], `Un clóset de ${design.dimensions.height} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`, {}, [{ key: 'anclar-muro', description: 'Anclarlo al muro', data: {} }]))
   return found
 }
 
@@ -173,10 +173,10 @@ function bench(design: Design, geo: Geometry): Finding[] {
   const seat = topSurface(design, geo, 0.05)
   if (!seat) return []
   const found: Finding[] = []
-  if (outside(seat.box.y1, BENCH_HEIGHT)) found.push(finding('recomendacion', seat.ids, `Un asiento cómodo va de ${BENCH_HEIGHT[0]} a ${BENCH_HEIGHT[1]} mm; este queda a ${roundTo(seat.box.y1, 0)} mm.`))
+  if (outside(seat.box.y1, BENCH_HEIGHT)) found.push(finding('recommendation', seat.ids, `Un asiento cómodo va de ${BENCH_HEIGHT[0]} a ${BENCH_HEIGHT[1]} mm; este queda a ${roundTo(seat.box.y1, 0)} mm.`))
   for (const id of seat.ids) {
     const piece = design.pieces.find((p) => p.id === id)!
-    if (piece.load !== 'heavy') found.push(finding('recomendacion', [id], `${piece.name} es asiento: márcalo con carga pesada para revisar su flecha.`))
+    if (piece.load !== 'heavy') found.push(finding('recommendation', [id], `${piece.name} es asiento: márcalo con carga pesada para revisar su flecha.`))
   }
   return found
 }

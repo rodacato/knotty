@@ -45,16 +45,16 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
 
   const thicknessOf = (p: Piece) => {
     const material = materialById(catalog, p.material)
-    if (!material) throw new ResolveFailure(error('E_ESPESOR_CATALOGO', `"${p.id}" usa el material "${p.material}", que no está en el catálogo.`, { pieza: p.id, material: p.material }))
+    if (!material) throw new ResolveFailure(error('E_UNKNOWN_MATERIAL', `"${p.id}" usa el material "${p.material}", que no está en el catálogo.`, { pieza: p.id, material: p.material }))
     return material.espesor
   }
 
   const face = (ref: FaceRef, axis: Axis, who: string): number => {
     const { piece, axis: refAxis, side } = parseFace(ref)
-    if (refAxis !== axis) throw new ResolveFailure(error('E_REF_EJE', `"${who}" usa "${ref}" en el eje ${axis}; una cota solo puede referir caras del mismo eje.`, { pieza: who, ref, eje: axis }))
+    if (refAxis !== axis) throw new ResolveFailure(error('E_REF_AXIS', `"${who}" usa "${ref}" en el eje ${axis}; una cota solo puede referir caras del mismo eje.`, { pieza: who, ref, eje: axis }))
     if (piece === 'mueble') return side === 0 ? 0 : design.dimensions[DIMENSION_OF_AXIS[axis]]
     const other = byId.get(piece)
-    if (!other) throw new ResolveFailure(error('E_REF_INEXISTENTE', `"${who}" refiere "${ref}", pero no existe la pieza "${piece}".`, { pieza: who, ref }))
+    if (!other) throw new ResolveFailure(error('E_UNKNOWN_REF', `"${who}" refiere "${ref}", pero no existe la pieza "${piece}".`, { pieza: who, ref }))
     return extentOf(other, axis)[side]
   }
 
@@ -71,13 +71,13 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
     if (done) return done
     if (visiting.includes(key)) {
       const cycle = [...visiting.slice(visiting.indexOf(key)), key]
-      throw new ResolveFailure(error('E_CICLO', `Referencias circulares: ${cycle.join(' → ')}.`, { ciclo: cycle }))
+      throw new ResolveFailure(error('E_CYCLE', `Referencias circulares: ${cycle.join(' → ')}.`, { ciclo: cycle }))
     }
     visiting.push(key)
     try {
       const result = axis === p.normal ? normalExtent(p, axis) : faceExtent(p, axis)
       if (result[1] - result[0] <= 0)
-        throw new ResolveFailure(error('E_TRAMO_INVALIDO', `"${p.id}" queda con largo ${roundTo(result[1] - result[0])} mm en el eje ${axis}.`, { pieza: p.id, eje: axis, desde: result[0], hasta: result[1] }))
+        throw new ResolveFailure(error('E_INVALID_EXTENT', `"${p.id}" queda con largo ${roundTo(result[1] - result[0])} mm en el eje ${axis}.`, { pieza: p.id, eje: axis, desde: result[0], hasta: result[1] }))
       extents.set(key, result)
       return result
     } finally {
@@ -92,14 +92,14 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
     if (start) {
       const s = value(start, axis, p.id)
       if (end && Math.abs(value(end, axis, p.id) - s - thickness) > TOLERANCE)
-        throw new ResolveFailure(error('E_TRAMO_INVALIDO', `En su eje normal (${axis}) "${p.id}" debe llevar solo desde o solo hasta; el largo es su espesor de ${thickness} mm.`, { pieza: p.id, eje: axis }))
+        throw new ResolveFailure(error('E_INVALID_EXTENT', `En su eje normal (${axis}) "${p.id}" debe llevar solo desde o solo hasta; el largo es su espesor de ${thickness} mm.`, { pieza: p.id, eje: axis }))
       return [s, s + thickness]
     }
     if (end) {
       const e = value(end, axis, p.id)
       return [e - thickness, e]
     }
-    throw new ResolveFailure(error('E_TRAMO_INVALIDO', `"${p.id}" no tiene posición en su eje normal (${axis}).`, { pieza: p.id, eje: axis }))
+    throw new ResolveFailure(error('E_INVALID_EXTENT', `"${p.id}" no tiene posición en su eje normal (${axis}).`, { pieza: p.id, eje: axis }))
   }
 
   /** Across its face a piece needs two of: where it starts, where it ends, how long it is. */
@@ -109,7 +109,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
       const s = value(start, axis, p.id)
       const e = value(end, axis, p.id)
       if (length !== null && Math.abs(e - s - length) > TOLERANCE)
-        throw new ResolveFailure(error('E_TRAMO_INVALIDO', `"${p.id}" en ${axis}: desde, hasta y largo no coinciden (${roundTo(e - s)} ≠ ${length}).`, { pieza: p.id, eje: axis }))
+        throw new ResolveFailure(error('E_INVALID_EXTENT', `"${p.id}" en ${axis}: desde, hasta y largo no coinciden (${roundTo(e - s)} ≠ ${length}).`, { pieza: p.id, eje: axis }))
       return [s, e]
     }
     if (start && length !== null) {
@@ -120,7 +120,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
       const e = value(end, axis, p.id)
       return [e - length, e]
     }
-    throw new ResolveFailure(error('E_TRAMO_INVALIDO', `"${p.id}" en ${axis} necesita dos de: desde, hasta, largo.`, { pieza: p.id, eje: axis }))
+    throw new ResolveFailure(error('E_INVALID_EXTENT', `"${p.id}" en ${axis} necesita dos de: desde, hasta, largo.`, { pieza: p.id, eje: axis }))
   }
 
   const errors: DesignError[] = []
@@ -128,7 +128,7 @@ export function resolveGeometry(design: Design, catalog: Catalog): Result<Geomet
   const thicknesses = new Map<string, number>()
   const seen = new Set<string>()
   for (const p of design.pieces) {
-    if (seen.has(p.id)) errors.push(error('E_ID_DUPLICADO', `Hay dos piezas con el id "${p.id}".`, { pieza: p.id }))
+    if (seen.has(p.id)) errors.push(error('E_DUPLICATE_ID', `Hay dos piezas con el id "${p.id}".`, { pieza: p.id }))
     seen.add(p.id)
     const perAxis = AXES.map((axis) => {
       try {

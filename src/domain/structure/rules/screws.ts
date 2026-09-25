@@ -35,8 +35,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
         const bite = length - ta
         if (bite <= tb - 3) continue
         found.push({
-          code: 'R3_TORNILLOS',
-          severity: 'critico',
+          code: 'R3_SCREWS',
+          severity: 'critical',
           pieces: [u.a, u.b],
           message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
           data: { union: u.id, largo: length, entra: roundTo(bite), espesor: tb },
@@ -49,8 +49,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           .filter((h) => h.largo && h.id.startsWith('tornillo-') && !h.id.includes('bolsillo') && h.largo - ta >= ASSUMPTIONS.screws.minPenetration)
           .sort((x, y) => x.largo! - y.largo!)[0]
         found.push({
-          code: 'R3_TORNILLOS',
-          severity: 'recomendacion',
+          code: 'R3_SCREWS',
+          severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `El ${t!.nombre.toLowerCase()} atraviesa ${a.name} (${ta} mm) y solo entra ${roundTo(bite)} mm en ${b.name}; conviene que entre al menos ${ASSUMPTIONS.screws.minPenetration} mm.`,
           data: { union: u.id, largo: length, entra: roundTo(bite) },
@@ -60,8 +60,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
         const longest = ASSUMPTIONS.screws.pocketScrews.find((f) => ta <= f.upTo)?.length
         if (longest === undefined || length <= longest + 0.5) continue
         found.push({
-          code: 'R3_TORNILLOS',
-          severity: 'recomendacion',
+          code: 'R3_SCREWS',
+          severity: 'recommendation',
           pieces: [u.a, u.b],
           message: `En ${a.name} de ${ta} mm, un tornillo de bolsillo de ${inches(length)} puede asomarse; para ese espesor va de ${inches(longest)}.`,
           data: { union: u.id, largo: length, maximo: longest },
@@ -74,8 +74,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
     const count = u.hardware.reduce((n, h) => n + (h.count ?? 2), 0)
     if (u.type === 'butt-screw' && !intoFace && joint > 0 && count >= 2 && joint < 2 * ASSUMPTIONS.screws.endDistance + 20)
       found.push({
-        code: 'R3_TORNILLOS',
-        severity: 'recomendacion',
+        code: 'R3_SCREWS',
+        severity: 'recommendation',
         pieces: [u.a, u.b],
         message: `La junta entre ${a.name} y ${b.name} mide ${roundTo(joint, 0)} mm: dos tornillos quedarían a menos de ${ASSUMPTIONS.screws.endDistance} mm del extremo y pueden rajar el canto.`,
         data: { union: u.id, junta: roundTo(joint, 0) },

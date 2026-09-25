@@ -28,8 +28,8 @@ export const rackingRule: Rule = ({ design, geo }) => {
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
   const height = Math.max(...sides.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
   const finding: Finding = {
-    code: 'R5_ESCUADRADO',
-    severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critico' : 'recomendacion',
+    code: 'R5_RACKING',
+    severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critical' : 'recommendation',
     pieces: sides,
     message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
     data: { alto: height, travesanosRigidos: rails.length },

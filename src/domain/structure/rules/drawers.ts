@@ -21,8 +21,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
     const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
-      code: 'R9_CAJONES',
-      severity: 'critico',
+      code: 'R9_DRAWERS',
+      severity: 'critical',
       pieces: [u.a, u.b],
       message:
         off < 0
@@ -41,8 +41,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const thickness = bottom && geo.thicknesses.get(bottom.id)
     if (bottom && bottomBox && thickness !== undefined && thickness < ASSUMPTIONS.drawers.minBottom && bottomBox.x1 - bottomBox.x0 > ASSUMPTIONS.drawers.thinBottomWidth)
       found.push({
-        code: 'R9_CAJONES',
-        severity: 'recomendacion',
+        code: 'R9_DRAWERS',
+        severity: 'recommendation',
         pieces: [bottom.id],
         message: `${bottom.name} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
         data: { espesor: thickness, ancho: Math.round(bottomBox.x1 - bottomBox.x0) },
@@ -54,8 +54,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const frontRubs = contacts.filter((c) => (c.a === front.id || c.b === front.id) && design.pieces.find((p) => p.id === (c.a === front.id ? c.b : c.a))?.group !== g)
     if (frontRubs.length)
       found.push({
-        code: 'R9_CAJONES',
-        severity: 'recomendacion',
+        code: 'R9_DRAWERS',
+        severity: 'recommendation',
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
         message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
         data: { toca: frontRubs.length },
@@ -67,8 +67,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     if (rubs.length) {
       const others = [...new Set(rubs.map((c) => (box.includes(c.a) ? c.b : c.a)))]
       found.push({
-        code: 'R9_CAJONES',
-        severity: 'recomendacion',
+        code: 'R9_DRAWERS',
+        severity: 'recommendation',
         pieces: [...new Set(rubs.map((c) => (box.includes(c.a) ? c.a : c.b))), ...others],
         message: `La caja de ${drawerName(design, g)} toca ${others.map((id) => design.pieces.find((p) => p.id === id)?.name ?? id).join(', ')}: va a rozar al abrir. Con correderas laterales la caja va separada de todo.`,
         data: { toca: others.length },
@@ -95,8 +95,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
     if (!support)
       return [
         {
-          code: 'R9_CAJONES',
-          severity: 'critico',
+          code: 'R9_DRAWERS',
+          severity: 'critical',
           pieces: [side.id],
           message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza a ${gap} mm de la caja.`,
           data: { lado, grupo: group },
@@ -106,8 +106,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
     if (Math.abs(support.distance - gap) <= ASSUMPTIONS.drawers.runnerTolerance) return []
     return [
       {
-        code: 'R9_CAJONES',
-        severity: 'critico',
+        code: 'R9_DRAWERS',
+        severity: 'critical',
         pieces: [side.id, support.piece.id],
         message:
           support.distance < gap
@@ -129,8 +129,8 @@ function floorClearance(design: Design, geo: Geometry): Finding[] {
     if (bottom >= ASSUMPTIONS.drawers.floorClearance) return []
     return [
       {
-        code: 'R9_CAJONES',
-        severity: 'critico',
+        code: 'R9_DRAWERS',
+        severity: 'critical',
         pieces: pieces.map((p) => p.id),
         message: `${drawerName(design, g).replace(/^./, (c) => c.toUpperCase())} llega al suelo (queda a ${roundTo(bottom)} mm): arrastraría al abrir. Deja al menos ${ASSUMPTIONS.drawers.floorClearance} mm abajo.`,
         data: { abajo: roundTo(bottom), grupo: g },

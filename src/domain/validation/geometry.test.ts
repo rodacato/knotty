@@ -26,7 +26,7 @@ describe('validateGeometry', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.push(makePiece({ id: 'divisor', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(mm(291)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }))
     d.joints.push(makeJoint('u-div-piso', 'divisor', 'piso', 'butt-screw'))
-    expect(codes(d)).toContain('E_TRASLAPE')
+    expect(codes(d)).toContain('E_OVERLAP')
   })
 
   it('lets a declared groove overlap', () => {
@@ -41,19 +41,19 @@ describe('validateGeometry', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.push(makePiece({ id: 'repisa-suelta', name: 'Repisa suelta', role: 'shelf', material: 'T18', normal: 'y', x: extent(mm(100), mm(400)), y: startAt(mm(900)), z: extent(mm(100), mm(200)) }))
     d.joints.push(makeJoint('u-suelta', 'repisa-suelta', 'lat-izq', 'butt-screw'))
-    expect(codes(d)).toEqual(expect.arrayContaining(['E_FLOTANTE', 'E_UNION_SIN_CONTACTO']))
+    expect(codes(d)).toEqual(expect.arrayContaining(['E_FLOATING', 'E_JOINT_WITHOUT_CONTACT']))
   })
 
   it('finds pieces outside the overall measures', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.find((p) => p.id === 'lat-izq')!.x = startAt(mm(-20))
-    expect(codes(d)).toContain('E_MEDIDA_GLOBAL')
+    expect(codes(d)).toContain('E_OVERALL_SIZE')
   })
 
   it('finds pieces larger than the usable sheet', () => {
     const d = structuredClone(exampleBookcase)
     d.dimensions.height = 2500
-    expect(codes(d)).toContain('E_NO_CABE_EN_HOJA')
+    expect(codes(d)).toContain('E_TOO_BIG_FOR_SHEET')
   })
 
   it('warns about touching pieces with no joint', () => {
