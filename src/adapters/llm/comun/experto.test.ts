@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { catalogo } from '../../../domain/fixtures/catalogo.test-util'
 import { librero } from '../../../domain/fixtures/librero'
-import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida } from '../../../ports/LLMProvider'
+import { RespuestaAjuste, RespuestaDictamen, RespuestaInvalida, RespuestaPlan } from '../../../ports/LLMProvider'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { esquemaEstricto } from './esquemaJson'
 import { crearExperto, type Contenido, type Transporte } from './experto'
@@ -15,7 +15,7 @@ function recorrer(nodo: unknown, visitar: (n: Record<string, unknown>) => void) 
 }
 
 describe('esquemaEstricto', () => {
-  it.each([RespuestaAjuste, RespuestaDictamen, PhotoReading])('deja un esquema aceptable para los modos estrictos', (tipo) => {
+  it.each([RespuestaAjuste, RespuestaDictamen, PhotoReading, RespuestaPlan])('deja un esquema aceptable para los modos estrictos', (tipo) => {
     recorrer(esquemaEstricto(tipo), (n) => {
       for (const prohibida of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(prohibida)
       if (n.type === 'object' && n.properties) {
@@ -95,6 +95,15 @@ describe('crearExperto', () => {
     await experto.reconstruir({ medidas: librero.dimensiones, fotos: [], notas: '', lectura, catalogo, correccion: null }, new AbortController().signal)
     expect(llamadas[0].contenido).toHaveLength(1)
     expect(llamadas[0].contenido[0]).toMatchObject({ texto: expect.stringContaining('No te mando las fotos: ya se leyeron') })
+  })
+
+  it('asks for the skeleton with its own short prompt and the board thicknesses of the catalog', async () => {
+    const { experto, llamadas } = falso({ explicacion: 'x', cabinet: null, preguntas: [], fotosSolicitadas: [], requisitos: [], sugerencias: [] })
+    const r = await experto.planDesign!({ medidas: null, fotos: [], notas: 'una cama', lectura: null, catalogo, correccion: null }, new AbortController().signal)
+    expect(r.valor.cabinet).toBeNull()
+    expect(r.origen.promptId).toBe('esqueleto@1')
+    expect(llamadas[0].sistema).toContain('"T18" (18 mm)')
+    expect(llamadas[0].sistema).not.toContain('{{materiales}}')
   })
 
   it('una respuesta que no cumple el esquema lanza RespuestaInvalida con los problemas', async () => {

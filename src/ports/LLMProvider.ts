@@ -6,6 +6,7 @@ import { Operacion } from '../domain/operaciones/esquema'
 import { Requisito } from '../domain/requisitos/requisitos'
 import { Pregunta } from '../domain/sesion/estado'
 import type { ErrorDiseno } from '../domain/validacion/errores'
+import { CabinetPlan } from '../domain/modules/cabinet'
 import type { PhotoReading } from '../domain/reading/reading'
 import { OpinionCarpintero, type Comprobacion } from '../domain/viabilidad/viabilidad'
 
@@ -48,6 +49,17 @@ export interface SolicitudDictamen {
   comprobaciones: Comprobacion[]
   catalogo: Catalogo
 }
+
+/** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
+export const RespuestaPlan = z.object({
+  explicacion: z.string().describe('Qué entendiste y qué decidiste, en 2–4 frases para la persona'),
+  cabinet: CabinetPlan.nullable().describe('El plan si el mueble es un gabinete (caja con columnas y huecos); null si no lo es'),
+  preguntas: z.array(Pregunta).describe('Lo que más cambia el diseño o la compra; máximo 3'),
+  fotosSolicitadas: z.array(z.object({ angulo: z.string(), motivo: z.string() })),
+  requisitos: z.array(Requisito),
+  sugerencias: z.array(z.string()).describe('3 o 4 cambios que la persona podría pedir enseguida, escritos como ella los pediría'),
+})
+export type RespuestaPlan = z.infer<typeof RespuestaPlan>
 
 export interface Foto {
   angulo: string
@@ -109,6 +121,8 @@ export interface LLMProvider {
   proponerAjuste(solicitud: SolicitudAjuste, signal: AbortSignal): Promise<Respuesta<RespuestaAjuste>>
   dictaminar(solicitud: SolicitudDictamen, signal: AbortSignal): Promise<Respuesta<RespuestaDictamen>>
   readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<Respuesta<PhotoReading>>
+  /** Null when the provider has no skeleton step: the full design is asked for directly. */
+  planDesign: ((request: SolicitudReconstruccion, signal: AbortSignal) => Promise<Respuesta<RespuestaPlan>>) | null
 }
 
 /** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */

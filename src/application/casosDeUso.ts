@@ -12,13 +12,15 @@ import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
+import { buildCabinet } from '../domain/modules/cabinet'
 import { repairDesign, type Repair } from '../domain/repair/repair'
+import { detectKind } from '../domain/typology/typology'
 import { mergeReadings, photoKey, type PhotoReading } from '../domain/reading/reading'
 import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry } from '../domain/trace/trace'
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { RespuestaInvalida, type Foto, type LLMProvider, type Respuesta, type RespuestaAjuste, type RespuestaReconstruccion } from '../ports/LLMProvider'
+import { RespuestaInvalida, type Foto, type LLMProvider, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
 
 export type Etapa = 'leyendo-fotos' | 'mirando-fotos' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
@@ -178,6 +180,52 @@ export function crearCasosDeUso(deps: Dependencias) {
     return mergeReadings(read.filter((r): r is NonNullable<typeof r> => !!r))
   }
 
+  /** Kinds that are not a box with columns: asking for a cabinet plan would only add a wasted call. */
+  const NOT_CABINETS = new Set(['bed', 'desk', 'table', 'bench'])
+
+  /** The skeleton path: if the expert says it is a cabinet, Knotty builds it. Null means: design it whole. */
+  async function designFromPlan(
+    entrada: { medidas: Dimensiones | null; fotos: Foto[]; miniaturas: Miniatura[]; notas: string },
+    fotos: Foto[],
+    lectura: PhotoReading | null,
+    signal: AbortSignal,
+    alAvanzar: AlAvanzar,
+    trace: TraceEntry[],
+  ): Promise<EstadoDiseno | null> {
+    const llm = deps.llm()
+    const hint = detectKind({ nombre: `${entrada.notas} ${lectura?.kind ?? ''}` })
+    if (!llm.planDesign || (hint && NOT_CABINETS.has(hint))) return null
+    alAvanzar('mirando-fotos', 0)
+    const started = Date.now()
+    let plan: Respuesta<RespuestaPlan>
+    try {
+      plan = await llm.planDesign({ medidas: entrada.medidas, fotos, notas: entrada.notas, lectura, catalogo, correccion: null }, signal)
+    } catch (e) {
+      if (signal.aborted) throw e
+      trace.push(traceEntry('plan', 0, started, null, e instanceof RespuestaInvalida ? 'unreadable' : 'failed', [{ code: 'E_PLAN', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }]))
+      return null
+    }
+    const cabinet = plan.valor.cabinet
+    if (!cabinet) {
+      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], 'No es un gabinete: se diseña pieza por pieza'))
+      return null
+    }
+    alAvanzar('revisando', 0)
+    const medidas = entrada.medidas ? { width: entrada.medidas.ancho, height: entrada.medidas.alto, depth: entrada.medidas.fondo } : cabinet.dimensions
+    const { design: built, notes } = buildCabinet({ ...cabinet, dimensions: medidas }, catalogo)
+    const { design, repairs } = repairDesign(built, catalogo, plan.valor.requisitos)
+    const analisis = analizar(design, catalogo, plan.valor.requisitos)
+    if (!analisis.valido) {
+      trace.push(traceEntry('plan', 0, started, plan, 'invalid', traceErrors(analisis.errores), repairs))
+      return null
+    }
+    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, `Gabinete de ${cabinet.columns.length} ${cabinet.columns.length === 1 ? 'columna' : 'columnas'}`))
+    alAvanzar('estructura', 0)
+    const { explicacion, preguntas, fotosSolicitadas, requisitos, sugerencias } = plan.valor
+    const r: RespuestaReconstruccion = { explicacion: [explicacion, ...notes].join('\n\n'), diseno: design, preguntas, fotosSolicitadas, requisitos, sugerencias }
+    return estadoInicial(entrada, design, r, { ...plan, valor: r }, [], repairs, trace)
+  }
+
   async function reconstruir(
     entrada: { medidas: Dimensiones | null; fotos: Foto[]; miniaturas: Miniatura[]; notas: string },
     signal: AbortSignal,
@@ -189,6 +237,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     const lectura = await readPhotos(entrada.fotos, entrada.notas, signal, alAvanzar, trace)
     // With a reading the photos are not sent again; if none could be read, the design looks at them itself.
     const fotosParaDiseno = lectura ? [] : entrada.fotos
+    const desdePlan = await designFromPlan(entrada, fotosParaDiseno, lectura, signal, alAvanzar, trace)
+    if (desdePlan) return guardar(desdePlan)
     // A design that resolves but did not pass validation: shown with its problems instead of thrown away.
     let lastCandidate: { diseno: Diseno; r: RespuestaReconstruccion; respuesta: Respuesta<RespuestaReconstruccion>; errores: ErrorDiseno[]; repairs: Repair[] } | null = null
     for (let intento = 0; intento < INTENTOS; intento++) {
