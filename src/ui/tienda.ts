@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { ErrorExperto, type Etapa, type FotoEnviada, type PieceEdit, type PieceEditResult } from '../application/casosDeUso'
+import type { Notice } from '../application/notices'
+import type { Fix } from '../domain/fixes/fixes'
 import type { CabinetPlan } from '../domain/modules/cabinet'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
@@ -89,6 +91,12 @@ interface Tienda {
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: CabinetPlan): { ok: true; notes: string[] } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
+  /** A solution shown in 3D before applying it. */
+  preview: { design: Diseno; label: string } | null
+  previewFix(fix: Fix | null): void
+  applyFix(fix: Fix): void
+  acceptNotice(notice: Notice): void
+  reopenNotice(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
   editPiece(id: string, edit: PieceEdit): PieceEditResult
@@ -144,6 +152,7 @@ export const useTienda = create<Tienda>((set, get) => ({
   boveda: 'sin-boveda',
   puertaCerrada: false,
   ajustesCatalogo: SIN_AJUSTES,
+  preview: null,
   dictaminando: null,
   errorDictamen: null,
 
@@ -303,6 +312,27 @@ export const useTienda = create<Tienda>((set, get) => ({
   quitarDecision(tema) {
     const { servicios, estado } = get()
     if (servicios && estado) set({ estado: servicios.casos.quitarDecision(estado, tema) })
+  },
+
+  previewFix: (fix) => set({ preview: fix ? { design: fix.design, label: fix.label } : null, versionVista: null }),
+
+  applyFix(fix) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return
+    const nuevo = servicios.casos.applyFix(estado, fix)
+    set((s) => ({ estado: nuevo, preview: null, versionVista: null, cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1) }))
+  },
+
+  acceptNotice(notice) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return
+    set({ estado: servicios.casos.acceptNotice(estado, notice.findings, notice.title) })
+  },
+
+  reopenNotice(notice) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return
+    set({ estado: servicios.casos.reopenNotice(estado, notice.findings) })
   },
 
   restoreFromVersion(n, ids) {
