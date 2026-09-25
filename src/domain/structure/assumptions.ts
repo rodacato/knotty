@@ -1,18 +1,18 @@
 import type { Carga, TipoUnion } from '../diseno/esquema'
 
-// Supuestos de ingeniería como datos, para calibrarlos sin tocar las reglas. Triplay de pino de Home Depot MX.
+// Engineering assumptions as data, to calibrate them without touching the rules. Pine plywood from Home Depot MX.
 
 export const ASSUMPTIONS = {
-  /** MPa, flexión del triplay de pino según la veta respecto al claro. Conservador; calibrar con una prueba casera. */
+  /** MPa, bending of pine plywood by grain against the span. Conservative; calibrate with a test at home. */
   elasticModulus: { parallel: 6000, perpendicular: 3500 },
-  /** La carga sostenida (libros meses y meses) aumenta la flecha. */
+  /** A load held for months (books) makes the sag grow. */
   creep: 1.5,
-  /** kg/m² sobre el entrepaño. */
+  /** kg/m² on the shelf. */
   loads: { ninguna: 0, ligera: 50, media: 100, pesada: 150 } satisfies Record<Carga, number>,
   gravity: 9.81,
-  /** La flecha se compara con claro / límite. */
+  /** Sag is compared with span / limit. */
   deflectionLimit: { recommended: 360, critical: 200 },
-  /** Alto a partir del cual un casco que se puede descuadrar es crítico. */
+  /** From this height up, a carcass that can rack is critical. */
   criticalRackingHeight: 600,
   joints: {
     'tope-tornillo': { b: 15, bCritical: 12 },
@@ -24,16 +24,16 @@ export const ASSUMPTIONS = {
     'bisagra-cazoleta': { a: 15 },
     'soporte-repisa': { b: 15 },
   } satisfies Partial<Record<TipoUnion, { a?: number; b?: number; bCritical?: number }>>,
-  /** Profundidad de canal o rebaje como fracción del espesor que la recibe. */
+  /** Depth of a groove or rabbet as a fraction of the thickness that takes it. */
   penetration: { recommended: 1 / 3, critical: 1 / 2 },
-  /** Hasta este espesor, una pieza solo se clava o va en canal o rebaje. */
+  /** Up to this thickness a piece is only nailed, or goes in a groove or rabbet. */
   nailOnlyThickness: 3,
   screws: {
-    /** Lo mínimo que el tornillo entra en la pieza que lo recibe. */
+    /** The least a screw goes into the piece that takes it. */
     minPenetration: 25,
-    /** Distancia mínima del tornillo al extremo de la junta, para no rajar el canto. */
+    /** The least distance from a screw to the end of the joint, so the edge does not split. */
     endDistance: 25,
-    /** Tornillo de bolsillo que no se asoma, según el espesor de la pieza con el bolsillo (tabla de Kreg). */
+    /** The pocket screw that does not poke out, by the thickness of the piece with the pocket (Kreg's table). */
     pocketScrews: [
       { upTo: 13, length: 25.4 },
       { upTo: 16, length: 25.4 },
@@ -42,13 +42,13 @@ export const ASSUMPTIONS = {
   },
   tipping: { recommendedRatio: 3, criticalRatio: 4, criticalHeight: 1200 },
   doors: { hinges: [{ upTo: 900, n: 2 }, { upTo: 1500, n: 3 }, { upTo: Infinity, n: 4 }], maxWidth: 600 },
-  /** Claro máximo de un piso sin apoyo intermedio cuando no descansa en el suelo. */
+  /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   drawers: {
-    /** Cuánto puede variar el hueco de la corredera respecto a lo que pide el fabricante. */
+    /** How far the runner gap may be from what the maker asks. */
     runnerTolerance: 1,
     minBottom: 6,
-    /** Arriba de este ancho, un fondo más delgado que el mínimo se vence. */
+    /** Past this width, a drawer bottom thinner than the minimum sags. */
     thinBottomWidth: 450,
     /** Minimum gap between a drawer and the ground, so it opens without dragging. */
     floorClearance: 10,

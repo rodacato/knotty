@@ -7,90 +7,90 @@ import { buro } from '../fixtures/buro'
 import { catalogo } from '../fixtures/catalogo.test-util'
 import { librero } from '../fixtures/librero'
 
-const hallazgos = (d: Diseno, codigo: string) => {
+const findings = (d: Diseno, codigo: string) => {
   const a = analizar(d, catalogo)
   if (!a.valido) throw new Error(JSON.stringify(a.errores))
   return a.hallazgos.filter((h) => h.code === codigo)
 }
 
-describe('R3 tornillos', () => {
-  it('pide un tornillo más largo si no entra 25 mm en la pieza que lo recibe', () => {
+describe('R3 screws', () => {
+  it('asks for a longer screw when it does not go 25 mm into the piece that takes it', () => {
     const d = structuredClone(librero)
     d.uniones = d.uniones.map((u) => (u.id === 'u-piso-izq' ? { ...u, herrajes: [{ herrajeId: 'tornillo-8x1-1/4', cantidad: null }] } : u))
-    const [h] = hallazgos(d, 'R3_TORNILLOS')
+    const [h] = findings(d, 'R3_TORNILLOS')
     expect(h).toMatchObject({ severity: 'recomendacion', data: { union: 'u-piso-izq' } })
     expect(h.alternatives[0].data.herrajeId).toBe('tornillo-8x2')
   })
 
-  it('avisa si el tornillo de bolsillo se asoma en triplay delgado', () => {
+  it('warns when a pocket screw pokes out of thin plywood', () => {
     const d = structuredClone(librero)
     d.piezas.find((p) => p.id === 'zoclo')!.material = 'T15'
-    expect(hallazgos(d, 'R3_TORNILLOS').map((h) => h.data.union)).toEqual(['u-zoclo-izq', 'u-zoclo-der'])
+    expect(findings(d, 'R3_TORNILLOS').map((h) => h.data.union)).toEqual(['u-zoclo-izq', 'u-zoclo-der'])
   })
 
-  it('avisa si dos tornillos quedan pegados al extremo de una junta corta', () => {
+  it('warns when two screws sit at the ends of a short joint', () => {
     const d = structuredClone(librero)
     const zoclo = d.piezas.find((p) => p.id === 'zoclo')!
     zoclo.y = extent(ref('mueble.y0'), null, 50)
     d.uniones = d.uniones.map((u) => (u.id === 'u-zoclo-izq' ? { ...u, a: 'lat-izq', b: 'zoclo', tipo: 'tope-tornillo', herrajes: [{ herrajeId: 'tornillo-8x2', cantidad: 2 }] } : u))
-    expect(hallazgos(d, 'R3_TORNILLOS').some((h) => h.data.junta === 50)).toBe(true)
+    expect(findings(d, 'R3_TORNILLOS').some((h) => h.data.junta === 50)).toBe(true)
   })
 })
 
-describe('R4 vuelco', () => {
-  it('un librero alto sin anclaje es crítico; anclado, nada', () => {
-    expect(hallazgos({ ...librero, anclajeMuro: false }, 'R4_VUELCO')[0].severity).toBe('critico')
-    expect(hallazgos(librero, 'R4_VUELCO')).toEqual([])
+describe('R4 tipping', () => {
+  it('a tall bookcase without anchoring is critical; anchored, nothing', () => {
+    expect(findings({ ...librero, anclajeMuro: false }, 'R4_VUELCO')[0].severity).toBe('critico')
+    expect(findings(librero, 'R4_VUELCO')).toEqual([])
   })
 
-  it('uno más bajo es recomendación', () => {
+  it('a lower one is a recommendation', () => {
     const bajo = { ...librero, anclajeMuro: false, dimensiones: { ...librero.dimensiones, alto: 1000 } }
-    expect(hallazgos(bajo, 'R4_VUELCO')[0].severity).toBe('recomendacion')
+    expect(findings(bajo, 'R4_VUELCO')[0].severity).toBe('recomendacion')
   })
 })
 
-describe('R6 puertas', () => {
-  it('una puerta alta con dos bisagras pide más', () => {
+describe('R6 doors', () => {
+  it('a tall door with two hinges asks for more', () => {
     const alta = { ...alacena, dimensiones: { ...alacena.dimensiones, alto: 1600 } }
-    const r6 = hallazgos(alta, 'R6_PUERTAS')
+    const r6 = findings(alta, 'R6_PUERTAS')
     expect(r6.map((h) => [h.pieces[0], h.severity, h.data.necesarias])).toEqual([
       ['puerta-izq', 'critico', 4],
       ['puerta-der', 'critico', 4],
     ])
   })
 
-  it('una puerta de más de 60 cm sugiere dividirla', () => {
+  it('a door wider than 60 cm suggests splitting it', () => {
     const ancha = { ...buro, dimensiones: { ...buro.dimensiones, ancho: 700 } }
-    expect(hallazgos(ancha, 'R6_PUERTAS').map((h) => h.alternatives[0].key)).toEqual(['dos-puertas'])
+    expect(findings(ancha, 'R6_PUERTAS').map((h) => h.alternatives[0].key)).toEqual(['dos-puertas'])
   })
 })
 
 describe('R7 base', () => {
-  it('un piso elevado sin zoclo y con claro largo pide apoyo; con zoclo corrido no', () => {
+  it('a raised floor without a kick over a long span asks for support; with a full kick it does not', () => {
     const d = { ...structuredClone(librero), dimensiones: { ...librero.dimensiones, ancho: 1000 } }
-    expect(hallazgos(d, 'R7_BASE')).toEqual([])
+    expect(findings(d, 'R7_BASE')).toEqual([])
     d.piezas = d.piezas.filter((p) => p.id !== 'zoclo')
     d.uniones = d.uniones.filter((u) => u.a !== 'zoclo' && u.b !== 'zoclo')
     d.piezas.find((p) => p.id === 'piso')!.y = { desde: mm(70), hasta: null, largo: null }
-    expect(hallazgos(d, 'R7_BASE').map((h) => h.data.claro)).toEqual([964])
+    expect(findings(d, 'R7_BASE').map((h) => h.data.claro)).toEqual([964])
   })
 })
 
-describe('R8 veta', () => {
-  it('marca como detalle la veta a lo ancho en piezas largas', () => {
+describe('R8 grain', () => {
+  it('marks grain across long pieces as a detail', () => {
     const d = structuredClone(librero)
     d.piezas.find((p) => p.id === 'lat-izq')!.veta = 'ancho'
-    expect(hallazgos(d, 'R8_VETA').map((h) => [h.pieces[0], h.severity])).toEqual([['lat-izq', 'detalle']])
+    expect(findings(d, 'R8_VETA').map((h) => [h.pieces[0], h.severity])).toEqual([['lat-izq', 'detalle']])
   })
 })
 
 describe('fixtures', () => {
-  it('Librero no tiene observaciones', () => {
+  it('the bookcase has nothing to report', () => {
     const a = analizar(librero, catalogo)
     expect(a.valido && a.hallazgos).toEqual([])
   })
 
-  it('Alacena de pared solo recomienda el listón para colgarla', () => {
+  it('the wall cabinet only recommends the hanging rail', () => {
     const a = analizar(alacena, catalogo)
     expect(a.valido && a.hallazgos.map((h) => [h.code, h.severity, h.alternatives[0]?.key])).toEqual([['R10_USO', 'recomendacion', 'liston-colgar']])
   })

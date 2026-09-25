@@ -4,93 +4,95 @@ import type { Catalogo } from '../../materiales/catalogo'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
-const NOMBRE_CARGA: Record<Carga, string> = { ninguna: 'sin carga', ligera: 'carga ligera', media: 'carga media', pesada: 'libros' }
+// R1: how much a horizontal piece sags between its supports under its load.
 
-/** Viga simplemente apoyada con carga uniforme: δ = 5·w·L⁴ / (384·E·I) × fluencia. En mm. */
-export function deflection(claro: number, fondo: number, espesor: number, carga: Carga, moduloE: number) {
-  const w = (ASSUMPTIONS.loads[carga] * ASSUMPTIONS.gravity * fondo) / 1e6
-  const inercia = (fondo * espesor ** 3) / 12
-  return ((5 * w * claro ** 4) / (384 * moduloE * inercia)) * ASSUMPTIONS.creep
+const LOAD_NAME: Record<Carga, string> = { ninguna: 'sin carga', ligera: 'carga ligera', media: 'carga media', pesada: 'libros' }
+
+/** Simply supported beam under a uniform load: δ = 5·w·L⁴ / (384·E·I) × creep. In mm. */
+export function deflection(span: number, depth: number, thickness: number, load: Carga, modulus: number) {
+  const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
+  const inertia = (depth * thickness ** 3) / 12
+  return ((5 * w * span ** 4) / (384 * modulus * inertia)) * ASSUMPTIONS.creep
 }
 
-/** El claro más largo con el que la flecha no pasa de claro / límite recomendado. */
-export function maxSpan(fondo: number, espesor: number, carga: Carga, moduloE: number) {
-  const w = (ASSUMPTIONS.loads[carga] * ASSUMPTIONS.gravity * fondo) / 1e6
-  const inercia = (fondo * espesor ** 3) / 12
-  return Math.cbrt((384 * moduloE * inercia) / (5 * w * ASSUMPTIONS.creep * ASSUMPTIONS.deflectionLimit.recommended))
+/** The longest span whose sag stays within span / the recommended limit. */
+export function maxSpan(depth: number, thickness: number, load: Carga, modulus: number) {
+  const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
+  const inertia = (depth * thickness ** 3) / 12
+  return Math.cbrt((384 * modulus * inertia) / (5 * w * ASSUMPTIONS.creep * ASSUMPTIONS.deflectionLimit.recommended))
 }
 
-export function deflectionSeverity(delta: number, claro: number): Severity | null {
-  if (delta > claro / ASSUMPTIONS.deflectionLimit.critical) return 'critico'
-  if (delta > claro / ASSUMPTIONS.deflectionLimit.recommended) return 'recomendacion'
+export function deflectionSeverity(delta: number, span: number): Severity | null {
+  if (delta > span / ASSUMPTIONS.deflectionLimit.critical) return 'critico'
+  if (delta > span / ASSUMPTIONS.deflectionLimit.recommended) return 'recomendacion'
   return null
 }
 
-function moduloSegunVeta(p: Pieza, caja: Box) {
-  const ladoLargoEsX = caja.x1 - caja.x0 >= caja.z1 - caja.z0
-  const vetaEnX = p.veta === 'largo' ? ladoLargoEsX : p.veta === 'ancho' ? !ladoLargoEsX : false
-  return vetaEnX ? ASSUMPTIONS.elasticModulus.parallel : ASSUMPTIONS.elasticModulus.perpendicular
+function modulusByGrain(p: Pieza, box: Box) {
+  const longSideIsX = box.x1 - box.x0 >= box.z1 - box.z0
+  const grainAlongX = p.veta === 'largo' ? longSideIsX : p.veta === 'ancho' ? !longSideIsX : false
+  return grainAlongX ? ASSUMPTIONS.elasticModulus.parallel : ASSUMPTIONS.elasticModulus.perpendicular
 }
 
-/** El claro libre más largo entre apoyos verticales: los que tocan sus extremos o la sostienen desde abajo. */
-export function freeSpan(id: string, caja: Box, ctx: Parameters<Rule>[0]) {
-  const apoyos = ctx.contacts
+/** The longest free span between upright supports: those touching its ends or holding it from below. */
+export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
+  const supports = ctx.contacts
     .filter((c) => c.a === id || c.b === id)
     .map((c) => (c.a === id ? c.b : c.a))
-    .filter((otro) => {
-      const pieza = ctx.design.piezas.find((p) => p.id === otro)
-      const o = ctx.geo.boxes.get(otro)
-      if (!pieza || !o || pieza.normal !== 'x' || pieza.rol === 'puerta') return false
-      return Math.abs(o.x1 - caja.x0) <= 0.5 || Math.abs(o.x0 - caja.x1) <= 0.5 || Math.abs(o.y1 - caja.y0) <= 0.5
+    .filter((other) => {
+      const piece = ctx.design.piezas.find((p) => p.id === other)
+      const o = ctx.geo.boxes.get(other)
+      if (!piece || !o || piece.normal !== 'x' || piece.rol === 'puerta') return false
+      return Math.abs(o.x1 - box.x0) <= 0.5 || Math.abs(o.x0 - box.x1) <= 0.5 || Math.abs(o.y1 - box.y0) <= 0.5
     })
-    .map((otro) => ctx.geo.boxes.get(otro)!)
+    .map((other) => ctx.geo.boxes.get(other)!)
     .sort((a, b) => a.x0 - b.x0)
-  if (apoyos.length < 2) return null
-  let claro = 0
-  for (let i = 1; i < apoyos.length; i++) claro = Math.max(claro, apoyos[i].x0 - Math.max(...apoyos.slice(0, i).map((a) => a.x1)))
-  return claro > 0 ? claro : null
+  if (supports.length < 2) return null
+  let span = 0
+  for (let i = 1; i < supports.length; i++) span = Math.max(span, supports[i].x0 - Math.max(...supports.slice(0, i).map((a) => a.x1)))
+  return span > 0 ? span : null
 }
 
-function alternativas(p: Pieza, claro: number, fondo: number, espesor: number, carga: Carga, moduloE: number, catalogo: Catalogo): Alternative[] {
-  const lista: Alternative[] = []
-  const siguiente = catalogo.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > espesor).sort((a, b) => a.espesor - b.espesor)[0]
-  if (siguiente)
-    lista.push({
+function alternatives(p: Pieza, span: number, depth: number, thickness: number, load: Carga, modulus: number, catalog: Catalogo): Alternative[] {
+  const list: Alternative[] = []
+  const thicker = catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > thickness).sort((a, b) => a.espesor - b.espesor)[0]
+  if (thicker)
+    list.push({
       key: 'subir-espesor',
-      description: `Subir a ${siguiente.nombre}`,
-      data: { material: siguiente.id, flecha: roundTo(deflection(claro, fondo, siguiente.espesor, carga, moduloE)) },
+      description: `Subir a ${thicker.nombre}`,
+      data: { material: thicker.id, flecha: roundTo(deflection(span, depth, thicker.espesor, load, modulus)) },
     })
-  const mitad = (claro - espesor) / 2
-  lista.push({
+  const half = (span - thickness) / 2
+  list.push({
     key: 'divisor-al-centro',
     description: p.rol === 'piso' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
-    data: { claro: roundTo(mitad, 0), flecha: roundTo(deflection(mitad, fondo, espesor, carga, moduloE)) },
+    data: { claro: roundTo(half, 0), flecha: roundTo(deflection(half, depth, thickness, load, modulus)) },
   })
-  lista.push({ key: 'claro-maximo', description: `Claro máximo con ${espesor} mm`, data: { claro: roundTo(maxSpan(fondo, espesor, carga, moduloE), 0) } })
-  return lista
+  list.push({ key: 'claro-maximo', description: `Claro máximo con ${thickness} mm`, data: { claro: roundTo(maxSpan(depth, thickness, load, modulus), 0) } })
+  return list
 }
 
 export const deflectionRule: Rule = (ctx) =>
   ctx.design.piezas.flatMap((p): Finding[] => {
-    const caja = ctx.geo.boxes.get(p.id)
-    const espesor = ctx.geo.thicknesses.get(p.id)
-    if (!caja || !espesor || p.normal !== 'y' || p.carga === 'ninguna') return []
-    const claro = freeSpan(p.id, caja, ctx)
-    if (!claro) return []
-    const fondo = caja.z1 - caja.z0
-    const moduloE = moduloSegunVeta(p, caja)
-    const delta = deflection(claro, fondo, espesor, p.carga, moduloE)
-    const severidad = deflectionSeverity(delta, claro)
-    if (!severidad) return []
-    const limite = claro / ASSUMPTIONS.deflectionLimit.recommended
+    const box = ctx.geo.boxes.get(p.id)
+    const thickness = ctx.geo.thicknesses.get(p.id)
+    if (!box || !thickness || p.normal !== 'y' || p.carga === 'ninguna') return []
+    const span = freeSpan(p.id, box, ctx)
+    if (!span) return []
+    const depth = box.z1 - box.z0
+    const modulus = modulusByGrain(p, box)
+    const delta = deflection(span, depth, thickness, p.carga, modulus)
+    const severity = deflectionSeverity(delta, span)
+    if (!severity) return []
+    const limit = span / ASSUMPTIONS.deflectionLimit.recommended
     return [
       {
         code: 'R1_FLECHA',
-        severity: severidad,
+        severity,
         pieces: [p.id],
-        message: `${p.nombre} se pandearía ~${roundTo(delta)} mm con ${NOMBRE_CARGA[p.carga]} en un claro de ${roundTo(claro, 0)} mm (lo aceptable es hasta ${roundTo(limite)} mm).`,
-        data: { claro: roundTo(claro, 0), fondo: roundTo(fondo, 0), espesor, carga: p.carga, flecha: roundTo(delta), limite: roundTo(limite), moduloE },
-        alternatives: alternativas(p, claro, fondo, espesor, p.carga, moduloE, ctx.catalog),
+        message: `${p.nombre} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.carga]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
+        data: { claro: roundTo(span, 0), fondo: roundTo(depth, 0), espesor: thickness, carga: p.carga, flecha: roundTo(delta), limite: roundTo(limit), moduloE: modulus },
+        alternatives: alternatives(p, span, depth, thickness, p.carga, modulus, ctx.catalog),
       },
     ]
   })
