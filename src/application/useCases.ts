@@ -26,7 +26,7 @@ import { worst, reviewViability, type Check } from '../domain/viability/viabilit
 import { toggleInTray, trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../ports/LLMProvider'
-import { buildContext } from './context'
+import { buildContext, describeAlternatives } from './context'
 
 export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
 export type OnProgress = (stage: Stage, attempt: number, progress?: { done: number; total: number }) => void
@@ -60,7 +60,7 @@ function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; n
 
 /** If the expert offered no options for a critical finding, the rules' alternatives are offered, those Knotty can build first. */
 function questionFromAlternatives(criticals: Finding[], design: Design, catalog: Catalog): Pick<Message, 'questions' | 'solutions'> {
-  const alternatives = criticals.flatMap((h) => h.alternatives.filter((a) => a.key !== 'max-span'))
+  const alternatives = criticals.flatMap((h) => h.alternatives)
   const built = [...new Set(alternatives.map((a) => a.key))].flatMap((key) => fixForAlternative(design, catalog, criticals, key) ?? [])
   const options = [...new Set([...built.map((f) => f.label), ...alternatives.map((a) => a.description)])].slice(0, 3)
   if (!options.length) return { questions: [], solutions: [] }
@@ -558,7 +558,7 @@ export function createUseCases(deps: Dependencies) {
             previousResponse: r,
             errors: [
               'The change is valid but leaves these new critical structural problems:',
-              ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`),
+              ...criticals.map((h) => `- ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${describeAlternatives(h)}`),
               'If the fix is clear, include it in the operations. If there is a choice to make, keep the requested operations and offer the options in questions.',
             ].join('\n'),
           }

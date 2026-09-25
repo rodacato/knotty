@@ -322,6 +322,8 @@ describe('buildContext', () => {
     const state = c.applyProposal(await c.adjust(await initialBookcase(c), 'Hazlo de 90 cm de ancho', newSignal()))
     const text = buildContext(state, testCatalog)
     for (const part of ['## Current design (v2)', 'side-right: 882–900', 'R1_SAG', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Person: Hazlo de 90 cm']) expect(text).toContain(part)
+    // The longest span of a sagging board still reaches the expert, after its ways out.
+    expect(text).toMatch(/R1_SAG .*Alternatives: .*; Claro máximo con \d+ mm \{"span":\d+\}/)
   })
 })
 

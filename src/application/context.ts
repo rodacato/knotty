@@ -3,6 +3,7 @@ import { roundTo } from '../domain/design/resolve'
 import { compactLog } from '../domain/history/history'
 import type { Catalog } from '../domain/materials/catalog'
 import { currentVersion, type DesignState } from '../domain/session/state'
+import type { Finding } from '../domain/structure/finding'
 
 // Sent with every change: more context costs more and distracts the expert.
 const TOKEN_BUDGET = 12_000
@@ -10,6 +11,13 @@ const RECENT_MESSAGES = 6
 const tokens = (text: string) => Math.ceil(text.length / 3.5)
 
 /** What the expert needs for a change, from the most stable to the most volatile; if it does not fit, the least needed is cut. */
+/** A finding's ways out as the expert reads them; the longest span a sagging board takes goes last, as one more fact to work with. */
+export function describeAlternatives(h: Finding) {
+  const lines = h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`)
+  if (typeof h.data.maxSpan === 'number') lines.push(`Claro máximo con ${h.data.thickness} mm ${JSON.stringify({ span: h.data.maxSpan })}`)
+  return lines.join('; ')
+}
+
 export function buildContext(state: DesignState, catalog: Catalog): string {
   const version = currentVersion(state)
   const design = version.design
@@ -24,7 +32,7 @@ export function buildContext(state: DesignState, catalog: Catalog): string {
       '',
       '## Structural review',
       ...(analysis.findings.length
-        ? analysis.findings.map((h) => `- [${h.severity}] ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${h.alternatives.map((a) => `${a.description} ${JSON.stringify(a.data)}`).join('; ')}`)
+        ? analysis.findings.map((h) => `- [${h.severity}] ${h.code} ${h.pieces.join(', ')}: ${h.message} Alternatives: ${describeAlternatives(h)}`)
         : ['No findings.']),
     )
   } else fixed.push('', '## Errors in the current design', ...analysis.errors.map((e) => `- ${e.code}: ${e.message}`))

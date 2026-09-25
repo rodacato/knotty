@@ -53,7 +53,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
     return fixesForNotice(design, catalog, notice.findings).map((f) => (count(f) > 1 && perPiece.has(f.key) ? { ...f, label: `${general(f)} (${count(f)} piezas)` } : f))
   }, [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
-  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => a.key !== 'max-span' && !built.has(a.key)).map((a) => [a.description, a])).values()]
+  const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternatives).filter((a) => !built.has(a.key)).map((a) => [a.description, a])).values()]
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
   const inTray = state.tray.find((t) => t.id === noticeItemId(notice.key))
   const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]
