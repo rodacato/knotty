@@ -6,6 +6,7 @@ import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
 import { useServicios } from '../servicios'
 import { TomarFoto } from '../sistema/TomarFoto'
 import { useTienda } from '../tienda'
+import { ChangeList } from './ChangeList'
 
 const ETAPAS: Record<Etapa, string> = {
   'leyendo-fotos': 'Mirando la foto…',
@@ -113,6 +114,11 @@ function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; 
       <div className="animate-aparecer ml-10 flex flex-col items-end gap-1.5 self-end">
         {m.miniatura && <img src={m.miniatura} alt="Foto enviada" className="h-24 rounded-xl border border-linea object-cover shadow-sm" />}
         <div className="rounded-2xl rounded-br-md bg-grafito px-4 py-2.5 text-[15px] leading-snug whitespace-pre-line text-hueso shadow-sm">{m.texto}</div>
+        {m.version && (
+          <div className="w-full max-w-sm">
+            <ChangeList estado={estado} version={m.version} />
+          </div>
+        )}
       </div>
     )
 
@@ -155,6 +161,15 @@ function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; 
       {pendiente && (
         <div className="rounded-2xl border border-oxido/25 bg-kraft/60 p-3">
           <p className="mb-2 text-xs font-medium tracking-wide text-grafito-2 uppercase">Propuesta sin aplicar</p>
+          {estado.propuesta!.holds.length > 0 && (
+            <ul className="mb-2 flex flex-col gap-1.5">
+              {estado.propuesta!.holds.map((h) => (
+                <li key={h} className="flex items-start gap-2 text-sm">
+                  <Warning className="mt-0.5 shrink-0 text-ambar" weight="bold" /> {h}
+                </li>
+              ))}
+            </ul>
+          )}
           <ul className="flex flex-col gap-2">
             {agrupar(estado.propuesta!.criticos).map(({ primero, mas }, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
@@ -171,14 +186,16 @@ function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; 
               {verPropuesta ? <EyeSlash /> : <Eye />} {verPropuesta ? 'Ver el actual' : 'Ver propuesta'}
             </Boton>
             <Boton variante="fantasma" className="min-h-9 text-xs" onClick={aplicarPropuesta} disabled={pensando}>
-              Aplicar así, bajo mi riesgo
+              {estado.propuesta!.criticos.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
             </Boton>
             <Boton variante="fantasma" className="min-h-9 text-xs" onClick={descartarPropuesta} disabled={pensando}>
-              <ArrowCounterClockwise /> Descartar
+              <ArrowCounterClockwise /> {estado.propuesta!.criticos.length ? 'Descartar' : 'No, déjalo como estaba'}
             </Boton>
           </div>
         </div>
       )}
+
+      {m.version && !pendiente && <ChangeList estado={estado} version={m.version} />}
 
       {m.fotosPedidas.map((f) => (
         <FotoPedida key={f.angulo} angulo={f.angulo} motivo={f.motivo} mensaje={m} />

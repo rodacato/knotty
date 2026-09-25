@@ -12,6 +12,7 @@ import { aplicar } from '../domain/operaciones/aplicar'
 import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
+import { describeChange, restorePieces } from '../domain/changes/changes'
 import { buildCabinet, CabinetPlan } from '../domain/modules/cabinet'
 import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
@@ -89,6 +90,11 @@ export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; e
 /** A free-form change on a design that has a plan keeps the plan and joins its extras. */
 const layered = (vigente: ReturnType<typeof currentPlan>, operaciones: Operacion[]) =>
   vigente.plan && !vigente.diverged ? { plan: vigente.plan, extras: [...vigente.extras, ...operaciones] } : { plan: null, extras: [] }
+
+/** Pieces that hold the furniture up: the expert does not take them away unasked. */
+const STRUCTURAL = new Set(['lateral', 'piso', 'techo', 'divisor', 'trasera', 'zoclo', 'faja', 'refuerzo'])
+/** The request itself asks to take something away. */
+const ASKS_REMOVAL = /\b(quit|elimin|sac|borr|remuev|remov|sin )/i
 
 /** A cota tied to an outer face of the piece of furniture. */
 const toOutside = (cota: Cota | null) => cota?.tipo === 'ref' && cota.ref.startsWith('mueble.')
@@ -433,6 +439,7 @@ export function crearCasosDeUso(deps: Dependencias) {
           origen: respuesta.origen,
           plan: r.plan!,
           extras,
+          holds: [],
         }
         const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
         return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
@@ -492,6 +499,28 @@ export function crearCasosDeUso(deps: Dependencias) {
         const quedan = analisis.valido ? [] : [`Todavía quedan ${describeProblems(traceErrors(analisis.errores))}; pídeme que las corrija.`]
 
         alAvanzar('estructura', intento)
+        // Nothing that holds the piece up goes away unasked, and changes wait for the answers to the expert's own questions.
+        const unasked = describeChange(diseno, nuevo, catalogo).direct.filter((c) => c.kind === 'removed' && STRUCTURAL.has(diseno.piezas.find((p) => p.id === c.id)?.rol ?? ''))
+        const holds = [
+          ...(unasked.length && !ASKS_REMOVAL.test(peticion) ? [`Quiere quitar ${unasked.map((c) => c.name).join(', ')}, que sostienen el mueble y no pediste quitar.`] : []),
+          ...(r.preguntas.length ? ['Hizo preguntas: el cambio espera tus respuestas.'] : []),
+        ]
+        if (holds.length) {
+          const propuesta = {
+            diseno: nuevo,
+            operaciones: r.operaciones,
+            resumen: r.resumen,
+            motivo: peticion,
+            criticos: [],
+            requisitos,
+            decisiones: r.decisiones,
+            origen: respuesta.origen,
+            ...layered(vigentePlan, r.operaciones),
+            holds,
+          }
+          const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
+          return responder(r.explicacion, { preguntas: r.preguntas, propuesta: 'pendiente', sugerencias }, pendiente)
+        }
         const aceptados = new Set(r.aceptaRiesgo.map((a) => a.codigo))
         const criticos = criticosNuevos(antes, hallazgosNuevos).filter((h) => !aceptados.has(h.codigo))
         if (criticos.length && !criticosRevisados && !r.preguntas.length) {
@@ -519,6 +548,7 @@ export function crearCasosDeUso(deps: Dependencias) {
             decisiones: r.decisiones,
             origen: respuesta.origen,
             ...layered(vigentePlan, r.operaciones),
+            holds: [],
           }
           const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
           return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
@@ -617,7 +647,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const summary = changes.length ? changes.join(', ') : 'sin cambios'
     const extras = (vigente.diverged ? [] : vigente.extras).filter((e) => !dropped.includes(e))
     const withVersion = conVersion(estado, design, { resumen: `Ficha: ${summary}`.slice(0, 90), motivo: `Desde la ficha: ${summary}`, operaciones: [], origen: null, plan: parsed.data, extras })
-    const chat = [...withVersion.chat, mensaje('usuario', `Cambié desde la ficha: ${summary}.`)]
+    const chat = [...withVersion.chat, mensaje('usuario', `Cambié desde la ficha: ${summary}.`, { version: withVersion.actual })]
     return { ok: true, estado: guardar({ ...withVersion, medidas: design.dimensiones, chat }), notes }
   }
 
@@ -655,7 +685,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     if (candidate && holds) {
       const vigente = currentPlan(estado)
       const withVersion = conVersion(estado, candidate, { resumen: summary.slice(0, 90), motivo: `A mano: ${summary}`, operaciones, origen: null, ...layered(vigente, operaciones) })
-      return { ok: true, estado: guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`)] }) }
+      return { ok: true, estado: guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`, { version: withVersion.actual })] }) }
     }
     const reason = !applied.ok ? applied.errores[0]?.mensaje : after && !after.valido ? after.errores.find((e) => !before.has(errorKey(e)))?.mensaje : undefined
     const named = (text = '') => design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
@@ -684,7 +714,48 @@ export function crearCasosDeUso(deps: Dependencias) {
     const dimension = DIMENSION_DE_EJE[axis]
     const summary = `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)} del mueble a ${value} mm`
     const withVersion = conVersion(estado, candidate, { resumen: summary, motivo: `A mano: ${summary}`, operaciones, origen: null })
-    return { ok: true, estado: guardar({ ...withVersion, medidas: candidate.dimensiones, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`)] }) }
+    return { ok: true, estado: guardar({ ...withVersion, medidas: candidate.dimensiones, chat: [...withVersion.chat, mensaje('usuario', `Cambié a mano: ${summary}.`, { version: withVersion.actual })] }) }
+  }
+
+  /** The version a given one was made from: the one just before it in the timeline. */
+  const previousOf = (estado: EstadoDiseno, n: number) => {
+    const ordered = [...estado.versiones].sort((a, b) => a.n - b.n)
+    const i = ordered.findIndex((v) => v.n === n)
+    return i > 0 ? ordered[i - 1] : null
+  }
+
+  /** Brings pieces back to how they were before version `n`, keeping everything that came after. */
+  function restoreFromVersion(estado: EstadoDiseno, n: number, ids: string[]): { ok: true; estado: EstadoDiseno } | { ok: false; message: string } {
+    const before = previousOf(estado, n)
+    if (!before || !ids.length) return { ok: false, message: 'No hay una versión anterior de dónde regresar.' }
+    const current = disenoActual(estado)
+    const r = restorePieces(current, before.diseno, ids, catalogo)
+    const named = (text = '') => current.piezas.concat(before.diseno.piezas).reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), text)
+    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(r.errors[0]?.mensaje) || 'choca con lo que cambió después'}` }
+    const previousErrors = analizar(current, catalogo, estado.requisitos)
+    const known = new Set(previousErrors.valido ? [] : previousErrors.errores.map(errorKey))
+    const after = analizar(r.design, catalogo, estado.requisitos)
+    if (!after.valido && !after.errores.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(after.errores.find((e) => !known.has(errorKey(e)))?.mensaje)}` }
+    const names = ids.map((id) => before.diseno.piezas.find((p) => p.id === id)?.nombre ?? current.piezas.find((p) => p.id === id)?.nombre ?? id)
+    const summary = `Regresar ${names.join(', ')}`
+    const operaciones: Operacion[] = ids.flatMap((id): Operacion[] => {
+      const was = before.diseno.piezas.find((p) => p.id === id)
+      const now = current.piezas.some((p) => p.id === id)
+      if (!was) return [{ op: 'eliminarPieza', id }]
+      return [...(now ? [{ op: 'eliminarPieza' as const, id }] : []), { op: 'agregarPieza' as const, pieza: was }]
+    })
+    const withVersion = conVersion(estado, r.design, { resumen: summary.slice(0, 90), motivo: `${summary} como ${names.length === 1 ? 'estaba' : 'estaban'} antes de la v${n}`, operaciones, origen: null, ...layered(currentPlan(estado), operaciones) })
+    return { ok: true, estado: guardar({ ...withVersion, chat: [...withVersion.chat, mensaje('usuario', `Regresé ${names.join(', ')} como ${names.length === 1 ? 'estaba' : 'estaban'} antes de la v${n}.`, { version: withVersion.actual })] }) }
+  }
+
+  /** Undoes one change: the last one exactly; an older one by bringing back what it touched. */
+  function undoChange(estado: EstadoDiseno, n: number): { ok: true; estado: EstadoDiseno } | { ok: false; message: string } {
+    const before = previousOf(estado, n)
+    if (!before) return { ok: false, message: 'Es la primera versión: no hay nada antes.' }
+    if (n === estado.actual) return { ok: true, estado: volverAVersion(estado, before.n) }
+    const version = estado.versiones.find((v) => v.n === n)!
+    const ids = describeChange(before.diseno, version.diseno, catalogo).direct.map((c) => c.id)
+    return restoreFromVersion(estado, n, ids)
   }
 
   function nuevoDiseno() {
@@ -740,6 +811,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     dictaminar,
     guardarDictamen,
     applyPlan,
+    restoreFromVersion,
+    undoChange,
     editPiece,
     resizeFurniture,
     cargar,

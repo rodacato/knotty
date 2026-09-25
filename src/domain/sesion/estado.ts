@@ -68,6 +68,8 @@ export const Propuesta = z.object({
   /** The plan and extras the proposed design comes from, so applying it keeps the ficha alive. */
   plan: CabinetPlan.nullable().default(null),
   extras: z.array(Operacion).default([]),
+  /** Why it waits for the person besides critical problems: structure removed that was not asked for, open questions. */
+  holds: z.array(z.string()).default([]),
 })
 export type Propuesta = z.infer<typeof Propuesta>
 
