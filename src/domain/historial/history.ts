@@ -7,7 +7,7 @@ export const Origin = z.object({ promptId: z.string(), provider: z.string(), mod
 export type Origin = z.infer<typeof Origin>
 
 export const Decision = z.object({
-  topic: z.string().min(1).describe('Short key: "trasera", "espesor-entrepanos"'),
+  topic: z.string().min(1).describe('Short key: "back", "shelf-thickness"'),
   text: z.string().min(1).describe('The decision and its reason, in one line, in Spanish'),
 })
 export type Decision = z.infer<typeof Decision>

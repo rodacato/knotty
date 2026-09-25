@@ -34,7 +34,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(4)
+    expect(migrated.data?.format).toBe(5)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -64,6 +64,7 @@ describe('migrateState', () => {
     expect(design.pieces.map((p) => p.id)).toEqual(before.piezas.map((p) => p.id))
     expect(design.joints.map((u) => u.id)).toEqual(before.uniones.map((u) => u.id))
     expect(design.dimensions).toEqual({ width: before.dimensiones.ancho, height: before.dimensiones.alto, depth: before.dimensiones.fondo })
+    expect(JSON.stringify([state.versions, state.proposal])).not.toContain('mueble.')
     const analysis = analyze(design, testCatalog, state.requirements)
     expect(analysis.geo?.boxes.size).toBe(before.piezas.length)
   })

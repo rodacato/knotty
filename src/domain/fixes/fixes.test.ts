@@ -20,7 +20,7 @@ describe('fixesFor', () => {
     const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
     const sag = finding(wide, 'R1_SAG')
     const fix = fixesFor(wide, testCatalog, sag).find((f) => f.key === 'center-divider')!
-    expect(fix.design.pieces.some((p) => p.id === `apoyo-${sag.pieces[0]}`)).toBe(true)
+    expect(fix.design.pieces.some((p) => p.id === `support-${sag.pieces[0]}`)).toBe(true)
     expect(findings(fix.design).some((h) => h.code === 'R1_SAG' && h.pieces.includes(sag.pieces[0]))).toBe(false)
   })
 

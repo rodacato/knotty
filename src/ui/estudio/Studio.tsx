@@ -259,8 +259,8 @@ export function Studio({ state }: { state: DesignState }) {
         <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-linea px-2 [scrollbar-width:none]" aria-label="Panel">
           {[
             { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
-            { id: 'mueble', name: 'Mueble', icon: <Armchair /> },
-            { id: 'materiales', name: 'Materiales', icon: <Stack /> },
+            { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
+            { id: 'materials', name: 'Materiales', icon: <Stack /> },
           ].map((t) => (
             <Tabs.Trigger
               key={t.id}
@@ -281,10 +281,10 @@ export function Studio({ state }: { state: DesignState }) {
         <Tabs.Content value="chat" className="min-h-0 flex-1">
           <Chat state={state} />
         </Tabs.Content>
-        <Tabs.Content value="mueble" className="min-h-0 flex-1 overflow-y-auto">
+        <Tabs.Content value="furniture" className="min-h-0 flex-1 overflow-y-auto">
           <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
         </Tabs.Content>
-        <Tabs.Content value="materiales" className="min-h-0 flex-1 overflow-y-auto">
+        <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
           {currentAnalysis.valid ? (
             <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
           ) : (

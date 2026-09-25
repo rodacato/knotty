@@ -26,14 +26,14 @@ export function normalize(original: Design, catalog: Catalog): Design {
     if (seen.has(from)) return false
     seen.add(from)
     const p = byId.get(from)
-    return !!p && referencedPieces(p[axis]).some((other) => other !== 'mueble' && dependsOn(other, target, axis, seen))
+    return !!p && referencedPieces(p[axis]).some((other) => other !== 'furniture' && dependsOn(other, target, axis, seen))
   }
 
   const candidates = (p: Piece, axis: Axis, end: End, outsideOnly: boolean): Candidate[] => {
     const opposite = end === 'from' ? 1 : 0
     const outside: Candidate[] = [
-      { ref: `mueble.${axis}0`, value: 0, preference: 0 },
-      { ref: `mueble.${axis}1`, value: design.dimensions[DIMENSION_OF_AXIS[axis]], preference: 0 },
+      { ref: `furniture.${axis}0`, value: 0, preference: 0 },
+      { ref: `furniture.${axis}1`, value: design.dimensions[DIMENSION_OF_AXIS[axis]], preference: 0 },
     ]
     if (outsideOnly) return outside
     return [

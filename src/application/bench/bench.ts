@@ -38,7 +38,7 @@ export interface BenchResult {
 }
 
 export interface ModuleCheck {
-  module: 'cama' | 'mesa' | 'gabinete'
+  module: 'bed' | 'table' | 'cabinet'
   variant: string
   valid: boolean
   findings: string[]
@@ -144,7 +144,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
           for (const position of ['head', 'center', 'foot'] as const) {
             if (side === 'none' && position !== 'head') continue
             const plan: BedPlan = { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } }
-            results.push(check('cama', `${mattress}, cabecera ${style}, cajones ${side} hacia ${position}`, buildBed(plan, catalog).design))
+            results.push(check('bed', `${mattress}, cabecera ${style}, cajones ${side} hacia ${position}`, buildBed(plan, catalog).design))
           }
     const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, ...extra })
     const tables: [string, TablePlan][] = [
@@ -157,7 +157,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
       ),
     ]
-    for (const [variant, plan] of tables) results.push(check('mesa', variant, buildTable(plan, catalog).design))
+    for (const [variant, plan] of tables) results.push(check('table', variant, buildTable(plan, catalog).design))
     const cell = (content: 'open' | 'drawer' | 'door' | 'closed', height = 1, shelves: number | null = null, doors: number | null = null) => ({ height, content, shelves, doors })
     const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ name, dimensions, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
     const cabinets: [string, CabinetPlan][] = [
@@ -167,7 +167,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       ['cajonera', cabinet('Cajonera', { width: 500, height: 900, depth: 450 }, [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }])],
       ['mueble de TV', cabinet('Mueble de TV', { width: 1600, height: 500, depth: 400 }, [{ width: 0.3, cells: [cell('door', 1, 0, 1)] }, { width: 0.4, cells: [cell('open', 1, 1)] }, { width: 0.3, cells: [cell('door', 1, 0, 1)] }], { wallMounted: false })],
     ]
-    for (const [variant, plan] of cabinets) results.push(check('gabinete', variant, buildCabinet(plan, catalog).design))
+    for (const [variant, plan] of cabinets) results.push(check('cabinet', variant, buildCabinet(plan, catalog).design))
     return results
   }
 

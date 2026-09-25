@@ -4,8 +4,8 @@ import ajusteFicha from '../prompts/ajuste-ficha.v5.md?raw'
 import dictamen from '../prompts/dictamen.v3.md?raw'
 import esqueleto from '../prompts/esqueleto.v7.md?raw'
 import lectura from '../prompts/lectura.v2.md?raw'
-import reconstruccion from '../prompts/reconstruccion.v9.md?raw'
-import sistema from '../prompts/sistema.v6.md?raw'
+import reconstruccion from '../prompts/reconstruccion.v10.md?raw'
+import sistema from '../prompts/sistema.v7.md?raw'
 
 interface Prompt {
   id: string

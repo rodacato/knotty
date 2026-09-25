@@ -9,8 +9,8 @@ export type Axis = z.infer<typeof Axis>
 
 export const FaceRef = z
   .string()
-  .regex(/^[a-z0-9-]+\.[xyz][01]$/, 'Formato "<pieza>.<eje><0|1>", por ejemplo "lat-izq.x1" o "mueble.y0"')
-  .describe('A face: 0 = the smaller, 1 = the larger. "mueble" is the outside faces of the furniture')
+  .regex(/^[a-z0-9-]+\.[xyz][01]$/, 'Formato "<pieza>.<eje><0|1>", por ejemplo "side-left.x1" o "furniture.y0"')
+  .describe('A face: 0 = the smaller, 1 = the larger. "furniture" is the outside faces of the furniture')
 export type FaceRef = z.infer<typeof FaceRef>
 
 export const Position = z.discriminatedUnion('type', [
@@ -46,7 +46,7 @@ export const PieceConfidence = z.enum(['high', 'medium', 'low'])
 export const PieceId = z
   .string()
   .regex(/^[a-z0-9-]+$/, 'Solo minúsculas, números y guiones')
-  .refine((id) => id !== 'mueble', '"mueble" está reservado')
+  .refine((id) => id !== 'furniture', '"furniture" está reservado')
 
 export const Piece = z.object({
   id: PieceId,

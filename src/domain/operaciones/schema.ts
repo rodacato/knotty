@@ -34,14 +34,14 @@ export const Operation = z.discriminatedUnion('op', [
   z
     .object({
       op: z.literal('addDrawer'),
-      group: PieceId.describe('Drawer id, for example "cajon-1"; its pieces are called "cajon-1-frente", "cajon-1-costado-izq"…'),
+      group: PieceId.describe('Drawer id, for example "drawer-1"; its pieces are called "drawer-1-front", "drawer-1-side-left"…'),
       name: z.string().describe('"Cajón 1"'),
-      left: FaceRef.describe('x face on the left of the opening, for example "lat-izq.x1"'),
-      right: FaceRef.describe('x face on the right of the opening, for example "lat-der.x0"'),
-      bottom: FaceRef.describe('y face at the bottom of the opening, for example "piso.y1"'),
-      top: FaceRef.describe('y face at the top of the opening, for example "entrepano-1.y0"'),
-      front: FaceRef.describe('z face the front sits flush with, usually "mueble.z1"'),
-      back: FaceRef.describe('z face at the back of the opening, usually "trasera.z1"'),
+      left: FaceRef.describe('x face on the left of the opening, for example "side-left.x1"'),
+      right: FaceRef.describe('x face on the right of the opening, for example "side-right.x0"'),
+      bottom: FaceRef.describe('y face at the bottom of the opening, for example "bottom.y1"'),
+      top: FaceRef.describe('y face at the top of the opening, for example "shelf-1.y0"'),
+      front: FaceRef.describe('z face the front sits flush with, usually "furniture.z1"'),
+      back: FaceRef.describe('z face at the back of the opening, usually "back.z1"'),
       material: z.string().describe('Front and box, for example "T15"'),
       bottomMaterial: z.string().describe('Drawer bottom, for example "TR6"'),
     })

@@ -17,6 +17,8 @@ function Verdict({ r }: { r: BenchResult }) {
   return <WarningCircle className="text-ambar" weight="fill" aria-label="Con observaciones" />
 }
 
+const MODULE_LABEL: Record<ModuleCheck['module'], string> = { bed: 'cama', table: 'mesa', cabinet: 'gabinete' }
+
 export function BenchPanel() {
   const { bench, preferences } = useServices()
   const openState = useStore((s) => s.openState)
@@ -182,7 +184,7 @@ export function BenchPanel() {
                   {moduleFailures.map((m) => (
                     <li key={`${m.module}-${m.variant}`} className="rounded-lg bg-kraft/60 p-2 text-xs">
                       <span className="font-medium">
-                        {m.module} · {m.variant}
+                        {MODULE_LABEL[m.module]} · {m.variant}
                       </span>
                       {!m.valid && <span className="text-oxido"> · inválida</span>}
                       <ul className="mt-1 list-disc pl-4 text-grafito-2">

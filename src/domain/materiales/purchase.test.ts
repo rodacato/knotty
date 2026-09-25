@@ -57,7 +57,7 @@ describe('sheet layout', () => {
     const g = geo(exampleBookcase)
     const enorme = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
     const tr6 = layOut(exampleBookcase, g, enorme).find((m) => m.material === 'TR6')!
-    expect(tr6.unplaced.map((p) => p.id)).toEqual(['trasera'])
+    expect(tr6.unplaced.map((p) => p.id)).toEqual(['back'])
   })
 })
 
@@ -65,8 +65,8 @@ describe('hardware and purchase', () => {
   it('works out screws and nails by spacing along the joint', () => {
     const g = geo(exampleBookcase)
     const joint = (id: string) => exampleBookcase.joints.find((u) => u.id === id)!
-    expect(hardwarePerJoint(joint('u-piso-izq'), g)).toBe(2)
-    expect(hardwarePerJoint(joint('u-trasera-lat-izq'), g)).toBe(13)
+    expect(hardwarePerJoint(joint('j-bottom-left'), g)).toBe(2)
+    expect(hardwarePerJoint(joint('j-back-side-left'), g)).toBe(13)
   })
 
   it('adds up edge banding for the marked edges, with waste', () => {

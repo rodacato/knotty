@@ -47,13 +47,13 @@ function centerSupport(design: Design, catalog: Catalog, target: Piece): Operati
   const [z0, z1] = free.sort(([a, b], [c, d]) => d - c - (b - a))[0] ?? [0, 0]
   if (z1 - z0 < MIN_SUPPORT_DEPTH) return []
   const support = makePiece({
-    id: uniqueId(design, `apoyo-${target.id}`),
+    id: uniqueId(design, `support-${target.id}`),
     name: `Apoyo de ${target.name.toLowerCase()}`,
     role: 'divider',
     material: target.material,
     normal: 'x',
     x: startAt({ type: 'mm', mm: x0 }),
-    y: extent(base ? ref(`${base[0]}.y1`) : ref('mueble.y0'), ref(`${target.id}.y0`)),
+    y: extent(base ? ref(`${base[0]}.y1`) : ref('furniture.y0'), ref(`${target.id}.y0`)),
     z: extent({ type: 'mm', mm: Math.round(z0) }, { type: 'mm', mm: Math.round(z1) }),
     edges: ['front'],
   })
@@ -67,7 +67,7 @@ function backRail(design: Design, role: 'brace' | 'apron', name: string): Operat
   if (sides.length < 2 || !top) return []
   const [left, right] = [sides[0], sides[sides.length - 1]]
   const back = design.pieces.find((p) => p.role === 'back')
-  const id = uniqueId(design, role === 'brace' ? 'liston-colgar' : 'faja-trasera')
+  const id = uniqueId(design, role === 'brace' ? 'hanging-rail' : 'back-apron')
   const rail = makePiece({
     id,
     name: name,
@@ -76,12 +76,12 @@ function backRail(design: Design, role: 'brace' | 'apron', name: string): Operat
     normal: 'z',
     x: extent(ref(`${left.id}.x1`), ref(`${right.id}.x0`)),
     y: extent(null, ref(`${top.id}.y0`), RAIL_HEIGHT),
-    z: startAt(back ? ref(`${back.id}.z1`) : ref('mueble.z0')),
+    z: startAt(back ? ref(`${back.id}.z1`) : ref('furniture.z0')),
   })
   const operations: Operation[] = [{ op: 'addPiece', piece: rail }]
   // A rigid rail is what keeps a box square: pocket screws into both sides, not butt screws.
   if (role === 'apron')
-    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`u-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) })
+    for (const side of [left, right]) operations.push({ op: 'addJoint', joint: makeJoint(`j-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) })
   return operations
 }
 
@@ -100,7 +100,7 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => !drawer.includes(b) && id !== found.side.id && b.x0 < x0 + thickness && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
   const below = inColumn.filter(([, b]) => b.y1 <= bottom + 0.5).sort(([, a], [, b]) => b.y1 - a.y1)[0]
   const above = inColumn.filter(([, b]) => b.y0 >= top - 0.5).sort(([, a], [, b]) => a.y0 - b.y0)[0]
-  const id = uniqueId(design, `apoyo-${group}-${side}`)
+  const id = uniqueId(design, `support-${group}-${side}`)
   const support = makePiece({
     id,
     name: `Apoyo de corredera ${side === 'left' ? 'izquierdo' : 'derecho'}`,
@@ -108,14 +108,14 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
     material,
     normal: 'x',
     x: startAt({ type: 'mm', mm: Math.round(x0 * 10) / 10 }),
-    y: extent(below ? ref(`${below[0]}.y1`) : ref('mueble.y0'), above ? ref(`${above[0]}.y0`) : { type: 'mm', mm: Math.round(top) }),
+    y: extent(below ? ref(`${below[0]}.y1`) : ref('furniture.y0'), above ? ref(`${above[0]}.y0`) : { type: 'mm', mm: Math.round(top) }),
     z: extent({ type: 'mm', mm: Math.round(box.z0) }, { type: 'mm', mm: Math.round(box.z1) }),
     edges: ['front'],
   })
   const hasHardware = design.joints.some((u) => u.type === 'drawer-slide' && u.hardware.length && design.pieces.find((p) => p.id === u.a || p.id === u.b)?.group === group)
   return [
     { op: 'addPiece', piece: support },
-    { op: 'addJoint', joint: makeJoint(`u-${group}-corredera-${side}`, found.side.id, id, 'drawer-slide', hasHardware ? [] : [{ hardwareId: runner.id, count: 1 }]) },
+    { op: 'addJoint', joint: makeJoint(`j-${group}-slide-${side}`, found.side.id, id, 'drawer-slide', hasHardware ? [] : [{ hardwareId: runner.id, count: 1 }]) },
   ]
 }
 

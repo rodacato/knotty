@@ -90,7 +90,7 @@ function bedFrom(notes: string): BedPlan | null {
       style: /sin cabecera/.test(text) ? 'none' : /cerrad|compartimento|almohada/.test(text) ? 'storage' : /librer|repisa|entrepa/.test(text) ? 'bookcase' : 'plain',
       height: 1100,
       depth: 250,
-      shelves: countBefore(text, 'entrepa') ?? countBefore(text, 'repisa') ?? 2,
+      shelves: countBefore(text, 'entrepa') ?? countBefore(text, 'shelf') ?? 2,
     },
   }
 }
@@ -125,31 +125,31 @@ function dividerOps(d: Design): Operation[] {
   const ops: Operation[] = [
     {
       op: 'addPiece',
-      piece: makePiece({ id: 'divisor', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }),
+      piece: makePiece({ id: 'divider', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', 0.5, -9)), y: extent(ref('bottom.y1'), ref('top.y0')), z: extent(ref('back.z1'), ref('furniture.z1')) }),
     },
-    { op: 'addJoint', joint: makeJoint('u-div-piso', 'piso', 'divisor', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
-    { op: 'addJoint', joint: makeJoint('u-div-techo', 'techo', 'divisor', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
-    { op: 'addJoint', joint: makeJoint('u-div-trasera', 'trasera', 'divisor', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('j-div-bottom', 'bottom', 'divider', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('j-div-top', 'top', 'divider', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+    { op: 'addJoint', joint: makeJoint('j-div-back', 'back', 'divider', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
   ]
-  if (d.pieces.some((p) => p.id === 'zoclo'))
+  if (d.pieces.some((p) => p.id === 'kick'))
     ops.push(
       {
         op: 'addPiece',
-        piece: makePiece({ id: 'apoyo-piso', name: 'Apoyo central del piso', role: 'brace', material: 'T18', normal: 'x', x: startAt(partway('lat-izq.x1', 'lat-der.x0', 0.5, -9)), y: extent(ref('mueble.y0'), ref('piso.y0')), z: extent(ref('trasera.z1'), ref('zoclo.z0')) }),
+        piece: makePiece({ id: 'bottom-support', name: 'Apoyo central del piso', role: 'brace', material: 'T18', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', 0.5, -9)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref('back.z1'), ref('kick.z0')) }),
       },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-piso', 'piso', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-zoclo', 'zoclo', 'apoyo-piso', 'butt-screw', [{ hardwareId: 'screw-8x2', count: 2 }]) },
-      { op: 'addJoint', joint: makeJoint('u-apoyo-trasera', 'trasera', 'apoyo-piso', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
+      { op: 'addJoint', joint: makeJoint('j-bottom-support', 'bottom', 'bottom-support', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+      { op: 'addJoint', joint: makeJoint('j-support-kick', 'kick', 'bottom-support', 'butt-screw', [{ hardwareId: 'screw-8x2', count: 2 }]) },
+      { op: 'addJoint', joint: makeJoint('j-support-back', 'back', 'bottom-support', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
     )
   for (const e of shelves(d)) {
-    const right = `${e.id}-der`
+    const right = `${e.id}-right`
     ops.push(
-      { op: 'resize', id: e.id, axis: 'x', end: 'to', at: ref('divisor.x0') },
-      { op: 'duplicatePiece', id: e.id, newId: right, name: `${e.name} derecho`, axis: 'x', at: ref('divisor.x1') },
-      { op: 'resize', id: right, axis: 'x', end: 'to', at: ref('lat-der.x0') },
-      ...d.joints.filter((u) => u.a === e.id && u.b === 'lat-der').map((u): Operation => ({ op: 'removeJoint', id: u.id })),
-      { op: 'addJoint', joint: makeJoint(`u-${e.id}-div`, e.id, 'divisor', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
-      { op: 'addJoint', joint: makeJoint(`u-${right}-div`, right, 'divisor', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
+      { op: 'resize', id: e.id, axis: 'x', end: 'to', at: ref('divider.x0') },
+      { op: 'duplicatePiece', id: e.id, newId: right, name: `${e.name} derecho`, axis: 'x', at: ref('divider.x1') },
+      { op: 'resize', id: right, axis: 'x', end: 'to', at: ref('side-right.x0') },
+      ...d.joints.filter((u) => u.a === e.id && u.b === 'side-right').map((u): Operation => ({ op: 'removeJoint', id: u.id })),
+      { op: 'addJoint', joint: makeJoint(`j-${e.id}-div`, e.id, 'divider', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
+      { op: 'addJoint', joint: makeJoint(`j-${right}-div`, right, 'divider', 'shelf-pin', [{ hardwareId: 'shelf-pin-5', count: 2 }]) },
     )
   }
   return ops
@@ -159,7 +159,7 @@ const BACK_QUESTION = '¿La trasera va clavada por detrás o metida en un canal?
 
 function propose(request: string, d: Design, pendingItems: Operation[] | null, withPhoto: boolean): AdjustmentResponse {
   const text = request.toLowerCase()
-  const back = d.pieces.find((p) => p.id === 'trasera' && p.confidence !== 'high')
+  const back = d.pieces.find((p) => p.id === 'back' && p.confidence !== 'high')
   if (back && (withPhoto || /clavada|canal|no sé|trasera/.test(text))) {
     const channel = /canal/.test(text) && !withPhoto
     return adjustment({
@@ -170,18 +170,18 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
           : 'Perfecto: la trasera va clavada y pegada por detrás. La marco como confirmada.',
       summary: 'Confirmar la trasera',
       operations: [{ op: 'changeProperties', id: back.id, name: null, role: null, grain: null, load: null, support: null, edges: null, confidence: 'high' }],
-      decisions: [{ topic: 'trasera', text: 'Trasera clavada y pegada por detrás, sin canal' }],
+      decisions: [{ topic: 'back', text: 'Trasera clavada y pegada por detrás, sin canal' }],
     })
   }
   const cm = /(\d+(?:[.,]\d+)?)\s*(cm|mm)/.exec(text)
   const measure = cm ? Number(cm[1].replace(',', '.')) * (cm[2] === 'cm' ? 10 : 1) : null
 
-  if (/divisor|apoyo/.test(text) && d.pieces.some((p) => p.id === 'lat-izq') && !d.pieces.some((p) => p.id === 'divisor'))
+  if (/divisor|apoyo/.test(text) && d.pieces.some((p) => p.id === 'side-left') && !d.pieces.some((p) => p.id === 'divider'))
     return adjustment({
       explanation: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada entrepaño en dos; abajo agrego un apoyo central para el piso. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
       summary: pendingItems ? 'Ensanchar con divisor al centro' : 'Agregar divisor al centro',
       operations: [...(pendingItems ?? []), ...dividerOps(d)],
-      decisions: [{ topic: 'divisor', text: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
+      decisions: [{ topic: 'divider', text: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
     })
 
   if (/fondo|profund/.test(text) && measure && !/caj[oó]n/.test(text))
@@ -191,31 +191,31 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
       operations: [{ op: 'resizeFurniture', axis: 'z', value: measure, rule: 'stretch' }],
     })
 
-  const gap = ['piso', ...shelves(d).map((p) => p.id)]
-  if (/caj[oó]n/.test(text) && gap.length > 1 && d.pieces.some((p) => p.id === 'lat-izq') && !d.pieces.some((p) => p.role === 'door')) {
-    const n = new Set(d.pieces.filter((p) => p.group?.startsWith('cajon-')).map((p) => p.group)).size + 1
-    const bottom = n === 1 ? 'piso' : gap[n - 1]
+  const gap = ['bottom', ...shelves(d).map((p) => p.id)]
+  if (/caj[oó]n/.test(text) && gap.length > 1 && d.pieces.some((p) => p.id === 'side-left') && !d.pieces.some((p) => p.role === 'door')) {
+    const n = new Set(d.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group)).size + 1
+    const bottom = n === 1 ? 'bottom' : gap[n - 1]
     const top = gap[n]
     if (top)
       return adjustment({
-        explanation: `Pongo un cajón ${bottom === 'piso' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
+        explanation: `Pongo un cajón ${bottom === 'bottom' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
         summary: `Agregar cajón ${n}`,
         operations: [
           {
             op: 'addDrawer',
-            group: `cajon-${n}`,
+            group: `drawer-${n}`,
             name: `Cajón ${n}`,
-            left: 'lat-izq.x1',
-            right: 'lat-der.x0',
+            left: 'side-left.x1',
+            right: 'side-right.x0',
             bottom: `${bottom}.y1`,
             top: `${top}.y0`,
-            front: 'mueble.z1',
-            back: 'trasera.z1',
+            front: 'furniture.z1',
+            back: 'back.z1',
             material: 'T15',
             bottomMaterial: 'TR6',
           },
         ],
-        decisions: [{ topic: 'cajones', text: 'Cajones con frente embutido y correderas telescópicas; caja de 15 mm' }],
+        decisions: [{ topic: 'drawers', text: 'Cajones con frente embutido y correderas telescópicas; caja de 15 mm' }],
       })
   }
 
@@ -256,19 +256,19 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null, w
       })
   }
 
-  if (/refuerz|base/.test(text) && d.pieces.some((p) => p.id === 'zoclo') && !d.pieces.some((p) => p.id === 'refuerzo-base'))
+  if (/refuerz|base/.test(text) && d.pieces.some((p) => p.id === 'kick') && !d.pieces.some((p) => p.id === 'base-brace'))
     return adjustment({
       explanation: 'Agrego un travesaño trasero bajo el piso, con tornillos de bolsillo a los laterales. Junto con el zoclo, el piso queda apoyado adelante y atrás y la base ya no se tuerce.',
       summary: 'Reforzar la base',
       operations: [
         {
           op: 'addPiece',
-          piece: makePiece({ id: 'refuerzo-base', name: 'Travesaño trasero', role: 'brace', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(ref('mueble.y0'), ref('piso.y0')), z: startAt(ref('trasera.z1')) }),
+          piece: makePiece({ id: 'base-brace', name: 'Travesaño trasero', role: 'brace', material: 'T18', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: startAt(ref('back.z1')) }),
         },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-izq', 'refuerzo-base', 'lat-izq', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-der', 'refuerzo-base', 'lat-der', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-piso', 'piso', 'refuerzo-base', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
-        { op: 'addJoint', joint: makeJoint('u-refuerzo-trasera', 'trasera', 'refuerzo-base', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
+        { op: 'addJoint', joint: makeJoint('j-brace-left', 'base-brace', 'side-left', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
+        { op: 'addJoint', joint: makeJoint('j-brace-right', 'base-brace', 'side-right', 'pocket-screw', [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }]) },
+        { op: 'addJoint', joint: makeJoint('j-brace-bottom', 'bottom', 'base-brace', 'butt-screw', [{ hardwareId: 'screw-8x2', count: null }]) },
+        { op: 'addJoint', joint: makeJoint('j-brace-back', 'back', 'base-brace', 'glue-nail', [{ hardwareId: 'brad-nail-1', count: null }]) },
       ],
       decisions: [{ topic: 'base', text: 'Travesaño trasero bajo el piso además del zoclo' }],
     })
@@ -303,7 +303,7 @@ export function createSimulated(delay = 900): LLMProvider {
       const withoutPhotos = s.photos.length === 0 && !s.reading
       const base = chooseFixture(s.measures, s.notes)
       const design = { ...structuredClone(base), dimensions: s.measures ?? base.dimensions }
-      const back = design.pieces.find((p) => p.id === 'trasera')
+      const back = design.pieces.find((p) => p.id === 'back')
       if (back) back.confidence = 'low'
       const wantsDrawer = /caj[oó]n/i.test(s.notes) && base === exampleBookcase
       const detail = `${base.notes.charAt(0).toLowerCase()}${base.notes.slice(1)}`

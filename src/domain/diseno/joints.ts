@@ -70,8 +70,8 @@ export function completeJoints(design: Design, catalog: Catalog, previous?: Desi
   const added: Joint[] = []
   const add = (u: Omit<Joint, 'id'> | null) => {
     if (!u) return
-    let id = `u-${u.a}-${u.b}`
-    for (let n = 2; ids.has(id); n++) id = `u-${u.a}-${u.b}-${n}`
+    let id = `j-${u.a}-${u.b}`
+    for (let n = 2; ids.has(id); n++) id = `j-${u.a}-${u.b}-${n}`
     ids.add(id)
     joined.add(pairKey(u.a, u.b))
     added.push({ ...u, id })

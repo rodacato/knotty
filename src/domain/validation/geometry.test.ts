@@ -24,29 +24,29 @@ describe('validateGeometry', () => {
 
   it('finds overlapping pieces', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.push(makePiece({ id: 'divisor', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(mm(291)), y: extent(ref('piso.y1'), ref('techo.y0')), z: extent(ref('trasera.z1'), ref('mueble.z1')) }))
-    d.joints.push(makeJoint('u-div-piso', 'divisor', 'piso', 'butt-screw'))
+    d.pieces.push(makePiece({ id: 'divider', name: 'Divisor', role: 'divider', material: 'T18', normal: 'x', x: startAt(mm(291)), y: extent(ref('bottom.y1'), ref('top.y0')), z: extent(ref('back.z1'), ref('furniture.z1')) }))
+    d.joints.push(makeJoint('j-div-bottom', 'divider', 'bottom', 'butt-screw'))
     expect(codes(d)).toContain('E_OVERLAP')
   })
 
   it('lets a declared groove overlap', () => {
     const d = structuredClone(exampleBookcase)
-    const piso = d.pieces.find((p) => p.id === 'piso')!
-    piso.x = extent(ref('lat-izq.x1', -6), ref('lat-der.x0', 6))
-    d.joints = d.joints.map((u) => (u.b === 'piso' && u.a.startsWith('lat') ? { ...u, type: 'dado', depth: 6 } : u))
+    const piso = d.pieces.find((p) => p.id === 'bottom')!
+    piso.x = extent(ref('side-left.x1', -6), ref('side-right.x0', 6))
+    d.joints = d.joints.map((u) => (u.b === 'bottom' && u.a.startsWith('side') ? { ...u, type: 'dado', depth: 6 } : u))
     expect(codes(d)).toEqual([])
   })
 
   it('finds floating pieces and joints between pieces that do not touch', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.push(makePiece({ id: 'repisa-suelta', name: 'Repisa suelta', role: 'shelf', material: 'T18', normal: 'y', x: extent(mm(100), mm(400)), y: startAt(mm(900)), z: extent(mm(100), mm(200)) }))
-    d.joints.push(makeJoint('u-suelta', 'repisa-suelta', 'lat-izq', 'butt-screw'))
+    d.pieces.push(makePiece({ id: 'shelf-loose', name: 'Repisa suelta', role: 'shelf', material: 'T18', normal: 'y', x: extent(mm(100), mm(400)), y: startAt(mm(900)), z: extent(mm(100), mm(200)) }))
+    d.joints.push(makeJoint('j-loose', 'shelf-loose', 'side-left', 'butt-screw'))
     expect(codes(d)).toEqual(expect.arrayContaining(['E_FLOATING', 'E_JOINT_WITHOUT_CONTACT']))
   })
 
   it('finds pieces outside the overall measures', () => {
     const d = structuredClone(exampleBookcase)
-    d.pieces.find((p) => p.id === 'lat-izq')!.x = startAt(mm(-20))
+    d.pieces.find((p) => p.id === 'side-left')!.x = startAt(mm(-20))
     expect(codes(d)).toContain('E_OVERALL_SIZE')
   })
 
@@ -58,7 +58,7 @@ describe('validateGeometry', () => {
 
   it('warns about touching pieces with no joint', () => {
     const d = structuredClone(exampleBookcase)
-    d.joints = d.joints.filter((u) => u.id !== 'u-zoclo-piso')
-    expect(validate(d).warnings.map((a) => a.data)).toEqual([{ a: 'zoclo', b: 'piso' }])
+    d.joints = d.joints.filter((u) => u.id !== 'j-kick-bottom')
+    expect(validate(d).warnings.map((a) => a.data)).toEqual([{ a: 'kick', b: 'bottom' }])
   })
 })
