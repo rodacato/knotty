@@ -108,7 +108,7 @@ function Encabezado({ estado, pending, onNotices }: { estado: EstadoDiseno; pend
           {alto} × {ancho} × {fondo} mm · {cm(ancho)} de ancho
         </p>
       </div>
-      <Boton variante="fantasma" className="relative min-h-9 px-2.5" onClick={onNotices} aria-label={pending ? `${pending} avisos por decidir` : 'Avisos'} title="Avisos">
+      <Boton variante="fantasma" className="relative min-h-9 px-2.5" onClick={onNotices} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-ambar' : ''} />
         {pending > 0 && <span className="cifras absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-oxido px-1 text-[10px] text-white">{pending}</span>}
       </Boton>
@@ -240,6 +240,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
             <span className="hidden sm:inline-flex">{t.icono}</span>
             {t.nombre}
             {t.id === 'revision' && board.pending.length > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-oxido text-[10px] text-white">{board.pending.length}</span>}
+            {t.id === 'chat' && estado.tray.length > 0 && <span className="cifras grid size-5 place-items-center rounded-full bg-ambar text-[10px] text-grafito" title="En la bandeja">{estado.tray.length}</span>}
           </Tabs.Trigger>
         ))}
         {!escritorio && (
@@ -262,7 +263,7 @@ export function Estudio({ estado }: { estado: EstadoDiseno }) {
         )}
       </Tabs.Content>
       <Tabs.Content value="revision" className="min-h-0 flex-1 overflow-y-auto">
-        <NoticePanel estado={estado} onAsk={pedir} onAnswer={() => setPestana('chat')} />
+        <NoticePanel estado={estado} onAnswer={() => setPestana('chat')} />
       </Tabs.Content>
       <Tabs.Content value="historial" className="min-h-0 flex-1 overflow-y-auto">
         <Historial estado={estado} />

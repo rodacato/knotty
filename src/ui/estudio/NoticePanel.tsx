@@ -1,15 +1,16 @@
-import { ArrowCounterClockwise, CheckCircle, Eye, Lightning, ChatCircleText, Wrench } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, CheckCircle, Eye, Lightning, ChatCircleText, Tray, Wrench } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { noticeBoard, type Notice } from '../../application/notices'
+import { noticeBoard, noticeItem, type Notice } from '../../application/notices'
 import { fixesFor, type Fix } from '../../domain/fixes/fixes'
 import { disenoActual, type EstadoDiseno } from '../../domain/sesion/estado'
+import { answerItem, answerItemId, noticeItemId } from '../../domain/tray/tray'
 import { useServicios } from '../servicios'
-import { Boton, Sello } from '../sistema/componentes'
+import { Boton, Chip, Sello } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 
-// Every notice with its way out: a solution Knotty builds (previewed in 3D), asking the expert, or leaving it as it is.
+// Every notice with its way out: a solution Knotty builds (previewed in 3D), the tray for the expert, or leaving it as it is.
 
-const KIND: Record<Notice['kind'], string> = { finding: '', requirement: 'Requisito', problem: 'Sin resolver', proposal: 'Del experto', question: 'Pregunta' }
+const KIND: Record<Notice['kind'], string> = { finding: '', requirement: 'Requisito', problem: 'Sin resolver', proposal: '', question: '' }
 
 function FixButton({ fix }: { fix: Fix }) {
   const preview = useTienda((s) => s.preview)
@@ -31,10 +32,11 @@ function FixButton({ fix }: { fix: Fix }) {
   )
 }
 
-function NoticeCard({ notice, estado, onAsk, onAnswer }: { notice: Notice; estado: EstadoDiseno; onAsk: (text: string) => void; onAnswer: () => void }) {
+function NoticeCard({ notice, estado, onAnswer }: { notice: Notice; estado: EstadoDiseno; onAnswer: () => void }) {
   const { catalogo } = useServicios()
   const seleccionar = useTienda((s) => s.seleccionar)
   const acceptNotice = useTienda((s) => s.acceptNotice)
+  const toggleTray = useTienda((s) => s.toggleTray)
   const aplicarPropuesta = useTienda((s) => s.aplicarPropuesta)
   const descartarPropuesta = useTienda((s) => s.descartarPropuesta)
   const alternarPropuesta = useTienda((s) => s.alternarPropuesta)
@@ -53,6 +55,9 @@ function NoticeCard({ notice, estado, onAsk, onAnswer }: { notice: Notice; estad
   const built = new Set(fixes.map((f) => f.key))
   const forExpert = [...new Map(notice.findings.flatMap((h) => h.alternativas).filter((a) => a.clave !== 'claro-maximo' && !built.has(a.clave)).map((a) => [a.descripcion, a])).values()]
   const name = (id: string) => design.piezas.find((p) => p.id === id)?.nombre ?? id
+  const inTray = estado.tray.find((t) => t.id === noticeItemId(notice.key))
+  const question = notice.question && estado.chat.find((m) => m.id === notice.question!.messageId)?.preguntas[notice.question.index]
+  const answered = notice.question && estado.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
 
   return (
     <li className={`animate-aparecer flex flex-col gap-2.5 rounded-2xl border p-4 ${notice.severity === 'critico' ? 'border-oxido/30 bg-oxido/5' : notice.severity === 'decision' ? 'border-ambar/40 bg-ambar-suave/40' : 'border-linea bg-hueso'}`}>
@@ -97,24 +102,36 @@ function NoticeCard({ notice, estado, onAsk, onAnswer }: { notice: Notice; estad
         </div>
       )}
 
-      {notice.kind === 'question' && (
-        <Boton variante="secundario" className="min-h-9 self-start text-xs" onClick={onAnswer}>
-          <ChatCircleText /> Contestar en la conversación
-        </Boton>
+      {notice.question && question && (
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {question.opciones?.map((o) => (
+              <Chip key={o} activo={answered === o} aria-pressed={answered === o} disabled={pensando} onClick={() => toggleTray(answerItem(notice.question!.messageId, notice.question!.index, question.texto, o))}>
+                {o}
+              </Chip>
+            ))}
+          </div>
+          <button type="button" onClick={onAnswer} className="flex items-center gap-1 self-start text-xs text-grafito-2 underline hover:text-grafito">
+            <ChatCircleText /> Ver en la conversación
+          </button>
+        </div>
       )}
 
       {(notice.kind === 'finding' || notice.kind === 'requirement' || notice.kind === 'problem') && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">Con el experto · ~1 min</p>
+          <p className="text-xs font-medium tracking-wide text-grafito-2 uppercase">A la bandeja, para el experto</p>
           <div className="flex flex-wrap gap-2">
-            {forExpert.map((a) => (
-              <Boton key={a.descripcion} variante="secundario" className="min-h-8 text-xs" disabled={pensando} onClick={() => onAsk(`${notice.message} ${a.descripcion}.`)}>
-                <Wrench /> {a.descripcion}
-              </Boton>
-            ))}
-            <Boton variante="fantasma" className="min-h-8 px-2 text-xs underline" disabled={pensando} onClick={() => onAsk(`Corrige esto: ${notice.message}`)}>
+            {forExpert.map((a) => {
+              const item = noticeItem(notice, a.descripcion)
+              return (
+                <Chip key={a.descripcion} activo={inTray?.text === item.text} aria-pressed={inTray?.text === item.text} disabled={pensando} onClick={() => toggleTray(item)}>
+                  <Wrench /> {a.descripcion}
+                </Chip>
+              )
+            })}
+            <Chip activo={inTray?.text === noticeItem(notice, null).text} aria-pressed={inTray?.text === noticeItem(notice, null).text} disabled={pensando} onClick={() => toggleTray(noticeItem(notice, null))}>
               Que el experto decida
-            </Boton>
+            </Chip>
           </div>
         </div>
       )}
@@ -128,9 +145,11 @@ function NoticeCard({ notice, estado, onAsk, onAnswer }: { notice: Notice; estad
   )
 }
 
-export function NoticePanel({ estado, onAsk, onAnswer }: { estado: EstadoDiseno; onAsk: (text: string) => void; onAnswer: () => void }) {
+export function NoticePanel({ estado, onAnswer }: { estado: EstadoDiseno; onAnswer: () => void }) {
   const { catalogo } = useServicios()
   const reopenNotice = useTienda((s) => s.reopenNotice)
+  const sendTray = useTienda((s) => s.sendTray)
+  const pensando = useTienda((s) => s.pensando)
   const board = useMemo(() => noticeBoard(estado, catalogo), [estado, catalogo])
   const [showAccepted, setShowAccepted] = useState(false)
 
@@ -155,7 +174,7 @@ export function NoticePanel({ estado, onAsk, onAnswer }: { estado: EstadoDiseno;
       ) : (
         <ul className="flex flex-col gap-3">
           {board.pending.map((n) => (
-            <NoticeCard key={n.key} notice={n} estado={estado} onAsk={onAsk} onAnswer={onAnswer} />
+            <NoticeCard key={n.key} notice={n} estado={estado} onAnswer={onAnswer} />
           ))}
         </ul>
       )}
@@ -179,6 +198,25 @@ export function NoticePanel({ estado, onAsk, onAnswer }: { estado: EstadoDiseno;
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {estado.tray.length > 0 && (
+        <div className="sticky bottom-3 flex items-center justify-between gap-2 rounded-2xl border border-ambar/60 bg-hueso p-3 shadow-md">
+          <span className="flex items-center gap-1.5 text-sm">
+            <Tray weight="duotone" className="text-ambar" /> {estado.tray.length} en la bandeja
+          </span>
+          <Boton
+            variante="primario"
+            className="min-h-9 text-xs"
+            disabled={pensando}
+            onClick={() => {
+              void sendTray()
+              onAnswer()
+            }}
+          >
+            <ChatCircleText weight="fill" /> Consultar al experto
+          </Boton>
         </div>
       )}
     </div>

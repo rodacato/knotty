@@ -1,7 +1,8 @@
-import { create } from 'zustand'
-import { ErrorExperto, type Etapa, type FotoEnviada, type PieceEdit, type PieceEditResult } from '../application/casosDeUso'
+import { create, type StoreApi } from 'zustand'
+import { ErrorExperto, type AlAvanzar, type Etapa, type FotoEnviada, type PieceEdit, type PieceEditResult } from '../application/casosDeUso'
 import type { Notice } from '../application/notices'
 import type { Fix } from '../domain/fixes/fixes'
+import { trayRequest, type TrayItem } from '../domain/tray/tray'
 import type { CabinetPlan } from '../domain/modules/cabinet'
 import type { TraceEntry } from '../domain/trace/trace'
 import { analizar } from '../domain/analisis'
@@ -95,6 +96,10 @@ interface Tienda {
   preview: { design: Diseno; label: string } | null
   previewFix(fix: Fix | null): void
   applyFix(fix: Fix): void
+  /** Puts an item in the tray, replaces the one from the same origin, or takes it out. */
+  toggleTray(item: TrayItem): void
+  /** The tray and what was typed, to the expert in one request. */
+  sendTray(typed?: string): Promise<void>
   acceptNotice(notice: Notice): void
   reopenNotice(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
@@ -128,6 +133,29 @@ function transicion(antes: Diseno, despues: Diseno, catalogo: Servicios['catalog
   const d = diferencias(antes, ga.geo.cajas, despues, gb.geo.cajas)
   const eliminadas = d.eliminadas.map((id) => ({ pieza: antes.piezas.find((p) => p.id === id)!, caja: ga.geo.cajas.get(id)! }))
   return { agregadas: d.agregadas, modificadas: d.modificadas, eliminadas, vez }
+}
+
+type Set = StoreApi<Tienda>['setState']
+type Get = StoreApi<Tienda>['getState']
+
+/** A request to the expert: the message shows at once, and the answer replaces the state when it arrives. */
+async function askExpert(set: Set, get: Get, texto: string, respondeA: string | null, miniatura: string | null, call: (signal: AbortSignal, alAvanzar: AlAvanzar) => Promise<EstadoDiseno>) {
+  const { servicios, estado, pensando } = get()
+  if (!servicios || !estado || pensando) return
+  const controlador = new AbortController()
+  const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto, fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura, respuestas: [], sugerencias: [] }
+  const optimista = { ...estado, tray: [], chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
+  set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
+  const nuevo = await call(controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }))
+  set((s) => ({
+    estado: nuevo,
+    pensando: false,
+    etapa: null,
+    controlador: null,
+    verPropuesta: true,
+    versionVista: null,
+    cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1),
+  }))
 }
 
 export const useTienda = create<Tienda>((set, get) => ({
@@ -199,23 +227,23 @@ export const useTienda = create<Tienda>((set, get) => ({
     }
   },
 
-  async ajustar(peticion, respondeA = null, foto = null) {
-    const { servicios, estado, pensando } = get()
-    if (!servicios || !estado || pensando || !peticion.trim()) return
-    const controlador = new AbortController()
-    const pendiente = { id: 'pendiente', autor: 'usuario' as const, texto: peticion.trim(), fecha: new Date().toISOString(), preguntas: [], respondida: false, version: null, propuesta: null, error: false, fotosPedidas: [], miniatura: foto?.miniatura ?? null, respuestas: [], sugerencias: [] }
-    const optimista = { ...estado, chat: [...marcarRespondida(estado.chat, respondeA), pendiente] }
-    set({ pensando: true, controlador, etapa: { nombre: 'proponiendo', intento: 0 }, estado: optimista })
-    const nuevo = await servicios.casos.ajustar(estado, peticion.trim(), controlador.signal, (nombre, intento) => set({ etapa: { nombre, intento } }), respondeA, foto)
-    set((s) => ({
-      estado: nuevo,
-      pensando: false,
-      etapa: null,
-      controlador: null,
-      verPropuesta: true,
-      versionVista: null,
-      cambios: transicion(mostrado(estado), mostrado(nuevo), servicios.catalogo, s.cambios.vez + 1),
-    }))
+  ajustar(peticion, respondeA = null, foto = null) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado || !peticion.trim()) return Promise.resolve()
+    return askExpert(set, get, peticion.trim(), respondeA, foto?.miniatura ?? null, (signal, alAvanzar) => servicios.casos.ajustar(estado, peticion.trim(), signal, alAvanzar, respondeA, foto))
+  },
+
+  toggleTray(item) {
+    const { servicios, estado } = get()
+    if (!servicios || !estado) return
+    set({ estado: servicios.casos.toggleTray(estado, item) })
+  },
+
+  sendTray(typed = '') {
+    const { servicios, estado } = get()
+    if (!servicios || !estado || (!estado.tray.length && !typed.trim())) return Promise.resolve()
+    const { text, answers } = trayRequest(estado.tray, typed)
+    return askExpert(set, get, text, answers, null, (signal, alAvanzar) => servicios.casos.sendTray(estado, typed, signal, alAvanzar))
   },
 
   cancelar: () => get().controlador?.abort(),

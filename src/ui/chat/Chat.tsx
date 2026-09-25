@@ -2,11 +2,13 @@ import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlan
 import { useEffect, useRef, useState } from 'react'
 import type { Etapa } from '../../application/casosDeUso'
 import { claveFoto, clavePregunta, type EstadoDiseno, type Mensaje } from '../../domain/sesion/estado'
+import { answerItem, answerItemId, suggestionItem } from '../../domain/tray/tray'
 import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
 import { useServicios } from '../servicios'
 import { TomarFoto } from '../sistema/TomarFoto'
 import { useTienda } from '../tienda'
 import { ChangeList } from './ChangeList'
+import { Tray } from './Tray'
 
 const ETAPAS: Record<Etapa, string> = {
   'leyendo-fotos': 'Mirando la foto…',
@@ -42,20 +44,16 @@ function useSegundos(activo: boolean) {
   return segundos
 }
 
-/** Con varias preguntas se eligen las respuestas y se mandan juntas en un solo mensaje. */
-function Preguntas({ m }: { m: Mensaje }) {
-  const ajustar = useTienda((s) => s.ajustar)
-  const pensando = useTienda((s) => s.pensando)
-  const [elegidas, setElegidas] = useState<Record<number, string>>({})
-  const abiertas = m.preguntas.map((p, i) => ({ p, i })).filter(({ p, i }) => p.opciones && !m.respuestas.includes(clavePregunta(i)))
-  const juntas = !m.respondida && abiertas.length > 1
-  const listas = Object.keys(elegidas).map(Number)
+/** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
+const openQuestions = (estado: EstadoDiseno) => estado.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(clavePregunta(i))))
 
-  const enviarJuntas = () => {
-    const texto = listas.map((i) => `${m.preguntas[i].texto} ${elegidas[i]}`).join('\n')
-    setElegidas({})
-    void ajustar(texto, `${m.id}#${listas.map(clavePregunta).join(',')}`)
-  }
+/** One question answers at once; with several, or with something already in the tray, answers join the tray. */
+function Preguntas({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
+  const ajustar = useTienda((s) => s.ajustar)
+  const toggleTray = useTienda((s) => s.toggleTray)
+  const pensando = useTienda((s) => s.pensando)
+  const batch = estado.tray.length > 0 || openQuestions(estado).length > 1
+  const chosen = (i: number) => estado.tray.find((t) => t.id === answerItemId(m.id, i))?.label
 
   return (
     <>
@@ -69,14 +67,10 @@ function Preguntas({ m }: { m: Mensaje }) {
                 {p.opciones.map((o) => (
                   <Chip
                     key={o}
-                    activo={elegidas[i] === o}
-                    aria-pressed={juntas ? elegidas[i] === o : undefined}
+                    activo={chosen(i) === o}
+                    aria-pressed={batch ? chosen(i) === o : undefined}
                     disabled={hecha || pensando}
-                    onClick={() =>
-                      juntas
-                        ? setElegidas(({ [i]: previa, ...resto }) => (previa === o ? resto : { ...resto, [i]: o }))
-                        : void ajustar(o, `${m.id}#${clavePregunta(i)}`)
-                    }
+                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void ajustar(o, `${m.id}#${clavePregunta(i)}`))}
                   >
                     {o}
                   </Chip>
@@ -86,16 +80,7 @@ function Preguntas({ m }: { m: Mensaje }) {
           </div>
         )
       })}
-      {juntas && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Boton variante="primario" className="min-h-9 text-xs" disabled={!listas.length || pensando} onClick={enviarJuntas}>
-            <PaperPlaneRight weight="fill" /> {listas.length > 1 ? `Enviar ${listas.length} respuestas` : 'Enviar respuesta'}
-          </Boton>
-          <span className="text-xs text-grafito-2">
-            {listas.length < abiertas.length ? 'Contesta las que sepas; el resto lo decide el experto.' : 'Listo, mándalas juntas.'}
-          </span>
-        </div>
-      )}
+      {batch && !m.respondida && m.preguntas.some((p) => p.opciones) && <p className="text-xs text-grafito-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
     </>
   )
 }
@@ -201,7 +186,7 @@ function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; 
         <FotoPedida key={f.angulo} angulo={f.angulo} motivo={f.motivo} mensaje={m} />
       ))}
 
-      <Preguntas m={m} />
+      <Preguntas m={m} estado={estado} />
     </div>
   )
 }
@@ -238,6 +223,8 @@ function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: strin
 
 export function Chat({ estado }: { estado: EstadoDiseno }) {
   const ajustar = useTienda((s) => s.ajustar)
+  const sendTray = useTienda((s) => s.sendTray)
+  const toggleTray = useTienda((s) => s.toggleTray)
   const pensando = useTienda((s) => s.pensando)
   const etapa = useTienda((s) => s.etapa)
   const cancelar = useTienda((s) => s.cancelar)
@@ -255,8 +242,8 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
   }, [estado.chat.length, pensando])
 
   const enviar = () => {
-    if (!texto.trim() || pensando) return
-    void ajustar(texto)
+    if ((!texto.trim() && !estado.tray.length) || pensando) return
+    void (estado.tray.length ? sendTray(texto) : ajustar(texto))
     setTexto('')
   }
 
@@ -276,12 +263,13 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
       {sugerencias.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]" aria-label="Sugerencias">
           {sugerencias.map((s) => (
-            <Chip key={s} className="shrink-0" onClick={() => void ajustar(s)}>
+            <Chip key={s} className="shrink-0" activo={estado.tray.some((t) => t.id === suggestionItem(s).id)} onClick={() => (estado.tray.length ? toggleTray(suggestionItem(s)) : void ajustar(s))}>
               {s}
             </Chip>
           ))}
         </div>
       )}
+      <Tray items={estado.tray} typed={!!texto.trim()} onSend={enviar} />
       <form
         className="flex items-end gap-2 border-t border-linea bg-hueso/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
         onSubmit={(e) => {
@@ -308,7 +296,7 @@ export function Chat({ estado }: { estado: EstadoDiseno }) {
             <Stop weight="fill" />
           </Boton>
         ) : (
-          <Boton type="submit" variante="primario" className="size-11 shrink-0 rounded-full p-0" disabled={!texto.trim()} aria-label="Enviar">
+          <Boton type="submit" variante="primario" className="size-11 shrink-0 rounded-full p-0" disabled={!texto.trim() && !estado.tray.length} aria-label={estado.tray.length ? 'Consultar al experto' : 'Enviar'}>
             <PaperPlaneRight weight="fill" />
           </Boton>
         )}
