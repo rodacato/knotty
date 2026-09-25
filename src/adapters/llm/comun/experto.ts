@@ -4,6 +4,8 @@ import {
   RespuestaDictamen,
   RespuestaInvalida,
   RespuestaPlan,
+  PlanAdjustment,
+  type PlanAdjustRequest,
   RespuestaReconstruccion,
   type Consumo,
   type LLMProvider,
@@ -15,7 +17,7 @@ import {
 import type { Catalogo } from '../../../domain/materiales/catalogo'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { describirProblemas, esquemaEstricto } from './esquemaJson'
-import { AJUSTE, DICTAMEN, ESQUELETO, idPrompt, LECTURA, RECONSTRUCCION, sistemaPara } from './prompts'
+import { AJUSTE, AJUSTE_FICHA, DICTAMEN, ESQUELETO, idPrompt, LECTURA, RECONSTRUCCION, sistemaPara } from './prompts'
 
 export type Contenido = { tipo: 'texto'; texto: string } | { tipo: 'imagen'; base64: string }
 
@@ -31,6 +33,7 @@ const ESQUEMA_AJUSTE = esquemaEstricto(RespuestaAjuste)
 const ESQUEMA_DICTAMEN = esquemaEstricto(RespuestaDictamen)
 const READING_SCHEMA = esquemaEstricto(PhotoReading)
 const PLAN_SCHEMA = esquemaEstricto(RespuestaPlan)
+const PLAN_ADJUSTMENT_SCHEMA = esquemaEstricto(PlanAdjustment)
 
 function validar<T>(esquema: z.ZodType<T>, json: unknown): T {
   const r = esquema.safeParse(json)
@@ -98,6 +101,11 @@ export function crearExperto(t: Transporte, etiqueta: string): LLMProvider {
       if (s.correccion) contenido.push(correccion(s.correccion.respuestaAnterior, s.correccion.errores.map((e) => `- ${e.codigo}: ${e.mensaje}`).join('\n')))
       const { json, consumo, avisos } = await t.completarJSON(ESQUELETO.texto.replace('{{materiales}}', materialsText(s.catalogo)), contenido, PLAN_SCHEMA, 'esqueleto', signal)
       return { valor: validar(RespuestaPlan, json), origen: { promptId: ESQUELETO.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
+    },
+    async adjustPlan(r: PlanAdjustRequest, signal) {
+      const contenido: Contenido[] = [{ tipo: 'texto', texto: `${r.contexto}\n\n## Ficha actual\n${JSON.stringify(r.plan)}\n\n## Pedido de la persona\n${r.peticion}` }]
+      const { json, consumo, avisos } = await t.completarJSON(AJUSTE_FICHA.texto.replace('{{materiales}}', materialsText(r.catalogo)), contenido, PLAN_ADJUSTMENT_SCHEMA, 'ajuste_ficha', signal)
+      return { valor: validar(PlanAdjustment, json), origen: { promptId: AJUSTE_FICHA.id, proveedor: t.proveedor, modelo: t.modelo }, consumo, avisos }
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
       const contenido: Contenido[] = [

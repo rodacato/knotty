@@ -80,6 +80,7 @@ function medido(llm: LLMProvider, llamadas: Llamada[]): LLMProvider {
     dictaminar: medir(llm.dictaminar.bind(llm)),
     readPhoto: medir(llm.readPhoto.bind(llm)),
     planDesign: llm.planDesign ? medir(llm.planDesign.bind(llm)) : null,
+    adjustPlan: llm.adjustPlan ? medir(llm.adjustPlan.bind(llm)) : null,
   }
 }
 

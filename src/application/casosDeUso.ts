@@ -13,6 +13,7 @@ import type { Operacion } from '../domain/operaciones/esquema'
 import { actualizarRequisitos, verificarRequisitos, type Requisito } from '../domain/requisitos/requisitos'
 import { disenoActual, marcarRespondida, type Dictamen, type EstadoDiseno, type Mensaje, type Miniatura, type Pregunta } from '../domain/sesion/estado'
 import { buildCabinet, CabinetPlan } from '../domain/modules/cabinet'
+import { rebuildFromPlan } from '../domain/modules/rebuild'
 import { describePlanChanges } from '../domain/modules/planChanges'
 import { repairDesign, type Repair } from '../domain/repair/repair'
 import { detectKind } from '../domain/typology/typology'
@@ -21,7 +22,7 @@ import { appendTrace, describeProblems, errorKey, traceErrors, type TraceEntry }
 import type { ErrorDiseno } from '../domain/validacion/errores'
 import { peor, revisarViabilidad, type Comprobacion } from '../domain/viabilidad/viabilidad'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { RespuestaInvalida, type Foto, type LLMProvider, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
+import { RespuestaInvalida, type Foto, type LLMProvider, type PlanAdjustment, type Respuesta, type RespuestaAjuste, type RespuestaPlan, type RespuestaReconstruccion } from '../ports/LLMProvider'
 import { construirContexto } from './contexto'
 
 export type Etapa = 'leyendo-fotos' | 'mirando-fotos' | 'proponiendo' | 'revisando' | 'estructura' | 'corrigiendo'
@@ -79,11 +80,15 @@ function textoRevision(corte: RenglonDespiece[], comprobaciones: Comprobacion[])
  * The plan behind the current design. `since` is the version it comes from; if later versions changed the design
  * freely, applying the plan again drops those changes.
  */
-export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; since: number | null; diverged: boolean } {
+export function currentPlan(estado: EstadoDiseno): { plan: CabinetPlan | null; extras: Operacion[]; since: number | null; diverged: boolean } {
   const ordered = [...estado.versiones].sort((a, b) => b.n - a.n).filter((v) => v.n <= estado.actual)
   const source = ordered.find((v) => v.plan)
-  return { plan: source?.plan ?? null, since: source?.n ?? null, diverged: !!source && source.n !== estado.actual }
+  return { plan: source?.plan ?? null, extras: source?.extras ?? [], since: source?.n ?? null, diverged: !!source && source.n !== estado.actual }
 }
+
+/** A free-form change on a design that has a plan keeps the plan and joins its extras. */
+const layered = (vigente: ReturnType<typeof currentPlan>, operaciones: Operacion[]) =>
+  vigente.plan && !vigente.diverged ? { plan: vigente.plan, extras: [...vigente.extras, ...operaciones] } : { plan: null, extras: [] }
 
 /** El experto no logró algo y lo dice; el mensaje es para el usuario. */
 export class ErrorExperto extends Error {
@@ -144,11 +149,15 @@ export function crearCasosDeUso(deps: Dependencias) {
     return estado
   }
 
-  function conVersion(estado: EstadoDiseno, diseno: Diseno, datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null; plan?: CabinetPlan | null }): EstadoDiseno {
+  function conVersion(
+    estado: EstadoDiseno,
+    diseno: Diseno,
+    datos: { resumen: string; motivo: string; operaciones: Operacion[]; origen: Origen | null; plan?: CabinetPlan | null; extras?: Operacion[] },
+  ): EstadoDiseno {
     const n = Math.max(...estado.versiones.map((v) => v.n)) + 1
     const versiones = podarVersiones([
       ...estado.versiones,
-      { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones, plan: datos.plan ?? null },
+      { n, diseno, resumen: datos.resumen, motivo: datos.motivo, operaciones: datos.operaciones.map(abreviar), fecha: ahora(), origen: datos.origen, decisiones: estado.decisiones, plan: datos.plan ?? null, extras: datos.plan ? (datos.extras ?? []) : [] },
     ])
     return { ...estado, versiones, actual: n, propuesta: null, chat: estado.chat.map((m) => (m.propuesta === 'pendiente' ? { ...m, propuesta: 'descartada' as const, respondida: true } : m)) }
   }
@@ -318,7 +327,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     return {
       formato: 1,
       medidas: diseno.dimensiones,
-      versiones: [{ n: 1, diseno, resumen: entrada.fotos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [], plan }],
+      versiones: [{ n: 1, diseno, resumen: entrada.fotos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', motivo: entrada.notas || 'Fotos y medidas', operaciones: [], fecha: ahora(), origen: respuesta.origen, decisiones: [], plan, extras: [] }],
       actual: 1,
       requisitos: r.requisitos,
       decisiones: [],
@@ -355,6 +364,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const llm = deps.llm()
     const diseno = disenoActual(conPeticion)
     const antes = hallazgosDe(diseno, conPeticion.requisitos)
+    const vigentePlan = currentPlan(conPeticion)
     // If the current design has unresolved problems, a change that fixes some and adds none is progress.
     const vigente = analizar(diseno, catalogo, conPeticion.requisitos)
     const problemasPrevios = vigente.valido ? null : new Set(vigente.errores.map(errorKey))
@@ -366,7 +376,67 @@ export function crearCasosDeUso(deps: Dependencias) {
     let correccion: { respuestaAnterior: unknown; errores: string } | null = null
     let criticosRevisados = false
     let ultimoError = ''
+
+    /** With a live plan the expert edits the ficha; null means: go piece by piece. */
+    const throughPlan = async (): Promise<EstadoDiseno | null> => {
+      const plan = vigentePlan.plan
+      if (!plan || vigentePlan.diverged || !llm.adjustPlan || foto) return null
+      alAvanzar('proponiendo', 0)
+      const started = Date.now()
+      let respuesta: Respuesta<PlanAdjustment>
+      try {
+        respuesta = await llm.adjustPlan({ contexto, peticion, plan, catalogo }, signal)
+      } catch (e) {
+        if (signal.aborted) throw e
+        trace.push(traceEntry('adjust', 0, started, null, e instanceof RespuestaInvalida ? 'unreadable' : 'failed', [{ code: 'E_FICHA', message: (e instanceof Error ? e.message : String(e)).slice(0, 500) }], [], 'Ficha'))
+        return null
+      }
+      const r = respuesta.valor
+      const requisitos = actualizarRequisitos(conPeticion.requisitos, r.requisitos)
+      const base = { ...conPeticion, requisitos, decisiones: actualizarDecisiones(conPeticion.decisiones, r.decisiones) }
+      const sugerencias = r.sugerencias.slice(0, 4)
+      if (r.action === 'freeform' || (r.action === 'plan' && !r.plan)) {
+        trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
+        return null
+      }
+      if (r.action === 'answer') {
+        trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], [], 'Ficha: respuesta'))
+        return responder(r.explicacion, { preguntas: r.preguntas, sugerencias }, base)
+      }
+      alAvanzar('revisando', 0)
+      const rebuilt = rebuildFromPlan(r.plan!, vigentePlan.extras, catalogo, requisitos)
+      const analysis = analizar(rebuilt.design, catalogo, requisitos)
+      if (!analysis.valido) {
+        trace.push(traceEntry('adjust', 0, started, respuesta, 'invalid', traceErrors(analysis.errores), rebuilt.repairs, 'Ficha'))
+        return null
+      }
+      trace.push(traceEntry('adjust', 0, started, respuesta, 'ok', [], rebuilt.repairs, 'Ficha'))
+      alAvanzar('estructura', 0)
+      const extras = vigentePlan.extras.filter((e) => !rebuilt.dropped.includes(e))
+      const criticos = criticosNuevos(antes, analysis.hallazgos)
+      if (criticos.length) {
+        const propuesta = {
+          diseno: rebuilt.design,
+          operaciones: [],
+          resumen: r.resumen,
+          motivo: peticion,
+          criticos: criticos.map((h) => ({ codigo: h.codigo, mensaje: h.mensaje, piezas: h.piezas })),
+          requisitos,
+          decisiones: r.decisiones,
+          origen: respuesta.origen,
+          plan: r.plan!,
+          extras,
+        }
+        const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
+        return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
+      }
+      const conCambio = conVersion(base, rebuilt.design, { resumen: r.resumen, motivo: peticion, operaciones: [], origen: respuesta.origen, plan: r.plan!, extras })
+      return responder([r.explicacion, ...rebuilt.notes].join('\n\n'), { preguntas: r.preguntas, sugerencias, version: conCambio.actual }, conCambio)
+    }
+
     try {
+      const porFicha = await throughPlan()
+      if (porFicha) return porFicha
       for (let intento = 0; intento < INTENTOS; intento++) {
         alAvanzar(intento ? 'corrigiendo' : 'proponiendo', intento)
         const started = Date.now()
@@ -441,12 +511,13 @@ export function crearCasosDeUso(deps: Dependencias) {
             requisitos,
             decisiones: r.decisiones,
             origen: respuesta.origen,
+            ...layered(vigentePlan, r.operaciones),
           }
           const pendiente = { ...base, requisitos: conPeticion.requisitos, decisiones: conPeticion.decisiones, propuesta }
           return responder(r.explicacion, { preguntas: r.preguntas.length ? r.preguntas : preguntaDeAlternativas(criticos), propuesta: 'pendiente' }, pendiente)
         }
 
-        const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen })
+        const conCambio = conVersion(base, nuevo, { resumen: r.resumen, motivo: peticion, operaciones: r.operaciones, origen: respuesta.origen, ...layered(vigentePlan, r.operaciones) })
         const avisos = aplicado.valor.avisos.map((a) => a.mensaje)
         return responder([r.explicacion, ...ajustes, ...quedan, ...avisos].join('\n\n'), { preguntas: r.preguntas, fotosPedidas, sugerencias, version: conCambio.actual }, conCambio)
       }
@@ -462,7 +533,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     const p = estado.propuesta
     if (!p) return estado
     const base = { ...estado, requisitos: p.requisitos, decisiones: actualizarDecisiones(estado.decisiones, p.decisiones as Decision[]) }
-    const conCambio = conVersion(base, p.diseno, { resumen: p.resumen, motivo: p.motivo, operaciones: p.operaciones, origen: p.origen })
+    const conCambio = conVersion(base, p.diseno, { resumen: p.resumen, motivo: p.motivo, operaciones: p.operaciones, origen: p.origen, plan: p.plan, extras: p.extras })
     return guardar({
       ...conCambio,
       chat: [
@@ -479,7 +550,7 @@ export function crearCasosDeUso(deps: Dependencias) {
   function volverAVersion(estado: EstadoDiseno, n: number): EstadoDiseno {
     const destino = estado.versiones.find((v) => v.n === n)
     if (!destino || n === estado.actual) return estado
-    const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null, plan: destino.plan })
+    const conCambio = conVersion({ ...estado, decisiones: destino.decisiones }, destino.diseno, { resumen: `Volver a v${n}`, motivo: `Volver a v${n}: ${destino.resumen}`, operaciones: [], origen: null, plan: destino.plan, extras: destino.extras })
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Regresé al diseño de la v${n} (${destino.resumen}).`, { version: conCambio.actual })] })
   }
 
@@ -491,7 +562,8 @@ export function crearCasosDeUso(deps: Dependencias) {
     const operaciones: Operacion[] = [{ op: 'cambiarPropiedades', id, nombre: null, rol: null, veta: null, carga: null, apoyo: null, cantos: null, confianza: 'alta' }]
     const r = aplicar(diseno, operaciones, catalogo)
     if (!r.ok) return estado
-    const conCambio = conVersion(estado, r.valor.diseno, { resumen: `Confirmar ${pieza.nombre.toLowerCase()}`, motivo: 'Confirmada a mano', operaciones, origen: null })
+    const vigente = currentPlan(estado)
+    const conCambio = conVersion(estado, r.valor.diseno, { resumen: `Confirmar ${pieza.nombre.toLowerCase()}`, motivo: 'Confirmada a mano', operaciones, origen: null, ...layered(vigente, operaciones) })
     return guardar({ ...conCambio, chat: [...conCambio.chat, mensaje('experto', `Anoté ${pieza.nombre.toLowerCase()} como confirmada.`, { version: conCambio.actual })] })
   }
 
@@ -510,7 +582,7 @@ export function crearCasosDeUso(deps: Dependencias) {
     return guardar({
       formato: 1,
       medidas: diseno.dimensiones,
-      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null, decisiones: [], plan: null }],
+      versiones: [{ n: 1, diseno, resumen: `Ejemplo: ${diseno.nombre}`, motivo: 'Ejemplo', operaciones: [], fecha: ahora(), origen: null, decisiones: [], plan: null, extras: [] }],
       actual: 1,
       requisitos: [],
       decisiones: [],
@@ -526,17 +598,18 @@ export function crearCasosDeUso(deps: Dependencias) {
   function applyPlan(estado: EstadoDiseno, plan: CabinetPlan): { ok: true; estado: EstadoDiseno; notes: string[] } | { ok: false; message: string } {
     const parsed = CabinetPlan.safeParse(plan)
     if (!parsed.success) return { ok: false, message: 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
-    const { design: built, notes } = buildCabinet(parsed.data, catalogo)
-    const { design } = repairDesign(built, catalogo, estado.requisitos)
+    const vigente = currentPlan(estado)
+    const { design, notes, dropped } = rebuildFromPlan(parsed.data, vigente.diverged ? [] : vigente.extras, catalogo, estado.requisitos)
     const analysis = analizar(design, catalogo, estado.requisitos)
     if (!analysis.valido) {
       const first = design.piezas.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.nombre), analysis.errores[0]?.mensaje ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errores))}. ${first}` }
     }
-    const previous = currentPlan(estado).plan
+    const previous = vigente.plan
     const changes = previous ? describePlanChanges(previous, parsed.data) : []
     const summary = changes.length ? changes.join(', ') : 'sin cambios'
-    const withVersion = conVersion(estado, design, { resumen: `Ficha: ${summary}`.slice(0, 90), motivo: `Desde la ficha: ${summary}`, operaciones: [], origen: null, plan: parsed.data })
+    const extras = (vigente.diverged ? [] : vigente.extras).filter((e) => !dropped.includes(e))
+    const withVersion = conVersion(estado, design, { resumen: `Ficha: ${summary}`.slice(0, 90), motivo: `Desde la ficha: ${summary}`, operaciones: [], origen: null, plan: parsed.data, extras })
     const chat = [...withVersion.chat, mensaje('usuario', `Cambié desde la ficha: ${summary}.`)]
     return { ok: true, estado: guardar({ ...withVersion, medidas: design.dimensiones, chat }), notes }
   }

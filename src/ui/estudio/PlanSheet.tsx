@@ -156,6 +156,12 @@ export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
         </p>
       )}
 
+      {!source.diverged && source.extras.length > 0 && (
+        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-grafito-2">
+          Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
+        </p>
+      )}
+
       <section className="flex flex-col gap-2">
         <h3 className="font-titulo text-base font-semibold">Medidas</h3>
         <div className="grid grid-cols-3 gap-2">

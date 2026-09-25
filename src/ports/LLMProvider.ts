@@ -61,6 +61,27 @@ export const RespuestaPlan = z.object({
 })
 export type RespuestaPlan = z.infer<typeof RespuestaPlan>
 
+/** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. */
+export const PlanAdjustment = z.object({
+  explicacion: z.string().describe('Qué cambia y por qué, breve, como carpintero; o la respuesta si la persona solo preguntó'),
+  resumen: z.string().max(90).describe('Para la línea de tiempo, en infinitivo: "Agregar un cajón"'),
+  action: z.enum(['plan', 'freeform', 'answer']).describe('plan: el cambio cabe en la ficha y va en `plan`; freeform: pide algo que la ficha no expresa; answer: no pidió un cambio'),
+  plan: CabinetPlan.nullable().describe('La ficha completa con el cambio aplicado cuando action es "plan"; null en otro caso'),
+  preguntas: z.array(Pregunta),
+  sugerencias: z.array(z.string()).describe('2 a 4 siguientes pasos que la persona podría pedir'),
+  requisitos: z.object({ agregar: z.array(Requisito), quitar: z.array(z.string()) }),
+  decisiones: z.array(Decision),
+})
+export type PlanAdjustment = z.infer<typeof PlanAdjustment>
+
+export interface PlanAdjustRequest {
+  /** The design context already built by the application. */
+  contexto: string
+  peticion: string
+  plan: CabinetPlan
+  catalogo: Catalogo
+}
+
 export interface Foto {
   angulo: string
   /** JPEG en base64, sin el prefijo data:. */
@@ -123,6 +144,8 @@ export interface LLMProvider {
   readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<Respuesta<PhotoReading>>
   /** Null when the provider has no skeleton step: the full design is asked for directly. */
   planDesign: ((request: SolicitudReconstruccion, signal: AbortSignal) => Promise<Respuesta<RespuestaPlan>>) | null
+  /** Null when the provider does not edit plans: chat changes go piece by piece. */
+  adjustPlan: ((request: PlanAdjustRequest, signal: AbortSignal) => Promise<Respuesta<PlanAdjustment>>) | null
 }
 
 /** El proveedor contestó algo que no cumple el esquema; el texto va de vuelta al LLM para que corrija. */

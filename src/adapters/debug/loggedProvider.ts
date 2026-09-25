@@ -20,6 +20,7 @@ const LABELS: Record<string, string> = {
   dictaminar: 'Revisión antes de comprar',
   readPhoto: 'Lectura de foto',
   planDesign: 'Esqueleto',
+  adjustPlan: 'Cambio en la ficha',
 }
 
 export function withDebugLog(provider: LLMProvider, log: DebugLog): LLMProvider {
@@ -52,5 +53,6 @@ export function withDebugLog(provider: LLMProvider, log: DebugLog): LLMProvider 
     dictaminar: wrap('dictaminar', provider.dictaminar.bind(provider)),
     readPhoto: wrap('readPhoto', provider.readPhoto.bind(provider)),
     planDesign: provider.planDesign ? wrap('planDesign', provider.planDesign.bind(provider)) : null,
+    adjustPlan: provider.adjustPlan ? wrap('adjustPlan', provider.adjustPlan.bind(provider)) : null,
   }
 }
