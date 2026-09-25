@@ -26,6 +26,7 @@ import { toggleInTray, trayRequest, type TrayItem } from '../../domain/tray/tray
 import type { DesignRepository } from '../../ports/DesignRepository'
 import { expertPlans, InvalidResponse, type Photo, type LLMProvider, type PlanAdjustment, type ExpertResponse, type AdjustmentResponse, type PlanResponse, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { buildContext, describeAlternatives } from '../context'
+import { named } from '../named'
 
 export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
 export type OnProgress = (stage: Stage, attempt: number, progress?: { done: number; total: number }) => void
@@ -679,7 +680,7 @@ export function createUseCases(deps: Dependencies) {
     const { design, notes, dropped } = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
     const analysis = analyze(design, catalog, state.requirements)
     if (!analysis.valid) {
-      const first = design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), analysis.errors[0]?.message ?? '')
+      const first = named(design.pieces, analysis.errors[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errors))}. ${first}` }
     }
     const previous = current.plan
@@ -728,13 +729,12 @@ export function createUseCases(deps: Dependencies) {
       return { ok: true, state: save({ ...withVersion, chat: [...withVersion.chat, message('user', `Cambié a mano: ${summary}.`, { version: withVersion.current })] }) }
     }
     const reason = !applied.ok ? applied.errors[0]?.message : after && !after.valid ? after.errors.find((e) => !before.has(errorKey(e)))?.message : undefined
-    const named = (text = '') => design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
     // Tied to the outside of the piece: what can change is the whole piece of furniture.
     const alternatives: { label: string; axis: Axis; value: number }[] =
       edit.kind === 'length'
         ? [{ label: `Cambiar el ${DIMENSION_LABEL[DIMENSION_OF_AXIS[edit.axis]]} del mueble en ${edit.value - Math.round(size(edit.axis)) > 0 ? '+' : ''}${Math.round(edit.value - size(edit.axis))} mm`, axis: edit.axis, value: Math.round(design.dimensions[DIMENSION_OF_AXIS[edit.axis]] + edit.value - size(edit.axis)) }]
         : []
-    return { ok: false, message: `Así no queda: ${(named(reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
+    return { ok: false, message: `Así no queda: ${(named(design.pieces, reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
   }
 
   /** The whole piece of furniture grows or shrinks along one axis; through the plan when there is one. */
@@ -772,12 +772,12 @@ export function createUseCases(deps: Dependencies) {
     if (!before || !ids.length) return { ok: false, message: 'No hay una versión anterior de dónde regresar.' }
     const current = currentDesign(state)
     const r = restorePieces(current, before.design, ids, catalog)
-    const named = (text = '') => current.pieces.concat(before.design.pieces).reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
-    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(r.errors[0]?.message) || 'choca con lo que cambió después'}` }
+    const pieces = current.pieces.concat(before.design.pieces)
+    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(pieces, r.errors[0]?.message) || 'choca con lo que cambió después'}` }
     const previousErrors = analyze(current, catalog, state.requirements)
     const known = new Set(previousErrors.valid ? [] : previousErrors.errors.map(errorKey))
     const after = analyze(r.design, catalog, state.requirements)
-    if (!after.valid && !after.errors.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(after.errors.find((e) => !known.has(errorKey(e)))?.message)}` }
+    if (!after.valid && !after.errors.every((e) => known.has(errorKey(e)))) return { ok: false, message: `No se puede regresar así: ${named(pieces, after.errors.find((e) => !known.has(errorKey(e)))?.message)}` }
     const names = ids.map((id) => before.design.pieces.find((p) => p.id === id)?.name ?? current.pieces.find((p) => p.id === id)?.name ?? id)
     const summary = `Regresar ${names.join(', ')}`
     const operations: Operation[] = ids.flatMap((id): Operation[] => {

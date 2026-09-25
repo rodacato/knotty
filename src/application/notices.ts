@@ -6,6 +6,7 @@ import type { Catalog } from '../domain/materials/catalog'
 import { checkRequirements } from '../domain/requirements/requirements'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import { noticeItemId, type TrayItem } from '../domain/tray/tray'
+import { named } from './named'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.
 
@@ -34,8 +35,6 @@ export interface NoticeBoard {
 
 const RANK = { critical: 0, decision: 1, recommendation: 2, detail: 3 }
 
-const named = (design: Design, text: string) => design.pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), text)
-
 /** Findings of the same rule and severity read as one notice, with all their pieces. */
 function findingNotices(findings: Finding[]): Notice[] {
   const groups = new Map<string, Finding[]>()
@@ -62,7 +61,7 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog, analysi
       kind: 'problem',
       severity: 'critical',
       title: 'Problemas sin resolver',
-      message: analysis.errors.map((e) => named(design, e.message)).join(' '),
+      message: analysis.errors.map((e) => named(design.pieces, e.message)).join(' '),
       pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.pieces.some((p) => p.id === v))))],
       findings: [],
     })
