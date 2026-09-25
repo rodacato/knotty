@@ -38,7 +38,11 @@ export function correderaPara(profundidad: number, catalogo: Catalogo) {
 export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo): { piezas: Pieza[]; uniones: Union[] } | ErrorDiseno {
   for (const m of [c.material, c.materialFondo]) if (!materialPorId(catalogo, m)) return error('E_ESPESOR_CATALOGO', `El material "${m}" no está en el catálogo.`, { material: m })
   const espesorFrente = materialPorId(catalogo, c.material)!.espesor
-  const profundidad = geo.valor({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z') - espesorFrente - geo.valor({ tipo: 'ref', ref: c.fondo, mas: 0 }, 'z')
+  const zFrente = geo.valor({ tipo: 'ref', ref: c.frente, mas: 0 }, 'z')
+  const zFondo = geo.valor({ tipo: 'ref', ref: c.fondo, mas: 0 }, 'z')
+  // A drawer opens toward its front: forward as usual, or backward when the front is behind the bottom of the opening (the far side of a bed).
+  const atras = zFrente < zFondo
+  const profundidad = Math.abs(zFrente - zFondo) - espesorFrente
   const corredera = correderaPara(profundidad, catalogo)
   if (!corredera) {
     const minima = Math.min(...correderas(catalogo).map((c) => c.largo))
@@ -57,6 +61,8 @@ export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo
   const id = (parte: string) => `${g}-${parte}`
   const lado = corredera.holguraLateral
   const comun = { material: c.material, grupo: g, confianza: 'alta' as const }
+  /** The box runs from behind the front, as long as the runner. */
+  const caja = () => (atras ? tramo(ref(`${id('frente')}.z1`), null, corredera.largo) : tramo(null, ref(`${id('frente')}.z0`), corredera.largo))
   const piezas: Pieza[] = [
     pieza({
       ...comun,
@@ -66,14 +72,14 @@ export function expandirCajon(c: PedidoCajon, geo: Geometria, catalogo: Catalogo
       normal: 'z',
       x: tramo(ref(c.izquierda, HOLGURA_FRENTE), ref(c.derecha, -HOLGURA_FRENTE)),
       y: tramo(ref(c.abajo, HOLGURA_FRENTE), ref(c.arriba, -HOLGURA_FRENTE)),
-      z: hasta(ref(c.frente)),
+      z: atras ? desde(ref(c.frente)) : hasta(ref(c.frente)),
       cantos: ['frente', 'izq', 'der', 'arriba', 'abajo'],
     }),
-    pieza({ ...comun, material: c.materialFondo, id: id('fondo'), nombre: `Fondo de ${c.nombre.toLowerCase()}`, rol: 'fondo-cajon', normal: 'y', x: tramo(ref(c.izquierda, lado), ref(c.derecha, -lado)), y: desde(ref(c.abajo, HOLGURA_ABAJO)), z: tramo(null, ref(`${id('frente')}.z0`), corredera.largo), veta: 'libre' }),
-    pieza({ ...comun, id: id('costado-izq'), nombre: `Costado izquierdo de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'x', x: desde(ref(c.izquierda, lado)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: tramo(null, ref(`${id('frente')}.z0`), corredera.largo), cantos: ['arriba'] }),
-    pieza({ ...comun, id: id('costado-der'), nombre: `Costado derecho de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'x', x: hasta(ref(c.derecha, -lado)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: tramo(null, ref(`${id('frente')}.z0`), corredera.largo), cantos: ['arriba'] }),
-    pieza({ ...comun, id: id('contra'), nombre: `Contrafrente de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'z', x: tramo(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: hasta(ref(`${id('frente')}.z0`)), cantos: ['arriba'] }),
-    pieza({ ...comun, id: id('trasera'), nombre: `Trasera de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'z', x: tramo(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: desde(ref(`${id('costado-izq')}.z0`)), cantos: ['arriba'] }),
+    pieza({ ...comun, material: c.materialFondo, id: id('fondo'), nombre: `Fondo de ${c.nombre.toLowerCase()}`, rol: 'fondo-cajon', normal: 'y', x: tramo(ref(c.izquierda, lado), ref(c.derecha, -lado)), y: desde(ref(c.abajo, HOLGURA_ABAJO)), z: caja(), veta: 'libre' }),
+    pieza({ ...comun, id: id('costado-izq'), nombre: `Costado izquierdo de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'x', x: desde(ref(c.izquierda, lado)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: caja(), cantos: ['arriba'] }),
+    pieza({ ...comun, id: id('costado-der'), nombre: `Costado derecho de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'x', x: hasta(ref(c.derecha, -lado)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: caja(), cantos: ['arriba'] }),
+    pieza({ ...comun, id: id('contra'), nombre: `Contrafrente de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'z', x: tramo(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: atras ? desde(ref(`${id('frente')}.z1`)) : hasta(ref(`${id('frente')}.z0`)), cantos: ['arriba'] }),
+    pieza({ ...comun, id: id('trasera'), nombre: `Trasera de ${c.nombre.toLowerCase()}`, rol: 'costado-cajon', normal: 'z', x: tramo(ref(`${id('costado-izq')}.x1`), ref(`${id('costado-der')}.x0`)), y: tramo(ref(`${id('fondo')}.y1`), ref(c.arriba, -HOLGURA_ARRIBA)), z: atras ? hasta(ref(`${id('costado-izq')}.z1`)) : desde(ref(`${id('costado-izq')}.z0`)), cantos: ['arriba'] }),
   ]
 
   const tornillo = [{ herrajeId: 'tornillo-8x2', cantidad: null }]

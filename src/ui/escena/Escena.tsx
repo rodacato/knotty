@@ -40,7 +40,11 @@ function desplazamientos(geo: Geometria, diseno: Diseno, activo: boolean) {
   for (const p of diseno.piezas)
     if (p.grupo && p.rol === 'costado-cajon' && p.normal === 'x') {
       const c = geo.cajas.get(p.id)!
-      cajones.set(p.grupo, (c.z1 - c.z0) * 0.75)
+      const frente = diseno.piezas.find((q) => q.grupo === p.grupo && q.rol === 'frente-cajon')
+      const f = frente && geo.cajas.get(frente.id)
+      // A drawer on the far side of a bed opens backward.
+      const sentido = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
+      cajones.set(p.grupo, (c.z1 - c.z0) * 0.75 * sentido)
     }
   const crudos = diseno.piezas.map((p) => {
     const c = geo.cajas.get(p.id)!
