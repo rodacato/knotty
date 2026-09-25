@@ -147,11 +147,11 @@ async function correr(spec: string, caso: Caso): Promise<Resultado> {
       medidas: `${d.alto} × ${d.ancho} × ${d.fondo}`,
       medidasRazonables: razonables,
     }
+    guardarDiseno(spec, caso.id, estado)
     if (!a.valido) return { ...resultado, veredicto: 'inválido' }
     const compra = estimarCompra(diseno, a.geo, catalogo)
     const v = revisarViabilidad({ diseno, geo: a.geo, catalogo, compra, hallazgos: a.hallazgos, incumplidos: [] })
     const criticos = a.hallazgos.filter((h) => h.severidad === 'critico')
-    guardarDiseno(spec, caso.id, estado)
     return { ...resultado, criticos: criticos.length, reglas: [...new Set(criticos.map((h) => h.codigo))].join(' '), veredicto: v.veredicto }
   } catch (e) {
     return { ...base, ok: false, error: e instanceof Error ? e.message : String(e), segundos: (performance.now() - inicio) / 1000, intentos: llamadas.length }

@@ -2,7 +2,7 @@ import { SUPUESTOS } from '../estructura/supuestos'
 import type { Catalogo } from '../materiales/catalogo'
 import { contactos, type Contacto } from '../validacion/contacto'
 import { union } from './construir'
-import type { Diseno, Pieza, Union } from './esquema'
+import { isDrawerPart, type Diseno, type Pieza, type Union } from './esquema'
 import { resolver, type Caja } from './resolver'
 
 // Common joints come from geometry, not from the expert, so they are the same with any model. The expert only declares special ones.
@@ -79,8 +79,8 @@ export function completeJoints(design: Diseno, catalog: Catalogo, previous?: Dis
   for (const c of touching) {
     const p = byId.get(c.a)!
     const q = byId.get(c.b)!
-    // Doors are handled apart, and drawer pieces already bring their joints.
-    if (p.rol === 'puerta' || q.rol === 'puerta' || p.grupo || q.grupo) continue
+    // Doors are handled apart, and drawer pieces already bring their joints; other groups are just how the model organizes parts.
+    if (p.rol === 'puerta' || q.rol === 'puerta' || isDrawerPart(p) || isDrawerPart(q)) continue
     add(inferJoint(c, p, q, thicknesses, catalog))
   }
 

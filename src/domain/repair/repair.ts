@@ -1,6 +1,6 @@
 import { analizar } from '../analisis'
 import { mm } from '../diseno/construir'
-import { EJES, type Diseno, type Eje, type Pieza, type Rol } from '../diseno/esquema'
+import { EJES, isDrawerPart, type Diseno, type Eje, type Pieza, type Rol } from '../diseno/esquema'
 import { normalizar } from '../diseno/normalizador'
 import { redondear, type Caja } from '../diseno/resolver'
 import type { Catalogo } from '../materiales/catalogo'
@@ -40,7 +40,7 @@ function fixLooseJoint(e: ErrorDiseno, design: Diseno): Fix {
 
 function fixOverlap(e: ErrorDiseno, design: Diseno, boxes: Map<string, Caja>): Fix {
   const [p, q] = [e.datos?.a, e.datos?.b].map((id) => design.piezas.find((x) => x.id === id))
-  if (!p || !q || p.grupo || q.grupo) return null
+  if (!p || !q || isDrawerPart(p) || isDrawerPart(q)) return null
   const [pb, qb] = [boxes.get(p.id)!, boxes.get(q.id)!]
   // The one that gives way: lower in the structure, then the smaller one, then the later one.
   const [give, keep] = rank(p) !== rank(q) ? (rank(p) > rank(q) ? [p, q] : [q, p]) : volume(pb) !== volume(qb) ? (volume(pb) < volume(qb) ? [p, q] : [q, p]) : [q, p]

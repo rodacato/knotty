@@ -51,6 +51,11 @@ describe('repairDesign', () => {
     expect(repairs[0].code).toBe('E_UNION_SIN_CONTACTO')
   })
 
+  it('also repairs pieces the model grouped into parts', () => {
+    const broken = withPiece(librero, 'entrepano-1', (p) => ({ ...p, grupo: 'casco', x: { ...p.x, hasta: ref('mueble.x1') } }))
+    expect(valid(repairDesign(broken, catalogo).design)).toBe(true)
+  })
+
   it('leaves a valid design alone', () => {
     expect(repairDesign(librero, catalogo)).toEqual({ design: librero, repairs: [] })
   })
