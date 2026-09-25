@@ -1,6 +1,6 @@
 import { ArrowClockwise, CheckCircle, Hammer, Lightbulb, Stop, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
-import type { Diseno } from '../../domain/diseno/esquema'
-import type { Dictamen as DatosDictamen } from '../../domain/sesion/estado'
+import type { Design } from '../../domain/diseno/schema'
+import type { PurchaseReview as DatosDictamen } from '../../domain/sesion/state'
 import type { Check, Verdict } from '../../domain/viabilidad/viability'
 import { Boton, Lapiz } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -66,7 +66,7 @@ export function PuertaRevision({ desactualizado }: { desactualizado: boolean }) 
   )
 }
 
-function Renglon({ c, diseno, alPedir }: { c: Check; diseno: Diseno; alPedir: (texto: string) => void }) {
+function Renglon({ c, diseno, alPedir }: { c: Check; diseno: Design; alPedir: (texto: string) => void }) {
   const seleccionar = useTienda((s) => s.seleccionar)
   const pensando = useTienda((s) => s.pensando)
   const pieza = c.piezas.find((id) => diseno.piezas.some((p) => p.id === id))
@@ -91,7 +91,7 @@ function Renglon({ c, diseno, alPedir }: { c: Check; diseno: Diseno; alPedir: (t
   )
 }
 
-export function TarjetaDictamen({ dictamen, diseno, alPedir }: { dictamen: DatosDictamen; diseno: Diseno; alPedir: (texto: string) => void }) {
+export function TarjetaDictamen({ dictamen, diseno, alPedir }: { dictamen: DatosDictamen; diseno: Design; alPedir: (texto: string) => void }) {
   const dictaminar = useTienda((s) => s.dictaminar)
   const dictaminando = useTienda((s) => s.dictaminando)
   const pensando = useTienda((s) => s.pensando)

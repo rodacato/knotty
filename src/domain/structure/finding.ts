@@ -1,4 +1,4 @@
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import type { Geometry } from '../diseno/resolve'
 import type { Catalog } from '../materiales/catalog'
 import type { Contact } from '../validation/contact'
@@ -25,7 +25,7 @@ export interface Finding {
 }
 
 export interface RuleContext {
-  design: Diseno
+  design: Design
   geo: Geometry
   catalog: Catalog
   contacts: Contact[]

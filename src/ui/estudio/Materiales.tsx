@@ -1,12 +1,12 @@
 import { ArrowCounterClockwise, Check, Info, PencilSimple, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import type { Diseno } from '../../domain/diseno/esquema'
+import type { Design } from '../../domain/diseno/schema'
 import type { Geometry } from '../../domain/diseno/resolve'
 import type { MaterialLayout } from '../../domain/materiales/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materiales/catalog'
 import { firmaDictamen } from '../../application/casosDeUso'
 import { estimatePurchase } from '../../domain/materiales/purchase'
-import type { EstadoDiseno } from '../../domain/sesion/estado'
+import type { DesignState } from '../../domain/sesion/state'
 import { Titulo } from '../sistema/componentes'
 import { useTienda } from '../tienda'
 import { PuertaRevision, TarjetaDictamen } from './Dictamen'
@@ -167,7 +167,7 @@ function AjustesCorte({ base }: { base: LayoutSettings }) {
   )
 }
 
-export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: EstadoDiseno; diseno: Diseno; geo: Geometry; catalogo: Catalog; alPedir: (texto: string) => void }) {
+export function Materiales({ estado, diseno, geo, catalogo, alPedir }: { estado: DesignState; diseno: Design; geo: Geometry; catalogo: Catalog; alPedir: (texto: string) => void }) {
   const ajustes = useTienda((s) => s.ajustesCatalogo)
   const efectivo = useMemo(() => applySettings(catalogo, ajustes), [catalogo, ajustes])
   const compra = useMemo(() => estimatePurchase(diseno, geo, efectivo), [diseno, geo, efectivo])

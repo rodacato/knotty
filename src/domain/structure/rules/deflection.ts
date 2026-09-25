@@ -1,4 +1,4 @@
-import type { Carga, Pieza } from '../../diseno/esquema'
+import type { Load, Piece } from '../../diseno/schema'
 import { roundTo, type Box } from '../../diseno/resolve'
 import type { Catalog } from '../../materiales/catalog'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
@@ -6,17 +6,17 @@ import { ASSUMPTIONS } from '../assumptions'
 
 // R1: how much a horizontal piece sags between its supports under its load.
 
-const LOAD_NAME: Record<Carga, string> = { ninguna: 'sin carga', ligera: 'carga ligera', media: 'carga media', pesada: 'libros' }
+const LOAD_NAME: Record<Load, string> = { ninguna: 'sin carga', ligera: 'carga ligera', media: 'carga media', pesada: 'libros' }
 
 /** Simply supported beam under a uniform load: δ = 5·w·L⁴ / (384·E·I) × creep. In mm. */
-export function deflection(span: number, depth: number, thickness: number, load: Carga, modulus: number) {
+export function deflection(span: number, depth: number, thickness: number, load: Load, modulus: number) {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
   const inertia = (depth * thickness ** 3) / 12
   return ((5 * w * span ** 4) / (384 * modulus * inertia)) * ASSUMPTIONS.creep
 }
 
 /** The longest span whose sag stays within span / the recommended limit. */
-export function maxSpan(depth: number, thickness: number, load: Carga, modulus: number) {
+export function maxSpan(depth: number, thickness: number, load: Load, modulus: number) {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
   const inertia = (depth * thickness ** 3) / 12
   return Math.cbrt((384 * modulus * inertia) / (5 * w * ASSUMPTIONS.creep * ASSUMPTIONS.deflectionLimit.recommended))
@@ -28,7 +28,7 @@ export function deflectionSeverity(delta: number, span: number): Severity | null
   return null
 }
 
-function modulusByGrain(p: Pieza, box: Box) {
+function modulusByGrain(p: Piece, box: Box) {
   const longSideIsX = box.x1 - box.x0 >= box.z1 - box.z0
   const grainAlongX = p.veta === 'largo' ? longSideIsX : p.veta === 'ancho' ? !longSideIsX : false
   return grainAlongX ? ASSUMPTIONS.elasticModulus.parallel : ASSUMPTIONS.elasticModulus.perpendicular
@@ -53,7 +53,7 @@ export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
   return span > 0 ? span : null
 }
 
-function alternatives(p: Pieza, span: number, depth: number, thickness: number, load: Carga, modulus: number, catalog: Catalog): Alternative[] {
+function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
   const thicker = catalog.materiales.filter((m) => m.tipo === 'triplay' && m.espesor > thickness).sort((a, b) => a.espesor - b.espesor)[0]
   if (thicker)

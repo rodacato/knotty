@@ -1,6 +1,6 @@
-import { analizar } from '../analisis'
+import { analyze } from '../analysis'
 import { startAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Diseno, Pieza } from '../diseno/esquema'
+import type { Design, Piece } from '../diseno/schema'
 import { drawerSides } from '../diseno/drawers'
 import { completeJoints } from '../diseno/joints'
 import { normalize } from '../diseno/normalize'
@@ -16,21 +16,21 @@ export interface Fix {
   key: string
   label: string
   operations: Operation[]
-  design: Diseno
+  design: Design
 }
 
 const RAIL_HEIGHT = 80
 /** A support shallower than this holds nothing up. */
 const MIN_SUPPORT_DEPTH = 100
-const uniqueId = (design: Diseno, base: string) => {
+const uniqueId = (design: Design, base: string) => {
   let id = base
   for (let n = 2; design.piezas.some((p) => p.id === id); n++) id = `${base}-${n}`
   return id
 }
 
 /** A vertical support under the middle of a horizontal piece, down to what is below it, dodging what is in its way. */
-function centerSupport(design: Diseno, catalog: Catalog, target: Pieza): Operation[] {
-  const analysis = analizar(design, catalog)
+function centerSupport(design: Design, catalog: Catalog, target: Piece): Operation[] {
+  const analysis = analyze(design, catalog)
   const geo = analysis.geo
   const box = geo?.boxes.get(target.id)
   if (!geo || !box || target.normal !== 'y') return []
@@ -61,7 +61,7 @@ function centerSupport(design: Diseno, catalog: Catalog, target: Pieza): Operati
 }
 
 /** A rail across the back, just under the top: to hang the piece from the wall or to keep it square. */
-function backRail(design: Diseno, role: 'refuerzo' | 'faja', name: string): Operation[] {
+function backRail(design: Design, role: 'refuerzo' | 'faja', name: string): Operation[] {
   const sides = design.piezas.filter((p) => p.rol === 'lateral' && p.normal === 'x')
   const top = design.piezas.find((p) => p.rol === 'techo')
   if (sides.length < 2 || !top) return []
@@ -86,8 +86,8 @@ function backRail(design: Diseno, role: 'refuerzo' | 'faja', name: string): Oper
 }
 
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
-function runnerSupportPiece(design: Diseno, catalog: Catalog, group: string, side: 'izq' | 'der'): Operation[] {
-  const geo = analizar(design, catalog).geo
+function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'izq' | 'der'): Operation[] {
+  const geo = analyze(design, catalog).geo
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'izq' ? -1 : 1))
   if (!geo || !runner?.holguraLateral || !found) return []
@@ -119,8 +119,8 @@ function runnerSupportPiece(design: Diseno, catalog: Catalog, group: string, sid
   ]
 }
 
-function operationsFor(design: Diseno, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
-  const pieces = finding.pieces.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Pieza => !!p)
+function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
+  const pieces = finding.pieces.map((id) => design.piezas.find((p) => p.id === id)).filter((p): p is Piece => !!p)
   switch (alternative.key) {
     case 'subir-espesor':
       return typeof alternative.data.material === 'string' ? [{ op: 'cambiarEspesor', ids: pieces.map((p) => p.id), material: alternative.data.material }] : []
@@ -141,14 +141,14 @@ function operationsFor(design: Diseno, catalog: Catalog, finding: Finding, alter
 }
 
 /** The alternatives of a finding that Knotty can build and that leave a valid design, each with its result. */
-export function fixesFor(design: Diseno, catalog: Catalog, finding: Finding): Fix[] {
+export function fixesFor(design: Design, catalog: Catalog, finding: Finding): Fix[] {
   return finding.alternatives.flatMap((alternative) => {
     const operations = operationsFor(design, catalog, finding, alternative)
     if (!operations.length) return []
     const result = applyOperations(design, operations, catalog)
     if (!result.ok) return []
     const built = completeJoints(normalize(result.value.design, catalog), catalog, design)
-    if (!analizar(built, catalog).valido) return []
+    if (!analyze(built, catalog).valid) return []
     return [{ key: alternative.key, label: alternative.description, operations, design: built }]
   })
 }

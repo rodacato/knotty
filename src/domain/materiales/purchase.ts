@@ -1,4 +1,4 @@
-import { EJES, type Diseno, type Eje, type Union } from '../diseno/esquema'
+import { AXES, type Design, type Axis, type Joint } from '../diseno/schema'
 import { roundTo, type Geometry } from '../diseno/resolve'
 import { jointLength } from '../validation/contact'
 import { hingesFor } from '../structure/assumptions'
@@ -11,7 +11,7 @@ const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
-const EDGE_AXIS: Record<string, Eje> = { frente: 'z', atras: 'z', izq: 'x', der: 'x', arriba: 'y', abajo: 'y' }
+const EDGE_AXIS: Record<string, Axis> = { frente: 'z', atras: 'z', izq: 'x', der: 'x', arriba: 'y', abajo: 'y' }
 
 export interface SheetLine {
   material: BoardMaterial
@@ -38,7 +38,7 @@ export interface Purchase {
 }
 
 /** How much hardware a joint takes when the model does not say: by spacing along the joint. */
-export function hardwarePerJoint(u: Union, geo: Geometry): number {
+export function hardwarePerJoint(u: Joint, geo: Geometry): number {
   const a = geo.boxes.get(u.a)
   const b = geo.boxes.get(u.b)
   const length = a && b ? jointLength(a, b) : 0
@@ -68,7 +68,7 @@ export function hardwarePerJoint(u: Union, geo: Geometry): number {
 }
 
 /** Metres of edge banding: the marked edges of every piece added up. */
-export function edgeBandingMeters(design: Diseno, geo: Geometry) {
+export function edgeBandingMeters(design: Design, geo: Geometry) {
   let mm = 0
   for (const p of design.piezas) {
     const box = geo.boxes.get(p.id)
@@ -76,14 +76,14 @@ export function edgeBandingMeters(design: Diseno, geo: Geometry) {
     for (const edge of p.cantos) {
       const axis = EDGE_AXIS[edge]
       if (axis === p.normal) continue
-      const along = EJES.find((e) => e !== axis && e !== p.normal)!
+      const along = AXES.find((e) => e !== axis && e !== p.normal)!
       mm += box[`${along}1`] - box[`${along}0`]
     }
   }
   return roundTo((mm / 1000) * EDGE_BANDING_WASTE, 1)
 }
 
-export function estimatePurchase(design: Diseno, geo: Geometry, catalog: Catalog): Purchase {
+export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog): Purchase {
   const missingPrices: string[] = []
   const layout = layOut(design, geo, catalog)
   const thicknessOf = (id: string) => catalog.materiales.find((m) => m.id === id)?.espesor ?? 0

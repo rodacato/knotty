@@ -1,5 +1,5 @@
 import { hingesFor } from '../structure/assumptions'
-import type { Diseno } from './esquema'
+import type { Design } from './schema'
 import type { Box } from './resolve'
 
 // Where the hardware sits, to draw it: runners in the gap beside each drawer, hinge cups on the inside of each door.
@@ -17,7 +17,7 @@ export type HardwarePart =
   | { kind: 'runner'; owner: string; box: Box }
   | { kind: 'hinge'; owner: string; center: [number, number, number]; diameter: number; depth: number }
 
-export function hardwareParts(design: Diseno, boxes: Map<string, Box>): HardwarePart[] {
+export function hardwareParts(design: Design, boxes: Map<string, Box>): HardwarePart[] {
   const parts: HardwarePart[] = []
   for (const u of design.uniones) {
     const a = boxes.get(u.a)

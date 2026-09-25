@@ -1,4 +1,4 @@
-import type { Dimensiones } from '../../domain/diseno/esquema'
+import type { Dimensions } from '../../domain/diseno/schema'
 
 // Fixed requests to try an expert with: the same in the comparison script and in the hidden bench.
 // `expected` holds sensible ranges in mm for each piece of furniture; outside them, the expert misread the request.
@@ -8,8 +8,8 @@ type Range = [number, number]
 export interface BenchCase {
   id: string
   notes: string
-  measures: Dimensiones | null
-  expected: Partial<Record<keyof Dimensiones, Range>>
+  measures: Dimensions | null
+  expected: Partial<Record<keyof Dimensions, Range>>
   /** A bed can lie either way: its ficha runs it along the width, a piece-by-piece design along the depth. */
   anyOrientation?: boolean
 }

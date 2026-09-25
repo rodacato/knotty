@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../analisis'
-import { catalogo } from '../fixtures/catalogo.test-util'
-import { librero } from '../fixtures/librero'
+import { analyze } from '../analysis'
+import { testCatalog } from '../fixtures/catalog.test-util'
+import { exampleBookcase } from '../fixtures/bookcase'
 import { buildCabinet, DEFAULT_CONSTRUCTION } from '../modules/cabinet'
 import { applyOperations } from '../operaciones/apply'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {
   it('puts a runner in the gap beside each drawer side, as long as the side', () => {
-    const r = applyOperations({ ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }, [
+    const r = applyOperations({ ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, fondo: 500 } }, [
       { op: 'agregarCajon', grupo: 'cajon-1', nombre: 'Cajón 1', izquierda: 'lat-izq.x1', derecha: 'lat-der.x0', abajo: 'piso.y1', arriba: 'entrepano-1.y0', frente: 'mueble.z1', fondo: 'trasera.z1', material: 'T15', materialFondo: 'TR6' },
-    ], catalogo)
+    ], testCatalog)
     if (!r.ok) throw new Error('no drawer')
-    const geo = analizar(r.value.design, catalogo).geo!
+    const geo = analyze(r.value.design, testCatalog).geo!
     const runners = hardwareParts(r.value.design, geo.boxes).filter((h) => h.kind === 'runner')
     expect(runners).toHaveLength(2)
     const left = runners[0] as Extract<(typeof runners)[number], { kind: 'runner' }>
@@ -25,9 +25,9 @@ describe('hardware to draw', () => {
   it('puts two hinge cups on the inside of each door of a short cabinet, at the edge with the hinge', () => {
     const { design } = buildCabinet(
       { name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] },
-      catalogo,
+      testCatalog,
     )
-    const geo = analizar(design, catalogo).geo!
+    const geo = analyze(design, testCatalog).geo!
     const hinges = hardwareParts(design, geo.boxes).filter((h) => h.kind === 'hinge')
     expect(hinges).toHaveLength(4)
     for (const h of hinges) {

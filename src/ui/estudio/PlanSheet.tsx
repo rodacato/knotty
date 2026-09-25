@@ -10,7 +10,7 @@ import { BedFields } from './BedFields'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 import { describePlanChanges } from '../../domain/modules/planChanges'
 import type { Cell, Column } from '../../domain/reading/reading'
-import type { EstadoDiseno } from '../../domain/sesion/estado'
+import type { DesignState } from '../../domain/sesion/state'
 import { useServicios } from '../servicios'
 import { Boton } from '../sistema/componentes'
 import { useTienda } from '../tienda'
@@ -178,7 +178,7 @@ function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Parti
   )
 }
 
-export function PlanSheet({ estado }: { estado: EstadoDiseno }) {
+export function PlanSheet({ estado }: { estado: DesignState }) {
   const applyPlan = useTienda((s) => s.applyPlan)
   const source = useMemo(() => currentPlan(estado), [estado])
   const [draft, setDraft] = useState<FurniturePlan | null>(source.plan)

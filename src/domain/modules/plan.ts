@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import type { Catalog } from '../materiales/catalog'
 import { BedPlan, buildBed } from './bed'
 import { buildCabinet, CabinetPlan } from './cabinet'
@@ -13,7 +13,7 @@ export type FurniturePlan = z.infer<typeof FurniturePlan>
 export const isBed = (plan: FurniturePlan): plan is BedPlan => 'kind' in plan && plan.kind === 'bed'
 export const isTable = (plan: FurniturePlan): plan is TablePlan => 'kind' in plan && plan.kind === 'table'
 
-export function buildPlan(plan: FurniturePlan, catalog: Catalog): { design: Diseno; notes: string[] } {
+export function buildPlan(plan: FurniturePlan, catalog: Catalog): { design: Design; notes: string[] } {
   return isBed(plan) ? buildBed(plan, catalog) : isTable(plan) ? buildTable(plan, catalog) : buildCabinet(plan, catalog)
 }
 

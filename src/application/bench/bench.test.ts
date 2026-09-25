@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { crearSimulado } from '../../adapters/llm/simulado/simulado'
-import { catalogo } from '../../domain/fixtures/catalogo.test-util'
+import { testCatalog } from '../../domain/fixtures/catalog.test-util'
 import { createBench } from './bench'
 
-const bench = createBench({ llm: () => crearSimulado(0), catalog: catalogo })
+const bench = createBench({ llm: () => crearSimulado(0), catalog: testCatalog })
 const signal = () => new AbortController().signal
 
 describe('the bench', () => {

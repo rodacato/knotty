@@ -1,10 +1,10 @@
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Diseno, Pieza } from '../diseno/esquema'
+import type { Design, Piece } from '../diseno/schema'
 
 const HOLGURA = 2
 const ENTRE_PUERTAS = 3
 
-const puerta = (lado: 'izq' | 'der'): Pieza =>
+const puerta = (lado: 'izq' | 'der'): Piece =>
   makePiece({
     id: `puerta-${lado}`,
     nombre: lado === 'izq' ? 'Puerta izquierda' : 'Puerta derecha',
@@ -20,7 +20,7 @@ const puerta = (lado: 'izq' | 'der'): Pieza =>
     cantos: ['frente', 'atras', 'izq', 'der', 'arriba', 'abajo'],
   })
 
-export const alacena: Diseno = {
+export const exampleWallCabinet: Design = {
   esquema: 1,
   nombre: 'Alacena de pared',
   dimensiones: { ancho: 760, alto: 720, fondo: 320 },

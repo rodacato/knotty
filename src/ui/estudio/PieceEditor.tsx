@@ -1,7 +1,7 @@
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, PencilSimple } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { PieceEditResult } from '../../application/casosDeUso'
-import { EJES, type Eje, type Pieza } from '../../domain/diseno/esquema'
+import { AXES, type Axis, type Piece } from '../../domain/diseno/schema'
 import type { Box } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
 import { Boton } from '../sistema/componentes'
@@ -9,7 +9,7 @@ import { useTienda } from '../tienda'
 
 // Hand edits on the selected piece: its length, width, thickness and position, applied at once and checked like any change.
 
-const MOVE: Record<Eje, [string, string, React.ReactNode, React.ReactNode]> = {
+const MOVE: Record<Axis, [string, string, React.ReactNode, React.ReactNode]> = {
   y: ['Bajar', 'Subir', <ArrowDown key="d" />, <ArrowUp key="u" />],
   x: ['A la izquierda', 'A la derecha', <ArrowLeft key="l" />, <ArrowRight key="r" />],
   z: ['Hacia atrás', 'Hacia el frente', <ArrowUp key="b" />, <ArrowDown key="f" />],
@@ -42,16 +42,16 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
   )
 }
 
-export function PieceEditor({ piece, box, catalog, enabled }: { piece: Pieza; box: Box; catalog: Catalog; enabled: boolean }) {
+export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; box: Box; catalog: Catalog; enabled: boolean }) {
   const editPiece = useTienda((s) => s.editPiece)
   const resizeFurniture = useTienda((s) => s.resizeFurniture)
   const pensando = useTienda((s) => s.pensando)
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(10)
   const [result, setResult] = useState<PieceEditResult | null>(null)
-  const size = (axis: Eje) => box[`${axis}1`] - box[`${axis}0`]
+  const size = (axis: Axis) => box[`${axis}1`] - box[`${axis}0`]
   // Largo is the longer side of the face, ancho the shorter, as in the cut list.
-  const [longAxis, shortAxis] = EJES.filter((e) => e !== piece.normal).sort((a, b) => size(b) - size(a))
+  const [longAxis, shortAxis] = AXES.filter((e) => e !== piece.normal).sort((a, b) => size(b) - size(a))
   const current = catalog.materiales.find((m) => m.id === piece.material)
   const sameKind = catalog.materiales.filter((m) => m.tipo === current?.tipo)
   const run = (r: PieceEditResult) => setResult(r.ok ? null : r)

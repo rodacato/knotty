@@ -1,6 +1,6 @@
 import { roundTo } from '../../diseno/resolve'
 import { gapBetween } from '../../validation/contact'
-import type { Diseno } from '../../diseno/esquema'
+import type { Design } from '../../diseno/schema'
 import { drawerSides } from '../../diseno/drawers'
 import type { Geometry } from '../../diseno/resolve'
 import type { Finding, Rule } from '../finding'
@@ -79,12 +79,12 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   return found
 }
 
-const drawerName = (design: Diseno, group: string) => {
+const drawerName = (design: Design, group: string) => {
   const front = design.piezas.find((p) => p.grupo === group && p.rol === 'frente-cajon')
   return front ? front.nombre.replace(/^Frente de /i, '') : group
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
-function runnerSupport(design: Diseno, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
+function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
   const runner = catalog.herrajes.find((h) => h.id.startsWith('corredera') && h.holguraLateral !== null)
   if (!runner?.holguraLateral) return []
   const gap = runner.holguraLateral
@@ -121,7 +121,7 @@ function runnerSupport(design: Diseno, geo: Geometry, catalog: Parameters<Rule>[
 }
 
 /** A drawer that reaches the ground drags on it when it opens. */
-function floorClearance(design: Diseno, geo: Geometry): Finding[] {
+function floorClearance(design: Design, geo: Geometry): Finding[] {
   const groups = [...new Set(design.piezas.filter((p) => p.rol === 'frente-cajon' && p.grupo).map((p) => p.grupo!))]
   return groups.flatMap((g): Finding[] => {
     const pieces = design.piezas.filter((p) => p.grupo === g && geo.boxes.has(p.id))

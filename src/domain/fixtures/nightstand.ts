@@ -1,9 +1,9 @@
 import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../diseno/builders'
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 
 const HOLGURA_PUERTA = 3
 
-export const buro: Diseno = {
+export const exampleNightstand: Design = {
   esquema: 1,
   nombre: 'Buró',
   dimensiones: { ancho: 450, alto: 550, fondo: 400 },

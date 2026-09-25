@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../analisis'
+import { analyze } from '../analysis'
 import { startAt, ref } from '../diseno/builders'
-import type { Diseno } from '../diseno/esquema'
-import { catalogo } from '../fixtures/catalogo.test-util'
-import { librero } from '../fixtures/librero'
+import type { Design } from '../diseno/schema'
+import { testCatalog } from '../fixtures/catalog.test-util'
+import { exampleBookcase } from '../fixtures/bookcase'
 import { estimatePurchase } from '../materiales/purchase'
 import { applyOperations } from './apply'
 import type { Operation } from './schema'
@@ -23,16 +23,16 @@ const cajon = (extra: Partial<Extract<Operation, { op: 'agregarCajon' }>> = {}):
   ...extra,
 })
 
-const hondo: Diseno = { ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }
+const hondo: Design = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, fondo: 500 } }
 
-const conCajon = (base: Diseno, ops: Operation[] = [cajon()]) => {
-  const r = applyOperations(base, ops, catalogo)
+const conCajon = (base: Design, ops: Operation[] = [cajon()]) => {
+  const r = applyOperations(base, ops, testCatalog)
   if (!r.ok) throw new Error(JSON.stringify(r.errors))
   return r.value.design
 }
-const analisis = (d: Diseno) => {
-  const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(JSON.stringify(a.errores))
+const analisis = (d: Design) => {
+  const a = analyze(d, testCatalog)
+  if (!a.valid) throw new Error(JSON.stringify(a.errors))
   return a
 }
 
@@ -42,7 +42,7 @@ describe('agregarCajon', () => {
     const piezas = d.piezas.filter((p) => p.grupo === 'cajon-1')
     expect(piezas.map((p) => p.id).sort()).toEqual(['cajon-1-contra', 'cajon-1-costado-der', 'cajon-1-costado-izq', 'cajon-1-fondo', 'cajon-1-frente', 'cajon-1-trasera'])
     const a = analisis(d)
-    expect(a.hallazgos).toEqual([])
+    expect(a.findings).toEqual([])
     expect(d.uniones.find((u) => u.id === 'u-cajon-1-corredera-izq')?.herrajes[0].herrajeId).toBe('corredera-telescopica-45')
     const frente = a.geo.boxes.get('cajon-1-frente')!
     expect(frente.z1).toBe(500)
@@ -55,12 +55,12 @@ describe('agregarCajon', () => {
     const d = conCajon(hondo, [cajon(), { op: 'cambiarDimensionGlobal', eje: 'x', valor: 800, regla: 'estirar' }])
     const a = analisis(d)
     expect(a.geo.boxes.get('cajon-1-frente')).toMatchObject({ x0: 20, x1: 780 })
-    expect(a.hallazgos.filter((h) => h.code === 'R9_CAJONES')).toEqual([])
+    expect(a.findings.filter((h) => h.code === 'R9_CAJONES')).toEqual([])
   })
 
   it('goes into the purchase: runners and drawer pieces', () => {
     const d = conCajon(hondo)
-    const compra = estimatePurchase(d, analisis(d).geo, catalogo)
+    const compra = estimatePurchase(d, analisis(d).geo, testCatalog)
     expect(compra.hardware.find((h) => h.hardware.id === 'corredera-telescopica-45')?.count).toBe(1)
     expect(compra.sheets.map((h) => h.material.id)).toContain('T15')
   })
@@ -69,17 +69,17 @@ describe('agregarCajon', () => {
     const d = conCajon(conCajon(hondo), [{ op: 'eliminarGrupo', grupo: 'cajon-1' }])
     expect(d.piezas.some((p) => p.grupo === 'cajon-1')).toBe(false)
     expect(d.uniones.some((u) => u.id.includes('cajon-1'))).toBe(false)
-    expect(analizar(d, catalogo).valido).toBe(true)
+    expect(analyze(d, testCatalog).valid).toBe(true)
   })
 
   it('does not fit in a very shallow piece', () => {
-    const r = applyOperations(librero, [cajon()], catalogo)
+    const r = applyOperations(exampleBookcase, [cajon()], testCatalog)
     expect(r.ok || r.errors[0]).toMatchObject({ code: 'E_OPERACION_INVALIDA', message: expect.stringContaining('No cabe un cajón') })
   })
 })
 
 describe('R9 drawers and screws into a face', () => {
-  const hallazgos = (d: Diseno) => analisis(d).hallazgos
+  const hallazgos = (d: Design) => analisis(d).findings
 
   it('a runner without its exact gap is critical', () => {
     const d = conCajon(hondo)

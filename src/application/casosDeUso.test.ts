@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../domain/analisis'
+import { analyze } from '../domain/analysis'
 import { crearSimulado } from '../adapters/llm/simulado/simulado'
 import { startAt, makePiece, ref, extent } from '../domain/diseno/builders'
 import type { BedPlan } from '../domain/modules/bed'
 import { DEFAULT_CONSTRUCTION, type CabinetPlan } from '../domain/modules/cabinet'
-import type { Diseno } from '../domain/diseno/esquema'
+import type { Design } from '../domain/diseno/schema'
 import type { Operation } from '../domain/operaciones/schema'
-import { catalogo } from '../domain/fixtures/catalogo.test-util'
-import { librero } from '../domain/fixtures/librero'
-import { disenoActual, type EstadoDiseno } from '../domain/sesion/estado'
+import { testCatalog } from '../domain/fixtures/catalog.test-util'
+import { exampleBookcase } from '../domain/fixtures/bookcase'
+import { currentDesign, type DesignState } from '../domain/sesion/state'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { RespuestaInvalida, type LLMProvider, type PlanAdjustment, type RespuestaAjuste } from '../ports/LLMProvider'
 import { crearCasosDeUso, currentPlan, firmaDictamen } from './casosDeUso'
@@ -17,7 +17,7 @@ import { noticeBoard } from './notices'
 import { fixesFor } from '../domain/fixes/fixes'
 import { answerItem, suggestionItem } from '../domain/tray/tray'
 
-const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
+const memoria = (): DesignRepository & { estado: DesignState | null } => ({
   estado: null,
   cargar() {
     return this.estado
@@ -33,7 +33,7 @@ const memoria = (): DesignRepository & { estado: EstadoDiseno | null } => ({
 let id = 0
 const casos = (llm: LLMProvider = crearSimulado(0)) => {
   const repositorio = memoria()
-  return { repositorio, ...crearCasosDeUso({ llm: () => llm, catalogo, repositorio, ahora: () => '2026-09-24T10:00:00Z', nuevoId: () => `m${++id}` }) }
+  return { repositorio, ...crearCasosDeUso({ llm: () => llm, catalogo: testCatalog, repositorio, ahora: () => '2026-09-24T10:00:00Z', nuevoId: () => `m${++id}` }) }
 }
 const senal = () => new AbortController().signal
 const MEDIDAS_LIBRERO = { ancho: 600, alto: 1800, fondo: 300 }
@@ -49,7 +49,7 @@ describe('reconstruir', () => {
     const etapas: string[] = []
     const estado = await c.reconstruir({ medidas: MEDIDAS_LIBRERO, fotos: [{ angulo: 'frente', base64: '' }], miniaturas: [], notas: '' }, senal(), (e) => etapas.push(e))
     expect(estado.versiones).toHaveLength(1)
-    expect(disenoActual(estado).nombre).toBe('Librero')
+    expect(currentDesign(estado).nombre).toBe('Librero')
     expect(estado.chat[1].preguntas.flatMap((p) => p.opciones)).toContain('Libros')
     expect(estado.chat[1].fotosPedidas).toEqual([{ angulo: 'interior', motivo: 'Para ver cómo va fijada la trasera' }])
     expect(etapas).toEqual(['leyendo-fotos', 'leyendo-fotos', 'mirando-fotos', 'disenando-piezas', 'revisando', 'estructura'])
@@ -64,20 +64,20 @@ describe('reconstruir sin fotos', () => {
       { medidas: { ancho: 600, alto: 1800, fondo: 500 }, fotos: [], miniaturas: [], notas: 'Un librero con repisas para libros y un cajón abajo' },
       senal(),
     )
-    expect(disenoActual(estado).nombre).toBe('Librero')
+    expect(currentDesign(estado).nombre).toBe('Librero')
     expect(estado.chat[1].fotosPedidas).toEqual([])
     expect(estado.chat[1].texto).toContain('Con tu descripción')
     const opciones = estado.chat[1].preguntas.flatMap((p) => p.opciones ?? [])
     expect(opciones).toContain('Agrega un cajón abajo')
     const conCajon = await c.ajustar(estado, 'Agrega un cajón abajo', senal(), undefined, `${estado.chat[1].id}#p1`)
-    expect(disenoActual(conCajon).piezas.some((p) => p.grupo === 'cajon-1')).toBe(true)
+    expect(currentDesign(conCajon).piezas.some((p) => p.grupo === 'cajon-1')).toBe(true)
   })
 
   it('la descripción queda en el chat y, sin medidas, el experto las estima y lo dice', async () => {
     const estado = await casos().reconstruir({ medidas: null, fotos: [], miniaturas: [], notas: 'Un buró sencillo con una repisa' }, senal())
     expect(estado.chat[0]).toMatchObject({ autor: 'usuario', texto: 'Un buró sencillo con una repisa\n\nNo sé las medidas.' })
-    expect(disenoActual(estado).nombre).toBe('Buró')
-    expect(estado.medidas).toEqual(disenoActual(estado).dimensiones)
+    expect(currentDesign(estado).nombre).toBe('Buró')
+    expect(estado.medidas).toEqual(currentDesign(estado).dimensiones)
     expect(estado.chat[1].texto).toContain('las estimé')
     expect(estado.chat[1].sugerencias.length).toBeGreaterThan(0)
   })
@@ -108,12 +108,12 @@ describe('ajustar', () => {
 
     const aplicado = c.aplicarPropuesta(ancho)
     expect(aplicado.versiones).toHaveLength(2)
-    expect(disenoActual(aplicado).dimensiones.ancho).toBe(900)
+    expect(currentDesign(aplicado).dimensiones.ancho).toBe(900)
     expect(aplicado.requisitos.map((r) => r.id)).toEqual(['espacio-ancho'])
 
     const conDivisor = await c.ajustar(aplicado, 'Agrega un divisor al centro', senal())
     expect(conDivisor.versiones).toHaveLength(3)
-    expect(disenoActual(conDivisor).piezas.some((p) => p.id === 'divisor')).toBe(true)
+    expect(currentDesign(conDivisor).piezas.some((p) => p.id === 'divisor')).toBe(true)
     expect(conDivisor.chat.at(-1)?.version).toBe(3)
   })
 
@@ -124,8 +124,8 @@ describe('ajustar', () => {
     expect(opciones).toContain('Agregar un divisor vertical al centro')
     const resuelto = await c.ajustar(pendiente, opciones[0], senal(), undefined, pendiente.chat.at(-1)!.id)
     expect(resuelto.propuesta).toBeNull()
-    expect(disenoActual(resuelto).dimensiones.ancho).toBe(900)
-    expect(disenoActual(resuelto).piezas.map((p) => p.id)).toEqual(expect.arrayContaining(['divisor', 'apoyo-piso', 'entrepano-1-der']))
+    expect(currentDesign(resuelto).dimensiones.ancho).toBe(900)
+    expect(currentDesign(resuelto).piezas.map((p) => p.id)).toEqual(expect.arrayContaining(['divisor', 'apoyo-piso', 'entrepano-1-der']))
     expect(resuelto.versiones.at(-1)?.resumen).toBe('Ensanchar con divisor al centro')
   })
 
@@ -200,12 +200,12 @@ describe('ajustar', () => {
     const llm: LLMProvider = { ...simulado, proponerAjuste: (s, signal) => (vistas.push(s.fotos.length), simulado.proponerAjuste(s, signal)) }
     const c = casos(llm)
     const inicial = await libreroInicial(c)
-    expect(disenoActual(inicial).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('baja')
+    expect(currentDesign(inicial).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('baja')
     const foto = { angulo: 'interior', base64: 'AAA', miniatura: 'data:image/jpeg;base64,AAA' }
     const estado = await c.ajustar(inicial, 'Te mando la foto: interior', senal(), undefined, `${inicial.chat[1].id}#f:interior`, foto)
     expect(estado.chat[1]).toMatchObject({ respuestas: ['f:interior'], respondida: false })
     expect(vistas).toEqual([1])
-    expect(disenoActual(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
+    expect(currentDesign(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
     expect(estado.miniaturas.map((m) => m.angulo)).toContain('interior')
     expect(estado.chat.at(-2)?.miniatura).toBe(foto.miniatura)
   })
@@ -213,7 +213,7 @@ describe('ajustar', () => {
   it('confirmar a mano una pieza en boceto crea una versión', async () => {
     const c = casos()
     const estado = c.confirmarPieza(await libreroInicial(c), 'trasera')
-    expect(disenoActual(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
+    expect(currentDesign(estado).piezas.find((p) => p.id === 'trasera')?.confianza).toBe('alta')
     expect(estado.versiones.at(-1)?.resumen).toBe('Confirmar trasera')
     expect(c.confirmarPieza(estado, 'trasera')).toBe(estado)
   })
@@ -237,7 +237,7 @@ describe('versiones', () => {
     const dos = await c.ajustar(await libreroInicial(c), 'Refuerza la base', senal())
     const tres = c.volverAVersion(dos, 1)
     expect(tres.versiones.map((v) => v.n)).toEqual([1, 2, 3])
-    expect(disenoActual(tres)).toEqual(tres.versiones[0].diseno)
+    expect(currentDesign(tres)).toEqual(tres.versiones[0].diseno)
   })
 
   it('volver a una versión restaura sus decisiones pero no toca los requisitos', async () => {
@@ -281,7 +281,7 @@ describe('construirContexto', () => {
   it('incluye diseño, geometría, revisión, requisitos, bitácora y chat reciente', async () => {
     const c = casos()
     const estado = c.aplicarPropuesta(await c.ajustar(await libreroInicial(c), 'Hazlo de 90 cm de ancho', senal()))
-    const texto = construirContexto(estado, catalogo)
+    const texto = construirContexto(estado, testCatalog)
     for (const parte of ['## Diseño actual (v2)', 'lat-der: 882–900', 'R1_FLECHA', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Usuario: Hazlo de 90 cm']) expect(texto).toContain(parte)
   })
 })
@@ -290,20 +290,20 @@ describe('dictaminar', () => {
   it('guarda las comprobaciones y la opinión del carpintero con la firma de la versión', async () => {
     const c = casos()
     const inicial = await libreroInicial(c)
-    const estado = c.guardarDictamen(inicial, await c.dictaminar(inicial, catalogo, senal()))
-    expect(estado.dictamen).toMatchObject({ veredicto: 'viable', error: null, firma: firmaDictamen(inicial, catalogo) })
+    const estado = c.guardarDictamen(inicial, await c.dictaminar(inicial, testCatalog, senal()))
+    expect(estado.dictamen).toMatchObject({ veredicto: 'viable', error: null, firma: firmaDictamen(inicial, testCatalog) })
     expect(estado.dictamen!.comprobaciones.find((x) => x.id === 'confirmadas')?.estado).toBe('aviso')
     expect(estado.dictamen!.carpintero?.consejos.length).toBeGreaterThan(0)
     expect(c.repositorio.estado?.dictamen).toEqual(estado.dictamen)
     const cambiado = await c.ajustar(estado, 'Refuerza la base', senal())
-    expect(firmaDictamen(cambiado, catalogo)).not.toBe(estado.dictamen!.firma)
+    expect(firmaDictamen(cambiado, testCatalog)).not.toBe(estado.dictamen!.firma)
   })
 
   it('el carpintero no puede aprobar lo que las cuentas marcan imposible', async () => {
     const simulado = crearSimulado(0)
     const llm: LLMProvider = { ...simulado, dictaminar: async (s, signal) => ({ ...(await simulado.dictaminar(s, signal)), valor: { veredicto: 'viable', resumen: 'Todo bien', problemas: [], consejos: [] } }) }
     const c = casos(llm)
-    const estrecho = { ...catalogo, acomodo: { ...catalogo.acomodo, refilado: 400 } }
+    const estrecho = { ...testCatalog, acomodo: { ...testCatalog.acomodo, refilado: 400 } }
     const dictamen = await c.dictaminar(await libreroInicial(c), estrecho, senal())
     expect(dictamen.veredicto).toBe('no-viable')
   })
@@ -311,14 +311,14 @@ describe('dictaminar', () => {
   it('si el carpintero no contesta, queda el dictamen de las cuentas con el motivo', async () => {
     const llm: LLMProvider = { ...crearSimulado(0), dictaminar: async () => Promise.reject(new Error('No se pudo conectar con SheLLM.')) }
     const c = casos(llm)
-    const dictamen = await c.dictaminar(await libreroInicial(c), catalogo, senal())
+    const dictamen = await c.dictaminar(await libreroInicial(c), testCatalog, senal())
     expect(dictamen).toMatchObject({ veredicto: 'viable', carpintero: null, error: 'No se pudo conectar con SheLLM.' })
   })
 })
 
 describe('never throw away a paid design', () => {
   // A shelf floating in the middle, touching nothing: it resolves, but no rule can say where it should go.
-  const conFlotante = (d: Diseno): Diseno => ({
+  const conFlotante = (d: Design): Design => ({
     ...d,
     piezas: [
       ...d.piezas,
@@ -332,8 +332,8 @@ describe('never throw away a paid design', () => {
       },
     ],
   })
-  const conEncimada = (d: Diseno): Diseno => ({ ...d, piezas: [...d.piezas, { ...d.piezas.find((p) => p.id === 'entrepano-1')!, id: 'entrepano-copia', nombre: 'Entrepaño copia' }] })
-  const cambiando = (cambio: (d: Diseno) => Diseno): LLMProvider => {
+  const conEncimada = (d: Design): Design => ({ ...d, piezas: [...d.piezas, { ...d.piezas.find((p) => p.id === 'entrepano-1')!, id: 'entrepano-copia', nombre: 'Entrepaño copia' }] })
+  const cambiando = (cambio: (d: Design) => Design): LLMProvider => {
     const simulado = crearSimulado(0)
     return { ...simulado, reconstruir: async (s, signal) => { const r = await simulado.reconstruir(s, signal); return { ...r, valor: { ...r.valor, diseno: cambio(r.valor.diseno) } } } }
   }
@@ -341,7 +341,7 @@ describe('never throw away a paid design', () => {
 
   it('an overlap is fixed by rule, without asking the model again', async () => {
     const estado = await libreroInicial(casos(cambiando(conEncimada)))
-    expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-copia')).toBe(false)
+    expect(currentDesign(estado).piezas.some((p) => p.id === 'entrepano-copia')).toBe(false)
     expect(estado.trace.map((t) => t.step)).toEqual(['read', 'plan', 'reconstruct'])
     expect(estado.trace[2]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
     expect(estado.chat[1].texto).toContain('Ajusté por mi cuenta un detalle')
@@ -350,7 +350,7 @@ describe('never throw away a paid design', () => {
   it('after every attempt fails validation, keeps the last design and says what is left', async () => {
     const c = casos(encimando())
     const estado = await libreroInicial(c)
-    expect(disenoActual(estado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(true)
+    expect(currentDesign(estado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(true)
     expect(estado.chat[1].texto).toContain('quedaron una pieza sin apoyo')
     expect(estado.chat[1].sugerencias[0]).toBe('Corrige las piezas marcadas')
     const disenos = estado.trace.filter((t) => t.step === 'reconstruct')
@@ -363,7 +363,7 @@ describe('never throw away a paid design', () => {
     const inicial = await libreroInicial(c)
     const quitar = { ...crearSimulado(0), proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Quitar extra', operaciones: [{ op: 'eliminarPieza' as const, id: 'entrepano-extra' }] }, origen: { promptId: 'p', proveedor: 'x', modelo: 'm' }, consumo: {} }) }
     const arreglado = await casos(quitar).ajustar(inicial, 'Corrige las piezas marcadas', senal())
-    expect(disenoActual(arreglado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(false)
+    expect(currentDesign(arreglado).piezas.some((p) => p.id === 'entrepano-extra')).toBe(false)
     expect(arreglado.trace.at(-1)).toMatchObject({ step: 'adjust', outcome: 'ok', errors: [] })
 
     const romper = { ...crearSimulado(0), proponerAjuste: async () => ({ valor: { ...ajusteVacio, resumen: 'Mover', operaciones: [{ op: 'mover' as const, id: 'lat-izq', eje: 'x' as const, cota: { tipo: 'mm' as const, mm: -50 } }] }, origen: { promptId: 'p', proveedor: 'x', modelo: 'm' }, consumo: {} }) }
@@ -464,10 +464,10 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const { llm, llamadas } = conPlan(cabinetPlan)
     const estado = await casos(llm).reconstruir(pedido('Una cajonera de tres cajones'), senal())
     expect(llamadas).toEqual(['plan'])
-    const d = disenoActual(estado)
+    const d = currentDesign(estado)
     expect(d.nombre).toBe('Cajonera')
     expect(new Set(d.piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(3)
-    expect(analizar(d, catalogo).valido).toBe(true)
+    expect(analyze(d, testCatalog).valid).toBe(true)
     expect(estado.trace.map((t) => [t.step, t.outcome])).toEqual([['plan', 'ok']])
     expect(estado.chat[1].sugerencias).toEqual(['Hazla más alta'])
   })
@@ -475,7 +475,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
   it('uses the measures the person gave over the plan', async () => {
     const { llm } = conPlan(cabinetPlan)
     const estado = await casos(llm).reconstruir({ ...pedido('Una cajonera'), medidas: { ancho: 600, alto: 1000, fondo: 500 } }, senal())
-    expect(disenoActual(estado).dimensiones).toEqual({ ancho: 600, alto: 1000, fondo: 500 })
+    expect(currentDesign(estado).dimensiones).toEqual({ ancho: 600, alto: 1000, fondo: 500 })
   })
 
   it('not a cabinet, or the skeleton fails: designs it whole', async () => {
@@ -495,7 +495,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const r = c.applyPlan(inicial, { ...cuatro, construction: { ...cuatro.construction, drawerFronts: 'overlay' } })
     if (!r.ok) throw new Error(r.message)
     expect(llamadas).toEqual(['plan'])
-    expect(new Set(disenoActual(r.estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
+    expect(new Set(currentDesign(r.estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
     expect(r.estado.chat.at(-1)?.texto).toBe('Cambié desde la ficha: frentes de cajón sobrepuestos, 4 cajones.')
     expect(r.estado.versiones.at(-1)).toMatchObject({ n: 2, resumen: 'Ficha: frentes de cajón sobrepuestos, 4 cajones' })
     expect(currentPlan(r.estado)).toMatchObject({ since: 2, diverged: false })
@@ -528,7 +528,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const c = casos()
     const estado = await c.reconstruir({ medidas: { ancho: 1300, alto: 750, fondo: 600 }, fotos: [], miniaturas: [], notas: 'Un escritorio con 3 cajones a la izquierda' }, senal())
     expect(currentPlan(estado).plan).toMatchObject({ kind: 'table', use: 'desk', pedestal: { side: 'left', drawers: 3 } })
-    const design = disenoActual(estado)
+    const design = currentDesign(estado)
     expect(design.dimensiones).toEqual({ ancho: 1300, alto: 750, fondo: 600 })
     expect(design.piezas.filter((p) => p.rol === 'frente-cajon')).toHaveLength(3)
   })
@@ -539,7 +539,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const estado = await casos(llm).reconstruir(pedido('Una cama individual con cajones y cabecera librero'), senal())
     expect(llamadas).toEqual(['plan'])
     expect(currentPlan(estado).plan).toMatchObject({ kind: 'bed', mattress: 'individual' })
-    const design = disenoActual(estado)
+    const design = currentDesign(estado)
     expect(design.piezas.filter((p) => p.rol === 'frente-cajon')).toHaveLength(3)
     expect(design.dimensiones).toEqual({ ancho: 250 + 1900 + 20 + 18, alto: 1100, fondo: 1010 })
   })
@@ -587,7 +587,7 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     const estado = await c.ajustar(inicial, 'Ponle un cajón más', senal())
     expect(calls).toEqual(['ficha'])
     expect(currentPlan(estado)).toMatchObject({ since: 2, diverged: false })
-    expect(new Set(disenoActual(estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
+    expect(new Set(currentDesign(estado).piezas.map((p) => p.grupo).filter(Boolean)).size).toBe(4)
   })
 
   it('a question gets an answer and no new version', async () => {
@@ -607,8 +607,8 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
     expect(currentPlan(conListon)).toMatchObject({ diverged: false, extras: [{ op: 'agregarPieza' }] })
     const r = c.applyPlan(conListon, { ...drawers(3), dimensions: { width: 600, height: 900, depth: 450 } })
     if (!r.ok) throw new Error(r.message)
-    expect(disenoActual(r.estado).piezas.some((p) => p.id === 'liston')).toBe(true)
-    expect(analizar(disenoActual(r.estado), catalogo).valido).toBe(true)
+    expect(currentDesign(r.estado).piezas.some((p) => p.id === 'liston')).toBe(true)
+    expect(analyze(currentDesign(r.estado), testCatalog).valid).toBe(true)
   })
 
   it('an extra that no longer applies to the new ficha is left out, and said', async () => {
@@ -630,14 +630,14 @@ describe('the ficha stays alive: chat edits it, and free changes ride on top', (
 })
 
 describe('editing a piece by hand, without the expert', () => {
-  const box = (estado: EstadoDiseno, id: string) => {
-    const a = analizar(disenoActual(estado), catalogo)
-    if (!a.valido) throw new Error(a.errores[0].message)
+  const box = (estado: DesignState, id: string) => {
+    const a = analyze(currentDesign(estado), testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
     return a.geo.boxes.get(id)!
   }
   const start = () => {
     const c = casos()
-    return { c, inicial: c.desdeEjemplo(librero) }
+    return { c, inicial: c.desdeEjemplo(exampleBookcase) }
   }
 
   it('moves a shelf and changes its thickness, each in one version', () => {
@@ -659,7 +659,7 @@ describe('editing a piece by hand, without the expert', () => {
     if (r.ok) return
     const wider = c.resizeFurniture(inicial, 'x', r.alternatives[0].value)
     if (!wider.ok) throw new Error(wider.message)
-    expect(disenoActual(wider.estado).dimensiones.ancho).toBe(736)
+    expect(currentDesign(wider.estado).dimensiones.ancho).toBe(736)
     expect(box(wider.estado, 'entrepano-1').x1 - box(wider.estado, 'entrepano-1').x0).toBe(700)
   })
 
@@ -687,79 +687,79 @@ describe('trust: nothing structural goes unasked, and any change can be undone i
 
   it('taking away structure that was not asked for waits for the person, and one click applies it', () => {
     const c = answering({ operaciones: removeKick })
-    return c.ajustar(c.desdeEjemplo(librero), 'Hazlo más ligero', senal()).then((estado) => {
+    return c.ajustar(c.desdeEjemplo(exampleBookcase), 'Hazlo más ligero', senal()).then((estado) => {
       expect(estado.versiones).toHaveLength(1)
       expect(estado.propuesta?.holds[0]).toMatch(/^Quiere quitar Zoclo/)
       const aplicado = c.aplicarPropuesta(estado)
-      expect(disenoActual(aplicado).piezas.some((p) => p.id === 'zoclo')).toBe(false)
+      expect(currentDesign(aplicado).piezas.some((p) => p.id === 'zoclo')).toBe(false)
     })
   })
 
   it('when the person asks to remove it, it just happens', async () => {
     const c = answering({ operaciones: removeKick })
-    const estado = await c.ajustar(c.desdeEjemplo(librero), 'Quita el zoclo', senal())
+    const estado = await c.ajustar(c.desdeEjemplo(exampleBookcase), 'Quita el zoclo', senal())
     expect(estado.versiones).toHaveLength(2)
   })
 
   it('changes that come with questions wait for the answers', async () => {
     const c = answering({ operaciones: [{ op: 'cambiarEspesor', ids: ['entrepano-1'], material: 'T15' }], preguntas: [{ texto: '¿Cuánto peso?', opciones: ['Poco', 'Mucho'] }] })
-    const estado = await c.ajustar(c.desdeEjemplo(librero), 'Adelgaza la repisa', senal())
+    const estado = await c.ajustar(c.desdeEjemplo(exampleBookcase), 'Adelgaza la repisa', senal())
     expect(estado.versiones).toHaveLength(1)
     expect(estado.propuesta?.holds).toEqual(['Hizo preguntas: el cambio espera tus respuestas.'])
   })
 
   it('brings back one piece from before an older change, and undoes a whole change', () => {
     const c = casos()
-    const inicial = c.desdeEjemplo(librero)
+    const inicial = c.desdeEjemplo(exampleBookcase)
     const sinRepisas = c.editPiece(inicial, 'entrepano-2', { kind: 'thickness', material: 'T15' })
     if (!sinRepisas.ok) throw new Error(sinRepisas.message)
     const movida = c.editPiece(sinRepisas.estado, 'entrepano-1', { kind: 'move', axis: 'y', delta: 30 })
     if (!movida.ok) throw new Error(movida.message)
     const regresada = c.restoreFromVersion(movida.estado, 2, ['entrepano-2'])
     if (!regresada.ok) throw new Error(regresada.message)
-    const d = disenoActual(regresada.estado)
+    const d = currentDesign(regresada.estado)
     expect(d.piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T18')
     expect(regresada.estado.chat.at(-1)?.texto).toBe('Regresé Entrepaño 2 como estaba antes de la v2.')
     const deshecha = c.undoChange(regresada.estado, regresada.estado.actual)
     if (!deshecha.ok) throw new Error(deshecha.message)
-    expect(disenoActual(deshecha.estado).piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T15')
+    expect(currentDesign(deshecha.estado).piezas.find((p) => p.id === 'entrepano-2')?.material).toBe('T15')
   })
 })
 
 describe('notices: one place for what waits for a decision', () => {
-  const wide = { ...librero, dimensiones: { ...librero.dimensiones, ancho: 1100 } }
+  const wide = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, ancho: 1100 } }
 
   it('a finding is pending until it is fixed by Knotty (and then shows as resolved) or accepted as it is', () => {
     const c = casos()
     const inicial = c.desdeEjemplo(wide)
-    const board = noticeBoard(inicial, catalogo)
+    const board = noticeBoard(inicial, testCatalog)
     const sag = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
     expect(sag).toBeTruthy()
 
     const aceptado = c.acceptNotice(inicial, sag.findings, sag.title)
-    expect(noticeBoard(aceptado, catalogo).pending.some((n) => n.key === sag.key)).toBe(false)
-    expect(noticeBoard(aceptado, catalogo).accepted.map((n) => n.key)).toContain(sag.key)
-    expect(noticeBoard(c.reopenNotice(aceptado, sag.findings), catalogo).pending.some((n) => n.key === sag.key)).toBe(true)
+    expect(noticeBoard(aceptado, testCatalog).pending.some((n) => n.key === sag.key)).toBe(false)
+    expect(noticeBoard(aceptado, testCatalog).accepted.map((n) => n.key)).toContain(sag.key)
+    expect(noticeBoard(c.reopenNotice(aceptado, sag.findings), testCatalog).pending.some((n) => n.key === sag.key)).toBe(true)
 
-    const fix = fixesFor(disenoActual(inicial), catalogo, sag.findings[0]).find((f) => f.key === 'divisor-al-centro')!
+    const fix = fixesFor(currentDesign(inicial), testCatalog, sag.findings[0]).find((f) => f.key === 'divisor-al-centro')!
     const resuelto = c.applyFix(inicial, fix)
     expect(resuelto.chat.at(-1)?.texto).toBe(`Resolví: ${fix.label}.`)
-    const piece = disenoActual(inicial).piezas.find((p) => p.id === sag.findings[0].pieces[0])!.nombre
-    expect(noticeBoard(resuelto, catalogo).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
+    const piece = currentDesign(inicial).piezas.find((p) => p.id === sag.findings[0].pieces[0])!.nombre
+    expect(noticeBoard(resuelto, testCatalog).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
   })
 
   it('what the person accepted is not a failure in the verdict, but it is said', async () => {
     const c = casos()
-    const inicial = c.desdeEjemplo({ ...librero, anclajeMuro: false })
-    const vuelco = noticeBoard(inicial, catalogo).pending.find((n) => n.title === 'Riesgo de vuelco')!
+    const inicial = c.desdeEjemplo({ ...exampleBookcase, anclajeMuro: false })
+    const vuelco = noticeBoard(inicial, testCatalog).pending.find((n) => n.title === 'Riesgo de vuelco')!
     const aceptado = c.acceptNotice(inicial, vuelco.findings, vuelco.title)
-    const dictamen = await c.dictaminar(aceptado, catalogo, senal())
+    const dictamen = await c.dictaminar(aceptado, testCatalog, senal())
     expect(dictamen.comprobaciones.find((x) => x.id === 'aceptados')?.detalle).toBe('Lo dejaste así, bajo tu riesgo: Riesgo de vuelco.')
   })
 
   it("the expert's pending proposal and unanswered questions are notices too", async () => {
     const inicial = await libreroInicial(casos())
-    const board = noticeBoard(inicial, catalogo)
+    const board = noticeBoard(inicial, testCatalog)
     expect(board.pending.filter((n) => n.kind === 'question').map((n) => n.message)).toContain('¿Qué vas a guardar principalmente?')
   })
 })

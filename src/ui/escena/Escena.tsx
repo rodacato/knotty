@@ -2,7 +2,7 @@ import { CameraControls, ContactShadows, Environment, Grid, Lightformer, Perform
 import { Canvas } from '@react-three/fiber'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Diseno } from '../../domain/diseno/esquema'
+import type { Design } from '../../domain/diseno/schema'
 import type { Geometry } from '../../domain/diseno/resolve'
 import type { Catalog } from '../../domain/materiales/catalog'
 import { useTienda, type Vista } from '../tienda'
@@ -17,7 +17,7 @@ import { useMovimientoReducido, useOscuro, useTactil } from './preferencias'
 const MM = 0.001
 
 interface PropsEscena {
-  diseno: Diseno
+  diseno: Design
   geo: Geometry
   catalogo: Catalog
   /** Piezas nuevas de una propuesta: fantasma ámbar. */
@@ -29,7 +29,7 @@ interface PropsEscena {
 }
 
 /** Cuánto se separa cada pieza en la vista de armado: hacia afuera del centro, sobre todo en la dirección de su espesor, sin bajar del piso. */
-function desplazamientos(geo: Geometry, diseno: Diseno, activo: boolean) {
+function desplazamientos(geo: Geometry, diseno: Design, activo: boolean) {
   const cero = new Map(diseno.piezas.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
   if (!activo) return { empujes: cero, alto: diseno.dimensiones.alto * MM }
   const { ancho, alto, fondo } = diseno.dimensiones
@@ -63,7 +63,7 @@ function desplazamientos(geo: Geometry, diseno: Diseno, activo: boolean) {
   return { empujes, alto: tope * MM }
 }
 
-function Camara({ diseno, altoVisible, reducido }: { diseno: Diseno; altoVisible: number; reducido: boolean }) {
+function Camara({ diseno, altoVisible, reducido }: { diseno: Design; altoVisible: number; reducido: boolean }) {
   const controles = useRef<CameraControls>(null)
   const vista = useTienda((s) => s.vista)
   const explosion = useTienda((s) => s.explosion)

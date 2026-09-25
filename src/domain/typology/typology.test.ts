@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../analisis'
+import { analyze } from '../analysis'
 import { startAt, endAt, makePiece, ref, extent } from '../diseno/builders'
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import { completeJoints } from '../diseno/joints'
-import { catalogo } from '../fixtures/catalogo.test-util'
+import { testCatalog } from '../fixtures/catalog.test-util'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
 import type { Cell } from '../reading/reading'
 import { detectKind } from './typology'
 
 const cell = (content: Cell['content'], extra: Partial<Cell> = {}): Cell => ({ height: 1, content, shelves: null, doors: null, ...extra })
 const cabinet = (p: Partial<CabinetPlan>) =>
-  buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, catalogo).design
-const usage = (d: Diseno) => {
-  const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(a.errores[0].message)
-  return a.hallazgos.filter((h) => h.code === 'R10_USO').map((h) => [h.severity, h.message] as const)
+  buildCabinet({ name: 'Mueble', dimensions: { width: 600, height: 900, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open')] }], ...p }, testCatalog).design
+const usage = (d: Design) => {
+  const a = analyze(d, testCatalog)
+  if (!a.valid) throw new Error(a.errors[0].message)
+  return a.findings.filter((h) => h.code === 'R10_USO').map((h) => [h.severity, h.message] as const)
 }
 
 describe('detectKind', () => {
@@ -60,7 +60,7 @@ describe('typologyRule', () => {
 
   it('a desk needs room for the legs', () => {
     expect(usage(cabinet({ name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 } }))).toContainEqual(['critico', expect.stringContaining('espacio para las piernas')])
-    const open: Diseno = completeJoints(
+    const open: Design = completeJoints(
       {
         esquema: 1,
         nombre: 'Escritorio',
@@ -75,7 +75,7 @@ describe('typologyRule', () => {
           makePiece({ id: 'faldon', nombre: 'Faldón', rol: 'faja', material: 'T18', normal: 'z', x: extent(ref('lat-izq.x1'), ref('lat-der.x0')), y: extent(null, ref('cubierta.y0'), 150), z: startAt(ref('mueble.z0')) }),
         ],
       },
-      catalogo,
+      testCatalog,
     )
     expect(usage(open)).toEqual([])
   })

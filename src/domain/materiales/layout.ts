@@ -1,4 +1,4 @@
-import type { Diseno } from '../diseno/esquema'
+import type { Design } from '../diseno/schema'
 import { faceSize, type Geometry } from '../diseno/resolve'
 import { usableSheet, materialById, type Catalog } from './catalog'
 
@@ -56,7 +56,7 @@ const ORDERS: Record<Order, (a: LayoutPiece, b: LayoutPiece) => number> = {
 }
 
 /** Each material's pieces, turned as their grain allows. */
-export function layoutPieces(design: Diseno, geo: Geometry): Map<string, LayoutPiece[]> {
+export function layoutPieces(design: Design, geo: Geometry): Map<string, LayoutPiece[]> {
   const byMaterial = new Map<string, LayoutPiece[]>()
   for (const p of design.piezas) {
     const box = geo.boxes.get(p.id)
@@ -116,7 +116,7 @@ function pack(pieces: LayoutPiece[], usable: { largo: number; ancho: number }, k
   return { sheets, unplaced }
 }
 
-export function layOut(design: Diseno, geo: Geometry, catalog: Catalog): MaterialLayout[] {
+export function layOut(design: Design, geo: Geometry, catalog: Catalog): MaterialLayout[] {
   const { sierra: kerf, holgura: play } = catalog.acomodo
   return [...layoutPieces(design, geo)].flatMap(([id, pieces]) => {
     const material = materialById(catalog, id)

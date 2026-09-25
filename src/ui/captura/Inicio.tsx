@@ -1,7 +1,7 @@
 import { ArrowRight, Cube } from '@phosphor-icons/react'
-import { alacena } from '../../domain/fixtures/alacena'
-import { buro } from '../../domain/fixtures/buro'
-import { librero } from '../../domain/fixtures/librero'
+import { exampleWallCabinet } from '../../domain/fixtures/wallCabinet'
+import { exampleNightstand } from '../../domain/fixtures/nightstand'
+import { exampleBookcase } from '../../domain/fixtures/bookcase'
 import { Boton } from '../sistema/componentes'
 import { Logotipo, Simbolo } from '../sistema/Marca'
 import { useTienda } from '../tienda'
@@ -53,7 +53,7 @@ export function Inicio() {
         <div className="flex flex-col gap-2">
           <p className="text-sm text-grafito-2">O empieza con un ejemplo:</p>
           <div className="flex flex-wrap gap-2">
-            {[librero, buro, alacena].map((d) => (
+            {[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => (
               <Boton key={d.nombre} variante="secundario" onClick={() => desdeEjemplo(d)}>
                 <Cube /> {d.nombre}
               </Boton>

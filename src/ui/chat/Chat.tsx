@@ -1,7 +1,7 @@
 import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Etapa } from '../../application/casosDeUso'
-import { claveFoto, clavePregunta, type EstadoDiseno, type Mensaje } from '../../domain/sesion/estado'
+import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/sesion/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/tray/tray'
 import { Boton, Chip, Lapiz, Sello } from '../sistema/componentes'
 import { useServicios } from '../servicios'
@@ -45,10 +45,10 @@ function useSegundos(activo: boolean) {
 }
 
 /** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
-const openQuestions = (estado: EstadoDiseno) => estado.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(clavePregunta(i))))
+const openQuestions = (estado: DesignState) => estado.chat.filter((m) => m.autor === 'experto' && !m.respondida).flatMap((m) => m.preguntas.filter((p, i) => p.opciones && !m.respuestas.includes(questionAnswerKey(i))))
 
 /** One question answers at once; with several, or with something already in the tray, answers join the tray. */
-function Preguntas({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
+function Preguntas({ m, estado }: { m: Message; estado: DesignState }) {
   const ajustar = useTienda((s) => s.ajustar)
   const toggleTray = useTienda((s) => s.toggleTray)
   const pensando = useTienda((s) => s.pensando)
@@ -58,7 +58,7 @@ function Preguntas({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
   return (
     <>
       {m.preguntas.map((p, i) => {
-        const hecha = m.respondida || m.respuestas.includes(clavePregunta(i))
+        const hecha = m.respondida || m.respuestas.includes(questionAnswerKey(i))
         return (
           <div key={i} className="flex flex-col gap-2">
             {m.preguntas.length > 1 || p.texto !== m.texto ? <p className="text-sm font-medium">{p.texto}</p> : null}
@@ -70,7 +70,7 @@ function Preguntas({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
                     activo={chosen(i) === o}
                     aria-pressed={batch ? chosen(i) === o : undefined}
                     disabled={hecha || pensando}
-                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void ajustar(o, `${m.id}#${clavePregunta(i)}`))}
+                    onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.texto, o)) : void ajustar(o, `${m.id}#${questionAnswerKey(i)}`))}
                   >
                     {o}
                   </Chip>
@@ -85,7 +85,7 @@ function Preguntas({ m, estado }: { m: Mensaje; estado: EstadoDiseno }) {
   )
 }
 
-function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; reintentar: (() => void) | null }) {
+function Burbuja({ m, estado, reintentar }: { m: Message; estado: DesignState; reintentar: (() => void) | null }) {
   const pensando = useTienda((s) => s.pensando)
   const aplicarPropuesta = useTienda((s) => s.aplicarPropuesta)
   const descartarPropuesta = useTienda((s) => s.descartarPropuesta)
@@ -192,7 +192,7 @@ function Burbuja({ m, estado, reintentar }: { m: Mensaje; estado: EstadoDiseno; 
 }
 
 /** El experto pidió una foto: se toma aquí y viaja con el siguiente mensaje. */
-function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: string; mensaje: Mensaje }) {
+function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: string; mensaje: Message }) {
   const { imagenes } = useServicios()
   const ajustar = useTienda((s) => s.ajustar)
   const pensando = useTienda((s) => s.pensando)
@@ -201,7 +201,7 @@ function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: strin
     setProcesando(true)
     try {
       const r = await imagenes.reducir(archivo)
-      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${claveFoto(angulo)}`, { angulo, base64: r.base64, miniatura: r.miniatura })
+      await ajustar(`Te mando la foto: ${angulo}`, `${mensaje.id}#${photoAnswerKey(angulo)}`, { angulo, base64: r.base64, miniatura: r.miniatura })
     } finally {
       setProcesando(false)
     }
@@ -215,13 +215,13 @@ function FotoPedida({ angulo, motivo, mensaje }: { angulo: string; motivo: strin
         </span>
       </p>
       <div className="flex gap-2">
-        <TomarFoto alElegir={(f) => void enviar(f)} deshabilitado={mensaje.respondida || mensaje.respuestas.includes(claveFoto(angulo)) || pensando || procesando} />
+        <TomarFoto alElegir={(f) => void enviar(f)} deshabilitado={mensaje.respondida || mensaje.respuestas.includes(photoAnswerKey(angulo)) || pensando || procesando} />
       </div>
     </div>
   )
 }
 
-export function Chat({ estado }: { estado: EstadoDiseno }) {
+export function Chat({ estado }: { estado: DesignState }) {
   const ajustar = useTienda((s) => s.ajustar)
   const sendTray = useTienda((s) => s.sendTray)
   const toggleTray = useTienda((s) => s.toggleTray)

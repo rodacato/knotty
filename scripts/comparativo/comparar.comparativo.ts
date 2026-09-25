@@ -8,7 +8,7 @@ import { crearCompatible } from '../../src/adapters/llm/compatibleOpenAI'
 import { crearSimulado } from '../../src/adapters/llm/simulado/simulado'
 import { createBench, type BenchResult } from '../../src/application/bench/bench'
 import { Catalog } from '../../src/domain/materiales/catalog'
-import type { EstadoDiseno } from '../../src/domain/sesion/estado'
+import type { DesignState } from '../../src/domain/sesion/state'
 import type { LLMProvider } from '../../src/ports/LLMProvider'
 
 // Runs the bench's fixed cases against each model and grades them with Knotty's own checks. Run by hand: npm run comparar.
@@ -57,7 +57,7 @@ const commit = () => {
 type Row = BenchResult & { model: string; prompt: string | null }
 
 /** Each design is saved (outside git) to look at later what the model built. */
-function saveDesign(spec: string, caseId: string, state: EstadoDiseno) {
+function saveDesign(spec: string, caseId: string, state: DesignState) {
   const folder = join(import.meta.dirname, 'resultados', 'disenos')
   mkdirSync(folder, { recursive: true })
   writeFileSync(join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${spec.replace(/\W+/g, '-')}-${caseId}.json`), JSON.stringify(state, null, 2))

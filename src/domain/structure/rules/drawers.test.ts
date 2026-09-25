@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { analizar } from '../../analisis'
+import { analyze } from '../../analysis'
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../diseno/builders'
-import type { Diseno } from '../../diseno/esquema'
-import { catalogo } from '../../fixtures/catalogo.test-util'
-import { librero } from '../../fixtures/librero'
+import type { Design } from '../../diseno/schema'
+import { testCatalog } from '../../fixtures/catalog.test-util'
+import { exampleBookcase } from '../../fixtures/bookcase'
 import { completeJoints } from '../../diseno/joints'
 import { fixesFor } from '../../fixes/fixes'
 import { applyOperations } from '../../operaciones/apply'
@@ -23,18 +23,18 @@ const drawer = (extra: Partial<Extract<Operation, { op: 'agregarCajon' }>> = {})
   materialFondo: 'TR6',
   ...extra,
 })
-const deep: Diseno = { ...librero, dimensiones: { ...librero.dimensiones, fondo: 500 } }
-const build = (base: Diseno, ops: Operation[]) => {
-  const r = applyOperations(base, ops, catalogo)
+const deep: Design = { ...exampleBookcase, dimensiones: { ...exampleBookcase.dimensiones, fondo: 500 } }
+const build = (base: Design, ops: Operation[]) => {
+  const r = applyOperations(base, ops, testCatalog)
   if (!r.ok) throw new Error(JSON.stringify(r.errors))
   return r.value.design
 }
 /** A drawer as a freeform design would have it: its pieces, but no runner joints. */
-const freeform = (d: Diseno): Diseno => ({ ...d, uniones: d.uniones.filter((u) => u.tipo !== 'corredera') })
-const r9 = (d: Diseno) => {
-  const a = analizar(d, catalogo)
-  if (!a.valido) throw new Error(JSON.stringify(a.errores))
-  return a.hallazgos.filter((h) => h.code === 'R9_CAJONES')
+const freeform = (d: Design): Design => ({ ...d, uniones: d.uniones.filter((u) => u.tipo !== 'corredera') })
+const r9 = (d: Design) => {
+  const a = analyze(d, testCatalog)
+  if (!a.valid) throw new Error(JSON.stringify(a.errors))
+  return a.findings.filter((h) => h.code === 'R9_CAJONES')
 }
 
 describe('R9 for freeform drawers', () => {
@@ -43,7 +43,7 @@ describe('R9 for freeform drawers', () => {
   })
 
   it('gets its runners from the pieces beside the box, one pair of hardware per drawer', () => {
-    const runners = completeJoints(freeform(build(deep, [drawer()])), catalogo).uniones.filter((u) => u.tipo === 'corredera')
+    const runners = completeJoints(freeform(build(deep, [drawer()])), testCatalog).uniones.filter((u) => u.tipo === 'corredera')
     expect(runners.map((u) => [u.a, u.b, u.herrajes.length])).toEqual([
       ['cajon-1-costado-izq', 'lat-izq', 1],
       ['cajon-1-costado-der', 'lat-der', 0],
@@ -58,14 +58,14 @@ describe('R9 for freeform drawers', () => {
     )
     const [finding] = r9(d)
     expect(finding).toMatchObject({ severity: 'critico', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
-    const [fix] = fixesFor(d, catalogo, finding)
+    const [fix] = fixesFor(d, testCatalog, finding)
     expect(fix.key).toBe('apoyo-corredera')
     expect(r9(fix.design).filter((h) => h.severity === 'critico')).toEqual([])
     expect(fix.design.uniones.some((u) => u.tipo === 'corredera' && u.a === 'cajon-1-costado-izq')).toBe(true)
   })
 
   it('a drawer that reaches the ground drags on it', () => {
-    const low: Diseno = {
+    const low: Design = {
       esquema: 1,
       nombre: 'Cajonera baja',
       dimensiones: { ancho: 500, alto: 300, fondo: 450 },

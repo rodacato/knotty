@@ -1,31 +1,31 @@
-import type { Diseno } from './esquema'
+import type { Design } from './schema'
 import type { Box } from './resolve'
 
-export interface Diferencias {
-  agregadas: string[]
-  eliminadas: string[]
-  modificadas: string[]
+export interface Differences {
+  added: string[]
+  removed: string[]
+  changed: string[]
 }
 
-const PROPIEDADES = ['nombre', 'rol', 'material', 'veta', 'carga', 'apoyo', 'grupo'] as const
-const cajaCambio = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
+const PROPERTIES = ['nombre', 'rol', 'material', 'veta', 'carga', 'apoyo', 'grupo'] as const
+const boxChanged = (a: Box, b: Box) => (Object.keys(a) as (keyof Box)[]).some((k) => Math.abs(a[k] - b[k]) > 0.05)
 
-/** Qué piezas cambiaron entre dos versiones, incluidas las que solo se recorrieron por propagación. */
-export function diferencias(antes: Diseno, cajasAntes: Map<string, Box>, despues: Diseno, cajasDespues: Map<string, Box>): Diferencias {
-  const previas = new Map(antes.piezas.map((p) => [p.id, p]))
-  const nuevas = new Map(despues.piezas.map((p) => [p.id, p]))
+/** Which pieces changed between two versions, those that only moved along included. */
+export function differences(before: Design, boxesBefore: Map<string, Box>, after: Design, boxesAfter: Map<string, Box>): Differences {
+  const previous = new Map(before.piezas.map((p) => [p.id, p]))
+  const next = new Map(after.piezas.map((p) => [p.id, p]))
   return {
-    agregadas: [...nuevas.keys()].filter((id) => !previas.has(id)),
-    eliminadas: [...previas.keys()].filter((id) => !nuevas.has(id)),
-    modificadas: [...nuevas.keys()].filter((id) => {
-      const a = previas.get(id)
-      const b = nuevas.get(id)!
+    added: [...next.keys()].filter((id) => !previous.has(id)),
+    removed: [...previous.keys()].filter((id) => !next.has(id)),
+    changed: [...next.keys()].filter((id) => {
+      const a = previous.get(id)
+      const b = next.get(id)!
       if (!a) return false
-      const ca = cajasAntes.get(id)
-      const cb = cajasDespues.get(id)
-      return PROPIEDADES.some((k) => a[k] !== b[k]) || (!!ca && !!cb && cajaCambio(ca, cb))
+      const ba = boxesBefore.get(id)
+      const bb = boxesAfter.get(id)
+      return PROPERTIES.some((k) => a[k] !== b[k]) || (!!ba && !!bb && boxChanged(ba, bb))
     }),
   }
 }
 
-export const hayDiferencias = (d: Diferencias) => d.agregadas.length + d.eliminadas.length + d.modificadas.length > 0
+export const hasDifferences = (d: Differences) => d.added.length + d.removed.length + d.changed.length > 0

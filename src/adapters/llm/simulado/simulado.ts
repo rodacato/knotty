@@ -1,8 +1,8 @@
 import { startAt, partway, makePiece, ref, extent, makeJoint } from '../../../domain/diseno/builders'
-import type { Diseno } from '../../../domain/diseno/esquema'
-import { alacena } from '../../../domain/fixtures/alacena'
-import { buro } from '../../../domain/fixtures/buro'
-import { librero } from '../../../domain/fixtures/librero'
+import type { Design } from '../../../domain/diseno/schema'
+import { exampleWallCabinet } from '../../../domain/fixtures/wallCabinet'
+import { exampleNightstand } from '../../../domain/fixtures/nightstand'
+import { exampleBookcase } from '../../../domain/fixtures/bookcase'
 import type { Operation } from '../../../domain/operaciones/schema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viabilidad/viability'
@@ -102,26 +102,26 @@ export class MuebleDesconocido extends Error {
   }
 }
 
-function elegirFixture(medidas: { ancho: number; alto: number } | null, descripcion = ''): Diseno {
+function elegirFixture(medidas: { ancho: number; alto: number } | null, descripcion = ''): Design {
   const d = descripcion.toLowerCase()
   // Primero el nombre del mueble: "repisa" o "puertas" también salen al describir un buró.
-  if (/bur[oó]|mesa de noche|mesita/.test(d)) return buro
-  if (/alacena|gabinete/.test(d)) return alacena
-  if (/librer|estante|libros/.test(d)) return librero
-  if (/repisa/.test(d)) return librero
-  if (/puertas/.test(d)) return alacena
+  if (/bur[oó]|mesa de noche|mesita/.test(d)) return exampleNightstand
+  if (/alacena|gabinete/.test(d)) return exampleWallCabinet
+  if (/librer|estante|libros/.test(d)) return exampleBookcase
+  if (/repisa/.test(d)) return exampleBookcase
+  if (/puertas/.test(d)) return exampleWallCabinet
   if (d.trim()) throw new MuebleDesconocido()
-  if (!medidas) return librero
+  if (!medidas) return exampleBookcase
   const { ancho, alto } = medidas
-  if (alto > ancho * 1.8) return librero
-  if (alto < 650) return buro
-  return alacena
+  if (alto > ancho * 1.8) return exampleBookcase
+  if (alto < 650) return exampleNightstand
+  return exampleWallCabinet
 }
 
-const horizontalesConCarga = (d: Diseno) => d.piezas.filter((p) => p.normal === 'y' && (p.rol === 'entrepano' || p.rol === 'piso'))
-const entrepanos = (d: Diseno) => d.piezas.filter((p) => p.rol === 'entrepano').sort((a, b) => a.id.localeCompare(b.id))
+const horizontalesConCarga = (d: Design) => d.piezas.filter((p) => p.normal === 'y' && (p.rol === 'entrepano' || p.rol === 'piso'))
+const entrepanos = (d: Design) => d.piezas.filter((p) => p.rol === 'entrepano').sort((a, b) => a.id.localeCompare(b.id))
 
-function opsDivisor(d: Diseno): Operation[] {
+function opsDivisor(d: Design): Operation[] {
   const ops: Operation[] = [
     {
       op: 'agregarPieza',
@@ -157,7 +157,7 @@ function opsDivisor(d: Diseno): Operation[] {
 
 const PREGUNTA_TRASERA = '¿La trasera va clavada por detrás o metida en un canal?'
 
-function proponer(peticion: string, d: Diseno, pendientes: Operation[] | null, conFoto: boolean): RespuestaAjuste {
+function proponer(peticion: string, d: Design, pendientes: Operation[] | null, conFoto: boolean): RespuestaAjuste {
   const texto = peticion.toLowerCase()
   const trasera = d.piezas.find((p) => p.id === 'trasera' && p.confianza !== 'alta')
   if (trasera && (conFoto || /clavada|canal|no sé|trasera/.test(texto))) {
@@ -305,7 +305,7 @@ export function crearSimulado(retraso = 900): LLMProvider {
       const diseno = { ...structuredClone(base), dimensiones: s.medidas ?? base.dimensiones }
       const trasera = diseno.piezas.find((p) => p.id === 'trasera')
       if (trasera) trasera.confianza = 'baja'
-      const quiereCajon = /caj[oó]n/i.test(s.notas) && base === librero
+      const quiereCajon = /caj[oó]n/i.test(s.notas) && base === exampleBookcase
       const detalle = `${base.observaciones.charAt(0).toLowerCase()}${base.observaciones.slice(1)}`
       const valor: RespuestaReconstruccion = {
         explicacion: sinFotos
@@ -367,9 +367,9 @@ export function crearSimulado(retraso = 900): LLMProvider {
         confidence: 'medium',
         description: `Parece un ${base.nombre.toLowerCase()} de triplay. (Lectura simulada.)`,
         proportions: { height: base.dimensiones.alto / base.dimensiones.ancho, width: 1, depth: base.dimensiones.fondo / base.dimensiones.ancho },
-        base: base === librero ? 'kick' : 'floor',
+        base: base === exampleBookcase ? 'kick' : 'floor',
         topOverhangs: false,
-        columns: front ? [{ width: 1, cells: [{ height: 1, content: base === alacena ? 'door' : 'open', shelves: base === librero ? 4 : 1, doors: base === alacena ? 2 : null }] }] : null,
+        columns: front ? [{ width: 1, cells: [{ height: 1, content: base === exampleWallCabinet ? 'door' : 'open', shelves: base === exampleBookcase ? 4 : 1, doors: base === exampleWallCabinet ? 2 : null }] }] : null,
         details: [],
         doubts: ['No se ve cómo va fijada la trasera'],
       })
