@@ -10,6 +10,7 @@ import { testCatalog } from '../domain/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/fixtures/bookcase'
 import { exampleWallCabinet } from '../domain/fixtures/wallCabinet'
 import { findingKey } from '../domain/structure/finding'
+import { ruleTitle } from '../domain/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
@@ -322,6 +323,8 @@ describe('buildContext', () => {
     const state = c.applyProposal(await c.adjust(await initialBookcase(c), 'Hazlo de 90 cm de ancho', newSignal()))
     const text = buildContext(state, testCatalog)
     for (const part of ['## Current design (v2)', 'side-right: 882–900', 'R1_SAG', 'El espacio mide 90 cm', 'v2: Ensanchar a 90 cm', 'Person: Hazlo de 90 cm']) expect(text).toContain(part)
+    // The longest span of a sagging board still reaches the expert, after its ways out.
+    expect(text).toMatch(/R1_SAG .*Alternatives: .*; Claro máximo con \d+ mm \{"span":\d+\}/)
   })
 })
 
@@ -803,6 +806,8 @@ describe('notices: one place for what waits for a decision', () => {
     const board = noticeBoard(initial, testCatalog)
     const sag = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
     expect(sag).toBeTruthy()
+    // Every finding notice is titled by its rule in the registry.
+    for (const n of board.pending.filter((n) => n.kind === 'finding')) expect(n.title).toBe(ruleTitle(n.findings[0].code))
 
     const accepted = c.acceptNotice(initial, sag.findings, sag.title)
     expect(noticeBoard(accepted, testCatalog).pending.some((n) => n.key === sag.key)).toBe(false)

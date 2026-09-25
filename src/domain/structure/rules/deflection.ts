@@ -68,7 +68,6 @@ function alternatives(p: Piece, span: number, depth: number, thickness: number, 
     description: p.role === 'bottom' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
     data: { span: roundTo(half, 0), sag: roundTo(deflection(half, depth, thickness, load, modulus)) },
   })
-  list.push({ key: 'max-span', description: `Claro máximo con ${thickness} mm`, data: { span: roundTo(maxSpan(depth, thickness, load, modulus), 0) } })
   return list
 }
 
@@ -91,7 +90,8 @@ export const deflectionRule: Rule = (ctx) =>
         severity,
         pieces: [p.id],
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.load]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
-        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus },
+        // The longest span this board takes: a fact for the expert, not a way out.
+        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, p.load, modulus), 0) },
         alternatives: alternatives(p, span, depth, thickness, p.load, modulus, ctx.catalog),
       },
     ]
