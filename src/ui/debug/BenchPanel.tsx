@@ -54,7 +54,7 @@ export function BenchPanel() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `knotty-banco-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
+    a.download = `knotty-bench-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -122,7 +122,7 @@ export function BenchPanel() {
                           {r.ok ? (
                             <>
                               <span className="numerals">{r.seconds.toFixed(0)} s</span>
-                              <span>{r.path === 'ficha' ? 'por ficha' : 'pieza por pieza'}</span>
+                              <span>{r.path === 'plan' ? 'por ficha' : 'pieza por pieza'}</span>
                               <span>
                                 {r.calls} {r.calls === 1 ? 'llamada' : 'llamadas'}
                                 {r.corrections.length ? ` (corrigió ${r.corrections.join(', ')})` : ''}

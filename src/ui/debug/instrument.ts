@@ -20,7 +20,7 @@ const ACTIONS: Partial<Record<keyof Store, Describe>> = {
   confirmPiece: (id: string) => ({ summary: `Confirmar la pieza ${id}` }),
   review: () => ({ summary: 'Revisar antes de comprar' }),
   newDesign: () => ({ summary: 'Nuevo diseño' }),
-  fromExample: (design: { nombre: string }) => ({ summary: `Abrir el ejemplo ${design.nombre}` }),
+  fromExample: (design: { name: string }) => ({ summary: `Abrir el ejemplo ${design.name}` }),
   switchToSimulated: () => ({ summary: 'Usar el experto simulado' }),
 }
 

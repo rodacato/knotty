@@ -2,7 +2,7 @@ import { TABLE_NAMES, type TablePlan } from '../../domain/modules/table'
 import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
-// A table's or desk's ficha: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
+// A table's or desk's plan: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices.
 
 const USE: [TablePlan['use'], string][] = [
   ['dining', 'Comedor'],

@@ -9,7 +9,7 @@ import { useStore } from '../store'
 import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
 
-// The furniture as decided: its ficha when it has one, what the expert remembers, the photos and, without a ficha, its pieces.
+// The furniture as decided: its plan when it has one, what the expert remembers, the photos and, without a plan, its pieces.
 
 /** What the expert remembers between changes: the person's requirements and design decisions, which can be removed or added to. */
 function Memory({ state }: { state: DesignState }) {

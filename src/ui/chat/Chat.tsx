@@ -35,8 +35,8 @@ function useSeconds(active: boolean) {
   const [seconds, setSeconds] = useState(0)
   useEffect(() => {
     if (!active) return
-    const inicio = Date.now()
-    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - inicio) / 1000)), 1000)
+    const start = Date.now()
+    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000)
     return () => {
       clearInterval(clock)
       setSeconds(0)

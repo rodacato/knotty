@@ -103,7 +103,7 @@ export function DebugPanel() {
     const url = URL.createObjectURL(new Blob([bundle()], { type: 'application/json' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `knotty-bitacora-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
+    a.download = `knotty-debug-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

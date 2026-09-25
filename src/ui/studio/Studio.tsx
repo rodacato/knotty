@@ -101,7 +101,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const design = currentDesign(state)
-  const { width: width, height: height, depth: background } = design.dimensions
+  const { width, height, depth } = design.dimensions
   const plan = currentPlan(state).plan
   // A bed reads as its width by its length and its mattress; along x runs its length.
   const bed = plan && isBed(plan) && !currentPlan(state).diverged ? plan : null
@@ -112,7 +112,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg leading-tight font-semibold">{design.name}</p>
         <p className="numerals truncate text-[11px] text-graphite-2">
-          {bed ? `${cm(background)} × ${cm(width)} · colchón ${bed.mattress}` : `${height} × ${width} × ${background} mm · ${cm(width)} de ancho`}
+          {bed ? `${cm(depth)} × ${cm(width)} · colchón ${bed.mattress}` : `${height} × ${width} × ${depth} mm · ${cm(width)} de ancho`}
         </p>
       </div>
       <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">

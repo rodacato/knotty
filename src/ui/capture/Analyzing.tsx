@@ -18,9 +18,9 @@ const PATIENCE = 30
 function useSeconds(attempt: unknown) {
   const [seconds, setSeconds] = useState(0)
   useEffect(() => {
-    const inicio = Date.now()
+    const start = Date.now()
     setSeconds(0)
-    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - inicio) / 1000)), 1000)
+    const clock = setInterval(() => setSeconds(Math.floor((Date.now() - start) / 1000)), 1000)
     return () => clearInterval(clock)
   }, [attempt])
   return seconds
@@ -49,7 +49,7 @@ export function Analyzing() {
   const seconds = useSeconds(controller)
   // Slowness is measured per attempt: a correction that makes progress is not a stuck expert.
   const attempt = useMemo(() => ({}), [controller, stage?.attempt])
-  const delIntento = useSeconds(attempt)
+  const attemptSeconds = useSeconds(attempt)
   // Once the expert writes piece by piece, the stage is named that way from then on.
   const [pieceByPiece, setPieceByPiece] = useState(false)
   useEffect(() => {
@@ -89,7 +89,7 @@ export function Analyzing() {
       )}
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="numerals text-sm text-graphite-2">{clock(seconds)}</p>
-        {delIntento >= PATIENCE && (
+        {attemptSeconds >= PATIENCE && (
           <p className="max-w-xs text-sm text-graphite-2">
             {pieceByPiece
               ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'

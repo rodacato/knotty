@@ -9,7 +9,7 @@ const GRAVITY = -2.4
 /** A "poof" of sawdust where a new piece lands. */
 export function Sawdust({ en, delay = 0.28 }: { en: [number, number, number]; delay?: number }) {
   const material = useRef<PointsMaterial>(null)
-  const inicio = useRef<number | null>(null)
+  const startedAt = useRef<number | null>(null)
   const { geometry, speeds } = useMemo(() => {
     const positions = new Float32Array(PARTICLES * 3)
     const speeds = new Float32Array(PARTICLES * 3)
@@ -24,8 +24,8 @@ export function Sawdust({ en, delay = 0.28 }: { en: [number, number, number]; de
   }, [])
 
   useFrame(({ clock, invalidate }) => {
-    inicio.current ??= clock.elapsedTime + delay
-    const t = clock.elapsedTime - inicio.current
+    startedAt.current ??= clock.elapsedTime + delay
+    const t = clock.elapsedTime - startedAt.current
     if (!material.current) return
     if (t <= DURATION) invalidate()
     if (t < 0 || t > DURATION) {

@@ -1,6 +1,6 @@
 import { Minus, Plus } from '@phosphor-icons/react'
 
-// The small controls of a ficha: choices, counts and measures.
+// The small controls of a plan: choices, counts and measures.
 
 export function Segmented({ value, options, onChange, label }: { value: string; options: [string, string][]; onChange: (v: string) => void; label: string }) {
   return (

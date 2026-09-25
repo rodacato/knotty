@@ -2,7 +2,7 @@ import type { BedPlan } from '../../domain/modules/bed'
 import { useServices } from '../services'
 import { NumberField, Segmented, Stepper } from './PlanControls'
 
-// A bed's ficha: the mattress sets its size; the base, its drawers and the headboard are choices.
+// A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices.
 
 const MATTRESS: [BedPlan['mattress'], string][] = [
   ['individual', 'Individual'],
