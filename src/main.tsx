@@ -6,9 +6,9 @@ import './ui/sistema/tokens.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App componer={compose} />
+    <App compose={compose} />
   </StrictMode>,
 )
 
-// Solo en producción: en desarrollo el caché estorbaría a la recarga en caliente.
+// Production only: in development the cache would get in the way of hot reload.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) void navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {})
