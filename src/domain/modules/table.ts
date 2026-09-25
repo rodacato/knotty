@@ -3,7 +3,7 @@ import { startAt, partway, endAt, ref, extent, makeJoint } from '../design/build
 import { DIMENSION_OF_AXIS, type FaceRef, type Design, type Piece, type Joint } from '../design/schema'
 import { completeJoints } from '../design/joints'
 import type { DesignKind } from '../design/kind'
-import type { Catalog } from '../materials/catalog'
+import { backBoard, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import type { FurnitureModule, Labels } from './module'
@@ -111,7 +111,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
       front: `${outer}.z1`,
       back: 'ped-back.z1',
       material: plan.material,
-      bottomMaterial: 'TR6',
+      bottomMaterial: backBoard(catalog).id,
     }))
     openLeft = pedestal === 'left' ? 'ped-div.x1' : 'side-left.x1'
     openRight = pedestal === 'left' ? 'side-right.x0' : 'ped-div.x0'

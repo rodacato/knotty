@@ -3,7 +3,7 @@ import { startAt, partway, endAt, ref, extent } from '../design/builders'
 import type { FaceRef, Design, Piece } from '../design/schema'
 import { MattressSize } from '../design/kind'
 import { completeJoints } from '../design/joints'
-import type { Catalog } from '../materials/catalog'
+import { backBoard, type Catalog } from '../materials/catalog'
 import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import type { FurnitureModule, Labels } from './module'
 
@@ -75,7 +75,6 @@ const WIDEST_DRAWER = 640
 const COMPARTMENT = 280
 /** Past this, the platform does not fit one sheet across and goes in two halves over the spine. */
 const ONE_SHEET = 1200
-const BACK = 'TR6'
 
 interface BedSize {
   width: number
@@ -221,7 +220,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
         front: side === 'left' ? 'furniture.z1' : 'furniture.z0',
         back: side === 'left' ? 'spine.z1' : 'spine.z0',
         material: plan.material,
-        bottomMaterial: BACK,
+        bottomMaterial: backBoard(catalog).id,
       })
       left = right === 'foot-panel.x0' ? left : `div-${side}-${k}.x1`
     }
