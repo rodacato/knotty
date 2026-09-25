@@ -34,7 +34,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(3)
+    expect(migrated.data?.format).toBe(4)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -75,6 +75,7 @@ describe('migrateState', () => {
     expect(state.chat.map((m) => m.author)).toEqual(saved.chat.map((m) => (m.autor === 'usuario' ? 'user' : 'expert')))
     expect(state.chat.find((m) => m.requestedPhotos.length)?.requestedPhotos).toEqual([{ angle: 'inside', reason: 'Ver cómo va la trasera' }])
     expect(state.proposal?.operations[0].op).toBe('resizeFurniture')
+    expect(state.versions[0].origin).toMatchObject({ provider: 'simulated', promptId: 'simulated@1' })
     expect(state.review).toMatchObject({ verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', problems: [{ severity: 'medium' }], tips: ['Mide el espesor real'] } })
     expect(state.review?.checks[0]).toMatchObject({ status: 'fail', impossible: true })
     const extras = state.versions.at(-1)!.extras
@@ -83,7 +84,7 @@ describe('migrateState', () => {
       'changeProperties', 'addJoint', 'changeJoint', 'removeJoint', 'resizeFurniture', 'setWallAnchored', 'addDrawer',
     ])
     expect(extras[0]).toMatchObject({ piece: { support: 'movable', confidence: 'low', load: 'light', grain: 'width', y: { from: { type: 'between', offset: -9 } } } })
-    expect(extras[9]).toMatchObject({ joint: { type: 'pocket-screw', glue: true, hardware: [{ hardwareId: 'tornillo-8x2', count: 2 }] } })
+    expect(extras[9]).toMatchObject({ joint: { type: 'pocket-screw', glue: true, hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } })
     expect(extras[14]).toMatchObject({ group: 'cajon-1', left: 'lat-izq.x1', back: 'trasera.z1', bottomMaterial: 'TR6' })
   })
 

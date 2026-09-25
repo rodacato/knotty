@@ -1,5 +1,6 @@
 // Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 had them in English but kept
-// the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 has everything in English.
+// the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 kept the catalog's hardware ids and the
+// simulated provider in Spanish; format 4 has everything in English.
 // Only names change: the numbers, ids and texts for the person stay as they were.
 
 type Raw = Record<string, unknown>
@@ -244,10 +245,52 @@ const stateV2 = fields({
   tray: ['tray', list(fields({ id: ['id', noticeKey] }))],
 })
 
+// Format 3 → 4: joints name catalog hardware, and origins name the simulated provider.
+/** Hardware ids before the catalog moved to English; saved prices use them too. */
+export const HARDWARE_IDS_V3: Record<string, string> = {
+  'tornillo-8x1': 'screw-8x1',
+  'tornillo-8x1-1/4': 'screw-8x1-1/4',
+  'tornillo-8x1-1/2': 'screw-8x1-1/2',
+  'tornillo-8x2': 'screw-8x2',
+  'tornillo-bolsillo-1-1/4': 'pocket-screw-1-1/4',
+  'tarugo-8x40': 'dowel-8x40',
+  'minifix-15': 'cam-lock-15',
+  'soporte-repisa-5': 'shelf-pin-5',
+  'bisagra-cazoleta-35-recta': 'cup-hinge-35-full',
+  'bisagra-cazoleta-35-codo': 'cup-hinge-35-half',
+  'bisagra-cazoleta-35-supercodo': 'cup-hinge-35-inset',
+  'corredera-telescopica-30': 'drawer-slide-30',
+  'corredera-telescopica-35': 'drawer-slide-35',
+  'corredera-telescopica-40': 'drawer-slide-40',
+  'corredera-telescopica-45': 'drawer-slide-45',
+  'corredera-telescopica-50': 'drawer-slide-50',
+  'escuadra-1-1/2': 'bracket-1-1/2',
+  'clavo-sin-cabeza-1': 'brad-nail-1',
+  'pegamento-blanco': 'white-glue',
+  'cubrecanto-19': 'edge-banding-19',
+  'pata-niveladora': 'leveling-foot',
+  'jaladera': 'handle',
+  'kit-antivuelco': 'anti-tip-kit',
+}
+
+const hardwareId = values(HARDWARE_IDS_V3)
+const jointV3 = fields({ hardware: ['hardware', list(fields({ hardwareId: ['hardwareId', hardwareId] }))] })
+const designV3 = fields({ joints: ['joints', list(jointV3)] })
+const operationV3 = fields({ joint: ['joint', jointV3] })
+const originV3 = fields({ provider: ['provider', values({ simulado: 'simulated' })], promptId: ['promptId', values({ 'simulado@1': 'simulated@1' })] })
+
+const stateV3 = fields({
+  format: ['format', () => 4],
+  versions: ['versions', list(fields({ design: ['design', designV3], extras: ['extras', list(operationV3)], origin: ['origin', nullable(originV3)] }))],
+  proposal: ['proposal', nullable(fields({ design: ['design', designV3], operations: ['operations', list(operationV3)], extras: ['extras', list(operationV3)], origin: ['origin', nullable(originV3)] }))],
+  review: ['review', nullable(fields({ carpenter: ['carpenter', nullable(fields({ origin: ['origin', originV3] }))] }))],
+})
+
 /** Brings a saved session up to the current format, one format at a time; anything it does not recognize is returned as is for the schema to judge. */
 export function migrateState(raw: unknown): unknown {
   let state = raw
   if (isObject(state) && state.formato === 1) state = stateV1(state)
   if (isObject(state) && state.format === 2) state = stateV2(state)
+  if (isObject(state) && state.format === 3) state = stateV3(state)
   return state
 }
