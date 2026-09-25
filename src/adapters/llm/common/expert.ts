@@ -14,10 +14,9 @@ import {
   type PhotoReadingRequest,
   type ReconstructionRequest,
 } from '../../../ports/LLMProvider'
-import type { Catalog } from '../../../domain/materials/catalog'
 import { PhotoReading } from '../../../domain/reading/reading'
 import { describeProblems, strictSchema } from './jsonSchema'
-import { ADJUSTMENT, PLAN_ADJUSTMENT, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, systemFor } from './prompts'
+import { ADJUSTMENT, PLAN_ADJUSTMENT, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
 
 export type Content = { kind: 'text'; text: string } | { kind: 'image'; base64: string }
 
@@ -77,11 +76,6 @@ function designRequest(s: ReconstructionRequest): Content[] {
   ]
 }
 
-const materialsText = (catalog: Catalog) => {
-  const boards = catalog.materials.filter((m) => m.type === 'plywood')
-  return `one of ${boards.map((m) => `"${m.id}" (${m.thickness} mm)`).join(', ')}`
-}
-
 export function createExpert(t: Transport, label: string): LLMProvider {
   return {
     id: t.provider,
@@ -107,12 +101,12 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     async planDesign(s: ReconstructionRequest, signal) {
       const content = designRequest(s)
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
-      const { json, usage, warnings } = await t.completeJSON(SKELETON.text.replaceAll('{{materials}}', materialsText(s.catalog)), content, PLAN_SCHEMA, 'skeleton', signal)
+      const { json, usage, warnings } = await t.completeJSON(render(SKELETON, s.catalog), content, PLAN_SCHEMA, 'skeleton', signal)
       return { value: validate(PlanResponse, json), origin: { promptId: SKELETON.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async adjustPlan(r: PlanAdjustRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${r.context}\n\n## Current plan\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]
-      const { json, usage, warnings } = await t.completeJSON(PLAN_ADJUSTMENT.text.replaceAll('{{materials}}', materialsText(r.catalog)), content, PLAN_ADJUSTMENT_SCHEMA, 'plan_adjustment', signal)
+      const { json, usage, warnings } = await t.completeJSON(render(PLAN_ADJUSTMENT, r.catalog), content, PLAN_ADJUSTMENT_SCHEMA, 'plan_adjustment', signal)
       return { value: validate(PlanAdjustment, json), origin: { promptId: PLAN_ADJUSTMENT.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
@@ -120,7 +114,7 @@ export function createExpert(t: Transport, label: string): LLMProvider {
         { kind: 'text', text: `Photo: ${r.photo.angle}.${r.photo.note ? ` The person says about this photo: ${r.photo.note}` : ''}${r.context ? `\nWhat the person is after: ${r.context}` : ''}` },
         { kind: 'image', base64: r.photo.base64 },
       ]
-      const { json, usage, warnings } = await t.completeJSON(READING.text, content, READING_SCHEMA, 'photo_reading', signal)
+      const { json, usage, warnings } = await t.completeJSON(render(READING, null), content, READING_SCHEMA, 'photo_reading', signal)
       return { value: validate(PhotoReading, json), origin: { promptId: READING.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async reviewPurchase(s: ReviewRequest, signal) {

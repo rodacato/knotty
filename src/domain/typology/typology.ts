@@ -28,7 +28,14 @@ export function detectKind(design: Pick<Design, 'name'>): Kind | null {
 /** Mattress sizes sold in Mexico, width × length in mm. */
 export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const
 const TABLE_HEIGHT: Record<TableKind, [number, number]> = { coffee: [350, 500], side: [450, 650], dining: [720, 770] }
-const DESK_HEIGHT: [number, number] = [700, 780]
+/** Comfortable desk height, in mm. */
+export const DESK_HEIGHT: [number, number] = [700, 780]
+/** Depth a bookcase takes so large books do not stick out, in mm; below the first, a warning. */
+export const BOOKCASE_DEPTH: [number, number] = [230, 300]
+/** Depth a closet takes so hangers fit facing front, in mm; below the first, a warning. */
+export const WARDROBE_DEPTH: [number, number] = [550, 600]
+/** Depth of a shoe rack for adult shoes, in mm; below the first, a warning. */
+const SHOE_RACK_DEPTH: [number, number] = [300, 350]
 const KNEE = { width: 600, height: 620, depth: 450 }
 const MATTRESS_TOLERANCE = { tight: 20, loose: 80 }
 const BED_SPAN = 800
@@ -161,11 +168,12 @@ function wallCabinet(design: Design): Finding[] {
   return found
 }
 
-const minDepth = (check: string, design: Design, min: number, message: string): Finding[] =>
-  design.dimensions.depth < min ? [finding(check, 'recommendation', [], message.replace('{depth}', String(design.dimensions.depth)), { depth: design.dimensions.depth, min: min })] : []
+/** `message` gets the depth there is and the depth that is usual. */
+const minDepth = (check: string, design: Design, [min, max]: [number, number], message: (depth: number, usual: string) => string): Finding[] =>
+  design.dimensions.depth < min ? [finding(check, 'recommendation', [], message(design.dimensions.depth, `${min}–${max} mm`), { depth: design.dimensions.depth, min: min })] : []
 
 function wardrobe(design: Design): Finding[] {
-  const found = minDepth('wardrobe.depth', design, 550, 'Con {depth} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos 550–600 mm.')
+  const found = minDepth('wardrobe.depth', design, WARDROBE_DEPTH, (depth, usual) => `Con ${depth} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos ${usual}.`)
   if (design.dimensions.height > 1500 && !design.wallAnchored)
     found.push(finding('wardrobe.anchor', 'critical', [], `Un clóset de ${design.dimensions.height} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`, {}, [{ key: 'anchor-to-wall', description: 'Anclarlo al muro', data: {} }]))
   return found
@@ -198,11 +206,11 @@ export const typologyRule: Rule = (ctx) => {
     case 'wallCabinet':
       return wallCabinet(design)
     case 'bookcase':
-      return minDepth('bookcase.depth', design, 230, 'Con {depth} mm de fondo, los libros grandes quedan de fuera; un librero lleva 230–300 mm.')
+      return minDepth('bookcase.depth', design, BOOKCASE_DEPTH, (depth, usual) => `Con ${depth} mm de fondo, los libros grandes quedan de fuera; un librero lleva ${usual}.`)
     case 'wardrobe':
       return wardrobe(design)
     case 'shoeRack':
-      return minDepth('shoe-rack.depth', design, 300, 'Con {depth} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva 300–350 mm.')
+      return minDepth('shoe-rack.depth', design, SHOE_RACK_DEPTH, (depth, usual) => `Con ${depth} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva ${usual}.`)
     case 'bench':
       return bench(design, geo)
     default:

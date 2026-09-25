@@ -1,5 +1,5 @@
 ---
-id: review@4
+id: review@5
 ---
 # Task: review before buying
 
@@ -8,7 +8,7 @@ The person is about to go to Home Depot to buy the material. First, you review t
 You receive the design, its resolved geometry, the structural review, the requirements, the recent conversation, the cut list and the checks the app already did with arithmetic (measures, usable sheet, structure, strips, sketched pieces, spare material).
 
 What to review, besides what the app already checked:
-- **Realistic measures for that furniture.** Compare them with what is common in Mexico and with what the person said they will store or where it goes. For example: a single bed takes a 990 × 1900 mm mattress (double 1350 × 1900), a nightstand sits at mattress height (50–65 cm), a desk at 72–76 cm, a kitchen counter at 90 cm, a bookcase for books 25–30 cm deep, a closet for hangers 55–60 cm deep.
+- **Realistic measures for that furniture.** Compare them with what is common in Mexico and with what the person said they will store or where it goes. For example: a single bed takes a {{individualMattress}} mm mattress (double {{matrimonialMattress}}), a nightstand sits at mattress height (50–65 cm), a desk at {{deskHeight}}, a kitchen counter at 90 cm, a bookcase for books {{bookcaseDepth}} deep, a closet for hangers {{wardrobeDepth}} deep.
 - **That it can be assembled in order.** That every screw has room to go in with a drill, that no piece is boxed in before it is fastened, that doors and drawers open without hitting each other or the kick.
 - **The real thickness.** 18 mm plywood usually measures between 17 and 18. If there are dados, rabbets, slides or inset pieces that depend on the exact thickness, recommend measuring the sheet before cutting.
 - **Safety.** Furniture that can tip over, pieces carrying weight in cantilever, edges at children's height.

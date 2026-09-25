@@ -1,14 +1,16 @@
 import type { Catalog } from '../../../domain/materials/catalog'
 import adjust from '../prompts/adjust.v10.md?raw'
-import planAdjust from '../prompts/plan-adjust.v8.md?raw'
-import review from '../prompts/review.v4.md?raw'
-import skeleton from '../prompts/skeleton.v10.md?raw'
+import planAdjust from '../prompts/plan-adjust.v9.md?raw'
+import review from '../prompts/review.v5.md?raw'
+import skeleton from '../prompts/skeleton.v11.md?raw'
 import reading from '../prompts/reading.v3.md?raw'
-import reconstruction from '../prompts/reconstruction.v11.md?raw'
-import system from '../prompts/system.v9.md?raw'
+import reconstruction from '../prompts/reconstruction.v12.md?raw'
+import system from '../prompts/system.v10.md?raw'
+import { fill } from './promptValues'
 
-interface Prompt {
+export interface Prompt {
   id: string
+  /** As written, with its {{placeholders}}: send it through `render` or `systemFor`. */
   text: string
 }
 
@@ -29,15 +31,12 @@ export const SKELETON = read(skeleton)
 /** Standalone as well: editing the plan needs the board thicknesses, not the piece rules. */
 export const PLAN_ADJUSTMENT = read(planAdjust)
 
-function describeCatalog(c: Catalog) {
-  return [
-    'Materials:',
-    ...c.materials.map((m) => `- ${m.id}: ${m.name}, ${m.thickness} mm (${m.type})`),
-    'Hardware:',
-    ...c.hardware.map((h) => `- ${h.id}: ${h.name}`),
-  ].join('\n')
-}
+/** Every prompt, to check them all the same way. */
+export const PROMPTS = [SYSTEM, RECONSTRUCTION, ADJUSTMENT, PURCHASE_REVIEW, READING, SKELETON, PLAN_ADJUSTMENT]
+
+/** The prompt as sent: every {{placeholder}} filled from the domain and, when given, the catalog. */
+export const render = (prompt: Prompt, catalog: Catalog | null) => fill(prompt.text, catalog)
 
 /** System + task: stable between calls to make the most of the provider's cache. */
-export const systemFor = (task: Prompt, catalog: Catalog) => `${SYSTEM.text.replace('{{catalog}}', describeCatalog(catalog))}\n\n${task.text}`
+export const systemFor = (task: Prompt, catalog: Catalog) => `${render(SYSTEM, catalog)}\n\n${render(task, catalog)}`
 export const promptIdOf = (task: Prompt) => `${SYSTEM.id}+${task.id}`
