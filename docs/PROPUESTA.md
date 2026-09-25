@@ -464,6 +464,19 @@ Entregas, cada una útil por sí sola:
 
 Riesgos: el catálogo de módulos es el trabajo grande; las reparaciones pueden cambiar algo que el modelo quería así (por eso se anotan y se deshacen); juntar lecturas de varias fotos sin contar dos veces la misma pieza.
 
+### Migración del código a inglés (D33)
+
+Un módulo por PR, con las pruebas pasando; la interfaz, los textos y los prompts siguen en español. Orden, de lo que no toca datos guardados a lo que sí:
+
+1. ✅ `domain/trace` (nació en inglés) y `domain/diseno/uniones.ts` → `joints.ts`.
+2. Validación y contacto (`domain/validacion`).
+3. Resolución y normalización (`domain/diseno/resolver`, `normalizador`, `construir`).
+4. Reglas estructurales (`domain/estructura`).
+5. Materiales y viabilidad (`domain/materiales`, `domain/viabilidad`); el dictamen guardado cambia de formato.
+6. Operaciones (`domain/operaciones`): los nombres de las operaciones los escribe el LLM, así que cambian con una versión nueva de los prompts.
+7. Esquema del diseño y del estado (`domain/diseno/esquema`, `domain/sesion`): cambia lo guardado en el navegador, con migración `formato: 2` que lee el formato anterior.
+8. Aplicación, adaptadores e interfaz (`application`, `adapters`, `ui`).
+
 ---
 
 ## Estado
