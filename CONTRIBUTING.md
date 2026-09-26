@@ -57,12 +57,12 @@ Si tocaste la interfaz, pruébala también en celular (el modo responsivo del na
 
 ### 3. El banco sin experto (gratis, segundos)
 
-Abre la app con `?debug` al final de la dirección (o el código Konami, o `Ctrl+Shift+D`) y entra a **Banco**; en «Sin experto: los módulos de Knotty», **Revisar**. Arma todas las variantes de cama, mesa y gabinete (unas 180) y las revisa con las reglas: una variante inválida o con avisos es un error de Knotty.
+Abre la app con `?debug` al final de la dirección (o el código Konami, o `Ctrl+Shift+D`) y entra a **Banco**; en «Sin experto: los módulos de Knotty», **Revisar**. Arma todas las variantes de cada módulo (cama, mesa, zapatera, gabinete; unas 180) y las revisa con las reglas: una variante inválida o con avisos es un error de Knotty.
 
 ### 4. El banco con experto real (cuesta tokens)
 
 ```bash
-npm run compare                                  # los 10 casos
+npm run compare                                  # todos los casos
 KNOTTY_CASES=bookcase,plant-stand npm run compare
 KNOTTY_REPEAT=3 KNOTTY_LABEL="mi cambio" npm run compare
 ```
