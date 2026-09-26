@@ -698,6 +698,66 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     await c.adjust(initial, 'Hazla de 3 metros', newSignal())
     expect(calls).toEqual(['plan', 'pieces'])
   })
+
+  it('a plan change that comes with questions waits for the answers, and applying it keeps its plan', async () => {
+    const { llm, calls } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón', questions: [{ text: '¿De qué alto el nuevo?', options: ['Igual', 'Más alto'] }] })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Ponle un cajón más', newSignal())
+    expect(calls).toEqual(['plan'])
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal).toMatchObject({ holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [], operations: [], plan: { kind: 'cabinet' } })
+    expect(state.chat.at(-1)).toMatchObject({ proposal: 'pending', questions: [{ text: '¿De qué alto el nuevo?' }] })
+    // Answering goes back through the plan: the expert sees the plan it proposed.
+    expect(buildContext(state, testCatalog)).toContain('It changes the plan to: {"kind":"cabinet"')
+    const applied = c.applyProposal(state)
+    expect(currentPlan(applied)).toMatchObject({ since: 2, diverged: false })
+    expect(new Set(currentDesign(applied).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
+  })
+
+  it('a plan change that takes away the back unasked waits for the person', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Aligerar' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Hazla más ligera', newSignal())
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal?.holds).toEqual(['Quiere quitar Trasera, que sostienen el mueble y no pediste quitar.'])
+    expect(currentDesign(c.applyProposal(state)).pieces.some((p) => p.role === 'back')).toBe(false)
+  })
+
+  it('a plan change that takes away the back on request is not held for it; only its own critical finding waits', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Quitar la trasera' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Quita la trasera', newSignal())
+    expect(state.proposal?.holds).toEqual([])
+    expect(state.proposal?.critical.map((x) => x.code)).toEqual(['R5_RACKING'])
+  })
+
+  it('a plan change that takes away the kick on request just happens', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), base: 'floor' }, summary: 'Quitar el zoclo' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Quita el zoclo', newSignal())
+    expect(state.versions).toHaveLength(2)
+    expect(state.proposal).toBeNull()
+    expect(currentDesign(state).pieces.some((p) => p.role === 'kick')).toBe(false)
+  })
+
+  it('a plan change that takes away the kick unasked waits for the person', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), base: 'floor' }, summary: 'Aligerar' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Hazla más ligera', newSignal())
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal?.holds[0]).toMatch(/^Quiere quitar Zoclo/)
+  })
+
+  it('a plan change with a new critical finding waits for the person with the rules options, in a single expert call', async () => {
+    const { llm, calls } = expert({ action: 'plan', cabinet: { ...drawers(3), dimensions: { width: 1200, height: 900, depth: 450 } }, summary: 'Más ancha' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Hazla de 120 cm', newSignal())
+    expect(calls).toEqual(['plan'])
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal).toMatchObject({ holds: [], plan: { kind: 'cabinet', dimensions: { width: 1200 } } })
+    expect(state.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
+    expect(state.chat.at(-1)?.questions[0]?.options?.length).toBeGreaterThan(0)
+  })
 })
 
 describe('editing a piece by hand, without the expert', () => {
@@ -889,8 +949,10 @@ describe('the extra round for new critical findings', () => {
         return { value: { ...emptyAdjustment, summary: 'Más ancho', operations: wider }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }
       },
     })
-    const state = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm', newSignal())
+    const stages: string[] = []
+    const state = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm', newSignal(), (stage, attempt) => stages.push(`${stage}:${attempt}`))
     expect(calls).toBe(2)
+    expect(stages.filter((s) => !['checking', 'structure'].some((x) => s.startsWith(x)))).toEqual(['proposing:0', 'reviewing-criticals:0'])
     expect(state.trace.filter((t) => t.step === 'adjust').map((t) => [t.attempt, t.outcome])).toEqual([
       [0, 'ok'],
       [0, 'ok'],

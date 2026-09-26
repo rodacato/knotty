@@ -9,17 +9,16 @@ import type { Operation } from '../../domain/operations/schema'
 import { updateRequirements, type Requirement } from '../../domain/requirements/requirements'
 import { currentDesign, markAnswered, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/structure/finding'
-import { newCriticals } from '../../domain/structure/review'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/trace/trace'
 import { expertPlans } from '../../ports/LLMProvider'
 import { buildContext } from '../context'
-import { knownErrors, tryCandidate, type Candidate } from './candidate'
+import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
 import { criticalsCorrection, listErrors } from './forExpert'
-import { judge } from './judge'
-import { ATTEMPTS, type Kit, type OnProgress } from './kit'
+import { judge, type Verdict } from './judge'
+import { ATTEMPTS, type Kit, type OnProgress, type Stage } from './kit'
 
 const MAX_THUMBNAILS = 8
 
@@ -31,6 +30,7 @@ export interface SentPhoto {
 }
 
 type Proposal = NonNullable<DesignState['proposal']>
+type Pending = Extract<Verdict, { kind: 'pending' }>
 
 /** What the expert proposed, kept aside until the person decides; its requirements and decisions apply only with it. */
 function proposalFrom(p: {
@@ -101,8 +101,21 @@ export function createAdjust(kit: Kit) {
   }
   type Round = ReturnType<typeof roundFor>
 
-  /** With a live plan the expert edits the plan; null means: go piece by piece. */
-  async function throughPlan({ withRequest, request, signal, onProgress, photo, llm, before, plan: current, context, trace, reply }: Round): Promise<DesignState | null> {
+  /** A change that waits for the person: held for what `holds` says, or asking how to resolve its critical findings. */
+  function waitFor(
+    { withRequest, request, reply }: Round,
+    verdict: Pending,
+    p: { operations: Operation[]; response: { explanation: string; summary: string; decisions: Decision[]; questions: Message['questions'] }; requirements: Requirement[]; origin: Origin; plan: { plan: FurniturePlan | null; extras: Operation[] }; suggestions: string[] },
+  ): DesignState {
+    const { design } = verdict.candidate
+    const proposal = proposalFrom({ design, operations: p.operations, response: p.response, request, critical: verdict.critical, requirements: p.requirements, origin: p.origin, plan: p.plan, holds: verdict.holds })
+    const ask = verdict.holds.length ? { questions: p.response.questions, suggestions: p.suggestions } : askAboutCriticals(p.response.questions, verdict.critical, design, catalog)
+    return reply(p.response.explanation, { ...ask, proposal: 'pending' }, { ...withRequest, proposal })
+  }
+
+  /** With a live plan the expert edits the plan, judged like any change but with no extra round for criticals; null means: go piece by piece. */
+  async function throughPlan(round: Round): Promise<DesignState | null> {
+    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, context, trace, reply } = round
     const plan = current.plan
     if (!plan || current.diverged || !llm.adjustPlan || photo) return null
     onProgress('proposing', 0)
@@ -140,24 +153,27 @@ export function createAdjust(kit: Kit) {
     trace.push(traceEntry('adjust', 0, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))
     onProgress('structure', 0)
     const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
-    const criticals = newCriticals(before, analysis.findings)
-    if (criticals.length) {
-      const proposal = proposalFrom({ design: rebuilt.design, operations: [], response: r, request, critical: criticals, requirements, origin: response.origin, plan: { plan: next!, extras }, holds: [] })
-      return reply(r.explanation, { ...askAboutCriticals(r.questions, criticals, rebuilt.design, catalog), proposal: 'pending' }, { ...withRequest, proposal })
-    }
+    const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
+    // The plan carries no accepted risks: a critical the person already accepted is in `before`, and is not new.
+    const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
+    if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: r, requirements, origin: response.origin, plan: { plan: next!, extras }, suggestions })
+    // A valid candidate with no extra round is either pending or applied.
+    if (verdict.kind !== 'applied') return null
     const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
     return reply([r.explanation, ...rebuilt.notes].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
   }
 
   /** The expert writes operations on the pieces; each answer is tried and judged, and a broken one goes back with its errors. */
-  async function pieceByPiece({ withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, known, context, trace, reply }: Round): Promise<DesignState> {
+  async function pieceByPiece(round: Round): Promise<DesignState> {
+    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, known, context, trace, reply } = round
     let correction: { previousResponse: unknown; errors: string } | null = null
     let lastError = ''
     // A valid change with new critical findings earns the expert one extra round that does not spend an attempt.
     let criticalsReviewed = false
     let attempt = 0
+    let stage: Stage = 'proposing'
     while (attempt < ATTEMPTS) {
-      onProgress(attempt ? 'correcting' : 'proposing', attempt)
+      onProgress(stage, attempt)
       const call = await expertCall(
         () =>
           llm.proposeAdjustment(
@@ -170,6 +186,7 @@ export function createAdjust(kit: Kit) {
         const e = call.unreadable!
         correction = { previousResponse: e.response, errors: e.problems }
         lastError = 'la respuesta no tenía el formato esperado'
+        stage = 'correcting'
         attempt++
         continue
       }
@@ -191,26 +208,24 @@ export function createAdjust(kit: Kit) {
         onProgress('structure', attempt)
       }
 
-      const verdict = judge({ design, before, candidate, response: r, request, catalog, criticalsReviewed })
+      const verdict = judge({ design, before, candidate, response: r, request, catalog, extraRound: true, criticalsReviewed })
       if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions }, base)
       if (verdict.kind === 'retry' && verdict.reason === 'invalid') {
         correction = { previousResponse: r, errors: listErrors(verdict.errors) }
         lastError = verdict.errors[0]?.message ?? 'el cambio no se pudo aplicar'
+        stage = 'correcting'
         attempt++
         continue
       }
       if (verdict.kind === 'retry') {
         criticalsReviewed = true
+        stage = 'reviewing-criticals'
         correction = { previousResponse: r, errors: criticalsCorrection(verdict.criticals) }
         continue
       }
       const { design: next, repairs, warnings } = verdict.candidate
       const plan = layered(current, r.operations)
-      if (verdict.kind === 'pending') {
-        const proposal = proposalFrom({ design: next, operations: r.operations, response: r, request, critical: verdict.critical, requirements, origin: response.origin, plan, holds: verdict.holds })
-        const ask = verdict.holds.length ? { questions: r.questions, suggestions: suggestions } : askAboutCriticals(r.questions, verdict.critical, next, catalog)
-        return reply(r.explanation, { ...ask, proposal: 'pending' }, { ...withRequest, proposal })
-      }
+      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: r.operations, response: r, requirements, origin: response.origin, plan, suggestions })
       const settings = repairs.length ? [alsoRepaired(repairs)] : []
       const remaining = verdict.unresolved.length ? [stillPending(describeProblems(traceErrors(verdict.unresolved)))] : []
       const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...plan })

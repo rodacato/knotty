@@ -12,7 +12,7 @@ import type { LLMProvider } from '../../ports/LLMProvider'
 
 // What every use case shares: the dependencies, the clock, chat messages, saving and adding a version.
 
-export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting'
+export type Stage = 'reading-photos' | 'designing' | 'designing-pieces' | 'proposing' | 'checking' | 'structure' | 'correcting' | 'reviewing-criticals'
 export type OnProgress = (stage: Stage, attempt: number, progress?: { done: number; total: number }) => void
 
 export const ATTEMPTS = 3
