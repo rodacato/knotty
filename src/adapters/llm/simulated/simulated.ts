@@ -108,8 +108,8 @@ function shoeRackFrom(notes: string, measures: Dimensions | null): ShoeRackPlan 
   const saidHeight = /(\d+(?:[.,]\d+)?)\s*(cm|m)?\s*de alto/.exec(text)
   const height = measures?.height ?? (saidHeight ? Math.round(Number(saidHeight[1].replace(',', '.')) * (saidHeight[2] === 'm' ? 1000 : 10)) : seat ? 450 : 900)
   const t = DEFAULT_THICKNESS
-  const clear = height - (seat ? 0 : KICK_HEIGHT.cabinet) - 2 * t - (bootLevel ? BOOT_LEVEL_HEIGHT + t : 0)
-  const levels = Math.max(1, Math.floor((clear + t) / (LEVEL_HEIGHT.usual + t))) + (bootLevel ? 1 : 0)
+  const clear = height - KICK_HEIGHT.cabinet - 2 * t - (bootLevel ? BOOT_LEVEL_HEIGHT + t : 0)
+  const levels = Math.max(1, Math.floor((clear + t) / (LEVEL_HEIGHT.min + t))) + (bootLevel ? 1 : 0)
   const pairs = Number(/(\d+)\s*pares/.exec(text)?.[1] ?? 12)
   const width = measures?.width ?? Math.ceil((Math.ceil(pairs / levels) * PAIR_WIDTH + 2 * t) / 50) * 50
   return {
@@ -120,7 +120,7 @@ function shoeRackFrom(notes: string, measures: Dimensions | null): ShoeRackPlan 
     levels,
     bootLevel,
     front: doors ? 'doors' : 'open',
-    base: seat ? 'floor' : 'kick',
+    base: 'kick',
     seat,
     wallMounted: doors || height >= ASSUMPTIONS.tipping.criticalHeight,
   }

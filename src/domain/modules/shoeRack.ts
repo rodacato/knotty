@@ -62,7 +62,7 @@ function layoutOf(plan: ShoeRackPlan, catalog: Catalog) {
   const t = thicknessOf(catalog, plan.material)
   const board = materialById(catalog, plan.material)
   const inner = plan.dimensions.width - 2 * t
-  const span = (load: Load) => (board ? maxSpan(plan.dimensions.depth, t, load, stiffness(board.grade, t).perpendicular) : MAX_SPAN)
+  const span = (load: Load) => (board ? maxSpan(plan.dimensions.depth, t, load, stiffness(board.grade, t).parallel) : MAX_SPAN)
   const longest = Math.min(span(SHELF_LOAD), plan.seat ? span('heavy') : Infinity)
   let columns = 1
   while ((inner - (columns - 1) * t) / columns > longest) columns++
@@ -132,7 +132,7 @@ function benchShoeRacks(): [string, ShoeRackPlan][] {
     ['con puertas', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', wallMounted: true })],
     ['angosta con una puerta', rack('Zapatera', { width: 500, height: 900, depth: 300 }, { front: 'doors', base: 'floor', wallMounted: true })],
     ['alta con nivel para botas', rack('Zapatera alta', { width: 800, height: 1500, depth: 380 }, { levels: 6, bootLevel: true, front: 'doors', wallMounted: true })],
-    ['banca zapatera', rack('Banca zapatera', { width: 900, height: 450, depth: 330 }, { levels: 2, seat: true, base: 'floor' })],
+    ['banca zapatera', rack('Banca zapatera', { width: 900, height: 450, depth: 330 }, { levels: 2, seat: true })],
   ]
 }
 

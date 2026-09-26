@@ -52,7 +52,7 @@ describe('the shoe rack', () => {
   })
 
   it('a seat is marked to carry a person, and gets a divider so it holds one', () => {
-    const { design } = built(rack({ seat: true, levels: 2, base: 'floor', dimensions: { width: 900, height: 450, depth: 330 } }))
+    const { design } = built(rack({ seat: true, levels: 2, dimensions: { width: 900, height: 450, depth: 330 } }))
     expect(design.pieces.find((p) => p.id === 'top')).toMatchObject({ name: 'Asiento', load: 'heavy' })
     expect(design.pieces.some((p) => p.role === 'divider')).toBe(true)
     expect(findingsOf(design)).toEqual([])
