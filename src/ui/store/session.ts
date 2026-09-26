@@ -2,8 +2,9 @@ import type { PieceEdit, PieceEditResult } from '../../application/useCases'
 import type { Notice } from '../../application/notices'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
+import type { Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
-import type { Design, Axis } from '../../domain/design/schema'
+import type { Axis } from '../../domain/design/schema'
 import type { FinishId } from '../../domain/materials/finishes'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
@@ -22,7 +23,8 @@ export interface SessionSlice {
   start(services: Services): void
   newDesign(): void
   startCapture(): void
-  fromExample(design: Design): void
+  /** One of the home screen's examples, a ready design or a plan. */
+  fromExample(example: Example): void
   /** A whole session from elsewhere (the bench) becomes the current design. */
   openState(state: DesignState): void
   applyProposal(): void
@@ -84,10 +86,10 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', viewedVersion: null, selection: null, preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
-  fromExample(design) {
+  fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.fromExample(design), phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),

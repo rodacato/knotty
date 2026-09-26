@@ -1,7 +1,5 @@
 import { ArrowRight, Cube } from '@phosphor-icons/react'
-import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
-import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
-import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
+import { EXAMPLES } from '../../domain/furniture/examples'
 import { Button } from '../system/components'
 import { Logo, Emblem } from '../system/Brand'
 import { useStore } from '../store'
@@ -53,9 +51,9 @@ export function Home() {
         <div className="flex flex-col gap-2">
           <p className="text-sm text-graphite-2">O empieza con un ejemplo:</p>
           <div className="flex flex-wrap gap-2">
-            {[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => (
-              <Button key={d.name} variant="secondary" onClick={() => fromExample(d)}>
-                <Cube /> {d.name}
+            {EXAMPLES.map((example) => (
+              <Button key={example.name} variant="secondary" onClick={() => fromExample(example)}>
+                <Cube /> {example.name}
               </Button>
             ))}
           </div>

@@ -64,7 +64,7 @@ describe('store', () => {
   })
 
   it('a session command replaces the state and animates the change in the scene', () => {
-    useStore.getState().fromExample(exampleBookcase)
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
     const opened = useStore.getState()
     expect(opened.phase).toBe('studio')
     expect(opened.reveal).toBe(1)
@@ -78,7 +78,7 @@ describe('store', () => {
   })
 
   it('an expert request shows the message at once and the answer when it arrives', async () => {
-    useStore.getState().fromExample(exampleBookcase)
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
     const asking = useStore.getState().adjust('Hazlo de 90 cm de ancho')
     expect(useStore.getState().thinking).toBe(true)
     expect(useStore.getState().state!.chat.at(-1)!.id).toBe('pending')
@@ -94,7 +94,7 @@ describe('store', () => {
   it('the debug log wraps actions by name without changing what they do', () => {
     const events: Omit<DebugEvent, 'at'>[] = []
     const stop = instrumentStore({ record: (e: Omit<DebugEvent, 'at'>) => events.push(e) } as unknown as DebugLog)
-    useStore.getState().fromExample(exampleBookcase)
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
     stop()
     expect(events.map((e) => e.summary)).toEqual([`Abrir el ejemplo ${exampleBookcase.name}`])
     expect(useStore.getState().phase).toBe('studio')
