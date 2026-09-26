@@ -48,6 +48,7 @@ const TABLE_ORDER = ['dining', 'coffee', 'side', 'desk'] as const
 const DOMAIN = {
   minDrawerOpening: measure(MIN_DRAWER_OPENING_HEIGHT),
   maxDoorLeafWidth: measure(ASSUMPTIONS.doors.maxWidth),
+  storageAnchorHeight: value(`${ASSUMPTIONS.tipping.storageHeight} mm`, `${ASSUMPTIONS.tipping.storageHeight / 10} cm`),
   tallFurnitureHeight: value(`${ASSUMPTIONS.tipping.criticalHeight / 1000} m`, `${ASSUMPTIONS.tipping.criticalHeight} mm`),
   screwPenetration: measure(ASSUMPTIONS.screws.minPenetration),
   // A whole inch (1") also closes every JSON string in the examples: only the fractional sizes guard.

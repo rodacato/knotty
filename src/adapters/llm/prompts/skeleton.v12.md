@@ -18,7 +18,7 @@ Fill only the one that fits best and leave the others null: a more specific kind
 - `dimensions`: outside width, height and depth in mm. Use the given measures exactly; if there are none, the typical ones for that furniture in Mexico, and say so in the explanation.
 - `material`: {{materials}}. Usually the 18 mm one.
 - `base`: "kick" if it has a kick plate at the front (bookcases, dressers, floor cabinets), "floor" if it sits directly or hangs (wall cabinets, low nightstands).
-- `wallMounted`: true if it hangs from or is anchored to the wall: wall cabinets, and bookcases and chests that are tall (over about {{tallFurnitureHeight}}) or shallow for their height. A tall bookcase that is not anchored can tip over: anchor it unless the person says otherwise.
+- `wallMounted`: true if it hangs from or is anchored to the wall: wall cabinets; anything with drawers or doors from {{storageAnchorHeight}} high, whatever its depth; and open bookcases that are tall (over about {{tallFurnitureHeight}}) or shallow for their height. A tall bookcase that is not anchored can tip over: anchor it unless the person says otherwise.
 - `construction`: how a carpenter would build it. Respect what the person asks for or what the photos show; if they say nothing, use the simplest ({{defaultConstruction}}) and say so in the explanation:
   - `doors`: "overlay" if the door covers the front of the furniture (easiest to adjust); "inset" if it sits inside the opening (looks finer and needs more precision).
   - `drawerFronts`: "inset" (front inside the opening) or "overlay" (front covering the edge).

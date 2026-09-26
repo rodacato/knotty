@@ -104,6 +104,12 @@ describe('rendered prompts carry the values the code enforces', () => {
     expect(skeleton).toContain(`desk ${width} × ${height} × ${depth}.`)
   })
 
+  it('furniture with drawers or doors is anchored from the height the tipping check uses', () => {
+    const from = `with drawers or doors`
+    expect(skeleton).toContain(`${from} from ${ASSUMPTIONS.tipping.storageHeight} mm high`)
+    expect(systemFor(RECONSTRUCTION, testCatalog)).toContain(`${from} is anchored to the wall (\`wallAnchored\`) from ${ASSUMPTIONS.tipping.storageHeight} mm high`)
+  })
+
   it('the default construction is the one the cabinet builder uses', () => {
     const simplest = /use the simplest \(([^)]*)\)/.exec(skeleton)![1]
     expect(simplest.split(', ')).toEqual([

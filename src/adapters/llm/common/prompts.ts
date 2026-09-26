@@ -5,7 +5,7 @@ import review from '../prompts/review.v5.md?raw'
 import skeleton from '../prompts/skeleton.v12.md?raw'
 import reading from '../prompts/reading.v3.md?raw'
 import reconstruction from '../prompts/reconstruction.v12.md?raw'
-import system from '../prompts/system.v10.md?raw'
+import system from '../prompts/system.v11.md?raw'
 import { fill } from './promptValues'
 
 export interface Prompt {
