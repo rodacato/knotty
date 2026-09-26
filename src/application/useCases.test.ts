@@ -15,7 +15,7 @@ import { ruleTitle } from '../domain/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import { BY_KNOTTY, byKnotty } from '../domain/trace/trace'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
+import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type PlanAdjustRequest, type AdjustmentResponse } from '../ports/LLMProvider'
 import { createUseCases, currentPlan, reviewSignature } from './useCases'
 import { buildContext } from './context'
 import { noticeBoard } from './notices'
@@ -642,16 +642,21 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   })
   const origin = { promptId: 'x', provider: 'x', model: 'm' }
   const hanger = makePiece({ id: 'rail', name: 'Listón de colgar', role: 'brace', material: 'T18', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(null, ref('top.y0'), 80), z: startAt(ref('back.z1')) })
-  const expert = (adjust: Partial<PlanAdjustment> | null, operations: Operation[] = []) => {
+  /** One plan answer for every call, or a list of them in order (the last one repeats). */
+  const expert = (adjust: Partial<PlanAdjustment> | Partial<PlanAdjustment>[] | null, operations: Operation[] = []) => {
     const simulated = createSimulated(0)
     const calls: string[] = []
+    const requests: PlanAdjustRequest[] = []
+    const answers = adjust === null ? [] : Array.isArray(adjust) ? adjust : [adjust]
     const llm: LLMProvider = {
       ...simulated,
       planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: drawers(3), questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin, usage: {} }),
-      adjustPlan: adjust
-        ? async () => {
+      adjustPlan: answers.length
+        ? async (r) => {
             calls.push('plan')
-            return { value: { explanation: 'Listo.', summary: 'Cambio', action: 'plan', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], ...adjust } as PlanAdjustment, origin, usage: {} }
+            requests.push(r)
+            const answer = answers[Math.min(requests.length, answers.length) - 1]
+            return { value: { explanation: 'Listo.', summary: 'Cambio', action: 'plan', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], ...answer } as PlanAdjustment, origin, usage: {} }
           }
         : null,
       proposeAdjustment: async () => {
@@ -659,7 +664,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
         return { value: { ...emptyAdjustment, summary: 'Agregar listón', operations }, origin, usage: {} }
       },
     }
-    return { llm, calls }
+    return { llm, calls, requests }
   }
   const start = async (llm: LLMProvider) => {
     const c = setup(llm)
@@ -706,11 +711,43 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     expect(currentPlan(r.state).extras).toEqual([])
   })
 
-  it('a plan that cannot be built falls back to pieces', async () => {
-    const { llm, calls } = expert({ action: 'plan', cabinet: { ...drawers(3), dimensions: { width: 500, height: 3000, depth: 450 } } }, [{ op: 'addPiece', piece: hanger }])
+  const tooTall = { action: 'plan' as const, cabinet: { ...drawers(3), dimensions: { width: 500, height: 3000, depth: 450 } } }
+
+  it('the expert edits the plan with a lean context: the plan, requirements and findings, no pieces or geometry', async () => {
+    const { llm, requests } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' })
+    const { c, initial } = await start(llm)
+    const withSpace = { ...initial, requirements: [{ id: 'space', text: 'El espacio mide 60 cm', type: 'other' as const, axis: null, min: null, max: null }] }
+    await c.adjust(withSpace, 'Ponle otro cajón igual a los de abajo', newSignal())
+    const [r] = requests
+    expect(r.plan).toMatchObject({ kind: 'cabinet', columns: [{ cells: [{}, {}, {}] }] })
+    expect(r.correction).toBeNull()
+    for (const part of ['## Structural review', "## The person's requirements", '[space] El espacio mide 60 cm', 'Person: Ponle otro cajón igual']) expect(r.context).toContain(part)
+    for (const part of ['"pieces"', '## Resolved geometry', 'side-left']) expect(r.context).not.toContain(part)
+    expect(r.context.length).toBeLessThan(buildContext(withSpace, testCatalog).length / 3)
+  })
+
+  it('a plan that cannot be built goes back once with its errors, and the corrected one applies with no pieces asked', async () => {
+    const { llm, calls, requests } = expert([tooTall, { action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' }])
+    const { c, initial } = await start(llm)
+    const stages: string[] = []
+    const state = await c.adjust(initial, 'Ponle otro cajón igual a los de abajo', newSignal(), (stage, attempt) => stages.push(`${stage}@${attempt}`))
+    expect(calls).toEqual(['plan', 'plan'])
+    expect(requests[1].correction).toMatchObject({ previousResponse: { cabinet: { dimensions: { height: 3000 } } }, errors: expect.stringContaining('Knotty built the design from your plan and it is not valid') })
+    expect(stages).toContain('correcting@1')
+    expect(state.versions).toHaveLength(2)
+    expect(new Set(currentDesign(state).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
+    const plan = state.trace.filter((t) => t.subject === 'Ficha')
+    expect(plan.map((t) => [t.attempt, t.outcome])).toEqual([
+      [0, 'invalid'],
+      [1, 'ok'],
+    ])
+  })
+
+  it('a plan that still cannot be built after its correction falls back to pieces', async () => {
+    const { llm, calls } = expert(tooTall, [{ op: 'addPiece', piece: hanger }])
     const { c, initial } = await start(llm)
     await c.adjust(initial, 'Hazla de 3 metros', newSignal())
-    expect(calls).toEqual(['plan', 'pieces'])
+    expect(calls).toEqual(['plan', 'plan', 'pieces'])
   })
 
   it('a plan change that comes with questions waits for the answers, and applying it keeps its plan', async () => {

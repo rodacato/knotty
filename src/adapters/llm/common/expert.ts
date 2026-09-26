@@ -106,6 +106,7 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     },
     async adjustPlan(r: PlanAdjustRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${r.context}\n\n## Current plan\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]
+      if (r.correction) content.push(correction(r.correction.previousResponse, r.correction.errors))
       const { json, usage, warnings } = await t.completeJSON(render(PLAN_ADJUSTMENT, r.catalog), content, PLAN_ADJUSTMENT_SCHEMA, 'plan_adjustment', signal)
       return { value: validate(PlanAdjustment, json), origin: { promptId: PLAN_ADJUSTMENT.id, provider: t.provider, model: t.model }, usage, warnings }
     },

@@ -100,11 +100,13 @@ export const PlanAdjustment = z.object({
 export type PlanAdjustment = z.infer<typeof PlanAdjustment>
 
 export interface PlanAdjustRequest {
-  /** The design context already built by the application. */
+  /** The plan's context already built by the application: no pieces, the plan goes apart. */
   context: string
   request: string
   plan: FurniturePlan
   catalog: Catalog
+  /** On the correction round: the plan answered before and why it did not build. */
+  correction: { previousResponse: unknown; errors: string } | null
 }
 
 export interface Photo {
