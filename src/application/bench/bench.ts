@@ -114,6 +114,8 @@ export interface CallSummary {
   calls: number
   /** Averages over the calls that reported them; null when none did. */
   input: number | null
+  /** The lowest input reported: a provider that adds a prompt of its own only some of the time (SheLLM's CLI) inflates the average. */
+  minInput: number | null
   output: number | null
   seconds: number
 }
@@ -121,6 +123,11 @@ export interface CallSummary {
 const average = (xs: (number | null)[]) => {
   const known = xs.filter((x): x is number => x !== null)
   return known.length ? known.reduce((s, x) => s + x, 0) / known.length : null
+}
+
+const lowest = (xs: (number | null)[]) => {
+  const known = xs.filter((x): x is number => x !== null)
+  return known.length ? Math.min(...known) : null
 }
 
 /** The calls grouped by kind of call and prompt, with their averages: the same prompt with and without a guide are two rows. */
@@ -132,6 +139,7 @@ export function byCallKind(calls: CallRecord[]): CallSummary[] {
     promptId: group[0].promptId,
     calls: group.length,
     input: average(group.map((c) => c.input)),
+    minInput: lowest(group.map((c) => c.input)),
     output: average(group.map((c) => c.output)),
     seconds: average(group.map((c) => c.seconds))!,
   }))
