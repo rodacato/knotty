@@ -71,7 +71,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
         message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
         data: { touches: frontRubs.length },
-        alternatives: [{ key: 'front-clearance', description: 'Dejar 2 mm de holgura alrededor del frente', data: { clearance: 2 } }],
+        alternatives: [{ key: 'front-clearance', description: `Dejar ${ASSUMPTIONS.drawers.frontClearance} mm de holgura alrededor del frente`, data: { clearance: ASSUMPTIONS.drawers.frontClearance } }],
       })
 
     const box = design.pieces.filter((p) => p.group === g && p.role !== 'drawer-front').map((p) => p.id)

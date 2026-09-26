@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
 import type { Design } from '../design/schema'
@@ -9,10 +7,8 @@ import type { RuleContext } from '../structure/finding'
 import { checked, evaluateConstraints, measured } from './constraint'
 import { CATEGORY_CONSTRAINTS } from './constraints'
 import { typologyRule, useOf } from './typology'
+import { REFERENCED, sourceProblem } from '../sources.test-util'
 
-const ROOT = join(import.meta.dirname, '../../..')
-/** The anchor a heading gets on GitHub: "7.3 Camas" → "73-camas". */
-const slug = (heading: string) => heading.trim().toLowerCase().replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-')
 
 const contextOf = (design: Design): RuleContext => {
   const a = analyze(design, testCatalog)
@@ -25,7 +21,6 @@ const bookcase = buildCabinet(
 ).design
 
 describe('category constraints', () => {
-  const REFERENCED = /^(docs\/carpinteria\/[\w-]+\.md)#(\S+) «(.+)»$/
   const referenced = CATEGORY_CONSTRAINTS.filter((c) => !c.source.startsWith('no reference: '))
 
   it('every entry points to docs/carpinteria, or says why there is no reference', () => {
@@ -33,10 +28,7 @@ describe('category constraints', () => {
   })
 
   it.each(referenced.map((c) => [c.check, c.source] as const))('%s: its section and row are in the document', (_, source) => {
-    const [, path, anchor, row] = source.match(REFERENCED)!
-    const doc = existsSync(join(ROOT, path)) ? readFileSync(join(ROOT, path), 'utf8') : ''
-    expect([...doc.matchAll(/^#+ (.+)$/gm)].map((m) => slug(m[1]))).toContain(anchor)
-    expect(doc).toContain(row)
+    expect(sourceProblem(source)).toBeNull()
   })
 
   it('a check id is used once per kind of furniture', () => {

@@ -155,7 +155,7 @@ export const baseRule: Rule = (ctx) =>
       const restsOnARun = ctx.contacts.some((c) => {
         if (c.a !== p.id && c.b !== p.id) return false
         const other = ctx.geo.boxes.get(c.a === p.id ? c.b : c.a)!
-        return Math.abs(other.y1 - box.y0) <= CONTACT_TOLERANCE && overlap(other, box, 'x') >= length * 0.8
+        return Math.abs(other.y1 - box.y0) <= CONTACT_TOLERANCE && overlap(other, box, 'x') >= length * ASSUMPTIONS.floorRunShare
       })
       const span = freeSpan(p.id, box, ctx)
       if (restsOnARun || !span || span <= ASSUMPTIONS.floorSpan) return []
@@ -182,7 +182,7 @@ export const grainRule: Rule = ({ design, geo }) =>
     const box = geo.boxes.get(p.id)
     if (!box || p.grain !== 'width' || !GRAIN_SHOWS.has(p.role)) return []
     const [length, width] = faceSize(box, p.normal)
-    if (length < width * 1.5) return []
+    if (length < width * ASSUMPTIONS.grainRatio) return []
     return [
       {
         code: 'R8_GRAIN',

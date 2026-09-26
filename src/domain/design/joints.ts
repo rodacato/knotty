@@ -22,7 +22,7 @@ function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' 
 /** The shortest screw that bites enough into the edge, or the longest that does not poke out when it goes into a face. */
 function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, intoFace: boolean) {
   const screws = hardwareByRole(catalog, 'screw').filter((h) => h.length).sort((x, y) => x.length! - y.length!)
-  if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - 3) ?? screws[0]
+  if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - ASSUMPTIONS.screws.faceMargin) ?? screws[0]
   return screws.find((t) => t.length! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 

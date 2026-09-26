@@ -3,8 +3,10 @@ import { contactBetween, jointLength } from '../../validation/contact'
 import { hardwareByRole } from '../../materials/catalog'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS, pocketScrewFor } from '../assumptions'
+import { noReference, type Source } from '../../sources'
 
 const INCH = 25.4
+export const SCREW_RULE_SOURCES: Record<string, Source> = { INCH: noReference('a unit: millimetres in an inch, how screws are sold') }
 /** Millimetres as a hardware store says them: 1¼", ⅝". */
 const inches = (mm: number) => {
   const eighths = Math.round((mm / INCH) * 8)
@@ -34,7 +36,8 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
       const length = t!.length!
       if (u.type === 'butt-screw' && intoFace) {
         const bite = length - ta
-        if (bite <= tb - 3) continue
+        if (bite <= tb - ASSUMPTIONS.screws.faceMargin) continue
+        const longest = ta + tb - 5
         found.push({
           code: 'R3_SCREWS',
           severity: 'critical',
@@ -42,7 +45,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           check: 'screw.pokes-through',
           message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
           data: { joint: u.id, length: length, bite: roundTo(bite), thickness: tb },
-          alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(ta + tb - 5)} o menos`, data: { length: ta + tb - 5 } }],
+          alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(longest)} o menos`, data: { length: longest } }],
         })
       } else if (u.type === 'butt-screw') {
         const bite = length - ta
@@ -77,7 +80,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
 
     const joint = jointLength(boxA, boxB)
     const count = u.hardware.reduce((n, h) => n + (h.count ?? 2), 0)
-    if (u.type === 'butt-screw' && !intoFace && joint > 0 && count >= 2 && joint < 2 * ASSUMPTIONS.screws.endDistance + 20)
+    if (u.type === 'butt-screw' && !intoFace && joint > 0 && count >= 2 && joint < 2 * ASSUMPTIONS.screws.endDistance + ASSUMPTIONS.screws.pairRoom)
       found.push({
         code: 'R3_SCREWS',
         severity: 'recommendation',
