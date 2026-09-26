@@ -1,0 +1,601 @@
+{
+ "schema": 1,
+ "name": "Exhibidor escalonado",
+ "dimensions": {
+  "width": 800,
+  "height": 750,
+  "depth": 750
+ },
+ "wallAnchored": false,
+ "pieces": [
+  {
+   "id": "side-left-3",
+   "name": "Costado izquierdo escalón alto (atrás)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-3.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-3",
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-3",
+   "name": "Costado derecho escalón alto (atrás)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-3.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-3",
+   "confidence": "medium"
+  },
+  {
+   "id": "shelf-3",
+   "name": "Repisa escalón alto (75 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.y1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-3",
+   "confidence": "high"
+  },
+  {
+   "id": "side-left-2",
+   "name": "Costado izquierdo escalón medio",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-2.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "side-right-2.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-1.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-2",
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-2",
+   "name": "Costado derecho escalón medio",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-2.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "shelf-2.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-1.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-2",
+   "confidence": "medium"
+  },
+  {
+   "id": "shelf-2",
+   "name": "Repisa escalón medio (50 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": null,
+    "to": {
+     "type": "mm",
+     "mm": 500
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "mm",
+     "mm": 250
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-1.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-2",
+   "confidence": "high"
+  },
+  {
+   "id": "side-left-1",
+   "name": "Costado izquierdo escalón bajo (frente)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-1.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "side-right-1.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-1",
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-1",
+   "name": "Costado derecho escalón bajo (frente)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "shelf-1.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "shelf-1.z0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-1",
+   "confidence": "medium"
+  },
+  {
+   "id": "shelf-1",
+   "name": "Repisa escalón bajo (25 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": null,
+    "to": {
+     "type": "mm",
+     "mm": 250
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "mm",
+     "mm": 500
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "heavy",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": "escalon-1",
+   "confidence": "high"
+  }
+ ],
+ "joints": [
+  {
+   "id": "j1",
+   "a": "side-left-2",
+   "b": "side-left-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x1-1/2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j2",
+   "a": "side-right-2",
+   "b": "side-right-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x1-1/2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j3",
+   "a": "side-left-1",
+   "b": "side-left-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x1-1/2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j4",
+   "a": "side-right-1",
+   "b": "side-right-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x1-1/2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-3-side-left-3",
+   "a": "shelf-3",
+   "b": "side-left-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-3-side-right-3",
+   "a": "shelf-3",
+   "b": "side-right-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-2-side-left-2",
+   "a": "shelf-2",
+   "b": "side-left-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-2-side-right-2",
+   "a": "shelf-2",
+   "b": "side-right-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-1-side-left-1",
+   "a": "shelf-1",
+   "b": "side-left-1",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-shelf-1-side-right-1",
+   "a": "shelf-1",
+   "b": "side-right-1",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  }
+ ],
+ "notes": "No hay fotos: se propone un exhibidor tipo 'cajas escalonadas' de triplay de 18 mm, cada repisa apoyada sobre dos costados. Al ser para plantas conviene sellar el triplay con barniz o sellador para exteriores por la humedad del riego, y usar charolas bajo las macetas para no manchar la madera."
+}

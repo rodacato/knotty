@@ -29,7 +29,7 @@ export const RULES = [
   defineRule({ code: 'R2_JOINT_THICKNESS', title: 'Espesor para la unión', check: jointThicknessRule }),
   defineRule({ code: 'R3_SCREWS', title: 'Tornillos', check: screwRule }),
   defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', version: 3, check: tippingRule }),
-  defineRule({ code: 'R5_RACKING', title: 'Escuadrado', check: rackingRule }),
+  defineRule({ code: 'R5_RACKING', title: 'Escuadrado', version: 2, check: rackingRule }),
   defineRule({ code: 'R6_DOORS', title: 'Puertas', check: doorRule }),
   defineRule({ code: 'R7_BASE', title: 'Base', version: 2, check: baseRule }),
   defineRule({ code: 'R8_GRAIN', title: 'Veta', check: grainRule }),
