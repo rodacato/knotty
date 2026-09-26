@@ -1,5 +1,6 @@
 import { ASSUMPTIONS } from '../structure/assumptions'
-import { hardwareByRole, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
+import { hardwareByRole, hingeFor, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
+import { doorMount } from './doors'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
 import { JOINTS } from './jointSpecs'
@@ -12,7 +13,7 @@ import { resolveGeometry, type Box } from './resolve'
 const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 /** The joint with the catalog's usual hardware for its type, if the catalog has any. */
-function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' | 'shelf-pin' | 'cup-hinge', count: number | null): Omit<Joint, 'id'> {
+function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' | 'shelf-pin', count: number | null): Omit<Joint, 'id'> {
   const role = JOINTS[type].hardware
   const item = role && pickHardware(catalog, role)
   return makeJoint('', a, b, type, item ? [{ hardwareId: item.id, count }] : [])
@@ -60,7 +61,10 @@ function hinge(door: Piece, box: Box, neighbours: { piece: Piece; box: Box }[], 
   const distance = (k: Box) => Math.min(Math.abs(center(k) - box.x0), Math.abs(center(k) - box.x1))
   // On a tie, the left one: it is what someone opening it expects.
   const chosen = [...uprights].sort((m, n) => distance(m.box) - distance(n.box) || center(m.box) - center(n.box))[0]
-  return withHardware(catalog, door.id, chosen.piece.id, 'cup-hinge', null)
+  // The hinge for how the door sits on it: a door that shares a divider with the next one takes a cranked hinge, not a straight one.
+  const mount = doorMount(box, chosen.box)
+  const item = (mount && hingeFor(catalog, mount)) || pickHardware(catalog, 'hinge')
+  return makeJoint('', door.id, chosen.piece.id, 'cup-hinge', item ? [{ hardwareId: item.id, count: null }] : [])
 }
 
 /** Adds missing joints; with `previous`, only where the change created a contact, so a joint removed on purpose does not come back. */

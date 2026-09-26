@@ -39,6 +39,11 @@ export const HARDWARE_ROLES = [
 export const HardwareRole = z.enum(HARDWARE_ROLES)
 export type HardwareRole = z.infer<typeof HardwareRole>
 
+/** How a door sits on the upright its hinge is screwed to: over all its edge, over half of it (two doors share it) or inside the opening. */
+export const DOOR_MOUNTS = ['overlay', 'half-overlay', 'inset'] as const
+export const DoorMount = z.enum(DOOR_MOUNTS)
+export type DoorMount = z.infer<typeof DoorMount>
+
 export const Hardware = z.object({
   id: z.string(),
   name: z.string(),
@@ -47,6 +52,7 @@ export const Hardware = z.object({
   perPack: z.number().int().positive().nullable(),
   length: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
   sideClearance: z.number().nonnegative().nullable().default(null).describe('Slides: space per side between the drawer and the furniture'),
+  mount: DoorMount.nullable().default(null).describe('Cup hinges: the door they are for (straight, cranked or super-cranked arm)'),
   sku: z.string().nullable(),
   price: z.number().nonnegative().nullable(),
 })
@@ -99,6 +105,9 @@ export const backBoard = (catalog: Catalog): BoardMaterial => boardsFor(catalog,
 export const hardwareByRole = (catalog: Catalog, role: HardwareRole) => catalog.hardware.filter((h) => h.role === role)
 /** The first item of a role that meets the condition: with several of a role, the first in the catalog is the usual one. */
 export const pickHardware = (catalog: Catalog, role: HardwareRole, predicate: (h: Hardware) => boolean = () => true) => hardwareByRole(catalog, role).find(predicate)
+
+/** The catalog's hinge for a door that sits this way; undefined when it sells none (a catalog that does not say what its hinges are for). */
+export const hingeFor = (catalog: Catalog, mount: DoorMount) => pickHardware(catalog, 'hinge', (h) => h.mount === mount)
 
 /** A drawer slide that says what placing it takes: its length and the gap it needs on each side of the box. */
 export type Slide = Hardware & { length: number; sideClearance: number }

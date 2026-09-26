@@ -97,6 +97,13 @@ describe('construction variants', () => {
     expect(design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.hardware[0].hardwareId)).toEqual(['cup-hinge-35-inset', 'cup-hinge-35-inset'])
   })
 
+  it('an overlay door takes the hinge for what it covers: straight on an outer side, cranked on a divider it shares', () => {
+    const hinges = (p: CabinetPlan) => Object.fromEntries(buildCabinet(p, testCatalog).design.joints.filter((u) => u.type === 'cup-hinge').map((u) => [u.a, `${u.b} ${u.hardware[0]?.hardwareId}`]))
+    expect(hinges(PLANS.wallCabinet)).toEqual({ 'c1-h1-door-left': 'side-left cup-hinge-35-full', 'c1-h1-door-right': 'side-right cup-hinge-35-full' })
+    const twoColumns = plan({ name: 'Alacena doble', dimensions: { width: 1000, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 1 })] }, { width: 1, cells: [cell('door', 1, { doors: 1 })] }] })
+    expect(hinges(twoColumns)).toEqual({ 'c1-h1-door': 'div-1 cup-hinge-35-half', 'c2-h1-door': 'div-1 cup-hinge-35-half' })
+  })
+
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {
     const front = (drawerFronts: CabinetConstruction['drawerFronts']) => {
       const a = analyze(buildCabinet({ ...PLANS.drawerChest, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog).design, testCatalog)
