@@ -132,6 +132,8 @@ describe('parseIntent', () => {
     ['más ancho 10 cm', 'bed'],
     ['pon 3 puertas', 'wallCabinet'],
     ['20 cajones', 'drawers'],
+    ['5 cm de ancho', 'bookcase'],
+    ['hazlo de 4 m de alto', 'bookcase'],
     // Out of the form's range, or without a plan.
     ['sin zoclo', null],
     ['Hazlo de 90 cm de ancho', null],

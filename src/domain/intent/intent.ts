@@ -74,11 +74,14 @@ const shownFields = (plan: Plan) => valueFields(moduleOf(plan).fields, plan) as 
 /** The outside measures on the plan's form, by the word on each ("ancho", "largo"). */
 const measureFields = (plan: Plan) => new Map(shownFields(plan).flatMap((f) => (f.type === 'number' && f.key.startsWith('dimensions.') ? [[normalize(f.label), f] as const] : [])))
 
+/** Outside this, a measure is more likely misread than meant: the expert asks. */
+const MEASURE_RANGE = { min: 100, max: 3000 }
+
 function setMeasure(plan: Plan, word: string, mm: number | null, delta = false): Intent | null {
   const field: NumberField<Plan> | undefined = measureFields(plan).get(MEASURE_SYNONYMS[word] ?? word)
   if (!field || mm === null) return null
   const value = delta ? field.get(plan) + mm : mm
-  return value > 0 ? edit(plan, field.key, value, field.set(plan, value)) : null
+  return value >= MEASURE_RANGE.min && value <= MEASURE_RANGE.max ? edit(plan, field.key, value, field.set(plan, value)) : null
 }
 
 function byAdjective(plan: Plan, adjective: string, mm: number | null): Intent | null {

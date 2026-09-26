@@ -13,6 +13,7 @@ import { exampleWallCabinet } from '../domain/fixtures/wallCabinet'
 import { findingKey } from '../domain/structure/finding'
 import { ruleTitle } from '../domain/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
+import { BY_KNOTTY, byKnotty } from '../domain/trace/trace'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
 import { createUseCases, currentPlan, reviewSignature } from './useCases'
@@ -668,7 +669,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   it('a change the plan can express comes back as a new plan, with no pieces asked', async () => {
     const { llm, calls } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' })
     const { c, initial } = await start(llm)
-    const state = await c.adjust(initial, 'Ponle un cajón más', newSignal())
+    const state = await c.adjust(initial, 'Ponle otro cajón igual a los de abajo', newSignal())
     expect(calls).toEqual(['plan'])
     expect(currentPlan(state)).toMatchObject({ since: 2, diverged: false })
     expect(new Set(currentDesign(state).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
@@ -715,7 +716,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   it('a plan change that comes with questions waits for the answers, and applying it keeps its plan', async () => {
     const { llm, calls } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón', questions: [{ text: '¿De qué alto el nuevo?', options: ['Igual', 'Más alto'] }] })
     const { c, initial } = await start(llm)
-    const state = await c.adjust(initial, 'Ponle un cajón más', newSignal())
+    const state = await c.adjust(initial, 'Ponle otro cajón igual a los de abajo', newSignal())
     expect(calls).toEqual(['plan'])
     expect(state.versions).toHaveLength(1)
     expect(state.proposal).toMatchObject({ holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [], operations: [], plan: { kind: 'cabinet' } })
@@ -739,7 +740,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   it('a plan change that takes away the back on request is not held for it; only its own critical finding waits', async () => {
     const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Quitar la trasera' })
     const { c, initial } = await start(llm)
-    const state = await c.adjust(initial, 'Quita la trasera', newSignal())
+    const state = await c.adjust(initial, 'Quita la trasera del mueble', newSignal())
     expect(state.proposal?.holds).toEqual([])
     expect(state.proposal?.critical.map((x) => x.code)).toEqual(['R5_RACKING'])
   })
@@ -747,7 +748,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   it('a plan change that takes away the kick on request just happens', async () => {
     const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), base: 'floor' }, summary: 'Quitar el zoclo' })
     const { c, initial } = await start(llm)
-    const state = await c.adjust(initial, 'Quita el zoclo', newSignal())
+    const state = await c.adjust(initial, 'Quita el zoclo de abajo', newSignal())
     expect(state.versions).toHaveLength(2)
     expect(state.proposal).toBeNull()
     expect(currentDesign(state).pieces.some((p) => p.role === 'kick')).toBe(false)
@@ -770,6 +771,96 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     expect(state.proposal).toMatchObject({ holds: [], plan: { kind: 'cabinet', dimensions: { width: 1200 } } })
     expect(state.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
     expect(state.chat.at(-1)?.questions[0]?.options?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('what Knotty reads alone goes through the plan with no expert call', () => {
+  /** The simulated expert, counting every call made to it. */
+  const counting = (base: LLMProvider = createSimulated(0)) => {
+    const calls: string[] = []
+    const llm = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, typeof v === 'function' ? (...a: unknown[]) => (calls.push(k), (v as (...a: unknown[]) => unknown).apply(base, a)) : v])) as unknown as LLMProvider
+    return { llm, calls }
+  }
+  const shoeRack = async () => {
+    const { llm, calls } = counting()
+    const c = setup(llm)
+    const initial = await c.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Una zapatera de 90 de alto para 12 pares' }, newSignal())
+    calls.length = 0
+    return { c, calls, initial }
+  }
+
+  it('«Sin zoclo» is a new version from the plan, with no origin and a trace line of its own', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const state = await c.adjust(initial, 'Sin zoclo', newSignal())
+    expect(calls).toEqual([])
+    expect(state.versions).toHaveLength(2)
+    expect(state.versions.at(-1)).toMatchObject({ summary: 'Sin zoclo', reason: 'Sin zoclo', origin: null, plan: { kind: 'shoeRack', base: 'floor' } })
+    expect(currentDesign(state).pieces.some((p) => p.role === 'kick')).toBe(false)
+    expect(state.chat.at(-1)).toMatchObject({ author: 'expert', text: 'Listo, lo cambié en la ficha: sin zoclo.', version: 2 })
+    expect(state.trace.at(-1)).toMatchObject({ step: 'adjust', subject: BY_KNOTTY, outcome: 'ok', promptId: null, outputTokens: null })
+  })
+
+  it('«¿Cuántas hojas?» and «¿Cuánto cuesta?» are answered from the purchase estimate, with no version', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const sheets = await c.adjust(initial, '¿Cuántas hojas?', newSignal())
+    const cost = await c.adjust(sheets, '¿Cuánto cuesta?', newSignal())
+    expect(calls).toEqual([])
+    expect(cost.versions).toHaveLength(1)
+    expect(sheets.chat.at(-1)?.text).toMatch(/^\d+ hojas de triplay: /)
+    expect(cost.chat.at(-1)?.text).toMatch(/^Unos \$/)
+    expect(cost.trace.filter(byKnotty)).toHaveLength(2)
+  })
+
+  it('a question is answered on a design without a plan too', async () => {
+    const { llm, calls } = counting()
+    const c = setup(llm)
+    const state = await c.adjust(c.fromExample(exampleBookcase), '¿cuánto mide?', newSignal())
+    expect(calls).toEqual([])
+    expect(state.chat.at(-1)?.text).toMatch(/^Mide \d+ × \d+ × \d+ mm/)
+  })
+
+  it('asking for what the plan has makes no version', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const state = await c.adjust(initial, 'con zoclo', newSignal())
+    expect(calls).toEqual([])
+    expect(state.versions).toHaveLength(1)
+    expect(state.chat.at(-1)?.text).toBe('Ya está así en la ficha; no cambié nada.')
+  })
+
+  it('a change with a new critical finding waits for the person with the rules options, as through the expert\'s plan', async () => {
+    const { llm, calls } = counting({ ...createSimulated(0), planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: { name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
+    const c = setup(llm)
+    const initial = await c.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Una cajonera' }, newSignal())
+    calls.length = 0
+    const state = await c.adjust(initial, 'Hazla de 120 cm de ancho', newSignal())
+    expect(calls).toEqual([])
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal).toMatchObject({ origin: null, holds: [], plan: { kind: 'cabinet', dimensions: { width: 1200 } } })
+    expect(state.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
+    expect(state.chat.at(-1)).toMatchObject({ proposal: 'pending' })
+    expect(state.chat.at(-1)?.questions[0]?.options?.length).toBeGreaterThan(0)
+    const applied = c.applyProposal(state)
+    expect(currentPlan(applied)).toMatchObject({ since: 2, diverged: false, plan: { dimensions: { width: 1200 } } })
+    expect(applied.versions.at(-1)?.origin).toBeNull()
+  })
+
+  it('what it cannot read, a photo, a pending proposal or an answer to the expert go to the expert', async () => {
+    const { c, calls, initial } = await shoeRack()
+    await c.adjust(initial, 'Hazla más bonita', newSignal())
+    expect(calls).toEqual(['proposeAdjustment'])
+    calls.length = 0
+    await c.adjust(initial, 'Sin zoclo', newSignal(), () => {}, null, { angle: 'front', base64: '', thumbnail: '' })
+    expect(calls).toEqual(['proposeAdjustment'])
+    calls.length = 0
+    await c.adjust(initial, 'Sin zoclo', newSignal(), () => {}, `${initial.chat.at(-1)!.id}#p0`)
+    expect(calls).toEqual(['proposeAdjustment'])
+  })
+
+  it('a change that cannot be built falls back to the expert, and the trace says so', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const state = await c.adjust(initial, '15 cm de alto', newSignal())
+    expect(calls).toEqual(['proposeAdjustment'])
+    expect(state.trace.filter(byKnotty)).toMatchObject([{ outcome: 'invalid' }])
   })
 })
 
