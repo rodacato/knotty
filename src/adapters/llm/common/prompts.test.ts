@@ -9,9 +9,9 @@ import { TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/tabl
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULES } from '../../../domain/furniture/modules/plan'
 import { WRITTEN_BY_HAND } from './modulePrompts'
-import { MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, systemFor } from './prompts'
+import { MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, skeletonFor, systemFor } from './prompts'
 import { strictSchema } from './jsonSchema'
-import { planAdjustmentFor as planAdjustmentSchema } from '../../../ports/LLMProvider'
+import { planAdjustmentFor as planAdjustmentSchema, PlanResponse, planResponseFor } from '../../../ports/LLMProvider'
 import { fill, placeholdersIn, promptValues } from './promptValues'
 
 /** The prompt files as written, by file name. */
@@ -24,7 +24,7 @@ const contains = (text: string, literal: string) => new RegExp(`(?<![\\d.])${esc
 
 describe('prompt files', () => {
   it('each file is loaded and named after its id (name@version → name.vversion.md)', () => {
-    const loaded = [...PROMPTS.slice(0, 6), PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS)]
+    const loaded = [...PROMPTS.slice(0, 5), SKELETON, PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS)]
     expect(byName.map((f) => f.name).sort()).toEqual(loaded.map((p) => `${p.id.replace('@', '.v')}.md`).sort())
   })
 
@@ -76,7 +76,7 @@ describe('placeholders', () => {
 })
 
 describe('rendered prompts carry the values the code enforces', () => {
-  const skeleton = render(SKELETON, testCatalog)
+  const skeleton = render(skeletonFor(null), testCatalog)
   const planAdjust = render(planAdjustmentFor('cabinet'), testCatalog)
 
   it('the smallest drawer opening is the one expandDrawer accepts', () => {
@@ -129,16 +129,46 @@ describe('rendered prompts carry the values the code enforces', () => {
 })
 
 describe('every module reaches the expert', () => {
-  const skeleton = render(SKELETON, testCatalog)
+  const skeleton = render(skeletonFor(null), testCatalog)
 
-  it.each(FURNITURE_KINDS)('%s: the skeleton writes it by hand, or generates it from its module', (kind) => {
-    expect(SKELETON.text.includes(`goes in \`${kind}\``)).toBe(WRITTEN_BY_HAND.includes(kind))
+  it.each(FURNITURE_KINDS)('%s: its line in the skeleton is written by hand in its file, or generated from its module', (kind) => {
+    expect(MODULE_PROMPTS[kind]?.sections.pick.includes(`goes in \`${kind}\``) ?? false).toBe(WRITTEN_BY_HAND.includes(kind))
     expect(skeleton).toContain(`goes in \`${kind}\``)
   })
 
   it('a generated section names every field of its plan', () => {
     for (const kind of FURNITURE_KINDS.filter((k) => !WRITTEN_BY_HAND.includes(k)))
       for (const key of Object.keys((MODULES[kind].schema as unknown as z.ZodObject).shape)) expect(skeleton).toContain(`- \`${key}\``)
+  })
+})
+
+describe('the skeleton asks only about the module the furniture is known to be', () => {
+  it('without a kind it lists every module and carries every guide, as it always did', () => {
+    const generic = skeletonFor(null)
+    expect(generic.id).toBe(`${SKELETON.id}+all`)
+    for (const kind of WRITTEN_BY_HAND) for (const part of ['pick', 'skeleton'] as const) expect(generic.text).toContain(MODULE_PROMPTS[kind]!.sections[part])
+    expect(generic.text).toContain('Fill only the one that fits best')
+  })
+
+  it.each(FURNITURE_KINDS)('%s: its prompt and schema name its field and no other module', (kind) => {
+    const prompt = skeletonFor(kind)
+    const text = render(prompt, testCatalog)
+    const schema = JSON.stringify(strictSchema(planResponseFor(kind)))
+    expect(prompt.id).toBe(`${SKELETON.id}+${WRITTEN_BY_HAND.includes(kind) ? MODULE_PROMPTS[kind]!.id : `${kind}@auto`}`)
+    expect(text).toContain(`goes in \`${kind}\``)
+    expect(text).toContain(`Fill \`${kind}\` with its plan`)
+    expect(text).toContain('## Everything else')
+    for (const other of FURNITURE_KINDS.filter((k) => k !== kind)) {
+      expect(text).not.toContain(`goes in \`${other}\``)
+      expect(text).not.toContain(`(\`${other}\`)`)
+      expect(schema).not.toContain(`"${other}":`)
+    }
+  })
+
+  it.each(WRITTEN_BY_HAND)('%s: its hand-written line and guide are sent whole', (kind) => {
+    const { pick, skeleton } = MODULE_PROMPTS[kind]!.sections
+    expect(skeletonFor(kind).text).toContain(pick)
+    expect(skeletonFor(kind).text).toContain(skeleton)
   })
 })
 
@@ -173,7 +203,15 @@ const tokens = (text: string) => Math.round(text.length / 3.5)
 /** About 5 % above what each measured when it was set (plan-adjust@12): growing past it has to be on purpose. With every module it was 4 307. */
 const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2420, bed: 2060, table: 1870, shoeRack: 1930 }
 
+/** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 5670, cabinet: 2815, bed: 2105, table: 1840, shoeRack: 1960 }
+
 describe('token budget', () => {
+  it.each([null, ...FURNITURE_KINDS])('the skeleton for %s: prompt and schema within budget', (kind) => {
+    const sent = tokens(render(skeletonFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(kind ? planResponseFor(kind) : PlanResponse)))
+    expect(sent).toBeLessThanOrEqual(SKELETON_BUDGET[kind ?? 'all'])
+  })
+
   it.each(FURNITURE_KINDS)('adjusting a %s plan: prompt and schema within budget', (kind) => {
     const sent = tokens(render(planAdjustmentFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(planAdjustmentSchema(kind))))
     expect(sent).toBeLessThanOrEqual(PLAN_ADJUST_BUDGET[kind])

@@ -4,6 +4,8 @@ import {
   ReviewResponse,
   InvalidResponse,
   PlanResponse,
+  planResponseFor,
+  type ExpertPlans,
   PlanAdjustment,
   planAdjustmentFor,
   answerWith,
@@ -19,8 +21,8 @@ import {
 import { PhotoReading } from '../../../domain/furniture/reading/reading'
 import { KIND_NOUN } from '../../../domain/design/kind'
 import { describeProblems, strictSchema } from './jsonSchema'
-import { FURNITURE_KINDS, type FurnitureKind } from '../../../domain/furniture/modules/plan'
-import { ADJUSTMENT, planAdjustmentFor as planAdjustmentPrompt, type Prompt, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
+import { FURNITURE_KINDS, MODULE_OF_KIND, type FurnitureKind } from '../../../domain/furniture/modules/plan'
+import { ADJUSTMENT, planAdjustmentFor as planAdjustmentPrompt, type Prompt, PURCHASE_REVIEW, skeletonFor, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
 
 export type Content = { kind: 'text'; text: string } | { kind: 'image'; base64: string }
 
@@ -35,7 +37,12 @@ const RECONSTRUCTION_SCHEMA = strictSchema(ReconstructionResponse)
 const ADJUSTMENT_SCHEMA = strictSchema(AdjustmentResponse)
 const REVIEW_SCHEMA = strictSchema(ReviewResponse)
 const READING_SCHEMA = strictSchema(PhotoReading)
-const PLAN_SCHEMA = strictSchema(PlanResponse)
+const SKELETONS = [null, ...FURNITURE_KINDS].map((kind) => ({
+  kind,
+  prompt: skeletonFor(kind),
+  schema: (kind ? planResponseFor(kind) : PlanResponse) as z.ZodType<Omit<PlanResponse, FurnitureKind> & Partial<ExpertPlans>>,
+  json: strictSchema(kind ? planResponseFor(kind) : PlanResponse),
+}))
 const PLAN_ADJUSTMENT_SCHEMAS = Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, { schema: planAdjustmentFor(kind), json: strictSchema(planAdjustmentFor(kind)), prompt: planAdjustmentPrompt(kind) }])) as Record<
   FurnitureKind,
   { schema: ReturnType<typeof planAdjustmentFor>; json: ReturnType<typeof strictSchema>; prompt: Prompt }
@@ -109,8 +116,12 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     async planDesign(s: ReconstructionRequest, signal) {
       const content = designRequest(s)
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
-      const { json, usage, warnings } = await t.completeJSON(render(SKELETON, s.catalog), content, PLAN_SCHEMA, 'skeleton', signal)
-      return { value: validate(PlanResponse, json), origin: { promptId: SKELETON.id, provider: t.provider, model: t.model }, usage, warnings }
+      const module = s.routeKind ? MODULE_OF_KIND[s.routeKind] : null
+      const { prompt, schema, json: jsonSchema } = SKELETONS.find((k) => k.kind === module)!
+      const { json, usage, warnings } = await t.completeJSON(render(prompt, s.catalog), content, jsonSchema, 'skeleton', signal)
+      // Without the kind every module was asked for; with it, only its own: the others are null either way.
+      const value: PlanResponse = { ...answerWith(null), ...validate(schema, json) }
+      return { value, origin: { promptId: prompt.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async adjustPlan(r: PlanAdjustRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${r.context}\n\n## Current plan\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]

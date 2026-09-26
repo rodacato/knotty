@@ -5,7 +5,6 @@ import { MAX_PEDESTAL_DRAWERS, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/editing/operations/drawer'
 import { ASSUMPTIONS } from '../../../domain/checks/structure/assumptions'
 import { BOOKCASE_DEPTH, DESK_HEIGHT, WARDROBE_DEPTH } from '../../../domain/checks/typology/constraints'
-import { moduleGuides, moduleList } from './modulePrompts'
 
 // The craft numbers the prompts mention, taken from the code that enforces them: a prompt writes {{name}} instead of the number.
 // Each value lists its guards: literal text that must not appear in a prompt file, so nobody restates the number by hand.
@@ -19,9 +18,6 @@ export interface PromptValue {
 const value = (text: string, ...alsoGuard: string[]): PromptValue => ({ text, guards: [text, ...alsoGuard] })
 /** A bare number also shows up in unrelated examples: it is guarded with its unit. */
 const measure = (mm: number, ...alsoGuard: string[]): PromptValue => ({ text: String(mm), guards: [`${mm} mm`, ...alsoGuard] })
-
-/** Text the code writes whole, with no number to restate: nothing to guard. */
-const written = (text: string): PromptValue => ({ text, guards: [] })
 
 const dims = (...mm: number[]) => mm.join(' × ')
 const cm = ([min, max]: readonly [number, number]) => `${min / 10}–${max / 10} cm`
@@ -66,8 +62,6 @@ const DOMAIN = {
   deskHeight: value(cm(DESK_HEIGHT), range(DESK_HEIGHT)),
   bookcaseDepth: value(cm(BOOKCASE_DEPTH), range(BOOKCASE_DEPTH)),
   wardrobeDepth: value(cm(WARDROBE_DEPTH), range(WARDROBE_DEPTH)),
-  moduleList: written(moduleList()),
-  moduleGuides: written(moduleGuides()),
 } satisfies Record<string, PromptValue>
 
 /** The word the materials list has always shown for each use: changing it changes what the expert reads (a new prompt version). */

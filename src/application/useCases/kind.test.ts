@@ -5,6 +5,7 @@ import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { exampleSideboard, sideboardPlan } from '../../domain/furniture/examples'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
+import type { LLMProvider } from '../../ports/LLMProvider'
 import { createUseCases, currentPlan } from '.'
 
 const memory = (): DesignRepository => {
@@ -96,5 +97,48 @@ describe('changing what it is', () => {
     const state = await c.redoAs(sideboard, 'bench', signal())
     expect(state.versions).toEqual(sideboard.versions)
     expect(state.chat.at(-1)).toMatchObject({ author: 'expert', error: true })
+  })
+})
+
+describe('which module the skeleton is asked about', () => {
+  /** The simulated expert, with the photo reading it says and every skeleton request kept. */
+  const watched = (photoKind: string) => {
+    const asked: (string | null | undefined)[] = []
+    const simulated = createSimulated(0)
+    const llm: LLMProvider = {
+      ...simulated,
+      readPhoto: async (r, s) => {
+        const read = await simulated.readPhoto(r, s)
+        return { ...read, value: { ...read.value, kind: photoKind } }
+      },
+      planDesign: (r, s) => {
+        asked.push(r.routeKind)
+        return simulated.planDesign!(r, s)
+      },
+    }
+    const c = createUseCases({ llm: () => llm, catalog: testCatalog, repository: memory(), now: () => '2026-09-26T10:00:00Z', newId: () => `r${++id}` })
+    return { c, asked }
+  }
+  const photo = [{ angle: 'front', base64: 'AAA' }]
+  const run = (c: ReturnType<typeof setup>, notes: string, kind: Parameters<typeof c.reconstruct>[0]['kind'], photos = photo) =>
+    c.reconstruct({ measures: null, photos, thumbnails: [], notes, kind }, signal()).catch(() => null)
+
+  it('the person’s choice, over the photo and the words', async () => {
+    const { c, asked } = watched('clóset')
+    await run(c, 'Un librero para la sala', 'desk')
+    expect(asked).toEqual(['desk'])
+  })
+
+  it('without a choice, the photo over the words', async () => {
+    const { c, asked } = watched('clóset')
+    await run(c, 'Un librero para la sala', null)
+    expect(asked).toEqual(['wardrobe'])
+  })
+
+  it('without a choice or a photo, the words; with none of them, every module', async () => {
+    const { c, asked } = watched('')
+    await run(c, 'Un librero para la sala', null, [])
+    await run(c, 'Algo para guardar cosas en la entrada', null, [])
+    expect(asked).toEqual(['bookcase', null])
   })
 })

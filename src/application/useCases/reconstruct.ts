@@ -69,7 +69,7 @@ export function createReconstruct(kit: Kit) {
     const hint = input.kind ?? kindFromWords(reading?.kind ?? '') ?? kindFromWords(input.notes)
     if (!llm.planDesign || (hint && !MODULE_OF_KIND[hint])) return null
     onProgress('designing', 0)
-    const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction: null, kind: input.kind ?? null }, signal), {
+    const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction: null, kind: input.kind ?? null, routeKind: hint }, signal), {
       step: 'plan',
       attempt: 0,
       signal,

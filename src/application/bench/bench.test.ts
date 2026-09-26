@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { buildPlan, MODULES } from '../../domain/furniture/modules/plan'
+import { buildPlan, MODULE_OF_KIND, MODULES } from '../../domain/furniture/modules/plan'
+import { kindFromWords } from '../../domain/checks/typology/typology'
 import { countParts, createBench, describeAdjustments, describeStructure } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
@@ -64,6 +65,15 @@ describe('the bench', () => {
     const bed = await bench.runCase(bench.cases.find((c) => c.id === 'bed')!, signal())
     expect(bed.path).toBe('plan')
     expect(bed.adjustments).toMatchObject([{ request: 'Súbela a 45 cm y ponle cajones del lado izquierdo', by: 'expert' }])
+  })
+
+  it('each case’s words route the skeleton to the module it expects, and the piece-by-piece one to every module', () => {
+    const routed = (notes: string) => {
+      const kind = kindFromWords(notes)
+      return kind ? MODULE_OF_KIND[kind] : null
+    }
+    for (const c of bench.cases.filter((c) => c.module)) expect({ id: c.id, module: routed(c.notes) }).toEqual({ id: c.id, module: c.module })
+    for (const c of bench.cases.filter((c) => c.path === 'pieces')) expect({ id: c.id, module: routed(c.notes) }).toEqual({ id: c.id, module: null })
   })
 
   it('a case the expert cannot do is reported, not thrown', async () => {
