@@ -4,24 +4,26 @@ import { freeSpan } from '../../design/boxes'
 import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS, type LoadDuration } from '../assumptions'
+import { personSurface } from '../../typology/constraint'
+import { useOf } from '../../typology/typology'
 
 // R1: how much a horizontal piece sags between its supports under its load.
 
 const LOAD_NAME: Record<Load, string> = { none: 'sin carga', light: 'carga ligera', medium: 'carga media', heavy: 'libros' }
 
-/** Simply supported beam under a uniform load: δ = 5·w·L⁴ / (384·E·I) × creep. In mm. */
-export function deflection(span: number, depth: number, thickness: number, load: Load, modulus: number) {
+/** Simply supported beam under a uniform load: δ = 5·w·L⁴ / (384·E·I) × creep, the final sag. In mm. */
+export function deflection(span: number, depth: number, thickness: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
   const inertia = (depth * thickness ** 3) / 12
-  return ((5 * w * span ** 4) / (384 * modulus * inertia)) * ASSUMPTIONS.creep
+  return ((5 * w * span ** 4) / (384 * modulus * inertia)) * ASSUMPTIONS.creep[duration]
 }
 
 /** The longest span whose sag stays within span / the recommended limit. */
-export function maxSpan(depth: number, thickness: number, load: Load, modulus: number) {
+export function maxSpan(depth: number, thickness: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
   const inertia = (depth * thickness ** 3) / 12
-  return Math.cbrt((384 * modulus * inertia) / (5 * w * ASSUMPTIONS.creep * ASSUMPTIONS.deflectionLimit.recommended))
+  return Math.cbrt((384 * modulus * inertia) / (5 * w * ASSUMPTIONS.creep[duration] * ASSUMPTIONS.deflectionLimit.recommended))
 }
 
 export function deflectionSeverity(delta: number, span: number): Severity | null {
@@ -42,7 +44,16 @@ function grainToSpan(p: Piece, box: Box): GrainToSpan {
 /** The board's stiffness in MPa, from its grade and thickness. */
 const modulusOf = (board: BoardMaterial, grain: GrainToSpan) => stiffness(board.grade, board.thickness)[grain]
 
-function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, grain: GrainToSpan, catalog: Catalog): Alternative[] {
+interface Beam {
+  span: number
+  depth: number
+  thickness: number
+  load: Load
+  modulus: number
+  duration: LoadDuration
+}
+
+function alternatives(p: Piece, { span, depth, thickness, load, modulus, duration }: Beam, grain: GrainToSpan, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
   const thicker = boardsFor(catalog, 'carcass')
     .filter((m) => m.thickness > thickness)
@@ -51,19 +62,21 @@ function alternatives(p: Piece, span: number, depth: number, thickness: number, 
     list.push({
       key: 'thicker-board',
       description: `Subir a ${thicker.name}`,
-      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulusOf(thicker, grain))) },
+      data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulusOf(thicker, grain), duration)) },
     })
   const half = (span - thickness) / 2
   list.push({
     key: 'center-divider',
     description: p.role === 'bottom' ? 'Agregar un apoyo al centro, debajo del piso' : 'Agregar un divisor vertical al centro',
-    data: { span: roundTo(half, 0), sag: roundTo(deflection(half, depth, thickness, load, modulus)) },
+    data: { span: roundTo(half, 0), sag: roundTo(deflection(half, depth, thickness, load, modulus, duration)) },
   })
   return list
 }
 
-export const deflectionRule: Rule = (ctx) =>
-  ctx.design.pieces.flatMap((p): Finding[] => {
+export const deflectionRule: Rule = (ctx) => {
+  // A person on a bed or a bench gets off: that load does not creep. What a shelf holds stays.
+  const person = personSurface(ctx, useOf(ctx.design))
+  return ctx.design.pieces.flatMap((p): Finding[] => {
     const box = ctx.geo.boxes.get(p.id)
     const thickness = ctx.geo.thicknesses.get(p.id)
     const board = materialById(ctx.catalog, p.material)
@@ -73,19 +86,23 @@ export const deflectionRule: Rule = (ctx) =>
     const depth = box.z1 - box.z0
     const grain = grainToSpan(p, box)
     const modulus = modulusOf(board, grain)
-    const delta = deflection(span, depth, thickness, p.load, modulus)
+    const duration: LoadDuration = person.has(p.id) ? 'passing' : 'permanent'
+    const delta = deflection(span, depth, thickness, p.load, modulus, duration)
     const severity = deflectionSeverity(delta, span)
     if (!severity) return []
     const limit = span / ASSUMPTIONS.deflectionLimit.recommended
+    const loadName = duration === 'passing' ? 'una persona encima' : LOAD_NAME[p.load]
+    const beam = { span, depth, thickness, load: p.load, modulus, duration }
     return [
       {
         code: 'R1_SAG',
         severity,
         pieces: [p.id],
-        message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${LOAD_NAME[p.load]} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
+        message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${loadName} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
         // The longest span this board takes: a fact for the expert, not a way out.
-        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, p.load, modulus), 0) },
-        alternatives: alternatives(p, span, depth, thickness, p.load, modulus, grain, ctx.catalog),
+        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, p.load, modulus, duration), 0) },
+        alternatives: alternatives(p, beam, grain, ctx.catalog),
       },
     ]
   })
+}

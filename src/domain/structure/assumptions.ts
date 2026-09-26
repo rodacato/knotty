@@ -4,13 +4,15 @@ import type { Load } from '../design/schema'
 // What depends on the board (its stiffness) is in materials/grades.ts.
 
 export const ASSUMPTIONS = {
-  /** A load held for months (books) makes the sag grow. */
-  creep: 1.5,
+  /** Final sag ÷ initial sag: a load that stays (books, dishes, clothes, a TV) makes it grow; one that passes (a person) does not.
+   * docs/carpinteria/valores-de-referencia.md §4 «Fluencia» (NDS K_cr, Eurocode 5, Wood Handbook). */
+  creep: { permanent: 2, passing: 1 },
   /** kg/m² on the shelf. */
   loads: { none: 0, light: 50, medium: 100, heavy: 150 } satisfies Record<Load, number>,
   gravity: 9.81,
-  /** Sag is compared with span / limit. */
-  deflectionLimit: { recommended: 360, critical: 200 },
+  /** Final sag is compared with span / limit: past the first it shows, past the second the shelf looks badly bowed.
+   * docs/carpinteria/valores-de-referencia.md §4 «Flecha final sin pandeo visible» and «Flecha final límite». */
+  deflectionLimit: { recommended: 360, critical: 100 },
   /** From this height up, a carcass that can rack is critical. */
   criticalRackingHeight: 600,
   /** Depth of a groove or rabbet as a fraction of the thickness that takes it. */
@@ -48,5 +50,8 @@ export const ASSUMPTIONS = {
 export const pocketScrewFor = (thickness: number) => ASSUMPTIONS.screws.pocketScrews.find((f) => thickness <= f.upTo)
 /** The catalog id of that screw; past the table, the longest one there is. */
 export const pocketScrewId = (thickness: number) => (pocketScrewFor(thickness) ?? ASSUMPTIONS.screws.pocketScrews.at(-1)!).hardwareId
+
+/** Whether a load stays (what a shelf holds) or passes (a person on a bed or a bench): only the first creeps. */
+export type LoadDuration = keyof typeof ASSUMPTIONS.creep
 
 export const hingesFor = (height: number) => ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo)!.n

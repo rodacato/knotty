@@ -343,19 +343,22 @@ Los supuestos viven en `domain/structure/assumptions.ts` como datos y cada regla
 
 - Viga simplemente apoyada con carga uniforme: `δ = 5·q·b·L⁴ / (384·E·I) × k_fluencia`, con `I = b·t³/12`.
 - L = claro libre entre apoyos (del grafo de uniones); b = fondo; t = espesor.
-- Supuestos:
+- Supuestos (desde el paso 21, los de [valores-de-referencia.md](carpinteria/valores-de-referencia.md) §1 y §4):
   - Apoyo simple siempre (conservador).
-  - Triplay de pino: E = 6 000 MPa con veta paralela al claro, 3 500 MPa perpendicular. A calibrar.
-  - k_fluencia = 1.5 por carga sostenida.
+  - Triplay de pino radiata, conservador y por espesor (`materials/grades.ts`): E∥ 4 500 MPa en 18 mm, 5 000 en 15, 5 500 en 12 y 9; E⊥ 2 000 / 1 500 / 1 000 / 800 / 700 en 18 / 15 / 12 / 9 / 6 mm.
+  - k_fluencia = 2.0 con la carga que se queda (libros, trastes, ropa); 1.0 con la que pasa: la plataforma de una cama y el asiento de una banca cargan a una persona.
   - q: ligera 50, media 100, pesada (libros) 150 kg/m².
-- Umbrales: ≤ L/360 OK; L/360 – L/200 recomendación; > L/200 crítico.
+- Umbrales sobre la flecha final: ≤ L/360 OK; L/360 – L/100 recomendación; > L/100 crítico.
 
 | 18 mm, fondo 300, libros | Flecha | Resultado |
 |---|---|---|
-| Claro 600 mm | 1.3 mm | OK |
-| Claro 900 mm | 6.5 mm | Crítico |
-| 900 mm con divisor al centro (2 × 441) | 0.4 mm | OK |
-| 15 mm, claro 600 mm | 2.2 mm | Recomendación |
+| Claro 540 mm | 1.5 mm | OK (el claro más largo sin pandeo visible) |
+| Claro 600 mm | 2.3 mm | Recomendación |
+| Claro 864 mm (librero de 90 cm) | 9.8 mm | Crítico (el límite es ≈ 830 mm) |
+| 864 mm con divisor al centro (2 × 423) | 0.6 mm | OK |
+| 15 mm, claro 600 mm | 3.5 mm | Recomendación |
+
+Hasta el paso 20 eran E = 6 000 / 3 500 MPa para todo espesor, fluencia 1.5 y crítico desde L/200.
 
 ### R2 — Espesor mínimo por unión
 

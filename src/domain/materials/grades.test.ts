@@ -32,8 +32,12 @@ describe('board use and grade', () => {
     }
   })
 
-  it('pine plywood keeps the stiffness the checks have used so far, in every thickness', () => {
-    for (const m of testCatalog.materials) expect(stiffness(m.grade, m.thickness)).toEqual({ parallel: 6000, perpendicular: 3500 })
+  it('pine plywood takes the conservative stiffness of the reference, by thickness (valores-de-referencia.md §1)', () => {
+    const table = { 18: [4500, 2000], 15: [5000, 1500], 12: [5500, 1000], 9: [5500, 800], 6: [5500, 700] }
+    for (const [t, [parallel, perpendicular]] of Object.entries(table)) expect(stiffness('pine-plywood', Number(t))).toEqual({ parallel, perpendicular })
+    // A board thicker than the table takes the 18 mm value; one of 3 mm, the 6 mm one.
+    expect(stiffness('pine-plywood', 25)).toEqual({ parallel: 4500, perpendicular: 2000 })
+    expect(stiffness('pine-plywood', 3)).toEqual({ parallel: 5500, perpendicular: 700 })
   })
 
   it('draws each shipped board as before: carcass boards with 7 plies, backs paler with 3', () => {

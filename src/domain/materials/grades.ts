@@ -27,10 +27,16 @@ export const GRADES: Record<GradeId, Grade> = {
     name: 'Triplay de pino',
     source: 'docs/carpinteria/triplay.md: pine plywood (radiata or elliottii) as Home Depot MX sells it',
     stiffness: {
-      // The reference recommends lower values by thickness (docs/carpinteria/valores-de-referencia.md §1:
-      // 4500 ∥ / 2000 ⊥ in 18 mm); adopting them changes the checks, so it goes in its own change.
-      source: 'docs/carpinteria/estructura.md §1.2: 6000 ∥ is APA Group 1, the optimistic value; 3500 ⊥ sits between 5 and 7 plies',
-      rows: [{ upTo: Infinity, parallel: 6000, perpendicular: 3500 }],
+      // Conservative, for the radiata pine sold in Mexico: 4500 ∥ in 18 mm is below the 4742 measured (EN 310), and the
+      // thinner boards are APA × 0.75 rounded down. The reference gives no ∥ value for 6 mm and under: it takes the thinnest one.
+      source: 'docs/carpinteria/valores-de-referencia.md §1 «E∥» and «E⊥» (conservative); docs/carpinteria/estructura.md §1.2',
+      rows: [
+        { upTo: 6, parallel: 5500, perpendicular: 700 },
+        { upTo: 9, parallel: 5500, perpendicular: 800 },
+        { upTo: 12, parallel: 5500, perpendicular: 1000 },
+        { upTo: 15, parallel: 5000, perpendicular: 1500 },
+        { upTo: Infinity, parallel: 4500, perpendicular: 2000 },
+      ],
     },
     // docs/carpinteria/triplay.md «Espesores y número de capas»: pine has 3 plies in 3 and 6 mm and 7 in 18 mm
     // (5 in 9 and 12 mm, not drawn yet). The paler face of the thin sheets is a choice of the 3D, not a fact.
