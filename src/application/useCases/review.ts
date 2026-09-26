@@ -47,7 +47,7 @@ export function createReview(kit: Kit) {
     const unmet = checkRequirements(design, state.requirements).map((e) => e.message)
     const viability = reviewViability({
       design: design,
-      geo: analysis.geo,
+      analysis: analysis,
       catalog: effectiveCatalog,
       purchase: purchase,
       findings: analysis.findings.filter((h) => !isAccepted(h, state.accepted)),

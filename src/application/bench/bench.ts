@@ -123,7 +123,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       const a = analyze(design, catalog)
       if (!a.valid) return { ...common, criticals: 0, rules: [], verdict: 'invalid' }
       const purchase = estimatePurchase(design, a.geo, catalog)
-      const viability = reviewViability({ design, geo: a.geo, catalog, purchase, findings: a.findings, unmet: [] })
+      const viability = reviewViability({ design, analysis: a, catalog, purchase, unmet: [] })
       const criticals = a.findings.filter((h) => h.severity === 'critical')
       return { ...common, criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.verdict }
     } catch (e) {

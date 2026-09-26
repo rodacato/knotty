@@ -1,19 +1,24 @@
 import { z } from 'zod'
-import { DIMENSION_LABEL, type Design } from '../design/schema'
+import { DIMENSION_LABEL, DIMENSION_OF_AXIS, type Axis, type Design } from '../design/schema'
 import { faceSize, roundTo, type Geometry } from '../design/resolve'
 import { bounds } from '../design/boxes'
+import type { Analysis } from '../analysis'
 import type { Finding } from '../structure/finding'
+import type { DesignError } from '../validation/errors'
 import type { Catalog } from '../materials/catalog'
 import type { Purchase } from '../materials/purchase'
 
 // The review before buying: what can be checked with arithmetic, no opinions. The carpenter (the model) gives an opinion on top of it, never against it.
 // Check ids are saved in the verdict: renaming one needs a migration.
+// Four vocabularies, one per reader: a DesignError says the pieces are not a piece of furniture yet (the expert fixes it); a Finding is a structural rule's notice
+// (critical, recommendation, detail); a Check is what the person reads here before buying (ok, warning, fail); the carpenter's problems (high, medium, low) are
+// the model's opinion. The review never re-derives the first two: it shows what analyze() found (`checkOfError` says where each error goes) and adds what only
+// the purchase knows: the person's cutting settings, the layout on the sheets and the material margin.
 
 /** Narrower than this, a strip is dangerous to cut with a circular saw at home. */
 const MIN_STRIP = 50
 /** From this use of the usable sheet up, one wrong cut means buying another sheet. */
 const TIGHT_YIELD = 0.85
-const MEASURE_TOLERANCE = 2
 
 export const Verdict = z.enum(['viable', 'needs-changes', 'not-viable'])
 export type Verdict = z.infer<typeof Verdict>
@@ -50,13 +55,20 @@ export type CarpenterOpinion = z.infer<typeof CarpenterOpinion>
 const Viability = z.object({ verdict: Verdict, checks: z.array(Check) })
 type Viability = z.infer<typeof Viability>
 
+type CheckId = 'measures' | 'sheet' | 'structure'
+
+/** The check that shows an analysis error: its own for the size errors; any other means it cannot be built as drawn, a structure problem. */
+const checkOfError = (e: DesignError): CheckId => (e.code === 'E_OVERALL_SIZE' ? 'measures' : e.code === 'E_TOO_BIG_FOR_SHEET' ? 'sheet' : 'structure')
+
 interface ViabilityInput {
   design: Design
-  geo: Geometry
+  /** analyze() of the design, with its geometry. An invalid one still gets a review: each error shows once, as a failed check. */
+  analysis: Analysis & { geo: Geometry }
   /** With the person's cutting settings: the trim changes what fits. */
   catalog: Catalog
   purchase: Purchase
-  findings: Finding[]
+  /** The analysis' findings the person has not accepted; all of them when left out. */
+  findings?: Finding[]
   unmet: string[]
   /** Titles of findings the person chose to leave as they are. */
   accepted?: string[]
@@ -67,11 +79,22 @@ const listed = (names: string[]) => (names.length <= 3 ? names.join(', ') : `${n
 
 const check = (c: Omit<Check, 'pieces' | 'request' | 'impossible'> & Partial<Check>): Check => ({ pieces: [], request: null, impossible: false, ...c })
 
-function measures({ design, geo }: ViabilityInput): Check {
-  const around = bounds(geo.boxes.values())
+/** The input with what the analysis found spelled out. */
+interface Review extends ViabilityInput {
+  errors: DesignError[]
+  findings: Finding[]
+}
+const errorsFor = ({ errors }: Review, id: CheckId) => errors.filter((e) => checkOfError(e) === id)
+const pieceIds = (e: DesignError) => [e.data?.piece, e.data?.a, e.data?.b].filter((x): x is string => typeof x === 'string')
+
+/** Whether the pieces add up to the measures is analyze()'s E_OVERALL_SIZE, with its tolerance; here it is only told. */
+function measures(r: Review): Check {
+  const { design, analysis } = r
+  const around = bounds(analysis.geo.boxes.values())
   const real = { width: around.x1 - around.x0, height: around.y1 - around.y0, depth: around.z1 - around.z0 }
   const { width, height, depth } = design.dimensions
-  const off = (['height', 'width', 'depth'] as const).filter((k) => Math.abs(real[k] - design.dimensions[k]) > MEASURE_TOLERANCE)
+  const wrong = new Set(errorsFor(r, 'measures').map((e) => DIMENSION_OF_AXIS[e.data?.axis as Axis]))
+  const off = (['height', 'width', 'depth'] as const).filter((k) => wrong.has(k))
   if (!off.length) return check({ id: 'measures', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${height} × ${width} × ${depth} mm (alto, ancho, fondo).` })
   return check({
     id: 'measures',
@@ -83,9 +106,16 @@ function measures({ design, geo }: ViabilityInput): Check {
   })
 }
 
-function sheet({ catalog, purchase }: ViabilityInput): Check {
+/** What does not fit a sheet with the person's cutting settings (the layout), and what analyze() already found too big: each piece once. */
+function sheet(r: Review): Check {
+  const { design, catalog, purchase } = r
   const trim = catalog.layout.trim
-  const unplaced = purchase.layout.flatMap((a) => a.unplaced.map((p) => ({ ...p, usable: a.usable })))
+  const unplaced = purchase.layout.flatMap((a) => a.unplaced.map((p) => ({ id: p.id, name: p.name, length: p.length, width: p.width, usable: a.usable })))
+  for (const e of errorsFor(r, 'sheet')) {
+    const piece = design.pieces.find((p) => p.id === e.data?.piece)
+    if (piece && !unplaced.some((u) => u.id === piece.id))
+      unplaced.push({ id: piece.id, name: piece.name, length: Number(e.data?.length), width: Number(e.data?.width), usable: e.data?.sheet as { length: number; width: number } })
+  }
   if (!unplaced.length) {
     const usable = purchase.layout[0]?.usable
     return check({
@@ -107,9 +137,9 @@ function sheet({ catalog, purchase }: ViabilityInput): Check {
   })
 }
 
-function strips({ design, geo }: ViabilityInput): Check {
+function strips({ design, analysis }: Review): Check {
   const narrow = design.pieces.filter((p) => {
-    const box = geo.boxes.get(p.id)
+    const box = analysis.geo.boxes.get(p.id)
     return box && Math.min(...faceSize(box, p.normal)) < MIN_STRIP
   })
   if (!narrow.length) return check({ id: 'strips', title: 'Cortes seguros', status: 'ok', detail: `Ninguna pieza es una tira de menos de ${cm(MIN_STRIP)}, que son las riesgosas de cortar.` })
@@ -122,21 +152,28 @@ function strips({ design, geo }: ViabilityInput): Check {
   })
 }
 
-function structure({ findings, unmet }: ViabilityInput): Check {
+function structure(r: Review): Check {
+  const { analysis, findings, unmet } = r
+  const broken = errorsFor(r, 'structure')
   const critical = findings.filter((h) => h.severity === 'critical')
   const recommended = findings.filter((h) => h.severity === 'recommendation')
-  if (critical.length || unmet.length) {
-    const messages = [...unmet, ...critical.map((h) => h.message)]
+  const count = broken.length + critical.length + unmet.length
+  if (count) {
+    const messages = [...broken.map((e) => e.message), ...unmet, ...critical.map((h) => h.message)]
     const first = critical[0]?.alternatives[0]
     return check({
       id: 'structure',
-      title: critical.length + unmet.length === 1 ? 'Un problema de estructura' : `${critical.length + unmet.length} problemas de estructura`,
+      title: count === 1 ? 'Un problema de estructura' : `${count} problemas de estructura`,
       status: 'fail',
-      pieces: [...new Set(critical.flatMap((h) => h.pieces))],
+      impossible: broken.length > 0,
+      pieces: [...new Set([...broken.flatMap(pieceIds), ...critical.flatMap((h) => h.pieces)])],
       detail: messages.slice(0, 3).join(' '),
       request: first ? first.description : null,
     })
   }
+  // analyze() runs the structural rules only on a valid design: without them nothing can be said to hold.
+  if (!analysis.valid)
+    return check({ id: 'structure', title: 'Estructura sin revisar', status: 'warning', detail: 'La revisión estructural se hace cuando las medidas cierran y cada pieza cabe en la hoja: corrige eso primero.' })
   if (recommended.length)
     return check({
       id: 'structure',
@@ -148,7 +185,7 @@ function structure({ findings, unmet }: ViabilityInput): Check {
   return check({ id: 'structure', title: 'Estructura firme', status: 'ok', detail: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
 }
 
-function confirmed({ design }: ViabilityInput): Check {
+function confirmed({ design }: Review): Check {
   const sketched = design.pieces.filter((p) => p.confidence === 'low')
   if (!sketched.length) return check({ id: 'confirmed', title: 'Piezas confirmadas', status: 'ok', detail: 'No queda ninguna pieza en boceto.' })
   return check({
@@ -160,7 +197,7 @@ function confirmed({ design }: ViabilityInput): Check {
   })
 }
 
-function margin({ catalog, purchase }: ViabilityInput): Check {
+function margin({ catalog, purchase }: Review): Check {
   const tight = purchase.layout.flatMap((a) => {
     const sheets = a.sheets.length
     if (!sheets) return []
@@ -185,7 +222,9 @@ function acceptedByPerson({ accepted = [] }: ViabilityInput): Check[] {
 
 /** The arithmetic checks, the most serious first. */
 export function reviewViability(input: ViabilityInput): Viability {
-  const checks = [...[measures, sheet, structure, strips, confirmed, margin].map((f) => f(input)), ...acceptedByPerson(input)]
+  const { analysis } = input
+  const review: Review = { ...input, errors: analysis.valid ? [] : analysis.errors, findings: input.findings ?? (analysis.valid ? analysis.findings : []) }
+  const checks = [...[measures, sheet, structure, strips, confirmed, margin].map((f) => f(review)), ...acceptedByPerson(input)]
   return { verdict: verdictOf(checks), checks: checks }
 }
 
