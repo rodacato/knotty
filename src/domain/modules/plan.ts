@@ -11,7 +11,7 @@ import { TablePlan, tableModule } from './table'
 export const FurniturePlan = z.discriminatedUnion('kind', [CabinetPlan, BedPlan, TablePlan])
 export type FurniturePlan = z.infer<typeof FurniturePlan>
 export type FurnitureKind = FurniturePlan['kind']
-type PlanOf<K extends FurnitureKind> = Extract<FurniturePlan, { kind: K }>
+export type PlanOf<K extends FurnitureKind> = Extract<FurniturePlan, { kind: K }>
 
 /** One module per kind, in the order the bench shows them; the type fails to compile if a kind has none. */
 export const MODULES: { [K in FurnitureKind]: FurnitureModule<PlanOf<K>> } = { bed: bedModule, table: tableModule, cabinet: cabinetModule }
@@ -24,10 +24,25 @@ export const MODULE_OF_KIND: Record<DesignKind, FurnitureKind | null> = {
   bench: null,
 }
 
+/** Every kind, in the order of MODULES. */
+export const FURNITURE_KINDS = Object.keys(MODULES) as FurnitureKind[]
+
 /** The module of a plan: the lookup by its kind always gives the module of that same plan, which the type system cannot follow. */
 export const moduleOf = <P extends FurniturePlan>(plan: P) => MODULES[plan.kind] as unknown as FurnitureModule<P>
 
 export const buildPlan = (plan: FurniturePlan, catalog: Catalog) => moduleOf(plan).build(plan, catalog)
+
+/** A module's name without its article, for lists: "zapatera". */
+export const moduleName = (kind: FurnitureKind) => MODULES[kind].label.replace(/^una? /, '')
+
+/** Words joined as in a sentence: "a, b y c". */
+const joined = (words: string[], last: 'y' | 'o') => (words.length > 1 ? `${words.slice(0, -1).join(', ')} ${last} ${words.at(-1)}` : (words[0] ?? ''))
+
+/** Every kind Knotty builds from a plan, as the person reads it: "una cama, una mesa o un gabinete". */
+export const moduleLabels = (last: 'y' | 'o' = 'o') => joined(Object.values(MODULES).map((m) => m.label), last)
+
+/** The same, without articles: "cama, mesa y gabinete". */
+export const moduleNames = (last: 'y' | 'o' = 'y') => joined((Object.keys(MODULES) as FurnitureKind[]).map(moduleName), last)
 
 /** What changed between two plans, in words for the person and for the expert's context. */
 export function describePlanChanges(before: FurniturePlan, after: FurniturePlan): string[] {

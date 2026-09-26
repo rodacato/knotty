@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Check, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
-import { describePlanChanges, moduleOf, type FurniturePlan } from '../../domain/modules/plan'
+import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/modules/plan'
 import type { DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
 import { useStore } from '../store'
@@ -25,7 +25,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
     return (
       <div className="flex flex-col gap-2 p-6 text-center text-sm text-graphite-2">
         <p className="font-medium text-graphite">Este mueble no tiene ficha</p>
-        <p>La ficha aparece cuando el mueble es un gabinete (librero, buró, cajonera, alacena…), una cama, una mesa o un escritorio. Lo demás se ajusta con el experto.</p>
+        <p>La ficha aparece cuando el mueble es {moduleLabels()}. Lo demás se ajusta con el experto.</p>
       </div>
     )
 
