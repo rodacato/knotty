@@ -5,7 +5,7 @@ import { MattressSize } from '../design/kind'
 import { completeJoints } from '../design/joints'
 import { backBoard, type Catalog } from '../materials/catalog'
 import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
-import { choice, material, note, number, numbers, optionsOf, section, stepper, type FieldSpec } from './fields'
+import { choice, fromLabels, material, note, number, numbers, section, stepper, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
@@ -287,7 +287,7 @@ const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>):
 /** A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices. */
 const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
-    choice({ key: 'mattress', label: 'Colchón', options: optionsOf(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
+    choice({ key: 'mattress', label: 'Colchón', ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
     note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
@@ -298,16 +298,16 @@ const bedFields: FieldSpec<BedPlan>[] = [
       key: 'drawers.side',
       label: 'Lado',
       ariaLabel: 'Lado de los cajones',
-      options: optionsOf(BED_LABELS.drawerSide),
+      ...fromLabels(BED_LABELS.drawerSide),
       get: (p) => p.drawers.side,
       // Choosing a side puts at least one drawer on it.
       set: (p, side) => withDrawers(p, { side, count: side === 'none' ? p.drawers.count : Math.max(1, p.drawers.count) }),
     }),
     stepper({ key: 'drawers.count', label: 'Por lado', ariaLabel: 'cajones por lado', min: 1, max: MAX_DRAWERS_PER_SIDE, visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.count, set: (p, count) => withDrawers(p, { count }) }),
-    choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', options: optionsOf(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),
+    choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', ...fromLabels(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),
   ]),
   section('Cabecera', [
-    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', options: optionsOf(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => withHeadboard(p, { style }) }),
+    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => withHeadboard(p, { style }) }),
     note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
     numbers(
       2,

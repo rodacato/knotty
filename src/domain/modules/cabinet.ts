@@ -8,7 +8,7 @@ import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 import { Column, type Cell } from '../reading/reading'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, thicknessOf, type AddDrawer } from './common'
-import { choice, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
@@ -296,7 +296,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   ]),
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
-    choice({ key: 'base', label: 'Base', options: optionsOf(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
+    choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
   ]),
