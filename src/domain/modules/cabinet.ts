@@ -3,7 +3,7 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import { DIMENSION_OF_AXIS, type FaceRef, type Position, type Design, type Piece, type Joint } from '../design/schema'
 import { analyze } from '../analysis'
 import { completeJoints } from '../design/joints'
-import type { Catalog } from '../materials/catalog'
+import { backBoard, type Catalog } from '../materials/catalog'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 import { Column, type Cell } from '../reading/reading'
@@ -49,7 +49,6 @@ export const CABINET_LABELS = {
   } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string> } },
 }
 
-const BACK = 'TR6'
 const GAP = 2
 const SHELF_SETBACK = 5
 const INSET_HINGE = 'cup-hinge-35-inset'
@@ -89,7 +88,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const pieces: Piece[] = []
   const joints: Joint[] = []
   if (build.back === 'nailed')
-    pieces.push(makePiece({ id: 'back', name: 'Trasera', role: 'back', material: BACK, normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: startAt(ref('furniture.z0')) }))
+    pieces.push(makePiece({ id: 'back', name: 'Trasera', role: 'back', material: backBoard(catalog).id, normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: startAt(ref('furniture.z0')) }))
   pieces.push(
     panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: sideHeight, z: depth() }),
     panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: sideHeight, z: depth() }),
@@ -191,7 +190,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       if (cell.content === 'drawer') {
         const k = drawers.length + 1
         drawers.push({
-          operation: { op: 'addDrawer', group: `drawer-${k}`, name: `Cajón ${k}`, left: left, right: right, bottom: bottom, top: top, front: 'side-left.z1', back: backFace, material: plan.material, bottomMaterial: BACK },
+          operation: { op: 'addDrawer', group: `drawer-${k}`, name: `Cajón ${k}`, left: left, right: right, bottom: bottom, top: top, front: 'side-left.z1', back: backFace, material: plan.material, bottomMaterial: backBoard(catalog).id },
           overlay,
         })
       }

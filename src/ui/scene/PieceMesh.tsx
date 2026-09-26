@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MeshStandardMaterial, Texture } from 'three'
 import type { Axis, Piece } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
-import { texture, type TextureKind, type Tone } from './textures'
+import type { BoardTone } from '../../domain/materials/grades'
+import { texture, type TextureKind } from './textures'
 
 const MM = 0.001
 /** (u, v) axes of each BoxGeometry face, in the order of its materials: +x, −x, +y, −y, +z, −z. */
@@ -20,11 +21,11 @@ const FACES: { normal: Axis; u: Axis; v: Axis }[] = [
 const GRAIN_SIZE = 0.45
 const FALL = 0.35
 
-function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
+function faceTextures(p: Piece, box: Box, tone: BoardTone, plies: number): Texture[] {
   const m = { x: box.x1 - box.x0, y: box.y1 - box.y0, z: box.z1 - box.z0 }
   if (p.confidence === 'low')
     return FACES.map((face) => {
-      const t = texture('sketch', tone).clone()
+      const t = texture('sketch', tone, plies).clone()
       t.repeat.set(Math.max(0.2, (m[face.u] * MM) / 0.25), Math.max(0.2, (m[face.v] * MM) / 0.25))
       t.needsUpdate = true
       return t
@@ -35,7 +36,7 @@ function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
   return FACES.map((face) => {
     const isFace = face.normal === p.normal
     const kind: TextureKind = isFace ? (grainAlong === face.u ? 'grain-u' : 'grain-v') : p.normal === face.u ? 'plies-u' : 'plies-v'
-    const t = texture(kind, tone).clone()
+    const t = texture(kind, tone, plies).clone()
     if (isFace) t.repeat.set((m[face.u] * MM) / GRAIN_SIZE, (m[face.v] * MM) / GRAIN_SIZE)
     else t.repeat.set(p.normal === face.u ? 1 : (m[face.u] * MM) / GRAIN_SIZE, p.normal === face.v ? 1 : (m[face.v] * MM) / GRAIN_SIZE)
     t.offset.set((box.x0 + box.z0) * 0.00037, (box.y0 + box.x0) * 0.00053)
@@ -47,7 +48,8 @@ function faceTextures(p: Piece, box: Box, tone: Tone): Texture[] {
 interface PieceMeshProps {
   piece: Piece
   box: Box
-  tone: Tone
+  tone: BoardTone
+  plies: number
   offset: [number, number, number]
   selected: boolean
   dimmed: boolean
@@ -65,11 +67,11 @@ interface PieceMeshProps {
   onSelect: (id: string) => void
 }
 
-export function PieceMesh({ piece, box, tone, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, onSelect }: PieceMeshProps) {
+export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, onSelect }: PieceMeshProps) {
   const [over, setOver] = useState(false)
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
-  const maps = useMemo(() => faceTextures(piece, box, tone), [piece, box, tone])
+  const maps = useMemo(() => faceTextures(piece, box, tone, plies), [piece, box, tone, plies])
 
   const sketch = piece.confidence === 'low'
   const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1

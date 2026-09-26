@@ -2,12 +2,13 @@ import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 import { JOINTS } from '../../design/jointSpecs'
 import type { JointType } from '../../design/schema'
+import { backBoard } from '../../materials/catalog'
 
 const PERIMETER = new Set(['side', 'bottom', 'top'])
 const RAILS = new Set(['bottom', 'top', 'shelf', 'apron', 'kick'])
 
 /** R5: a carcass with no rigid back and no rigid frame racks like a parallelogram when pushed sideways. */
-export const rackingRule: Rule = ({ design, geo }) => {
+export const rackingRule: Rule = ({ design, geo, catalog }) => {
   const sides = design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
   if (sides.length < 2) return []
   const role = new Map(design.pieces.map((p) => [p.id, p.role]))
@@ -29,6 +30,7 @@ export const rackingRule: Rule = ({ design, geo }) => {
   if (rigidBack || rigidFrame) return []
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
   const height = Math.max(...sides.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
+  const back = backBoard(catalog)
   const finding: Finding = {
     code: 'R5_RACKING',
     severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critical' : 'recommendation',
@@ -36,7 +38,7 @@ export const rackingRule: Rule = ({ design, geo }) => {
     message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
     data: { height: height, rigidRails: rails.length },
     alternatives: [
-      { key: 'back-6mm', description: 'Trasera de 6 mm clavada y pegada a laterales, piso y techo', data: { material: 'TR6' } },
+      { key: 'back-6mm', description: `Trasera de ${back.thickness} mm clavada y pegada a laterales, piso y techo`, data: { material: back.id } },
       { key: 'back-in-rabbet', description: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', data: { type: 'rabbet' } },
       { key: 'rigid-apron', description: 'Faja trasera superior con tornillos de bolsillo a los laterales', data: { type: 'pocket-screw' } },
     ],

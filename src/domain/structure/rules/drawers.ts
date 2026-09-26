@@ -2,7 +2,7 @@ import { roundTo } from '../../design/resolve'
 import { gapBetween } from '../../validation/contact'
 import type { Design } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
-import { pickHardware } from '../../materials/catalog'
+import { pickHardware, thinnestBoard } from '../../materials/catalog'
 import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
@@ -41,6 +41,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const bottom = design.pieces.find((p) => p.group === g && p.role === 'drawer-bottom')
     const bottomBox = bottom && geo.boxes.get(bottom.id)
     const thickness = bottom && geo.thicknesses.get(bottom.id)
+    const thicker = thinnestBoard(catalog, 'back', ASSUMPTIONS.drawers.minBottom)
     if (bottom && bottomBox && thickness !== undefined && thickness < ASSUMPTIONS.drawers.minBottom && bottomBox.x1 - bottomBox.x0 > ASSUMPTIONS.drawers.thinBottomWidth)
       found.push({
         code: 'R9_DRAWERS',
@@ -49,7 +50,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         pieces: [bottom.id],
         message: `${bottom.name} es de ${thickness} mm y mide ${Math.round(bottomBox.x1 - bottomBox.x0)} mm de ancho: con peso se vence y se sale de abajo.`,
         data: { thickness: thickness, width: Math.round(bottomBox.x1 - bottomBox.x0) },
-        alternatives: [{ key: 'bottom-6mm', description: 'Fondo de 6 mm', data: { material: 'TR6' } }],
+        alternatives: thicker ? [{ key: 'bottom-6mm', description: `Fondo de ${thicker.thickness} mm`, data: { material: thicker.id } }] : [],
       })
 
     const front = design.pieces.find((p) => p.group === g && p.role === 'drawer-front')

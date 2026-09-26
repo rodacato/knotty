@@ -3,7 +3,8 @@
     {
       "id": "T12",
       "name": "Triplay de pino 12 mm",
-      "type": "plywood",
+      "use": "carcass",
+      "grade": "pine-plywood",
       "thickness": 12,
       "sheet": {
         "length": 2440,
@@ -15,7 +16,8 @@
     {
       "id": "T15",
       "name": "Triplay de pino 15 mm",
-      "type": "plywood",
+      "use": "carcass",
+      "grade": "pine-plywood",
       "thickness": 15,
       "sheet": {
         "length": 2440,
@@ -27,7 +29,8 @@
     {
       "id": "T18",
       "name": "Triplay de pino 18 mm",
-      "type": "plywood",
+      "use": "carcass",
+      "grade": "pine-plywood",
       "thickness": 18,
       "sheet": {
         "length": 2440,
@@ -39,7 +42,8 @@
     {
       "id": "TR3",
       "name": "Triplay de pino 3 mm (trasera)",
-      "type": "back",
+      "use": "back",
+      "grade": "pine-plywood",
       "thickness": 3,
       "sheet": {
         "length": 2440,
@@ -51,7 +55,8 @@
     {
       "id": "TR6",
       "name": "Triplay de pino 6 mm (trasera)",
-      "type": "back",
+      "use": "back",
+      "grade": "pine-plywood",
       "thickness": 6,
       "sheet": {
         "length": 2440,

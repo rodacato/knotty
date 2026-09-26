@@ -1,4 +1,4 @@
-import { usableSheet, type BoardMaterial, type Catalog } from '../../../domain/materials/catalog'
+import { boardsFor, usableSheet, type BoardMaterial, type BoardUse, type Catalog } from '../../../domain/materials/catalog'
 import { DEFAULT_CONSTRUCTION, type CabinetConstruction } from '../../../domain/modules/cabinet'
 import { MATTRESSES, MAX_DRAWERS_PER_SIDE } from '../../../domain/modules/bed'
 import { MAX_PEDESTAL_DRAWERS, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/modules/table'
@@ -63,16 +63,19 @@ const DOMAIN = {
   wardrobeDepth: value(cm(WARDROBE_DEPTH), range(WARDROBE_DEPTH)),
 } satisfies Record<string, PromptValue>
 
+/** The word the materials list has always shown for each use: changing it changes what the expert reads (a new prompt version). */
+const USE_WORD: Record<BoardUse, string> = { carcass: 'plywood', back: 'back' }
+
 function describeCatalog(c: Catalog) {
   return [
     'Materials:',
-    ...c.materials.map((m) => `- ${m.id}: ${m.name}, ${m.thickness} mm (${m.type})`),
+    ...c.materials.map((m) => `- ${m.id}: ${m.name}, ${m.thickness} mm (${USE_WORD[m.use]})`),
     'Hardware:',
     ...c.hardware.map((h) => `- ${h.id}: ${h.name}`),
   ].join('\n')
 }
 
-const plywood = (c: Catalog) => c.materials.filter((m) => m.type === 'plywood')
+const plywood = (c: Catalog) => boardsFor(c, 'carcass')
 /** The largest plywood sheet: the limit a piece cannot pass. */
 const largestSheet = (c: Catalog): BoardMaterial => [...plywood(c)].sort((a, b) => b.sheet.length * b.sheet.width - a.sheet.length * a.sheet.width)[0] ?? c.materials[0]
 

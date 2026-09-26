@@ -1,3 +1,4 @@
+import { boardsFor } from '../../domain/materials/catalog'
 import { BED_LABELS, type BedPlan } from '../../domain/modules/bed'
 import { useServices } from '../services'
 import { NumberField, optionsOf, Segmented, Stepper } from './PlanControls'
@@ -20,7 +21,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function BedFields({ draft, set }: { draft: BedPlan; set: (change: Partial<BedPlan>) => void }) {
   const { catalog } = useServices()
-  const boards = catalog.materials.filter((m) => m.type === 'plywood')
+  const boards = boardsFor(catalog, 'carcass')
   const drawers = draft.drawers
   const headboard = draft.headboard
   const deep = headboard.style === 'bookcase' || headboard.style === 'storage'

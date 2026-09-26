@@ -1,10 +1,9 @@
 import type { Load } from '../design/schema'
 
 // Engineering assumptions as data, to calibrate them without touching the rules. Pine plywood from Home Depot MX.
+// What depends on the board (its stiffness) is in materials/grades.ts.
 
 export const ASSUMPTIONS = {
-  /** MPa, bending of pine plywood by grain against the span. Conservative; calibrate with a test at home. */
-  elasticModulus: { parallel: 6000, perpendicular: 3500 },
   /** A load held for months (books) makes the sag grow. */
   creep: 1.5,
   /** kg/m² on the shelf. */

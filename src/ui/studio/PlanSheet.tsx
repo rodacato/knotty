@@ -2,6 +2,7 @@ import { ArrowCounterClockwise, Check, Plus, Trash, Warning } from '@phosphor-ic
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { BedPlan } from '../../domain/modules/bed'
+import { boardsFor } from '../../domain/materials/catalog'
 import { CABINET_LABELS, type CabinetConstruction, type CabinetPlan } from '../../domain/modules/cabinet'
 import { describePlanChanges, type FurniturePlan } from '../../domain/modules/plan'
 import type { TablePlan } from '../../domain/modules/table'
@@ -71,7 +72,7 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
 function CabinetFields({ draft, set }: { draft: CabinetPlan; set: (change: Partial<CabinetPlan>) => void }) {
   const { catalog } = useServices()
   const setColumn = (i: number, column: Column) => set({ columns: draft.columns.map((c, j) => (j === i ? column : c)) })
-  const boards = catalog.materials.filter((m) => m.type === 'plywood')
+  const boards = boardsFor(catalog, 'carcass')
   const widths = draft.columns.map((c) => c.width)
   return (
     <>

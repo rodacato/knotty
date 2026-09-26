@@ -1,3 +1,4 @@
+import { boardsFor } from '../../domain/materials/catalog'
 import { TABLE_LABELS, type TablePlan } from '../../domain/modules/table'
 import { useServices } from '../services'
 import { NumberField, optionsOf, Segmented, Stepper } from './PlanControls'
@@ -18,7 +19,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function TableFields({ draft, set }: { draft: TablePlan; set: (change: Partial<TablePlan>) => void }) {
   const { catalog } = useServices()
-  const boards = catalog.materials.filter((m) => m.type === 'plywood')
+  const boards = boardsFor(catalog, 'carcass')
   const desk = draft.use === 'desk'
   const size = draft.dimensions
   return (
