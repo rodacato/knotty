@@ -41,7 +41,16 @@ export const ASSUMPTIONS = {
     criticalRatio: 4,
     criticalHeight: 1200,
   },
-  doors: { hinges: [{ upTo: 900, n: 2 }, { upTo: 1500, n: 3 }, { upTo: Infinity, n: 4 }], maxWidth: 600 },
+  /** Hinges by the height of the door (Blum's table, the rows past a sheet's length would never apply), and the widest single leaf. */
+  doors: {
+    hinges: [
+      { upTo: 900, n: 2 },
+      { upTo: 1600, n: 3 },
+      { upTo: 2000, n: 4 },
+      { upTo: 2400, n: 5 },
+    ],
+    maxWidth: 600,
+  },
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   drawers: {
@@ -63,4 +72,5 @@ export const pocketScrewId = (thickness: number) => (pocketScrewFor(thickness) ?
 /** Whether a load stays (what a shelf holds) or passes (a person on a bed or a bench): only the first creeps. */
 export type LoadDuration = keyof typeof ASSUMPTIONS.creep
 
-export const hingesFor = (height: number) => ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo)!.n
+/** How many hinges a door this tall takes; taller than the table, as many as its last row. */
+export const hingesFor = (height: number) => (ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo) ?? ASSUMPTIONS.doors.hinges.at(-1)!).n

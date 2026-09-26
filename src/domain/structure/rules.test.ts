@@ -7,6 +7,7 @@ import { exampleNightstand } from '../fixtures/nightstand'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { findingKey } from './finding'
+import { hingesFor } from './assumptions'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
 import { buildBed } from '../modules/bed'
 import { buildTable } from '../modules/table'
@@ -85,12 +86,16 @@ describe('R4 tipping', () => {
 
 describe('R6 doors', () => {
   it('a tall door with two hinges asks for more', () => {
-    const tall = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
+    const tall = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1700 } }
     const r6 = findings(tall, 'R6_DOORS')
     expect(r6.map((h) => [h.pieces[0], h.severity, h.data.needed])).toEqual([
       ['door-left', 'critical', 4],
       ['door-right', 'critical', 4],
     ])
+  })
+
+  it('hinges by height as Blum counts them: 2 up to 900, 3 up to 1600, 4 up to 2000, 5 up to 2400', () => {
+    expect([900, 901, 1600, 1601, 2000, 2001, 2400, 2600].map(hingesFor)).toEqual([2, 3, 3, 4, 4, 5, 5, 5])
   })
 
   it('a door wider than 60 cm suggests splitting it', () => {
