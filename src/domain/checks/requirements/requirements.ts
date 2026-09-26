@@ -15,6 +15,10 @@ export const Requirement = z.object({
 })
 export type Requirement = z.infer<typeof Requirement>
 
+/** The notes the person adds by hand are requirements too; their id tells them from the ones the expert wrote. */
+export const PERSON_NOTE_PREFIX = 'nota-'
+export const isPersonNote = (r: Requirement) => r.id.startsWith(PERSON_NOTE_PREFIX)
+
 export function checkRequirements(design: Design, requirements: Requirement[]): DesignError[] {
   return requirements.flatMap((r) => {
     if (r.type !== 'space' || !r.axis) return []

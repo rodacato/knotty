@@ -104,9 +104,16 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', ...answerWith(null), questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await expert.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('skeleton@13')
+    expect(r.origin.promptId).toBe('skeleton@14')
     expect(calls[0].system).toContain('"T18" (18 mm)')
     expect(calls[0].system).not.toContain('{{materials}}')
+    expect(calls[0].content[0]).not.toMatchObject({ text: expect.stringContaining('The person chose') })
+  })
+
+  it('the design request says what the person chose the furniture is', async () => {
+    const { expert, calls } = fake({ explanation: 'x', ...answerWith(null), questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
+    await expert.planDesign!({ measures: null, photos: [], notes: 'para la sala', reading: null, catalog: testCatalog, correction: null, kind: 'tvStand' }, new AbortController().signal)
+    expect(calls[0].content[0]).toMatchObject({ text: expect.stringContaining('The person chose what this furniture is: un mueble de TV (tvStand).') })
   })
 
   it('edits the plan with its own short prompt: the context, the current plan and the request', async () => {

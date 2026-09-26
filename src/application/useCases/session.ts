@@ -1,3 +1,4 @@
+import { PERSON_NOTE_PREFIX } from '../../domain/checks/requirements/requirements'
 import type { DesignState, Question } from '../../domain/session/state'
 import { acceptFinding } from '../../domain/checks/structure/accepted'
 import { findingKey, type Finding } from '../../domain/checks/structure/finding'
@@ -24,7 +25,7 @@ export function createSession(kit: Kit, adjust: Adjust) {
   function addRequirement(state: DesignState, text: string): DesignState {
     const clean = text.trim()
     if (!clean) return state
-    const id = `nota-${newId().slice(0, 8)}`
+    const id = `${PERSON_NOTE_PREFIX}${newId().slice(0, 8)}`
     return save({ ...state, requirements: [...state.requirements, { id, text: clean, type: 'other', axis: null, min: null, max: null }] })
   }
 

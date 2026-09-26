@@ -19,17 +19,19 @@ export type { PieceEdit, PieceEditResult } from './edits'
 /** Every use case over one session: each group lives in its own module and shares the kit (clock, chat, saving, versions). */
 export function createUseCases(deps: Dependencies) {
   const kit = createKit(deps)
-  const { reconstruct, fromExample, openExample } = createReconstruct(kit)
+  const { reconstruct, redoAs, fromExample, openExample } = createReconstruct(kit)
   const { adjust } = createAdjust(kit)
   const { applyProposal, answerWithFix, discardProposal } = createProposals(kit)
   const { backToVersion, restoreFromVersion, undoChange } = createHistory(kit)
-  const { confirmPiece, applyPlan, editPiece, resizeFurniture, applyFix } = createEdits(kit)
+  const { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
   const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
 
   return {
     reconstruct,
+    redoAs,
+    chooseKind,
     adjust,
     applyProposal,
     answerWithFix,

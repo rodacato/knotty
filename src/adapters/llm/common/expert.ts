@@ -15,6 +15,7 @@ import {
   type ReconstructionRequest,
 } from '../../../ports/LLMProvider'
 import { PhotoReading } from '../../../domain/furniture/reading/reading'
+import { KIND_NOUN } from '../../../domain/design/kind'
 import { describeProblems, strictSchema } from './jsonSchema'
 import { ADJUSTMENT, PLAN_ADJUSTMENT, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
 
@@ -58,6 +59,7 @@ function designRequest(s: ReconstructionRequest): Content[] {
   const measures = s.measures
     ? `Furniture measures: width ${s.measures.width} mm, height ${s.measures.height} mm, depth ${s.measures.depth} mm.`
     : 'The person does not know the measures: propose typical ones for that furniture and say so in the explanation.'
+  const kind = s.kind ? `\nThe person chose what this furniture is: ${KIND_NOUN[s.kind]} (${s.kind}).` : ''
   const reading = s.reading
     ? `\nThe photos are not attached: they were already read. This is what they show (relative proportions, columns from left to right and openings from bottom to top):\n${JSON.stringify(s.reading)}`
     : ''
@@ -66,8 +68,8 @@ function designRequest(s: ReconstructionRequest): Content[] {
       kind: 'text',
       text:
         s.photos.length || s.reading
-          ? `${measures}${s.notes ? `\nThe person's notes: ${s.notes}` : ''}${reading}`
-          : `${measures}\nThere are no photos: design from this description by the person.\nDescription: ${s.notes || '(no description)'}`,
+          ? `${measures}${kind}${s.notes ? `\nThe person's notes: ${s.notes}` : ''}${reading}`
+          : `${measures}${kind}\nThere are no photos: design from this description by the person.\nDescription: ${s.notes || '(no description)'}`,
     },
     ...s.photos.flatMap((f, i): Content[] => [
       { kind: 'text', text: `Photo ${i + 1}: ${f.angle}${f.note ? `. The person says: ${f.note}` : ''}` },

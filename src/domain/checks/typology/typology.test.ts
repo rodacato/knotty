@@ -24,11 +24,15 @@ describe('detectKind', () => {
     ['Cama individual con cabecera', 'bed'],
     ['Escritorio sencillo', 'desk'],
     ['Mesa de centro', 'table'],
-    ['Buró con cajón', 'drawers'],
+    ['Buró con cajón', 'nightstand'],
+    ['Cómoda de tres cajones', 'drawers'],
+    ['Aparador para el comedor', 'sideboard'],
     ['Alacena de pared', 'wallCabinet'],
     ['Librero 5 repisas', 'bookcase'],
     ['Zapatera', 'shoeRack'],
-    ['Mueble de TV', null],
+    ['Mueble de TV', 'tvStand'],
+    ['Mueble bajo para la tele', 'tvStand'],
+    ['Exhibidor escalonado', null],
   ])('%s → %s', (name, kind) => expect(detectKind({ name })).toBe(kind))
 
   it('what the design says wins over its name; without it, the name decides', () => {

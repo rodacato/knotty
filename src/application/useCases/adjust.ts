@@ -1,3 +1,4 @@
+import { byPerson, keepPersonKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import { fixForAlternative } from '../../domain/editing/fixes/fixes'
@@ -145,6 +146,7 @@ export function createAdjust(kit: Kit) {
       return reply(localText.already)
     }
     const rebuilt = rebuildFromPlan(intent.plan, current.extras, catalog, withRequest.requirements)
+    rebuilt.design = byPerson(design, rebuilt.design)
     const analysis = analyze(rebuilt.design, catalog, withRequest.requirements)
     note(analysis.valid ? 'ok' : 'invalid', analysis.valid ? [] : traceErrors(analysis.errors), rebuilt.repairs)
     if (!analysis.valid) return null
@@ -192,7 +194,8 @@ export function createAdjust(kit: Kit) {
       const requirements = updateRequirements(withRequest.requirements, r.requirements)
       const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
       const suggestions = r.suggestions.slice(0, 4)
-      const next = expertPlans(r)[plan.kind]
+      const offered = expertPlans(r)[plan.kind]
+      const next = offered && keepPersonKind(offered, design)
       if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
         trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
         return null

@@ -6,6 +6,7 @@ import type { Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Axis } from '../../domain/design/schema'
 import type { FinishId } from '../../domain/materials/finishes'
+import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
@@ -50,6 +51,8 @@ export interface SessionSlice {
   resizeFurniture(axis: Axis, value: number): PieceEditResult
   /** The finish picked in Materiales, as a version of its own. */
   chooseFinish(finish: FinishId): void
+  /** What the furniture is; `redo` when it is another module's and has to be designed again. */
+  chooseKind(kind: DesignKind): { ok: true } | { ok: false; redo: true } | { ok: false; message: string }
 }
 
 const NO_DESIGN = 'No hay un diseño abierto.'
@@ -117,6 +120,17 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   confirmPiece: (id) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.confirmPiece(state, id))),
   chooseFinish: (finish) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseFinish(state, finish))),
+  chooseKind: (kind) =>
+    withSession(
+      get,
+      (services, state) => {
+        const r = services.useCases.chooseKind(state, kind)
+        if (!r.ok) return r
+        moveTo(set, services, state, r.state, { viewedVersion: null })
+        return { ok: true as const }
+      },
+      { ok: false as const, message: NO_DESIGN },
+    ),
   addNote: (text) => withSession(get, (services, state) => set({ state: services.useCases.addRequirement(state, text) })),
   removeNote: (id) => withSession(get, (services, state) => set({ state: services.useCases.removeRequirement(state, id) })),
   removeDecision: (topic) => withSession(get, (services, state) => set({ state: services.useCases.removeDecision(state, topic) })),

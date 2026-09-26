@@ -1,3 +1,5 @@
+import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
+import { byPerson, kindChange, planForKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
 import { DIMENSION_OF_AXIS, DIMENSION_LABEL, type Axis, type Position } from '../../domain/design/schema'
 import type { Fix } from '../../domain/editing/fixes/fixes'
@@ -40,7 +42,9 @@ export function createEdits(kit: Kit) {
     const parsed = FurniturePlan.safeParse(plan)
     if (!parsed.success) return { ok: false, message: 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
     const current = currentPlan(state)
-    const { design, notes, dropped } = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
+    const rebuilt = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
+    const { notes, dropped } = rebuilt
+    const design = byPerson(currentDesign(state), rebuilt.design)
     const analysis = analyze(design, catalog, state.requirements)
     if (!analysis.valid) {
       const first = named(design.pieces, analysis.errors[0]?.message ?? '')
@@ -52,6 +56,26 @@ export function createEdits(kit: Kit) {
     const extras = (current.diverged ? [] : current.extras).filter((e) => !dropped.includes(e))
     const withVersion = addVersion(state, design, { summary: `Ficha: ${summary}`.slice(0, 90), reason: `Desde la ficha: ${summary}`, operations: [], origin: null, plan: parsed.data, extras })
     return { ok: true, state: save({ ...noted(withVersion, 'user', `Cambié desde la ficha: ${summary}.`), measures: design.dimensions }), notes }
+  }
+
+  /**
+   * The person says what the furniture is. Within the plan's module (a bookcase into a wardrobe), or on a design without a plan, it is a version that keeps
+   * the pieces and the plan and changes the checks by use; a table's use is in its plan, so it is rebuilt. Another module's kind cannot come from this plan: `redo`.
+   */
+  function chooseKind(state: DesignState, kind: DesignKind): { ok: true; state: DesignState } | { ok: false; redo: true } | { ok: false; message: string } {
+    const design = currentDesign(state)
+    const current = currentPlan(state)
+    const change = kindChange(design, current.plan, kind)
+    if (change === 'same') return { ok: true, state }
+    if (change === 'redo') return { ok: false, redo: true }
+    const noun = KIND_NOUN[kind]
+    const plan = current.plan && !current.diverged ? planForKind(current.plan, kind) : null
+    if (plan && plan !== current.plan) {
+      const r = applyPlan(state, plan)
+      return r.ok ? { ok: true, state: r.state } : r
+    }
+    const withVersion = addVersion(state, { ...design, kind, kindSource: 'person' }, { summary: `Ahora es ${noun}`, reason: `A mano: es ${noun}`, operations: [], origin: null, ...layered(current, []) })
+    return { ok: true, state: save(noted(withVersion, 'user', `Es ${noun}.`)) }
   }
 
   /** A hand edit on one piece, with no expert: the edit if it holds, or the ways it could. */
@@ -118,5 +142,5 @@ export function createEdits(kit: Kit) {
     return save(noted(withVersion, 'user', `Resolví: ${fix.label}.`))
   }
 
-  return { confirmPiece, applyPlan, editPiece, resizeFurniture, applyFix }
+  return { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix }
 }

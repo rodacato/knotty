@@ -1,6 +1,8 @@
 import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import type { Dimensions } from '../../domain/design/schema'
+import type { DesignKind } from '../../domain/design/kind'
+import { KindSelect } from '../system/KindSelect'
 import { missing } from '../../ports/Preferences'
 import { useServices } from '../services'
 import { Button, cm, Title } from '../system/components'
@@ -151,6 +153,7 @@ export function Capture() {
     () => draft?.photos.map((f) => ({ angle: f.angle, base64: f.base64, note: f.note, thumbnail: draft.thumbnails.find((m) => m.angle === f.angle)?.dataUrl ?? '' })) ?? [],
   )
   const [notes, setNotes] = useState(draft?.notes ?? '')
+  const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
   const [processing, setProcessing] = useState(false)
   const [withSimulated, setWithSimulated] = useState(draft !== null)
   // Re-read when the settings close so the notice disappears as soon as you connect an expert.
@@ -175,7 +178,7 @@ export function Capture() {
   const validMeasures = MEASURES.every((m) => measures[m.key] >= m.min && measures[m.key] <= m.max)
   const missingRequired = ANGLES.filter((a) => a.required && !photos.some((f) => f.angle === a.id))
   const analyzeCapture = () =>
-    reconstruct({ measures: withMeasures ? measures : null, photos: photos.map((f) => ({ angle: f.angle, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: photos.map((f) => ({ angle: f.angle, dataUrl: f.thumbnail })), notes: notes.trim() })
+    reconstruct({ measures: withMeasures ? measures : null, photos: photos.map((f) => ({ angle: f.angle, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: photos.map((f) => ({ angle: f.angle, dataUrl: f.thumbnail })), notes: notes.trim(), kind })
 
   return (
     <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
@@ -212,6 +215,11 @@ export function Capture() {
               <MeasureField key={m.key} name={m.name} value={measures[m.key]} min={m.min} max={m.max} onChange={(v) => setMeasures((d) => ({ ...d, [m.key]: v }))} />
             ))}
           </div>
+          <label className="flex flex-col gap-1.5 sm:max-w-sm">
+            <span className="text-sm font-medium">Tipo de mueble</span>
+            <KindSelect value={kind} onChange={setKind} none="Que Knotty lo decida" />
+            <span className="text-xs text-graphite-2">Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.</span>
+          </label>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button
               variant="ghost"
