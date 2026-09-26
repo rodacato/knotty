@@ -16,7 +16,7 @@ import type { Kit } from './kit'
 export type PieceEdit = { kind: 'length'; axis: Axis; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Axis; delta: number }
 export type PieceEditResult = { ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
 
-/** A cota tied to an outer face of the piece of furniture. */
+/** A position tied to an outer face of the piece of furniture. */
 const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
 
 /** Changes the person makes by hand, with no expert: each one a version if the design holds. */
