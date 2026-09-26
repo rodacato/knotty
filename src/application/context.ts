@@ -2,6 +2,7 @@ import { analyze } from '../domain/analysis'
 import { roundTo } from '../domain/design/resolve'
 import { compactLog } from '../domain/history/history'
 import type { Catalog } from '../domain/materials/catalog'
+import { FINISHES } from '../domain/materials/finishes'
 import { currentVersion, type DesignState } from '../domain/session/state'
 import type { Finding } from '../domain/structure/finding'
 
@@ -20,10 +21,11 @@ export function describeAlternatives(h: Finding) {
 
 export function buildContext(state: DesignState, catalog: Catalog): string {
   const version = currentVersion(state)
-  const design = version.design
+  const { finish, ...design } = version.design
   const analysis = analyze(design, catalog, state.requirements)
 
   const fixed: string[] = [`## Current design (v${version.n})`, '```json', JSON.stringify(design), '```']
+  if (finish && finish !== 'none') fixed.push(`Finish the person chose (Knotty keeps it and buys it): ${FINISHES[finish].name}.`)
   if (analysis.valid) {
     fixed.push(
       '',

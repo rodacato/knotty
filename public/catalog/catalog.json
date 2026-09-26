@@ -332,6 +332,136 @@
       "price": 90
     }
   ],
+  "finishes": [
+    {
+      "id": "polyurethane-1k-1l",
+      "name": "Barniz de poliuretano Polyform 3000 1 L",
+      "product": "polyurethane-1k",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "polyurethane-1k-4l",
+      "name": "Barniz de poliuretano Polyform 3000 4 L",
+      "product": "polyurethane-1k",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "marine-varnish-1l",
+      "name": "Barniz marino Polyform Home 1 L",
+      "product": "marine-varnish",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "marine-varnish-4l",
+      "name": "Barniz marino Polyform Home 4 L",
+      "product": "marine-varnish",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "water-based-color-varnish-1l",
+      "name": "Barniz de color base agua Polyform 1 L",
+      "product": "water-based-color-varnish",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "water-based-color-varnish-4l",
+      "name": "Barniz de color base agua Polyform 4 L",
+      "product": "water-based-color-varnish",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "nitro-sealer-1l",
+      "name": "Sellador de nitrocelulosa Sayer Lack 1 L",
+      "product": "nitro-sealer",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "nitro-sealer-4l",
+      "name": "Sellador de nitrocelulosa Sayer Lack 4 L",
+      "product": "nitro-sealer",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "nitro-lacquer-1l",
+      "name": "Laca de nitrocelulosa Sayer Lack 1 L",
+      "product": "nitro-lacquer",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "nitro-lacquer-4l",
+      "name": "Laca de nitrocelulosa Sayer Lack 4 L",
+      "product": "nitro-lacquer",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "wood-primer-1l",
+      "name": "Fondo blanco para madera Berel 1 L",
+      "product": "wood-primer",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "wood-primer-4l",
+      "name": "Fondo blanco para madera Berel 4 L",
+      "product": "wood-primer",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "enamel-1l",
+      "name": "Esmalte base agua Comex Acqua 100 1 L",
+      "product": "enamel",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "enamel-4l",
+      "name": "Esmalte base agua Comex Acqua 100 4 L",
+      "product": "enamel",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "danish-oil-1l",
+      "name": "Aceite danés 1 L",
+      "product": "danish-oil",
+      "litres": 1,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "danish-oil-4l",
+      "name": "Aceite danés 4 L",
+      "product": "danish-oil",
+      "litres": 4,
+      "sku": null,
+      "price": null
+    }
+  ],
   "layout": {
     "trim": 15,
     "kerf": 4,

@@ -5,7 +5,7 @@ import type { Catalog } from '../../domain/materials/catalog'
 import type { FurniturePlan } from '../../domain/modules/plan'
 import type { Operation } from '../../domain/operations/schema'
 import type { Requirement } from '../../domain/requirements/requirements'
-import type { DesignState, Message } from '../../domain/session/state'
+import { currentDesign, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/structure/finding'
 import type { DesignRepository } from '../../ports/DesignRepository'
 import type { LLMProvider } from '../../ports/LLMProvider'
@@ -59,9 +59,11 @@ export function createKit(deps: Dependencies) {
     data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[] },
   ): DesignState {
     const n = Math.max(...state.versions.map((v) => v.n)) + 1
+    // The finish is the person's: a design rebuilt from the plan or written by the expert comes without it and keeps the current one.
+    const finish = design.finish ?? currentDesign(state).finish
     const versions = pruneVersions([
       ...state.versions,
-      { n, design: design, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
+      { n, design: finish && !design.finish ? { ...design, finish } : design, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
     ])
     return { ...state, versions: versions, current: n, proposal: null, chat: state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'discarded' as const, answered: true } : m)) }
   }

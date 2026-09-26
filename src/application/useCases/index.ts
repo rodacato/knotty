@@ -1,6 +1,7 @@
 import type { AdjustmentResponse } from '../../ports/LLMProvider'
 import { createAdjust } from './adjust'
 import { createEdits } from './edits'
+import { createFinish } from './finish'
 import { createHistory } from './history'
 import { createKit, type Dependencies } from './kit'
 import { createProposals } from './proposals'
@@ -24,6 +25,7 @@ export function createUseCases(deps: Dependencies) {
   const { backToVersion, restoreFromVersion, undoChange } = createHistory(kit)
   const { confirmPiece, applyPlan, editPiece, resizeFurniture, applyFix } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
+  const { chooseFinish } = createFinish(kit)
   const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
 
   return {
@@ -52,6 +54,7 @@ export function createUseCases(deps: Dependencies) {
     sendTray,
     editPiece,
     resizeFurniture,
+    chooseFinish,
     load,
     pendingQuestions,
   }
