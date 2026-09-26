@@ -6,9 +6,10 @@ import { FurniturePlan } from '../modules/plan'
 import { Requirement } from '../requirements/requirements'
 import { TraceEntry } from '../trace/trace'
 import { TrayItem } from '../tray/tray'
+import { AcceptedFinding } from '../structure/accepted'
 import { Check, CarpenterOpinion, Verdict } from '../viability/viability'
 
-// The whole design session: what is saved and comes back on reload. Its field names are the saved format (7); `migrate.ts` reads older ones.
+// The whole design session: what is saved and comes back on reload. Its field names are the saved format (8); `migrate.ts` reads older ones.
 
 export const Question = z.object({
   text: z.string().min(1),
@@ -93,7 +94,7 @@ export const PurchaseReview = z.object({
 export type PurchaseReview = z.infer<typeof PurchaseReview>
 
 export const DesignState = z.object({
-  format: z.literal(7),
+  format: z.literal(8),
   measures: Dimensions,
   versions: z.array(Version).min(1),
   current: z.number().int().positive(),
@@ -104,8 +105,8 @@ export const DesignState = z.object({
   proposal: Proposal.nullable(),
   review: PurchaseReview.nullable().default(null),
   trace: z.array(TraceEntry).default([]),
-  /** Findings the person chose to leave as they are, by the key of each finding. */
-  accepted: z.array(z.object({ key: z.string(), title: z.string(), at: z.string() })).default([]),
+  /** Findings the person chose to leave as they are, with how serious each was then (`isAccepted` says whether it still holds). */
+  accepted: z.array(AcceptedFinding).default([]),
   /** What waits to go to the expert in one request. */
   tray: z.array(TrayItem).default([]),
 })

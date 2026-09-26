@@ -68,6 +68,7 @@ function NoticeCard({ notice, state, onAnswer }: { notice: Notice; state: Design
         </span>
         {notice.severity !== 'decision' && <Stamp severity={notice.severity} />}
       </div>
+      {notice.reopened && <p className="text-sm text-graphite-2">{notice.reopened}</p>}
       <p className="text-[15px] leading-snug">{notice.message}</p>
       {notice.pieces.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

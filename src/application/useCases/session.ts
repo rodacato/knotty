@@ -1,4 +1,5 @@
 import type { DesignState, Question } from '../../domain/session/state'
+import { acceptFinding } from '../../domain/structure/accepted'
 import { findingKey, type Finding } from '../../domain/structure/finding'
 import { toggleInTray, trayRequest, type TrayItem } from '../../domain/tray/tray'
 import type { Kit, OnProgress } from './kit'
@@ -30,11 +31,11 @@ export function createSession(kit: Kit, adjust: Adjust) {
   const removeRequirement = (state: DesignState, id: string) => save({ ...state, requirements: state.requirements.filter((r) => r.id !== id) })
   const removeDecision = (state: DesignState, topic: string) => save({ ...state, decisions: state.decisions.filter((d) => d.topic !== topic) })
 
-  /** The person leaves a finding as it is: it stops counting as pending and the verdict mentions it. */
+  /** The person leaves a finding as it is now: it stops counting as pending and the verdict mentions it. Accepting it again replaces what was accepted before. */
   function acceptNotice(state: DesignState, findings: Finding[], title: string): DesignState {
-    const keys = new Set(state.accepted.map((a) => a.key))
-    const added = findings.map(findingKey).filter((k) => !keys.has(k)).map((key) => ({ key, title, at: now() }))
-    return save({ ...state, accepted: [...state.accepted, ...added] })
+    const keys = new Set(findings.map(findingKey))
+    const added = findings.map((h) => acceptFinding(h, title, now()))
+    return save({ ...state, accepted: [...state.accepted.filter((a) => !keys.has(a.key)), ...added] })
   }
 
   function reopenNotice(state: DesignState, findings: Finding[]): DesignState {

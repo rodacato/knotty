@@ -5,7 +5,7 @@ import { cutList } from '../../domain/materials/cutList'
 import { estimatePurchase } from '../../domain/materials/purchase'
 import { checkRequirements } from '../../domain/requirements/requirements'
 import { currentDesign, type DesignState, type PurchaseReview } from '../../domain/session/state'
-import { findingKey } from '../../domain/structure/finding'
+import { heldAcceptance, isAccepted } from '../../domain/structure/accepted'
 import { reviewViability, worst } from '../../domain/viability/viability'
 import { buildContext } from '../context'
 import { ExpertError } from './expertCall'
@@ -32,7 +32,7 @@ function canonical(value: unknown): string {
 
 /** What a purchase review was made with, to know when to redo it; keyed on the design's content, so going back to an identical version keeps it. */
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
-  JSON.stringify([fingerprint(canonical(reviewed(currentDesign(state)))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
+  JSON.stringify([fingerprint(canonical(reviewed(currentDesign(state)))), state.requirements.map((r) => r.id), state.accepted.map((a) => [a.key, a.severity, a.version]), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 /** The review before buying: the arithmetic of the cuts and the checks, then the carpenter's opinion. */
 export function createReview(kit: Kit) {
@@ -45,15 +45,14 @@ export function createReview(kit: Kit) {
     if (!analysis.valid) throw new ExpertError(`El diseño tiene errores y no se puede revisar la compra: ${analysis.errors[0].message}`)
     const purchase = estimatePurchase(design, analysis.geo, effectiveCatalog)
     const unmet = checkRequirements(design, state.requirements).map((e) => e.message)
-    const accepted = new Map(state.accepted.map((a) => [a.key, a.title]))
     const viability = reviewViability({
       design: design,
       geo: analysis.geo,
       catalog: effectiveCatalog,
       purchase: purchase,
-      findings: analysis.findings.filter((h) => !accepted.has(findingKey(h))),
+      findings: analysis.findings.filter((h) => !isAccepted(h, state.accepted)),
       unmet: unmet,
-      accepted: analysis.findings.flatMap((h) => accepted.get(findingKey(h)) ?? []),
+      accepted: analysis.findings.flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
     })
     const base = { signature: reviewSignature(state, effectiveCatalog), checks: viability.checks, date: now() }
     try {
