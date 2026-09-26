@@ -60,6 +60,12 @@ describe('the bench', () => {
     expect((await bench.runCase({ ...bookcase, parts: undefined }, signal())).structure).toBeNull()
   })
 
+  it('the bed asks for a change Knotty cannot read alone, so the plan adjustment is measured with a real expert', async () => {
+    const bed = await bench.runCase(bench.cases.find((c) => c.id === 'bed')!, signal())
+    expect(bed.path).toBe('plan')
+    expect(bed.adjustments).toMatchObject([{ request: 'Súbela a 45 cm y ponle cajones del lado izquierdo', by: 'expert' }])
+  })
+
   it('a case the expert cannot do is reported, not thrown', async () => {
     const r = await bench.runCase({ id: 'bench', notes: 'Una banca para el recibidor', measures: null, expected: {} }, signal())
     expect(r).toMatchObject({ ok: false, error: expect.stringContaining('conecta un experto real') })

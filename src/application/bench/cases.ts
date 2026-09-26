@@ -56,6 +56,8 @@ export const BENCH_CASES: BenchCase[] = [
     // A single mattress is 990 × 1900 mm: pieces-wise the depth is the bed's length, plus up to 300 mm of a bookcase headboard.
     expected: { width: [990, 1150], depth: [1900, 2350], height: [250, 1200] },
     anyOrientation: true,
+    // Two changes at once: Knotty does not read it alone, so it reaches the expert through the plan (plan-adjust).
+    adjust: ['Súbela a 45 cm y ponle cajones del lado izquierdo'],
   },
   {
     id: 'wall-cabinet',
@@ -104,7 +106,7 @@ export const BENCH_CASES: BenchCase[] = [
     expected: { height: [940, 940], width: [1600, 1600], depth: [400, 400] },
     path: 'plan',
     module: 'cabinet',
-    adjust: ['¿Cuánto cuesta?'],
+    adjust: ['¿Cuánto cuesta?', 'Cambia el cajoncito de arriba por un nicho abierto'],
     parts: { doors: 3, drawers: 3, open: 3 },
   },
   {
