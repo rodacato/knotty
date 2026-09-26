@@ -60,9 +60,12 @@ const ExpertCabinetPlan = CabinetPlan.omit({ kind: true })
 type ExpertPlan<K extends FurnitureKind> = K extends 'cabinet' ? z.infer<typeof ExpertCabinetPlan> : PlanOf<K>
 export type ExpertPlans = { [K in FurnitureKind]: ExpertPlan<K> | null }
 
+const planField = <K extends FurnitureKind>(kind: K, describe: (what: string) => string) =>
+  (kind === 'cabinet' ? ExpertCabinetPlan : MODULES[kind].schema).nullable().describe(describe(MODULES[kind].expert.what)) as unknown as z.ZodNullable<z.ZodType<ExpertPlan<K>>>
+
 /** One nullable field per module, named by its kind and in the order of MODULES: a new module shows up in the expert's schema by itself. */
 const planFields = (describe: (what: string) => string) =>
-  Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, (kind === 'cabinet' ? ExpertCabinetPlan : MODULES[kind].schema).nullable().describe(describe(MODULES[kind].expert.what))])) as unknown as {
+  Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, planField(kind, describe)])) as unknown as {
     [K in FurnitureKind]: z.ZodNullable<z.ZodType<ExpertPlan<K>>>
   }
 
@@ -87,18 +90,28 @@ export const PlanResponse = z.object({
 })
 export type PlanResponse = z.infer<typeof PlanResponse>
 
-/** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. */
-export const PlanAdjustment = z.object({
-  explanation: z.string().describe('What changes and why, brief, like a carpenter, in Spanish; or the answer if the person only asked'),
-  summary: z.string().max(90).describe('For the timeline, in Spanish, in the infinitive: "Agregar un cajón"'),
-  action: z.enum(['plan', 'freeform', 'answer']).describe(`plan: the change fits in the plan and goes in ${planFieldList()}; freeform: asks for something the plan cannot express; answer: did not ask for a change`),
-  ...planFields((what) => `The complete plan with the change, when action is "plan" and the furniture is ${what}; null otherwise`),
-  questions: z.array(Question),
-  suggestions: z.array(z.string()).describe('2 to 4 next steps the person could ask for, in Spanish'),
-  requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
-  decisions: z.array(Decision),
-})
+const adjustedPlan = (what: string) => `The complete plan with the change, when action is "plan" and the furniture is ${what}; null otherwise`
+
+/** A plan adjustment's fields around its plan, in the order the expert writes them; `fields` names where the plan goes. */
+const planAdjustment = <P extends z.ZodRawShape>(fields: string, plans: P) =>
+  z.object({
+    explanation: z.string().describe('What changes and why, brief, like a carpenter, in Spanish; or the answer if the person only asked'),
+    summary: z.string().max(90).describe('For the timeline, in Spanish, in the infinitive: "Agregar un cajón"'),
+    action: z.enum(['plan', 'freeform', 'answer']).describe(`plan: the change fits in the plan and goes in ${fields}; freeform: asks for something the plan cannot express; answer: did not ask for a change`),
+    ...plans,
+    questions: z.array(Question),
+    suggestions: z.array(z.string()).describe('2 to 4 next steps the person could ask for, in Spanish'),
+    requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
+    decisions: z.array(Decision),
+  })
+
+/** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. What the app reads, with every module's field. */
+export const PlanAdjustment = planAdjustment(planFieldList(), planFields(adjustedPlan))
 export type PlanAdjustment = z.infer<typeof PlanAdjustment>
+
+/** What the expert is asked for: only the field of the plan it is editing, since a plan never becomes another module's. */
+export const planAdjustmentFor = (kind: FurnitureKind) =>
+  planAdjustment(`\`${kind}\``, { [kind]: planField(kind, adjustedPlan) }) as unknown as z.ZodType<Omit<PlanAdjustment, FurnitureKind> & Partial<ExpertPlans>>
 
 export interface PlanAdjustRequest {
   /** The plan's context already built by the application: no pieces, the plan goes apart. */

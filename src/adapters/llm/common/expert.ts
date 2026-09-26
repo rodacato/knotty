@@ -5,6 +5,8 @@ import {
   InvalidResponse,
   PlanResponse,
   PlanAdjustment,
+  planAdjustmentFor,
+  answerWith,
   type PlanAdjustRequest,
   ReconstructionResponse,
   type Usage,
@@ -17,7 +19,8 @@ import {
 import { PhotoReading } from '../../../domain/furniture/reading/reading'
 import { KIND_NOUN } from '../../../domain/design/kind'
 import { describeProblems, strictSchema } from './jsonSchema'
-import { ADJUSTMENT, PLAN_ADJUSTMENT, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
+import { FURNITURE_KINDS, type FurnitureKind } from '../../../domain/furniture/modules/plan'
+import { ADJUSTMENT, planAdjustmentFor as planAdjustmentPrompt, type Prompt, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
 
 export type Content = { kind: 'text'; text: string } | { kind: 'image'; base64: string }
 
@@ -33,7 +36,10 @@ const ADJUSTMENT_SCHEMA = strictSchema(AdjustmentResponse)
 const REVIEW_SCHEMA = strictSchema(ReviewResponse)
 const READING_SCHEMA = strictSchema(PhotoReading)
 const PLAN_SCHEMA = strictSchema(PlanResponse)
-const PLAN_ADJUSTMENT_SCHEMA = strictSchema(PlanAdjustment)
+const PLAN_ADJUSTMENT_SCHEMAS = Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, { schema: planAdjustmentFor(kind), json: strictSchema(planAdjustmentFor(kind)), prompt: planAdjustmentPrompt(kind) }])) as Record<
+  FurnitureKind,
+  { schema: ReturnType<typeof planAdjustmentFor>; json: ReturnType<typeof strictSchema>; prompt: Prompt }
+>
 
 function validate<T>(schema: z.ZodType<T>, json: unknown): T {
   const r = schema.safeParse(json)
@@ -109,8 +115,11 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     async adjustPlan(r: PlanAdjustRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${r.context}\n\n## Current plan\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]
       if (r.correction) content.push(correction(r.correction.previousResponse, r.correction.errors))
-      const { json, usage, warnings } = await t.completeJSON(render(PLAN_ADJUSTMENT, r.catalog), content, PLAN_ADJUSTMENT_SCHEMA, 'plan_adjustment', signal)
-      return { value: validate(PlanAdjustment, json), origin: { promptId: PLAN_ADJUSTMENT.id, provider: t.provider, model: t.model }, usage, warnings }
+      const { schema, json: jsonSchema, prompt } = PLAN_ADJUSTMENT_SCHEMAS[r.plan.kind]
+      const { json, usage, warnings } = await t.completeJSON(render(prompt, r.catalog), content, jsonSchema, 'plan_adjustment', signal)
+      // The other modules' fields were never asked for: null, as the app reads every one.
+      const value: PlanAdjustment = { ...answerWith(null), ...validate(schema, json) }
+      return { value, origin: { promptId: prompt.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
       const content: Content[] = [

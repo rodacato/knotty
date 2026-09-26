@@ -1,8 +1,10 @@
+import type { z } from 'zod'
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../../../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../../domain/furniture/fixtures/bookcase'
-import { answerWith, PlanAdjustment, AdjustmentResponse, ReviewResponse, InvalidResponse, PlanResponse, ReconstructionResponse } from '../../../ports/LLMProvider'
+import { answerWith, expertPlans, PlanAdjustment, planAdjustmentFor, AdjustmentResponse, ReviewResponse, InvalidResponse, PlanResponse, ReconstructionResponse } from '../../../ports/LLMProvider'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
+import { FURNITURE_KINDS, MODULES } from '../../../domain/furniture/modules/plan'
 import { PhotoReading } from '../../../domain/furniture/reading/reading'
 import { strictSchema } from './jsonSchema'
 import { createExpert, type Content, type Transport } from './expert'
@@ -16,7 +18,7 @@ function walk(node: unknown, visit: (n: Record<string, unknown>) => void) {
 }
 
 describe('strictSchema', () => {
-  it.each([AdjustmentResponse, ReviewResponse, PhotoReading, PlanResponse, PlanAdjustment, ReconstructionResponse])('leaves a schema the strict modes accept', (schema) => {
+  it.each([AdjustmentResponse, ReviewResponse, PhotoReading, PlanResponse, PlanAdjustment, ReconstructionResponse, ...FURNITURE_KINDS.map(planAdjustmentFor)] as z.ZodType[])('leaves a schema the strict modes accept', (schema) => {
     const objects: Record<string, unknown>[] = []
     walk(strictSchema(schema), (n) => {
       for (const forbidden of ['oneOf', 'pattern', 'minimum', 'maximum', 'minLength', 'maxLength', 'minItems', 'const', '$schema']) expect(n).not.toHaveProperty(forbidden)
@@ -38,12 +40,12 @@ describe('prompts', () => {
 
 describe('createExpert', () => {
   const fake = (json: unknown) => {
-    const calls: { system: string; content: Content[] }[] = []
+    const calls: { system: string; content: Content[]; schema: Record<string, unknown> }[] = []
     const t: Transport = {
       provider: 'test',
       model: 'm',
-      async completeJSON(system, content) {
-        calls.push({ system, content })
+      async completeJSON(system, content, schema) {
+        calls.push({ system, content, schema })
         return { json, usage: {} }
       },
     }
@@ -120,9 +122,20 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('plan-adjust@11')
+    expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@1')
     expect(calls[0].system).toContain('"T15" (15 mm)')
     expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"kind":"cabinet","name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
+  })
+
+  it('adjusting a plan asks only for its own module, and the answer reads with every other module null', async () => {
+    const bed = MODULES.bed.benchVariants()[0][1]
+    const { expert, calls } = fake({ explanation: 'x', summary: 'Subir la base', action: 'plan', bed: { ...bed, height: 450 }, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
+    const r = await expert.adjustPlan!({ context: '', request: 'Súbela a 45 cm', plan: bed, catalog: testCatalog, correction: null }, new AbortController().signal)
+    expect(Object.keys(calls[0].schema.properties as object)).toEqual(['explanation', 'summary', 'action', 'bed', 'questions', 'suggestions', 'requirements', 'decisions'])
+    expect(calls[0].system).toContain('goes in `bed`')
+    expect(calls[0].system).not.toContain('goes in `cabinet`')
+    expect(r.origin.promptId).toBe('plan-adjust@12+bed@1')
+    expect(expertPlans(r.value)).toEqual({ bed: { ...bed, height: 450 }, cabinet: null, table: null, shoeRack: null })
   })
 
   it('the plan correction round carries the previous plan and why it did not build', async () => {
