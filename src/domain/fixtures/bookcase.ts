@@ -23,7 +23,7 @@ const shelves = Array.from({ length: SHELVES }, (_, i) =>
 export const exampleBookcase: Design = {
   schema: 1,
   name: 'Librero',
-  dimensions: { width: 600, height: 1800, depth: 300 },
+  dimensions: { width: 570, height: 1800, depth: 300 },
   wallAnchored: true,
   kind: 'bookcase',
   notes: 'Librero sencillo de triplay de pino, sin puertas, con zoclo al frente y trasera clavada.',

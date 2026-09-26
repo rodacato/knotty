@@ -80,6 +80,15 @@ function topSurface(design: Design, geo: Geometry, minArea: number): Surface | n
   return [...levels.entries()].filter(([, l]) => l.area >= minArea).sort(([ya], [yb]) => yb - ya)[0]?.[1] ?? null
 }
 
+/** Kinds whose surface carries a person: a load that comes and goes (docs/carpinteria/valores-de-referencia.md §5 «Persona»). */
+const PERSON_KINDS: readonly DesignKind[] = ['bed', 'bench']
+
+/** The pieces a person lies or sits on, in a kind that has them; empty otherwise. */
+export function personSurface(ctx: RuleContext, use: DesignKind | null): ReadonlySet<string> {
+  const minArea = use && PERSON_KINDS.includes(use) ? SURFACE_AREA[use] : undefined
+  return new Set(minArea === undefined ? [] : (topSurface(ctx.design, ctx.geo, minArea)?.ids ?? []))
+}
+
 function measure(metric: Metric, { design, surface }: UseInput): { value: number; pieces: string[] } | null {
   if (metric !== 'surfaceHeight') return { value: design.dimensions[metric], pieces: [] }
   return surface ? { value: surface.box.y1, pieces: surface.ids } : null

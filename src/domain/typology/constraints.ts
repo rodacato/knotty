@@ -1,8 +1,7 @@
 import { roundTo, type Box } from '../design/resolve'
-import { CONTACT_TOLERANCE, drawerGroups, freeSpan } from '../design/boxes'
+import { CONTACT_TOLERANCE, freeSpan } from '../design/boxes'
 import type { Design } from '../design/schema'
 import type { Geometry } from '../design/resolve'
-import { antiTipData } from '../structure/rules/usage'
 import { MATTRESSES } from '../modules/bed'
 import { checked, measured, type CategoryConstraint, type Surface, type UseInput } from './constraint'
 
@@ -162,23 +161,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
   tableHeight('sideTable', 'lateral', 'Mesa lateral', 450, 650),
   tableHeight('diningTable', 'de comedor', 'Mesa de comedor', 720, 770),
 
-  // Chest of drawers and nightstand
-  checked({
-    check: 'drawers.anchor',
-    appliesTo: ['drawers', 'nightstand'],
-    // Reference: anything with drawers or doors from 686 mm high.
-    limits: { drawers: 2, height: 700 },
-    source: `${VALUES}#12-vuelco-y-anclaje «Altura desde la que se ancla»`,
-    find: ({ design, catalog }, limits, report) => {
-      const count = drawerGroups(design).length
-      if (count < limits.drawers || design.dimensions.height <= limits.height || design.wallAnchored) return []
-      return [
-        report('critical', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { drawers: count }, [
-          { key: 'anchor-to-wall', description: 'Anclarla al muro con un kit antivuelco', data: antiTipData(catalog) },
-        ]),
-      ]
-    },
-  }),
+  // Chest of drawers, nightstand and wardrobe: anchoring is R4's (structure/rules/usage.ts), for any furniture with drawers or doors.
 
   // Wall cabinet
   checked({
@@ -223,18 +206,6 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     source: `${VALUES}#10-medidas-de-muebles-y-ergonomía «Clóset: fondo»`,
     message: (depth, { usual }) => `Con ${depth} mm de fondo, los ganchos de ropa no caben de frente; un clóset lleva unos ${usual[0]}–${usual[1]} mm.`,
     data: (depth, { min }) => ({ depth, min }),
-  }),
-  measured({
-    check: 'wardrobe.anchor',
-    appliesTo: ['wardrobe'],
-    metric: 'height',
-    // Reference: anything with doors from 686 mm high.
-    limits: { max: 1500 },
-    unlessAnchored: true,
-    severity: 'critical',
-    source: `${VALUES}#12-vuelco-y-anclaje «Altura desde la que se ancla»`,
-    message: (height) => `Un clóset de ${height} mm de alto va anclado al muro: con las puertas abiertas se puede ir de frente.`,
-    alternatives: [{ key: 'anchor-to-wall', description: 'Anclarlo al muro', data: {} }],
   }),
 
   // Shoe rack. Reference: 300–380, 330 usual.

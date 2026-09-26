@@ -8,6 +8,7 @@ import { exampleBookcase } from '../fixtures/bookcase'
 import { newCriticals } from './review'
 import { maxSpan, deflection, deflectionSeverity } from './rules/deflection'
 import { stiffness } from '../materials/grades'
+import { buildPlan, MODULES } from '../modules/plan'
 
 const findings = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -16,22 +17,48 @@ const findings = (d: Design) => {
 }
 
 describe('R1 shelf sag', () => {
-  it('reproduces the numbers of the proposal (18 mm, 300 deep, books, grain along)', () => {
-    expect(deflection(600, 300, 18, 'heavy', 6000)).toBeCloseTo(1.28, 1)
-    expect(deflection(900, 300, 18, 'heavy', 6000)).toBeCloseTo(6.47, 1)
-    expect(deflection(441, 300, 18, 'heavy', 6000)).toBeCloseTo(0.37, 1)
-    expect(deflection(600, 300, 15, 'heavy', 6000)).toBeCloseTo(2.21, 1)
+  it('a bottom lying on the floor does not sag: the floor holds all of it', () => {
+    const [, plan] = MODULES.cabinet.benchVariants().find(([, p]) => p.base === 'floor')!
+    const wide = MODULES.cabinet.withMeasures(plan, { ...plan.dimensions, width: 1100 })
+    const { design } = buildPlan(wide, testCatalog)
+    const bottom = design.pieces.find((p) => p.role === 'bottom')!
+    expect(findings(design).filter((h) => h.code === 'R1_SAG' && h.pieces.includes(bottom.id))).toEqual([])
   })
 
-  it('grades by span', () => {
-    expect(deflectionSeverity(1.28, 600)).toBeNull()
-    expect(deflectionSeverity(2.21, 600)).toBe('recommendation')
-    expect(deflectionSeverity(6.47, 900)).toBe('critical')
+  // docs/carpinteria/valores-de-referencia.md §4: 18 mm radiata pine (E∥ 4500, E⊥ 2000), books (150 kg/m²), creep × 2.
+  it('reproduces the spans of the reference (18 mm, books, final sag)', () => {
+    expect(maxSpan(300, 18, 'heavy', 4500)).toBeCloseTo(540, -1)
+    expect(maxSpan(300, 18, 'medium', 4500)).toBeCloseTo(620, -1)
+    expect(maxSpan(300, 18, 'light', 4500)).toBeCloseTo(780, -1)
+    expect(maxSpan(300, 18, 'heavy', 2000)).toBeCloseTo(410, -1)
+    // The limit: at ≈ 830 mm the final sag reaches span / 100.
+    expect(deflection(830, 300, 18, 'heavy', 4500)).toBeCloseTo(830 / 100, 0)
+    expect(deflection(600, 300, 18, 'heavy', 4500)).toBeCloseTo(2.27, 1)
+  })
+
+  it('a load that stays creeps × 2, one that passes does not', () => {
+    expect(deflection(600, 300, 18, 'heavy', 4500, 'passing') * 2).toBeCloseTo(deflection(600, 300, 18, 'heavy', 4500), 5)
+  })
+
+  it('grades by span: up to span / 360 nothing, up to span / 100 a recommendation, past it critical', () => {
+    expect(deflectionSeverity(1.49, 540)).toBeNull()
+    expect(deflectionSeverity(2.27, 600)).toBe('recommendation')
+    expect(deflectionSeverity(8.2, 830)).toBe('recommendation')
+    expect(deflectionSeverity(11.5, 900)).toBe('critical')
   })
 
   it('the longest span leaves the sag right at the recommended limit', () => {
-    const span = maxSpan(300, 18, 'heavy', 6000)
-    expect(deflection(span, 300, 18, 'heavy', 6000)).toBeCloseTo(span / 360, 5)
+    const span = maxSpan(300, 18, 'heavy', 4500)
+    expect(deflection(span, 300, 18, 'heavy', 4500)).toBeCloseTo(span / 360, 5)
+  })
+
+  it('the platform of a bed carries a person, who gets off: it does not creep; the same boards as shelves do', () => {
+    const bed = buildPlan({ kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'none', height: 1100, depth: 250, shelves: 0 } }, testCatalog).design
+    const sag = (d: Design) => findings(d).filter((h) => h.code === 'R1_SAG')
+    expect(sag(bed)).toEqual([])
+    const shelves = sag({ ...bed, kind: undefined, mattress: undefined, name: 'Mueble' })
+    expect(shelves.map((h) => h.pieces[0]).sort()).toEqual(['platform-left', 'platform-right'])
+    expect(shelves.every((h) => h.message.includes('con libros'))).toBe(true)
   })
 
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {

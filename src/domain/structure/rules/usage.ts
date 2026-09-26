@@ -1,7 +1,9 @@
 import { faceSize, roundTo } from '../../design/resolve'
-import { CONTACT_TOLERANCE, freeSpan, overlap } from '../../design/boxes'
+import { CONTACT_TOLERANCE, drawerGroups, freeSpan, overlap } from '../../design/boxes'
+import type { DesignKind } from '../../design/kind'
 import { pickHardware, type Catalog } from '../../materials/catalog'
-import type { Finding, Rule } from '../finding'
+import { useOf } from '../../typology/typology'
+import type { Finding, Rule, RuleContext } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
@@ -12,8 +14,39 @@ export const antiTipData = (catalog: Catalog): Record<string, string> => {
   return kit ? { hardwareId: kit.id } : {}
 }
 
-/** R4: tall and shallow furniture falls forward when pulled or when a child climbs it. */
-export const tippingRule: Rule = ({ design, catalog }): Finding[] => {
+/** Furniture that is not for storing things: lain, sat or worked on (its drawers are low in a long or wide piece), or hung from the wall (its own check). */
+const NOT_STORAGE: readonly DesignKind[] = ['bed', 'bench', 'desk', 'table', 'diningTable', 'coffeeTable', 'sideTable', 'wallCabinet']
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+/**
+ * R4, storage: drawers or doors open and full, or a child climbing them, pull the furniture forward whatever its depth.
+ * Found by what it has (drawers, doors) and how tall it is, not by its name. Null when it is not storage furniture.
+ */
+function storageTipping({ design, catalog }: RuleContext): Finding[] | null {
+  const { height } = design.dimensions
+  const { storageHeight } = ASSUMPTIONS.tipping
+  const drawers = drawerGroups(design).length
+  const doors = design.pieces.filter((p) => p.role === 'door').length
+  const use = useOf(design)
+  if ((!drawers && !doors) || height < storageHeight || (use && NOT_STORAGE.includes(use))) return null
+  if (design.wallAnchored) return []
+  const parts = [drawers && plural(drawers, 'cajón', 'cajones'), doors && plural(doors, 'puerta', 'puertas')].filter(Boolean).join(' y ')
+  return [
+    {
+      code: 'R4_TIPPING',
+      severity: 'critical',
+      check: 'tipping.storage',
+      pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
+      message: `Mide ${height} mm de alto y tiene ${parts}: abierto y cargado, o si un niño se sube, se va de frente. Desde ${storageHeight} mm, un mueble con cajones o puertas va anclado al muro.`,
+      data: { height: height, drawers: drawers, doors: doors, min: storageHeight },
+      alternatives: [{ key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: antiTipData(catalog) }],
+    },
+  ]
+}
+
+/** R4, open furniture: tall and shallow, it falls forward when pulled or when a child climbs it. */
+function ratioTipping({ design, catalog }: RuleContext): Finding[] {
   const { height, depth } = design.dimensions
   const ratio = height / depth
   const { recommendedRatio, criticalRatio, criticalHeight } = ASSUMPTIONS.tipping
@@ -33,6 +66,9 @@ export const tippingRule: Rule = ({ design, catalog }): Finding[] => {
     },
   ]
 }
+
+/** R4: furniture that can fall forward goes anchored to the wall. */
+export const tippingRule: Rule = (ctx) => storageTipping(ctx) ?? ratioTipping(ctx)
 
 /** R6: hinges by the height of the door, and doors too wide for a single leaf. */
 export const doorRule: Rule = ({ design, geo }) =>

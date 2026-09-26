@@ -23,7 +23,7 @@ const door = (side: 'left' | 'right'): Piece =>
 export const exampleWallCabinet: Design = {
   schema: 1,
   name: 'Alacena de pared',
-  dimensions: { width: 760, height: 720, depth: 320 },
+  dimensions: { width: 600, height: 720, depth: 320 },
   wallAnchored: true,
   kind: 'wallCabinet',
   notes: 'Alacena para colgar con dos puertas sobrepuestas y un entrepaño ajustable.',

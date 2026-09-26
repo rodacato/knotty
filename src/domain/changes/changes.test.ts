@@ -27,7 +27,7 @@ describe('describeChange', () => {
   it('a wider piece of furniture is a size change; the pieces only follow along', () => {
     const after = apply(exampleBookcase, [{ op: 'resizeFurniture', axis: 'x', value: 800, rule: 'stretch' }])
     const change = describeChange(exampleBookcase, after, testCatalog)
-    expect(change.dimensions).toBe('600 → 800 mm de ancho')
+    expect(change.dimensions).toBe('570 → 800 mm de ancho')
     expect(change.direct).toEqual([])
     expect(change.followed).toContain('Entrepaño 1')
   })
