@@ -19,7 +19,11 @@ export interface BenchCase {
   module?: FurnitureKind
   /** Chat requests made after the design, in order: the report says which Knotty answered alone and which went to the expert. */
   adjust?: string[]
+  /** How many doors, drawers and open openings the request asks for: a design with others did not do what was asked. */
+  parts?: Partial<Record<Part, number>>
 }
+
+export type Part = 'doors' | 'drawers' | 'open'
 
 export const BENCH_CASES: BenchCase[] = [
   {
@@ -28,6 +32,7 @@ export const BENCH_CASES: BenchCase[] = [
     measures: { height: 1800, width: 800, depth: 300 },
     expected: { height: [1800, 1800], width: [800, 800], depth: [300, 300] },
     adjust: ['¿Cuánto cuesta?'],
+    parts: { doors: 0, drawers: 0 },
   },
   {
     id: 'bed-drawers',
@@ -42,6 +47,7 @@ export const BENCH_CASES: BenchCase[] = [
     notes: 'Buró con un cajón arriba y una repisa abierta abajo',
     measures: null,
     expected: { height: [450, 700], width: [350, 600], depth: [300, 500] },
+    parts: { drawers: 1, open: 1 },
   },
   {
     id: 'bed',
@@ -56,6 +62,7 @@ export const BENCH_CASES: BenchCase[] = [
     notes: 'Alacena de pared con dos puertas y una repisa en medio, para platos',
     measures: { height: 700, width: 800, depth: 300 },
     expected: { height: [700, 700], width: [800, 800], depth: [300, 300] },
+    parts: { doors: 2 },
   },
   {
     id: 'desk',
@@ -69,6 +76,7 @@ export const BENCH_CASES: BenchCase[] = [
     measures: { height: 900, width: 800, depth: 350 },
     expected: { height: [900, 900], width: [800, 800], depth: [350, 350] },
     module: 'shoeRack',
+    parts: { doors: 0 },
   },
   {
     id: 'shoe-rack',
@@ -85,6 +93,7 @@ export const BENCH_CASES: BenchCase[] = [
     notes: 'Mueble bajo para TV de 1.6 m de largo, con dos puertas a los lados y un hueco abierto en medio para el decodificador',
     measures: null,
     expected: { width: [1500, 1700], height: [350, 650], depth: [300, 500] },
+    parts: { doors: 2, open: 1 },
   },
   {
     id: 'sideboard',
@@ -96,6 +105,18 @@ export const BENCH_CASES: BenchCase[] = [
     path: 'plan',
     module: 'cabinet',
     adjust: ['¿Cuánto cuesta?'],
+    parts: { doors: 3, drawers: 3, open: 3 },
+  },
+  {
+    id: 'sideboard-explicit',
+    // The same KC-APA-01 said column by column: if this one comes out right and `sideboard` does not, the expert misread the layout, not the counts.
+    notes:
+      'Un aparador para el comedor de 1.60 de largo, 94 de alto y 40 de fondo, en cuatro columnas iguales: en las tres primeras, puerta abajo y arriba (un cuarto del alto) un cajoncito en la primera y nichos abiertos en la segunda y la tercera; en la cuarta, dos cajones abajo y un nicho arriba. Terminado natural.',
+    measures: { height: 940, width: 1600, depth: 400 },
+    expected: { height: [940, 940], width: [1600, 1600], depth: [400, 400] },
+    path: 'plan',
+    module: 'cabinet',
+    parts: { doors: 3, drawers: 3, open: 3 },
   },
   {
     id: 'coffee-table',

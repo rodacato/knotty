@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { createBench, describeAdjustments } from './bench'
+import { buildPlan, MODULES } from '../../domain/furniture/modules/plan'
+import { countParts, createBench, describeAdjustments, describeStructure } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 const signal = () => new AbortController().signal
@@ -38,6 +39,25 @@ describe('the bench', () => {
     expect(describeAdjustments(shoeRack.adjustments)).toBe('«Sin zoclo» Knotty, versión · «¿Cuántas hojas?» Knotty, respuesta')
     const expert = await bench.runCase({ ...bench.cases.find((c) => c.id === 'shoe-rack')!, adjust: ['Hazla más bonita'] }, signal())
     expect(expert.adjustments).toEqual([{ request: 'Hazla más bonita', by: 'expert', calls: 1, outcome: 'answer' }])
+  })
+
+  it('counts doors and drawers by their pieces and open openings from a cabinet plan', () => {
+    const [, plan] = MODULES.cabinet.benchVariants().find(([name]) => name === 'aparador con patas')!
+    const { design } = buildPlan(plan, testCatalog)
+    expect(countParts(design, plan)).toEqual({ doors: 3, drawers: 3, open: 3 })
+    expect(countParts(design, null)).toEqual({ doors: 3, drawers: 3, open: null })
+  })
+
+  it('grades the structure the case asks for: a count that differs fails, one it cannot count stays unknown', async () => {
+    const bookcase = bench.cases.find((c) => c.id === 'bookcase')!
+    expect((await bench.runCase(bookcase, signal())).structure).toMatchObject({ found: { doors: 0, drawers: 0 }, ok: true })
+    const doors = (await bench.runCase({ ...bookcase, parts: { doors: 2, drawers: 0 } }, signal())).structure!
+    expect(doors.ok).toBe(false)
+    expect(describeStructure(doors)).toBe('puertas 0 (pidió 2) · cajones 0')
+    const open = (await bench.runCase({ ...bookcase, parts: { doors: 0, open: 5 } }, signal())).structure!
+    expect(open.ok).toBeNull()
+    expect(describeStructure(open)).toBe('puertas 0 · abiertos ? (pidió 5)')
+    expect((await bench.runCase({ ...bookcase, parts: undefined }, signal())).structure).toBeNull()
   })
 
   it('a case the expert cannot do is reported, not thrown', async () => {
