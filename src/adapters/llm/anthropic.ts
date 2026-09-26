@@ -24,6 +24,10 @@ export function parseJSON(text: string): unknown {
 const block = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
   c.kind === 'text' ? { type: 'text', text: c.text } : { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.base64 } }
 
+/** Everything the call read: the system prompt is cached, and what comes from or goes into the cache is not in `input_tokens`. */
+export const readTokens = (u: { input_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null }) =>
+  u.input_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0)
+
 export function createAnthropic(apiKey: string, model: string): LLMProvider {
   const transport: Transport = {
     provider: 'anthropic',
@@ -45,7 +49,7 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         if (final.stop_reason === 'refusal') throw new Error('El modelo se negó a responder esta petición.')
         if (final.stop_reason === 'max_tokens') throw new Error('La respuesta se cortó por el límite de tokens.')
         const text = final.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
-        return { json: parseJSON(text), usage: { inputTokens: final.usage.input_tokens, outputTokens: final.usage.output_tokens } }
+        return { json: parseJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
       } catch (e) {
         if (e instanceof InvalidResponse) throw e
         throw new ProviderError(e)

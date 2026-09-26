@@ -180,6 +180,7 @@ export interface AdjustmentRequest {
 }
 
 export interface Usage {
+  /** Everything the call read (prompt, schema and context), whether or not the provider had it cached. */
   inputTokens?: number
   outputTokens?: number
 }
