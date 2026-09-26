@@ -8,6 +8,10 @@ import type { Contact } from './validation/contact'
 import type { DesignWarning, DesignError } from './validation/errors'
 import { validateGeometry } from './validation/geometry'
 
+// What the design is, for every reader: errors (DesignError: not a piece of furniture yet, for the expert to fix) and warnings, or the structural findings
+// (Finding: critical, recommendation, detail, shown as notices). The review before buying (viability/viability.ts) turns these into its checks without
+// re-deriving them; the carpenter's high/medium/low is the model's opinion on top.
+
 export type Analysis =
   | { valid: true; geo: Geometry; contacts: Contact[]; warnings: DesignWarning[]; findings: Finding[] }
   /** `geo` when the pieces still resolve: an invalid design can be drawn with its problems marked. */
