@@ -72,6 +72,24 @@ describe('R9 for freeform drawers', () => {
     expect(fix.design.joints.some((u) => u.type === 'drawer-slide' && u.a === 'drawer-1-side-left')).toBe(true)
   })
 
+  const withSlide = (d: Design, hardwareId: string): Design => ({ ...d, joints: d.joints.map((u) => (u.type === 'drawer-slide' && u.hardware.length ? { ...u, hardware: [{ hardwareId, count: 1 }] } : u)) })
+
+  it('a slide longer than its box does not fit, and Knotty puts the one as long as the box', () => {
+    const d = withSlide(build(deep, [drawer()]), 'drawer-slide-50')
+    const [finding] = r9(d)
+    expect(finding).toMatchObject({ check: 'drawer.slide-too-long', severity: 'critical', data: { slide: 500, box: 450 } })
+    const [fix] = fixesFor(d, testCatalog, finding)
+    expect(fix.key).toBe('matching-slide')
+    expect(r9(fix.design)).toEqual([])
+    expect(fix.design.joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware).toEqual([{ hardwareId: 'drawer-slide-45', count: 1 }])
+  })
+
+  it('a slide much shorter than its box leaves the drawer half open', () => {
+    const [finding] = r9(withSlide(build(deep, [drawer()]), 'drawer-slide-30'))
+    expect(finding).toMatchObject({ check: 'drawer.slide-too-short', severity: 'recommendation', alternatives: [{ key: 'matching-slide', data: { hardwareId: 'drawer-slide-45' } }] })
+    expect(finding.message).toContain('no abre completo')
+  })
+
   it('a drawer that reaches the ground drags on it', () => {
     const low: Design = {
       schema: 1,

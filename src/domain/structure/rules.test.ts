@@ -11,6 +11,7 @@ import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules
 import { buildBed } from '../modules/bed'
 import { buildTable } from '../modules/table'
 import type { Cell } from '../reading/reading'
+import { fixesFor } from '../fixes/fixes'
 
 const findings = (d: Design, code: string) => {
   const a = analyze(d, testCatalog)
@@ -95,6 +96,29 @@ describe('R6 doors', () => {
   it('a door wider than 60 cm suggests splitting it', () => {
     const wide = { ...exampleNightstand, dimensions: { ...exampleNightstand.dimensions, width: 700 } }
     expect(findings(wide, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['two-doors'])
+  })
+
+  const withHinge = (d: Design, hardwareId: string): Design => ({ ...d, joints: d.joints.map((u) => (u.type === 'cup-hinge' ? { ...u, hardware: u.hardware.map((h) => ({ ...h, hardwareId })) } : u)) })
+
+  it('an inset door on a straight hinge does not close in place, and Knotty swaps it for the super-cranked one', () => {
+    const inset = buildCabinet({ kind: 'cabinet', name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] }, testCatalog).design
+    expect(findings(inset, 'R6_DOORS')).toEqual([])
+    const wrong = withHinge(inset, 'cup-hinge-35-full')
+    const r6 = findings(wrong, 'R6_DOORS')
+    expect(r6.map((h) => [h.check, h.severity, h.data.mount, h.alternatives[0]?.data.hardwareId])).toEqual([
+      ['door.hinge-mount', 'critical', 'inset', 'cup-hinge-35-inset'],
+      ['door.hinge-mount', 'critical', 'inset', 'cup-hinge-35-inset'],
+    ])
+    expect(r6[0].message).toContain('embutida dentro del hueco')
+    const [fix] = fixesFor(wrong, testCatalog, r6[0])
+    expect(fix.key).toBe('matching-hinge')
+    expect(findings(fix.design, 'R6_DOORS').map((h) => h.pieces[0])).toEqual([r6[1].pieces[0]])
+  })
+
+  it('an overlay door on the super-cranked hinge is critical; on the cranked one, a recommendation', () => {
+    expect(findings(exampleNightstand, 'R6_DOORS')).toEqual([])
+    expect(findings(withHinge(exampleNightstand, 'cup-hinge-35-inset'), 'R6_DOORS').map((h) => [h.severity, h.data.mount])).toEqual([['critical', 'overlay']])
+    expect(findings(withHinge(exampleNightstand, 'cup-hinge-35-half'), 'R6_DOORS').map((h) => [h.severity, h.alternatives[0].data.hardwareId])).toEqual([['recommendation', 'cup-hinge-35-full']])
   })
 })
 

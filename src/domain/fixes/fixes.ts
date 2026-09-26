@@ -6,7 +6,7 @@ import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
 import { findingKey, type Alternative, type Finding } from '../structure/finding'
 import { isBuildKey, type AlternativeKey } from '../structure/alternatives'
-import { materialById, slideForBox, type Catalog } from '../materials/catalog'
+import { materialById, slideForBox, type Catalog, type HardwareRole } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
@@ -122,6 +122,15 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
   ]
 }
 
+/** The joint the alternative names with the hardware it names, in place of the item of that role it had: the same count, the right hinge or slide. */
+function swapHardware(design: Design, catalog: Catalog, alternative: Alternative, role: HardwareRole): Operation[] {
+  const { joint: id, hardwareId } = alternative.data
+  const joint = design.joints.find((u) => u.id === id)
+  if (!joint || typeof hardwareId !== 'string' || catalog.hardware.find((h) => h.id === hardwareId)?.role !== role) return []
+  const hardware = joint.hardware.map((h) => (catalog.hardware.find((x) => x.id === h.hardwareId)?.role === role ? { ...h, hardwareId } : h))
+  return [{ op: 'changeJoint', joint: { ...joint, hardware } }]
+}
+
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
   const pieces = finding.pieces.map((id) => design.pieces.find((p) => p.id === id)).filter((p): p is Piece => !!p)
   const key = alternative.key
@@ -146,6 +155,10 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
       return backRail(design, catalog, 'apron', 'Faja trasera')
     case 'slide-support':
       return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
+    case 'matching-hinge':
+      return swapHardware(design, catalog, alternative, 'hinge')
+    case 'matching-slide':
+      return swapHardware(design, catalog, alternative, 'drawer-slide')
     default: {
       const unbuilt: never = key
       return unbuilt

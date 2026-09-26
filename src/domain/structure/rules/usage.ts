@@ -1,7 +1,9 @@
 import { faceSize, roundTo } from '../../design/resolve'
 import { CONTACT_TOLERANCE, drawerGroups, freeSpan, overlap } from '../../design/boxes'
 import type { DesignKind } from '../../design/kind'
-import { pickHardware, type Catalog } from '../../materials/catalog'
+import type { Piece } from '../../design/schema'
+import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } from '../../materials/catalog'
+import { doorMount } from '../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
@@ -70,9 +72,44 @@ function ratioTipping({ design, catalog }: RuleContext): Finding[] {
 /** R4: furniture that can fall forward goes anchored to the wall. */
 export const tippingRule: Rule = (ctx) => storageTipping(ctx) ?? ratioTipping(ctx)
 
-/** R6: hinges by the height of the door, and doors too wide for a single leaf. */
-export const doorRule: Rule = ({ design, geo }) =>
-  design.pieces
+/** How a door sits, as the person reads it next to the hinge it takes. */
+const MOUNT_TEXT: Record<DoorMount, string> = {
+  overlay: 'sobrepuesta, tapando todo el canto',
+  'half-overlay': 'sobrepuesta a medio canto, compartiéndolo con otra puerta',
+  inset: 'embutida dentro del hueco',
+}
+
+/** R6, hinge: a straight, cranked or super-cranked hinge puts the door where that arm says; on a door that sits otherwise it does not close in place. */
+function hingeMount({ design, geo, catalog }: RuleContext, door: Piece): Finding[] {
+  const box = geo.boxes.get(door.id)!
+  return design.joints
+    .filter((u) => u.type === 'cup-hinge' && (u.a === door.id || u.b === door.id))
+    .flatMap((u): Finding[] => {
+      const upright = u.a === door.id ? u.b : u.a
+      const uprightBox = geo.boxes.get(upright)
+      const mount = uprightBox && doorMount(box, uprightBox)
+      const wrong = u.hardware.map((h) => catalog.hardware.find((x) => x.id === h.hardwareId)).find((h): h is Hardware & { mount: DoorMount } => h?.role === 'hinge' && !!h.mount && h.mount !== mount)
+      if (!mount || !wrong) return []
+      const right = hingeFor(catalog, mount)
+      return [
+        {
+          code: 'R6_DOORS',
+          // Inset against overlay the door does not even fit its opening; straight against cranked it rubs the door beside it or leaves a gap.
+          severity: mount === 'inset' || wrong.mount === 'inset' ? 'critical' : 'recommendation',
+          pieces: [door.id, upright],
+          check: 'door.hinge-mount',
+          message: `${door.name} va ${MOUNT_TEXT[mount]}, y lleva ${wrong.name.toLowerCase()}, que es para una puerta ${MOUNT_TEXT[wrong.mount]}: así no cierra en su lugar.`,
+          data: { joint: u.id, mount: mount, hinge: wrong.id },
+          alternatives: right ? [{ key: 'matching-hinge', description: `Usar ${right.name.toLowerCase()}`, data: { joint: u.id, hardwareId: right.id } }] : [],
+        },
+      ]
+    })
+}
+
+/** R6: hinges by the height of the door and for how it sits, and doors too wide for a single leaf. */
+export const doorRule: Rule = (ctx) => {
+  const { design, geo } = ctx
+  return design.pieces
     .filter((p) => p.role === 'door')
     .flatMap((p): Finding[] => {
       const box = geo.boxes.get(p.id)
@@ -103,8 +140,9 @@ export const doorRule: Rule = ({ design, geo }) =>
           data: { width: Math.round(width), max: ASSUMPTIONS.doors.maxWidth },
           alternatives: [{ key: 'two-doors', description: 'Dividirla en dos puertas', data: { doors: 2 } }],
         })
-      return found
+      return [...found, ...hingeMount(ctx, p)]
     })
+}
 
 /** R7: a floor that rests neither on the ground nor on a full kick needs support in between over a long span. */
 export const baseRule: Rule = (ctx) =>

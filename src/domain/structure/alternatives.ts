@@ -10,6 +10,8 @@ export const ALTERNATIVES = {
   'hanging-rail': 'build',
   'rigid-apron': 'build',
   'slide-support': 'build',
+  'matching-hinge': 'build',
+  'matching-slide': 'build',
   // Only the expert can.
   deeper: 'expert',
   'more-hinges': 'expert',
