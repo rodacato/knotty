@@ -16,7 +16,7 @@ import { ruleTitle } from '../domain/checks/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import { BY_KNOTTY, byKnotty } from '../domain/session/trace/trace'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type PlanAdjustRequest, type AdjustmentResponse } from '../ports/LLMProvider'
+import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type PlanAdjustRequest, type ReconstructionRequest, type AdjustmentResponse } from '../ports/LLMProvider'
 import { createUseCases, currentPlan, reviewSignature } from './useCases'
 import { buildContext } from './context'
 import { noticeBoard } from './notices'
@@ -564,12 +564,65 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     expect(currentDesign(state).dimensions).toEqual({ width: 600, height: 1000, depth: 500 })
   })
 
-  it('not a cabinet, or the skeleton fails: designs it whole', async () => {
-    for (const [cabinet, fails] of [[null, false], [cabinetPlan, true]] as const) {
-      const { llm, calls } = withPlan(cabinet, fails)
-      await setup(llm).reconstruct(request('Un librero'), newSignal())
-      expect(calls).toEqual(['plan', 'design'])
+  it('not a cabinet designs it whole; a skeleton that fails twice too', async () => {
+    const notCabinet = withPlan(null)
+    await setup(notCabinet.llm).reconstruct(request('Un librero'), newSignal())
+    expect(notCabinet.calls).toEqual(['plan', 'design'])
+    const failing = withPlan(cabinetPlan, true)
+    await setup(failing.llm).reconstruct(request('Un librero'), newSignal())
+    expect(failing.calls).toEqual(['plan', 'plan', 'design'])
+  })
+
+  /** A skeleton that answers in turn: the provider failing, something unreadable, or the plan. */
+  const answering = (...turns: ('fails' | 'unreadable' | 'plan')[]) => {
+    const asked: ReconstructionRequest[] = []
+    const simulated = createSimulated(0)
+    const llm: LLMProvider = {
+      ...simulated,
+      planDesign: async (r) => {
+        asked.push(r)
+        const turn = turns[asked.length - 1] ?? 'plan'
+        if (turn === 'fails') throw new Error('claude: response_format json_schema: the CLI returned no structured output')
+        if (turn === 'unreadable') throw new InvalidResponse({ cabinet: 'no' }, '- cabinet: expected object')
+        return { value: { explanation: 'Una cajonera.', ...answerWith(null), cabinet: cabinetPlan, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin, usage: {} }
+      },
+      reconstruct: async () => {
+        throw new Error('it should not go piece by piece')
+      },
     }
+    return { llm, asked }
+  }
+
+  it('a skeleton the provider fails is asked once more before going piece by piece, which takes minutes', async () => {
+    const { llm, asked } = answering('fails', 'plan')
+    const state = await setup(llm).reconstruct(request('Una cajonera de tres cajones'), newSignal())
+    expect(asked).toHaveLength(2)
+    expect(asked[1].correction).toBeNull()
+    expect(currentPlan(state).plan?.kind).toBe('cabinet')
+    expect(state.trace.map((t) => [t.step, t.attempt, t.outcome])).toEqual([
+      ['plan', 0, 'failed'],
+      ['plan', 1, 'ok'],
+    ])
+  })
+
+  it('an unreadable skeleton goes back with what could not be read', async () => {
+    const { llm, asked } = answering('unreadable', 'plan')
+    await setup(llm).reconstruct(request('Una cajonera de tres cajones'), newSignal())
+    expect(asked[1].correction).toEqual({ previousResponse: { cabinet: 'no' }, errors: [{ code: 'E_SCHEMA', message: '- cabinet: expected object' }] })
+  })
+
+  it('a cancelled skeleton is not asked again', async () => {
+    const controller = new AbortController()
+    const { llm, asked } = answering('fails')
+    const cancelling: LLMProvider = {
+      ...llm,
+      planDesign: async (r, s) => {
+        controller.abort()
+        return llm.planDesign!(r, s)
+      },
+    }
+    await expect(setup(cancelling).reconstruct(request('Una cajonera de tres cajones'), controller.signal)).rejects.toThrow('the CLI returned no structured output')
+    expect(asked).toHaveLength(1)
   })
 
   it('the plan is kept with the version and rebuilds the design at once without the expert', async () => {

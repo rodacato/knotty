@@ -13,7 +13,7 @@ import { askedParts, describeMismatch, partsError, partsMismatch, type PartsMism
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { knownKind, planForKind, startingKind, withKind } from '../../domain/furniture/kind'
 import { isPersonNote } from '../../domain/checks/requirements/requirements'
-import type { DesignError } from '../../domain/design/validation/errors'
+import { error, type DesignError } from '../../domain/design/validation/errors'
 import { expertPlans, type ExpertResponse, type Photo, type ReconstructionRequest, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { CANCELLED, EXPERT_FAILED, estimatedMeasures, initialRequest, partsStillOff, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
@@ -72,24 +72,37 @@ export function createReconstruct(kit: Kit) {
     const asked = askedParts(input.notes)
 
     /** One skeleton call built and checked; `off` is what differs from the doors and drawers the request asked for. */
-    async function attempt(n: number, correction: ReconstructionRequest['correction']) {
-      onProgress(n ? 'correcting' : 'designing', n)
-      const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
+    let calls = 0
+    const skeleton = (correction: ReconstructionRequest['correction']) =>
+      expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
         step: 'plan',
-        attempt: n,
+        attempt: calls++,
         signal,
         trace,
         onFailure: 'skip',
         code: 'E_PLAN',
       })
+
+    /** A skeleton call tried once more if the provider failed or answered something unreadable: giving up on the plan means minutes of piece by piece. */
+    async function ask(correction: ReconstructionRequest['correction']) {
+      const first = await skeleton(correction)
+      if (first.ok) return first
+      onProgress('correcting', calls)
+      return skeleton(first.unreadable ? { previousResponse: first.unreadable.response, errors: [error('E_SCHEMA', first.unreadable.problems)] } : correction)
+    }
+
+    async function attempt(n: number, correction: ReconstructionRequest['correction']) {
+      onProgress(n ? 'correcting' : 'designing', n)
+      const call = await ask(correction)
       if (!call.ok) return null
+      const answered = calls - 1
       const { response: plan, started } = call
       // The person said what it is: only that module's plan counts.
       const chosen = input.kind ? MODULE_OF_KIND[input.kind] : null
       const plans = expertPlans(plan.value)
       const found = chosen ? plans[chosen] : Object.values(plans).find((p) => p !== null)
       if (!found) {
-        trace.push(traceEntry('plan', n, started, plan, 'ok', [], [], chosen && Object.values(plans).some((p) => p !== null) ? 'La ficha no es del tipo que elegiste: se diseña pieza por pieza' : 'No tiene ficha: se diseña pieza por pieza'))
+        trace.push(traceEntry('plan', answered, started, plan, 'ok', [], [], chosen && Object.values(plans).some((p) => p !== null) ? 'La ficha no es del tipo que elegiste: se diseña pieza por pieza' : 'No tiene ficha: se diseña pieza por pieza'))
         return null
       }
       onProgress('checking', n)
@@ -99,12 +112,12 @@ export function createReconstruct(kit: Kit) {
       const { design, repairs } = repairDesign(built, catalog, plan.value.requirements)
       const analysis = analyze(design, catalog, plan.value.requirements)
       if (!analysis.valid) {
-        trace.push(traceEntry('plan', n, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
+        trace.push(traceEntry('plan', answered, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
         return null
       }
       // Only a cabinet: its grid is where a count gets misread (two door openings of two leaves are four doors).
       const off = furniture.kind === 'cabinet' ? partsMismatch(asked, design) : []
-      trace.push(traceEntry('plan', n, started, plan, off.length ? 'invalid' : 'ok', off.length ? traceErrors([partsError(off)]) : [], repairs, moduleOf(furniture).traceLabel(furniture)))
+      trace.push(traceEntry('plan', answered, started, plan, off.length ? 'invalid' : 'ok', off.length ? traceErrors([partsError(off)]) : [], repairs, moduleOf(furniture).traceLabel(furniture)))
       const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
       const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
       const designed: Designed = { design: kinded(input, reading, design), r, response: { ...plan, value: r }, problems: [], repairs, plan: furniture }
