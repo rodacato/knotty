@@ -14,8 +14,8 @@ export const thicknessOf = (catalog: Catalog, material: string) => materialById(
 /** The longest a bed platform or a table top goes unsupported. The checks allow 800 (BED_SPAN, ASSUMPTIONS.floorSpan): not reconciled yet. */
 export const MAX_SPAN = 600
 
-/** Kick plate heights: a cabinet and a desk pedestal stand on 70, a bed's drawers on 80. Not reconciled yet. */
-export const KICK_HEIGHT = { cabinet: 70, pedestal: 70, bed: 80 } as const
+/** Kick plate heights: bedroom and living-room furniture stands on 50–70, and so does a bed's row of drawers (kitchens take 80–100, not built here). */
+export const KICK_HEIGHT = { cabinet: 70, pedestal: 70, bed: 70 } as const
 export const KICK_SETBACK = 30
 
 type PanelSpec = Omit<Parameters<typeof makePiece>[0], 'material'>
