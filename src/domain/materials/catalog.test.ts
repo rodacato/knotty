@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import data from '../../../public/catalog/catalog.json'
-import { testCatalog } from '../fixtures/catalog.test-util'
-import { ASSUMPTIONS } from '../structure/assumptions'
+import { testCatalog } from '../furniture/fixtures/catalog.test-util'
+import { ASSUMPTIONS } from '../checks/structure/assumptions'
 import { applySettings, Catalog, HARDWARE_ROLES, hardwareByRole, NO_SETTINGS, hingeFor, pickHardware, slideFor, slideForBox } from './catalog'
 
 describe('hardware roles', () => {

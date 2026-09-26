@@ -1,7 +1,7 @@
 import type { CutLine } from '../../domain/materials/cutList'
-import type { Finding } from '../../domain/structure/finding'
-import type { DesignError } from '../../domain/validation/errors'
-import type { Check } from '../../domain/viability/viability'
+import type { Finding } from '../../domain/checks/structure/finding'
+import type { DesignError } from '../../domain/design/validation/errors'
+import type { Check } from '../../domain/checks/viability/viability'
 import { describeAlternatives } from '../context'
 
 // Text the expert reads (in English, like the prompts): corrections and the purchase review.

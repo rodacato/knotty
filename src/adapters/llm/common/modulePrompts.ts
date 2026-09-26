@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { FURNITURE_KINDS, MODULES, type FurnitureKind } from '../../../domain/modules/plan'
+import { FURNITURE_KINDS, MODULES, type FurnitureKind } from '../../../domain/furniture/modules/plan'
 
 // What the skeleton and plan-adjust prompts say about each module that has no prose of its own: written from its descriptor and its schema's descriptions.
 

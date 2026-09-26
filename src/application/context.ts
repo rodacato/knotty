@@ -1,12 +1,12 @@
-import { analyze } from '../domain/analysis'
+import { analyze } from '../domain/checks/analysis'
 import { roundTo } from '../domain/design/resolve'
-import { compactLog } from '../domain/history/history'
+import { compactLog } from '../domain/session/history/history'
 import type { Catalog } from '../domain/materials/catalog'
 import { FINISHES, type FinishId } from '../domain/materials/finishes'
-import type { Operation } from '../domain/operations/schema'
+import type { Operation } from '../domain/editing/operations/schema'
 import { currentVersion, type DesignState } from '../domain/session/state'
-import { isAccepted } from '../domain/structure/accepted'
-import type { Finding } from '../domain/structure/finding'
+import { isAccepted } from '../domain/checks/structure/accepted'
+import type { Finding } from '../domain/checks/structure/finding'
 
 // Sent with every change: more context costs more and distracts the expert.
 const TOKEN_BUDGET = 12_000

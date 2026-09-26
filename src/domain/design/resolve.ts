@@ -1,5 +1,5 @@
 import { materialById, type Catalog } from '../materials/catalog'
-import { error, success, failure, type DesignError, type Result } from '../validation/errors'
+import { error, success, failure, type DesignError, type Result } from './validation/errors'
 import { DIMENSION_OF_AXIS, AXES, type FaceRef, type Position, type Design, type Axis, type Piece, type Extent } from './schema'
 
 // From references to numbers: each piece's box in millimetres, following the faces it is tied to.

@@ -1,6 +1,6 @@
 import { Plus, Trash } from '@phosphor-icons/react'
-import { CABINET_LABELS } from '../../domain/modules/cabinet'
-import type { Cell, Column } from '../../domain/reading/reading'
+import { CABINET_LABELS } from '../../domain/furniture/modules/cabinet'
+import type { Cell, Column } from '../../domain/furniture/reading/reading'
 import { Button } from '../system/components'
 import { Segmented, Stepper } from './PlanControls'
 

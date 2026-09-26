@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
-import { testCatalog } from '../../domain/fixtures/catalog.test-util'
+import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { createBench, describeAdjustments } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })

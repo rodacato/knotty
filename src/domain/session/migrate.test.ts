@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import saved from './state-v1.fixture.json'
 import { migrateState } from './migrate'
-import { DEFAULT_CONSTRUCTION } from '../modules/cabinet'
+import { DEFAULT_CONSTRUCTION } from '../furniture/modules/cabinet'
 import { currentDesign, DesignState } from './state'
-import { analyze } from '../analysis'
-import { testCatalog } from '../fixtures/catalog.test-util'
+import { analyze } from '../checks/analysis'
+import { testCatalog } from '../furniture/fixtures/catalog.test-util'
 
 // A session saved by format 1, made with the simulated expert and completed by hand with what it does not produce:
 // photos the expert asked for, a carpenter's opinion with problems and every kind of operation.

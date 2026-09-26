@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { exampleBookcase } from '../../domain/fixtures/bookcase'
+import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import type { DesignState } from '../../domain/session/state'
 import saved from '../../domain/session/state-v1.fixture.json'
 import { createLocalRepository } from './localStorage'

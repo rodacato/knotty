@@ -1,6 +1,6 @@
 import type { Dimensions } from '../../domain/design/schema'
-import { angleLabel } from '../../domain/reading/reading'
-import type { Repair } from '../../domain/repair/repair'
+import { angleLabel } from '../../domain/furniture/reading/reading'
+import type { Repair } from '../../domain/editing/repair/repair'
 import type { Photo } from '../../ports/LLMProvider'
 
 // What Knotty says in the chat, in its own voice, around what the expert answers.

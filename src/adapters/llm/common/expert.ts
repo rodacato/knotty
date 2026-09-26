@@ -14,7 +14,7 @@ import {
   type PhotoReadingRequest,
   type ReconstructionRequest,
 } from '../../../ports/LLMProvider'
-import { PhotoReading } from '../../../domain/reading/reading'
+import { PhotoReading } from '../../../domain/furniture/reading/reading'
 import { describeProblems, strictSchema } from './jsonSchema'
 import { ADJUSTMENT, PLAN_ADJUSTMENT, PURCHASE_REVIEW, SKELETON, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
 

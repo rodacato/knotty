@@ -1,5 +1,5 @@
 import { ChatCircleText, Tray as TrayIcon, X } from '@phosphor-icons/react'
-import type { TrayItem } from '../../domain/tray/tray'
+import type { TrayItem } from '../../domain/session/tray/tray'
 import { Button } from '../system/components'
 import { useStore } from '../store'
 

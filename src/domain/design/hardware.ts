@@ -1,4 +1,4 @@
-import { hingesFor } from '../structure/assumptions'
+import { hingesFor } from '../checks/structure/assumptions'
 import type { Design } from './schema'
 import type { Box } from './resolve'
 

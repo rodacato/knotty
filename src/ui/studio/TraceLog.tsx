@@ -1,5 +1,5 @@
 import { CheckCircle, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
-import { byKnotty, type TraceEntry } from '../../domain/trace/trace'
+import { byKnotty, type TraceEntry } from '../../domain/session/trace/trace'
 
 const STEP: Record<TraceEntry['step'], string> = { read: 'Lectura de foto', plan: 'Esqueleto', reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
 

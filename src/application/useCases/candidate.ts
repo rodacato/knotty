@@ -1,14 +1,14 @@
-import { analyze, type Analysis } from '../../domain/analysis'
+import { analyze, type Analysis } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
 import type { Catalog } from '../../domain/materials/catalog'
-import { applyOperations } from '../../domain/operations/apply'
-import type { Operation } from '../../domain/operations/schema'
-import { repairDesign, type Repair } from '../../domain/repair/repair'
-import type { Requirement } from '../../domain/requirements/requirements'
-import { errorKey } from '../../domain/trace/trace'
-import type { DesignError, DesignWarning } from '../../domain/validation/errors'
+import { applyOperations } from '../../domain/editing/operations/apply'
+import type { Operation } from '../../domain/editing/operations/schema'
+import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
+import type { Requirement } from '../../domain/checks/requirements/requirements'
+import { errorKey } from '../../domain/session/trace/trace'
+import type { DesignError, DesignWarning } from '../../domain/design/validation/errors'
 
 /** The problems a design already has: a change may leave them, but must not add new ones. */
 export const knownErrors = (analysis: Analysis) => new Set(analysis.valid ? [] : analysis.errors.map(errorKey))

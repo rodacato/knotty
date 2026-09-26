@@ -1,15 +1,15 @@
 import { z } from 'zod'
 import { Design, type Dimensions } from '../domain/design/schema'
-import { Decision } from '../domain/history/history'
+import { Decision } from '../domain/session/history/history'
 import type { Catalog } from '../domain/materials/catalog'
-import { Operation } from '../domain/operations/schema'
-import { Requirement } from '../domain/requirements/requirements'
+import { Operation } from '../domain/editing/operations/schema'
+import { Requirement } from '../domain/checks/requirements/requirements'
 import { Question } from '../domain/session/state'
-import type { DesignError } from '../domain/validation/errors'
-import { CabinetPlan } from '../domain/modules/cabinet'
-import { FURNITURE_KINDS, MODULES, type FurnitureKind, type FurniturePlan, type PlanOf } from '../domain/modules/plan'
-import type { PhotoReading } from '../domain/reading/reading'
-import { CarpenterOpinion, type Check } from '../domain/viability/viability'
+import type { DesignError } from '../domain/design/validation/errors'
+import { CabinetPlan } from '../domain/furniture/modules/cabinet'
+import { FURNITURE_KINDS, MODULES, type FurnitureKind, type FurniturePlan, type PlanOf } from '../domain/furniture/modules/plan'
+import type { PhotoReading } from '../domain/furniture/reading/reading'
+import { CarpenterOpinion, type Check } from '../domain/checks/viability/viability'
 
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 

@@ -1,28 +1,28 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ASSUMPTIONS, ASSUMPTION_SOURCES } from './structure/assumptions'
-import { GEOMETRY_SOURCES } from './validation/geometry'
-import { VIABILITY_SOURCES } from './viability/viability'
-import { MODULE_SOURCES } from './modules/common'
+import { ASSUMPTIONS, ASSUMPTION_SOURCES } from './checks/structure/assumptions'
+import { GEOMETRY_SOURCES } from './design/validation/geometry'
+import { VIABILITY_SOURCES } from './checks/viability/viability'
+import { MODULE_SOURCES } from './furniture/modules/common'
 import { SLIDE_SOURCES } from './materials/catalog'
 import { DOOR_SOURCES } from './design/doors'
-import { SCREW_RULE_SOURCES } from './structure/rules/screws'
+import { SCREW_RULE_SOURCES } from './checks/structure/rules/screws'
 import { ROOT, sourceProblem } from './sources.test-util'
 
 // Every threshold the checks and the modules use says where it comes from: a row of docs/carpinteria, or why there is none.
 
 /** Each file with loose thresholds, and its sources by constant name. */
 const FILES: Record<string, Record<string, string>> = {
-  'src/domain/validation/geometry.ts': GEOMETRY_SOURCES,
-  'src/domain/viability/viability.ts': VIABILITY_SOURCES,
-  'src/domain/modules/common.ts': MODULE_SOURCES,
+  'src/domain/design/validation/geometry.ts': GEOMETRY_SOURCES,
+  'src/domain/checks/viability/viability.ts': VIABILITY_SOURCES,
+  'src/domain/furniture/modules/common.ts': MODULE_SOURCES,
   'src/domain/materials/catalog.ts': SLIDE_SOURCES,
   'src/domain/design/doors.ts': DOOR_SOURCES,
-  'src/domain/structure/rules/screws.ts': SCREW_RULE_SOURCES,
+  'src/domain/checks/structure/rules/screws.ts': SCREW_RULE_SOURCES,
 }
 /** The rule files: their numbers live in ASSUMPTIONS, so a named constant here needs a source too. */
-const RULES = ['deflection', 'drawers', 'jointThickness', 'racking', 'screws', 'usage'].map((f) => `src/domain/structure/rules/${f}.ts`)
+const RULES = ['deflection', 'drawers', 'jointThickness', 'racking', 'screws', 'usage'].map((f) => `src/domain/checks/structure/rules/${f}.ts`)
 
 /** A named constant set to a number, or to an object of numbers `as const` (KICK_HEIGHT). */
 const NUMERIC_CONSTANT = /^(?:export )?const ([A-Z][A-Z0-9_]*) = (?:-?[\d.]+\b|\{[^}\n]*\d[^}\n]*\} as const)/gm

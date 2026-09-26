@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { testCatalog } from '../../domain/fixtures/catalog.test-util'
-import { exampleBookcase } from '../../domain/fixtures/bookcase'
+import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
+import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { InvalidResponse } from '../../ports/LLMProvider'
 import { createCompatible } from './compatibleOpenAI'
 
