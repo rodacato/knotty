@@ -17,6 +17,7 @@ const plans = {
   drawers: variant('cabinet', 'cajonera'),
   wallCabinet: variant('cabinet', 'alacena'),
   tv: variant('cabinet', 'mueble de TV'),
+  sideboard: variant('cabinet', 'aparador con patas'),
   shoeRack: variant('shoeRack', 'abierta'),
   desk: variant('table', 'escritorio con 2 cajones a la izquierda'),
   dining: variant('table', 'comedor'),
@@ -70,6 +71,12 @@ describe('parseIntent', () => {
     // Choices, from the module's labels.
     ['Sin zoclo', 'bookcase', edit('base', 'floor')],
     ['quita el zoclo', 'bookcase', edit('base', 'floor')],
+    // A third base: «con patas», and undone, the one «sin» something: directly on the floor.
+    ['con patas', 'bookcase', edit('base', 'legs')],
+    ['Ponle patas', 'tv', edit('base', 'legs')],
+    ['sin patas', 'sideboard', edit('base', 'floor')],
+    ['quítale las patas', 'sideboard', edit('base', 'floor')],
+    ['con zoclo', 'sideboard', edit('base', 'kick')],
     ['sin trasera', 'bookcase', edit('construction.back', 'none')],
     ['repisas fijas', 'bookcase', edit('construction.shelves', 'fixed')],
     ['puertas embutidas', 'wallCabinet', edit('construction.doors', 'inset')],

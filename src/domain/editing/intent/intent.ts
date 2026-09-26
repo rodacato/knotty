@@ -217,11 +217,18 @@ function choicePhrases(field: ChoiceField<Plan>): [value: string, phrase: string
     return [value, phrase || /^(con|sin) /.test(words) ? words : `${normalize(field.label)} ${words}`]
   })
   // Between two values, "con X" names the other one "sin X", and the other way around.
-  if (values.length !== 2) return own
+  // Among more, "sin X" is the one value that is "sin" something (a base "con patas" undone is the one "sin zoclo": directly on the floor).
+  const bare = own.filter(([, p]) => p.startsWith('sin '))
   const complements = own.flatMap(([value, phrase]): [string, string][] => {
-    const other = values.find((v) => v !== value)!
     const m = /^(con|sin) (.+)$/.exec(phrase)
-    return m && !own.some(([v, p]) => v === other && /^(con|sin) /.test(p)) ? [[other, `${m[1] === 'con' ? 'sin' : 'con'} ${m[2]}`]] : []
+    if (!m) return []
+    const opposite = `${m[1] === 'con' ? 'sin' : 'con'} ${m[2]}`
+    if (own.some(([, p]) => p === opposite)) return []
+    if (values.length === 2) {
+      const other = values.find((v) => v !== value)!
+      return own.some(([v, p]) => v === other && /^(con|sin) /.test(p)) ? [] : [[other, opposite]]
+    }
+    return m[1] === 'con' && bare.length === 1 && bare[0][0] !== value ? [[bare[0][0], opposite]] : []
   })
   return [...own, ...complements]
 }
