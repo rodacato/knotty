@@ -29,7 +29,7 @@ Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("h
 
 ## Arquitectura
 
-- `src/domain/`: modelo del mueble, operaciones, validación, reglas estructurales. TypeScript puro.
+- `src/domain/`: modelo del mueble, operaciones, validación, reglas estructurales. TypeScript puro, en seis grupos: `materials/`, `design/`, `checks/`, `furniture/`, `editing/` y `session/`.
 - `src/application/`: casos de uso, construcción del contexto para el LLM y el banco de pruebas.
 - `src/ports/`: interfaces hacia afuera.
 - `src/adapters/`: Anthropic, OpenAI y SheLLM, el experto simulado, localStorage, catálogo, imágenes y bitácora. Los prompts están en `src/adapters/llm/prompts/`.
