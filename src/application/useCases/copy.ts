@@ -59,3 +59,5 @@ export function redoRequest(first: string, before: Design, kind: DesignKind) {
 }
 
 export const redone = (noun: string) => `Lo rehice como ${noun}. Lo anterior sigue en el historial.`
+
+export const partsStillOff = (difference: string) => `Ojo: ${difference.replace(/^Se/, 'se')} Si no es lo que querías, cámbialo en la pestaña Mueble.`

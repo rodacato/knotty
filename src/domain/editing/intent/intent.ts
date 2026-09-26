@@ -41,8 +41,8 @@ const QUESTIONS: [Topic, RegExp][] = [
 ]
 
 const NUMBER_WORDS: Record<string, number> = { un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10 }
-const COUNT = String.raw`\d+|${Object.keys(NUMBER_WORDS).join('|')}`
-const countOf = (said: string) => NUMBER_WORDS[said] ?? Number(said)
+export const COUNT = String.raw`\d+|${Object.keys(NUMBER_WORDS).join('|')}`
+export const countOf = (said: string) => NUMBER_WORDS[said] ?? Number(said)
 
 const AMOUNT = String.raw`(\d+(?:[.,]\d+)?)(?:\s*(mm|milimetros?|cm|centimetros?|mts?|metros?|m)\b)?`
 

@@ -1,3 +1,4 @@
+import { designParts } from '../../domain/editing/intent/counts'
 import { analyze } from '../../domain/checks/analysis'
 import { buildPlan, MODULES, type FurnitureKind, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Design } from '../../domain/design/schema'
@@ -70,9 +71,8 @@ const PART_LABEL: Record<Part, string> = { doors: 'puertas', drawers: 'cajones',
 
 /** Doors and drawers by their pieces, so a design piece by piece counts too; open openings from the cells of a cabinet's plan. */
 export function countParts(design: Design, plan: FurniturePlan | null): Record<Part, number | null> {
-  const pieces = (role: string) => design.pieces.filter((p) => p.role === role).length
   const open = plan?.kind === 'cabinet' ? plan.columns.flatMap((c) => c.cells).filter((c) => c.content === 'open').length : null
-  return { doors: pieces('door'), drawers: pieces('drawer-front'), open }
+  return { ...designParts(design), open }
 }
 
 function structureOf(c: BenchCase, design: Design, plan: FurniturePlan | null): Structure | null {

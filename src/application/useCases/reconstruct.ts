@@ -9,12 +9,13 @@ import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import { currentDesign, type DesignState, type Thumbnail } from '../../domain/session/state'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { kindFromWords } from '../../domain/checks/typology/typology'
+import { askedParts, describeMismatch, partsError, partsMismatch, type PartsMismatch } from '../../domain/editing/intent/counts'
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { knownKind, planForKind, startingKind, withKind } from '../../domain/furniture/kind'
 import { isPersonNote } from '../../domain/checks/requirements/requirements'
 import type { DesignError } from '../../domain/design/validation/errors'
-import { expertPlans, type ExpertResponse, type Photo, type ReconstructionResponse } from '../../ports/LLMProvider'
-import { CANCELLED, EXPERT_FAILED, estimatedMeasures, initialRequest, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
+import { expertPlans, type ExpertResponse, type Photo, type ReconstructionRequest, type ReconstructionResponse } from '../../ports/LLMProvider'
+import { CANCELLED, EXPERT_FAILED, estimatedMeasures, initialRequest, partsStillOff, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
 import { ATTEMPTS, type Kit, type OnProgress } from './kit'
 
@@ -68,40 +69,58 @@ export function createReconstruct(kit: Kit) {
     // A kind with no module (a bench) goes straight to piece by piece: asking for a plan would be a wasted call.
     const hint = input.kind ?? kindFromWords(reading?.kind ?? '') ?? kindFromWords(input.notes)
     if (!llm.planDesign || (hint && !MODULE_OF_KIND[hint])) return null
-    onProgress('designing', 0)
-    const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction: null, kind: input.kind ?? null, routeKind: hint }, signal), {
-      step: 'plan',
-      attempt: 0,
-      signal,
-      trace,
-      onFailure: 'skip',
-      code: 'E_PLAN',
-    })
-    if (!call.ok) return null
-    const { response: plan, started } = call
-    // The person said what it is: only that module's plan counts.
-    const chosen = input.kind ? MODULE_OF_KIND[input.kind] : null
-    const plans = expertPlans(plan.value)
-    const found = chosen ? plans[chosen] : Object.values(plans).find((p) => p !== null)
-    if (!found) {
-      trace.push(traceEntry('plan', 0, started, plan, 'ok', [], [], chosen && Object.values(plans).some((p) => p !== null) ? 'La ficha no es del tipo que elegiste: se diseña pieza por pieza' : 'No tiene ficha: se diseña pieza por pieza'))
-      return null
+    const asked = askedParts(input.notes)
+
+    /** One skeleton call built and checked; `off` is what differs from the doors and drawers the request asked for. */
+    async function attempt(n: number, correction: ReconstructionRequest['correction']) {
+      onProgress(n ? 'correcting' : 'designing', n)
+      const call = await expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
+        step: 'plan',
+        attempt: n,
+        signal,
+        trace,
+        onFailure: 'skip',
+        code: 'E_PLAN',
+      })
+      if (!call.ok) return null
+      const { response: plan, started } = call
+      // The person said what it is: only that module's plan counts.
+      const chosen = input.kind ? MODULE_OF_KIND[input.kind] : null
+      const plans = expertPlans(plan.value)
+      const found = chosen ? plans[chosen] : Object.values(plans).find((p) => p !== null)
+      if (!found) {
+        trace.push(traceEntry('plan', n, started, plan, 'ok', [], [], chosen && Object.values(plans).some((p) => p !== null) ? 'La ficha no es del tipo que elegiste: se diseña pieza por pieza' : 'No tiene ficha: se diseña pieza por pieza'))
+        return null
+      }
+      onProgress('checking', n)
+      const offered = input.kind ? planForKind(found, input.kind) : found
+      const furniture = input.measures ? moduleOf(offered).withMeasures(offered, input.measures) : offered
+      const { design: built, notes } = buildPlan(furniture, catalog)
+      const { design, repairs } = repairDesign(built, catalog, plan.value.requirements)
+      const analysis = analyze(design, catalog, plan.value.requirements)
+      if (!analysis.valid) {
+        trace.push(traceEntry('plan', n, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
+        return null
+      }
+      // Only a cabinet: its grid is where a count gets misread (two door openings of two leaves are four doors).
+      const off = furniture.kind === 'cabinet' ? partsMismatch(asked, design) : []
+      trace.push(traceEntry('plan', n, started, plan, off.length ? 'invalid' : 'ok', off.length ? traceErrors([partsError(off)]) : [], repairs, moduleOf(furniture).traceLabel(furniture)))
+      const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
+      const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
+      const designed: Designed = { design: kinded(input, reading, design), r, response: { ...plan, value: r }, problems: [], repairs, plan: furniture }
+      return { designed, off, answer: plan.value }
     }
-    onProgress('checking', 0)
-    const offered = input.kind ? planForKind(found, input.kind) : found
-    const furniture = input.measures ? moduleOf(offered).withMeasures(offered, input.measures) : offered
-    const { design: built, notes } = buildPlan(furniture, catalog)
-    const { design, repairs } = repairDesign(built, catalog, plan.value.requirements)
-    const analysis = analyze(design, catalog, plan.value.requirements)
-    if (!analysis.valid) {
-      trace.push(traceEntry('plan', 0, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
-      return null
-    }
-    trace.push(traceEntry('plan', 0, started, plan, 'ok', [], repairs, moduleOf(furniture).traceLabel(furniture)))
+
+    const first = await attempt(0, null)
+    if (!first) return null
+    // One round with the exact difference; then the closer of the two, and the person is told what still differs.
+    const second = first.off.length ? await attempt(1, { previousResponse: first.answer, errors: [partsError(first.off)] }) : null
+    const missed = (off: PartsMismatch) => off.reduce((n, m) => n + Math.abs(m.asked - m.found), 0)
+    const best = second && missed(second.off) < missed(first.off) ? second : first
     onProgress('structure', 0)
-    const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
-    const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
-    return { design: kinded(input, reading, design), r, response: { ...plan, value: r }, problems: [], repairs, plan: furniture }
+    if (!best.off.length) return best.designed
+    const r = { ...best.designed.r, explanation: [best.designed.r.explanation, partsStillOff(describeMismatch(best.off))].join('\n\n') }
+    return { ...best.designed, r, response: { ...best.designed.response, value: r } }
   }
 
   /** The skeleton first, and piece by piece if it has no plan; throws when not even a design with problems came out. */
