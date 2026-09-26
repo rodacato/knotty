@@ -7,7 +7,10 @@ import type { Operation } from '../../../domain/operations/schema'
 import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viability/viability'
 import { BED_LABELS, type BedPlan } from '../../../domain/modules/bed'
+import { DEFAULT_THICKNESS, KICK_HEIGHT } from '../../../domain/modules/common'
+import { BOOT_LEVEL_HEIGHT, LEVEL_HEIGHT, PAIR_WIDTH, SHOE_RACK_DEPTH, type ShoeRackPlan } from '../../../domain/modules/shoeRack'
 import { TABLE_LABELS, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/modules/table'
+import { ASSUMPTIONS } from '../../../domain/structure/assumptions'
 import { answerWith, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReviewResponse, type PlanResponse, type ReconstructionResponse, type ReviewRequest } from '../../../ports/LLMProvider'
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
@@ -92,6 +95,34 @@ function bedFrom(notes: string): BedPlan | null {
       depth: 250,
       shelves: countBefore(text, 'entrepa') ?? countBefore(text, 'shelf') ?? 2,
     },
+  }
+}
+
+/** A shoe rack read from the request's words, or null if it is not one: as many low-shoe levels as its height takes, and as wide as its pairs need. */
+function shoeRackFrom(notes: string, measures: Dimensions | null): ShoeRackPlan | null {
+  const text = notes.toLowerCase()
+  if (!/zapater/.test(text)) return null
+  const seat = /banca|asiento|sentar/.test(text)
+  const doors = /puerta/.test(text) && !/sin puertas/.test(text)
+  const bootLevel = /botas/.test(text)
+  const saidHeight = /(\d+(?:[.,]\d+)?)\s*(cm|m)?\s*de alto/.exec(text)
+  const height = measures?.height ?? (saidHeight ? Math.round(Number(saidHeight[1].replace(',', '.')) * (saidHeight[2] === 'm' ? 1000 : 10)) : seat ? 450 : 900)
+  const t = DEFAULT_THICKNESS
+  const clear = height - (seat ? 0 : KICK_HEIGHT.cabinet) - 2 * t - (bootLevel ? BOOT_LEVEL_HEIGHT + t : 0)
+  const levels = Math.max(1, Math.floor((clear + t) / (LEVEL_HEIGHT.usual + t))) + (bootLevel ? 1 : 0)
+  const pairs = Number(/(\d+)\s*pares/.exec(text)?.[1] ?? 12)
+  const width = measures?.width ?? Math.ceil((Math.ceil(pairs / levels) * PAIR_WIDTH + 2 * t) / 50) * 50
+  return {
+    kind: 'shoeRack',
+    name: seat ? 'Banca zapatera' : doors ? 'Zapatera con puertas' : 'Zapatera',
+    dimensions: { width, height, depth: measures?.depth ?? SHOE_RACK_DEPTH.usual },
+    material: 'T18',
+    levels,
+    bootLevel,
+    front: doors ? 'doors' : 'open',
+    base: seat ? 'floor' : 'kick',
+    seat,
+    wallMounted: doors || height >= ASSUMPTIONS.tipping.criticalHeight,
   }
 }
 
@@ -328,9 +359,19 @@ export function createSimulated(delay = 900): LLMProvider {
       await wait(delay, signal)
       return response(propose(s.request, s.design, s.proposal, s.photos.length > 0))
     },
-    // Only beds come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
+    // Only beds, tables and shoe racks come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
     async planDesign(s, signal) {
       await wait(delay, signal)
+      const shoeRack = shoeRackFrom(s.notes, s.measures)
+      if (shoeRack)
+        return response<PlanResponse>({
+          explanation: `Armé ${shoeRack.seat ? 'una banca zapatera' : 'una zapatera'} de ${shoeRack.dimensions.width / 10} cm de ancho y ${shoeRack.dimensions.height / 10} cm de alto, con ${shoeRack.levels} niveles${shoeRack.front === 'doors' ? ' y puertas' : ''}${shoeRack.wallMounted ? ', anclada al muro' : ''}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
+          ...answerWith(shoeRack),
+          questions: [],
+          requestedPhotos: [],
+          requirements: [],
+          suggestions: ['Agrega un nivel para botas', 'Hazla de 1.20 m de ancho', shoeRack.front === 'doors' ? 'Sin puertas' : 'Con puertas'],
+        })
       const bed = bedFrom(s.notes)
       const table = bed ? null : tableFrom(s.notes, s.measures)
       if (table)
