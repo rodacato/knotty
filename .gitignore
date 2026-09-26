@@ -5,5 +5,5 @@ coverage/
 *.local
 .env
 *.tsbuildinfo
-scripts/compare/results/raw/
-scripts/compare/results/designs/
+# Only scripts/compare/baseline.json is kept; the reports already in git stay as history.
+scripts/compare/results/

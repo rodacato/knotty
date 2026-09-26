@@ -1,12 +1,13 @@
 import { execSync } from 'node:child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import data from '../../public/catalog/catalog.json'
 import { createAnthropic } from '../../src/adapters/llm/anthropic'
 import { createCompatible } from '../../src/adapters/llm/compatibleOpenAI'
 import { createSimulated } from '../../src/adapters/llm/simulated/simulated'
-import { byCallKind, createBench, describeAdjustments, describeStructure, type BenchResult } from '../../src/application/bench/bench'
+import { createBench } from '../../src/application/bench/bench'
+import { caseLine, problemsOf, reportMarkdown, toBaseline, type Baseline, type ReportRow, type RunMeta } from '../../src/application/bench/report'
 import { Catalog } from '../../src/domain/materials/catalog'
 import type { DesignState } from '../../src/domain/session/state'
 import type { LLMProvider } from '../../src/ports/LLMProvider'
@@ -49,109 +50,108 @@ function provider(spec: string): LLMProvider {
   throw new Error(`Unknown provider: ${spec}`)
 }
 
-const commit = () => {
-  try {
-    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
-  } catch {
-    return '—'
+/** What each provider needs from the environment: checked before any case runs, so a missing key fails in a second and not once per case. */
+const NEEDS: Record<string, string[]> = { anthropic: ['ANTHROPIC_API_KEY'], openai: ['OPENAI_API_KEY'], shellm: ['SHELLM_HOST'], simulated: [] }
+
+function preflight(models: string[]) {
+  if (!models.length) throw new Error('Set KNOTTY_MODELS, for example "anthropic:claude-sonnet-5,shellm:claude".')
+  for (const spec of models) {
+    const kind = spec.split(':')[0]
+    if (!(kind in NEEDS)) throw new Error(`Unknown provider: ${spec}`)
+    const missing = NEEDS[kind].filter((name) => !env[name])
+    if (missing.length) throw new Error(`${spec} needs ${missing.join(' and ')} in .env (or the environment); nothing was run.`)
   }
+}
+
+const git = (args: string) => {
+  try {
+    return execSync(`git ${args}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+  } catch {
+    return null
+  }
+}
+
+/** What is off about the code being measured, against the last fetch of origin/main: twice a run measured code that was not what it meant to. */
+function checkoutNote(): string | null {
+  const behind = Number(git('rev-list --count HEAD..origin/main') ?? 0)
+  const ahead = Number(git('rev-list --count origin/main..HEAD') ?? 0)
+  const dirty = (git('status --porcelain -- . ":(exclude)scripts/compare"') ?? '').split('\n').filter(Boolean).length
+  const off = [
+    ...(behind ? [`${behind} ${behind === 1 ? 'commit' : 'commits'} detrás de origin/main (según el último fetch)`] : []),
+    ...(ahead ? [`${ahead} ${ahead === 1 ? 'commit' : 'commits'} que no están en origin/main`] : []),
+    ...(dirty ? [`cambios sin commit en ${dirty} ${dirty === 1 ? 'archivo' : 'archivos'}`] : []),
+  ]
+  return off.length ? `Mide un checkout que no es origin/main: ${off.join('; ')}.` : null
 }
 
 /** A file-name-safe version of a label: accents dropped, everything else non-alphanumeric turned into dashes. */
 const slug = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\W+/g, '-')
+const stamp = (iso: string) => iso.slice(0, 16).replace(/[:T]/g, '-')
 
-type Row = BenchResult & { model: string; prompt: string | null }
+const RESULTS = join(import.meta.dirname, 'results')
+/** The run kept to compare against; the only result in git. KNOTTY_BASELINE names another file, or `none`. */
+const BASELINE = join(import.meta.dirname, 'baseline.json')
+
+function loadBaseline(): Baseline | null {
+  const chosen = setting('KNOTTY_BASELINE', 'KNOTTY_BASE')
+  if (chosen === 'none') return null
+  const path = chosen ?? BASELINE
+  if (!existsSync(path)) {
+    if (chosen) throw new Error(`KNOTTY_BASELINE: ${path} does not exist.`)
+    return null
+  }
+  return JSON.parse(readFileSync(path, 'utf8')) as Baseline
+}
 
 /** Each design is saved (outside git) to look at later what the model built. */
 function saveDesign(spec: string, caseId: string, state: DesignState) {
-  const folder = join(import.meta.dirname, 'results', 'designs')
+  const folder = join(RESULTS, 'designs')
   mkdirSync(folder, { recursive: true })
-  writeFileSync(join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${slug(spec)}-${caseId}.json`), JSON.stringify(state, null, 2))
+  writeFileSync(join(folder, `${stamp(new Date().toISOString())}-${slug(spec)}-${caseId}.json`), JSON.stringify(state, null, 2))
 }
 
-/** Runs `n` at a time, to stay within each provider's limits. */
-async function inBatches<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
-  const out: R[] = []
-  for (let i = 0; i < items.length; i += n) out.push(...(await Promise.all(items.slice(i, i + n).map(f))))
-  return out
+const models = (setting('KNOTTY_MODELS', 'KNOTTY_MODELOS') ?? '').split(',').filter(Boolean)
+preflight(models)
+const only = setting('KNOTTY_CASES', 'KNOTTY_CASOS')?.split(',')
+const repetitions = Number(setting('KNOTTY_REPEAT', 'KNOTTY_REPETICIONES') ?? 1)
+const jobs = models.flatMap((model) => {
+  const bench = createBench({ llm: () => provider(model), catalog })
+  const cases = bench.cases.filter((c) => !only || only.includes(c.id))
+  return Array.from({ length: repetitions }, (_, rep) => cases.map((c) => ({ model, c, bench, title: `${model} · ${c.id}${repetitions > 1 ? ` (${rep + 1}/${repetitions})` : ''}` }))).flat()
+})
+if (!jobs.length) throw new Error(`No case matches KNOTTY_CASES=${only?.join(',')}.`)
+
+const meta: RunMeta = { label: setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'current format', commit: git('rev-parse --short HEAD') ?? '—', date: new Date().toISOString(), checkout: checkoutNote() }
+const baseline = loadBaseline()
+const file = join(RESULTS, `${stamp(meta.date)}-${slug(meta.label)}`)
+/** By the order of the jobs, not of arrival: the report reads the same however the cases finish. */
+const done: (ReportRow | undefined)[] = []
+
+/** Written after every case: a run cut short keeps what it did. */
+function write() {
+  const rows = done.filter((r): r is ReportRow => !!r)
+  mkdirSync(RESULTS, { recursive: true })
+  writeFileSync(`${file}.md`, reportMarkdown(rows, meta, baseline, jobs.length))
+  writeFileSync(`${file}.json`, JSON.stringify(toBaseline(rows, meta), null, 2))
 }
 
-const CALL_LABEL: Record<BenchResult['callLog'][number]['step'], string> = {
-  skeleton: 'esqueleto',
-  pieces: 'pieza por pieza',
-  'plan-adjust': 'ajuste por ficha',
-  adjust: 'ajuste pieza por pieza',
-  review: 'revisión de compra',
-  reading: 'lectura de foto',
-}
+beforeAll(() => {
+  console.log([`${jobs.length} ${jobs.length === 1 ? 'caso' : 'casos'} · base: ${baseline ? `«${baseline.label}» (${baseline.commit})` : 'ninguna'} · reporte: ${file}.md`, ...(meta.checkout ? [`⚠ ${meta.checkout}`] : [])].join('\n'))
+})
 
-const structureCell = (r: Row) => (r.structure ? `${r.structure.ok === false ? 'NO: ' : ''}${describeStructure(r.structure)}` : '—')
-
-function report(rows: Row[], label: string) {
-  const line = (r: Row) =>
-    `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.path === 'plan' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.inputTokens ?? '—'} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${structureCell(r)} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} | ${r.adjustments.length ? describeAdjustments(r.adjustments).replace(/\|/g, '/') : '—'} |`
-  const models = [...new Set(rows.map((r) => r.model))]
-  const summary = models.map((m) => {
-    const rs = rows.filter((r) => r.model === m)
-    const good = rs.filter((r) => r.ok)
-    const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0)
-    const tokens = good.map((r) => r.outputTokens).filter((t): t is number => t !== null)
-    const input = good.map((r) => r.inputTokens).filter((t): t is number => t !== null)
-    const graded = good.filter((r) => r.structure && r.structure.ok !== null)
-    return `| ${m} | ${good.length}/${rs.length} | ${mean(good.map((r) => r.seconds)).toFixed(0)} | ${input.length ? mean(input).toFixed(0) : '—'} | ${tokens.length ? mean(tokens).toFixed(0) : '—'} | ${good.filter((r) => r.reasonable).length}/${good.length} | ${graded.filter((r) => r.structure!.ok).length}/${graded.length} | ${good.filter((r) => r.verdict === 'viable').length}/${good.length} |`
+describe(`${meta.label}`, () => {
+  it.concurrent.each(jobs.map((job, index) => ({ ...job, index })))('$title', async ({ model, c, bench, index }) => {
+    const { state, ...result } = await bench.runCase(c, AbortSignal.timeout(15 * 60_000))
+    if (state) saveDesign(model, c.id, state)
+    const row: ReportRow = { ...result, model, prompt: state?.versions[0].origin?.promptId ?? null }
+    done[index] = row
+    write()
+    expect({ caso: caseLine(row), problemas: problemsOf(row) }).toEqual({ caso: caseLine(row), problemas: [] })
   })
-  return [
-    `# Comparativo de modelos: ${label}`,
-    '',
-    `Commit ${commit()} · prompts ${[...new Set(rows.map((r) => r.prompt).filter(Boolean))].join(', ') || '—'} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`,
-    '',
-    '| Modelo | Diseños válidos | Segundos (prom.) | Tokens de entrada (prom.) | Tokens de salida (prom.) | Medidas razonables | Estructura como se pidió | Viables |',
-    '|---|---|---|---|---|---|---|---|',
-    ...summary,
-    '',
-    'Intentos cuenta las llamadas del diseño; cada pedido de después dice si lo hizo Knotty sin experto (0 llamadas) o el experto, y cuántas llamadas hizo. Estructura compara las puertas, cajones y huecos abiertos que pide el caso con los del diseño (los abiertos solo se cuentan en la ficha del gabinete; «?» si no se pueden contar); el resumen cuenta solo los casos que la piden y se pudieron contar.',
-    '',
-    '| Modelo | Caso | Listo | Camino | s | Intentos | Reparaciones | Tokens entrada | Tokens salida | Piezas | Uniones | Alto × ancho × fondo | Razonables | Estructura | Críticos | Veredicto | Pedidos después (quién los hizo) |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-    ...rows.map(line),
-    '',
-    '## Por tipo de llamada',
-    '',
-    'Todas las llamadas de los casos, las del diseño y las de los pedidos de después, por tipo y por prompt; promedios de las que el proveedor reportó. La entrada incluye prompt, esquema y contexto.',
-    '',
-    '| Modelo | Llamada | Prompt | Llamadas | Entrada (prom.) | Salida (prom.) | s (prom.) |',
-    '|---|---|---|---|---|---|---|',
-    ...models.flatMap((m) =>
-      byCallKind(rows.filter((r) => r.model === m).flatMap((r) => r.callLog)).map(
-        (k) => `| ${m} | ${CALL_LABEL[k.step]} | ${k.promptId ?? '— (falló)'} | ${k.calls} | ${k.input === null ? '—' : k.input.toFixed(0)} | ${k.output === null ? '—' : k.output.toFixed(0)} | ${k.seconds.toFixed(0)} |`,
-      ),
-    ),
-    '',
-  ].join('\n')
-}
+})
 
-it('model comparison', async () => {
-  const models = (setting('KNOTTY_MODELS', 'KNOTTY_MODELOS') ?? '').split(',').filter(Boolean)
-  if (!models.length) throw new Error('Set KNOTTY_MODELS, for example "anthropic:claude-sonnet-5,shellm:claude".')
-  const only = setting('KNOTTY_CASES', 'KNOTTY_CASOS')?.split(',')
-  const repetitions = Number(setting('KNOTTY_REPEAT', 'KNOTTY_REPETICIONES') ?? 1)
-  const jobs = models.flatMap((model) => {
-    const bench = createBench({ llm: () => provider(model), catalog })
-    const cases = bench.cases.filter((c) => !only || only.includes(c.id))
-    return Array.from({ length: repetitions }, () => cases.map((c) => ({ model, c, bench }))).flat()
-  })
-  const rows = await inBatches(jobs, Number(setting('KNOTTY_PARALLEL', 'KNOTTY_PARALELO') ?? 2), async ({ model, c, bench }): Promise<Row> => {
-    const r = await bench.runCase(c, AbortSignal.timeout(15 * 60_000))
-    if (r.state) saveDesign(model, c.id, r.state)
-    return { ...r, model, prompt: r.state?.versions[0].origin?.promptId ?? null }
-  })
-  expect(rows).toHaveLength(jobs.length)
-
-  const label = setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'current format'
-  const text = report(rows, label)
-  const folder = join(import.meta.dirname, 'results')
-  mkdirSync(folder, { recursive: true })
-  const file = join(folder, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${slug(label)}.md`)
-  writeFileSync(file, text)
-  console.log(`\n${text}\nSaved to ${file}`)
+afterAll(() => {
+  write()
+  if (setting('KNOTTY_SAVE_BASELINE', 'KNOTTY_GUARDAR_BASE')) writeFileSync(BASELINE, `${JSON.stringify(toBaseline(done.filter((r): r is ReportRow => !!r), meta), null, 2)}\n`)
+  console.log(`Reporte: ${file}.md${setting('KNOTTY_SAVE_BASELINE', 'KNOTTY_GUARDAR_BASE') ? ` · nueva base: ${BASELINE}` : ''}`)
 })
