@@ -44,7 +44,10 @@ export function buildContext(state: DesignState, catalog: Catalog): string {
       '## Pending proposal (not applied)',
       `"${state.proposal.summary}" for the request "${state.proposal.reason}". Operations: ${JSON.stringify(state.proposal.operations)}`,
       ...state.proposal.critical.map((c) => `- Critical ${c.code} ${c.pieces.join(', ')}: ${c.message}`),
-      'If the person picks an option, answer with the complete operations on the current design: the proposal\'s plus the fix.',
+      // A change through the plan brings no operations: it is the whole plan.
+      state.proposal.plan && !state.proposal.operations.length
+        ? `It changes the plan to: ${JSON.stringify(state.proposal.plan)}. If the person answers or picks an option, answer with the complete plan: the proposal's plus that.`
+        : 'If the person picks an option, answer with the complete operations on the current design: the proposal\'s plus the fix.',
     )
 
   let decisions = state.decisions.map((d) => `- ${d.topic}: ${d.text}`)

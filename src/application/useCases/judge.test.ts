@@ -29,7 +29,9 @@ const withFindings = (c: Accepted, extra: Finding[]): Accepted => (c.analysis.va
 const stillBroken = (c: Accepted): Candidate => ({ ...c, analysis: { valid: false, errors: [leftover] } })
 
 const question = { text: '¿Cuánto peso?', options: ['Poco', 'Mucho'] }
-const base: Judging = { design, before, candidate: null, response: { questions: [], acceptedRisks: [] }, request: 'Hazlo más ligero', catalog: testCatalog, criticalsReviewed: false }
+const base: Judging = { design, before, candidate: null, response: { questions: [], acceptedRisks: [] }, request: 'Hazlo más ligero', catalog: testCatalog, extraRound: true, criticalsReviewed: false }
+/** The plan path: the same holds, but no extra round for new critical findings. */
+const plan: Partial<Judging> = { extraRound: false }
 
 /** What a verdict says, without the designs it carries. */
 const summary = (v: Verdict) => {
@@ -109,6 +111,23 @@ const CASES: { name: string; judging: Partial<Judging>; expected: ReturnType<typ
     judging: { candidate: stillBroken(withFindings(accepted(thinnerShelf), [sag])) },
     expected: { kind: 'applied', unresolved: ['E_OVERLAP'] },
   },
+  { name: 'plan: a clean change is applied', judging: { ...plan, candidate: accepted(thinnerShelf) }, expected: { kind: 'applied', unresolved: [] } },
+  {
+    name: 'plan: a new critical finding waits for the person at once, with no extra round',
+    judging: { ...plan, candidate: withFindings(accepted(thinnerShelf), [sag]) },
+    expected: { kind: 'pending', holds: [], critical: ['R1_SAG'] },
+  },
+  {
+    name: 'plan: a change that comes with questions waits for the answers',
+    judging: { ...plan, candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [question], acceptedRisks: [] } },
+    expected: { kind: 'pending', holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [] },
+  },
+  {
+    name: 'plan: structure removed unasked waits for the person',
+    judging: { ...plan, candidate: accepted(removeKick) },
+    expected: { kind: 'pending', holds: ['Quiere quitar Zoclo, que sostienen el mueble y no pediste quitar.'], critical: [] },
+  },
+  { name: 'plan: structure removed on request is applied', judging: { ...plan, candidate: accepted(removeKick), request: 'Quita el zoclo' }, expected: { kind: 'applied', unresolved: [] } },
 ]
 
 describe('judge: what becomes of the expert’s change', () => {

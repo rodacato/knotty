@@ -19,6 +19,7 @@ const STAGES: Record<Stage, string> = {
   checking: 'Revisando que todo cierre…',
   structure: 'Revisando la estructura…',
   correcting: 'Corrigiendo un detalle…',
+  'reviewing-criticals': 'Revisando los puntos críticos…',
 }
 
 const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']

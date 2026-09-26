@@ -22,7 +22,13 @@ export interface Judging {
   response: Pick<AdjustmentResponse, 'questions' | 'acceptedRisks'>
   request: string
   catalog: Catalog
-  /** The expert already had its one chance to answer for new critical findings. */
+  /**
+   * The path's policy for new critical findings. Piece by piece, the expert gets one extra round to answer for them
+   * before the person sees them. Through the plan there is no extra round: the change waits for the person at once with
+   * the rules' options, which saves a call, and Knotty builds those options itself when one is chosen.
+   */
+  extraRound: boolean
+  /** The expert already had its extra round for new critical findings. */
   criticalsReviewed: boolean
 }
 
@@ -31,7 +37,7 @@ export type Verdict =
   | { kind: 'answer' }
   /** The change breaks the design: back to the expert with the errors. */
   | { kind: 'retry'; reason: 'invalid'; errors: DesignError[] }
-  /** Valid, but with new critical findings: the expert gets one extra look at them before the person does. */
+  /** Valid, but with new critical findings: on a path with an extra round, the expert gets one more look at them before the person does. */
   | { kind: 'retry'; reason: 'criticals'; criticals: Finding[] }
   /** Valid, but it waits for the person: `holds` (unasked removals, open questions) or `critical` findings. */
   | { kind: 'pending'; candidate: Accepted; holds: string[]; critical: Finding[] }
@@ -39,7 +45,7 @@ export type Verdict =
   | { kind: 'applied'; candidate: Accepted; unresolved: DesignError[] }
 
 /** What becomes of an expert's change: pure, so every way it can go is tested on its own. */
-export function judge({ design, before, candidate, response, request, catalog, criticalsReviewed }: Judging): Verdict {
+export function judge({ design, before, candidate, response, request, catalog, extraRound, criticalsReviewed }: Judging): Verdict {
   if (!candidate) return { kind: 'answer' }
   if (!candidate.ok) return { kind: 'retry', reason: 'invalid', errors: candidate.errors }
   const { design: next, analysis } = candidate
@@ -52,7 +58,7 @@ export function judge({ design, before, candidate, response, request, catalog, c
   const accepted = new Set(response.acceptedRisks.map((a) => a.code))
   const criticals = newCriticals(before, analysis.valid ? analysis.findings : []).filter((h) => !accepted.has(h.code))
   // Questions already held the change above, so here the expert has asked nothing.
-  if (criticals.length && !criticalsReviewed) return { kind: 'retry', reason: 'criticals', criticals }
+  if (criticals.length && extraRound && !criticalsReviewed) return { kind: 'retry', reason: 'criticals', criticals }
   if (criticals.length) return { kind: 'pending', candidate, holds: [], critical: criticals }
   return { kind: 'applied', candidate, unresolved: analysis.valid ? [] : analysis.errors }
 }
