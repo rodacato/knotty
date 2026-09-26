@@ -6,7 +6,7 @@ import type { Cell } from '../reading/reading'
 import { ASSUMPTIONS } from '../../checks/structure/assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
-import { KICK_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
+import { DEFAULT_THICKNESS, KICK_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
@@ -31,7 +31,9 @@ export const ShoeRackPlan = z.object({
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Zapatera", "Zapatera con puertas"'),
   dimensions: z
     .object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() })
-    .describe(`Outside measures in mm. Depth ${SHOE_RACK_DEPTH.min}–${SHOE_RACK_DEPTH.max}, usually ${SHOE_RACK_DEPTH.usual}; each pair takes about ${PAIR_WIDTH} of width`),
+    .describe(
+      `Outside measures in mm. Depth ${SHOE_RACK_DEPTH.min}–${SHOE_RACK_DEPTH.max}, usually ${SHOE_RACK_DEPTH.usual}. Each pair takes about ${PAIR_WIDTH} of inside width, and the outside width adds the two sides: 3 pairs across are ${3 * PAIR_WIDTH + 2 * DEFAULT_THICKNESS} with ${DEFAULT_THICKNESS} mm plywood, not ${3 * PAIR_WIDTH}`,
+    ),
   material: z.string().describe('Plywood id for the carcass, usually "T18"'),
   levels: z
     .number()
