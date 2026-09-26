@@ -6,7 +6,8 @@ import skeleton from '../prompts/skeleton.v15.md?raw'
 import reading from '../prompts/reading.v3.md?raw'
 import reconstruction from '../prompts/reconstruction.v12.md?raw'
 import system from '../prompts/system.v11.md?raw'
-import { FURNITURE_KINDS, type FurnitureKind } from '../../../domain/furniture/modules/plan'
+import { FURNITURE_KINDS, MODULE_OF_KIND, type FurnitureKind } from '../../../domain/furniture/modules/plan'
+import type { DesignKind } from '../../../domain/design/kind'
 import { WRITTEN_BY_HAND, moduleGuide, modulePick, moduleSummary } from './modulePrompts'
 import { fill } from './promptValues'
 
@@ -58,6 +59,14 @@ function moduleParts(kind: FurnitureKind): { id: string; pick: string; skeleton:
   return { id: file.id, pick, skeleton, plan, changes, rules: rules ?? '' }
 }
 
+const KIND_FILES = import.meta.glob<string>('../prompts/kinds/*.md', { query: '?raw', import: 'default', eager: true })
+
+/** Short guides by use (a sideboard, a bookcase), written by hand from what the reference catalog taught: added after their module's own guide. */
+export const KIND_PROMPTS = Object.fromEntries(Object.values(KIND_FILES).map((raw) => read(raw)).map((p) => [p.id.split('@')[0], p])) as Partial<Record<DesignKind, Prompt>>
+
+/** The guide for this use of this module, if there is one. */
+const guideFor = (module: FurnitureKind, use: DesignKind | null) => (use && MODULE_OF_KIND[use] === module ? KIND_PROMPTS[use] : undefined)
+
 /** The hand-written modules first, as the prompts always listed them, then the generated ones. */
 const LISTED = [...WRITTEN_BY_HAND, ...FURNITURE_KINDS.filter((kind) => !WRITTEN_BY_HAND.includes(kind))]
 
@@ -65,7 +74,7 @@ const LISTED = [...WRITTEN_BY_HAND, ...FURNITURE_KINDS.filter((kind) => !WRITTEN
  * The skeleton as sent. With the module the furniture is known to be, only that module: its line, its guide and its field.
  * Without one (the kind is unknown, or has no module), every module, as it always was: the expert picks.
  */
-export function skeletonFor(kind: FurnitureKind | null): Prompt {
+export function skeletonFor(kind: FurnitureKind | null, use: DesignKind | null = null): Prompt {
   const { intro, all, one, rest } = SKELETON.sections
   if (!kind) {
     const parts = LISTED.map(moduleParts)
@@ -73,20 +82,35 @@ export function skeletonFor(kind: FurnitureKind | null): Prompt {
     return { id: `${SKELETON.id}+all`, text }
   }
   const parts = moduleParts(kind)
-  const text = [intro, one.replace('{{modulePick}}', parts.pick).replace('{{moduleField}}', kind), parts.skeleton, rest].join('\n\n')
-  return { id: `${SKELETON.id}+${parts.id}`, text }
+  const guide = guideFor(kind, use)
+  const text = [intro, one.replace('{{modulePick}}', parts.pick).replace('{{moduleField}}', kind), parts.skeleton, ...(guide ? [guide.text] : []), rest].join('\n\n')
+  return { id: [SKELETON.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }
 }
 
 /** The plan-adjust prompt for one module: the expert reads only the kind of plan it is editing. Its id names both parts. */
-export function planAdjustmentFor(kind: FurnitureKind): Prompt {
+export function planAdjustmentFor(kind: FurnitureKind, use: DesignKind | null = null): Prompt {
   const parts = moduleParts(kind)
+  const guide = guideFor(kind, use)
   const rules = parts.rules ? `\n${parts.rules.replace(/^/gm, '  ')}` : ''
-  const text = PLAN_ADJUSTMENT.text.replace('{{module}}', parts.plan).replace('{{moduleChanges}}', parts.changes).replace('{{moduleField}}', kind).replace('{{moduleRules}}', rules)
-  return { id: `${PLAN_ADJUSTMENT.id}+${parts.id}`, text }
+  const text = PLAN_ADJUSTMENT.text.replace('{{module}}', guide ? `${parts.plan}\n\n${guide.text}` : parts.plan).replace('{{moduleChanges}}', parts.changes).replace('{{moduleField}}', kind).replace('{{moduleRules}}', rules)
+  return { id: [PLAN_ADJUSTMENT.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }
 }
 
-/** Every prompt as sent, to check them all the same way: the skeleton for every module and without one, plan-adjust once per module. */
-export const PROMPTS = [SYSTEM, RECONSTRUCTION, ADJUSTMENT, PURCHASE_REVIEW, READING, skeletonFor(null), ...FURNITURE_KINDS.map(skeletonFor), ...FURNITURE_KINDS.map(planAdjustmentFor)]
+/** Every use with a guide of its own, with its module. */
+const GUIDED = (Object.keys(KIND_PROMPTS) as DesignKind[]).map((use) => [MODULE_OF_KIND[use]!, use] as const)
+
+/** Every prompt as sent, to check them all the same way: the skeleton for every module and without one, plan-adjust once per module, and both again with each guide. */
+export const PROMPTS = [
+  SYSTEM,
+  RECONSTRUCTION,
+  ADJUSTMENT,
+  PURCHASE_REVIEW,
+  READING,
+  skeletonFor(null),
+  ...FURNITURE_KINDS.map((kind) => skeletonFor(kind)),
+  ...FURNITURE_KINDS.map((kind) => planAdjustmentFor(kind)),
+  ...GUIDED.flatMap(([module, use]) => [skeletonFor(module, use), planAdjustmentFor(module, use)]),
+]
 
 /** The prompt as sent: every {{placeholder}} filled from the domain and, when given, the catalog. */
 export const render = (prompt: Prompt, catalog: Catalog | null) => fill(prompt.text, catalog)
