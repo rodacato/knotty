@@ -15,8 +15,8 @@ import { CarpenterOpinion, type Check } from '../domain/viability/viability'
 
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 
-/** The design as the expert writes it: what the furniture is (`kind`, `mattress`) is Knotty's data, so its schema stays as it was. */
-const ExpertDesign = Design.omit({ kind: true, mattress: true })
+/** The design as the expert writes it: what the furniture is (`kind`, `mattress`) and its finish are Knotty's data, so its schema stays as it was. */
+const ExpertDesign = Design.omit({ kind: true, mattress: true, finish: true })
 
 export const ReconstructionResponse = z.object({
   explanation: z.string().describe('What you saw and how you interpreted it, in 2–4 sentences for the person, in Spanish'),

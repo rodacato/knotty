@@ -1,17 +1,17 @@
-import { AXES, type Design, type Axis, type Joint } from '../design/schema'
+import type { Design, Joint } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { jointLength } from '../validation/contact'
 import { hingesFor } from '../structure/assumptions'
 import { layOut, type MaterialLayout } from './layout'
 import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from './catalog'
+import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'
 
-// The shopping list: sheets by thickness, hardware, edge banding and glue, with an approximate cost.
+// The shopping list: sheets by thickness, hardware, edge banding, glue and the finish, with an approximate cost.
 
 const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
-const EDGE_AXIS: Record<string, Axis> = { front: 'z', back: 'z', left: 'x', right: 'x', top: 'y', bottom: 'y' }
 
 export interface SheetLine {
   material: BoardMaterial
@@ -34,6 +34,8 @@ export interface Purchase {
   hardware: HardwareLine[]
   /** Metres of edge banding, waste included. */
   edgeBanding: number
+  /** Null when the design has no finish. */
+  finish: FinishPurchase | null
   cost: { total: number; missingPrices: string[] }
 }
 
@@ -72,13 +74,7 @@ export function edgeBandingMeters(design: Design, geo: Geometry) {
   let mm = 0
   for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
-    if (!box) continue
-    for (const edge of p.edges) {
-      const axis = EDGE_AXIS[edge]
-      if (axis === p.normal) continue
-      const along = AXES.find((e) => e !== axis && e !== p.normal)!
-      mm += box[`${along}1`] - box[`${along}0`]
-    }
+    if (box) mm += bandedEdgeLengths(p, box).reduce((s, l) => s + l, 0)
   }
   return roundTo((mm / 1000) * EDGE_BANDING_WASTE, 1)
 }
@@ -122,6 +118,10 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
     hardware.push({ hardware: tape, count: Math.ceil(edgeBanding), packs: null, cost: tape.price === null ? null : tape.price * Math.ceil(edgeBanding) })
   }
 
-  const total = [...sheets, ...hardware].reduce((s, r) => s + (r.cost ?? 0), 0)
-  return { layout, sheets, hardware, edgeBanding, cost: { total: roundTo(total, 0), missingPrices } }
+  const finish = estimateFinish(design, geo, catalog)
+  const containers = finish?.lines.flatMap((l) => l.containers) ?? []
+  for (const c of containers) if (c.sku.price === null) missingPrices.push(c.sku.name)
+
+  const total = [...sheets, ...hardware].reduce((s, r) => s + (r.cost ?? 0), 0) + containers.reduce((s, c) => s + (c.sku.price ?? 0) * c.count, 0)
+  return { layout, sheets, hardware, edgeBanding, finish, cost: { total: roundTo(total, 0), missingPrices } }
 }

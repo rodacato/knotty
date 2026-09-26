@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { FinishId } from '../materials/finishes'
 import { DesignKind, MattressSize } from './kind'
 
 // Axes: X = width, Y = height, Z = depth (back → front); origin at the bottom-left-back corner; everything in mm.
@@ -100,6 +101,8 @@ export const Design = z.object({
   kind: DesignKind.optional(),
   /** A bed's mattress, from its plan. */
   mattress: MattressSize.optional(),
+  /** The finish the person chose in Materiales; absent is none. The person's, not the expert's: its schemas leave it out. */
+  finish: FinishId.optional(),
 })
 export type Design = z.infer<typeof Design>
 
