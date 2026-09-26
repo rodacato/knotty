@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { FinishProductId } from './finishes'
 import { GRADE_IDS } from './grades'
+import { cite, STRUCTURE, type Source } from '../sources'
 
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
 // Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
@@ -115,6 +116,9 @@ export type Slide = Hardware & { length: number; sideClearance: number }
 export const slidesOf = (catalog: Catalog) => hardwareByRole(catalog, 'drawer-slide').filter((h): h is Slide => h.length !== null && h.sideClearance !== null)
 /** What a slide leaves free behind it, past the end of the box. */
 export const SLIDE_BACK_CLEARANCE = 10
+export const SLIDE_SOURCES: Record<string, Source> = {
+  SLIDE_BACK_CLEARANCE: cite(STRUCTURE, '41-la-caja-del-cajón', 'largo de la corredera ≤ fondo interior − espesor del frente (si va embutido) − ≈ 10 mm'),
+}
 /**
  * The longest slide that fits a drawer with this much depth behind its front, leaving the clearance at the back.
  * Undefined when not even the shortest fits. Every place that picks a slide asks here, so a deep drawer gets a long one.

@@ -1,11 +1,16 @@
 import type { Box } from './resolve'
 import { CONTACT_TOLERANCE, overlap } from './boxes'
 import type { DoorMount } from '../materials/catalog'
+import { cite, JOINTS_DOC, type Source } from '../sources'
 
 // How a door sits on the upright it hangs from, read from where the pieces are: that is what picks its hinge (straight, cranked, super-cranked).
 
 /** From this share of the upright's edge covered, the door covers all of it; less, it shares the edge with the door beside it. */
 export const FULL_OVERLAY_SHARE = 2 / 3
+export const DOOR_SOURCES: Record<string, Source> = {
+  // «Recta» covers all the edge, «codo» half of it: two thirds splits them with the door gap on either side.
+  FULL_OVERLAY_SHARE: cite(JOINTS_DOC, '61-bisagra-de-cazoleta-de-35-mm-concealed--european-hinge', 'cada una tapa la mitad del canto (half overlay)'),
+}
 
 /** Over the upright's front edge (all of it or half), or inside the opening beside it; null when the pieces do not say. */
 export function doorMount(door: Box, upright: Box): DoorMount | null {
