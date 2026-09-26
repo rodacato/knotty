@@ -3,6 +3,7 @@ import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildPlan, MODULE_OF_KIND, MODULES } from '../../domain/furniture/modules/plan'
 import { kindFromWords } from '../../domain/checks/typology/typology'
+import { askedParts } from '../../domain/editing/intent/counts'
 import { byCallKind, countParts, createBench, describeAdjustments, describeStructure } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
@@ -97,6 +98,13 @@ describe('the bench', () => {
       { step: 'skeleton', promptId: 'skeleton@15+cabinet@2+sideboard@1', calls: 1, input: 3200, output: 900, seconds: 10 },
       { step: 'plan-adjust', promptId: 'plan-adjust@12+cabinet@2', calls: 1, input: null, output: null, seconds: 10 },
     ])
+  })
+
+  it('what Knotty reads a case asks for never contradicts what the case expects: a wrong read would send a correction for nothing', () => {
+    const reads = bench.cases.filter((c) => c.parts).flatMap((c) => (['doors', 'drawers'] as const).map((part) => ({ id: c.id, part, read: askedParts(c.notes)[part], expected: c.parts![part] })))
+    const checked = reads.filter((r) => r.read !== null)
+    expect(checked.length).toBeGreaterThanOrEqual(6)
+    expect(checked.filter((r) => r.read !== r.expected)).toEqual([])
   })
 
   it('a case the expert cannot do is reported, not thrown', async () => {
