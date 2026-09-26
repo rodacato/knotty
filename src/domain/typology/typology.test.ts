@@ -84,6 +84,16 @@ describe('typologyRule', () => {
     expect(unsupported).toContainEqual(['critical', expect.stringContaining('sin apoyo')])
   })
 
+  it('a platform spanning more than 700 mm without support is critical: the top of the reference\'s 600–700', () => {
+    const spanOf = (width: number) => {
+      const a = analyze(cabinet({ name: 'Cama individual', dimensions: { width, height: 350, depth: 1900 } }), testCatalog)
+      if (!a.valid) throw new Error(a.errors[0].message)
+      return a.findings.filter((h) => h.check === 'bed.span').map((h) => h.data.span)
+    }
+    expect(spanOf(790)).toEqual([754])
+    expect(spanOf(730)).toEqual([])
+  })
+
   it('a bed lying the other way still fits its mattress', () => {
     const sideways = usage(cabinet({ name: 'Cama individual', dimensions: { width: 1940, height: 350, depth: 1030 } }))
     expect(sideways).not.toContainEqual(['critical', expect.stringContaining('no cabe')])

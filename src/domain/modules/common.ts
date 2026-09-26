@@ -11,7 +11,10 @@ export const DEFAULT_THICKNESS = 18
 
 export const thicknessOf = (catalog: Catalog, material: string) => materialById(catalog, material)?.thickness ?? DEFAULT_THICKNESS
 
-/** The longest a bed platform or a table top goes unsupported. The checks allow 800 (BED_SPAN, ASSUMPTIONS.floorSpan): not reconciled yet. */
+/**
+ * The longest a bed platform or a table top goes unsupported: the bottom of the reference's 600–700 for a continuous 18 mm platform.
+ * The bed check (BED_SPAN) is critical past the top, 700; a cabinet floor on legs is another case, reviewed past 800 (ASSUMPTIONS.floorSpan).
+ */
 export const MAX_SPAN = 600
 
 /** Kick plate heights: bedroom and living-room furniture stands on 50–70, and so does a bed's row of drawers (kitchens take 80–100, not built here). */
