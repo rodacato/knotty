@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { FinishProductId } from './finishes'
 import { GRADE_IDS } from './grades'
 
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
@@ -51,6 +52,17 @@ export const Hardware = z.object({
 })
 export type Hardware = z.infer<typeof Hardware>
 
+/** A finish product as the store sells it: one container size. Code asks for a product, never for an id. */
+export const FinishSku = z.object({
+  id: z.string(),
+  name: z.string(),
+  product: FinishProductId,
+  litres: z.number().positive(),
+  sku: z.string().nullable(),
+  price: z.number().nonnegative().nullable(),
+})
+export type FinishSku = z.infer<typeof FinishSku>
+
 export const LayoutSettings = z.object({
   trim: z.number().nonnegative().describe('Factory edge trimmed per side'),
   kerf: z.number().nonnegative().describe('Width of the cut'),
@@ -62,6 +74,8 @@ export const Catalog = z
   .object({
     materials: z.array(BoardMaterial).min(1),
     hardware: z.array(Hardware),
+    /** A catalog cached before finishes existed has none. */
+    finishes: z.array(FinishSku).default([]),
     layout: LayoutSettings,
     priceNote: z.string().nullable().default(null),
   })
@@ -86,6 +100,9 @@ export const hardwareByRole = (catalog: Catalog, role: HardwareRole) => catalog.
 /** The first item of a role that meets the condition: with several of a role, the first in the catalog is the usual one. */
 export const pickHardware = (catalog: Catalog, role: HardwareRole, predicate: (h: Hardware) => boolean = () => true) => hardwareByRole(catalog, role).find(predicate)
 
+/** The containers the catalog sells of a finish product, in catalog order. */
+export const finishSkus = (catalog: Catalog, product: FinishProductId) => catalog.finishes.filter((f) => f.product === product)
+
 /** The sheet without its factory edge: the most a piece can measure without joining boards. */
 export const usableSheet = (catalog: Catalog, material: BoardMaterial) => ({
   length: material.sheet.length - 2 * catalog.layout.trim,
@@ -102,5 +119,5 @@ export const NO_SETTINGS: CatalogSettings = { prices: {}, layout: null }
 
 export function applySettings(c: Catalog, a: CatalogSettings): Catalog {
   const priced = <T extends { id: string; price: number | null }>(x: T): T => (x.id in a.prices ? { ...x, price: a.prices[x.id] } : x)
-  return { ...c, materials: c.materials.map(priced), hardware: c.hardware.map(priced), layout: a.layout ?? c.layout }
+  return { ...c, materials: c.materials.map(priced), hardware: c.hardware.map(priced), finishes: c.finishes.map(priced), layout: a.layout ?? c.layout }
 }
