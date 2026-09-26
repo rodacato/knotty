@@ -118,14 +118,26 @@ export function againstBaseline(rows: ReportRow[], baseline: Baseline): string[]
   ]
 }
 
+/** One row per model: valid, seconds, tokens, sensible, structure, viable. */
+function summaryTable(rows: ReportRow[]): string[] {
+  const models = [...new Set(rows.map((r) => r.model))]
+  return [
+    '| Modelo | Diseños válidos | Segundos (prom.) | Tokens de entrada (prom.) | Tokens de salida (prom.) | Medidas razonables | Estructura como se pidió | Viables |',
+    '|---|---|---|---|---|---|---|---|',
+    ...models.map((m) => {
+      const t = tally(rows.filter((r) => r.model === m))
+      const input = mean(known(rows.filter((r) => r.model === m && r.ok).map((r) => r.inputTokens)))
+      return `| ${m} | ${ratio(t.ok, t.runs)} | ${whole(t.seconds)} | ${whole(input)} | ${whole(t.output)} | ${ratio(t.reasonable, t.ok)} | ${ratio(...t.structure)} | ${ratio(t.viable, t.ok)} |`
+    }),
+  ]
+}
+
+/** What the terminal shows when the run ends, so the report does not have to be opened to know how it went. */
+export const terminalSummary = (rows: ReportRow[], baseline: Baseline | null) => [...summaryTable(rows), '', ...(baseline ? againstBaseline(rows, baseline) : ['Sin base: KNOTTY_SAVE_BASELINE=1 fija esta corrida.', ''])].join('\n')
+
 /** The whole report; `total` says how many cases the run has, so a report written halfway says so. */
 export function reportMarkdown(rows: ReportRow[], meta: RunMeta, baseline: Baseline | null, total: number = rows.length): string {
   const models = [...new Set(rows.map((r) => r.model))]
-  const summary = models.map((m) => {
-    const t = tally(rows.filter((r) => r.model === m))
-    const input = mean(known(rows.filter((r) => r.model === m && r.ok).map((r) => r.inputTokens)))
-    return `| ${m} | ${ratio(t.ok, t.runs)} | ${whole(t.seconds)} | ${whole(input)} | ${whole(t.output)} | ${ratio(t.reasonable, t.ok)} | ${ratio(...t.structure)} | ${ratio(t.viable, t.ok)} |`
-  })
   const line = (r: ReportRow) =>
     `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${cell(r.error ?? '').slice(0, 80)}`} | ${r.path === 'plan' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.inputTokens ?? '—'} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${structureCell(r)} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} | ${r.adjustments.length ? cell(describeAdjustments(r.adjustments)) : '—'} |`
   const prompts = [...new Set(rows.map((r) => r.prompt).filter(Boolean))].join(', ') || '—'
@@ -136,9 +148,7 @@ export function reportMarkdown(rows: ReportRow[], meta: RunMeta, baseline: Basel
     ...(meta.checkout ? ['', `⚠ ${meta.checkout}`] : []),
     ...(rows.length < total ? ['', `En curso: ${rows.length} de ${total} casos.`] : []),
     '',
-    '| Modelo | Diseños válidos | Segundos (prom.) | Tokens de entrada (prom.) | Tokens de salida (prom.) | Medidas razonables | Estructura como se pidió | Viables |',
-    '|---|---|---|---|---|---|---|---|',
-    ...summary,
+    ...summaryTable(rows),
     '',
     ...(baseline ? againstBaseline(rows, baseline) : []),
     'Intentos cuenta las llamadas del diseño; cada pedido de después dice si lo hizo Knotty sin experto (0 llamadas) o el experto, y cuántas llamadas hizo. Estructura compara las puertas, cajones y huecos abiertos que pide el caso con los del diseño (los abiertos solo se cuentan en la ficha del gabinete; «?» si no se pueden contar); el resumen cuenta solo los casos que la piden y se pudieron contar.',
