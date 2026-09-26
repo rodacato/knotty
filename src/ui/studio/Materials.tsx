@@ -6,6 +6,8 @@ import type { MaterialLayout } from '../../domain/materials/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materials/catalog'
 import { reviewSignature } from '../../application/useCases'
 import { estimatePurchase } from '../../domain/materials/purchase'
+import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/materials/finishPurchase'
+import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } from '../../domain/materials/finishes'
 import type { DesignState } from '../../domain/session/state'
 import { Title } from '../system/components'
 import { useStore } from '../store'
@@ -14,6 +16,7 @@ import { PieceList } from './Panels'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
+const decimal = (n: number) => n.toLocaleString('es-MX', { maximumFractionDigits: 2 })
 const meters = (mm: number) => `${(mm / 1000).toLocaleString('es-MX', { maximumFractionDigits: 2 })} m`
 
 /** A price the person can correct with their store's; the change lives on their device. */
@@ -167,12 +170,87 @@ function CutSettings({ base }: { base: LayoutSettings }) {
   )
 }
 
+const LAYER_NAME: Record<FinishLayer['role'], string> = { sealer: 'de sellador', primer: 'de primario', finish: '' }
+const coatsOf = (layers: FinishLayer[]) =>
+  layers.map((l) => (l.coats === null ? `la referencia no dice cuántas manos ${LAYER_NAME[l.role]}`.trim() : `${l.coats} ${l.coats === 1 ? 'mano' : 'manos'} ${LAYER_NAME[l.role]}`.trim())).join(' y ')
+
+/** The finish the person picks and what it takes: litres, containers and sandpaper. */
+function FinishSection({ design, finish, base }: { design: Design; finish: FinishPurchase | null; base: (id: string) => number | null }) {
+  const choose = useStore((s) => s.chooseFinish)
+  const settings = useStore((s) => s.catalogSettings)
+  const chosen = FINISHES[finishOf(design)]
+  return (
+    <section className="flex flex-col gap-3">
+      <Title className="text-lg">Acabado</Title>
+      <div role="radiogroup" aria-label="Acabado" className="flex flex-wrap gap-1.5">
+        {FINISH_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="radio"
+            aria-checked={finishOf(design) === id}
+            onClick={() => choose(id)}
+            className={`rounded-full border px-3 py-1.5 text-xs transition ${finishOf(design) === id ? 'border-graphite bg-graphite text-bone' : 'border-line bg-bone text-graphite-2 hover:text-graphite'}`}
+          >
+            {FINISHES[id].name}
+          </button>
+        ))}
+      </div>
+      <p className="text-sm leading-relaxed text-graphite-2">{chosen.advice}</p>
+      {finish && (
+        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
+          <li className="px-4 py-3 text-xs leading-relaxed text-graphite-2">
+            <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no) y los cantos con cubrecanto. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
+          </li>
+          {finish.lines.map((l) => {
+            const product = FINISH_PRODUCTS[l.product]
+            const { touch, recoat, use } = product.drying
+            const drying = [touch && `tacto ${touch}`, recoat && `entre manos ${recoat}`, use && `uso ${use}`].filter(Boolean).join(' · ')
+            return (
+              <li key={l.product} className="flex flex-col gap-2 px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <span className="numerals min-w-12 shrink-0 text-sm font-medium">{l.litres === null ? '¿?' : `${decimal(l.litres)} L`}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm">
+                      {product.name} <span className="text-graphite-2">({product.example})</span>
+                    </span>
+                    <span className="block text-xs text-graphite-2">{coatsOf(FINISHES[finish.finish].layers.filter((x) => x.product === l.product))}</span>
+                    {drying && <span className="block text-xs text-graphite-2">Secado: {drying}</span>}
+                    {l.litres === null && <span className="block text-xs text-rust">La referencia no da su rendimiento en m² por litro: pregunta en la tienda cuánto llevar.</span>}
+                  </span>
+                </div>
+                {l.containers.map((c) => (
+                  <div key={c.sku.id} className="flex items-center gap-3 pl-15">
+                    <span className="min-w-0 flex-1 text-xs">
+                      {c.count} × {c.sku.name}
+                    </span>
+                    <span className="flex flex-col items-end">
+                      <span className="numerals text-sm">{c.sku.price === null ? '—' : `${c.sku.id in settings.prices ? '' : '~'}${weights.format(c.sku.price * c.count)}`}</span>
+                      <Price id={c.sku.id} value={c.sku.price} base={base(c.sku.id)} unit="c/u" />
+                    </span>
+                  </div>
+                ))}
+              </li>
+            )
+          })}
+          {finish.sandpaper.length > 0 && (
+            <li className="px-4 py-3 text-sm">
+              Lija grano {finish.sandpaper.join(', ').replace(/, (\d+)$/, ' y $1')}
+              <span className="block text-xs text-graphite-2">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
+            </li>
+          )}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 export function Materials({ state, design, geo, catalog, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; onRequest: (text: string) => void }) {
   const settings = useStore((s) => s.catalogSettings)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
   const [anyway, setAnyway] = useState<string | null>(null)
-  const base = (id: string) => [...catalog.materials, ...catalog.hardware].find((x) => x.id === id)?.price ?? null
+  const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
   const own = Object.keys(settings.prices).length
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
@@ -209,7 +287,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
           {weights.format(purchase.cost.total)}
         </p>
         <p className="text-sm text-graphite-2">
-          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes y cubrecanto.
+          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
         </p>
         <div className="flex items-start gap-2 rounded-xl border border-amber/40 bg-amber-soft px-3 py-2 text-xs leading-relaxed">
           <Info className="mt-0.5 shrink-0" weight="bold" />
@@ -275,6 +353,8 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
           ))}
         </ul>
       </section>
+
+      <FinishSection design={design} finish={purchase.finish} base={base} />
 
       <section className="-mx-4 flex flex-col">
         <Title className="px-4 text-lg">Lista de corte</Title>

@@ -4,6 +4,7 @@ import type { Fix } from '../../domain/fixes/fixes'
 import type { TrayItem } from '../../domain/tray/tray'
 import type { FurniturePlan } from '../../domain/modules/plan'
 import type { Design, Axis } from '../../domain/design/schema'
+import type { FinishId } from '../../domain/materials/finishes'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
@@ -45,6 +46,8 @@ export interface SessionSlice {
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   editPiece(id: string, edit: PieceEdit): PieceEditResult
   resizeFurniture(axis: Axis, value: number): PieceEditResult
+  /** The finish picked in Materiales, as a version of its own. */
+  chooseFinish(finish: FinishId): void
 }
 
 const NO_DESIGN = 'No hay un diseño abierto.'
@@ -111,6 +114,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     }),
 
   confirmPiece: (id) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.confirmPiece(state, id))),
+  chooseFinish: (finish) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseFinish(state, finish))),
   addNote: (text) => withSession(get, (services, state) => set({ state: services.useCases.addRequirement(state, text) })),
   removeNote: (id) => withSession(get, (services, state) => set({ state: services.useCases.removeRequirement(state, id) })),
   removeDecision: (topic) => withSession(get, (services, state) => set({ state: services.useCases.removeDecision(state, topic) })),
