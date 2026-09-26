@@ -3,6 +3,7 @@ import { applySettings } from '../../domain/materials/catalog'
 import { trayRequest } from '../../domain/session/tray/tray'
 import type { TraceEntry } from '../../domain/session/trace/trace'
 import type { Dimensions } from '../../domain/design/schema'
+import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { markAnswered, type DesignState, type Message, type Thumbnail } from '../../domain/session/state'
 import type { Photo } from '../../ports/LLMProvider'
 import { moveTo } from './scene'
@@ -15,6 +16,8 @@ export interface CaptureInput {
   photos: Photo[]
   thumbnails: Thumbnail[]
   notes: string
+  /** What the person said the furniture is; null lets Knotty tell. */
+  kind: DesignKind | null
 }
 
 export interface ExpertSlice {
@@ -32,6 +35,8 @@ export interface ExpertSlice {
 
   reconstruct(input: CaptureInput): Promise<void>
   adjust(request: string, replyTo?: string | null, photo?: SentPhoto | null): Promise<void>
+  /** The furniture designed again as another module's kind, as a new version. */
+  redoAs(kind: DesignKind): Promise<void>
   /** The tray and what was typed, to the expert in one request. */
   sendTray(typed?: string): Promise<void>
   cancel(): void
@@ -91,6 +96,12 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     const { services, state } = get()
     if (!services || !state || !request.trim()) return Promise.resolve()
     return askExpert(set, get, request.trim(), replyTo, photo?.thumbnail ?? null, (signal, onAdvance) => services.useCases.adjust(state, request.trim(), signal, onAdvance, replyTo, photo))
+  },
+
+  redoAs(kind) {
+    const { services, state } = get()
+    if (!services || !state) return Promise.resolve()
+    return askExpert(set, get, `Rehazlo como ${KIND_NOUN[kind]}.`, null, null, (signal, onAdvance) => services.useCases.redoAs(state, kind, signal, onAdvance))
   },
 
   sendTray(typed = '') {
