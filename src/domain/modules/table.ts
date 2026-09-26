@@ -221,6 +221,7 @@ export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
   label: 'una mesa',
+  expert: { what: 'a table or a desk' },
   build: buildTable,
   describeChanges: describeTableChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),

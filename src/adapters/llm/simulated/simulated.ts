@@ -8,7 +8,7 @@ import type { PhotoReading } from '../../../domain/reading/reading'
 import { verdictOf } from '../../../domain/viability/viability'
 import { BED_LABELS, type BedPlan } from '../../../domain/modules/bed'
 import { TABLE_LABELS, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/modules/table'
-import type { LLMProvider, ExpertResponse, AdjustmentResponse, ReviewResponse, PlanResponse, ReconstructionResponse, ReviewRequest } from '../../../ports/LLMProvider'
+import { answerWith, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReviewResponse, type PlanResponse, type ReconstructionResponse, type ReviewRequest } from '../../../ports/LLMProvider'
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.
 
@@ -336,9 +336,7 @@ export function createSimulated(delay = 900): LLMProvider {
       if (table)
         return response<PlanResponse>({
           explanation: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
-          cabinet: null,
-          bed: null,
-          table,
+          ...answerWith(table),
           questions: [],
           requestedPhotos: [],
           requirements: [],
@@ -348,9 +346,7 @@ export function createSimulated(delay = 900): LLMProvider {
         explanation: bed
           ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${BED_LABELS.headboard[bed.headboard.style].phrase}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
           : '',
-        cabinet: null,
-        bed,
-        table: null,
+        ...answerWith(bed),
         questions: bed ? [{ text: '¿Cuánto peso va a cargar la cama?', options: ['Una persona', 'Dos personas'] }] : [],
         requestedPhotos: [],
         requirements: [],

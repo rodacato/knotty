@@ -325,6 +325,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
   kind: 'bed',
   schema: BedPlan,
   label: 'una cama',
+  expert: { what: 'a bed (a base with or without drawers, and a headboard)' },
   build: buildBed,
   describeChanges: describeBedChanges,
   // Its length and width come from the mattress; its height is the headboard's, or the base's without one.

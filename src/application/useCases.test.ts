@@ -14,7 +14,7 @@ import { findingKey } from '../domain/structure/finding'
 import { ruleTitle } from '../domain/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
 import type { DesignRepository } from '../ports/DesignRepository'
-import { InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
+import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type AdjustmentResponse } from '../ports/LLMProvider'
 import { createUseCases, currentPlan, reviewSignature } from './useCases'
 import { buildContext } from './context'
 import { noticeBoard } from './notices'
@@ -533,7 +533,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
       planDesign: async () => {
         calls.push('plan')
         if (fails) throw new Error('sin conexión')
-        return { value: { explanation: 'Una cajonera de tres cajones.', cabinet, bed, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: ['Hazla más alta'] }, origin, usage: { outputTokens: 400 } }
+        return { value: { explanation: 'Una cajonera de tres cajones.', ...answerWith(null), cabinet, bed, questions: [], requestedPhotos: [], requirements: [], suggestions: ['Hazla más alta'] }, origin, usage: { outputTokens: 400 } }
       },
       reconstruct: async (s, signal) => {
         calls.push('design')
@@ -646,11 +646,11 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     const calls: string[] = []
     const llm: LLMProvider = {
       ...simulated,
-      planDesign: async () => ({ value: { explanation: 'Cajonera.', cabinet: drawers(3), bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin, usage: {} }),
+      planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: drawers(3), questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin, usage: {} }),
       adjustPlan: adjust
         ? async () => {
             calls.push('plan')
-            return { value: { explanation: 'Listo.', summary: 'Cambio', action: 'plan', cabinet: null, bed: null, table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], ...adjust }, origin, usage: {} }
+            return { value: { explanation: 'Listo.', summary: 'Cambio', action: 'plan', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], ...adjust } as PlanAdjustment, origin, usage: {} }
           }
         : null,
       proposeAdjustment: async () => {
@@ -810,7 +810,7 @@ describe('editing a piece by hand, without the expert', () => {
   it('on a design with a plan, the hand edit rides on top as an extra, and widening goes through the plan', async () => {
     const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
     const simulated = createSimulated(0)
-    const c = setup({ ...simulated, planDesign: async () => ({ value: { explanation: 'Librero.', cabinet: plan, bed: null, table: null, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
+    const c = setup({ ...simulated, planDesign: async () => ({ value: { explanation: 'Librero.', ...answerWith(null), cabinet: plan, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
     const initial = await c.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Un librero' }, newSignal())
     const moved = c.editPiece(initial, 'c1-h1-shelf-1', { kind: 'move', axis: 'y', delta: 40 })
     if (!moved.ok) throw new Error(moved.message)

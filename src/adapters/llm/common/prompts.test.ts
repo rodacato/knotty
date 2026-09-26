@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { testCatalog } from '../../../domain/fixtures/catalog.test-util'
 import { materialById, usableSheet } from '../../../domain/materials/catalog'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/operations/drawer'
@@ -6,6 +7,8 @@ import { ASSUMPTIONS } from '../../../domain/structure/assumptions'
 import { MATTRESSES } from '../../../domain/modules/bed'
 import { TYPICAL_TABLE_DIMENSIONS } from '../../../domain/modules/table'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/modules/cabinet'
+import { FURNITURE_KINDS, MODULES } from '../../../domain/modules/plan'
+import { WRITTEN_BY_HAND } from './modulePrompts'
 import { PLAN_ADJUSTMENT, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, systemFor } from './prompts'
 import { fill, placeholdersIn, promptValues } from './promptValues'
 
@@ -110,5 +113,25 @@ describe('rendered prompts carry the values the code enforces', () => {
       `back "${DEFAULT_CONSTRUCTION.back}"`,
       `shelves "${DEFAULT_CONSTRUCTION.shelves}"`,
     ])
+  })
+})
+
+describe('every module reaches the expert', () => {
+  const rendered = [render(SKELETON, testCatalog), render(PLAN_ADJUSTMENT, testCatalog)]
+
+  it.each(FURNITURE_KINDS)('%s: its prose is written by hand in both prompts, or generated in both from its module', (kind) => {
+    const byHand = WRITTEN_BY_HAND.includes(kind)
+    for (const prompt of [SKELETON, PLAN_ADJUSTMENT]) expect({ kind, id: prompt.id, byHand: prompt.text.includes(`goes in \`${kind}\``) }).toEqual({ kind, id: prompt.id, byHand })
+    for (const text of rendered) expect(text).toContain(`goes in \`${kind}\``)
+  })
+
+  it('a generated section names every field of its plan', () => {
+    const [skeleton] = rendered
+    for (const kind of FURNITURE_KINDS.filter((k) => !WRITTEN_BY_HAND.includes(k)))
+      for (const key of Object.keys((MODULES[kind].schema as unknown as z.ZodObject).shape)) expect(skeleton).toContain(`- \`${key}\``)
+  })
+
+  it('names every plan field where it lists them', () => {
+    for (const kind of FURNITURE_KINDS) expect(render(PLAN_ADJUSTMENT, testCatalog)).toContain(`\`${kind}\``)
   })
 })
