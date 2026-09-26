@@ -50,6 +50,14 @@ describe('R9 for freeform drawers', () => {
     ])
   })
 
+  it('the runners it adds are as long as the box, like the ones the drawer brings: not the first slide in the catalog', () => {
+    const built = build(deep, [drawer()])
+    const brought = built.joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware[0].hardwareId
+    const inferred = completeJoints(freeform(built), testCatalog).joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware[0].hardwareId
+    expect(brought).toBe('drawer-slide-45')
+    expect(inferred).toBe(brought)
+  })
+
   it('a box side with nothing beside it has nowhere to screw the runner, and Knotty can put a piece there', () => {
     const d = freeform(build(deep, [drawer()]))
     // The box sits 100 mm in from the left side, with nothing beside it.

@@ -3,7 +3,7 @@ import { gapBetween } from '../../validation/contact'
 import type { Design } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
 import { drawerGroups } from '../../design/boxes'
-import { pickHardware, thinnestBoard } from '../../materials/catalog'
+import { slideForBox, thinnestBoard, type Catalog } from '../../materials/catalog'
 import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
@@ -17,7 +17,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const a = geo.boxes.get(u.a)
     const b = geo.boxes.get(u.b)
     const gap = a && b ? gapBetween(a, b) : null
-    const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? catalog.hardware.find((h) => h.sideClearance !== null)
+    const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? slideForBox(catalog, drawerSideLength(design, geo, u.a, u.b))
     if (!gap || !runner?.sideClearance) continue
     const off = gap.distance - runner.sideClearance
     if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
@@ -86,16 +86,24 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   return found
 }
 
+/** How long the drawer side of a runner joint is, front to back: the length its slide takes. */
+function drawerSideLength(design: Design, geo: Geometry, a: string, b: string) {
+  const side = [a, b].find((id) => design.pieces.find((p) => p.id === id)?.role === 'drawer-side') ?? a
+  const box = geo.boxes.get(side)
+  return box ? box.z1 - box.z0 : 0
+}
+
 const drawerName = (design: Design, group: string) => {
   const front = design.pieces.find((p) => p.group === group && p.role === 'drawer-front')
   return front ? front.name.replace(/^Frente de /i, '') : group
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
-function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
-  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
-  if (!runner?.sideClearance) return []
-  const gap = runner.sideClearance
+function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding[] {
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
+    const box = geo.boxes.get(side.id)!
+    const runner = slideForBox(catalog, box.z1 - box.z0)
+    if (!runner) return []
+    const gap = runner.sideClearance
     // A declared runner joint is checked above, with its own hardware.
     if (support && design.joints.some((u) => u.type === 'drawer-slide' && [u.a, u.b].includes(side.id))) return []
     const direction = towards < 0 ? 'left' : 'right'

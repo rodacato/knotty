@@ -1,5 +1,5 @@
 import { ASSUMPTIONS } from '../structure/assumptions'
-import { hardwareByRole, pickHardware, type Catalog } from '../materials/catalog'
+import { hardwareByRole, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
 import { JOINTS } from './jointSpecs'
@@ -100,11 +100,12 @@ export function completeJoints(design: Design, catalog: Catalog, previous?: Desi
     add(hinge(door, boxes.get(door.id)!, neighbours.map((piece) => ({ piece, box: boxes.get(piece.id)! })), catalog))
   }
 
-  // A drawer that came without runners gets them on the pieces beside its box; R9 then checks the gap.
-  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
+  // A drawer that came without runners gets them on the pieces beside its box, as long as the box; R9 then checks the gap and the length.
   const withRunner = new Set(design.joints.filter((u) => u.type === 'drawer-slide').flatMap((u) => [u.a, u.b]))
   const groupsWithHardware = new Set(design.joints.filter((u) => u.type === 'drawer-slide' && u.hardware.length).flatMap((u) => [byId.get(u.a)?.group, byId.get(u.b)?.group]))
   for (const { group, side, support } of drawerSides(design, boxes)) {
+    const box = boxes.get(side.id)!
+    const runner = slideForBox(catalog, box.z1 - box.z0)
     if (!runner || !support || withRunner.has(side.id)) continue
     // One runner in the catalog is a pair: the first side carries it, the other goes without hardware.
     const hardware = groupsWithHardware.has(group) ? [] : [{ hardwareId: runner.id, count: 1 }]

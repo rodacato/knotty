@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import data from '../../../public/catalog/catalog.json'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { ASSUMPTIONS } from '../structure/assumptions'
-import { applySettings, Catalog, HARDWARE_ROLES, hardwareByRole, NO_SETTINGS, pickHardware } from './catalog'
+import { applySettings, Catalog, HARDWARE_ROLES, hardwareByRole, NO_SETTINGS, pickHardware, slideFor, slideForBox } from './catalog'
 
 describe('hardware roles', () => {
   it('every catalog item has a known role, and every role has an item', () => {
@@ -37,6 +37,22 @@ describe('hardware roles', () => {
 
   it('the pocket screws of the table are catalog pocket screws of that length', () => {
     for (const row of ASSUMPTIONS.screws.pocketScrews) expect(pickHardware(testCatalog, 'pocket-screw', (h) => h.id === row.hardwareId)?.length).toBe(row.length)
+  })
+})
+
+describe('drawer slides', () => {
+  it('the longest that fits the depth behind the front, leaving 10 mm at the back', () => {
+    expect(slideFor(testCatalog, 469)?.id).toBe('drawer-slide-45')
+    expect(slideFor(testCatalog, 460)?.id).toBe('drawer-slide-45')
+    expect(slideFor(testCatalog, 459)?.id).toBe('drawer-slide-40')
+    expect(slideFor(testCatalog, 900)?.id).toBe('drawer-slide-50')
+    expect(slideFor(testCatalog, 300)).toBeUndefined()
+  })
+
+  it('a built box takes the slide as long as it is; shorter than every slide, the shortest', () => {
+    expect(slideForBox(testCatalog, 400)?.id).toBe('drawer-slide-40')
+    expect(slideForBox(testCatalog, 420)?.id).toBe('drawer-slide-40')
+    expect(slideForBox(testCatalog, 250)?.id).toBe('drawer-slide-30')
   })
 })
 

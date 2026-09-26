@@ -100,6 +100,24 @@ export const hardwareByRole = (catalog: Catalog, role: HardwareRole) => catalog.
 /** The first item of a role that meets the condition: with several of a role, the first in the catalog is the usual one. */
 export const pickHardware = (catalog: Catalog, role: HardwareRole, predicate: (h: Hardware) => boolean = () => true) => hardwareByRole(catalog, role).find(predicate)
 
+/** A drawer slide that says what placing it takes: its length and the gap it needs on each side of the box. */
+export type Slide = Hardware & { length: number; sideClearance: number }
+/** The catalog's drawer slides that say their length and side gap, in catalog order. */
+export const slidesOf = (catalog: Catalog) => hardwareByRole(catalog, 'drawer-slide').filter((h): h is Slide => h.length !== null && h.sideClearance !== null)
+/** What a slide leaves free behind it, past the end of the box. */
+export const SLIDE_BACK_CLEARANCE = 10
+/**
+ * The longest slide that fits a drawer with this much depth behind its front, leaving the clearance at the back.
+ * Undefined when not even the shortest fits. Every place that picks a slide asks here, so a deep drawer gets a long one.
+ */
+export const slideFor = (catalog: Catalog, depth: number): Slide | undefined =>
+  slidesOf(catalog)
+    .filter((s) => s.length <= depth - SLIDE_BACK_CLEARANCE + 0.5)
+    .sort((a, b) => b.length - a.length)[0]
+/** The slide for a box already built, which is as long as its slide: a box shorter than every slide gets the shortest, and R9 says it does not fit. */
+export const slideForBox = (catalog: Catalog, boxLength: number): Slide | undefined =>
+  slideFor(catalog, boxLength + SLIDE_BACK_CLEARANCE) ?? [...slidesOf(catalog)].sort((a, b) => a.length - b.length)[0]
+
 /** The containers the catalog sells of a finish product, in catalog order. */
 export const finishSkus = (catalog: Catalog, product: FinishProductId) => catalog.finishes.filter((f) => f.product === product)
 
