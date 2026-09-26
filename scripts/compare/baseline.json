@@ -1,0 +1,1145 @@
+{
+  "label": "base 2026-09-26",
+  "commit": "8475ce9",
+  "date": "2026-09-26T20:20:00.497Z",
+  "checkout": null,
+  "rows": [
+    {
+      "caseId": "bookcase",
+      "ok": true,
+      "error": null,
+      "seconds": 17.970703292000003,
+      "calls": 1,
+      "outputTokens": 1583,
+      "inputTokens": 4689,
+      "path": "plan",
+      "pieces": 10,
+      "joints": 23,
+      "measures": "1800 × 800 × 300",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 0,
+          "drawers": 0
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 0,
+          "open": 5
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "¿Cuánto cuesta?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 17.960067667,
+          "input": 4689,
+          "output": 1583
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "bed-drawers",
+      "ok": true,
+      "error": null,
+      "seconds": 11.156748082999998,
+      "calls": 1,
+      "outputTokens": 907,
+      "inputTokens": 3679,
+      "path": "plan",
+      "pieces": 40,
+      "joints": 81,
+      "measures": "1100 × 2188 × 1010",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+bed@2",
+          "seconds": 11.142546041999998,
+          "input": 3679,
+          "output": 907
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+bed@2"
+    },
+    {
+      "caseId": "nightstand",
+      "ok": true,
+      "error": null,
+      "seconds": 13.098940333000002,
+      "calls": 1,
+      "outputTokens": 886,
+      "inputTokens": 4672,
+      "path": "plan",
+      "pieces": 25,
+      "joints": 48,
+      "measures": "550 × 450 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "drawers": 1,
+          "open": 1
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 1,
+          "open": 1
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 13.087285416999999,
+          "input": 4672,
+          "output": 886
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "bed",
+      "ok": true,
+      "error": null,
+      "seconds": 19.34466675,
+      "calls": 1,
+      "outputTokens": 1469,
+      "inputTokens": 8120,
+      "path": "plan",
+      "pieces": 19,
+      "joints": 43,
+      "measures": "1000 × 2188 × 1010",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "Súbela a 45 cm y ponle cajones del lado izquierdo",
+          "by": "expert",
+          "calls": 1,
+          "outcome": "proposal"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+bed@2",
+          "seconds": 19.337173999999997,
+          "input": 8120,
+          "output": 1469
+        },
+        {
+          "step": "plan-adjust",
+          "promptId": "plan-adjust@12+bed@2",
+          "seconds": 10.096014750000002,
+          "input": 4096,
+          "output": 711
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+bed@2"
+    },
+    {
+      "caseId": "wall-cabinet",
+      "ok": true,
+      "error": null,
+      "seconds": 14.870064583999993,
+      "calls": 1,
+      "outputTokens": 1143,
+      "inputTokens": 4675,
+      "path": "plan",
+      "pieces": 9,
+      "joints": 17,
+      "measures": "700 × 800 × 300",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 2
+        },
+        "found": {
+          "doors": 2,
+          "drawers": 0,
+          "open": 0
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 14.863763208000004,
+          "input": 4675,
+          "output": 1143
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "desk",
+      "ok": true,
+      "error": null,
+      "seconds": 15.73368870900001,
+      "calls": 1,
+      "outputTokens": 1445,
+      "inputTokens": 7521,
+      "path": "plan",
+      "pieces": 23,
+      "joints": 46,
+      "measures": "750 × 1200 × 600",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+table@2",
+          "seconds": 15.725688875000007,
+          "input": 7521,
+          "output": 1445
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+table@2"
+    },
+    {
+      "caseId": "shoe-cabinet",
+      "ok": true,
+      "error": null,
+      "seconds": 15.924379709,
+      "calls": 1,
+      "outputTokens": 1289,
+      "inputTokens": 3576,
+      "path": "plan",
+      "pieces": 8,
+      "joints": 17,
+      "measures": "900 × 800 × 350",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 0
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 0,
+          "open": null
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+shoeRack@auto",
+          "seconds": 15.922112708,
+          "input": 3576,
+          "output": 1289
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+shoeRack@auto"
+    },
+    {
+      "caseId": "shoe-rack",
+      "ok": true,
+      "error": null,
+      "seconds": 15.315949041000014,
+      "calls": 1,
+      "outputTokens": 1079,
+      "inputTokens": 3576,
+      "path": "plan",
+      "pieces": 11,
+      "joints": 22,
+      "measures": "900 × 726 × 330",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "Sin zoclo",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "version"
+        },
+        {
+          "request": "¿Cuántas hojas?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+shoeRack@auto",
+          "seconds": 15.311522499999992,
+          "input": 3576,
+          "output": 1079
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+shoeRack@auto"
+    },
+    {
+      "caseId": "tv-stand",
+      "ok": true,
+      "error": null,
+      "seconds": 58.962374958,
+      "calls": 1,
+      "outputTokens": 2140,
+      "inputTokens": 10679,
+      "path": "plan",
+      "pieces": 28,
+      "joints": 59,
+      "measures": "450 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 2,
+          "open": 1
+        },
+        "found": {
+          "doors": 2,
+          "drawers": 0,
+          "open": 1
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 58.953612334000006,
+          "input": 10679,
+          "output": 2140
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "sideboard",
+      "ok": true,
+      "error": null,
+      "seconds": 30.456545417000015,
+      "calls": 1,
+      "outputTokens": 3119,
+      "inputTokens": 12031,
+      "path": "plan",
+      "pieces": 55,
+      "joints": 114,
+      "measures": "940 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "found": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "¿Cuánto cuesta?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        },
+        {
+          "request": "Cambia el cajoncito de arriba por un nicho abierto",
+          "by": "expert",
+          "calls": 1,
+          "outcome": "version"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3+sideboard@3",
+          "seconds": 30.43426354100002,
+          "input": 12031,
+          "output": 3119
+        },
+        {
+          "step": "plan-adjust",
+          "promptId": "plan-adjust@12+cabinet@3+sideboard@3",
+          "seconds": 9.980228249999985,
+          "input": 5569,
+          "output": 878
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3+sideboard@3"
+    },
+    {
+      "caseId": "sideboard-explicit",
+      "ok": true,
+      "error": null,
+      "seconds": 18.698097999999998,
+      "calls": 1,
+      "outputTokens": 1750,
+      "inputTokens": 5086,
+      "path": "plan",
+      "pieces": 55,
+      "joints": 114,
+      "measures": "940 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "found": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3+sideboard@3",
+          "seconds": 18.679080832999986,
+          "input": 5086,
+          "output": 1750
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3+sideboard@3"
+    },
+    {
+      "caseId": "coffee-table",
+      "ok": true,
+      "error": null,
+      "seconds": 8.154712624999986,
+      "calls": 1,
+      "outputTokens": 586,
+      "inputTokens": 3348,
+      "path": "plan",
+      "pieces": 8,
+      "joints": 14,
+      "measures": "420 × 1000 × 550",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+table@2",
+          "seconds": 8.151946832999995,
+          "input": 3348,
+          "output": 586
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+table@2"
+    },
+    {
+      "caseId": "plant-stand",
+      "ok": true,
+      "error": null,
+      "seconds": 210.600956167,
+      "calls": 3,
+      "outputTokens": 20261,
+      "inputTokens": 54402,
+      "path": "pieces",
+      "pieces": 9,
+      "joints": 10,
+      "measures": "750 × 800 × 750",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [
+        "E_FLOATING"
+      ],
+      "repairs": 0,
+      "criticals": 1,
+      "rules": [
+        "R5_RACKING"
+      ],
+      "verdict": "needs-changes",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+all",
+          "seconds": 14.442986832999974,
+          "input": 8579,
+          "output": 1082
+        },
+        {
+          "step": "pieces",
+          "promptId": "system@11+reconstruction@12",
+          "seconds": 76.675831917,
+          "input": 10911,
+          "output": 7242
+        },
+        {
+          "step": "pieces",
+          "promptId": "system@11+reconstruction@12",
+          "seconds": 119.47502037500003,
+          "input": 34912,
+          "output": 11937
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "system@11+reconstruction@12"
+    },
+    {
+      "caseId": "bookcase",
+      "ok": true,
+      "error": null,
+      "seconds": 18.964323290999978,
+      "calls": 1,
+      "outputTokens": 1654,
+      "inputTokens": 4690,
+      "path": "plan",
+      "pieces": 10,
+      "joints": 23,
+      "measures": "1800 × 800 × 300",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 0,
+          "drawers": 0
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 0,
+          "open": 5
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "¿Cuánto cuesta?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 18.96157458299998,
+          "input": 4690,
+          "output": 1654
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "bed-drawers",
+      "ok": true,
+      "error": null,
+      "seconds": 13.13630237499997,
+      "calls": 1,
+      "outputTokens": 989,
+      "inputTokens": 3678,
+      "path": "plan",
+      "pieces": 40,
+      "joints": 81,
+      "measures": "1100 × 2188 × 1010",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+bed@2",
+          "seconds": 13.123319709000002,
+          "input": 3678,
+          "output": 989
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+bed@2"
+    },
+    {
+      "caseId": "nightstand",
+      "ok": true,
+      "error": null,
+      "seconds": 15.21266945799999,
+      "calls": 1,
+      "outputTokens": 1547,
+      "inputTokens": 10263,
+      "path": "plan",
+      "pieces": 24,
+      "joints": 46,
+      "measures": "550 × 450 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "drawers": 1,
+          "open": 1
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 1,
+          "open": 1
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 15.206020416000044,
+          "input": 10263,
+          "output": 1547
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "bed",
+      "ok": true,
+      "error": null,
+      "seconds": 9.218464750000043,
+      "calls": 1,
+      "outputTokens": 704,
+      "inputTokens": 3632,
+      "path": "plan",
+      "pieces": 12,
+      "joints": 29,
+      "measures": "1000 × 1956 × 1010",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "Súbela a 45 cm y ponle cajones del lado izquierdo",
+          "by": "expert",
+          "calls": 1,
+          "outcome": "proposal"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+bed@2",
+          "seconds": 9.214287708999997,
+          "input": 3632,
+          "output": 704
+        },
+        {
+          "step": "plan-adjust",
+          "promptId": "plan-adjust@12+bed@2",
+          "seconds": 16.782177917000023,
+          "input": 8806,
+          "output": 1066
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+bed@2"
+    },
+    {
+      "caseId": "wall-cabinet",
+      "ok": true,
+      "error": null,
+      "seconds": 20.361726000000026,
+      "calls": 1,
+      "outputTokens": 1893,
+      "inputTokens": 10480,
+      "path": "plan",
+      "pieces": 9,
+      "joints": 17,
+      "measures": "700 × 800 × 300",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 2
+        },
+        "found": {
+          "doors": 2,
+          "drawers": 0,
+          "open": 0
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 20.356959334000013,
+          "input": 10480,
+          "output": 1893
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "desk",
+      "ok": true,
+      "error": null,
+      "seconds": 17.27111262499995,
+      "calls": 1,
+      "outputTokens": 1100,
+      "inputTokens": 3350,
+      "path": "plan",
+      "pieces": 6,
+      "joints": 11,
+      "measures": "750 × 1200 × 600",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+table@2",
+          "seconds": 17.269746916000035,
+          "input": 3350,
+          "output": 1100
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+table@2"
+    },
+    {
+      "caseId": "shoe-cabinet",
+      "ok": true,
+      "error": null,
+      "seconds": 14.3795,
+      "calls": 1,
+      "outputTokens": 1235,
+      "inputTokens": 3578,
+      "path": "plan",
+      "pieces": 9,
+      "joints": 20,
+      "measures": "900 × 800 × 350",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 0
+        },
+        "found": {
+          "doors": 0,
+          "drawers": 0,
+          "open": null
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+shoeRack@auto",
+          "seconds": 14.378194832999958,
+          "input": 3578,
+          "output": 1235
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+shoeRack@auto"
+    },
+    {
+      "caseId": "shoe-rack",
+      "ok": true,
+      "error": null,
+      "seconds": 14.962973416999914,
+      "calls": 1,
+      "outputTokens": 1163,
+      "inputTokens": 3577,
+      "path": "plan",
+      "pieces": 11,
+      "joints": 22,
+      "measures": "900 × 726 × 330",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "Sin zoclo",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "version"
+        },
+        {
+          "request": "¿Cuántas hojas?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+shoeRack@auto",
+          "seconds": 14.959700000000069,
+          "input": 3577,
+          "output": 1163
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+shoeRack@auto"
+    },
+    {
+      "caseId": "tv-stand",
+      "ok": true,
+      "error": null,
+      "seconds": 17.293173624999937,
+      "calls": 1,
+      "outputTokens": 1305,
+      "inputTokens": 4698,
+      "path": "plan",
+      "pieces": 29,
+      "joints": 59,
+      "measures": "450 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 2,
+          "open": 1
+        },
+        "found": {
+          "doors": 2,
+          "drawers": 0,
+          "open": 1
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3",
+          "seconds": 17.285315541999996,
+          "input": 4698,
+          "output": 1305
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3"
+    },
+    {
+      "caseId": "sideboard",
+      "ok": true,
+      "error": null,
+      "seconds": 31.995246999999974,
+      "calls": 1,
+      "outputTokens": 3201,
+      "inputTokens": 12206,
+      "path": "plan",
+      "pieces": 41,
+      "joints": 86,
+      "measures": "940 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "found": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [
+        {
+          "request": "¿Cuánto cuesta?",
+          "by": "knotty",
+          "calls": 0,
+          "outcome": "answer"
+        },
+        {
+          "request": "Cambia el cajoncito de arriba por un nicho abierto",
+          "by": "expert",
+          "calls": 1,
+          "outcome": "version"
+        }
+      ],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3+sideboard@3",
+          "seconds": 31.967296249999897,
+          "input": 12206,
+          "output": 3201
+        },
+        {
+          "step": "plan-adjust",
+          "promptId": "plan-adjust@12+cabinet@3+sideboard@3",
+          "seconds": 8.868317750000045,
+          "input": 5645,
+          "output": 854
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3+sideboard@3"
+    },
+    {
+      "caseId": "sideboard-explicit",
+      "ok": true,
+      "error": null,
+      "seconds": 30.74123304099997,
+      "calls": 1,
+      "outputTokens": 3236,
+      "inputTokens": 12100,
+      "path": "plan",
+      "pieces": 55,
+      "joints": 117,
+      "measures": "940 × 1600 × 400",
+      "reasonable": true,
+      "structure": {
+        "expected": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "found": {
+          "doors": 3,
+          "drawers": 3,
+          "open": 3
+        },
+        "ok": true
+      },
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+cabinet@3+sideboard@3",
+          "seconds": 30.730560792000034,
+          "input": 12100,
+          "output": 3236
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+cabinet@3+sideboard@3"
+    },
+    {
+      "caseId": "coffee-table",
+      "ok": true,
+      "error": null,
+      "seconds": 18.15988037499995,
+      "calls": 1,
+      "outputTokens": 1373,
+      "inputTokens": 7514,
+      "path": "plan",
+      "pieces": 8,
+      "joints": 14,
+      "measures": "420 × 1000 × 550",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [],
+      "repairs": 0,
+      "criticals": 0,
+      "rules": [],
+      "verdict": "viable",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+table@2",
+          "seconds": 18.157464665999985,
+          "input": 7514,
+          "output": 1373
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "skeleton@15+table@2"
+    },
+    {
+      "caseId": "plant-stand",
+      "ok": true,
+      "error": null,
+      "seconds": 283.78374929099994,
+      "calls": 4,
+      "outputTokens": 30912,
+      "inputTokens": 131383,
+      "path": "pieces",
+      "pieces": 9,
+      "joints": 10,
+      "measures": "750 × 800 × 750",
+      "reasonable": true,
+      "structure": null,
+      "corrections": [
+        "E_FLOATING"
+      ],
+      "repairs": 0,
+      "criticals": 1,
+      "rules": [
+        "R5_RACKING"
+      ],
+      "verdict": "needs-changes",
+      "adjustments": [],
+      "callLog": [
+        {
+          "step": "skeleton",
+          "promptId": "skeleton@15+all",
+          "seconds": 27.68133470799995,
+          "input": 18567,
+          "output": 2261
+        },
+        {
+          "step": "pieces",
+          "promptId": "system@11+reconstruction@12",
+          "seconds": 89.68872100000002,
+          "input": 27051,
+          "output": 8565
+        },
+        {
+          "step": "pieces",
+          "promptId": "system@11+reconstruction@12",
+          "seconds": 78.03441749999998,
+          "input": 32681,
+          "output": 9355
+        },
+        {
+          "step": "pieces",
+          "promptId": "system@11+reconstruction@12",
+          "seconds": 88.37256012500008,
+          "input": 53084,
+          "output": 10731
+        }
+      ],
+      "model": "shellm:claude",
+      "prompt": "system@11+reconstruction@12"
+    }
+  ]
+}
