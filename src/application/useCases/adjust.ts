@@ -1,3 +1,4 @@
+import { kindOf } from '../../domain/furniture/kind'
 import { byPerson, keepPersonKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
@@ -176,10 +177,12 @@ export function createAdjust(kit: Kit) {
     const plan = current.plan
     if (!plan || current.diverged || !llm.adjustPlan || photo) return null
     const context = buildPlanContext(withRequest, catalog, current.extras)
+    const known = kindOf(design).kind
+    const use = known === 'unknown' ? null : known
     let correction: PlanAdjustRequest['correction'] = null
     for (let attempt = 0; attempt < PLAN_ATTEMPTS; attempt++) {
       onProgress(correction ? 'correcting' : 'proposing', attempt)
-      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, catalog, correction }, signal), {
+      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, kind: use, catalog, correction }, signal), {
         step: 'adjust',
         attempt,
         signal,

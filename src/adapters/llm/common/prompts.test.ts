@@ -7,9 +7,10 @@ import { ASSUMPTIONS } from '../../../domain/checks/structure/assumptions'
 import { MATTRESSES } from '../../../domain/furniture/modules/bed'
 import { TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/table'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
-import { FURNITURE_KINDS, MODULES } from '../../../domain/furniture/modules/plan'
+import { FURNITURE_KINDS, MODULE_OF_KIND, MODULES } from '../../../domain/furniture/modules/plan'
+import type { DesignKind } from '../../../domain/design/kind'
 import { WRITTEN_BY_HAND } from './modulePrompts'
-import { MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, skeletonFor, systemFor } from './prompts'
+import { KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, skeletonFor, systemFor } from './prompts'
 import { strictSchema } from './jsonSchema'
 import { planAdjustmentFor as planAdjustmentSchema, PlanResponse, planResponseFor } from '../../../ports/LLMProvider'
 import { fill, placeholdersIn, promptValues } from './promptValues'
@@ -24,7 +25,7 @@ const contains = (text: string, literal: string) => new RegExp(`(?<![\\d.])${esc
 
 describe('prompt files', () => {
   it('each file is loaded and named after its id (name@version → name.vversion.md)', () => {
-    const loaded = [...PROMPTS.slice(0, 5), SKELETON, PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS)]
+    const loaded = [...PROMPTS.slice(0, 5), SKELETON, PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS), ...Object.values(KIND_PROMPTS)]
     expect(byName.map((f) => f.name).sort()).toEqual(loaded.map((p) => `${p.id.replace('@', '.v')}.md`).sort())
   })
 
@@ -172,6 +173,30 @@ describe('the skeleton asks only about the module the furniture is known to be',
   })
 })
 
+describe('a guide by use joins its module when the furniture is known to be that use', () => {
+  it('every guide is for a kind that has a module', () => {
+    for (const use of Object.keys(KIND_PROMPTS) as DesignKind[]) expect({ use, module: MODULE_OF_KIND[use] }).toEqual({ use, module: expect.any(String) })
+  })
+
+  it('a sideboard gets its guide in the skeleton and in plan-adjust, after its module, and says so in the id', () => {
+    const guide = KIND_PROMPTS.sideboard!
+    const skeleton = skeletonFor('cabinet', 'sideboard')
+    expect(skeleton.id).toBe(`${SKELETON.id}+${MODULE_PROMPTS.cabinet!.id}+${guide.id}`)
+    expect(skeleton.text.indexOf(guide.text)).toBeGreaterThan(skeleton.text.indexOf(MODULE_PROMPTS.cabinet!.sections.skeleton))
+    expect(skeleton.text.indexOf(guide.text)).toBeLessThan(skeleton.text.indexOf('## Everything else'))
+    const adjust = planAdjustmentFor('cabinet', 'sideboard')
+    expect(adjust.id).toBe(`${PLAN_ADJUSTMENT.id}+${MODULE_PROMPTS.cabinet!.id}+${guide.id}`)
+    expect(adjust.text).toContain(guide.text)
+  })
+
+  it('a use without a guide, another module’s use or no module at all leave the prompt as it was', () => {
+    expect(skeletonFor('cabinet', 'bookcase')).toEqual(skeletonFor('cabinet'))
+    expect(skeletonFor('bed', 'sideboard')).toEqual(skeletonFor('bed'))
+    expect(skeletonFor(null, 'sideboard')).toEqual(skeletonFor(null))
+    expect(planAdjustmentFor('table', 'sideboard')).toEqual(planAdjustmentFor('table'))
+  })
+})
+
 describe('adjusting a plan asks only about its own module', () => {
   it.each(FURNITURE_KINDS)('%s: its prompt and schema name its field and no other module', (kind) => {
     const prompt = planAdjustmentFor(kind)
@@ -206,7 +231,18 @@ const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { c
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
 const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 5670, cabinet: 2815, bed: 2105, table: 1840, shoeRack: 1960 }
 
+/** With the guide of its use, measured the same way (sideboard@1). */
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3080, adjust: 2690 } }
+
 describe('token budget', () => {
+  it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {
+    const module = MODULE_OF_KIND[use]!
+    const skeleton = tokens(render(skeletonFor(module, use), testCatalog)) + tokens(JSON.stringify(strictSchema(planResponseFor(module))))
+    const adjust = tokens(render(planAdjustmentFor(module, use), testCatalog)) + tokens(JSON.stringify(strictSchema(planAdjustmentSchema(module))))
+    expect(skeleton).toBeLessThanOrEqual(GUIDED_BUDGET[use]!.skeleton)
+    expect(adjust).toBeLessThanOrEqual(GUIDED_BUDGET[use]!.adjust)
+  })
+
   it.each([null, ...FURNITURE_KINDS])('the skeleton for %s: prompt and schema within budget', (kind) => {
     const sent = tokens(render(skeletonFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(kind ? planResponseFor(kind) : PlanResponse)))
     expect(sent).toBeLessThanOrEqual(SKELETON_BUDGET[kind ?? 'all'])

@@ -128,6 +128,8 @@ export interface PlanAdjustRequest {
   context: string
   request: string
   plan: FurniturePlan
+  /** What the furniture is, for the guide of its use when there is one. */
+  kind?: DesignKind | null
   catalog: Catalog
   /** On the correction round: the plan answered before and why it did not build. */
   correction: { previousResponse: unknown; errors: string } | null

@@ -5,7 +5,7 @@ import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { exampleSideboard, sideboardPlan } from '../../domain/furniture/examples'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
-import type { LLMProvider } from '../../ports/LLMProvider'
+import { answerWith, type LLMProvider } from '../../ports/LLMProvider'
 import { createUseCases, currentPlan } from '.'
 
 const memory = (): DesignRepository => {
@@ -140,5 +140,26 @@ describe('which module the skeleton is asked about', () => {
     await run(c, 'Un librero para la sala', null, [])
     await run(c, 'Algo para guardar cosas en la entrada', null, [])
     expect(asked).toEqual(['bookcase', null])
+  })
+})
+
+describe('what the plan adjustment is told the furniture is', () => {
+  it('the design’s kind, so its guide can come along', async () => {
+    const asked: (string | null | undefined)[] = []
+    const simulated = createSimulated(0)
+    const llm: LLMProvider = {
+      ...simulated,
+      adjustPlan: async (r) => {
+        asked.push(r.kind)
+        return {
+          value: { explanation: 'Así queda.', summary: 'Responder', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] },
+          origin: { promptId: 'test', provider: 'test', model: 'test' },
+          usage: {},
+        }
+      },
+    }
+    const c = createUseCases({ llm: () => llm, catalog: testCatalog, repository: memory(), now: () => '2026-09-26T10:00:00Z', newId: () => `a${++id}` })
+    await c.adjust(c.openExample(exampleSideboard), 'Cambia el cajoncito de arriba por un nicho abierto', signal())
+    expect(asked).toEqual(['sideboard'])
   })
 })
