@@ -67,7 +67,15 @@ KNOTTY_CASES=bookcase,plant-stand npm run compare
 KNOTTY_REPEAT=3 KNOTTY_LABEL="mi cambio" npm run compare
 ```
 
-`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`). El reporte queda en `scripts/compare/results/` con tiempo, intentos, camino (ficha o pieza por pieza), medidas razonables, críticos y veredicto. Compáralo con el reporte anterior: la corrida varía, así que repite un caso antes de concluir.
+`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`); si le falta la llave o la dirección, se detiene antes de correr nada. Cada caso es una prueba: sale ✓ o ×, con lo que no cuadró, en cuanto termina (`KNOTTY_PARALLEL` casos a la vez, 2 por omisión). Al arrancar avisa si tu checkout no es `origin/main` (commits de más o de menos, cambios sin commit): mide el código que tienes, no el de `main`.
+
+El reporte (`.md` y `.json`) queda en `scripts/compare/results/`, fuera de git, y se reescribe al terminar cada caso: si cortas la corrida, lo hecho se queda. Trae tiempo, intentos, camino (ficha o pieza por pieza), medidas razonables, estructura, críticos, veredicto, tokens y una sección **Contra la base**: cada caso contra el mismo caso en `scripts/compare/baseline.json`, la única corrida que vive en git. La corrida varía, así que repite un caso antes de concluir.
+
+```bash
+KNOTTY_SAVE_BASELINE=1 KNOTTY_REPEAT=2 KNOTTY_LABEL="prompts@N" npm run compare   # fija esta corrida como base
+KNOTTY_BASELINE=scripts/compare/results/<corrida>.json npm run compare            # contra otra corrida
+KNOTTY_BASELINE=none npm run compare                                               # sin base
+```
 
 ### Qué correr según lo que tocaste
 
@@ -98,7 +106,7 @@ Nunca se guardan en claro en `localStorage`: viven en memoria, en la pestaña o 
 - Cada prompt lleva `id: nombre@versión` en su encabezado, y el archivo se llama igual (`system.v9.md`). Si cambias el contenido, sube la versión en los dos: cada diseño guarda qué prompt lo produjo.
 - Los números del oficio (medidas mínimas, hoja útil, colchones, tornillos) no se escriben a mano en un prompt: van como `{{nombre}}` y salen del código en `src/adapters/llm/common/promptValues.ts`. Una prueba falla si uno aparece escrito a mano.
 - Corre el banco con experto antes y después (4).
-- Los reportes de `scripts/compare/results/` son historial: no se reescriben, ni con un reemplazo global.
+- La base (`scripts/compare/baseline.json`) se actualiza a propósito, en el PR que cambia lo que ve el experto y con una corrida completa, y el paso de la propuesta dice sus cifras. Los reportes viejos de `scripts/compare/results/` que ya están en git son historial: no se reescriben, ni con un reemplazo global; los nuevos no se suben.
 
 ### Textos para la persona
 
