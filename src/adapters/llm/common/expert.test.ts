@@ -106,7 +106,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', ...answerWith(null), questions: [], requestedPhotos: [], requirements: [], suggestions: [] })
     const r = await expert.planDesign!({ measures: null, photos: [], notes: 'una cama', reading: null, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.value.cabinet).toBeNull()
-    expect(r.origin.promptId).toBe('skeleton@14')
+    expect(r.origin.promptId).toBe('skeleton@15+all')
     expect(calls[0].system).toContain('"T18" (18 mm)')
     expect(calls[0].system).not.toContain('{{materials}}')
     expect(calls[0].content[0]).not.toMatchObject({ text: expect.stringContaining('The person chose') })
@@ -122,7 +122,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@1')
+    expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@2')
     expect(calls[0].system).toContain('"T15" (15 mm)')
     expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"kind":"cabinet","name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
   })
@@ -134,7 +134,7 @@ describe('createExpert', () => {
     expect(Object.keys(calls[0].schema.properties as object)).toEqual(['explanation', 'summary', 'action', 'bed', 'questions', 'suggestions', 'requirements', 'decisions'])
     expect(calls[0].system).toContain('goes in `bed`')
     expect(calls[0].system).not.toContain('goes in `cabinet`')
-    expect(r.origin.promptId).toBe('plan-adjust@12+bed@1')
+    expect(r.origin.promptId).toBe('plan-adjust@12+bed@2')
     expect(expertPlans(r.value)).toEqual({ bed: { ...bed, height: 450 }, cabinet: null, table: null, shoeRack: null })
   })
 

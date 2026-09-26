@@ -1,12 +1,11 @@
 import { z } from 'zod'
-import { FURNITURE_KINDS, MODULES, type FurnitureKind } from '../../../domain/furniture/modules/plan'
+import { MODULES, type FurnitureKind } from '../../../domain/furniture/modules/plan'
 
 // What the skeleton and plan-adjust prompts say about each module that has no prose of its own: written from its descriptor and its schema's descriptions.
 
 /** Modules whose sections the prompts write by hand, tuned with `npm run compare`; any other gets its section from here. */
 export const WRITTEN_BY_HAND: readonly FurnitureKind[] = ['cabinet', 'bed', 'table']
 
-const generated = () => FURNITURE_KINDS.filter((kind) => !WRITTEN_BY_HAND.includes(kind))
 
 const capitalized = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
@@ -34,17 +33,11 @@ function fieldLines(schema: z.ZodObject, indent = ''): string[] {
 
 const schemaOf = (kind: FurnitureKind) => MODULES[kind].schema as unknown as z.ZodObject
 
-/** The skeleton's list of what the app builds: one line per generated module. */
-export const moduleList = () =>
-  generated()
-    .map((kind) => `- ${capitalized(MODULES[kind].expert.what)}. It goes in \`${kind}\`.`)
-    .join('\n')
+/** The skeleton's line for a generated module, in its list of what the app builds. */
+export const modulePick = (kind: FurnitureKind) => `- ${capitalized(MODULES[kind].expert.what)}. It goes in \`${kind}\`.`
 
-/** The skeleton's section for each generated module: every field of its plan with what it means. */
-export const moduleGuides = () =>
-  generated()
-    .map((kind) => [`## ${title(MODULES[kind].expert.what)} (\`${kind}\`)`, '', ...fieldLines(schemaOf(kind))].join('\n'))
-    .join('\n\n')
+/** The skeleton's section for a generated module: every field of its plan with what it means. */
+export const moduleGuide = (kind: FurnitureKind) => [`## ${title(MODULES[kind].expert.what)} (\`${kind}\`)`, '', ...fieldLines(schemaOf(kind))].join('\n')
 
 /** What plan-adjust says of a generated module: one line with the fields its plan has. */
 export const moduleSummary = (kind: FurnitureKind) =>

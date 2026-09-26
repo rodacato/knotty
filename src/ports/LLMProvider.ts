@@ -80,15 +80,25 @@ export const expertPlans = (r: ExpertPlans): { [K in FurnitureKind]: PlanOf<K> |
 export const answerWith = (plan: FurniturePlan | null): ExpertPlans => Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, plan?.kind === kind ? plan : null])) as ExpertPlans
 
 /** The skeleton: when the piece of furniture has a module, its plan is enough and Knotty builds every piece. */
-export const PlanResponse = z.object({
-  explanation: z.string().describe('What you understood and what you decided, in 2–4 sentences for the person, in Spanish'),
-  ...planFields((what) => `The plan if the furniture is ${what}; null if it is not`),
-  questions: z.array(Question).describe('What changes the design or the purchase the most; at most 3'),
-  requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
-  requirements: z.array(Requirement),
-  suggestions: z.array(z.string()).describe('3 or 4 changes the person could ask for right away, in Spanish, written as they would ask'),
-})
+const planResponse = <P extends z.ZodRawShape>(plans: P) =>
+  z.object({
+    explanation: z.string().describe('What you understood and what you decided, in 2–4 sentences for the person, in Spanish'),
+    ...plans,
+    questions: z.array(Question).describe('What changes the design or the purchase the most; at most 3'),
+    requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
+    requirements: z.array(Requirement),
+    suggestions: z.array(z.string()).describe('3 or 4 changes the person could ask for right away, in Spanish, written as they would ask'),
+  })
+
+const designedPlan = (what: string) => `The plan if the furniture is ${what}; null if it is not`
+
+/** What the app reads from the skeleton, with every module's field; also what the expert is asked for when the kind is unknown. */
+export const PlanResponse = planResponse(planFields(designedPlan))
 export type PlanResponse = z.infer<typeof PlanResponse>
+
+/** What the expert is asked for when the kind is known: only its module's field, null if it cannot be built as one. */
+export const planResponseFor = (kind: FurnitureKind) =>
+  planResponse({ [kind]: planField(kind, designedPlan) }) as unknown as z.ZodType<Omit<PlanResponse, FurnitureKind> & Partial<ExpertPlans>>
 
 const adjustedPlan = (what: string) => `The complete plan with the change, when action is "plan" and the furniture is ${what}; null otherwise`
 
@@ -149,6 +159,8 @@ export interface ReconstructionRequest {
   correction: { previousResponse: unknown; errors: DesignError[] } | null
   /** What the person said the furniture is, when they chose it. */
   kind?: DesignKind | null
+  /** What the furniture is known to be, from any source: the skeleton asks only for its module. Null or without a module: every module. */
+  routeKind?: DesignKind | null
 }
 
 export interface AdjustmentRequest {
