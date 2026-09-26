@@ -8,7 +8,7 @@ import { exampleBookcase } from '../fixtures/bookcase'
 import { newCriticals } from './review'
 import { maxSpan, deflection, deflectionSeverity } from './rules/deflection'
 import { stiffness } from '../materials/grades'
-import { buildPlan } from '../modules/plan'
+import { buildPlan, MODULES } from '../modules/plan'
 
 const findings = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -17,6 +17,14 @@ const findings = (d: Design) => {
 }
 
 describe('R1 shelf sag', () => {
+  it('a bottom lying on the floor does not sag: the floor holds all of it', () => {
+    const [, plan] = MODULES.cabinet.benchVariants().find(([, p]) => p.base === 'floor')!
+    const wide = MODULES.cabinet.withMeasures(plan, { ...plan.dimensions, width: 1100 })
+    const { design } = buildPlan(wide, testCatalog)
+    const bottom = design.pieces.find((p) => p.role === 'bottom')!
+    expect(findings(design).filter((h) => h.code === 'R1_SAG' && h.pieces.includes(bottom.id))).toEqual([])
+  })
+
   // docs/carpinteria/valores-de-referencia.md §4: 18 mm radiata pine (E∥ 4500, E⊥ 2000), books (150 kg/m²), creep × 2.
   it('reproduces the spans of the reference (18 mm, books, final sag)', () => {
     expect(maxSpan(300, 18, 'heavy', 4500)).toBeCloseTo(540, -1)

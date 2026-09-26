@@ -1,6 +1,6 @@
 import type { Load, Piece } from '../../design/schema'
 import { roundTo, type Box } from '../../design/resolve'
-import { freeSpan } from '../../design/boxes'
+import { CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
 import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
@@ -81,6 +81,8 @@ export const deflectionRule: Rule = (ctx) => {
     const thickness = ctx.geo.thicknesses.get(p.id)
     const board = materialById(ctx.catalog, p.material)
     if (!box || !thickness || !board || p.normal !== 'y' || p.load === 'none') return []
+    // A piece lying on the floor has the floor under all of it: there is no span to sag.
+    if (box.y0 <= CONTACT_TOLERANCE) return []
     const span = freeSpan(p.id, box, ctx)
     if (!span) return []
     const depth = box.z1 - box.z0
