@@ -1,5 +1,5 @@
 import { analyze } from '../../domain/checks/analysis'
-import { buildPlan, MODULES, type FurnitureKind } from '../../domain/furniture/modules/plan'
+import { buildPlan, MODULES, type FurnitureKind, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
 import { estimatePurchase } from '../../domain/materials/purchase'
@@ -7,7 +7,7 @@ import { currentDesign, type DesignState } from '../../domain/session/state'
 import { reviewViability } from '../../domain/checks/viability/viability'
 import type { LLMProvider } from '../../ports/LLMProvider'
 import { createUseCases } from '../useCases'
-import { BENCH_CASES, type BenchCase } from './cases'
+import { BENCH_CASES, type BenchCase, type Part } from './cases'
 
 // A test bench: the fixed cases run against the expert that is connected, and every variant of Knotty's modules, each measured and graded.
 
@@ -26,6 +26,8 @@ export interface BenchResult {
   measures: string
   /** Measures within the case's ranges, and the expected path and module when the case names them. */
   reasonable: boolean | null
+  /** The doors, drawers and open openings the case asks for against the design's; null when the case does not say. */
+  structure: Structure | null
   criticals: number
   rules: string[]
   /** Error codes sent back to the expert when it retried. */
@@ -51,6 +53,37 @@ const OUTCOME: Record<Adjustment['outcome'], string> = { version: 'versión', pr
 /** The requests in a line for the report and the bench: «Sin zoclo» Knotty, versión · «¿Cuántas hojas?» experto (1), respuesta. */
 export const describeAdjustments = (adjustments: Adjustment[]) =>
   adjustments.map((a) => `«${a.request}» ${a.by === 'knotty' ? 'Knotty' : `experto (${a.calls})`}, ${OUTCOME[a.outcome]}`).join(' · ')
+
+export interface Structure {
+  expected: Partial<Record<Part, number>>
+  /** Null for what the design cannot tell: open openings are only known from a cabinet's plan. */
+  found: Record<Part, number | null>
+  /** False if a count differs; null if none differs but one could not be counted. */
+  ok: boolean | null
+}
+
+const PART_LABEL: Record<Part, string> = { doors: 'puertas', drawers: 'cajones', open: 'abiertos' }
+
+/** Doors and drawers by their pieces, so a design piece by piece counts too; open openings from the cells of a cabinet's plan. */
+export function countParts(design: Design, plan: FurniturePlan | null): Record<Part, number | null> {
+  const pieces = (role: string) => design.pieces.filter((p) => p.role === role).length
+  const open = plan?.kind === 'cabinet' ? plan.columns.flatMap((c) => c.cells).filter((c) => c.content === 'open').length : null
+  return { doors: pieces('door'), drawers: pieces('drawer-front'), open }
+}
+
+function structureOf(c: BenchCase, design: Design, plan: FurniturePlan | null): Structure | null {
+  if (!c.parts) return null
+  const found = countParts(design, plan)
+  const asked = Object.entries(c.parts) as [Part, number][]
+  const ok = asked.some(([part, n]) => found[part] !== null && found[part] !== n) ? false : asked.some(([part]) => found[part] === null) ? null : true
+  return { expected: c.parts, found, ok }
+}
+
+/** For the report and the bench: «puertas 4 (pidió 3) · cajones 3 · abiertos ? (pidió 3)». */
+export const describeStructure = (s: Structure) =>
+  (Object.entries(s.expected) as [Part, number][])
+    .map(([part, n]) => `${PART_LABEL[part]} ${s.found[part] ?? '?'}${s.found[part] === n ? '' : ` (pidió ${n})`}`)
+    .join(' · ')
 
 export interface ModuleCheck {
   module: FurnitureKind
@@ -126,7 +159,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
     const provider = deps.llm()
     const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory() })
     const start = performance.now()
-    const empty = { adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
+    const empty = { adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, structure: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
     try {
       const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
@@ -146,6 +179,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         joints: design.joints.length,
         measures: `${d.height} × ${d.width} × ${d.depth}`,
         reasonable: withinExpected(c, d) && (!c.path || c.path === path) && (!c.module || state.versions[0].plan?.kind === c.module),
+        structure: structureOf(c, design, state.versions[0].plan ?? null),
         corrections: [...new Set(calls.flatMap((l) => l.corrects))],
         repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
       }
