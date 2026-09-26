@@ -2,6 +2,7 @@ import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, Warning
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import type { BenchResult, ModuleCheck } from '../../application/bench/bench'
+import { moduleName, moduleNames } from '../../domain/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { useStore } from '../store'
@@ -17,7 +18,6 @@ function Verdict({ r }: { r: BenchResult }) {
   return <WarningCircle className="text-amber" weight="fill" aria-label="Con observaciones" />
 }
 
-const MODULE_LABEL: Record<ModuleCheck['module'], string> = { bed: 'cama', table: 'mesa', cabinet: 'gabinete' }
 
 export function BenchPanel() {
   const { bench, preferences } = useServices()
@@ -172,7 +172,7 @@ export function BenchPanel() {
                   <Play weight="fill" /> Revisar
                 </Button>
               </div>
-              <p className="text-[11px] text-graphite-2">Arma cada variante de cama, mesa y gabinete y marca las que salen inválidas o con avisos: eso es un error de Knotty, no del experto.</p>
+              <p className="text-[11px] text-graphite-2">Arma cada variante de {moduleNames()} y marca las que salen inválidas o con avisos: eso es un error de Knotty, no del experto.</p>
               {modules && (
                 <p className="text-sm">
                   {modules.length} variantes: {modules.length - moduleFailures.length} limpias
@@ -184,7 +184,7 @@ export function BenchPanel() {
                   {moduleFailures.map((m) => (
                     <li key={`${m.module}-${m.variant}`} className="rounded-lg bg-kraft/60 p-2 text-xs">
                       <span className="font-medium">
-                        {MODULE_LABEL[m.module]} · {m.variant}
+                        {moduleName(m.module)} · {m.variant}
                       </span>
                       {!m.valid && <span className="text-rust"> · inválida</span>}
                       <ul className="mt-1 list-disc pl-4 text-graphite-2">

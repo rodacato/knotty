@@ -15,6 +15,11 @@ export interface FurnitureModule<P extends { kind: string }> {
   schema: z.ZodType<P>
   /** What it is, with its article, for the person: "una cama". */
   label: string
+  /** What the expert reads about it, in English: its field in the expert's schema and its section in the prompts come from here and from `schema`. */
+  expert: {
+    /** What it is, with its article: "a bed (a base with or without drawers, and a headboard)". */
+    what: string
+  }
   build(plan: P, catalog: Catalog): { design: Design; notes: string[] }
   /** What changed, in words for the person and for the expert's context. */
   describeChanges(before: P, after: P): string[]

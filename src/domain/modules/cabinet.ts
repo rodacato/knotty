@@ -307,6 +307,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
   label: 'un gabinete',
+  expert: { what: 'a cabinet (a box with columns and openings)' },
   build: buildCabinet,
   describeChanges: describeCabinetChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),

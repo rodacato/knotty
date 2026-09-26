@@ -5,6 +5,8 @@ import { MAX_PEDESTAL_DRAWERS, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/operations/drawer'
 import { ASSUMPTIONS } from '../../../domain/structure/assumptions'
 import { BOOKCASE_DEPTH, DESK_HEIGHT, WARDROBE_DEPTH } from '../../../domain/typology/constraints'
+import { planFieldList } from '../../../ports/LLMProvider'
+import { moduleGuides, moduleList, moduleSummaries } from './modulePrompts'
 
 // The craft numbers the prompts mention, taken from the code that enforces them: a prompt writes {{name}} instead of the number.
 // Each value lists its guards: literal text that must not appear in a prompt file, so nobody restates the number by hand.
@@ -18,6 +20,9 @@ export interface PromptValue {
 const value = (text: string, ...alsoGuard: string[]): PromptValue => ({ text, guards: [text, ...alsoGuard] })
 /** A bare number also shows up in unrelated examples: it is guarded with its unit. */
 const measure = (mm: number, ...alsoGuard: string[]): PromptValue => ({ text: String(mm), guards: [`${mm} mm`, ...alsoGuard] })
+
+/** Text the code writes whole, with no number to restate: nothing to guard. */
+const written = (text: string): PromptValue => ({ text, guards: [] })
 
 const dims = (...mm: number[]) => mm.join(' × ')
 const cm = ([min, max]: readonly [number, number]) => `${min / 10}–${max / 10} cm`
@@ -43,6 +48,7 @@ const TABLE_ORDER = ['dining', 'coffee', 'side', 'desk'] as const
 const DOMAIN = {
   minDrawerOpening: measure(MIN_DRAWER_OPENING_HEIGHT),
   maxDoorLeafWidth: measure(ASSUMPTIONS.doors.maxWidth),
+  storageAnchorHeight: value(`${ASSUMPTIONS.tipping.storageHeight} mm`, `${ASSUMPTIONS.tipping.storageHeight / 10} cm`),
   tallFurnitureHeight: value(`${ASSUMPTIONS.tipping.criticalHeight / 1000} m`, `${ASSUMPTIONS.tipping.criticalHeight} mm`),
   screwPenetration: measure(ASSUMPTIONS.screws.minPenetration),
   // A whole inch (1") also closes every JSON string in the examples: only the fractional sizes guard.
@@ -61,6 +67,10 @@ const DOMAIN = {
   deskHeight: value(cm(DESK_HEIGHT), range(DESK_HEIGHT)),
   bookcaseDepth: value(cm(BOOKCASE_DEPTH), range(BOOKCASE_DEPTH)),
   wardrobeDepth: value(cm(WARDROBE_DEPTH), range(WARDROBE_DEPTH)),
+  planFields: written(planFieldList()),
+  moduleList: written(moduleList()),
+  moduleGuides: written(moduleGuides()),
+  moduleSummaries: written(moduleSummaries()),
 } satisfies Record<string, PromptValue>
 
 /** The word the materials list has always shown for each use: changing it changes what the expert reads (a new prompt version). */

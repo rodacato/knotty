@@ -6,10 +6,8 @@ import { Operation } from '../domain/operations/schema'
 import { Requirement } from '../domain/requirements/requirements'
 import { Question } from '../domain/session/state'
 import type { DesignError } from '../domain/validation/errors'
-import { BedPlan } from '../domain/modules/bed'
 import { CabinetPlan } from '../domain/modules/cabinet'
-import { TablePlan } from '../domain/modules/table'
-import type { FurniturePlan } from '../domain/modules/plan'
+import { FURNITURE_KINDS, MODULES, type FurnitureKind, type FurniturePlan, type PlanOf } from '../domain/modules/plan'
 import type { PhotoReading } from '../domain/reading/reading'
 import { CarpenterOpinion, type Check } from '../domain/viability/viability'
 
@@ -56,22 +54,31 @@ export interface ReviewRequest {
   catalog: Catalog
 }
 
-/** The expert names the kind by the field it fills, so its cabinet has no `kind` (bed and table carry theirs): what it sees stays as it was. */
+/** The expert names the kind by the field it fills, so its cabinet has no `kind` (every other plan carries its own): what it sees stays as it was. */
 const ExpertCabinetPlan = CabinetPlan.omit({ kind: true })
+type ExpertPlan<K extends FurnitureKind> = K extends 'cabinet' ? z.infer<typeof ExpertCabinetPlan> : PlanOf<K>
+export type ExpertPlans = { [K in FurnitureKind]: ExpertPlan<K> | null }
 
-/** The plan the expert gave for each kind, bed first: when it fills more than one field, the first one counts. */
-export const expertPlans = (r: Pick<PlanResponse, 'cabinet' | 'bed' | 'table'>): { [K in FurniturePlan['kind']]: Extract<FurniturePlan, { kind: K }> | null } => ({
-  bed: r.bed,
-  table: r.table,
-  cabinet: r.cabinet && { kind: 'cabinet', ...r.cabinet },
-})
+/** One nullable field per module, named by its kind and in the order of MODULES: a new module shows up in the expert's schema by itself. */
+const planFields = (describe: (what: string) => string) =>
+  Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, (kind === 'cabinet' ? ExpertCabinetPlan : MODULES[kind].schema).nullable().describe(describe(MODULES[kind].expert.what))])) as unknown as {
+    [K in FurnitureKind]: z.ZodNullable<z.ZodType<ExpertPlan<K>>>
+  }
 
-/** The skeleton: when the piece of furniture is a cabinet, its plan is enough and Knotty builds every piece. */
+/** Every plan field, as the schema and the prompts name them: "`bed`, `table` or `cabinet`". */
+export const planFieldList = () => `${FURNITURE_KINDS.slice(0, -1).map((k) => `\`${k}\``).join(', ')} or \`${FURNITURE_KINDS.at(-1)}\``
+
+/** The plan the expert gave for each kind: when it fills more than one field, the first one in the order of MODULES counts. */
+export const expertPlans = (r: ExpertPlans): { [K in FurnitureKind]: PlanOf<K> | null } =>
+  Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, r[kind] && { kind, ...r[kind] }])) as { [K in FurnitureKind]: PlanOf<K> | null }
+
+/** The plan fields of an answer with this plan in its own field and the others null; with none, all null. */
+export const answerWith = (plan: FurniturePlan | null): ExpertPlans => Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, plan?.kind === kind ? plan : null])) as ExpertPlans
+
+/** The skeleton: when the piece of furniture has a module, its plan is enough and Knotty builds every piece. */
 export const PlanResponse = z.object({
   explanation: z.string().describe('What you understood and what you decided, in 2–4 sentences for the person, in Spanish'),
-  cabinet: ExpertCabinetPlan.nullable().describe('The plan if the furniture is a cabinet (a box with columns and openings); null if it is not'),
-  bed: BedPlan.nullable().describe('The plan if the furniture is a bed (a base with or without drawers, and a headboard); null if it is not'),
-  table: TablePlan.nullable().describe('The plan if the furniture is a table or a desk; null if it is not'),
+  ...planFields((what) => `The plan if the furniture is ${what}; null if it is not`),
   questions: z.array(Question).describe('What changes the design or the purchase the most; at most 3'),
   requestedPhotos: z.array(z.object({ angle: z.string(), reason: z.string() })),
   requirements: z.array(Requirement),
@@ -83,10 +90,8 @@ export type PlanResponse = z.infer<typeof PlanResponse>
 export const PlanAdjustment = z.object({
   explanation: z.string().describe('What changes and why, brief, like a carpenter, in Spanish; or the answer if the person only asked'),
   summary: z.string().max(90).describe('For the timeline, in Spanish, in the infinitive: "Agregar un cajón"'),
-  action: z.enum(['plan', 'freeform', 'answer']).describe('plan: the change fits in the plan and goes in `cabinet`, `bed` or `table`; freeform: asks for something the plan cannot express; answer: did not ask for a change'),
-  cabinet: ExpertCabinetPlan.nullable().describe('The complete cabinet plan with the change, when action is "plan" and the furniture is a cabinet; null otherwise'),
-  bed: BedPlan.nullable().describe('The complete bed plan with the change, when action is "plan" and the furniture is a bed; null otherwise'),
-  table: TablePlan.nullable().describe('The complete table or desk plan with the change, when action is "plan" and the furniture is a table; null otherwise'),
+  action: z.enum(['plan', 'freeform', 'answer']).describe(`plan: the change fits in the plan and goes in ${planFieldList()}; freeform: asks for something the plan cannot express; answer: did not ask for a change`),
+  ...planFields((what) => `The complete plan with the change, when action is "plan" and the furniture is ${what}; null otherwise`),
   questions: z.array(Question),
   suggestions: z.array(z.string()).describe('2 to 4 next steps the person could ask for, in Spanish'),
   requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
