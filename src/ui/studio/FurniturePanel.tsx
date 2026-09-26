@@ -1,5 +1,5 @@
 import { Plus, X } from '@phosphor-icons/react'
-import { angleLabel } from '../../domain/reading/reading'
+import { angleLabel } from '../../domain/furniture/reading/reading'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/design/resolve'

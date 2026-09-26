@@ -1,5 +1,5 @@
-import type { Fix } from '../../domain/fixes/fixes'
-import { analyze } from '../../domain/analysis'
+import type { Fix } from '../../domain/editing/fixes/fixes'
+import { analyze } from '../../domain/checks/analysis'
 import type { Design, Piece } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
 import { differences } from '../../domain/design/diff'

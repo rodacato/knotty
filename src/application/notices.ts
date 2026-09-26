@@ -1,12 +1,12 @@
-import { analyze, type Analysis } from '../domain/analysis'
+import { analyze, type Analysis } from '../domain/checks/analysis'
 import type { Design } from '../domain/design/schema'
-import { isAccepted, reopenReason } from '../domain/structure/accepted'
-import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
-import { ruleTitle } from '../domain/structure/registry'
+import { isAccepted, reopenReason } from '../domain/checks/structure/accepted'
+import { findingKey, type Finding, type Severity } from '../domain/checks/structure/finding'
+import { ruleTitle } from '../domain/checks/structure/registry'
 import type { Catalog } from '../domain/materials/catalog'
-import { checkRequirements } from '../domain/requirements/requirements'
+import { checkRequirements } from '../domain/checks/requirements/requirements'
 import { currentDesign, type DesignState } from '../domain/session/state'
-import { noticeItemId, type TrayItem } from '../domain/tray/tray'
+import { noticeItemId, type TrayItem } from '../domain/session/tray/tray'
 import { named } from './named'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.

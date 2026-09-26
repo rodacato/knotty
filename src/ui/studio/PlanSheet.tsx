@@ -1,7 +1,7 @@
 import { ArrowCounterClockwise, Check, Warning } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
-import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/modules/plan'
+import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
 import { useStore } from '../store'

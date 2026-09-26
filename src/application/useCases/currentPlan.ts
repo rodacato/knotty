@@ -1,5 +1,5 @@
-import type { FurniturePlan } from '../../domain/modules/plan'
-import type { Operation } from '../../domain/operations/schema'
+import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import type { Operation } from '../../domain/editing/operations/schema'
 import type { DesignState } from '../../domain/session/state'
 
 /** The plan behind the current design, from version `since`; if later versions changed the design freely (`diverged`), applying it drops those changes. */

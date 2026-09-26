@@ -1,7 +1,7 @@
 import { ArrowClockwise, CheckCircle, Hammer, Lightbulb, Stop, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
 import type { Design } from '../../domain/design/schema'
 import type { PurchaseReview } from '../../domain/session/state'
-import type { Check, Verdict } from '../../domain/viability/viability'
+import type { Check, Verdict } from '../../domain/checks/viability/viability'
 import { Button, Pencil } from '../system/components'
 import { useStore } from '../store'
 

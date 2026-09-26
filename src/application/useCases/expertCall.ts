@@ -1,5 +1,5 @@
-import type { Repair } from '../../domain/repair/repair'
-import type { TraceEntry } from '../../domain/trace/trace'
+import type { Repair } from '../../domain/editing/repair/repair'
+import type { TraceEntry } from '../../domain/session/trace/trace'
 import { InvalidResponse, type ExpertResponse } from '../../ports/LLMProvider'
 
 /** The expert could not do something and says so; the message is for the person. */

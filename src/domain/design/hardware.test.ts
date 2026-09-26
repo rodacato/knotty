@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { analyze } from '../analysis'
-import { testCatalog } from '../fixtures/catalog.test-util'
-import { exampleBookcase } from '../fixtures/bookcase'
-import { buildCabinet, DEFAULT_CONSTRUCTION } from '../modules/cabinet'
-import { applyOperations } from '../operations/apply'
+import { analyze } from '../checks/analysis'
+import { testCatalog } from '../furniture/fixtures/catalog.test-util'
+import { exampleBookcase } from '../furniture/fixtures/bookcase'
+import { buildCabinet, DEFAULT_CONSTRUCTION } from '../furniture/modules/cabinet'
+import { applyOperations } from '../editing/operations/apply'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {

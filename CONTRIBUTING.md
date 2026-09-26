@@ -19,13 +19,13 @@ Para `npm run compare` (el banco contra expertos reales), copia `.env.example` a
 
 Arquitectura hexagonal; el mapa completo está en la sección 2 de la propuesta.
 
-- `src/domain/`: el mueble, sus reglas y todo lo que decide. TypeScript puro y determinista: sin React, sin navegador, sin LLM.
+- `src/domain/`: el mueble, sus reglas y todo lo que decide. TypeScript puro y determinista: sin React, sin navegador, sin LLM. Seis grupos por intención: `materials/` (catálogo, despiece, compra), `design/` (el mueble, su geometría y `validation/`), `checks/` (reglas estructurales, tipologías, revisión antes de comprar, `analysis.ts`), `furniture/` (las fichas en `modules/`, ejemplos en `fixtures/`, lectura de fotos), `editing/` (operaciones, reparaciones, soluciones, cambios, pedidos) y `session/` (lo guardado, historial, bitácora de intentos y bandeja).
 - `src/application/`: casos de uso (diseñar, ajustar, revisar antes de comprar), el contexto que se le manda al experto y el banco de pruebas.
 - `src/ports/` y `src/adapters/`: la frontera con el mundo (proveedores de LLM, localStorage, catálogo, fotos). Los prompts están en `src/adapters/llm/prompts/`.
 - `src/ui/`: React y la escena 3D.
 - `public/catalog/catalog.json`: triplay, herrajes y parámetros de corte; se edita sin tocar código.
 
-`src/architecture.test.ts` falla si una capa importa lo que no debe.
+`src/architecture.test.ts` falla si una capa importa lo que no debe, o si un grupo del dominio importa uno que no tiene permitido (la lista está en la prueba).
 
 ## Idiomas
 

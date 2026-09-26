@@ -1,7 +1,7 @@
-import { fixForAlternative } from '../../domain/fixes/fixes'
-import { updateDecisions, type Decision } from '../../domain/history/history'
+import { fixForAlternative } from '../../domain/editing/fixes/fixes'
+import { updateDecisions, type Decision } from '../../domain/session/history/history'
 import { currentDesign, markAnswered, questionAnswerKey, type DesignState } from '../../domain/session/state'
-import { newCriticals } from '../../domain/structure/review'
+import { newCriticals } from '../../domain/checks/structure/review'
 import { currentPlan, layered } from './currentPlan'
 import type { Kit } from './kit'
 

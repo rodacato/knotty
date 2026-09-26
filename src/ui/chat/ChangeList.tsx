@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, Minus, Plus, Swap } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { describeChange } from '../../domain/changes/changes'
+import { describeChange } from '../../domain/editing/changes/changes'
 import type { DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
 import { useStore } from '../store'

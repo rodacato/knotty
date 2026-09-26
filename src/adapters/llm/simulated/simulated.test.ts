@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { analyze } from '../../../domain/analysis'
-import { testCatalog } from '../../../domain/fixtures/catalog.test-util'
-import { buildPlan } from '../../../domain/modules/plan'
+import { analyze } from '../../../domain/checks/analysis'
+import { testCatalog } from '../../../domain/furniture/fixtures/catalog.test-util'
+import { buildPlan } from '../../../domain/furniture/modules/plan'
 import { expertPlans } from '../../../ports/LLMProvider'
 import { createSimulated } from './simulated'
 

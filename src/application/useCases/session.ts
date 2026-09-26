@@ -1,7 +1,7 @@
 import type { DesignState, Question } from '../../domain/session/state'
-import { acceptFinding } from '../../domain/structure/accepted'
-import { findingKey, type Finding } from '../../domain/structure/finding'
-import { toggleInTray, trayRequest, type TrayItem } from '../../domain/tray/tray'
+import { acceptFinding } from '../../domain/checks/structure/accepted'
+import { findingKey, type Finding } from '../../domain/checks/structure/finding'
+import { toggleInTray, trayRequest, type TrayItem } from '../../domain/session/tray/tray'
 import type { Kit, OnProgress } from './kit'
 
 type Adjust = (state: DesignState, request: string, signal: AbortSignal, onProgress?: OnProgress, answering?: string | null) => Promise<DesignState>

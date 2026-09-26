@@ -2,7 +2,7 @@ import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, Warning
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import { describeAdjustments, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
-import { moduleName, moduleNames } from '../../domain/modules/plan'
+import { moduleName, moduleNames } from '../../domain/furniture/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { useStore } from '../store'

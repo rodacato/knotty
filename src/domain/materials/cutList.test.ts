@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { analyze } from '../analysis'
-import { testCatalog } from '../fixtures/catalog.test-util'
-import { exampleBookcase } from '../fixtures/bookcase'
-import { applyOperations } from '../operations/apply'
+import { analyze } from '../checks/analysis'
+import { testCatalog } from '../furniture/fixtures/catalog.test-util'
+import { exampleBookcase } from '../furniture/fixtures/bookcase'
+import { applyOperations } from '../editing/operations/apply'
 import { cutList } from './cutList'
 
 describe('cut list names', () => {

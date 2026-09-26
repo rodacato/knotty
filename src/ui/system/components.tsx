@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import type { Severity } from '../../domain/structure/finding'
+import type { Severity } from '../../domain/checks/structure/finding'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
@@ -61,7 +61,7 @@ export function Pencil({ className = '' }: { className?: string }) {
   )
 }
 
-export { cm } from '../../domain/modules/common'
+export { cm } from '../../domain/furniture/modules/common'
 
 export function Title({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <h2 className={`font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48] ${className}`}>{children}</h2>
