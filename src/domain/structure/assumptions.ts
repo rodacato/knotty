@@ -31,7 +31,16 @@ export const ASSUMPTIONS = {
       { upTo: 19, length: 31.75, hardwareId: 'pocket-screw-1-1/4' },
     ],
   },
-  tipping: { recommendedRatio: 3, criticalRatio: 4, criticalHeight: 1200 },
+  tipping: {
+    /** Furniture with drawers or doors from this height up is anchored, whatever its depth: the threshold of ASTM F2057-23.
+     * docs/carpinteria/valores-de-referencia.md §12 «Altura desde la que se ancla». */
+    storageHeight: 686,
+    /** Open furniture (no drawers or doors): height ÷ depth from which it is anchored, and from which it is very unstable past criticalHeight.
+     * docs/carpinteria/valores-de-referencia.md §12 «Librero sin cajones». */
+    recommendedRatio: 3,
+    criticalRatio: 4,
+    criticalHeight: 1200,
+  },
   doors: { hinges: [{ upTo: 900, n: 2 }, { upTo: 1500, n: 3 }, { upTo: Infinity, n: 4 }], maxWidth: 600 },
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,

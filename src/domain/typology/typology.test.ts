@@ -53,10 +53,8 @@ describe('the kind is data, not the name', () => {
 
   it('a cabinet marked as a wardrobe gets the wardrobe checks under any name', () => {
     const wardrobe = { ...cabinet({ name: 'Mueble', dimensions: { width: 900, height: 1800, depth: 400 } }), kind: 'wardrobe' as const }
-    expect(usage(wardrobe)).toEqual([
-      ['critical', expect.stringContaining('va anclado al muro')],
-      ['recommendation', expect.stringContaining('los ganchos de ropa no caben')],
-    ])
+    // Anchoring it is R4's, by its doors and drawers and its height, whatever it is (structure/rules.test.ts).
+    expect(usage(wardrobe)).toEqual([['recommendation', expect.stringContaining('los ganchos de ropa no caben')]])
     expect(usage({ ...wardrobe, kind: undefined })).toEqual([])
   })
 
@@ -70,12 +68,6 @@ describe('the kind is data, not the name', () => {
 })
 
 describe('typologyRule', () => {
-  it('a tall chest of drawers must be anchored', () => {
-    const plan = { name: 'Cajonera', columns: [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }] }
-    expect(usage(cabinet(plan))[0]).toEqual(['critical', expect.stringContaining('se va de frente')])
-    expect(usage(cabinet({ ...plan, wallMounted: true }))).toEqual([])
-  })
-
   it('a wall cabinet hangs from the wall', () => {
     expect(usage(cabinet({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 } })).map(([s]) => s)).toEqual(['critical', 'recommendation'])
   })

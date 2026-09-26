@@ -7,6 +7,10 @@ import { exampleNightstand } from '../fixtures/nightstand'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { findingKey } from './finding'
+import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
+import { buildBed } from '../modules/bed'
+import { buildTable } from '../modules/table'
+import type { Cell } from '../reading/reading'
 
 const findings = (d: Design, code: string) => {
   const a = analyze(d, testCatalog)
@@ -47,6 +51,34 @@ describe('R4 tipping', () => {
   it('a lower one is a recommendation', () => {
     const low = { ...exampleBookcase, wallAnchored: false, dimensions: { ...exampleBookcase.dimensions, height: 1000 } }
     expect(findings(low, 'R4_TIPPING')[0].severity).toBe('recommendation')
+  })
+
+  // docs/carpinteria/valores-de-referencia.md §12: from 686 mm, anything with drawers or doors is anchored (ASTM F2057-23).
+  const cell = (content: Cell['content'], doors: number | null = null): Cell => ({ height: 1, content, shelves: 0, doors })
+  const cabinet = (height: number, cells: Cell[], extra: Partial<CabinetPlan> = {}) =>
+    buildCabinet({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 500, height, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells }], ...extra }, testCatalog).design
+  const storage = (d: Design) => findings(d, 'R4_TIPPING').filter((h) => h.check === 'tipping.storage')
+
+  it('furniture with drawers or doors from 686 mm high is anchored, whatever its depth or its name', () => {
+    const chest = cabinet(700, [cell('drawer')])
+    expect(storage(chest)).toMatchObject([{ severity: 'critical', data: { height: 700, drawers: 1, doors: 0, min: 686 }, alternatives: [{ key: 'anchor-to-wall' }] }])
+    expect(storage(cabinet(686, [cell('door', 2)]))[0].message).toContain('tiene 2 puertas')
+    expect(storage(cabinet(1800, [cell('drawer'), cell('door', 2)], { dimensions: { width: 900, height: 1800, depth: 600 } }))[0].message).toContain('1 cajón y 2 puertas')
+    // Named or marked as anything, it is what it has.
+    expect(storage({ ...chest, name: 'Librero', kind: 'bookcase' })).toHaveLength(1)
+  })
+
+  it('below 686 mm, anchored, or open, the anchoring for storage does not apply', () => {
+    expect(storage(cabinet(680, [cell('drawer'), cell('drawer')]))).toEqual([])
+    expect(findings(cabinet(900, [cell('drawer'), cell('drawer')], { wallMounted: true }), 'R4_TIPPING')).toEqual([])
+    // Open furniture goes by its height against its depth, as before.
+    expect(storage({ ...exampleBookcase, wallAnchored: false })).toEqual([])
+  })
+
+  it('a bed, a desk or a wall cabinet are not storage furniture: their drawers or doors do not ask for the anti-tip kit', () => {
+    const bed = buildBed({ kind: 'bed', name: 'Cama', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }, testCatalog).design
+    const desk = buildTable({ kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, shelf: false, pedestal: { side: 'left', drawers: 3 } }, testCatalog).design
+    for (const d of [bed, desk, { ...exampleWallCabinet, wallAnchored: false, dimensions: { ...exampleWallCabinet.dimensions, height: 900 } }]) expect(storage(d)).toEqual([])
   })
 })
 

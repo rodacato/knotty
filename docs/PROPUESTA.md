@@ -381,8 +381,8 @@ Hasta el paso 20 eran E = 6 000 / 3 500 MPa para todo espesor, fluencia 1.5 y cr
 
 ### R4 — Vuelco
 
-- alto / fondo ≥ 3 → recomendación de kit antivuelco.
-- Crítico si alto > 1 200 mm, alto / fondo ≥ 4 y `wallAnchored = false`.
+- Mueble de guardado con cajones o puertas desde 686 mm de alto (ASTM F2057-23, [valores-de-referencia.md](carpinteria/valores-de-referencia.md) §12): crítico si `wallAnchored = false`, sin importar el fondo ni el nombre (`check: 'tipping.storage'`). Se detecta por lo que tiene (frentes de cajón, puertas) y su alto; no aplica a camas, bancas, escritorios y mesas (sus cajones van bajos en un mueble largo o ancho) ni a la alacena, que tiene su propia revisión de colgado. Desde el paso 21; antes, la cajonera se anclaba desde 700 mm y con dos cajones, y el clóset desde 1 500.
+- Sin cajones ni puertas: alto / fondo ≥ 3 → recomendación de kit antivuelco; crítico si alto > 1 200 mm, alto / fondo ≥ 4 y `wallAnchored = false`.
 
 ### R5 — Escuadrado
 
