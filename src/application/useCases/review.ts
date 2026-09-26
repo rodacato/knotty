@@ -25,9 +25,14 @@ const reviewed = (design: Design) => {
   return rest
 }
 
+/** JSON with object keys sorted: the same content gives the same text, whatever order the keys were written in (a saved session comes back in schema order). */
+function canonical(value: unknown): string {
+  return JSON.stringify(value, (_, v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : v))
+}
+
 /** What a purchase review was made with, to know when to redo it; keyed on the design's content, so going back to an identical version keeps it. */
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
-  JSON.stringify([fingerprint(JSON.stringify(reviewed(currentDesign(state)))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
+  JSON.stringify([fingerprint(canonical(reviewed(currentDesign(state)))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 /** The review before buying: the arithmetic of the cuts and the checks, then the carpenter's opinion. */
 export function createReview(kit: Kit) {
