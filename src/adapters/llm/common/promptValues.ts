@@ -4,7 +4,7 @@ import { MATTRESSES, MAX_DRAWERS_PER_SIDE } from '../../../domain/modules/bed'
 import { MAX_PEDESTAL_DRAWERS, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/modules/table'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/operations/drawer'
 import { ASSUMPTIONS } from '../../../domain/structure/assumptions'
-import { BOOKCASE_DEPTH, DESK_HEIGHT, WARDROBE_DEPTH } from '../../../domain/typology/typology'
+import { BOOKCASE_DEPTH, DESK_HEIGHT, WARDROBE_DEPTH } from '../../../domain/typology/constraints'
 
 // The craft numbers the prompts mention, taken from the code that enforces them: a prompt writes {{name}} instead of the number.
 // Each value lists its guards: literal text that must not appear in a prompt file, so nobody restates the number by hand.
