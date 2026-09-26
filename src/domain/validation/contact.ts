@@ -1,9 +1,8 @@
 import { AXES, type Axis } from '../design/schema'
 import type { Box } from '../design/resolve'
+import { CONTACT_TOLERANCE, overlap } from '../design/boxes'
 
 // Which pieces touch, overlap or face each other across a gap: the geometry every other check stands on.
-
-export const CONTACT_TOLERANCE = 0.5
 
 export interface Contact {
   a: string
@@ -13,8 +12,6 @@ export interface Contact {
   /** The smallest overlap along any axis: how far they go into each other (0 when they only touch). */
   depth: number
 }
-
-const overlap = (a: Box, b: Box, axis: Axis) => Math.min(a[`${axis}1`], b[`${axis}1`]) - Math.max(a[`${axis}0`], b[`${axis}0`])
 
 export function contactBetween(idA: string, a: Box, idB: string, b: Box): Contact | null {
   const o = AXES.map((e) => overlap(a, b, e))

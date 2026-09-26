@@ -1,5 +1,6 @@
 import type { Design, Piece } from './schema'
 import type { Box } from './resolve'
+import { CONTACT_TOLERANCE, overlap } from './boxes'
 
 // Where a drawer's runners go: the outer sides of its box and the piece beside each one, whatever built the drawer.
 
@@ -15,8 +16,6 @@ interface DrawerSide {
   support: { piece: Piece; distance: number } | null
 }
 
-const overlap = (a: Box, b: Box, axis: 'y' | 'z') => Math.min(a[`${axis}1`], b[`${axis}1`]) - Math.max(a[`${axis}0`], b[`${axis}0`]) > 0
-
 export function drawerSides(design: Design, boxes: Map<string, Box>): DrawerSide[] {
   const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-side' && p.group).map((p) => p.group!))]
   return groups.flatMap((group) => {
@@ -31,9 +30,9 @@ export function drawerSides(design: Design, boxes: Map<string, Box>): DrawerSide
         design.pieces
           .filter((p) => p.group !== group && p.normal === 'x' && boxes.has(p.id))
           .map((piece) => ({ piece, b: boxes.get(piece.id)! }))
-          .filter(({ b }) => overlap(b, box, 'y') && overlap(b, box, 'z'))
+          .filter(({ b }) => overlap(b, box, 'y') > 0 && overlap(b, box, 'z') > 0)
           .map(({ piece, b }) => ({ piece, distance: towards < 0 ? box.x0 - b.x1 : b.x0 - box.x1 }))
-          .filter(({ distance }) => distance >= -0.5 && distance <= SUPPORT_REACH)
+          .filter(({ distance }) => distance >= -CONTACT_TOLERANCE && distance <= SUPPORT_REACH)
           .sort((a, b) => a.distance - b.distance)[0] ?? null
       return { group, side, towards, support }
     })

@@ -1,7 +1,8 @@
 import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Design } from '../design/schema'
 import { faceSize, roundTo, type Geometry } from '../design/resolve'
 import { usableSheet, materialById, type Catalog } from '../materials/catalog'
-import { contacts, samePair, gapBetween, CONTACT_TOLERANCE, type Contact } from './contact'
+import { CONTACT_TOLERANCE, bounds } from '../design/boxes'
+import { contacts, samePair, gapBetween, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
 
 // Whether the pieces make a piece of furniture: its measures add up, joints join touching pieces, nothing overlaps or floats, and every piece fits a sheet.
@@ -26,12 +27,12 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   const all = contacts(geo.boxes)
   const byId = new Map(design.pieces.map((p) => [p.id, p]))
 
-  const boxes = [...geo.boxes.values()]
+  const around = bounds(geo.boxes.values())
   for (const axis of AXES) {
-    const min = Math.min(...boxes.map((c) => c[`${axis}0`]))
-    const max = Math.max(...boxes.map((c) => c[`${axis}1`]))
+    const min = around[`${axis}0`]
+    const max = around[`${axis}1`]
     const expected = design.dimensions[DIMENSION_OF_AXIS[axis]]
-    if (boxes.length && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
+    if (geo.boxes.size && (Math.abs(min) > MEASURE_TOLERANCE || Math.abs(max - expected) > MEASURE_TOLERANCE))
       errors.push(
         error('E_OVERALL_SIZE', `Las piezas ocupan de ${roundTo(min)} a ${roundTo(max)} mm en ${DIMENSION_LABEL[DIMENSION_OF_AXIS[axis]]}, pero el mueble mide ${expected} mm.`, {
           axis: axis,

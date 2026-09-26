@@ -1,5 +1,6 @@
 import { analyze } from '../analysis'
 import { mm } from '../design/builders'
+import { CONTACT_TOLERANCE, overlap } from '../design/boxes'
 import { DIMENSION_OF_AXIS, AXES, isDrawerPart, type Design, type Axis, type Piece, type Role } from '../design/schema'
 import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
@@ -46,10 +47,10 @@ function fixOverlap(e: DesignError, design: Design, boxes: Map<string, Box>): Fi
   // The one that gives way: lower in the structure, then the smaller one, then the later one.
   const [give, keep] = rank(p) !== rank(q) ? (rank(p) > rank(q) ? [p, q] : [q, p]) : volume(pb) !== volume(qb) ? (volume(pb) < volume(qb) ? [p, q] : [q, p]) : [q, p]
   const [g, k] = [boxes.get(give.id)!, boxes.get(keep.id)!]
-  const overlap = (axis: Axis) => Math.min(g[`${axis}1`], k[`${axis}1`]) - Math.max(g[`${axis}0`], k[`${axis}0`])
-  const depth = roundTo(Math.min(...AXES.map(overlap)))
+  const into = (axis: Axis) => overlap(g, k, axis)
+  const depth = roundTo(Math.min(...AXES.map(into)))
 
-  if (AXES.every((axis) => overlap(axis) >= g[`${axis}1`] - g[`${axis}0`] - 0.5))
+  if (AXES.every((axis) => into(axis) >= g[`${axis}1`] - g[`${axis}0`] - CONTACT_TOLERANCE))
     return {
       operations: [{ op: 'removePiece', id: give.id }],
       repair: { code: e.code, message: `Quité ${give.name}: estaba completa dentro de ${keep.name}.`, pieces: [give.id, keep.id] },
@@ -60,9 +61,9 @@ function fixOverlap(e: DesignError, design: Design, boxes: Map<string, Box>): Fi
   const thickness = g[`${normal}1`] - g[`${normal}0`]
   const before = (axis: Axis) => (g[`${axis}0`] + g[`${axis}1`]) / 2 < (k[`${axis}0`] + k[`${axis}1`]) / 2
   // Sunk into the other only part of its thickness: it belongs next to it, so it moves out whole.
-  if (overlap(normal) < thickness - 0.5) {
+  if (into(normal) < thickness - CONTACT_TOLERANCE) {
     const start = before(normal) ? k[`${normal}0`] - thickness : k[`${normal}1`]
-    if (start >= -0.5 && start + thickness <= size(normal) + 0.5)
+    if (start >= -CONTACT_TOLERANCE && start + thickness <= size(normal) + CONTACT_TOLERANCE)
       return {
         operations: [{ op: 'move', id: give.id, axis: normal, at: mm(roundTo(start)) }],
         repair: { code: e.code, message: `Moví ${give.name} junto a ${keep.name}: se encimaban ${depth} mm.`, pieces: [give.id, keep.id] },
@@ -80,9 +81,9 @@ function fixOverlap(e: DesignError, design: Design, boxes: Map<string, Box>): Fi
   // Through its whole thickness (a shelf running into a side): it is trimmed where the change is smallest.
   const options = AXES.filter((axis) => axis !== normal).map((axis) => {
     const remaining = before(axis) ? k[`${axis}0`] - g[`${axis}0`] : g[`${axis}1`] - k[`${axis}1`]
-    if (remaining < MIN_LENGTH || overlap(axis) <= 0) return null
+    if (remaining < MIN_LENGTH || into(axis) <= 0) return null
     const operation: Operation = { op: 'resize', id: give.id, axis: axis, end: before(axis) ? 'to' : 'from', at: mm(roundTo(before(axis) ? k[`${axis}0`] : k[`${axis}1`])) }
-    return { cost: overlap(axis), operation }
+    return { cost: into(axis), operation }
   }).filter((o): o is NonNullable<typeof o> => !!o)
   const best = options.sort((a, b) => a.cost - b.cost)[0]
   if (!best) return null

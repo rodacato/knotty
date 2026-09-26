@@ -1,8 +1,8 @@
 import { faceSize, roundTo } from '../../design/resolve'
+import { CONTACT_TOLERANCE, freeSpan, overlap } from '../../design/boxes'
 import { pickHardware, type Catalog } from '../../materials/catalog'
 import type { Finding, Rule } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
-import { freeSpan } from './deflection'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
 
@@ -76,12 +76,12 @@ export const baseRule: Rule = (ctx) =>
     .filter((p) => p.role === 'bottom' && p.normal === 'y')
     .flatMap((p): Finding[] => {
       const box = ctx.geo.boxes.get(p.id)
-      if (!box || box.y0 <= 0.5) return []
+      if (!box || box.y0 <= CONTACT_TOLERANCE) return []
       const length = box.x1 - box.x0
       const restsOnARun = ctx.contacts.some((c) => {
         if (c.a !== p.id && c.b !== p.id) return false
         const other = ctx.geo.boxes.get(c.a === p.id ? c.b : c.a)!
-        return Math.abs(other.y1 - box.y0) <= 0.5 && Math.min(other.x1, box.x1) - Math.max(other.x0, box.x0) >= length * 0.8
+        return Math.abs(other.y1 - box.y0) <= CONTACT_TOLERANCE && overlap(other, box, 'x') >= length * 0.8
       })
       const span = freeSpan(p.id, box, ctx)
       if (restsOnARun || !span || span <= ASSUMPTIONS.floorSpan) return []
