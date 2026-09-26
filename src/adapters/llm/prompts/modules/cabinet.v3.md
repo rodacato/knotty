@@ -1,5 +1,5 @@
 ---
-id: cabinet@2
+id: cabinet@3
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -24,6 +24,8 @@ id: cabinet@2
   - "door": an overlay door; in `doors`, 1 or 2 leaves (2 if the opening is wider than {{maxDoorLeafWidth}} mm); in `shelves`, the shelves behind it.
   - "closed": covered, not opening.
   Between openings the app adds fixed shelves, and between columns, dividers.
+
+Build exactly the doors, drawers and open openings the person asked for: count them in the request and again in your plan before answering. Every "door" opening gets its own leaves, so two door openings of 2 leaves are four doors. A shelf in the middle behind the doors is one "door" opening with `shelves` 1 (and `construction.shelves` "fixed" if it must be firm), not two openings.
 
 Shelves for books: one every 250–350 mm. If there are photo readings, respect their columns and openings, and their base: "kick", "legs" or "floor" as read; "wheels" is not built, use "floor" and say so.
 

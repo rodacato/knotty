@@ -122,7 +122,7 @@ describe('createExpert', () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@2')
+    expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@3')
     expect(calls[0].system).toContain('"T15" (15 mm)')
     expect(calls[0].content[0]).toMatchObject({ text: expect.stringMatching(/## Diseño[\s\S]*## Current plan\n\{"kind":"cabinet","name":"Buró"[\s\S]*## The person's request\n¿Aguanta\?/) })
   })
@@ -141,11 +141,11 @@ describe('createExpert', () => {
   it('a known use with a guide adds it: the skeleton and the plan adjustment say so in their id', async () => {
     const skeleton = fake({ explanation: 'x', ...answerWith(null), questions: [], requestedPhotos: [], requirements: [], suggestions: [] }).expert
     const designed = await skeleton.planDesign!({ measures: null, photos: [], notes: 'aparador', reading: null, catalog: testCatalog, correction: null, routeKind: 'sideboard' }, new AbortController().signal)
-    expect(designed.origin.promptId).toBe('skeleton@15+cabinet@2+sideboard@1')
+    expect(designed.origin.promptId).toBe('skeleton@15+cabinet@3+sideboard@2')
     const { expert } = fake({ explanation: 'x', ...answerWith(null), summary: 'r', action: 'answer', questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { kind: 'cabinet' as const, name: 'Aparador', dimensions: { width: 1600, height: 940, depth: 400 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const adjusted = await expert.adjustPlan!({ context: '', request: 'x', plan, kind: 'sideboard', catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(adjusted.origin.promptId).toBe('plan-adjust@12+cabinet@2+sideboard@1')
+    expect(adjusted.origin.promptId).toBe('plan-adjust@12+cabinet@3+sideboard@2')
   })
 
   it('the plan correction round carries the previous plan and why it did not build', async () => {
