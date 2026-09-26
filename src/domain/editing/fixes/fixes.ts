@@ -1,5 +1,5 @@
 import { analyze } from '../../checks/analysis'
-import { startAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
+import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
 import type { Design, Piece } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
 import { completeJoints } from '../../design/joints'
@@ -87,6 +87,27 @@ function backRail(design: Design, catalog: Catalog, role: 'brace' | 'apron', nam
   return operations
 }
 
+/**
+ * Rigid rails for one box of a design with several (a step of a stepped stand): under the highest piece joined to both its sides, pocket-screwed to them.
+ * One at the back; a box with no rigid rail at all also gets one at the front, like a table's aprons, unless doors or drawers are in the way.
+ */
+function boxAprons(design: Design, catalog: Catalog, sides: Piece[], rigidRails: number): Operation[] {
+  const geo = analyze(design, catalog).geo
+  if (!geo || sides.length !== 2 || sides.some((s) => s.normal !== 'x')) return []
+  const [left, right] = [...sides].sort((a, b) => (geo.boxes.get(a.id)?.x0 ?? 0) - (geo.boxes.get(b.id)?.x0 ?? 0))
+  const joinedToBoth = (p: Piece) => [left, right].every((s) => design.joints.some((u) => (u.a === p.id && u.b === s.id) || (u.b === p.id && u.a === s.id)))
+  const top = design.pieces.filter((p) => p.normal === 'y' && joinedToBoth(p)).sort((a, b) => (geo.boxes.get(b.id)?.y1 ?? 0) - (geo.boxes.get(a.id)?.y1 ?? 0))[0]
+  if (!top) return []
+  const fronts = design.pieces.some((p) => p.role === 'door' || p.role === 'drawer-front')
+  const rails: [string, string, Piece['z']][] = [['back', 'Faja trasera', startAt(ref(`${left.id}.z0`))], ...(rigidRails === 0 && !fronts ? [['front', 'Faja delantera', endAt(ref(`${left.id}.z1`))] as [string, string, Piece['z']]] : [])]
+  const screw = pocketScrewId(materialById(catalog, left.material)?.thickness ?? 18)
+  return rails.flatMap(([at, name, z]) => {
+    const id = uniqueId(design, `${at}-apron-${top.id}`)
+    const rail = makePiece({ id, name, role: 'apron', material: left.material, normal: 'z', x: extent(ref(`${left.id}.x1`), ref(`${right.id}.x0`)), y: extent(null, ref(`${top.id}.y0`), RAIL_HEIGHT), z })
+    return [{ op: 'addPiece', piece: rail } as Operation, ...[left, right].map((side): Operation => ({ op: 'addJoint', joint: makeJoint(`j-${id}-${side.id}`, id, side.id, 'pocket-screw', [{ hardwareId: screw, count: 2 }]) }))]
+  })
+}
+
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
 function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'left' | 'right'): Operation[] {
   const geo = analyze(design, catalog).geo
@@ -151,8 +172,11 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
       return design.wallAnchored ? [] : [{ op: 'setWallAnchored', value: true }]
     case 'hanging-rail':
       return backRail(design, catalog, 'brace', 'Listón de colgar')
-    case 'rigid-apron':
-      return backRail(design, catalog, 'apron', 'Faja trasera')
+    case 'rigid-apron': {
+      // A box of a design that has several: its own rails. The whole piece of furniture as one box: the rail under its top, as always.
+      const isBox = pieces.length === 2 && design.pieces.filter((p) => p.role === 'side').length > 2
+      return isBox ? boxAprons(design, catalog, pieces, typeof finding.data.rigidRails === 'number' ? finding.data.rigidRails : 1) : backRail(design, catalog, 'apron', 'Faja trasera')
+    }
     case 'slide-support':
       return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
     case 'matching-hinge':

@@ -28,8 +28,8 @@ describe('rule registry', () => {
     expect([appliesTo(bedsOnly, 'bed'), appliesTo(bedsOnly, 'desk'), appliesTo(bedsOnly, null)]).toEqual([true, false, false])
   })
 
-  it('every rule starts at version 1; sag at 2 since its reference values changed, tipping at 3 and the base at 2 since they read legs', () => {
-    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 2], ['R4_TIPPING', 3], ['R7_BASE', 2]])
+  it('every rule starts at version 1; sag at 2 since its reference values changed, tipping at 3 and the base at 2 since they read legs, racking at 2 since it judges each box', () => {
+    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 2], ['R4_TIPPING', 3], ['R5_RACKING', 2], ['R7_BASE', 2]])
     expect(defineRule({ code: 'TEST', title: 'Prueba', check: () => [] }).version).toBe(1)
   })
 
