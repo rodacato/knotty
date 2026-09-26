@@ -5,6 +5,7 @@ import { MattressSize } from '../design/kind'
 import { completeJoints } from '../design/joints'
 import { backBoard, type Catalog } from '../materials/catalog'
 import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { choice, material, note, number, numbers, optionsOf, section, stepper, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
@@ -279,6 +280,47 @@ function benchBeds(): [string, BedPlan][] {
   return variants
 }
 
+const deepHeadboard = (plan: BedPlan) => plan.headboard.style === 'bookcase' || plan.headboard.style === 'storage'
+const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPlan => ({ ...plan, drawers: { ...plan.drawers, ...drawers } })
+const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>): BedPlan => ({ ...plan, headboard: { ...plan.headboard, ...headboard } })
+
+/** A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices. */
+const bedFields: FieldSpec<BedPlan>[] = [
+  section('Colchón y base', [
+    choice({ key: 'mattress', label: 'Colchón', options: optionsOf(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
+    note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
+    numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
+    material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+  ]),
+  section('Cajones', [
+    note('Los lados se ven desde el pie de la cama.'),
+    choice({
+      key: 'drawers.side',
+      label: 'Lado',
+      ariaLabel: 'Lado de los cajones',
+      options: optionsOf(BED_LABELS.drawerSide),
+      get: (p) => p.drawers.side,
+      // Choosing a side puts at least one drawer on it.
+      set: (p, side) => withDrawers(p, { side, count: side === 'none' ? p.drawers.count : Math.max(1, p.drawers.count) }),
+    }),
+    stepper({ key: 'drawers.count', label: 'Por lado', ariaLabel: 'cajones por lado', min: 1, max: MAX_DRAWERS_PER_SIDE, visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.count, set: (p, count) => withDrawers(p, { count }) }),
+    choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', options: optionsOf(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),
+  ]),
+  section('Cabecera', [
+    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', options: optionsOf(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => withHeadboard(p, { style }) }),
+    note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
+    numbers(
+      2,
+      [
+        number({ key: 'headboard.height', label: 'Alto desde el piso', get: (p) => p.headboard.height, set: (p, height) => withHeadboard(p, { height }) }),
+        number({ key: 'headboard.depth', label: 'Fondo', visibleWhen: deepHeadboard, get: (p) => p.headboard.depth, set: (p, depth) => withHeadboard(p, { depth }) }),
+      ],
+      (p) => p.headboard.style !== 'none',
+    ),
+    stepper({ key: 'headboard.shelves', label: 'Repisas', ariaLabel: 'repisas de la cabecera', min: 0, max: 4, visibleWhen: deepHeadboard, get: (p) => p.headboard.shelves, set: (p, shelves) => withHeadboard(p, { shelves }) }),
+  ]),
+]
+
 export const bedModule: FurnitureModule<BedPlan> = {
   kind: 'bed',
   schema: BedPlan,
@@ -297,4 +339,5 @@ export const bedModule: FurnitureModule<BedPlan> = {
   measuresNote: (plan, { width, height, depth }) => `Las medidas salen del ${BED_LABELS.mattress[plan.mattress].phrase}: la cama mide ${depth / 10} × ${width / 10} cm${plan.headboard.style === 'none' ? '' : `, y ${height / 10} cm de alto con la cabecera`}.`,
   traceLabel: (plan) => `Cama ${plan.mattress}`,
   benchVariants: benchBeds,
+  fields: bedFields,
 }

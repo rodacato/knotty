@@ -6,6 +6,7 @@ import type { DesignKind } from '../design/kind'
 import { backBoard, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { choice, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
@@ -176,6 +177,46 @@ function benchTables(): [string, TablePlan][] {
   ]
 }
 
+const isDesk = (plan: TablePlan) => plan.use === 'desk'
+const withSize = (plan: TablePlan, size: Partial<TablePlan['dimensions']>): TablePlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
+
+/** A table's or desk's plan: what it is for sets its heights and parts; measures, overhang, shelf and pedestal are choices. */
+const tableFields: FieldSpec<TablePlan>[] = [
+  section('Qué es', [
+    choice({
+      key: 'use',
+      label: 'Uso',
+      options: optionsOf(TABLE_LABELS.use),
+      get: (p) => p.use,
+      // Its name follows; only a desk keeps a pedestal, and a desk has no low shelf.
+      set: (p, use) => ({ ...p, use, name: TABLE_LABELS.use[use].name, shelf: use === 'desk' ? false : p.shelf, pedestal: use === 'desk' ? p.pedestal : { side: 'none', drawers: 0 } }),
+    }),
+  ]),
+  section('Medidas', [
+    numbers(3, [
+      number({ key: 'dimensions.height', label: 'Alto', get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Largo', get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
+    ]),
+    numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
+    material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+  ]),
+  section((p) => (isDesk(p) ? 'Cajonera' : 'Abajo'), [
+    choice({
+      key: 'pedestal.side',
+      label: 'Lado',
+      ariaLabel: 'Lado de la cajonera',
+      options: optionsOf(TABLE_LABELS.pedestal),
+      visibleWhen: isDesk,
+      get: (p) => p.pedestal.side,
+      // A pedestal has at least one drawer; none, none.
+      set: (p, side) => ({ ...p, pedestal: { side, drawers: side === 'none' ? 0 : Math.max(1, p.pedestal.drawers) } }),
+    }),
+    stepper({ key: 'pedestal.drawers', label: 'Cajones', ariaLabel: 'cajones de la cajonera', min: 1, max: MAX_PEDESTAL_DRAWERS, visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: (p) => p.pedestal.drawers, set: (p, drawers) => ({ ...p, pedestal: { ...p.pedestal, drawers } }) }),
+    yesNo({ key: 'shelf', label: 'Repisa baja', visibleWhen: (p) => !isDesk(p), get: (p) => p.shelf, set: (p, shelf) => ({ ...p, shelf }) }),
+  ]),
+]
+
 export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
@@ -188,4 +229,5 @@ export const tableModule: FurnitureModule<TablePlan> = {
   measuresNote: () => null,
   traceLabel: (plan) => `Mesa (${plan.use})`,
   benchVariants: benchTables,
+  fields: tableFields,
 }
