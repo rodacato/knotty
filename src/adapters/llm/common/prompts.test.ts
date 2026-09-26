@@ -222,8 +222,8 @@ describe('adjusting a plan asks only about its own module', () => {
   })
 })
 
-/** What the expert reads before the context, in tokens (≈ 3.5 characters each): the prompt and the schema of its answer. */
-const tokens = (text: string) => Math.round(text.length / 3.5)
+/** The prompt and the schema of its answer, as characters ÷ 3.5: a guard against growth, not a count. The provider counts ≈ 1.7–1.9 × this (npm run compare, 2026-09-26). */
+const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
 /** About 5 % above what each measured when it was set (plan-adjust@12): growing past it has to be on purpose. With every module it was 4 307. */
 const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2420, bed: 2060, table: 1870, shoeRack: 1930 }
@@ -237,19 +237,19 @@ const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: numb
 describe('token budget', () => {
   it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {
     const module = MODULE_OF_KIND[use]!
-    const skeleton = tokens(render(skeletonFor(module, use), testCatalog)) + tokens(JSON.stringify(strictSchema(planResponseFor(module))))
-    const adjust = tokens(render(planAdjustmentFor(module, use), testCatalog)) + tokens(JSON.stringify(strictSchema(planAdjustmentSchema(module))))
+    const skeleton = approxTokens(render(skeletonFor(module, use), testCatalog)) + approxTokens(JSON.stringify(strictSchema(planResponseFor(module))))
+    const adjust = approxTokens(render(planAdjustmentFor(module, use), testCatalog)) + approxTokens(JSON.stringify(strictSchema(planAdjustmentSchema(module))))
     expect(skeleton).toBeLessThanOrEqual(GUIDED_BUDGET[use]!.skeleton)
     expect(adjust).toBeLessThanOrEqual(GUIDED_BUDGET[use]!.adjust)
   })
 
   it.each([null, ...FURNITURE_KINDS])('the skeleton for %s: prompt and schema within budget', (kind) => {
-    const sent = tokens(render(skeletonFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(kind ? planResponseFor(kind) : PlanResponse)))
+    const sent = approxTokens(render(skeletonFor(kind), testCatalog)) + approxTokens(JSON.stringify(strictSchema(kind ? planResponseFor(kind) : PlanResponse)))
     expect(sent).toBeLessThanOrEqual(SKELETON_BUDGET[kind ?? 'all'])
   })
 
   it.each(FURNITURE_KINDS)('adjusting a %s plan: prompt and schema within budget', (kind) => {
-    const sent = tokens(render(planAdjustmentFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(planAdjustmentSchema(kind))))
+    const sent = approxTokens(render(planAdjustmentFor(kind), testCatalog)) + approxTokens(JSON.stringify(strictSchema(planAdjustmentSchema(kind))))
     expect(sent).toBeLessThanOrEqual(PLAN_ADJUST_BUDGET[kind])
   })
 })
