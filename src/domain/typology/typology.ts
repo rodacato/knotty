@@ -1,7 +1,7 @@
 import type { Design } from '../design/schema'
 import { roundTo, type Box, type Geometry } from '../design/resolve'
 import type { Finding, Rule } from '../structure/finding'
-import { freeSpan } from '../structure/rules/deflection'
+import { CONTACT_TOLERANCE, drawerGroups, freeSpan } from '../design/boxes'
 import { antiTipData } from '../structure/rules/usage'
 import type { Catalog } from '../materials/catalog'
 import type { DesignKind } from '../design/kind'
@@ -118,7 +118,7 @@ function bed(design: Design, geo: Geometry, ctx: Parameters<Rule>[0]): Finding[]
 function kneeSpace(design: Design, geo: Geometry, top: Box) {
   const front = top.z1
   const blocking = [...geo.boxes.entries()]
-    .filter(([id, b]) => !design.pieces.find((p) => p.id === id)?.group && b.y0 < KNEE.height && b.y1 > 0.5 && b.z1 > front - KNEE.depth && b.y1 <= top.y0 + 0.5)
+    .filter(([id, b]) => !design.pieces.find((p) => p.id === id)?.group && b.y0 < KNEE.height && b.y1 > CONTACT_TOLERANCE && b.z1 > front - KNEE.depth && b.y1 <= top.y0 + CONTACT_TOLERANCE)
     .map(([, b]) => [b.x0, b.x1] as const)
     .sort((a, b) => a[0] - b[0])
   let cursor = top.x0
@@ -160,7 +160,7 @@ function table(design: Design, geo: Geometry, furniture: DesignKind): Finding[] 
 }
 
 function drawers(design: Design, catalog: Catalog): Finding[] {
-  const count = new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group)).size
+  const count = drawerGroups(design).length
   if (count < 2 || design.dimensions.height <= 700 || design.wallAnchored) return []
   return [
     finding('drawers.anchor', 'critical', design.pieces.filter((p) => p.role === 'side').map((p) => p.id), `Con ${count} cajones y ${design.dimensions.height} mm de alto, si se abren varios cajones o un niño se sube, se va de frente. Va anclada al muro.`, { drawers: count }, [

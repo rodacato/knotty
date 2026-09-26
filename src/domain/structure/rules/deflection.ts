@@ -1,5 +1,6 @@
 import type { Load, Piece } from '../../design/schema'
 import { roundTo, type Box } from '../../design/resolve'
+import { freeSpan } from '../../design/boxes'
 import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
@@ -40,25 +41,6 @@ function grainToSpan(p: Piece, box: Box): GrainToSpan {
 
 /** The board's stiffness in MPa, from its grade and thickness. */
 const modulusOf = (board: BoardMaterial, grain: GrainToSpan) => stiffness(board.grade, board.thickness)[grain]
-
-/** The longest free span between upright supports: those touching its ends or holding it from below. */
-export function freeSpan(id: string, box: Box, ctx: Parameters<Rule>[0]) {
-  const supports = ctx.contacts
-    .filter((c) => c.a === id || c.b === id)
-    .map((c) => (c.a === id ? c.b : c.a))
-    .filter((other) => {
-      const piece = ctx.design.pieces.find((p) => p.id === other)
-      const o = ctx.geo.boxes.get(other)
-      if (!piece || !o || piece.normal !== 'x' || piece.role === 'door') return false
-      return Math.abs(o.x1 - box.x0) <= 0.5 || Math.abs(o.x0 - box.x1) <= 0.5 || Math.abs(o.y1 - box.y0) <= 0.5
-    })
-    .map((other) => ctx.geo.boxes.get(other)!)
-    .sort((a, b) => a.x0 - b.x0)
-  if (supports.length < 2) return null
-  let span = 0
-  for (let i = 1; i < supports.length; i++) span = Math.max(span, supports[i].x0 - Math.max(...supports.slice(0, i).map((a) => a.x1)))
-  return span > 0 ? span : null
-}
 
 function alternatives(p: Piece, span: number, depth: number, thickness: number, load: Load, modulus: number, grain: GrainToSpan, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []

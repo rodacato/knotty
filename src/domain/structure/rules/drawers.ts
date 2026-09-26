@@ -2,6 +2,7 @@ import { roundTo } from '../../design/resolve'
 import { gapBetween } from '../../validation/contact'
 import type { Design } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
+import { drawerGroups } from '../../design/boxes'
 import { pickHardware, thinnestBoard } from '../../materials/catalog'
 import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
@@ -10,7 +11,7 @@ import { ASSUMPTIONS } from '../assumptions'
 /** R9: the runner fits exactly, the bottom holds, and neither the front nor the box rubs. */
 export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   const found: Finding[] = []
-  const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group!))]
+  const groups = drawerGroups(design)
 
   for (const u of design.joints.filter((x) => x.type === 'drawer-slide')) {
     const a = geo.boxes.get(u.a)
@@ -130,8 +131,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
 
 /** A drawer that reaches the ground drags on it when it opens. */
 function floorClearance(design: Design, geo: Geometry): Finding[] {
-  const groups = [...new Set(design.pieces.filter((p) => p.role === 'drawer-front' && p.group).map((p) => p.group!))]
-  return groups.flatMap((g): Finding[] => {
+  return drawerGroups(design).flatMap((g): Finding[] => {
     const pieces = design.pieces.filter((p) => p.group === g && geo.boxes.has(p.id))
     const bottom = Math.min(...pieces.map((p) => geo.boxes.get(p.id)!.y0))
     if (bottom >= ASSUMPTIONS.drawers.floorClearance) return []
