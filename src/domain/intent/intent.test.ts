@@ -35,6 +35,7 @@ const read = (request: string, name: PlanName | null): Omit<Extract<Intent, { ki
 }
 
 const edit = (field: string, value: string | number) => ({ kind: 'edit', field, value })
+const fieldOf = (intent: Intent | null) => (intent?.kind === 'edit' ? intent.field : null)
 
 describe('parseIntent', () => {
   const understood: [string, PlanName, ReturnType<typeof edit>][] = [
@@ -152,15 +153,11 @@ describe('parseIntent', () => {
   })
 
   it('the phrases come from each module\'s labels: every variant with a base understands «sin zoclo» and «con zoclo», and the others do not', () => {
-    for (const module of Object.values(MODULES))
-      for (const [, plan] of module.benchVariants() as [string, FurniturePlan][]) {
-        const design = buildPlan(plan, testCatalog).design
-        for (const phrase of ['sin zoclo', 'con zoclo']) {
-          const intent = parseIntent(phrase, plan, design)
-          if ('base' in plan) expect(intent).toMatchObject({ kind: 'edit', field: 'base' })
-          else expect(intent).toBeNull()
-        }
-      }
+    const read = Object.values(MODULES).flatMap((module) =>
+      (module.benchVariants() as [string, FurniturePlan][]).flatMap(([, plan]) => ['sin zoclo', 'con zoclo'].map((phrase) => ({ base: 'base' in plan, field: fieldOf(parseIntent(phrase, plan, buildPlan(plan, testCatalog).design)) }))),
+    )
+    expect(read.filter((r) => r.base !== (r.field === 'base'))).toEqual([])
+    expect(read.some((r) => !r.base)).toBe(true)
   })
 })
 
