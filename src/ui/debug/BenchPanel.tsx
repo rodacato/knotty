@@ -127,6 +127,7 @@ export function BenchPanel() {
                                 {r.calls} {r.calls === 1 ? 'llamada' : 'llamadas'}
                                 {r.corrections.length ? ` (corrigió ${r.corrections.join(', ')})` : ''}
                               </span>
+                              {r.inputTokens !== null && <span className="numerals">{r.inputTokens.toLocaleString('es-MX')} tokens de entrada</span>}
                               <span className="numerals">{r.measures} mm</span>
                               {!r.reasonable && <span className="text-rust">medidas raras</span>}
                               {r.structure && <span className={r.structure.ok === false ? 'text-rust' : undefined}>{describeStructure(r.structure)}</span>}

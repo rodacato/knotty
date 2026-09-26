@@ -3,7 +3,7 @@ import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildPlan, MODULE_OF_KIND, MODULES } from '../../domain/furniture/modules/plan'
 import { kindFromWords } from '../../domain/checks/typology/typology'
-import { countParts, createBench, describeAdjustments, describeStructure } from './bench'
+import { byCallKind, countParts, createBench, describeAdjustments, describeStructure } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 const signal = () => new AbortController().signal
@@ -74,6 +74,29 @@ describe('the bench', () => {
     }
     for (const c of bench.cases.filter((c) => c.module)) expect({ id: c.id, module: routed(c.notes) }).toEqual({ id: c.id, module: c.module })
     for (const c of bench.cases.filter((c) => c.path === 'pieces')) expect({ id: c.id, module: routed(c.notes) }).toEqual({ id: c.id, module: null })
+  })
+
+  it('keeps every call with its kind and prompt, the design’s and its requests’', async () => {
+    const r = await bench.runCase(bench.cases.find((c) => c.id === 'shoe-rack')!, signal())
+    expect(r.callLog.map((c) => [c.step, c.promptId])).toEqual([['skeleton', expect.any(String)]])
+    const expert = await bench.runCase({ ...bench.cases.find((c) => c.id === 'shoe-rack')!, adjust: ['Hazla más bonita'] }, signal())
+    expect(expert.callLog.map((c) => c.step)).toEqual(['skeleton', 'adjust'])
+  })
+
+  it('groups the calls by kind and prompt, averaging only the tokens a provider reported', () => {
+    const call = (step: 'skeleton' | 'plan-adjust', promptId: string, input: number | null, output: number | null, seconds = 10) => ({ step, promptId, input, output, seconds })
+    expect(
+      byCallKind([
+        call('skeleton', 'skeleton@15+cabinet@2', 3000, 800),
+        call('skeleton', 'skeleton@15+cabinet@2', 2000, null, 20),
+        call('skeleton', 'skeleton@15+cabinet@2+sideboard@1', 3200, 900),
+        call('plan-adjust', 'plan-adjust@12+cabinet@2', null, null),
+      ]),
+    ).toEqual([
+      { step: 'skeleton', promptId: 'skeleton@15+cabinet@2', calls: 2, input: 2500, output: 800, seconds: 15 },
+      { step: 'skeleton', promptId: 'skeleton@15+cabinet@2+sideboard@1', calls: 1, input: 3200, output: 900, seconds: 10 },
+      { step: 'plan-adjust', promptId: 'plan-adjust@12+cabinet@2', calls: 1, input: null, output: null, seconds: 10 },
+    ])
   })
 
   it('a case the expert cannot do is reported, not thrown', async () => {

@@ -19,6 +19,10 @@ export interface BenchResult {
   /** Calls to the expert, retries included. */
   calls: number
   outputTokens: number | null
+  /** What the design's calls read, prompt, schema and context together; null if a provider did not say. */
+  inputTokens: number | null
+  /** Every call of the case, the design's and its requests', to compare tokens by kind of call and prompt. */
+  callLog: CallRecord[]
   /** How the design came to be: from a plan Knotty built, or piece by piece. */
   path: 'plan' | 'pieces' | null
   pieces: number
@@ -92,37 +96,73 @@ export interface ModuleCheck {
   findings: string[]
 }
 
-interface Call {
+export type CallStep = 'skeleton' | 'pieces' | 'plan-adjust' | 'adjust' | 'review' | 'reading'
+
+export interface CallRecord {
+  step: CallStep
+  promptId: string | null
   seconds: number
+  input: number | null
   output: number | null
-  corrects: string[]
+}
+
+type Call = CallRecord & { corrects: string[] }
+
+export interface CallSummary {
+  step: CallStep
+  promptId: string | null
+  calls: number
+  /** Averages over the calls that reported them; null when none did. */
+  input: number | null
+  output: number | null
+  seconds: number
+}
+
+const average = (xs: (number | null)[]) => {
+  const known = xs.filter((x): x is number => x !== null)
+  return known.length ? known.reduce((s, x) => s + x, 0) / known.length : null
+}
+
+/** The calls grouped by kind of call and prompt, with their averages: the same prompt with and without a guide are two rows. */
+export function byCallKind(calls: CallRecord[]): CallSummary[] {
+  const groups = new Map<string, CallRecord[]>()
+  for (const c of calls) groups.set(`${c.step} ${c.promptId}`, [...(groups.get(`${c.step} ${c.promptId}`) ?? []), c])
+  return [...groups.values()].map((group) => ({
+    step: group[0].step,
+    promptId: group[0].promptId,
+    calls: group.length,
+    input: average(group.map((c) => c.input)),
+    output: average(group.map((c) => c.output)),
+    seconds: average(group.map((c) => c.seconds))!,
+  }))
 }
 
 /** Wraps the provider to time each call: the use cases retry, and each attempt counts. */
 function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
   const timed =
-    <A extends unknown[], R extends { usage: { outputTokens?: number } }>(f: (...a: A) => Promise<R>) =>
+    <A extends unknown[], R extends { usage: { inputTokens?: number; outputTokens?: number }; origin: { promptId: string } }>(step: CallStep, f: (...a: A) => Promise<R>) =>
     async (...a: A) => {
       const start = performance.now()
       const previous = (a[0] as { correction?: { errors: unknown } | null }).correction?.errors
       const corrects = Array.isArray(previous) ? previous.map((e: { code: string }) => e.code) : typeof previous === 'string' ? [previous.slice(0, 40)] : []
+      const seconds = () => (performance.now() - start) / 1000
       try {
         const r = await f(...a)
-        calls.push({ seconds: (performance.now() - start) / 1000, output: r.usage.outputTokens ?? null, corrects })
+        calls.push({ step, promptId: r.origin.promptId, seconds: seconds(), input: r.usage.inputTokens ?? null, output: r.usage.outputTokens ?? null, corrects })
         return r
       } catch (e) {
-        calls.push({ seconds: (performance.now() - start) / 1000, output: null, corrects })
+        calls.push({ step, promptId: null, seconds: seconds(), input: null, output: null, corrects })
         throw e
       }
     }
   return {
     ...llm,
-    reconstruct: timed(llm.reconstruct.bind(llm)),
-    proposeAdjustment: timed(llm.proposeAdjustment.bind(llm)),
-    reviewPurchase: timed(llm.reviewPurchase.bind(llm)),
-    readPhoto: timed(llm.readPhoto.bind(llm)),
-    planDesign: llm.planDesign ? timed(llm.planDesign.bind(llm)) : null,
-    adjustPlan: llm.adjustPlan ? timed(llm.adjustPlan.bind(llm)) : null,
+    reconstruct: timed('pieces', llm.reconstruct.bind(llm)),
+    proposeAdjustment: timed('adjust', llm.proposeAdjustment.bind(llm)),
+    reviewPurchase: timed('review', llm.reviewPurchase.bind(llm)),
+    readPhoto: timed('reading', llm.readPhoto.bind(llm)),
+    planDesign: llm.planDesign ? timed('skeleton', llm.planDesign.bind(llm)) : null,
+    adjustPlan: llm.adjustPlan ? timed('plan-adjust', llm.adjustPlan.bind(llm)) : null,
   }
 }
 
@@ -139,6 +179,8 @@ async function adjustAll(useCases: ReturnType<typeof createUseCases>, state: Des
   }
   return { adjustments, state }
 }
+
+const record = ({ step, promptId, seconds, input, output }: Call): CallRecord => ({ step, promptId, seconds, input, output })
 
 /** Kept in memory: a bench run never touches the design the person is working on. */
 const inMemory = () => {
@@ -159,13 +201,16 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
     const provider = deps.llm()
     const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory() })
     const start = performance.now()
-    const empty = { adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, structure: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
+    const empty = { callLog: [], inputTokens: null, adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, structure: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
     try {
       const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
       const design = currentDesign(state)
       const d = design.dimensions
-      const tokens = calls.map((l) => l.output)
+      const total = (of: (c: Call) => number | null) => {
+        const values = calls.map(of)
+        return values.length && values.every((t) => t !== null) ? values.reduce((s, t) => s! + t!, 0) : null
+      }
       const path = state.versions[0].plan ? ('plan' as const) : ('pieces' as const)
       const common = {
         caseId: c.id,
@@ -173,7 +218,8 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         error: null,
         seconds,
         calls: calls.length,
-        outputTokens: tokens.length && tokens.every((t) => t !== null) ? tokens.reduce((s, t) => s! + t!, 0) : null,
+        outputTokens: total((c) => c.output),
+        inputTokens: total((c) => c.input),
         path,
         pieces: design.pieces.length,
         joints: design.joints.length,
@@ -185,9 +231,9 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
       }
       const graded = grade(design)
       const adjusted = await adjustAll(useCases, state, c.adjust ?? [], calls, signal)
-      return { ...common, ...graded, ...adjusted }
+      return { ...common, ...graded, ...adjusted, callLog: calls.map(record) }
     } catch (e) {
-      return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length }
+      return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length, callLog: calls.map(record) }
     }
   }
 
