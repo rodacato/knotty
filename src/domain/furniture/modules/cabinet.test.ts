@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
-import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetConstruction, type CabinetPlan } from './cabinet'
+import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
+import { LEG_HEIGHT } from './common'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
@@ -18,6 +19,17 @@ const PLANS: Record<string, CabinetPlan> = {
     columns: [{ width: 0.3, cells: [cell('door', 1, { doors: 1 })] }, { width: 0.4, cells: [cell('open', 1, { shelves: 1 })] }, { width: 0.3, cells: [cell('door', 1, { doors: 1 })] }],
   }),
   drawerChest: plan({ name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, wallMounted: false, columns: [{ width: 1, cells: [cell('drawer'), cell('drawer'), cell('drawer')] }] }),
+  sideboard: plan({
+    name: 'Aparador',
+    dimensions: { width: 1600, height: 940, depth: 400 },
+    base: 'legs',
+    columns: [
+      { width: 1, cells: [cell('door', 0.75, { doors: 1, shelves: 1 }), cell('drawer', 0.25)] },
+      { width: 1, cells: [cell('door', 0.75, { doors: 1 }), cell('open', 0.25)] },
+      { width: 1, cells: [cell('door', 0.75, { doors: 1 }), cell('open', 0.25)] },
+      { width: 1, cells: [cell('drawer', 0.4), cell('drawer', 0.35), cell('open', 0.25)] },
+    ],
+  }),
   headboard: plan({ name: 'Cabecera', dimensions: { width: 1030, height: 900, depth: 250 }, base: 'floor', columns: [{ width: 1, cells: [cell('closed', 0.4), cell('open', 0.6, { shelves: 1 })] }] }),
 }
 
@@ -56,6 +68,47 @@ describe('buildCabinet', () => {
   })
 })
 
+describe('on legs', () => {
+  const built = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, a, box: (id: string) => a.geo.boxes.get(id)! }
+  }
+
+  it('raises the box on a laminated leg at each corner, under aprons with pocket screws, and the bottom screwed down onto them', () => {
+    const { design, box } = built({ ...PLANS.nightstand, base: 'legs' })
+    const legs = design.pieces.filter((p) => p.id.startsWith('leg-'))
+    expect(legs.map((p) => p.id).sort()).toEqual(['back-left', 'back-right', 'front-left', 'front-right'].flatMap((c) => [`leg-${c}-1`, `leg-${c}-2`]).sort())
+    expect(box('bottom').y0).toBe(LEG_HEIGHT)
+    expect(box('side-left').y0).toBe(LEG_HEIGHT)
+    // Two layers of the carcass board, glued face to face: 36 × 72.
+    const [a, b] = [box('leg-front-left-1'), box('leg-front-left-2')]
+    expect([a.x0, b.x1 - a.x0, a.z1 - a.z0, a.y0, a.y1]).toEqual([30, 36, 72, 0, LEG_HEIGHT])
+    expect(design.joints.find((u) => u.a === 'leg-front-left-1' && u.b === 'leg-front-left-2')).toMatchObject({ glue: true })
+    expect(design.joints.filter((u) => u.type === 'pocket-screw' && u.a.startsWith('apron-'))).toHaveLength(8)
+    expect(design.joints.filter((u) => u.a === 'bottom' && /^(leg|apron)-/.test(u.b)).length).toBeGreaterThanOrEqual(12)
+  })
+
+  it('a wide box gets legs in between, under a divider when that keeps every gap within the reference, and rails so the bottom never spans too much', () => {
+    const { design, box } = built(PLANS.sideboard)
+    const middle = design.pieces.filter((p) => p.id.startsWith('leg-middle-')).map((p) => p.id)
+    expect(middle.sort()).toEqual(['leg-middle-1-back-1', 'leg-middle-1-back-2', 'leg-middle-1-front-1', 'leg-middle-1-front-2'])
+    const divider = box('div-2')
+    expect((box('leg-middle-1-front-1').x0 + box('leg-middle-1-front-2').x1) / 2).toBe((divider.x0 + divider.x1) / 2)
+    expect(design.pieces.filter((p) => p.id.startsWith('leg-rail-'))).toHaveLength(2)
+    // Too far from any divider: evenly between the corners.
+    const long = built(plan({ dimensions: { width: 2400, height: 800, depth: 400 }, base: 'legs', columns: [{ width: 1, cells: [cell('open', 1, { shelves: 1 })] }, { width: 1, cells: [cell('open', 1, { shelves: 1 })] }, { width: 1, cells: [cell('open', 1, { shelves: 1 })] }] }))
+    expect((long.box('leg-middle-1-front-1').x0 + long.box('leg-middle-1-front-2').x1) / 2).toBe(1200)
+    expect(built({ ...PLANS.nightstand, base: 'legs' }).design.pieces.some((p) => p.id.startsWith('leg-middle-'))).toBe(false)
+  })
+
+  it('a plan saved before there were legs still reads, and one with legs too: a new value needs no migration', () => {
+    expect(CabinetPlan.parse(PLANS.bookcase).base).toBe('kick')
+    expect(CabinetPlan.parse(PLANS.sideboard).base).toBe('legs')
+  })
+})
+
 describe('construction variants', () => {
   const options: { [K in keyof CabinetConstruction]: CabinetConstruction[K][] } = {
     doors: ['overlay', 'inset'],
@@ -79,8 +132,9 @@ describe('construction variants', () => {
     ],
   })
 
-  it.each(combos.map((c) => [Object.values(c).join(' · '), c] as const))('%s is valid, with nothing overlapping and every contact joined', (_, construction) => {
-    const { design, notes } = buildCabinet({ ...mixed, construction }, testCatalog)
+  const bases: CabinetPlan['base'][] = ['kick', 'legs']
+  it.each(combos.flatMap((c) => bases.map((base) => [`${Object.values(c).join(' · ')} · ${base}`, c, base] as const)))('%s is valid, with nothing overlapping and every contact joined', (_, construction, base) => {
+    const { design, notes } = buildCabinet({ ...mixed, construction, base }, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])

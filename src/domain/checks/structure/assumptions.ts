@@ -63,6 +63,12 @@ export const ASSUMPTIONS = {
   floorSpan: 800,
   /** A floor rests on a run (a kick, a rail) that is under at least this share of its length. */
   floorRunShare: 0.8,
+  legs: {
+    /** The widest gap between two legs, along the width, before the furniture needs legs in between. */
+    maxSpan: 1200,
+    /** A piece on the floor no longer or deeper than this is a leg, not a panel or a kick. */
+    footprint: 150,
+  },
   /** A piece this many times longer than wide shows its grain running across. */
   grainRatio: 1.5,
   drawers: {
@@ -110,6 +116,8 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'doors.hinges': cite(VALUES, '8-puertas', 'Bisagras por altura de puerta'),
   'doors.maxWidth': cite(VALUES, '8-puertas', 'Ancho máximo de una hoja'),
   floorSpan: cite(STRUCTURE, '71-patas-o-zoclo', 'un piso de más de 800 mm sin apoyo intermedio necesita revisión'),
+  'legs.maxSpan': cite(STRUCTURE, '71-patas-o-zoclo', 'más de ≈ 1 200 mm de ancho → patas intermedias'),
+  'legs.footprint': noReference('how Knotty tells a leg from a panel on the floor: a laminated leg of 2 × 18 × 72 fits with room, a side or a kick is far longer'),
   floorRunShare: noReference('how Knotty reads «zoclo corrido»: a run under most of the floor, not a block at one end'),
   grainRatio: noReference('where a piece starts to read as long, so grain across it shows; the reference only says the grain runs along the span'),
   'drawers.runnerTolerance': cite(VALUES, '9-cajones', 'Holgura de corredera de balines'),

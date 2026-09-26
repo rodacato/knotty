@@ -29,8 +29,8 @@ export const sideboardPlan: CabinetPlan = {
   name: 'Aparador',
   dimensions: { width: 1600, height: 940, depth: 400 },
   material: 'T18',
-  // The original stands on splayed legs, which no plan has yet: a kick plate for now.
-  base: 'kick',
+  // The original stands on splayed legs: here straight ones, of two glued layers, under an apron (step 30).
+  base: 'legs',
   // 940 mm with doors and drawers: anchored to the wall (R4).
   wallMounted: true,
   construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable' },

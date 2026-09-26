@@ -27,7 +27,10 @@ describe('examples', () => {
     const { design } = exampleDesign(exampleSideboard, testCatalog)
     expect(design).toMatchObject({ name: 'Aparador', wallAnchored: true, finish: 'polyurethane', dimensions: sideboardPlan.dimensions })
     expect(design.notes).toMatch(/^Aparador de comedor/)
-    expect(design.pieces).toHaveLength(41)
+    // On legs (step 30): no kick nor supports under the floor; six legs of two layers, four aprons and two rails. 41 on its kick.
+    expect(design.pieces).toHaveLength(55)
+    expect(design.pieces.some((p) => p.role === 'kick')).toBe(false)
+    expect(design.pieces.filter((p) => /^leg-.*-1$/.test(p.id) && !p.id.startsWith('leg-rail'))).toHaveLength(6)
     const analysis = analyze(design, testCatalog)
     if (!analysis.valid) throw new Error('invalid')
     const purchase = estimatePurchase(design, analysis.geo, testCatalog)
@@ -35,6 +38,8 @@ describe('examples', () => {
     const count = (id: string) => purchase.hardware.find((h) => h.hardware.id === id)?.count
     expect(count('cup-hinge-35-inset')).toBe(6)
     expect(count('drawer-slide-35')).toBe(3)
+    // Two pocket screws each way from every apron into its legs.
+    expect(count('pocket-screw-1-1/4')).toBe(16)
     expect(purchase.finish?.finish).toBe('polyurethane')
   })
 })

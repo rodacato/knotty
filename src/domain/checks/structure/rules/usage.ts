@@ -1,7 +1,8 @@
 import { faceSize, roundTo } from '../../../design/resolve'
 import { CONTACT_TOLERANCE, drawerGroups, freeSpan, overlap } from '../../../design/boxes'
 import type { DesignKind } from '../../../design/kind'
-import type { Piece } from '../../../design/schema'
+import type { Design, Piece } from '../../../design/schema'
+import type { Box, Geometry } from '../../../design/resolve'
 import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } from '../../../materials/catalog'
 import { doorMount } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
@@ -18,6 +19,23 @@ export const antiTipData = (catalog: Catalog): Record<string, string> => {
 
 /** Furniture that is not for storing things: lain, sat or worked on (its drawers are low in a long or wide piece), or hung from the wall (its own check). */
 const NOT_STORAGE: readonly DesignKind[] = ['bed', 'bench', 'desk', 'table', 'diningTable', 'coffeeTable', 'sideTable', 'wallCabinet']
+
+/** What the furniture stands on: every piece touching the floor, and whether legs are among them (posts, not a panel or a kick). */
+export function standing(design: Design, geo: Geometry): { boxes: { id: string; box: Box }[]; onLegs: boolean } {
+  const boxes = design.pieces.flatMap((p) => {
+    const box = geo.boxes.get(p.id)
+    return box && box.y0 <= CONTACT_TOLERANCE ? [{ id: p.id, box }] : []
+  })
+  const { footprint } = ASSUMPTIONS.legs
+  return { boxes, onLegs: boxes.some(({ box }) => box.x1 - box.x0 <= footprint && box.z1 - box.z0 <= footprint) }
+}
+
+/** How deep the furniture stands: on legs, from its backmost leg to its frontmost, which a box on legs set back from its edges makes shallower than the box. */
+function footprintDepth({ design, geo }: RuleContext): number {
+  const { boxes, onLegs } = standing(design, geo)
+  if (!onLegs) return design.dimensions.depth
+  return Math.max(...boxes.map(({ box }) => box.z1)) - Math.min(...boxes.map(({ box }) => box.z0))
+}
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
@@ -47,9 +65,11 @@ function storageTipping({ design, catalog }: RuleContext): Finding[] | null {
   ]
 }
 
-/** R4, open furniture: tall and shallow, it falls forward when pulled or when a child climbs it. */
-function ratioTipping({ design, catalog }: RuleContext): Finding[] {
-  const { height, depth } = design.dimensions
+/** R4, open furniture: tall and shallow, it falls forward when pulled or when a child climbs it. On legs, what counts is how deep the legs stand. */
+function ratioTipping(ctx: RuleContext): Finding[] {
+  const { design, catalog } = ctx
+  const { height } = design.dimensions
+  const depth = roundTo(footprintDepth(ctx), 0)
   const ratio = height / depth
   const { recommendedRatio, criticalRatio, criticalHeight } = ASSUMPTIONS.tipping
   if (design.wallAnchored || ratio < recommendedRatio) return []
@@ -59,15 +79,18 @@ function ratioTipping({ design, catalog }: RuleContext): Finding[] {
       code: 'R4_TIPPING',
       severity: critical ? 'critical' : 'recommendation',
       pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
-      message: `Mide ${height} mm de alto y solo ${depth} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
+      message: `Mide ${height} mm de alto y ${depth < design.dimensions.depth ? `sus patas se apoyan en solo ${depth} mm` : `solo ${depth}`} de fondo (${roundTo(ratio)} a 1): se puede ir de frente si no va anclado al muro.`,
       data: { height: height, depth: depth, ratio: roundTo(ratio) },
       alternatives: [
         { key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: antiTipData(catalog) },
-        { key: 'deeper', description: `Darle al menos ${Math.ceil(height / recommendedRatio / 10) * 10} mm de fondo`, data: { depth: Math.ceil(height / recommendedRatio / 10) * 10 } },
+        // What the legs lose to their setback, the box has to gain.
+        { key: 'deeper', description: `Darle al menos ${deeper(height, design.dimensions.depth - depth)} mm de fondo`, data: { depth: deeper(height, design.dimensions.depth - depth) } },
       ],
     },
   ]
 }
+
+const deeper = (height: number, setback: number) => Math.ceil((height / ASSUMPTIONS.tipping.recommendedRatio + setback) / 10) * 10
 
 /** R4: furniture that can fall forward goes anchored to the wall. */
 export const tippingRule: Rule = (ctx) => storageTipping(ctx) ?? ratioTipping(ctx)
@@ -144,8 +167,47 @@ export const doorRule: Rule = (ctx) => {
     })
 }
 
-/** R7: a floor that rests neither on the ground nor on a full kick needs support in between over a long span. */
-export const baseRule: Rule = (ctx) =>
+/** R7, legs: two legs too far apart along the width leave the frame and the bottom carrying the middle; past the reference's width, legs go in between. */
+function legSpan(ctx: RuleContext): Finding[] {
+  const { boxes, onLegs } = standing(ctx.design, ctx.geo)
+  if (!onLegs) return []
+  // What stands on the floor, as runs along the width: two layers of a leg, or a front leg and its back one, are one.
+  const runs = boxes
+    .map(({ box }) => [box.x0, box.x1] as [number, number])
+    .sort((a, b) => a[0] - b[0])
+    .reduce<[number, number][]>((all, [x0, x1]) => {
+      const last = all.at(-1)
+      if (last && x0 <= last[1] + CONTACT_TOLERANCE) last[1] = Math.max(last[1], x1)
+      else all.push([x0, x1])
+      return all
+    }, [])
+  const { maxSpan } = ASSUMPTIONS.legs
+  return runs.slice(1).flatMap(([x0], i): Finding[] => {
+    const from = runs[i][1]
+    const gap = x0 - from
+    if (gap <= maxSpan) return []
+    // What rests on them over the gap: the lowest horizontal piece that crosses it, usually the bottom.
+    const over = ctx.design.pieces
+      .filter((p) => p.normal === 'y')
+      .map((p) => ({ p, box: ctx.geo.boxes.get(p.id) }))
+      .filter((x): x is { p: Piece; box: Box } => !!x.box && x.box.x0 <= from && x.box.x1 >= x0)
+      .sort((a, b) => a.box.y0 - b.box.y0)[0]
+    return [
+      {
+        code: 'R7_BASE',
+        severity: 'recommendation',
+        check: 'base.legs',
+        pieces: over ? [over.p.id] : [],
+        message: `Entre dos patas quedan ${roundTo(gap, 0)} mm: el mueble carga en medio y la base se vence. Pasando de ${maxSpan} mm, lleva patas intermedias.`,
+        data: { span: roundTo(gap, 0), max: maxSpan },
+        alternatives: [{ key: 'center-support', description: 'Agregar un apoyo al centro, debajo del piso', data: {} }],
+      },
+    ]
+  })
+}
+
+/** R7, floor: one that rests neither on the ground nor on a full kick needs support in between over a long span. */
+const floorSpan: Rule = (ctx) =>
   ctx.design.pieces
     .filter((p) => p.role === 'bottom' && p.normal === 'y')
     .flatMap((p): Finding[] => {
@@ -173,6 +235,9 @@ export const baseRule: Rule = (ctx) =>
         },
       ]
     })
+
+/** R7: a floor that rests neither on the ground nor on a full kick needs support in between over a long span; legs, one every so often. */
+export const baseRule: Rule = (ctx) => [...floorSpan(ctx), ...legSpan(ctx)]
 
 const GRAIN_SHOWS = new Set(['side', 'shelf', 'bottom', 'top', 'divider', 'door'])
 
