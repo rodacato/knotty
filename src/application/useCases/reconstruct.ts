@@ -154,7 +154,7 @@ export function createReconstruct(kit: Kit) {
     const repaired = repairs.length ? [repairedOnMyOwn(repairs)] : []
     const pendingItems = problems.length ? [leftUnresolved(describeProblems(traceErrors(problems)))] : []
     return {
-      format: 7,
+      format: 8,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -181,7 +181,7 @@ export function createReconstruct(kit: Kit) {
   /** Starts from a ready design (the examples), without spending a call to the model. */
   function fromExample(design: Design): DesignState {
     return save({
-      format: 7,
+      format: 8,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
       current: 1,

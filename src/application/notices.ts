@@ -1,5 +1,6 @@
 import { analyze, type Analysis } from '../domain/analysis'
 import type { Design } from '../domain/design/schema'
+import { isAccepted, reopenReason } from '../domain/structure/accepted'
 import { findingKey, type Finding, type Severity } from '../domain/structure/finding'
 import { ruleTitle } from '../domain/structure/registry'
 import type { Catalog } from '../domain/materials/catalog'
@@ -24,6 +25,8 @@ export interface Notice {
   findings: Finding[]
   /** For a question: the chat message it belongs to and its index. */
   question?: { messageId: string; index: number }
+  /** For a finding the person had accepted: why it is pending again. */
+  reopened?: string
 }
 
 export interface NoticeBoard {
@@ -77,9 +80,11 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog, analysi
  */
 export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Analysis): NoticeBoard {
   const design = currentDesign(state)
-  const accepted = new Set(state.accepted.map((a) => a.key))
-  const all = noticesOf(state, design, catalog, analysis)
-  const isAccepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => accepted.has(findingKey(h)))
+  const all = noticesOf(state, design, catalog, analysis).map((n): Notice => {
+    const reopened = n.findings.map((h) => reopenReason(h, state.accepted)).find((r) => r !== null)
+    return reopened ? { ...n, reopened } : n
+  })
+  const accepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => isAccepted(h, state.accepted))
 
   const extra: Notice[] = []
   if (state.proposal)
@@ -114,7 +119,7 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
     : []
 
   const sort = (list: Notice[]) => [...list].sort((a, b) => RANK[a.severity] - RANK[b.severity])
-  return { pending: sort([...extra, ...all.filter((n) => !isAccepted(n))]), accepted: all.filter(isAccepted), resolved }
+  return { pending: sort([...extra, ...all.filter((n) => !accepted(n))]), accepted: all.filter(accepted), resolved }
 }
 
 /** A notice for the expert: with one of its alternatives, or for the expert to decide how. */

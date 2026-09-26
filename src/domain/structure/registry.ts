@@ -17,16 +17,18 @@ export interface RuleDefinition<C extends string = string> {
   title: string
   /** The kinds of furniture it checks; 'all' for any. */
   appliesTo: readonly DesignKind[] | 'all'
+  /** Goes up when the rule judges differently (a threshold, the model), not for a new wording: older acceptances show as pending again. */
+  version: number
   check: Rule
 }
 
-export const defineRule = <const C extends string>(rule: Omit<RuleDefinition<C>, 'appliesTo'> & Partial<Pick<RuleDefinition<C>, 'appliesTo'>>): RuleDefinition<C> => ({ appliesTo: 'all', ...rule })
+export const defineRule = <const C extends string>(rule: Omit<RuleDefinition<C>, 'appliesTo' | 'version'> & Partial<Pick<RuleDefinition<C>, 'appliesTo' | 'version'>>): RuleDefinition<C> => ({ appliesTo: 'all', version: 1, ...rule })
 
 export const RULES = [
-  defineRule({ code: 'R1_SAG', title: 'Entrepaños que se pandean', check: deflectionRule }),
+  defineRule({ code: 'R1_SAG', title: 'Entrepaños que se pandean', version: 2, check: deflectionRule }),
   defineRule({ code: 'R2_JOINT_THICKNESS', title: 'Espesor para la unión', check: jointThicknessRule }),
   defineRule({ code: 'R3_SCREWS', title: 'Tornillos', check: screwRule }),
-  defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', check: tippingRule }),
+  defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', version: 2, check: tippingRule }),
   defineRule({ code: 'R5_RACKING', title: 'Escuadrado', check: rackingRule }),
   defineRule({ code: 'R6_DOORS', title: 'Puertas', check: doorRule }),
   defineRule({ code: 'R7_BASE', title: 'Base', check: baseRule }),
@@ -38,6 +40,9 @@ export const RULES = [
 export type RuleCode = (typeof RULES)[number]['code']
 
 export const ruleTitle = (code: RuleCode) => RULES.find((r) => r.code === code)?.title ?? code
+
+/** R1 and R4 are at 2: their reference values changed (step 21 of the proposal). */
+export const ruleVersion = (code: RuleCode) => RULES.find((r) => r.code === code)?.version ?? 1
 
 /** Whether a rule checks this kind of furniture (null: a kind Knotty does not recognize). */
 export const appliesTo = (rule: RuleDefinition, kind: DesignKind | null) => rule.appliesTo === 'all' || (kind !== null && rule.appliesTo.includes(kind))

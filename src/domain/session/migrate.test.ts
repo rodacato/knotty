@@ -35,7 +35,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(7)
+    expect(migrated.data?.format).toBe(8)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -94,7 +94,7 @@ describe('migrateState', () => {
     const v5 = { ...structuredClone(migrated.data!), format: 5 }
     v5.review!.checks.push({ id: 'aceptados', title: 'Aceptado por ti', status: 'warning', detail: 'x', pieces: [], request: null, impossible: false })
     const state = DesignState.parse(migrateState(v5))
-    expect(state.format).toBe(7)
+    expect(state.format).toBe(8)
     expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin', 'accepted'])
   })
 
@@ -107,12 +107,19 @@ describe('migrateState', () => {
     v6.versions.at(-1)!.plan = bed
     v6.proposal.plan = cabinet
     const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v6))))
-    expect(state.format).toBe(7)
+    expect(state.format).toBe(8)
     expect(state.versions[0].plan).toEqual({ kind: 'cabinet', ...cabinet })
     expect(state.versions.at(-1)!.plan).toEqual(bed)
     expect(state.proposal?.plan).toEqual({ kind: 'cabinet', ...cabinet })
     // What is saved again reads back the same.
     expect(DesignState.parse(migrateState(JSON.parse(JSON.stringify(state))))).toEqual(state)
+  })
+
+  it('keeps what format 7 accepted, without its severity and at version 1 of its rule', () => {
+    const v7 = { ...structuredClone(migrated.data!), format: 7, accepted: [{ key: 'R5_RACKING:side-l', title: 'Escuadrado', at: '2026-09-20T10:00:00Z' }] }
+    const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v7))))
+    expect(state.format).toBe(8)
+    expect(state.accepted).toEqual([{ key: 'R5_RACKING:side-l', title: 'Escuadrado', at: '2026-09-20T10:00:00Z', severity: null, version: 1 }])
   })
 
   it('leaves the current format as it is', () => {

@@ -28,6 +28,11 @@ describe('rule registry', () => {
     expect([appliesTo(bedsOnly, 'bed'), appliesTo(bedsOnly, 'desk'), appliesTo(bedsOnly, null)]).toEqual([true, false, false])
   })
 
+  it('every rule starts at version 1; sag and tipping are at 2 since their reference values changed', () => {
+    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 2], ['R4_TIPPING', 2]])
+    expect(defineRule({ code: 'TEST', title: 'Prueba', check: () => [] }).version).toBe(1)
+  })
+
   it('each rule only reports findings under its own code', () => {
     const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
     for (const design of [exampleBookcase, wide, exampleNightstand, exampleWallCabinet] as Design[]) {

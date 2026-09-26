@@ -922,8 +922,46 @@ describe('notices: one place for what waits for a decision', () => {
   it('a key saved before checks had ids (R10_USE:) hides neither finding: both show again once', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
-    const legacy = { ...initial, accepted: [{ key: 'R10_USE:', title: 'Uso del mueble', at: '2026-09-01T10:00:00Z' }] }
+    const legacy = { ...initial, accepted: [{ key: 'R10_USE:', title: 'Uso del mueble', at: '2026-09-01T10:00:00Z', severity: null, version: 1 }] }
     expect(noticeBoard(legacy, testCatalog).pending.filter((n) => n.title === 'Uso del mueble')).toHaveLength(2)
+  })
+
+  it('a recommendation accepted that becomes critical is pending again, says why, and leaves the purchase review', async () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 700 } })
+    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    expect(sag.severity).toBe('recommendation')
+    const accepted = c.acceptNotice(initial, sag.findings, sag.title)
+    expect(accepted.accepted.map((a) => a.severity)).toEqual(sag.findings.map(() => 'recommendation'))
+
+    const wider = c.resizeFurniture(accepted, 'x', 1000)
+    if (!wider.ok) throw new Error(wider.message)
+    const board = noticeBoard(wider.state, testCatalog)
+    const critical = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    expect(critical.severity).toBe('critical')
+    expect(critical.reopened).toBe('Lo habías aceptado como recomendación; ahora es crítico.')
+    expect(board.accepted).toEqual([])
+    const verdict = await c.reviewPurchase(wider.state, testCatalog, newSignal())
+    expect(verdict.checks.find((x) => x.id === 'accepted')).toBeUndefined()
+
+    // Accepting it again, as critical, replaces the old acceptance.
+    const again = c.acceptNotice(wider.state, critical.findings, critical.title)
+    expect(again.accepted.map((a) => a.severity)).toEqual(critical.findings.map(() => 'critical'))
+    expect(noticeBoard(again, testCatalog).pending.some((n) => n.title === 'Entrepaños que se pandean')).toBe(false)
+  })
+
+  it('a critical accepted stays accepted while it is critical, and when it gets better', () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1000 } })
+    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    expect(sag.severity).toBe('critical')
+    const accepted = c.acceptNotice(initial, sag.findings, sag.title)
+    const wider = c.resizeFurniture(accepted, 'x', 1100)
+    if (!wider.ok) throw new Error(wider.message)
+    expect(noticeBoard(wider.state, testCatalog).accepted.map((n) => n.title)).toEqual(['Entrepaños que se pandean'])
+    const narrower = c.resizeFurniture(accepted, 'x', 700)
+    if (!narrower.ok) throw new Error(narrower.message)
+    expect(noticeBoard(narrower.state, testCatalog).accepted.map((n) => n.severity)).toEqual(['recommendation'])
   })
 
   it("the expert's pending proposal and unanswered questions are notices too", async () => {
