@@ -7,7 +7,7 @@ import { ASSUMPTIONS } from '../structure/assumptions'
 import { maxSpan } from '../structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
 import { KICK_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
-import { choice, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A shoe rack from its ficha (docs/carpinteria/muebles-y-medidas.md §2.6), built as a one-column cabinet with fixed shelves that also brace the shallow box.
@@ -153,12 +153,12 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
     stepper({ key: 'levels', label: 'Niveles', ariaLabel: 'niveles para zapatos', min: 1, max: MAX_LEVELS, get: (p) => p.levels, set: (p, levels) => ({ ...p, levels }) }),
     yesNo({ key: 'bootLevel', label: 'Nivel para botas abajo', get: (p) => p.bootLevel, set: (p, bootLevel) => ({ ...p, bootLevel }) }),
     // The plain name follows the front; a name of its own stays.
-    choice({ key: 'front', label: 'Frente', options: optionsOf(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front, name: p.name === NAME[p.front] ? NAME[front] : p.name }) }),
+    choice({ key: 'front', label: 'Frente', ...fromLabels(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front, name: p.name === NAME[p.front] ? NAME[front] : p.name }) }),
     yesNo({ key: 'seat', label: 'Asiento arriba', get: (p) => p.seat, set: (p, seat) => ({ ...p, seat }) }),
   ]),
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
-    choice({ key: 'base', label: 'Base', options: optionsOf(SHOE_RACK_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
+    choice({ key: 'base', label: 'Base', ...fromLabels(SHOE_RACK_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     yesNo({ key: 'wallMounted', label: 'Anclada al muro', get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
   ]),
 ]

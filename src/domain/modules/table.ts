@@ -6,7 +6,7 @@ import type { DesignKind } from '../design/kind'
 import { backBoard, type Catalog } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
-import { choice, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
 // A table or a desk from its ficha: a top on two panel ends, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
@@ -206,7 +206,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
       key: 'pedestal.side',
       label: 'Lado',
       ariaLabel: 'Lado de la cajonera',
-      options: optionsOf(TABLE_LABELS.pedestal),
+      ...fromLabels(TABLE_LABELS.pedestal),
       visibleWhen: isDesk,
       get: (p) => p.pedestal.side,
       // A pedestal has at least one drawer; none, none.

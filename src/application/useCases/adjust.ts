@@ -3,17 +3,20 @@ import type { Design } from '../../domain/design/schema'
 import { fixForAlternative } from '../../domain/fixes/fixes'
 import { updateDecisions, type Decision, type Origin } from '../../domain/history/history'
 import type { Catalog } from '../../domain/materials/catalog'
-import type { FurniturePlan } from '../../domain/modules/plan'
+import { answerQuestion } from '../../domain/intent/answers'
+import { parseIntent } from '../../domain/intent/intent'
+import { describePlanChanges, type FurniturePlan } from '../../domain/modules/plan'
 import { rebuildFromPlan } from '../../domain/modules/rebuild'
 import type { Operation } from '../../domain/operations/schema'
+import type { Repair } from '../../domain/repair/repair'
 import { updateRequirements, type Requirement } from '../../domain/requirements/requirements'
 import { currentDesign, markAnswered, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/structure/finding'
-import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/trace/trace'
+import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/trace/trace'
 import { expertPlans } from '../../ports/LLMProvider'
 import { buildContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
-import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, stillPending } from './copy'
+import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
 import { criticalsCorrection, listErrors } from './forExpert'
@@ -40,7 +43,7 @@ function proposalFrom(p: {
   request: string
   critical: Finding[]
   requirements: Requirement[]
-  origin: Origin
+  origin: Origin | null
   plan: { plan: FurniturePlan | null; extras: Operation[] }
   holds: string[]
 }): Proposal {
@@ -105,12 +108,52 @@ export function createAdjust(kit: Kit) {
   function waitFor(
     { withRequest, request, reply }: Round,
     verdict: Pending,
-    p: { operations: Operation[]; response: { explanation: string; summary: string; decisions: Decision[]; questions: Message['questions'] }; requirements: Requirement[]; origin: Origin; plan: { plan: FurniturePlan | null; extras: Operation[] }; suggestions: string[] },
+    p: { operations: Operation[]; response: { explanation: string; summary: string; decisions: Decision[]; questions: Message['questions'] }; requirements: Requirement[]; origin: Origin | null; plan: { plan: FurniturePlan | null; extras: Operation[] }; suggestions: string[] },
   ): DesignState {
     const { design } = verdict.candidate
     const proposal = proposalFrom({ design, operations: p.operations, response: p.response, request, critical: verdict.critical, requirements: p.requirements, origin: p.origin, plan: p.plan, holds: verdict.holds })
     const ask = verdict.holds.length ? { questions: p.response.questions, suggestions: p.suggestions } : askAboutCriticals(p.response.questions, verdict.critical, design, catalog)
     return reply(p.response.explanation, { ...ask, proposal: 'pending' }, { ...withRequest, proposal })
+  }
+
+  /** A request Knotty reads alone: answered from its numbers, or a plan edit judged like the expert's; null sends it to the expert. */
+  function locally(round: Round, answering: string | null): DesignState | null {
+    const { withRequest, request, photo, design, before, plan: current, trace, reply } = round
+    const live = current.plan && !current.diverged ? current.plan : null
+    const intent = photo ? null : parseIntent(request, live, design)
+    if (!intent) return null
+    const started = Date.now()
+    const note = (outcome: TraceEntry['outcome'], errors: TraceEntry['errors'] = [], repairs: Repair[] = []) => trace.push(traceEntry('adjust', 0, started, null, outcome, errors, repairs, BY_KNOTTY))
+    if (intent.kind === 'question') {
+      const answer = answerQuestion(intent.topic, design, catalog, live)
+      note(answer ? 'ok' : 'invalid', answer ? [] : [{ code: 'E_LOCAL', message: 'El diseño no se puede medir: va al experto' }])
+      return answer ? reply(answer) : null
+    }
+    // An answer to the expert or to a pending proposal only makes sense with what the expert said: it reads it.
+    if (!live || answering || withRequest.proposal) return null
+    if (intent.plan === live) {
+      note('ok')
+      return reply(localText.already)
+    }
+    const rebuilt = rebuildFromPlan(intent.plan, current.extras, catalog, withRequest.requirements)
+    const analysis = analyze(rebuilt.design, catalog, withRequest.requirements)
+    note(analysis.valid ? 'ok' : 'invalid', analysis.valid ? [] : traceErrors(analysis.errors), rebuilt.repairs)
+    if (!analysis.valid) return null
+    const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
+    const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
+    // The plan path's policy: no extra round, so new criticals wait for the person with the rules' options.
+    const verdict = judge({ design, before, candidate, response: { questions: [], acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
+    const changes = describePlanChanges(live, intent.plan)
+    const said = changes.length ? changes : ['cambio en la ficha']
+    const summary = `${said.join(', ').charAt(0).toUpperCase()}${said.join(', ').slice(1)}`.slice(0, 90)
+    const plan = { plan: intent.plan, extras }
+    if (verdict.kind === 'pending') {
+      const explanation = localText.pending(said, verdict.critical.map((c) => c.message), verdict.holds.length > 0)
+      return waitFor(round, verdict, { operations: [], response: { explanation, summary, decisions: [], questions: [] }, requirements: withRequest.requirements, origin: null, plan, suggestions: [] })
+    }
+    if (verdict.kind !== 'applied') return null
+    const withChange = addVersion(withRequest, rebuilt.design, { summary, reason: request, operations: [], origin: null, ...plan })
+    return reply([localText.applied(said), ...rebuilt.notes].join('\n\n'), { version: withChange.current }, withChange)
   }
 
   /** With a live plan the expert edits the plan, judged like any change but with no extra round for criticals; null means: go piece by piece. */
@@ -243,7 +286,7 @@ export function createAdjust(kit: Kit) {
     save(withRequest)
     const round = roundFor(withRequest, request, signal, onProgress, photo)
     try {
-      return (await throughPlan(round)) ?? (await pieceByPiece(round))
+      return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {
       if (signal.aborted) return round.reply(CANCELLED, { error: true })
       return round.reply(e instanceof Error ? e.message : EXPERT_FAILED, { error: true })

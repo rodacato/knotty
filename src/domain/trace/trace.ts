@@ -21,6 +21,10 @@ export type TraceEntry = z.infer<typeof TraceEntry>
 
 const MAX_ENTRIES = 60
 
+/** The subject of what Knotty did in the chat by itself: traced beside the expert's calls, with no prompt and no tokens. */
+export const BY_KNOTTY = 'Knotty, sin experto'
+export const byKnotty = (entry: TraceEntry) => entry.subject === BY_KNOTTY
+
 export const appendTrace = (trace: TraceEntry[], entries: TraceEntry[]) => [...trace, ...entries].slice(-MAX_ENTRIES)
 
 export const traceErrors = (errors: DesignError[]) => errors.map((e) => ({ code: e.code, message: e.message }))

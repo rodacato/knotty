@@ -30,6 +30,8 @@ interface Named {
 export interface ChoiceField<P> extends Shown<P>, Edits<P, string>, Named {
   type: 'choice'
   options: readonly Option[]
+  /** How each value reads inside a sentence ("sin zoclo"), when its labels say it: the chat understands a request by these words. */
+  phrases?: Readonly<Record<string, string>>
 }
 
 /** The catalog's boards for one use, by thickness. */
@@ -95,6 +97,12 @@ const keeping =
 
 /** A module's labels as the buttons of a choice, in the order the form shows them. */
 export const optionsOf = (labels: Record<string, { option: string } | string>): Option[] => Object.entries(labels).map(([value, label]) => [value, typeof label === 'string' ? label : label.option])
+
+/** A module's labels as a choice's buttons and the words for each inside a sentence. */
+export const fromLabels = (labels: Record<string, { option: string; phrase: string }>): Pick<ChoiceField<unknown>, 'options' | 'phrases'> => ({
+  options: optionsOf(labels),
+  phrases: Object.fromEntries(Object.entries(labels).map(([value, label]) => [value, label.phrase])),
+})
 
 type Spec<F, V, P> = Omit<F, 'type' | 'get' | 'set'> & { get: (plan: P) => V; set: (plan: P, value: V) => P }
 

@@ -41,3 +41,11 @@ export const holdText = {
   removesStructure: (names: string[]) => `Quiere quitar ${names.join(', ')}, que sostienen el mueble y no pediste quitar.`,
   askedQuestions: 'Hizo preguntas: el cambio espera tus respuestas.',
 }
+
+/** What Knotty says when it changed the plan by itself, without the expert. */
+export const localText = {
+  applied: (changes: string[]) => `Listo, lo cambié en la ficha: ${changes.join(', ')}.`,
+  already: 'Ya está así en la ficha; no cambié nada.',
+  pending: (changes: string[], criticals: string[], holds: boolean) =>
+    `Preparé el cambio en la ficha (${changes.join(', ')}), pero ${holds ? 'quita piezas que sostienen el mueble' : criticals.length === 1 ? `deja un punto crítico: ${criticals[0]}` : `deja ${criticals.length} puntos críticos`}. Queda como propuesta para que lo decidas.`,
+}

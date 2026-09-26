@@ -1,7 +1,7 @@
 import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, WarningCircle, X, XCircle } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
-import type { BenchResult, ModuleCheck } from '../../application/bench/bench'
+import { describeAdjustments, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
 import { moduleName, moduleNames } from '../../domain/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
@@ -133,6 +133,7 @@ export function BenchPanel() {
                                 {r.verdict}
                                 {r.criticals ? ` · ${r.criticals} críticos (${r.rules.join(' ')})` : ''}
                               </span>
+                              {r.adjustments.length > 0 && <span>{describeAdjustments(r.adjustments)}</span>}
                               {r.state &&
                                 (confirming === c.id ? (
                                   <button

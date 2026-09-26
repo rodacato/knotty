@@ -17,6 +17,8 @@ export interface BenchCase {
   path?: 'plan' | 'pieces'
   /** The module whose plan it should come from: another one is a misread too. */
   module?: FurnitureKind
+  /** Chat requests made after the design, in order: the report says which Knotty answered alone and which went to the expert. */
+  adjust?: string[]
 }
 
 export const BENCH_CASES: BenchCase[] = [
@@ -25,6 +27,7 @@ export const BENCH_CASES: BenchCase[] = [
     notes: 'Librero de 5 repisas para libros, sin puertas, con zoclo al frente; va pegado a la pared',
     measures: { height: 1800, width: 800, depth: 300 },
     expected: { height: [1800, 1800], width: [800, 800], depth: [300, 300] },
+    adjust: ['¿Cuánto cuesta?'],
   },
   {
     id: 'bed-drawers',
@@ -75,6 +78,7 @@ export const BENCH_CASES: BenchCase[] = [
     expected: { height: [880, 920], width: [700, 1000], depth: [300, 380] },
     path: 'plan',
     module: 'shoeRack',
+    adjust: ['Sin zoclo', '¿Cuántas hojas?'],
   },
   {
     id: 'tv-stand',
