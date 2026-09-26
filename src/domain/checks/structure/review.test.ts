@@ -90,6 +90,35 @@ describe('R1 shelf sag', () => {
   })
 })
 
+describe('a box on legs', () => {
+  const sideboard = MODULES.cabinet.benchVariants().find(([name]) => name === 'aparador con patas')![1]
+  const without = (d: Design, drop: (id: string) => boolean): Design => ({ ...d, pieces: d.pieces.filter((p) => !drop(p.id)), joints: d.joints.filter((u) => !drop(u.a) && !drop(u.b)) })
+
+  it('its bottom is not on the floor: the span between legs is checked for sag, and the rails keep it within', () => {
+    const { design } = buildPlan(sideboard, testCatalog)
+    expect(findings(design)).toEqual([])
+    const sag = findings(without(design, (id) => id.startsWith('leg-rail-'))).filter((h) => h.code === 'R1_SAG' && h.pieces.includes('bottom'))
+    expect(sag).toHaveLength(1)
+    expect(sag[0].data.span).toBe(716)
+  })
+
+  it('legs too far apart need one in between (R7), past the reference’s width', () => {
+    const { design } = buildPlan(sideboard, testCatalog)
+    const base = findings(without(design, (id) => /^leg-(middle|rail)-/.test(id))).filter((h) => h.code === 'R7_BASE')
+    expect(base).toMatchObject([{ check: 'base.legs', severity: 'recommendation', pieces: ['bottom'], data: { span: 1468, max: 1200 } }])
+    expect(base[0].alternatives.map((x) => x.key)).toEqual(['center-support'])
+  })
+
+  it('tips over by how deep its legs stand, not the box (R4)', () => {
+    const open = { ...sideboard, name: 'Librero bajo', wallMounted: false, dimensions: { width: 600, height: 850, depth: 300 }, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 2, doors: null }] }] }
+    expect(findings(buildPlan({ ...open, base: 'floor' }, testCatalog).design).filter((h) => h.code === 'R4_TIPPING')).toEqual([])
+    const tipping = findings(buildPlan(open, testCatalog).design).filter((h) => h.code === 'R4_TIPPING')
+    expect(tipping).toMatchObject([{ severity: 'recommendation', data: { height: 850, depth: 240 } }])
+    expect(tipping[0].message).toContain('sus patas se apoyan en solo 240 mm de fondo')
+    expect(tipping[0].alternatives.find((x) => x.key === 'deeper')?.data).toEqual({ depth: 350 })
+  })
+})
+
 describe('R2 thickness per joint', () => {
   it('asks for at least 15 mm for a dowel and 15 mm to take an edge screw', () => {
     const d = structuredClone(exampleNightstand)

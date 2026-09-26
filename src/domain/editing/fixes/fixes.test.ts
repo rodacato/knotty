@@ -6,6 +6,7 @@ import { exampleWallCabinet } from '../../furniture/fixtures/wallCabinet'
 import { exampleNightstand } from '../../furniture/fixtures/nightstand'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
+import { buildPlan, MODULES } from '../../furniture/modules/plan'
 import { fixesFor, fixesForNotice } from './fixes'
 
 const findings = (d: Design) => {
@@ -22,6 +23,16 @@ describe('fixesFor', () => {
     const fix = fixesFor(wide, testCatalog, sag).find((f) => f.key === 'center-divider')!
     expect(fix.design.pieces.some((p) => p.id === `support-${sag.pieces[0]}`)).toBe(true)
     expect(findings(fix.design).some((h) => h.code === 'R1_SAG' && h.pieces.includes(sag.pieces[0]))).toBe(false)
+  })
+
+  it('legs too far apart get a support in the middle, under the bottom and between the aprons', () => {
+    const sideboard = buildPlan(MODULES.cabinet.benchVariants().find(([name]) => name === 'aparador con patas')![1], testCatalog).design
+    const drop = (id: string) => /^leg-(middle|rail)-/.test(id)
+    const apart = { ...sideboard, pieces: sideboard.pieces.filter((p) => !drop(p.id)), joints: sideboard.joints.filter((u) => !drop(u.a) && !drop(u.b)) }
+    const legs = findings(apart).find((h) => h.check === 'base.legs')!
+    const fix = fixesFor(apart, testCatalog, legs).find((f) => f.key === 'center-support')!
+    expect(fix.design.pieces.some((p) => p.id === 'support-bottom')).toBe(true)
+    expect(findings(fix.design).some((h) => h.check === 'base.legs')).toBe(false)
   })
 
   it('a joint too thin on one side thickens only that piece, not the one it joins', () => {
