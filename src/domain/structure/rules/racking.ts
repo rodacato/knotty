@@ -20,12 +20,13 @@ export const rackingRule: Rule = ({ design, geo, catalog }) => {
   const rigidBack = backs.some((b) => {
     const thickness = geo.thicknesses.get(b.id) ?? 0
     const onPerimeter = (ids: Set<string>) => [...ids].filter((id) => PERIMETER.has(role.get(id) ?? 'other')).length
-    if (thickness >= 6) return onPerimeter(joinedTo(b.id, () => true)) >= 3
-    return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rabbet' || type === 'dado') && glued)) >= 3
+    const { nailedBackThickness, backJoins } = ASSUMPTIONS.racking
+    if (thickness >= nailedBackThickness) return onPerimeter(joinedTo(b.id, () => true)) >= backJoins
+    return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rabbet' || type === 'dado') && glued)) >= backJoins
   })
 
   const rails = design.pieces.filter((p) => RAILS.has(p.role) && p.support === 'fixed' && sides.every((side) => joinedTo(p.id, (type) => JOINTS[type].rigid).has(side)))
-  const rigidFrame = rails.length >= 2 && rails.some((p) => p.role === 'apron' || p.role === 'kick')
+  const rigidFrame = rails.length >= ASSUMPTIONS.racking.rigidRails && rails.some((p) => p.role === 'apron' || p.role === 'kick')
 
   if (rigidBack || rigidFrame) return []
   // What racks is the box the sides make: in a cabinet the whole height, under a bed's headboard only the base.
@@ -33,7 +34,7 @@ export const rackingRule: Rule = ({ design, geo, catalog }) => {
   const back = backBoard(catalog)
   const finding: Finding = {
     code: 'R5_RACKING',
-    severity: height > ASSUMPTIONS.criticalRackingHeight ? 'critical' : 'recommendation',
+    severity: height > ASSUMPTIONS.racking.criticalHeight ? 'critical' : 'recommendation',
     pieces: sides,
     message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
     data: { height: height, rigidRails: rails.length },

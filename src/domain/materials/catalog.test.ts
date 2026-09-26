@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import data from '../../../public/catalog/catalog.json'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { ASSUMPTIONS } from '../structure/assumptions'
-import { applySettings, Catalog, HARDWARE_ROLES, hardwareByRole, NO_SETTINGS, pickHardware } from './catalog'
+import { applySettings, Catalog, HARDWARE_ROLES, hardwareByRole, NO_SETTINGS, hingeFor, pickHardware, slideFor, slideForBox } from './catalog'
 
 describe('hardware roles', () => {
   it('every catalog item has a known role, and every role has an item', () => {
@@ -40,11 +40,40 @@ describe('hardware roles', () => {
   })
 })
 
+describe('drawer slides', () => {
+  it('the longest that fits the depth behind the front, leaving 10 mm at the back', () => {
+    expect(slideFor(testCatalog, 469)?.id).toBe('drawer-slide-45')
+    expect(slideFor(testCatalog, 460)?.id).toBe('drawer-slide-45')
+    expect(slideFor(testCatalog, 459)?.id).toBe('drawer-slide-40')
+    expect(slideFor(testCatalog, 900)?.id).toBe('drawer-slide-50')
+    expect(slideFor(testCatalog, 300)).toBeUndefined()
+  })
+
+  it('a built box takes the slide as long as it is; shorter than every slide, the shortest', () => {
+    expect(slideForBox(testCatalog, 400)?.id).toBe('drawer-slide-40')
+    expect(slideForBox(testCatalog, 420)?.id).toBe('drawer-slide-40')
+    expect(slideForBox(testCatalog, 250)?.id).toBe('drawer-slide-30')
+  })
+})
+
+describe('hinges', () => {
+  it('one for each way a door sits: straight, cranked and super-cranked', () => {
+    expect([hingeFor(testCatalog, 'overlay')?.id, hingeFor(testCatalog, 'half-overlay')?.id, hingeFor(testCatalog, 'inset')?.id]).toEqual(['cup-hinge-35-full', 'cup-hinge-35-half', 'cup-hinge-35-inset'])
+  })
+
+  it('a catalog saved before hinges said their door loads, and asks for none', () => {
+    const old = Catalog.parse({ ...data, hardware: data.hardware.map((h) => Object.fromEntries(Object.entries(h).filter(([k]) => k !== 'mount'))) })
+    expect(hardwareByRole(old, 'hinge').map((h) => h.mount)).toEqual([null, null, null])
+    expect(hingeFor(old, 'inset')).toBeUndefined()
+  })
+})
+
 describe('the person saved settings', () => {
   it('override prices by id and keep each item role', () => {
     const c = applySettings(testCatalog, { prices: { T18: 990, 'screw-8x2': 60, 'drawer-slide-40': null }, layout: null })
     expect(c.hardware.find((h) => h.id === 'screw-8x2')).toMatchObject({ role: 'screw', price: 60 })
     expect(c.hardware.find((h) => h.id === 'drawer-slide-40')).toMatchObject({ role: 'drawer-slide', price: null })
+    expect(applySettings(testCatalog, { prices: { 'cup-hinge-35-inset': 120 }, layout: null }).hardware.find((h) => h.id === 'cup-hinge-35-inset')).toMatchObject({ mount: 'inset', price: 120 })
     expect(c.materials.find((m) => m.id === 'T18')?.price).toBe(990)
     expect(c.hardware.map((h) => h.role)).toEqual(testCatalog.hardware.map((h) => h.role))
     expect(applySettings(testCatalog, NO_SETTINGS)).toEqual(testCatalog)

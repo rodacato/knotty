@@ -1,5 +1,6 @@
 import { ASSUMPTIONS } from '../structure/assumptions'
-import { hardwareByRole, pickHardware, type Catalog } from '../materials/catalog'
+import { hardwareByRole, hingeFor, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
+import { doorMount } from './doors'
 import { contacts, type Contact } from '../validation/contact'
 import { makeJoint } from './builders'
 import { JOINTS } from './jointSpecs'
@@ -12,7 +13,7 @@ import { resolveGeometry, type Box } from './resolve'
 const pairKey = (a: string, b: string) => [a, b].sort().join('|')
 
 /** The joint with the catalog's usual hardware for its type, if the catalog has any. */
-function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' | 'shelf-pin' | 'cup-hinge', count: number | null): Omit<Joint, 'id'> {
+function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' | 'shelf-pin', count: number | null): Omit<Joint, 'id'> {
   const role = JOINTS[type].hardware
   const item = role && pickHardware(catalog, role)
   return makeJoint('', a, b, type, item ? [{ hardwareId: item.id, count }] : [])
@@ -21,7 +22,7 @@ function withHardware(catalog: Catalog, a: string, b: string, type: 'glue-nail' 
 /** The shortest screw that bites enough into the edge, or the longest that does not poke out when it goes into a face. */
 function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, intoFace: boolean) {
   const screws = hardwareByRole(catalog, 'screw').filter((h) => h.length).sort((x, y) => x.length! - y.length!)
-  if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - 3) ?? screws[0]
+  if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - ASSUMPTIONS.screws.faceMargin) ?? screws[0]
   return screws.find((t) => t.length! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
 }
 
@@ -60,7 +61,10 @@ function hinge(door: Piece, box: Box, neighbours: { piece: Piece; box: Box }[], 
   const distance = (k: Box) => Math.min(Math.abs(center(k) - box.x0), Math.abs(center(k) - box.x1))
   // On a tie, the left one: it is what someone opening it expects.
   const chosen = [...uprights].sort((m, n) => distance(m.box) - distance(n.box) || center(m.box) - center(n.box))[0]
-  return withHardware(catalog, door.id, chosen.piece.id, 'cup-hinge', null)
+  // The hinge for how the door sits on it: a door that shares a divider with the next one takes a cranked hinge, not a straight one.
+  const mount = doorMount(box, chosen.box)
+  const item = (mount && hingeFor(catalog, mount)) || pickHardware(catalog, 'hinge')
+  return makeJoint('', door.id, chosen.piece.id, 'cup-hinge', item ? [{ hardwareId: item.id, count: null }] : [])
 }
 
 /** Adds missing joints; with `previous`, only where the change created a contact, so a joint removed on purpose does not come back. */
@@ -100,11 +104,12 @@ export function completeJoints(design: Design, catalog: Catalog, previous?: Desi
     add(hinge(door, boxes.get(door.id)!, neighbours.map((piece) => ({ piece, box: boxes.get(piece.id)! })), catalog))
   }
 
-  // A drawer that came without runners gets them on the pieces beside its box; R9 then checks the gap.
-  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
+  // A drawer that came without runners gets them on the pieces beside its box, as long as the box; R9 then checks the gap and the length.
   const withRunner = new Set(design.joints.filter((u) => u.type === 'drawer-slide').flatMap((u) => [u.a, u.b]))
   const groupsWithHardware = new Set(design.joints.filter((u) => u.type === 'drawer-slide' && u.hardware.length).flatMap((u) => [byId.get(u.a)?.group, byId.get(u.b)?.group]))
   for (const { group, side, support } of drawerSides(design, boxes)) {
+    const box = boxes.get(side.id)!
+    const runner = slideForBox(catalog, box.z1 - box.z0)
     if (!runner || !support || withRunner.has(side.id)) continue
     // One runner in the catalog is a pair: the first side carries it, the other goes without hardware.
     const hardware = groupsWithHardware.has(group) ? [] : [{ hardwareId: runner.id, count: 1 }]

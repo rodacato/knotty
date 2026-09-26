@@ -7,10 +7,12 @@ import { exampleNightstand } from '../fixtures/nightstand'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { findingKey } from './finding'
+import { hingesFor } from './assumptions'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../modules/cabinet'
 import { buildBed } from '../modules/bed'
 import { buildTable } from '../modules/table'
 import type { Cell } from '../reading/reading'
+import { fixesFor } from '../fixes/fixes'
 
 const findings = (d: Design, code: string) => {
   const a = analyze(d, testCatalog)
@@ -84,7 +86,7 @@ describe('R4 tipping', () => {
 
 describe('R6 doors', () => {
   it('a tall door with two hinges asks for more', () => {
-    const tall = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1600 } }
+    const tall = { ...exampleWallCabinet, dimensions: { ...exampleWallCabinet.dimensions, height: 1700 } }
     const r6 = findings(tall, 'R6_DOORS')
     expect(r6.map((h) => [h.pieces[0], h.severity, h.data.needed])).toEqual([
       ['door-left', 'critical', 4],
@@ -92,9 +94,36 @@ describe('R6 doors', () => {
     ])
   })
 
+  it('hinges by height as Blum counts them: 2 up to 900, 3 up to 1600, 4 up to 2000, 5 up to 2400', () => {
+    expect([900, 901, 1600, 1601, 2000, 2001, 2400, 2600].map(hingesFor)).toEqual([2, 3, 3, 4, 4, 5, 5, 5])
+  })
+
   it('a door wider than 60 cm suggests splitting it', () => {
     const wide = { ...exampleNightstand, dimensions: { ...exampleNightstand.dimensions, width: 700 } }
     expect(findings(wide, 'R6_DOORS').map((h) => h.alternatives[0].key)).toEqual(['two-doors'])
+  })
+
+  const withHinge = (d: Design, hardwareId: string): Design => ({ ...d, joints: d.joints.map((u) => (u.type === 'cup-hinge' ? { ...u, hardware: u.hardware.map((h) => ({ ...h, hardwareId })) } : u)) })
+
+  it('an inset door on a straight hinge does not close in place, and Knotty swaps it for the super-cranked one', () => {
+    const inset = buildCabinet({ kind: 'cabinet', name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] }, testCatalog).design
+    expect(findings(inset, 'R6_DOORS')).toEqual([])
+    const wrong = withHinge(inset, 'cup-hinge-35-full')
+    const r6 = findings(wrong, 'R6_DOORS')
+    expect(r6.map((h) => [h.check, h.severity, h.data.mount, h.alternatives[0]?.data.hardwareId])).toEqual([
+      ['door.hinge-mount', 'critical', 'inset', 'cup-hinge-35-inset'],
+      ['door.hinge-mount', 'critical', 'inset', 'cup-hinge-35-inset'],
+    ])
+    expect(r6[0].message).toContain('embutida dentro del hueco')
+    const [fix] = fixesFor(wrong, testCatalog, r6[0])
+    expect(fix.key).toBe('matching-hinge')
+    expect(findings(fix.design, 'R6_DOORS').map((h) => h.pieces[0])).toEqual([r6[1].pieces[0]])
+  })
+
+  it('an overlay door on the super-cranked hinge is critical; on the cranked one, a recommendation', () => {
+    expect(findings(exampleNightstand, 'R6_DOORS')).toEqual([])
+    expect(findings(withHinge(exampleNightstand, 'cup-hinge-35-inset'), 'R6_DOORS').map((h) => [h.severity, h.data.mount])).toEqual([['critical', 'overlay']])
+    expect(findings(withHinge(exampleNightstand, 'cup-hinge-35-half'), 'R6_DOORS').map((h) => [h.severity, h.alternatives[0].data.hardwareId])).toEqual([['recommendation', 'cup-hinge-35-full']])
   })
 })
 

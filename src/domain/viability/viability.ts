@@ -7,6 +7,7 @@ import type { Finding } from '../structure/finding'
 import type { DesignError } from '../validation/errors'
 import type { Catalog } from '../materials/catalog'
 import type { Purchase } from '../materials/purchase'
+import { noReference, type Source } from '../sources'
 
 // The review before buying: what can be checked with arithmetic, no opinions. The carpenter (the model) gives an opinion on top of it, never against it.
 // Check ids are saved in the verdict: renaming one needs a migration.
@@ -19,6 +20,10 @@ import type { Purchase } from '../materials/purchase'
 const MIN_STRIP = 50
 /** From this use of the usable sheet up, one wrong cut means buying another sheet. */
 const TIGHT_YIELD = 0.85
+export const VIABILITY_SOURCES: Record<string, Source> = {
+  MIN_STRIP: noReference('Knotty’s limit for a strip safe to rip with a circular saw at home; the reference gives no minimum width'),
+  TIGHT_YIELD: noReference('Knotty’s margin for one miscut before another sheet is needed'),
+}
 
 export const Verdict = z.enum(['viable', 'needs-changes', 'not-viable'])
 export type Verdict = z.infer<typeof Verdict>

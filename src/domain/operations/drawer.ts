@@ -1,7 +1,7 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../design/builders'
 import type { FaceRef, Piece, Joint } from '../design/schema'
 import { parseFace, type Geometry } from '../design/resolve'
-import { hardwareByRole, materialById, pickHardware, type Catalog, type Hardware } from '../materials/catalog'
+import { materialById, pickHardware, slideFor, slidesOf, SLIDE_BACK_CLEARANCE, type Catalog } from '../materials/catalog'
 import { error, type DesignError } from '../validation/errors'
 
 // A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.
@@ -10,7 +10,6 @@ import { error, type DesignError } from '../validation/errors'
 const FRONT_GAP = 2
 const BOTTOM_GAP = 12
 const TOP_GAP = 20
-const BACK_CLEARANCE = 10
 /** The lowest box side worth building. */
 const MIN_BOX_HEIGHT = 60
 /** The lowest opening a drawer fits in: the gaps under and over the box, plus the lowest box. */
@@ -29,20 +28,10 @@ interface DrawerRequest {
   bottomMaterial: string
 }
 
-const runners = (catalog: Catalog) =>
-  hardwareByRole(catalog, 'drawer-slide').filter((h): h is Hardware & { length: number; sideClearance: number } => h.length !== null && h.sideClearance !== null)
-
 /** The catalog's wood screw of a trade size, #8 × 2" as 2; the box is screwed with what there is. */
 const screwOf = (catalog: Catalog, inches: number, count: number | null) => {
   const screw = pickHardware(catalog, 'screw', (h) => h.length !== null && Math.abs(h.length - inches * 25.4) < 0.5)
   return screw ? [{ hardwareId: screw.id, count }] : []
-}
-
-/** The longest runner that fits the depth there is. */
-function runnerFor(depth: number, catalog: Catalog) {
-  return runners(catalog)
-    .filter((c) => c.length <= depth - BACK_CLEARANCE)
-    .sort((a, b) => b.length - a.length)[0]
 }
 
 /** The drawer's pieces and joints, all tied to the faces of the opening so they follow when the furniture changes. */
@@ -54,10 +43,10 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   // A drawer opens toward its front: forward as usual, or backward when the front is behind the bottom of the opening (the far side of a bed).
   const backward = frontZ < backZ
   const depth = Math.abs(frontZ - backZ) - frontThickness
-  const runner = runnerFor(depth, catalog)
+  const runner = slideFor(catalog, depth)
   if (!runner) {
-    const shortest = Math.min(...runners(catalog).map((c) => c.length))
-    const missing = Math.ceil(shortest + BACK_CLEARANCE - depth)
+    const shortest = Math.min(...slidesOf(catalog).map((c) => c.length))
+    const missing = Math.ceil(shortest + SLIDE_BACK_CLEARANCE - depth)
     return error('E_INVALID_OPERATION', `No cabe un cajón: quedan ${Math.round(depth)} mm de fondo y la corredera más corta, de ${shortest / 10} cm, pide ${missing} mm más. Hazlo más profundo o usa una puerta.`, {
       depth: Math.round(depth),
       missing: missing,

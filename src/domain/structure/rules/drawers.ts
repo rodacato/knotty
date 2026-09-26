@@ -2,11 +2,17 @@ import { roundTo } from '../../design/resolve'
 import { gapBetween } from '../../validation/contact'
 import type { Design } from '../../design/schema'
 import { drawerSides } from '../../design/drawers'
-import { drawerGroups } from '../../design/boxes'
-import { pickHardware, thinnestBoard } from '../../materials/catalog'
+import { CONTACT_TOLERANCE, drawerGroups } from '../../design/boxes'
+import { slideFor, slideForBox, SLIDE_BACK_CLEARANCE, thinnestBoard, type Catalog } from '../../materials/catalog'
 import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
+
+/** Whether a gap is within what the slide takes, to a tenth of a millimetre: up to 0.8 more than it asks, nothing less. */
+const runnerFits = (gap: number, needs: number) => {
+  const off = roundTo(gap - needs)
+  return off >= -ASSUMPTIONS.drawers.runnerTolerance.under && off <= ASSUMPTIONS.drawers.runnerTolerance.over
+}
 
 /** R9: the runner fits exactly, the bottom holds, and neither the front nor the box rubs. */
 export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
@@ -17,10 +23,10 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const a = geo.boxes.get(u.a)
     const b = geo.boxes.get(u.b)
     const gap = a && b ? gapBetween(a, b) : null
-    const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? catalog.hardware.find((h) => h.sideClearance !== null)
+    const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? slideForBox(catalog, drawerSideLength(design, geo, u.a, u.b))
     if (!gap || !runner?.sideClearance) continue
     const off = gap.distance - runner.sideClearance
-    if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
+    if (runnerFits(gap.distance, runner.sideClearance)) continue
     const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
       code: 'R9_DRAWERS',
@@ -36,7 +42,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     })
   }
 
-  found.push(...runnerSupport(design, geo, catalog), ...floorClearance(design, geo))
+  found.push(...slideLength(design, geo, catalog), ...runnerSupport(design, geo, catalog), ...floorClearance(design, geo))
 
   for (const g of groups) {
     const bottom = design.pieces.find((p) => p.group === g && p.role === 'drawer-bottom')
@@ -65,7 +71,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
         pieces: [front.id, ...frontRubs.map((c) => (c.a === front.id ? c.b : c.a))],
         message: `${front.name} toca otras piezas sin holgura: va a rozar al abrir.`,
         data: { touches: frontRubs.length },
-        alternatives: [{ key: 'front-clearance', description: 'Dejar 2 mm de holgura alrededor del frente', data: { clearance: 2 } }],
+        alternatives: [{ key: 'front-clearance', description: `Dejar ${ASSUMPTIONS.drawers.frontClearance} mm de holgura alrededor del frente`, data: { clearance: ASSUMPTIONS.drawers.frontClearance } }],
       })
 
     const box = design.pieces.filter((p) => p.group === g && p.role !== 'drawer-front').map((p) => p.id)
@@ -86,16 +92,67 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   return found
 }
 
+const cmOf = (mm: number) => `${roundTo(mm / 10, 1)} cm`
+
+/** A slide as long as its box: longer, it does not fit behind the front; shorter than one the box takes, the drawer does not open all the way. */
+function slideLength(design: Design, geo: Geometry, catalog: Catalog): Finding[] {
+  return design.joints
+    .filter((u) => u.type === 'drawer-slide')
+    .flatMap((u): Finding[] => {
+      const slide = u.hardware.map((h) => catalog.hardware.find((x) => x.id === h.hardwareId)).find((h) => h?.role === 'drawer-slide' && h.length !== null)
+      if (!slide?.length) return []
+      const length = drawerSideLength(design, geo, u.a, u.b)
+      const group = design.pieces.find((p) => (p.id === u.a || p.id === u.b) && p.role === 'drawer-side')?.group
+      if (!length || !group) return []
+      const right = slideFor(catalog, length + SLIDE_BACK_CLEARANCE)
+      const swap = right && right.id !== slide.id ? [{ key: 'matching-slide' as const, description: `Usar ${right.name.toLowerCase()}`, data: { joint: u.id, hardwareId: right.id } }] : []
+      const name = drawerName(design, group)
+      if (slide.length > length + CONTACT_TOLERANCE)
+        return [
+          {
+            code: 'R9_DRAWERS',
+            check: 'drawer.slide-too-long',
+            severity: 'critical',
+            pieces: [u.a, u.b],
+            message: `La corredera de ${cmOf(slide.length)} es más larga que la caja de ${name}, que mide ${roundTo(length, 0)} mm de fondo: no se puede atornillar completa.`,
+            data: { joint: u.id, slide: slide.length, box: roundTo(length, 0) },
+            alternatives: swap,
+          },
+        ]
+      if (right && right.length > slide.length)
+        return [
+          {
+            code: 'R9_DRAWERS',
+            check: 'drawer.slide-too-short',
+            severity: 'recommendation',
+            pieces: [u.a, u.b],
+            message: `La caja de ${name} mide ${roundTo(length, 0)} mm de fondo y su corredera ${cmOf(slide.length)}: el cajón no abre completo. La de ${cmOf(right.length)} le queda.`,
+            data: { joint: u.id, slide: slide.length, box: roundTo(length, 0) },
+            alternatives: swap,
+          },
+        ]
+      return []
+    })
+}
+
+/** How long the drawer side of a runner joint is, front to back: the length its slide takes. */
+function drawerSideLength(design: Design, geo: Geometry, a: string, b: string) {
+  const side = [a, b].find((id) => design.pieces.find((p) => p.id === id)?.role === 'drawer-side') ?? a
+  const box = geo.boxes.get(side)
+  return box ? box.z1 - box.z0 : 0
+}
+
 const drawerName = (design: Design, group: string) => {
   const front = design.pieces.find((p) => p.group === group && p.role === 'drawer-front')
   return front ? front.name.replace(/^Frente de /i, '') : group
 }
 /** Each side of a drawer box needs something beside it to screw the runner to, at the runner's gap: freeform designs too. */
-function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[0]['catalog']): Finding[] {
-  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
-  if (!runner?.sideClearance) return []
-  const gap = runner.sideClearance
+function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding[] {
   return drawerSides(design, geo.boxes).flatMap(({ group, side, towards, support }): Finding[] => {
+    const box = geo.boxes.get(side.id)!
+    const runner = slideForBox(catalog, box.z1 - box.z0)
+    if (!runner) return []
+    const gap = runner.sideClearance
     // A declared runner joint is checked above, with its own hardware.
     if (support && design.joints.some((u) => u.type === 'drawer-slide' && [u.a, u.b].includes(side.id))) return []
     const direction = towards < 0 ? 'left' : 'right'
@@ -111,7 +168,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Parameters<Rule>[
           alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${gap} mm, para la corredera`, data: { side: direction, group } }],
         },
       ]
-    if (Math.abs(support.distance - gap) <= ASSUMPTIONS.drawers.runnerTolerance) return []
+    if (runnerFits(support.distance, gap)) return []
     return [
       {
         code: 'R9_DRAWERS',

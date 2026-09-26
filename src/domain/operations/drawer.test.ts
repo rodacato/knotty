@@ -88,14 +88,34 @@ describe('R9 drawers and screws into a face', () => {
     expect(r9).toEqual([expect.objectContaining({ severity: 'critical', message: expect.stringContaining('no entra') })])
   })
 
+  it('the runner gap takes up to 0.8 mm more than the slide asks, and nothing less', () => {
+    const r9 = (gap: number) => {
+      const d = withDrawer(deep)
+      d.pieces.find((p) => p.id === 'drawer-1-side-left')!.x = startAt(ref('side-left.x1', gap))
+      return findingsOf(d).filter((h) => h.check === 'drawer.slide-clearance').map((h) => h.message)
+    }
+    expect(r9(12.7)).toEqual([])
+    expect(r9(13.5)).toEqual([])
+    expect(r9(12.5)).toEqual([expect.stringContaining('no entra')])
+    expect(r9(13.7)).toEqual([expect.stringContaining('flojo')])
+  })
+
   it('a 3 mm bottom in a wide drawer sags', () => {
     const d = withDrawer({ ...deep, dimensions: { ...deep.dimensions, width: 700 } }, [drawer({ bottomMaterial: 'TR3' })])
     expect(findingsOf(d).filter((h) => h.code === 'R9_DRAWERS').map((h) => [h.severity, h.pieces[0]])).toEqual([['recommendation', 'drawer-1-bottom']])
+  })
+
+  it('3 mm only holds under 300 mm of width: a drawer of 400 already asks for 6', () => {
+    const r9 = (width: number) => findingsOf(withDrawer({ ...deep, dimensions: { ...deep.dimensions, width } }, [drawer({ bottomMaterial: 'TR3' })])).filter((h) => h.check === 'drawer.thin-bottom')
+    expect(r9(400).map((h) => h.alternatives[0].data.material)).toEqual(['TR6'])
+    expect(r9(320)).toEqual([])
   })
 
   it('a screw into a face must not come out the other side', () => {
     const d = withDrawer(deep)
     d.joints = d.joints.map((u) => (u.id === 'j-drawer-1-subfront-front' ? { ...u, hardware: [{ hardwareId: 'screw-8x2', count: 4 }] } : u))
     expect(findingsOf(d).map((h) => [h.code, h.severity, h.data.joint])).toEqual([['R3_SCREWS', 'critical', 'j-drawer-1-subfront-front']])
+    // The longest that stays in: through 15 and into 15, 3 mm short of coming out (ta + tb − 3).
+    expect(findingsOf(d)[0].alternatives[0].data.length).toBe(27)
   })
 })

@@ -4,6 +4,7 @@ import { usableSheet, materialById, type Catalog } from '../materials/catalog'
 import { CONTACT_TOLERANCE, bounds } from '../design/boxes'
 import { contacts, samePair, gapBetween, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
+import { cite, noReference, VALUES, type Source } from '../sources'
 
 // Whether the pieces make a piece of furniture: its measures add up, joints join touching pieces, nothing overlaps or floats, and every piece fits a sheet.
 // The error payloads (code, message, data) keep their shape: the expert reads them, and they share their shape with the structural findings.
@@ -13,6 +14,12 @@ const MEASURE_TOLERANCE = 1
 const RUNNER_GAP = 20
 /** An inset door hangs in its opening with this much gap all around: its hinge joins pieces that do not touch. */
 const HINGE_GAP = 4
+export const GEOMETRY_SOURCES: Record<string, Source> = {
+  MEASURE_TOLERANCE: noReference('slack for rounding between the declared measures and where the pieces end'),
+  RUNNER_GAP: noReference('how far a runner joint may reach before it is an error; the gap the slide needs is R9’s, reported with its fix'),
+  // 2–3 mm between fronts, and a millimetre of slack.
+  HINGE_GAP: cite(VALUES, '8-puertas', 'Separación entre frentes'),
+}
 const NO_JOINT_WARNING = new Set(['door', 'drawer-front'])
 
 interface GeometryValidation {

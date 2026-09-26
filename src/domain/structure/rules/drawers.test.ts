@@ -50,6 +50,14 @@ describe('R9 for freeform drawers', () => {
     ])
   })
 
+  it('the runners it adds are as long as the box, like the ones the drawer brings: not the first slide in the catalog', () => {
+    const built = build(deep, [drawer()])
+    const brought = built.joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware[0].hardwareId
+    const inferred = completeJoints(freeform(built), testCatalog).joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware[0].hardwareId
+    expect(brought).toBe('drawer-slide-45')
+    expect(inferred).toBe(brought)
+  })
+
   it('a box side with nothing beside it has nowhere to screw the runner, and Knotty can put a piece there', () => {
     const d = freeform(build(deep, [drawer()]))
     // The box sits 100 mm in from the left side, with nothing beside it.
@@ -62,6 +70,24 @@ describe('R9 for freeform drawers', () => {
     expect(fix.key).toBe('slide-support')
     expect(r9(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
     expect(fix.design.joints.some((u) => u.type === 'drawer-slide' && u.a === 'drawer-1-side-left')).toBe(true)
+  })
+
+  const withSlide = (d: Design, hardwareId: string): Design => ({ ...d, joints: d.joints.map((u) => (u.type === 'drawer-slide' && u.hardware.length ? { ...u, hardware: [{ hardwareId, count: 1 }] } : u)) })
+
+  it('a slide longer than its box does not fit, and Knotty puts the one as long as the box', () => {
+    const d = withSlide(build(deep, [drawer()]), 'drawer-slide-50')
+    const [finding] = r9(d)
+    expect(finding).toMatchObject({ check: 'drawer.slide-too-long', severity: 'critical', data: { slide: 500, box: 450 } })
+    const [fix] = fixesFor(d, testCatalog, finding)
+    expect(fix.key).toBe('matching-slide')
+    expect(r9(fix.design)).toEqual([])
+    expect(fix.design.joints.find((u) => u.type === 'drawer-slide' && u.hardware.length)!.hardware).toEqual([{ hardwareId: 'drawer-slide-45', count: 1 }])
+  })
+
+  it('a slide much shorter than its box leaves the drawer half open', () => {
+    const [finding] = r9(withSlide(build(deep, [drawer()]), 'drawer-slide-30'))
+    expect(finding).toMatchObject({ check: 'drawer.slide-too-short', severity: 'recommendation', alternatives: [{ key: 'matching-slide', data: { hardwareId: 'drawer-slide-45' } }] })
+    expect(finding.message).toContain('no abre completo')
   })
 
   it('a drawer that reaches the ground drags on it', () => {

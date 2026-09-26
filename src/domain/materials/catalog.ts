@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { FinishProductId } from './finishes'
 import { GRADE_IDS } from './grades'
+import { cite, STRUCTURE, type Source } from '../sources'
 
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
 // Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
@@ -39,6 +40,11 @@ export const HARDWARE_ROLES = [
 export const HardwareRole = z.enum(HARDWARE_ROLES)
 export type HardwareRole = z.infer<typeof HardwareRole>
 
+/** How a door sits on the upright its hinge is screwed to: over all its edge, over half of it (two doors share it) or inside the opening. */
+export const DOOR_MOUNTS = ['overlay', 'half-overlay', 'inset'] as const
+export const DoorMount = z.enum(DOOR_MOUNTS)
+export type DoorMount = z.infer<typeof DoorMount>
+
 export const Hardware = z.object({
   id: z.string(),
   name: z.string(),
@@ -47,6 +53,7 @@ export const Hardware = z.object({
   perPack: z.number().int().positive().nullable(),
   length: z.number().positive().nullable().default(null).describe('Screws and slides: length in mm'),
   sideClearance: z.number().nonnegative().nullable().default(null).describe('Slides: space per side between the drawer and the furniture'),
+  mount: DoorMount.nullable().default(null).describe('Cup hinges: the door they are for (straight, cranked or super-cranked arm)'),
   sku: z.string().nullable(),
   price: z.number().nonnegative().nullable(),
 })
@@ -99,6 +106,30 @@ export const backBoard = (catalog: Catalog): BoardMaterial => boardsFor(catalog,
 export const hardwareByRole = (catalog: Catalog, role: HardwareRole) => catalog.hardware.filter((h) => h.role === role)
 /** The first item of a role that meets the condition: with several of a role, the first in the catalog is the usual one. */
 export const pickHardware = (catalog: Catalog, role: HardwareRole, predicate: (h: Hardware) => boolean = () => true) => hardwareByRole(catalog, role).find(predicate)
+
+/** The catalog's hinge for a door that sits this way; undefined when it sells none (a catalog that does not say what its hinges are for). */
+export const hingeFor = (catalog: Catalog, mount: DoorMount) => pickHardware(catalog, 'hinge', (h) => h.mount === mount)
+
+/** A drawer slide that says what placing it takes: its length and the gap it needs on each side of the box. */
+export type Slide = Hardware & { length: number; sideClearance: number }
+/** The catalog's drawer slides that say their length and side gap, in catalog order. */
+export const slidesOf = (catalog: Catalog) => hardwareByRole(catalog, 'drawer-slide').filter((h): h is Slide => h.length !== null && h.sideClearance !== null)
+/** What a slide leaves free behind it, past the end of the box. */
+export const SLIDE_BACK_CLEARANCE = 10
+export const SLIDE_SOURCES: Record<string, Source> = {
+  SLIDE_BACK_CLEARANCE: cite(STRUCTURE, '41-la-caja-del-cajón', 'largo de la corredera ≤ fondo interior − espesor del frente (si va embutido) − ≈ 10 mm'),
+}
+/**
+ * The longest slide that fits a drawer with this much depth behind its front, leaving the clearance at the back.
+ * Undefined when not even the shortest fits. Every place that picks a slide asks here, so a deep drawer gets a long one.
+ */
+export const slideFor = (catalog: Catalog, depth: number): Slide | undefined =>
+  slidesOf(catalog)
+    .filter((s) => s.length <= depth - SLIDE_BACK_CLEARANCE + 0.5)
+    .sort((a, b) => b.length - a.length)[0]
+/** The slide for a box already built, which is as long as its slide: a box shorter than every slide gets the shortest, and R9 says it does not fit. */
+export const slideForBox = (catalog: Catalog, boxLength: number): Slide | undefined =>
+  slideFor(catalog, boxLength + SLIDE_BACK_CLEARANCE) ?? [...slidesOf(catalog)].sort((a, b) => a.length - b.length)[0]
 
 /** The containers the catalog sells of a finish product, in catalog order. */
 export const finishSkus = (catalog: Catalog, product: FinishProductId) => catalog.finishes.filter((f) => f.product === product)

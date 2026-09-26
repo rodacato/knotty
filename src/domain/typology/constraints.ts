@@ -14,8 +14,8 @@ export const DESK_HEIGHT: [number, number] = [700, 780]
 export const BOOKCASE_DEPTH: [number, number] = [230, 300]
 /** Depth a closet takes so hangers fit facing front, in mm; below the first, a warning. */
 export const WARDROBE_DEPTH: [number, number] = [550, 600]
-/** Longest span of a bed's platform without support, in mm. */
-const BED_SPAN = 800
+/** Longest span of a bed's platform without support, in mm: the top of the reference's 600–700 (the bed module builds to the bottom, MAX_SPAN). */
+const BED_SPAN = 700
 
 const VALUES = 'docs/carpinteria/valores-de-referencia.md'
 const FURNITURE = 'docs/carpinteria/muebles-y-medidas.md'

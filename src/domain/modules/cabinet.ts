@@ -3,7 +3,7 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../d
 import { DIMENSION_OF_AXIS, type FaceRef, type Position, type Design, type Piece, type Joint } from '../design/schema'
 import { analyze } from '../analysis'
 import { completeJoints } from '../design/joints'
-import { backBoard, type Catalog } from '../materials/catalog'
+import { backBoard, hingeFor, pickHardware, type Catalog } from '../materials/catalog'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 import { Column, type Cell } from '../reading/reading'
@@ -52,7 +52,6 @@ export const CABINET_LABELS = {
 
 const GAP = 2
 const SHELF_SETBACK = 5
-const INSET_HINGE = 'cup-hinge-35-inset'
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
 
@@ -82,6 +81,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
   const backFace: FaceRef = build.back === 'nailed' ? 'back.z1' : 'furniture.z0'
+  // An inset door is declared with its hinge; an overlay one gets it from completeJoints, straight or cranked by what it covers.
+  const insetHinge = hingeFor(catalog, 'inset') ?? pickHardware(catalog, 'hinge')
   const depth = () => extent(ref(backFace), front)
   const panel = panelOf(plan.material)
   const sideHeight = build.top === 'over' ? extent(ref('furniture.y0'), ref('top.y0')) : extent(ref('furniture.y0'), ref('furniture.y1'))
@@ -185,7 +186,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
         for (const d of doors) {
           pieces.push(makePiece({ ...leaf, id: d.id, name: d.name, role: 'door', x: d.x, y: box.y }))
           // An inset door touches nothing: its hinge is declared, not found by contact.
-          if (build.doors === 'inset') joints.push(makeJoint(`j-${d.id}`, d.id, pieceOf(d.hinge), 'cup-hinge', [{ hardwareId: INSET_HINGE, count: null }]))
+          if (build.doors === 'inset') joints.push(makeJoint(`j-${d.id}`, d.id, pieceOf(d.hinge), 'cup-hinge', insetHinge ? [{ hardwareId: insetHinge.id, count: null }] : []))
         }
       }
       if (cell.content === 'drawer') {

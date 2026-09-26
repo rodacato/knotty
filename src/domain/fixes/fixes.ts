@@ -6,7 +6,7 @@ import { completeJoints } from '../design/joints'
 import { normalize } from '../design/normalize'
 import { findingKey, type Alternative, type Finding } from '../structure/finding'
 import { isBuildKey, type AlternativeKey } from '../structure/alternatives'
-import { materialById, pickHardware, type Catalog } from '../materials/catalog'
+import { materialById, slideForBox, type Catalog, type HardwareRole } from '../materials/catalog'
 import { pocketScrewId } from '../structure/assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
@@ -90,12 +90,13 @@ function backRail(design: Design, catalog: Catalog, role: 'brace' | 'apron', nam
 /** A piece beside a drawer, at the runner's gap, from what is below it to what is above: something to screw the runner to. */
 function runnerSupportPiece(design: Design, catalog: Catalog, group: string, side: 'left' | 'right'): Operation[] {
   const geo = analyze(design, catalog).geo
-  const runner = pickHardware(catalog, 'drawer-slide', (h) => h.sideClearance !== null)
   const found = geo && drawerSides(design, geo.boxes).find((d) => d.group === group && d.towards === (side === 'left' ? -1 : 1))
-  if (!geo || !runner?.sideClearance || !found) return []
+  if (!geo || !found) return []
+  const box = geo.boxes.get(found.side.id)!
+  const runner = slideForBox(catalog, box.z1 - box.z0)
+  if (!runner) return []
   const material = design.pieces.find((p) => p.role === 'side')?.material ?? found.side.material
   const thickness = catalog.materials.find((m) => m.id === material)?.thickness ?? 18
-  const box = geo.boxes.get(found.side.id)!
   const drawer = design.pieces.filter((p) => p.group === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
   const [bottom, top] = [Math.min(...drawer.map((b) => b.y0)), Math.max(...drawer.map((b) => b.y1))]
   const x0 = side === 'left' ? box.x0 - runner.sideClearance - thickness : box.x1 + runner.sideClearance
@@ -119,6 +120,15 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
     { op: 'addPiece', piece: support },
     { op: 'addJoint', joint: makeJoint(`j-${group}-slide-${side}`, found.side.id, id, 'drawer-slide', hasHardware ? [] : [{ hardwareId: runner.id, count: 1 }]) },
   ]
+}
+
+/** The joint the alternative names with the hardware it names, in place of the item of that role it had: the same count, the right hinge or slide. */
+function swapHardware(design: Design, catalog: Catalog, alternative: Alternative, role: HardwareRole): Operation[] {
+  const { joint: id, hardwareId } = alternative.data
+  const joint = design.joints.find((u) => u.id === id)
+  if (!joint || typeof hardwareId !== 'string' || catalog.hardware.find((h) => h.id === hardwareId)?.role !== role) return []
+  const hardware = joint.hardware.map((h) => (catalog.hardware.find((x) => x.id === h.hardwareId)?.role === role ? { ...h, hardwareId } : h))
+  return [{ op: 'changeJoint', joint: { ...joint, hardware } }]
 }
 
 function operationsFor(design: Design, catalog: Catalog, finding: Finding, alternative: Alternative): Operation[] {
@@ -145,6 +155,10 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
       return backRail(design, catalog, 'apron', 'Faja trasera')
     case 'slide-support':
       return typeof alternative.data.group === 'string' && (alternative.data.side === 'left' || alternative.data.side === 'right') ? runnerSupportPiece(design, catalog, alternative.data.group, alternative.data.side) : []
+    case 'matching-hinge':
+      return swapHardware(design, catalog, alternative, 'hinge')
+    case 'matching-slide':
+      return swapHardware(design, catalog, alternative, 'drawer-slide')
     default: {
       const unbuilt: never = key
       return unbuilt
