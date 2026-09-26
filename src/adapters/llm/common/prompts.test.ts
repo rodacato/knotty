@@ -9,11 +9,13 @@ import { TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/tabl
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULES } from '../../../domain/furniture/modules/plan'
 import { WRITTEN_BY_HAND } from './modulePrompts'
-import { PLAN_ADJUSTMENT, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, systemFor } from './prompts'
+import { MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, systemFor } from './prompts'
+import { strictSchema } from './jsonSchema'
+import { planAdjustmentFor as planAdjustmentSchema } from '../../../ports/LLMProvider'
 import { fill, placeholdersIn, promptValues } from './promptValues'
 
 /** The prompt files as written, by file name. */
-const FILES = import.meta.glob<string>('../prompts/*.md', { query: '?raw', import: 'default', eager: true })
+const FILES = import.meta.glob<string>('../prompts/**/*.md', { query: '?raw', import: 'default', eager: true })
 const byName = Object.entries(FILES).map(([path, raw]) => ({ name: path.split('/').at(-1)!, raw }))
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -22,8 +24,12 @@ const contains = (text: string, literal: string) => new RegExp(`(?<![\\d.])${esc
 
 describe('prompt files', () => {
   it('each file is loaded and named after its id (name@version → name.vversion.md)', () => {
-    const expected = PROMPTS.map((p) => `${p.id.replace('@', '.v')}.md`).sort()
-    expect(byName.map((f) => f.name).sort()).toEqual(expected)
+    const loaded = [...PROMPTS.slice(0, 6), PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS)]
+    expect(byName.map((f) => f.name).sort()).toEqual(loaded.map((p) => `${p.id.replace('@', '.v')}.md`).sort())
+  })
+
+  it('a module has a file exactly when its prose is written by hand', () => {
+    expect(Object.keys(MODULE_PROMPTS).sort()).toEqual([...WRITTEN_BY_HAND].sort())
   })
 })
 
@@ -71,7 +77,7 @@ describe('placeholders', () => {
 
 describe('rendered prompts carry the values the code enforces', () => {
   const skeleton = render(SKELETON, testCatalog)
-  const planAdjust = render(PLAN_ADJUSTMENT, testCatalog)
+  const planAdjust = render(planAdjustmentFor('cabinet'), testCatalog)
 
   it('the smallest drawer opening is the one expandDrawer accepts', () => {
     for (const text of [skeleton, planAdjust]) expect(text).toContain(`at least ${MIN_DRAWER_OPENING_HEIGHT} mm high`)
@@ -123,21 +129,53 @@ describe('rendered prompts carry the values the code enforces', () => {
 })
 
 describe('every module reaches the expert', () => {
-  const rendered = [render(SKELETON, testCatalog), render(PLAN_ADJUSTMENT, testCatalog)]
+  const skeleton = render(SKELETON, testCatalog)
 
-  it.each(FURNITURE_KINDS)('%s: its prose is written by hand in both prompts, or generated in both from its module', (kind) => {
-    const byHand = WRITTEN_BY_HAND.includes(kind)
-    for (const prompt of [SKELETON, PLAN_ADJUSTMENT]) expect({ kind, id: prompt.id, byHand: prompt.text.includes(`goes in \`${kind}\``) }).toEqual({ kind, id: prompt.id, byHand })
-    for (const text of rendered) expect(text).toContain(`goes in \`${kind}\``)
+  it.each(FURNITURE_KINDS)('%s: the skeleton writes it by hand, or generates it from its module', (kind) => {
+    expect(SKELETON.text.includes(`goes in \`${kind}\``)).toBe(WRITTEN_BY_HAND.includes(kind))
+    expect(skeleton).toContain(`goes in \`${kind}\``)
   })
 
   it('a generated section names every field of its plan', () => {
-    const [skeleton] = rendered
     for (const kind of FURNITURE_KINDS.filter((k) => !WRITTEN_BY_HAND.includes(k)))
       for (const key of Object.keys((MODULES[kind].schema as unknown as z.ZodObject).shape)) expect(skeleton).toContain(`- \`${key}\``)
   })
+})
 
-  it('names every plan field where it lists them', () => {
-    for (const kind of FURNITURE_KINDS) expect(render(PLAN_ADJUSTMENT, testCatalog)).toContain(`\`${kind}\``)
+describe('adjusting a plan asks only about its own module', () => {
+  it.each(FURNITURE_KINDS)('%s: its prompt and schema name its field and no other module', (kind) => {
+    const prompt = planAdjustmentFor(kind)
+    const text = render(prompt, testCatalog)
+    const schema = JSON.stringify(strictSchema(planAdjustmentSchema(kind)))
+    expect(text).toContain(`goes in \`${kind}\``)
+    expect(text).toContain(`Return in \`${kind}\` the **complete** plan`)
+    expect(prompt.id).toBe(`${PLAN_ADJUSTMENT.id}+${WRITTEN_BY_HAND.includes(kind) ? MODULE_PROMPTS[kind]!.id : `${kind}@auto`}`)
+    for (const other of FURNITURE_KINDS.filter((k) => k !== kind)) {
+      expect(text).not.toContain(`goes in \`${other}\``)
+      expect(schema).not.toContain(`"${other}":`)
+    }
+  })
+
+  it('the hand-written prose of each module is sent whole: its description, what can change and its rules', () => {
+    for (const kind of WRITTEN_BY_HAND) {
+      const text = planAdjustmentFor(kind).text
+      const { plan, changes, rules } = MODULE_PROMPTS[kind]!.sections
+      expect(text).toContain(plan)
+      expect(text).toContain(`(${changes})`)
+      for (const rule of (rules ?? '').split('\n').filter(Boolean)) expect(text).toContain(`  ${rule}`)
+    }
+  })
+})
+
+/** What the expert reads before the context, in tokens (≈ 3.5 characters each): the prompt and the schema of its answer. */
+const tokens = (text: string) => Math.round(text.length / 3.5)
+
+/** About 5 % above what each measured when it was set (plan-adjust@12): growing past it has to be on purpose. With every module it was 4 307. */
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2420, bed: 2060, table: 1870, shoeRack: 1930 }
+
+describe('token budget', () => {
+  it.each(FURNITURE_KINDS)('adjusting a %s plan: prompt and schema within budget', (kind) => {
+    const sent = tokens(render(planAdjustmentFor(kind), testCatalog)) + tokens(JSON.stringify(strictSchema(planAdjustmentSchema(kind))))
+    expect(sent).toBeLessThanOrEqual(PLAN_ADJUST_BUDGET[kind])
   })
 })

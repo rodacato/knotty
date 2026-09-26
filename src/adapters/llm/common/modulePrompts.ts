@@ -46,8 +46,6 @@ export const moduleGuides = () =>
     .map((kind) => [`## ${title(MODULES[kind].expert.what)} (\`${kind}\`)`, '', ...fieldLines(schemaOf(kind))].join('\n'))
     .join('\n\n')
 
-/** The plan-adjust list of kinds: one line per generated module, with the fields it has. */
-export const moduleSummaries = () =>
-  generated()
-    .map((kind) => `- ${capitalized(MODULES[kind].expert.what)}, \`kind\` "${kind}": ${Object.keys(schemaOf(kind).shape).filter((k) => k !== 'kind').map((k) => `\`${k}\``).join(', ')}. It goes in \`${kind}\`.`)
-    .join('\n')
+/** What plan-adjust says of a generated module: one line with the fields its plan has. */
+export const moduleSummary = (kind: FurnitureKind) =>
+  `- ${capitalized(MODULES[kind].expert.what)}, \`kind\` "${kind}": ${Object.keys(schemaOf(kind).shape).filter((k) => k !== 'kind').map((k) => `\`${k}\``).join(', ')}. It goes in \`${kind}\`.`
