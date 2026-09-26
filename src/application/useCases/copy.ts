@@ -1,4 +1,5 @@
-import type { Dimensions } from '../../domain/design/schema'
+import type { Design, Dimensions } from '../../domain/design/schema'
+import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { angleLabel } from '../../domain/furniture/reading/reading'
 import type { Repair } from '../../domain/editing/repair/repair'
 import type { Photo } from '../../ports/LLMProvider'
@@ -49,3 +50,12 @@ export const localText = {
   pending: (changes: string[], criticals: string[], holds: boolean) =>
     `Preparé el cambio en la ficha (${changes.join(', ')}), pero ${holds ? 'quita piezas que sostienen el mueble' : criticals.length === 1 ? `deja un punto crítico: ${criticals[0]}` : `deja ${criticals.length} puntos críticos`}. Queda como propuesta para que lo decidas.`,
 }
+
+/** What the expert reads to redo a design as another kind: the first request, and the old measures only as a reference. */
+export function redoRequest(first: string, before: Design, kind: DesignKind) {
+  const { height, width, depth } = before.dimensions
+  const was = before.kind ? `${KIND_NOUN[before.kind]} (${before.kind})` : `«${before.name}»`
+  return `${first}\n\nThis was designed as ${was}, ${height} × ${width} × ${depth} mm (height, width, depth). The person now wants ${KIND_NOUN[kind]} (${kind}): design that instead, and take the old measures only as a reference, not as the new ones.`
+}
+
+export const redone = (noun: string) => `Lo rehice como ${noun}. Lo anterior sigue en el historial.`

@@ -5,6 +5,7 @@ import type { Catalog } from '../../domain/materials/catalog'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Operation } from '../../domain/editing/operations/schema'
 import type { Requirement } from '../../domain/checks/requirements/requirements'
+import { knownKind, settleKind, withKind } from '../../domain/furniture/kind'
 import { currentDesign, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/checks/structure/finding'
 import type { DesignRepository } from '../../ports/DesignRepository'
@@ -59,11 +60,14 @@ export function createKit(deps: Dependencies) {
     data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[] },
   ): DesignState {
     const n = Math.max(...state.versions.map((v) => v.n)) + 1
+    const previous = currentDesign(state)
     // The finish is the person's: a design rebuilt from the plan or written by the expert comes without it and keeps the current one.
-    const finish = design.finish ?? currentDesign(state).finish
+    const finish = design.finish ?? previous.finish
+    // So is the kind, unless the new design says it with at least as much trust: a cabinet rebuilt from its plan does not know it is a bookcase.
+    const kept = withKind(finish && !design.finish ? { ...design, finish } : design, settleKind(knownKind(previous), knownKind(design)))
     const versions = pruneVersions([
       ...state.versions,
-      { n, design: finish && !design.finish ? { ...design, finish } : design, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
+      { n, design: kept, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
     ])
     return { ...state, versions: versions, current: n, proposal: null, chat: state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'discarded' as const, answered: true } : m)) }
   }

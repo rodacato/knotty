@@ -1,3 +1,4 @@
+import { KIND_NOUN } from '../../../domain/design/kind'
 import { startAt, partway, makePiece, ref, extent, makeJoint } from '../../../domain/design/builders'
 import type { Design, Dimensions } from '../../../domain/design/schema'
 import { exampleWallCabinet } from '../../../domain/furniture/fixtures/wallCabinet'
@@ -362,7 +363,9 @@ export function createSimulated(delay = 900): LLMProvider {
     // Only beds, tables and shoe racks come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
     async planDesign(s, signal) {
       await wait(delay, signal)
-      const shoeRack = shoeRackFrom(s.notes, s.measures)
+      // A kind the person chose decides, as it does for a real expert.
+      const notes = s.kind ? KIND_NOUN[s.kind] : s.notes
+      const shoeRack = shoeRackFrom(notes, s.measures)
       if (shoeRack)
         return response<PlanResponse>({
           explanation: `Armé ${shoeRack.seat ? 'una banca zapatera' : 'una zapatera'} de ${shoeRack.dimensions.width / 10} cm de ancho y ${shoeRack.dimensions.height / 10} cm de alto, con ${shoeRack.levels} niveles${shoeRack.front === 'doors' ? ' y puertas' : ''}${shoeRack.wallMounted ? ', anclada al muro' : ''}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
@@ -372,8 +375,8 @@ export function createSimulated(delay = 900): LLMProvider {
           requirements: [],
           suggestions: ['Agrega un nivel para botas', 'Hazla de 1.20 m de ancho', shoeRack.front === 'doors' ? 'Sin puertas' : 'Con puertas'],
         })
-      const bed = bedFrom(s.notes)
-      const table = bed ? null : tableFrom(s.notes, s.measures)
+      const bed = bedFrom(notes)
+      const table = bed ? null : tableFrom(notes, s.measures)
       if (table)
         return response<PlanResponse>({
           explanation: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,

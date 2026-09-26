@@ -1,4 +1,5 @@
 import type { Design } from '../design/schema'
+import type { DesignKind } from '../design/kind'
 import type { Catalog } from '../materials/catalog'
 import type { FinishId } from '../materials/finishes'
 import { exampleBookcase } from './fixtures/bookcase'
@@ -17,6 +18,8 @@ export type Example =
       /** What the example is, for the person: the builder leaves a plan's design without notes. */
       notes: string
       finish?: FinishId
+      /** What it is, since a cabinet plan does not say it. */
+      kind?: DesignKind
     }
 
 const door = (height: number) => ({ height, content: 'door' as const, shelves: 1, doors: 1 })
@@ -47,6 +50,7 @@ export const exampleSideboard: Example = {
   plan: sideboardPlan,
   notes: 'Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano.',
   finish: 'polyurethane',
+  kind: 'sideboard',
 }
 
 /** The examples on the home screen, in order. */
@@ -61,5 +65,5 @@ export const EXAMPLES: Example[] = [
 export function exampleDesign(example: Example, catalog: Catalog): { design: Design; plan: FurniturePlan | null } {
   if ('design' in example) return { design: example.design, plan: null }
   const { design } = buildPlan(example.plan, catalog)
-  return { design: { ...design, notes: example.notes, ...(example.finish ? { finish: example.finish } : {}) }, plan: example.plan }
+  return { design: { ...design, notes: example.notes, ...(example.finish ? { finish: example.finish } : {}), ...(example.kind ? { kind: example.kind } : {}) }, plan: example.plan }
 }
