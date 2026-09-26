@@ -1,4 +1,5 @@
 import type { Dimensions } from '../../domain/design/schema'
+import type { FurnitureKind } from '../../domain/modules/plan'
 
 // Fixed requests to try an expert with: the same in the comparison script and in the hidden bench.
 // `expected` holds sensible ranges in mm for each piece of furniture; outside them, the expert misread the request.
@@ -14,6 +15,8 @@ export interface BenchCase {
   anyOrientation?: boolean
   /** How the request should be designed: a shape no plan expresses must go piece by piece, and the other way is a misread. */
   path?: 'plan' | 'pieces'
+  /** The module whose plan it should come from: another one is a misread too. */
+  module?: FurnitureKind
 }
 
 export const BENCH_CASES: BenchCase[] = [
@@ -62,6 +65,16 @@ export const BENCH_CASES: BenchCase[] = [
     notes: 'Zapatera para 12 pares, con repisas fijas y sin puertas',
     measures: { height: 900, width: 800, depth: 350 },
     expected: { height: [900, 900], width: [800, 800], depth: [350, 350] },
+    module: 'shoeRack',
+  },
+  {
+    id: 'shoe-rack',
+    notes: 'Una zapatera de 90 de alto para 12 pares, con puertas',
+    measures: null,
+    // Pairs of 230 mm side by side (muebles-y-medidas.md §2.6): 12 pairs on 4 or 5 levels of 900 mm take 3 or 4 across, 300–380 deep.
+    expected: { height: [880, 920], width: [700, 1000], depth: [300, 380] },
+    path: 'plan',
+    module: 'shoeRack',
   },
   {
     id: 'tv-stand',

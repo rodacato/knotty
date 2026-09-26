@@ -24,7 +24,7 @@ export interface BenchResult {
   pieces: number
   joints: number
   measures: string
-  /** Measures within the case's ranges, and the expected path when the case names one. */
+  /** Measures within the case's ranges, and the expected path and module when the case names them. */
   reasonable: boolean | null
   criticals: number
   rules: string[]
@@ -115,7 +115,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         pieces: design.pieces.length,
         joints: design.joints.length,
         measures: `${d.height} × ${d.width} × ${d.depth}`,
-        reasonable: withinExpected(c, d) && (!c.path || c.path === path),
+        reasonable: withinExpected(c, d) && (!c.path || c.path === path) && (!c.module || state.versions[0].plan?.kind === c.module),
         corrections: [...new Set(calls.flatMap((l) => l.corrects))],
         repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
         state,
