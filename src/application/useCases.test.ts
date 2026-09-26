@@ -799,7 +799,7 @@ describe('editing a piece by hand, without the expert', () => {
   it('a shelf longer than its opening is refused, and widening the whole piece is offered', () => {
     const { c, initial } = start()
     const r = c.editPiece(initial, 'shelf-1', { kind: 'length', axis: 'x', value: 700 })
-    expect(r).toMatchObject({ ok: false, alternatives: [{ axis: 'x', value: 736, label: 'Cambiar el ancho del mueble en +136 mm' }] })
+    expect(r).toMatchObject({ ok: false, alternatives: [{ axis: 'x', value: 736, label: 'Cambiar el ancho del mueble en +166 mm' }] })
     if (r.ok) return
     const wider = c.resizeFurniture(initial, 'x', r.alternatives[0].value)
     if (!wider.ok) throw new Error(wider.message)

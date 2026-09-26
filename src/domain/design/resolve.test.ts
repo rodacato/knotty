@@ -22,8 +22,8 @@ describe('resolveGeometry', () => {
   it('resolves references, thicknesses and proportional positions of the bookcase', () => {
     const { boxes } = resolved(exampleBookcase)
     expect(boxes.get('side-left')).toEqual({ x0: 0, x1: 18, y0: 0, y1: 1800, z0: 6, z1: 300 })
-    expect(boxes.get('side-right')).toMatchObject({ x0: 582, x1: 600 })
-    expect(boxes.get('bottom')).toMatchObject({ x0: 18, x1: 582, y0: 70, y1: 88 })
+    expect(boxes.get('side-right')).toMatchObject({ x0: 552, x1: 570 })
+    expect(boxes.get('bottom')).toMatchObject({ x0: 18, x1: 552, y0: 70, y1: 88 })
     expect(boxes.get('top')).toMatchObject({ y0: 1782, y1: 1800 })
     const gaps = [boxes.get('bottom')!, ...[1, 2, 3, 4].map((i) => boxes.get(`shelf-${i}`)!), boxes.get('top')!]
       .slice(1)
