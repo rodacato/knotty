@@ -1,7 +1,7 @@
 import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, WarningCircle, X, XCircle } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
-import { describeAdjustments, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
+import { describeAdjustments, describeStructure, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
 import { moduleName, moduleNames } from '../../domain/furniture/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
@@ -14,7 +14,7 @@ const PARALLEL = 2
 
 function Verdict({ r }: { r: BenchResult }) {
   if (!r.ok) return <XCircle className="text-rust" weight="fill" aria-label="Falló" />
-  if (r.verdict === 'viable' && r.reasonable) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
+  if (r.verdict === 'viable' && r.reasonable && r.structure?.ok !== false) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
   return <WarningCircle className="text-amber" weight="fill" aria-label="Con observaciones" />
 }
 
@@ -129,6 +129,7 @@ export function BenchPanel() {
                               </span>
                               <span className="numerals">{r.measures} mm</span>
                               {!r.reasonable && <span className="text-rust">medidas raras</span>}
+                              {r.structure && <span className={r.structure.ok === false ? 'text-rust' : undefined}>{describeStructure(r.structure)}</span>}
                               <span>
                                 {r.verdict}
                                 {r.criticals ? ` · ${r.criticals} críticos (${r.rules.join(' ')})` : ''}
