@@ -7,7 +7,7 @@ import { createAnthropic } from '../../src/adapters/llm/anthropic'
 import { createCompatible } from '../../src/adapters/llm/compatibleOpenAI'
 import { createSimulated } from '../../src/adapters/llm/simulated/simulated'
 import { createBench } from '../../src/application/bench/bench'
-import { caseLine, problemsOf, reportMarkdown, toBaseline, type Baseline, type ReportRow, type RunMeta } from '../../src/application/bench/report'
+import { caseLine, problemsOf, reportMarkdown, terminalSummary, toBaseline, type Baseline, type ReportRow, type RunMeta } from '../../src/application/bench/report'
 import { Catalog } from '../../src/domain/materials/catalog'
 import type { DesignState } from '../../src/domain/session/state'
 import type { LLMProvider } from '../../src/ports/LLMProvider'
@@ -140,18 +140,22 @@ beforeAll(() => {
 })
 
 describe(`${meta.label}`, () => {
-  it.concurrent.each(jobs.map((job, index) => ({ ...job, index })))('$title', async ({ model, c, bench, index }) => {
+  it.concurrent.each(jobs.map((job, index) => ({ ...job, index })))('$title', async ({ model, c, bench, title, index }) => {
     const { state, ...result } = await bench.runCase(c, AbortSignal.timeout(15 * 60_000))
     if (state) saveDesign(model, c.id, state)
     const row: ReportRow = { ...result, model, prompt: state?.versions[0].origin?.promptId ?? null }
     done[index] = row
     write()
+    // Straight to stdout: Vitest's console attributes a line to whichever concurrent case is running.
+    process.stdout.write(`  ${title} → ${caseLine(row)}\n`)
     expect({ caso: caseLine(row), problemas: problemsOf(row) }).toEqual({ caso: caseLine(row), problemas: [] })
   })
 })
 
 afterAll(() => {
   write()
-  if (setting('KNOTTY_SAVE_BASELINE', 'KNOTTY_GUARDAR_BASE')) writeFileSync(BASELINE, `${JSON.stringify(toBaseline(done.filter((r): r is ReportRow => !!r), meta), null, 2)}\n`)
-  console.log(`Reporte: ${file}.md${setting('KNOTTY_SAVE_BASELINE', 'KNOTTY_GUARDAR_BASE') ? ` · nueva base: ${BASELINE}` : ''}`)
+  const rows = done.filter((r): r is ReportRow => !!r)
+  const save = setting('KNOTTY_SAVE_BASELINE', 'KNOTTY_GUARDAR_BASE')
+  if (save) writeFileSync(BASELINE, `${JSON.stringify(toBaseline(rows, meta), null, 2)}\n`)
+  process.stdout.write(`\n${terminalSummary(rows, baseline)}\nReporte: ${file}.md${save ? ` · nueva base: ${BASELINE}` : ''}\n`)
 })
