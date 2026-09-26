@@ -37,7 +37,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
       if (u.type === 'butt-screw' && intoFace) {
         const bite = length - ta
         if (bite <= tb - ASSUMPTIONS.screws.faceMargin) continue
-        const longest = ta + tb - 5
+        const longest = ta + tb - ASSUMPTIONS.screws.faceMargin
         found.push({
           code: 'R3_SCREWS',
           severity: 'critical',

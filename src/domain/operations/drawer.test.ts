@@ -115,5 +115,7 @@ describe('R9 drawers and screws into a face', () => {
     const d = withDrawer(deep)
     d.joints = d.joints.map((u) => (u.id === 'j-drawer-1-subfront-front' ? { ...u, hardware: [{ hardwareId: 'screw-8x2', count: 4 }] } : u))
     expect(findingsOf(d).map((h) => [h.code, h.severity, h.data.joint])).toEqual([['R3_SCREWS', 'critical', 'j-drawer-1-subfront-front']])
+    // The longest that stays in: through 15 and into 15, 3 mm short of coming out (ta + tb − 3).
+    expect(findingsOf(d)[0].alternatives[0].data.length).toBe(27)
   })
 })
