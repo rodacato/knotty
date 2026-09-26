@@ -2,6 +2,7 @@ import { analyze } from '../../domain/checks/analysis'
 import type { Design, Dimensions } from '../../domain/design/schema'
 import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
+import { exampleDesign, type Example } from '../../domain/furniture/examples'
 import { buildPlan, MODULE_OF_KIND, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../../domain/furniture/reading/reading'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
@@ -178,12 +179,12 @@ export function createReconstruct(kit: Kit) {
     }
   }
 
-  /** Starts from a ready design (the examples), without spending a call to the model. */
-  function fromExample(design: Design): DesignState {
+  /** Starts from a ready design (the examples), without spending a call to the model; with its plan, the plan sheet and the local requests work from the first version. */
+  function fromExample(design: Design, plan: FurniturePlan | null = null): DesignState {
     return save({
       format: 8,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan: null, extras: [] }],
+      versions: [{ n: 1, design: design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
       current: 1,
       requirements: [],
       decisions: [],
@@ -197,5 +198,11 @@ export function createReconstruct(kit: Kit) {
     })
   }
 
-  return { reconstruct, fromExample }
+  /** One of the home screen's examples: a plan example is built here, with the session's catalog. */
+  function openExample(example: Example): DesignState {
+    const { design, plan } = exampleDesign(example, catalog)
+    return fromExample(design, plan)
+  }
+
+  return { reconstruct, fromExample, openExample }
 }

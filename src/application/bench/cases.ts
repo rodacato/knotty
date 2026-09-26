@@ -87,6 +87,17 @@ export const BENCH_CASES: BenchCase[] = [
     expected: { width: [1500, 1700], height: [350, 650], depth: [300, 500] },
   },
   {
+    id: 'sideboard',
+    // The first product of the reference catalog, KC-APA-01 (step 29 of the proposal). It does not say it goes against the wall on purpose:
+    // with doors and drawers at 940 mm the plan prompt asks the expert to anchor it, and an R4 critical here means it did not.
+    notes: 'Un aparador para el comedor de 1.60 de largo, 94 de alto y 40 de fondo: abajo tres puertas y a la derecha dos cajones; arriba un cajoncito a la izquierda y tres nichos abiertos. Terminado natural.',
+    measures: { height: 940, width: 1600, depth: 400 },
+    expected: { height: [940, 940], width: [1600, 1600], depth: [400, 400] },
+    path: 'plan',
+    module: 'cabinet',
+    adjust: ['¿Cuánto cuesta?'],
+  },
+  {
     id: 'coffee-table',
     notes: 'Mesa de centro con un entrepaño abajo para revistas',
     measures: null,
