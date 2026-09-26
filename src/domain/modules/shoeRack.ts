@@ -136,6 +136,8 @@ function benchShoeRacks(): [string, ShoeRackPlan][] {
   ]
 }
 
+const NAME: Record<ShoeRackPlan['front'], string> = { open: 'Zapatera', doors: 'Zapatera con puertas' }
+
 const withSize = (plan: ShoeRackPlan, size: Partial<ShoeRackPlan['dimensions']>): ShoeRackPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
 
 /** A shoe rack's plan: its measures, its levels and front, and how it stands. */
@@ -150,7 +152,8 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   section('Zapatos', [
     stepper({ key: 'levels', label: 'Niveles', ariaLabel: 'niveles para zapatos', min: 1, max: MAX_LEVELS, get: (p) => p.levels, set: (p, levels) => ({ ...p, levels }) }),
     yesNo({ key: 'bootLevel', label: 'Nivel para botas abajo', get: (p) => p.bootLevel, set: (p, bootLevel) => ({ ...p, bootLevel }) }),
-    choice({ key: 'front', label: 'Frente', options: optionsOf(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front }) }),
+    // The plain name follows the front; a name of its own stays.
+    choice({ key: 'front', label: 'Frente', options: optionsOf(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front, name: p.name === NAME[p.front] ? NAME[front] : p.name }) }),
     yesNo({ key: 'seat', label: 'Asiento arriba', get: (p) => p.seat, set: (p, seat) => ({ ...p, seat }) }),
   ]),
   section('Cómo se arma', [
