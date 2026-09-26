@@ -141,11 +141,11 @@ describe('createExpert', () => {
   it('a known use with a guide adds it: the skeleton and the plan adjustment say so in their id', async () => {
     const skeleton = fake({ explanation: 'x', ...answerWith(null), questions: [], requestedPhotos: [], requirements: [], suggestions: [] }).expert
     const designed = await skeleton.planDesign!({ measures: null, photos: [], notes: 'aparador', reading: null, catalog: testCatalog, correction: null, routeKind: 'sideboard' }, new AbortController().signal)
-    expect(designed.origin.promptId).toBe('skeleton@15+cabinet@3+sideboard@2')
+    expect(designed.origin.promptId).toBe('skeleton@15+cabinet@3+sideboard@3')
     const { expert } = fake({ explanation: 'x', ...answerWith(null), summary: 'r', action: 'answer', questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
     const plan = { kind: 'cabinet' as const, name: 'Aparador', dimensions: { width: 1600, height: 940, depth: 400 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const adjusted = await expert.adjustPlan!({ context: '', request: 'x', plan, kind: 'sideboard', catalog: testCatalog, correction: null }, new AbortController().signal)
-    expect(adjusted.origin.promptId).toBe('plan-adjust@12+cabinet@3+sideboard@2')
+    expect(adjusted.origin.promptId).toBe('plan-adjust@12+cabinet@3+sideboard@3')
   })
 
   it('the plan correction round carries the previous plan and why it did not build', async () => {
