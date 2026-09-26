@@ -13,17 +13,25 @@ import { updateRequirements, type Requirement } from '../../domain/requirements/
 import { currentDesign, markAnswered, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/trace/trace'
-import { expertPlans } from '../../ports/LLMProvider'
-import { buildContext } from '../context'
+import { expertPlans, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
-import { criticalsCorrection, listErrors } from './forExpert'
+import { criticalsCorrection, listErrors, planCorrection } from './forExpert'
 import { judge, type Verdict } from './judge'
 import { ATTEMPTS, type Kit, type OnProgress, type Stage } from './kit'
 
 const MAX_THUMBNAILS = 8
+// The plan's answer and one correction with its errors; after that the request goes piece by piece.
+const PLAN_ATTEMPTS = 2
+
+/** Computed the first time it is asked for, and kept. */
+function lazy<T>(make: () => T): () => T {
+  let value: { v: T } | null = null
+  return () => (value ??= { v: make() }).v
+}
 
 /** A photo the person sends in the middle of the conversation, almost always because the expert asked for it. */
 export interface SentPhoto {
@@ -96,7 +104,8 @@ export function createAdjust(kit: Kit) {
       plan: currentPlan(withRequest),
       // If the current design has unresolved problems, a change that fixes some and adds none is progress.
       known: knownErrors(analyze(design, catalog, withRequest.requirements)),
-      context: buildContext(withRequest, catalog),
+      /** The whole design for the piece path; built only when the request gets there. */
+      context: lazy(() => buildContext(withRequest, catalog)),
       trace,
       reply: (text: string, extra: Partial<Message> = {}, base: DesignState = withRequest) =>
         save({ ...base, trace: appendTrace(base.trace, trace), chat: [...base.chat, message('expert', text, extra)] }),
@@ -156,59 +165,69 @@ export function createAdjust(kit: Kit) {
     return reply([localText.applied(said), ...rebuilt.notes].join('\n\n'), { version: withChange.current }, withChange)
   }
 
-  /** With a live plan the expert edits the plan, judged like any change but with no extra round for criticals; null means: go piece by piece. */
+  /**
+   * With a live plan the expert edits the plan, judged like any change but with no extra round for criticals.
+   * A plan that does not build goes back once with its errors; null means: go piece by piece.
+   */
   async function throughPlan(round: Round): Promise<DesignState | null> {
-    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, context, trace, reply } = round
+    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, trace, reply } = round
     const plan = current.plan
     if (!plan || current.diverged || !llm.adjustPlan || photo) return null
-    onProgress('proposing', 0)
-    const call = await expertCall(() => llm.adjustPlan!({ context: context, request: request, plan, catalog: catalog }, signal), {
-      step: 'adjust',
-      attempt: 0,
-      signal,
-      trace,
-      onFailure: 'skip',
-      code: 'E_PLAN_ADJUSTMENT',
-      subject: 'Ficha',
-    })
-    if (!call.ok) return null
-    const { response, started } = call
-    const r = response.value
-    const requirements = updateRequirements(withRequest.requirements, r.requirements)
-    const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
-    const suggestions = r.suggestions.slice(0, 4)
-    const next = expertPlans(r)[plan.kind]
-    if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
-      trace.push(traceEntry('adjust', 0, started, response, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
-      return null
+    const context = buildPlanContext(withRequest, catalog, current.extras)
+    let correction: PlanAdjustRequest['correction'] = null
+    for (let attempt = 0; attempt < PLAN_ATTEMPTS; attempt++) {
+      onProgress(correction ? 'correcting' : 'proposing', attempt)
+      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, catalog, correction }, signal), {
+        step: 'adjust',
+        attempt,
+        signal,
+        trace,
+        onFailure: 'skip',
+        code: 'E_PLAN_ADJUSTMENT',
+        subject: 'Ficha',
+      })
+      if (!call.ok) return null
+      const { response, started } = call
+      const r = response.value
+      const requirements = updateRequirements(withRequest.requirements, r.requirements)
+      const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
+      const suggestions = r.suggestions.slice(0, 4)
+      const next = expertPlans(r)[plan.kind]
+      if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
+        return null
+      }
+      if (r.action === 'answer') {
+        trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: respuesta'))
+        return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
+      }
+      onProgress('checking', attempt)
+      const rebuilt = rebuildFromPlan(next!, current.extras, catalog, requirements)
+      const analysis = analyze(rebuilt.design, catalog, requirements)
+      if (!analysis.valid) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(analysis.errors), rebuilt.repairs, 'Ficha'))
+        correction = { previousResponse: r, errors: planCorrection(analysis.errors) }
+        continue
+      }
+      trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))
+      onProgress('structure', attempt)
+      const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
+      const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
+      // The plan carries no accepted risks: a critical the person already accepted is in `before`, and is not new.
+      const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
+      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: r, requirements, origin: response.origin, plan: { plan: next!, extras }, suggestions })
+      // A valid candidate with no extra round is either pending or applied.
+      if (verdict.kind !== 'applied') return null
+      const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
+      return reply([r.explanation, ...rebuilt.notes].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
     }
-    if (r.action === 'answer') {
-      trace.push(traceEntry('adjust', 0, started, response, 'ok', [], [], 'Ficha: respuesta'))
-      return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
-    }
-    onProgress('checking', 0)
-    const rebuilt = rebuildFromPlan(next!, current.extras, catalog, requirements)
-    const analysis = analyze(rebuilt.design, catalog, requirements)
-    if (!analysis.valid) {
-      trace.push(traceEntry('adjust', 0, started, response, 'invalid', traceErrors(analysis.errors), rebuilt.repairs, 'Ficha'))
-      return null
-    }
-    trace.push(traceEntry('adjust', 0, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))
-    onProgress('structure', 0)
-    const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
-    const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
-    // The plan carries no accepted risks: a critical the person already accepted is in `before`, and is not new.
-    const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
-    if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: r, requirements, origin: response.origin, plan: { plan: next!, extras }, suggestions })
-    // A valid candidate with no extra round is either pending or applied.
-    if (verdict.kind !== 'applied') return null
-    const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
-    return reply([r.explanation, ...rebuilt.notes].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
+    return null
   }
 
   /** The expert writes operations on the pieces; each answer is tried and judged, and a broken one goes back with its errors. */
   async function pieceByPiece(round: Round): Promise<DesignState> {
-    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, known, context, trace, reply } = round
+    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, known, trace, reply } = round
+    const context = round.context()
     let correction: { previousResponse: unknown; errors: string } | null = null
     let lastError = ''
     // A valid change with new critical findings earns the expert one extra round that does not spend an attempt.

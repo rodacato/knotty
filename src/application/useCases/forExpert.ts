@@ -16,6 +16,14 @@ export const criticalsCorrection = (criticals: Finding[]) =>
     'If the fix is clear, include it in the operations. If there is a choice to make, keep the requested operations and offer the options in questions.',
   ].join('\n')
 
+/** For the plan's correction round: the plan was read but Knotty cannot build a valid design from it. */
+export const planCorrection = (errors: DesignError[]) =>
+  [
+    'Knotty built the design from your plan and it is not valid:',
+    listErrors(errors),
+    'Fix the plan so it builds, keeping the change the person asked for, and return the complete plan.',
+  ].join('\n')
+
 const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
 export function reviewText(cut: CutLine[], checks: Check[]) {
   return [
