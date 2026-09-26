@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { analyze } from '../domain/analysis'
 import { createSimulated } from '../adapters/llm/simulated/simulated'
+import { createLocalRepository } from '../adapters/persistence/localStorage'
 import { startAt, makePiece, ref, extent } from '../domain/design/builders'
 import type { BedPlan } from '../domain/modules/bed'
 import { DEFAULT_CONSTRUCTION, type CabinetPlan } from '../domain/modules/cabinet'
@@ -329,6 +330,18 @@ describe('buildContext', () => {
 })
 
 describe('reviewPurchase', () => {
+  it('a saved review still matches after the page reloads: the design comes back with its keys in schema order', async () => {
+    const stored = new Map<string, string>()
+    const storage = { getItem: (k: string) => stored.get(k) ?? null, setItem: (k: string, v: string) => void stored.set(k, v), removeItem: (k: string) => void stored.delete(k) } as Storage
+    const repository = createLocalRepository(storage)
+    const c = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository, now: () => '2026-09-24T10:00:00Z', newId: () => 'm1' })
+    const initial = c.fromExample(exampleBookcase)
+    const reviewed = c.saveReview(initial, await c.reviewPurchase(initial, testCatalog, newSignal()))
+    const loaded = repository.load()!
+    expect(JSON.stringify(currentDesign(loaded))).not.toBe(JSON.stringify(currentDesign(reviewed)))
+    expect(loaded.review?.signature).toBe(reviewSignature(loaded, testCatalog))
+  })
+
   it('saves the checks and the carpenter opinion with the version signature', async () => {
     const c = setup()
     const initial = await initialBookcase(c)
