@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { DIMENSION_LABEL, type Design } from '../design/schema'
 import { faceSize, roundTo, type Geometry } from '../design/resolve'
+import { bounds } from '../design/boxes'
 import type { Finding } from '../structure/finding'
 import type { Catalog } from '../materials/catalog'
 import type { Purchase } from '../materials/purchase'
@@ -67,9 +68,8 @@ const listed = (names: string[]) => (names.length <= 3 ? names.join(', ') : `${n
 const check = (c: Omit<Check, 'pieces' | 'request' | 'impossible'> & Partial<Check>): Check => ({ pieces: [], request: null, impossible: false, ...c })
 
 function measures({ design, geo }: ViabilityInput): Check {
-  const boxes = [...geo.boxes.values()]
-  const span = (e: 'x' | 'y' | 'z') => Math.max(...boxes.map((c) => c[`${e}1`])) - Math.min(...boxes.map((c) => c[`${e}0`]))
-  const real = { width: span('x'), height: span('y'), depth: span('z') }
+  const around = bounds(geo.boxes.values())
+  const real = { width: around.x1 - around.x0, height: around.y1 - around.y0, depth: around.z1 - around.z0 }
   const { width, height, depth } = design.dimensions
   const off = (['height', 'width', 'depth'] as const).filter((k) => Math.abs(real[k] - design.dimensions[k]) > MEASURE_TOLERANCE)
   if (!off.length) return check({ id: 'measures', title: 'Las medidas cierran', status: 'ok', detail: `Las piezas suman exacto ${height} × ${width} × ${depth} mm (alto, ancho, fondo).` })
