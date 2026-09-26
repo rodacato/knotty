@@ -1,4 +1,5 @@
 import { analyze } from '../../domain/analysis'
+import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
 import { cutList } from '../../domain/materials/cutList'
 import { estimatePurchase } from '../../domain/materials/purchase'
@@ -18,9 +19,15 @@ function fingerprint(text: string) {
   return `${hash.toString(16)}-${text.length}`
 }
 
+/** The design as the review sees it: the finish only adds litres to the list, so choosing one does not ask for a new review. */
+const reviewed = (design: Design) => {
+  const { finish: _, ...rest } = design
+  return rest
+}
+
 /** What a purchase review was made with, to know when to redo it; keyed on the design's content, so going back to an identical version keeps it. */
 export const reviewSignature = (state: DesignState, effectiveCatalog: Catalog) =>
-  JSON.stringify([fingerprint(JSON.stringify(currentDesign(state))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
+  JSON.stringify([fingerprint(JSON.stringify(reviewed(currentDesign(state)))), state.requirements.map((r) => r.id), state.accepted.map((a) => a.key), effectiveCatalog.layout, effectiveCatalog.materials.map((m) => [m.id, m.sheet])])
 
 /** The review before buying: the arithmetic of the cuts and the checks, then the carpenter's opinion. */
 export function createReview(kit: Kit) {
