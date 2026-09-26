@@ -10,6 +10,7 @@ import type { Operation } from '../domain/editing/operations/schema'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../domain/furniture/fixtures/wallCabinet'
+import { exampleSideboard } from '../domain/furniture/examples'
 import { findingKey } from '../domain/checks/structure/finding'
 import { ruleTitle } from '../domain/checks/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
@@ -854,6 +855,22 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     const state = await c.adjust(c.fromExample(exampleBookcase), '¿cuánto mide?', newSignal())
     expect(calls).toEqual([])
     expect(state.chat.at(-1)?.text).toMatch(/^Mide \d+ × \d+ × \d+ mm/)
+  })
+
+  it('an example with a plan opens with its plan, and «Sin zoclo» is Knotty\'s alone', async () => {
+    const { llm, calls } = counting()
+    const c = setup(llm)
+    const initial = c.openExample(exampleSideboard)
+    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Ejemplo: Aparador', plan: { kind: 'cabinet', base: 'kick' } }])
+    expect(currentDesign(initial)).toMatchObject({ finish: 'polyurethane', wallAnchored: true })
+    expect(currentPlan(initial)).toMatchObject({ since: 1, diverged: false })
+    expect(initial.chat[0].text).toMatch(/^Aquí tienes un aparador de ejemplo\. Aparador de comedor/)
+    const state = await c.adjust(initial, 'sin zoclo', newSignal())
+    expect(calls).toEqual([])
+    expect(state.versions).toHaveLength(2)
+    expect(state.versions.at(-1)).toMatchObject({ origin: null, plan: { kind: 'cabinet', base: 'floor' } })
+    expect(currentDesign(state).pieces.some((p) => p.role === 'kick')).toBe(false)
+    expect(currentDesign(state).finish).toBe('polyurethane')
   })
 
   it('asking for what the plan has makes no version', async () => {
