@@ -46,6 +46,7 @@ const PLAIN: Record<string, [string, string]> = {
   E_SCHEMA: ['una respuesta con formato incorrecto', 'respuestas con formato incorrecto'],
   E_CYCLE: ['medidas que dependen unas de otras en círculo', 'medidas que dependen unas de otras en círculo'],
   E_REQUIREMENT: ['un requisito que no se cumple', 'requisitos que no se cumplen'],
+  E_PARTS: ['puertas o cajones distintos a los pedidos', 'puertas o cajones distintos a los pedidos'],
 }
 
 /** "3 piezas encimadas y una pieza sin apoyo": the kinds of problem, for a person. */
