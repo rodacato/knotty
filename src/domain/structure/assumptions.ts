@@ -58,7 +58,7 @@ export const ASSUMPTIONS = {
     runnerTolerance: 1,
     minBottom: 6,
     /** Past this width, a drawer bottom thinner than the minimum sags. */
-    thinBottomWidth: 450,
+    thinBottomWidth: 300,
     /** Minimum gap between a drawer and the ground, so it opens without dragging. */
     floorClearance: 10,
   },

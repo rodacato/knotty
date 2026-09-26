@@ -93,6 +93,12 @@ describe('R9 drawers and screws into a face', () => {
     expect(findingsOf(d).filter((h) => h.code === 'R9_DRAWERS').map((h) => [h.severity, h.pieces[0]])).toEqual([['recommendation', 'drawer-1-bottom']])
   })
 
+  it('3 mm only holds under 300 mm of width: a drawer of 400 already asks for 6', () => {
+    const r9 = (width: number) => findingsOf(withDrawer({ ...deep, dimensions: { ...deep.dimensions, width } }, [drawer({ bottomMaterial: 'TR3' })])).filter((h) => h.check === 'drawer.thin-bottom')
+    expect(r9(400).map((h) => h.alternatives[0].data.material)).toEqual(['TR6'])
+    expect(r9(320)).toEqual([])
+  })
+
   it('a screw into a face must not come out the other side', () => {
     const d = withDrawer(deep)
     d.joints = d.joints.map((u) => (u.id === 'j-drawer-1-subfront-front' ? { ...u, hardware: [{ hardwareId: 'screw-8x2', count: 4 }] } : u))
