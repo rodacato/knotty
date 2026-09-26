@@ -857,19 +857,19 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(state.chat.at(-1)?.text).toMatch(/^Mide \d+ × \d+ × \d+ mm/)
   })
 
-  it('an example with a plan opens with its plan, and «Sin zoclo» is Knotty\'s alone', async () => {
+  it('an example with a plan opens with its plan, and «Sin patas» is Knotty\'s alone', async () => {
     const { llm, calls } = counting()
     const c = setup(llm)
     const initial = c.openExample(exampleSideboard)
-    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Ejemplo: Aparador', plan: { kind: 'cabinet', base: 'kick' } }])
+    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Ejemplo: Aparador', plan: { kind: 'cabinet', base: 'legs' } }])
     expect(currentDesign(initial)).toMatchObject({ finish: 'polyurethane', wallAnchored: true })
     expect(currentPlan(initial)).toMatchObject({ since: 1, diverged: false })
     expect(initial.chat[0].text).toMatch(/^Aquí tienes un aparador de ejemplo\. Aparador de comedor/)
-    const state = await c.adjust(initial, 'sin zoclo', newSignal())
+    const state = await c.adjust(initial, 'sin patas', newSignal())
     expect(calls).toEqual([])
     expect(state.versions).toHaveLength(2)
     expect(state.versions.at(-1)).toMatchObject({ origin: null, plan: { kind: 'cabinet', base: 'floor' } })
-    expect(currentDesign(state).pieces.some((p) => p.role === 'kick')).toBe(false)
+    expect(currentDesign(state).pieces.some((p) => p.id.startsWith('leg-') || p.role === 'apron')).toBe(false)
     expect(currentDesign(state).finish).toBe('polyurethane')
   })
 
