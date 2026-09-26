@@ -6,7 +6,7 @@ import data from '../../public/catalog/catalog.json'
 import { createAnthropic } from '../../src/adapters/llm/anthropic'
 import { createCompatible } from '../../src/adapters/llm/compatibleOpenAI'
 import { createSimulated } from '../../src/adapters/llm/simulated/simulated'
-import { createBench, type BenchResult } from '../../src/application/bench/bench'
+import { createBench, describeAdjustments, type BenchResult } from '../../src/application/bench/bench'
 import { Catalog } from '../../src/domain/materials/catalog'
 import type { DesignState } from '../../src/domain/session/state'
 import type { LLMProvider } from '../../src/ports/LLMProvider'
@@ -78,7 +78,7 @@ async function inBatches<T, R>(items: T[], n: number, f: (x: T) => Promise<R>) {
 
 function report(rows: Row[], label: string) {
   const line = (r: Row) =>
-    `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.path === 'plan' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} |`
+    `| ${r.model} | ${r.caseId} | ${r.ok ? 'sí' : `no: ${(r.error ?? '').replace(/\|/g, '/').slice(0, 80)}`} | ${r.path === 'plan' ? 'ficha' : r.path === 'pieces' ? 'piezas' : '—'} | ${r.seconds.toFixed(0)} | ${r.calls}${r.corrections.length ? ` (${r.corrections.join(' ')})` : ''} | ${r.repairs} | ${r.outputTokens ?? '—'} | ${r.pieces} | ${r.joints} | ${r.measures} | ${r.reasonable === null ? '—' : r.reasonable ? 'sí' : 'NO'} | ${r.criticals}${r.rules.length ? ` (${r.rules.join(' ')})` : ''} | ${r.verdict} | ${r.adjustments.length ? describeAdjustments(r.adjustments).replace(/\|/g, '/') : '—'} |`
   const models = [...new Set(rows.map((r) => r.model))]
   const summary = models.map((m) => {
     const rs = rows.filter((r) => r.model === m)
@@ -96,8 +96,10 @@ function report(rows: Row[], label: string) {
     '|---|---|---|---|---|---|',
     ...summary,
     '',
-    '| Modelo | Caso | Listo | Camino | s | Intentos | Reparaciones | Tokens salida | Piezas | Uniones | Alto × ancho × fondo | Razonables | Críticos | Veredicto |',
-    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+    'Intentos cuenta las llamadas del diseño; cada pedido de después dice si lo hizo Knotty sin experto (0 llamadas) o el experto, y cuántas llamadas hizo.',
+    '',
+    '| Modelo | Caso | Listo | Camino | s | Intentos | Reparaciones | Tokens salida | Piezas | Uniones | Alto × ancho × fondo | Razonables | Críticos | Veredicto | Pedidos después (quién los hizo) |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
     ...rows.map(line),
     '',
   ].join('\n')

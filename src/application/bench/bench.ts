@@ -32,9 +32,25 @@ export interface BenchResult {
   corrections: string[]
   repairs: number
   verdict: string
-  /** The whole session, to open it in the studio or export it. */
+  /** The case's chat requests after the design: Knotty alone makes no call to the expert. */
+  adjustments: Adjustment[]
+  /** The whole session, after its requests, to open it in the studio or export it. */
   state: DesignState | null
 }
+
+export interface Adjustment {
+  request: string
+  by: 'knotty' | 'expert'
+  /** Calls to the expert this request made; 0 when Knotty answered alone. */
+  calls: number
+  outcome: 'version' | 'proposal' | 'answer' | 'error'
+}
+
+const OUTCOME: Record<Adjustment['outcome'], string> = { version: 'versión', proposal: 'propuesta', answer: 'respuesta', error: 'error' }
+
+/** The requests in a line for the report and the bench: «Sin zoclo» Knotty, versión · «¿Cuántas hojas?» experto (1), respuesta. */
+export const describeAdjustments = (adjustments: Adjustment[]) =>
+  adjustments.map((a) => `«${a.request}» ${a.by === 'knotty' ? 'Knotty' : `experto (${a.calls})`}, ${OUTCOME[a.outcome]}`).join(' · ')
 
 export interface ModuleCheck {
   module: FurnitureKind
@@ -77,6 +93,20 @@ function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
   }
 }
 
+/** The case's requests one after the other, each with the calls it made; the design's own calls stay out of the count. */
+async function adjustAll(useCases: ReturnType<typeof createUseCases>, state: DesignState, requests: string[], calls: Call[], signal: AbortSignal) {
+  const adjustments: Adjustment[] = []
+  for (const request of requests) {
+    const before = { calls: calls.length, current: state.current }
+    state = await useCases.adjust(state, request, signal)
+    const made = calls.length - before.calls
+    const last = state.chat.at(-1)
+    const outcome = last?.error ? 'error' : state.proposal ? 'proposal' : state.current !== before.current ? 'version' : 'answer'
+    adjustments.push({ request, by: made ? 'expert' : 'knotty', calls: made, outcome })
+  }
+  return { adjustments, state }
+}
+
 /** Kept in memory: a bench run never touches the design the person is working on. */
 const inMemory = () => {
   let state: DesignState | null = null
@@ -96,7 +126,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
     const provider = deps.llm()
     const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory() })
     const start = performance.now()
-    const empty = { path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
+    const empty = { adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
     try {
       const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
@@ -118,17 +148,22 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) 
         reasonable: withinExpected(c, d) && (!c.path || c.path === path) && (!c.module || state.versions[0].plan?.kind === c.module),
         corrections: [...new Set(calls.flatMap((l) => l.corrects))],
         repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
-        state,
       }
-      const a = analyze(design, catalog)
-      if (!a.valid) return { ...common, criticals: 0, rules: [], verdict: 'invalid' }
-      const purchase = estimatePurchase(design, a.geo, catalog)
-      const viability = reviewViability({ design, analysis: a, catalog, purchase, unmet: [] })
-      const criticals = a.findings.filter((h) => h.severity === 'critical')
-      return { ...common, criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.verdict }
+      const graded = grade(design)
+      const adjusted = await adjustAll(useCases, state, c.adjust ?? [], calls, signal)
+      return { ...common, ...graded, ...adjusted }
     } catch (e) {
       return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length }
     }
+  }
+
+  function grade(design: Design) {
+    const a = analyze(design, catalog)
+    if (!a.valid) return { criticals: 0, rules: [], verdict: 'invalid' }
+    const purchase = estimatePurchase(design, a.geo, catalog)
+    const viability = reviewViability({ design, analysis: a, catalog, purchase, unmet: [] })
+    const criticals = a.findings.filter((h) => h.severity === 'critical')
+    return { criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.verdict }
   }
 
   /** Every variant of the modules, with no expert: any that comes out invalid or with findings is a bug in Knotty. */
