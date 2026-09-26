@@ -88,6 +88,18 @@ describe('R9 drawers and screws into a face', () => {
     expect(r9).toEqual([expect.objectContaining({ severity: 'critical', message: expect.stringContaining('no entra') })])
   })
 
+  it('the runner gap takes up to 0.8 mm more than the slide asks, and nothing less', () => {
+    const r9 = (gap: number) => {
+      const d = withDrawer(deep)
+      d.pieces.find((p) => p.id === 'drawer-1-side-left')!.x = startAt(ref('side-left.x1', gap))
+      return findingsOf(d).filter((h) => h.check === 'drawer.slide-clearance').map((h) => h.message)
+    }
+    expect(r9(12.7)).toEqual([])
+    expect(r9(13.5)).toEqual([])
+    expect(r9(12.5)).toEqual([expect.stringContaining('no entra')])
+    expect(r9(13.7)).toEqual([expect.stringContaining('flojo')])
+  })
+
   it('a 3 mm bottom in a wide drawer sags', () => {
     const d = withDrawer({ ...deep, dimensions: { ...deep.dimensions, width: 700 } }, [drawer({ bottomMaterial: 'TR3' })])
     expect(findingsOf(d).filter((h) => h.code === 'R9_DRAWERS').map((h) => [h.severity, h.pieces[0]])).toEqual([['recommendation', 'drawer-1-bottom']])

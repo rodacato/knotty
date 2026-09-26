@@ -54,8 +54,8 @@ export const ASSUMPTIONS = {
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   drawers: {
-    /** How far the runner gap may be from what the maker asks. */
-    runnerTolerance: 1,
+    /** How much wider than the maker asks the runner gap may be, and how much narrower: a slide takes a little more, never less. */
+    runnerTolerance: { over: 0.8, under: 0 },
     minBottom: 6,
     /** Past this width, a drawer bottom thinner than the minimum sags. */
     thinBottomWidth: 300,

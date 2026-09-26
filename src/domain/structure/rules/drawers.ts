@@ -8,6 +8,12 @@ import type { Geometry } from '../../design/resolve'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../assumptions'
 
+/** Whether a gap is within what the slide takes, to a tenth of a millimetre: up to 0.8 more than it asks, nothing less. */
+const runnerFits = (gap: number, needs: number) => {
+  const off = roundTo(gap - needs)
+  return off >= -ASSUMPTIONS.drawers.runnerTolerance.under && off <= ASSUMPTIONS.drawers.runnerTolerance.over
+}
+
 /** R9: the runner fits exactly, the bottom holds, and neither the front nor the box rubs. */
 export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
   const found: Finding[] = []
@@ -20,7 +26,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
     const runner = catalog.hardware.find((h) => u.hardware.some((x) => x.hardwareId === h.id) && h.sideClearance !== null) ?? slideForBox(catalog, drawerSideLength(design, geo, u.a, u.b))
     if (!gap || !runner?.sideClearance) continue
     const off = gap.distance - runner.sideClearance
-    if (Math.abs(off) <= ASSUMPTIONS.drawers.runnerTolerance) continue
+    if (runnerFits(gap.distance, runner.sideClearance)) continue
     const name = design.pieces.find((p) => p.id === u.a)?.name ?? u.a
     found.push({
       code: 'R9_DRAWERS',
@@ -162,7 +168,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding
           alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${gap} mm, para la corredera`, data: { side: direction, group } }],
         },
       ]
-    if (Math.abs(support.distance - gap) <= ASSUMPTIONS.drawers.runnerTolerance) return []
+    if (runnerFits(support.distance, gap)) return []
     return [
       {
         code: 'R9_DRAWERS',
