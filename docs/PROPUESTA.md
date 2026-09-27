@@ -1,6 +1,6 @@
 # Despiece — Propuesta de diseño
 
-Web app que convierte fotos de un mueble en un diseño 3D de triplay que se explora y se ajusta conversando con un carpintero experto (un LLM). No hay edición manual: todo cambio se pide en lenguaje natural. El objetivo final es saber cómo se arma y cuántas hojas de triplay comprar.
+Web app que convierte fotos o una descripción de un mueble en un diseño 3D de triplay. **El mueble es la interfaz**: se cambia tocándolo, en su ficha o pieza por pieza, y el cambio es instantáneo; un carpintero experto (un LLM) entra donde hace falta criterio, agrupado en la bandeja o libre en la conversación (D34). Celular y escritorio pesan igual. El destino es saber cómo se arma y cuántas hojas de triplay comprar.
 
 Este documento es la referencia viva del proyecto. Las decisiones tomadas se anotan en [Decisiones](#decisiones); lo pendiente de discutir, en [Preguntas abiertas](#preguntas-abiertas). El conocimiento de carpintería (material, uniones, medidas, estructura, términos) vive en [`docs/carpinteria/`](carpinteria/README.md).
 
@@ -46,6 +46,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D35 | Todo cambio es un **cambio con origen y diferencias** (qué piezas se agregaron, quitaron o cambiaron) y se puede deshacer completo o por partes, sin experto | El experto quitó dos divisores sin que se lo pidieran y no había forma de regresarlos conservando lo demás |
 | D36 | El experto no quita ni cambia estructura que no se pidió: si su respuesta lo hace, queda como propuesta que la persona confirma; si trae preguntas, sus operaciones esperan a las respuestas | Confianza: nada que sostenga el mueble desaparece sin permiso, con cualquier modelo |
 | D37 | Las revisiones son **avisos con estado** (pendiente, viendo solución, resuelto, aceptado así) en un solo lugar, junto con las propuestas y preguntas del experto; cada aviso ofrece soluciones con vista previa en 3D, pedírselo al experto (a la bandeja) o aceptarlo así | El panel de Revisión informaba pero no dejaba decidir, y no había salida de «no hacer nada» |
+| D38 | **El mueble es la interfaz**: lo principal es cambiarlo al instante (tocarlo, su ficha, pieza por pieza) y el experto entra donde aporta criterio. Celular y escritorio pesan igual. El destino del recorrido es cómo se arma y qué comprar. El rediseño se hace con Pencil en `design/`, empezando por el Estudio | La interfaz se acomodó fase por fase y quedó con cosas en lugares raros; la frase de arriba todavía decía «no hay edición manual», contra D34 |
 | D20 | Llaves: no guardarlas, en la pestaña, o cifradas con frase (bóveda de ai-town). Al llegar, un aviso pide la frase o la llave que falte | Los pendientes de BYOK de ai-town `REVIEW-1.0.md` §3, adelantados de la fase 7 |
 
 ---
