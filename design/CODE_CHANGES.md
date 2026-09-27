@@ -30,7 +30,7 @@
 
 ## 3. Notice ways and proposal actions
 
-**Status:** landed (K1) — `UI-3`, `UI-6`, `UI-15` step 1, `UI-17`, `UI-18` · pending: "Aplicar con un apoyo al centro" inside a proposal, which needs fixes computed on the proposal's design, not the current one
+**Status:** landed (K1) — `UI-3`, `UI-6`, `UI-15` step 1, `UI-17`, `UI-18` · "Aplicar con un apoyo al centro" inside a proposal landed (`proposal-fixes`): the fix is computed on the proposal's design, and applying it makes one version
 
 - Landed: `applyFixes` (several solutions as one version, all or none), the ways in `NoticePanel.tsx` with "Resolver N", the chat proposal's visible actions, and the status chip's "Resuelto: …" and expert-at-work states.
 

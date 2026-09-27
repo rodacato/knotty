@@ -29,6 +29,8 @@ export interface SessionSlice {
   /** A whole session from elsewhere (the bench) becomes the current design. */
   openState(state: DesignState): void
   applyProposal(): void
+  /** The proposal with the solution Knotty builds for its critical findings, as one version; nothing when there is none. */
+  applyProposalWithFix(): void
   /** An option answered from the chat: Knotty builds it when it can, otherwise it goes to the expert. */
   chooseOption(messageId: string, question: number, option: string): Promise<void>
   discardProposal(): void
@@ -100,6 +102,11 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),
 
   applyProposal: () => withSession(get, (services, state) => set({ state: services.useCases.applyProposal(state), viewedVersion: null })),
+  applyProposalWithFix: () =>
+    withSession(get, (services, state) => {
+      const fixed = services.useCases.applyProposalWithFix(state)
+      if (fixed) moveTo(set, services, state, fixed, { preview: null, viewedVersion: null })
+    }),
 
   chooseOption(messageId, question, option) {
     const { services, state, thinking } = get()

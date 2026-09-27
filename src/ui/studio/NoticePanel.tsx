@@ -9,6 +9,7 @@ import { answerItem, answerItemId, noticeItemId, type TrayItem } from '../../dom
 import { useServices } from '../services'
 import { Button, Chip, Stamp } from '../system/components'
 import { useStore } from '../store'
+import { ProposalFixButton } from '../chat/ProposalFix'
 
 // Every notice with its ways out — a solution Knotty builds now, the tray for the expert, or leaving it as it is — resolved together.
 
@@ -72,6 +73,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
   const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
   const decides = notice.kind === 'finding' || notice.kind === 'requirement' || notice.kind === 'problem'
+  const risky = notice.kind === 'proposal' && !!state.proposal?.critical.length
   const isExpert = (item: TrayItem) => way?.kind === 'expert' && way.item.text === item.text
 
   return (
@@ -111,12 +113,13 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
 
       {notice.kind === 'proposal' && (
         <div className="flex flex-col gap-2">
+          {risky && <ProposalFixButton state={state} />}
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" className="min-h-10" onClick={toggleProposal}>
               {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
             </Button>
-            <Button variant="primary" className="min-h-10 flex-1" disabled={thinking} onClick={applyProposal}>
-              Sí, aplícalo
+            <Button variant={risky ? 'secondary' : 'primary'} className="min-h-10 flex-1" disabled={thinking} onClick={applyProposal}>
+              {risky ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
             </Button>
           </div>
           <Button variant="ghost" className="min-h-10 self-start" disabled={thinking} onClick={discardProposal}>

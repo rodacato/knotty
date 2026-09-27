@@ -8,6 +8,7 @@ import { TextArea } from '../system/Field'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { Memory } from './Memory'
+import { ProposalFixButton } from './ProposalFix'
 import { Tray } from './Tray'
 
 export const STAGES: Record<Stage, string> = {
@@ -168,6 +169,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             ))}
           </ul>
           <div className="mt-3 flex flex-col gap-2">
+            {state.proposal!.critical.length > 0 && <ProposalFixButton state={state} className="w-full" />}
             {state.proposal!.critical.length ? (
               <Button variant="secondary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
                 Aplicar así, bajo mi riesgo
