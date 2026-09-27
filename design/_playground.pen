@@ -5287,7 +5287,7 @@
       "type": "frame",
       "id": "nLNeu",
       "x": 0,
-      "y": 3624,
+      "y": 5184,
       "name": "LOG — Playground",
       "width": 640,
       "fill": "$paper",
@@ -5309,6 +5309,30 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "T9JEFz",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · D39 drawn: photos without slots — one \"Agregar fotos\", views labeled by the model, notes in sight · UI-8, UI-19",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "eaITr",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · Capture v2: measures without the kind, photos with labeled buttons and the kind next to the description, desktop in two columns · UI-7, UI-8, UI-19",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -16162,6 +16186,4399 @@
           "fontFamily": "$font-mono",
           "fontSize": 12,
           "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "tYjly",
+      "x": 760,
+      "y": 3624,
+      "name": "Capture v2 / Measures (mobile)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "VyiDt",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "CUhW7",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "jVbS7",
+                  "name": "1 / 2",
+                  "fill": "$bone",
+                  "content": "1 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "eqjgb",
+              "name": "¿Cuánto mide?",
+              "fill": "$graphite",
+              "content": "¿Cuánto mide?",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "sr9sZ",
+          "name": "Las medidas generales po",
+          "fill": "$graphite-2",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Las medidas generales por fuera, en milímetros. Con cinta métrica basta.",
+          "lineHeight": 1.4,
+          "fontFamily": "$font-sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "sPpTc",
+          "name": "Alto",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ipQeW",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gP6H6",
+                  "name": "Alto",
+                  "fill": "$graphite",
+                  "content": "Alto",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "BhVa7",
+                  "name": "180 cm",
+                  "fill": "$graphite-2",
+                  "content": "180 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rzWks",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xtgAE",
+                  "name": "1800",
+                  "fill": "$graphite",
+                  "content": "1800",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "XECta",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "W9hsUD",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "S2SFye",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "BXHt6",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "T5CBaR",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "c2lbf",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "tPrAT",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "L2eUE",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "A7468M",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "e4W5Lq",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "nSd8l",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Yxred",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "JWfwl",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "S5vUgf",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "FgrgO",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "YBAop",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "UfGIV",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "nKcE2",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "MS69l",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "nJkMU",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SZegH",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "jNg6g",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Gonf8",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "G9dLjw",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "n7Xgb",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "fq5V5",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "a035P",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "e6c9QM",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Et7Zr",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "UBi7n",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "bIgCk",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "WngBp",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "YfT1I",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "k06iZ",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "fdfzN",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "qjLEj",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "W2RZd",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SIyAo",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "g6YNp1",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "QOpL8",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "O0aiT",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mQWs5",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "NyBQm",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "QEJ76",
+                  "x": 229,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "QNAAA",
+          "name": "Ancho",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "tGcos",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rFAFC",
+                  "name": "Ancho",
+                  "fill": "$graphite",
+                  "content": "Ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "A2Bl5A",
+                  "name": "60 cm",
+                  "fill": "$graphite-2",
+                  "content": "60 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "thXs2",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "DosEV",
+                  "name": "600",
+                  "fill": "$graphite",
+                  "content": "600",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "GhyWc",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u57g2",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "Mo9rt",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "kxwYC",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "eIIWJ",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ywqTA",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "KlSnO",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ORvyH",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Atg4d",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "uLMhD",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "I5gwB",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "A8Ri70",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "k7SRsT",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "iV74i",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "OUnYk",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Nhwto",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ye3MR",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "i59SK",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "m4SOlQ",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Gi1zq",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "e04gE",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "nF5Lb",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "f6jiTn",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "PIkY5",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "O0K1n",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "EVyJl",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "heOYT",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "puiNP",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "sOee7",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "tm2cc",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Bul8o",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "VFPlg",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "dGf4s",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "u0OgRG",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "OdI0G",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "X0Rro",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "RmhIN",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "l0ilm",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mxM80",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "HzEhq",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "lzkrO",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "k0VVP3",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "xD16e",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "kJqkk",
+                  "x": 51,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gF4Pc",
+          "name": "Fondo",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "r6xwp",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "x2zy9",
+                  "name": "Fondo",
+                  "fill": "$graphite",
+                  "content": "Fondo",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "Cibhf",
+                  "name": "30 cm",
+                  "fill": "$graphite-2",
+                  "content": "30 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vTf8x",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "I3OTJT",
+                  "name": "300",
+                  "fill": "$graphite",
+                  "content": "300",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "FTUP7",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RzSEf",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "UMtqX",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "M7ZM1e",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "AKrvb",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mz0c3",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Ji0tU",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "JhrPh",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Dy4VL",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "qJOc3",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ogINd",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "xrkSm",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "lHXOr",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "e0LqqI",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "v46o7W",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "GEe3F",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "FRxYX",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "BgsUB",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "d3C81B",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Wg43B",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "PiNyy",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "CQd3F",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "o9FkCZ",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "xWdYO",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "LgnXb",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ucKs8",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "jg3VT",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "omCMP",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ODRDu",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "DNBOO",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mNKEb",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "fQfsP",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Bwkxy",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "VD0KQ",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "pfmzD",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "dazQq",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "TfMxK",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "p5Womu",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Hmxxp",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "MSPo8",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "v98RL",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "wIi3F",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ROmRN",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "P2PJr8",
+                  "x": 39,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hpMNb",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "Plh9Z",
+              "type": "ref",
+              "ref": "v808wd",
+              "name": "No sé las medidas",
+              "descendants": {
+                "x9zoX": {
+                  "enabled": true,
+                  "icon": "question"
+                },
+                "u7yM9": {
+                  "content": "No sé las medidas"
+                }
+              }
+            },
+            {
+              "id": "hZMcO",
+              "type": "ref",
+              "ref": "qTkhL",
+              "name": "Siguiente",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "eeaCW": {
+                  "content": "Siguiente",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "QA5Iu",
+      "x": 1270,
+      "y": 3624,
+      "name": "Capture v2 / Photos or description (mobile)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "vlPFp",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "L6Xh9",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "H4EvR",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Uyi0a",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "ToNdI",
+          "name": "Con fotos, frente y 3/4 ",
+          "fill": "$graphite-2",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.",
+          "lineHeight": 1.4,
+          "fontFamily": "$font-sans",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "PoJbs",
+          "name": "Slots",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "sJjKm",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ucrjZ",
+                  "name": "Frente",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pso40",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "EpMhQ",
+                          "name": "Silhouette",
+                          "geometry": "M16 8h32v60h-32z m0 15h32m-32 15h32m-32 15h32m-40 19h48",
+                          "viewBox": [
+                            0,
+                            0,
+                            64,
+                            80
+                          ],
+                          "width": 26,
+                          "height": 32,
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.6,
+                          "strokeLinejoin": "round",
+                          "strokeLinecap": "round"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "nqHs7",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "k4Bef",
+                              "name": "Name",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Fu8nu",
+                                  "name": "Frente",
+                                  "fill": "$graphite",
+                                  "content": "Frente",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "buJhz",
+                                  "name": "Importante (NEW)",
+                                  "height": 20,
+                                  "cornerRadius": "$radius-full",
+                                  "stroke": "$graphite-2",
+                                  "strokeWidth": 1,
+                                  "padding": [
+                                    0,
+                                    7
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "CvVtO",
+                                      "name": "Importante",
+                                      "fill": "$graphite-2",
+                                      "content": "Importante",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "i3T0O0",
+                              "name": "De frente, a media altur",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "De frente, a media altura",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "n793A",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Tomar foto",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "uBIcr": {
+                          "enabled": true,
+                          "icon": "camera"
+                        },
+                        "eeaCW": {
+                          "content": "Tomar foto",
+                          "fontSize": 13
+                        },
+                        "bWG6r": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "qu5p0",
+                      "type": "ref",
+                      "ref": "YWzaw",
+                      "name": "Galería",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "B1O4O": {
+                          "fontSize": 13
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "B1aJQT",
+                  "name": "3/4",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "V9Px4c",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "IhH1j",
+                          "name": "Silhouette",
+                          "geometry": "M14 16l22-8 16 6v52l-16 6-22-8z m22-8v64m-22-56l22 6 16-8m-16 8v50m-22-38l22 6m-22 12l22 6",
+                          "viewBox": [
+                            0,
+                            0,
+                            64,
+                            80
+                          ],
+                          "width": 26,
+                          "height": 32,
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.6,
+                          "strokeLinejoin": "round",
+                          "strokeLinecap": "round"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "WloE5",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "v1GP1",
+                              "name": "Name",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "ICClE",
+                                  "name": "3/4",
+                                  "fill": "$graphite",
+                                  "content": "3/4",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "cAK4F",
+                                  "name": "Importante (NEW)",
+                                  "height": 20,
+                                  "cornerRadius": "$radius-full",
+                                  "stroke": "$graphite-2",
+                                  "strokeWidth": 1,
+                                  "padding": [
+                                    0,
+                                    7
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "jVsEU",
+                                      "name": "Importante",
+                                      "fill": "$graphite-2",
+                                      "content": "Importante",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "RubPy",
+                              "name": "Desde una esquina: frent",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Desde una esquina: frente y lado",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "wZfid",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Tomar foto",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "uBIcr": {
+                          "enabled": true,
+                          "icon": "camera"
+                        },
+                        "eeaCW": {
+                          "content": "Tomar foto",
+                          "fontSize": 13
+                        },
+                        "bWG6r": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "fU5eX",
+                      "type": "ref",
+                      "ref": "YWzaw",
+                      "name": "Galería",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "B1O4O": {
+                          "fontSize": 13
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ES7R3",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "w4PJ3",
+                  "name": "Lateral",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "dYXPn",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "uOqQZ",
+                          "name": "Silhouette",
+                          "geometry": "M24 8h16v60h-16z m-16 64h48m-32-68h16m-20 0v4m24-4v4",
+                          "viewBox": [
+                            0,
+                            0,
+                            64,
+                            80
+                          ],
+                          "width": 26,
+                          "height": 32,
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.6,
+                          "strokeLinejoin": "round",
+                          "strokeLinecap": "round"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Zq99w",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "DooIm",
+                              "name": "Name",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "zX9XR",
+                                  "name": "Lateral",
+                                  "fill": "$graphite",
+                                  "content": "Lateral",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "uITaQ",
+                              "name": "De lado, para ver el fon",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "De lado, para ver el fondo",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "ndkYC",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Tomar foto",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "uBIcr": {
+                          "enabled": true,
+                          "icon": "camera"
+                        },
+                        "eeaCW": {
+                          "content": "Tomar foto",
+                          "fontSize": 13
+                        },
+                        "bWG6r": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "BhZDZ",
+                      "type": "ref",
+                      "ref": "YWzaw",
+                      "name": "Galería",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "B1O4O": {
+                          "fontSize": 13
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GixMs",
+                  "name": "Interior",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "XMslD",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "cYhAR",
+                          "name": "Silhouette",
+                          "geometry": "M14 8h36v60h-36z m4 4l6 6m-6 6l12 12m-4-24l18 18m-6-18l8 8m-28 24l18 18m-6-18l16 16m-32-32h36m-36 20h36",
+                          "viewBox": [
+                            0,
+                            0,
+                            64,
+                            80
+                          ],
+                          "width": 26,
+                          "height": 32,
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.6,
+                          "strokeLinejoin": "round",
+                          "strokeLinecap": "round"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yK9kp",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "nwKAZ",
+                              "name": "Name",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "y1vXuh",
+                                  "name": "Interior",
+                                  "fill": "$graphite",
+                                  "content": "Interior",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "DAzON",
+                              "name": "Abierto: entrepaños y tr",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Abierto: entrepaños y trasera",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "bWFLB",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Tomar foto",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "uBIcr": {
+                          "enabled": true,
+                          "icon": "camera"
+                        },
+                        "eeaCW": {
+                          "content": "Tomar foto",
+                          "fontSize": 13
+                        },
+                        "bWG6r": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "D0PnN",
+                      "type": "ref",
+                      "ref": "YWzaw",
+                      "name": "Galería",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "B1O4O": {
+                          "fontSize": 13
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gckpO",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "n6FArT",
+                  "name": "Uniones",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xNFdg",
+                      "name": "Top",
+                      "width": "fill_container",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "b9tjp3",
+                          "name": "Silhouette",
+                          "geometry": "M14 14h14v44h-14z m14 30h26v14h-26z m8-34a14 14 0 1 1 0 28 14 14 0 1 1 0-28z m10 24l10 10",
+                          "viewBox": [
+                            0,
+                            0,
+                            64,
+                            80
+                          ],
+                          "width": 26,
+                          "height": 32,
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.6,
+                          "strokeLinejoin": "round",
+                          "strokeLinecap": "round"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dGmLN",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "IkT6M",
+                              "name": "Name",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "UqRyK",
+                                  "name": "Uniones",
+                                  "fill": "$graphite",
+                                  "content": "Uniones",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "s74lxq",
+                              "name": "De cerca: cómo se juntan",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "De cerca: cómo se juntan",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "ZImRH",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Tomar foto",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "uBIcr": {
+                          "enabled": true,
+                          "icon": "camera"
+                        },
+                        "eeaCW": {
+                          "content": "Tomar foto",
+                          "fontSize": 13
+                        },
+                        "bWG6r": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "id": "y8fAH",
+                      "type": "ref",
+                      "ref": "YWzaw",
+                      "name": "Galería",
+                      "width": "fill_container",
+                      "height": 40,
+                      "descendants": {
+                        "B1O4O": {
+                          "fontSize": 13
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "jY1X2",
+                  "name": "Empty",
+                  "width": "fill_container",
+                  "height": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FwCKL",
+          "name": "Tipo de mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "Tdbs2",
+              "name": "Tipo de mueble",
+              "fill": "$graphite",
+              "content": "Tipo de mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "id": "dnseF",
+              "type": "ref",
+              "ref": "vJIvP",
+              "name": "KindSelect",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "s8ybq9",
+              "name": "Si no lo eliges, Knotty ",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LOCVd",
+          "name": "Describe el mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "O5y2QK",
+              "name": "Describe el mueble",
+              "fill": "$graphite",
+              "content": "Describe el mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "c34Bc",
+              "name": "Textarea",
+              "width": "fill_container",
+              "height": 112,
+              "fill": "$paper",
+              "cornerRadius": "$radius-2xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WxQTn",
+                  "name": "Ej. librero de 5 repisas",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "goGSd",
+              "name": "Ayuda decir qué es, cuán",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zdwdg",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "JQhNR",
+              "type": "ref",
+              "ref": "v808wd",
+              "name": "Medidas",
+              "descendants": {
+                "x9zoX": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "u7yM9": {
+                  "content": "Medidas"
+                }
+              }
+            },
+            {
+              "id": "d5eC3",
+              "type": "ref",
+              "ref": "qTkhL",
+              "name": "Diseñar sin fotos",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "eeaCW": {
+                  "content": "Diseñar sin fotos",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "QCmBM",
+      "x": 1780,
+      "y": 3624,
+      "name": "Capture v2 / Photos or description (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": [
+        40,
+        120
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "xdgSz",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "c7HnY0",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "t9Z0gk",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "HdIef",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "FkRcE",
+          "name": "Con fotos, frente y 3/4 ",
+          "fill": "$graphite-2",
+          "content": "Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.",
+          "fontFamily": "$font-sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "j0IQfF",
+          "name": "Columns",
+          "width": "fill_container",
+          "gap": 40,
+          "children": [
+            {
+              "type": "frame",
+              "id": "K99xf8",
+              "name": "Slots",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "X3T0IA",
+                  "name": "Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "f5HRg9",
+                      "name": "Frente",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "MHpjk",
+                          "name": "Top",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "TjHCq",
+                              "name": "Silhouette",
+                              "geometry": "M16 8h32v60h-32z m0 15h32m-32 15h32m-32 15h32m-40 19h48",
+                              "viewBox": [
+                                0,
+                                0,
+                                64,
+                                80
+                              ],
+                              "width": 26,
+                              "height": 32,
+                              "stroke": "$graphite-2",
+                              "strokeWidth": 1.6,
+                              "strokeLinejoin": "round",
+                              "strokeLinecap": "round"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Y1OjSN",
+                              "name": "Text",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "QPbSB",
+                                  "name": "Name",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "h85hQV",
+                                      "name": "Frente",
+                                      "fill": "$graphite",
+                                      "content": "Frente",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 15,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "cgOGH",
+                                      "name": "Importante (NEW)",
+                                      "height": 20,
+                                      "cornerRadius": "$radius-full",
+                                      "stroke": "$graphite-2",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        7
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "Zbvh0",
+                                          "name": "Importante",
+                                          "fill": "$graphite-2",
+                                          "content": "Importante",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "BJBmV",
+                                  "name": "De frente, a media altur",
+                                  "fill": "$graphite-2",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "De frente, a media altura",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "Kx9TY",
+                          "type": "ref",
+                          "ref": "qTkhL",
+                          "name": "Tomar foto",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "uBIcr": {
+                              "enabled": true,
+                              "icon": "camera"
+                            },
+                            "eeaCW": {
+                              "content": "Tomar foto",
+                              "fontSize": 13
+                            },
+                            "bWG6r": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "id": "uCXMY",
+                          "type": "ref",
+                          "ref": "YWzaw",
+                          "name": "Galería",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "B1O4O": {
+                              "fontSize": 13
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Q3qQJ",
+                      "name": "3/4",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "J5vkft",
+                          "name": "Top",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "u1Hft7",
+                              "name": "Silhouette",
+                              "geometry": "M14 16l22-8 16 6v52l-16 6-22-8z m22-8v64m-22-56l22 6 16-8m-16 8v50m-22-38l22 6m-22 12l22 6",
+                              "viewBox": [
+                                0,
+                                0,
+                                64,
+                                80
+                              ],
+                              "width": 26,
+                              "height": 32,
+                              "stroke": "$graphite-2",
+                              "strokeWidth": 1.6,
+                              "strokeLinejoin": "round",
+                              "strokeLinecap": "round"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "J6aAV",
+                              "name": "Text",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "oOnxH",
+                                  "name": "Name",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "qfnEk",
+                                      "name": "3/4",
+                                      "fill": "$graphite",
+                                      "content": "3/4",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 15,
+                                      "fontWeight": "600"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "CuaGf",
+                                      "name": "Importante (NEW)",
+                                      "height": 20,
+                                      "cornerRadius": "$radius-full",
+                                      "stroke": "$graphite-2",
+                                      "strokeWidth": 1,
+                                      "padding": [
+                                        0,
+                                        7
+                                      ],
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "aWp7L",
+                                          "name": "Importante",
+                                          "fill": "$graphite-2",
+                                          "content": "Importante",
+                                          "fontFamily": "$font-sans",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "f0y2t",
+                                  "name": "Desde una esquina: frent",
+                                  "fill": "$graphite-2",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Desde una esquina: frente y lado",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "OFGR3",
+                          "type": "ref",
+                          "ref": "qTkhL",
+                          "name": "Tomar foto",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "uBIcr": {
+                              "enabled": true,
+                              "icon": "camera"
+                            },
+                            "eeaCW": {
+                              "content": "Tomar foto",
+                              "fontSize": 13
+                            },
+                            "bWG6r": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "id": "A3jgG",
+                          "type": "ref",
+                          "ref": "YWzaw",
+                          "name": "Galería",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "B1O4O": {
+                              "fontSize": 13
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wqnB0",
+                      "name": "Lateral",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "V47HI",
+                          "name": "Top",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "e4I8T",
+                              "name": "Silhouette",
+                              "geometry": "M24 8h16v60h-16z m-16 64h48m-32-68h16m-20 0v4m24-4v4",
+                              "viewBox": [
+                                0,
+                                0,
+                                64,
+                                80
+                              ],
+                              "width": 26,
+                              "height": 32,
+                              "stroke": "$graphite-2",
+                              "strokeWidth": 1.6,
+                              "strokeLinejoin": "round",
+                              "strokeLinecap": "round"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "SDsPi",
+                              "name": "Text",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "ac6QY",
+                                  "name": "Name",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "t9Rqt8",
+                                      "name": "Lateral",
+                                      "fill": "$graphite",
+                                      "content": "Lateral",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 15,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "h08Ne",
+                                  "name": "De lado, para ver el fon",
+                                  "fill": "$graphite-2",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "De lado, para ver el fondo",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "VSwT8",
+                          "type": "ref",
+                          "ref": "qTkhL",
+                          "name": "Tomar foto",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "uBIcr": {
+                              "enabled": true,
+                              "icon": "camera"
+                            },
+                            "eeaCW": {
+                              "content": "Tomar foto",
+                              "fontSize": 13
+                            },
+                            "bWG6r": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "id": "l8ge7e",
+                          "type": "ref",
+                          "ref": "YWzaw",
+                          "name": "Galería",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "B1O4O": {
+                              "fontSize": 13
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QqrXs",
+                  "name": "Row",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "V76pCx",
+                      "name": "Interior",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "q1RTd",
+                          "name": "Top",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "QbsW1",
+                              "name": "Silhouette",
+                              "geometry": "M14 8h36v60h-36z m4 4l6 6m-6 6l12 12m-4-24l18 18m-6-18l8 8m-28 24l18 18m-6-18l16 16m-32-32h36m-36 20h36",
+                              "viewBox": [
+                                0,
+                                0,
+                                64,
+                                80
+                              ],
+                              "width": 26,
+                              "height": 32,
+                              "stroke": "$graphite-2",
+                              "strokeWidth": 1.6,
+                              "strokeLinejoin": "round",
+                              "strokeLinecap": "round"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CU5qb",
+                              "name": "Text",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "wSsJL",
+                                  "name": "Name",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "q4al07",
+                                      "name": "Interior",
+                                      "fill": "$graphite",
+                                      "content": "Interior",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 15,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "y5J5x",
+                                  "name": "Abierto: entrepaños y tr",
+                                  "fill": "$graphite-2",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Abierto: entrepaños y trasera",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "s3fTFT",
+                          "type": "ref",
+                          "ref": "qTkhL",
+                          "name": "Tomar foto",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "uBIcr": {
+                              "enabled": true,
+                              "icon": "camera"
+                            },
+                            "eeaCW": {
+                              "content": "Tomar foto",
+                              "fontSize": 13
+                            },
+                            "bWG6r": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "id": "yhuyN",
+                          "type": "ref",
+                          "ref": "YWzaw",
+                          "name": "Galería",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "B1O4O": {
+                              "fontSize": 13
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "V2qC6X",
+                      "name": "Uniones",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "GQOHn",
+                          "name": "Top",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "children": [
+                            {
+                              "type": "path",
+                              "id": "JczXH",
+                              "name": "Silhouette",
+                              "geometry": "M14 14h14v44h-14z m14 30h26v14h-26z m8-34a14 14 0 1 1 0 28 14 14 0 1 1 0-28z m10 24l10 10",
+                              "viewBox": [
+                                0,
+                                0,
+                                64,
+                                80
+                              ],
+                              "width": 26,
+                              "height": 32,
+                              "stroke": "$graphite-2",
+                              "strokeWidth": 1.6,
+                              "strokeLinejoin": "round",
+                              "strokeLinecap": "round"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "assIv",
+                              "name": "Text",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "tK41W",
+                                  "name": "Name",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "N7QUAh",
+                                      "name": "Uniones",
+                                      "fill": "$graphite",
+                                      "content": "Uniones",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 15,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "zuwdP",
+                                  "name": "De cerca: cómo se juntan",
+                                  "fill": "$graphite-2",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "De cerca: cómo se juntan",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "o7ehvH",
+                          "type": "ref",
+                          "ref": "qTkhL",
+                          "name": "Tomar foto",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "uBIcr": {
+                              "enabled": true,
+                              "icon": "camera"
+                            },
+                            "eeaCW": {
+                              "content": "Tomar foto",
+                              "fontSize": 13
+                            },
+                            "bWG6r": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "id": "kJNmJ",
+                          "type": "ref",
+                          "ref": "YWzaw",
+                          "name": "Galería",
+                          "width": "fill_container",
+                          "height": 40,
+                          "descendants": {
+                            "B1O4O": {
+                              "fontSize": 13
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "oGkJZ",
+                      "name": "Empty",
+                      "width": "fill_container",
+                      "height": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "r5FJS",
+              "name": "Describe",
+              "width": 420,
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QqD57",
+                  "name": "Tipo de mueble",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "F1e5B",
+                      "name": "Tipo de mueble",
+                      "fill": "$graphite",
+                      "content": "Tipo de mueble",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "id": "buGh9",
+                      "type": "ref",
+                      "ref": "vJIvP",
+                      "name": "KindSelect",
+                      "width": "fill_container"
+                    },
+                    {
+                      "type": "text",
+                      "id": "aSQU4",
+                      "name": "Si no lo eliges, Knotty ",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vFPwY",
+                  "name": "Describe el mueble",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PatKg",
+                      "name": "Describe el mueble",
+                      "fill": "$graphite",
+                      "content": "Describe el mueble",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QkLta",
+                      "name": "Textarea",
+                      "width": "fill_container",
+                      "height": 112,
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-2xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oEBOb",
+                          "name": "Ej. librero de 5 repisas",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 15,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "nxrY2",
+                      "name": "Ayuda decir qué es, cuán",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eNnhl",
+                  "name": "Actions",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "k0PL4",
+                      "type": "ref",
+                      "ref": "v808wd",
+                      "name": "Medidas",
+                      "descendants": {
+                        "x9zoX": {
+                          "enabled": true,
+                          "icon": "arrow-left"
+                        },
+                        "u7yM9": {
+                          "content": "Medidas"
+                        }
+                      }
+                    },
+                    {
+                      "id": "B6NYA",
+                      "type": "ref",
+                      "ref": "qTkhL",
+                      "name": "Diseñar sin fotos",
+                      "height": 48,
+                      "padding": [
+                        0,
+                        24
+                      ],
+                      "descendants": {
+                        "eeaCW": {
+                          "content": "Diseñar sin fotos",
+                          "fontSize": 15
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "RbZoo",
+      "x": 0,
+      "y": 3624,
+      "name": "BRIEF — Capture v2 (proposal)",
+      "clip": true,
+      "width": 640,
+      "height": 1300,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "jKFHI",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Capture v2 (proposal)",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "yFHIe",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nEXPERIMENT — nothing moves to flows/ without cleanup, approval and the code that implements it.\n1. PURPOSE\nStart a design with less scrolling and nothing unlabeled.\n2. ENTRY POINTS\nSame as flows/capture.pen.\n3. SCREENS (left → right)\n- Measures (mobile) — \"Tipo de mueble\" leaves this step (UI-7); the tape ruler stays (keep)\n- Photos or description (mobile) — labeled \"Tomar foto\" / \"Galería\" in every slot (UI-19); \"Importante\" instead of an amber dot (UI-8); the kind moves here, next to the description it depends on (UI-7)\n- Photos or description (desktop) — slots left, kind and description right: nothing below the fold\n4. BUSINESS RULES\nUnchanged: required front and 3/4, 15-character description without photos, simulated-expert banner (D26, D27).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/{TakePhoto,KindSelect}.tsx. NEW copy: \"Importante\".\n6. STATES NOT DRAWN (yet)\nSimulated-expert banner · a taken photo with its note · failed analysis with retry.\nDECIDED → D39 (proposal)\nThe slot screens above only took the page from 1302 to 1164 px. Adrian chose no slots at all: one \"Agregar fotos\" (up to 5, any angle, repeats allowed); each photo is read when added and the model labels its view; the label is corrected only if wrong; the note per photo is in sight; no required photos — the expert asks for a missing view. Drawn on the right: empty (690 px) and three photos (783 px), both fit a phone screen.\nNEW copy for D39: \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\". Thumbnails are 3D renders standing in for photos.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "fcewd",
+      "x": 3340,
+      "y": 3624,
+      "name": "Capture v2 / Photos, empty — one button (mobile, D39)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "IYttI",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "c0oclV",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bjK9X",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "rP4lu",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "QDGgc",
+          "name": "¿No tienes el mueble enf",
+          "fill": "$graphite-2",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.",
+          "lineHeight": 1.4,
+          "fontFamily": "$font-sans",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "J6NY27",
+          "name": "Add photos (NEW)",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$graphite-2",
+          "strokeWidth": 1.5,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            28,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "tzR29",
+              "name": "images-square",
+              "width": 28,
+              "height": 28,
+              "icon": "image",
+              "library": "phosphor",
+              "fill": "$graphite"
+            },
+            {
+              "id": "NA1cZ",
+              "type": "ref",
+              "ref": "qTkhL",
+              "name": "Agregar fotos",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "uBIcr": {
+                  "enabled": true,
+                  "icon": "camera"
+                },
+                "eeaCW": {
+                  "content": "Agregar fotos",
+                  "fontSize": 15
+                },
+                "bWG6r": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "apfDl",
+              "name": "hasta 5",
+              "fill": "$graphite-2",
+              "content": "hasta 5",
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mZPsk",
+          "name": "Tipo de mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "ixPmX",
+              "name": "Tipo de mueble",
+              "fill": "$graphite",
+              "content": "Tipo de mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "id": "WqsZ9",
+              "type": "ref",
+              "ref": "vJIvP",
+              "name": "KindSelect",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "fRQ8R",
+              "name": "Si no lo eliges, Knotty ",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UaWt6",
+          "name": "Description",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "Vy7Dw",
+              "name": "Describe el mueble",
+              "fill": "$graphite",
+              "content": "Describe el mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "U6MTLW",
+              "name": "Textarea",
+              "width": "fill_container",
+              "height": 112,
+              "fill": "$paper",
+              "cornerRadius": "$radius-2xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NK9Tt",
+                  "name": "Ej. librero de 5 repisas",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mj9Ba",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "n80Vdw",
+              "type": "ref",
+              "ref": "v808wd",
+              "name": "Medidas",
+              "descendants": {
+                "x9zoX": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "u7yM9": {
+                  "content": "Medidas"
+                }
+              }
+            },
+            {
+              "id": "N0S2em",
+              "type": "ref",
+              "ref": "qTkhL",
+              "name": "Diseñar sin fotos",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "eeaCW": {
+                  "content": "Diseñar sin fotos",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "C3GJV",
+      "x": 3850,
+      "y": 3624,
+      "name": "Capture v2 / Photos, three added and labeled (mobile, D39)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "v889eX",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tF1ux",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zoQTY",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "UPX9n",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uMXbp",
+          "name": "Photos",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "vNdkb",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kS1dz",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Yv3xf",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "assets/studio/scene/mobile-aparador.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Q7g5U",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "blLNP",
+                              "name": "Frente",
+                              "fill": "$graphite",
+                              "content": "Frente",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "diawd",
+                              "name": "caret-down",
+                              "width": 11,
+                              "height": 11,
+                              "icon": "caret-down",
+                              "library": "phosphor",
+                              "fill": "$graphite-2"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "SPxiy",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "kjmmB",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eWU1k",
+                      "name": "Agregar nota",
+                      "gap": 6,
+                      "padding": [
+                        4,
+                        2
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "yveZp",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "H8GRR6",
+                          "name": "Agregar una nota",
+                          "fill": "$graphite",
+                          "content": "Agregar una nota",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Y45US5",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "leNWc",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "assets/studio/scene/mobile-aparador-piece.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "anm9f",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "B5oJ71",
+                              "name": "3/4",
+                              "fill": "$graphite",
+                              "content": "3/4",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "fc81m",
+                              "name": "caret-down",
+                              "width": 11,
+                              "height": 11,
+                              "icon": "caret-down",
+                              "library": "phosphor",
+                              "fill": "$graphite-2"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "pwhCH",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "K9nhJd",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "inoUW",
+                      "name": "Note",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-lg",
+                      "gap": 6,
+                      "padding": [
+                        6,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "YU5nk",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        },
+                        {
+                          "type": "text",
+                          "id": "iTJnU",
+                          "name": "«la de abajo es puerta»",
+                          "fill": "$graphite",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "«la de abajo es puerta»",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q0ZI8",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "gN3wE",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RPIN8",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "assets/studio/scene/mobile-librero-v2.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "MChUl",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 4,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "uDMbg",
+                              "type": "ref",
+                              "ref": "FZyIA",
+                              "name": "Pencil",
+                              "width": 18,
+                              "height": 7
+                            },
+                            {
+                              "type": "text",
+                              "id": "iAJf7",
+                              "name": "Mirando la foto…",
+                              "fill": "$graphite",
+                              "content": "Mirando la foto…",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "MTZNR",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "UtCtf",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "H3MfI",
+                      "name": "Agregar nota",
+                      "gap": 6,
+                      "padding": [
+                        4,
+                        2
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "lNrJ4",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Pok6H",
+                          "name": "Agregar una nota",
+                          "fill": "$graphite",
+                          "content": "Agregar una nota",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kMlXk",
+                  "name": "Add more (NEW)",
+                  "width": "fill_container",
+                  "height": 150,
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$graphite-2",
+                  "strokeWidth": 1.5,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "hU0zd",
+                      "name": "plus",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "plus",
+                      "library": "phosphor",
+                      "fill": "$graphite"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vu9My",
+                      "name": "Agregar fotos",
+                      "fill": "$graphite",
+                      "content": "Agregar fotos",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xPLc2",
+                      "name": "3 de 5",
+                      "fill": "$graphite-2",
+                      "content": "3 de 5",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sM26v",
+          "name": "Tipo de mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "St94N",
+              "name": "Tipo de mueble",
+              "fill": "$graphite",
+              "content": "Tipo de mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "id": "Z3OsK",
+              "type": "ref",
+              "ref": "vJIvP",
+              "name": "KindSelect",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "L9U8Bk",
+              "name": "Si no lo eliges, Knotty ",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X6vpj",
+          "name": "Description",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "dbnWu",
+              "name": "¿Algo que el experto deb",
+              "fill": "$graphite",
+              "content": "¿Algo que el experto deba saber?",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "hUwez",
+              "name": "Textarea",
+              "width": "fill_container",
+              "height": 64,
+              "fill": "$paper",
+              "cornerRadius": "$radius-2xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Zcv8g",
+                  "name": "Ej. va a cargar libros; ",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "SKTTo",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "w4hok",
+              "type": "ref",
+              "ref": "v808wd",
+              "name": "Medidas",
+              "descendants": {
+                "x9zoX": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "u7yM9": {
+                  "content": "Medidas"
+                }
+              }
+            },
+            {
+              "id": "UJu2U",
+              "type": "ref",
+              "ref": "qTkhL",
+              "name": "Analizar",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "eeaCW": {
+                  "content": "Analizar",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
         }
       ]
     }

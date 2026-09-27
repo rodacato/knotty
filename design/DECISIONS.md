@@ -16,14 +16,14 @@ Source: review of all of `src/ui/` on 2026-09-27, then checked against real capt
 
 | # | Tag | Finding | Recommendation |
 |---|---|---|---|
-| **UI-1** | `vice` | Amber means too many things: accent, active tab, "recommendation" severity, "fix it" verdict, tray, proposal, selected piece, required marker, info note and chosen provider — in 23 files under `src/ui/`. PROPUESTA §1 defines it as both accent and severity. | ⏳ Amber only for **selection and action**. "Recommendation" needs another tone or leans on the stamp. A kit decision: it touches every flow. |
-| **UI-2** | `slop` | 13 uppercase tracked labels (`AL INSTANTE`, `LAS CUENTAS`, `TUS REQUISITOS`…) and 32 bordered `rounded-2xl`, several nested (`FixButton` inside `NoticeCard`; cell inside column in `CabinetColumns`). | ⏳ Group with space first, fill second, borders last. No card inside a card. |
+| **UI-1** | `vice` | Amber means too many things: accent, active tab, "recommendation" severity, "fix it" verdict, tray, proposal, selected piece, required marker, info note and chosen provider — in 23 files, 100 uses under `src/ui/` (re-counted 2026-09-27 without the debug panel). PROPUESTA §1 defines it as both accent and severity. | ⏳ Amber only for **selection and action**. "Recommendation" needs another tone or leans on the stamp. A kit decision: it touches every flow. |
+| **UI-2** | `slop` | 13 uppercase labels outside the debug panel — re-counted: 11 are the `tracking-wide text-graphite-2 uppercase` eyebrow, 1 is Home's tagline, 1 is the `Stamp` (which stays: `keep`); so **12** to change (`AL INSTANTE`, `LAS CUENTAS`, `TUS REQUISITOS`…) and 32 bordered `rounded-2xl`, several nested (`FixButton` inside `NoticeCard`; cell inside column in `CabinetColumns`). | ⏳ Group with space first, fill second, borders last. No card inside a card. |
 | **UI-3** | `vice` | One proposal, two button sets: in chat "Sí, aplícalo" is `ghost` (`src/ui/chat/Chat.tsx:175`), in Notices it is `primary` (`src/ui/studio/NoticePanel.tsx:131`), with different discard labels. | ⏳ One proposal component, primary action `primary` in both places. |
 | **UI-4** | `vice` | The Furniture tab mixes furniture kind (changing it may force a redo), the plan sheet with its sticky Apply bar and `pb-28`, the expert's memory and the photos. The bar stops sticking before the memory (`src/ui/studio/FurniturePanel.tsx:164`). | ⏳ Furniture tab = the plan sheet. The expert's memory goes next to the conversation; kind and photos to a "furniture details" place. |
 | **UI-5** | `gap` | *Confirmed:* on mobile the view bar alone wraps into two rows over the furniture. Up to five pills stack top-left over the 3D: view bar, proposal, problems, to-confirm and "Viendo vN" (`src/ui/studio/Studio.tsx:201`). | ⏳ One status strip with priority: one state visible, the rest counted. |
 | **UI-6** | `gap` | D34's three speeds (instant, tray, free) show up as three unrelated UIs across Notices, the piece card, the plan sheet and chat. | ⏳ The core of the redesign: one visual grammar for "this changes now" versus "this goes to the expert". |
 | **UI-7** | `vice` | In Capture, "Tipo de mueble" sits on the "¿Cuánto mide?" step (`src/ui/capture/Capture.tsx:242`) and depends on the photos, which come next. | ⏳ Move it to the photos step or drop it from capture. Decided in `capture.pen`. |
-| **UI-8** | `gap` | In Capture, the required marker is an amber dot with no legend, and on mobile five `min-h-60` slots push the description far down. | ⏳ In `capture.pen`. |
+| **UI-8** | `gap` | In Capture, the required marker is an amber dot with no legend, and on mobile five `min-h-60` slots push the description far down. | ⏳ Proposal: **D39** in `docs/PROPUESTA.md` — no slots, one "Agregar fotos" (up to 5), views labeled by the model, no required photos. Drawn in `_playground.pen`: the page goes from 1302 to 690–783 px. Pending code. |
 | **UI-9** | `lift` | Materials is the journey's payoff (D38) but reads as one more list of cards. There is no assembly screen, only the exploded view. | ⏳ Explore in `_playground.pen`: cost and sheets as the finale, assembly as the destination. Does not move to `flows/` without code. |
 | **UI-10** | `vice` | 🔒 emoji in `src/ui/settings/Settings.tsx:163`, in a UI that uses Phosphor everywhere else. The debug-log toggle lives inside the "El experto" dialog. | ⏳ A Phosphor icon; the debug toggle in its own section. |
 | **UI-11** | `vice` | "Nuevo diseño", which erases everything, is the heaviest header button (`secondary`), above history, notices and settings (`src/ui/studio/Studio.tsx:129`). | ⏳ `ghost`, or inside a menu. |
@@ -34,14 +34,59 @@ Source: review of all of `src/ui/` on 2026-09-27, then checked against real capt
 | **UI-16** | `gap` | The cost and the cut list sit behind "Revisar y ver materiales"; three personas looked for the price first and did not find it (`audits/2026-09-27-studio-summary.md`, B). It collides with D30: the list appears only after a review, on purpose. | ✅ **Decided 2026-09-27 (Adrian): show the estimated total before the review; the list stays behind it, so D30 holds.** Drawn in `_playground.pen` (Materials screens). |
 | **UI-17** | `vice` | Overriding is hard to see, and two different actions read almost the same: "Aplicar así, bajo mi riesgo" (`src/ui/chat/Chat.tsx`) vs "Aceptar así, bajo mi riesgo" (`src/ui/studio/NoticePanel.tsx`), both small grey text. Four personas (summary, D). | ⏳ Corrected after checking the code: they are **two different actions** — the chat one applies a proposal not yet in the furniture, the notice one leaves the furniture as it already is. Keep both wordings; make each a visible secondary button, never grey text. Same family as UI-3. |
 | **UI-18** | `gap` | Nothing says "it's fine now": after an answer or a fix the only signals are a count, a dot, or "Los puntos críticos siguen". Three personas (summary, E). | ⏳ An explicit resolved state where the person is looking: the scene status and the notice count. |
-| **UI-19** | `vice` | Each capture slot shows its camera and gallery buttons as icons only: `TakePhoto` in compact mode drops the label (`{!compact && …}`, `src/ui/system/TakePhoto.tsx`), ten unlabeled buttons on the photos step. The Studio audit already flagged icon-only actions for Doña Carmen and Ricardo. Capture: `assets/capture/mobile-photos-empty.jpg`. | ⏳ Label them ("Tomar foto", "Galería" already exist in the component), or one labeled pair per slot row. Decided in `_playground.pen`. |
+| **UI-19** | `vice` | Each capture slot shows its camera and gallery buttons as icons only: `TakePhoto` in compact mode drops the label (`{!compact && …}`, `src/ui/system/TakePhoto.tsx`), ten unlabeled buttons on the photos step. The Studio audit already flagged icon-only actions for Doña Carmen and Ricardo. Capture: `assets/capture/mobile-photos-empty.jpg`. | ⏳ Superseded by D39: one labeled "Agregar fotos" replaces the ten icon-only buttons. |
+
+## Consolidation (2026-09-27, `ui-consolidate`)
+
+Read across UI-1…UI-19, B-1, B-2, both persona audits and `CODE_CHANGES.md`, with every count re-derived by search.
+
+### Consolidated items — each replaces the findings it absorbs
+
+| # | Kind | Item | Absorbs |
+|---|---|---|---|
+| **K1** | one component | **Ways out of a decision**: one component for a notice and a proposal — ⚡ "Al instante", "A la bandeja, para el experto", "Aceptar/Aplicar así, bajo mi riesgo" — plus "Resolver N" for several. Today two renderings: `Chat.tsx` (Bubble) and `NoticePanel.tsx` (NoticeCard). | UI-3, UI-6, UI-12, UI-15, UI-17 |
+| **K2** | one component | **StatusChip**: one status over the 3D, by priority, including "Resuelto: …" and the expert working in the background. Replaces 3 pills in `Studio.tsx`. | UI-5, UI-13 (header vs 3D), UI-18, UI-15 |
+| **K3** | one rule, broken twice | **"The 3D is never covered"** is written in D14 and in `Studio.tsx:146` and broken by the piece card and the pills. Fix the rule's home, not the instances: the panel is the only place anything opens (notices, history, piece). | B-2, UI-5, UI-4 |
+| **K4** | one cause | **Width hides meaning**: labels drop at phone width — `hidden sm:inline` ×3 in `Studio.tsx`, compact `TakePhoto`, the icon-only ruler. One rule: no action without a word at any width, except close and send. | UI-19, audit C, UI-11 |
+| **K5** | one cause | **Small grey mono for things people read**: `text-[10px]`/`text-[11px]` ×19 in 10 files, plus `graphite-2` body text. One decision: 12 px minimum, `graphite` for anything that is read, not scanned. | Doña Carmen (both passes), UI-2 |
+| **K6** | one token decision | **Amber = selection and action only**; "recommendation" and the verdict "Arréglalo" need their own tone. A kit token change: every flow re-vendors. | UI-1 |
+| **K7** | one component | **`Field`**: 27 hand-styled inputs in 12 files. Prerequisite for K5 in forms. | CODE_CHANGES §1 |
+
+### Corrected counts
+
+- UI-1: 23 files / 100 uses (the 26 / 103 first seen included the debug panel).
+- UI-2: 12 uppercase labels to change, not 13 or 11 — the two earlier counts measured different things, and the `Stamp` is `keep`.
+- `disabled={thinking}`: 19 sites in 8 files — the blast radius of UI-15 step 1, larger than "chips, fixes and edits" suggested.
+
+### Escapees — shared components that live in a feature folder
+
+- `ChangeList` lives in `src/ui/chat/` and is rendered by `studio/HistoryPanel.tsx` too.
+- `TraceLog` lives in `src/ui/studio/` and is rendered by `capture/Capture.tsx` too.
+Both are kit that was never declared kit. Move them to `src/ui/system/` before the kit mirrors them.
+
+### A rule's home that went stale
+
+`docs/PROPUESTA.md` §1 still describes a "Hoja inferior arrastrable… con pestañas Chat · Revisión · Materiales · Historial" and a "Revisión" tab. D14 removed the sheet and phase 9 (entrega 4) removed both tabs. §1 is where a newcomer reads the layout; it contradicts the product. Rewrite §1 from D38 when the target bands are approved in code.
+
+### What is blocked, and on what
+
+1. **K6 (amber token) blocks re-vendoring** the flows and turning the target bands into code: every screen that uses amber changes once more after it.
+2. **K7 (`Field`) and K2 (`StatusChip`) block** implementing the Studio target screens: they are built mostly from them.
+3. **K1 blocks UI-15 step 2** (editing while the expert works): the 19 `disabled={thinking}` sites are the change, and K1 owns most of them.
+4. D39 (photos without slots) is **not blocked**: it touches Capture and reading only.
+
+### What did not consolidate
+
+- UI-12 (a proposal notice that repeats one sentence per piece) is a single cause in `application/notices.ts`, not a pattern.
+- UI-9, UI-10, UI-16 are one screen each; UI-16 is decided.
+- "Share the design" (Luis, Doña Carmen) looked like a pattern across passes: it is two personas, still a hypothesis.
 
 ## 🐞 App bugs — fixed in code, they do not wait for the redesign
 
 | # | Bug | Status |
 |---|---|---|
 | **B-1** | Under reduced motion, `tokens.css` sets `animation-duration: 0.01ms` but keeps `infinite`. `draw` ends at `stroke-dashoffset: -1`, so the Analyzing pencil may be invisible or flicker. Fix: `animation-iteration-count: 1 !important`. *Unverified.* | open |
-| **B-2** | The piece card (`src/ui/studio/Panels.tsx:59`) grows upward with no `max-h` or scroll. *Confirmed:* on mobile it covers most of the 3D when closed, and with "Editar a mano" open it covers **all** of it and overlaps the header (`states/mobile-piece-editing.jpg`). It also contradicts the rule the Studio wrote for itself: "Notices and history take the place of the tabs, so the 3D stays in sight" (`src/ui/studio/Studio.tsx:146`). | open |
+| **B-2** | The piece card (`src/ui/studio/Panels.tsx:59`) grows upward with no `max-h` or scroll. *Confirmed:* on mobile it covers most of the 3D when closed, and with "Editar a mano" open it covers **all** of it and overlaps the header (`states/mobile-piece-editing.jpg`). It also breaks a rule written twice: D14 (*"El 3D nunca queda tapado"*) and `src/ui/studio/Studio.tsx:146` (*"Notices and history take the place of the tabs, so the 3D stays in sight"*). Tag: `drift`. | open |
 
 ## Motion (decided last, with the app running)
 
