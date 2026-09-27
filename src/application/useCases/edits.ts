@@ -16,7 +16,8 @@ import { currentPlan, layered } from './currentPlan'
 import type { Kit } from './kit'
 
 export type PieceEdit = { kind: 'length'; axis: Axis; value: number } | { kind: 'thickness'; material: string } | { kind: 'move'; axis: Axis; delta: number }
-export type PieceEditResult = { ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
+export type FixesResult = { ok: true; state: DesignState } | { ok: false; message: string }
+export type PieceEditResult ={ ok: true; state: DesignState } | { ok: false; message: string; alternatives: { label: string; axis: Axis; value: number }[] }
 
 /** A position tied to an outer face of the piece of furniture. */
 const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
@@ -142,5 +143,17 @@ export function createEdits(kit: Kit) {
     return save(noted(withVersion, 'user', `Resolví: ${fix.label}.`))
   }
 
-  return { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix }
+  /** Several solutions Knotty built, applied together as one version; all or none. */
+  function applyFixes(state: DesignState, fixes: Fix[]): FixesResult {
+    if (fixes.length === 1) return { ok: true, state: applyFix(state, fixes[0]) }
+    const design = currentDesign(state)
+    const operations = fixes.flatMap((f) => f.operations)
+    const candidate = tryCandidate(design, operations, catalog, state.requirements, { known: knownErrors(analyze(design, catalog, state.requirements)) })
+    if (!candidate.ok) return { ok: false, message: 'Esas soluciones no se pueden aplicar juntas: aplícalas una por una.' }
+    const labels = fixes.map((f) => f.label)
+    const withVersion = addVersion(state, candidate.design, { summary: labels.join(' · ').slice(0, 90), reason: `Soluciones: ${labels.join('; ')}`, operations, origin: null, ...layered(currentPlan(state), operations) })
+    return { ok: true, state: save(noted(withVersion, 'user', `Resolví: ${labels.join('; ')}.`)) }
+  }
+
+  return { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes }
 }

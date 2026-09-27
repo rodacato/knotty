@@ -1,16 +1,16 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Eye, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, ClockCounterClockwise, Eye, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
-import { Chat } from '../chat/Chat'
+import { Chat, STAGES } from '../chat/Chat'
 import { SceneBoundary } from '../scene/SceneBoundary'
 import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
-import { Button } from '../system/components'
+import { Button, Pencil } from '../system/components'
 import { Emblem } from '../system/Brand'
 import { visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
@@ -189,8 +189,11 @@ export function Studio({ state }: { state: DesignState }) {
   const selection = useStore((s) => s.selection)
   const showsPiece = !!shownGeo && shownDesign.pieces.some((p) => p.id === selection)
   const editable = viewedVersion === null && !proposal
+  const thinking = useStore((s) => s.thinking)
+  const stage = useStore((s) => s.stage)
+  const cancel = useStore((s) => s.cancel)
 
-  // What changes what you are looking at comes first: an old version, then a proposal or preview, then problems, then pieces to confirm.
+  // What changes what you are looking at comes first: an old version, the expert at work, a proposal or preview; then problems, pieces to confirm, what the last change resolved.
   const statuses: Status[] = [
     ...(viewedVersion !== null
       ? [
@@ -211,6 +214,20 @@ export function Studio({ state }: { state: DesignState }) {
           },
         ]
       : []),
+    ...(thinking && (tab !== 'chat' || overlay)
+      ? [
+          {
+            key: 'thinking',
+            icon: <Pencil className="h-3 w-8 text-amber" />,
+            label: stage ? STAGES[stage.name] : 'Pensando…',
+            actions: (
+              <button type="button" onClick={cancel} aria-label="Cancelar" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
+                <X />
+              </button>
+            ),
+          },
+        ]
+      : []),
     ...(proposal ? [{ key: 'proposal', icon: <Eye weight="bold" />, label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar' }] : []),
     ...(shownGeo && shownProblems.length > 0
       ? [{ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`, onClick: () => setOverlay('notices') }]
@@ -218,6 +235,7 @@ export function Studio({ state }: { state: DesignState }) {
     ...(toConfirm.length > 0 && viewedVersion === null && !proposal
       ? [{ key: 'confirm', icon: <PencilSimpleLine />, label: toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`, onClick: () => select(toConfirm[0].id) }]
       : []),
+    ...(board.resolved.length > 0 && overlay !== 'notices' ? [{ key: 'resolved', icon: <CheckCircle weight="fill" className="text-slate" />, label: `Resuelto: ${board.resolved[0]}` }] : []),
   ]
 
   const scene = (
@@ -247,7 +265,7 @@ export function Studio({ state }: { state: DesignState }) {
           <X />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel state={state} board={board} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel key={state.current} state={state} board={board} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
     </section>
   )
 

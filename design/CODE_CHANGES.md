@@ -20,7 +20,7 @@
 
 ## 2. `StatusChip` — one status over the 3D
 
-**Status:** landed (K2, K3) — `UI-5` · `UI-18` still pending (needs a resolved state in the store)
+**Status:** landed (K2, K3) — `UI-5`, and `UI-18` with K1
 
 - Landed: `src/ui/studio/StatusChip.tsx`; the piece opens in the panel (`src/ui/studio/PieceSheet.tsx`, `PieceCard` removed); the view bar is one row. The as-is captures of `studio.pen` are retaken in one batch when more target screens land.
 
@@ -28,7 +28,9 @@
 
 ## 3. Notice ways and proposal actions
 
-**Status:** proposed · pending in code — `UI-3`, `UI-6`, `UI-15`, `UI-17`
+**Status:** landed (K1) — `UI-3`, `UI-6`, `UI-15` step 1, `UI-17`, `UI-18` · pending: "Aplicar con un apoyo al centro" inside a proposal, which needs fixes computed on the proposal's design, not the current one
+
+- Landed: `applyFixes` (several solutions as one version, all or none), the ways in `NoticePanel.tsx` with "Resolver N", the chat proposal's visible actions, and the status chip's "Resuelto: …" and expert-at-work states.
 
 - One component renders the ways out of a notice or a proposal: "Al instante" (⚡, primary), "A la bandeja, para el experto", "Aceptar así, bajo mi riesgo" / "Aplicar así, bajo mi riesgo" as visible secondaries. Used by `Chat.tsx` and `NoticePanel.tsx`. Several notices resolve with one "Resolver N".
 

@@ -23,7 +23,7 @@ export function createUseCases(deps: Dependencies) {
   const { adjust } = createAdjust(kit)
   const { applyProposal, answerWithFix, discardProposal } = createProposals(kit)
   const { backToVersion, restoreFromVersion, undoChange } = createHistory(kit)
-  const { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix } = createEdits(kit)
+  const { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
   const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
@@ -52,6 +52,7 @@ export function createUseCases(deps: Dependencies) {
     acceptNotice,
     reopenNotice,
     applyFix,
+    applyFixes,
     toggleTray,
     adopt,
     sendTray,
