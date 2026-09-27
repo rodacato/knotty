@@ -7,3 +7,6 @@ coverage/
 *.tsbuildinfo
 # Only scripts/compare/baseline.json is kept; the reports already in git stay as history.
 scripts/compare/results/
+
+# Local device captures for design work (may contain real photos)
+design/references/

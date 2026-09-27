@@ -1,0 +1,1134 @@
+{
+  "version": "2.19",
+  "children": [
+    {
+      "type": "frame",
+      "id": "aUO9o",
+      "x": 0,
+      "y": -900,
+      "name": "KIT — vendored ui-kit 0.1.0 (do not edit here)",
+      "width": 1600,
+      "fill": "$bone",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "KZsM8",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "qTkhL",
+              "name": "Button/Primary",
+              "reusable": true,
+              "height": 40,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-xl",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#2B282566",
+                "offset": {
+                  "x": 0,
+                  "y": 6
+                },
+                "blur": 16
+              },
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "uBIcr",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "camera",
+                  "library": "phosphor",
+                  "fill": "$bone"
+                },
+                {
+                  "type": "text",
+                  "id": "eeaCW",
+                  "name": "Label",
+                  "fill": "$bone",
+                  "content": "Nuevo diseño",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "bWG6r",
+                  "name": "Trailing icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$bone"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YWzaw",
+              "name": "Button/Secondary",
+              "reusable": true,
+              "height": 40,
+              "fill": "$kraft",
+              "cornerRadius": "$radius-xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Ks4jq",
+                  "name": "Leading icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "image",
+                  "library": "phosphor",
+                  "fill": "$graphite"
+                },
+                {
+                  "type": "text",
+                  "id": "B1O4O",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Galería",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "Uvzk6",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$graphite"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v808wd",
+              "name": "Button/Ghost",
+              "reusable": true,
+              "height": 40,
+              "cornerRadius": "$radius-xl",
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "x9zoX",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-left",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "u7yM9",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Cancelar",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "dfLGE",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iD47B",
+              "name": "Button/Danger",
+              "reusable": true,
+              "height": 40,
+              "fill": "$rust",
+              "cornerRadius": "$radius-xl",
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "GmIoa",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "trash",
+                  "library": "phosphor",
+                  "fill": "$white"
+                },
+                {
+                  "type": "text",
+                  "id": "w3sxg7",
+                  "name": "Label",
+                  "fill": "$white",
+                  "content": "Empezar de cero",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "TnZJ2",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$white"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "AmKNF",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "H3gc82",
+              "name": "Chip/Inactive",
+              "reusable": true,
+              "height": 36,
+              "fill": "$bone",
+              "cornerRadius": "$radius-full",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "T6qOPu",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Hazlo de 90 cm de ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "b9vZi",
+              "name": "Chip/Active",
+              "reusable": true,
+              "height": 36,
+              "fill": "$amber-soft",
+              "cornerRadius": "$radius-full",
+              "stroke": "$amber",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "u4udA",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Hazlo de 90 cm de ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "I5bggD",
+              "name": "Stamp/Critical",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": 3.0000000000000004,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$rust",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "UN2Ib",
+                  "name": "Label",
+                  "fill": "$rust",
+                  "content": "CRÍTICO",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pfDN0",
+              "name": "Stamp/Recommendation",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": -2,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$amber",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d1YP8",
+                  "name": "Label",
+                  "fill": "$amber",
+                  "content": "RECOMENDACIÓN",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VUTlV",
+              "name": "Stamp/Detail",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": 1,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$slate",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "p3WaYy",
+                  "name": "Label",
+                  "fill": "$slate",
+                  "content": "DETALLE",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pCu0e",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "ZcCay",
+              "name": "Title",
+              "reusable": true,
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "path",
+              "id": "FZyIA",
+              "name": "Pencil (thinking)",
+              "reusable": true,
+              "geometry": "M4 18c12-12 24 4 36-6s16-4 20 2",
+              "viewBox": [
+                0,
+                0,
+                64,
+                24
+              ],
+              "width": 48,
+              "height": 18,
+              "stroke": "$amber",
+              "strokeWidth": 1.6,
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "frame",
+              "id": "EojRZ",
+              "name": "Knot",
+              "reusable": true,
+              "width": 64,
+              "height": 64,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "path",
+                  "id": "hyTko",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Ring",
+                  "geometry": "M58.74 30.24l0.11 2.49-0.34 2.51-0.8 2.49-1.23 2.42-1.66 2.32-2.04 2.18-2.41 1.99-2.71 1.78-2.99 1.52-3.2 1.26-3.36 0.96-3.47 0.66-3.51 0.32-3.5 0.01-3.42-0.33-3.29-0.65-3.1-0.96-2.86-1.25-2.56-1.52-2.23-1.78-1.86-1.99-1.45-2.17-1.02-2.32-0.58-2.42-0.11-2.49 0.34-2.51 0.8-2.49 1.23-2.42 1.66-2.32 2.04-2.18 2.41-1.99 2.71-1.78 2.99-1.52 3.2-1.26 3.36-0.96 3.47-0.66 3.51-0.32 3.5-0.01 3.42 0.33 3.29 0.65 3.1 0.96 2.86 1.25 2.56 1.52 2.23 1.78 1.86 1.99 1.45 2.17 1.02 2.32z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "width": 64,
+                  "height": 64,
+                  "stroke": "$knot-ring",
+                  "strokeWidth": 5
+                },
+                {
+                  "type": "path",
+                  "id": "w0CfLl",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Inner ring",
+                  "geometry": "M47.84 31.77l0.06 1.38-0.22 1.39-0.48 1.38-0.75 1.35-0.99 1.29-1.22 1.22-1.44 1.11-1.61 1-1.78 0.86-1.9 0.72-1.99 0.55-2.06 0.38-2.08 0.2-2.07 0.02-2.02-0.16-1.95-0.34-1.83-0.52-1.68-0.67-1.51-0.83-1.31-0.97-1.09-1.09-0.85-1.2-0.59-1.28-0.32-1.33-0.06-1.38 0.22-1.39 0.48-1.38 0.75-1.35 0.99-1.29 1.22-1.22 1.44-1.11 1.61-1 1.78-0.86 1.9-0.72 1.99-0.55 2.06-0.38 2.08-0.2 2.07-0.02 2.02 0.16 1.95 0.34 1.83 0.52 1.68 0.67 1.51 0.83 1.31 0.97 1.09 1.09 0.85 1.2 0.59 1.28z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "width": 64,
+                  "height": 64,
+                  "stroke": "$knot-inner",
+                  "strokeWidth": 5
+                },
+                {
+                  "type": "path",
+                  "id": "Ybi11",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Core",
+                  "geometry": "M39.43 32.96l0.01 0.55-0.11 0.56-0.24 0.56-0.37 0.55-0.47 0.52-0.58 0.5-0.68 0.46-0.77 0.42-0.84 0.36-0.89 0.31-0.94 0.24-0.97 0.17-0.97 0.1-0.97 0.03-0.94-0.05-0.91-0.12-0.85-0.18-0.78-0.26-0.7-0.32-0.6-0.38-0.5-0.42-0.38-0.48-0.27-0.5-0.14-0.54-0.01-0.55 0.11-0.56 0.24-0.56 0.37-0.55 0.47-0.52 0.58-0.5 0.68-0.46 0.77-0.42 0.84-0.36 0.89-0.31 0.94-0.24 0.97-0.17 0.97-0.1 0.97-0.03 0.94 0.05 0.91 0.12 0.85 0.18 0.78 0.26 0.7 0.32 0.6 0.38 0.5 0.42 0.38 0.48 0.27 0.5z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "fill": "$knot-core",
+                  "width": 64,
+                  "height": 64
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "X8S0PJ",
+              "name": "Logo",
+              "reusable": true,
+              "gap": 1,
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AT1dB",
+                  "name": "Kn",
+                  "fill": "$graphite",
+                  "content": "Kn",
+                  "fontFamily": "$font-display",
+                  "fontSize": 72,
+                  "fontWeight": "600",
+                  "letterSpacing": -1.4
+                },
+                {
+                  "type": "frame",
+                  "id": "zSafW",
+                  "name": "Knot slot",
+                  "layout": "vertical",
+                  "padding": [
+                    0,
+                    0,
+                    17,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "id": "lRZnG",
+                      "type": "ref",
+                      "ref": "EojRZ",
+                      "name": "Knot",
+                      "width": 40,
+                      "height": 40,
+                      "descendants": {
+                        "hyTko": {
+                          "width": 40,
+                          "height": 40,
+                          "strokeWidth": 3.125
+                        },
+                        "w0CfLl": {
+                          "width": 40,
+                          "height": 40,
+                          "strokeWidth": 3.125
+                        },
+                        "Ybi11": {
+                          "width": 40,
+                          "height": 40
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "kAeFN",
+                  "name": "tty",
+                  "fill": "$graphite",
+                  "content": "tty",
+                  "fontFamily": "$font-display",
+                  "fontSize": 72,
+                  "fontWeight": "600",
+                  "letterSpacing": -1.4
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 9,
+              "id": "xWBPf",
+              "name": "Emblem",
+              "reusable": true,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../public/icon-192.png",
+                "mode": "fill"
+              },
+              "width": 40,
+              "height": 40
+            },
+            {
+              "type": "frame",
+              "id": "vJIvP",
+              "name": "KindSelect",
+              "reusable": true,
+              "height": 44,
+              "fill": "$bone",
+              "cornerRadius": "$radius-xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 24,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "y4qR1o",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Que Knotty lo decida",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14
+                },
+                {
+                  "type": "icon",
+                  "id": "OyDqj",
+                  "name": "Caret",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "caret-down",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "X8d1V",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "G6HSvq",
+              "name": "TakePhoto",
+              "reusable": true,
+              "gap": 8,
+              "children": [
+                {
+                  "id": "Uyvta",
+                  "type": "ref",
+                  "ref": "qTkhL",
+                  "name": "Camera",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "descendants": {
+                    "uBIcr": {
+                      "enabled": true,
+                      "icon": "camera"
+                    },
+                    "eeaCW": {
+                      "content": "Tomar foto",
+                      "fontSize": 12
+                    },
+                    "bWG6r": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "l5Tmz",
+                  "type": "ref",
+                  "ref": "YWzaw",
+                  "name": "Gallery",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "descendants": {
+                    "B1O4O": {
+                      "fontSize": 12
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "O21bj",
+              "name": "TakePhoto/Compact",
+              "reusable": true,
+              "width": 140,
+              "gap": 6,
+              "children": [
+                {
+                  "id": "S8ggZX",
+                  "type": "ref",
+                  "ref": "qTkhL",
+                  "name": "Camera",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "width": "fill_container",
+                  "descendants": {
+                    "uBIcr": {
+                      "enabled": true,
+                      "icon": "camera"
+                    },
+                    "eeaCW": {
+                      "enabled": false
+                    },
+                    "bWG6r": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "a6T9du",
+                  "type": "ref",
+                  "ref": "YWzaw",
+                  "name": "Gallery",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "width": "fill_container",
+                  "descendants": {
+                    "B1O4O": {
+                      "enabled": false
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "IEFmR",
+      "x": 0,
+      "y": 0,
+      "name": "BRIEF — Playground",
+      "clip": true,
+      "width": 640,
+      "height": 844,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "Gqbk5",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Playground",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "Z5goyL",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1\nEXPERIMENTS — nothing leaves without cleanup and approval. An approved idea moves to its flow as a \"Target\" band; the playground keeps only the kit, this brief, the log and two empty bases.\n1. PURPOSE\n<the idea being explored>\n2. ENTRY POINTS\n<where it would live>\n3. SCREENS (left → right)\n<one line per artboard>\n4. BUSINESS RULES\n<rules it depends on, with file:line>\n5. COPY SOURCE\n<files; mark NEW copy explicitly>\n6. STATES NOT DRAWN\n<and why>\n7. OPEN FINDINGS\n<UI-n / D-n numbers>\n8. HISTORY\n→ LOG frame, below.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ii69b",
+      "x": 760,
+      "y": 0,
+      "name": "Playground / Base (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$bone",
+      "layout": "vertical"
+    },
+    {
+      "type": "frame",
+      "id": "vRnLA",
+      "x": 1270,
+      "y": 0,
+      "name": "Playground / Base (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bone",
+      "layout": "vertical"
+    },
+    {
+      "type": "frame",
+      "id": "lOqRv",
+      "x": 0,
+      "y": 1160,
+      "name": "LOG — Playground",
+      "width": 640,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 8,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "Z0d0N",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "LOG — Playground",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "rEalx",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · approved work moved out: Studio v2 → flows/studio-target.pen (18 screens), Capture v2 + D39 → flows/capture.pen target band (3 screens); superseded slot screens dropped; exports in exports/studio-target and exports/capture-target",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    }
+  ],
+  "themes": {
+    "mode": [
+      "light",
+      "dark"
+    ]
+  },
+  "variables": {
+    "kit-version-source": {
+      "type": "string",
+      "value": "0.1.0"
+    },
+    "grid-x0": {
+      "type": "number",
+      "value": 0
+    },
+    "grid-brief-w": {
+      "type": "number",
+      "value": 640
+    },
+    "grid-gutter": {
+      "type": "number",
+      "value": 120
+    },
+    "grid-y0": {
+      "type": "number",
+      "value": 0
+    },
+    "grid-row-gap": {
+      "type": "number",
+      "value": 260
+    },
+    "bone": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F5F0E8",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1D1A17",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "kraft": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#EDE3D3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#27231F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "kraft-2": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E3D5BF",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#332D27",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "graphite": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#2B2825",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#EFE7DA",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "graphite-2": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#6A6158",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#B3A896",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "line": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#2B28251F",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#EFE7DA1F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "amber": {
+      "type": "color",
+      "value": "#D98A2B"
+    },
+    "amber-soft": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#D98A2B24",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#D98A2B33",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "rust": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#B4452F",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#D9674F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "slate": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#56697A",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#8AA0B3",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "scene-bg": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#EFE7DA",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#221E1A",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "paper": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F4EDE1",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#3A332B",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "white": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "birch": {
+      "type": "color",
+      "value": "#E2C9A2"
+    },
+    "pine": {
+      "type": "color",
+      "value": "#D9B27C"
+    },
+    "walnut": {
+      "type": "color",
+      "value": "#6B4A2E"
+    },
+    "knot-ring": {
+      "type": "color",
+      "value": "#7A5230"
+    },
+    "knot-inner": {
+      "type": "color",
+      "value": "#5A3A20"
+    },
+    "knot-core": {
+      "type": "color",
+      "value": "#4A2F1A"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Fraunces"
+    },
+    "font-sans": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-mono": {
+      "type": "string",
+      "value": "JetBrains Mono"
+    },
+    "radius-stamp": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-xl": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-2xl": {
+      "type": "number",
+      "value": 16
+    },
+    "radius-3xl": {
+      "type": "number",
+      "value": 24
+    },
+    "radius-full": {
+      "type": "number",
+      "value": 999
+    }
+  },
+  "fileToken": "bfb6de32-3f18-4f93-8dfc-5847758f07f7"
+}
