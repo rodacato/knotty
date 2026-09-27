@@ -28,24 +28,24 @@ Persona 6 (not a target). One question only: does sharing a design matter? Captu
 
 | Screen | String | Reaction (in voice) | Kind | Tag |
 |---|---|---|---|---|
-| 1-conversation-default.png | `940 × 1600 × 400 mm · 160 cm` | «Ya se ven completas, con "mm". Pero "· 160 cm" solo convierte el ancho; tuve que adivinarlo.» | Lost | vice |
-| 1-conversation-default.png | `···` (header) | «Ahora sí hay un menú. Aquí voy a buscar "compartir"; si no está ahí, me voy.» | Missing | gap |
-| 1-conversation-default.png | `Experto v1` | «Veo quién habla y qué versión es; se entiende mejor que antes.» | Understand | keep |
-| 2-piece-selected.png | pieza resaltada en naranja + `Largo 553 mm` `55.3 cm` | «El resto transparente y la puerta marcada: esto es exactamente la captura que le mandaría.» | Useful | keep |
-| 2-piece-selected.png | `Editar a mano` (botón grande) | «Es lo más grande de la pantalla y no quiero editar nada; quiero mandarlo.» | Feel | vice |
-| 4-conversation-proposal-pending.png | `CRÍTICO` · `Aplicar con un apoyo al centro` | «Un problema, una salida, un botón. No tengo que entender "claro de 864 mm" para decidir.» | Feel | lift |
-| 4-conversation-proposal-pending.png | `Ver el actual  Aplicar así, bajo mi riesgo  Descartar` | «Tres textos pegados en una línea; no sé dónde termina uno.» | Lost | vice |
-| 7-notices-several-resolve.png | `Con 200 mm de fondo, los libros grandes quedan de fuera` | «Esto sí lo entiendo sin ser carpintero; me evita que el mueble no sirva.» | Useful | keep |
-| 7-notices-several-resolve.png | `1 al instante` · `1 al experto` · `Resolver 2` | «¿Al experto? ¿Le tengo que pagar a alguien? No sé qué pasa al picarle.» | Lost | vice |
-| 9-materials-expert-answered.png | `Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar` | «Yo no voy a comprar ni armar; aquí es donde esperaba "mándaselo a tu carpintero" y no está.» | Missing | gap |
-| 9-materials-expert-answered.png | `v5` | «Cinco versiones: si le mando algo al carpintero, ¿cómo sabe cuál es la buena?» | Missing | gap |
+| 1-conversation-default.jpg | `940 × 1600 × 400 mm · 160 cm` | «Ya se ven completas, con "mm". Pero "· 160 cm" solo convierte el ancho; tuve que adivinarlo.» | Lost | vice |
+| 1-conversation-default.jpg | `···` (header) | «Ahora sí hay un menú. Aquí voy a buscar "compartir"; si no está ahí, me voy.» | Missing | gap |
+| 1-conversation-default.jpg | `Experto v1` | «Veo quién habla y qué versión es; se entiende mejor que antes.» | Understand | keep |
+| 2-piece-selected.jpg | pieza resaltada en naranja + `Largo 553 mm` `55.3 cm` | «El resto transparente y la puerta marcada: esto es exactamente la captura que le mandaría.» | Useful | keep |
+| 2-piece-selected.jpg | `Editar a mano` (botón grande) | «Es lo más grande de la pantalla y no quiero editar nada; quiero mandarlo.» | Feel | vice |
+| 4-conversation-proposal-pending.jpg | `CRÍTICO` · `Aplicar con un apoyo al centro` | «Un problema, una salida, un botón. No tengo que entender "claro de 864 mm" para decidir.» | Feel | lift |
+| 4-conversation-proposal-pending.jpg | `Ver el actual  Aplicar así, bajo mi riesgo  Descartar` | «Tres textos pegados en una línea; no sé dónde termina uno.» | Lost | vice |
+| 7-notices-several-resolve.jpg | `Con 200 mm de fondo, los libros grandes quedan de fuera` | «Esto sí lo entiendo sin ser carpintero; me evita que el mueble no sirva.» | Useful | keep |
+| 7-notices-several-resolve.jpg | `1 al instante` · `1 al experto` · `Resolver 2` | «¿Al experto? ¿Le tengo que pagar a alguien? No sé qué pasa al picarle.» | Lost | vice |
+| 9-materials-expert-answered.jpg | `Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar` | «Yo no voy a comprar ni armar; aquí es donde esperaba "mándaselo a tu carpintero" y no está.» | Missing | gap |
+| 9-materials-expert-answered.jpg | `v5` | «Cinco versiones: si le mando algo al carpintero, ¿cómo sabe cuál es la buena?» | Missing | gap |
 
 ## Does sharing matter?
 
-Sí, para Luis es lo único que importa: diseñar sin poder mandarlo es no terminar. Ninguna de las dos versiones muestra una salida hacia otra persona; en la propuesta el `···` es la única esperanza y no sé qué contiene (no hay captura del menú abierto). Hoy Luis resolvería con capturas de pantalla del 3D y de la pieza (`2-piece-selected.png`), lo cual indica que el material ya existe y solo falta el camino. Pero Luis no es target: es una hipótesis hasta que una persona real que manda hacer muebles lo confirme — no es razón para construir nada todavía.
+Sí, para Luis es lo único que importa: diseñar sin poder mandarlo es no terminar. Ninguna de las dos versiones muestra una salida hacia otra persona; en la propuesta el `···` es la única esperanza y no sé qué contiene (no hay captura del menú abierto). Hoy Luis resolvería con capturas de pantalla del 3D y de la pieza (`2-piece-selected.jpg`), lo cual indica que el material ya existe y solo falta el camino. Pero Luis no es target: es una hipótesis hasta que una persona real que manda hacer muebles lo confirme — no es razón para construir nada todavía.
 
 ## Top 3 findings
 
-1. gap — Sin salida para compartir: header de `mobile-chat.jpg` (reloj, campana, engrane, `+`) y `···` en `1-conversation-default.png`; ningún texto dice compartir/descargar.
-2. vice — «Carpintero» ambiguo: `Un carpintero revisa tu diseño completo` (`mobile-materials.jpg`, `9-materials-expert-answered.png`) + `modo simulado` (`mobile-materials-verdict.jpg`) hace creer a Luis que un humano revisa.
-3. keep/lift — `2-piece-selected.png`: pieza resaltada con `553 mm` / `55.3 cm` es justo el entregable para el carpintero; hoy solo viaja como captura de pantalla.
+1. gap — Sin salida para compartir: header de `mobile-chat.jpg` (reloj, campana, engrane, `+`) y `···` en `1-conversation-default.jpg`; ningún texto dice compartir/descargar.
+2. vice — «Carpintero» ambiguo: `Un carpintero revisa tu diseño completo` (`mobile-materials.jpg`, `9-materials-expert-answered.jpg`) + `modo simulado` (`mobile-materials-verdict.jpg`) hace creer a Luis que un humano revisa.
+3. keep/lift — `2-piece-selected.jpg`: pieza resaltada con `553 mm` / `55.3 cm` es justo el entregable para el carpintero; hoy solo viaja como captura de pantalla.

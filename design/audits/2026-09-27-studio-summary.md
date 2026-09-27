@@ -34,4 +34,4 @@ Six fictional personas ([AUDIENCE.md](../AUDIENCE.md)) walked the mobile Studio,
 - "Y 4 piezas más igual" instead of the same sentence five times (Sofía).
 - From the app: "Volver a esta" in the history, the piece measures and "Veta a lo largo" (Don Chava, Ricardo, Sofía).
 
-> **After this audit** (same day) the proposal was corrected for the regressions above and re-exported; `exports/playground/` now shows the fixed version, and `7-notices-several-resolve.png` became `7-notices-several-after-choosing.png`. The per-persona files describe the version they saw.
+> **After this audit** (same day) the proposal was corrected for the regressions above and re-exported; `exports/playground/` now shows the fixed version, and `7-notices-several-resolve.jpg` became `7-notices-several-after-choosing.jpg`. The per-persona files describe the version they saw.

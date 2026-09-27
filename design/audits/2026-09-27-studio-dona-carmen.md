@@ -40,29 +40,29 @@ Persona 5 (accessibility lens): presbyopia, largest phone font, types slowly, he
 
 | Screen | String | Reaction (in voice) | Kind | Tag |
 |---|---|---|---|---|
-| 1-conversation-default.png | «940 × 1600 × 400 mm · 160 cm» | «Ahora sí sale completo, no con puntitos. Pero ¿160 cm es el alto o qué?» | Understand | lift |
-| 1-conversation-default.png | «···» en la esquina | «¿Y los tres puntitos? Antes había engrane y un "+", ahora ni eso. Menos le entiendo.» | Lost | vice |
-| 1-conversation-default.png | íconos de pantalla completa y reglita en la barra de vistas | «Antes decía "Armado" al lado; ahora son dos dibujitos solos. Uno de ellos en círculo negro, el más llamativo, y no sé qué hace.» | Lost | vice |
-| 1-conversation-default.png | «940 mm · 94 cm» (etiquetas sobre el 3D) | «Siguen igual de chiquitas.» | Lost | gap |
-| 2-piece-selected.png | «553 mm» / «Editar a mano» | «¡Esto sí! El mueble se sigue viendo, la puerta pintada de naranja, los números grandotes y un botón ancho abajo que dice qué hace.» | Useful | keep |
-| 2-piece-selected.png | mueble transparente con piezas negras | «¿Por qué se volvió como de vidrio? ¿Se rompió?» | Lost | gap |
-| 3-conversation-thinking.png | «Pensando el cambio… · 12 s» | «Qué bueno que me dice que está pensando y cuánto lleva.» | Feel | keep |
-| 3-conversation-thinking.png | botón con cuadrito «□» en lugar de la flecha | «¿El cuadrito es para parar o para qué? No dice.» | Lost | gap |
-| 4-conversation-proposal-pending.png | «Aplicar con un apoyo al centro» | «Un solo botón grande que me dice qué hacer. Ese le aprieto.» | Useful | lift |
-| 4-conversation-proposal-pending.png | «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» | «Tres cosas en un renglón, sin bordes, pegaditas. No sé dónde empieza una y termina la otra.» | Lost | vice |
-| 4-conversation-proposal-pending.png | «1800 × 570 × 300 mm · 57 cm» arriba, «900 mm · 90 cm» en el mueble | «Arriba 57 y abajo 90. Me confundo igual que antes.» | Lost | bug |
-| 4-conversation-proposal-pending.png | «Piso se pandearía ~9.8 mm con libros en un claro de 864 mm» | «¿Claro? ¿Pandearía? Nomás dígame si se me caen las macetas.» | Lost | gap |
-| 5-notices-critical.png | «Ver» / «Aplicar» (botones anchos, separados) | «Así sí: dos botones grandes, bien separados. No me equivoco.» | Useful | lift |
-| 5-notices-critical.png | «Piso se pandearía… Y 4 piezas más igual.» en gris | «La explicación ahora está en gris clarito y más chica que antes. La tengo que acercar a la cara.» | Lost | vice |
-| 5-notices-critical.png | «Aceptar así, bajo mi riesgo» | «Otra vez esas letras clarititas sin botón. ¿Se puede apretar?» | Lost | vice |
-| 5-notices-critical.png | «A la bandeja, para el experto» / «Que el experto decida» | «"Que el experto decida" sí lo entiendo; "bandeja" no, pero ya no importa.» | Understand | lift |
-| 6-conversation-tray.png | «Bandeja · 1» con dibujito, sin texto de qué contiene | «Antes decía qué había en la bandeja; ahora nomás "1". ¿Uno qué?» | Lost | vice |
-| 6-conversation-tray.png | «Consultar al experto» montado sobre el renglón de «Bandeja» | «El botón negro tapa la orilla del renglón, se ve encimado.» | Lost | bug |
-| 7-notices-several-resolve.png | «Resolver 2» | «Botón enorme hasta abajo, con palomitas ya puestas. Eso me gusta: nomás aprieto uno.» | Useful | keep |
-| 7-notices-several-resolve.png | «1 al instante · 1 al experto» | «¿Al instante de qué? Esto chiquito de arriba del botón no lo entiendo.» | Lost | gap |
-| 8-materials-expert-working.png | «Pensando el cambio… 24 s» con «×» encima del mueble | «Ya no me tapa la plática, está bien. Pero la tachita está chiquita junto al número.» | Feel | vice |
-| 9-materials-expert-answered.png | «Conversación ●» y campanita sin número | «¿El puntito negro qué es? ¿Me contestaron? No dice.» | Lost | gap |
-| 9-materials-expert-answered.png | texto gris «Un carpintero revisa tu diseño…» | «El mismo texto de antes, pero más clarito y más chico. Lo leía mejor en la otra.» | Lost | vice |
+| 1-conversation-default.jpg | «940 × 1600 × 400 mm · 160 cm» | «Ahora sí sale completo, no con puntitos. Pero ¿160 cm es el alto o qué?» | Understand | lift |
+| 1-conversation-default.jpg | «···» en la esquina | «¿Y los tres puntitos? Antes había engrane y un "+", ahora ni eso. Menos le entiendo.» | Lost | vice |
+| 1-conversation-default.jpg | íconos de pantalla completa y reglita en la barra de vistas | «Antes decía "Armado" al lado; ahora son dos dibujitos solos. Uno de ellos en círculo negro, el más llamativo, y no sé qué hace.» | Lost | vice |
+| 1-conversation-default.jpg | «940 mm · 94 cm» (etiquetas sobre el 3D) | «Siguen igual de chiquitas.» | Lost | gap |
+| 2-piece-selected.jpg | «553 mm» / «Editar a mano» | «¡Esto sí! El mueble se sigue viendo, la puerta pintada de naranja, los números grandotes y un botón ancho abajo que dice qué hace.» | Useful | keep |
+| 2-piece-selected.jpg | mueble transparente con piezas negras | «¿Por qué se volvió como de vidrio? ¿Se rompió?» | Lost | gap |
+| 3-conversation-thinking.jpg | «Pensando el cambio… · 12 s» | «Qué bueno que me dice que está pensando y cuánto lleva.» | Feel | keep |
+| 3-conversation-thinking.jpg | botón con cuadrito «□» en lugar de la flecha | «¿El cuadrito es para parar o para qué? No dice.» | Lost | gap |
+| 4-conversation-proposal-pending.jpg | «Aplicar con un apoyo al centro» | «Un solo botón grande que me dice qué hacer. Ese le aprieto.» | Useful | lift |
+| 4-conversation-proposal-pending.jpg | «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» | «Tres cosas en un renglón, sin bordes, pegaditas. No sé dónde empieza una y termina la otra.» | Lost | vice |
+| 4-conversation-proposal-pending.jpg | «1800 × 570 × 300 mm · 57 cm» arriba, «900 mm · 90 cm» en el mueble | «Arriba 57 y abajo 90. Me confundo igual que antes.» | Lost | bug |
+| 4-conversation-proposal-pending.jpg | «Piso se pandearía ~9.8 mm con libros en un claro de 864 mm» | «¿Claro? ¿Pandearía? Nomás dígame si se me caen las macetas.» | Lost | gap |
+| 5-notices-critical.jpg | «Ver» / «Aplicar» (botones anchos, separados) | «Así sí: dos botones grandes, bien separados. No me equivoco.» | Useful | lift |
+| 5-notices-critical.jpg | «Piso se pandearía… Y 4 piezas más igual.» en gris | «La explicación ahora está en gris clarito y más chica que antes. La tengo que acercar a la cara.» | Lost | vice |
+| 5-notices-critical.jpg | «Aceptar así, bajo mi riesgo» | «Otra vez esas letras clarititas sin botón. ¿Se puede apretar?» | Lost | vice |
+| 5-notices-critical.jpg | «A la bandeja, para el experto» / «Que el experto decida» | «"Que el experto decida" sí lo entiendo; "bandeja" no, pero ya no importa.» | Understand | lift |
+| 6-conversation-tray.jpg | «Bandeja · 1» con dibujito, sin texto de qué contiene | «Antes decía qué había en la bandeja; ahora nomás "1". ¿Uno qué?» | Lost | vice |
+| 6-conversation-tray.jpg | «Consultar al experto» montado sobre el renglón de «Bandeja» | «El botón negro tapa la orilla del renglón, se ve encimado.» | Lost | bug |
+| 7-notices-several-resolve.jpg | «Resolver 2» | «Botón enorme hasta abajo, con palomitas ya puestas. Eso me gusta: nomás aprieto uno.» | Useful | keep |
+| 7-notices-several-resolve.jpg | «1 al instante · 1 al experto» | «¿Al instante de qué? Esto chiquito de arriba del botón no lo entiendo.» | Lost | gap |
+| 8-materials-expert-working.jpg | «Pensando el cambio… 24 s» con «×» encima del mueble | «Ya no me tapa la plática, está bien. Pero la tachita está chiquita junto al número.» | Feel | vice |
+| 9-materials-expert-answered.jpg | «Conversación ●» y campanita sin número | «¿El puntito negro qué es? ¿Me contestaron? No dice.» | Lost | gap |
+| 9-materials-expert-answered.jpg | texto gris «Un carpintero revisa tu diseño…» | «El mismo texto de antes, pero más clarito y más chico. Lo leía mejor en la otra.» | Lost | vice |
 | all screens | (no share / send button; «···» might hide it) | «Si lo de mandarlo está en los tres puntitos, nunca lo voy a encontrar.» | Missing | gap |
 
 ## Current vs proposal
@@ -71,6 +71,6 @@ Persona 5 (accessibility lens): presbyopia, largest phone font, types slowly, he
 
 ## Top 3 findings
 
-1. The proposal lowers body contrast and size: body and explanation copy moves to light gray and gets smaller (5-notices-critical.png «Piso se pandearía… Y 4 piezas más igual.»; 9-materials-expert-answered.png «Un carpintero revisa tu diseño…»), in the text the persona actually has to read. `vice`
-2. More actions are icon-only in the proposal: the «···» menu replaces the gear and «+», the «Armado» label is gone next to the fullscreen and ruler icons (1-conversation-default.png), the stop button is a bare «□» (3-conversation-thinking.png), and «Conversación ●» is an unexplained dot (9-materials-expert-answered.png). The persona quits on exactly these. Neither version has a way to send the design to someone. `gap`
-3. The secondary actions are unbordered gray text in a row: «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» (4-conversation-proposal-pending.png) and «Aceptar así, bajo mi riesgo» (5-notices-critical.png) are hard to see and easy to mis-tap. In contrast, the separated «Ver» / «Aplicar» pair (5) and «Resolver 2» (7) are the best targets in either version, so they should be kept. `vice` / `keep`
+1. The proposal lowers body contrast and size: body and explanation copy moves to light gray and gets smaller (5-notices-critical.jpg «Piso se pandearía… Y 4 piezas más igual.»; 9-materials-expert-answered.jpg «Un carpintero revisa tu diseño…»), in the text the persona actually has to read. `vice`
+2. More actions are icon-only in the proposal: the «···» menu replaces the gear and «+», the «Armado» label is gone next to the fullscreen and ruler icons (1-conversation-default.jpg), the stop button is a bare «□» (3-conversation-thinking.jpg), and «Conversación ●» is an unexplained dot (9-materials-expert-answered.jpg). The persona quits on exactly these. Neither version has a way to send the design to someone. `gap`
+3. The secondary actions are unbordered gray text in a row: «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» (4-conversation-proposal-pending.jpg) and «Aceptar así, bajo mi riesgo» (5-notices-critical.jpg) are hard to see and easy to mis-tap. In contrast, the separated «Ver» / «Aplicar» pair (5) and «Resolver 2» (7) are the best targets in either version, so they should be kept. `vice` / `keep`

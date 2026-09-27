@@ -43,26 +43,26 @@ Y el despiece, ¿dónde? Me dice que primero me revisa "un carpintero". Pues el 
 
 | Screen | String | Reaction (in voice) | Kind | Tag |
 |---|---|---|---|---|
-| 1-conversation-default.png | «940 × 1600 × 400 mm · 160 cm» | «Ahora sí se lee la medida completa arriba, sin puntitos.» | Understand | keep |
-| 1-conversation-default.png | «Hazlo de 90 cm de ancho» | «Eso es una medida, no una plática. ¿Por qué me lo ofrece como mensaje?» | Suggest | gap |
-| 2-piece-selected.png | the door highlighted with the rest transparent | «Ahora sí veo cuál puerta es y dónde van las correderas. Esto se lo enseño al cliente.» | Useful | lift |
-| 2-piece-selected.png | «553 mm · 369 mm · 18 mm» + «Veta a lo largo» | «Números grandotes, con letra grande los leo sin lentes.» | Useful | keep |
-| 2-piece-selected.png | «Editar a mano» at the bottom, below the empty space | «Para corregir sigue siendo otro toque, y abajo del todo. Déjame tocar el 553 y cambiarlo.» | Suggest | gap |
-| 3-conversation-thinking.png | «Pensando el cambio… · 12 s» | «¿Doce segundos para cambiar un ancho? En el campo Ancho era al instante.» | Feel | vice |
-| 4-conversation-proposal-pending.png | «Cambio el ancho total a 90 cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran» | «Me dice qué movió. Así sí le entiendo.» | Understand | lift |
-| 4-conversation-proposal-pending.png | «Aplicar con un apoyo al centro» (black) vs «Aplicar así, bajo mi riesgo» (small link) | «Lo mío quedó chiquito y en gris. Me empuja a hacerlo a su modo.» | Feel | vice |
-| 4-conversation-proposal-pending.png | «1800 × 570 × 300 mm · 57 cm» over a 3D labelled «900 mm · 90 cm» | «Arriba dice 570 y abajo el mueble dice 900. ¿Cuál es?» | Lost | bug |
-| 5-notices-critical.png | «Al instante» / «A la bandeja, para el experto» | «Ya sé qué hace la app sola y qué va con el experto. Eso ayuda.» | Understand | lift |
-| 5-notices-critical.png | «Aceptar así, bajo mi riesgo» (grey text, no button) | «Otra vez lo mío casi ni se ve. Con letra grande ni lo encuentro.» | Lost | vice |
-| 5-notices-critical.png | only «Un apoyo al centro, debajo de cada una (5 piezas)» | «Una sola salida. ¿Y el faldón? ¿Y el entrepaño de 25?» | Missing | gap |
-| 6-conversation-tray.png | «Bandeja · 1» + «Consultar al experto» | «Dice uno, pero no dice qué hay adentro. Antes al menos se leía "que decida el experto".» | Lost | vice |
-| 6-conversation-tray.png | «Los puntos críticos siguen» | «Se sigue cortando la frase, igual que antes.» | Lost | bug |
-| 7-notices-several-resolve.png | «Con 200 mm de fondo, los libros grandes quedan de fuera; un librero lleva 230–300 mm.» | «Lo hice de 20 a propósito, es para libros de bolsillo. No me des clases.» | Feel | vice |
-| 7-notices-several-resolve.png | «Que el experto decida» already checked + «Resolver 2» | «Ya viene palomeado. Si le pico sin fijarme, el experto me cambia el fondo que yo quise.» | Lost | vice |
-| 7-notices-several-resolve.png | «1 al instante · 1 al experto» | «Me dice cuánto va a hacer cada quien antes de apretar. Eso sí.» | Useful | keep |
-| 8-materials-expert-working.png | «Pensando el cambio… 24 s» + «Revisar y ver materiales» | «El despiece sigue escondido detrás de la revisión. Nada cambió aquí.» | Missing | gap |
-| 8-materials-expert-working.png | «Un carpintero revisa tu diseño completo …» | «Mismo sermón que antes.» | Feel | vice |
-| 9-materials-expert-answered.png | «Conversación •» and the bell with no number | «¿Ya contestó? ¿Qué decidió? Me deja en Materiales viendo lo mismo; tengo que ir a buscar.» | Lost | gap |
+| 1-conversation-default.jpg | «940 × 1600 × 400 mm · 160 cm» | «Ahora sí se lee la medida completa arriba, sin puntitos.» | Understand | keep |
+| 1-conversation-default.jpg | «Hazlo de 90 cm de ancho» | «Eso es una medida, no una plática. ¿Por qué me lo ofrece como mensaje?» | Suggest | gap |
+| 2-piece-selected.jpg | the door highlighted with the rest transparent | «Ahora sí veo cuál puerta es y dónde van las correderas. Esto se lo enseño al cliente.» | Useful | lift |
+| 2-piece-selected.jpg | «553 mm · 369 mm · 18 mm» + «Veta a lo largo» | «Números grandotes, con letra grande los leo sin lentes.» | Useful | keep |
+| 2-piece-selected.jpg | «Editar a mano» at the bottom, below the empty space | «Para corregir sigue siendo otro toque, y abajo del todo. Déjame tocar el 553 y cambiarlo.» | Suggest | gap |
+| 3-conversation-thinking.jpg | «Pensando el cambio… · 12 s» | «¿Doce segundos para cambiar un ancho? En el campo Ancho era al instante.» | Feel | vice |
+| 4-conversation-proposal-pending.jpg | «Cambio el ancho total a 90 cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran» | «Me dice qué movió. Así sí le entiendo.» | Understand | lift |
+| 4-conversation-proposal-pending.jpg | «Aplicar con un apoyo al centro» (black) vs «Aplicar así, bajo mi riesgo» (small link) | «Lo mío quedó chiquito y en gris. Me empuja a hacerlo a su modo.» | Feel | vice |
+| 4-conversation-proposal-pending.jpg | «1800 × 570 × 300 mm · 57 cm» over a 3D labelled «900 mm · 90 cm» | «Arriba dice 570 y abajo el mueble dice 900. ¿Cuál es?» | Lost | bug |
+| 5-notices-critical.jpg | «Al instante» / «A la bandeja, para el experto» | «Ya sé qué hace la app sola y qué va con el experto. Eso ayuda.» | Understand | lift |
+| 5-notices-critical.jpg | «Aceptar así, bajo mi riesgo» (grey text, no button) | «Otra vez lo mío casi ni se ve. Con letra grande ni lo encuentro.» | Lost | vice |
+| 5-notices-critical.jpg | only «Un apoyo al centro, debajo de cada una (5 piezas)» | «Una sola salida. ¿Y el faldón? ¿Y el entrepaño de 25?» | Missing | gap |
+| 6-conversation-tray.jpg | «Bandeja · 1» + «Consultar al experto» | «Dice uno, pero no dice qué hay adentro. Antes al menos se leía "que decida el experto".» | Lost | vice |
+| 6-conversation-tray.jpg | «Los puntos críticos siguen» | «Se sigue cortando la frase, igual que antes.» | Lost | bug |
+| 7-notices-several-resolve.jpg | «Con 200 mm de fondo, los libros grandes quedan de fuera; un librero lleva 230–300 mm.» | «Lo hice de 20 a propósito, es para libros de bolsillo. No me des clases.» | Feel | vice |
+| 7-notices-several-resolve.jpg | «Que el experto decida» already checked + «Resolver 2» | «Ya viene palomeado. Si le pico sin fijarme, el experto me cambia el fondo que yo quise.» | Lost | vice |
+| 7-notices-several-resolve.jpg | «1 al instante · 1 al experto» | «Me dice cuánto va a hacer cada quien antes de apretar. Eso sí.» | Useful | keep |
+| 8-materials-expert-working.jpg | «Pensando el cambio… 24 s» + «Revisar y ver materiales» | «El despiece sigue escondido detrás de la revisión. Nada cambió aquí.» | Missing | gap |
+| 8-materials-expert-working.jpg | «Un carpintero revisa tu diseño completo …» | «Mismo sermón que antes.» | Feel | vice |
+| 9-materials-expert-answered.jpg | «Conversación •» and the bell with no number | «¿Ya contestó? ¿Qué decidió? Me deja en Materiales viendo lo mismo; tengo que ir a buscar.» | Lost | gap |
 
 ## Current vs proposal
 
@@ -73,6 +73,6 @@ Si me dejan cambiar la medida directo y ver el despiece sin sermón, la uso para
 
 ## Top 3 findings
 
-1. The cut list sits behind a review, in both versions — mobile-materials.jpg / 8-materials-expert-working.png, «Revisar y ver materiales» under «Un carpintero revisa tu diseño completo…» (gap + vice: it lectures the person the screen is for).
-2. The proposal makes overriding smaller: in 4-conversation-proposal-pending.png and 5-notices-critical.png, «Aplicar así, bajo mi riesgo» and «Aceptar así, bajo mi riesgo» are small grey text links. In 7-notices-several-resolve.png, «Que el experto decida» comes pre-checked for a «Recomendación» (vice; Don Chava quits when overriding takes more than one clear tap).
-3. There is only one fix for sag, with no trade alternatives — mobile-notices-fixes.jpg / 5-notices-critical.png, «Un apoyo al centro, debajo de cada una (5 piezas)», and no front apron (faldón) or thicker shelf offered. The proposal also has a header/3D mismatch: in 4-conversation-proposal-pending.png the header says «1800 × 570 × 300 mm» while the 3D is labelled «900 mm» (gap + bug).
+1. The cut list sits behind a review, in both versions — mobile-materials.jpg / 8-materials-expert-working.jpg, «Revisar y ver materiales» under «Un carpintero revisa tu diseño completo…» (gap + vice: it lectures the person the screen is for).
+2. The proposal makes overriding smaller: in 4-conversation-proposal-pending.jpg and 5-notices-critical.jpg, «Aplicar así, bajo mi riesgo» and «Aceptar así, bajo mi riesgo» are small grey text links. In 7-notices-several-resolve.jpg, «Que el experto decida» comes pre-checked for a «Recomendación» (vice; Don Chava quits when overriding takes more than one clear tap).
+3. There is only one fix for sag, with no trade alternatives — mobile-notices-fixes.jpg / 5-notices-critical.jpg, «Un apoyo al centro, debajo de cada una (5 piezas)», and no front apron (faldón) or thicker shelf offered. The proposal also has a header/3D mismatch: in 4-conversation-proposal-pending.jpg the header says «1800 × 570 × 300 mm» while the 3D is labelled «900 mm» (gap + bug).

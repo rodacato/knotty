@@ -30,22 +30,22 @@ Persona 4 from `design/AUDIENCE.md`: first rented apartment, no tools, no car. S
 
 | Screen | String | Reaction (in voice) | Kind | Tag |
 |---|---|---|---|---|
-| 8-materials-expert-working.png | «Antes de comprar, una revisión» · «Revisar y ver materiales» | «Igual que antes: le pico a Materiales y no hay precio. Ahora ni siquiera veo la lista de qué va a revisar, es un botón y ya.» | Missing | gap |
-| 9-materials-expert-answered.png | «Revisar y ver materiales» (same as 8) · dot on «Conversación» | «Ya contestó el experto, pero Materiales está igual. El puntito en Conversación no me dice nada.» | Lost | gap |
-| 8-materials-expert-working.png | «Pensando el cambio… 24 s» over the 3D | «Bien que no me tapa el mueble y que me dice cuánto lleva.» | Feel | keep |
-| 2-piece-selected.png | the door highlighted in an x-ray 3D, card below | «¡Esto está padrísimo! Veo cuál pieza es sin que se tape nada.» | Useful | keep |
-| 2-piece-selected.png | «Divisor 2: bisagras de cazoleta» | «¿Cazoleta? Tampoco me dice si se desarma.» | Lost | gap |
-| 4-conversation-proposal-pending.png | «Aplicar con un apoyo al centro» | «Un botón grande que ya lo arregla. Eso es lo que quiero, no pensarle.» | Useful | lift |
-| 4-conversation-proposal-pending.png | «claro de 864 mm (lo aceptable es hasta 2.4 mm)» | «¿Claro? ¿2.4 mm de qué? Nomás dime si se va a doblar o no.» | Lost | vice |
-| 4-conversation-proposal-pending.png | «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» | «Tres cosas en una fila, parecen texto; no sé cuál es botón.» | Lost | vice |
-| 4-conversation-proposal-pending.png | «1800 × 570 × 300 mm · 57 cm» | «¿57 cm qué? ¿Ancho? Tuve que adivinar.» | Lost | slop |
-| 5-notices-critical.png | «Y 4 piezas más igual.» | «Mucho mejor que el párrafo repetido de antes.» | Feel | lift |
-| 5-notices-critical.png / 4 | «Aceptar así, bajo mi riesgo» vs «Aplicar así, bajo mi riesgo» | «¿Aceptar y aplicar son lo mismo? Cambia la palabra de una pantalla a otra.» | Lost | slop |
-| 5-notices-critical.png | «A la bandeja, para el experto» · «Que el experto decida» | «¿Qué es la bandeja? ¿Cuánto tarda, me cuesta? Yo le pico a lo de "al instante".» | Lost | gap |
-| 6-conversation-tray.png | «Bandeja · 1» | «Antes veía qué había en la bandeja; ahora es un número y ya. ¿Qué le voy a mandar?» | Missing | vice |
-| 6-conversation-tray.png | «Los puntos críticos siguen» | «La frase se corta. ¿Siguen qué? ¿Está bien o no?» | Lost | bug |
-| 7-notices-several-resolve.png | «1 al instante  1 al experto» · «Resolver 2» | «Un solo botón para todo, sin que me pregunte cada cosa. Me encanta.» | Useful | lift |
-| 1-conversation-default.png | «⋯» (replaces «+» and the gear) | «Menos botones, mejor. Aunque no sé qué hay ahí.» | Feel | keep |
+| 8-materials-expert-working.jpg | «Antes de comprar, una revisión» · «Revisar y ver materiales» | «Igual que antes: le pico a Materiales y no hay precio. Ahora ni siquiera veo la lista de qué va a revisar, es un botón y ya.» | Missing | gap |
+| 9-materials-expert-answered.jpg | «Revisar y ver materiales» (same as 8) · dot on «Conversación» | «Ya contestó el experto, pero Materiales está igual. El puntito en Conversación no me dice nada.» | Lost | gap |
+| 8-materials-expert-working.jpg | «Pensando el cambio… 24 s» over the 3D | «Bien que no me tapa el mueble y que me dice cuánto lleva.» | Feel | keep |
+| 2-piece-selected.jpg | the door highlighted in an x-ray 3D, card below | «¡Esto está padrísimo! Veo cuál pieza es sin que se tape nada.» | Useful | keep |
+| 2-piece-selected.jpg | «Divisor 2: bisagras de cazoleta» | «¿Cazoleta? Tampoco me dice si se desarma.» | Lost | gap |
+| 4-conversation-proposal-pending.jpg | «Aplicar con un apoyo al centro» | «Un botón grande que ya lo arregla. Eso es lo que quiero, no pensarle.» | Useful | lift |
+| 4-conversation-proposal-pending.jpg | «claro de 864 mm (lo aceptable es hasta 2.4 mm)» | «¿Claro? ¿2.4 mm de qué? Nomás dime si se va a doblar o no.» | Lost | vice |
+| 4-conversation-proposal-pending.jpg | «Ver el actual  Aplicar así, bajo mi riesgo  Descartar» | «Tres cosas en una fila, parecen texto; no sé cuál es botón.» | Lost | vice |
+| 4-conversation-proposal-pending.jpg | «1800 × 570 × 300 mm · 57 cm» | «¿57 cm qué? ¿Ancho? Tuve que adivinar.» | Lost | slop |
+| 5-notices-critical.jpg | «Y 4 piezas más igual.» | «Mucho mejor que el párrafo repetido de antes.» | Feel | lift |
+| 5-notices-critical.jpg / 4 | «Aceptar así, bajo mi riesgo» vs «Aplicar así, bajo mi riesgo» | «¿Aceptar y aplicar son lo mismo? Cambia la palabra de una pantalla a otra.» | Lost | slop |
+| 5-notices-critical.jpg | «A la bandeja, para el experto» · «Que el experto decida» | «¿Qué es la bandeja? ¿Cuánto tarda, me cuesta? Yo le pico a lo de "al instante".» | Lost | gap |
+| 6-conversation-tray.jpg | «Bandeja · 1» | «Antes veía qué había en la bandeja; ahora es un número y ya. ¿Qué le voy a mandar?» | Missing | vice |
+| 6-conversation-tray.jpg | «Los puntos críticos siguen» | «La frase se corta. ¿Siguen qué? ¿Está bien o no?» | Lost | bug |
+| 7-notices-several-resolve.jpg | «1 al instante  1 al experto» · «Resolver 2» | «Un solo botón para todo, sin que me pregunte cada cosa. Me encanta.» | Useful | lift |
+| 1-conversation-default.jpg | «⋯» (replaces «+» and the gear) | «Menos botones, mejor. Aunque no sé qué hay ahí.» | Feel | keep |
 
 ## Current vs proposal
 
@@ -53,6 +53,6 @@ Persona 4 from `design/AUDIENCE.md`: first rented apartment, no tools, no car. S
 
 ## Top 3 findings
 
-1. The price never shows up on the first tap: `mobile-materials.jpg` and `8-materials-expert-working.png` both put «Revisar y ver materiales» ahead of any cost, and in the proposal it is still missing after the expert answers (`9-materials-expert-answered.png`). gap
+1. The price never shows up on the first tap: `mobile-materials.jpg` and `8-materials-expert-working.jpg` both put «Revisar y ver materiales» ahead of any cost, and in the proposal it is still missing after the expert answers (`9-materials-expert-answered.jpg`). gap
 2. Nothing speaks to a person with no tools: «Pide los cortes largos en la tienda y deja los chicos para casa» / «Para el taller» (`states/mobile-materials-list.jpg`) assumes a saw, and «clavo y pegamento» (`states/mobile-piece-editing.jpg`) says the furniture won't come apart for a move, without warning her. gap
-3. The proposal's one-tap fixes win («Aplicar con un apoyo al centro» in `4-…`, «Resolver 2» in `7-…`), but its secondary actions are unclear: «Aceptar/Aplicar así, bajo mi riesgo» uses two different verbs, and «Bandeja · 1» in `6-conversation-tray.png` no longer says what's in the tray. slop/vice
+3. The proposal's one-tap fixes win («Aplicar con un apoyo al centro» in `4-…`, «Resolver 2» in `7-…`), but its secondary actions are unclear: «Aceptar/Aplicar así, bajo mi riesgo» uses two different verbs, and «Bandeja · 1» in `6-conversation-tray.jpg` no longer says what's in the tray. slop/vice
