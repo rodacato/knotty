@@ -85,8 +85,8 @@ Both are kit that was never declared kit. Move them to `src/ui/system/` before t
 
 | # | Bug | Status |
 |---|---|---|
-| **B-1** | Under reduced motion, `tokens.css` sets `animation-duration: 0.01ms` but keeps `infinite`. `draw` ends at `stroke-dashoffset: -1`, so the Analyzing pencil may be invisible or flicker. Fix: `animation-iteration-count: 1 !important`. *Unverified.* | open |
-| **B-2** | The piece card (`src/ui/studio/Panels.tsx:59`) grows upward with no `max-h` or scroll. *Confirmed:* on mobile it covers most of the 3D when closed, and with "Editar a mano" open it covers **all** of it and overlaps the header (`states/mobile-piece-editing.jpg`). It also breaks a rule written twice: D14 (*"El 3D nunca queda tapado"*) and `src/ui/studio/Studio.tsx:146` (*"Notices and history take the place of the tabs, so the 3D stays in sight"*). Tag: `drift`. | open |
+| **B-1** | Under reduced motion, `tokens.css` sets `animation-duration: 0.01ms` but keeps `infinite`, so looping animations restart every 0.01 ms. **Corrected after measuring:** the pencil is not invisible — it **flickers** (`stroke-dashoffset` jumping between 0.00 and 0.93 across 12 samples; the pulse stuck at opacity 0.67). Fix: `animation-iteration-count: 1 !important`. | fixed in #109 |
+| **B-2** | The piece card (`src/ui/studio/Panels.tsx:59`) grows upward with no `max-h` or scroll. *Confirmed:* on mobile it covers most of the 3D when closed, and with "Editar a mano" open it covers **all** of it and overlaps the header (`states/mobile-piece-editing.jpg`). The overflow is fixed in #109 (the card stays below the view bar and scrolls); covering the 3D stays open for K3. It also breaks a rule written twice: D14 (*"El 3D nunca queda tapado"*) and `src/ui/studio/Studio.tsx:146` (*"Notices and history take the place of the tabs, so the 3D stays in sight"*). Tag: `drift`. | overflow fixed in #109 · covering the 3D → K3 |
 
 ## Motion (decided last, with the app running)
 
