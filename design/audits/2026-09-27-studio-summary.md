@@ -35,3 +35,19 @@ Six fictional personas ([AUDIENCE.md](../AUDIENCE.md)) walked the mobile Studio,
 - From the app: "Volver a esta" in the history, the piece measures and "Veta a lo largo" (Don Chava, Ricardo, Sofía).
 
 > **After this audit** (same day) the proposal was corrected for the regressions above and re-exported; `exports/playground/` now shows the fixed version, and `7-notices-several-resolve.jpg` became `7-notices-several-after-choosing.jpg`. The per-persona files describe the version they saw.
+
+## Desktop pass (Don Chava, Doña Carmen)
+
+Files: `2026-09-27-studio-desktop-don-chava.md`, `2026-09-27-studio-desktop-dona-carmen.md`.
+
+| Finding | Who | Outcome |
+|---|---|---|
+| "Several notices" lost the third way out, "Aceptar así, bajo mi riesgo", and named the two others only with icons | Both | **Regression, fixed** on mobile and desktop: each notice offers three labeled ways, and the chosen one is marked |
+| The piece sheet never says when an edit applies | Don Chava | Fixed: "⚡ Al instante" under the piece name |
+| "Precios de referencia, no una cotización." too small and grey | Doña Carmen | Fixed: 13 px, graphite |
+| "56 %" breaks onto its own line — in the app too | Both | Code note: a non-breaking space before "%" in `Materials.tsx` (`percent`) |
+| No per-sheet cut layout in the proposal | Don Chava | Known gap, now a priority for the next materials screen |
+| Header says 57 cm while the 3D shows 90 cm during a proposal | Both, again | Joins `UI-13`; four personas across both passes |
+| No way to send the design to someone | Doña Carmen (twice), Luis | Still a hypothesis (two personas) |
+| "Lost joints" in the piece sheet | Don Chava | **Rejected:** he compared the door (one joint) with the back panel (four) |
+| The suggestions row is cut at the right edge | Doña Carmen | **Keep:** it is the peek cue for a scrollable row |
