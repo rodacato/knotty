@@ -15,39 +15,39 @@ Names follow the code: files, artboards, tokens and components are in English. U
 |---|---|
 | `ui-kit.lib.pen` | The library: tokens and components, mirrored from `src/ui/system/` |
 | `ui-kit.CHANGELOG.md` | Kit versions and what each one changed |
-| `flows/*.pen` | One file per journey: **as-is** bands (what the code does today) and **target** bands (approved, pending code) |
+| `flows/*.pen` | One file per journey: **the design we want**, in code or not — what the app is compared against |
 | `_playground.pen` | Experiments only — kit, a blank brief, the log and two empty bases; approved work leaves it |
 | `DECISIONS.md` | Numbered findings registry (`UI-<n>`) the briefs cite |
 | `AUDIENCE.md` | Fictional users to audit usability and feel; their findings land in `DECISIONS.md` |
 | `audits/` | One file per persona audit, dated |
 | `CODE_CHANGES.md` | Work order for design decisions still pending in code |
-| `assets/` | App captures with example data, used as image fills in the as-is bands — **committed** |
-| `exports/` | Canvas exports (JPEG) for PR review, one folder per flow band — **committed** |
+| `assets/` | App captures with example data — evidence cited by findings and audits, and fills for screens that stay as the app draws them — **committed** |
+| `exports/` | Canvas exports (JPEG) for PR review, one folder per flow — **committed** |
 | `references/` | Local device captures — **never committed** (may contain real photos) |
 
-Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D1…D38`.
+Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D1…D40`.
 
 ### The flows
 
 | File | Screens | Kit | Entry point |
 |---|---|---|---|
-| `studio.pen` | Studio as-is: 34 screens, mobile and desktop, default and states | 0.1.0 | After analysis, or from an example (`src/ui/App.tsx`) |
-| `capture.pen` | Capture as-is (12 screens, mobile and desktop) + target band: measures and photos without slots (D39, 3 screens) | 0.1.0 | Opening the app with no design |
-| `studio-target.pen` | Studio target, approved and pending code: 13 mobile + 5 desktop screens. Split from `studio.pen` past ~10 screens | 0.1.0 | Same as `studio.pen` |
+| `capture.pen` | Start a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…). 12 mobile, 5 desktop | 0.1.0 | Opening the app with no design |
+| `studio.pen` | The Studio by area — conversation, piece, notices, furniture, materials, history — with their states. 17 mobile, 9 desktop | 0.1.0 | After analysis, or from an example (`src/ui/App.tsx`) |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 
-## As-is, target and playground
+## Flows hold only the design we want
 
-- An **as-is** band draws **what the code does today**, from real app captures (`assets/`, example data only) with finding pins on top — redrawing a capture pixel for pixel adds nothing.
-- A **target** band draws what Adrian **approved** and the code does not do yet. It lives in its flow (or in `<flow>-target.pen` when the flow is past ~10 screens), its brief says *approved, pending code*, and it never pretends to be shipped. When the code lands, the target replaces the as-is band and the captures are retaken.
-- The **playground** is for ideas only. An idea that gets approved moves to its flow as a target band; the playground goes back to the kit, a blank brief, the log and two empty bases.
+- A flow draws **what the app should be**, whether the code does it yet or not; it is what the app is compared against. What the code does today is the app itself — there are no as-is bands. (Changed 2026-09-27: as-is bands went stale with every PR and confused which screen was the plan.)
+- A screen that should stay exactly as the app draws it is a **capture** of the current app (`assets/`, example data only), named `… (mobile, capture)`. Retake it when its screen changes in code.
+- Each brief says what is in code and what is pending. A screen never pretends to be shipped.
+- The **playground** is for ideas only. An approved idea moves into its flow, in the column of its area; the playground goes back to the kit, a blank brief, the log and two empty bases.
 
 A screen whose copy does not exist in code yet marks every new string as NEW in its brief.
 
 ## Source of truth
 
-**code > app capture > old design**, in that order.
+**What the app does:** the code, then a capture of it. **What the app should do:** the flow. When the two disagree, the flow is the plan and the difference is work — or a finding, if the code is right.
 
 - **Never invent copy.** Every string exists in `src/ui/` or in the domain that produces it; if you cannot find it, it is not real.
 - Draw a state only when it carries information the design lacks. Find what renders it in the code first; states left undrawn go in section 6 of the brief.
@@ -60,21 +60,21 @@ A screen whose copy does not exist in code yet marks every new string as NEW in 
 - Touch targets ≥ 44 px (the code uses `min-h-11`); AA contrast through tokens.
 - The 3D is not drawn: it is a PNG of the real scene inside the artboard. Pencil represents neither 3D nor motion; design what goes around the furniture.
 
-### Layout — a docs column plus row bands
+### Layout — a section per size, a column per step
 
-One **row band per journey variant** (mobile · desktop · alternate paths), read left to right, each opening with its brief. One `Log` frame per file, below every band. Positions are computed from five `.pen` variables:
+Each flow has a **Mobile · 390** section on top and a **Desktop · 1440** section below it, 600 px apart, each with a `SECTION —` heading. Inside a section, **one column per step or area**, left to right in the order the person meets them (`STEP —` labels on top); a step's states stack below it, 120 px apart. The briefs sit in the docs column at the left of their section; one `Log` frame per file, below everything. Positions are computed from these `.pen` variables:
 
 | Variable | Value | What it is |
 |---|---|---|
 | `grid-x0` | `0` | Left edge of the docs column (briefs and Log) |
 | `grid-brief-w` | `640` | Width of every brief and of the Log |
-| `grid-gutter` | `120` | Horizontal gap between artboards |
+| `grid-gutter` | `120` | Gap between columns, and between the states stacked in a column |
 | `grid-y0` | `0` | Top of the first band |
-| `grid-row-gap` | `260` | Vertical gap between bands |
+| `grid-row-gap` | `260` | Gap between a section's last screen and the Log; sections themselves sit 600 apart |
 
 ### The brief
 
-Each band opens with a `BRIEF — <Flow> · <band>` frame with these eight sections, in this order, present tense: 1. Purpose · 2. Entry points · 3. Screens · 4. Business rules (with `file:line`) · 5. Copy source · 6. States not drawn · 7. Open findings (`UI-<n>` numbers only) · 8. History → `Log` frame.
+Each section opens with one or more `BRIEF — <Flow> · <section>` frames with these eight sections, in this order, present tense: 1. Purpose · 2. Entry points · 3. Screens · 4. Business rules (with `file:line`) · 5. Copy source · 6. States not drawn · 7. Open findings (`UI-<n>` numbers only) · 8. History → `Log` frame.
 
 The `Log` holds one line per change, newest first: `YYYY-MM-DD · <kit version if it changed> · <what changed> · <UI-n>`.
 
