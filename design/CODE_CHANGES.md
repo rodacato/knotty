@@ -20,7 +20,9 @@
 
 ## 2. `StatusChip` — one status over the 3D
 
-**Status:** proposed · pending in code — `UI-5`, `UI-18`
+**Status:** landed (K2, K3) — `UI-5` · `UI-18` still pending (needs a resolved state in the store)
+
+- Landed: `src/ui/studio/StatusChip.tsx`; the piece opens in the panel (`src/ui/studio/PieceSheet.tsx`, `PieceCard` removed); the view bar is one row. The as-is captures of `studio.pen` are retaken in one batch when more target screens land.
 
 - Replace the three pills in `Studio.tsx` with one chip: one state at a time by priority (problems > proposal/preview > old version > to confirm), plus the resolved state ("Resuelto: …") and the expert working in the background (`UI-15`).
 

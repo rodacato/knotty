@@ -45,8 +45,8 @@ Read across UI-1…UI-19, B-1, B-2, both persona audits and `CODE_CHANGES.md`, w
 | # | Kind | Item | Absorbs |
 |---|---|---|---|
 | **K1** | one component | **Ways out of a decision**: one component for a notice and a proposal — ⚡ "Al instante", "A la bandeja, para el experto", "Aceptar/Aplicar así, bajo mi riesgo" — plus "Resolver N" for several. Today two renderings: `Chat.tsx` (Bubble) and `NoticePanel.tsx` (NoticeCard). | UI-3, UI-6, UI-12, UI-15, UI-17 |
-| **K2** | one component | **StatusChip**: one status over the 3D, by priority, including "Resuelto: …" and the expert working in the background. Replaces 3 pills in `Studio.tsx`. | UI-5, UI-13 (header vs 3D), UI-18, UI-15 |
-| **K3** | one rule, broken twice | **"The 3D is never covered"** is written in D14 and in `Studio.tsx:146` and broken by the piece card and the pills. Fix the rule's home, not the instances: the panel is the only place anything opens (notices, history, piece). | B-2, UI-5, UI-4 |
+| **K2** | one component — ✅ landed (`studio-panel-and-status`) | **StatusChip**: one status over the 3D. Landed with the order corrected while implementing: what changes what you are looking at comes first — an old version, then a proposal or preview, then problems, then pieces to confirm (problems stay counted on the header bell). "Resuelto: …" and the expert working in the background need store state and come with K1 / UI-15. | UI-5, UI-13 (header vs 3D), UI-18, UI-15 |
+| **K3** | one rule, broken twice — ✅ landed (`studio-panel-and-status`) | **"The 3D is never covered"** is written in D14 and in `Studio.tsx:146` and broken by the piece card and the pills. Fix the rule's home, not the instances: the panel is the only place anything opens (notices, history, piece). | B-2, UI-5, UI-4 |
 | **K4** | one cause | **Width hides meaning**: labels drop at phone width — `hidden sm:inline` ×3 in `Studio.tsx`, compact `TakePhoto`, the icon-only ruler. One rule: no action without a word at any width, except close and send. | UI-19, audit C, UI-11 |
 | **K5** | one cause | **Small grey mono for things people read**: `text-[10px]`/`text-[11px]` ×19 in 10 files, plus `graphite-2` body text. One decision: 12 px minimum, `graphite` for anything that is read, not scanned. | Doña Carmen (both passes), UI-2 |
 | **K6** | one token decision — ✅ decided | **Amber = selection and focus only**; "recommendation" and the verdict "Arréglalo" need their own tone. A kit token change: every flow re-vendors. | UI-1 |
@@ -71,7 +71,7 @@ Both are kit that was never declared kit. Move them to `src/ui/system/` before t
 ### What is blocked, and on what
 
 1. ~~K6 (amber token) blocks re-vendoring~~ — **decided 2026-09-27** and applied to the target bands; no longer blocking.
-2. **K7 (`Field`) and K2 (`StatusChip`) block** implementing the Studio target screens: they are built mostly from them.
+2. **K7 (`Field`) blocks** the rest of the Studio target screens; K2 and K3 landed.
 3. **K1 blocks UI-15 step 2** (editing while the expert works): the 19 `disabled={thinking}` sites are the change, and K1 owns most of them.
 4. D39 (photos without slots) is **not blocked**: it touches Capture and reading only.
 
