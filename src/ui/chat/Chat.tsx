@@ -1,10 +1,11 @@
 import { ArrowClockwise, ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
+import { useServices } from '../services'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { Memory } from './Memory'
@@ -50,7 +51,7 @@ function useSeconds(active: boolean) {
 const openQuestions = (state: DesignState) => state.chat.filter((m) => m.author === 'expert' && !m.answered).flatMap((m) => m.questions.filter((p, i) => p.options && !m.answers.includes(questionAnswerKey(i))))
 
 /** One question answers at once (Knotty builds the option if it can); with several, or a tray, answers wait there as text for the expert. */
-function Questions({ m, state }: { m: Message; state: DesignState }) {
+function Questions({ m, state, hidden = [] }: { m: Message; state: DesignState; hidden?: number[] }) {
   const chooseOption = useStore((s) => s.chooseOption)
   const toggleTray = useStore((s) => s.toggleTray)
   const thinking = useStore((s) => s.thinking)
@@ -60,6 +61,7 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
   return (
     <>
       {m.questions.map((p, i) => {
+        if (hidden.includes(i)) return null
         const taken = m.answered || m.answers.includes(questionAnswerKey(i))
         return (
           <div key={i} className="flex flex-col gap-2">
@@ -95,6 +97,9 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
   const toggleProposal = useStore((s) => s.toggleProposal)
   const viewVersion = useStore((s) => s.viewVersion)
   const viewedVersion = useStore((s) => s.viewedVersion)
+  const { useCases } = useServices()
+  // With the one-step fix on screen, the rules' options for the same finding would be a second path to it.
+  const proposalFixed = useMemo(() => m.proposal === 'pending' && !!state.proposal?.critical.length && !!useCases.proposalFix(state), [m.proposal, state, useCases])
 
   if (m.author === 'user')
     return (
@@ -193,7 +198,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
       {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
-      <Questions m={m} state={state} />
+      <Questions m={m} state={state} hidden={proposalFixed ? m.solutions.map((s) => s.question) : []} />
     </div>
   )
 }
