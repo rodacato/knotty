@@ -36,13 +36,15 @@
 
 - One component renders the ways out of a notice or a proposal: "Al instante" (⚡, primary), "A la bandeja, para el experto", "Aceptar así, bajo mi riesgo" / "Aplicar así, bajo mi riesgo" as visible secondaries. Used by `Chat.tsx` and `NoticePanel.tsx`. Several notices resolve with one "Resolver N".
 
-## 4. Photos without slots (D39)
+## 4. Capture in one screen (D40) with photos without slots (D39)
 
-**Status:** proposed · pending in code — `UI-8`, `UI-19`, D39
+**Status:** designed (`flows/capture.pen`, 2026-09-27) · pending code — `UI-7`, `UI-8`, `UI-19`, D39, D40
 
-- `Capture.tsx`: the five `Slot`s become one "Agregar fotos" (up to 5, repeats allowed) and a grid of thumbnails with a visible note; the required-angle rule goes away.
-- Reading: `PhotoReading` gains a `view` field (`reading.v4`), the photo is read when added, and `mergeReadings` ranks by the model's `view` instead of the slot's angle.
-- The expert asks for a missing view through `requestedPhotos`. Measure the change with the bench (`src/application/bench/cases.ts`).
+- `Capture.tsx`: one screen — kind, measures (optional), photos, description — replaces the two steps. "Agregar medidas" fills the kind's typical measures; the ones the person touched stay when the kind changes. Needs a typical-measures table per kind in the domain (only tables have one today: `TYPICAL_TABLE_DIMENSIONS`).
+- Photos: one "Agregar fotos" (up to 5, repeats allowed), a grid with a view tag per photo and the note under it; the required-angle rule and `TakePhoto`'s compact slots go away.
+- Reading: `PhotoReading` gains a `view` field (`reading.v4`), the photo is read when added, and `mergeReadings` ranks by `view` (the person's correction wins) instead of the slot's angle.
+- The expert no longer asks for photos: `requestedPhotos` leaves the expert's schemas, the prompts, the chat and the saved session (a new format).
+- The bench has no photo cases, so it cannot measure the view labels; the prompt changes go through `npm run compare` by hand.
 
 ## 5. Sentence-case section labels
 
