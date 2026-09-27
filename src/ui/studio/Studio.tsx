@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Eye, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
@@ -16,7 +16,8 @@ import { visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
-import { PieceCard } from './Panels'
+import { PieceSheet } from './PieceSheet'
+import { StatusChip, type Status } from './StatusChip'
 import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
@@ -49,24 +50,23 @@ function SceneBar() {
   const toggleExploded = useStore((s) => s.toggleExploded)
   const dimensions = useStore((s) => s.dimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
-  const button = (active: boolean) => `grid min-h-9 min-w-9 place-items-center rounded-full px-3 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+  const button = (active: boolean) => `grid min-h-9 min-w-9 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
   return (
-    <div className="pointer-events-auto flex flex-wrap items-center gap-2">
-      <div className="flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur" role="group" aria-label="Vistas">
+    <div className="pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur">
+      <div className="flex items-center" role="group" aria-label="Vistas">
         {VIEWS.map((v) => (
           <button key={v.id} type="button" className={button(view === v.id)} onClick={() => viewFrom(v.id)} aria-pressed={view === v.id}>
             {v.name}
           </button>
         ))}
       </div>
-      <div className="flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur">
-        <button type="button" className={`${button(exploded)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleExploded} aria-pressed={exploded}>
-          {exploded ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
-        </button>
-        <button type="button" className={button(dimensions)} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas">
-          <Ruler weight="bold" />
-        </button>
-      </div>
+      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+      <button type="button" className={`${button(exploded)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleExploded} aria-pressed={exploded}>
+        {exploded ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
+      </button>
+      <button type="button" className={button(dimensions)} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
+        <Ruler weight="bold" />
+      </button>
     </div>
   )
 }
@@ -143,7 +143,7 @@ export function Studio({ state }: { state: DesignState }) {
   const desktop = useDesktop()
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
-  // Notices and history take the place of the tabs, so the 3D stays in sight to preview what they offer.
+  // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const toggleOverlay = (o: Overlay) => setOverlay((v) => (v === o ? null : o))
   const toChat = () => {
@@ -186,6 +186,39 @@ export function Studio({ state }: { state: DesignState }) {
   const shownGeo = shownAnalysis.geo
   const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
   const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.pieces.some((p) => p.id === v))))]
+  const selection = useStore((s) => s.selection)
+  const showsPiece = !!shownGeo && shownDesign.pieces.some((p) => p.id === selection)
+  const editable = viewedVersion === null && !proposal
+
+  // What changes what you are looking at comes first: an old version, then a proposal or preview, then problems, then pieces to confirm.
+  const statuses: Status[] = [
+    ...(viewedVersion !== null
+      ? [
+          {
+            key: 'version',
+            icon: <ClockCounterClockwise />,
+            label: `Viendo v${viewedVersion}`,
+            actions: (
+              <>
+                <button type="button" onClick={() => backToVersion(viewedVersion)} className="flex min-h-7 items-center gap-1 rounded-full bg-kraft px-2 hover:bg-kraft-2">
+                  <ArrowCounterClockwise /> Volver a esta
+                </button>
+                <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
+                  <X />
+                </button>
+              </>
+            ),
+          },
+        ]
+      : []),
+    ...(proposal ? [{ key: 'proposal', icon: <Eye weight="bold" />, label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar' }] : []),
+    ...(shownGeo && shownProblems.length > 0
+      ? [{ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`, onClick: () => setOverlay('notices') }]
+      : []),
+    ...(toConfirm.length > 0 && viewedVersion === null && !proposal
+      ? [{ key: 'confirm', icon: <PencilSimpleLine />, label: toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`, onClick: () => select(toConfirm[0].id) }]
+      : []),
+  ]
 
   const scene = (
     <div className="relative h-full min-h-0 bg-[var(--scene-bg)]">
@@ -200,42 +233,8 @@ export function Studio({ state }: { state: DesignState }) {
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <SceneBar />
-        {proposal && <span className="animate-appear rounded-full bg-amber px-3 py-1 text-xs font-medium text-graphite shadow">{preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar'}</span>}
-        {shownGeo && shownProblems.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setOverlay('notices')}
-            className="animate-appear pointer-events-auto flex items-center gap-1.5 rounded-full bg-rust px-3 py-1 text-xs font-medium text-white shadow"
-          >
-            <Warning weight="bold" /> {shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`}
-          </button>
-        )}
-        {toConfirm.length > 0 && viewedVersion === null && !proposal && (
-          <button
-            type="button"
-            onClick={() => select(toConfirm[0].id)}
-            className="animate-appear pointer-events-auto flex items-center gap-1.5 rounded-full border border-graphite/30 bg-paper px-3 py-1 text-xs font-medium text-graphite shadow-sm"
-          >
-            <PencilSimpleLine /> {toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`}
-          </button>
-        )}
-        {viewedVersion !== null && (
-          <span className="animate-appear pointer-events-auto flex items-center gap-1 rounded-full bg-graphite py-1 pr-1 pl-3 text-xs font-medium text-bone shadow">
-            Viendo v{viewedVersion}
-            <button type="button" onClick={() => backToVersion(viewedVersion)} className="flex items-center gap-1 rounded-full bg-bone/15 px-2 py-0.5 hover:bg-bone/25">
-              <ArrowCounterClockwise /> Volver a esta
-            </button>
-            <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="grid size-6 place-items-center rounded-full hover:bg-bone/20">
-              <X />
-            </button>
-          </span>
-        )}
+        <StatusChip statuses={statuses} />
       </div>
-      {shownGeo && (
-        <div className="pointer-events-none absolute inset-x-3 top-28 bottom-3 z-10 flex items-end justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
-          <PieceCard design={shownDesign} geo={shownGeo} catalog={catalog} editable={viewedVersion === null && !proposal} />
-        </div>
-      )}
     </div>
   )
 
@@ -254,44 +253,47 @@ export function Studio({ state }: { state: DesignState }) {
 
   const panel = (
     <>
-      {overlayPanel}
-      <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
-        <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none]" aria-label="Panel">
-          {[
-            { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
-            { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
-            { id: 'materials', name: 'Materiales', icon: <Stack /> },
-          ].map((t) => (
-            <Tabs.Trigger
-              key={t.id}
-              value={t.id}
-              className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-amber"
-            >
-              <span className="hidden sm:inline-flex">{t.icon}</span>
-              {t.name}
-              {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-amber text-[10px] text-graphite" title="En la bandeja">{state.tray.length}</span>}
-            </Tabs.Trigger>
-          ))}
-          {!desktop && (
-            <button type="button" onClick={() => setTallPanel((v) => !v)} className="ml-auto grid size-9 place-items-center rounded-full text-graphite-2 hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
-              {tallPanel ? <CaretDown /> : <CaretUp />}
-            </button>
-          )}
-        </Tabs.List>
-        <Tabs.Content value="chat" className="min-h-0 flex-1">
-          <Chat state={state} />
-        </Tabs.Content>
-        <Tabs.Content value="furniture" className="min-h-0 flex-1 overflow-y-auto">
-          <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
-        </Tabs.Content>
-        <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
-          {currentAnalysis.valid ? (
-            <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
-          ) : (
-            <p className="p-4 text-sm text-graphite-2">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
-          )}
-        </Tabs.Content>
-      </Tabs.Root>
+      {showsPiece && shownGeo && <PieceSheet key={selection} design={shownDesign} geo={shownGeo} catalog={catalog} editable={editable} />}
+      <div className={`h-full min-h-0 ${showsPiece ? 'hidden' : ''}`}>
+        {overlayPanel}
+        <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
+          <Tabs.List className="flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none]" aria-label="Panel">
+            {[
+              { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
+              { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
+              { id: 'materials', name: 'Materiales', icon: <Stack /> },
+            ].map((t) => (
+              <Tabs.Trigger
+                key={t.id}
+                value={t.id}
+                className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-amber"
+              >
+                <span className="hidden sm:inline-flex">{t.icon}</span>
+                {t.name}
+                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-amber text-[10px] text-graphite" title="En la bandeja">{state.tray.length}</span>}
+              </Tabs.Trigger>
+            ))}
+            {!desktop && (
+              <button type="button" onClick={() => setTallPanel((v) => !v)} className="ml-auto grid size-9 place-items-center rounded-full text-graphite-2 hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
+                {tallPanel ? <CaretDown /> : <CaretUp />}
+              </button>
+            )}
+          </Tabs.List>
+          <Tabs.Content value="chat" className="min-h-0 flex-1">
+            <Chat state={state} />
+          </Tabs.Content>
+          <Tabs.Content value="furniture" className="min-h-0 flex-1 overflow-y-auto">
+            <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
+          </Tabs.Content>
+          <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
+            {currentAnalysis.valid ? (
+              <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
+            ) : (
+              <p className="p-4 text-sm text-graphite-2">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
+            )}
+          </Tabs.Content>
+        </Tabs.Root>
+      </div>
     </>
   )
 

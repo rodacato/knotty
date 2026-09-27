@@ -24,7 +24,7 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
   }
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] tracking-wide text-graphite-2 uppercase">{label}</span>
+      <span className="text-xs text-graphite-2">{label}</span>
       <span className="flex items-baseline gap-1 rounded-xl border border-line bg-paper px-2 focus-within:border-amber">
         <input
           type="number"
@@ -36,17 +36,16 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
           aria-label={`${label} en milímetros`}
           className="numerals min-h-8 w-full bg-transparent text-sm outline-none"
         />
-        <span className="numerals text-[10px] text-graphite-2">mm</span>
+        <span className="numerals text-xs text-graphite-2">mm</span>
       </span>
     </label>
   )
 }
 
-export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; box: Box; catalog: Catalog; enabled: boolean }) {
+export function PieceEditor({ piece, box, catalog, enabled, open, onOpen }: { piece: Piece; box: Box; catalog: Catalog; enabled: boolean; open: boolean; onOpen: () => void }) {
   const editPiece = useStore((s) => s.editPiece)
   const resizeFurniture = useStore((s) => s.resizeFurniture)
   const thinking = useStore((s) => s.thinking)
-  const [open, setOpen] = useState(false)
   const [step, setStep] = useState(10)
   const [result, setResult] = useState<PieceEditResult | null>(null)
   const size = (axis: Axis) => box[`${axis}1`] - box[`${axis}0`]
@@ -59,19 +58,19 @@ export function PieceEditor({ piece, box, catalog, enabled }: { piece: Piece; bo
   if (!enabled) return null
   if (!open)
     return (
-      <Button variant="ghost" className="mt-2 min-h-8 px-2 text-xs" onClick={() => setOpen(true)} disabled={thinking}>
+      <Button variant="secondary" className="min-h-11 w-full" onClick={onOpen} disabled={thinking}>
         <PencilSimple /> Editar a mano
       </Button>
     )
 
   const [less, more, lessIcon, moreIcon] = MOVE[piece.normal]
   return (
-    <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
+    <div className="flex flex-col gap-3 border-t border-line pt-3">
       <div className="grid grid-cols-3 gap-2">
         <LengthField key={`l-${Math.round(size(longAxis))}`} label="Largo" value={size(longAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: longAxis, value }))} />
         <LengthField key={`a-${Math.round(size(shortAxis))}`} label="Ancho" value={size(shortAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: shortAxis, value }))} />
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] tracking-wide text-graphite-2 uppercase">Espesor</span>
+          <span className="text-xs text-graphite-2">Espesor</span>
           <select
             value={piece.material}
             onChange={(e) => run(editPiece(piece.id, { kind: 'thickness', material: e.target.value }))}
