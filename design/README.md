@@ -31,8 +31,8 @@ Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers i
 
 | File | Screens | Kit | Entry point |
 |---|---|---|---|
-| `studio.pen` | Studio (3D, tabs, notices, history, piece card) | — | After analysis, or from an example (`src/ui/App.tsx`) |
-| `capture.pen` | Home, measures, photos, analyzing | — | Opening the app with no design |
+| `studio.pen` | Studio as-is: 34 screens, mobile and desktop, default and states | 0.1.0 | After analysis, or from an example (`src/ui/App.tsx`) |
+| `capture.pen` | Capture as-is: home, measures, photos, analyzing — 12 screens, mobile and desktop | 0.1.0 | Opening the app with no design |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 

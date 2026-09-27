@@ -1,8 +1,8 @@
-# Design decisions — findings (UI-1…UI-18)
+# Design decisions — findings (UI-1…UI-19)
 
 > The registry the `flows/*.pen` briefs and the `ui-kit.lib.pen` notes cite. A resolved entry is never deleted: record the outcome, because the reasoning is the useful part.
 
-**Status:** 18 entries · 1 decided · 17 open · 🐞 2 app bugs (fixed on their own, they do not wait for the redesign).
+**Status:** 19 entries · 1 decided · 18 open · 🐞 2 app bugs (fixed on their own, they do not wait for the redesign).
 
 **How entries work.** A `UI-<n>` is a finding: the design is always drawn as the **code** is, and the entry records what it does today, what it should do, and who decides. The thesis that orders them is D38 in `docs/PROPUESTA.md`: the furniture is the interface.
 
@@ -34,6 +34,7 @@ Source: review of all of `src/ui/` on 2026-09-27, then checked against real capt
 | **UI-16** | `gap` | The cost and the cut list sit behind "Revisar y ver materiales"; three personas looked for the price first and did not find it (`audits/2026-09-27-studio-summary.md`, B). It collides with D30: the list appears only after a review, on purpose. | ✅ **Decided 2026-09-27 (Adrian): show the estimated total before the review; the list stays behind it, so D30 holds.** Drawn in `_playground.pen` (Materials screens). |
 | **UI-17** | `vice` | Overriding is hard to see, and two different actions read almost the same: "Aplicar así, bajo mi riesgo" (`src/ui/chat/Chat.tsx`) vs "Aceptar así, bajo mi riesgo" (`src/ui/studio/NoticePanel.tsx`), both small grey text. Four personas (summary, D). | ⏳ Corrected after checking the code: they are **two different actions** — the chat one applies a proposal not yet in the furniture, the notice one leaves the furniture as it already is. Keep both wordings; make each a visible secondary button, never grey text. Same family as UI-3. |
 | **UI-18** | `gap` | Nothing says "it's fine now": after an answer or a fix the only signals are a count, a dot, or "Los puntos críticos siguen". Three personas (summary, E). | ⏳ An explicit resolved state where the person is looking: the scene status and the notice count. |
+| **UI-19** | `vice` | Each capture slot shows its camera and gallery buttons as icons only: `TakePhoto` in compact mode drops the label (`{!compact && …}`, `src/ui/system/TakePhoto.tsx`), ten unlabeled buttons on the photos step. The Studio audit already flagged icon-only actions for Doña Carmen and Ricardo. Capture: `assets/capture/mobile-photos-empty.jpg`. | ⏳ Label them ("Tomar foto", "Galería" already exist in the component), or one labeled pair per slot row. Decided in `_playground.pen`. |
 
 ## 🐞 App bugs — fixed in code, they do not wait for the redesign
 
