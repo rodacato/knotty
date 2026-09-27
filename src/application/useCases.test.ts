@@ -160,6 +160,45 @@ describe('adjust', () => {
     expect(c.repository.state).toEqual(resolved)
   })
 
+  it('the instant fix of a proposal is built on the proposal, not on the current design', async () => {
+    const c = setup()
+    const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
+    const fix = c.proposalFix(pending)!
+    expect(fix.label).toBe('Agregar un apoyo al centro, debajo del piso')
+    expect(fix.design.dimensions.width).toBe(900)
+    expect(currentDesign(pending).dimensions.width).not.toBe(900)
+    expect(c.proposalFix(c.discardProposal(pending))).toBeNull()
+  })
+
+  it('applying a proposal with its instant fix makes one version with the change and the fix, and clears the critical findings', async () => {
+    const c = setup()
+    const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
+    const question = pending.chat.at(-1)!
+    const resolved = c.applyProposalWithFix(pending)!
+    expect(resolved.proposal).toBeNull()
+    expect(resolved.versions.map((v) => v.summary)).toEqual([pending.versions[0].summary, 'Ensanchar a 90 cm · Agregar un apoyo al centro, debajo del piso'])
+    expect(resolved.current).toBe(2)
+    expect(resolved.chat.find((m) => m.id === question.id)).toMatchObject({ proposal: 'applied', answered: true })
+    expect(resolved.chat.slice(pending.chat.length)).toMatchObject([{ author: 'expert', text: 'Listo, apliqué "Ensanchar a 90 cm" con la solución: agregar un apoyo al centro, debajo del piso.', version: 2 }])
+    const design = currentDesign(resolved)
+    expect(design.dimensions.width).toBe(900)
+    expect(design.pieces.filter((p) => p.id.startsWith('support-')).map((p) => p.id)).toEqual(['support-bottom', 'support-shelf-1', 'support-shelf-2', 'support-shelf-3', 'support-shelf-4'])
+    const analysis = analyze(design, testCatalog)
+    if (!analysis.valid) throw new Error('the fix left an invalid design')
+    const sagging = pending.proposal!.critical.flatMap((h) => h.pieces)
+    expect(analysis.findings.filter((h) => h.severity === 'critical' && h.pieces.some((p) => sagging.includes(p)))).toEqual([])
+    expect(c.repository.state).toEqual(resolved)
+  })
+
+  it('a proposal whose critical findings Knotty cannot build a fix for is left as it is', async () => {
+    const c = setup()
+    const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
+    const unbuildable = { ...pending, proposal: { ...pending.proposal!, design: currentDesign(pending), critical: [] } }
+    expect(c.proposalFix(unbuildable)).toBeNull()
+    expect(c.applyProposalWithFix(unbuildable)).toBeNull()
+    expect(c.repository.state).toEqual(pending)
+  })
+
   it('an option Knotty cannot build goes back to be sent to the expert', async () => {
     const c = setup()
     const pending = await c.adjust(c.fromExample(exampleBookcase), 'Hazlo de 90 cm de ancho', newSignal())
