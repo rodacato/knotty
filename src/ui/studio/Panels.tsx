@@ -56,7 +56,7 @@ export function PieceCard({ design, geo, catalog, editable = false }: { design: 
   const name = (id: string) => design.pieces.find((x) => x.id === id)?.name ?? id
   const joints = design.joints.filter((u) => u.a === p.id || u.b === p.id)
   return (
-    <div className="animate-appear pointer-events-auto w-full max-w-sm rounded-2xl md:w-80 border border-line bg-bone/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
+    <div className="animate-appear pointer-events-auto max-h-full w-full max-w-sm overflow-y-auto rounded-2xl md:w-80 border border-line bg-bone/95 p-4 shadow-[0_18px_40px_-20px_rgba(43,40,37,.5)] backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-display text-lg font-semibold">{p.name}</p>
