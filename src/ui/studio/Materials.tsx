@@ -303,8 +303,8 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         {purchase.sheets.map((h) => {
           const a = purchase.layout.find((x) => x.material === h.material.id)!
           return (
-            <div key={h.material.id} className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
-              <div className="flex items-start gap-3">
+            <div key={h.material.id} className="@container flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
+              <div className="flex flex-wrap items-start gap-3 @sm:flex-nowrap">
                 <span className="numerals grid size-10 shrink-0 place-items-center rounded-xl bg-graphite text-lg font-medium text-bone">{h.sheets}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{h.material.name}</p>
@@ -312,7 +312,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
                     {meters(h.material.sheet.width)} × {meters(h.material.sheet.length)} · desperdicio {percent(h.waste)}
                   </p>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 pl-13 @sm:w-auto @sm:flex-col @sm:items-end @sm:gap-0 @sm:pl-0">
                   <span className="numerals text-sm font-medium">{h.cost === null ? '—' : `${h.material.id in settings.prices ? '' : '~'}${weights.format(h.cost)}`}</span>
                   <Price id={h.material.id} value={h.material.price} base={base(h.material.id)} unit="por hoja" />
                 </div>
