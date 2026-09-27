@@ -99,7 +99,7 @@ function KindPicker({ state }: { state: DesignState }) {
         <KindSelect value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
       </Field>
       {redo && (
-        <div className="flex flex-col gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-sm">
+        <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
           <p>
             {capitalized(KIND_NOUN[redo])} no sale de la ficha de {current ? KIND_NOUN[current] : 'este mueble'}: hay que diseñarla de nuevo con el experto, con tu descripción y las medidas de ahora como referencia. Lo
             de ahora se queda en el historial.

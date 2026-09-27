@@ -288,7 +288,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         <p className="text-sm text-graphite">
           {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
         </p>
-        <div className="flex items-start gap-2 rounded-xl border border-amber/40 bg-amber-soft px-3 py-2 text-xs leading-relaxed">
+        <div className="flex items-start gap-2 rounded-xl border border-line bg-kraft px-3 py-2 text-xs leading-relaxed">
           <Info className="mt-0.5 shrink-0" weight="bold" />
           <span>
             <span className="font-medium">Precios de referencia, no una cotización.</span> {catalog.priceNote} Toca cualquier precio para poner el de tu tienda

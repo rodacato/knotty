@@ -38,7 +38,7 @@ export function HistoryPanel({ state }: { state: DesignState }) {
           const viewing = v.n === viewedVersion
           return (
             <li key={v.n} className="animate-appear relative flex gap-3">
-              <span className={`z-10 mt-1 grid size-6 shrink-0 place-items-center rounded-full border-2 ${current ? 'border-amber bg-amber' : viewing ? 'border-amber bg-bone' : 'border-line bg-bone'}`}>
+              <span className={`z-10 mt-1 grid size-6 shrink-0 place-items-center rounded-full border-2 ${current ? 'border-graphite bg-graphite' : viewing ? 'border-amber bg-bone' : 'border-line bg-bone'}`}>
                 {current && <span className="size-2 rounded-full bg-bone" />}
               </span>
               <div className={`flex min-w-0 flex-1 flex-col gap-1.5 rounded-2xl border p-3 transition ${viewing ? 'border-amber bg-amber-soft' : 'border-line bg-bone'}`}>

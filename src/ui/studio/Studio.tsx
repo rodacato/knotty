@@ -119,7 +119,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
         <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
       </Button>
       <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
-        <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-amber' : ''} />
+        <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
         {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-white">{pending}</span>}
       </Button>
       <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
@@ -259,7 +259,7 @@ export function Studio({ state }: { state: DesignState }) {
   const overlayPanel = overlay && (
     <section className="flex h-full min-h-0 flex-col bg-bone/60" aria-label={overlay === 'notices' ? 'Avisos' : 'Historial'}>
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
-        {overlay === 'notices' ? <Bell className="text-amber" weight="duotone" /> : <ClockCounterClockwise className="text-amber" />}
+        {overlay === 'notices' ? <Bell className="text-graphite" weight="duotone" /> : <ClockCounterClockwise className="text-graphite" />}
         <h2 className="flex-1 text-sm font-medium">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
         <button type="button" onClick={() => setOverlay(null)} aria-label="Cerrar" className="grid size-9 place-items-center rounded-full text-graphite-2 hover:bg-kraft">
           <X />
@@ -288,7 +288,7 @@ export function Studio({ state }: { state: DesignState }) {
               >
                 <span className="hidden sm:inline-flex">{t.icon}</span>
                 {t.name}
-                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-amber text-xs text-graphite" title="En la bandeja">{state.tray.length}</span>}
+                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-graphite text-xs text-bone" title="En la bandeja">{state.tray.length}</span>}
               </Tabs.Trigger>
             ))}
             {!desktop && (

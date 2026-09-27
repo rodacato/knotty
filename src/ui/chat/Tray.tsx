@@ -12,10 +12,10 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
   const thinking = useStore((s) => s.thinking)
   if (!items.length) return null
   return (
-    <div className="animate-appear mx-3 mb-2 flex flex-col gap-2 rounded-2xl border border-amber/40 bg-amber-soft/40 p-2.5" aria-label="Bandeja para el experto">
+    <div className="animate-appear mx-3 mb-2 flex flex-col gap-2 p-2.5" aria-label="Bandeja para el experto">
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-sm font-medium">
-          <TrayIcon weight="duotone" className="text-amber" /> Bandeja · {items.length}
+          <TrayIcon weight="duotone" className="text-graphite" /> Bandeja · {items.length}
         </p>
         <Button variant="primary" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={onSend}>
           <ChatCircleText weight="fill" /> Consultar al experto

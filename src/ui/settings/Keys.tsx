@@ -94,7 +94,7 @@ export function KeysGate() {
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
         <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-start gap-3">
-            <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-amber" />
+            <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-graphite" />
             <div>
               <Dialog.Title asChild>
                 <Title className="text-xl">{locked ? 'Tus llaves están guardadas' : `Falta tu llave de ${name}`}</Title>

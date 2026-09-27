@@ -227,10 +227,10 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
     setTimeout(() => setCopied(false), 1500)
   }
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-amber/40 bg-amber-soft p-4 text-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-line bg-kraft p-4 text-sm">
       <p>
         <span className="font-medium">SheLLM</span> convierte tu suscripción de Claude Code o Codex en una API local, así el experto no gasta créditos de API.{' '}
-        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline decoration-amber underline-offset-2">
+        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2">
           Conoce SheLLM <ArrowSquareOut />
         </a>
       </p>

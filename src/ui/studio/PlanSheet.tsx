@@ -43,7 +43,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
   return (
     <div className="flex flex-col gap-5 p-4 pb-28">
       {source.diverged && (
-        <p className="flex items-start gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-xs">
+        <p className="flex items-start gap-2 rounded-xl border border-line bg-kraft p-3 text-xs">
           <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
         </p>
       )}
