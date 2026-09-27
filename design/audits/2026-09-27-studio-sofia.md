@@ -1,6 +1,6 @@
 # Studio audit — Sofía (2026-09-27)
 
-Persona 4 from `design/AUDIENCE.md`: first rented apartment, no tools, no car. She taps Materials first to see the cost. Current = `design/assets/studio/` (+ `states/`), proposal = `design/exports/playground/`. Everything here is a hypothesis until a real person confirms it.
+Persona 4 from `design/AUDIENCE.md`: first rented apartment, no tools, no car. She taps Materials first to see the cost. Current = `design/assets/studio/` (+ `states/`), proposal = `design/exports/studio-target/`. Everything here is a hypothesis until a real person confirms it.
 
 ## First impression
 

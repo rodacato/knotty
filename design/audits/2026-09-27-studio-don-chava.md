@@ -1,7 +1,7 @@
 # Studio audit — Don Chava (2026-09-27)
 
 Persona 2 of `design/AUDIENCE.md` (fictional). Phone, large text. Taps the measures first, then the cut list.
-Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/playground/`.
+Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/studio-target/`.
 One persona, so every row is a hypothesis until a real carpenter confirms it.
 
 ## First impression

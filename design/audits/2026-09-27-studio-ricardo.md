@@ -1,6 +1,6 @@
 # Studio audit — Ricardo (2026-09-27)
 
-Persona 3 of `design/AUDIENCE.md`: 47, accountant, beginner, reads every word, opens every panel, quits when he cannot tell whether he did something wrong. Mobile only. Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/playground/`. One persona: every row is a hypothesis until a real person confirms it.
+Persona 3 of `design/AUDIENCE.md`: 47, accountant, beginner, reads every word, opens every panel, quits when he cannot tell whether he did something wrong. Mobile only. Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/studio-target/`. One persona: every row is a hypothesis until a real person confirms it.
 
 ## First impression
 

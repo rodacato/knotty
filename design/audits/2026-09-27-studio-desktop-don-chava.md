@@ -1,7 +1,7 @@
 # Studio desktop audit — Don Chava (2026-09-27)
 
 Persona 2 of `design/AUDIENCE.md` (fictional), now at the shop's computer. Taps the measures first, then the cut list.
-Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/playground/d*.jpg`. Only desktop differences; the mobile audit (`2026-09-27-studio-don-chava.md`) is not repeated.
+Current = `design/assets/studio/` (+ `states/`); proposal = `design/exports/studio-target/d*.jpg`. Only desktop differences; the mobile audit (`2026-09-27-studio-don-chava.md`) is not repeated.
 One persona, so every row is a hypothesis until a real carpenter confirms it.
 
 ## First impression

@@ -1125,7 +1125,7 @@
       "type": "frame",
       "id": "eSLIz",
       "x": 0,
-      "y": 2722,
+      "y": 3802,
       "name": "LOG — Capture",
       "width": 640,
       "fill": "$paper",
@@ -1150,12 +1150,2603 @@
         },
         {
           "type": "text",
+          "id": "Ntet2",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · target band added from the playground: measures without the kind, photos without slots (D39) · UI-7, UI-8, UI-19",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "j6GxQk",
           "name": "Entry",
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
           "content": "2026-09-27 · kit 0.1.0 · flow created: kit vendored, as-is bands from app captures (mobile full-page + desktop) · UI-7, UI-8, UI-19",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ZQUIn",
+      "x": 760,
+      "y": 2722,
+      "name": "Capture / Measures / Target (mobile)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "R1V1n",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "LCVbX",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uvVrn",
+                  "name": "1 / 2",
+                  "fill": "$bone",
+                  "content": "1 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "tiW34",
+              "name": "¿Cuánto mide?",
+              "fill": "$graphite",
+              "content": "¿Cuánto mide?",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "bet70",
+          "name": "Las medidas generales po",
+          "fill": "$graphite-2",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Las medidas generales por fuera, en milímetros. Con cinta métrica basta.",
+          "lineHeight": 1.4,
+          "fontFamily": "$font-sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "gS1Fh",
+          "name": "Alto",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "dtpjB",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dSkph",
+                  "name": "Alto",
+                  "fill": "$graphite",
+                  "content": "Alto",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "MWKpy",
+                  "name": "180 cm",
+                  "fill": "$graphite-2",
+                  "content": "180 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "k2bZ9",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Gx1sl",
+                  "name": "1800",
+                  "fill": "$graphite",
+                  "content": "1800",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "UpfD7",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y6vAn",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "uNXUK",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "B2Y1i",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "NvU5x",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "aW31W",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "h9w6A",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "GSsGk",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "FqdsY",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "eNhc5",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "L6d8Up",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "b03x1Y",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "f3rgY",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SC3qf",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "S7I24",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "XkST0",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "xpLJz",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "b4eeZ",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SlrKP",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "M6SgW3",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "yx9HE",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "pu8zj",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Qelca",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "FSazT",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "pKwgL",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Rs23J",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "hYm8Y",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "EFe3B",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "rNkJ5",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Mvket",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "qVBnX",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "lHRDv",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "lNz6H",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "dQcNz",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "gR4ws",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "t8J8oS",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "KJlbz",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "byZ8U",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "gDQOo",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "QanmL",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "X6nQT",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "yLJR3",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "gE8Hg",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "iUPZT",
+                  "x": 229,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fxvHd",
+          "name": "Ancho",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "W9YK8",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Qb7pR",
+                  "name": "Ancho",
+                  "fill": "$graphite",
+                  "content": "Ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "eNZMS",
+                  "name": "60 cm",
+                  "fill": "$graphite-2",
+                  "content": "60 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "c8ftTW",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "y00vC",
+                  "name": "600",
+                  "fill": "$graphite",
+                  "content": "600",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "Bweym",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y0WWf",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "ruzX7",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SRDWK",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "G7Vbm",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "prIml",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Q1XoiM",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "tE6TZ",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "TEDfv",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "aiu8e",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "H3fF5B",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "A73HD4",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "oQx22",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "uxZxk",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "I0MIA",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "UewOP",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "qYVld",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "rITwP",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "wNK3g",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "lxumf",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "k2y5Su",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "X26AVv",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Kw1u1",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ChLcH",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "t8SoB",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "quHWn",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "psqxJ",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "oxYKy",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "cLv8O",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Dqypo",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Dzlxr",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "c63dR",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "LOzez",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "vqg5A",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "aaWO3",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ba5jl",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "SeKXS",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "NnqVE",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "i6zsEV",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "OFNCk",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "B3oBPl",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "D84mi",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "rv9sn",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "h0rhSR",
+                  "x": 51,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K7MmqK",
+          "name": "Fondo",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 6,
+          "padding": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "m6KTF",
+              "name": "Head",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IrYij",
+                  "name": "Fondo",
+                  "fill": "$graphite",
+                  "content": "Fondo",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "mcRih",
+                  "name": "30 cm",
+                  "fill": "$graphite-2",
+                  "content": "30 cm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Hy8dN",
+              "name": "Value",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "REjLG",
+                  "name": "300",
+                  "fill": "$graphite",
+                  "content": "300",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 36,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "FRcIe",
+                  "name": "mm",
+                  "fill": "$graphite-2",
+                  "content": "mm",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GwIVy",
+              "name": "Tape ruler",
+              "width": "fill_container",
+              "height": 22,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "XuFmg",
+                  "x": 0,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "EFHBW",
+                  "x": 8,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "GHjKZ",
+                  "x": 16,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "OCdvO",
+                  "x": 24,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "p03Kjh",
+                  "x": 33,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "X0aqVc",
+                  "x": 41,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "MH65L",
+                  "x": 49,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "MHsOm",
+                  "x": 57,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ZeaBG",
+                  "x": 65,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "BIoQU",
+                  "x": 73,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "kilHw",
+                  "x": 82,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "L7TRR",
+                  "x": 90,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "L1a76",
+                  "x": 98,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "eIGzh",
+                  "x": 106,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "a5kKzC",
+                  "x": 114,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "VtSYz",
+                  "x": 122,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "r23DZt",
+                  "x": 130,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mhXrZ",
+                  "x": 139,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "IXnes",
+                  "x": 147,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "tzP16",
+                  "x": 155,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "DDLe4",
+                  "x": 163,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "XI6HI",
+                  "x": 171,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "syiUa",
+                  "x": 179,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "mUWZn",
+                  "x": 187,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "LX4Pd",
+                  "x": 196,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "TNGgI",
+                  "x": 204,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "STGpY",
+                  "x": 212,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "qHZ5q",
+                  "x": 220,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "eP4O5",
+                  "x": 228,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "whLoJ",
+                  "x": 236,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "K5P3cr",
+                  "x": 245,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "J7Z8WP",
+                  "x": 253,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "iRece",
+                  "x": 261,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "K4eYkK",
+                  "x": 269,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "p7HQT",
+                  "x": 277,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "WjzH7",
+                  "x": 285,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "rectangle",
+                  "id": "dN0lq",
+                  "x": 293,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "uc1hA",
+                  "x": 302,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "r7cioa",
+                  "x": 310,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "ATXm6",
+                  "x": 318,
+                  "y": 10,
+                  "name": "Tick 10",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 12
+                },
+                {
+                  "type": "rectangle",
+                  "id": "a3bKEX",
+                  "x": 326,
+                  "y": 4,
+                  "name": "Tick 50",
+                  "fill": "$graphite-2",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "ellipse",
+                  "id": "JHWP3",
+                  "x": 39,
+                  "y": 5,
+                  "name": "Handle",
+                  "fill": "$amber",
+                  "width": 16,
+                  "height": 16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZONMv",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "uAjUU",
+              "type": "ref",
+              "ref": "xuboc",
+              "name": "No sé las medidas",
+              "descendants": {
+                "HdCEC": {
+                  "enabled": true,
+                  "icon": "question"
+                },
+                "yPtaR": {
+                  "content": "No sé las medidas"
+                }
+              }
+            },
+            {
+              "id": "mNHaA",
+              "type": "ref",
+              "ref": "Nh9e4",
+              "name": "Siguiente",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "Le89K": {
+                  "content": "Siguiente",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "kc0YM",
+      "x": 1270,
+      "y": 2722,
+      "name": "Capture / Photos / Empty, one button / Target (mobile, D39)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "tua2t",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "redWN",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pwgSV",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "uNeCP",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "jSgr0",
+          "name": "Intro",
+          "fill": "$graphite-2",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.",
+          "lineHeight": 1.4,
+          "fontFamily": "$font-sans",
+          "fontSize": 15,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "j3LChe",
+          "name": "Add photos (NEW)",
+          "width": "fill_container",
+          "fill": "$paper",
+          "cornerRadius": "$radius-2xl",
+          "stroke": "$graphite-2",
+          "strokeWidth": 1.5,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            28,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "yCyvP",
+              "name": "image",
+              "width": 28,
+              "height": 28,
+              "icon": "image",
+              "library": "phosphor",
+              "fill": "$graphite"
+            },
+            {
+              "id": "M5Ejh",
+              "type": "ref",
+              "ref": "Nh9e4",
+              "name": "Agregar fotos",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "c2rDx": {
+                  "enabled": true,
+                  "icon": "camera"
+                },
+                "Le89K": {
+                  "content": "Agregar fotos",
+                  "fontSize": 15
+                },
+                "uO48v": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "type": "text",
+              "id": "i5PTG",
+              "name": "hasta 5",
+              "fill": "$graphite-2",
+              "content": "hasta 5",
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "gTaM9",
+          "name": "Tipo de mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "Seysq",
+              "name": "Tipo de mueble",
+              "fill": "$graphite",
+              "content": "Tipo de mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "id": "HUZGS",
+              "type": "ref",
+              "ref": "qvMsc",
+              "name": "KindSelect",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "d3WKh",
+              "name": "Kind help",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Zlfwh",
+          "name": "Description",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "V3ZJJ",
+              "name": "Describe el mueble",
+              "fill": "$graphite",
+              "content": "Describe el mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "WLVMG",
+              "name": "Textarea",
+              "width": "fill_container",
+              "height": 112,
+              "fill": "$paper",
+              "cornerRadius": "$radius-2xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "s1ydrc",
+                  "name": "Placeholder",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sFq1e",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "GFRm0",
+              "type": "ref",
+              "ref": "xuboc",
+              "name": "Medidas",
+              "descendants": {
+                "HdCEC": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "yPtaR": {
+                  "content": "Medidas"
+                }
+              }
+            },
+            {
+              "id": "KUQl8",
+              "type": "ref",
+              "ref": "Nh9e4",
+              "name": "Diseñar sin fotos",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "Le89K": {
+                  "content": "Diseñar sin fotos",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xhjno",
+      "x": 1780,
+      "y": 2722,
+      "name": "Capture / Photos / Three added and labeled / Target (mobile, D39)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        28,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "qk2l2",
+          "name": "Step header",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "R9HqjG",
+              "name": "Step",
+              "height": 26,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-full",
+              "padding": [
+                0,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hY6Kv",
+                  "name": "2 / 2",
+                  "fill": "$bone",
+                  "content": "2 / 2",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "ajmi9",
+              "name": "Fotos o descripción",
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 26,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jK51C",
+          "name": "Photos",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "uujD4",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "huRRb",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cARWf",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../assets/studio/scene/mobile-aparador.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "pYB7k",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "kX55g",
+                              "name": "Frente",
+                              "fill": "$graphite",
+                              "content": "Frente",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "xzx0y",
+                              "name": "caret-down",
+                              "width": 11,
+                              "height": 11,
+                              "icon": "caret-down",
+                              "library": "phosphor",
+                              "fill": "$graphite-2"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "u1veQ",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "BNQUt",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Gov8U",
+                      "name": "Agregar nota",
+                      "gap": 6,
+                      "padding": [
+                        4,
+                        2
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "gLS1A",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "e1ec3I",
+                          "name": "Agregar una nota",
+                          "fill": "$graphite",
+                          "content": "Agregar una nota",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PXj3c",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O0Gp7x",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "SaQyX",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 6,
+                          "padding": [
+                            0,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ZBiR3",
+                              "name": "3/4",
+                              "fill": "$graphite",
+                              "content": "3/4",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "NX4vS",
+                              "name": "caret-down",
+                              "width": 11,
+                              "height": 11,
+                              "icon": "caret-down",
+                              "library": "phosphor",
+                              "fill": "$graphite-2"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eYJ2X",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "EcPKC",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "tqNjT",
+                      "name": "Note",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-lg",
+                      "gap": 6,
+                      "padding": [
+                        6,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "BhGjf",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        },
+                        {
+                          "type": "text",
+                          "id": "jAsfc",
+                          "name": "Note text",
+                          "fill": "$graphite",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "«la de abajo es puerta»",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "okzw4",
+              "name": "Row",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vy4JF",
+                  "name": "Photo",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nBmUz",
+                      "name": "Thumbnail (stand-in: 3D render)",
+                      "clip": true,
+                      "width": "fill_container",
+                      "height": 150,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../assets/studio/scene/mobile-librero-v2.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": "$radius-xl",
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mvyzi",
+                          "x": 8,
+                          "y": 116,
+                          "name": "View tag",
+                          "height": 26,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "gap": 4,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "id": "NMHtq",
+                              "type": "ref",
+                              "ref": "b6dfNw",
+                              "name": "Pencil",
+                              "width": 18,
+                              "height": 7
+                            },
+                            {
+                              "type": "text",
+                              "id": "iJxky",
+                              "name": "Mirando la foto…",
+                              "fill": "$graphite",
+                              "content": "Mirando la foto…",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Z9SZg",
+                          "x": 135,
+                          "y": 8,
+                          "name": "Quitar foto",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$bone",
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "zVri4",
+                              "name": "trash",
+                              "width": 13,
+                              "height": 13,
+                              "icon": "trash",
+                              "library": "phosphor",
+                              "fill": "$graphite"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qESkK",
+                      "name": "Agregar nota",
+                      "gap": 6,
+                      "padding": [
+                        4,
+                        2
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "lFvFl",
+                          "name": "note-pencil",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "note-pencil",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "f2lYqP",
+                          "name": "Agregar una nota",
+                          "fill": "$graphite",
+                          "content": "Agregar una nota",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xLZ5z",
+                  "name": "Add more (NEW)",
+                  "width": "fill_container",
+                  "height": 150,
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$graphite-2",
+                  "strokeWidth": 1.5,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "dru7r",
+                      "name": "plus",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "plus",
+                      "library": "phosphor",
+                      "fill": "$graphite"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gkJj7",
+                      "name": "Agregar fotos",
+                      "fill": "$graphite",
+                      "content": "Agregar fotos",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CIqJb",
+                      "name": "3 de 5",
+                      "fill": "$graphite-2",
+                      "content": "3 de 5",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "PPoYx",
+          "name": "Tipo de mueble",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "XEJiM",
+              "name": "Tipo de mueble",
+              "fill": "$graphite",
+              "content": "Tipo de mueble",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "id": "olua5",
+              "type": "ref",
+              "ref": "qvMsc",
+              "name": "KindSelect",
+              "width": "fill_container"
+            },
+            {
+              "type": "text",
+              "id": "yhBn3",
+              "name": "Kind help",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.",
+              "lineHeight": 1.35,
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "I13f0O",
+          "name": "Description",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "text",
+              "id": "fh46B",
+              "name": "¿Algo que el experto deba saber?",
+              "fill": "$graphite",
+              "content": "¿Algo que el experto deba saber?",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "sHXtl",
+              "name": "Textarea",
+              "width": "fill_container",
+              "height": 64,
+              "fill": "$paper",
+              "cornerRadius": "$radius-2xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "s3wEQ1",
+                  "name": "Placeholder",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "TDCqi",
+          "name": "Actions",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "FvP9A",
+              "type": "ref",
+              "ref": "xuboc",
+              "name": "Medidas",
+              "descendants": {
+                "HdCEC": {
+                  "enabled": true,
+                  "icon": "arrow-left"
+                },
+                "yPtaR": {
+                  "content": "Medidas"
+                }
+              }
+            },
+            {
+              "id": "xWcoT",
+              "type": "ref",
+              "ref": "Nh9e4",
+              "name": "Analizar",
+              "height": 48,
+              "padding": [
+                0,
+                24
+              ],
+              "descendants": {
+                "Le89K": {
+                  "content": "Analizar",
+                  "fontSize": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CbNr0",
+      "x": 0,
+      "y": 2722,
+      "name": "BRIEF — Capture · target (approved, pending code)",
+      "clip": true,
+      "width": 640,
+      "height": 820,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "M0gg8",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Capture · target (approved, pending code)",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "HDpH0",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED 2026-09-27 — not in code yet. When it lands, this band replaces the as-is band above and the as-is captures are retaken.\n1. PURPOSE\nStart a design with less scrolling and nothing unlabeled.\n2. ENTRY POINTS\nSame as the as-is band.\n3. SCREENS (left → right)\n- Measures — \"Tipo de mueble\" leaves this step (UI-7); the tape ruler stays\n- Photos, empty — one \"Agregar fotos\", up to 5 (D39)\n- Photos, three added — views labeled by the model, notes in sight, \"3 de 5\" (D39)\n4. BUSINESS RULES\nD39 (proposal): no required photos; the expert asks for a missing view; photos are read when added.\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW copy: \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDesktop target · correcting a wrong view label · a failed reading · the simulated-expert banner.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
+          "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
           "fontWeight": "normal"

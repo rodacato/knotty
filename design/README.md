@@ -15,14 +15,14 @@ Names follow the code: files, artboards, tokens and components are in English. U
 |---|---|
 | `ui-kit.lib.pen` | The library: tokens and components, mirrored from `src/ui/system/` |
 | `ui-kit.CHANGELOG.md` | Kit versions and what each one changed |
-| `flows/*.pen` | One file per journey, drawn **as the code has it today** |
-| `_playground.pen` | Proposals and exploration, inside the system (vendors the kit like any flow) |
+| `flows/*.pen` | One file per journey: **as-is** bands (what the code does today) and **target** bands (approved, pending code) |
+| `_playground.pen` | Experiments only — kit, a blank brief, the log and two empty bases; approved work leaves it |
 | `DECISIONS.md` | Numbered findings registry (`UI-<n>`) the briefs cite |
 | `AUDIENCE.md` | Fictional users to audit usability and feel; their findings land in `DECISIONS.md` |
 | `audits/` | One file per persona audit, dated |
 | `CODE_CHANGES.md` | Work order for design decisions still pending in code |
 | `assets/` | App captures with example data, used as image fills in the as-is bands — **committed** |
-| `exports/` | Canvas PNGs for PR review — **committed** |
+| `exports/` | Canvas exports (JPEG) for PR review, one folder per flow band — **committed** |
 | `references/` | Local device captures — **never committed** (may contain real photos) |
 
 Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D1…D38`.
@@ -32,15 +32,18 @@ Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers i
 | File | Screens | Kit | Entry point |
 |---|---|---|---|
 | `studio.pen` | Studio as-is: 34 screens, mobile and desktop, default and states | 0.1.0 | After analysis, or from an example (`src/ui/App.tsx`) |
-| `capture.pen` | Capture as-is: home, measures, photos, analyzing — 12 screens, mobile and desktop | 0.1.0 | Opening the app with no design |
+| `capture.pen` | Capture as-is (12 screens, mobile and desktop) + target band: measures and photos without slots (D39, 3 screens) | 0.1.0 | Opening the app with no design |
+| `studio-target.pen` | Studio target, approved and pending code: 13 mobile + 5 desktop screens. Split from `studio.pen` past ~10 screens | 0.1.0 | Same as `studio.pen` |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 
-## Flows versus proposals
+## As-is, target and playground
 
-A flow in `flows/` draws **what the code does today**. Its as-is bands are real app captures (`assets/`, example data only) with finding pins on top — redrawing a capture pixel for pixel adds nothing. A redesign is drawn in `_playground.pen` and moves into `flows/` together with the code that implements it, in the same PR. A flow never promises something the app does not do, and a proposal always has a baseline to compare against.
+- An **as-is** band draws **what the code does today**, from real app captures (`assets/`, example data only) with finding pins on top — redrawing a capture pixel for pixel adds nothing.
+- A **target** band draws what Adrian **approved** and the code does not do yet. It lives in its flow (or in `<flow>-target.pen` when the flow is past ~10 screens), its brief says *approved, pending code*, and it never pretends to be shipped. When the code lands, the target replaces the as-is band and the captures are retaken.
+- The **playground** is for ideas only. An idea that gets approved moves to its flow as a target band; the playground goes back to the kit, a blank brief, the log and two empty bases.
 
-A screen that does not exist in code yet (how the furniture is assembled, D38) lives only in `_playground.pen`: there is no real copy to mirror.
+A screen whose copy does not exist in code yet marks every new string as NEW in its brief.
 
 ## Source of truth
 
