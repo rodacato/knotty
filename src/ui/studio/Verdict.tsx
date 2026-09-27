@@ -33,12 +33,12 @@ export function ReviewGate({ stale }: { stale: boolean }) {
       <p className="flex items-start gap-2 font-medium">
         <Hammer weight="duotone" className="mt-1 shrink-0 text-amber" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
       </p>
-      <p className="text-sm text-graphite-2">
+      <p className="text-sm text-graphite">
         Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar. Tarda unos segundos; con tu experto conectado, hasta un par de minutos.
       </p>
       <ul className="flex flex-col gap-1 text-sm">
         {WHAT_IT_CHECKS.map((q) => (
-          <li key={q} className="flex items-center gap-2 text-graphite-2">
+          <li key={q} className="flex items-center gap-2 text-graphite">
             <CheckCircle className="shrink-0 text-graphite/30" /> {q}
           </li>
         ))}
@@ -106,7 +106,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
       {c ? (
         <p className="text-[15px] leading-relaxed">{c.summary}</p>
       ) : (
-        <p className="text-sm text-graphite-2">
+        <p className="text-sm text-graphite">
           El carpintero no contestó{verdict.error ? `: ${verdict.error}` : '.'} Lo de abajo son las cuentas, que valen igual.
         </p>
       )}
@@ -128,7 +128,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
       )}
 
       <div>
-        <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">Las cuentas</p>
+        <p className="text-sm font-medium">Las cuentas</p>
         <ul className="divide-y divide-line">
           {verdict.checks.map((x) => (
             <CheckRow key={x.id} c={x} design={design} onRequest={onRequest} />

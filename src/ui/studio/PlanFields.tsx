@@ -3,8 +3,9 @@ import { boardsFor } from '../../domain/materials/catalog'
 import { isVisible, type CustomValues, type FieldSpec } from '../../domain/furniture/modules/fields'
 import type { FurnitureModule } from '../../domain/furniture/modules/module'
 import { useServices } from '../services'
+import { Field, Input } from '../system/Field'
 import { CabinetColumns } from './CabinetColumns'
-import { NumberField, Segmented, Stepper } from './PlanControls'
+import { Segmented, Stepper } from './PlanControls'
 
 // Any plan as a form, drawn from the fields its module lists: no kind of furniture has a form of its own.
 
@@ -12,6 +13,9 @@ import { NumberField, Segmented, Stepper } from './PlanControls'
 const CUSTOM: { [K in keyof CustomValues]: ComponentType<{ label: string; value: CustomValues[K]; onChange: (value: CustomValues[K]) => void }> } = {
   cabinetColumns: CabinetColumns,
 }
+
+/** An emptied number shows as empty rather than 0, unless 0 is the minimum. */
+const numberText = (value: number, min = 1) => (value || value === min ? value : '')
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -22,7 +26,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function Field<P>({ field, plan, onChange }: { field: FieldSpec<P>; plan: P; onChange: (plan: P) => void }) {
+function Control<P>({ field, plan, onChange }: { field: FieldSpec<P>; plan: P; onChange: (plan: P) => void }) {
   const { catalog } = useServices()
   if (!isVisible(field, plan)) return null
   switch (field.type) {
@@ -34,7 +38,7 @@ function Field<P>({ field, plan, onChange }: { field: FieldSpec<P>; plan: P; onC
         </section>
       )
     case 'note':
-      return <p className="text-xs text-graphite-2">{field.text}</p>
+      return <p className="text-xs text-graphite">{field.text}</p>
     case 'numbers':
       return (
         <div className={`grid ${field.columns === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
@@ -42,7 +46,11 @@ function Field<P>({ field, plan, onChange }: { field: FieldSpec<P>; plan: P; onC
         </div>
       )
     case 'number':
-      return <NumberField label={field.label} suffix={field.unit} min={field.min} value={field.get(plan)} onChange={(v) => onChange(field.set(plan, v))} />
+      return (
+        <Field label={field.label}>
+          <Input type="number" inputMode="numeric" min={field.min} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)))} />
+        </Field>
+      )
     case 'choice':
       return (
         <Row label={field.label}>
@@ -71,7 +79,7 @@ function Field<P>({ field, plan, onChange }: { field: FieldSpec<P>; plan: P; onC
 }
 
 function Fields<P>({ fields, plan, onChange }: { fields: FieldSpec<P>[]; plan: P; onChange: (plan: P) => void }) {
-  return fields.map((field, i) => <Field key={i} field={field} plan={plan} onChange={onChange} />)
+  return fields.map((field, i) => <Control key={i} field={field} plan={plan} onChange={onChange} />)
 }
 
 /** A plan's form, from its module's fields. */

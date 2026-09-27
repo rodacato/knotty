@@ -80,14 +80,14 @@ export function Analyzing() {
         })}
       </ol>
       {stage?.name === 'correcting' && (
-        <p className="max-w-xs text-center text-sm text-graphite-2">
+        <p className="max-w-xs text-center text-sm text-graphite">
           Intento {stage.attempt + 1} de {ATTEMPTS}: el experto está corrigiendo piezas que no cerraban.
         </p>
       )}
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="numerals text-sm text-graphite-2">{clock(seconds)}</p>
         {attemptSeconds >= PATIENCE && (
-          <p className="max-w-xs text-sm text-graphite-2">
+          <p className="max-w-xs text-sm text-graphite">
             {pieceByPiece
               ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'
               : stage?.name === 'correcting'

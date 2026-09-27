@@ -10,6 +10,7 @@ import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/materials
 import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } from '../../domain/materials/finishes'
 import type { DesignState } from '../../domain/session/state'
 import { Title } from '../system/components'
+import { Field, Input } from '../system/Field'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
@@ -46,14 +47,15 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
           confirm()
         }}
       >
-        <input
+        <Input
+          size="sm"
           autoFocus
           onFocus={(e) => e.target.select()}
           inputMode="decimal"
           value={text}
           onChange={(e) => setText(e.target.value)}
           aria-label="Precio en pesos"
-          className="numerals w-20 rounded-lg border border-amber bg-bone px-2 py-1 text-right text-xs outline-none"
+          className="w-24 text-right"
         />
         <button type="submit" aria-label="Guardar precio" className="grid size-7 place-items-center rounded-full bg-graphite text-bone">
           <Check size={12} weight="bold" />
@@ -72,7 +74,7 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
         title="Cambiar por el precio de tu tienda"
       >
         {value === null ? 'sin precio' : `${changed ? '' : '~'}${weights.format(value)} ${unit}`}
-        <span className={`rounded px-1 text-[10px] ${changed ? 'bg-graphite text-bone' : 'bg-kraft'}`}>{changed ? 'tu precio' : 'ref.'}</span>
+        <span className={`rounded px-1 text-xs ${changed ? 'bg-graphite text-bone' : 'bg-kraft'}`}>{changed ? 'tu precio' : 'ref.'}</span>
         <PencilSimple size={11} />
       </button>
       {changed && value !== base && (
@@ -145,20 +147,17 @@ function CutSettings({ base }: { base: LayoutSettings }) {
       </summary>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {fields.map((c) => (
-          <label key={c.key} className="flex flex-col gap-1" title={c.help}>
-            <span className="text-xs text-graphite-2">{c.name}</span>
-            <span className="flex items-baseline gap-1 rounded-xl border border-line px-2 focus-within:border-amber">
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={current[c.key]}
-                onChange={(e) => save({ ...settings, layout: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
-                className="numerals min-h-9 w-full bg-transparent outline-none"
-              />
-              <span className="numerals text-xs text-graphite-2">mm</span>
-            </span>
-          </label>
+          <Field key={c.key} label={c.name}>
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              unit="mm"
+              title={c.help}
+              value={current[c.key]}
+              onChange={(e) => save({ ...settings, layout: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
+            />
+          </Field>
         ))}
       </div>
       {settings.layout && (
@@ -196,10 +195,10 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
           </button>
         ))}
       </div>
-      <p className="text-sm leading-relaxed text-graphite-2">{chosen.advice}</p>
+      <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
       {finish && (
         <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
-          <li className="px-4 py-3 text-xs leading-relaxed text-graphite-2">
+          <li className="px-4 py-3 text-xs leading-relaxed text-graphite">
             <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no) y los cantos con cubrecanto. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
           </li>
           {finish.lines.map((l) => {
@@ -236,7 +235,7 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
           {finish.sandpaper.length > 0 && (
             <li className="px-4 py-3 text-sm">
               Lija grano {finish.sandpaper.join(', ').replace(/, (\d+)$/, ' y $1')}
-              <span className="block text-xs text-graphite-2">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
+              <span className="block text-xs text-graphite">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
             </li>
           )}
         </ul>
@@ -267,7 +266,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
     return (
       <div className="flex flex-col gap-4 p-4">
         <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
-        <p className="text-sm text-graphite-2">
+        <p className="text-sm text-graphite">
           Con estos problemas, lo que compres probablemente no sirva.{' '}
           <button type="button" className="underline" onClick={() => setAnyway(verdict.signature)}>
             Ver la lista de todos modos
@@ -281,12 +280,12 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
     <div className="flex flex-col gap-4 p-4">
       <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
       <section className="flex flex-col gap-2 rounded-2xl border border-line bg-bone p-4">
-        <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">Costo aproximado</p>
+        <p className="text-sm text-graphite-2">Costo aproximado</p>
         <p className="font-display text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
           <span className="text-graphite-2">~</span>
           {weights.format(purchase.cost.total)}
         </p>
-        <p className="text-sm text-graphite-2">
+        <p className="text-sm text-graphite">
           {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
         </p>
         <div className="flex items-start gap-2 rounded-xl border border-amber/40 bg-amber-soft px-3 py-2 text-xs leading-relaxed">

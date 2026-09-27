@@ -5,6 +5,7 @@ import type { Stage } from '../../application/useCases'
 import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
+import { TextArea } from '../system/Field'
 import { useServices } from '../services'
 import { TakePhoto } from '../system/TakePhoto'
 import { useStore } from '../store'
@@ -82,7 +83,7 @@ function Questions({ m, state }: { m: Message; state: DesignState }) {
           </div>
         )
       })}
-      {batch && !m.answered && m.questions.some((p) => p.options) && <p className="text-xs text-graphite-2">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
+      {batch && !m.answered && m.questions.some((p) => p.options) && <p className="text-xs text-graphite">Tus respuestas esperan en la bandeja y van juntas; lo que no contestes lo decide el experto.</p>}
     </>
   )
 }
@@ -117,20 +118,20 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
           <PencilSimple weight="duotone" className="text-amber" /> Experto
           {m.version &&
             (m.version === state.current || !state.versions.some((v) => v.n === m.version) ? (
-              <span className="numerals rounded-full bg-kraft px-1.5 py-px text-[10px] text-graphite">v{m.version}</span>
+              <span className="numerals rounded-full bg-kraft px-1.5 py-px text-xs text-graphite">v{m.version}</span>
             ) : (
               <button
                 type="button"
                 onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`numerals rounded-full px-1.5 py-px text-[10px] underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-graphite' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
+                className={`numerals rounded-full px-1.5 py-px text-xs underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-graphite' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
               >
                 v{m.version}
               </button>
             ))}
-          {m.proposal === 'applied' && <span className="text-[10px]">· aplicada</span>}
-          {m.proposal === 'discarded' && <span className="text-[10px]">· sin aplicar</span>}
+          {m.proposal === 'applied' && <span className="text-xs">· aplicada</span>}
+          {m.proposal === 'discarded' && <span className="text-xs">· sin aplicar</span>}
         </div>
         {m.error && <Warning className="float-left mt-1 mr-2 text-rust" weight="bold" />}
         {m.text.split('\n\n').map((p, i) => (
@@ -163,7 +164,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
                 <Stamp severity="critical" />
                 <span>
                   {first.message}
-                  {more > 0 && <span className="text-graphite-2"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
+                  {more > 0 && <span className="text-graphite"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
                 </span>
               </li>
             ))}
@@ -221,7 +222,7 @@ function RequestedPhoto({ angle, reason, message }: { angle: string; reason: str
       <p className="flex items-start gap-2 text-sm">
         <Camera className="mt-0.5 shrink-0 text-amber" weight="duotone" />
         <span>
-          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-graphite-2">{reason}</span>
+          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-graphite">{reason}</span>
         </span>
       </p>
       <div className="flex gap-2">
@@ -287,7 +288,7 @@ export function Chat({ state }: { state: DesignState }) {
           send()
         }}
       >
-        <textarea
+        <TextArea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
@@ -299,7 +300,7 @@ export function Chat({ state }: { state: DesignState }) {
           rows={1}
           placeholder="Pide un cambio: «refuerza la base»…"
           aria-label="Mensaje para el experto"
-          className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-line bg-bone px-4 py-2.5 text-[15px] outline-none [field-sizing:content] focus:border-amber"
+          className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
         />
         {thinking ? (
           <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">

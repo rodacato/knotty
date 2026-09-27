@@ -11,7 +11,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
   const total = list.reduce((n, r) => n + r.count, 0)
   return (
     <div className="flex flex-col gap-3 p-4">
-      <p className="text-sm text-graphite-2">
+      <p className="text-sm text-graphite">
         {total} piezas en {new Set(list.map((r) => r.thickness)).size} espesores. Toca una para verla.
       </p>
       <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">

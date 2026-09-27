@@ -46,7 +46,7 @@ const STAMP: Record<Severity, { text: string; className: string; tilt: string }>
 export function Stamp({ severity }: { severity: Severity }) {
   const s = STAMP[severity]
   return (
-    <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply dark:mix-blend-screen ${s.className} ${s.tilt}`}>
+    <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-xs font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply dark:mix-blend-screen ${s.className} ${s.tilt}`}>
       {s.text}
     </span>
   )

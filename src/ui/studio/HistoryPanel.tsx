@@ -45,10 +45,10 @@ export function HistoryPanel({ state }: { state: DesignState }) {
                 <div className="flex items-baseline gap-2">
                   <span className="numerals text-xs text-graphite-2">v{v.n}</span>
                   <span className="min-w-0 flex-1 leading-snug font-medium">{v.summary}</span>
-                  {current && <span className="rounded-full bg-graphite px-2 py-px text-[10px] font-medium text-bone">Actual</span>}
+                  {current && <span className="rounded-full bg-graphite px-2 py-px text-xs font-medium text-bone">Actual</span>}
                 </div>
-                {v.reason && v.reason !== v.summary && !v.reason.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-graphite-2" title={v.reason}>«{v.reason}»</p>}
-                <p className="text-[11px] text-graphite-2">
+                {v.reason && v.reason !== v.summary && !v.reason.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-graphite" title={v.reason}>«{v.reason}»</p>}
+                <p className="text-xs text-graphite-2">
                   {ago(v.date)}
                   {v.origin && ` · ${PROVIDER[v.origin.provider] ?? v.origin.provider}`}
                   {v.operations.length > 0 && ` · ${v.operations.length} ${v.operations.length === 1 ? 'operación' : 'operaciones'}`}

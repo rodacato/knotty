@@ -5,6 +5,7 @@ import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/design/resolve'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
+import { Field, Input } from '../system/Field'
 import { KindSelect } from '../system/KindSelect'
 import { KIND_NOUN, type DesignKind, type KindSource } from '../../domain/design/kind'
 import { kindOf } from '../../domain/furniture/kind'
@@ -32,14 +33,14 @@ function Memory({ state }: { state: DesignState }) {
     <section className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
       <div>
         <h3 className="font-display text-base font-semibold">Lo que el experto recuerda</h3>
-        <p className="text-xs text-graphite-2">Se lo recuerda en cada cambio. Quita lo que ya no aplique.</p>
+        <p className="text-xs text-graphite">Se lo recuerda en cada cambio. Quita lo que ya no aplique.</p>
       </div>
       <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">Tus requisitos</p>
+        <p className="text-sm font-medium">Tus requisitos</p>
         {state.requirements.length ? (
           <ul className="flex flex-col gap-1.5">{state.requirements.map((r) => item(r.text, () => removeNote(r.id), r.id))}</ul>
         ) : (
-          <p className="text-sm text-graphite-2">Nada todavía: dile al experto cosas como «mi espacio mide 90 cm».</p>
+          <p className="text-sm text-graphite">Nada todavía: dile al experto cosas como «mi espacio mide 90 cm».</p>
         )}
         <form
           className="flex gap-2"
@@ -49,21 +50,15 @@ function Memory({ state }: { state: DesignState }) {
             setNote('')
           }}
         >
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Agregar una nota: «lo voy a pintar»"
-            aria-label="Nota para el experto"
-            className="min-h-10 flex-1 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber"
-          />
-          <Button type="submit" variant="secondary" className="min-h-10 px-3" disabled={!note.trim()} aria-label="Agregar nota">
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Agregar una nota: «lo voy a pintar»" aria-label="Nota para el experto" className="flex-1" />
+          <Button type="submit" variant="secondary" className="min-h-11 px-3" disabled={!note.trim()} aria-label="Agregar nota">
             <Plus weight="bold" />
           </Button>
         </form>
       </div>
       {state.decisions.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium tracking-wide text-graphite-2 uppercase">Decisiones de diseño</p>
+          <p className="text-sm font-medium">Decisiones de diseño</p>
           <ul className="flex flex-col gap-1.5">{state.decisions.map((d) => item(d.text, () => removeDecision(d.topic), d.topic))}</ul>
         </div>
       )}
@@ -100,12 +95,9 @@ function KindPicker({ state }: { state: DesignState }) {
   }
   return (
     <section className="flex flex-col gap-2 px-4 pt-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium">Tipo de mueble</span>
+      <Field label="Tipo de mueble" error={error} help={!redo && (known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.')}>
         <KindSelect value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
-      </label>
-      {!redo && <p className="text-xs text-graphite-2">{known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'}</p>}
-      {error && <p className="text-xs text-rust">{error}</p>}
+      </Field>
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-sm">
           <p>
@@ -143,7 +135,7 @@ function Photos({ state }: { state: DesignState }) {
         {state.thumbnails.map((m) => (
           <figure key={m.angle} className="flex shrink-0 flex-col items-center gap-1">
             <img src={m.dataUrl} alt={`Foto ${angleLabel(m.angle)}`} className="size-20 rounded-xl border border-line object-cover" />
-            <figcaption className="text-[11px] text-graphite-2">{angleLabel(m.angle)}</figcaption>
+            <figcaption className="text-xs text-graphite-2">{angleLabel(m.angle)}</figcaption>
           </figure>
         ))}
       </div>
@@ -159,7 +151,7 @@ export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geomet
       {hasPlan ? (
         <PlanSheet state={state} />
       ) : (
-        <p className="px-4 pt-4 text-sm text-graphite-2">Este mueble no tiene ficha: se ajusta con el experto o editando cada pieza en el 3D.</p>
+        <p className="px-4 pt-4 text-sm text-graphite">Este mueble no tiene ficha: se ajusta con el experto o editando cada pieza en el 3D.</p>
       )}
       <div className="flex flex-col gap-4 p-4">
         <Memory state={state} />
