@@ -6,17 +6,19 @@
 
 | Layer / pattern | Real consumers (measured 2026-09-27) | Verdict |
 |---|---|---|
-| Text inputs, selects and textareas styled by hand | 27 elements in 12 files (`Settings`, `Keys`, `PieceEditor`, `FurniturePanel`, `PlanControls`, `Materials`, `Chat`, `TakePhoto`, `CabinetColumns`, `Capture`, `KindSelect`, `BenchPanel`) | One `Field` in `src/ui/system/`, then kit |
+| Text inputs, selects and textareas styled by hand | 27 `input`/`select`/`textarea` in 12 files, of which 20 are text fields — the rest are 2 hidden file inputs, a radio, 2 checkboxes and the tape in `MeasureField` | ✅ `src/ui/system/Field.tsx` (K7); kit with 0.3.0 |
 | Status pills over the 3D | 3 in `src/ui/studio/Studio.tsx` | One `StatusChip` with priority, then kit |
 | Proposal actions | 2 renderings of one proposal (`Chat.tsx`, `NoticePanel.tsx`) | One component, then kit |
 | `Segmented` | 3 files, all in `src/ui/studio/` | Feature-local: stays in the flow, not the kit |
-| Uppercase labels | 12 (11 eyebrows + Home's tagline; the `Stamp` stays) | Sentence case; nothing enters the kit |
+| Uppercase labels | 6 left on 2026-09-27 (K1 removed the rest; the `Stamp` stays) | ✅ Sentence case with K5 |
 
 ## 1. `Field` — one input for the whole app
 
-**Status:** proposed · pending in code
+**Status:** landed (K7, with K5) · kit pending: `Field` enters `ui-kit.lib.pen` with the 0.3.0 bump (§6), so the flows re-vendor once
 
-- Replace the hand-styled inputs above with one component (label, value, unit, help, error). Closes nothing by itself; it is the prerequisite for a consistent 15 px readable text (Doña Carmen, audits) and for the kit to stop approximating inputs.
+- Landed: `Field` (label on top, then help or error), `Input` (`unit` and `end` inside the box), `Select` (own caret) and `TextArea`, in `src/ui/system/Field.tsx`. The 20 text fields use them; `NumberField` is gone.
+- Every control is 16 px: below that, iOS Safari zooms the page on focus. Labeled fields are 44 px tall (`min-h-11`); the inline ones inside a row (cabinet percentages, price) are 32 px.
+- Out on purpose: `MeasureField` in Capture is the tape, not a form field.
 
 ## 2. `StatusChip` — one status over the 3D
 
@@ -44,9 +46,9 @@
 
 ## 5. Sentence-case section labels
 
-**Status:** proposed · pending in code — `UI-2`
+**Status:** landed with K5 — `UI-2` (labels only; grouping and nested cards stay open)
 
-- The 11 `tracking-wide text-graphite-2 uppercase` labels and Home's tagline become sentence case (12).
+- The 5 remaining eyebrows and Home's tagline are sentence case (6; K1 had already removed the rest).
 
 ## 6. Amber for selection only (K6)
 

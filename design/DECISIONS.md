@@ -48,14 +48,17 @@ Read across UI-1…UI-19, B-1, B-2, both persona audits and `CODE_CHANGES.md`, w
 | **K2** | one component — ✅ landed (`studio-panel-and-status`) | **StatusChip**: one status over the 3D. Landed with the order corrected while implementing: what changes what you are looking at comes first — an old version, then a proposal or preview, then problems, then pieces to confirm (problems stay counted on the header bell). "Resuelto: …" and the expert working in the background landed with K1. | UI-5, UI-13 (header vs 3D), UI-18, UI-15 |
 | **K3** | one rule, broken twice — ✅ landed (`studio-panel-and-status`) | **"The 3D is never covered"** is written in D14 and in `Studio.tsx:146` and broken by the piece card and the pills. Fix the rule's home, not the instances: the panel is the only place anything opens (notices, history, piece). | B-2, UI-5, UI-4 |
 | **K4** | one cause | **Width hides meaning**: labels drop at phone width — `hidden sm:inline` ×3 in `Studio.tsx`, compact `TakePhoto`, the icon-only ruler. One rule: no action without a word at any width, except close and send. | UI-19, audit C, UI-11 |
-| **K5** | one cause | **Small grey mono for things people read**: `text-[10px]`/`text-[11px]` ×19 in 10 files, plus `graphite-2` body text. One decision: 12 px minimum, `graphite` for anything that is read, not scanned. | Doña Carmen (both passes), UI-2 |
+| **K5** | one cause — ✅ landed (`field-k7-k5`) | **Small grey mono for things people read**: `text-[10px]`/`text-[11px]` ×19 in 10 files, plus `graphite-2` body text. One decision: 12 px minimum, `graphite` for anything that is read, not scanned. Landed: the 14 sub-12 px uses outside the debug panel (8 files) are 12 px, the `Stamp` included; sentences (explanations, help, empty states, dialog descriptions) turned `graphite`; labels, units, numbers and metadata stay `graphite-2`, which is AA on bone. | Doña Carmen (both passes), UI-2 |
 | **K6** | one token decision — ✅ decided | **Amber = selection and focus only**; "recommendation" and the verdict "Arréglalo" need their own tone. A kit token change: every flow re-vendors. | UI-1 |
-| **K7** | one component | **`Field`**: 27 hand-styled inputs in 12 files. Prerequisite for K5 in forms. | CODE_CHANGES §1 |
+| **K7** | one component — ✅ landed (`field-k7-k5`), kit with 0.3.0 | **`Field`**: 27 hand-styled inputs in 12 files — 20 of them text fields, re-counted. Landed as `Field`/`Input`/`Select`/`TextArea`, drawn from the studio target (label on top, 44 px box, unit inside). Controls are 16 px so iOS does not zoom on focus. | CODE_CHANGES §1 |
 
 ### Corrected counts
 
 - UI-1: 23 files / 100 uses (the 26 / 103 first seen included the debug panel).
 - UI-2: 12 uppercase labels to change, not 13 or 11 — the two earlier counts measured different things, and the `Stamp` is `keep`.
+- K5: 14 sub-12 px uses in 8 files without the debug panel (20 with it), not 19 in 10.
+- K7: 27 elements, 20 of them text fields.
+- UI-2: 6 uppercase labels left once K1 landed.
 - `disabled={thinking}`: 19 sites in 8 files — the blast radius of UI-15 step 1, larger than "chips, fixes and edits" suggested.
 
 ### Escapees — shared components that live in a feature folder
@@ -71,7 +74,7 @@ Both are kit that was never declared kit. Move them to `src/ui/system/` before t
 ### What is blocked, and on what
 
 1. ~~K6 (amber token) blocks re-vendoring~~ — **decided 2026-09-27** and applied to the target bands; no longer blocking.
-2. **K7 (`Field`) blocks** the rest of the Studio target screens; K2 and K3 landed.
+2. ~~K7 (`Field`) blocks the rest of the Studio target screens~~ — landed with K5; K2 and K3 landed before.
 3. **K1 blocks UI-15 step 2** (editing while the expert works): the 19 `disabled={thinking}` sites are the change, and K1 owns most of them.
 4. D39 (photos without slots) is **not blocked**: it touches Capture and reading only.
 
