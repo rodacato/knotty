@@ -6,7 +6,7 @@
       "id": "B6M5yG",
       "x": 0,
       "y": -900,
-      "name": "KIT — vendored ui-kit 0.1.0 (do not edit here)",
+      "name": "KIT — vendored ui-kit 0.3.0 (do not edit here)",
       "width": 1600,
       "fill": "$bone",
       "stroke": "$line",
@@ -332,7 +332,7 @@
                   "fill": "$rust",
                   "content": "CRÍTICO",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -346,7 +346,7 @@
               "opacity": 0.9,
               "rotation": -2,
               "cornerRadius": "$radius-stamp",
-              "stroke": "$amber",
+              "stroke": "$graphite",
               "strokeWidth": 2,
               "padding": [
                 1,
@@ -357,10 +357,10 @@
                   "type": "text",
                   "id": "mlvWw",
                   "name": "Label",
-                  "fill": "$amber",
+                  "fill": "$graphite",
                   "content": "RECOMENDACIÓN",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -388,7 +388,7 @@
                   "fill": "$slate",
                   "content": "DETALLE",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -597,6 +597,7 @@
                 0,
                 12
               ],
+              "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
                 {
@@ -606,7 +607,7 @@
                   "fill": "$graphite",
                   "content": "Que Knotty lo decida",
                   "fontFamily": "$font-sans",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "normal"
                 },
                 {
@@ -628,105 +629,175 @@
           "id": "mkZ61",
           "name": "Row",
           "gap": 24,
-          "alignItems": "center",
           "children": [
             {
               "type": "frame",
-              "id": "fDnN1",
-              "name": "TakePhoto",
+              "id": "PsjGk",
+              "name": "Field/Input",
               "reusable": true,
-              "gap": 8,
+              "width": 160,
+              "layout": "vertical",
+              "gap": 6,
               "children": [
                 {
-                  "id": "lPZwd",
-                  "type": "ref",
-                  "ref": "Nh9e4",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    16
-                  ],
-                  "descendants": {
-                    "c2rDx": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "Le89K": {
-                      "content": "Tomar foto",
-                      "fontSize": 12
-                    },
-                    "uO48v": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "oGRNo",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Alto",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "ltGvh",
-                  "type": "ref",
-                  "ref": "Aknuq",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "spdCv",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    16
+                    12
                   ],
-                  "descendants": {
-                    "D2EIC": {
-                      "fontSize": 12
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VbUpA",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "1800",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "po827",
+                      "name": "Unit",
+                      "fill": "$graphite-2",
+                      "content": "mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
                     }
-                  }
+                  ]
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "u0Toq",
-              "name": "TakePhoto/Compact",
+              "id": "jnoR8",
+              "name": "Field/Select",
               "reusable": true,
-              "width": 140,
+              "width": 200,
+              "layout": "vertical",
               "gap": 6,
               "children": [
                 {
-                  "id": "sEcRj",
-                  "type": "ref",
-                  "ref": "Nh9e4",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    8
-                  ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "c2rDx": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "Le89K": {
-                      "enabled": false
-                    },
-                    "uO48v": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "esvcR",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Espesor",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "mjZsA",
-                  "type": "ref",
-                  "ref": "Aknuq",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "DYxhB",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    8
+                    12
                   ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "D2EIC": {
-                      "enabled": false
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HMhWF",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "18 mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Q2WyPz",
+                      "name": "Caret",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "caret-down",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
                     }
-                  }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "drd7j",
+              "name": "Field/TextArea",
+              "reusable": true,
+              "width": 320,
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LKNhZ",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "¿Algo que el experto deba saber?",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "xb4WG",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Dfdrh",
+                      "name": "Placeholder",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    }
+                  ]
                 }
               ]
             }
@@ -866,6 +937,18 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "iXdgI",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · kit 0.3.0 · re-vendored: Stamp/Recommendation graphite, stamps 12 px, KindSelect 16 px, Field added, TakePhoto removed · K6, K7, UI-1",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -3041,7 +3124,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED and in code (photos-d39, 2026-09-27).\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n- A photo's note stays open as a text field while it has text: closing it on blur moved \"Analizar\" under the pointer and lost the click (UI-8).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED and in code (photos-d39, 2026-09-27).\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n- A photo's note stays open as a text field while it has text: closing it on blur moved \"Analizar\" under the pointer and lost the click (UI-8).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -3085,7 +3168,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nSame flow, rules and copy as the mobile band.\n3. SCREENS (columns are the steps; step 4 has no desktop screen: the mobile states apply)\n- Home\n- One screen, no expert connected: the banner above the two columns (at most 760 wide, so it reads); kind, measures and description on the left, photos on the right\n- One screen, empty: the same without the banner\n- One screen, filled: fits in 900 px without scrolling\n- Analyzing\n6. STATES NOT DRAWN\nThe mobile states band applies as is: errors and the missing key sit above the actions, in the left column's width.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nSame flow, rules and copy as the mobile band.\n3. SCREENS (columns are the steps; step 4 has no desktop screen: the mobile states apply)\n- Home\n- One screen, no expert connected: the banner above the two columns (at most 760 wide, so it reads); kind, measures and description on the left, photos on the right\n- One screen, empty: the same without the banner\n- One screen, filled: fits in 900 px without scrolling\n- Analyzing\n6. STATES NOT DRAWN\nThe mobile states band applies as is: errors and the missing key sit above the actions, in the left column's width.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -10992,7 +11075,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nStates of the one screen; each starts from the filled screen and sits under its step: 3 · Filling in (view menu, reading failed, note, five photos, kind changed) and 4 · Sending (missing key, design failed).\n3. SCREENS\n- Photo reading failed: the tag reads \"¿Qué vista?\" and the person picks it; no retry (the photo is still sent)\n- Choosing a photo's view: the tag opens a menu — Frente, 3/4, Lateral, Interior, Uniones; the chosen one in amber-soft (selection, K6)\n- Five photos, the limit: the add tile disappears; \"5 de 5\" next to \"Fotos\"\n- Design failed, retry: reconstructFailed() above the actions, with \"Reintentar\" and \"Ver qué pasó\" (src/application/useCases/copy.ts)\n- Missing API key: missing() (src/ports/Preferences.ts) + \"Configurar\", neutral (K6); \"Analizar\" disabled\n- Writing a photo note: the note opens under its photo as a TextArea with focus\n- Kind changed, measures kept: measures the person touched stay; untouched ones re-fill with the new kind's typical\nKIT GAPS\nrust-soft (the error box is bg-rust/10 in code) · Field (0.3.0)\nNEW COPY\n\"¿Qué vista?\", \"5 de 5\", \"Son tus medidas: se quedan aunque cambies el tipo.\"",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nStates of the one screen; each starts from the filled screen and sits under its step: 3 · Filling in (view menu, reading failed, note, five photos, kind changed) and 4 · Sending (missing key, design failed).\n3. SCREENS\n- Photo reading failed: the tag reads \"¿Qué vista?\" and the person picks it; no retry (the photo is still sent)\n- Choosing a photo's view: the tag opens a menu — Frente, 3/4, Lateral, Interior, Uniones; the chosen one in amber-soft (selection, K6)\n- Five photos, the limit: the add tile disappears; \"5 de 5\" next to \"Fotos\"\n- Design failed, retry: reconstructFailed() above the actions, with \"Reintentar\" and \"Ver qué pasó\" (src/application/useCases/copy.ts)\n- Missing API key: missing() (src/ports/Preferences.ts) + \"Configurar\", neutral (K6); \"Analizar\" disabled\n- Writing a photo note: the note opens under its photo as a TextArea with focus\n- Kind changed, measures kept: measures the person touched stay; untouched ones re-fill with the new kind's typical\nKIT GAPS\nrust-soft (the error box is bg-rust/10 in code) · Field (0.3.0)\nNEW COPY\n\"¿Qué vista?\", \"5 de 5\", \"Son tus medidas: se quedan aunque cambies el tipo.\"",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -11231,7 +11314,7 @@
   "variables": {
     "kit-version-source": {
       "type": "string",
-      "value": "0.1.0"
+      "value": "0.3.0"
     },
     "grid-x0": {
       "type": "number",

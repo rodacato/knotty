@@ -8,9 +8,15 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
-## 0.3.0 — planned, lands with the code
+## 0.3.0 — amber for selection only, Field, no TakePhoto
 
-`Stamp/Recommendation` goes from amber to graphite, and amber is kept for selection and focus only (K6, `UI-1`, decided 2026-09-27). A **value** change: every flow re-vendors. Until the code lands, the target bands apply it as local overrides.
+Lands with the code of K6 (`amber-k6`), K7 (#113) and D39 (#115). A **value** change and a removal: every flow re-vendors.
+
+**Changed:** `Stamp/Recommendation` is graphite, not amber (K6, `UI-1`); the three stamps are 12 px, as the code has been since K5; `KindSelect` is 16 px with its caret at the edge, as `Select` draws it.
+
+**Added:** `Field/Input` (label, 44 px box, value in mono, unit inside), `Field/Select` and `Field/TextArea`, mirrored from `src/ui/system/Field.tsx`.
+
+**Removed:** `TakePhoto` and `TakePhoto/Compact`: the code deleted `TakePhoto.tsx` with D39.
 
 ## 0.2.0 — fixtures
 
