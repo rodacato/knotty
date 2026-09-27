@@ -96,7 +96,7 @@ They are not the experts: [`docs/carpinteria/expertos.md`](../docs/carpinteria/e
 
 ## How to audit with them
 
-1. **Pick the screens and the personas.** Default: the flow's as-is captures (`assets/`) against the proposal (`_playground.pen` exports), with personas 1–4; add Doña Carmen whenever text size, icons or touch targets change.
+1. **Pick the screens and the personas.** Default: the running app against the flow's exports (`exports/`), with personas 1–4; add Doña Carmen whenever text size, icons or touch targets change.
 2. **Walk each screen as the persona**, in their voice, and answer:
    - **Understand** — what is clear, what they think the screen is for.
    - **Lost** — where they hesitate, misread, or would tap the wrong thing.

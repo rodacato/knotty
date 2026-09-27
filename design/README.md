@@ -19,9 +19,8 @@ Names follow the code: files, artboards, tokens and components are in English. U
 | `_playground.pen` | Experiments only — kit, a blank brief, the log and two empty bases; approved work leaves it |
 | `DECISIONS.md` | Numbered findings registry (`UI-<n>`) the briefs cite |
 | `AUDIENCE.md` | Fictional users to audit usability and feel; their findings land in `DECISIONS.md` |
-| `audits/` | One file per persona audit, dated |
 | `CODE_CHANGES.md` | Work order for design decisions still pending in code |
-| `assets/` | App captures with example data — evidence cited by findings and audits, and fills for screens that stay as the app draws them — **committed** |
+| `assets/` | Captures of the current app with example data: the 3D scenes the flows use, and the screens that stay as the app draws them — **committed**, retaken when their screen changes |
 | `exports/` | Canvas exports (JPEG) for PR review, one folder per flow — **committed** |
 | `references/` | Local device captures — **never committed** (may contain real photos) |
 
