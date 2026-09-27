@@ -1,0 +1,2306 @@
+{
+  "version": "2.19",
+  "children": [
+    {
+      "type": "frame",
+      "id": "rAlJV",
+      "x": 0,
+      "y": -900,
+      "name": "KIT — vendored ui-kit 0.1.0 (do not edit here)",
+      "width": 1600,
+      "fill": "$bone",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "Wqy8z",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "V9Mkg",
+              "name": "Button/Primary",
+              "reusable": true,
+              "height": 40,
+              "fill": "$graphite",
+              "cornerRadius": "$radius-xl",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#2B282566",
+                "offset": {
+                  "x": 0,
+                  "y": 6
+                },
+                "blur": 16
+              },
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "cfRmi",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "camera",
+                  "library": "phosphor",
+                  "fill": "$bone"
+                },
+                {
+                  "type": "text",
+                  "id": "VPQvd",
+                  "name": "Label",
+                  "fill": "$bone",
+                  "content": "Nuevo diseño",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "k6XxQ",
+                  "name": "Trailing icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$bone"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ncOrD",
+              "name": "Button/Secondary",
+              "reusable": true,
+              "height": 40,
+              "fill": "$kraft",
+              "cornerRadius": "$radius-xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ykxSE",
+                  "name": "Leading icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "image",
+                  "library": "phosphor",
+                  "fill": "$graphite"
+                },
+                {
+                  "type": "text",
+                  "id": "FSvNw",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Galería",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "r9EiC",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$graphite"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QiyGC",
+              "name": "Button/Ghost",
+              "reusable": true,
+              "height": 40,
+              "cornerRadius": "$radius-xl",
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "wP2ny",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-left",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "EBYi5",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Cancelar",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "nkakV",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "A1Van",
+              "name": "Button/Danger",
+              "reusable": true,
+              "height": 40,
+              "fill": "$rust",
+              "cornerRadius": "$radius-xl",
+              "gap": 8,
+              "padding": [
+                0,
+                16
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "DYSmU",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Leading icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "trash",
+                  "library": "phosphor",
+                  "fill": "$white"
+                },
+                {
+                  "type": "text",
+                  "id": "lgzwr",
+                  "name": "Label",
+                  "fill": "$white",
+                  "content": "Empezar de cero",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "IesBj",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Trailing icon",
+                  "enabled": false,
+                  "width": 14,
+                  "height": 14,
+                  "icon": "arrow-right",
+                  "library": "phosphor",
+                  "fill": "$white"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rRSmT",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "OgnDI",
+              "name": "Chip/Inactive",
+              "reusable": true,
+              "height": 36,
+              "fill": "$bone",
+              "cornerRadius": "$radius-full",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gzec2",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Hazlo de 90 cm de ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "s5G01",
+              "name": "Chip/Active",
+              "reusable": true,
+              "height": 36,
+              "fill": "$amber-soft",
+              "cornerRadius": "$radius-full",
+              "stroke": "$amber",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Q9cdtN",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Hazlo de 90 cm de ancho",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kB9Kn",
+              "name": "Stamp/Critical",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": 3.0000000000000004,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$rust",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cGqAI",
+                  "name": "Label",
+                  "fill": "$rust",
+                  "content": "CRÍTICO",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "P5SUG",
+              "name": "Stamp/Recommendation",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": -2,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$amber",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cNByp",
+                  "name": "Label",
+                  "fill": "$amber",
+                  "content": "RECOMENDACIÓN",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mX2om",
+              "name": "Stamp/Detail",
+              "reusable": true,
+              "opacity": 0.9,
+              "rotation": 1,
+              "cornerRadius": "$radius-stamp",
+              "stroke": "$slate",
+              "strokeWidth": 2,
+              "padding": [
+                1,
+                6
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "PV9sm",
+                  "name": "Label",
+                  "fill": "$slate",
+                  "content": "DETALLE",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ILvdW",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "DVq9U",
+              "name": "Title",
+              "reusable": true,
+              "fill": "$graphite",
+              "content": "Fotos o descripción",
+              "fontFamily": "$font-display",
+              "fontSize": 24,
+              "fontWeight": "600",
+              "letterSpacing": -0.3
+            },
+            {
+              "type": "path",
+              "id": "H51qs",
+              "name": "Pencil (thinking)",
+              "reusable": true,
+              "geometry": "M4 18c12-12 24 4 36-6s16-4 20 2",
+              "viewBox": [
+                0,
+                0,
+                64,
+                24
+              ],
+              "width": 48,
+              "height": 18,
+              "stroke": "$amber",
+              "strokeWidth": 1.6,
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "frame",
+              "id": "UbRJz",
+              "name": "Knot",
+              "reusable": true,
+              "width": 64,
+              "height": 64,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "path",
+                  "id": "Wo1U0",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Ring",
+                  "geometry": "M58.74 30.24l0.11 2.49-0.34 2.51-0.8 2.49-1.23 2.42-1.66 2.32-2.04 2.18-2.41 1.99-2.71 1.78-2.99 1.52-3.2 1.26-3.36 0.96-3.47 0.66-3.51 0.32-3.5 0.01-3.42-0.33-3.29-0.65-3.1-0.96-2.86-1.25-2.56-1.52-2.23-1.78-1.86-1.99-1.45-2.17-1.02-2.32-0.58-2.42-0.11-2.49 0.34-2.51 0.8-2.49 1.23-2.42 1.66-2.32 2.04-2.18 2.41-1.99 2.71-1.78 2.99-1.52 3.2-1.26 3.36-0.96 3.47-0.66 3.51-0.32 3.5-0.01 3.42 0.33 3.29 0.65 3.1 0.96 2.86 1.25 2.56 1.52 2.23 1.78 1.86 1.99 1.45 2.17 1.02 2.32z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "width": 64,
+                  "height": 64,
+                  "stroke": "$knot-ring",
+                  "strokeWidth": 5
+                },
+                {
+                  "type": "path",
+                  "id": "ulO3w",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Inner ring",
+                  "geometry": "M47.84 31.77l0.06 1.38-0.22 1.39-0.48 1.38-0.75 1.35-0.99 1.29-1.22 1.22-1.44 1.11-1.61 1-1.78 0.86-1.9 0.72-1.99 0.55-2.06 0.38-2.08 0.2-2.07 0.02-2.02-0.16-1.95-0.34-1.83-0.52-1.68-0.67-1.51-0.83-1.31-0.97-1.09-1.09-0.85-1.2-0.59-1.28-0.32-1.33-0.06-1.38 0.22-1.39 0.48-1.38 0.75-1.35 0.99-1.29 1.22-1.22 1.44-1.11 1.61-1 1.78-0.86 1.9-0.72 1.99-0.55 2.06-0.38 2.08-0.2 2.07-0.02 2.02 0.16 1.95 0.34 1.83 0.52 1.68 0.67 1.51 0.83 1.31 0.97 1.09 1.09 0.85 1.2 0.59 1.28z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "width": 64,
+                  "height": 64,
+                  "stroke": "$knot-inner",
+                  "strokeWidth": 5
+                },
+                {
+                  "type": "path",
+                  "id": "spuzy",
+                  "x": 0,
+                  "y": 0,
+                  "name": "Core",
+                  "geometry": "M39.43 32.96l0.01 0.55-0.11 0.56-0.24 0.56-0.37 0.55-0.47 0.52-0.58 0.5-0.68 0.46-0.77 0.42-0.84 0.36-0.89 0.31-0.94 0.24-0.97 0.17-0.97 0.1-0.97 0.03-0.94-0.05-0.91-0.12-0.85-0.18-0.78-0.26-0.7-0.32-0.6-0.38-0.5-0.42-0.38-0.48-0.27-0.5-0.14-0.54-0.01-0.55 0.11-0.56 0.24-0.56 0.37-0.55 0.47-0.52 0.58-0.5 0.68-0.46 0.77-0.42 0.84-0.36 0.89-0.31 0.94-0.24 0.97-0.17 0.97-0.1 0.97-0.03 0.94 0.05 0.91 0.12 0.85 0.18 0.78 0.26 0.7 0.32 0.6 0.38 0.5 0.42 0.38 0.48 0.27 0.5z",
+                  "viewBox": [
+                    0,
+                    0,
+                    64,
+                    64
+                  ],
+                  "fill": "$knot-core",
+                  "width": 64,
+                  "height": 64
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bfY3j",
+              "name": "Logo",
+              "reusable": true,
+              "gap": 1,
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yJjBN",
+                  "name": "Kn",
+                  "fill": "$graphite",
+                  "content": "Kn",
+                  "fontFamily": "$font-display",
+                  "fontSize": 72,
+                  "fontWeight": "600",
+                  "letterSpacing": -1.4
+                },
+                {
+                  "type": "frame",
+                  "id": "v0G9xO",
+                  "name": "Knot slot",
+                  "layout": "vertical",
+                  "padding": [
+                    0,
+                    0,
+                    17,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "id": "VQGtp",
+                      "type": "ref",
+                      "ref": "UbRJz",
+                      "name": "Knot",
+                      "width": 40,
+                      "height": 40,
+                      "descendants": {
+                        "Wo1U0": {
+                          "width": 40,
+                          "height": 40,
+                          "strokeWidth": 3.125
+                        },
+                        "ulO3w": {
+                          "width": 40,
+                          "height": 40,
+                          "strokeWidth": 3.125
+                        },
+                        "spuzy": {
+                          "width": 40,
+                          "height": 40
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "GfBBq",
+                  "name": "tty",
+                  "fill": "$graphite",
+                  "content": "tty",
+                  "fontFamily": "$font-display",
+                  "fontSize": 72,
+                  "fontWeight": "600",
+                  "letterSpacing": -1.4
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 9,
+              "id": "PEm7B",
+              "name": "Emblem",
+              "reusable": true,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../../public/icon-192.png",
+                "mode": "fill"
+              },
+              "width": 40,
+              "height": 40
+            },
+            {
+              "type": "frame",
+              "id": "DkJTY",
+              "name": "KindSelect",
+              "reusable": true,
+              "height": 44,
+              "fill": "$bone",
+              "cornerRadius": "$radius-xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 24,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zE1Zd",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "Que Knotty lo decida",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14
+                },
+                {
+                  "type": "icon",
+                  "id": "iXikT",
+                  "name": "Caret",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "caret-down",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "O3qyi",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "t09Dd",
+              "name": "TakePhoto",
+              "reusable": true,
+              "gap": 8,
+              "children": [
+                {
+                  "id": "UCxyR",
+                  "type": "ref",
+                  "ref": "V9Mkg",
+                  "name": "Camera",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "descendants": {
+                    "cfRmi": {
+                      "enabled": true,
+                      "icon": "camera"
+                    },
+                    "VPQvd": {
+                      "content": "Tomar foto",
+                      "fontSize": 12
+                    },
+                    "k6XxQ": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "D9lLt",
+                  "type": "ref",
+                  "ref": "ncOrD",
+                  "name": "Gallery",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "descendants": {
+                    "FSvNw": {
+                      "fontSize": 12
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zGH2H",
+              "name": "TakePhoto/Compact",
+              "reusable": true,
+              "width": 140,
+              "gap": 6,
+              "children": [
+                {
+                  "id": "Fnzxb",
+                  "type": "ref",
+                  "ref": "V9Mkg",
+                  "name": "Camera",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "width": "fill_container",
+                  "descendants": {
+                    "cfRmi": {
+                      "enabled": true,
+                      "icon": "camera"
+                    },
+                    "VPQvd": {
+                      "enabled": false
+                    },
+                    "k6XxQ": {
+                      "enabled": false
+                    }
+                  }
+                },
+                {
+                  "id": "EJvpS",
+                  "type": "ref",
+                  "ref": "ncOrD",
+                  "name": "Gallery",
+                  "height": 36,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "width": "fill_container",
+                  "descendants": {
+                    "FSvNw": {
+                      "enabled": false
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MWWH9",
+      "x": 0,
+      "y": -1100,
+      "name": "Finding pin",
+      "reusable": true,
+      "height": 24,
+      "fill": "$rust",
+      "cornerRadius": "$radius-full",
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#2B282544",
+        "offset": {
+          "x": 0,
+          "y": 2
+        },
+        "blur": 6
+      },
+      "padding": [
+        0,
+        8
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "lbNif",
+          "name": "Label",
+          "fill": "$white",
+          "content": "UI-0",
+          "fontFamily": "$font-mono",
+          "fontSize": 11,
+          "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "bVEpW",
+      "x": 760,
+      "y": 0,
+      "name": "Studio / Chat / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-chat.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "gHri8",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-5",
+          "x": 250,
+          "y": 150,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-5"
+            }
+          }
+        },
+        {
+          "id": "WyH57",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-11",
+          "x": 300,
+          "y": 58,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-11"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CYjSV",
+      "x": 1270,
+      "y": 0,
+      "name": "Studio / Piece card / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-piece.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "m6Byf",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin B-2",
+          "x": 300,
+          "y": 380,
+          "descendants": {
+            "lbNif": {
+              "content": "B-2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Y2nOo",
+      "x": 1780,
+      "y": 0,
+      "name": "Studio / Furniture tab / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-furniture.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "MYysW",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-4",
+          "x": 200,
+          "y": 560,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-4"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "FZmHQ",
+      "x": 2290,
+      "y": 0,
+      "name": "Studio / Materials gate / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-materials.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "C14jUr",
+      "x": 2800,
+      "y": 0,
+      "name": "Studio / Notices (empty) / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-notices.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "WFwwB",
+      "x": 3310,
+      "y": 0,
+      "name": "Studio / History / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/mobile-history.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "XvTtF",
+      "x": 0,
+      "y": 0,
+      "name": "BRIEF — Studio · mobile (as-is)",
+      "clip": true,
+      "width": 640,
+      "height": 844,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "zFBeS",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · mobile (as-is)",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "e9y7Xj",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nChange the furniture and decide what to buy, on a phone (D38).\n2. ENTRY POINTS\n- Analysis finishes, or an example on Home — src/ui/App.tsx:26\n3. SCREENS (left → right)\n- Chat · Piece card · Furniture tab · Materials gate · Notices (empty) · History — as-is captures of the \"Aparador\" example, `design/assets/studio/`\n4. BUSINESS RULES\n- Desktop ≥ 768 px: 3D left, 360–420 px panel right — src/ui/studio/Studio.tsx:33,302\n- Mobile: 3D 52 % / panel 48 %, a button flips it to 30 % — Studio.tsx:308\n- Notices and History replace the tabs, never the 3D — Studio.tsx:146\n- Shopping list only after the review (D30) — src/ui/studio/Materials.tsx:258\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; expert text comes from the example design\n6. STATES NOT DRAWN\n- Pending notices, proposal, low-confidence pieces — the example has none; need an expert run\n- Analyzing — lives in capture.pen\n7. OPEN FINDINGS\nUI-1, UI-4, UI-5, UI-6, UI-11, B-2\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "g8jhFQ",
+      "x": 760,
+      "y": 1104,
+      "name": "Studio / Chat / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-chat.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "EAJjP",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-6",
+          "x": 1100,
+          "y": 560,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-6"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "InfX2",
+      "x": 2320,
+      "y": 1104,
+      "name": "Studio / Piece card / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-piece.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "UFKsI",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-11",
+          "x": 1330,
+          "y": 64,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-11"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "xi21W",
+      "x": 3880,
+      "y": 1104,
+      "name": "Studio / Furniture tab / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-furniture.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "abdy1",
+      "x": 5440,
+      "y": 1104,
+      "name": "Studio / Materials gate / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-materials.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "Z1wilI",
+      "x": 7000,
+      "y": 1104,
+      "name": "Studio / Notices (empty) / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-notices.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "cr962",
+      "x": 8560,
+      "y": 1104,
+      "name": "Studio / History / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/desktop-history.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "Kc4qo",
+      "x": 0,
+      "y": 1104,
+      "name": "BRIEF — Studio · desktop (as-is)",
+      "clip": true,
+      "width": 640,
+      "height": 900,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "XkjsF",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · desktop (as-is)",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "kNtFR",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nChange the furniture and decide what to buy, at a desk (D38).\n2. ENTRY POINTS\n- Analysis finishes, or an example on Home — src/ui/App.tsx:26\n3. SCREENS (left → right)\n- Chat · Piece card · Furniture tab · Materials gate · Notices (empty) · History — as-is captures of the \"Aparador\" example, `design/assets/studio/`\n4. BUSINESS RULES\n- Desktop ≥ 768 px: 3D left, 360–420 px panel right — src/ui/studio/Studio.tsx:33,302\n- Mobile: 3D 52 % / panel 48 %, a button flips it to 30 % — Studio.tsx:308\n- Notices and History replace the tabs, never the 3D — Studio.tsx:146\n- Shopping list only after the review (D30) — src/ui/studio/Materials.tsx:258\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; expert text comes from the example design\n6. STATES NOT DRAWN\n- Pending notices, proposal, low-confidence pieces — the example has none; need an expert run\n- Analyzing — lives in capture.pen\n7. OPEN FINDINGS\nUI-1, UI-3, UI-6, UI-11\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nJK4Q",
+      "x": 0,
+      "y": 6792,
+      "name": "LOG — Studio",
+      "width": 640,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 8,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "ye2IP",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "LOG — Studio",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "sjkjV",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · four state bands from simulated-expert captures (conversation & notices; piece, furniture, materials, history) · UI-12, UI-13, UI-14, B-2 confirmed",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "mvVXG",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · kit 0.1.0 · flow created: kit vendored, as-is bands from app captures (mobile + desktop) · UI-1…UI-11, B-2",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "TQVv5",
+      "x": 0,
+      "y": 2264,
+      "name": "BRIEF — Studio · mobile states: conversation & notices",
+      "clip": true,
+      "width": 640,
+      "height": 844,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "HFZfM",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · mobile states: conversation & notices",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "at1J0",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nEvery state the conversation and the notices go through after asking for a change, on a phone.\n2. ENTRY POINTS\n- \"Librero\" example, then the \"Hazlo de 90 cm de ancho\" suggestion; the simulated expert answers\n3. SCREENS (left → right)\n- Chat / Thinking\n- Chat / Proposal pending\n- Notices / Proposal\n- Materials / During proposal\n- Chat / Applied at own risk\n- Notices / Critical\n- Notices / Instant fixes\n- Notices / Previewing a fix\n- Notices / In the tray\n- Chat / Tray\n4. BUSINESS RULES\n- A change that adds a critical structural problem stays a proposal (D4, D36)\n- Notices offer an instant fix, the tray, or accepting as is (D37)\n- Hand edits are off while a proposal or an old version is shown — src/ui/studio/Studio.tsx:236\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; notice text from src/application/notices.ts; expert replies from the simulated expert (src/adapters/llm/simulated/simulated.ts)\n6. STATES NOT DRAWN\n- Expert error and retry — needs a failing provider\n- Low-confidence pieces — only photo reconstructions produce them\n7. OPEN FINDINGS\nUI-1, UI-3, UI-6, UI-12, UI-13, UI-14\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "T1KnTy",
+      "x": 760,
+      "y": 2264,
+      "name": "Studio / Chat / Thinking / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-chat-thinking.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "x8KgoS",
+      "x": 1270,
+      "y": 2264,
+      "name": "Studio / Chat / Proposal pending / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-chat-answer.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "JYIBn",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-3",
+          "x": 220,
+          "y": 560,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-3"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "hZb0H",
+      "x": 1780,
+      "y": 2264,
+      "name": "Studio / Notices / Proposal / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-notices-pending.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "q1yqd",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-12",
+          "x": 250,
+          "y": 510,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-12"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "qSTTZ",
+      "x": 2290,
+      "y": 2264,
+      "name": "Studio / Materials / During proposal / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-materials-during-proposal.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "G4uvm",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-13",
+          "x": 240,
+          "y": 530,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-13"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "fjdQU",
+      "x": 2800,
+      "y": 2264,
+      "name": "Studio / Chat / Applied at own risk / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-proposal-applied.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "cIVjw",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-1",
+          "x": 240,
+          "y": 190,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Y7odq",
+      "x": 3310,
+      "y": 2264,
+      "name": "Studio / Notices / Critical / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-notices-critical.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "QOUPz",
+      "x": 3820,
+      "y": 2264,
+      "name": "Studio / Notices / Instant fixes / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-notices-fixes.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "r1kxY",
+      "x": 4330,
+      "y": 2264,
+      "name": "Studio / Notices / Previewing a fix / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-notice-preview.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "HVsjv",
+      "x": 4840,
+      "y": 2264,
+      "name": "Studio / Notices / In the tray / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-tray.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "rA6hW",
+      "x": 5350,
+      "y": 2264,
+      "name": "Studio / Chat / Tray / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-chat-tray.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "axtZS",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin UI-14",
+          "x": 250,
+          "y": 640,
+          "descendants": {
+            "lbNif": {
+              "content": "UI-14"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "veAJt",
+      "x": 0,
+      "y": 3368,
+      "name": "BRIEF — Studio · mobile states: piece, furniture, materials, history",
+      "clip": true,
+      "width": 640,
+      "height": 844,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "EQUIF",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · mobile states: piece, furniture, materials, history",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "a4Kei",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nEditing a piece by hand, a furniture without a plan sheet, the purchase review and the version history, on a phone.\n2. ENTRY POINTS\n- \"Librero\" example, then the \"Hazlo de 90 cm de ancho\" suggestion; the simulated expert answers\n3. SCREENS (left → right)\n- Piece / Editing by hand\n- Furniture / No plan sheet\n- Materials / Fix before buying\n- Materials / List\n- Materials / Sheets\n- History / Two versions\n4. BUSINESS RULES\n- A change that adds a critical structural problem stays a proposal (D4, D36)\n- Notices offer an instant fix, the tray, or accepting as is (D37)\n- Hand edits are off while a proposal or an old version is shown — src/ui/studio/Studio.tsx:236\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; notice text from src/application/notices.ts; expert replies from the simulated expert (src/adapters/llm/simulated/simulated.ts)\n6. STATES NOT DRAWN\n- Expert error and retry — needs a failing provider\n- Low-confidence pieces — only photo reconstructions produce them\n7. OPEN FINDINGS\nUI-2, UI-4, UI-9, B-2\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "jmGbq",
+      "x": 760,
+      "y": 3368,
+      "name": "Studio / Piece / Editing by hand / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-piece-editing.jpg",
+        "mode": "fill"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "id": "Wmloh",
+          "type": "ref",
+          "ref": "MWWH9",
+          "name": "Pin B-2",
+          "x": 280,
+          "y": 40,
+          "descendants": {
+            "lbNif": {
+              "content": "B-2"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "APzEw",
+      "x": 1270,
+      "y": 3368,
+      "name": "Studio / Furniture / No plan sheet / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-furniture-noplan.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "EWrcF",
+      "x": 1780,
+      "y": 3368,
+      "name": "Studio / Materials / Fix before buying / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-materials-verdict.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "FgdNY",
+      "x": 2290,
+      "y": 3368,
+      "name": "Studio / Materials / List / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-materials-list.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "VR0CB",
+      "x": 2800,
+      "y": 3368,
+      "name": "Studio / Materials / Sheets / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-materials-sheets.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "IEj3l",
+      "x": 3310,
+      "y": 3368,
+      "name": "Studio / History / Two versions / As-is (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/mobile-history-versions.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "JL3WW",
+      "x": 0,
+      "y": 4472,
+      "name": "BRIEF — Studio · desktop states: conversation & notices",
+      "clip": true,
+      "width": 640,
+      "height": 900,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "ly6SR",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · desktop states: conversation & notices",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "bzsvE",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nThe same states at a desk.\n2. ENTRY POINTS\n- \"Librero\" example, then the \"Hazlo de 90 cm de ancho\" suggestion; the simulated expert answers\n3. SCREENS (left → right)\n- Chat / Thinking\n- Chat / Proposal pending\n- Notices / Proposal\n- Materials / During proposal\n- Chat / Applied at own risk\n- Notices / Critical\n- Notices / Instant fixes\n- Notices / Previewing a fix\n- Notices / In the tray\n- Chat / Tray\n4. BUSINESS RULES\n- A change that adds a critical structural problem stays a proposal (D4, D36)\n- Notices offer an instant fix, the tray, or accepting as is (D37)\n- Hand edits are off while a proposal or an old version is shown — src/ui/studio/Studio.tsx:236\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; notice text from src/application/notices.ts; expert replies from the simulated expert (src/adapters/llm/simulated/simulated.ts)\n6. STATES NOT DRAWN\n- Expert error and retry — needs a failing provider\n- Low-confidence pieces — only photo reconstructions produce them\n7. OPEN FINDINGS\nUI-1, UI-3, UI-6, UI-12, UI-13\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pkg6V",
+      "x": 760,
+      "y": 4472,
+      "name": "Studio / Chat / Thinking / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-chat-thinking.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "qRA6q",
+      "x": 2320,
+      "y": 4472,
+      "name": "Studio / Chat / Proposal pending / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-chat-answer.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "wAgHq",
+      "x": 3880,
+      "y": 4472,
+      "name": "Studio / Notices / Proposal / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-notices-pending.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "gem2D",
+      "x": 5440,
+      "y": 4472,
+      "name": "Studio / Materials / During proposal / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-materials-during-proposal.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "rK033",
+      "x": 7000,
+      "y": 4472,
+      "name": "Studio / Chat / Applied at own risk / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-proposal-applied.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "g5eoAC",
+      "x": 8560,
+      "y": 4472,
+      "name": "Studio / Notices / Critical / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-notices-critical.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "MbFTV",
+      "x": 10120,
+      "y": 4472,
+      "name": "Studio / Notices / Instant fixes / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-notices-fixes.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "WdeNn",
+      "x": 11680,
+      "y": 4472,
+      "name": "Studio / Notices / Previewing a fix / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-notice-preview.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "QsVIA",
+      "x": 13240,
+      "y": 4472,
+      "name": "Studio / Notices / In the tray / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-tray.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "Yq9TF",
+      "x": 14800,
+      "y": 4472,
+      "name": "Studio / Chat / Tray / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-chat-tray.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "OqKHI",
+      "x": 0,
+      "y": 5632,
+      "name": "BRIEF — Studio · desktop states: piece, furniture, materials, history",
+      "clip": true,
+      "width": 640,
+      "height": 900,
+      "fill": "$paper",
+      "cornerRadius": "$radius-2xl",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 10,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "T0b5T",
+          "name": "Heading",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BRIEF — Studio · desktop states: piece, furniture, materials, history",
+          "fontFamily": "$font-mono",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "TowXi",
+          "name": "Body",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\n1. PURPOSE\nThe same states at a desk.\n2. ENTRY POINTS\n- \"Librero\" example, then the \"Hazlo de 90 cm de ancho\" suggestion; the simulated expert answers\n3. SCREENS (left → right)\n- Piece / Editing by hand\n- Furniture / No plan sheet\n- Materials / Fix before buying\n- Materials / List\n- Materials / Sheets\n- History / Two versions\n4. BUSINESS RULES\n- A change that adds a critical structural problem stays a proposal (D4, D36)\n- Notices offer an instant fix, the tray, or accepting as is (D37)\n- Hand edits are off while a proposal or an old version is shown — src/ui/studio/Studio.tsx:236\n5. COPY SOURCE\nsrc/ui/studio/*, src/ui/chat/*; notice text from src/application/notices.ts; expert replies from the simulated expert (src/adapters/llm/simulated/simulated.ts)\n6. STATES NOT DRAWN\n- Expert error and retry — needs a failing provider\n- Low-confidence pieces — only photo reconstructions produce them\n7. OPEN FINDINGS\nUI-2, UI-4, UI-9\n8. HISTORY\n→ LOG frame, bottom of this file.",
+          "lineHeight": 1.5,
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "EtTnS",
+      "x": 760,
+      "y": 5632,
+      "name": "Studio / Piece / Editing by hand / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-piece-editing.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "RxiJX",
+      "x": 2320,
+      "y": 5632,
+      "name": "Studio / Furniture / No plan sheet / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-furniture-noplan.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "GzRQr",
+      "x": 3880,
+      "y": 5632,
+      "name": "Studio / Materials / Fix before buying / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-materials-verdict.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "t0xg4T",
+      "x": 5440,
+      "y": 5632,
+      "name": "Studio / Materials / List / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-materials-list.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "VnFod",
+      "x": 7000,
+      "y": 5632,
+      "name": "Studio / Materials / Sheets / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-materials-sheets.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    },
+    {
+      "type": "frame",
+      "id": "aLoQN",
+      "x": 8560,
+      "y": 5632,
+      "name": "Studio / History / Two versions / As-is (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": {
+        "type": "image",
+        "enabled": true,
+        "url": "../assets/studio/states/desktop-history-versions.jpg",
+        "mode": "fill"
+      },
+      "layout": "none"
+    }
+  ],
+  "themes": {
+    "mode": [
+      "light",
+      "dark"
+    ]
+  },
+  "variables": {
+    "kit-version-source": {
+      "type": "string",
+      "value": "0.1.0"
+    },
+    "grid-x0": {
+      "type": "number",
+      "value": 0
+    },
+    "grid-brief-w": {
+      "type": "number",
+      "value": 640
+    },
+    "grid-gutter": {
+      "type": "number",
+      "value": 120
+    },
+    "grid-y0": {
+      "type": "number",
+      "value": 0
+    },
+    "grid-row-gap": {
+      "type": "number",
+      "value": 260
+    },
+    "bone": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F5F0E8",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1D1A17",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "kraft": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#EDE3D3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#27231F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "kraft-2": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E3D5BF",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#332D27",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "graphite": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#2B2825",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#EFE7DA",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "graphite-2": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#6A6158",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#B3A896",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "line": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#2B28251F",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#EFE7DA1F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "amber": {
+      "type": "color",
+      "value": "#D98A2B"
+    },
+    "amber-soft": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#D98A2B24",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#D98A2B33",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "rust": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#B4452F",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#D9674F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "slate": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#56697A",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#8AA0B3",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "scene-bg": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#EFE7DA",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#221E1A",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "paper": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F4EDE1",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#3A332B",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "white": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "birch": {
+      "type": "color",
+      "value": "#E2C9A2"
+    },
+    "pine": {
+      "type": "color",
+      "value": "#D9B27C"
+    },
+    "walnut": {
+      "type": "color",
+      "value": "#6B4A2E"
+    },
+    "knot-ring": {
+      "type": "color",
+      "value": "#7A5230"
+    },
+    "knot-inner": {
+      "type": "color",
+      "value": "#5A3A20"
+    },
+    "knot-core": {
+      "type": "color",
+      "value": "#4A2F1A"
+    },
+    "font-display": {
+      "type": "string",
+      "value": "Fraunces"
+    },
+    "font-sans": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "font-mono": {
+      "type": "string",
+      "value": "JetBrains Mono"
+    },
+    "radius-stamp": {
+      "type": "number",
+      "value": 4
+    },
+    "radius-lg": {
+      "type": "number",
+      "value": 8
+    },
+    "radius-xl": {
+      "type": "number",
+      "value": 12
+    },
+    "radius-2xl": {
+      "type": "number",
+      "value": 16
+    },
+    "radius-3xl": {
+      "type": "number",
+      "value": 24
+    },
+    "radius-full": {
+      "type": "number",
+      "value": 999
+    }
+  },
+  "fileToken": "6834f5af-d12d-417e-b728-f6a369cfe0d4"
+}
