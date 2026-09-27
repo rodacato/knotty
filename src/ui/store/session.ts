@@ -40,6 +40,8 @@ export interface SessionSlice {
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
   applyFix(fix: Fix): void
+  /** Several solutions as one version; all or none, and the result says why when they do not fit together. */
+  applyFixes(fixes: Fix[]): { ok: true } | { ok: false; message: string }
   /** Puts an item in the tray, replaces the one from the same origin, or takes it out. */
   toggleTray(item: TrayItem): void
   acceptNotice(notice: Notice): void
@@ -135,6 +137,17 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   removeNote: (id) => withSession(get, (services, state) => set({ state: services.useCases.removeRequirement(state, id) })),
   removeDecision: (topic) => withSession(get, (services, state) => set({ state: services.useCases.removeDecision(state, topic) })),
   applyFix: (fix) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.applyFix(state, fix), { preview: null, viewedVersion: null })),
+  applyFixes: (fixes) =>
+    withSession(
+      get,
+      (services, state) => {
+        const r = services.useCases.applyFixes(state, fixes)
+        if (!r.ok) return r
+        moveTo(set, services, state, r.state, { preview: null, viewedVersion: null })
+        return { ok: true as const }
+      },
+      { ok: false as const, message: NO_DESIGN },
+    ),
   acceptNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.acceptNotice(state, notice.findings, notice.title) })),
   reopenNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.reopenNotice(state, notice.findings) })),
 

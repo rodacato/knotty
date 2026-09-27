@@ -1092,6 +1092,35 @@ describe('notices: one place for what waits for a decision', () => {
     expect(noticeBoard(resolved, testCatalog).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
   })
 
+  it('several solutions go in as one version, and each notice they fix shows as resolved', () => {
+    const c = setup()
+    const initial = c.fromExample({ ...wide, wallAnchored: false })
+    const pending = noticeBoard(initial, testCatalog).pending
+    const sag = pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const tipping = pending.find((n) => n.title === 'Riesgo de vuelco')!
+    const design = currentDesign(initial)
+    const fixes = [fixesFor(design, testCatalog, sag.findings[0]).find((f) => f.key === 'center-divider')!, fixesFor(design, testCatalog, tipping.findings[0]).find((f) => f.key === 'anchor-to-wall')!]
+
+    const r = c.applyFixes(initial, fixes)
+
+    if (!r.ok) throw new Error(r.message)
+    expect(r.state.versions).toHaveLength(initial.versions.length + 1)
+    const after = noticeBoard(r.state, testCatalog)
+    expect(after.pending.some((n) => n.key === sag.key || n.key === tipping.key)).toBe(false)
+    expect(r.state.chat.at(-1)?.text).toBe(`Resolví: ${fixes[0].label}; ${fixes[1].label}.`)
+  })
+
+  it('solutions that do not fit together are not applied, and the person is told why', () => {
+    const c = setup()
+    const initial = c.fromExample(wide)
+    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const fix = fixesFor(currentDesign(initial), testCatalog, sag.findings[0]).find((f) => f.key === 'center-divider')!
+
+    const r = c.applyFixes(initial, [fix, fix])
+
+    expect(r).toEqual({ ok: false, message: 'Esas soluciones no se pueden aplicar juntas: aplícalas una por una.' })
+  })
+
   it('what the person accepted is not a failure in the verdict, but it is said', async () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleBookcase, wallAnchored: false })

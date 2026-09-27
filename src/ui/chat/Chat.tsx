@@ -11,7 +11,7 @@ import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
 
-const STAGES: Record<Stage, string> = {
+export const STAGES: Record<Stage, string> = {
   'reading-photos': 'Mirando la foto…',
   designing: 'Mirando las fotos…',
   'designing-pieces': 'Diseñando pieza por pieza…',
@@ -147,12 +147,12 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
       {pending && (
         <div className="rounded-2xl border border-rust/25 bg-kraft/60 p-3">
-          <p className="mb-2 text-xs font-medium tracking-wide text-graphite-2 uppercase">Propuesta sin aplicar</p>
+          <p className="mb-2 text-sm font-semibold">Propuesta sin aplicar</p>
           {state.proposal!.holds.length > 0 && (
             <ul className="mb-2 flex flex-col gap-1.5">
               {state.proposal!.holds.map((h) => (
                 <li key={h} className="flex items-start gap-2 text-sm">
-                  <Warning className="mt-0.5 shrink-0 text-amber" weight="bold" /> {h}
+                  <Warning className="mt-0.5 shrink-0" weight="bold" /> {h}
                 </li>
               ))}
             </ul>
@@ -168,16 +168,24 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary" className="min-h-9 text-xs" onClick={toggleProposal}>
-              {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
-            </Button>
-            <Button variant="ghost" className="min-h-9 text-xs" onClick={applyProposal} disabled={thinking}>
-              {state.proposal!.critical.length ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
-            </Button>
-            <Button variant="ghost" className="min-h-9 text-xs" onClick={discardProposal} disabled={thinking}>
-              <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
-            </Button>
+          <div className="mt-3 flex flex-col gap-2">
+            {state.proposal!.critical.length ? (
+              <Button variant="secondary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+                Aplicar así, bajo mi riesgo
+              </Button>
+            ) : (
+              <Button variant="primary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+                Sí, aplícalo
+              </Button>
+            )}
+            <div className="flex flex-wrap justify-between gap-2">
+              <Button variant="ghost" className="min-h-10" onClick={toggleProposal}>
+                {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
+              </Button>
+              <Button variant="ghost" className="min-h-10" onClick={discardProposal} disabled={thinking}>
+                <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
+              </Button>
+            </div>
           </div>
         </div>
       )}
