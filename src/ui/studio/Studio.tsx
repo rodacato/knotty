@@ -232,7 +232,7 @@ export function Studio({ state }: { state: DesignState }) {
         )}
       </div>
       {shownGeo && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
+        <div className="pointer-events-none absolute inset-x-3 top-28 bottom-3 z-10 flex items-end justify-end md:top-auto md:right-4 md:bottom-4 md:left-auto">
           <PieceCard design={shownDesign} geo={shownGeo} catalog={catalog} editable={viewedVersion === null && !proposal} />
         </div>
       )}
