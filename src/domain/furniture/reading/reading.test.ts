@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mergeReadings, photoKey, type PhotoReading } from './reading'
 
 const reading = (r: Partial<PhotoReading>): PhotoReading => ({
+  view: 'front',
   kind: 'librero',
   confidence: 'high',
   description: 'Un librero',
@@ -21,8 +22,8 @@ const twoColumns = [
 describe('mergeReadings', () => {
   it('takes the layout from the front and the depth from the side', () => {
     const merged = mergeReadings([
-      { angle: 'side', reading: reading({ proportions: { height: 3, width: 1, depth: 0.4 }, doubts: ['¿Trasera clavada?'] }) },
-      { angle: 'front', reading: reading({ proportions: { height: 3.1, width: 1, depth: null }, columns: twoColumns, base: 'kick', details: ['cubrecanto'] }) },
+      reading({ view: 'side', proportions: { height: 3, width: 1, depth: 0.4 }, doubts: ['¿Trasera clavada?'] }),
+      reading({ view: 'front', proportions: { height: 3.1, width: 1, depth: null }, columns: twoColumns, base: 'kick', details: ['cubrecanto'] }),
     ])
     expect(merged?.columns).toEqual(twoColumns)
     expect(merged?.proportions).toEqual({ height: 3.1, width: 1, depth: 0.4 })
@@ -31,11 +32,15 @@ describe('mergeReadings', () => {
   })
 
   it('prefers a confident view over a doubtful one', () => {
-    const merged = mergeReadings([
-      { angle: 'front', reading: reading({ confidence: 'low', kind: 'alacena' }) },
-      { angle: 'three-quarter', reading: reading({ confidence: 'high', kind: 'librero' }) },
-    ])
+    const merged = mergeReadings([reading({ view: 'front', confidence: 'low', kind: 'alacena' }), reading({ view: 'three-quarter', confidence: 'high', kind: 'librero' })])
     expect(merged?.kind).toBe('librero')
+  })
+
+  it('ranks by view, so the same photos in any order give the same layout', () => {
+    const side = reading({ view: 'side', columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 1, doors: null }] }] })
+    const front = reading({ view: 'front', columns: twoColumns })
+    expect(mergeReadings([side, front])?.columns).toEqual(twoColumns)
+    expect(mergeReadings([front, side])?.columns).toEqual(twoColumns)
   })
 
   it('is null without readings', () => {

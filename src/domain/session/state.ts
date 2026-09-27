@@ -3,22 +3,20 @@ import { Design, Dimensions } from '../design/schema'
 import { Decision, Origin, Version } from './history/history'
 import { Operation } from '../editing/operations/schema'
 import { FurniturePlan } from '../furniture/modules/plan'
+import { View } from '../furniture/reading/reading'
 import { Requirement } from '../checks/requirements/requirements'
 import { TraceEntry } from './trace/trace'
 import { TrayItem } from './tray/tray'
 import { AcceptedFinding } from '../checks/structure/accepted'
 import { Check, CarpenterOpinion, Verdict } from '../checks/viability/viability'
 
-// The whole design session: what is saved and comes back on reload. Its field names are the saved format (8); `migrate.ts` reads older ones.
+// The whole design session: what is saved and comes back on reload. Its field names are the saved format (9); `migrate.ts` reads older ones.
 
 export const Question = z.object({
   text: z.string().min(1),
   options: z.array(z.string()).nullable().describe('Quick button answers, in Spanish; null if the question is open'),
 })
 export type Question = z.infer<typeof Question>
-
-const PhotoRequest = z.object({ angle: z.string(), reason: z.string() })
-type PhotoRequest = z.infer<typeof PhotoRequest>
 
 export const Message = z.object({
   id: z.string(),
@@ -30,11 +28,9 @@ export const Message = z.object({
   version: z.number().nullable(),
   proposal: z.enum(['pending', 'applied', 'discarded']).nullable(),
   error: z.boolean(),
-  /** Photos the expert asked for in this message; they are taken from the chat. */
-  requestedPhotos: z.array(PhotoRequest).default([]),
   /** A thumbnail of the photo the person sent with this message. */
   thumbnail: z.string().nullable().default(null),
-  /** Which questions ("p0") and photos ("f:interior") of this message were answered; with all of them, it is `answered`. */
+  /** Which questions ("p0") of this message were answered; with all of them, it is `answered`. */
   answers: z.array(z.string()).default([]),
   /** Next steps the expert suggests; shown as buttons under its last message. */
   suggestions: z.array(z.string()).default([]),
@@ -44,9 +40,8 @@ export const Message = z.object({
 
 /** The key of what gets answered inside one of the expert's messages. */
 export const questionAnswerKey = (index: number) => `p${index}`
-export const photoAnswerKey = (angle: string) => `f:${angle}`
 
-/** Marks a question or photo of a message as answered; `answering` is "messageId" or "messageId#key,key", several separated by ";". */
+/** Marks a question of a message as answered; `answering` is "messageId" or "messageId#key,key", several separated by ";". */
 export function markAnswered(chat: Message[], answering: string | null): Message[] {
   if (!answering) return chat
   if (answering.includes(';')) return answering.split(';').reduce(markAnswered, chat)
@@ -55,7 +50,7 @@ export function markAnswered(chat: Message[], answering: string | null): Message
     if (m.id !== id) return m
     if (!keys) return { ...m, answered: true }
     const answers = [...new Set([...m.answers, ...keys.split(',')])]
-    const total = m.questions.filter((q) => q.options).length + m.requestedPhotos.length
+    const total = m.questions.filter((q) => q.options).length
     return { ...m, answers, answered: answers.length >= total }
   })
 }
@@ -78,7 +73,8 @@ const Proposal = z.object({
 })
 type Proposal = z.infer<typeof Proposal>
 
-export const Thumbnail = z.object({ angle: z.string(), dataUrl: z.string() })
+/** A photo's thumbnail; `view` is null when the photo could not be read. */
+export const Thumbnail = z.object({ view: View.nullable(), dataUrl: z.string() })
 export type Thumbnail = z.infer<typeof Thumbnail>
 
 /** A version's review before buying; `signature` says which design and cutting settings it was made with. */
@@ -94,7 +90,7 @@ export const PurchaseReview = z.object({
 export type PurchaseReview = z.infer<typeof PurchaseReview>
 
 export const DesignState = z.object({
-  format: z.literal(8),
+  format: z.literal(9),
   measures: Dimensions,
   versions: z.array(Version).min(1),
   current: z.number().int().positive(),

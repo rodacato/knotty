@@ -1,7 +1,8 @@
 // Reads what an older Knotty saved. Format 1 had its fields and values in Spanish; format 2 had them in English but kept
 // the codes (rules, errors, severities, checks, photo angles) in Spanish; format 3 kept the catalog's hardware ids and the
 // simulated provider in Spanish; format 4 still called the furniture's own faces "mueble"; format 5 still saved the accepted-risks check as "aceptados";
-// format 6 saved a cabinet's plan with no kind, the only plan without one; format 7 did not keep how serious an accepted finding was, nor its rule's version.
+// format 6 saved a cabinet's plan with no kind, the only plan without one; format 7 did not keep how serious an accepted finding was, nor its rule's version;
+// format 8 named a thumbnail's view `angle`, from the slot it was taken in.
 // Piece ids are the design's own data: the ones saved in Spanish stay as they were and still work.
 // Only names change: the numbers, ids and texts for the person stay as they were.
 
@@ -322,6 +323,18 @@ const stateV7 = fields({
   accepted: ['accepted', list(acceptedV7)],
 })
 
+// Format 8 → 9: a thumbnail's `angle` was its slot, one of the views; the expert's photo requests are gone and the schema drops them.
+const VIEWS_V8 = ['front', 'three-quarter', 'side', 'inside', 'joints']
+const thumbnailV8 = (v: unknown) => {
+  if (!isObject(v)) return v
+  const { angle, ...rest } = v
+  return { ...rest, view: typeof angle === 'string' && VIEWS_V8.includes(angle) ? angle : null }
+}
+const stateV8 = fields({
+  format: ['format', () => 9],
+  thumbnails: ['thumbnails', list(thumbnailV8)],
+})
+
 /** Brings a saved session up to the current format, one format at a time; anything it does not recognize is returned as is for the schema to judge. */
 export function migrateState(raw: unknown): unknown {
   let state = raw
@@ -332,5 +345,6 @@ export function migrateState(raw: unknown): unknown {
   if (isObject(state) && state.format === 5) state = stateV5(state)
   if (isObject(state) && state.format === 6) state = stateV6(state)
   if (isObject(state) && state.format === 7) state = stateV7(state)
+  if (isObject(state) && state.format === 8) state = stateV8(state)
   return state
 }

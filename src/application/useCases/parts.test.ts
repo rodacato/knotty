@@ -35,7 +35,7 @@ function expertAnswering(...plans: CabinetPlan[]) {
     planDesign: async (r) => {
       asked.push(r)
       const plan = plans[Math.min(asked.length, plans.length) - 1]
-      const value: PlanResponse = { explanation: 'Una alacena.', ...answerWith(plan), questions: [], requestedPhotos: [], requirements: [], suggestions: [] }
+      const value: PlanResponse = { explanation: 'Una alacena.', ...answerWith(plan), questions: [], requirements: [], suggestions: [] }
       return { value, origin: { promptId: 'test', provider: 'test', model: 'test' }, usage: {} }
     },
   }

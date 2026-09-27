@@ -1,5 +1,5 @@
 import { Plus, X } from '@phosphor-icons/react'
-import { angleLabel } from '../../domain/furniture/reading/reading'
+import { viewLabel } from '../../domain/furniture/reading/reading'
 import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/design/resolve'
@@ -132,10 +132,10 @@ function Photos({ state }: { state: DesignState }) {
     <section className="flex flex-col gap-2">
       <h3 className="font-display text-base font-semibold">Tus fotos</h3>
       <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-        {state.thumbnails.map((m) => (
-          <figure key={m.angle} className="flex shrink-0 flex-col items-center gap-1">
-            <img src={m.dataUrl} alt={`Foto ${angleLabel(m.angle)}`} className="size-20 rounded-xl border border-line object-cover" />
-            <figcaption className="text-xs text-graphite-2">{angleLabel(m.angle)}</figcaption>
+        {state.thumbnails.map((m, i) => (
+          <figure key={i} className="flex shrink-0 flex-col items-center gap-1">
+            <img src={m.dataUrl} alt={m.view ? `Foto: ${viewLabel(m.view)}` : `Foto ${i + 1}`} className="size-20 rounded-xl border border-line object-cover" />
+            {m.view && <figcaption className="text-xs text-graphite-2">{viewLabel(m.view)}</figcaption>}
           </figure>
         ))}
       </div>

@@ -13,13 +13,12 @@ export { ATTEMPTS, type Stage, type OnProgress } from './kit'
 export { ExpertError } from './expertCall'
 export { currentPlan } from './currentPlan'
 export { reviewSignature } from './review'
-export type { SentPhoto } from './adjust'
 export type { PieceEdit, PieceEditResult } from './edits'
 
 /** Every use case over one session: each group lives in its own module and shares the kit (clock, chat, saving, versions). */
 export function createUseCases(deps: Dependencies) {
   const kit = createKit(deps)
-  const { reconstruct, redoAs, fromExample, openExample } = createReconstruct(kit)
+  const { reconstruct, redoAs, fromExample, openExample, readPhoto } = createReconstruct(kit)
   const { adjust } = createAdjust(kit)
   const { applyProposal, answerWithFix, discardProposal } = createProposals(kit)
   const { backToVersion, restoreFromVersion, undoChange } = createHistory(kit)
@@ -30,6 +29,7 @@ export function createUseCases(deps: Dependencies) {
 
   return {
     reconstruct,
+    readPhoto,
     redoAs,
     chooseKind,
     adjust,

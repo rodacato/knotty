@@ -119,7 +119,7 @@ describe('which module the skeleton is asked about', () => {
     const c = createUseCases({ llm: () => llm, catalog: testCatalog, repository: memory(), now: () => '2026-09-26T10:00:00Z', newId: () => `r${++id}` })
     return { c, asked }
   }
-  const photo = [{ angle: 'front', base64: 'AAA' }]
+  const photo = [{ base64: 'AAA' }]
   const run = (c: ReturnType<typeof setup>, notes: string, kind: Parameters<typeof c.reconstruct>[0]['kind'], photos = photo) =>
     c.reconstruct({ measures: null, photos, thumbnails: [], notes, kind }, signal()).catch(() => null)
 

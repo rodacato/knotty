@@ -4,7 +4,7 @@ import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
 import { exampleDesign, type Example } from '../../domain/furniture/examples'
 import { buildPlan, MODULE_OF_KIND, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
-import { angleLabel, mergeReadings, photoKey, type PhotoReading } from '../../domain/furniture/reading/reading'
+import { mergeReadings, photoKey, viewLabel, type PhotoReading } from '../../domain/furniture/reading/reading'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import { currentDesign, type DesignState, type Thumbnail } from '../../domain/session/state'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
@@ -29,34 +29,50 @@ type Designed = { design: Design; r: ReconstructionResponse; response: ExpertRes
 export function createReconstruct(kit: Kit) {
   const { catalog, now, message, save, addVersion } = kit
 
-  // Readings of this session's photos: a retry or a second design does not look at the same photo twice.
-  const readings = new Map<string, PhotoReading>()
+  // Readings by photo and note: Capture reads a photo when it is added, and designing reuses that read, even one still in flight.
+  const readings = new Map<string, Promise<{ reading: PhotoReading | null; trace: TraceEntry[] }>>()
 
-  /** Reads every photo at once; one that fails is retried alone. Null if none could be read. */
+  /** Reads one photo once; a failed or cancelled read is tried again the next time it is asked for. */
+  function readPhoto(photo: Photo, context: string, signal: AbortSignal) {
+    const key = photoKey(photo.base64, photo.note ?? '')
+    const known = readings.get(key)
+    if (known) return known
+    const read = (async () => {
+      const llm = kit.llm()
+      const trace: TraceEntry[] = []
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const call = await expertCall(() => llm.readPhoto({ photo, context }, signal), { step: 'read', attempt, signal, trace, onFailure: 'skip', subject: 'Foto' })
+        if (!call.ok) continue
+        trace.push(traceEntry('read', attempt, call.started, call.response, 'ok', [], [], `Foto: ${viewLabel(call.response.value.view)}`))
+        return { reading: call.response.value, trace }
+      }
+      readings.delete(key)
+      return { reading: null, trace }
+    })().catch((e: unknown) => {
+      readings.delete(key)
+      throw e
+    })
+    readings.set(key, read)
+    return read
+  }
+
+  /** Reads every photo at once and merges them; the view the person chose wins over the model's. Null if none could be read. */
   async function readPhotos(photos: Photo[], context: string, signal: AbortSignal, onProgress: OnProgress, trace: TraceEntry[]) {
     if (!photos.length) return null
-    const llm = kit.llm()
     let done = 0
     const advance = () => onProgress('reading-photos', 0, { done, total: photos.length })
     advance()
-    const readOne = async (photo: Photo) => {
-      const key = photoKey(photo.base64, photo.note ?? '')
-      const subject = `Foto ${angleLabel(photo.angle)}`
-      const cached = readings.get(key)
-      for (let attempt = 0; !cached && attempt < 2; attempt++) {
-        const call = await expertCall(() => llm.readPhoto({ photo: photo, context }, signal), { step: 'read', attempt, signal, trace, onFailure: 'skip', subject })
-        if (!call.ok) continue
-        trace.push(traceEntry('read', attempt, call.started, call.response, 'ok', [], [], subject))
-        readings.set(key, call.response.value)
-        break
-      }
-      done++
-      advance()
-      const reading = readings.get(key)
-      return reading ? { angle: photo.angle, reading } : null
-    }
-    const read = await Promise.all(photos.map(readOne))
-    return mergeReadings(read.filter((r): r is NonNullable<typeof r> => !!r))
+    const read = await Promise.all(
+      photos.map(async (photo) => {
+        const { reading, trace: calls } = await readPhoto(photo, context, signal)
+        // The first design that uses a read reports its calls; a retry does not report them again.
+        trace.push(...calls.splice(0))
+        done++
+        advance()
+        return reading && photo.view ? { ...reading, view: photo.view } : reading
+      }),
+    )
+    return mergeReadings(read.filter((r): r is PhotoReading => !!r))
   }
 
   /** What the new design is: the person's choice, else what the plan, the photos or the words say. */
@@ -118,8 +134,8 @@ export function createReconstruct(kit: Kit) {
       // Only a cabinet: its grid is where a count gets misread (two door openings of two leaves are four doors).
       const off = furniture.kind === 'cabinet' ? partsMismatch(asked, design) : []
       trace.push(traceEntry('plan', answered, started, plan, off.length ? 'invalid' : 'ok', off.length ? traceErrors([partsError(off)]) : [], repairs, moduleOf(furniture).traceLabel(furniture)))
-      const { explanation, questions, requestedPhotos, requirements, suggestions } = plan.value
-      const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requestedPhotos, requirements, suggestions }
+      const { explanation, questions, requirements, suggestions } = plan.value
+      const r: ReconstructionResponse = { explanation: [explanation, ...notes].join('\n\n'), design, questions, requirements, suggestions }
       const designed: Designed = { design: kinded(input, reading, design), r, response: { ...plan, value: r }, problems: [], repairs, plan: furniture }
       return { designed, off, answer: plan.value }
     }
@@ -226,7 +242,7 @@ export function createReconstruct(kit: Kit) {
     const repaired = repairs.length ? [repairedOnMyOwn(repairs)] : []
     const pendingItems = problems.length ? [leftUnresolved(describeProblems(traceErrors(problems)))] : []
     return {
-      format: 8,
+      format: 9,
       measures: design.dimensions,
       versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
       current: 1,
@@ -236,7 +252,6 @@ export function createReconstruct(kit: Kit) {
         message('user', initialRequest(input), { thumbnail: input.thumbnails[0]?.dataUrl ?? null }),
         message('expert', [r.explanation, ...repaired, ...pendingItems, ...estimated, ...(response.warnings ?? [])].join('\n\n'), {
           questions: r.questions.slice(0, 3),
-          requestedPhotos: r.requestedPhotos.slice(0, 2),
           suggestions: [...(problems.length ? ['Corrige las piezas marcadas'] : []), ...r.suggestions].slice(0, 4),
           version: 1,
         }),
@@ -253,7 +268,7 @@ export function createReconstruct(kit: Kit) {
   /** Starts from a ready design (the examples), without spending a call to the model; with its plan, the plan sheet and the local requests work from the first version. */
   function fromExample(design: Design, plan: FurniturePlan | null = null): DesignState {
     return save({
-      format: 8,
+      format: 9,
       measures: design.dimensions,
       versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
       current: 1,
@@ -275,5 +290,8 @@ export function createReconstruct(kit: Kit) {
     return fromExample(design, plan)
   }
 
-  return { reconstruct, redoAs, fromExample, openExample }
+  /** Capture reads each photo as it is added; nothing cancels it, because designing may be waiting on the same read. */
+  const readOnAdd = async (photo: Photo, context: string) => (await readPhoto(photo, context, new AbortController().signal)).reading
+
+  return { reconstruct, redoAs, fromExample, openExample, readPhoto: readOnAdd }
 }

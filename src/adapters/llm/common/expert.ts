@@ -84,7 +84,7 @@ function designRequest(s: ReconstructionRequest): Content[] {
           : `${measures}${kind}\nThere are no photos: design from this description by the person.\nDescription: ${s.notes || '(no description)'}`,
     },
     ...s.photos.flatMap((f, i): Content[] => [
-      { kind: 'text', text: `Photo ${i + 1}: ${f.angle}${f.note ? `. The person says: ${f.note}` : ''}` },
+      { kind: 'text', text: `Photo ${i + 1}${f.view ? `: ${f.view}` : ''}${f.note ? `. The person says: ${f.note}` : ''}` },
       { kind: 'image', base64: f.base64 },
     ]),
   ]
@@ -101,13 +101,7 @@ export function createExpert(t: Transport, label: string): LLMProvider {
       return { value: validate(ReconstructionResponse, json), origin: { promptId: promptIdOf(RECONSTRUCTION), provider: t.provider, model: t.model }, usage, warnings }
     },
     async proposeAdjustment(s: AdjustmentRequest, signal) {
-      const content: Content[] = [
-        { kind: 'text', text: `${s.context}\n\n## The person's request\n${s.request}` },
-        ...s.photos.flatMap((f): Content[] => [
-          { kind: 'text', text: `Photo sent by the person: ${f.angle}` },
-          { kind: 'image', base64: f.base64 },
-        ]),
-      ]
+      const content: Content[] = [{ kind: 'text', text: `${s.context}\n\n## The person's request\n${s.request}` }]
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors))
       const { json, usage, warnings } = await t.completeJSON(systemFor(ADJUSTMENT, s.catalog), content, ADJUSTMENT_SCHEMA, 'adjustment', signal)
       return { value: validate(AdjustmentResponse, json), origin: { promptId: promptIdOf(ADJUSTMENT), provider: t.provider, model: t.model }, usage, warnings }
@@ -135,7 +129,7 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     },
     async readPhoto(r: PhotoReadingRequest, signal) {
       const content: Content[] = [
-        { kind: 'text', text: `Photo: ${r.photo.angle}.${r.photo.note ? ` The person says about this photo: ${r.photo.note}` : ''}${r.context ? `\nWhat the person is after: ${r.context}` : ''}` },
+        { kind: 'text', text: `${r.photo.note ? `The person says about this photo: ${r.photo.note}` : 'The person left no note about this photo.'}${r.context ? `\nWhat the person is after: ${r.context}` : ''}` },
         { kind: 'image', base64: r.photo.base64 },
       ]
       const { json, usage, warnings } = await t.completeJSON(render(READING, null), content, READING_SCHEMA, 'photo_reading', signal)

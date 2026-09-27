@@ -7,11 +7,11 @@ import { useStore } from '../store'
 type Store = ReturnType<typeof useStore.getState>
 type Describe = (...args: never[]) => { summary: string; data?: unknown }
 
-const photos = (e: CaptureInput) => e.photos.map((f) => ({ angle: f.angle, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
+const photos = (e: CaptureInput) => e.photos.map((f) => ({ view: f.view ?? null, kb: Math.round((f.base64.length * 3) / 4 / 1024), note: f.note ?? null }))
 
 const ACTIONS: Partial<Record<keyof Store, Describe>> = {
   reconstruct: (input: CaptureInput) => ({ summary: `Diseñar: «${input.notes.slice(0, 60)}»${input.photos.length ? ` con ${input.photos.length} fotos` : ''}`, data: { measures: input.measures, notes: input.notes, photos: photos(input) } }),
-  adjust: (request: string, replyTo?: string | null, photo?: { angle: string } | null) => ({ summary: `Pedir: «${request.slice(0, 80)}»`, data: { request, replyTo: replyTo ?? null, photo: photo?.angle ?? null } }),
+  adjust: (request: string, replyTo?: string | null) => ({ summary: `Pedir: «${request.slice(0, 80)}»`, data: { request, replyTo: replyTo ?? null } }),
   retryReconstruction: () => ({ summary: 'Reintentar el diseño' }),
   cancel: () => ({ summary: 'Cancelar' }),
   applyProposal: () => ({ summary: 'Aplicar la propuesta bajo su riesgo' }),

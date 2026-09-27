@@ -1,195 +1,173 @@
-import { ArrowClockwise, ArrowLeft, ArrowRight, Key, NotePencil, Question, Robot, Trash, Warning } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { ArrowClockwise, ArrowRight, Camera, Image, Key, NotePencil, Plus, Robot, Ruler, Trash, Warning, X } from '@phosphor-icons/react'
+import { useMemo, useRef, useState } from 'react'
 import type { Dimensions } from '../../domain/design/schema'
-import type { DesignKind } from '../../domain/design/kind'
-import { KindSelect } from '../system/KindSelect'
+import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
+import { VIEWS, viewLabel, type View } from '../../domain/furniture/reading/reading'
+import { MEASURE_RANGE, typicalDimensions } from '../../domain/furniture/typical'
 import { missing } from '../../ports/Preferences'
 import { useServices } from '../services'
-import { Button, cm, Title } from '../system/components'
-import { Field, TextArea } from '../system/Field'
-import { TakePhoto } from '../system/TakePhoto'
+import { Button, Pencil, Title } from '../system/components'
+import { Field, Input, Select, TextArea } from '../system/Field'
+import { KindSelect } from '../system/KindSelect'
 import { useStore } from '../store'
 import { TraceLog } from '../studio/TraceLog'
-import { Silhouette } from './Silhouettes'
 
-const ANGLES = [
-  { id: 'front', name: 'Frente', hint: 'De frente, a media altura', required: true },
-  { id: 'three-quarter', name: '3/4', hint: 'Desde una esquina: frente y lado', required: true },
-  { id: 'side', name: 'Lateral', hint: 'De lado, para ver el fondo', required: false },
-  { id: 'inside', name: 'Interior', hint: 'Abierto: entrepaños y trasera', required: false },
-  { id: 'joints', name: 'Uniones', hint: 'De cerca: cómo se juntan', required: false },
-] as const
+const MAX_PHOTOS = 5
 
-const MEASURES: { key: keyof Dimensions; name: string; min: number; max: number }[] = [
-  { key: 'height', name: 'Alto', min: 200, max: 2400 },
-  { key: 'width', name: 'Ancho', min: 200, max: 2400 },
-  { key: 'depth', name: 'Fondo', min: 150, max: 1200 },
+const MEASURES: { key: keyof Dimensions; name: string }[] = [
+  { key: 'height', name: 'Alto' },
+  { key: 'width', name: 'Ancho' },
+  { key: 'depth', name: 'Fondo' },
 ]
 
 /** Without photos, the expert works with what you tell it: asks for a description with some substance. */
 const MIN_DESCRIPTION = 15
 
 interface TakenPhoto {
-  angle: string
+  id: string
   base64: string
   thumbnail: string
   /** Optional: what the person wants to say about this photo. */
   note?: string
+  /** The model's label, or the person's correction; null while it is read or when it could not be. */
+  view: View | null
+  reading: boolean
 }
 
-function MeasureField({ name, value, min, max, onChange }: { name: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
-  return (
-    <label className="flex flex-col gap-2 rounded-2xl border border-line bg-bone/70 p-4">
-      <span className="flex items-baseline justify-between">
-        <span className="font-medium">{name}</span>
-        <span className="numerals text-sm text-graphite-2">{cm(value)}</span>
-      </span>
-      <span className="flex items-baseline gap-2">
-        <input
-          type="number"
-          inputMode="numeric"
-          min={min}
-          max={max}
-          step={10}
-          value={value || ''}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="numerals w-full bg-transparent text-4xl font-medium outline-none"
-        />
-        <span className="numerals text-graphite-2">mm</span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={10}
-        value={Math.min(max, Math.max(min, value))}
-        onChange={(e) => onChange(Number(e.target.value))}
-        aria-label={`${name} en milímetros`}
-        className="h-7 w-full cursor-pointer appearance-none rounded bg-[repeating-linear-gradient(90deg,var(--line)_0_1px,transparent_1px_10px),repeating-linear-gradient(90deg,var(--graphite-2)_0_1px,transparent_1px_50px)] bg-[length:100%_40%,100%_75%] bg-bottom bg-no-repeat accent-amber"
-      />
-    </label>
-  )
-}
+const inRange = (key: keyof Dimensions, value: number) => value >= MEASURE_RANGE[key][0] && value <= MEASURE_RANGE[key][1]
 
-function Slot({
-  angle,
-  photo,
-  onPhoto,
-  onRemove,
-  onNote,
-  processing,
-}: {
-  angle: (typeof ANGLES)[number]
-  photo?: TakenPhoto
-  onPhoto: (f: File) => void
-  onRemove: () => void
-  onNote: (note: string) => void
-  processing: boolean
-}) {
-  const [noteOpen, setNoteOpen] = useState(false)
+function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPhoto; index: number; onRemove: () => void; onNote: (note: string) => void; onView: (view: View) => void }) {
+  const [writing, setWriting] = useState(false)
+  const name = photo.view ? viewLabel(photo.view) : `${index + 1}`
   return (
-    <div className={`animate-appear relative flex min-h-60 flex-col overflow-hidden rounded-2xl border ${photo ? 'border-transparent' : 'border-dashed border-graphite/25 bg-bone/60'}`}>
-      {photo ? (
-        <>
-          <img src={photo.thumbnail} alt={`Foto ${angle.name}`} className="absolute inset-0 h-full w-full object-cover" />
-          <span className="absolute top-2 left-2 rounded-full bg-graphite/80 px-2 py-0.5 text-xs font-medium text-bone">{angle.name}</span>
-          <button type="button" onClick={onRemove} aria-label={`Quitar foto ${angle.name}`} className="absolute top-2 right-2 grid size-8 place-items-center rounded-full bg-bone/90 text-graphite shadow">
-            <Trash />
-          </button>
-          {noteOpen ? (
-            <TextArea
-              autoFocus
-              value={photo.note ?? ''}
-              onChange={(e) => onNote(e.target.value)}
-              onBlur={() => !photo.note?.trim() && setNoteOpen(false)}
-              rows={3}
-              placeholder="Descríbela: «la de abajo es puerta», «las repisas se mueven»"
-              aria-label={`Nota sobre la foto ${angle.name}`}
-              className="absolute inset-x-2 bottom-2 resize-none shadow"
-            />
+    <div className="flex flex-col gap-1.5">
+      <div className="relative aspect-[8/7] overflow-hidden rounded-xl">
+        <img src={photo.thumbnail} alt={`Foto ${name}`} className="absolute inset-0 h-full w-full object-cover" />
+        <button type="button" onClick={onRemove} aria-label={`Quitar foto ${name}`} className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow">
+          <Trash />
+        </button>
+        <div className="absolute bottom-2 left-2">
+          {photo.reading ? (
+            <span className="flex min-h-8 items-center gap-1.5 rounded-full bg-bone/90 px-2.5 text-xs text-graphite">
+              <Pencil className="h-4 w-8 text-amber" /> Mirando la foto…
+            </span>
           ) : (
-            <button
-              type="button"
-              onClick={() => setNoteOpen(true)}
-              aria-label={`Agregar una nota a la foto ${angle.name}`}
-              title="Agregar una nota"
-              className={`absolute right-2 bottom-2 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs shadow ${photo.note?.trim() ? 'bg-graphite text-bone' : 'bg-bone/90 text-graphite'}`}
-            >
-              <NotePencil /> {photo.note?.trim() ? 'Nota' : ''}
-            </button>
+            <Select size="sm" value={photo.view ?? ''} onChange={(e) => onView(e.target.value as View)} aria-label={`Vista de la foto ${index + 1}`} className="text-sm font-medium">
+              {!photo.view && <option value="">¿Qué vista?</option>}
+              {VIEWS.map((v) => (
+                <option key={v} value={v}>
+                  {viewLabel(v)}
+                </option>
+              ))}
+            </Select>
           )}
-        </>
-      ) : (
-        <div className="flex h-full flex-col justify-between gap-1 p-3">
-          <div>
-            <p className="font-medium">
-              {angle.name} {angle.required && <span className="text-amber">•</span>}
-            </p>
-            <p className="text-xs leading-snug text-graphite">{angle.hint}</p>
-          </div>
-          <div className="grid flex-1 place-items-center">
-            <Silhouette angle={angle.id} />
-          </div>
-          <div className="flex gap-1.5">
-            <TakePhoto onChoose={onPhoto} disabled={processing} compact />
-          </div>
         </div>
+      </div>
+      {writing || photo.note?.trim() ? (
+        <TextArea
+          autoFocus={writing}
+          value={photo.note ?? ''}
+          onChange={(e) => onNote(e.target.value)}
+          onBlur={() => !photo.note?.trim() && setWriting(false)}
+          rows={2}
+          placeholder="Descríbela: «la de abajo es puerta», «las repisas se mueven»"
+          aria-label={`Nota sobre la foto ${name}`}
+          className="resize-none"
+        />
+      ) : (
+        <button type="button" onClick={() => setWriting(true)} className="flex min-h-9 items-center gap-1.5 self-start rounded-lg px-1.5 text-sm text-graphite">
+          <NotePencil className="shrink-0" /> Agregar una nota
+        </button>
       )}
     </div>
   )
 }
 
 export function Capture() {
-  const { images, preferences } = useServices()
+  const { images, preferences, useCases } = useServices()
   const reconstruct = useStore((s) => s.reconstruct)
   const error = useStore((s) => s.reconstructionError)
   const failedTrace = useStore((s) => s.failedTrace)
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
-  const [step, setStep] = useState<'measures' | 'photos'>(draft ? 'photos' : 'measures')
-  const [measures, setMeasures] = useState<Dimensions>(draft?.measures ?? { width: 600, height: 1800, depth: 300 })
-  const [withMeasures, setWithMeasures] = useState(!draft || draft.measures !== null)
+  const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
+  const [measures, setMeasures] = useState<Dimensions | null>(draft?.measures ?? null)
+  // Measures the person typed stay when the kind changes; untouched ones follow the kind.
+  const [measuresTouched, setMeasuresTouched] = useState(draft?.measures != null)
   const [photos, setPhotos] = useState<TakenPhoto[]>(
-    () => draft?.photos.map((f) => ({ angle: f.angle, base64: f.base64, note: f.note, thumbnail: draft.thumbnails.find((m) => m.angle === f.angle)?.dataUrl ?? '' })) ?? [],
+    () => draft?.photos.map((f, i) => ({ id: `draft-${i}`, base64: f.base64, note: f.note, view: f.view ?? draft.thumbnails[i]?.view ?? null, thumbnail: draft.thumbnails[i]?.dataUrl ?? '', reading: false })) ?? [],
   )
   const [notes, setNotes] = useState(draft?.notes ?? '')
-  const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
   const [processing, setProcessing] = useState(false)
   const [withSimulated, setWithSimulated] = useState(draft !== null)
+  const picker = useRef<HTMLInputElement>(null)
   // Re-read when the settings close so the notice disappears as soon as you connect an expert.
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const config = useMemo(() => preferences.load(), [preferences, settingsOpen])
   const missingKey = missing(config)
   const simulated = config.active === 'simulated'
 
-  const add = async (angle: string, file: File) => {
+  const update = (id: string, change: Partial<TakenPhoto>) => setPhotos((all) => all.map((f) => (f.id === id ? { ...f, ...change } : f)))
+
+  const add = async (files: FileList | null) => {
+    const chosen = [...(files ?? [])].slice(0, MAX_PHOTOS - photos.length)
+    if (!chosen.length) return
     setProcessing(true)
     try {
-      const r = await images.reduce(file)
-      setPhotos((f) => [...f.filter((x) => x.angle !== angle), { angle, base64: r.base64, thumbnail: r.thumbnail }])
+      for (const file of chosen) {
+        const r = await images.reduce(file)
+        const photo: TakenPhoto = { id: crypto.randomUUID(), base64: r.base64, thumbnail: r.thumbnail, view: null, reading: !missingKey }
+        setPhotos((all) => [...all, photo].slice(0, MAX_PHOTOS))
+        if (!missingKey)
+          void useCases
+            .readPhoto({ base64: photo.base64 }, notes.trim())
+            .then((reading) => update(photo.id, { reading: false, view: reading?.view ?? null }))
+            .catch(() => update(photo.id, { reading: false }))
+      }
     } finally {
       setProcessing(false)
     }
   }
 
+  const chooseKind = (next: DesignKind | null) => {
+    setKind(next)
+    if (measures && !measuresTouched) setMeasures(typicalDimensions(next))
+  }
+
   const withoutPhotos = photos.length === 0
   const enoughDescription = notes.trim().length >= MIN_DESCRIPTION
-  const canAnalyze = !missingKey && !processing && (!simulated || withSimulated) && (!withoutPhotos || enoughDescription || simulated)
-  const validMeasures = MEASURES.every((m) => measures[m.key] >= m.min && measures[m.key] <= m.max)
-  const missingRequired = ANGLES.filter((a) => a.required && !photos.some((f) => f.angle === a.id))
+  const validMeasures = !measures || MEASURES.every((m) => inRange(m.key, measures[m.key]))
+  const canAnalyze = !missingKey && !processing && validMeasures && (!simulated || withSimulated) && (!withoutPhotos || enoughDescription || simulated)
   const analyzeCapture = () =>
-    reconstruct({ measures: withMeasures ? measures : null, photos: photos.map((f) => ({ angle: f.angle, base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}) })), thumbnails: photos.map((f) => ({ angle: f.angle, dataUrl: f.thumbnail })), notes: notes.trim(), kind })
+    reconstruct({
+      measures,
+      photos: photos.map((f) => ({ base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}), ...(f.view ? { view: f.view } : {}) })),
+      thumbnails: photos.map((f) => ({ view: f.view, dataUrl: f.thumbnail })),
+      notes: notes.trim(),
+      kind,
+    })
+
+  const pickerInput = (
+    <input
+      ref={picker}
+      type="file"
+      accept="image/*"
+      multiple
+      hidden
+      onChange={(e) => {
+        void add(e.target.files)
+        e.target.value = ''
+      }}
+    />
+  )
 
   return (
-    <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6">
-      <header className="flex items-center gap-3">
-        <span className="numerals rounded-full bg-graphite px-2.5 py-1 text-xs text-bone">{step === 'measures' ? '1' : '2'} / 2</span>
-        <Title>{step === 'measures' ? '¿Cuánto mide?' : 'Fotos o descripción'}</Title>
-      </header>
+    <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-7 px-4 py-8 sm:px-6 lg:max-w-6xl">
+      <Title>¿Qué mueble quieres?</Title>
 
       {simulated && !withSimulated && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-amber/40 bg-amber-soft p-4">
+        <div className="flex max-w-3xl flex-col gap-3 rounded-2xl border border-line bg-kraft p-4">
           <p className="flex items-start gap-2 font-medium">
             <Robot className="mt-0.5 shrink-0" weight="bold" /> Conecta tu experto para diseñar tu mueble
           </p>
@@ -208,120 +186,162 @@ export function Capture() {
         </div>
       )}
 
-      {step === 'measures' ? (
-        <>
-          <p className="-mt-4 text-graphite">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {MEASURES.map((m) => (
-              <MeasureField key={m.key} name={m.name} value={measures[m.key]} min={m.min} max={m.max} onChange={(v) => setMeasures((d) => ({ ...d, [m.key]: v }))} />
-            ))}
+      {withoutPhotos && <p className="-mt-3 text-graphite">¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.</p>}
+
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,480px)_1fr] lg:grid-rows-[auto_auto_1fr] lg:gap-x-16">
+        <Field label="Tipo de mueble" help={!kind && 'Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.'} className="lg:col-start-1">
+          <KindSelect value={kind} onChange={chooseKind} none="Que Knotty lo decida" />
+        </Field>
+
+        <section className="flex flex-col gap-2 lg:col-start-1" aria-label="Medidas">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium">Medidas</p>
+            {measures ? (
+              <Button
+                variant="ghost"
+                className="min-h-9 px-2"
+                onClick={() => {
+                  setMeasures(null)
+                  setMeasuresTouched(false)
+                }}
+              >
+                <X /> Sin medidas
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={() => setMeasures(typicalDimensions(kind))}>
+                <Ruler /> Agregar medidas
+              </Button>
+            )}
           </div>
-          <Field label="Tipo de mueble" help="Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después." className="sm:max-w-sm">
-            <KindSelect value={kind} onChange={setKind} none="Que Knotty lo decida" />
-          </Field>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setWithMeasures(false)
-                setStep('photos')
-              }}
-            >
-              <Question /> No sé las medidas
-            </Button>
-            <Button
-              variant="primary"
-              className="min-h-12 px-6"
-              disabled={!validMeasures}
-              onClick={() => {
-                setWithMeasures(true)
-                setStep('photos')
-              }}
-            >
-              Siguiente <ArrowRight weight="bold" />
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          {!withMeasures && (
-            <p className="-mt-4 text-sm text-graphite">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
-          )}
-          <p className={withMeasures ? '-mt-4 text-graphite' : 'text-graphite'}>
-            Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.
+          <p className="text-xs text-graphite">
+            {!measures
+              ? 'Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.'
+              : measuresTouched
+                ? 'Son tus medidas: se quedan aunque cambies el tipo.'
+                : kind
+                  ? `Típicas de ${KIND_NOUN[kind]}; cámbialas si ya mediste el tuyo.`
+                  : 'Las medidas generales por fuera, en milímetros. Con cinta métrica basta.'}
           </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-            {ANGLES.map((a) => (
-              <Slot
-                key={a.id}
-                angle={a}
-                photo={photos.find((f) => f.angle === a.id)}
-                processing={processing}
-                onPhoto={(f) => void add(a.id, f)}
-                onRemove={() => setPhotos((f) => f.filter((x) => x.angle !== a.id))}
-                onNote={(note) => setPhotos((f) => f.map((x) => (x.angle === a.id ? { ...x, note } : x)))}
-              />
-            ))}
+          {measures && (
+            <div className="grid grid-cols-3 gap-2">
+              {MEASURES.map((m) => (
+                <Field key={m.key} label={m.name}>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    unit="mm"
+                    min={MEASURE_RANGE[m.key][0]}
+                    max={MEASURE_RANGE[m.key][1]}
+                    step={10}
+                    value={measures[m.key] || ''}
+                    invalid={!inRange(m.key, measures[m.key])}
+                    onChange={(e) => {
+                      setMeasures({ ...measures, [m.key]: Number(e.target.value) })
+                      setMeasuresTouched(true)
+                    }}
+                  />
+                </Field>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="flex flex-col gap-2 lg:col-start-2 lg:row-span-3 lg:row-start-1" aria-label="Fotos">
+          {pickerInput}
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Fotos</p>
+            {photos.length >= MAX_PHOTOS && <span className="numerals text-xs text-graphite-2">{photos.length} de {MAX_PHOTOS}</span>}
           </div>
-          <Field
-            label={withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}
-            help={withoutPhotos && 'Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.'}
-          >
-            <TextArea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={withoutPhotos ? 4 : 2}
-              placeholder={
-                withoutPhotos
-                  ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
-                  : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
-              }
-            />
-          </Field>
-          {error && (
-            <div className="flex flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
-              <div className="flex items-start gap-2">
-                <Warning className="mt-0.5 shrink-0" weight="bold" />
-                <span className="flex-1">
-                  {error} Tus fotos y tu descripción siguen aquí.
-                </span>
-                {canAnalyze && (
-                  <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
-                    <ArrowClockwise weight="bold" /> Reintentar
-                  </Button>
-                )}
-              </div>
-              {failedTrace.length > 0 && (
-                <details className="text-graphite">
-                  <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
-                  <div className="mt-2">
-                    <TraceLog trace={failedTrace} />
-                  </div>
-                </details>
+          {withoutPhotos ? (
+            <div className="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-graphite-2 p-6 text-center">
+              <Image size={28} className="text-graphite" />
+              <Button variant="primary" className="min-h-12 px-6" onClick={() => picker.current?.click()} disabled={processing}>
+                <Camera weight="bold" /> Agregar fotos
+              </Button>
+              <span className="text-xs text-graphite-2">hasta {MAX_PHOTOS}</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {photos.map((f, i) => (
+                <PhotoTile
+                  key={f.id}
+                  photo={f}
+                  index={i}
+                  onRemove={() => setPhotos((all) => all.filter((x) => x.id !== f.id))}
+                  onNote={(note) => update(f.id, { note })}
+                  onView={(view) => update(f.id, { view })}
+                />
+              ))}
+              {photos.length < MAX_PHOTOS && (
+                <button
+                  type="button"
+                  onClick={() => picker.current?.click()}
+                  disabled={processing}
+                  className="flex aspect-[8/7] flex-col items-center justify-center gap-1 rounded-xl border-[1.5px] border-graphite-2 text-graphite disabled:opacity-50"
+                >
+                  <Plus size={22} />
+                  <span className="text-sm font-medium">Agregar fotos</span>
+                  <span className="numerals text-xs text-graphite-2">
+                    {photos.length} de {MAX_PHOTOS}
+                  </span>
+                </button>
               )}
             </div>
           )}
-          {missingKey && (
-            <p className="flex flex-wrap items-center gap-2 rounded-xl border border-amber/40 bg-amber-soft p-3 text-sm">
-              <Key weight="bold" /> {missingKey}
-              <Button variant="ghost" className="min-h-8 px-2 underline" onClick={() => openSettings(true)}>
-                Configurar
+        </section>
+
+        <Field
+          label={withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}
+          help={withoutPhotos && 'Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.'}
+          className="lg:col-start-1 lg:self-start"
+        >
+          <TextArea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={withoutPhotos ? 4 : 2}
+            placeholder={
+              withoutPhotos
+                ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
+                : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
+            }
+          />
+        </Field>
+      </div>
+
+      {error && (
+        <div className="flex flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
+          <div className="flex items-start gap-2">
+            <Warning className="mt-0.5 shrink-0" weight="bold" />
+            <span className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
+            {canAnalyze && (
+              <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
+                <ArrowClockwise weight="bold" /> Reintentar
               </Button>
-            </p>
-          )}
-          <div className="flex items-center justify-between gap-3">
-            <Button variant="ghost" onClick={() => setStep('measures')}>
-              <ArrowLeft /> {withMeasures ? 'Medidas' : 'Poner medidas'}
-            </Button>
-            <div className="flex items-center gap-3">
-              {missingRequired.length > 0 && photos.length > 0 && <span className="hidden text-xs text-graphite-2 sm:inline">Falta: {missingRequired.map((a) => a.name).join(', ')}</span>}
-              <Button variant="primary" className="min-h-12 px-6" disabled={!canAnalyze} onClick={analyzeCapture}>
-                {withoutPhotos ? 'Diseñar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
-              </Button>
-            </div>
+            )}
           </div>
-        </>
+          {failedTrace.length > 0 && (
+            <details className="text-graphite">
+              <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
+              <div className="mt-2">
+                <TraceLog trace={failedTrace} />
+              </div>
+            </details>
+          )}
+        </div>
       )}
+      {missingKey && (
+        <p className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
+          <Key weight="bold" /> {missingKey}
+          <Button variant="ghost" className="min-h-8 px-2 underline" onClick={() => openSettings(true)}>
+            Configurar
+          </Button>
+        </p>
+      )}
+      <div className="flex justify-end">
+        <Button variant="primary" className="min-h-12 px-6" disabled={!canAnalyze} onClick={analyzeCapture}>
+          {withoutPhotos ? 'Diseñar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
+        </Button>
+      </div>
     </main>
   )
 }

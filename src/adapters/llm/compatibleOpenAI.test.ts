@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
-import { InvalidResponse } from '../../ports/LLMProvider'
+import { InvalidResponse, type Photo } from '../../ports/LLMProvider'
 import { createCompatible } from './compatibleOpenAI'
 
 const answer = { explanation: 'Veo un librero', design: exampleBookcase, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }
 const ok = (json: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: '```json\n' + JSON.stringify(json) + '\n```' } }] }), { status: 200 })
 const withText = (content: string) => new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 })
 const rejection = (text: string, status = 400) => new Response(text, { status })
-const request = (photos = [{ angle: 'front', base64: 'AAA' }]) => ({ measures: exampleBookcase.dimensions, photos, notes: '', reading: null, catalog: testCatalog, correction: null })
+const request = (photos: Photo[] = [{ base64: 'AAA', view: 'front' }]) => ({ measures: exampleBookcase.dimensions, photos, notes: '', reading: null, catalog: testCatalog, correction: null })
 let host = 0
 const fresh = () => createCompatible({ provider: 'shellm', host: `http://127.0.0.1:${6100 + ++host}`, apiKey: '', model: 'claude', label: 'SheLLM · claude' })
 
@@ -26,7 +26,7 @@ describe('createCompatible', () => {
     })
     vi.stubGlobal('fetch', fetch)
     const expert = createCompatible({ provider: 'shellm', host: 'http://127.0.0.1:6100/', apiKey: '', model: 'claude', label: 'SheLLM' })
-    const request = { measures: exampleBookcase.dimensions, photos: [{ angle: 'front', base64: 'AAA' }], notes: '', reading: null, catalog: testCatalog, correction: null }
+    const request = { measures: exampleBookcase.dimensions, photos: [{ base64: 'AAA', view: 'front' as const }], notes: '', reading: null, catalog: testCatalog, correction: null }
 
     const r = await expert.reconstruct(request, new AbortController().signal)
     expect(r.value.design.name).toBe('Librero')
@@ -42,7 +42,7 @@ describe('createCompatible', () => {
   it('builds the request: text and image interleaved in order, JPEG data URL and strict json_schema', async () => {
     let body: { messages: { role: string; content: { type: string; text?: string; image_url?: { url: string } }[] }[]; response_format: { type: string; json_schema: { name: string; strict: boolean } } } | null = null
     vi.stubGlobal('fetch', async (_: string, init: RequestInit) => ((body = JSON.parse(init.body as string)), ok(answer)))
-    await fresh().reconstruct(request([{ angle: 'front', base64: 'AAA' }, { angle: 'three-quarter', base64: 'BBB' }]), new AbortController().signal)
+    await fresh().reconstruct(request([{ base64: 'AAA', view: 'front' }, { base64: 'BBB', view: 'three-quarter' }]), new AbortController().signal)
     const parts = body!.messages[1].content
     expect(parts.map((p) => p.text ?? p.image_url?.url)).toEqual([
       expect.stringContaining('Furniture measures'),
