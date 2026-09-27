@@ -55,60 +55,56 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 
 ## 1. Experiencia y diseño visual
 
+Cómo es la app hoy, según `src/ui/`. El diseño que se busca vive en `design/flows/*.pen` (ver `design/README.md`); cuando no coinciden, la diferencia es trabajo pendiente, no esta sección.
+
 ### Flujo
 
 ```
-Inicio → Medidas → Fotos guiadas → El experto analiza → Preguntas rápidas → Estudio
-                                                                          ├─ 3D + cotas
-                                                                          ├─ Chat (ajustes)
-                                                                          ├─ Revisión
-                                                                          ├─ Materiales
-                                                                          └─ Historial
+Inicio → Captura (una pantalla) → El experto analiza → Estudio
 ```
 
-- **Nuevo diseño**: alto, ancho y fondo en mm con el equivalente en cm debajo ("900 mm · 90 cm"). Después, captura guiada con ranuras con silueta: frente, lateral, 3/4, interior y uniones. Cada ranura abre la cámara o la galería (`<input capture>`). Frente y 3/4 son obligatorias; el resto, sugeridas. Cada foto lleva su etiqueta de ángulo, que se envía al LLM.
-- **Análisis**: el estado de carga muestra etapas reales del caso de uso: "Mirando las fotos → Proponiendo piezas → Revisando que todo cierre → Revisando estructura". La animación es un trazo de lápiz de carpintero dibujando el contorno.
-- **Preguntas**: tarjetas en el chat con respuestas en botón, por ejemplo "¿La trasera va clavada o en canal? [Clavada] [En canal] [No sé]". Si falta una foto: "Tomar foto del interior". Las piezas de baja confianza se ven rayadas en 3D hasta confirmarse.
-- **Estudio**:
+`App.tsx` elige la pantalla por la fase del store: `Home`, `Capture`, `Analyzing` o `Studio` (este último se carga aparte, porque trae el 3D). Ajustes (`Settings`), el aviso de llaves (`KeysGate`) y la bitácora de depuración van encima de cualquiera.
 
-| Móvil | Escritorio |
-|---|---|
-| 3D arriba (~55 % del alto) con barra flotante: Frente · Lado · 3/4 · Arriba · Explosionar · Cotas | 3D grande a la izquierda con la misma barra |
-| Hoja inferior arrastrable (asomada / media / completa) con pestañas Chat · Revisión · Materiales · Historial | Panel lateral de ~400 px con las mismas pestañas |
-| Entrada del chat fija abajo, con chips de respuesta rápida | Igual |
+- **Inicio** (`capture/Home.tsx`): la marca, una frase de qué hace, «Nuevo diseño» y los ejemplos, que abren el Estudio sin experto.
+- **Captura** (`capture/Capture.tsx`, D40): una sola pantalla con el tipo de mueble (opcional: «Que Knotty lo decida»), las medidas (opcionales; «Agregar medidas» pone las típicas del tipo y las que la persona escribe se quedan aunque cambie el tipo), las fotos y lo que quiera decir con sus palabras. Fotos según D39: un solo «Agregar fotos», hasta 5, sin ranuras; cada una se lee al agregarla, el modelo propone su vista y la persona solo la corrige si está mal; cada foto admite una nota. Sin fotos, la descripción pide al menos 15 caracteres y el botón dice «Diseñar sin fotos». En escritorio las fotos van en una columna a la derecha. Si el diseño falla, la captura se conserva y se ofrece «Reintentar» con «Ver qué pasó» (D28).
+- **Análisis** (`capture/Analyzing.tsx`): las etapas reales del caso de uso («Mirando las fotos (n de m)», «Pensando el diseño» o «Diseñando pieza por pieza», «Midiendo que todo cierre», «Revisando la estructura»), un reloj, un trazo de lápiz dibujando un mueble y «Cancelar». Pasados 30 s explica por qué tarda.
 
-- **Vista de armado**: cada pieza se separa del centro del mueble en dirección de su normal, con un resorte suave de ~600 ms. Al tocar una pieza, las demás quedan al 15 % de opacidad y aparece una ficha: nombre, medidas en mm y cm, espesor, veta y uniones ("→ Lateral izq.: 3 tornillos de bolsillo 1¼"").
-- **Cambios en vivo**: las piezas afectadas brillan en ámbar y se asientan; las nuevas crecen desde su cara de apoyo; las eliminadas se desvanecen como fantasma; las recorridas por propagación se interpolan. El diff entre versiones es determinista.
-- **Propuestas con consecuencias**: vista previa (piezas nuevas en fantasma) con botones como `[Aplicar con divisor al centro] [Aplicar así, bajo mi riesgo] [Cancelar]`.
-- **Historial**: línea de tiempo vertical con número, resumen y hora. "Volver a v3" no borra nada: crea una versión nueva igual a v3.
-- **Revisión**: observaciones agrupadas por severidad, cada una con "Pedir al experto que lo corrija", que prellena el chat.
-- **Materiales**: lista de piezas, hojas por espesor con diagrama de acomodo (SVG, desperdicio por hoja) y herrajes con costo. El aviso "Estimación para compra, no es plano de corte" siempre visible.
+### Estudio
+
+`studio/Studio.tsx`. A partir de 768 px, el 3D a la izquierda y un panel de 360 a 420 px a la derecha; en celular, el 3D arriba (52 % del alto) y el panel abajo, con un botón que cambia la proporción a 30 % para el 3D. No hay hoja arrastrable (D14).
+
+- **Encabezado**: nombre del mueble y su resumen de medidas; la versión («v3»), que abre el historial; la campana de avisos, en óxido con el número por decidir; el experto conectado, que abre ajustes; y «Nuevo diseño», que confirma antes de borrar.
+- **Escena**: encima del 3D, una barra con Frente · Lado · 3/4 · Arriba · Armado (vista explosionada) · Cotas, y debajo una sola ficha de estado (`StatusChip`), la de mayor prioridad: versión vieja a la vista, el experto trabajando (si no se ve el chat), propuesta o solución en vista previa, problemas sin resolver, piezas por confirmar y lo último que se resolvió.
+- **Panel**: tres pestañas, Conversación · Mueble · Materiales.
+  - *Conversación* (`chat/Chat.tsx`): los mensajes del experto con lo que cambió cada versión (`ChangeList`), sus preguntas con respuestas en botón, las propuestas que esperan confirmación (D36: «Sí, aplícalo», «Ver propuesta», «No, déjalo como estaba») y chips de sugerencia. La bandeja (`chat/Tray.tsx`, D34) junta avisos, respuestas y pedidos para mandarlos al experto en un solo pedido.
+  - *Mueble* (`studio/FurniturePanel.tsx`): el tipo de mueble y de dónde salió, la ficha (`PlanSheet`) para los módulos que la tienen, que se aplica al instante con «Aplicar» o «Descartar», lo que el experto recuerda (requisitos y decisiones, que se pueden quitar), las fotos y, sin ficha, la lista de piezas.
+  - *Materiales* (`studio/Materials.tsx`, D30): primero la revisión («Revisar y ver materiales») y su veredicto; si es viable o se puede arreglar, el costo aproximado, las hojas de triplay con su acomodo en SVG y el desperdicio, herrajes y consumibles, el acabado y la lista de corte. Los precios son de referencia y se tocan para poner el de la tienda. Si no es viable, la lista se ve solo con «Ver la lista de todos modos».
+- **Avisos e historial** toman el lugar de las pestañas, no tapan el 3D. *Avisos* (`studio/NoticePanel.tsx`, D37): cada aviso con su sello de severidad y sus salidas, «Al instante» (con «Ver» para la vista previa en 3D), «A la bandeja, para el experto» o «Aceptar así, bajo mi riesgo»; abajo, «Resolver n» aplica lo elegido. *Historial* (`studio/HistoryPanel.tsx`): versiones de la más nueva a la más vieja, con lo que cambió; «Ver» la muestra en el 3D y «Volver a esta» crea una versión nueva igual.
+- **Pieza**: tocarla en el 3D o en una lista la abre en el panel (`studio/PieceSheet.tsx`): material, veta, largo, ancho y espesor en mm y cm, uniones con enlace a la otra pieza y «Editar a mano» (`PieceEditor`: largo, ancho, espesor y mover por pasos, al instante y revisado como cualquier cambio). Las demás piezas quedan tenues. `Escape` o tocar fuera la cierra. Una pieza que el experto no pudo confirmar ofrece «Está bien así».
 
 ### Dirección visual: taller moderno
 
-- **Paleta** (tokens, con modo oscuro "taller de noche"):
+- **Paleta** (`src/ui/system/tokens.css`, con modo oscuro por `prefers-color-scheme`):
 
 | Uso | Color |
 |---|---|
-| Fondo | Hueso `#F5F0E8` |
-| Superficies | Kraft claro `#EDE3D3` |
-| Texto | Grafito `#2B2825` |
-| Maderas en 3D | Abedul `#E2C9A2`, pino `#D9B27C`, nogal `#6B4A2E` |
-| Acento | Ámbar de lápiz de carpintero `#D98A2B` |
-| Crítico / Recomendación / Detalle | Óxido `#B4452F` / Ámbar / Pizarra `#56697A` |
+| Fondo | Hueso `#F5F0E8`, con una textura de papel apenas perceptible |
+| Superficies | Kraft `#EDE3D3` y `#E3D5BF` |
+| Texto | Grafito `#2B2825`; secundario `#6A6158` |
+| Maderas | Abedul `#E2C9A2`, pino `#D9B27C`, nogal `#6B4A2E` |
+| Selección y foco | Ámbar de lápiz de carpintero `#D98A2B` (K6): pestaña activa, pieza o versión seleccionada, foco de los controles. También el lápiz que traza mientras el experto trabaja y, en el 3D, lo que un cambio toca |
+| Crítico / Recomendación / Detalle | Óxido `#B4452F` / Grafito / Pizarra `#56697A` |
 
-- **Tipografía**: Fraunces (títulos), Inter (interfaz), JetBrains Mono con cifras tabulares (cotas y medidas).
-- **3D**: luz cálida, sombra de contacto, aristas finas en grafito, cantos con la textura de capas del triplay, cotas estilo dibujo técnico.
-- **Microinteracciones**: transiciones de cámara suaves (`CameraControls` de drei), vibración háptica al seleccionar en móvil, chips que se deshabilitan tras usarse.
+- **Tipografía**: Fraunces (títulos), Inter (interfaz), JetBrains Mono con cifras tabulares (cotas y medidas, clase `numerals`).
+- **Componentes** (`src/ui/system/`): `Button` (primario grafito, secundario kraft, fantasma, peligro óxido), `Chip`, `Stamp` (severidad como sello de tinta ladeado), `Pencil` (el lápiz que traza mientras el experto piensa), `Title`, y `Field` con `Input`, `Select` y `TextArea`: etiqueta arriba, caja de 44 px, unidad dentro y 16 px de texto para que iOS no haga zoom. Los controles tocables miden al menos 44 px.
 
 ### Arte: "maqueta sobre el banco de trabajo"
 
-- **Del boceto a la madera**: mientras el experto analiza, el mueble aparece como trazo de lápiz; al validarse, cada pieza se llena de madera en cascada. Las piezas de baja confianza quedan en boceto con achurado hasta confirmarse.
-- **Veta procedural**: shader sin texturas descargadas; sigue la `veta` del modelo. Cantos con las capas del triplay.
-- **Escena**: iluminación de estudio con `Lightformer` (sin HDRI externo), piso con cuadrícula tenue tipo tapete de corte, sombra de contacto, cotas como líneas de lápiz fino.
-- **Sabor de juego**: explosión con resorte y leve rebote; pieza nueva que cae a su lugar con un "puf" de aserrín; eliminadas como fantasma; pulso ámbar en afectadas; contorno ámbar y vibración al seleccionar. Sonidos de madera opcionales, apagados por defecto.
-- **Interfaz**: papel kraft y hueso con textura apenas perceptible; severidades como sellos de tinta; medidas con regla deslizable tipo cinta métrica; lápiz que traza mientras el experto piensa, con la etapa real debajo.
-- **Rendimiento**: `PerformanceMonitor` baja resolución y apaga postproceso en teléfonos lentos; densidad de píxeles máxima 2.
+- **Del boceto a la madera**: al cargar un diseño las aristas en grafito se ven de inmediato y las piezas se llenan de madera en cascada, de abajo hacia arriba. Una pieza de baja confianza se ve como papel con achurado de lápiz hasta confirmarse.
+- **Madera sin descargas**: la veta de las caras y las capas del triplay en los cantos se dibujan en el navegador (`scene/textures.ts`).
+- **Escena** (`scene/Scene.tsx`): luz de estudio con `Lightformer` (sin HDRI externo), sombra de contacto, cuadrícula tenue tipo tapete de corte y oclusión ambiental. Las cotas son líneas punteadas con etiquetas «900 mm · 90 cm»; con Cotas en la vista armada, cada pieza lleva las suyas.
+- **Movimiento**: armado y cámara con resorte (`@react-spring/three`, `CameraControls`); la pieza nueva cae a su lugar con aserrín; la eliminada sube y se desvanece en óxido; la que cambió brilla en ámbar y se apaga; las piezas nuevas de una propuesta se ven en ámbar translúcido. Con `prefers-reduced-motion` no hay animaciones.
+- **Rendimiento**: el lienzo solo dibuja cuando algo cambia; `PerformanceMonitor` quita la oclusión ambiental y baja la resolución cuando el equipo no alcanza; densidad de píxeles máxima 2 en escritorio y 1.5 en pantallas táctiles.
 
 ---
 

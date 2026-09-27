@@ -70,7 +70,7 @@ Both are kit that was never declared kit. Move them to `src/ui/system/` before t
 
 ### A rule's home that went stale
 
-`docs/PROPUESTA.md` §1 still describes a "Hoja inferior arrastrable… con pestañas Chat · Revisión · Materiales · Historial" and a "Revisión" tab. D14 removed the sheet and phase 9 (entrega 4) removed both tabs. §1 is where a newcomer reads the layout; it contradicts the product. Rewrite §1 from D38 when the target bands are approved in code.
+`docs/PROPUESTA.md` §1 still describes a "Hoja inferior arrastrable… con pestañas Chat · Revisión · Materiales · Historial" and a "Revisión" tab. D14 removed the sheet and phase 9 (entrega 4) removed both tabs. §1 is where a newcomer reads the layout; it contradicts the product. Rewrite §1 from D38 when the target bands are approved in code. **Rewritten 2026-09-27** from D38 and the code as it is.
 
 ### What is blocked, and on what
 
