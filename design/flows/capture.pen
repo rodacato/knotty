@@ -1730,7 +1730,7 @@
                 {
                   "type": "rectangle",
                   "id": "gE8Hg",
-                  "x": 326,
+                  "x": 325,
                   "y": 4,
                   "name": "Tick 50",
                   "fill": "$graphite-2",
@@ -2234,7 +2234,7 @@
                 {
                   "type": "rectangle",
                   "id": "rv9sn",
-                  "x": 326,
+                  "x": 325,
                   "y": 4,
                   "name": "Tick 50",
                   "fill": "$graphite-2",
@@ -2738,7 +2738,7 @@
                 {
                   "type": "rectangle",
                   "id": "a3bKEX",
-                  "x": 326,
+                  "x": 325,
                   "y": 4,
                   "name": "Tick 50",
                   "fill": "$graphite-2",
