@@ -2,7 +2,7 @@
 
 > The registry the `flows/*.pen` briefs and the `ui-kit.lib.pen` notes cite. A resolved entry is never deleted: record the outcome, because the reasoning is the useful part.
 
-**Status:** 19 entries · 1 decided · 18 open · 🐞 2 app bugs (fixed on their own, they do not wait for the redesign).
+**Status:** 19 entries · 2 decided · 17 open · 🐞 2 app bugs (fixed on their own, they do not wait for the redesign).
 
 **How entries work.** A `UI-<n>` is a finding: the design is always drawn as the **code** is, and the entry records what it does today, what it should do, and who decides. The thesis that orders them is D38 in `docs/PROPUESTA.md`: the furniture is the interface.
 
@@ -16,7 +16,7 @@ Source: review of all of `src/ui/` on 2026-09-27, then checked against real capt
 
 | # | Tag | Finding | Recommendation |
 |---|---|---|---|
-| **UI-1** | `vice` | Amber means too many things: accent, active tab, "recommendation" severity, "fix it" verdict, tray, proposal, selected piece, required marker, info note and chosen provider — in 23 files, 100 uses under `src/ui/` (re-counted 2026-09-27 without the debug panel). PROPUESTA §1 defines it as both accent and severity. | ⏳ Amber only for **selection and action**. "Recommendation" needs another tone or leans on the stamp. A kit decision: it touches every flow. |
+| **UI-1** | `vice` | Amber means too many things: accent, active tab, "recommendation" severity, "fix it" verdict, tray, proposal, selected piece, required marker, info note and chosen provider — in 23 files, 100 uses under `src/ui/` (re-counted 2026-09-27 without the debug panel). PROPUESTA §1 defines it as both accent and severity. | ✅ **Decided 2026-09-27 (Adrian): amber only for selection and focus** (active tab, selected piece, the tape handle). Severity stamps become ink: critical rust, **recommendation graphite**, detail slate; the "Arréglalo antes de comprar" verdict turns neutral. Applied to the target bands; the kit bumps to 0.3.0 when the code lands (`CODE_CHANGES.md` §6). |
 | **UI-2** | `slop` | 13 uppercase labels outside the debug panel — re-counted: 11 are the `tracking-wide text-graphite-2 uppercase` eyebrow, 1 is Home's tagline, 1 is the `Stamp` (which stays: `keep`); so **12** to change (`AL INSTANTE`, `LAS CUENTAS`, `TUS REQUISITOS`…) and 32 bordered `rounded-2xl`, several nested (`FixButton` inside `NoticeCard`; cell inside column in `CabinetColumns`). | ⏳ Group with space first, fill second, borders last. No card inside a card. |
 | **UI-3** | `vice` | One proposal, two button sets: in chat "Sí, aplícalo" is `ghost` (`src/ui/chat/Chat.tsx:175`), in Notices it is `primary` (`src/ui/studio/NoticePanel.tsx:131`), with different discard labels. | ⏳ One proposal component, primary action `primary` in both places. |
 | **UI-4** | `vice` | The Furniture tab mixes furniture kind (changing it may force a redo), the plan sheet with its sticky Apply bar and `pb-28`, the expert's memory and the photos. The bar stops sticking before the memory (`src/ui/studio/FurniturePanel.tsx:164`). | ⏳ Furniture tab = the plan sheet. The expert's memory goes next to the conversation; kind and photos to a "furniture details" place. |
@@ -49,7 +49,7 @@ Read across UI-1…UI-19, B-1, B-2, both persona audits and `CODE_CHANGES.md`, w
 | **K3** | one rule, broken twice | **"The 3D is never covered"** is written in D14 and in `Studio.tsx:146` and broken by the piece card and the pills. Fix the rule's home, not the instances: the panel is the only place anything opens (notices, history, piece). | B-2, UI-5, UI-4 |
 | **K4** | one cause | **Width hides meaning**: labels drop at phone width — `hidden sm:inline` ×3 in `Studio.tsx`, compact `TakePhoto`, the icon-only ruler. One rule: no action without a word at any width, except close and send. | UI-19, audit C, UI-11 |
 | **K5** | one cause | **Small grey mono for things people read**: `text-[10px]`/`text-[11px]` ×19 in 10 files, plus `graphite-2` body text. One decision: 12 px minimum, `graphite` for anything that is read, not scanned. | Doña Carmen (both passes), UI-2 |
-| **K6** | one token decision | **Amber = selection and action only**; "recommendation" and the verdict "Arréglalo" need their own tone. A kit token change: every flow re-vendors. | UI-1 |
+| **K6** | one token decision — ✅ decided | **Amber = selection and focus only**; "recommendation" and the verdict "Arréglalo" need their own tone. A kit token change: every flow re-vendors. | UI-1 |
 | **K7** | one component | **`Field`**: 27 hand-styled inputs in 12 files. Prerequisite for K5 in forms. | CODE_CHANGES §1 |
 
 ### Corrected counts
@@ -70,7 +70,7 @@ Both are kit that was never declared kit. Move them to `src/ui/system/` before t
 
 ### What is blocked, and on what
 
-1. **K6 (amber token) blocks re-vendoring** the flows and turning the target bands into code: every screen that uses amber changes once more after it.
+1. ~~K6 (amber token) blocks re-vendoring~~ — **decided 2026-09-27** and applied to the target bands; no longer blocking.
 2. **K7 (`Field`) and K2 (`StatusChip`) block** implementing the Studio target screens: they are built mostly from them.
 3. **K1 blocks UI-15 step 2** (editing while the expert works): the 19 `disabled={thinking}` sites are the change, and K1 owns most of them.
 4. D39 (photos without slots) is **not blocked**: it touches Capture and reading only.

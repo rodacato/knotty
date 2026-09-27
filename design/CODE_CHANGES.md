@@ -43,3 +43,13 @@
 **Status:** proposed · pending in code — `UI-2`
 
 - The 11 `tracking-wide text-graphite-2 uppercase` labels and Home's tagline become sentence case (12).
+
+## 6. Amber for selection only (K6)
+
+**Status:** decided · pending in code — `UI-1`
+
+- Measured 2026-09-27: amber in 23 files, 100 uses (without the debug panel).
+- Keep amber for selection and focus: the active tab underline, the selected piece, the tape-measure handle, focus rings.
+- `Stamp` recommendation → `graphite` (`src/ui/system/components.tsx`, `STAMP.recommendation`).
+- Verdict "Arréglalo antes de comprar" → neutral (`src/ui/studio/Verdict.tsx`, `VERDICTS['needs-changes']`), and every other amber use that is neither selection nor focus goes neutral.
+- Then bump the kit to 0.3.0: `Stamp/Recommendation` and the verdict colors change value, so every flow re-vendors.

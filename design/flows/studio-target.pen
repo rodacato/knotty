@@ -5321,6 +5321,18 @@
         },
         {
           "type": "text",
+          "id": "gzb9V",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · K6 applied: recommendation stamps in graphite, verdict \"Arréglalo\" neutral, decorative amber icons in graphite; amber stays on the active tab only (local overrides until kit 0.3.0) · UI-1",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "g7QpV",
           "name": "Entry",
           "fill": "$graphite",
@@ -6258,7 +6270,13 @@
                           "id": "DuHY9",
                           "type": "ref",
                           "ref": "pfDN0",
-                          "name": "Stamp"
+                          "name": "Stamp",
+                          "stroke": "$graphite",
+                          "descendants": {
+                            "d1YP8": {
+                              "fill": "$graphite"
+                            }
+                          }
                         }
                       ]
                     },
@@ -7194,7 +7212,7 @@
                       "height": 16,
                       "icon": "wrench",
                       "library": "phosphor",
-                      "fill": "$amber"
+                      "fill": "$graphite"
                     },
                     {
                       "type": "text",
@@ -7875,7 +7893,7 @@
                       "height": 16,
                       "icon": "wrench",
                       "library": "phosphor",
-                      "fill": "$amber"
+                      "fill": "$graphite"
                     },
                     {
                       "type": "text",
@@ -10444,9 +10462,9 @@
                       "id": "zUs3F",
                       "name": "Verdict pill",
                       "height": 30,
-                      "fill": "$amber-soft",
+                      "fill": "$paper",
                       "cornerRadius": "$radius-full",
-                      "stroke": "$amber",
+                      "stroke": "$graphite-2",
                       "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
@@ -10463,7 +10481,7 @@
                           "height": 15,
                           "icon": "warning-circle",
                           "library": "phosphor",
-                          "fill": "$amber"
+                          "fill": "$graphite"
                         },
                         {
                           "type": "text",
@@ -14889,7 +14907,13 @@
                               "id": "bpe6x",
                               "type": "ref",
                               "ref": "pfDN0",
-                              "name": "Stamp"
+                              "name": "Stamp",
+                              "stroke": "$graphite",
+                              "descendants": {
+                                "d1YP8": {
+                                  "fill": "$graphite"
+                                }
+                              }
                             }
                           ]
                         },
@@ -15910,9 +15934,9 @@
                           "id": "thprM",
                           "name": "Verdict pill",
                           "height": 30,
-                          "fill": "$amber-soft",
+                          "fill": "$paper",
                           "cornerRadius": "$radius-full",
-                          "stroke": "$amber",
+                          "stroke": "$graphite-2",
                           "strokeWidth": 1,
                           "gap": 6,
                           "padding": [
@@ -15929,7 +15953,7 @@
                               "height": 15,
                               "icon": "warning-circle",
                               "library": "phosphor",
-                              "fill": "$amber"
+                              "fill": "$graphite"
                             },
                             {
                               "type": "text",

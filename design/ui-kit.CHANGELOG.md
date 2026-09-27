@@ -8,6 +8,10 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.3.0 — planned, lands with the code
+
+`Stamp/Recommendation` goes from amber to graphite, and amber is kept for selection and focus only (K6, `UI-1`, decided 2026-09-27). A **value** change: every flow re-vendors. Until the code lands, the target bands apply it as local overrides.
+
 ## 0.2.0 — fixtures
 
 **Added:** a `Fixtures` section — canvas scaffolding, not design to implement — with `Fixture/Finding pin`, the rust label that marks a `UI-<n>` on an as-is capture. It was built separately in `studio.pen` and `capture.pen`; they keep their local copy until their next re-vendor. Additive: no flow has to re-sync.
