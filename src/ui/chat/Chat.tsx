@@ -7,6 +7,7 @@ import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
+import { Memory } from './Memory'
 import { Tray } from './Tray'
 
 export const STAGES: Record<Stage, string> = {
@@ -223,6 +224,7 @@ export function Chat({ state }: { state: DesignState }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
+      <Memory state={state} />
       <div ref={list} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
         {state.chat.map((m) => (
           <Bubble key={m.id} m={m} state={state} retry={m === last ? retry : null} />
