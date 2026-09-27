@@ -15,7 +15,7 @@ const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digi
 /** Every call to the expert, and what Knotty answered alone, newest first: how long it took, what it cost and what went wrong. */
 export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?: { id: string; name: string }[] }) {
   const named = (message: string) => pieces.reduce((m, p) => m.replaceAll(`"${p.id}"`, p.name), message)
-  if (!trace.length) return <p className="text-sm text-graphite-2">Todavía no hay llamadas al experto en este diseño.</p>
+  if (!trace.length) return <p className="text-sm text-graphite">Todavía no hay llamadas al experto en este diseño.</p>
   const calls = trace.filter((t) => !byKnotty(t)).length
   const alone = trace.length - calls
   const total = trace.reduce((s, t) => s + t.seconds, 0)
@@ -56,7 +56,7 @@ export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?:
               <ul className="list-disc pl-5 text-xs">
                 {t.errors.slice(0, 5).map((e, j) => (
                   <li key={j}>
-                    <span className="font-mono text-[11px] text-graphite-2">{e.code}</span> {named(e.message)}
+                    <span className="font-mono text-xs text-graphite-2">{e.code}</span> {named(e.message)}
                   </li>
                 ))}
                 {t.errors.length > 5 && <li className="text-graphite-2">y {t.errors.length - 5} más</li>}

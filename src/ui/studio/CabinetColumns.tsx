@@ -2,6 +2,7 @@ import { Plus, Trash } from '@phosphor-icons/react'
 import { CABINET_LABELS } from '../../domain/furniture/modules/cabinet'
 import type { Cell, Column } from '../../domain/furniture/reading/reading'
 import { Button } from '../system/components'
+import { Input, Select } from '../system/Field'
 import { Segmented, Stepper } from './PlanControls'
 
 // A cabinet's columns and their cells: the one part of a plan that no generic field can draw.
@@ -13,31 +14,32 @@ const percent = (value: number, all: number[]) => Math.round((value / (all.reduc
 function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; heights: number[]; index: number; onChange: (c: Cell) => void; onRemove: (() => void) | null }) {
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-xl bg-bone px-2 py-1.5">
-      <select
+      <Select
+        size="sm"
         aria-label={`Hueco ${index + 1}`}
         value={cell.content}
         onChange={(e) => {
           const content = e.target.value as Cell['content']
           onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
         }}
-        className="rounded-lg border border-line bg-paper px-1.5 py-1 text-xs"
       >
         {CONTENTS.map(([id, text]) => (
           <option key={id} value={id}>
             {text}
           </option>
         ))}
-      </select>
+      </Select>
       <label className="flex items-center gap-1 text-xs text-graphite-2">
         alto
-        <input
+        <Input
+          size="sm"
           type="number"
           min={1}
           max={100}
           value={percent(cell.height, heights)}
           onChange={(e) => onChange({ ...cell, height: Math.max(1, Number(e.target.value)) / 100 })}
           aria-label={`Alto del hueco ${index + 1} en porcentaje`}
-          className="numerals w-14 rounded-lg border border-line bg-paper px-1 py-0.5 text-right text-xs"
+          className="w-16 text-right"
         />
         %
       </label>
@@ -76,14 +78,15 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
               <span className="font-medium">Columna {i + 1}</span>
               <label className="flex items-center gap-1 text-xs text-graphite-2">
                 ancho
-                <input
+                <Input
+                  size="sm"
                   type="number"
                   min={1}
                   max={100}
                   value={percent(column.width, widths)}
                   onChange={(e) => setColumn(i, { ...column, width: Math.max(1, Number(e.target.value)) / 100 })}
                   aria-label={`Ancho de la columna ${i + 1} en porcentaje`}
-                  className="numerals w-14 rounded-lg border border-line bg-paper px-1 py-0.5 text-right text-xs"
+                  className="w-16 text-right"
                 />
                 %
               </label>
@@ -93,7 +96,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-graphite-2">De arriba hacia abajo</p>
+            <p className="text-xs text-graphite-2">De arriba hacia abajo</p>
             <ol className="flex flex-col gap-1">
               {column.cells
                 .map((cell, j) => ({ cell, j }))

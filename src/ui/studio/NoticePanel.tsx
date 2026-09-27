@@ -83,7 +83,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
         </span>
         {notice.severity !== 'decision' && <Stamp severity={notice.severity} />}
       </div>
-      {notice.reopened && <p className="text-sm text-graphite-2">{notice.reopened}</p>}
+      {notice.reopened && <p className="text-sm text-graphite">{notice.reopened}</p>}
       <p className="text-[15px] leading-snug">{notice.message}</p>
       {notice.pieces.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -193,7 +193,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
       )}
 
       {board.pending.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite-2">
+        <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite">
           <Wrench size={28} weight="duotone" className="text-graphite" />
           <p className="font-medium text-graphite">Nada pendiente</p>
           <p className="text-sm">Revisé flecha de entrepaños, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>

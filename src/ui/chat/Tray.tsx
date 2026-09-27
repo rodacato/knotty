@@ -14,7 +14,7 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
   return (
     <div className="animate-appear mx-3 mb-2 flex flex-col gap-2 rounded-2xl border border-amber/40 bg-amber-soft/40 p-2.5" aria-label="Bandeja para el experto">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-graphite-2 uppercase">
+        <p className="flex items-center gap-1.5 text-sm font-medium">
           <TrayIcon weight="duotone" className="text-amber" /> Bandeja · {items.length}
         </p>
         <Button variant="primary" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={onSend}>
@@ -31,7 +31,7 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
           </li>
         ))}
       </ul>
-      <p className="hidden text-xs text-graphite-2 sm:block">{typed ? 'Lo que escribiste va en el mismo pedido.' : 'Va todo en un solo pedido; si escribes algo abajo, se suma.'}</p>
+      <p className="hidden text-xs text-graphite sm:block">{typed ? 'Lo que escribiste va en el mismo pedido.' : 'Va todo en un solo pedido; si escribes algo abajo, se suma.'}</p>
     </div>
   )
 }

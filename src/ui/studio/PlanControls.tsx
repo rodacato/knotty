@@ -34,15 +34,3 @@ export function Stepper({ value, min, max, onChange, label }: { value: number; m
     </span>
   )
 }
-
-export function NumberField({ value, onChange, label, suffix, min = 1 }: { value: number; onChange: (v: number) => void; label: string; suffix: string; min?: number }) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs text-graphite-2">{label}</span>
-      <span className="flex items-baseline gap-1 rounded-xl border border-line bg-bone px-2 focus-within:border-amber">
-        <input type="number" inputMode="numeric" min={min} value={value || value === min ? value : ''} onChange={(e) => onChange(Number(e.target.value))} className="numerals min-h-9 w-full bg-transparent outline-none" />
-        <span className="numerals text-xs text-graphite-2">{suffix}</span>
-      </span>
-    </label>
-  )
-}

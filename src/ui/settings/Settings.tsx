@@ -5,6 +5,7 @@ import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connec
 import { Unlock } from './Keys'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
+import { Field, Input, Select } from '../system/Field'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 
@@ -86,7 +87,7 @@ export function Settings() {
               <X />
             </Dialog.Close>
           </div>
-          <Dialog.Description className="-mt-3 text-sm text-graphite-2">
+          <Dialog.Description className="-mt-3 text-sm text-graphite">
             Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
           </Dialog.Description>
 
@@ -107,7 +108,7 @@ export function Settings() {
                 className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
               >
                 <span className="font-medium">{PRESETS[p].label}</span>
-                <span className="text-xs text-graphite-2">{PRESETS[p].description}</span>
+                <span className="text-xs text-graphite">{PRESETS[p].description}</span>
               </button>
             ))}
           </div>
@@ -116,51 +117,48 @@ export function Settings() {
 
           {connection && active !== 'simulated' && (
             <div className="flex flex-col gap-4">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">API key{!PRESETS[active].needsKey && <span className="font-normal text-graphite-2"> (opcional)</span>}</span>
-                <span className="flex items-center gap-2 rounded-xl border border-line bg-bone px-3 focus-within:border-amber">
-                  <input
-                    type={showKey ? 'text' : 'password'}
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={connection.apiKey}
-                    onChange={(e) => change({ apiKey: e.target.value.trim() })}
-                    placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
-                    className="numerals min-h-11 flex-1 bg-transparent text-sm outline-none"
-                  />
-                  <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-graphite-2">
-                    {showKey ? <EyeSlash /> : <Eye />}
-                  </button>
-                </span>
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="flex items-center justify-between text-sm font-medium">
-                  Modelo
-                  <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs font-normal text-graphite-2 underline disabled:opacity-40">
-                    <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
-                  </button>
-                </span>
+              <Field label={<>API key{!PRESETS[active].needsKey && ' (opcional)'}</>}>
+                <Input
+                  type={showKey ? 'text' : 'password'}
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={connection.apiKey}
+                  onChange={(e) => change({ apiKey: e.target.value.trim() })}
+                  placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
+                  className="numerals"
+                  end={
+                    <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-graphite-2">
+                      {showKey ? <EyeSlash /> : <Eye />}
+                    </button>
+                  }
+                />
+              </Field>
+              <Field
+                label={
+                  <span className="flex items-center justify-between">
+                    Modelo
+                    <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs text-graphite-2 underline disabled:opacity-40">
+                      <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
+                    </button>
+                  </span>
+                }
+                error={models.kind === 'error' && models.message}
+              >
                 {models.kind === 'ready' ? (
-                  <select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm">
+                  <Select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="numerals">
                     {!models.models.includes(connection.model) && <option value={connection.model}>{connection.model || 'Elige un modelo'}</option>}
                     {models.models.map((m) => (
                       <option key={m}>{m}</option>
                     ))}
-                  </select>
+                  </Select>
                 ) : (
-                  <input
-                    value={connection.model}
-                    onChange={(e) => change({ model: e.target.value.trim() })}
-                    placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'}
-                    className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber"
-                  />
+                  <Input value={connection.model} onChange={(e) => change({ model: e.target.value.trim() })} placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'} className="numerals" />
                 )}
-                {models.kind === 'error' && <span className="text-xs text-rust">{models.message}</span>}
-              </label>
+              </Field>
               <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
                 {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                  <p className="text-xs text-graphite-2">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
+                  <p className="text-xs text-graphite">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
                 ) : locked ? (
                   <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
@@ -170,28 +168,27 @@ export function Settings() {
                       <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-amber" />
                       <span>
                         {g.name}
-                        <span className="block text-xs text-graphite-2">{g.detail}</span>
+                        <span className="block text-xs text-graphite">{g.detail}</span>
                       </span>
                     </label>
                   ))}
                 </div>
                 {asksPassphrase && (
-                  <input
+                  <Input
                     type="password"
                     value={passphrase}
                     onChange={(e) => setPassphrase(e.target.value)}
                     placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
                     autoComplete="new-password"
                     aria-label="Frase para cifrar las llaves"
-                    className="min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber"
                   />
                 )}
-                <p className="text-xs text-graphite-2">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+                <p className="text-xs text-graphite">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
               </fieldset>
             </div>
           )}
 
-          <label className="flex items-center gap-2 border-t border-line pt-3 text-xs text-graphite-2">
+          <label className="flex items-center gap-2 border-t border-line pt-3 text-xs text-graphite">
             <input
               type="checkbox"
               checked={debugVisible}
@@ -237,10 +234,9 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
           Conoce SheLLM <ArrowSquareOut />
         </a>
       </p>
-      <label className="flex flex-col gap-1.5">
-        <span className="font-medium">Dirección</span>
-        <input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="numerals min-h-11 rounded-xl border border-line bg-bone px-3 text-sm outline-none focus:border-amber" />
-      </label>
+      <Field label="Dirección">
+        <Input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="numerals" />
+      </Field>
       <div className="flex flex-col gap-1.5">
         <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
         <span className="flex items-center gap-2 rounded-xl bg-bone px-3 py-2">

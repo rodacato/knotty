@@ -6,6 +6,7 @@ import { KindSelect } from '../system/KindSelect'
 import { missing } from '../../ports/Preferences'
 import { useServices } from '../services'
 import { Button, cm, Title } from '../system/components'
+import { Field, TextArea } from '../system/Field'
 import { TakePhoto } from '../system/TakePhoto'
 import { useStore } from '../store'
 import { TraceLog } from '../studio/TraceLog'
@@ -96,7 +97,7 @@ function Slot({
             <Trash />
           </button>
           {noteOpen ? (
-            <textarea
+            <TextArea
               autoFocus
               value={photo.note ?? ''}
               onChange={(e) => onNote(e.target.value)}
@@ -104,7 +105,7 @@ function Slot({
               rows={3}
               placeholder="Descríbela: «la de abajo es puerta», «las repisas se mueven»"
               aria-label={`Nota sobre la foto ${angle.name}`}
-              className="absolute inset-x-2 bottom-2 resize-none rounded-xl border border-line bg-bone/95 p-2 text-xs text-graphite shadow outline-none focus:border-amber"
+              className="absolute inset-x-2 bottom-2 resize-none shadow"
             />
           ) : (
             <button
@@ -124,7 +125,7 @@ function Slot({
             <p className="font-medium">
               {angle.name} {angle.required && <span className="text-amber">•</span>}
             </p>
-            <p className="text-xs leading-snug text-graphite-2">{angle.hint}</p>
+            <p className="text-xs leading-snug text-graphite">{angle.hint}</p>
           </div>
           <div className="grid flex-1 place-items-center">
             <Silhouette angle={angle.id} />
@@ -192,7 +193,7 @@ export function Capture() {
           <p className="flex items-start gap-2 font-medium">
             <Robot className="mt-0.5 shrink-0" weight="bold" /> Conecta tu experto para diseñar tu mueble
           </p>
-          <p className="text-sm text-graphite-2">
+          <p className="text-sm text-graphite">
             Sin una API key solo responde el modo simulado, que no entiende tu mueble: arma uno de tres ejemplos (librero, buró o alacena). Con Claude, OpenAI o SheLLM el experto sí lee
             tus fotos y tu descripción.
           </p>
@@ -209,17 +210,15 @@ export function Capture() {
 
       {step === 'measures' ? (
         <>
-          <p className="-mt-4 text-graphite-2">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
+          <p className="-mt-4 text-graphite">Las medidas generales por fuera, en milímetros. Con cinta métrica basta.</p>
           <div className="grid gap-3 sm:grid-cols-3">
             {MEASURES.map((m) => (
               <MeasureField key={m.key} name={m.name} value={measures[m.key]} min={m.min} max={m.max} onChange={(v) => setMeasures((d) => ({ ...d, [m.key]: v }))} />
             ))}
           </div>
-          <label className="flex flex-col gap-1.5 sm:max-w-sm">
-            <span className="text-sm font-medium">Tipo de mueble</span>
+          <Field label="Tipo de mueble" help="Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después." className="sm:max-w-sm">
             <KindSelect value={kind} onChange={setKind} none="Que Knotty lo decida" />
-            <span className="text-xs text-graphite-2">Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.</span>
-          </label>
+          </Field>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button
               variant="ghost"
@@ -246,9 +245,9 @@ export function Capture() {
       ) : (
         <>
           {!withMeasures && (
-            <p className="-mt-4 text-sm text-graphite-2">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
+            <p className="-mt-4 text-sm text-graphite">Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.</p>
           )}
-          <p className={withMeasures ? '-mt-4 text-graphite-2' : 'text-graphite-2'}>
+          <p className={withMeasures ? '-mt-4 text-graphite' : 'text-graphite'}>
             Con fotos, frente y 3/4 son las importantes; se reducen en tu teléfono antes de enviarse. ¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
@@ -264,9 +263,11 @@ export function Capture() {
               />
             ))}
           </div>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">{withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}</span>
-            <textarea
+          <Field
+            label={withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}
+            help={withoutPhotos && 'Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.'}
+          >
+            <TextArea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={withoutPhotos ? 4 : 2}
@@ -275,14 +276,8 @@ export function Capture() {
                   ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
                   : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
               }
-              className="rounded-2xl border border-line bg-bone/70 p-3 outline-none focus:border-amber"
             />
-            {withoutPhotos && (
-              <span className="text-xs text-graphite-2">
-                Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.
-              </span>
-            )}
-          </label>
+          </Field>
           {error && (
             <div className="flex flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
               <div className="flex items-start gap-2">

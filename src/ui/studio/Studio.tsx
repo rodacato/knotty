@@ -80,7 +80,7 @@ function ConfirmNew({ children }: { children: ReactNode }) {
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
         <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <Dialog.Title className="font-display text-xl font-semibold">¿Empezar un diseño nuevo?</Dialog.Title>
-          <Dialog.Description className="text-sm text-graphite-2">Se borran este diseño, su historial y la conversación. No se puede deshacer.</Dialog.Description>
+          <Dialog.Description className="text-sm text-graphite">Se borran este diseño, su historial y la conversación. No se puede deshacer.</Dialog.Description>
           <div className="mt-2 flex justify-end gap-2">
             <Dialog.Close asChild>
               <Button variant="ghost">Conservar</Button>
@@ -111,7 +111,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
       <Emblem className="size-7 shrink-0 sm:size-8" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg leading-tight font-semibold">{design.name}</p>
-        <p className="numerals truncate text-[11px] text-graphite-2">
+        <p className="numerals truncate text-xs text-graphite-2">
           {summary}
         </p>
       </div>
@@ -120,7 +120,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
       </Button>
       <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-amber' : ''} />
-        {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-[10px] text-white">{pending}</span>}
+        {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-white">{pending}</span>}
       </Button>
       <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
         <GearSix /> <span className="hidden sm:inline">{label}</span>
@@ -288,7 +288,7 @@ export function Studio({ state }: { state: DesignState }) {
               >
                 <span className="hidden sm:inline-flex">{t.icon}</span>
                 {t.name}
-                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-amber text-[10px] text-graphite" title="En la bandeja">{state.tray.length}</span>}
+                {t.id === 'chat' && state.tray.length > 0 && <span className="numerals grid size-5 place-items-center rounded-full bg-amber text-xs text-graphite" title="En la bandeja">{state.tray.length}</span>}
               </Tabs.Trigger>
             ))}
             {!desktop && (
@@ -307,7 +307,7 @@ export function Studio({ state }: { state: DesignState }) {
             {currentAnalysis.valid ? (
               <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
             ) : (
-              <p className="p-4 text-sm text-graphite-2">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
+              <p className="p-4 text-sm text-graphite">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
             )}
           </Tabs.Content>
         </Tabs.Root>

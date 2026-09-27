@@ -23,7 +23,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
 
   if (!source.plan || !draft)
     return (
-      <div className="flex flex-col gap-2 p-6 text-center text-sm text-graphite-2">
+      <div className="flex flex-col gap-2 p-6 text-center text-sm text-graphite">
         <p className="font-medium text-graphite">Este mueble no tiene ficha</p>
         <p>La ficha aparece cuando el mueble es {moduleLabels()}. Lo demás se ajusta con el experto.</p>
       </div>
@@ -49,7 +49,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
       )}
 
       {!source.diverged && source.extras.length > 0 && (
-        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite-2">
+        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite">
           Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
         </p>
       )}
@@ -57,8 +57,8 @@ export function PlanSheet({ state }: { state: DesignState }) {
       <PlanFields module={moduleOf(draft)} plan={draft} onChange={set} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
-        {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite-2'}`}>{message.text}</p>}
-        <p className="text-xs text-graphite-2">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
+        {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite'}`}>{message.text}</p>}
+        <p className="text-xs text-graphite">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         <div className="flex gap-2">
           <Button variant="primary" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
             <Check weight="bold" /> Aplicar

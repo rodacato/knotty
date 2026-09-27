@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { missing, PRESETS } from '../../ports/Preferences'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
+import { Input } from '../system/Field'
 import { useStore } from '../store'
 
 /** Opens the encrypted saved keys; forgetting them asks first because it cannot be undone. */
@@ -37,7 +38,7 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
     >
       <p>Tienes llaves guardadas y cifradas en este navegador. Escribe tu frase para usarlas.</p>
       <div className="flex gap-2">
-        <input
+        <Input
           type="password"
           value={passphrase}
           onChange={(e) => setPassphrase(e.target.value)}
@@ -45,7 +46,8 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
           aria-label="Frase secreta"
           autoComplete="current-password"
           autoFocus={autoFocus}
-          className={`min-h-11 flex-1 rounded-xl border bg-bone px-3 outline-none focus:border-amber ${error ? 'border-rust' : 'border-line'}`}
+          invalid={!!error}
+          className="flex-1"
         />
         <Button type="submit" variant="secondary" disabled={!passphrase || opening}>
           {opening ? 'Abriendo…' : 'Desbloquear'}
@@ -97,7 +99,7 @@ export function KeysGate() {
               <Dialog.Title asChild>
                 <Title className="text-xl">{locked ? 'Tus llaves están guardadas' : `Falta tu llave de ${name}`}</Title>
               </Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-graphite-2">
+              <Dialog.Description className="mt-1 text-sm text-graphite">
                 {locked
                   ? 'Están cifradas en este navegador; sin tu frase nadie puede leerlas, ni esta página.'
                   : 'Una llave que no guardas vive solo en la pestaña y se pierde al recargar. Sin ella, el experto no puede responder.'}
@@ -107,7 +109,7 @@ export function KeysGate() {
           {locked ? (
             <Unlock onOpen={close} autoFocus />
           ) : (
-            <p className="text-sm text-graphite-2">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
+            <p className="text-sm text-graphite">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
             <button type="button" className="text-sm font-medium text-rust" onClick={close}>
