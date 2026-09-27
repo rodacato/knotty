@@ -25,7 +25,7 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & { size?:
 /** A text or number input; `unit` and `end` sit inside the box, after the value. */
 export function Input({ size = 'md', invalid, unit, end, className = '', ...props }: InputProps) {
   const numeric = props.type === 'number' || props.inputMode === 'numeric' || props.inputMode === 'decimal'
-  const box = `${FRAME} ${HEIGHT[size]} ${border(invalid)} ${numeric ? 'numerals' : ''} ${className}`
+  const box = `min-w-0 ${FRAME} ${HEIGHT[size]} ${border(invalid)} ${numeric ? 'numerals' : ''} ${className}`
   if (!unit && !end) return <input aria-invalid={invalid || undefined} className={box} {...props} />
   return (
     <span className={`flex items-center gap-2 ${box}`}>

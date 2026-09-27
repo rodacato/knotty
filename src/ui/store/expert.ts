@@ -1,4 +1,4 @@
-import { ExpertError, type OnProgress, type Stage, type SentPhoto } from '../../application/useCases'
+import { ExpertError, type OnProgress, type Stage } from '../../application/useCases'
 import { applySettings } from '../../domain/materials/catalog'
 import { trayRequest } from '../../domain/session/tray/tray'
 import type { TraceEntry } from '../../domain/session/trace/trace'
@@ -34,7 +34,7 @@ export interface ExpertSlice {
   verdictError: string | null
 
   reconstruct(input: CaptureInput): Promise<void>
-  adjust(request: string, replyTo?: string | null, photo?: SentPhoto | null): Promise<void>
+  adjust(request: string, replyTo?: string | null): Promise<void>
   /** The furniture designed again as another module's kind, as a new version. */
   redoAs(kind: DesignKind): Promise<void>
   /** The tray and what was typed, to the expert in one request. */
@@ -47,11 +47,11 @@ export interface ExpertSlice {
 }
 
 /** A request to the expert: the message shows at once, and the answer replaces the state when it arrives. */
-async function askExpert(set: Set, get: Get, text: string, replyTo: string | null, thumbnail: string | null, call: (signal: AbortSignal, onAdvance: OnProgress) => Promise<DesignState>) {
+async function askExpert(set: Set, get: Get, text: string, replyTo: string | null, call: (signal: AbortSignal, onAdvance: OnProgress) => Promise<DesignState>) {
   const { services, state, thinking } = get()
   if (!services || !state || thinking) return
   const controller = new AbortController()
-  const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, requestedPhotos: [], thumbnail, answers: [], suggestions: [], solutions: [] }
+  const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, thumbnail: null, answers: [], suggestions: [], solutions: [] }
   const optimistic = { ...state, tray: [], chat: [...markAnswered(state.chat, replyTo), pending] }
   set({ thinking: true, controller, stage: { name: 'proposing', attempt: 0 }, state: optimistic })
   const fresh = await call(controller.signal, (name, attempt) => set({ stage: { name, attempt } }))
@@ -92,23 +92,23 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     }
   },
 
-  adjust(request, replyTo = null, photo = null) {
+  adjust(request, replyTo = null) {
     const { services, state } = get()
     if (!services || !state || !request.trim()) return Promise.resolve()
-    return askExpert(set, get, request.trim(), replyTo, photo?.thumbnail ?? null, (signal, onAdvance) => services.useCases.adjust(state, request.trim(), signal, onAdvance, replyTo, photo))
+    return askExpert(set, get, request.trim(), replyTo, (signal, onAdvance) => services.useCases.adjust(state, request.trim(), signal, onAdvance, replyTo))
   },
 
   redoAs(kind) {
     const { services, state } = get()
     if (!services || !state) return Promise.resolve()
-    return askExpert(set, get, `Rehazlo como ${KIND_NOUN[kind]}.`, null, null, (signal, onAdvance) => services.useCases.redoAs(state, kind, signal, onAdvance))
+    return askExpert(set, get, `Rehazlo como ${KIND_NOUN[kind]}.`, null, (signal, onAdvance) => services.useCases.redoAs(state, kind, signal, onAdvance))
   },
 
   sendTray(typed = '') {
     const { services, state } = get()
     if (!services || !state || (!state.tray.length && !typed.trim())) return Promise.resolve()
     const { text, answers } = trayRequest(state.tray, typed)
-    return askExpert(set, get, text, answers, null, (signal, onAdvance) => services.useCases.sendTray(state, typed, signal, onAdvance))
+    return askExpert(set, get, text, answers, (signal, onAdvance) => services.useCases.sendTray(state, typed, signal, onAdvance))
   },
 
   cancel: () => get().controller?.abort(),

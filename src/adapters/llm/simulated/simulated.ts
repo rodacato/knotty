@@ -29,7 +29,6 @@ const adjustment = (partial: Partial<AdjustmentResponse> & Pick<AdjustmentRespon
   suggestions: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Agrega un cajón abajo'],
   operations: [],
   questions: [],
-  requestedPhotos: [],
   requirements: { add: [], remove: [] },
   decisions: [],
   acceptedRisks: [],
@@ -189,17 +188,15 @@ function dividerOps(d: Design): Operation[] {
 
 const BACK_QUESTION = '¿La trasera va clavada por detrás o metida en un canal?'
 
-function propose(request: string, d: Design, pendingItems: Operation[] | null, withPhoto: boolean): AdjustmentResponse {
+function propose(request: string, d: Design, pendingItems: Operation[] | null): AdjustmentResponse {
   const text = request.toLowerCase()
   const back = d.pieces.find((p) => p.id === 'back' && p.confidence !== 'high')
-  if (back && (withPhoto || /clavada|canal|no sé|trasera/.test(text))) {
-    const channel = /canal/.test(text) && !withPhoto
+  if (back && /clavada|canal|no sé|trasera/.test(text)) {
+    const channel = /canal/.test(text)
     return adjustment({
-      explanation: withPhoto
-        ? 'Con la foto se ve que la trasera va clavada por detrás, sobre los cantos de laterales, piso y techo. Lo dejo confirmado.'
-        : channel
-          ? 'Un canal pide router y sacarlo con precisión; para armarlo en casa te propongo dejarla clavada y pegada por detrás, que escuadra igual de bien con 6 mm. La marco como confirmada.'
-          : 'Perfecto: la trasera va clavada y pegada por detrás. La marco como confirmada.',
+      explanation: channel
+        ? 'Un canal pide router y sacarlo con precisión; para armarlo en casa te propongo dejarla clavada y pegada por detrás, que escuadra igual de bien con 6 mm. La marco como confirmada.'
+        : 'Perfecto: la trasera va clavada y pegada por detrás. La marco como confirmada.',
       summary: 'Confirmar la trasera',
       operations: [{ op: 'changeProperties', id: back.id, name: null, role: null, grain: null, load: null, support: null, edges: null, confidence: 'high' }],
       decisions: [{ topic: 'back', text: 'Trasera clavada y pegada por detrás, sin canal' }],
@@ -350,7 +347,6 @@ export function createSimulated(delay = 900): LLMProvider {
             ? { text: '¿Agrego el cajón que mencionaste?', options: ['Agrega un cajón abajo', 'Sin cajón por ahora'] }
             : { text: '¿Qué vas a guardar principalmente?', options: ['Libros', 'Ropa doblada', 'Decoración'] },
         ],
-        requestedPhotos: withoutPhotos || s.photos.some((f) => f.angle === 'inside') ? [] : [{ angle: 'inside', reason: 'Para ver cómo va fijada la trasera' }],
         requirements: [],
         suggestions: ['Que aguante libros pesados', 'Hazlo de 90 cm de ancho', 'Hazlo de 50 cm de fondo'],
       }
@@ -358,7 +354,7 @@ export function createSimulated(delay = 900): LLMProvider {
     },
     async proposeAdjustment(s, signal) {
       await wait(delay, signal)
-      return response(propose(s.request, s.design, s.proposal, s.photos.length > 0))
+      return response(propose(s.request, s.design, s.proposal))
     },
     // Only beds, tables and shoe racks come from a plan: its demo adjustments name the pieces of its fixtures, so those are designed whole.
     async planDesign(s, signal) {
@@ -371,7 +367,6 @@ export function createSimulated(delay = 900): LLMProvider {
           explanation: `Armé ${shoeRack.seat ? 'una banca zapatera' : 'una zapatera'} de ${shoeRack.dimensions.width / 10} cm de ancho y ${shoeRack.dimensions.height / 10} cm de alto, con ${shoeRack.levels} niveles${shoeRack.front === 'doors' ? ' y puertas' : ''}${shoeRack.wallMounted ? ', anclada al muro' : ''}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
           ...answerWith(shoeRack),
           questions: [],
-          requestedPhotos: [],
           requirements: [],
           suggestions: ['Agrega un nivel para botas', 'Hazla de 1.20 m de ancho', shoeRack.front === 'doors' ? 'Sin puertas' : 'Con puertas'],
         })
@@ -382,7 +377,6 @@ export function createSimulated(delay = 900): LLMProvider {
           explanation: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
           ...answerWith(table),
           questions: [],
-          requestedPhotos: [],
           requirements: [],
           suggestions: table.use === 'desk' ? ['Hazlo de 1.40 m', 'Cajonera del otro lado'] : ['Hazla más larga', 'Con repisa abajo'],
         })
@@ -392,7 +386,6 @@ export function createSimulated(delay = 900): LLMProvider {
           : '',
         ...answerWith(bed),
         questions: bed ? [{ text: '¿Cuánto peso va a cargar la cama?', options: ['Una persona', 'Dos personas'] }] : [],
-        requestedPhotos: [],
         requirements: [],
         suggestions: bed ? ['Súbela a 45 cm', 'Cabecera tipo librero', 'Cajones de los dos lados'] : [],
       })
@@ -401,15 +394,16 @@ export function createSimulated(delay = 900): LLMProvider {
     async readPhoto(r, signal) {
       await wait(delay, signal)
       const base = chooseFixture(null, `${r.context} ${r.photo.note ?? ''}`)
-      const front = r.photo.angle !== 'side'
+      const side = /\blado\b|lateral/i.test(r.photo.note ?? '')
       return response<PhotoReading>({
+        view: side ? 'side' : 'front',
         kind: base.name.toLowerCase(),
         confidence: 'medium',
         description: `Parece un ${base.name.toLowerCase()} de triplay. (Lectura simulada.)`,
         proportions: { height: base.dimensions.height / base.dimensions.width, width: 1, depth: base.dimensions.depth / base.dimensions.width },
         base: base === exampleBookcase ? 'kick' : 'floor',
         topOverhangs: false,
-        columns: front ? [{ width: 1, cells: [{ height: 1, content: base === exampleWallCabinet ? 'door' : 'open', shelves: base === exampleBookcase ? 4 : 1, doors: base === exampleWallCabinet ? 2 : null }] }] : null,
+        columns: !side ? [{ width: 1, cells: [{ height: 1, content: base === exampleWallCabinet ? 'door' : 'open', shelves: base === exampleBookcase ? 4 : 1, doors: base === exampleWallCabinet ? 2 : null }] }] : null,
         details: [],
         doubts: ['No se ve cómo va fijada la trasera'],
       })

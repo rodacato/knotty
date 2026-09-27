@@ -43,35 +43,33 @@ const setup = (llm: LLMProvider = createSimulated(0)) => {
 }
 const newSignal = () => new AbortController().signal
 const BOOKCASE_MEASURES = { width: 600, height: 1800, depth: 300 }
-const emptyAdjustment: AdjustmentResponse = { explanation: 'Listo', summary: '', operations: [], questions: [], requestedPhotos: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], acceptedRisks: [] }
+const emptyAdjustment: AdjustmentResponse = { explanation: 'Listo', summary: '', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], acceptedRisks: [] }
 
 async function initialBookcase(c = setup()) {
-  return c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ angle: 'front', base64: '' }], thumbnails: [], notes: '' }, newSignal())
+  return c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ base64: '' }], thumbnails: [], notes: '' }, newSignal())
 }
 
 describe('reconstruct', () => {
   it('builds version 1 with the expert explanation and questions, and saves it', async () => {
     const c = setup()
     const stages: string[] = []
-    const state = await c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ angle: 'front', base64: '' }], thumbnails: [], notes: '' }, newSignal(), (e) => stages.push(e))
+    const state = await c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ base64: '' }], thumbnails: [], notes: '' }, newSignal(), (e) => stages.push(e))
     expect(state.versions).toHaveLength(1)
     expect(currentDesign(state).name).toBe('Librero')
     expect(state.chat[1].questions.flatMap((p) => p.options)).toContain('Libros')
-    expect(state.chat[1].requestedPhotos).toEqual([{ angle: 'inside', reason: 'Para ver cómo va fijada la trasera' }])
     expect(stages).toEqual(['reading-photos', 'reading-photos', 'designing', 'designing-pieces', 'checking', 'structure'])
     expect(c.repository.state).toEqual(state)
   })
 })
 
 describe('reconstruct without photos', () => {
-  it('builds the design from the description, without asking for photos, and offers the drawer as a question', async () => {
+  it('builds the design from the description and offers the drawer as a question', async () => {
     const c = setup()
     const state = await c.reconstruct(
       { measures: { width: 600, height: 1800, depth: 500 }, photos: [], thumbnails: [], notes: 'Un librero con repisas para libros y un cajón abajo' },
       newSignal(),
     )
     expect(currentDesign(state).name).toBe('Librero')
-    expect(state.chat[1].requestedPhotos).toEqual([])
     expect(state.chat[1].text).toContain('Con tu descripción')
     const options = state.chat[1].questions.flatMap((p) => p.options ?? [])
     expect(options).toContain('Agrega un cajón abajo')
@@ -186,7 +184,6 @@ describe('adjust', () => {
       summary: 'Sacar lateral',
       operations: [{ op: 'move', id: 'side-left', axis: 'x', at: { type: 'mm', mm: -50 } }],
       questions: [],
-      requestedPhotos: [],
       requirements: { add: [], remove: [] },
       decisions: [],
       acceptedRisks: [],
@@ -235,22 +232,6 @@ describe('adjust', () => {
     const c = setup(llm)
     const state = await c.adjust(await initialBookcase(c), 'Refuerza la base', newSignal())
     expect(state.chat.at(-1)).toMatchObject({ text: 'La API key no es válida.', error: true })
-  })
-
-  it('a photo the expert asked for travels to the model, confirms the piece and stays as a thumbnail', async () => {
-    const seen: number[] = []
-    const simulated = createSimulated(0)
-    const llm: LLMProvider = { ...simulated, proposeAdjustment: (s, signal) => (seen.push(s.photos.length), simulated.proposeAdjustment(s, signal)) }
-    const c = setup(llm)
-    const initial = await initialBookcase(c)
-    expect(currentDesign(initial).pieces.find((p) => p.id === 'back')?.confidence).toBe('low')
-    const photo = { angle: 'inside', base64: 'AAA', thumbnail: 'data:image/jpeg;base64,AAA' }
-    const state = await c.adjust(initial, 'Te mando la foto: interior', newSignal(), undefined, `${initial.chat[1].id}#f:interior`, photo)
-    expect(state.chat[1]).toMatchObject({ answers: ['f:interior'], answered: false })
-    expect(seen).toEqual([1])
-    expect(currentDesign(state).pieces.find((p) => p.id === 'back')?.confidence).toBe('high')
-    expect(state.thumbnails.map((m) => m.angle)).toContain('inside')
-    expect(state.chat.at(-2)?.thumbnail).toBe(photo.thumbnail)
   })
 
   it('confirming a sketched piece by hand makes a version', async () => {
@@ -465,20 +446,20 @@ describe('never throw away a paid design', () => {
 })
 
 describe('photos are read once, in parallel, and not sent again', () => {
-  const twoPhotos = { measures: BOOKCASE_MEASURES, photos: [{ angle: 'front', base64: 'AAA', note: 'la de abajo es puerta' }, { angle: 'side', base64: 'BBB' }], thumbnails: [], notes: 'librero' }
-  const spying = (fails: (angle: string) => boolean = () => false) => {
+  const twoPhotos = { measures: BOOKCASE_MEASURES, photos: [{ base64: 'AAA', note: 'la de abajo es puerta' }, { base64: 'BBB', note: 'de lado' }], thumbnails: [], notes: 'librero' }
+  const spying = (fails: (base64: string) => boolean = () => false) => {
     const simulated = createSimulated(0)
     const readings: string[] = []
-    const designs: { photos: number; reading: boolean }[] = []
+    const designs: { photos: number; view: string | null }[] = []
     const llm: LLMProvider = {
       ...simulated,
       readPhoto: async (r, signal) => {
-        readings.push(`${r.photo.angle}:${r.photo.note ?? ''}`)
-        if (fails(r.photo.angle)) throw new Error('sin conexión')
+        readings.push(r.photo.note ?? '')
+        if (fails(r.photo.base64)) throw new Error('sin conexión')
         return simulated.readPhoto(r, signal)
       },
       reconstruct: async (s, signal) => {
-        designs.push({ photos: s.photos.length, reading: !!s.reading })
+        designs.push({ photos: s.photos.length, view: s.reading?.view ?? null })
         return simulated.reconstruct(s, signal)
       },
     }
@@ -488,10 +469,10 @@ describe('photos are read once, in parallel, and not sent again', () => {
   it('reads each photo with its note and designs from the reading, without the images', async () => {
     const { llm, readings, designs } = spying()
     const state = await setup(llm).reconstruct(twoPhotos, newSignal())
-    expect(readings.sort()).toEqual(['front:la de abajo es puerta', 'side:'])
-    expect(designs).toEqual([{ photos: 0, reading: true }])
-    expect(state.chat[0].text).toContain('Sobre la foto frente: la de abajo es puerta')
-    expect(state.trace.filter((t) => t.step === 'read').map((t) => t.subject).sort()).toEqual(['Foto frente', 'Foto lateral'])
+    expect(readings.sort()).toEqual(['de lado', 'la de abajo es puerta'])
+    expect(designs).toEqual([{ photos: 0, view: 'front' }])
+    expect(state.chat[0].text).toContain('Sobre la foto 1: la de abajo es puerta')
+    expect(state.trace.filter((t) => t.step === 'read').map((t) => t.subject).sort()).toEqual(['Foto: Frente', 'Foto: Lateral'])
   })
 
   it('does not read the same photo twice in a session', async () => {
@@ -502,17 +483,41 @@ describe('photos are read once, in parallel, and not sent again', () => {
     expect(readings).toHaveLength(2)
   })
 
+  it('a photo read when it was added is not read again to design, and its calls still show in the trace', async () => {
+    const { llm, readings } = spying()
+    const c = setup(llm)
+    expect((await c.readPhoto(twoPhotos.photos[1], 'librero'))?.view).toBe('side')
+    const state = await c.reconstruct(twoPhotos, newSignal())
+    expect(readings).toHaveLength(2)
+    expect(state.trace.filter((t) => t.step === 'read')).toHaveLength(2)
+  })
+
+  it('a read still in flight when designing starts is shared, not repeated', async () => {
+    const { llm, readings } = spying()
+    const c = setup(llm)
+    const onAdd = c.readPhoto(twoPhotos.photos[0], 'librero')
+    await c.reconstruct(twoPhotos, newSignal())
+    await onAdd
+    expect(readings).toHaveLength(2)
+  })
+
+  it("the view the person chose wins over the model's", async () => {
+    const { llm, designs } = spying()
+    await setup(llm).reconstruct({ ...twoPhotos, photos: [{ base64: 'AAA', view: 'inside' as const }] }, newSignal())
+    expect(designs).toEqual([{ photos: 0, view: 'inside' }])
+  })
+
   it('a photo that cannot be read is retried alone and then left out', async () => {
-    const { llm, readings, designs } = spying((angle) => angle === 'side')
+    const { llm, readings, designs } = spying((base64) => base64 === 'BBB')
     await setup(llm).reconstruct(twoPhotos, newSignal())
-    expect(readings.filter((l) => l.startsWith('side'))).toHaveLength(2)
-    expect(designs).toEqual([{ photos: 0, reading: true }])
+    expect(readings.filter((l) => l === 'de lado')).toHaveLength(2)
+    expect(designs).toEqual([{ photos: 0, view: 'front' }])
   })
 
   it('if no photo can be read, the design looks at the photos itself', async () => {
     const { llm, designs } = spying(() => true)
     await setup(llm).reconstruct(twoPhotos, newSignal())
-    expect(designs).toEqual([{ photos: 2, reading: false }])
+    expect(designs).toEqual([{ photos: 2, view: null }])
   })
 })
 
@@ -535,7 +540,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
       planDesign: async () => {
         calls.push('plan')
         if (fails) throw new Error('sin conexión')
-        return { value: { explanation: 'Una cajonera de tres cajones.', ...answerWith(null), cabinet, bed, questions: [], requestedPhotos: [], requirements: [], suggestions: ['Hazla más alta'] }, origin, usage: { outputTokens: 400 } }
+        return { value: { explanation: 'Una cajonera de tres cajones.', ...answerWith(null), cabinet, bed, questions: [], requirements: [], suggestions: ['Hazla más alta'] }, origin, usage: { outputTokens: 400 } }
       },
       reconstruct: async (s, signal) => {
         calls.push('design')
@@ -951,12 +956,9 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(applied.versions.at(-1)?.origin).toBeNull()
   })
 
-  it('what it cannot read, a photo, a pending proposal or an answer to the expert go to the expert', async () => {
+  it('what it cannot read, a pending proposal or an answer to the expert go to the expert', async () => {
     const { c, calls, initial } = await shoeRack()
     await c.adjust(initial, 'Hazla más bonita', newSignal())
-    expect(calls).toEqual(['proposeAdjustment'])
-    calls.length = 0
-    await c.adjust(initial, 'Sin zoclo', newSignal(), () => {}, null, { angle: 'front', base64: '', thumbnail: '' })
     expect(calls).toEqual(['proposeAdjustment'])
     calls.length = 0
     await c.adjust(initial, 'Sin zoclo', newSignal(), () => {}, `${initial.chat.at(-1)!.id}#p0`)

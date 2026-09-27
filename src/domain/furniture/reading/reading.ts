@@ -18,7 +18,13 @@ export const Column = z.object({
 })
 export type Column = z.infer<typeof Column>
 
+/** Where a photo was taken from, as the model labels it; the person can correct it. */
+export const VIEWS = ['front', 'three-quarter', 'side', 'inside', 'joints'] as const
+export const View = z.enum(VIEWS)
+export type View = z.infer<typeof View>
+
 export const PhotoReading = z.object({
+  view: View.describe('Where the photo was taken from: front (straight on), three-quarter (from a corner, front and side), side, inside (open: shelves and back), joints (a close-up of how pieces meet)'),
   kind: z.string().describe('What furniture it is, in one or two words, in Spanish: "librero", "buró", "cama individual"'),
   confidence: Confidence,
   description: z.string().describe('What can be seen of the main piece of furniture, in 1 or 2 sentences, in Spanish'),
@@ -34,38 +40,39 @@ export const PhotoReading = z.object({
 })
 export type PhotoReading = z.infer<typeof PhotoReading>
 
-/** The angles a photo can be taken from, as the person calls them. */
-const ANGLE_LABEL: Record<string, string> = { front: 'frente', 'three-quarter': '3/4', side: 'lateral', inside: 'interior', joints: 'uniones' }
-export const angleLabel = (angle: string) => ANGLE_LABEL[angle] ?? angle
+/** The views as the person calls them. */
+const VIEW_LABEL: Record<View, string> = { front: 'Frente', 'three-quarter': '3/4', side: 'Lateral', inside: 'Interior', joints: 'Uniones' }
+export const viewLabel = (view: View) => VIEW_LABEL[view]
 
 /** Which views see each field best: the front sees the layout, the side sees the depth. */
-const BEST_FOR_COLUMNS = ['front', 'inside', 'three-quarter', 'side', 'joints']
-const BEST_FOR_DEPTH = ['side', 'three-quarter', 'front', 'inside', 'joints']
+const BEST_FOR_COLUMNS: View[] = ['front', 'inside', 'three-quarter', 'side', 'joints']
+const BEST_FOR_DEPTH: View[] = ['side', 'three-quarter', 'front', 'inside', 'joints']
 const RANK_CONFIDENCE = { high: 0, medium: 1, low: 2 }
 
-const preferred = (readings: { angle: string; reading: PhotoReading }[], order: string[]) =>
-  [...readings].sort((a, b) => RANK_CONFIDENCE[a.reading.confidence] - RANK_CONFIDENCE[b.reading.confidence] || order.indexOf(a.angle) - order.indexOf(b.angle))
+const preferred = (readings: PhotoReading[], order: View[]) =>
+  [...readings].sort((a, b) => RANK_CONFIDENCE[a.confidence] - RANK_CONFIDENCE[b.confidence] || order.indexOf(a.view) - order.indexOf(b.view))
 
 const unique = (items: string[]) => [...new Set(items.map((i) => i.trim()).filter(Boolean))]
 
 /** One reading from several photos, field by field from the view that sees it best. Deterministic. */
-export function mergeReadings(readings: { angle: string; reading: PhotoReading }[]): PhotoReading | null {
+export function mergeReadings(readings: PhotoReading[]): PhotoReading | null {
   if (!readings.length) return null
   const byLayout = preferred(readings, BEST_FOR_COLUMNS)
   const byDepth = preferred(readings, BEST_FOR_DEPTH)
-  const main = byLayout[0].reading
-  const proportions = byLayout.find((r) => r.reading.proportions)?.reading.proportions ?? null
-  const depth = byDepth.find((r) => r.reading.proportions?.depth)?.reading.proportions?.depth ?? null
+  const main = byLayout[0]
+  const proportions = byLayout.find((r) => r.proportions)?.proportions ?? null
+  const depth = byDepth.find((r) => r.proportions?.depth)?.proportions?.depth ?? null
   return {
+    view: main.view,
     kind: main.kind,
     confidence: main.confidence,
     description: main.description,
     proportions: proportions ? { ...proportions, depth: depth ?? proportions.depth } : null,
-    base: byLayout.find((r) => r.reading.base)?.reading.base ?? null,
-    topOverhangs: byLayout.find((r) => r.reading.topOverhangs !== null)?.reading.topOverhangs ?? null,
-    columns: byLayout.find((r) => r.reading.columns?.length)?.reading.columns ?? null,
-    details: unique(readings.flatMap((r) => r.reading.details)),
-    doubts: unique(readings.flatMap((r) => r.reading.doubts)),
+    base: byLayout.find((r) => r.base)?.base ?? null,
+    topOverhangs: byLayout.find((r) => r.topOverhangs !== null)?.topOverhangs ?? null,
+    columns: byLayout.find((r) => r.columns?.length)?.columns ?? null,
+    details: unique(readings.flatMap((r) => r.details)),
+    doubts: unique(readings.flatMap((r) => r.doubts)),
   }
 }
 

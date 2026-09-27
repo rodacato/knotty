@@ -1,6 +1,6 @@
 import type { Design, Dimensions } from '../../domain/design/schema'
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
-import { angleLabel } from '../../domain/furniture/reading/reading'
+import { viewLabel } from '../../domain/furniture/reading/reading'
 import type { Repair } from '../../domain/editing/repair/repair'
 import type { Photo } from '../../ports/LLMProvider'
 
@@ -12,8 +12,10 @@ export const CANCELLED = 'Cancelado.'
 /** What the person asked for at the start, as the first chat message. */
 export function initialRequest(input: { measures: Dimensions | null; photos: Photo[]; notes: string }) {
   const measures = input.measures ? `Mide ${input.measures.height} × ${input.measures.width} × ${input.measures.depth} mm (alto, ancho, fondo).` : 'No sé las medidas.'
-  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`} (${input.photos.map((f) => angleLabel(f.angle)).join(', ')}).` : ''
-  const photoNotes = input.photos.filter((f) => f.note?.trim()).map((f) => `Sobre la foto ${angleLabel(f.angle)}: ${f.note!.trim()}`)
+  const name = (f: Photo, i: number) => (f.view ? viewLabel(f.view).toLowerCase() : String(i + 1))
+  const views = input.photos.flatMap((f) => (f.view ? [viewLabel(f.view).toLowerCase()] : []))
+  const photos = input.photos.length ? `Te mando ${input.photos.length === 1 ? 'una foto' : `${input.photos.length} fotos`}${views.length ? ` (${views.join(', ')})` : ''}.` : ''
+  const photoNotes = input.photos.flatMap((f, i) => (f.note?.trim() ? [`Sobre la foto ${name(f, i)}: ${f.note.trim()}`] : []))
   return [input.notes.trim(), photos, ...photoNotes, measures].filter(Boolean).join('\n\n')
 }
 

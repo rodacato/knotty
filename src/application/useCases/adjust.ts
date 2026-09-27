@@ -25,7 +25,6 @@ import { criticalsCorrection, listErrors, planCorrection } from './forExpert'
 import { judge, type Verdict } from './judge'
 import { ATTEMPTS, type Kit, type OnProgress, type Stage } from './kit'
 
-const MAX_THUMBNAILS = 8
 // The plan's answer and one correction with its errors; after that the request goes piece by piece.
 const PLAN_ATTEMPTS = 2
 
@@ -33,13 +32,6 @@ const PLAN_ATTEMPTS = 2
 function lazy<T>(make: () => T): () => T {
   let value: { v: T } | null = null
   return () => (value ??= { v: make() }).v
-}
-
-/** A photo the person sends in the middle of the conversation, almost always because the expert asked for it. */
-export interface SentPhoto {
-  angle: string
-  base64: string
-  thumbnail: string
 }
 
 type Proposal = NonNullable<DesignState['proposal']>
@@ -91,7 +83,7 @@ export function createAdjust(kit: Kit) {
   const { catalog, message, save, addVersion, findingsOf } = kit
 
   /** Everything one request works with. */
-  function roundFor(withRequest: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress, photo: SentPhoto | null) {
+  function roundFor(withRequest: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress) {
     const design = currentDesign(withRequest)
     const trace: TraceEntry[] = []
     return {
@@ -99,7 +91,6 @@ export function createAdjust(kit: Kit) {
       request,
       signal,
       onProgress,
-      photo,
       llm: kit.llm(),
       design,
       before: findingsOf(design, withRequest.requirements),
@@ -129,9 +120,9 @@ export function createAdjust(kit: Kit) {
 
   /** A request Knotty reads alone: answered from its numbers, or a plan edit judged like the expert's; null sends it to the expert. */
   function locally(round: Round, answering: string | null): DesignState | null {
-    const { withRequest, request, photo, design, before, plan: current, trace, reply } = round
+    const { withRequest, request, design, before, plan: current, trace, reply } = round
     const live = current.plan && !current.diverged ? current.plan : null
-    const intent = photo ? null : parseIntent(request, live, design)
+    const intent = parseIntent(request, live, design)
     if (!intent) return null
     const started = Date.now()
     const note = (outcome: TraceEntry['outcome'], errors: TraceEntry['errors'] = [], repairs: Repair[] = []) => trace.push(traceEntry('adjust', 0, started, null, outcome, errors, repairs, BY_KNOTTY))
@@ -173,9 +164,9 @@ export function createAdjust(kit: Kit) {
    * A plan that does not build goes back once with its errors; null means: go piece by piece.
    */
   async function throughPlan(round: Round): Promise<DesignState | null> {
-    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, trace, reply } = round
+    const { withRequest, request, signal, onProgress, llm, design, before, plan: current, trace, reply } = round
     const plan = current.plan
-    if (!plan || current.diverged || !llm.adjustPlan || photo) return null
+    if (!plan || current.diverged || !llm.adjustPlan) return null
     const context = buildPlanContext(withRequest, catalog, current.extras)
     const known = kindOf(design).kind
     const use = known === 'unknown' ? null : known
@@ -232,7 +223,7 @@ export function createAdjust(kit: Kit) {
 
   /** The expert writes operations on the pieces; each answer is tried and judged, and a broken one goes back with its errors. */
   async function pieceByPiece(round: Round): Promise<DesignState> {
-    const { withRequest, request, signal, onProgress, photo, llm, design, before, plan: current, known, trace, reply } = round
+    const { withRequest, request, signal, onProgress, llm, design, before, plan: current, known, trace, reply } = round
     const context = round.context()
     let correction: { previousResponse: unknown; errors: string } | null = null
     let lastError = ''
@@ -245,7 +236,7 @@ export function createAdjust(kit: Kit) {
       const call = await expertCall(
         () =>
           llm.proposeAdjustment(
-            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, photos: photo ? [{ angle: photo.angle, base64: photo.base64 }] : [], catalog: catalog, correction: correction },
+            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, catalog: catalog, correction: correction },
             signal,
           ),
         { step: 'adjust', attempt, signal, trace, onFailure: 'correct' },
@@ -262,7 +253,6 @@ export function createAdjust(kit: Kit) {
       const r = { ...response.value, explanation: [response.value.explanation, ...(response.warnings ?? [])].join('\n\n') }
       const requirements = updateRequirements(withRequest.requirements, r.requirements)
       const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
-      const requestedPhotos = r.requestedPhotos.slice(0, 2)
       const suggestions = r.suggestions.slice(0, 4)
       let candidate: Candidate | null = null
       if (r.operations.length) {
@@ -277,7 +267,7 @@ export function createAdjust(kit: Kit) {
       }
 
       const verdict = judge({ design, before, candidate, response: r, request, catalog, extraRound: true, criticalsReviewed })
-      if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions }, base)
+      if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
       if (verdict.kind === 'retry' && verdict.reason === 'invalid') {
         correction = { previousResponse: r, errors: listErrors(verdict.errors) }
         lastError = verdict.errors[0]?.message ?? 'el cambio no se pudo aplicar'
@@ -297,19 +287,18 @@ export function createAdjust(kit: Kit) {
       const settings = repairs.length ? [alsoRepaired(repairs)] : []
       const remaining = verdict.unresolved.length ? [stillPending(describeProblems(traceErrors(verdict.unresolved)))] : []
       const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...plan })
-      return reply([r.explanation, ...settings, ...remaining, ...warnings.map((a) => a.message)].join('\n\n'), { questions: r.questions, requestedPhotos: requestedPhotos, suggestions: suggestions, version: withChange.current }, withChange)
+      return reply([r.explanation, ...settings, ...remaining, ...warnings.map((a) => a.message)].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
     }
     return reply(adjustFailed(lastError), { error: true })
   }
 
-  async function adjust(state: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress = () => {}, answering: string | null = null, photo: SentPhoto | null = null): Promise<DesignState> {
+  async function adjust(state: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress = () => {}, answering: string | null = null): Promise<DesignState> {
     const withRequest: DesignState = {
       ...state,
-      thumbnails: photo ? [...state.thumbnails.filter((m) => m.angle !== photo.angle), { angle: photo.angle, dataUrl: photo.thumbnail }].slice(-MAX_THUMBNAILS) : state.thumbnails,
-      chat: [...markAnswered(state.chat, answering), message('user', request, { thumbnail: photo?.thumbnail ?? null })],
+      chat: [...markAnswered(state.chat, answering), message('user', request)],
     }
     save(withRequest)
-    const round = roundFor(withRequest, request, signal, onProgress, photo)
+    const round = roundFor(withRequest, request, signal, onProgress)
     try {
       return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {

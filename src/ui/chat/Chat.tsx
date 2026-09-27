@@ -1,13 +1,10 @@
-import { ArrowClockwise, ArrowCounterClockwise, Camera, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
-import { angleLabel } from '../../domain/furniture/reading/reading'
+import { ArrowClockwise, ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
-import { photoAnswerKey, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
+import { questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId, suggestionItem } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
-import { useServices } from '../services'
-import { TakePhoto } from '../system/TakePhoto'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { Tray } from './Tray'
@@ -193,41 +190,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 
       {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
-      {m.requestedPhotos.map((f) => (
-        <RequestedPhoto key={f.angle} angle={f.angle} reason={f.reason} message={m} />
-      ))}
-
       <Questions m={m} state={state} />
-    </div>
-  )
-}
-
-/** The expert asked for a photo: it is taken here and travels with the next message. */
-function RequestedPhoto({ angle, reason, message }: { angle: string; reason: string; message: Message }) {
-  const { images } = useServices()
-  const adjust = useStore((s) => s.adjust)
-  const thinking = useStore((s) => s.thinking)
-  const [processing, setProcessing] = useState(false)
-  const send = async (file: File) => {
-    setProcessing(true)
-    try {
-      const r = await images.reduce(file)
-      await adjust(`Te mando la foto: ${angleLabel(angle)}`, `${message.id}#${photoAnswerKey(angle)}`, { angle, base64: r.base64, thumbnail: r.thumbnail })
-    } finally {
-      setProcessing(false)
-    }
-  }
-  return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-graphite/30 bg-bone/70 p-3">
-      <p className="flex items-start gap-2 text-sm">
-        <Camera className="mt-0.5 shrink-0 text-amber" weight="duotone" />
-        <span>
-          <span className="font-medium">Foto: {angleLabel(angle)}.</span> <span className="text-graphite">{reason}</span>
-        </span>
-      </p>
-      <div className="flex gap-2">
-        <TakePhoto onChoose={(f) => void send(f)} disabled={message.answered || message.answers.includes(photoAnswerKey(angle)) || thinking || processing} />
-      </div>
     </div>
   )
 }

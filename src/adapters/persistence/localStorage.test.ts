@@ -22,14 +22,14 @@ function storage(limit = Infinity): Storage {
 }
 
 const state = (versions = 1): DesignState => ({
-  format: 8,
+  format: 9,
   measures: exampleBookcase.dimensions,
   versions: Array.from({ length: versions }, (_, i) => ({ n: i + 1, design: exampleBookcase, summary: `v${i + 1}`, reason: '', operations: [], date: '', origin: null, decisions: [], plan: null, extras: [] })),
   current: versions,
   requirements: [],
   decisions: [],
   chat: [],
-  thumbnails: [{ angle: 'front', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
+  thumbnails: [{ view: 'front', dataUrl: 'data:image/jpeg;base64,' + 'A'.repeat(5000) }],
   proposal: null,
   review: null,
   trace: [],
@@ -56,7 +56,7 @@ describe('localStorage repository', () => {
     const a = storage()
     a.setItem('despiece:v1:diseno', JSON.stringify(saved))
     const loaded = createLocalRepository(a).load()
-    expect(loaded?.format).toBe(8)
+    expect(loaded?.format).toBe(9)
     expect(loaded?.versions).toHaveLength(saved.versiones.length)
   })
 

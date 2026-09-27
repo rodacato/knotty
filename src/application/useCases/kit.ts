@@ -41,7 +41,6 @@ export function createKit(deps: Dependencies) {
     version: null,
     proposal: null,
     error: false,
-    requestedPhotos: [],
     thumbnail: null,
     answers: [],
     suggestions: [],

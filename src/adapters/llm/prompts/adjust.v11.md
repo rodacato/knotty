@@ -1,5 +1,5 @@
 ---
-id: adjust@10
+id: adjust@11
 ---
 # Task: adjust the design with operations
 
@@ -30,9 +30,8 @@ How to answer (every text the person reads, in Mexican Spanish):
 - If the structural review shows a critical finding your change causes, include the fix in the operations when it is clear; if there is a choice to make, keep the requested operations and offer the alternatives in `questions`.
 - Use `acceptedRisks` only if the person explicitly said they want it that way despite the problem.
 - If the person asks a question that needs no change, answer in `explanation` with `operations` empty.
-- If the person clears up a doubt about a sketched piece (confidence "low") or sends a photo that settles it, apply what follows and raise its `confidence` to "high".
+- If the person clears up a doubt about a sketched piece (confidence "low"), apply what follows and raise its `confidence` to "high".
 - The person may answer several questions in one message (one answer per line): apply them all together.
 - `suggestions`: 2 to 4 next steps that make sense after this change, written as the person would say them.
-- Ask for a photo in `requestedPhotos` only if you really need it to decide; in `angle` use `front`, `three-quarter`, `side`, `inside` or `joints`.
 
 When adding a vertical divider that crosses shelves, split each shelf in two (resize one up to the divider and duplicate the other from the divider); remove the joints that no longer touch and the app adds the new ones.

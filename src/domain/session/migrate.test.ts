@@ -35,7 +35,7 @@ describe('migrateState', () => {
 
   it('reads a format 1 session as the current format', () => {
     expect(migrated.error?.issues).toBeUndefined()
-    expect(migrated.data?.format).toBe(8)
+    expect(migrated.data?.format).toBe(9)
   })
 
   it('translates the codes kept inside strings: accepted findings, the tray, the trace, checks and photo angles', () => {
@@ -49,7 +49,7 @@ describe('migrateState', () => {
     expect(state.tray.at(-1)?.id).toBe('notice:finding:critical:R1_SAG:piso+R1_SAG:techo')
     expect(state.trace.at(-1)?.errors[0].code).toBe('E_OVERLAP')
     expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin'])
-    expect(state.thumbnails[0].angle).toBe('front')
+    expect(state.thumbnails[0].view).toBe('front')
     expect(state.chat[1].answers).toEqual(['p0', 'f:inside'])
   })
 
@@ -75,7 +75,6 @@ describe('migrateState', () => {
     const roles = new Set(currentDesign(state).pieces.map((p) => p.role))
     expect([...roles].every((r) => ['side', 'bottom', 'top', 'shelf', 'back', 'kick'].includes(r))).toBe(true)
     expect(state.chat.map((m) => m.author)).toEqual(saved.chat.map((m) => (m.autor === 'usuario' ? 'user' : 'expert')))
-    expect(state.chat.find((m) => m.requestedPhotos.length)?.requestedPhotos).toEqual([{ angle: 'inside', reason: 'Ver cómo va la trasera' }])
     expect(state.proposal?.operations[0].op).toBe('resizeFurniture')
     expect(state.versions[0].origin).toMatchObject({ provider: 'simulated', promptId: 'simulated@1' })
     expect(state.review).toMatchObject({ verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', problems: [{ severity: 'medium' }], tips: ['Mide el espesor real'] } })
@@ -94,7 +93,7 @@ describe('migrateState', () => {
     const v5 = { ...structuredClone(migrated.data!), format: 5 }
     v5.review!.checks.push({ id: 'aceptados', title: 'Aceptado por ti', status: 'warning', detail: 'x', pieces: [], request: null, impossible: false })
     const state = DesignState.parse(migrateState(v5))
-    expect(state.format).toBe(8)
+    expect(state.format).toBe(9)
     expect(state.review?.checks.map((c) => c.id)).toEqual(['measures', 'sheet', 'structure', 'strips', 'confirmed', 'margin', 'accepted'])
   })
 
@@ -107,7 +106,7 @@ describe('migrateState', () => {
     v6.versions.at(-1)!.plan = bed
     v6.proposal.plan = cabinet
     const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v6))))
-    expect(state.format).toBe(8)
+    expect(state.format).toBe(9)
     expect(state.versions[0].plan).toEqual({ kind: 'cabinet', ...cabinet })
     expect(state.versions.at(-1)!.plan).toEqual(bed)
     expect(state.proposal?.plan).toEqual({ kind: 'cabinet', ...cabinet })
@@ -118,8 +117,21 @@ describe('migrateState', () => {
   it('keeps what format 7 accepted, without its severity and at version 1 of its rule', () => {
     const v7 = { ...structuredClone(migrated.data!), format: 7, accepted: [{ key: 'R5_RACKING:side-l', title: 'Escuadrado', at: '2026-09-20T10:00:00Z' }] }
     const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v7))))
-    expect(state.format).toBe(8)
+    expect(state.format).toBe(9)
     expect(state.accepted).toEqual([{ key: 'R5_RACKING:side-l', title: 'Escuadrado', at: '2026-09-20T10:00:00Z', severity: null, version: 1 }])
+  })
+
+  it("reads format 8's thumbnail angle as its view and drops the expert's photo requests", () => {
+    const v8 = {
+      ...structuredClone(migrated.data!),
+      format: 8,
+      thumbnails: [{ angle: 'three-quarter', dataUrl: 'data:a' }, { angle: 'desconocido', dataUrl: 'data:b' }],
+      chat: migrated.data!.chat.map((m) => ({ ...m, requestedPhotos: [{ angle: 'inside', reason: 'Para ver la trasera' }] })),
+    }
+    const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v8))))
+    expect(state.format).toBe(9)
+    expect(state.thumbnails).toEqual([{ view: 'three-quarter', dataUrl: 'data:a' }, { view: null, dataUrl: 'data:b' }])
+    expect(state.chat.some((m) => 'requestedPhotos' in m)).toBe(false)
   })
 
   it('leaves the current format as it is', () => {
