@@ -112,7 +112,7 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
     <div className="animate-appear mr-6 flex flex-col gap-2.5 self-start">
       <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-rust/30 bg-rust/5' : 'border-line bg-bone'}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-graphite-2">
-          <PencilSimple weight="duotone" className="text-amber" /> Experto
+          <PencilSimple weight="duotone" className="text-graphite" /> Experto
           {m.version &&
             (m.version === state.current || !state.versions.some((v) => v.n === m.version) ? (
               <span className="numerals rounded-full bg-kraft px-1.5 py-px text-xs text-graphite">v{m.version}</span>

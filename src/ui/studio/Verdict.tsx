@@ -7,17 +7,17 @@ import { useStore } from '../store'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: React.ReactNode }> = {
   viable: { title: 'Se puede hacer', className: 'border-slate/40 bg-slate/10 text-slate', icon: <CheckCircle weight="fill" /> },
-  'needs-changes': { title: 'Arréglalo antes de comprar', className: 'border-amber/50 bg-amber-soft text-graphite', icon: <WarningCircle weight="fill" className="text-amber" /> },
+  'needs-changes': { title: 'Arréglalo antes de comprar', className: 'border-graphite/60 text-graphite', icon: <WarningCircle /> },
   'not-viable': { title: 'Así no se puede hacer', className: 'border-rust/40 bg-rust/10 text-rust', icon: <XCircle weight="fill" /> },
 }
 
 const CHECK_ICON: Record<Check['status'], React.ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-slate" />,
-  warning: <WarningCircle weight="fill" className="text-amber" />,
+  warning: <WarningCircle weight="fill" className="text-graphite" />,
   fail: <XCircle weight="fill" className="text-rust" />,
 }
 
-const GRAVITY = { high: 'border-rust/40 text-rust', medium: 'border-amber/60 text-graphite', low: 'border-line text-graphite-2' }
+const GRAVITY = { high: 'border-rust/40 text-rust', medium: 'border-graphite/40 text-graphite', low: 'border-line text-graphite-2' }
 
 const WHAT_IT_CHECKS = ['Que las medidas cierren', 'Que cada pieza quepa en la hoja real', 'Estructura y estabilidad', 'Que se pueda cortar y armar', 'Que las medidas tengan sentido para ese mueble']
 
@@ -31,7 +31,7 @@ export function ReviewGate({ stale }: { stale: boolean }) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
       <p className="flex items-start gap-2 font-medium">
-        <Hammer weight="duotone" className="mt-1 shrink-0 text-amber" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
+        <Hammer weight="duotone" className="mt-1 shrink-0 text-graphite" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
       </p>
       <p className="text-sm text-graphite">
         Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar. Tarda unos segundos; con tu experto conectado, hasta un par de minutos.
@@ -137,9 +137,9 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
       </div>
 
       {c && c.tips.length > 0 && (
-        <div className="flex flex-col gap-1.5 rounded-xl bg-amber-soft px-3 py-2">
+        <div className="flex flex-col gap-1.5 rounded-xl bg-kraft px-3 py-2">
           <p className="flex items-center gap-1.5 text-xs font-medium">
-            <Lightbulb weight="fill" className="text-amber" /> Para el taller
+            <Lightbulb weight="fill" className="text-graphite" /> Para el taller
           </p>
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm">
             {c.tips.map((x) => (

@@ -6,7 +6,7 @@
       "id": "aUO9o",
       "x": 0,
       "y": -900,
-      "name": "KIT — vendored ui-kit 0.1.0 (do not edit here)",
+      "name": "KIT — vendored ui-kit 0.3.0 (do not edit here)",
       "width": 1600,
       "fill": "$bone",
       "stroke": "$line",
@@ -332,7 +332,7 @@
                   "fill": "$rust",
                   "content": "CRÍTICO",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -346,7 +346,7 @@
               "opacity": 0.9,
               "rotation": -2,
               "cornerRadius": "$radius-stamp",
-              "stroke": "$amber",
+              "stroke": "$graphite",
               "strokeWidth": 2,
               "padding": [
                 1,
@@ -357,10 +357,10 @@
                   "type": "text",
                   "id": "d1YP8",
                   "name": "Label",
-                  "fill": "$amber",
+                  "fill": "$graphite",
                   "content": "RECOMENDACIÓN",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -388,7 +388,7 @@
                   "fill": "$slate",
                   "content": "DETALLE",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -597,6 +597,7 @@
                 0,
                 12
               ],
+              "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
                 {
@@ -606,7 +607,7 @@
                   "fill": "$graphite",
                   "content": "Que Knotty lo decida",
                   "fontFamily": "$font-sans",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "normal"
                 },
                 {
@@ -628,105 +629,175 @@
           "id": "X8d1V",
           "name": "Row",
           "gap": 24,
-          "alignItems": "center",
           "children": [
             {
               "type": "frame",
-              "id": "G6HSvq",
-              "name": "TakePhoto",
+              "id": "Epyqw",
+              "name": "Field/Input",
               "reusable": true,
-              "gap": 8,
+              "width": 160,
+              "layout": "vertical",
+              "gap": 6,
               "children": [
                 {
-                  "id": "Uyvta",
-                  "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    16
-                  ],
-                  "descendants": {
-                    "uBIcr": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "eeaCW": {
-                      "content": "Tomar foto",
-                      "fontSize": 12
-                    },
-                    "bWG6r": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "pUkim",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Alto",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "l5Tmz",
-                  "type": "ref",
-                  "ref": "YWzaw",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "RsKDU",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    16
+                    12
                   ],
-                  "descendants": {
-                    "B1O4O": {
-                      "fontSize": 12
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "r2RSU",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "1800",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tHCVv",
+                      "name": "Unit",
+                      "fill": "$graphite-2",
+                      "content": "mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
                     }
-                  }
+                  ]
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "O21bj",
-              "name": "TakePhoto/Compact",
+              "id": "bb2No",
+              "name": "Field/Select",
               "reusable": true,
-              "width": 140,
+              "width": 200,
+              "layout": "vertical",
               "gap": 6,
               "children": [
                 {
-                  "id": "S8ggZX",
-                  "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    8
-                  ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "uBIcr": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "eeaCW": {
-                      "enabled": false
-                    },
-                    "bWG6r": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "aiXq7",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Espesor",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "a6T9du",
-                  "type": "ref",
-                  "ref": "YWzaw",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "c2dzSP",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    8
+                    12
                   ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "B1O4O": {
-                      "enabled": false
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "v2RfDv",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "18 mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "gCFVQ",
+                      "name": "Caret",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "caret-down",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
                     }
-                  }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w2Ry2",
+              "name": "Field/TextArea",
+              "reusable": true,
+              "width": 320,
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RPef5",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "¿Algo que el experto deba saber?",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "tHrdz",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xnqXn",
+                      "name": "Placeholder",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    }
+                  ]
                 }
               ]
             }
@@ -770,7 +841,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1\nEXPERIMENTS — nothing leaves without cleanup and approval. An approved idea moves into its flow, in the column of its area; the playground keeps only the kit, this brief, the log and two empty bases.\n1. PURPOSE\n<the idea being explored>\n2. ENTRY POINTS\n<where it would live>\n3. SCREENS (left → right)\n<one line per artboard>\n4. BUSINESS RULES\n<rules it depends on, with file:line>\n5. COPY SOURCE\n<files; mark NEW copy explicitly>\n6. STATES NOT DRAWN\n<and why>\n7. OPEN FINDINGS\n<UI-n / D-n numbers>\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1\nEXPERIMENTS — nothing leaves without cleanup and approval. An approved idea moves into its flow, in the column of its area; the playground keeps only the kit, this brief, the log and two empty bases.\n1. PURPOSE\n<the idea being explored>\n2. ENTRY POINTS\n<where it would live>\n3. SCREENS (left → right)\n<one line per artboard>\n4. BUSINESS RULES\n<rules it depends on, with file:line>\n5. COPY SOURCE\n<files; mark NEW copy explicitly>\n6. STATES NOT DRAWN\n<and why>\n7. OPEN FINDINGS\n<UI-n / D-n numbers>\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -831,6 +902,18 @@
         },
         {
           "type": "text",
+          "id": "I4ttH",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · kit 0.3.0 · re-vendored: Stamp/Recommendation graphite, stamps 12 px, KindSelect 16 px, Field added, TakePhoto removed · K6, K7",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "NKLUR",
           "name": "Entry",
           "fill": "$graphite",
@@ -865,7 +948,7 @@
   "variables": {
     "kit-version-source": {
       "type": "string",
-      "value": "0.1.0"
+      "value": "0.3.0"
     },
     "grid-x0": {
       "type": "number",

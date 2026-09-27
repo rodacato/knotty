@@ -35,7 +35,7 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
         {change.dimensions && <li className="text-xs">Medidas del mueble: {change.dimensions}</li>}
         {change.direct.map((c) => (
           <li key={c.id} className="flex items-center gap-2">
-            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${c.kind === 'removed' ? 'bg-rust/15 text-rust' : c.kind === 'added' ? 'bg-slate/15 text-slate' : 'bg-amber-soft text-graphite'}`}>{ICON[c.kind]}</span>
+            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${c.kind === 'removed' ? 'bg-rust/15 text-rust' : c.kind === 'added' ? 'bg-slate/15 text-slate' : 'bg-graphite/10 text-graphite'}`}>{ICON[c.kind]}</span>
             <button type="button" className="min-w-0 flex-1 truncate text-left text-xs hover:underline" onClick={() => c.kind !== 'removed' && select(c.id)} title={c.detail}>
               <span className="font-medium">{c.name}</span>
               {c.detail && <span className="text-graphite-2"> · {c.detail}</span>}

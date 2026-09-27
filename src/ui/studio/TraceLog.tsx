@@ -5,8 +5,8 @@ const STEP: Record<TraceEntry['step'], string> = { read: 'Lectura de foto', plan
 
 const OUTCOME: Record<TraceEntry['outcome'], { label: string; icon: React.ReactNode }> = {
   ok: { label: 'Listo', icon: <CheckCircle weight="fill" className="text-slate" /> },
-  invalid: { label: 'No pasó la validación', icon: <WarningCircle weight="fill" className="text-amber" /> },
-  unreadable: { label: 'Respuesta ilegible', icon: <WarningCircle weight="fill" className="text-amber" /> },
+  invalid: { label: 'No pasó la validación', icon: <WarningCircle weight="fill" className="text-graphite" /> },
+  unreadable: { label: 'Respuesta ilegible', icon: <WarningCircle weight="fill" className="text-graphite" /> },
   failed: { label: 'Falló la conexión', icon: <XCircle weight="fill" className="text-rust" /> },
 }
 

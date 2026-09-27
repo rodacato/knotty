@@ -6,7 +6,7 @@
 
 | Layer / pattern | Real consumers (measured 2026-09-27) | Verdict |
 |---|---|---|
-| Text inputs, selects and textareas styled by hand | 27 `input`/`select`/`textarea` in 12 files, of which 20 are text fields — the rest are 2 hidden file inputs, a radio, 2 checkboxes and the tape in `MeasureField` | ✅ `src/ui/system/Field.tsx` (K7); kit with 0.3.0 |
+| Text inputs, selects and textareas styled by hand | 27 `input`/`select`/`textarea` in 12 files, of which 20 are text fields — the rest are 2 hidden file inputs, a radio, 2 checkboxes and the tape in `MeasureField` | ✅ `src/ui/system/Field.tsx` (K7), in kit 0.3.0 |
 | Status pills over the 3D | 3 in `src/ui/studio/Studio.tsx` | One `StatusChip` with priority, then kit |
 | Proposal actions | 2 renderings of one proposal (`Chat.tsx`, `NoticePanel.tsx`) | One component, then kit |
 | `Segmented` | 3 files, all in `src/ui/studio/` | Feature-local: stays in the flow, not the kit |
@@ -14,7 +14,7 @@
 
 ## 1. `Field` — one input for the whole app
 
-**Status:** landed (K7, with K5) · kit pending: `Field` enters `ui-kit.lib.pen` with the 0.3.0 bump (§6), so the flows re-vendor once
+**Status:** landed (K7, with K5), in kit 0.3.0
 
 - Landed: `Field` (label on top, then help or error), `Input` (`unit` and `end` inside the box), `Select` (own caret) and `TextArea`, in `src/ui/system/Field.tsx`. The 20 text fields use them; `NumberField` is gone.
 - Every control is 16 px: below that, iOS Safari zooms the page on focus. Labeled fields are 44 px tall (`min-h-11`); the inline ones inside a row (cabinet percentages, price) are 32 px.
@@ -51,10 +51,10 @@
 
 ## 6. Amber for selection only (K6)
 
-**Status:** decided · pending in code — `UI-1`
+**Status:** landed (`amber-k6`), with kit 0.3.0 — `UI-1`
 
-- Measured 2026-09-27: amber in 23 files, 100 uses (without the debug panel).
-- Keep amber for selection and focus: the active tab underline, the selected piece, the tape-measure handle, focus rings.
-- `Stamp` recommendation → `graphite` (`src/ui/system/components.tsx`, `STAMP.recommendation`).
-- Verdict "Arréglalo antes de comprar" → neutral (`src/ui/studio/Verdict.tsx`, `VERDICTS['needs-changes']`), and every other amber use that is neither selection nor focus goes neutral.
-- Then bump the kit to 0.3.0: `Stamp/Recommendation` and the verdict colors change value, so every flow re-vendors.
+- Measured 2026-09-27 after step 5: amber on 50 lines in 20 files (without the debug panel); the earlier "100 uses" counted occurrences.
+- Amber stays for selection and focus: the active tab, the selected piece and provider, the version being viewed, an active chip, focus rings and fields.
+- Now neutral: `STAMP.recommendation` (graphite), the "Arréglalo antes de comprar" verdict (a graphite outline), check warnings, the tray, info notes (SheLLM, plan sheet, price note, kind redo, "Para el taller"), decorative icons, the tray count. The bell with pending notices is rust.
+- Kept amber on purpose: the expert's pencil (authorship), Home's and Analyzing's drawings (they stay as the app draws them), and the 3D highlights (on the keep list).
+- Kit 0.3.0 (`ui-kit.CHANGELOG.md`): `Stamp/Recommendation` graphite, stamps 12 px, `Field` in, `TakePhoto` out; the three `.pen` files re-vendored.

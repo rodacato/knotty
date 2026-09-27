@@ -27,7 +27,7 @@ export function Chip({ active = false, className = '', children, ...props }: But
     <button
       type="button"
       className={`animate-appear inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition active:scale-[0.96] disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-amber ${
-        active ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone text-graphite hover:border-amber/60 hover:bg-amber-soft'
+        active ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}
     >
@@ -38,7 +38,7 @@ export function Chip({ active = false, className = '', children, ...props }: But
 
 const STAMP: Record<Severity, { text: string; className: string; tilt: string }> = {
   critical: { text: 'Crítico', className: 'text-rust border-rust', tilt: '-rotate-3' },
-  recommendation: { text: 'Recomendación', className: 'text-amber border-amber', tilt: 'rotate-2' },
+  recommendation: { text: 'Recomendación', className: 'text-graphite border-graphite', tilt: 'rotate-2' },
   detail: { text: 'Detalle', className: 'text-slate border-slate', tilt: '-rotate-1' },
 }
 

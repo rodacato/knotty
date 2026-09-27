@@ -30,8 +30,8 @@ Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers i
 
 | File | Screens | Kit | Entry point |
 |---|---|---|---|
-| `capture.pen` | Start a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…). 12 mobile, 5 desktop | 0.1.0 | Opening the app with no design |
-| `studio.pen` | The Studio by area — conversation, piece, notices, furniture, materials, history — with their states. 17 mobile, 9 desktop | 0.1.0 | After analysis, or from an example (`src/ui/App.tsx`) |
+| `capture.pen` | Start a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…). 12 mobile, 5 desktop | 0.3.0 | Opening the app with no design |
+| `studio.pen` | The Studio by area — conversation, piece, notices, furniture, materials, history — with their states. 17 mobile, 9 desktop | 0.3.0 | After analysis, or from an example (`src/ui/App.tsx`) |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 

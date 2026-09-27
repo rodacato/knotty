@@ -19,7 +19,7 @@
           "id": "Xb2lE",
           "name": "ui-kit 0.1.0 — Foundations",
           "fill": "$graphite",
-          "content": "ui-kit 0.1.0 — Foundations",
+          "content": "ui-kit 0.3.0 — Foundations",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -1373,7 +1373,7 @@
           "id": "RvRnr",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.1.0 — Components",
+          "content": "ui-kit 0.3.0 — Components",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -1385,7 +1385,8 @@
           "fill": "$graphite-2",
           "content": "Mirrored 1:1 from src/ui/system/. Instances override height and text size where the code does (min-h-8…12, text-xs).",
           "fontFamily": "$font-sans",
-          "fontSize": 15
+          "fontSize": 15,
+          "fontWeight": "normal"
         },
         {
           "type": "frame",
@@ -1784,7 +1785,7 @@
                           "fill": "$rust",
                           "content": "CRÍTICO",
                           "fontFamily": "$font-mono",
-                          "fontSize": 10,
+                          "fontSize": 12,
                           "fontWeight": "700",
                           "letterSpacing": 1.2
                         }
@@ -1806,7 +1807,7 @@
                       "opacity": 0.9,
                       "rotation": -2,
                       "cornerRadius": "$radius-stamp",
-                      "stroke": "$amber",
+                      "stroke": "$graphite",
                       "strokeWidth": 2,
                       "padding": [
                         1,
@@ -1817,10 +1818,10 @@
                           "type": "text",
                           "id": "hCCXW",
                           "name": "Label",
-                          "fill": "$amber",
+                          "fill": "$graphite",
                           "content": "RECOMENDACIÓN",
                           "fontFamily": "$font-mono",
-                          "fontSize": 10,
+                          "fontSize": 12,
                           "fontWeight": "700",
                           "letterSpacing": 1.2
                         }
@@ -1856,7 +1857,7 @@
                           "fill": "$slate",
                           "content": "DETALLE",
                           "fontFamily": "$font-mono",
-                          "fontSize": 10,
+                          "fontSize": 12,
                           "fontWeight": "700",
                           "letterSpacing": 1.2
                         }
@@ -2079,7 +2080,7 @@
         {
           "type": "frame",
           "id": "byoBM",
-          "name": "Form — KindSelect · TakePhoto · TakePhoto compact",
+          "name": "Form — Field/Input · Field/Select · Field/TextArea · KindSelect",
           "width": "fill_container",
           "layout": "vertical",
           "gap": 16,
@@ -2089,7 +2090,7 @@
               "id": "TtRe0",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Form — KindSelect · TakePhoto · TakePhoto compact",
+              "content": "Form — Field/Input · Field/Select · Field/TextArea · KindSelect",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -2099,13 +2100,13 @@
               "id": "Eafm4",
               "name": "Row",
               "gap": 32,
-              "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
                   "id": "jm1kk",
                   "name": "KindSelect",
                   "reusable": true,
+                  "width": 280,
                   "height": 44,
                   "fill": "$bone",
                   "cornerRadius": "$radius-xl",
@@ -2116,6 +2117,7 @@
                     0,
                     12
                   ],
+                  "justifyContent": "space_between",
                   "alignItems": "center",
                   "children": [
                     {
@@ -2125,7 +2127,8 @@
                       "fill": "$graphite",
                       "content": "Que Knotty lo decida",
                       "fontFamily": "$font-sans",
-                      "fontSize": 14
+                      "fontSize": 16,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "icon",
@@ -2141,101 +2144,172 @@
                 },
                 {
                   "type": "frame",
-                  "id": "cx44H",
-                  "name": "TakePhoto",
+                  "id": "zgslf",
+                  "name": "Field/Input",
                   "reusable": true,
-                  "gap": 8,
+                  "width": 160,
+                  "layout": "vertical",
+                  "gap": 6,
                   "children": [
                     {
-                      "id": "c0zcZ",
-                      "type": "ref",
-                      "ref": "qclIq",
-                      "name": "Camera",
-                      "height": 36,
-                      "padding": [
-                        0,
-                        16
-                      ],
-                      "descendants": {
-                        "A5sK6M": {
-                          "enabled": true,
-                          "icon": "camera"
-                        },
-                        "A4go1U": {
-                          "content": "Tomar foto",
-                          "fontSize": 12
-                        },
-                        "TmKFb": {
-                          "enabled": false
-                        }
-                      }
+                      "type": "text",
+                      "id": "x8Om9",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "Alto",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     },
                     {
-                      "id": "Z9pye7",
-                      "type": "ref",
-                      "ref": "a6Bs1t",
-                      "name": "Gallery",
-                      "height": 36,
+                      "type": "frame",
+                      "id": "L8ibGI",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "padding": [
                         0,
-                        16
+                        12
                       ],
-                      "descendants": {
-                        "bFrzY": {
-                          "fontSize": 12
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "RYD5n",
+                          "name": "Value",
+                          "fill": "$graphite",
+                          "content": "1800",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "QIlBn",
+                          "name": "Unit",
+                          "fill": "$graphite-2",
+                          "content": "mm",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
                         }
-                      }
+                      ]
                     }
                   ]
                 },
                 {
                   "type": "frame",
-                  "id": "kNFs2",
-                  "name": "TakePhoto/Compact",
+                  "id": "ijyZ9",
+                  "name": "Field/Select",
                   "reusable": true,
-                  "width": 140,
+                  "width": 200,
+                  "layout": "vertical",
                   "gap": 6,
                   "children": [
                     {
-                      "id": "v1Tyr",
-                      "type": "ref",
-                      "ref": "qclIq",
-                      "name": "Camera",
-                      "height": 36,
-                      "padding": [
-                        0,
-                        8
-                      ],
-                      "width": "fill_container",
-                      "descendants": {
-                        "A5sK6M": {
-                          "enabled": true,
-                          "icon": "camera"
-                        },
-                        "A4go1U": {
-                          "enabled": false
-                        },
-                        "TmKFb": {
-                          "enabled": false
-                        }
-                      }
+                      "type": "text",
+                      "id": "UyKBG",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "Espesor",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     },
                     {
-                      "id": "uSP8M",
-                      "type": "ref",
-                      "ref": "a6Bs1t",
-                      "name": "Gallery",
-                      "height": 36,
+                      "type": "frame",
+                      "id": "Uc1ov",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "padding": [
                         0,
-                        8
+                        12
                       ],
-                      "width": "fill_container",
-                      "descendants": {
-                        "bFrzY": {
-                          "enabled": false
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TvDl6",
+                          "name": "Value",
+                          "fill": "$graphite",
+                          "content": "18 mm",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "lnJ9O",
+                          "name": "Caret",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "caret-down",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
                         }
-                      }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Bvmhd",
+                  "name": "Field/TextArea",
+                  "reusable": true,
+                  "width": 320,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "v8RYV7",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "¿Algo que el experto deba saber?",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aI4OU",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 72,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        10,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "P5NUu",
+                          "name": "Placeholder",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                          "lineHeight": 1.35,
+                          "fontFamily": "$font-sans",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -2249,7 +2323,7 @@
       "type": "frame",
       "id": "bpYSP",
       "x": 1400,
-      "y": 922,
+      "y": 976,
       "name": "Fixtures",
       "width": 1280,
       "fill": "$bone",
@@ -2336,7 +2410,7 @@
   "variables": {
     "kit-version": {
       "type": "string",
-      "value": "0.2.0"
+      "value": "0.3.0"
     },
     "bone": {
       "type": "color",

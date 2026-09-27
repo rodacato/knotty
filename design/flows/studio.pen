@@ -6,7 +6,7 @@
       "id": "aUO9o",
       "x": 0,
       "y": -900,
-      "name": "KIT — vendored ui-kit 0.1.0 (do not edit here)",
+      "name": "KIT — vendored ui-kit 0.3.0 (do not edit here)",
       "width": 1600,
       "fill": "$bone",
       "stroke": "$line",
@@ -332,7 +332,7 @@
                   "fill": "$rust",
                   "content": "CRÍTICO",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -346,7 +346,7 @@
               "opacity": 0.9,
               "rotation": -2,
               "cornerRadius": "$radius-stamp",
-              "stroke": "$amber",
+              "stroke": "$graphite",
               "strokeWidth": 2,
               "padding": [
                 1,
@@ -357,10 +357,10 @@
                   "type": "text",
                   "id": "d1YP8",
                   "name": "Label",
-                  "fill": "$amber",
+                  "fill": "$graphite",
                   "content": "RECOMENDACIÓN",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -388,7 +388,7 @@
                   "fill": "$slate",
                   "content": "DETALLE",
                   "fontFamily": "$font-mono",
-                  "fontSize": 10,
+                  "fontSize": 12,
                   "fontWeight": "700",
                   "letterSpacing": 1.2
                 }
@@ -597,6 +597,7 @@
                 0,
                 12
               ],
+              "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
                 {
@@ -606,7 +607,7 @@
                   "fill": "$graphite",
                   "content": "Que Knotty lo decida",
                   "fontFamily": "$font-sans",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "normal"
                 },
                 {
@@ -628,105 +629,175 @@
           "id": "X8d1V",
           "name": "Row",
           "gap": 24,
-          "alignItems": "center",
           "children": [
             {
               "type": "frame",
-              "id": "G6HSvq",
-              "name": "TakePhoto",
+              "id": "FTaoe",
+              "name": "Field/Input",
               "reusable": true,
-              "gap": 8,
+              "width": 160,
+              "layout": "vertical",
+              "gap": 6,
               "children": [
                 {
-                  "id": "Uyvta",
-                  "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    16
-                  ],
-                  "descendants": {
-                    "uBIcr": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "eeaCW": {
-                      "content": "Tomar foto",
-                      "fontSize": 12
-                    },
-                    "bWG6r": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "QA9bz",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Alto",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "l5Tmz",
-                  "type": "ref",
-                  "ref": "YWzaw",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "krgLe",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    16
+                    12
                   ],
-                  "descendants": {
-                    "B1O4O": {
-                      "fontSize": 12
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "J0910B",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "1800",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Lsn3X",
+                      "name": "Unit",
+                      "fill": "$graphite-2",
+                      "content": "mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
                     }
-                  }
+                  ]
                 }
               ]
             },
             {
               "type": "frame",
-              "id": "O21bj",
-              "name": "TakePhoto/Compact",
+              "id": "zPFzs",
+              "name": "Field/Select",
               "reusable": true,
-              "width": 140,
+              "width": 200,
+              "layout": "vertical",
               "gap": 6,
               "children": [
                 {
-                  "id": "S8ggZX",
-                  "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Camera",
-                  "height": 36,
-                  "padding": [
-                    0,
-                    8
-                  ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "uBIcr": {
-                      "enabled": true,
-                      "icon": "camera"
-                    },
-                    "eeaCW": {
-                      "enabled": false
-                    },
-                    "bWG6r": {
-                      "enabled": false
-                    }
-                  }
+                  "type": "text",
+                  "id": "PYS0k",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "Espesor",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 },
                 {
-                  "id": "a6T9du",
-                  "type": "ref",
-                  "ref": "YWzaw",
-                  "name": "Gallery",
-                  "height": 36,
+                  "type": "frame",
+                  "id": "Yif5i",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 44,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "padding": [
                     0,
-                    8
+                    12
                   ],
-                  "width": "fill_container",
-                  "descendants": {
-                    "B1O4O": {
-                      "enabled": false
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rP1iC",
+                      "name": "Value",
+                      "fill": "$graphite",
+                      "content": "18 mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "d8wTg9",
+                      "name": "Caret",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "caret-down",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
                     }
-                  }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "C5Hju",
+              "name": "Field/TextArea",
+              "reusable": true,
+              "width": 320,
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FGAB1",
+                  "name": "Label",
+                  "fill": "$graphite-2",
+                  "content": "¿Algo que el experto deba saber?",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "fjdDL",
+                  "name": "Box",
+                  "width": "fill_container",
+                  "height": 72,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    10,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RUnkZ",
+                      "name": "Placeholder",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    }
+                  ]
                 }
               ]
             }
@@ -5284,7 +5355,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe furniture is the interface (D38): the 3D is never covered, and every action says whether it happens now or goes to the expert.\n2. ENTRY POINTS\nAfter Capture (flows/capture.pen), or an example from Home.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — one-row scene bar with \"Armado\" labeled (UI-5); \"+\" is a quiet ghost next to settings (UI-11)\n- Piece / Selected — the piece replaces the panel, like Notices and History already do; the 3D stays whole (B-2, the rule in Studio.tsx:146)\n- Conversation / Thinking\n- Conversation / Proposal pending — one status chip over the 3D (UI-5); the instant fix is the primary action; \"Aplicar así, bajo mi riesgo\" is a visible secondary button (UI-6, UI-17)\n- Notices / Critical — ⚡ Al instante vs tray A la bandeja: one grammar (UI-6); no card inside a card, no uppercase labels (UI-2)\n- Conversation / Tray — the tray is one line, the chat stays readable (UI-14)\n- Notices / Several, after choosing — nothing comes pre-checked; each notice picks its way; one \"Resolver N\" applies the ⚡ ones now (one version) and sends the rest to the expert in one request (UI-15)\n- Materials / Expert working in the background — nothing is disabled; a global indicator with the real stage and Cancel sits over the 3D (UI-15)\n- Materials / Expert answered — a count on Conversación and \"Resuelto: …\" over the 3D (UI-18)\n- Materials screens show the estimated cost before the review; the list stays behind it (UI-16, D30 holds). \"~$3,165\" is from the v2 capture (300 mm deep)\n4. BUSINESS RULES\nUnchanged: D4, D30, D34, D36, D37.\n5. COPY SOURCE\nsrc/ui/** and the simulated expert. NEW copy, needs code: \"Aplicar con un apoyo al centro\", \"Resolver 2\", \"1 al instante\", \"1 al experto\"; \"Resuelto: …\" reuses NoticePanel's \"Resuelto: {r}\" (pattern from PROPUESTA §1: \"Aplicar con divisor al centro\").\n6. STATES NOT DRAWN\nNone: every state in code is drawn or captured. The ⋯ menu was dropped — UI-11 chose a quiet \"+\" instead.\n7. OPEN FINDINGS\nUI-1, UI-2, UI-3, UI-5, UI-6, UI-11, UI-14, UI-15, UI-16, UI-17, UI-18, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe furniture is the interface (D38): the 3D is never covered, and every action says whether it happens now or goes to the expert.\n2. ENTRY POINTS\nAfter Capture (flows/capture.pen), or an example from Home.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — one-row scene bar with \"Armado\" labeled (UI-5); \"+\" is a quiet ghost next to settings (UI-11)\n- Piece / Selected — the piece replaces the panel, like Notices and History already do; the 3D stays whole (B-2, the rule in Studio.tsx:146)\n- Conversation / Thinking\n- Conversation / Proposal pending — one status chip over the 3D (UI-5); the instant fix is the primary action; \"Aplicar así, bajo mi riesgo\" is a visible secondary button (UI-6, UI-17)\n- Notices / Critical — ⚡ Al instante vs tray A la bandeja: one grammar (UI-6); no card inside a card, no uppercase labels (UI-2)\n- Conversation / Tray — the tray is one line, the chat stays readable (UI-14)\n- Notices / Several, after choosing — nothing comes pre-checked; each notice picks its way; one \"Resolver N\" applies the ⚡ ones now (one version) and sends the rest to the expert in one request (UI-15)\n- Materials / Expert working in the background — nothing is disabled; a global indicator with the real stage and Cancel sits over the 3D (UI-15)\n- Materials / Expert answered — a count on Conversación and \"Resuelto: …\" over the 3D (UI-18)\n- Materials screens show the estimated cost before the review; the list stays behind it (UI-16, D30 holds). \"~$3,165\" is from the v2 capture (300 mm deep)\n4. BUSINESS RULES\nUnchanged: D4, D30, D34, D36, D37.\n5. COPY SOURCE\nsrc/ui/** and the simulated expert. NEW copy, needs code: \"Aplicar con un apoyo al centro\", \"Resolver 2\", \"1 al instante\", \"1 al experto\"; \"Resuelto: …\" reuses NoticePanel's \"Resuelto: {r}\" (pattern from PROPUESTA §1: \"Aplicar con divisor al centro\").\n6. STATES NOT DRAWN\nNone: every state in code is drawn or captured. The ⋯ menu was dropped — UI-11 chose a quiet \"+\" instead.\n7. OPEN FINDINGS\nUI-1, UI-2, UI-3, UI-5, UI-6, UI-11, UI-14, UI-15, UI-16, UI-17, UI-18, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -5318,6 +5389,18 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "Q03Pz",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · kit 0.3.0 · re-vendored: Stamp/Recommendation graphite, stamps 12 px, KindSelect 16 px, Field added, TakePhoto removed; the K6 local overrides now match the kit · K6, K7, UI-1",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -11428,7 +11511,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe rest of the Studio's sections in the same grammar as band 1.\n2. ENTRY POINTS\nTap a piece, \"Editar a mano\"; the Mueble and Materiales tabs; the version button in the header.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Piece / Editing by hand — the edit form lives in the piece sheet, the 3D stays whole (B-2); move buttons follow the piece's axis (PieceEditor.tsx MOVE)\n- Furniture / Plan sheet — the tab is the plan sheet only; the kind is one compact line; the expert's memory moves next to the conversation (UI-4, not drawn yet)\n- Materials / Fix before buying — cost first (UI-16), then the verdict and the checks; sentence-case labels (UI-2)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app, unchanged\n- History / Two versions — a flat timeline, no card inside a card; \"Volver a esta\" is a visible button (UI-17 family)\n- Captures of the app for the states that stay as they are: the expert asks with options, the expert failed with \"Reintentar\", a hand edit rejected with its alternatives, the plan sheet with changes, a kind change that needs a redo, reviewing, not viable with \"Ver la lista de todos modos\", cut settings, editing a price, viewing an old version, the expert's settings, unlocking saved keys, and confirming \"Nuevo diseño\"\n- PROPOSAL (UI-4, not approved): Conversation / Expert's memory, open — the memory leaves the Furniture tab and folds above the conversation; closed it is one line with a count\nK6 ON THE CAPTURES: amber that is not selection or focus turns neutral when K6 lands — the kind-redo box, the materials price note, the SheLLM box and the lock icon on unlock\nKNOWN BUG: on unlock at 390 px \"Desbloquear\" overflows its card (the Input needs min-w-0; K7 regression, B-3)\n4. BUSINESS RULES\nHand edits apply at once and are checked like any change; the plan applies on \"Aplicar\" (D34). The list stays behind the review (D30).\n5. COPY SOURCE\nsrc/ui/studio/{PieceEditor,FurniturePanel,PlanSheet,Materials,Verdict,HistoryPanel}.tsx; verdict text from the simulated expert. \"~$3,165\" from the v2 capture.\n6. STATES NOT DRAWN\nNone.\n7. OPEN FINDINGS\nUI-2, UI-4, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe rest of the Studio's sections in the same grammar as band 1.\n2. ENTRY POINTS\nTap a piece, \"Editar a mano\"; the Mueble and Materiales tabs; the version button in the header.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Piece / Editing by hand — the edit form lives in the piece sheet, the 3D stays whole (B-2); move buttons follow the piece's axis (PieceEditor.tsx MOVE)\n- Furniture / Plan sheet — the tab is the plan sheet only; the kind is one compact line; the expert's memory moves next to the conversation (UI-4, not drawn yet)\n- Materials / Fix before buying — cost first (UI-16), then the verdict and the checks; sentence-case labels (UI-2)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app, unchanged\n- History / Two versions — a flat timeline, no card inside a card; \"Volver a esta\" is a visible button (UI-17 family)\n- Captures of the app for the states that stay as they are: the expert asks with options, the expert failed with \"Reintentar\", a hand edit rejected with its alternatives, the plan sheet with changes, a kind change that needs a redo, reviewing, not viable with \"Ver la lista de todos modos\", cut settings, editing a price, viewing an old version, the expert's settings, unlocking saved keys, and confirming \"Nuevo diseño\"\n- PROPOSAL (UI-4, not approved): Conversation / Expert's memory, open — the memory leaves the Furniture tab and folds above the conversation; closed it is one line with a count\nK6 ON THE CAPTURES: amber that is not selection or focus turns neutral when K6 lands — the kind-redo box, the materials price note, the SheLLM box and the lock icon on unlock\nKNOWN BUG: on unlock at 390 px \"Desbloquear\" overflows its card (the Input needs min-w-0; K7 regression, B-3)\n4. BUSINESS RULES\nHand edits apply at once and are checked like any change; the plan applies on \"Aplicar\" (D34). The list stays behind the review (D30).\n5. COPY SOURCE\nsrc/ui/studio/{PieceEditor,FurniturePanel,PlanSheet,Materials,Verdict,HistoryPanel}.tsx; verdict text from the simulated expert. \"~$3,165\" from the v2 capture.\n6. STATES NOT DRAWN\nNone.\n7. OPEN FINDINGS\nUI-2, UI-4, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -16264,7 +16347,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2)\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110, #112, #113): the piece in the panel, one status chip, notices resolved together, Field and readable text. Pending: amber for selection only (K6), the expert's memory next to the conversation (UI-4). Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2)\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -17911,7 +17994,7 @@
   "variables": {
     "kit-version-source": {
       "type": "string",
-      "value": "0.1.0"
+      "value": "0.3.0"
     },
     "grid-x0": {
       "type": "number",
