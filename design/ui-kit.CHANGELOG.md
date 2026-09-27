@@ -8,6 +8,12 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.2.0 — fixtures
+
+**Added:** a `Fixtures` section — canvas scaffolding, not design to implement — with `Fixture/Finding pin`, the rust label that marks a `UI-<n>` on an as-is capture. It was built separately in `studio.pen` and `capture.pen`; they keep their local copy until their next re-vendor. Additive: no flow has to re-sync.
+
+**Not added, on purpose:** the proposal's new parts (scene status chip, the three ways out of a notice, the resolve bar, the compact tray, labeled photo buttons). They do not exist in `src/ui/` yet; the kit mirrors the code, so they enter the kit when the code lands. The work order is `CODE_CHANGES.md`.
+
 ## 0.1.0 — initial
 
 **Tokens (28 + `kit-version`)**, mirrored from `src/ui/system/tokens.css` with a `mode` theme (light · dark): `bone`, `kraft`, `kraft-2`, `paper`, `scene-bg`, `graphite`, `graphite-2`, `line`, `amber`, `amber-soft`, `rust`, `slate`; woods `birch`, `pine`, `walnut`; brand `knot-ring`, `knot-inner`, `knot-core` (hardcoded in `Brand.tsx`); `white` (the danger button's `text-white`); fonts `font-display` (Fraunces), `font-sans` (Inter), `font-mono` (JetBrains Mono); radii named after Tailwind: `radius-stamp` 4, `radius-lg` 8, `radius-xl` 12, `radius-2xl` 16, `radius-3xl` 24, `radius-full`. `rgb(… / a)` values are stored as `#RRGGBBAA`.

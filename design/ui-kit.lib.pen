@@ -2244,6 +2244,87 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "bpYSP",
+      "x": 1400,
+      "y": 922,
+      "name": "Fixtures",
+      "width": 1280,
+      "fill": "$bone",
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 48,
+      "children": [
+        {
+          "type": "text",
+          "id": "a7UVG",
+          "name": "Heading",
+          "fill": "$graphite",
+          "content": "Fixtures — canvas scaffolding, not design to implement",
+          "fontFamily": "$font-display",
+          "fontSize": 24,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "inf9t",
+          "name": "Note",
+          "fill": "$graphite-2",
+          "content": "Used on the canvas to annotate flows. Nothing here exists in src/ui/.",
+          "fontFamily": "$font-sans",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "JSh9j",
+          "name": "Row",
+          "gap": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "P40sdw",
+              "name": "Fixture/Finding pin",
+              "reusable": true,
+              "height": 24,
+              "fill": "$rust",
+              "cornerRadius": "$radius-full",
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#2B282544",
+                "offset": {
+                  "x": 0,
+                  "y": 2
+                },
+                "blur": 6
+              },
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wvfs3",
+                  "name": "Label",
+                  "fill": "$white",
+                  "content": "UI-0",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
@@ -2255,7 +2336,7 @@
   "variables": {
     "kit-version": {
       "type": "string",
-      "value": "0.1.0"
+      "value": "0.2.0"
     },
     "bone": {
       "type": "color",
