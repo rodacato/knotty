@@ -869,6 +869,18 @@
         },
         {
           "type": "text",
+          "id": "EwPNi",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-27 · in code (photos-d39); a photo's note is drawn as the open text field the code keeps while it has text · UI-8, D39, D40",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "BDwhg",
           "name": "Entry",
           "fill": "$graphite",
@@ -1478,18 +1490,23 @@
                       "id": "dwjVi",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "sxazT",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -1503,9 +1520,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -2735,18 +2752,23 @@
                               "id": "F4IL3l",
                               "name": "Note",
                               "width": "fill_container",
-                              "fill": "$paper",
-                              "cornerRadius": "$radius-lg",
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
                               "gap": 6,
                               "padding": [
-                                6,
-                                8
+                                10,
+                                12
                               ],
                               "children": [
                                 {
                                   "type": "icon",
                                   "id": "Pl11u",
+                                  "x": 8,
+                                  "y": 6,
                                   "name": "note-pencil",
+                                  "enabled": false,
                                   "width": 13,
                                   "height": 13,
                                   "icon": "note-pencil",
@@ -2760,9 +2782,9 @@
                                   "fill": "$graphite",
                                   "textGrowth": "fixed-width",
                                   "width": "fill_container",
-                                  "content": "«la de abajo es puerta»",
+                                  "content": "la de abajo es puerta",
                                   "fontFamily": "$font-sans",
-                                  "fontSize": 12,
+                                  "fontSize": 16,
                                   "fontWeight": "normal"
                                 }
                               ]
@@ -3019,7 +3041,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nPROPOSED 2026-09-27 — pending Adrian's approval. Not in code: Home and Analyzing are.\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.1.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED and in code (photos-d39, 2026-09-27).\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n- A photo's note stays open as a text field while it has text: closing it on blur moved \"Analizar\" under the pointer and lost the click (UI-8).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -4507,18 +4529,23 @@
                       "id": "R8HAYz",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "PBqRa",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -4532,9 +4559,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -5375,18 +5402,23 @@
                       "id": "EblY0",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "w0yci7",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -5400,9 +5432,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -6427,18 +6459,23 @@
                       "id": "Nc771",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "pDRaw",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -6452,9 +6489,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -7511,18 +7548,23 @@
                       "id": "tkSdF",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "IuZTc",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -7536,9 +7578,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -8482,18 +8524,23 @@
                       "id": "hNKVo",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "HPlkM",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -8507,9 +8554,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -9407,18 +9454,23 @@
                       "id": "k1Mv45",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "qe1UV",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -9432,9 +9484,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]
@@ -10271,18 +10323,23 @@
                       "id": "sKTwd",
                       "name": "Note",
                       "width": "fill_container",
-                      "fill": "$paper",
-                      "cornerRadius": "$radius-lg",
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
                       "gap": 6,
                       "padding": [
-                        6,
-                        8
+                        10,
+                        12
                       ],
                       "children": [
                         {
                           "type": "icon",
                           "id": "KxbI7",
+                          "x": 8,
+                          "y": 6,
                           "name": "note-pencil",
+                          "enabled": false,
                           "width": 13,
                           "height": 13,
                           "icon": "note-pencil",
@@ -10296,9 +10353,9 @@
                           "fill": "$graphite",
                           "textGrowth": "fixed-width",
                           "width": "fill_container",
-                          "content": "«la de abajo es puerta»",
+                          "content": "la de abajo es puerta",
                           "fontFamily": "$font-sans",
-                          "fontSize": 12,
+                          "fontSize": 16,
                           "fontWeight": "normal"
                         }
                       ]

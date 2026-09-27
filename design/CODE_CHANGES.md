@@ -38,13 +38,10 @@
 
 ## 4. Capture in one screen (D40) with photos without slots (D39)
 
-**Status:** designed (`flows/capture.pen`, 2026-09-27) · pending code — `UI-7`, `UI-8`, `UI-19`, D39, D40
+**Status:** landed (`photos-d39`) — `UI-7`, `UI-8`, `UI-19`, D39, D40
 
-- `Capture.tsx`: one screen — kind, measures (optional), photos, description — replaces the two steps. "Agregar medidas" fills the kind's typical measures; the ones the person touched stay when the kind changes. Needs a typical-measures table per kind in the domain (only tables have one today: `TYPICAL_TABLE_DIMENSIONS`).
-- Photos: one "Agregar fotos" (up to 5, repeats allowed), a grid with a view tag per photo and the note under it; the required-angle rule and `TakePhoto`'s compact slots go away.
-- Reading: `PhotoReading` gains a `view` field (`reading.v4`), the photo is read when added, and `mergeReadings` ranks by `view` (the person's correction wins) instead of the slot's angle.
-- The expert no longer asks for photos: `requestedPhotos` leaves the expert's schemas, the prompts, the chat and the saved session (a new format).
-- The bench has no photo cases, so it cannot measure the view labels; the prompt changes go through `npm run compare` by hand.
+- Landed: Capture is one screen (`src/ui/capture/Capture.tsx`); typical measures per kind and the measure ranges live in `src/domain/furniture/typical.ts`; `PhotoReading` has `view` (`reading@4`), a photo is read when added and the read is shared with designing, `mergeReadings` ranks by view and the person's label wins; `requestedPhotos` is gone from the schemas, the prompts (`reconstruction@13`, `skeleton@16`, `adjust@11`), the chat and the session (format 9).
+- The bench has no photo cases, so it cannot measure the view labels; the new prompts go through `npm run compare` by hand.
 
 ## 5. Sentence-case section labels
 
