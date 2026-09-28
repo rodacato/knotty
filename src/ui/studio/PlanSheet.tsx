@@ -3,11 +3,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { isLocked, type SavingSearch } from '../../domain/furniture/saving/saving'
-import type { DesignState } from '../../domain/session/state'
+import { currentDesign, type DesignState } from '../../domain/session/state'
 import { TERMS } from '../glossary'
 import { Button } from '../system/components'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { useStore } from '../store'
+import { JointsSection } from './Joints'
 import { PlanFields, type Locks } from './PlanFields'
 import { SavingSheet } from './SavingSheet'
 
@@ -105,6 +106,8 @@ export function PlanSheet({ state }: { state: DesignState }) {
 
       <p className="-mb-2 text-sm text-graphite">Fija lo que no se mueve; lo demás puede cambiar para ahorrar material.</p>
       <PlanFields module={moduleOf(draft)} plan={draft} onChange={set} locks={locks} />
+
+      <JointsSection design={currentDesign(state)} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
         {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite'}`}>{message.text}</p>}
