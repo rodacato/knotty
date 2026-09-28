@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, LockKey, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
@@ -158,7 +158,9 @@ export function Settings() {
               <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
                 {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                  <p className="text-xs text-graphite">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
+                  <p className="flex items-start gap-1.5 text-xs text-graphite">
+                    <LockKey className="mt-px shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
+                  </p>
                 ) : locked ? (
                   <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
