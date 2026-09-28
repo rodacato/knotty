@@ -32,12 +32,17 @@ export interface Notice {
 export interface NoticeBoard {
   /** What needs a decision: the bell counts these. */
   pending: Notice[]
+  /** Findings that already pass the rules but would make the furniture sturdier; optional, so they are not counted. */
+  recommendations: Notice[]
   accepted: Notice[]
   /** The expert's questions the person set aside without answering. */
   dismissed: Notice[]
   /** What the last change fixed ("Entrepaños que se pandean: Piso"), to show it went away on purpose. */
   resolved: string[]
 }
+
+/** A finding that already passes the rules: acting on it is up to the person, so it waits for nobody. */
+export const isOptional = (notice: Notice) => notice.severity === 'recommendation' || notice.severity === 'detail'
 
 const RANK = { critical: 0, decision: 1, recommendation: 2, detail: 3 }
 
@@ -135,7 +140,8 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
   const sort = (list: Notice[]) => [...list].sort((a, b) => RANK[a.severity] - RANK[b.severity])
   const open = all.filter((n) => !accepted(n))
   return {
-    pending: sort([...extra, ...open]),
+    pending: sort([...extra, ...open.filter((n) => !isOptional(n))]),
+    recommendations: sort(open.filter(isOptional)),
     accepted: all.filter(accepted),
     dismissed,
     resolved,

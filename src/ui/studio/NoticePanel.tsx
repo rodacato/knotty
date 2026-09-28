@@ -1,6 +1,6 @@
 import { ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState, type ReactNode } from 'react'
-import { noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
+import { isOptional, noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
 import { fixesForNotice, type Fix } from '../../domain/editing/fixes/fixes'
@@ -74,6 +74,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
   const question = notice.question && state.chat.find((m) => m.id === notice.question!.messageId)?.questions[notice.question.index]
   const answered = notice.question && state.tray.find((t) => t.id === answerItemId(notice.question!.messageId, notice.question!.index))?.label
   const decides = notice.kind === 'finding' || notice.kind === 'requirement' || notice.kind === 'problem'
+  const optional = isOptional(notice)
   const risky = notice.kind === 'proposal' && !!state.proposal?.critical.length
   const isExpert = (item: TrayItem) => way?.kind === 'expert' && way.item.text === item.text
 
@@ -107,8 +108,8 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
             const item = noticeItem(notice, a.description)
             return <WayOption key={a.description} chosen={isExpert(item)} caption="A la bandeja, para el experto" icon={<Wrench />} label={a.description} onChoose={() => onWay({ kind: 'expert', item })} />
           })}
-          <WayOption chosen={isExpert(noticeItem(notice, null))} caption="A la bandeja, para el experto" icon={<Tray />} label="Que el experto decida" onChoose={() => onWay({ kind: 'expert', item: noticeItem(notice, null) })} />
-          {notice.kind === 'finding' && <WayOption chosen={way?.kind === 'accept'} caption="Aceptar así, bajo mi riesgo" onChoose={() => onWay({ kind: 'accept' })} />}
+          {!optional && <WayOption chosen={isExpert(noticeItem(notice, null))} caption="A la bandeja, para el experto" icon={<Tray />} label="Que el experto decida" onChoose={() => onWay({ kind: 'expert', item: noticeItem(notice, null) })} />}
+          {notice.kind === 'finding' && <WayOption chosen={way?.kind === 'accept'} caption={optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'} onChoose={() => onWay({ kind: 'accept' })} />}
         </div>
       )}
 
@@ -189,7 +190,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
   const thinking = useStore((s) => s.thinking)
   const [error, setError] = useState<string | null>(null)
   // What is already in the tray for a notice starts out as its chosen way.
-  const open = board.pending
+  const open = [...board.pending, ...board.recommendations]
   const [ways, setWays] = useState<Record<string, Way>>(() =>
     Object.fromEntries(open.flatMap((n) => state.tray.filter((t) => t.id === noticeItemId(n.key)).map((item) => [n.key, { kind: 'expert', item } as Way]))),
   )
@@ -229,18 +230,40 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         </ul>
       )}
 
-      {board.pending.length === 0 ? (
+      {board.pending.length === 0 && board.recommendations.length === 0 && (
         <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite">
           <Wrench size={28} weight="duotone" className="text-graphite" />
           <p className="font-medium text-graphite">Nada pendiente</p>
           <p className="text-sm">Revisé flecha de entrepaños, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>
         </div>
-      ) : (
+      )}
+      {board.pending.length === 0 && board.recommendations.length > 0 && (
+        <p className="flex items-center gap-2 border-b border-line px-4 py-3 text-sm text-graphite">
+          <CheckCircle className="shrink-0" /> Nada pendiente
+        </p>
+      )}
+      {board.pending.length > 0 && (
         <ul className="flex flex-col">
           {board.pending.map((n) => (
             <NoticeCard key={n.key} notice={n} state={state} way={ways[n.key] ?? null} onWay={(way) => setWays((w) => ({ ...w, [n.key]: way }))} onAnswer={onAnswer} />
           ))}
         </ul>
+      )}
+
+      {board.recommendations.length > 0 && (
+        <section aria-labelledby="sturdier">
+          <div className="border-b border-line px-4 py-3">
+            <h3 id="sturdier" className="font-display text-lg font-semibold">
+              Para que dure más
+            </h3>
+            <p className="text-sm text-graphite-2">{board.pending.some((n) => n.severity === 'critical') ? 'Esto lo haría más firme; es opcional.' : 'Cumple con las reglas. Esto lo haría más firme; es opcional.'}</p>
+          </div>
+          <ul className="flex flex-col">
+            {board.recommendations.map((n) => (
+              <NoticeCard key={n.key} notice={n} state={state} way={ways[n.key] ?? null} onWay={(way) => setWays((w) => ({ ...w, [n.key]: way }))} onAnswer={onAnswer} />
+            ))}
+          </ul>
+        </section>
       )}
 
       <SetAside label="lo que aceptaste así" notices={board.accepted} onReopen={reopenNotice} />
