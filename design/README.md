@@ -58,6 +58,7 @@ A screen whose copy does not exist in code yet marks every new string as NEW in 
 - **Tokens only — zero hex in a flow.** A value the kit lacks is a kit gap and gets logged.
 - Touch targets ≥ 44 px (the code uses `min-h-11`); AA contrast through tokens.
 - The 3D is not drawn: it is a PNG of the real scene inside the artboard. Pencil represents neither 3D nor motion; design what goes around the furniture.
+- Icons are not a design decision when they come from Pencil's limits: its Phosphor set has no fill weight and no `hammer`, so a flow draws outline icons and a `wrench` where the code uses filled ones and `Hammer`. When comparing the app against an export, the code's icon wins.
 
 ### Layout — a section per size, a column per step
 
