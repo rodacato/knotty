@@ -43,6 +43,7 @@ export function createKit(deps: Dependencies) {
     error: false,
     thumbnail: null,
     answers: [],
+    dismissed: [],
     suggestions: [],
     solutions: [],
     ...extra,

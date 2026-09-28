@@ -5,7 +5,7 @@ import { findingKey, type Finding, type Severity } from '../domain/checks/struct
 import { ruleTitle } from '../domain/checks/structure/registry'
 import type { Catalog } from '../domain/materials/catalog'
 import { checkRequirements } from '../domain/checks/requirements/requirements'
-import { currentDesign, type DesignState } from '../domain/session/state'
+import { currentDesign, questionAnswerKey, type DesignState } from '../domain/session/state'
 import { noticeItemId, type TrayItem } from '../domain/session/tray/tray'
 import { named } from './named'
 
@@ -30,8 +30,11 @@ export interface Notice {
 }
 
 export interface NoticeBoard {
+  /** What needs a decision: the bell counts these. */
   pending: Notice[]
   accepted: Notice[]
+  /** The expert's questions the person set aside without answering. */
+  dismissed: Notice[]
   /** What the last change fixed ("Entrepaños que se pandean: Piso"), to show it went away on purpose. */
   resolved: string[]
 }
@@ -96,6 +99,7 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
   const accepted = (n: Notice) => n.kind === 'finding' && n.findings.every((h) => isAccepted(h, state.accepted))
 
   const extra: Notice[] = []
+  const dismissed: Notice[] = []
   if (state.proposal)
     extra.push({
       key: 'proposal',
@@ -110,7 +114,8 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
     if (m.author !== 'expert' || m.answered || m.proposal === 'pending') continue
     m.questions.forEach((q, index) => {
       if (!q.options || m.answers.includes(`p${index}`)) return
-      extra.push({ key: `question:${m.id}:${index}`, kind: 'question', severity: 'decision', title: 'Pregunta del experto', message: q.text, pieces: [], findings: [], question: { messageId: m.id, index } })
+      const notice: Notice = { key: `question:${m.id}:${index}`, kind: 'question', severity: 'decision', title: 'Pregunta del experto', message: q.text, pieces: [], findings: [], question: { messageId: m.id, index } }
+      ;(m.dismissed.includes(questionAnswerKey(index)) ? dismissed : extra).push(notice)
     })
   }
 
@@ -128,7 +133,13 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
     : []
 
   const sort = (list: Notice[]) => [...list].sort((a, b) => RANK[a.severity] - RANK[b.severity])
-  return { pending: sort([...extra, ...all.filter((n) => !accepted(n))]), accepted: all.filter(accepted), resolved }
+  const open = all.filter((n) => !accepted(n))
+  return {
+    pending: sort([...extra, ...open]),
+    accepted: all.filter(accepted),
+    dismissed,
+    resolved,
+  }
 }
 
 /** A notice for the expert: with one of its alternatives, or for the expert to decide how. */

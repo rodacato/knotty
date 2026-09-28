@@ -48,6 +48,9 @@ export interface SessionSlice {
   toggleTray(item: TrayItem): void
   acceptNotice(notice: Notice): void
   reopenNotice(notice: Notice): void
+  /** Sets an expert's question aside, or brings it back; it is not answered either way. */
+  dismissQuestion(notice: Notice): void
+  reopenQuestion(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
@@ -157,6 +160,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     ),
   acceptNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.acceptNotice(state, notice.findings, notice.title) })),
   reopenNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.reopenNotice(state, notice.findings) })),
+  dismissQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.dismissQuestion(state, notice.question.messageId, notice.question.index) })),
+  reopenQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.reopenQuestion(state, notice.question.messageId, notice.question.index) })),
 
   restoreFromVersion: (n, ids) =>
     withSession(

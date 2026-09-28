@@ -25,7 +25,7 @@ export function createUseCases(deps: Dependencies) {
   const { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
-  const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
+  const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
 
   return {
     reconstruct,
@@ -53,6 +53,8 @@ export function createUseCases(deps: Dependencies) {
     undoChange,
     acceptNotice,
     reopenNotice,
+    dismissQuestion,
+    reopenQuestion,
     applyFix,
     applyFixes,
     toggleTray,

@@ -1248,6 +1248,32 @@ describe('notices: one place for what waits for a decision', () => {
     const board = noticeBoard(initial, testCatalog)
     expect(board.pending.filter((n) => n.kind === 'question').map((n) => n.message)).toContain('¿Qué vas a guardar principalmente?')
   })
+
+  it('a dismissed question leaves pending without being answered, drops its answer from the tray, survives a reload and can be reopened', async () => {
+    const stored = new Map<string, string>()
+    const storage = { getItem: (k: string) => stored.get(k) ?? null, setItem: (k: string, v: string) => void stored.set(k, v), removeItem: (k: string) => void stored.delete(k) } as Storage
+    const repository = createLocalRepository(storage)
+    const c = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository, now: () => '2026-09-24T10:00:00Z', newId: () => `d${++id}` })
+    const initial = await c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ base64: '' }], thumbnails: [], notes: '' }, newSignal())
+    const question = noticeBoard(initial, testCatalog).pending.find((n) => n.message === '¿Qué vas a guardar principalmente?')!
+    const { messageId, index } = question.question!
+    const withAnswer = c.toggleTray(initial, answerItem(messageId, index, question.message, 'Libros'))
+
+    const dismissed = c.dismissQuestion(withAnswer, messageId, index)
+
+    const board = noticeBoard(dismissed, testCatalog)
+    expect(board.pending.some((n) => n.key === question.key)).toBe(false)
+    expect(board.dismissed.map((n) => n.key)).toEqual([question.key])
+    expect(dismissed.tray).toEqual([])
+    expect(dismissed.chat.find((m) => m.id === messageId)).toMatchObject({ answered: false, answers: [] })
+    expect(dismissed.chat).toHaveLength(initial.chat.length)
+    const reloaded = repository.load()!
+    expect(noticeBoard(reloaded, testCatalog).dismissed.map((n) => n.key)).toEqual([question.key])
+
+    const reopened = noticeBoard(c.reopenQuestion(reloaded, messageId, index), testCatalog)
+    expect(reopened.pending.some((n) => n.key === question.key)).toBe(true)
+    expect(reopened.dismissed).toEqual([])
+  })
 })
 
 describe('the tray: decisions for the expert go in one request', () => {

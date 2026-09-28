@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
@@ -64,6 +64,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
   const discardProposal = useStore((s) => s.discardProposal)
   const toggleProposal = useStore((s) => s.toggleProposal)
   const showProposal = useStore((s) => s.showProposal)
+  const dismissQuestion = useStore((s) => s.dismissQuestion)
   const thinking = useStore((s) => s.thinking)
   const design = currentDesign(state)
   const fixes = useMemo(() => noticeFixes(notice, design, catalog), [notice, design, catalog])
@@ -137,29 +138,62 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
               </Chip>
             ))}
           </div>
-          <button type="button" onClick={onAnswer} className="flex min-h-9 items-center gap-1 self-start text-sm text-graphite underline">
-            <ChatCircleText /> Ver en la conversación
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button type="button" onClick={onAnswer} className="flex min-h-9 items-center gap-1 text-sm text-graphite underline">
+              <ChatCircleText /> Ver en la conversación
+            </button>
+            <Button variant="ghost" className="min-h-9 px-3 text-sm text-graphite-2" disabled={thinking} onClick={() => dismissQuestion(notice)}>
+              <X /> Descartar
+            </Button>
+          </div>
         </div>
       )}
     </li>
   )
 }
 
+/** What the person set aside, folded away, each with a way back to pending. */
+function SetAside({ label, notices, onReopen }: { label: string; notices: Notice[]; onReopen: (notice: Notice) => void }) {
+  const [shown, setShown] = useState(false)
+  if (!notices.length) return null
+  return (
+    <div className="px-4 py-3 text-sm">
+      <button type="button" className="min-h-9 text-sm text-graphite underline" onClick={() => setShown((v) => !v)}>
+        {shown ? 'Ocultar' : 'Ver'} {label} ({notices.length})
+      </button>
+      {shown && (
+        <ul className="mt-2 flex flex-col gap-2">
+          {notices.map((n) => (
+            <li key={n.key} className="flex items-start gap-2">
+              <span className="flex-1">
+                <span className="font-medium">{n.title}:</span> {n.message}
+              </span>
+              <button type="button" onClick={() => onReopen(n)} className="flex min-h-9 shrink-0 items-center gap-1 text-sm underline">
+                <ArrowCounterClockwise /> Reabrir
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export function NoticePanel({ state, board, onAnswer }: { state: DesignState; board: NoticeBoard; onAnswer: () => void }) {
   const reopenNotice = useStore((s) => s.reopenNotice)
+  const reopenQuestion = useStore((s) => s.reopenQuestion)
   const applyFixes = useStore((s) => s.applyFixes)
   const acceptNotice = useStore((s) => s.acceptNotice)
   const toggleTray = useStore((s) => s.toggleTray)
   const sendTray = useStore((s) => s.sendTray)
   const thinking = useStore((s) => s.thinking)
-  const [showAccepted, setShowAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // What is already in the tray for a notice starts out as its chosen way.
+  const open = board.pending
   const [ways, setWays] = useState<Record<string, Way>>(() =>
-    Object.fromEntries(board.pending.flatMap((n) => state.tray.filter((t) => t.id === noticeItemId(n.key)).map((item) => [n.key, { kind: 'expert', item } as Way]))),
+    Object.fromEntries(open.flatMap((n) => state.tray.filter((t) => t.id === noticeItemId(n.key)).map((item) => [n.key, { kind: 'expert', item } as Way]))),
   )
-  const chosen = board.pending.filter((n) => ways[n.key])
+  const chosen = open.filter((n) => ways[n.key])
   const instant = chosen.filter((n) => ways[n.key].kind === 'fix').length
   const toExpert = chosen.filter((n) => ways[n.key].kind === 'expert').length
 
@@ -209,27 +243,9 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         </ul>
       )}
 
-      {board.accepted.length > 0 && (
-        <div className="px-4 py-3 text-sm">
-          <button type="button" className="min-h-9 text-sm text-graphite underline" onClick={() => setShowAccepted((v) => !v)}>
-            {showAccepted ? 'Ocultar' : 'Ver'} lo que aceptaste así ({board.accepted.length})
-          </button>
-          {showAccepted && (
-            <ul className="mt-2 flex flex-col gap-2">
-              {board.accepted.map((n) => (
-                <li key={n.key} className="flex items-start gap-2">
-                  <span className="flex-1">
-                    <span className="font-medium">{n.title}:</span> {n.message}
-                  </span>
-                  <button type="button" onClick={() => reopenNotice(n)} className="flex min-h-9 shrink-0 items-center gap-1 text-sm underline">
-                    <ArrowCounterClockwise /> Reabrir
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      <SetAside label="lo que aceptaste así" notices={board.accepted} onReopen={reopenNotice} />
+
+      <SetAside label="lo que descartaste" notices={board.dismissed} onReopen={reopenQuestion} />
 
       {(chosen.length > 0 || state.tray.length > 0) && (
         <div className="sticky bottom-0 mt-auto flex flex-col gap-2 border-t border-line bg-paper px-4 py-3">

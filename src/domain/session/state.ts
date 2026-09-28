@@ -32,6 +32,8 @@ export const Message = z.object({
   thumbnail: z.string().nullable().default(null),
   /** Which questions ("p0") of this message were answered; with all of them, it is `answered`. */
   answers: z.array(z.string()).default([]),
+  /** Which questions ("p0") the person set aside in the notices without answering them; the expert is not told. */
+  dismissed: z.array(z.string()).default([]),
   /** Next steps the expert suggests; shown as buttons under its last message. */
   suggestions: z.array(z.string()).default([]),
   /** Options from the rules' alternatives that Knotty builds itself when chosen; the expert never sees this. */
