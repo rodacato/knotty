@@ -9,12 +9,14 @@ import { createReconstruct } from './reconstruct'
 import { createReview } from './review'
 import { createSaving } from './saving'
 import { createSession } from './session'
+import { createWorkshop } from './workshop'
 
 export { ATTEMPTS, type Stage, type OnProgress } from './kit'
 export { ExpertError } from './expertCall'
 export { currentPlan } from './currentPlan'
 export { reviewSignature } from './review'
 export type { PieceEdit, PieceEditResult } from './edits'
+export type { WorkshopResult } from './workshop'
 
 /** Every use case over one session: each group lives in its own module and shares the kit (clock, chat, saving, versions). */
 export function createUseCases(deps: Dependencies) {
@@ -28,6 +30,7 @@ export function createUseCases(deps: Dependencies) {
   const { chooseFinish } = createFinish(kit)
   const { lockField, findSavings } = createSaving(kit)
   const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
+  const { chooseJoint, chooseEdgeProfiles } = createWorkshop(kit)
 
   return {
     reconstruct,
@@ -67,6 +70,8 @@ export function createUseCases(deps: Dependencies) {
     chooseFinish,
     lockField,
     findSavings,
+    chooseJoint,
+    chooseEdgeProfiles,
     load,
     pendingQuestions,
   }
