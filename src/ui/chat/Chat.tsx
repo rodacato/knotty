@@ -148,53 +148,51 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             <ArrowClockwise weight="bold" /> Reintentar
           </Button>
         )}
-      </div>
-
-      {pending && (
-        <div className="rounded-2xl border border-rust/25 bg-kraft/60 p-3">
-          <p className="mb-2 text-sm font-semibold">Propuesta sin aplicar</p>
-          {state.proposal!.holds.length > 0 && (
-            <ul className="mb-2 flex flex-col gap-1.5">
-              {state.proposal!.holds.map((h) => (
-                <li key={h} className="flex items-start gap-2 text-sm">
-                  <Warning className="mt-0.5 shrink-0" weight="bold" /> {h}
+        {pending && (
+          <div className="mt-3">
+            {state.proposal!.holds.length > 0 && (
+              <ul className="mb-2 flex flex-col gap-1.5">
+                {state.proposal!.holds.map((h) => (
+                  <li key={h} className="flex items-start gap-2 text-sm">
+                    <Warning className="mt-0.5 shrink-0" weight="bold" /> {h}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <ul className="flex flex-col gap-2">
+              {groupByCode(state.proposal!.critical).map(({ first, more }, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <Stamp severity="critical" />
+                  <span>
+                    {first.message}
+                    {more > 0 && <span className="text-graphite"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
+                  </span>
                 </li>
               ))}
             </ul>
-          )}
-          <ul className="flex flex-col gap-2">
-            {groupByCode(state.proposal!.critical).map(({ first, more }, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <Stamp severity="critical" />
-                <span>
-                  {first.message}
-                  {more > 0 && <span className="text-graphite"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 flex flex-col gap-2">
-            {state.proposal!.critical.length > 0 && <ProposalFixButton state={state} className="w-full" />}
-            {state.proposal!.critical.length ? (
-              <Button variant="secondary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
-                Aplicar así, bajo mi riesgo
-              </Button>
-            ) : (
-              <Button variant="primary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
-                Sí, aplícalo
-              </Button>
-            )}
-            <div className="flex flex-wrap justify-between gap-2">
-              <Button variant="ghost" className="min-h-10" onClick={toggleProposal}>
-                {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
-              </Button>
-              <Button variant="ghost" className="min-h-10" onClick={discardProposal} disabled={thinking}>
-                <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
-              </Button>
+            <div className="mt-3 flex flex-col gap-2">
+              {state.proposal!.critical.length > 0 && <ProposalFixButton state={state} className="w-full" />}
+              {state.proposal!.critical.length ? (
+                <Button variant="secondary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+                  Aplicar así, bajo mi riesgo
+                </Button>
+              ) : (
+                <Button variant="primary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+                  Sí, aplícalo
+                </Button>
+              )}
+              <div className="flex flex-wrap justify-between gap-2">
+                <Button variant="ghost" className="min-h-10" onClick={toggleProposal}>
+                  {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
+                </Button>
+                <Button variant="ghost" className="min-h-10" onClick={discardProposal} disabled={thinking}>
+                  <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
@@ -221,7 +219,7 @@ export function Chat({ state }: { state: DesignState }) {
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })
-  }, [state.chat.length, thinking])
+  }, [state.chat.length, state.tray.length, thinking])
 
   const send = () => {
     if ((!text.trim() && !state.tray.length) || thinking) return
@@ -240,6 +238,9 @@ export function Chat({ state }: { state: DesignState }) {
           <div className="flex items-center gap-2 self-start rounded-2xl border border-line bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
             <Pencil className="h-5 w-12 text-amber" /> {stage ? STAGES[stage.name] : 'Pensando…'}
             {seconds >= 10 && <span className="numerals text-xs">· {seconds} s</span>}
+            <button type="button" onClick={cancel} className="-my-2.5 ml-1 min-h-11 rounded-full px-2 hover:text-graphite focus-visible:outline-2 focus-visible:outline-amber">
+              Cancelar
+            </button>
           </div>
         )}
       </div>
