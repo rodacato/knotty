@@ -14,6 +14,7 @@ import { Field, Input } from '../system/Field'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
+import { sheetLabels } from './sheetLabels'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
@@ -111,16 +112,25 @@ function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; t
         <rect x={trim} y={trim} width={a.usable.length} height={a.usable.width} fill="var(--bone)" />
         {sheet.placed.map((c) => {
           const active = selection === c.id
-          const large = c.w > 360 && c.h > 110
+          const size = `${Math.round(c.rotated ? c.h : c.w)} × ${Math.round(c.rotated ? c.w : c.h)}`
+          const labels = sheetLabels(c.w, c.h, c.name, size)
+          const cx = trim + c.x + c.w / 2
           return (
             <g key={c.id} onClick={() => select(c.id)} className="cursor-pointer">
+              <title>{`${c.name} · ${size}`}</title>
               <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity="0.6" strokeWidth="5" />
-              {large && (
-                <text x={trim + c.x + c.w / 2} y={trim + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fontSize={Math.min(64, c.h * 0.32)} fill="#2b2825" style={{ fontFamily: 'var(--font-sans)' }}>
-                  {c.name}
-                  <tspan x={trim + c.x + c.w / 2} dy="1.2em" fontSize={Math.min(52, c.h * 0.26)} fillOpacity="0.7" style={{ fontFamily: 'var(--font-mono)' }}>
-                    {Math.round(c.rotated ? c.h : c.w)} × {Math.round(c.rotated ? c.w : c.h)}
-                  </tspan>
+              {(labels.name || labels.size) && (
+                <text x={cx} y={trim + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fill="#2b2825">
+                  {labels.name && (
+                    <tspan fontSize={labels.name} style={{ fontFamily: 'var(--font-sans)' }}>
+                      {c.name}
+                    </tspan>
+                  )}
+                  {labels.size && (
+                    <tspan x={cx} dy={labels.name ? '1.2em' : undefined} fontSize={labels.size} fillOpacity="0.7" style={{ fontFamily: 'var(--font-mono)' }}>
+                      {size}
+                    </tspan>
+                  )}
                 </text>
               )}
             </g>

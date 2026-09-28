@@ -2,7 +2,7 @@
 
 > The registry the `flows/*.pen` briefs and the `ui-kit.lib.pen` notes cite. A resolved entry is never deleted: record the outcome, because the reasoning is the useful part.
 
-**Status:** 21 entries · 6 decided · 14 open · 🐞 3 app bugs (fixed on their own, they do not wait for the redesign).
+**Status:** 21 entries · 8 decided · 13 open · 🐞 3 app bugs (fixed on their own, they do not wait for the redesign).
 
 **How entries work.** A `UI-<n>` is a finding: the design is always drawn as the **code** is, and the entry records what it does today, what it should do, and who decides. The thesis that orders them is D38 in `docs/PROPUESTA.md`: the furniture is the interface.
 
@@ -36,7 +36,7 @@ Source: review of all of `src/ui/` on 2026-09-27, then checked against captures 
 | **UI-18** | `gap` | Nothing says "it's fine now": after an answer or a fix the only signals are a count, a dot, or "Los puntos críticos siguen". Three personas (summary, E). | ⏳ An explicit resolved state where the person is looking: the scene status and the notice count. |
 | **UI-19** | `vice` | Each capture slot shows its camera and gallery buttons as icons only: `TakePhoto` in compact mode drops the label (`{!compact && …}`, `src/ui/system/TakePhoto.tsx`), ten unlabeled buttons on the photos step. The Studio audit already flagged icon-only actions for Doña Carmen and Ricardo. | ✅ Superseded by D39 and landed: one labeled "Agregar fotos"; `TakePhoto` is gone. |
 | **UI-20** | `bug` | On mobile the Materials sheet row gives the price column the room: "Triplay de pino 18 mm" wraps to three lines and "desperdicio" breaks (`src/ui/studio/Materials.tsx`). Capture: `assets/studio/current/mobile-materials-list.jpg`. | ✅ **Fixed in `materials-row`:** while the sheet card is narrower than `@sm` (a container query, so it covers both the phone and the ~385 px desktop side panel) the name and the size/waste line keep the full width and the price row (total, per-sheet price, inline edit) goes under them, aligned with the name; side by side only when the card has room. |
-| **UI-21** | `bug` | On the sheet diagrams in Materials, small pieces' labels overflow their rectangle and overlap ("de la columnPuerta de la columna 2…"), clearest in the ~385 px desktop panel (`src/ui/studio/Materials.tsx`, the sheet SVG). Capture: `assets/studio/current/desktop-materials-sheets.jpg`. | ⏳ Hide or shorten a label that does not fit its piece; the size under it can stay. |
+| **UI-21** | `bug` | On the sheet diagrams in Materials, small pieces' labels overflow their rectangle and overlap ("de la columnPuerta de la columna 2…"), clearest in the ~385 px desktop panel (`src/ui/studio/Materials.tsx`, the sheet SVG). Capture: `assets/studio/current/desktop-materials-sheets.jpg`. | ✅ **Fixed in `studio-ui4-final`:** `src/ui/studio/sheetLabels.ts` measures each label against its piece; a name that does not fit is hidden, the size stays when it fits, and the full name is the piece's `<title>`. Checked in Chrome at 1440 and 390: none of the Aparador's 41 labels leaves its piece. |
 
 ## Consolidation (2026-09-27, `ui-consolidate`)
 
