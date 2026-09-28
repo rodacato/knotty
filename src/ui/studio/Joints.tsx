@@ -147,11 +147,16 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
             <tr
               key={o.joint}
               onClick={() => !o.blocked && onSelect(o.joint)}
-              aria-selected={selected === o.joint}
               className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-amber-soft' : ''}`}
             >
               <td className="px-3 py-2">
-                <span className="block text-sm font-semibold">{g.name}</span>
+                {o.blocked ? (
+                  <span className="block text-sm font-semibold">{g.name}</span>
+                ) : (
+                  <button type="button" role="radio" aria-checked={selected === o.joint} onClick={() => onSelect(o.joint)} className="block text-left text-sm font-semibold focus-visible:outline-2 focus-visible:outline-amber">
+                    {g.name}
+                  </button>
+                )}
                 <span className="mt-1 inline-block">
                   <FitTag fit={o.fit} />
                 </span>
