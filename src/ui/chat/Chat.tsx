@@ -192,9 +192,8 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             </div>
           </div>
         )}
+        {m.version && !pending && <ChangeList state={state} version={m.version} inBubble />}
       </div>
-
-      {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
       <Questions m={m} state={state} hidden={proposalFixed ? m.solutions.map((s) => s.question) : []} />
     </div>
