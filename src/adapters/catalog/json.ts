@@ -1,4 +1,5 @@
 import { LayoutSettings, Catalog, NO_SETTINGS, type CatalogSettings } from '../../domain/materials/catalog'
+import { DEFAULT_TOOL_LEVEL, ToolLevel } from '../../domain/materials/tools'
 import type { MaterialCatalog } from '../../ports/MaterialCatalog'
 import { HARDWARE_IDS_V3 } from '../../domain/session/migrate'
 import { KEYS, readStored } from '../storedKey'
@@ -30,7 +31,8 @@ export function createJsonCatalog(url = `${import.meta.env.BASE_URL}catalog/cata
         const saved = JSON.parse(readStored(storage, SETTINGS_KEY, OLDER_KEY) ?? 'null') as (Partial<CatalogSettings> & SettingsV1) | null
         const layout = LayoutSettings.safeParse(saved?.layout ?? layoutV1(saved?.acomodo))
         const prices = saved?.prices ?? pricesV1(saved?.precios)
-        return { prices: prices && typeof prices === 'object' ? prices : {}, layout: layout.success ? layout.data : null }
+        const toolLevel = ToolLevel.safeParse(saved?.toolLevel)
+        return { prices: prices && typeof prices === 'object' ? prices : {}, layout: layout.success ? layout.data : null, toolLevel: toolLevel.success ? toolLevel.data : DEFAULT_TOOL_LEVEL }
       } catch {
         return NO_SETTINGS
       }
