@@ -127,6 +127,7 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Ancho de la caja del cajón | **hueco − 26** (13 por lado) | el fabricante sugiere − 27, justo en el límite | mm | Centro de la tolerancia: medio milímetro de error no te deja fuera | ⚠️ [25] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
 | Capacidad de corredera económica | **20** (extensión parcial) / **30** (extensión total) | — | kg por par | Handy Home, Home Depot México | ✅ [27][28] | [estructura.md](estructura.md) |
 | Capacidad de corredera de marca | **45** | — | kg por par | Libros, herramienta, archivo | ✅ [25] | [estructura.md](estructura.md) |
+| Ancho de la caja contra largo de la corredera | **no más ancho que el largo** (Accuride 3832) | Ducasse y Handy Home no lo publican | mm | Solo ese modelo: es su regla de instalación, sin razón dada; Knotty no la revisa | ⚠️ [25] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
 | Fondo de cajón | **6** | 3 solo si mide < 300 de ancho y carga ligera; 9 (o 6 con travesaño) con carga pesada y > 600 de ancho | mm | Fondo en ranura | ⚠️ cálculo | [estructura.md](estructura.md) |
 
 **Por qué 12.7 y no 12.5–13.** Algunas fuentes redondeaban a 12.5 o 13 mm; la ficha de la corredera de referencia [25] da 12.7 +0.8 / −0: una corredera acepta un poco de más, nunca de menos.

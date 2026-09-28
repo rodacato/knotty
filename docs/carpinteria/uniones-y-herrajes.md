@@ -204,7 +204,7 @@ Hojas de 15 a 127 mm de ancho; los barrenos suelen venir a ~50 mm (2"). **En tri
 **Reglas de instalación de la corredera lateral:**
 - **Caja del cajón 26 mm más angosta que el hueco** (13 mm por lado). Accuride recomienda 27 mm (2 × 12.7 + holgura) [44], y el derivado coincide con Ducasse [46] ✅; pero 27 mm queda justo en el límite de +0.8 por lado, y con cortes de tienda (±0.5 mm) 26 mm cae dentro de 12.7–13.5 mm hacia los dos lados ⚠️.
 - **Nunca menos de lo que pide el fabricante:** Accuride no admite nada por debajo de 12.7 mm por lado y Ducasse solo 0.2 mm por debajo de 13 mm [44][46] ✅. Si sobra más de lo que admite la tolerancia, la corredera queda floja y se puede zafar [44] ⚠️.
-- **El ancho del cajón no debe pasar del largo de la corredera**: con correderas laterales, un cajón más ancho que largo se atora al jalarlo de una esquina [44] ⚠️.
+- **Ancho del cajón contra largo de la corredera:** la ficha de la Accuride 3832 dice *«Drawer box width should not exceed slide length»* [44], sin dar la razón, y la probó con correderas de 457 mm en un cajón de 406 mm de ancho. Es la regla de instalación de ese modelo, no una regla general: las cómodas llevan cajones más anchos que su corredera, y Ducasse y Handy Home no publican ese límite. Knotty no la revisa ⚠️.
 - **La capacidad es por par**: elige la corredera según lo que cargará el cajón (20–30 kg las económicas, 45 kg las de marca) [44][48] ⚠️.
 - **Frente embutido:** la corredera va retrasada lo que mide el frente más **3.2 mm (⅛")** [44] ⚠️.
 - Alto mínimo del cajón con la 3832EC: **47.6 mm (1⅞")** [44] ⚠️.
