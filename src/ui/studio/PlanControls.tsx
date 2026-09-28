@@ -1,6 +1,6 @@
-import { Minus, Plus } from '@phosphor-icons/react'
+import { LockSimple, LockSimpleOpen, Minus, Plus } from '@phosphor-icons/react'
 
-// The small controls of a plan: choices, counts and measures.
+// The small controls of a plan: choices, counts, measures and the lock that keeps «Ahorrar material» off a field.
 
 export function Segmented({ value, options, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; onChange: (v: string) => void; label: string }) {
   return (
@@ -32,5 +32,25 @@ export function Stepper({ value, min, max, onChange, label }: { value: number; m
         <Plus size={10} />
       </button>
     </span>
+  )
+}
+
+/** 44 px to touch, 28 px to see: filled when locked, outlined when free. */
+export function LockToggle({ locked, name, onToggle }: { locked: boolean; name: string; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={locked}
+      aria-label={`Fijar ${name.charAt(0).toLowerCase()}${name.slice(1)}`}
+      onClick={(e) => {
+        e.preventDefault()
+        onToggle()
+      }}
+      className="-my-2 -ml-2 grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
+    >
+      <span className={`grid size-7 place-items-center rounded-full transition ${locked ? 'bg-graphite text-bone' : 'border border-line text-graphite-2'}`}>
+        {locked ? <LockSimple size={14} weight="fill" /> : <LockSimpleOpen size={14} />}
+      </span>
+    </button>
   )
 }

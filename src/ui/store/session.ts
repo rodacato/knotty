@@ -4,6 +4,8 @@ import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
 import type { Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import type { SavingSearch } from '../../domain/furniture/saving/saving'
+import { applySettings } from '../../domain/materials/catalog'
 import type { Axis } from '../../domain/design/schema'
 import type { FinishId } from '../../domain/materials/finishes'
 import type { DesignKind } from '../../domain/design/kind'
@@ -41,6 +43,10 @@ export interface SessionSlice {
   removeDecision(topic: string): void
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
+  /** Locks or frees a field of the plan for «Ahorrar material». */
+  lockField(key: string, locked: boolean): void
+  /** The ways to use fewer sheets on this plan, with the cutting settings of Materiales; null without a design. */
+  findSavings(plan: FurniturePlan): SavingSearch | null
   applyFix(fix: Fix): void
   /** Several solutions as one version; all or none, and the result says why when they do not fit together. */
   applyFixes(fixes: Fix[]): { ok: true } | { ok: false; message: string }
@@ -220,4 +226,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
       },
       { ok: false as const, message: NO_DESIGN },
     ),
+
+  lockField: (key, locked) => withSession(get, (services, state) => set({ state: services.useCases.lockField(state, key, locked) })),
+
+  findSavings: (plan) => withSession(get, (services, state) => services.useCases.findSavings(state, plan, applySettings(services.catalog, get().catalogSettings)), null),
 })
