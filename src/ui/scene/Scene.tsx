@@ -1,7 +1,7 @@
 import { CameraControls, ContactShadows, Environment, Grid, Lightformer, PerformanceMonitor } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame, type RootState } from '@react-three/fiber'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import type { Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
 import { materialById, type Catalog } from '../../domain/materials/catalog'
@@ -62,6 +62,35 @@ function offsets(geo: Geometry, design: Design, active: boolean) {
   const pushes = new Map(raw.map(({ id, push }) => [id, [push.x * MM, (push.y + lift) * MM, push.z * MM] as [number, number, number]]))
   const cap = Math.max(...raw.map(({ c, push }) => c.y1 + push.y + lift))
   return { pushes, height: cap * MM }
+}
+
+/** Runs once per frame, in the order it mounts among its siblings. */
+function EachFrame({ run }: { run: (state: RootState) => void }) {
+  useFrame(run)
+  return null
+}
+
+// The shadow's blur pass draws a plane at the floor, which must be in front of its camera, and the grid must stay behind it or it shadows itself.
+const SHADOW_Y = -0.001
+const SHADOW_NEAR = 0.0005
+const GRID_Y = -0.00075
+
+/** The ground shadow, redrawn from scratch every frame; without clearing, every place a piece has been stays on the floor. */
+function GroundShadow(props: Omit<ComponentProps<typeof ContactShadows>, 'position' | 'near'>) {
+  const saved = useRef(true)
+  // The effect composer keeps autoClear off while mounted, and ContactShadows needs it to clear its target; subscribers of one priority run in mount order.
+  return (
+    <>
+      <EachFrame
+        run={({ gl }) => {
+          saved.current = gl.autoClear
+          gl.autoClear = true
+        }}
+      />
+      <ContactShadows position={[0, SHADOW_Y, 0]} near={SHADOW_NEAR} {...props} />
+      <EachFrame run={({ gl }) => void (gl.autoClear = saved.current)} />
+    </>
+  )
 }
 
 function CameraRig({ design, visibleHeight, reduced }: { design: Design; visibleHeight: number; reduced: boolean }) {
@@ -160,9 +189,9 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
         {dimensions && exploded && <PieceMeasures design={design} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
       </group>
 
-      <ContactShadows position={[0, 0.0005, 0]} opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
+      <GroundShadow opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
       <Grid
-        position={[0, 0, 0]}
+        position={[0, GRID_Y, 0]}
         args={[20, 20]}
         cellSize={0.1}
         cellThickness={0.6}
