@@ -197,16 +197,16 @@ El canto tiene dos decisiones independientes: su **perfil** (la forma de la aris
 | **Redondeo r = 3 mm** (broca de redondeo de ⅛") | Router con broca de balero, o lija | Atraviesa la chapa exterior (≈ 1–1.5 mm) y muestra una línea de la capa cruzada; suave, moderno; bueno en cantos de Repisa | ⚠️ taller |
 | **Redondeo r = 6 mm** (¼") | Router | En pino de 18 mm deja a la vista 2–3 capas: estética «de capas»; en abedul se ve muy limpio; muebles infantiles y cubiertas | ⚠️ taller |
 | **Chaflán** 45° de 2–6 mm | Router con broca de chaflán, cepillo de mano o lija en bloque | Muestra franjas rectas de capas; aspecto nórdico o industrial | ⚠️ taller |
-| **Medio bocel** (r = espesor ÷ 2) | Router con dos pasadas de redondeo o broca de medio bocel | Capas como «ondas» en todo el canto; en pino se ven los huecos del alma: mejor con canto macizo o triplay tipo báltico | ⚠️ taller |
+| **Bocel** (r = espesor ÷ 2) | Router con dos pasadas de redondeo o broca de bocel (nombre comercial ❓) | Capas como «ondas» en todo el canto; en pino se ven los huecos del alma: mejor con canto macizo o triplay tipo báltico | ⚠️ taller |
 | Canto macizo perfilado | Canto de madera maciza + router | Perfil limpio y resistente; admite cualquier perfil | ✅ [17] |
 
 - Las brocas de router con balero copian el canto; el balero se cambia para variar el corte [23] ⚠️.
 - Con router en triplay, una broca de espiral descendente deja el canto superior limpio [22] ✅.
 - Los barnices se adelgazan en las aristas vivas y se gastan ahí primero; redondear aunque sea 1 mm alarga la vida del acabado ⚠️.
-- El radio no puede pasar de la mitad del espesor; el medio bocel pide espesor ≥ 2r ⚠️.
+- El radio no puede pasar de la mitad del espesor; el bocel pide espesor ≥ 2r ⚠️.
 - Un perfil en un canto que queda contra otra pieza (el canto trasero de una Repisa contra la trasera) no se ve: no vale la pena ⚠️.
 - Los perfiles se hacen en las aristas que el canto comparte con las caras grandes. Redondear una esquina en planta (por ejemplo, una cubierta con r = 25 mm) es otro corte, con caladora o router con plantilla ⚠️.
-- Redondeo y medio bocel piden router; un chaflán se puede hacer con cepillo o lija. Quien no tiene router puede pedir el servicio en la maderería ⚠️.
+- Redondeo y bocel piden router; un chaflán se puede hacer con cepillo o lija. Quien no tiene router puede pedir el servicio en la maderería ⚠️.
 
 ### 11.2 Recubrimiento del canto
 

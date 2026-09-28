@@ -31,11 +31,12 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 
 | Concepto | Valor recomendado | Rango o alternativas | Unidad | Cuándo aplica | Confianza | Ver |
 |---|---|---|---|---|---|---|
-| Medida de la hoja | **2440 × 1220** nominal (útil 2440 × 1218) | hay hojas de 1210 de ancho: revisa la que compras | mm | Planear el despiece | ✅ [9][11] | [triplay.md](triplay.md) |
+| Medida de la hoja | **2440 × 1220** nominal (real 2440 × 1218; **hoja útil** tras refilar: 2410 × 1188) | hay hojas de 1210 de ancho: revisa la que compras | mm | Planear el despiece | ✅ [9][11] | [triplay.md](triplay.md) |
 | Dirección de la veta | a lo largo del lado de 2440 | — | — | Cortar repisas con la veta a lo largo del claro | ✅ | [triplay.md](triplay.md) |
 | Refilado de la orilla de la hoja | **15** | — | mm | Descontar del borde de fábrica antes de acomodar piezas | ⚠️ | [triplay.md](triplay.md), [fabricacion-y-armado.md](fabricacion-y-armado.md) |
 | Ancho de corte de la sierra | **4** | — | mm | Entre pieza y pieza en el despiece | ⚠️ | [triplay.md](triplay.md) |
 | Holgura por pieza | **2** | — | mm | Margen para error de corte | ⚠️ | [triplay.md](triplay.md) |
+| Ancho máximo de pieza para sacar *n* tiras de la hoja útil | **590** (2) · **391** (3) · **292** (4) · **232** (5) · **192** (6) | a lo largo: 1201 · 798 · 597 · 476 · 396 | mm | Escoger fondos que no desperdicien una tira | ⚠️ cálculo | [fabricacion-y-armado.md](fabricacion-y-armado.md) §2.5 |
 | Costo de corte en maderería | $10–30 por corte | algunas cortan gratis con la compra | MXN | CDMX, 2026; pregunta antes | ⚠️ [12] | [fabricacion-y-armado.md](fabricacion-y-armado.md) |
 
 ## 3. Espesores por pieza
@@ -94,10 +95,10 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Tornillo de herraje | largo **≤ t − 3** | — | mm | Bisagras, correderas, jaladeras por dentro | ⚠️ | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
 | Tarugo | **Ø 6** en 15 mm; **Ø 8** en 18 mm | — | mm | Unión con tarugo y pegamento | ⚠️ [20] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
 | Tarugo: separación / profundidad en la cara | **100–150** entre centros / **≤ ⅔ t** | — | mm | ídem | ⚠️ [20] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
-| Minifix 15 | tablero **≥ 16** | en 15 mm funciona con cuidado | mm | Uniones desarmables | ❓ [21] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
+| Minifix 15 | tablero **≥ 16** | en 15 mm hay caja de 12 mm de fondo (quedan 3 mm) | mm | Uniones desarmables | ❓ [21] | [uniones-y-herrajes.md](uniones-y-herrajes.md) §3.2 |
 | Pegamento blanco (Resistol 850) | 15 min abierto · 30–40 min en prensa · 4 h para manipular · **24 h para cargar** | trabajar entre 10 y 40 °C | — | Muebles de interior | ✅ [23] | [uniones-y-herrajes.md](uniones-y-herrajes.md) |
 
-**Minifix en 15 mm.** La regla general pide 16 mm o más, pero Häfele también lo vende para 15 [21]: por eso queda por validar.
+**Minifix en 15 mm.** La regla general pide 16 mm o más, pero Häfele también lo vende para 15 [21], con caja de 12 mm de fondo (ver [uniones y herrajes](uniones-y-herrajes.md) §3.2). Quedan 3 mm bajo la caja: sobre un hueco del alma del triplay de pino puede no aguantar, y no se confirmó que esa pieza se venda en México. Por eso queda por validar.
 
 ## 7. Herrajes
 

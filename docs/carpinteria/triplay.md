@@ -383,20 +383,20 @@ Práctica de taller ⚠️ salvo donde se indica:
 | **Redondeo de 3 mm** | Router con broca de redondeo con balero, o lija | Atraviesa la chapa exterior (≈ 1–1.5 mm) y muestra una línea de la capa cruzada | Suave, moderno |
 | **Redondeo de 6 mm** | Router | En 18 mm muestra 2–3 capas en el redondeo | Muebles infantiles, cubiertas |
 | **Chaflán a 45° (3 o 6 mm)** | Router con broca de chaflán, cepillo o lija en bloque | Muestra franjas rectas de capas | Nórdico, industrial |
-| **Medio bocel** (radio = espesor ÷ 2) | Router con dos pasadas de redondeo o broca de medio bocel | Capas como “ondas” en todo el canto; en pino se ven los huecos | Solo con canto macizo o con triplay tipo báltico |
+| **Bocel** (radio = espesor ÷ 2) | Router con dos pasadas de redondeo o broca de bocel (nombre comercial ❓) | Capas como “ondas” en todo el canto; en pino se ven los huecos | Solo con canto macizo o con triplay tipo báltico |
 | **Con cubrecanto** (chapa, PVC o melamina) | Ver «Tipos de cubrecanto» | Tapa las capas; después solo se mata la arista (radio ≈ 0.5–1 mm) | Aspecto de tablero macizo o de mueble de fábrica |
-| **Canto macizo** | Tira de madera pegada; después se perfila | Admite cualquier perfil (redondeo de 6 mm, medio bocel) | El más “de ebanista”; suma material y tiempo |
+| **Canto macizo** | Tira de madera pegada; después se perfila | Admite cualquier perfil (redondeo de 6 mm, bocel) | El más “de ebanista”; suma material y tiempo |
 | **Canto expuesto** (capas lijadas) | Lijar 120 → 180, matar o redondear 1–3 mm y sellar con aceite o barniz | Resalta el rayado; en pino las capas son irregulares y con huecos | Tendencia “plywood”; luce en abedul [19], en pino de tienda hay que advertirlo |
 
 Reglas de oficio para combinar perfil y recubrimiento ⚠️:
 
 - **Perfil de router y cubrecanto de chapa no se combinan**: si perfilas primero, ya no puedes enchapar la curva; si enchapas primero, el router rompe la chapa. Para un canto redondeado o con chaflán que no enseñe capas, usa canto macizo; si no, deja el canto sin cubrecanto.
 - El cubrecanto de **PVC de 2 mm** sí acepta un redondeo de ≈ 2 mm; la chapa de 0.5 mm solo admite matar la arista.
-- El **radio de un redondeo no puede pasar de la mitad del espesor** de la pieza. El medio bocel es justo ese límite (espesor ≥ 2 × radio); en triplay de pino conviene hacerlo sobre canto macizo.
+- El **radio de un redondeo no puede pasar de la mitad del espesor** de la pieza. El bocel es justo ese límite (espesor ≥ 2 × radio); en triplay de pino conviene hacerlo sobre canto macizo.
 - Un perfil en un canto que **toca otra pieza** (el canto trasero de una repisa contra la trasera) no se ve: no vale la pena hacerlo.
 - El perfil vive en las **aristas** que el canto comparte con las dos caras grandes. Las esquinas vistas en planta casi siempre quedan vivas; redondear una esquina en planta (por ejemplo una cubierta con radio de 25 mm) es otro trabajo, hecho con plantilla.
 - **El perfil no cambia la medida de corte**: el tablero se corta rectangular y después se perfila. La excepción es el **canto macizo**: la medida terminada incluye la tira, así que el tablero se corta más chico por el grueso de la tira en cada canto que la lleve (y, si se quiere precisión, también por los 2 mm de un PVC grueso).
-- **Herramienta:** el redondeo y el medio bocel piden router con broca de balero (o pedirlo en la maderería); el chaflán se puede hacer con cepillo o lija en bloque; matar la arista solo pide lija.
+- **Herramienta:** el redondeo y el bocel piden router con broca de balero (o pedirlo en la maderería); el chaflán se puede hacer con cepillo o lija en bloque; matar la arista solo pide lija.
 
 ### Tipos de cubrecanto
 
@@ -406,7 +406,7 @@ Reglas de oficio para combinar perfil y recubrimiento ⚠️:
 | **Cubrecanto de melamina** preencolado | ≈ 1 mm | Plancha, igual que el de chapa | Barato; color liso | Se ve plástico en triplay natural; pensado para melamina | [10][35] ⚠️ |
 | **Cubrecanto de PVC** | 0.45, 1 y 2 mm | Termofusible o preencolado | Resiste golpes y humedad; más de 100 colores; el de 2 mm admite redondeo de ≈ 2 mm | Se ve plástico en triplay natural | [35][36] ⚠️ |
 | **Cubrecanto sin adhesivo con termofusible** (*hot melt*) | Según material | Enchapadora (*edgebander*) automática o manual con pegamento caliente | Más resistente; es el acabado de fábrica | Requiere máquina; en México lo ofrecen las tiendas de tableros por pieza | [35][36] ⚠️ |
-| **Canto macizo** (*solid wood edging*), tira de madera | Tira de 3–10 mm de grueso (6–10 mm si se va a perfilar) | Pegamento blanco más cinta o clavo sin cabeza; tira ≈ 3 mm (⅛") **más ancha** que el espesor del tablero; al secar, rebajar a ras con cepillo o router con broca de copiar (*flush trim*) | Muy durable; se puede perfilar (redondeo, chaflán, medio bocel); **suma rigidez** al frente de una repisa | Más trabajo | [34] ✅ |
+| **Canto macizo** (*solid wood edging*), tira de madera | Tira de 3–10 mm de grueso (6–10 mm si se va a perfilar) | Pegamento blanco más cinta o clavo sin cabeza; tira ≈ 3 mm (⅛") **más ancha** que el espesor del tablero; al secar, rebajar a ras con cepillo o router con broca de copiar (*flush trim*) | Muy durable; se puede perfilar (redondeo, chaflán, bocel); **suma rigidez** al frente de una repisa | Más trabajo | [34] ✅ |
 | Canto macizo en V, con lengüeta y Ranura o con galleta (*spline*) | — | Router con juego de brocas | Muy fuerte, casi invisible | Requiere pruebas | [34] ⚠️ |
 | **Canto expuesto lijado** (estilo “de capas”) | — | Lijar 120 → 180, redondear 1–3 mm, sellar | Estética contemporánea; lucida en abedul | En pino muestra huecos y capas disparejas | ⚠️ taller; [19] para el alma pareja del abedul |
 
