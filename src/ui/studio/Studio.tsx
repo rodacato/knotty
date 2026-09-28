@@ -64,8 +64,8 @@ function SceneBar() {
       <button type="button" className={`${button(exploded)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleExploded} aria-pressed={exploded}>
         {exploded ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
       </button>
-      <button type="button" className={button(dimensions)} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
-        <Ruler weight="bold" />
+      <button type="button" className={`${button(dimensions)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
+        <Ruler weight="bold" /> <span className="hidden sm:inline">Cotas</span>
       </button>
     </div>
   )
@@ -126,7 +126,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
         <GearSix /> <span className="hidden sm:inline">{label}</span>
       </Button>
       <ConfirmNew>
-        <Button variant="secondary" className="min-h-9 px-2.5 text-xs sm:px-3" aria-label="Nuevo diseño">
+        <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" aria-label="Nuevo diseño">
           <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
         </Button>
       </ConfirmNew>
