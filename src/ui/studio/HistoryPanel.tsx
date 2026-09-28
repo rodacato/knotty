@@ -32,19 +32,16 @@ export function HistoryPanel({ state }: { state: DesignState }) {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <ol className="relative flex flex-col gap-3 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-px before:bg-line">
+      <ol className="flex flex-col">
         {versions.map((v) => {
           const current = v.n === state.current
           const viewing = v.n === viewedVersion
           return (
-            <li key={v.n} className="animate-appear relative flex gap-3">
-              <span className={`z-10 mt-1 grid size-6 shrink-0 place-items-center rounded-full border-2 ${current ? 'border-graphite bg-graphite' : viewing ? 'border-amber bg-bone' : 'border-line bg-bone'}`}>
-                {current && <span className="size-2 rounded-full bg-bone" />}
-              </span>
-              <div className={`flex min-w-0 flex-1 flex-col gap-1.5 rounded-2xl border p-3 transition ${viewing ? 'border-amber bg-amber-soft' : 'border-line bg-bone'}`}>
+            <li key={v.n} className={`animate-appear group -mx-4 px-4 transition ${viewing ? 'bg-amber-soft' : ''}`}>
+              <div className={`flex flex-col gap-1.5 border-b border-line py-4 ${viewing ? '' : 'group-first:pt-0'}`}>
                 <div className="flex items-baseline gap-2">
                   <span className="numerals text-xs text-graphite-2">v{v.n}</span>
-                  <span className="min-w-0 flex-1 leading-snug font-medium">{v.summary}</span>
+                  <span className="min-w-0 flex-1 leading-snug font-semibold">{v.summary}</span>
                   {current && <span className="rounded-full bg-graphite px-2 py-px text-xs font-medium text-bone">Actual</span>}
                 </div>
                 {v.reason && v.reason !== v.summary && !v.reason.startsWith('Volver a v') && <p className="line-clamp-3 text-sm whitespace-pre-line text-graphite" title={v.reason}>«{v.reason}»</p>}
@@ -55,11 +52,11 @@ export function HistoryPanel({ state }: { state: DesignState }) {
                 </p>
                 <ChangeList state={state} version={v.n} />
                 {!current && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={() => viewVersion(viewing ? null : v.n)}>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <Button onClick={() => viewVersion(viewing ? null : v.n)}>
                       {viewing ? <EyeSlash /> : <Eye />} {viewing ? 'Dejar de ver' : 'Ver'}
                     </Button>
-                    <Button variant="ghost" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={() => backToVersion(v.n)}>
+                    <Button disabled={thinking} onClick={() => backToVersion(v.n)}>
                       <ArrowCounterClockwise /> Volver a esta
                     </Button>
                   </div>
