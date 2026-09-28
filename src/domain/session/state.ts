@@ -107,6 +107,8 @@ export const DesignState = z.object({
   accepted: z.array(AcceptedFinding).default([]),
   /** What waits to go to the expert in one request. */
   tray: z.array(TrayItem).default([]),
+  /** Plan fields the person locked or freed for «Ahorrar material», by key; the rest keep their module's default. */
+  locks: z.record(z.string(), z.boolean()).default({}),
 })
 export type DesignState = z.infer<typeof DesignState>
 

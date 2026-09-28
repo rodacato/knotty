@@ -262,6 +262,7 @@ export function createReconstruct(kit: Kit) {
       trace,
       accepted: [],
       tray: [],
+      locks: {},
     }
   }
 
@@ -281,6 +282,7 @@ export function createReconstruct(kit: Kit) {
       trace: [],
       accepted: [],
       tray: [],
+      locks: {},
     })
   }
 

@@ -7,6 +7,7 @@ import { createKit, type Dependencies } from './kit'
 import { createProposals } from './proposals'
 import { createReconstruct } from './reconstruct'
 import { createReview } from './review'
+import { createSaving } from './saving'
 import { createSession } from './session'
 
 export { ATTEMPTS, type Stage, type OnProgress } from './kit'
@@ -25,6 +26,7 @@ export function createUseCases(deps: Dependencies) {
   const { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
+  const { lockField, findSavings } = createSaving(kit)
   const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
 
   return {
@@ -63,6 +65,8 @@ export function createUseCases(deps: Dependencies) {
     editPiece,
     resizeFurniture,
     chooseFinish,
+    lockField,
+    findSavings,
     load,
     pendingQuestions,
   }
