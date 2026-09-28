@@ -11,6 +11,8 @@ import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } fro
 import type { DesignState } from '../../domain/session/state'
 import { Title } from '../system/components'
 import { Field, Input } from '../system/Field'
+import { HelpButton, HelpPanel, useHelp } from '../system/Help'
+import { TERMS } from '../glossary'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
@@ -145,31 +147,39 @@ function CutSettings({ base }: { base: LayoutSettings }) {
   const settings = useStore((s) => s.catalogSettings)
   const save = useStore((s) => s.saveCatalogSettings)
   const current = settings.layout ?? base
-  const fields: { key: keyof LayoutSettings; name: string; help: string }[] = [
-    { key: 'trim', name: 'Refilado', help: 'Canto de fábrica que se recorta por lado' },
-    { key: 'kerf', name: 'Corte', help: 'Lo que se come la sierra' },
-    { key: 'clearance', name: 'Holgura', help: 'Margen por pieza' },
-  ]
+  const help = useHelp<keyof LayoutSettings>()
+  const keys: (keyof LayoutSettings)[] = ['trim', 'kerf', 'clearance']
   return (
     <details className="text-sm">
       <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium focus-visible:outline-2 focus-visible:outline-amber">
         <Sliders /> Ajustes de corte
       </summary>
       <div className="mt-1 grid grid-cols-3 gap-2">
-        {fields.map((c) => (
-          <Field key={c.key} label={c.name}>
+        {keys.map((key) => (
+          <Field
+            key={key}
+            label={
+              <span className="flex items-center gap-0.5">
+                {TERMS[key].name} <HelpButton term={TERMS[key]} open={help.open === key} onToggle={() => help.toggle(key)} />
+              </span>
+            }
+          >
             <Input
               type="number"
               min={0}
               step={1}
               unit="mm"
-              title={c.help}
-              value={current[c.key]}
-              onChange={(e) => save({ ...settings, layout: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
+              value={current[key]}
+              onChange={(e) => save({ ...settings, layout: { ...current, [key]: Math.max(0, Number(e.target.value)) } })}
             />
           </Field>
         ))}
       </div>
+      {help.open && (
+        <div className="mt-2">
+          <HelpPanel term={TERMS[help.open]} onClose={help.close} />
+        </div>
+      )}
       {settings.layout && (
         <button type="button" className="mt-2 text-xs text-graphite-2 underline" onClick={() => save({ ...settings, layout: null })}>
           Volver a los valores del catálogo
