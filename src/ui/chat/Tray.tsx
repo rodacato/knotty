@@ -12,7 +12,7 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
   const thinking = useStore((s) => s.thinking)
   if (!items.length) return null
   return (
-    <div className="animate-appear mx-3 mb-2 flex flex-col gap-2 p-2.5" aria-label="Bandeja para el experto">
+    <div className="animate-appear mx-4 mb-2 flex flex-col gap-1.5" aria-label="Bandeja para el experto">
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-sm font-medium">
           <TrayIcon weight="duotone" className="text-graphite" /> Bandeja · {items.length}
@@ -21,9 +21,9 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
           <ChatCircleText weight="fill" /> Consultar al experto
         </Button>
       </div>
-      <ul className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
+      <ul className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
         {items.map((i) => (
-          <li key={i.id} className="flex max-w-full items-center gap-1 rounded-full border border-line bg-bone py-0.5 pr-1 pl-2.5 text-xs" title={`${KIND[i.kind]}: ${i.text}`}>
+          <li key={i.id} className="flex max-w-full shrink-0 items-center gap-1 rounded-full border border-line bg-bone py-1 pr-1.5 pl-3 text-[13px]" title={`${KIND[i.kind]}: ${i.text}`}>
             <span className="truncate">{i.label}</span>
             <button type="button" onClick={() => toggleTray(i)} disabled={thinking} aria-label={`Quitar «${i.label}» de la bandeja`} className="shrink-0 rounded-full p-0.5 text-graphite-2 hover:bg-kraft hover:text-graphite">
               <X size={12} />
