@@ -58,3 +58,11 @@
 - Now neutral: `STAMP.recommendation` (graphite), the "Arréglalo antes de comprar" verdict (a graphite outline), check warnings, the tray, info notes (SheLLM, plan sheet, price note, kind redo, "Para el taller"), decorative icons, the tray count. The bell with pending notices is rust.
 - Kept amber on purpose: the expert's pencil (authorship), Home's and Analyzing's drawings (they stay as the app draws them), and the 3D highlights (on the keep list).
 - Kit 0.3.0 (`ui-kit.CHANGELOG.md`): `Stamp/Recommendation` graphite, stamps 12 px, `Field` in, `TakePhoto` out; the three `.pen` files re-vendored.
+
+## 7. Studio target fidelity
+
+**Status:** landed (#123–#128) — `UI-2` (part), `UI-11`, `UI-12`, `UI-14` (part), `UI-16`
+
+- Landed: "Nuevo diseño" as a ghost (#123); History as a flat list with "Volver a esta" visible (#124); Notices without a bordered button inside a way (#125); the tray on one line and a pending proposal inside the expert's message (#126); the cost first in Materials, lists with dividers instead of cards, the piece's edit form under its title (#127); proposal notices grouped (#128).
+- Icons stay as the code has them: the exports draw outline icons and a wrench because Pencil's Phosphor set has no fill weight and no hammer (`design/README.md`).
+- Open, each a decision: K4 against the mobile export's icon-only header; the critical-notice export's per-way buttons against one "Resolver N"; the empty memory bar and the suggestions row on mobile (UI-14); `ChangeList` still boxed and the expert's log under History; the review gate's check list, the sheet diagrams and the desktop cm line, which the exports leave out.
