@@ -7,8 +7,8 @@
 | Layer / pattern | Real consumers (measured 2026-09-27) | Verdict |
 |---|---|---|
 | Text inputs, selects and textareas styled by hand | 27 `input`/`select`/`textarea` in 12 files, of which 20 are text fields — the rest are 2 hidden file inputs, a radio, 2 checkboxes and the tape in `MeasureField` | ✅ `src/ui/system/Field.tsx` (K7), in kit 0.3.0 |
-| Status pills over the 3D | 3 in `src/ui/studio/Studio.tsx` | One `StatusChip` with priority, then kit |
-| Proposal actions | 2 renderings of one proposal (`Chat.tsx`, `NoticePanel.tsx`) | One component, then kit |
+| Status pills over the 3D | 3 in `src/ui/studio/Studio.tsx` | ✅ `src/ui/studio/StatusChip.tsx` (K2) |
+| Proposal actions | 2 renderings of one proposal (`Chat.tsx`, `NoticePanel.tsx`) | ✅ Same actions and weights in both (K1); still two renderings |
 | `Segmented` | 3 files, all in `src/ui/studio/` | Feature-local: stays in the flow, not the kit |
 | Uppercase labels | 6 left on 2026-09-27 (K1 removed the rest; the `Stamp` stays) | ✅ Sentence case with K5 |
 
