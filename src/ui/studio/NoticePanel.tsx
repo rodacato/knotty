@@ -100,7 +100,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
       {decides && (
         <div role="radiogroup" aria-label={notice.title} className="flex flex-col gap-2">
           {fixes.map((f) => (
-            <WayOption key={f.label} chosen={way?.kind === 'fix' && way.fix.label === f.label} caption="Al instante" icon={<Lightning />} label={f.label} onChoose={() => onWay({ kind: 'fix', fix: f })} preview={<PreviewButton fix={f} />} />
+            <WayOption key={f.label} chosen={way?.kind === 'fix' && way.fix.label === f.label} caption="Al instante" icon={<Lightning weight="fill" />} label={f.label} onChoose={() => onWay({ kind: 'fix', fix: f })} preview={<PreviewButton fix={f} />} />
           ))}
           {forExpert.map((a) => {
             const item = noticeItem(notice, a.description)
@@ -242,7 +242,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
             <p className="flex items-center gap-4 text-sm text-graphite-2">
               {instant > 0 && (
                 <span className="flex items-center gap-1.5">
-                  <Lightning className="text-graphite" /> {instant} al instante
+                  <Lightning weight="fill" className="text-graphite" /> {instant} al instante
                 </span>
               )}
               {toExpert > 0 && (
