@@ -13,7 +13,7 @@ const percent = (value: number, all: number[]) => Math.round((value / (all.reduc
 
 function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; heights: number[]; index: number; onChange: (c: Cell) => void; onRemove: (() => void) | null }) {
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-xl bg-bone px-2 py-1.5">
+    <li className="flex flex-wrap items-center gap-2 rounded-xl bg-kraft/60 px-2 py-1.5">
       <Select
         size="sm"
         aria-label={`Hueco ${index + 1}`}
@@ -73,7 +73,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
       {columns.map((column, i) => {
         const heights = column.cells.map((c) => c.height)
         return (
-          <div key={i} className="flex flex-col gap-1.5 rounded-2xl border border-line bg-kraft/40 p-2">
+          <div key={i} className="flex flex-col gap-1.5 border-t border-line pt-3">
             <div className="flex items-center gap-2 text-sm">
               <span className="font-medium">Columna {i + 1}</span>
               <label className="flex items-center gap-1 text-xs text-graphite-2">

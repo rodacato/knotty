@@ -151,11 +151,11 @@ function CutSettings({ base }: { base: LayoutSettings }) {
     { key: 'clearance', name: 'Holgura', help: 'Margen por pieza' },
   ]
   return (
-    <details className="rounded-2xl border border-line bg-bone p-4 text-sm">
-      <summary className="flex cursor-pointer items-center gap-2 font-medium">
+    <details className="text-sm">
+      <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium focus-visible:outline-2 focus-visible:outline-amber">
         <Sliders /> Ajustes de corte
       </summary>
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-1 grid grid-cols-3 gap-2">
         {fields.map((c) => (
           <Field key={c.key} label={c.name}>
             <Input

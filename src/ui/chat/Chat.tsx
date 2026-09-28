@@ -2,7 +2,7 @@ import { ArrowClockwise, ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
-import { answerItem, answerItemId, suggestionItem } from '../../domain/session/tray/tray'
+import { answerItem, answerItemId } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
 import { useServices } from '../services'
@@ -204,7 +204,6 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
 export function Chat({ state }: { state: DesignState }) {
   const adjust = useStore((s) => s.adjust)
   const sendTray = useStore((s) => s.sendTray)
-  const toggleTray = useStore((s) => s.toggleTray)
   const thinking = useStore((s) => s.thinking)
   const stage = useStore((s) => s.stage)
   const cancel = useStore((s) => s.cancel)
@@ -215,7 +214,8 @@ export function Chat({ state }: { state: DesignState }) {
   const previous = state.chat.at(-2)
   // If the last attempt failed, the same request is sent again with one click.
   const retry = last?.error && previous?.author === 'user' ? () => void adjust(previous.text) : null
-  const suggestions = thinking || last?.author !== 'expert' || last.error ? [] : last.suggestions.length ? last.suggestions : state.versions.length <= 1 ? SUGGESTIONS : []
+  // The tray and the suggestions compete for the same room on a phone; while the tray waits, it wins.
+  const suggestions = thinking || state.tray.length || last?.author !== 'expert' || last.error ? [] : last.suggestions.length ? last.suggestions : state.versions.length <= 1 ? SUGGESTIONS : []
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })
@@ -247,7 +247,7 @@ export function Chat({ state }: { state: DesignState }) {
       {suggestions.length > 0 && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]" aria-label="Sugerencias">
           {suggestions.map((s) => (
-            <Chip key={s} className="shrink-0" active={state.tray.some((t) => t.id === suggestionItem(s).id)} onClick={() => (state.tray.length ? toggleTray(suggestionItem(s)) : void adjust(s))}>
+            <Chip key={s} className="shrink-0" onClick={() => void adjust(s)}>
               {s}
             </Chip>
           ))}

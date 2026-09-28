@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, LockKey, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
@@ -158,7 +158,9 @@ export function Settings() {
               <fieldset className="flex flex-col gap-2" disabled={locked}>
                 <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
                 {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                  <p className="text-xs text-graphite">🔒 Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.</p>
+                  <p className="flex items-start gap-1.5 text-xs text-graphite">
+                    <LockKey className="mt-px shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
+                  </p>
                 ) : locked ? (
                   <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                 ) : null}
@@ -227,7 +229,7 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
     setTimeout(() => setCopied(false), 1500)
   }
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-line bg-kraft p-4 text-sm">
+    <div className="flex flex-col gap-3 text-sm">
       <p>
         <span className="font-medium">SheLLM</span> convierte tu suscripción de Claude Code o Codex en una API local, así el experto no gasta créditos de API.{' '}
         <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2">
@@ -239,7 +241,7 @@ function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void })
       </Field>
       <div className="flex flex-col gap-1.5">
         <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
-        <span className="flex items-center gap-2 rounded-xl bg-bone px-3 py-2">
+        <span className="flex items-center gap-2 rounded-xl bg-kraft px-3 py-2">
           <code className="numerals flex-1 truncate text-xs">{line}</code>
           <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-graphite-2 hover:text-graphite">
             {copied ? <Check /> : <Copy />}
