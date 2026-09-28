@@ -153,7 +153,7 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
     ]),
   ]),
   section('Zapatos', [
-    stepper({ key: 'levels', label: 'Niveles', ariaLabel: 'niveles para zapatos', min: 1, max: MAX_LEVELS, get: (p) => p.levels, set: (p, levels) => ({ ...p, levels }) }),
+    stepper({ key: 'levels', label: 'Niveles', lockedByDefault: true, ariaLabel: 'niveles para zapatos', min: 1, max: MAX_LEVELS, get: (p) => p.levels, set: (p, levels) => ({ ...p, levels }) }),
     yesNo({ key: 'bootLevel', label: 'Nivel para botas abajo', get: (p) => p.bootLevel, set: (p, bootLevel) => ({ ...p, bootLevel }) }),
     // The plain name follows the front; a name of its own stays.
     choice({ key: 'front', label: 'Frente', ...fromLabels(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front, name: p.name === NAME[p.front] ? NAME[front] : p.name }) }),
@@ -162,7 +162,7 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(SHOE_RACK_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
-    yesNo({ key: 'wallMounted', label: 'Anclada al muro', get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    yesNo({ key: 'wallMounted', label: 'Anclada al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
   ]),
 ]
 

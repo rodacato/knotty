@@ -24,6 +24,8 @@ interface Named {
   label: string
   /** What a screen reader calls the control, when the label alone is not enough ("Lado" → "Lado de los cajones"). */
   ariaLabel?: string
+  /** Locked until the person frees it: «Ahorrar material» never changes it on its own. */
+  lockedByDefault?: boolean
 }
 
 /** Segmented buttons, one per option. */
