@@ -82,7 +82,8 @@ function layoutOf(plan: ShoeRackPlan, catalog: Catalog) {
 function asCabinet(plan: ShoeRackPlan, layout: ReturnType<typeof layoutOf>): CabinetPlan {
   const content: Cell['content'] = plan.front === 'doors' ? 'door' : 'open'
   const columnWidth = (plan.dimensions.width - (layout.columns + 1) * layout.t) / layout.columns
-  const doors = content === 'door' ? (columnWidth > ASSUMPTIONS.doors.maxWidth ? 2 : 1) : null
+  // An overlay leaf also covers the sides, so it is wider than the opening by about a board on each side.
+  const doors = content === 'door' ? (columnWidth + 2 * layout.t > ASSUMPTIONS.doors.maxWidth ? 2 : 1) : null
   const cells: Cell[] = []
   if (layout.bootShare > 0) cells.push({ height: layout.bootShare, content, shelves: 0, doors })
   if (layout.low) cells.push({ height: 1 - layout.bootShare, content, shelves: layout.low - 1, doors })

@@ -43,6 +43,12 @@ describe('the shoe rack', () => {
     expect(built(rack({ front: 'doors', dimensions: { width: 500, height: 900, depth: 330 } })).design.pieces.filter((p) => p.role === 'door')).toHaveLength(1)
   })
 
+  it('splits the door by the width of the leaf, not of the opening: a 630 mm rack takes two', () => {
+    const { design } = built(rack({ front: 'doors', wallMounted: true, dimensions: { width: 630, height: 1000, depth: 380 } }))
+    expect(design.pieces.filter((p) => p.role === 'door')).toHaveLength(2)
+    expect(findingsOf(design).filter((f) => f.code === 'R6_DOORS')).toEqual([])
+  })
+
   it('keeps the bottom level for boots at its clear height', () => {
     const { design, boxes: b } = boxes(rack({ levels: 5, bootLevel: true, dimensions: { width: 800, height: 1500, depth: 380 } }))
     const floor = b.get('bottom')!.y1
