@@ -1,10 +1,9 @@
 import { viewLabel } from '../../domain/furniture/reading/reading'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/design/resolve'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
-import { Field } from '../system/Field'
 import { KindSelect } from '../system/KindSelect'
 import { KIND_NOUN, type DesignKind, type KindSource } from '../../domain/design/kind'
 import { kindOf } from '../../domain/furniture/kind'
@@ -29,6 +28,7 @@ function KindPicker({ state }: { state: DesignState }) {
   const thinking = useStore((s) => s.thinking)
   const [redo, setRedo] = useState<DesignKind | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const id = useId()
   const design = currentDesign(state)
   const known = kindOf(design)
   const current = known.kind === 'unknown' ? null : known.kind
@@ -43,9 +43,16 @@ function KindPicker({ state }: { state: DesignState }) {
   }
   return (
     <section className="flex flex-col gap-2 px-4 pt-4">
-      <Field label="Tipo de mueble" error={error} help={!redo && (known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.')}>
-        <KindSelect value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
-      </Field>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <label htmlFor={id} className="text-sm text-graphite-2">
+          Tipo de mueble
+        </label>
+        <span className="w-30 shrink-0">
+          <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
+        </span>
+        {!redo && !error && <span className="min-w-0 flex-1 basis-24 text-sm text-graphite">{known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'}</span>}
+      </div>
+      {error && <p className="text-xs text-rust">{error}</p>}
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
           <p>

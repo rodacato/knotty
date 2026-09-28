@@ -1,10 +1,10 @@
-import { ArrowRight, Lightning, X } from '@phosphor-icons/react'
+import { ArrowRight, Lightning, PencilSimple, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { Design } from '../../domain/design/schema'
 import { JOINTS } from '../../domain/design/jointSpecs'
 import { faceSize, type Geometry } from '../../domain/design/resolve'
 import type { Catalog } from '../../domain/materials/catalog'
-import { cm } from '../system/components'
+import { Button, cm } from '../system/components'
 import { useStore } from '../store'
 import { PieceEditor } from './PieceEditor'
 
@@ -16,6 +16,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
   const confirmPiece = useStore((s) => s.confirmPiece)
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
+  const thinking = useStore((s) => s.thinking)
   const [editing, setEditing] = useState(false)
   const p = design.pieces.find((x) => x.id === selection)
   const box = p && geo.boxes.get(p.id)
@@ -43,6 +44,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
             <Lightning weight="fill" /> Al instante
           </p>
         )}
+        {editing && editable && <PieceEditor key={p.id} piece={p} box={box} catalog={catalog} />}
         {!editing && (
           <dl className="grid grid-cols-3 gap-3">
             {[
@@ -90,8 +92,14 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
             })}
           </ul>
         )}
-        <PieceEditor key={p.id} piece={p} box={box} catalog={catalog} enabled={editable} open={editing} onOpen={() => setEditing(true)} />
       </div>
+      {editable && !editing && (
+        <div className="px-4 pt-2 pb-4">
+          <Button variant="secondary" className="min-h-11 w-full" onClick={() => setEditing(true)} disabled={thinking}>
+            <PencilSimple /> Editar a mano
+          </Button>
+        </div>
+      )}
     </section>
   )
 }

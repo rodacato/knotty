@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, PencilSimple } from '@phosphor-icons/react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { PieceEditResult } from '../../application/useCases'
 import { AXES, type Axis, type Piece } from '../../domain/design/schema'
@@ -10,10 +10,13 @@ import { useStore } from '../store'
 
 // Hand edits on the selected piece: its length, width, thickness and position, applied at once and checked like any change.
 
+// The move buttons are narrower than their padding; without shrink-0 the arrow is squeezed.
+const ARROW = { size: 18, className: 'shrink-0' }
+
 const MOVE: Record<Axis, [string, string, React.ReactNode, React.ReactNode]> = {
-  y: ['Bajar', 'Subir', <ArrowDown key="d" />, <ArrowUp key="u" />],
-  x: ['A la izquierda', 'A la derecha', <ArrowLeft key="l" />, <ArrowRight key="r" />],
-  z: ['Hacia atrás', 'Hacia el frente', <ArrowUp key="b" />, <ArrowDown key="f" />],
+  y: ['Bajar', 'Subir', <ArrowDown key="d" {...ARROW} />, <ArrowUp key="u" {...ARROW} />],
+  x: ['A la izquierda', 'A la derecha', <ArrowLeft key="l" {...ARROW} />, <ArrowRight key="r" {...ARROW} />],
+  z: ['Hacia atrás', 'Hacia el frente', <ArrowUp key="b" {...ARROW} />, <ArrowDown key="f" {...ARROW} />],
 }
 
 function LengthField({ label, value, onCommit }: { label: string; value: number; onCommit: (v: number) => void }) {
@@ -39,10 +42,9 @@ function LengthField({ label, value, onCommit }: { label: string; value: number;
   )
 }
 
-export function PieceEditor({ piece, box, catalog, enabled, open, onOpen }: { piece: Piece; box: Box; catalog: Catalog; enabled: boolean; open: boolean; onOpen: () => void }) {
+export function PieceEditor({ piece, box, catalog }: { piece: Piece; box: Box; catalog: Catalog }) {
   const editPiece = useStore((s) => s.editPiece)
   const resizeFurniture = useStore((s) => s.resizeFurniture)
-  const thinking = useStore((s) => s.thinking)
   const [step, setStep] = useState(10)
   const [result, setResult] = useState<PieceEditResult | null>(null)
   const size = (axis: Axis) => box[`${axis}1`] - box[`${axis}0`]
@@ -52,17 +54,9 @@ export function PieceEditor({ piece, box, catalog, enabled, open, onOpen }: { pi
   const sameKind = catalog.materials.filter((m) => m.use === current?.use)
   const run = (r: PieceEditResult) => setResult(r.ok ? null : r)
 
-  if (!enabled) return null
-  if (!open)
-    return (
-      <Button variant="secondary" className="min-h-11 w-full" onClick={onOpen} disabled={thinking}>
-        <PencilSimple /> Editar a mano
-      </Button>
-    )
-
   const [less, more, lessIcon, moreIcon] = MOVE[piece.normal]
   return (
-    <div className="flex flex-col gap-3 border-t border-line pt-3">
+    <div className="flex flex-col gap-3">
       <div className="grid grid-cols-3 gap-2">
         <LengthField key={`l-${Math.round(size(longAxis))}`} label="Largo" value={size(longAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: longAxis, value }))} />
         <LengthField key={`a-${Math.round(size(shortAxis))}`} label="Ancho" value={size(shortAxis)} onCommit={(value) => run(editPiece(piece.id, { kind: 'length', axis: shortAxis, value }))} />

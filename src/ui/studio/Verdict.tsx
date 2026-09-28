@@ -29,7 +29,7 @@ export function ReviewGate({ stale }: { stale: boolean }) {
   const error = useStore((s) => s.verdictError)
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
+    <section className="flex flex-col gap-3">
       <p className="flex items-start gap-2 font-medium">
         <Hammer weight="duotone" className="mt-1 shrink-0 text-graphite" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
       </p>
@@ -99,7 +99,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
   const c = verdict.carpenter
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
+    <section className="flex flex-col gap-3">
       <div className={`flex items-center gap-2 self-start rounded-full border px-3 py-1 text-sm font-medium ${v.className}`}>
         {v.icon} {v.title}
       </div>
