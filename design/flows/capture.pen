@@ -940,6 +940,18 @@
         },
         {
           "type": "text",
+          "id": "Wndwf",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-28 · proposal: start from a base (Home) — design only, not in code yet",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "iXdgI",
           "name": "Entry",
           "fill": "$graphite",
@@ -11085,18 +11097,6 @@
     },
     {
       "type": "frame",
-      "id": "pI6bZ",
-      "x": 4133,
-      "y": 384,
-      "name": "Frame 1",
-      "clip": true,
-      "width": 1,
-      "height": 2,
-      "fill": "#FFFFFF",
-      "layout": "none"
-    },
-    {
-      "type": "frame",
       "id": "pbD1d",
       "x": 0,
       "y": 0,
@@ -11301,6 +11301,877 @@
           "fontFamily": "$font-mono",
           "fontSize": 16,
           "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CZI6H",
+      "x": 760,
+      "y": 1114,
+      "name": "Capture / Home / Start from a base (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        32,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "KrhEh",
+          "name": "Brand",
+          "gap": 10,
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "JyT5v",
+              "type": "ref",
+              "ref": "L4zXz",
+              "name": "Emblem",
+              "width": 32,
+              "height": 32
+            },
+            {
+              "type": "text",
+              "id": "MXlS7",
+              "name": "Muebles de triplay · DIY",
+              "fill": "$graphite-2",
+              "content": "Muebles de triplay · DIY",
+              "fontFamily": "$font-mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "id": "B4G0Z",
+          "type": "ref",
+          "ref": "wuM47",
+          "name": "Logo"
+        },
+        {
+          "id": "SQRVg",
+          "type": "ref",
+          "ref": "Nh9e4",
+          "name": "Nuevo diseño",
+          "width": "fill_container",
+          "height": 48,
+          "descendants": {
+            "Le89K": {
+              "content": "Nuevo diseño"
+            }
+          }
+        },
+        {
+          "type": "frame",
+          "id": "Ztda2",
+          "name": "Bases header (NEW)",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "t908p",
+              "name": "O empieza de una base",
+              "fill": "$graphite",
+              "content": "O empieza de una base",
+              "fontFamily": "$font-display",
+              "fontSize": 20,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "mZUzu",
+              "name": "Ya tienen ficha: cambias",
+              "fill": "$graphite-2",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.",
+              "lineHeight": 1.4,
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Qvhlf",
+          "name": "Filter (NEW)",
+          "gap": 6,
+          "children": [
+            {
+              "id": "I3T8Oe",
+              "type": "ref",
+              "ref": "BvIfv",
+              "name": "Todos",
+              "height": 32,
+              "descendants": {
+                "Yy1ru": {
+                  "content": "Todos"
+                }
+              }
+            },
+            {
+              "id": "f9Xtp",
+              "type": "ref",
+              "ref": "LSeLh",
+              "name": "Recámara",
+              "height": 32,
+              "descendants": {
+                "Uhltp": {
+                  "content": "Recámara"
+                }
+              }
+            },
+            {
+              "id": "T0hLYk",
+              "type": "ref",
+              "ref": "LSeLh",
+              "name": "Guardar",
+              "height": 32,
+              "descendants": {
+                "Uhltp": {
+                  "content": "Guardar"
+                }
+              }
+            },
+            {
+              "id": "l28A9",
+              "type": "ref",
+              "ref": "LSeLh",
+              "name": "Mesas",
+              "height": 32,
+              "descendants": {
+                "Uhltp": {
+                  "content": "Mesas"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yCDpN",
+          "name": "Row",
+          "width": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "B2iLv2",
+              "name": "Base card (NEW)",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "UEN4h",
+                  "name": "Thumb",
+                  "width": "fill_container",
+                  "height": 120,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "../assets/studio/scene/mobile-aparador.jpg",
+                    "mode": "fill"
+                  },
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center"
+                },
+                {
+                  "type": "text",
+                  "id": "p6ZvZg",
+                  "name": "Aparador bajo",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Aparador bajo",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "y7OwTY",
+                  "name": "800 × 1200 × 400",
+                  "fill": "$graphite-2",
+                  "content": "940 × 1600 × 400",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "woZaH",
+              "name": "Base card (NEW)",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XLhAk",
+                  "name": "Thumb",
+                  "width": "fill_container",
+                  "height": 120,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "../assets/studio/scene/mobile-librero-v2.jpg",
+                    "mode": "fill"
+                  },
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center"
+                },
+                {
+                  "type": "text",
+                  "id": "CPtxy",
+                  "name": "Librero abierto",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Librero abierto",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "G5ULVp",
+                  "name": "1800 × 800 × 300",
+                  "fill": "$graphite-2",
+                  "content": "1800 × 800 × 300",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "QH5Yp",
+          "name": "Row",
+          "width": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "cNX1K",
+              "name": "Base card (NEW)",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "w2scRO",
+                  "name": "Thumb",
+                  "width": "fill_container",
+                  "height": 120,
+                  "fill": "$scene-bg",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "biJAr",
+                      "name": "cube",
+                      "width": 28,
+                      "height": 28,
+                      "icon": "cube",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "k89Em0",
+                  "name": "Cama con cajones",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Cama con cajones",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "S6k10N",
+                  "name": "400 × 1400 × 1900",
+                  "fill": "$graphite-2",
+                  "content": "400 × 1400 × 1900",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XxvWI",
+              "name": "Base card (NEW)",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "R9o4T5",
+                  "name": "Thumb",
+                  "width": "fill_container",
+                  "height": 120,
+                  "fill": "$scene-bg",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "a0xdnk",
+                      "name": "cube",
+                      "width": 28,
+                      "height": 28,
+                      "icon": "cube",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "hjIO8",
+                  "name": "Zapatera",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Zapatera",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "iBk1Z",
+                  "name": "1000 × 800 × 350",
+                  "fill": "$graphite-2",
+                  "content": "1000 × 800 × 350",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "LTzKJ",
+      "x": 760,
+      "y": 8359,
+      "name": "Capture / Home / Start from a base (desktop)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bone",
+      "layout": "vertical",
+      "gap": 28,
+      "padding": [
+        64,
+        160
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "QmFQz",
+          "name": "Top",
+          "width": "fill_container",
+          "gap": 64,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "M7Ejru",
+              "name": "Intro",
+              "width": 480,
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "B7zkj",
+                  "name": "Brand",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "qwH6X",
+                      "type": "ref",
+                      "ref": "L4zXz",
+                      "name": "Emblem",
+                      "width": 36,
+                      "height": 36
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q9MgWb",
+                      "name": "Muebles de triplay · DIY",
+                      "fill": "$graphite-2",
+                      "content": "Muebles de triplay · DIY",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "iJCWs",
+                  "type": "ref",
+                  "ref": "wuM47",
+                  "name": "Logo"
+                },
+                {
+                  "type": "text",
+                  "id": "oKCfz",
+                  "name": "Toma fotos de un mueble ",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": 480,
+                  "content": "Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay que puedes explorar, ajustar platicando y armar tú mismo. Al final sabes cómo se arma y cuántas hojas comprar.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "UdKoG",
+                  "type": "ref",
+                  "ref": "Nh9e4",
+                  "name": "Nuevo diseño",
+                  "height": 48,
+                  "descendants": {
+                    "Le89K": {
+                      "content": "Nuevo diseño"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "dZvmI",
+              "name": "Bases",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Fdk4j",
+                  "name": "Bases header (NEW)",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "sbUbA",
+                      "name": "O empieza de una base",
+                      "fill": "$graphite",
+                      "content": "O empieza de una base",
+                      "fontFamily": "$font-display",
+                      "fontSize": 24,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "loXGv",
+                      "name": "Ya tienen ficha: cambias",
+                      "fill": "$graphite-2",
+                      "content": "Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sbP4w",
+                  "name": "Grid 3×2",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "AI9nf",
+                      "name": "Row",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "rGuVp",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "mpbZp",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/studio/scene/desktop-aparador.jpg",
+                                "mode": "fill"
+                              },
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "n8Yp5",
+                              "name": "Aparador bajo",
+                              "fill": "$graphite",
+                              "content": "Aparador bajo",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "nZPfy",
+                              "name": "800 × 1200 × 400",
+                              "fill": "$graphite-2",
+                              "content": "940 × 1600 × 400",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "jDOv8",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Zkd3p",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/studio/scene/desktop-librero-v2.jpg",
+                                "mode": "fill"
+                              },
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "lCZC3",
+                              "name": "Librero abierto",
+                              "fill": "$graphite",
+                              "content": "Librero abierto",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "tvuV6",
+                              "name": "1800 × 800 × 300",
+                              "fill": "$graphite-2",
+                              "content": "1800 × 800 × 300",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aKsDV",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "E1z7FJ",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": "$scene-bg",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "B0q5vM",
+                                  "name": "cube",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "Nroh1",
+                              "name": "Cama con cajones",
+                              "fill": "$graphite",
+                              "content": "Cama con cajones",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QDWUD",
+                              "name": "400 × 1400 × 1900",
+                              "fill": "$graphite-2",
+                              "content": "400 × 1400 × 1900",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fFGRD",
+                      "name": "Row",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "F9bun4",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "JTWGt",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": "$scene-bg",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "ykAgV",
+                                  "name": "cube",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "NbMWL",
+                              "name": "Zapatera",
+                              "fill": "$graphite",
+                              "content": "Zapatera",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "E1iPp",
+                              "name": "1000 × 800 × 350",
+                              "fill": "$graphite-2",
+                              "content": "1000 × 800 × 350",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "VPCX9",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "B1UBH",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": "$scene-bg",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "NeHBx",
+                                  "name": "cube",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "NgI2q",
+                              "name": "Buró",
+                              "fill": "$graphite",
+                              "content": "Buró",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ZgYeh",
+                              "name": "550 × 450 × 400",
+                              "fill": "$graphite-2",
+                              "content": "550 × 450 × 400",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "muaRf",
+                          "name": "Base card (NEW)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "W5m2Bo",
+                              "name": "Thumb",
+                              "width": "fill_container",
+                              "height": 150,
+                              "fill": "$scene-bg",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "eJDMW",
+                                  "name": "cube",
+                                  "width": 28,
+                                  "height": 28,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "w8P7hq",
+                              "name": "Mesa de centro",
+                              "fill": "$graphite",
+                              "content": "Mesa de centro",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "r74ACg",
+                              "name": "450 × 1000 × 550",
+                              "fill": "$graphite-2",
+                              "content": "450 × 1000 × 550",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }

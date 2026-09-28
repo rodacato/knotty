@@ -106,6 +106,72 @@ Reglas:
 - Si se tiene un diagrama de acomodo, adjuntarlo como sugerencia, no como obligación: cada tienda optimiza con su programa [3][23].
 - Medidas en mm enteros. Si una pieza sale de 563.5, redondear hacia abajo y dejarlo dicho. ❓
 
+### 2.5 Ajustar medidas para gastar menos hojas
+
+Fuentes de esta sección consultadas el 2026-09-28. El ahorro se cuenta **en hojas**, no en m²: bajar área en un mueble que sigue necesitando las mismas hojas no ahorra nada (ver [estructura](estructura.md) §3, que también trae los ahorros ocultos: techo por travesaños, trasera en rebaje, marcos, grados de cara; aquí no se repiten).
+
+**Cómo se corta la hoja.** Las seccionadoras y la sierra de tienda cortan **de lado a lado** (corte «en guillotina»): primero tiras, luego cada tira en piezas (§2.3). Así trabaja la industria del mueble con tableros [45] y así conviene diseñar. Las madererías mexicanas ofrecen optimizador de cortes [3][40][41]; Carpisur lo da **gratis con la compra** de los tableros y muestra cómo queda la veta [40] ⚠️. Un acomodo libre (no guillotina, de router CNC) puede aprovechar algo más, pero con piezas y cortes más difíciles de manejar en la máquina [46]; no se encontró una fuente leída que mida la diferencia ❓.
+
+**Desperdicio reportado** (ambas fuentes venden optimizadores y no publican método; úsese como orden de magnitud):
+
+| Contexto | Desperdicio | Fuente | Conf. |
+|---|---|---|---|
+| Acomodo a mano, gabinetes de cocina (24 piezas, 3 materiales) | 15–25 % del área | [42] | ⚠️ |
+| Mismo caso con optimizador | 5–12 % | [42] | ⚠️ |
+| Sin planear / con optimizador (guía general de despiece) | 15–35 % / < 5–8 % | [43] | ⚠️ |
+| Fijar la veta de las piezas visibles contra rotación libre | +5–15 % de desperdicio | [42] | ⚠️ |
+| Estimación a mano en taller de gabinetes (madera y tableros) | 30–40 % de margen de compra | [39] | ⚠️ |
+
+**Diseñar a la hoja: anchos que dividen la hoja útil.** Los gabineteros eligen el fondo del costado para que salgan tiras enteras: bases de 23¼" (≈ 590 mm) → 2 tiras por hoja de 48", altos de 11¼" (≈ 286 mm) → 4 tiras [38][39], o 600 / 300 mm para lo mismo [37] ⚠️ (un solo sitio, WOODWEB, en tres hilos). Con la hoja útil de 2410 × 1188 (refilado de 15 por orilla), el ancho de corte de 4 y la holgura de 2 por pieza ([valores de referencia](valores-de-referencia.md) §2; [triplay](triplay.md)), el ancho **máximo** de pieza para sacar *n* tiras es `(útil − 4·(n−1)) / n − 2`, redondeado hacia abajo ⚠️ cálculo:
+
+| Tiras (*n*) | En el ancho de 1188 | En el largo de 2410 | Ejemplos de México |
+|---|---|---|---|
+| 2 | **590** | 1201 | costado de gabinete bajo de cocina (fondo 520–600 menos la puerta) |
+| 3 | **391** | 798 | costado de alacena de 330 |
+| 4 | **292** | 597 | librero de fondo 280: cabe; con 300, pasa a 3 tiras |
+| 5 | **232** | 476 | |
+| 6 | **192** | 396 | frentes y costados de cajón bajos |
+
+Fondos de referencia en [valores de referencia](valores-de-referencia.md) §10. Si la maderería no refila, cabe un poco más; preguntar (§2.1). ⚠️
+
+**Veta: la restricción que más hojas cuesta.** La veta corre sobre el lado de 2440 ([valores de referencia](valores-de-referencia.md) §2). Las piezas con veta obligada no se pueden girar para rellenar huecos [42][44]:
+
+| Pieza | ¿Se puede girar? | Por qué | Conf. |
+|---|---|---|---|
+| Repisas, cubiertas, fondos que cargan | **No** | La veta a lo largo del claro es estructural: con la veta cruzada, una repisa de 18 con libros baja de 540 a ≈ 410 mm de claro ([estructura](estructura.md) §1.6). Las guías de optimizadores que dicen que las repisas «no tienen veta» [43] no aplican al triplay de pino | ✅ |
+| Laterales, puertas, frentes con veta corrida | No (apariencia) | [triplay](triplay.md), «Dirección de la veta» | ⚠️ |
+| Piezas ocultas que no cargan: trasera, fondo de cajón, travesaños, zoclo, costados de cajón | Sí | Rellenan sobrantes (§2.3 paso 5) | ⚠️ [43] |
+
+**Espesor más delgado.** Solo en las piezas que [valores de referencia](valores-de-referencia.md) §3 permite (trasera, fondo y costados de cajón); no en laterales, repisas ni puertas con cazoleta, cuyos mínimos están ahí mismo. Pero **cada espesor distinto es otro material**: bajar una sola pieza a 3 o 6 mm obliga a comprar otra hoja (o una fracción: Home Depot México vende triplay de 3 mm precortado a 600 × 1220 [47] y hay cuartos de hoja de 18 mm, ver [triplay](triplay.md), precios). Ahorra si esa hoja ya se compra para otras piezas o si la pieza cabe en la fracción. ⚠️ cálculo
+
+**Cambios que ahorran y cambios que son falso ahorro:**
+
+| Cambio | ¿Ahorra de verdad? | Qué revisar | Conf. |
+|---|---|---|---|
+| Bajar el fondo de repisas y costados hasta el siguiente número de tiras | Sí, si baja una hoja | El pandeo no depende del fondo ([estructura](estructura.md) §1.6); el uso sí (libros: 280). **Menos fondo = más riesgo de vuelco**: recalcular alto/fondo ([valores](valores-de-referencia.md) §12) | ⚠️ |
+| Menos cajones (más altos) | Sí: menos cajas, fondos y frentes | Frente > 300 de alto pide corredera de extensión total más fuerte ([estructura](estructura.md) §4.2, sin fuente) | ❓ |
+| Cajones menos hondos | Solo si no baja de un largo de corredera | Las correderas vienen por largos fijos (Ducasse: 300–600; con cierre suave, 350, 400, 450 y 500; Home Depot México: 395 y 450) ([uniones y herrajes](uniones-y-herrajes.md) §6.3); la profundidad útil se calcula en [estructura](estructura.md) §4.1. Acortar 20 mm puede obligar a la corredera de 50 mm menos | ⚠️ |
+| Menos repisas móviles | Sí | Ninguna, salvo el uso | ⚠️ |
+| Quitar una repisa fija o un travesaño | **Puede ser falso** | Si es lo que escuadra el mueble ([estructura](estructura.md) §2) | ⚠️ |
+| Repisa de 18 → 15 | Solo si el claro lo aguanta | Tabla de claros ([estructura](estructura.md) §1.6); si no, divisor o tira de refuerzo (§1.7) | ⚠️ |
+| Girar repisas para que quepan | **Falso** | Pandeo con la veta cruzada (arriba) | ✅ |
+| Puerta más ancha para quitar una hoja de puerta | **Falso** | Ancho máximo de hoja con cazoleta ([valores](valores-de-referencia.md) §8) | ⚠️ |
+
+**Sobrantes.** Una guía de optimizador recomienda registrar los sobrantes de más de 200 × 200 mm y meterlos al siguiente acomodo [42]; los talleres los usan para listones, tacos y piezas chicas [44]. No se encontró fuente sobre si las madererías de México entregan el sobrante al cliente ni sobre un tamaño mínimo que corten ❓: preguntarlo junto con el precio por corte (§2.1).
+
+**Qué puede proponer la app** (reglas de dominio para «Ahorrar material»):
+
+1. Solo proponer un cambio si **baja el número de hojas** de algún material, calculado con el mismo acomodo en guillotina, refilado, ancho de corte y holgura de [valores de referencia](valores-de-referencia.md) §2; reportar el ahorro en hojas, no en m².
+2. Nunca tocar un campo bloqueado ni una medida que derive de él (p. ej., el hueco del colchón y su holgura).
+3. Para bajar tiras, proponer el ancho máximo de la tabla de arriba, nunca menos de lo que pide el uso ([valores](valores-de-referencia.md) §10).
+4. Nunca girar una pieza que carga (repisa, cubierta, fondo con carga) contra la veta para que quepa.
+5. Nunca proponer un espesor por debajo del mínimo de su pieza ([valores](valores-de-referencia.md) §3) ni una repisa cuyo claro pase el límite de su espesor y carga.
+6. Nunca proponer un fondo de cajón que deje la profundidad útil por debajo del largo de corredera disponible ([estructura](estructura.md) §4.1).
+7. Cambiar un espesor solo si ese material ya está en la lista o la pieza cabe en una fracción de hoja que se venda.
+8. Nunca quitar la pieza que escuadra el cuerpo (trasera, repisa fija, travesaño) sin poner otra de la lista de [estructura](estructura.md) §2.
+9. Si el cambio baja el fondo de un mueble alto, recalcular vuelco y anclaje antes de proponerlo.
+10. Mostrar el cambio como propuesta, con qué se gana (hojas) y qué se pierde (cajón, repisa, fondo útil); la persona decide.
+
 ---
 
 ## 3. Secuencia de armado típica de un cuerpo
@@ -367,3 +433,14 @@ Los módulos altos colgados necesitan riel, listón de colgar o placa de colgar 
 34. Scatec. «¿Cómo se llaman las partes de un mueble de cocina?». https://www.scatec.es/como-se-llaman-las-partes-de-un-mueble-de-cocina/
 35. Revista Ferrepat. «Qué taquete usar según el tipo de pared y cuánto peso soporta». https://www.revista.ferrepat.com/ferreteria/taquete-segun-tipo-de-pared/
 36. Tablaroca.org. «Taquetes». https://www.tablaroca.org/taquetes/ (el 2026-09-25 el sitio no respondía; dato sin reverificar)
+37. WOODWEB. «Proper depth for frameless cabinets» (foro; fondos de 600 y 300 mm para sacar tiras enteras). https://woodweb.com/knowledge_base/Proper_Depth_for_Frameless_Cabinets.html
+38. WOODWEB. «Base cabinet depths» (foro; costados de 23¼" y 23⅞" para dos tiras por hoja de 48"). https://woodweb.com/knowledge_base/Base_Cabinet_Depths.html
+39. WOODWEB. «Estimating cabinet material by hand» (foro; tiras por hoja y márgenes de desperdicio de 30–40 %). https://woodweb.com/knowledge_base/Estimating_Cabinet_Material_by_Hand.html
+40. Triplay Carpisur. «Optimizador de cortes». https://carpisur.com.mx/servicios/optimizador-de-cortes/
+41. Triplay El Puente. «Servicios» (optimización de cortes). https://triplayelpuente.com.mx/servicios/
+42. CutPlan. «Cut list optimization: the complete 2026 guide» (proveedor de software). https://cutplan.ai/en/blog/complete-guide-cut-list-optimization.html
+43. optimizadordecorte.app. «Guía completa de despiece de tableros» (proveedor de software). https://optimizadordecorte.app/guia-despiece-tableros/
+44. Cutlistor. «Material optimization: 9 ways workshops cut waste in 2026» (proveedor de software). https://www.cutlistor.com/blog/material-optimization-guide
+45. Wikipedia. «Guillotine cutting». https://en.wikipedia.org/wiki/Guillotine_cutting
+46. CutListEngine. «Guillotine cutting vs free nesting for rectangular parts» (proveedor de software). https://dev.to/cutlistengine/guillotine-cutting-vs-free-nesting-for-rectangular-parts-5p4
+47. The Home Depot México. «Triplay precortado» (triplay de pino de 3 mm, 60 × 122 cm). https://www.homedepot.com.mx/b/materiales-de-construccion/terciada-triplay/triplay-precortado

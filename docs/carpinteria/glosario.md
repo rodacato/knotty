@@ -1,6 +1,6 @@
 # Glosario de carpintería de muebles de triplay
 
-Vocabulario del oficio para piezas, uniones, materiales, herramientas y operaciones de muebles de triplay en México, con el término recomendado, sus sinónimos regionales y el término en inglés. Fuentes consultadas el 2026-09-25.
+Vocabulario del oficio para piezas, uniones, materiales, herramientas y operaciones de muebles de triplay en México, con el término recomendado, sus sinónimos regionales y el término en inglés. Fuentes consultadas el 2026-09-25; las entradas de perfiles del canto (§7), broca de router con balero (§4), acomodo de cortes (§3) y veta cruzada (§2), y las fuentes [38]–[48], se consultaron el 2026-09-28.
 
 > El canon es el español de México. Los sinónimos de España, Argentina y Colombia sirven para reconocer lo que llega de tutoriales y videos; el término en inglés, para buscar más información.
 >
@@ -16,7 +16,7 @@ Vocabulario del oficio para piezas, uniones, materiales, herramientas y operacio
 
 1. **El canon es el español de México**; los sinónimos regionales sirven para *reconocer* lo que dice o escribe alguien que aprendió con materiales de otro país. Hay falsos amigos peligrosos: «tarugo» es taquete de pared en Argentina [1]; «pija» es tornillo en México y una grosería en Argentina [2]; «fondo» es la profundidad del mueble en México, pero el **piso** del módulo en Chile [3] y la trasera en algunos textos de España.
 2. **Varias palabras del taller tienen más de un sentido** y conviene fijar una por concepto: *repisa / entrepaño* para la misma pieza; *techo / cubierta* para dos piezas distintas; *base* con tres sentidos; *hoja* como puerta y como tablero; *escuadra* como herraje, herramienta y ángulo; *canal / ranura* para la misma unión; *tornillo al canto / tornillo de tope* para la misma unión; *faja* para cualquier tira (§9).
-3. **Términos recomendados** para las piezas: **Lateral, Piso, Techo, Cubierta, Repisa (fija o móvil), Divisor, Trasera, Zoclo, Travesaño, Faldón, Tira de refuerzo, Pata, Puerta, Tapa fija, Frente del cajón, Costado del cajón, Contrafrente, Trasera del cajón, Fondo del cajón**. Uniones: **A tope con tornillo, Tornillo de bolsillo, Tarugos, Minifix, Ranura, Rebaje, Escuadra metálica, Clavo y pegamento, Soportes de repisa, Bisagras de cazoleta (recta, codo, súper codo), Correderas**. Conceptos: **Pandeo, Claro, Separación, Holgura, Vuelo, Vuelco, Hoja, Fondo, Cubrecanto**.
+3. **Términos recomendados** para las piezas: **Lateral, Piso, Techo, Cubierta, Repisa (fija o móvil), Divisor, Trasera, Zoclo, Travesaño, Faldón, Tira de refuerzo, Pata, Puerta, Tapa fija, Frente del cajón, Costado del cajón, Contrafrente, Trasera del cajón, Fondo del cajón**. Uniones: **A tope con tornillo, Tornillo de bolsillo, Tarugos, Minifix, Ranura, Rebaje, Escuadra metálica, Clavo y pegamento, Soportes de repisa, Bisagras de cazoleta (recta, codo, súper codo), Correderas**. Conceptos: **Pandeo, Claro, Separación, Holgura, Vuelo, Vuelco, Hoja, Hoja útil, Desperdicio, Fondo, Cubrecanto**.
 4. **«Repisa» y no «entrepaño»**: en la ebanistería tradicional «entrepaño» también es el tablero que va dentro del bastidor de una puerta [4], y «repisa» es la palabra que la mayoría de la gente usa fuera del taller (⚠️). «Entrepaño» se entiende y se acepta como sinónimo.
 5. Las cuatro piezas de la caja de un cajón **no son todas «costados»**: hay dos costados (donde va la corredera), un contrafrente y una trasera (§1.5) [5][6].
 
@@ -115,6 +115,7 @@ El contrafrente y la trasera del cajón a veces se cortan iguales, pero no son c
 | **Melamina** | Aglomerado o MDF con película decorativa de melamina. | melamina | melamina, tablero melaminado | melamina | melamina, tablero melamínico | melamine board | En México «melamina» es el tablero, no la resina. | ⚠️ [14][19] |
 | **Veta** | Dirección de la fibra de la chapa de la cara. En triplay, la de las caras suele ir a lo largo de la hoja (2440 mm). Para cortar se indica por pieza si la veta va a lo largo, a lo ancho o si da igual (libre). | veta, hilo | veta, fibra [4] | veta | veta, hilo | grain | La veta de la cara decide la estética y un poco la rigidez. | ✅ [4] |
 | **Hilo / contrahilo** | Trabajar *a hilo* es a favor de la fibra; *a contrahilo*, en contra: astilla la cara y el corte sale peor. | hilo, contrahilo | a favor de la veta, a contrapelo | a favor de la veta | a favor del hilo | with the grain / against the grain | En triplay el corte a través de la veta de la cara astilla más: se pone cinta o se corta con la cara buena abajo con sierra circular. | ❓ |
+| **Veta cruzada** | En el triplay, cada chapa va con la veta atravesada respecto a la de junto, de modo que no hay dos capas seguidas con la veta en el mismo sentido. | veta cruzada [47], veta alternada [48] | — | — | — | cross-grain plies / cross-banding | No es cortar una pieza con la veta «a lo ancho»: eso se indica en la veta de cada pieza (ver «Veta»). | ✅ [47][48] |
 | **Cubrecanto** | Tira delgada que tapa el canto del tablero. En triplay, de chapa de madera; en melamina, de PVC o melamina. | cubrecanto [20], chapacinta, tapacanto | canto, cubrecantos | tapacanto | canto, tapacanto | edge banding | Se vende por metro lineal y en anchos: al menos 1 mm más que el espesor, es decir 19–22 mm para tableros de 18 mm y 16 mm para 12 y 15 mm. En Home Depot México el preencolado viene de 16 mm [20]. Poner cubrecanto se dice «poner cubrecanto», no «cantear» (§9). | ✅ [20][14] |
 
 ---
@@ -134,6 +135,11 @@ El contrafrente y la trasera del cajón a veces se cortan iguales, pero no son c
 | **Taladro guía** | Agujero previo, más delgado que el tornillo, para que el canto no se abra. | pre-taladrar, barreno guía | pilot hole | Sin él, el tornillo en el canto del triplay separa las capas (⚠️). | ⚠️ [5] |
 | **Presentar** | Armar en seco, sin pegamento, para revisar que todo encaja [5]. | armar en seco | dry fit | — | ⚠️ [5] |
 | **Encolar** | Pegar con cola blanca y apretar con prensas. | pegar | glue up | — | ⚠️ |
+| **Perfilar** | Darle forma a la arista del canto (redondeo, chaflán, media caña) con router o a mano, después de cortar la pieza a medida (ver «Perfil», §7). | moldurar, rutear (❓) | profile / rout an edge | Placacentro ofrece «ruteado de piezas» [14], pero no queda claro si es perfilar cantos o recortar formas (❓). | ⚠️ [4] |
+| **Hoja útil** | Lo que queda de la hoja para acomodar piezas después de refilar: con 15 mm por orilla, 2410 × 1188 mm en una hoja de 2440 × 1218. | área útil | usable sheet size | No es la medida nominal (2440 × 1220) ni la real (2440 × 1218): es la real menos el refilado. | ⚠️ |
+| **Tira** | Pedazo largo que sale al partir la hoja a lo largo, al ancho de las piezas; después se corta en piezas con cortes transversales. | tira | rip / strip | En el mueble, «tira» también es una pieza angosta (tira de refuerzo); aquí es el paso intermedio del corte. | ❓ |
+| **Acomodo de cortes** | Cómo se reparten las piezas en la hoja para sacarlas todas con el menor número de hojas y el menor desperdicio; el resultado es un diagrama de cortes. | acomodo [45], despiece [44], optimización de cortes [14], esquema de cortes [45] | cutting layout / nesting | El **optimizador de cortes** es el programa o servicio de la maderería que hace el acomodo [14][44][45][46]; cada tienda usa el suyo, así que tu acomodo sirve como sugerencia. «Despiece» también se usa para la lista de piezas [46]. | ✅ [14][44][45] |
+| **Desperdicio** | Lo que se pierde de la hoja: el refilado, el ancho de cada corte y los pedazos que no alcanzan para otra pieza. | desperdicio [44], sobrante [44], retazo (❓), merma (❓) | waste / offcut (el pedazo) | El sobrante a veces sirve para piezas chicas o refuerzos. En Knotty «merma» se usa para el acabado que se pierde de más (ver [acabados](acabados.md)); para la hoja conviene «desperdicio». | ⚠️ [44] |
 
 ---
 
@@ -150,6 +156,7 @@ El contrafrente y la trasera del cajón a veces se cortan iguales, pero no son c
 | **Sierra de mesa** | Sierra fija con disco que sale de la mesa; cortes muy precisos. | sierra de banco, sierra de mesa | sierra de mesa, escuadradora (la de carro) | sierra de mesa, sierra circular de banco | table saw | La **escuadradora** (con carro) y la **seccionadora** son máquinas de taller o maderería [25]. | ⚠️ [25] |
 | **Caladora** | Sierra de hoja recta que sube y baja; curvas y recortes. | caladora, sierra caladora [23] | sierra de calar | caladora | jigsaw | No sirve para cortes rectos largos precisos. | ✅ [23] |
 | **Router** | Motor con fresa para ranuras, rebajes y cantos redondeados. | router, rebajadora, fresadora [23] | fresadora, tupí (la de mesa) [26] | fresadora, router | router | «Fresadora» en metal es otra máquina; «tupí» es la de mesa. | ✅ [23][26] |
+| **Broca de router con balero** | Broca de router con un rodamiento en la punta que corre sobre el canto y copia su forma; hace el perfil (redondeo, chaflán, media caña) sin guía aparte. | broca para router con balero [38][41] | fresa [4] | — | bearing-guided router bit | En tiendas mexicanas se vende como «broca»; «fresa» es la palabra de España [4]. «Cortador» no apareció en ninguna tienda mexicana consultada (❓). | ✅ [38][41] |
 | **Plantilla de bolsillo** | Guía para perforar agujeros inclinados para tornillo de bolsillo. | plantilla Kreg, Kreg | plantilla Kreg | plantilla Kreg | pocket-hole jig | «Kreg» es una marca que se usa como genérico. | ⚠️ [27] |
 | **Plantilla para tarugos** | Guía para perforar alineado en las dos piezas. | tarugadora | plantilla para espigas | plantilla para tarugos | dowel jig | — | ❓ |
 | **Galletera** | Máquina que corta ranuras de media luna para galletas. | galletera | ensambladora de galletas | galletera | biscuit joiner | — | ❓ |
@@ -222,6 +229,17 @@ Esta sección es breve a propósito; el detalle está en [acabados](acabados.md)
 | **Resanar** | Tapar golpes, grietas o cabezas de tornillo con pasta. | resanar, pasta para madera | emplastecer, masilla | enmasillar | fill / wood filler | ❓ |
 
 Las fuentes difieren en la secuencia de lija: una guía de cajones sugiere 80 → 120 → 180 [5]; para caras de triplay que se van a acabar se recomienda empezar en 120 y dejar el 80 para cantos.
+
+**Perfiles del canto** (detalle, radios y herramienta en [acabados §11](acabados.md)):
+
+| Término recomendado | Definición | Otros nombres (MX / ES / AR) | Inglés | Confusión | Conf. |
+|---|---|---|---|---|---|
+| **Perfil (del canto)** | La forma de la arista del canto vista desde la punta de la pieza: recta, redondeada, en chaflán, en media caña. | perfil / perfil [4] / perfil | edge profile | El perfil es la forma; el cubrecanto es lo que tapa las capas. «Perfil» también es la tira metálica de la gola (§1.6). | ⚠️ [4] |
+| **Recto** | Canto tal como sale de la sierra, con las aristas a 90° sin suavizar. | canto recto, arista viva / arista viva [4] / canto recto | square edge | Astilla fácil: conviene al menos matar la arista (ver «Arista», §1.3). | ⚠️ [4] |
+| **Redondeo** | Arista redondeada en un cuarto de círculo, con router y broca de redondeo con balero o, si es chico, con lija; se nombra por su radio (3 mm, 6 mm). | redondeado [41], cuarto bocel o bocel cuarto (así se llama la broca) [38], boleado (❓) / cuarto bocel [4] / — | roundover | Matar la arista con lija (≈ 1 mm) es un redondeo mínimo (ver «Arista», §1.3). «Boleado» es como se dice en México al canto redondeado de cubiertas de granito y de vidrio [42][43], sin precisar si es una arista o el canto completo («nariz de toro» [42]); no encontré fuente que lo use en carpintería. | ✅ [4][38][41] |
+| **Chaflán** | Corte plano e inclinado que sustituye la arista, casi siempre a 45°; con broca de chaflán con balero, cepillo o lija. | chaflán [39], bisel / chaflán, bisel [4] / — | chamfer | «Bisel» es el mismo corte: en madera se llama chaflán y en vidrio o metal, bisel [4]. | ✅ [4][39] |
+| **Media caña** | Perfil hundido de sección semicircular: lo contrario del redondeo. | media caña [40] / media caña [4] / — | cove | Truper vende brocas de «media caña» [40], pero su ficha no dibuja el perfil; el sentido cóncavo viene del glosario español [4]. | ⚠️ [4][40] |
+| **Bocel** | Canto redondeado completo: las dos aristas con un radio de la mitad del espesor, que dejan el canto en semicírculo. | nariz de toro (en vidrio y granito) [42] / bocel [4] / — | bullnose | No es «medio bocel»: el glosario español lo define como moldura cóncava semicircular, y «bocel» como la convexa [4]. No hay fuente mexicana de carpintería para ninguno de los dos. | ⚠️ [4] |
 
 ---
 
@@ -320,3 +338,14 @@ Las fuentes difieren en la secuencia de lija: una guía de cajones sugiere 80 �
 35. Revista Ferrepat. «Qué taquete usar según el tipo de pared y cuánto peso soporta». https://www.revista.ferrepat.com/ferreteria/taquete-segun-tipo-de-pared/
 36. Freund Ferretería. «Pegamento cola blanca para madera 850 Resistol». https://www.freundferreteria.com/producto/9899278
 37. Wikipedia. «Acetato de polivinilo» (cola blanca, Colbón, cola fría). https://es.wikipedia.org/wiki/Acetato_de_polivinilo
+38. Truper. Ficha técnica «Broca para router, bocel cuarto, 1-1/8" con balero» (código 11485). https://www.truper.com/ficha_tecnica/Broca-para-router-bocel-cuarto-1-1-8-con-balero-495.html
+39. Truper. Ficha técnica «Broca para router, chaflán, 1-1/4" con balero» (código 11468). https://www.truper.com/ficha_tecnica/Broca-para-router-chaflan-1-1-4-con-balero-485.html
+40. Truper. Ficha técnica «Broca para router, media caña, 1/2" con balero» (código 11464). https://www.truper.com/ficha_tecnica/Broca-para-router-media-cana-1-2-con-balero-484.html
+41. Sodimac México. «Broca para Router Redondeado 1" con Balero» (Truper BROU-RD1X). https://www.sodimac.com.mx/sodimac-mx/product/743356/Broca-para-Router-Redondeado-1-con-Balero/743356
+42. Grupo COVICO (México). «Cantos» (acabados de canto en vidrio: bisel, media caña, boleado o nariz de toro). https://grupocovico.mx/cantos/
+43. Gobierno de Zapopan. Plano DMTZ-E01-03 (cubiertas de granito con «cantos boleados, borde biselado»). https://www.zapopan.gob.mx/wp-content/uploads/2025/11/DMTZ-E01%E2%94%8203.-EQ.pdf
+44. Triplay Carpisur. «Optimizador de cortes» (despiece, aprovechamiento, desperdicios, sobrantes). https://carpisur.com.mx/servicios/optimizador-de-cortes/
+45. Arauco TABLERED México. «Nueva herramienta para ahorrar tiempo y dinero en TABLERED: optimizador de corte online» («acomodo de las piezas en el tablero», «esquema de cortes»). https://tablered.mx.arauco.com/optimizador-de-corte-tablered/
+46. Maderería 4 Fresnos (Huixquilucan). Página principal (optimizador de cortes, «tu despiece»). https://www.madereria4fresnos.com.mx/
+47. Grupo Tenerife. «Triplay de madera: tipos, espesores y usos» («chapas delgadas… con la veta cruzada»). https://www.grupotenerife.com.mx/blog/triplay-de-madera-para-carpinteria
+48. TriplayMARKET. «¿Qué tipo de triplay necesitas?» («dirección de la veta alternada»). https://www.triplaymarket.com.mx/que-tipo-de-triplay-necesitas-diferencias-aplicaciones-y-claves-para-elegir/
