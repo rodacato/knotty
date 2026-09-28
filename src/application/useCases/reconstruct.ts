@@ -270,11 +270,11 @@ export function createReconstruct(kit: Kit) {
     return save({
       format: 9,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `Ejemplo: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
+      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `${plan ? 'Base' : 'Ejemplo'}: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
       current: 1,
       requirements: [],
       decisions: [],
-      chat: [message('expert', `Aquí tienes un ${design.name.toLowerCase()} de ejemplo. ${design.notes} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
+      chat: [message('expert', plan ? `Aquí tienes una base de ${design.name.toLowerCase()}. ${design.notes} Cambia sus medidas y opciones en Mueble, o pídeme cambios: la carga, reforzarlo, otro acabado…` : `Aquí tienes un ${design.name.toLowerCase()} de ejemplo. ${design.notes} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
       thumbnails: [],
       proposal: null,
       review: null,

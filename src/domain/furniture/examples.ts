@@ -2,13 +2,10 @@ import type { Design } from '../design/schema'
 import type { DesignKind } from '../design/kind'
 import type { Catalog } from '../materials/catalog'
 import type { FinishId } from '../materials/finishes'
-import { exampleBookcase } from './fixtures/bookcase'
-import { exampleNightstand } from './fixtures/nightstand'
-import { exampleWallCabinet } from './fixtures/wallCabinet'
 import { DEFAULT_CONSTRUCTION, type CabinetPlan } from './modules/cabinet'
 import { buildPlan, type FurniturePlan } from './modules/plan'
 
-// The examples the person can start from: a ready design, or a plan Knotty builds, so the plan sheet and the local requests work from the first click.
+// What the person can start from: a ready design, or a plan Knotty builds (a base), so the plan sheet and the local requests work from the first click.
 
 export type Example =
   | { name: string; design: Design }
@@ -45,7 +42,7 @@ export const sideboardPlan: CabinetPlan = {
   ],
 }
 
-export const exampleSideboard: Example = {
+export const exampleSideboard: Extract<Example, { plan: FurniturePlan }> = {
   name: 'Aparador',
   plan: sideboardPlan,
   notes: 'Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano.',
@@ -53,12 +50,121 @@ export const exampleSideboard: Example = {
   kind: 'sideboard',
 }
 
-/** The examples on the home screen, in order. */
-export const EXAMPLES: Example[] = [
-  { name: exampleBookcase.name, design: exampleBookcase },
-  { name: exampleNightstand.name, design: exampleNightstand },
-  { name: exampleWallCabinet.name, design: exampleWallCabinet },
-  exampleSideboard,
+/** Where a base goes in the home screen's filter. */
+export type BaseCategory = 'bedroom' | 'storage' | 'tables'
+
+/** A starting point on the home screen: always a plan, so the ficha edits it without the expert. `reference` is the catalog product it approximates. */
+export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; category: BaseCategory; reference?: string }
+
+const lowSideboard: Base = {
+  id: 'low-sideboard',
+  name: 'Aparador bajo',
+  category: 'storage',
+  reference: 'KC-APA-02',
+  kind: 'sideboard',
+  notes: 'Aparador bajo de tres columnas: una puerta a cada lado con un entrepaño detrás y un hueco abierto en medio.',
+  plan: {
+    kind: 'cabinet',
+    name: 'Aparador bajo',
+    dimensions: { width: 1500, height: 700, depth: 390 },
+    material: 'T18',
+    base: 'kick',
+    // 700 mm with doors: past the anchoring threshold for storage (R4).
+    wallMounted: true,
+    construction: DEFAULT_CONSTRUCTION,
+    columns: [
+      { width: 1, cells: [door(1)] },
+      { width: 1, cells: [open(1)] },
+      { width: 1, cells: [door(1)] },
+    ],
+  },
+}
+
+const openBookcase: Base = {
+  id: 'open-bookcase',
+  name: 'Librero abierto',
+  category: 'storage',
+  reference: 'KC-LIB-01',
+  kind: 'bookcase',
+  notes: 'Librero abierto de dos columnas con repisas móviles, trasera clavada y anclado al muro.',
+  plan: {
+    kind: 'cabinet',
+    name: 'Librero abierto',
+    dimensions: { width: 900, height: 1950, depth: 290 },
+    material: 'T18',
+    base: 'kick',
+    wallMounted: true,
+    construction: DEFAULT_CONSTRUCTION,
+    // Two columns: one shelf across 900 mm would sag under books.
+    columns: [
+      { width: 1, cells: [{ height: 1, content: 'open', shelves: 5, doors: null }] },
+      { width: 1, cells: [{ height: 1, content: 'open', shelves: 5, doors: null }] },
+    ],
+  },
+}
+
+const bedWithDrawers: Base = {
+  id: 'bed-with-drawers',
+  name: 'Cama con cajones',
+  category: 'bedroom',
+  reference: 'KC-CAM-02',
+  notes: 'Cama matrimonial con dos cajones de cada lado y cabecera lisa.',
+  plan: {
+    kind: 'bed',
+    name: 'Cama con cajones',
+    mattress: 'matrimonial',
+    material: 'T18',
+    height: 400,
+    drawers: { side: 'both', count: 2, position: 'center' },
+    headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 },
+  },
+}
+
+const shoeRack: Base = {
+  id: 'shoe-rack',
+  name: 'Zapatera',
+  category: 'storage',
+  reference: 'KC-OTR-03',
+  notes: 'Zapatera de cuatro niveles con dos puertas, anclada al muro.',
+  plan: { kind: 'shoeRack', name: 'Zapatera', dimensions: { width: 630, height: 1000, depth: 380 }, material: 'T18', levels: 4, bootLevel: false, front: 'doors', base: 'kick', seat: false, wallMounted: true },
+}
+
+const nightstand: Base = {
+  id: 'nightstand',
+  name: 'Buró',
+  category: 'bedroom',
+  reference: 'KC-BUR-01',
+  kind: 'nightstand',
+  notes: 'Buró con un cajón arriba y un hueco abierto abajo.',
+  plan: {
+    kind: 'cabinet',
+    name: 'Buró',
+    dimensions: { width: 450, height: 500, depth: 350 },
+    material: 'T18',
+    base: 'floor',
+    wallMounted: false,
+    construction: DEFAULT_CONSTRUCTION,
+    columns: [{ width: 1, cells: [open(0.6), drawer(0.4)] }],
+  },
+}
+
+const coffeeTable: Base = {
+  id: 'coffee-table',
+  name: 'Mesa de centro',
+  category: 'tables',
+  notes: 'Mesa de centro con una repisa baja entre los costados.',
+  plan: { kind: 'table', use: 'coffee', name: 'Mesa de centro', material: 'T18', dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: true, pedestal: { side: 'none', drawers: 0 } },
+}
+
+/** The bases on the home screen, in order. */
+export const BASES: Base[] = [
+  lowSideboard,
+  openBookcase,
+  bedWithDrawers,
+  shoeRack,
+  nightstand,
+  coffeeTable,
+  { ...exampleSideboard, id: 'sideboard-on-legs', name: 'Aparador con patas', plan: { ...sideboardPlan, name: 'Aparador con patas' }, category: 'storage', reference: 'KC-APA-01' },
 ]
 
 /** The example's design, and the plan it comes from when it has one. */

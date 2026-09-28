@@ -10,7 +10,7 @@ import type { Operation } from '../domain/editing/operations/schema'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../domain/furniture/fixtures/wallCabinet'
-import { exampleSideboard } from '../domain/furniture/examples'
+import { BASES, exampleSideboard } from '../domain/furniture/examples'
 import { findingKey } from '../domain/checks/structure/finding'
 import { ruleTitle } from '../domain/checks/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
@@ -958,16 +958,24 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     const { llm, calls } = counting()
     const c = setup(llm)
     const initial = c.openExample(exampleSideboard)
-    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Ejemplo: Aparador', plan: { kind: 'cabinet', base: 'legs' } }])
+    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Base: Aparador', plan: { kind: 'cabinet', base: 'legs' } }])
     expect(currentDesign(initial)).toMatchObject({ finish: 'polyurethane', wallAnchored: true })
     expect(currentPlan(initial)).toMatchObject({ since: 1, diverged: false })
-    expect(initial.chat[0].text).toMatch(/^Aquí tienes un aparador de ejemplo\. Aparador de comedor/)
+    expect(initial.chat[0].text).toMatch(/^Aquí tienes una base de aparador\. Aparador de comedor/)
     const state = await c.adjust(initial, 'sin patas', newSignal())
     expect(calls).toEqual([])
     expect(state.versions).toHaveLength(2)
     expect(state.versions.at(-1)).toMatchObject({ origin: null, plan: { kind: 'cabinet', base: 'floor' } })
     expect(currentDesign(state).pieces.some((p) => p.id.startsWith('leg-') || p.role === 'apron')).toBe(false)
     expect(currentDesign(state).finish).toBe('polyurethane')
+  })
+
+  it.each(BASES.map((b) => [b.name, b] as const))('the base %s opens with its plan, its name and no call to the expert', (name, base) => {
+    const { llm, calls } = counting()
+    const state = setup(llm).openExample(base)
+    expect(calls).toEqual([])
+    expect(currentPlan(state)).toMatchObject({ plan: base.plan, since: 1, diverged: false })
+    expect(currentDesign(state).name).toBe(name)
   })
 
   it('asking for what the plan has makes no version', async () => {

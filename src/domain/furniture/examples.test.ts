@@ -2,25 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../checks/analysis'
 import { estimatePurchase } from '../materials/purchase'
 import { testCatalog } from './fixtures/catalog.test-util'
-import { EXAMPLES, exampleDesign, exampleSideboard, sideboardPlan } from './examples'
+import { BASES, exampleDesign, exampleSideboard, sideboardPlan } from './examples'
 import { buildPlan } from './modules/plan'
 
-// The curated examples are the first thing a person opens: every one must hold, and one built from a plan must come out clean.
+// The bases are the first thing a person opens: every one is a plan that comes out clean, as the bench asks of every module variant.
 
 describe('examples', () => {
-  it.each(EXAMPLES.map((e) => [e.name, e] as const))('%s analyzes valid', (_, example) => {
-    const { design } = exampleDesign(example, testCatalog)
+  it.each(BASES.map((b) => [b.name, b] as const))('%s, built from its plan, is valid, as asked, and has no findings above a detail', (_, base) => {
+    expect(buildPlan(base.plan, testCatalog).notes).toEqual([])
+    const { design, plan } = exampleDesign(base, testCatalog)
+    expect(plan).toBe(base.plan)
     const analysis = analyze(design, testCatalog)
-    expect(analysis.valid ? [] : analysis.errors).toEqual([])
+    expect(analysis.valid ? [] : analysis.errors.map((e) => e.message)).toEqual([])
+    expect(analysis.valid && analysis.findings.filter((f) => f.severity !== 'detail').map((f) => `${f.code}: ${f.message}`)).toEqual([])
   })
 
-  it.each(EXAMPLES.filter((e) => 'plan' in e).map((e) => [e.name, e] as const))('%s, built from its plan, has no findings and every cell as asked', (_, example) => {
-    if (!('plan' in example)) throw new Error('not a plan example')
-    expect(buildPlan(example.plan, testCatalog).notes).toEqual([])
-    const { design, plan } = exampleDesign(example, testCatalog)
-    expect(plan).toBe(example.plan)
-    const analysis = analyze(design, testCatalog)
-    expect(analysis.valid && analysis.findings.map((f) => `${f.code}: ${f.message}`)).toEqual([])
+  it('every base has its own id, and a catalog reference only as a neutral code', () => {
+    expect(new Set(BASES.map((b) => b.id)).size).toBe(BASES.length)
+    expect(BASES.flatMap((b) => b.reference ?? []).filter((code) => !/^KC-[A-Z]+-\d{2}$/.test(code))).toEqual([])
   })
 
   it('the sideboard carries its notes and finish, and its shopping list does not move', () => {
