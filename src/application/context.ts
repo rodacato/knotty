@@ -64,7 +64,7 @@ function fitted(fixed: string[], state: DesignState): string {
 /** What the expert needs for a change piece by piece: the whole design, its geometry and its review. */
 export function buildContext(state: DesignState, catalog: Catalog): string {
   const version = currentVersion(state)
-  const { finish, ...design } = version.design
+  const { finish, edgeProfiles: _, ...design } = version.design
   const analysis = analyze(design, catalog, state.requirements)
 
   const fixed: string[] = [`## Current design (v${version.n})`, '```json', JSON.stringify(design), '```', ...finishLine(finish)]
@@ -97,7 +97,7 @@ function describeExtra(e: Operation): string {
  */
 export function buildPlanContext(state: DesignState, catalog: Catalog, extras: Operation[] = []): string {
   const version = currentVersion(state)
-  const { finish, ...design } = version.design
+  const { finish, edgeProfiles: _, ...design } = version.design
   const analysis = analyze(design, catalog, state.requirements)
 
   const fixed: string[] = [`## Current design (v${version.n}): built by Knotty from the plan below`, ...finishLine(finish)]

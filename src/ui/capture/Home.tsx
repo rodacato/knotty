@@ -1,35 +1,66 @@
+import { useMemo, useState } from 'react'
 import { ArrowRight, Cube } from '@phosphor-icons/react'
-import { EXAMPLES } from '../../domain/furniture/examples'
-import { Button } from '../system/components'
+import { resolveGeometry, type Box } from '../../domain/design/resolve'
+import { BASES, exampleDesign, type Base, type BaseCategory } from '../../domain/furniture/examples'
+import { useServices } from '../services'
+import { Button, Chip } from '../system/components'
 import { Logo, Emblem } from '../system/Brand'
 import { useStore } from '../store'
+import { sketch, type Face } from './sketch'
 
-/** A piece of furniture in exploded view, drawn as a sketch. */
-function Sketch() {
-  const stroke = 'fill-none stroke-graphite/70 [stroke-width:1.4] [stroke-linejoin:round]'
-  const wood = 'fill-pine/40 stroke-graphite/70 [stroke-width:1.4] [stroke-linejoin:round]'
+const CATEGORIES: [BaseCategory | 'all', string][] = [
+  ['all', 'Todos'],
+  ['bedroom', 'Recámara'],
+  ['storage', 'Guardar'],
+  ['tables', 'Mesas'],
+]
+/** Filters pay off only past six bases, two rows on a desk. */
+const FILTERED = BASES.length > 6
+
+const FACE: Record<Face, string> = { front: 'fill-birch', top: 'fill-[color-mix(in_srgb,var(--color-birch)_60%,white)]', side: 'fill-pine' }
+
+/** The base as Knotty builds it, drawn from its pieces. */
+function Thumbnail({ boxes }: { boxes: Map<string, Box> }) {
+  const { polygons, width, height } = useMemo(() => sketch(boxes), [boxes])
+  const pad = Math.max(width, height) * 0.08
   return (
-    <svg viewBox="0 0 260 220" className="h-auto w-full max-w-[300px]" aria-hidden>
-      <g className="animate-appear">
-        <path className={wood} d="M60 40 l80 -20 l0 150 l-80 20 z" />
-        <path className={stroke} d="M60 40 l-14 -6 l0 150 l14 6" />
-        <path className={wood} d="M170 30 l40 -10 l0 150 l-40 10 z" />
-        <path className={wood} d="M72 92 l64 -16 l38 14 l-64 16 z" />
-        <path className={wood} d="M72 132 l64 -16 l38 14 l-64 16 z" />
-        <path className={`${stroke} [stroke-dasharray:3_4]`} d="M110 106 l0 -40 M110 146 l0 30" />
-        <path className="fill-amber/70 stroke-graphite/70 [stroke-width:1.4]" d="M84 60 l52 -13 l20 7 l-52 13 z" />
-      </g>
-      <g className="text-graphite-2">
-        <path className="fill-none stroke-current [stroke-width:1]" d="M46 200 l124 -30" />
-        <path className="fill-none stroke-current [stroke-width:1]" d="M46 194 l0 12 M170 164 l0 12" />
-      </g>
+    <svg viewBox={`${-pad} ${-pad} ${width + 2 * pad} ${height + 2 * pad}`} className="size-full" aria-hidden>
+      {polygons.map((p, i) => (
+        <polygon key={i} points={p.points.map(([x, y]) => `${x},${y}`).join(' ')} className={`${FACE[p.face]} stroke-walnut/80 [stroke-linejoin:round] [stroke-width:0.8] [vector-effect:non-scaling-stroke]`} />
+      ))}
     </svg>
+  )
+}
+
+function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }) {
+  const { catalog } = useServices()
+  const { design, boxes } = useMemo(() => {
+    const { design } = exampleDesign(base, catalog)
+    const geo = resolveGeometry(design, catalog)
+    return { design, boxes: geo.ok ? geo.value.boxes : null }
+  }, [base, catalog])
+  const { height, width, depth } = design.dimensions
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(base)}
+      className="group flex flex-col gap-1.5 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+    >
+      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl border border-line bg-kraft p-3 transition group-hover:bg-kraft-2 group-active:scale-[0.98]">
+        {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6 text-graphite-2" />}
+      </span>
+      <span className="text-sm font-medium text-graphite">{base.name}</span>
+      <span className="numerals text-xs text-graphite-2" aria-label={`${height} de alto, ${width} de ancho, ${depth} de fondo, en milímetros`}>
+        {Math.round(height)} × {Math.round(width)} × {Math.round(depth)}
+      </span>
+    </button>
   )
 }
 
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const fromExample = useStore((s) => s.fromExample)
+  const [category, setCategory] = useState<BaseCategory | 'all'>('all')
   return (
     <main className="mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-12 md:flex-row md:gap-16">
       <div className="flex max-w-md flex-col gap-6">
@@ -48,18 +79,29 @@ export function Home() {
             Nuevo diseño <ArrowRight weight="bold" />
           </Button>
         </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-graphite">O empieza con un ejemplo:</p>
+      </div>
+      <section className="flex w-full max-w-md flex-col gap-4 md:max-w-xl" aria-labelledby="bases-title">
+        <div className="flex flex-col gap-1">
+          <h2 id="bases-title" className="font-display text-2xl leading-tight font-semibold">
+            O empieza de una base
+          </h2>
+          <p className="text-sm text-graphite-2">Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.</p>
+        </div>
+        {FILTERED && (
           <div className="flex flex-wrap gap-2">
-            {EXAMPLES.map((example) => (
-              <Button key={example.name} variant="secondary" onClick={() => fromExample(example)}>
-                <Cube /> {example.name}
-              </Button>
+            {CATEGORIES.map(([id, label]) => (
+              <Chip key={id} active={category === id} aria-pressed={category === id} onClick={() => setCategory(id)}>
+                {label}
+              </Chip>
             ))}
           </div>
+        )}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-3">
+          {BASES.filter((b) => category === 'all' || b.category === category).map((base) => (
+            <BaseCard key={base.id} base={base} onOpen={fromExample} />
+          ))}
         </div>
-      </div>
-      <Sketch />
+      </section>
     </main>
   )
 }

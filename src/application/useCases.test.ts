@@ -10,7 +10,7 @@ import type { Operation } from '../domain/editing/operations/schema'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../domain/furniture/fixtures/wallCabinet'
-import { exampleSideboard } from '../domain/furniture/examples'
+import { BASES, exampleSideboard } from '../domain/furniture/examples'
 import { findingKey } from '../domain/checks/structure/finding'
 import { ruleTitle } from '../domain/checks/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
@@ -958,16 +958,24 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     const { llm, calls } = counting()
     const c = setup(llm)
     const initial = c.openExample(exampleSideboard)
-    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Ejemplo: Aparador', plan: { kind: 'cabinet', base: 'legs' } }])
+    expect(initial.versions).toMatchObject([{ n: 1, summary: 'Base: Aparador', plan: { kind: 'cabinet', base: 'legs' } }])
     expect(currentDesign(initial)).toMatchObject({ finish: 'polyurethane', wallAnchored: true })
     expect(currentPlan(initial)).toMatchObject({ since: 1, diverged: false })
-    expect(initial.chat[0].text).toMatch(/^Aquí tienes un aparador de ejemplo\. Aparador de comedor/)
+    expect(initial.chat[0].text).toMatch(/^Aquí tienes una base de aparador\. Aparador de comedor/)
     const state = await c.adjust(initial, 'sin patas', newSignal())
     expect(calls).toEqual([])
     expect(state.versions).toHaveLength(2)
     expect(state.versions.at(-1)).toMatchObject({ origin: null, plan: { kind: 'cabinet', base: 'floor' } })
     expect(currentDesign(state).pieces.some((p) => p.id.startsWith('leg-') || p.role === 'apron')).toBe(false)
     expect(currentDesign(state).finish).toBe('polyurethane')
+  })
+
+  it.each(BASES.map((b) => [b.name, b] as const))('the base %s opens with its plan, its name and no call to the expert', (name, base) => {
+    const { llm, calls } = counting()
+    const state = setup(llm).openExample(base)
+    expect(calls).toEqual([])
+    expect(currentPlan(state)).toMatchObject({ plan: base.plan, since: 1, diverged: false })
+    expect(currentDesign(state).name).toBe(name)
   })
 
   it('asking for what the plan has makes no version', async () => {
@@ -1182,6 +1190,15 @@ describe('notices: one place for what waits for a decision', () => {
     expect(verdict.checks.find((x) => x.id === 'accepted')?.detail).toBe('Lo dejaste así, bajo tu riesgo: Riesgo de vuelco.')
   })
 
+  it('a recommendation left as it is was optional, so the verdict does not call it a risk', async () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
+    const recommendation = noticeBoard(initial, testCatalog).recommendations.find((n) => n.title === 'Uso del mueble')!
+    const left = c.acceptNotice(initial, recommendation.findings, recommendation.title)
+    const verdict = await c.reviewPurchase(left, testCatalog, newSignal())
+    expect(verdict.checks.find((x) => x.id === 'accepted')).toBeUndefined()
+  })
+
   it('two checks of one rule on the same pieces are accepted apart: leaving the wall cabinet unanchored does not drop its hanging rail', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
@@ -1189,26 +1206,27 @@ describe('notices: one place for what waits for a decision', () => {
     const [anchor, rail] = ['wall-cabinet.anchor', 'wall-cabinet.hanging-rail'].map((check) => use.valid && use.findings.find((h) => h.code === 'R10_USE' && h.check === check))
     expect(anchor && rail && findingKey(anchor) !== findingKey(rail)).toBe(true)
 
-    const pending = () => noticeBoard(initial, testCatalog).pending.filter((n) => n.title === 'Uso del mueble')
-    const [critical, recommendation] = [...pending()].sort((a, b) => a.severity.localeCompare(b.severity))
+    const board0 = noticeBoard(initial, testCatalog)
+    const [critical, recommendation] = [...board0.pending, ...board0.recommendations].filter((n) => n.title === 'Uso del mueble')
     expect([critical.severity, recommendation.severity]).toEqual(['critical', 'recommendation'])
     const accepted = c.acceptNotice(initial, critical.findings, critical.title)
     const board = noticeBoard(accepted, testCatalog)
     expect(board.accepted.map((n) => n.key)).toEqual([critical.key])
-    expect(board.pending.map((n) => n.key)).toContain(recommendation.key)
+    expect(board.recommendations.map((n) => n.key)).toContain(recommendation.key)
   })
 
   it('a key saved before checks had ids (R10_USE:) hides neither finding: both show again once', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
     const legacy = { ...initial, accepted: [{ key: 'R10_USE:', title: 'Uso del mueble', at: '2026-09-01T10:00:00Z', severity: null, version: 1 }] }
-    expect(noticeBoard(legacy, testCatalog).pending.filter((n) => n.title === 'Uso del mueble')).toHaveLength(2)
+    const board = noticeBoard(legacy, testCatalog)
+    expect([...board.pending, ...board.recommendations].filter((n) => n.title === 'Uso del mueble')).toHaveLength(2)
   })
 
   it('a recommendation accepted that becomes critical is pending again, says why, and leaves the purchase review', async () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 700 } })
-    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = noticeBoard(initial, testCatalog).recommendations.find((n) => n.title === 'Entrepaños que se pandean')!
     expect(sag.severity).toBe('recommendation')
     const accepted = c.acceptNotice(initial, sag.findings, sag.title)
     expect(accepted.accepted.map((a) => a.severity)).toEqual(sag.findings.map(() => 'recommendation'))
@@ -1247,6 +1265,46 @@ describe('notices: one place for what waits for a decision', () => {
     const initial = await initialBookcase(setup())
     const board = noticeBoard(initial, testCatalog)
     expect(board.pending.filter((n) => n.kind === 'question').map((n) => n.message)).toContain('¿Qué vas a guardar principalmente?')
+  })
+
+  it('a dismissed question leaves pending without being answered, drops its answer from the tray, survives a reload and can be reopened', async () => {
+    const stored = new Map<string, string>()
+    const storage = { getItem: (k: string) => stored.get(k) ?? null, setItem: (k: string, v: string) => void stored.set(k, v), removeItem: (k: string) => void stored.delete(k) } as Storage
+    const repository = createLocalRepository(storage)
+    const c = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository, now: () => '2026-09-24T10:00:00Z', newId: () => `d${++id}` })
+    const initial = await c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ base64: '' }], thumbnails: [], notes: '' }, newSignal())
+    const question = noticeBoard(initial, testCatalog).pending.find((n) => n.message === '¿Qué vas a guardar principalmente?')!
+    const { messageId, index } = question.question!
+    const withAnswer = c.toggleTray(initial, answerItem(messageId, index, question.message, 'Libros'))
+
+    const dismissed = c.dismissQuestion(withAnswer, messageId, index)
+
+    const board = noticeBoard(dismissed, testCatalog)
+    expect(board.pending.some((n) => n.key === question.key)).toBe(false)
+    expect(board.dismissed.map((n) => n.key)).toEqual([question.key])
+    expect(dismissed.tray).toEqual([])
+    expect(dismissed.chat.find((m) => m.id === messageId)).toMatchObject({ answered: false, answers: [] })
+    expect(dismissed.chat).toHaveLength(initial.chat.length)
+    const reloaded = repository.load()!
+    expect(noticeBoard(reloaded, testCatalog).dismissed.map((n) => n.key)).toEqual([question.key])
+
+    const reopened = noticeBoard(c.reopenQuestion(reloaded, messageId, index), testCatalog)
+    expect(reopened.pending.some((n) => n.key === question.key)).toBe(true)
+    expect(reopened.dismissed).toEqual([])
+  })
+
+  it('recommendations are optional: apart from what needs a decision, and left as they are with the accept mechanism', () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 700 } })
+    const board = noticeBoard(initial, testCatalog)
+    const sag = board.recommendations.find((n) => n.title === 'Entrepaños que se pandean')!
+    expect(sag.severity).toBe('recommendation')
+    expect(board.pending.some((n) => n.severity === 'recommendation' || n.severity === 'detail')).toBe(false)
+    expect(board.recommendations.every((n) => n.kind === 'finding' && n.severity !== 'critical')).toBe(true)
+
+    const left = noticeBoard(c.acceptNotice(initial, sag.findings, sag.title), testCatalog)
+    expect(left.recommendations.some((n) => n.key === sag.key)).toBe(false)
+    expect(left.accepted.map((n) => n.key)).toContain(sag.key)
   })
 })
 

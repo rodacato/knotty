@@ -32,6 +32,8 @@ export const Message = z.object({
   thumbnail: z.string().nullable().default(null),
   /** Which questions ("p0") of this message were answered; with all of them, it is `answered`. */
   answers: z.array(z.string()).default([]),
+  /** Which questions ("p0") the person set aside in the notices without answering them; the expert is not told. */
+  dismissed: z.array(z.string()).default([]),
   /** Next steps the expert suggests; shown as buttons under its last message. */
   suggestions: z.array(z.string()).default([]),
   /** Options from the rules' alternatives that Knotty builds itself when chosen; the expert never sees this. */
@@ -105,6 +107,8 @@ export const DesignState = z.object({
   accepted: z.array(AcceptedFinding).default([]),
   /** What waits to go to the expert in one request. */
   tray: z.array(TrayItem).default([]),
+  /** Plan fields the person locked or freed for «Ahorrar material», by key; the rest keep their module's default. */
+  locks: z.record(z.string(), z.boolean()).default({}),
 })
 export type DesignState = z.infer<typeof DesignState>
 

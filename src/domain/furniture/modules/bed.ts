@@ -287,7 +287,7 @@ const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>):
 /** A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices. */
 const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
-    choice({ key: 'mattress', label: 'Colchón', ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
+    choice({ key: 'mattress', label: 'Colchón', lockedByDefault: true, ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
     note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),

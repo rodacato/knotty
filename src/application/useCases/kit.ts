@@ -43,6 +43,7 @@ export function createKit(deps: Dependencies) {
     error: false,
     thumbnail: null,
     answers: [],
+    dismissed: [],
     suggestions: [],
     solutions: [],
     ...extra,
@@ -62,8 +63,11 @@ export function createKit(deps: Dependencies) {
     const previous = currentDesign(state)
     // The finish is the person's: a design rebuilt from the plan or written by the expert comes without it and keeps the current one.
     const finish = design.finish ?? previous.finish
+    // So are the edge profiles, on the pieces that are still there.
+    const edgeProfiles = design.edgeProfiles ?? previous.edgeProfiles?.filter((c) => design.pieces.some((p) => p.id === c.piece))
+    const personal = { ...design, ...(finish && { finish }), ...(edgeProfiles?.length && { edgeProfiles }) }
     // So is the kind, unless the new design says it with at least as much trust: a cabinet rebuilt from its plan does not know it is a bookcase.
-    const kept = withKind(finish && !design.finish ? { ...design, finish } : design, settleKind(knownKind(previous), knownKind(design)))
+    const kept = withKind(personal, settleKind(knownKind(previous), knownKind(design)))
     const versions = pruneVersions([
       ...state.versions,
       { n, design: kept, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },

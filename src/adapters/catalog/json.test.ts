@@ -20,7 +20,7 @@ function storage(initial: Record<string, string> = {}): Storage {
 describe('catalog settings', () => {
   it('saves and reads the person prices and cutting settings', () => {
     const s = storage()
-    const settings = { prices: { T18: 990, 'screw-8x2': 60 }, layout: { trim: 10, kerf: 3, clearance: 1 } }
+    const settings = { prices: { T18: 990, 'screw-8x2': 60 }, layout: { trim: 10, kerf: 3, clearance: 1 }, toolLevel: 2 as const }
     createJsonCatalog('', s).saveSettings(settings)
     expect(createJsonCatalog('', s).settings()).toEqual(settings)
   })
@@ -28,7 +28,7 @@ describe('catalog settings', () => {
   it('reads what the version with Spanish fields saved, prices keyed by the old hardware ids', () => {
     const old = { precios: { T18: 990, 'tornillo-8x2': 60, 'corredera-telescopica-40': 180 }, acomodo: { refilado: 10, sierra: 3, holgura: 1 } }
     const settings = createJsonCatalog('', storage({ 'despiece:v1:catalogo': JSON.stringify(old) })).settings()
-    expect(settings).toEqual({ prices: { T18: 990, 'screw-8x2': 60, 'drawer-slide-40': 180 }, layout: { trim: 10, kerf: 3, clearance: 1 } })
+    expect(settings).toEqual({ prices: { T18: 990, 'screw-8x2': 60, 'drawer-slide-40': 180 }, layout: { trim: 10, kerf: 3, clearance: 1 }, toolLevel: 1 })
   })
 
   it('prices saved before hardware had a role still apply to the catalog, by id', () => {
@@ -39,6 +39,12 @@ describe('catalog settings', () => {
   })
 
   it('ignores what it cannot read', () => {
-    expect(createJsonCatalog('', storage({ 'despiece:v1:catalogo': '{"precios":' })).settings()).toEqual({ prices: {}, layout: null })
+    expect(createJsonCatalog('', storage({ 'despiece:v1:catalogo': '{"precios":' })).settings()).toEqual({ prices: {}, layout: null, toolLevel: 1 })
+  })
+
+  it('settings saved before the tool level existed read as level 1, and a level it does not know as well', () => {
+    const before = { prices: { T18: 990 }, layout: null }
+    expect(createJsonCatalog('', storage({ 'knotty:catalog-settings': JSON.stringify(before) })).settings()).toEqual({ ...before, toolLevel: 1 })
+    expect(createJsonCatalog('', storage({ 'knotty:catalog-settings': JSON.stringify({ ...before, toolLevel: 7 }) })).settings().toolLevel).toBe(1)
   })
 })

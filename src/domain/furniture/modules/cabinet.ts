@@ -395,15 +395,15 @@ const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof C
 const cabinetFields: FieldSpec<CabinetPlan>[] = [
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
-      number({ key: 'dimensions.width', label: 'Ancho', get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.height', label: 'Alto', lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Ancho', lockedByDefault: true, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
       number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
   ]),
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
-    yesNo({ key: 'wallMounted', label: 'Anclado al muro', get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
   ]),
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),

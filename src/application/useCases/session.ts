@@ -1,8 +1,8 @@
 import { PERSON_NOTE_PREFIX } from '../../domain/checks/requirements/requirements'
-import type { DesignState, Question } from '../../domain/session/state'
+import { questionAnswerKey, type DesignState, type Question } from '../../domain/session/state'
 import { acceptFinding } from '../../domain/checks/structure/accepted'
 import { findingKey, type Finding } from '../../domain/checks/structure/finding'
-import { toggleInTray, trayRequest, type TrayItem } from '../../domain/session/tray/tray'
+import { answerItemId, toggleInTray, trayRequest, type TrayItem } from '../../domain/session/tray/tray'
 import type { Kit, OnProgress } from './kit'
 
 type Adjust = (state: DesignState, request: string, signal: AbortSignal, onProgress?: OnProgress, answering?: string | null) => Promise<DesignState>
@@ -44,6 +44,18 @@ export function createSession(kit: Kit, adjust: Adjust) {
     return save({ ...state, accepted: state.accepted.filter((a) => !keys.has(a.key)) })
   }
 
+  /** Sets an expert's question aside without answering it: nothing goes to the expert, and an answer waiting in the tray leaves it. */
+  function dismissQuestion(state: DesignState, messageId: string, index: number): DesignState {
+    const key = questionAnswerKey(index)
+    const chat = state.chat.map((m) => (m.id === messageId && !m.dismissed.includes(key) ? { ...m, dismissed: [...m.dismissed, key] } : m))
+    return save({ ...state, chat, tray: state.tray.filter((t) => t.id !== answerItemId(messageId, index)) })
+  }
+
+  function reopenQuestion(state: DesignState, messageId: string, index: number): DesignState {
+    const key = questionAnswerKey(index)
+    return save({ ...state, chat: state.chat.map((m) => (m.id === messageId ? { ...m, dismissed: m.dismissed.filter((d) => d !== key) } : m)) })
+  }
+
   function toggleTray(state: DesignState, item: TrayItem): DesignState {
     return save({ ...state, tray: toggleInTray(state.tray, item) })
   }
@@ -56,5 +68,5 @@ export function createSession(kit: Kit, adjust: Adjust) {
 
   const pendingQuestions = (state: DesignState): Question[] => state.chat.filter((m) => !m.answered).flatMap((m) => m.questions)
 
-  return { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, toggleTray, sendTray, pendingQuestions }
+  return { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions }
 }

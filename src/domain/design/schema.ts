@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { EdgeProfileId } from '../materials/edgeProfiles'
 import { FinishId } from '../materials/finishes'
 import { DesignKind, KindSource, MattressSize } from './kind'
 
@@ -43,6 +44,7 @@ export const Grain = z.enum(['length', 'width', 'any']).describe('Grain directio
 export const Load = z.enum(['none', 'light', 'medium', 'heavy']).describe('heavy = books')
 export type Load = z.infer<typeof Load>
 export const Edge = z.enum(['front', 'back', 'left', 'right', 'top', 'bottom'])
+export type Edge = z.infer<typeof Edge>
 export const PieceConfidence = z.enum(['high', 'medium', 'low'])
 
 export const PieceId = z
@@ -86,6 +88,10 @@ export const Joint = z.object({
 })
 export type Joint = z.infer<typeof Joint>
 
+/** The profile the person chose for one edge of one piece; an edge without one is left straight. */
+export const EdgeProfileChoice = z.object({ piece: PieceId, edge: Edge, profile: EdgeProfileId })
+export type EdgeProfileChoice = z.infer<typeof EdgeProfileChoice>
+
 export const Dimensions = z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() })
 export type Dimensions = z.infer<typeof Dimensions>
 
@@ -105,6 +111,8 @@ export const Design = z.object({
   mattress: MattressSize.optional(),
   /** The finish the person chose in Materiales; absent is none. The person's, not the expert's: its schemas leave it out. */
   finish: FinishId.optional(),
+  /** Edge profiles the person chose in the piece sheet; absent is none. The person's, like the finish. */
+  edgeProfiles: z.array(EdgeProfileChoice).optional(),
 })
 export type Design = z.infer<typeof Design>
 

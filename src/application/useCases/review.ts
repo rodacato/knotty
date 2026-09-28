@@ -19,9 +19,9 @@ function fingerprint(text: string) {
   return `${hash.toString(16)}-${text.length}`
 }
 
-/** The design as the review sees it: the finish only adds litres to the list, so choosing one does not ask for a new review. */
+/** The design as the review sees it: the finish and the edge profiles change no structure, so choosing them does not ask for a new review. */
 const reviewed = (design: Design) => {
-  const { finish: _, ...rest } = design
+  const { finish: _, edgeProfiles: __, ...rest } = design
   return rest
 }
 
@@ -52,7 +52,7 @@ export function createReview(kit: Kit) {
       purchase: purchase,
       findings: analysis.findings.filter((h) => !isAccepted(h, state.accepted)),
       unmet: unmet,
-      accepted: analysis.findings.flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
+      accepted: analysis.findings.filter((h) => h.severity === 'critical').flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
     })
     const base = { signature: reviewSignature(state, effectiveCatalog), checks: viability.checks, date: now() }
     try {

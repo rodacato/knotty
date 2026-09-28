@@ -43,7 +43,8 @@ export interface SceneSlice {
   viewFrom(view: View): void
   toggleProposal(): void
   viewVersion(n: number | null): void
-  previewFix(fix: Fix | null): void
+  /** Shows a solution or another design in 3D without applying it. */
+  previewFix(fix: Pick<Fix, 'design' | 'label'> | null): void
 }
 
 /** The hidden pieces this design still has: an id a change removed no longer counts. */

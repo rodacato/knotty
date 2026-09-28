@@ -1,10 +1,10 @@
-import { ASSUMPTIONS } from '../checks/structure/assumptions'
+import { ASSUMPTIONS, pocketScrewId } from '../checks/structure/assumptions'
 import { hardwareByRole, hingeFor, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
 import { doorMount } from './doors'
-import { contacts, type Contact } from './validation/contact'
+import { contactBetween, contacts, type Contact } from './validation/contact'
 import { makeJoint } from './builders'
 import { JOINTS } from './jointSpecs'
-import { isDrawerPart, type Design, type Piece, type Joint } from './schema'
+import { isDrawerPart, type Design, type Piece, type Joint, type JointType } from './schema'
 import { drawerSides } from './drawers'
 import { resolveGeometry, type Box } from './resolve'
 
@@ -24,6 +24,20 @@ function screwFor(catalog: Catalog, thicknessA: number, thicknessB: number, into
   const screws = hardwareByRole(catalog, 'screw').filter((h) => h.length).sort((x, y) => x.length! - y.length!)
   if (intoFace) return [...screws].reverse().find((t) => t.length! <= thicknessA + thicknessB - ASSUMPTIONS.screws.faceMargin) ?? screws[0]
   return screws.find((t) => t.length! - thicknessA >= ASSUMPTIONS.screws.minPenetration) ?? screws.at(-1)
+}
+
+/** The catalog's hardware for a joint of `type` from a into b: a screw by the thicknesses, a pocket screw by a's, anything else the usual of its role. */
+export function hardwareFor(catalog: Catalog, type: JointType, a: Piece, b: Piece, boxes: Map<string, Box>, thicknesses: Map<string, number>): Joint['hardware'] {
+  const [ta, tb] = [thicknesses.get(a.id)!, thicknesses.get(b.id)!]
+  if (type === 'butt-screw') {
+    const contact = contactBetween(a.id, boxes.get(a.id)!, b.id, boxes.get(b.id)!)
+    const t = screwFor(catalog, ta, tb, !!contact && a.normal === contact.axis && b.normal === contact.axis)
+    return t ? [{ hardwareId: t.id, count: null }] : []
+  }
+  if (type === 'pocket-screw') return [{ hardwareId: pocketScrewId(ta), count: null }]
+  const role = JOINTS[type].hardware
+  const item = role && pickHardware(catalog, role)
+  return item ? [{ hardwareId: item.id, count: null }] : []
 }
 
 function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, number>, catalog: Catalog): Omit<Joint, 'id'> | null {

@@ -9,8 +9,13 @@ import { estimatePurchase } from '../../domain/materials/purchase'
 import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/materials/finishPurchase'
 import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } from '../../domain/materials/finishes'
 import type { DesignState } from '../../domain/session/state'
+import { EDGE_LABEL, profiledEdges } from '../../domain/design/edges'
+import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
+import { hasRouter } from '../../domain/materials/tools'
 import { Title } from '../system/components'
 import { Field, Input } from '../system/Field'
+import { HelpButton, HelpPanel, useHelp } from '../system/Help'
+import { TERMS } from '../glossary'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
@@ -145,31 +150,39 @@ function CutSettings({ base }: { base: LayoutSettings }) {
   const settings = useStore((s) => s.catalogSettings)
   const save = useStore((s) => s.saveCatalogSettings)
   const current = settings.layout ?? base
-  const fields: { key: keyof LayoutSettings; name: string; help: string }[] = [
-    { key: 'trim', name: 'Refilado', help: 'Canto de fábrica que se recorta por lado' },
-    { key: 'kerf', name: 'Corte', help: 'Lo que se come la sierra' },
-    { key: 'clearance', name: 'Holgura', help: 'Margen por pieza' },
-  ]
+  const help = useHelp<keyof LayoutSettings>()
+  const keys: (keyof LayoutSettings)[] = ['trim', 'kerf', 'clearance']
   return (
     <details className="text-sm">
       <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium focus-visible:outline-2 focus-visible:outline-amber">
         <Sliders /> Ajustes de corte
       </summary>
       <div className="mt-1 grid grid-cols-3 gap-2">
-        {fields.map((c) => (
-          <Field key={c.key} label={c.name}>
+        {keys.map((key) => (
+          <Field
+            key={key}
+            label={
+              <span className="flex items-center gap-0.5">
+                {TERMS[key].name} <HelpButton term={TERMS[key]} open={help.open === key} onToggle={() => help.toggle(key)} />
+              </span>
+            }
+          >
             <Input
               type="number"
               min={0}
               step={1}
               unit="mm"
-              title={c.help}
-              value={current[c.key]}
-              onChange={(e) => save({ ...settings, layout: { ...current, [c.key]: Math.max(0, Number(e.target.value)) } })}
+              value={current[key]}
+              onChange={(e) => save({ ...settings, layout: { ...current, [key]: Math.max(0, Number(e.target.value)) } })}
             />
           </Field>
         ))}
       </div>
+      {help.open && (
+        <div className="mt-2">
+          <HelpPanel term={TERMS[help.open]} onClose={help.close} />
+        </div>
+      )}
       {settings.layout && (
         <button type="button" className="mt-2 text-xs text-graphite-2 underline" onClick={() => save({ ...settings, layout: null })}>
           Volver a los valores del catálogo
@@ -183,8 +196,32 @@ const LAYER_NAME: Record<FinishLayer['role'], string> = { sealer: 'de sellador',
 const coatsOf = (layers: FinishLayer[]) =>
   layers.map((l) => (l.coats === null ? `la referencia no dice cuántas manos ${LAYER_NAME[l.role]}`.trim() : `${l.coats} ${l.coats === 1 ? 'mano' : 'manos'} ${LAYER_NAME[l.role]}`.trim())).join(' y ')
 
+/** The edges the person profiled in the piece sheet, with their length: what to do by hand and what to ask the lumberyard for. */
+function ProfiledEdges({ design, geo }: { design: Design; geo: Geometry }) {
+  const level = useStore((s) => s.catalogSettings.toolLevel)
+  const lines = profiledEdges(design, geo)
+  if (!lines.length) return null
+  const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
+  const toOrder = lines.some((l) => EDGE_PROFILES[l.profile].router) && !hasRouter(level)
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-sm font-medium">Perfil de los cantos</p>
+      <ul className="flex flex-col gap-1 text-xs text-graphite">
+        {lines.map((l) => (
+          <li key={`${l.piece}-${l.profile}`}>
+            <span className="font-medium text-graphite">{name(l.piece)}</span>: {l.edges.map((e) => EDGE_LABEL[e].toLowerCase()).join(', ')} · {EDGE_PROFILES[l.profile].name.toLowerCase()} ·{' '}
+            <span className="numerals">{meters(l.length)}</span>
+            {EDGE_PROFILES[l.profile].router && !hasRouter(level) && ' · pídelo en la maderería'}
+          </li>
+        ))}
+      </ul>
+      {toOrder && <p className="text-xs text-graphite-2">Sin router, la maderería puede rutear los cantos; lleva esta lista con las piezas.</p>}
+    </div>
+  )
+}
+
 /** The finish the person picks and what it takes: litres, containers and sandpaper. */
-function FinishSection({ design, finish, base }: { design: Design; finish: FinishPurchase | null; base: (id: string) => number | null }) {
+function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geometry; finish: FinishPurchase | null; base: (id: string) => number | null }) {
   const choose = useStore((s) => s.chooseFinish)
   const settings = useStore((s) => s.catalogSettings)
   const chosen = FINISHES[finishOf(design)]
@@ -206,6 +243,7 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
         ))}
       </div>
       <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
+      <ProfiledEdges design={design} geo={geo} />
       {finish && (
         <ul className="flex flex-col divide-y divide-line border-b border-line">
           <li className="py-3 text-xs leading-relaxed text-graphite">
@@ -371,7 +409,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         </ul>
       </section>
 
-      <FinishSection design={design} finish={purchase.finish} base={base} />
+      <FinishSection design={design} geo={geo} finish={purchase.finish} base={base} />
 
       <section className="-mx-4 flex flex-col">
         <Title className="px-4 text-lg">Lista de corte</Title>

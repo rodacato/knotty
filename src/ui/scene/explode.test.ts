@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
-import { EXAMPLES, exampleDesign } from '../../domain/furniture/examples'
+import { BASES, exampleDesign, exampleSideboard } from '../../domain/furniture/examples'
+import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
+import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
+import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildBed, type BedPlan } from '../../domain/furniture/modules/bed'
 import { explode, type Explosion } from './explode'
@@ -15,7 +18,6 @@ function boxesOf(design: Design) {
   return a.geo.boxes
 }
 
-const example = (name: string) => exampleDesign(EXAMPLES.find((e) => e.name === name)!, testCatalog).design
 const bed: BedPlan = {
   kind: 'bed',
   name: 'Cama individual con cajones',
@@ -25,7 +27,11 @@ const bed: BedPlan = {
   drawers: { side: 'both', count: 3, position: 'head' },
   headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 2 },
 }
-const designs: [string, Design][] = [...EXAMPLES.map((e) => [e.name, example(e.name)] as [string, Design]), ['Cama', buildBed(bed, testCatalog).design]]
+const designs: [string, Design][] = [
+  ...[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => [d.name, d] as [string, Design]),
+  ...BASES.map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
+  ['Cama', buildBed(bed, testCatalog).design],
+]
 
 const moved = (box: Box, [dx, dy, dz]: [number, number, number]): Box => ({ x0: box.x0 + dx, x1: box.x1 + dx, y0: box.y0 + dy, y1: box.y1 + dy, z0: box.z0 + dz, z1: box.z1 + dz })
 const center = (b: Box) => [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, (b.z0 + b.z1) / 2]
@@ -71,7 +77,7 @@ describe('explode', () => {
   })
 
   it('keeps a drawer front and a door in line with the opening they close, and brings them forward', () => {
-    const design = example('Aparador')
+    const design = exampleDesign(exampleSideboard, testCatalog).design
     const { e, boxes } = exploded(design)
     const door = design.pieces.find((p) => p.role === 'door')!
     const shelfBehind = design.pieces.find((p) => p.role === 'shelf' && p.id.startsWith(door.id.split('-door')[0]))!
@@ -86,7 +92,7 @@ describe('explode', () => {
   })
 
   it('opens the carcass: sides out along their thickness, the top up, the back backward', () => {
-    const design = example('Librero')
+    const design = exampleBookcase
     const { e } = exploded(design)
     const lift = e.offsets.get('bottom')![1]
     expect(e.offsets.get('side-left')![0]).toBeLessThan(0)

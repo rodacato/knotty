@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { FinishProductId } from './finishes'
 import { GRADE_IDS } from './grades'
+import { DEFAULT_TOOL_LEVEL, type ToolLevel } from './tools'
 import { cite, STRUCTURE, type Source } from '../sources'
 
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
@@ -140,15 +141,16 @@ export const usableSheet = (catalog: Catalog, material: BoardMaterial) => ({
   width: material.sheet.width - 2 * catalog.layout.trim,
 })
 
-/** What the person changes in the catalog on their device: their store's prices and cutting settings. */
+/** What the person sets on their device: their store's prices, cutting settings and the tools they have. */
 export interface CatalogSettings {
   prices: Record<string, number | null>
   layout: LayoutSettings | null
+  toolLevel: ToolLevel
 }
 
-export const NO_SETTINGS: CatalogSettings = { prices: {}, layout: null }
+export const NO_SETTINGS: CatalogSettings = { prices: {}, layout: null, toolLevel: DEFAULT_TOOL_LEVEL }
 
-export function applySettings(c: Catalog, a: CatalogSettings): Catalog {
+export function applySettings(c: Catalog, a: Pick<CatalogSettings, 'prices' | 'layout'>): Catalog {
   const priced = <T extends { id: string; price: number | null }>(x: T): T => (x.id in a.prices ? { ...x, price: a.prices[x.id] } : x)
   return { ...c, materials: c.materials.map(priced), hardware: c.hardware.map(priced), finishes: c.finishes.map(priced), layout: a.layout ?? c.layout }
 }

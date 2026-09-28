@@ -8,6 +8,7 @@ import { Button, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
+import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
 
 const PROVIDERS: Provider[] = ['simulated', 'anthropic', 'openai', 'shellm']
 
@@ -33,11 +34,15 @@ export function Settings() {
   const [saving, setSaving] = useState(false)
   const vault = useStore((s) => s.vault)
   const refreshVault = useStore((s) => s.refreshVault)
+  const catalogSettings = useStore((s) => s.catalogSettings)
+  const saveCatalogSettings = useStore((s) => s.saveCatalogSettings)
+  const [toolLevel, setToolLevel] = useState<ToolLevel>(catalogSettings.toolLevel)
 
   useEffect(() => {
     if (!open) return
     // oxlint-disable-next-line react/set-state-in-effect -- reloads saved preferences from storage each time the dialog opens or the vault changes
     setDraft(preferences.load())
+    setToolLevel(useStore.getState().catalogSettings.toolLevel)
     setPassphrase('')
     setError('')
   }, [open, preferences, vault])
@@ -64,6 +69,7 @@ export function Settings() {
   const save = async () => {
     setSaving(true)
     setError('')
+    if (toolLevel !== catalogSettings.toolLevel) saveCatalogSettings({ ...catalogSettings, toolLevel })
     try {
       await preferences.save(draft, passphrase)
       refreshVault()
@@ -189,6 +195,28 @@ export function Settings() {
               </fieldset>
             </div>
           )}
+
+          <fieldset className="flex flex-col gap-2 border-t border-line pt-4">
+            <legend className="mb-1.5 font-medium">¿Qué herramienta tienes?</legend>
+            <p className="-mt-1 text-xs text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
+            <div role="radiogroup" aria-label="Tu herramienta" className="grid gap-1.5">
+              {TOOL_LEVELS.map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  role="radio"
+                  aria-checked={toolLevel === level}
+                  onClick={() => setToolLevel(level)}
+                  className={`flex flex-col items-start rounded-xl border px-3 py-2 text-left text-sm transition ${toolLevel === level ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
+                >
+                  <span className="font-medium">
+                    {TOOL_LEVEL_LABELS[level].name} <span className="font-normal text-graphite-2">· nivel {level}</span>
+                  </span>
+                  <span className="text-xs text-graphite">{TOOL_LEVEL_LABELS[level].tools}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
           <label className="flex items-center gap-2 border-t border-line pt-3 text-xs text-graphite">
             <input

@@ -1,16 +1,21 @@
-import type { PieceEdit, PieceEditResult } from '../../application/useCases'
+import type { PieceEdit, PieceEditResult, WorkshopResult } from '../../application/useCases'
 import type { Notice } from '../../application/notices'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
 import type { Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import type { SavingSearch } from '../../domain/furniture/saving/saving'
+import { applySettings } from '../../domain/materials/catalog'
 import type { Axis } from '../../domain/design/schema'
 import type { FinishId } from '../../domain/materials/finishes'
+import type { EdgeProfileId } from '../../domain/materials/edgeProfiles'
+import type { ChoosableJoint, JointGroupId } from '../../domain/editing/joints/choice'
+import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
-import type { Get, Slice } from './types'
+import type { Get, Set, Slice } from './types'
 
 // The open design and the commands that change it without asking the expert.
 
@@ -41,6 +46,10 @@ export interface SessionSlice {
   removeDecision(topic: string): void
   /** Rebuilds the design from an edited plan; the result says why when it cannot be built. */
   applyPlan(plan: FurniturePlan): { ok: true; notes: string[] } | { ok: false; message: string }
+  /** Locks or frees a field of the plan for «Ahorrar material». */
+  lockField(key: string, locked: boolean): void
+  /** The ways to use fewer sheets on this plan, with the cutting settings of Materiales; null without a design. */
+  findSavings(plan: FurniturePlan): SavingSearch | null
   applyFix(fix: Fix): void
   /** Several solutions as one version; all or none, and the result says why when they do not fit together. */
   applyFixes(fixes: Fix[]): { ok: true } | { ok: false; message: string }
@@ -48,6 +57,9 @@ export interface SessionSlice {
   toggleTray(item: TrayItem): void
   acceptNotice(notice: Notice): void
   reopenNotice(notice: Notice): void
+  /** Sets an expert's question aside, or brings it back; it is not answered either way. */
+  dismissQuestion(notice: Notice): void
+  reopenQuestion(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
@@ -55,6 +67,10 @@ export interface SessionSlice {
   resizeFurniture(axis: Axis, value: number): PieceEditResult
   /** The finish picked in Materiales, as a version of its own. */
   chooseFinish(finish: FinishId): void
+  /** How a group of joints is made, as a version of its own; refused when the boards are too thin for it. */
+  chooseJoint(group: JointGroupId, type: ChoosableJoint): WorkshopResult
+  /** The profile of some edges of a piece; null leaves them straight. */
+  chooseEdgeProfiles(pieceId: string, edges: Edge[], profile: EdgeProfileId | null): WorkshopResult
   /** What the furniture is; `redo` when it is another module's and has to be designed again. */
   chooseKind(kind: DesignKind): { ok: true } | { ok: false; redo: true } | { ok: false; message: string }
 }
@@ -67,6 +83,13 @@ function withSession<R>(get: Get, command: (services: Services, state: DesignSta
 function withSession<R>(get: Get, command: (services: Services, state: DesignState) => R, closed?: R) {
   const { services, state } = get()
   return services && state ? command(services, state) : closed
+}
+
+/** A choice made by hand: when it made a version, the scene moves to it. */
+function shown(set: Set, get: Get, r: WorkshopResult): WorkshopResult {
+  const { services, state } = get()
+  if (r.ok && services && state && r.state !== state) moveTo(set, services, state, r.state, { viewedVersion: null })
+  return r
 }
 
 export const createSession: Slice<SessionSlice> = (set, get) => ({
@@ -129,6 +152,9 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   confirmPiece: (id) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.confirmPiece(state, id))),
   chooseFinish: (finish) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseFinish(state, finish))),
+  chooseJoint: (group, type) => withSession(get, (services, state) => shown(set, get, services.useCases.chooseJoint(state, group, type)), { ok: false as const, message: NO_DESIGN }),
+  chooseEdgeProfiles: (pieceId, edges, profile) =>
+    withSession(get, (services, state) => shown(set, get, services.useCases.chooseEdgeProfiles(state, pieceId, edges, profile)), { ok: false as const, message: NO_DESIGN }),
   chooseKind: (kind) =>
     withSession(
       get,
@@ -157,6 +183,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     ),
   acceptNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.acceptNotice(state, notice.findings, notice.title) })),
   reopenNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.reopenNotice(state, notice.findings) })),
+  dismissQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.dismissQuestion(state, notice.question.messageId, notice.question.index) })),
+  reopenQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.reopenQuestion(state, notice.question.messageId, notice.question.index) })),
 
   restoreFromVersion: (n, ids) =>
     withSession(
@@ -215,4 +243,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
       },
       { ok: false as const, message: NO_DESIGN },
     ),
+
+  lockField: (key, locked) => withSession(get, (services, state) => set({ state: services.useCases.lockField(state, key, locked) })),
+
+  findSavings: (plan) => withSession(get, (services, state) => services.useCases.findSavings(state, plan, applySettings(services.catalog, get().catalogSettings)), null),
 })

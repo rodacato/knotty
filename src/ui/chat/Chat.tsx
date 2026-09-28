@@ -192,9 +192,8 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             </div>
           </div>
         )}
+        {m.version && !pending && <ChangeList state={state} version={m.version} inBubble />}
       </div>
-
-      {m.version && !pending && <ChangeList state={state} version={m.version} />}
 
       <Questions m={m} state={state} hidden={proposalFixed ? m.solutions.map((s) => s.question) : []} />
     </div>
@@ -245,9 +244,9 @@ export function Chat({ state }: { state: DesignState }) {
         )}
       </div>
       {suggestions.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none]" aria-label="Sugerencias">
+        <div className="flex flex-wrap gap-2 px-4 pb-2" aria-label="Sugerencias">
           {suggestions.map((s) => (
-            <Chip key={s} className="shrink-0" onClick={() => void adjust(s)}>
+            <Chip key={s} className="max-w-full py-1.5 text-left" onClick={() => void adjust(s)}>
               {s}
             </Chip>
           ))}

@@ -186,6 +186,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     choice({
       key: 'use',
       label: 'Uso',
+      lockedByDefault: true,
       options: optionsOf(TABLE_LABELS.use),
       get: (p) => p.use,
       // Its name follows; only a desk keeps a pedestal, and a desk has no low shelf.
@@ -194,7 +195,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
   ]),
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.height', label: 'Alto', lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
       number({ key: 'dimensions.width', label: 'Largo', get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
       number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
