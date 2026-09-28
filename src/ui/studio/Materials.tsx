@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Check, Info, PencilSimple, Sliders } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Check, PencilSimple, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import type { Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
@@ -207,8 +207,8 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
       </div>
       <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
       {finish && (
-        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
-          <li className="px-4 py-3 text-xs leading-relaxed text-graphite">
+        <ul className="flex flex-col divide-y divide-line border-b border-line">
+          <li className="py-3 text-xs leading-relaxed text-graphite">
             <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no) y los cantos con cubrecanto. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
           </li>
           {finish.lines.map((l) => {
@@ -216,7 +216,7 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
             const { touch, recoat, use } = product.drying
             const drying = [touch && `tacto ${touch}`, recoat && `entre manos ${recoat}`, use && `uso ${use}`].filter(Boolean).join(' · ')
             return (
-              <li key={l.product} className="flex flex-col gap-2 px-4 py-3">
+              <li key={l.product} className="flex flex-col gap-2 py-3">
                 <div className="flex items-start gap-3">
                   <span className="numerals min-w-12 shrink-0 text-sm font-medium">{l.litres === null ? '¿?' : `${decimal(l.litres)} L`}</span>
                   <span className="min-w-0 flex-1">
@@ -243,7 +243,7 @@ function FinishSection({ design, finish, base }: { design: Design; finish: Finis
             )
           })}
           {finish.sandpaper.length > 0 && (
-            <li className="px-4 py-3 text-sm">
+            <li className="py-3 text-sm">
               Lija grano {finish.sandpaper.join(', ').replace(/, (\d+)$/, ' y $1')}
               <span className="block text-xs text-graphite">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
             </li>
@@ -264,10 +264,27 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const own = Object.keys(settings.prices).length
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
-  // The shopping list appears only after the review; if it is not viable, it has to be asked for on purpose.
+  const cost = (
+    <section className="flex flex-col gap-1 border-b border-line pb-4">
+      <p className="text-sm text-graphite-2">Costo aproximado</p>
+      <p className="font-display text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
+        <span className="text-graphite-2">~</span>
+        {weights.format(purchase.cost.total)}
+      </p>
+      {verdict && (
+        <p className="text-sm text-graphite-2">
+          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
+        </p>
+      )}
+      <p className="text-sm text-graphite">Precios de referencia, no una cotización.</p>
+    </section>
+  )
+
+  // The total shows before the review (UI-16); the shopping list only after it, and if it is not viable it has to be asked for on purpose.
   if (!verdict)
     return (
       <div className="flex flex-col gap-4 p-4">
+        {cost}
         <ReviewGate stale={state.review !== null} />
         <CutSettings base={catalog.layout} />
       </div>
@@ -275,6 +292,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   if (verdict.verdict === 'not-viable' && anyway !== verdict.signature)
     return (
       <div className="flex flex-col gap-4 p-4">
+        {cost}
         <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-graphite">
           Con estos problemas, lo que compres probablemente no sirva.{' '}
@@ -287,37 +305,21 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
     )
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-6 p-4">
+      {cost}
       <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
-      <section className="flex flex-col gap-2 rounded-2xl border border-line bg-bone p-4">
-        <p className="text-sm text-graphite-2">Costo aproximado</p>
-        <p className="font-display text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
-          <span className="text-graphite-2">~</span>
-          {weights.format(purchase.cost.total)}
-        </p>
-        <p className="text-sm text-graphite">
-          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
-        </p>
-        <div className="flex items-start gap-2 rounded-xl border border-line bg-kraft px-3 py-2 text-xs leading-relaxed">
-          <Info className="mt-0.5 shrink-0" weight="bold" />
-          <span>
-            <span className="font-medium">Precios de referencia, no una cotización.</span> {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
-            {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.
-            {purchase.cost.missingPrices.length > 0 && ` Sin precio: ${purchase.cost.missingPrices.join(', ')}.`}
-          </span>
-        </div>
-      </section>
 
       <section className="flex flex-col gap-3">
         <Title className="text-lg">Hojas de triplay</Title>
+        <div className="flex flex-col divide-y divide-line border-b border-line">
         {purchase.sheets.map((h) => {
           const a = purchase.layout.find((x) => x.material === h.material.id)!
           return (
-            <div key={h.material.id} className="@container flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4">
+            <div key={h.material.id} className="@container flex flex-col gap-3 py-3">
               <div className="flex flex-wrap items-start gap-3 @sm:flex-nowrap">
                 <span className="numerals grid size-10 shrink-0 place-items-center rounded-xl bg-graphite text-lg font-medium text-bone">{h.sheets}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">{h.material.name}</p>
+                  <p className="text-sm font-medium">{h.material.name}</p>
                   <p className="numerals text-xs text-graphite-2">
                     {meters(h.material.sheet.width)} × {meters(h.material.sheet.length)} · desperdicio {percent(h.waste)}
                   </p>
@@ -334,14 +336,20 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
             </div>
           )
         })}
+        </div>
+        <p className="text-xs leading-relaxed text-graphite">
+          {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
+          {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.
+          {purchase.cost.missingPrices.length > 0 && ` Sin precio: ${purchase.cost.missingPrices.join(', ')}.`}
+        </p>
         <CutSettings base={catalog.layout} />
       </section>
 
       <section className="flex flex-col gap-3">
         <Title className="text-lg">Herrajes y consumibles</Title>
-        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
+        <ul className="flex flex-col divide-y divide-line border-b border-line">
           {purchase.hardware.map((r) => (
-            <li key={r.hardware.id} className="flex items-center gap-3 px-4 py-3">
+            <li key={r.hardware.id} className="flex items-center gap-3 py-3">
               <span className="numerals min-w-12 shrink-0 text-sm font-medium">
                 {r.count}
                 {r.hardware.unit === 'meter' ? ' m' : ''}
