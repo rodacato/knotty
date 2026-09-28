@@ -10,8 +10,8 @@ const METAL = { color: '#a19e98', metalness: 0.75, roughness: 0.35 }
 /** The hinge arm, from the cup toward the side it is screwed to. */
 const ARM = { length: 45, width: 16, thickness: 10 }
 
-export function Hardware({ design, geo, offsets, selected }: { design: Design; geo: Geometry; offsets: Map<string, [number, number, number]>; selected: string | null }) {
-  const parts = useMemo(() => hardwareParts(design, geo.boxes), [design, geo])
+export function Hardware({ design, geo, offsets, selected, hidden }: { design: Design; geo: Geometry; offsets: Map<string, [number, number, number]>; selected: string | null; hidden: string[] }) {
+  const parts = useMemo(() => hardwareParts(design, geo.boxes).filter((part) => !hidden.includes(part.owner)), [design, geo, hidden])
   return (
     <group>
       {parts.map((part, i) => {

@@ -6,7 +6,7 @@ import type { Design } from '../../domain/design/schema'
 import type { Box, Geometry } from '../../domain/design/resolve'
 import { materialById, type Catalog } from '../../domain/materials/catalog'
 import { boardLook } from '../../domain/materials/grades'
-import { useStore, type View } from '../store'
+import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { assembled, explode } from './explode'
 import { Hardware } from './Hardware'
@@ -100,6 +100,9 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const changes = useStore((s) => s.changes)
   const reveal = useStore((s) => s.reveal)
   const select = useStore((s) => s.select)
+  const hiddenIds = useStore((s) => s.hidden)
+  const hidden = useMemo(() => hiddenIn(hiddenIds, design), [hiddenIds, design])
+  const shown = useMemo(() => design.pieces.filter((p) => !hidden.includes(p.id)), [design, hidden])
   const touch = useTouch()
   const reduced = useReducedMotion()
   const [quality, setQuality] = useState(!touch)
@@ -135,7 +138,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
       </Environment>
 
       <group position={[(-design.dimensions.width / 2) * MM, 0, (-design.dimensions.depth / 2) * MM]}>
-        {design.pieces.map((p) => (
+        {shown.map((p) => (
           <PieceMesh
             key={`${p.id}-${reveal}`}
             piece={p}
@@ -155,7 +158,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             onSelect={select}
           />
         ))}
-        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} />
+        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} hidden={hidden} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}
@@ -167,7 +170,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
         {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={dark} />}
-        {dimensions && exploded && <PieceMeasures design={design} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
+        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
       </group>
 
       <GroundShadow opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />

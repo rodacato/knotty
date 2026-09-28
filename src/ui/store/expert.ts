@@ -78,7 +78,7 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     try {
       const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set({ stage: { name, attempt, progress } }))
       if (!isCurrent()) return
-      set((s) => ({ state, phase: 'studio', stage: null, controller: null, draft: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+      set((s) => ({ state, phase: 'studio', stage: null, controller: null, draft: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
     } catch (e) {
       if (!isCurrent()) return
       const cancelled = controller.signal.aborted

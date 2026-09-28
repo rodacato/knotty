@@ -1,4 +1,4 @@
-import { ArrowRight, Lightning, PencilSimple, X } from '@phosphor-icons/react'
+import { ArrowRight, EyeSlash, Lightning, PencilSimple, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { Design } from '../../domain/design/schema'
 import { JOINTS } from '../../domain/design/jointSpecs'
@@ -16,6 +16,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
   const confirmPiece = useStore((s) => s.confirmPiece)
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
+  const hide = useStore((s) => s.hide)
   const thinking = useStore((s) => s.thinking)
   const [editing, setEditing] = useState(false)
   const p = design.pieces.find((x) => x.id === selection)
@@ -35,6 +36,9 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
               {material?.name ?? p.material} · Veta {GRAIN[p.grain]}
             </p>
           </div>
+          <Button variant="ghost" className="min-h-11 shrink-0 px-3" onClick={() => hide(p.id)}>
+            <EyeSlash /> Ocultar
+          </Button>
           <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 hover:bg-kraft">
             <X />
           </button>

@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, ClockCounterClockwise, Eye, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, ClockCounterClockwise, Eye, EyeSlash, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
@@ -12,7 +12,7 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button, Pencil } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { visibleDesign, useStore, type View } from '../store'
+import { hiddenIn, visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
@@ -192,6 +192,8 @@ export function Studio({ state }: { state: DesignState }) {
   const thinking = useStore((s) => s.thinking)
   const stage = useStore((s) => s.stage)
   const cancel = useStore((s) => s.cancel)
+  const hidden = hiddenIn(useStore((s) => s.hidden), shownDesign)
+  const showAll = useStore((s) => s.showAll)
 
   // What changes what you are looking at comes first: an old version, the expert at work, a proposal or preview; then problems, pieces to confirm, what the last change resolved.
   const statuses: Status[] = [
@@ -223,6 +225,21 @@ export function Studio({ state }: { state: DesignState }) {
             actions: (
               <button type="button" onClick={cancel} aria-label="Cancelar" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
                 <X />
+              </button>
+            ),
+          },
+        ]
+      : []),
+    // Hidden pieces change what you see as much as a proposal does, and the way back has to stay in sight.
+    ...(hidden.length > 0
+      ? [
+          {
+            key: 'hidden',
+            icon: <EyeSlash />,
+            label: hidden.length === 1 ? '1 pieza oculta' : `${hidden.length} piezas ocultas`,
+            actions: (
+              <button type="button" onClick={showAll} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
+                <Eye /> Mostrar todo
               </button>
             ),
           },
