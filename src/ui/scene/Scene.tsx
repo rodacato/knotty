@@ -1,13 +1,14 @@
 import { CameraControls, ContactShadows, Environment, Grid, Lightformer, PerformanceMonitor } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import type { Design } from '../../domain/design/schema'
-import type { Geometry } from '../../domain/design/resolve'
+import type { Box, Geometry } from '../../domain/design/resolve'
 import { materialById, type Catalog } from '../../domain/materials/catalog'
 import { boardLook } from '../../domain/materials/grades'
-import { useStore, type View } from '../store'
+import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
+import { assembled, explode } from './explode'
 import { Hardware } from './Hardware'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
@@ -16,6 +17,7 @@ import { RemovedGhost } from './RemovedGhost'
 import { useReducedMotion, useDark, useTouch } from './preferences'
 
 const MM = 0.001
+const FOV = 35
 
 interface SceneProps {
   design: Design
@@ -29,63 +31,64 @@ interface SceneProps {
   problems?: string[]
 }
 
-/** How far each piece moves apart in the assembly view: away from the center, mostly along its thickness, never below the floor. */
-function offsets(geo: Geometry, design: Design, active: boolean) {
-  const zero = new Map(design.pieces.map((p) => [p.id, [0, 0, 0] as [number, number, number]]))
-  if (!active) return { pushes: zero, height: design.dimensions.height * MM }
-  const { width, height, depth: background } = design.dimensions
-  const center = { x: width / 2, y: height / 2, z: background / 2 }
-  const scale = Math.max(width, background, height * 0.5)
-  // Drawers slide out whole towards the front, as if opened, instead of coming apart.
-  const drawers = new Map<string, number>()
-  for (const p of design.pieces)
-    if (p.group && p.role === 'drawer-side' && p.normal === 'x') {
-      const c = geo.boxes.get(p.id)!
-      const front = design.pieces.find((q) => q.group === p.group && q.role === 'drawer-front')
-      const f = front && geo.boxes.get(front.id)
-      // A drawer on the far side of a bed opens backward.
-      const direction = f && (f.z0 + f.z1) / 2 < (c.z0 + c.z1) / 2 ? -1 : 1
-      drawers.set(p.group, (c.z1 - c.z0) * 0.75 * direction)
-    }
-  const raw = design.pieces.map((p) => {
-    const c = geo.boxes.get(p.id)!
-    const output = p.group ? drawers.get(p.group) : undefined
-    if (output !== undefined) return { id: p.id, c, push: { x: 0, y: 0, z: output } }
-    const d = { x: (c.x0 + c.x1) / 2 - center.x, y: (c.y0 + c.y1) / 2 - center.y, z: (c.z0 + c.z1) / 2 - center.z }
-    const n = p.normal
-    const side = Math.sign(d[n]) || (n === 'z' ? -1 : 1)
-    const push = { x: d.x * 0.3, y: d.y * 0.18, z: d.z * 0.3 }
-    push[n] += side * scale * 0.22 + d[n] * (n === 'y' ? 0.25 : 0.35)
-    return { id: p.id, c, push }
-  })
-  const lift = Math.max(0, ...raw.map(({ c, push }) => -(c.y0 + push.y))) + (raw.some(({ c, push }) => c.y0 + push.y < 0) ? 20 : 0)
-  const pushes = new Map(raw.map(({ id, push }) => [id, [push.x * MM, (push.y + lift) * MM, push.z * MM] as [number, number, number]]))
-  const cap = Math.max(...raw.map(({ c, push }) => c.y1 + push.y + lift))
-  return { pushes, height: cap * MM }
+/** Runs once per frame, in the order it mounts among its siblings. */
+function EachFrame({ run }: { run: (state: RootState) => void }) {
+  useFrame(run)
+  return null
 }
 
-function CameraRig({ design, visibleHeight, reduced }: { design: Design; visibleHeight: number; reduced: boolean }) {
+// The shadow's blur pass draws a plane at the floor, which must be in front of its camera, and the grid must stay behind it or it shadows itself.
+const SHADOW_Y = -0.001
+const SHADOW_NEAR = 0.0005
+const GRID_Y = -0.00075
+
+/** The ground shadow, redrawn from scratch every frame; without clearing, every place a piece has been stays on the floor. */
+function GroundShadow(props: Omit<ComponentProps<typeof ContactShadows>, 'position' | 'near'>) {
+  const saved = useRef(true)
+  // The effect composer keeps autoClear off while mounted, and ContactShadows needs it to clear its target; subscribers of one priority run in mount order.
+  return (
+    <>
+      <EachFrame
+        run={({ gl }) => {
+          saved.current = gl.autoClear
+          gl.autoClear = true
+        }}
+      />
+      <ContactShadows position={[0, SHADOW_Y, 0]} near={SHADOW_NEAR} {...props} />
+      <EachFrame run={({ gl }) => void (gl.autoClear = saved.current)} />
+    </>
+  )
+}
+
+/** Directions the camera looks from, toward the middle of what is shown. */
+const VIEWPOINTS: Record<View, [number, number, number]> = {
+  front: [0, 0.12, 1],
+  side: [1, 0.12, 0],
+  'three-quarter': [0.62, 0.48, 0.72],
+  top: [0, 1, 0.001],
+}
+
+/** Frames the box around what is shown, assembled or apart, from the chosen view. */
+function CameraRig({ frame, reduced }: { frame: Box; reduced: boolean }) {
   const controls = useRef<CameraControls>(null)
   const view = useStore((s) => s.view)
-  const exploded = useStore((s) => s.exploded)
-  const { width, height, depth: background } = design.dimensions
+  const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height))
+  const { x0, x1, y0, y1, z0, z1 } = frame
 
   useEffect(() => {
     const c = controls.current
     if (!c) return
-    const a = width * MM
-    const h = visibleHeight
-    const f = background * MM
-    const d = Math.max(a * (exploded ? 1.5 : 1), h, f * (exploded ? 1.5 : 1)) * 1.7 + 0.4
-    const positions: Record<View, [number, number, number]> = {
-      front: [0, h / 2, d + f / 2],
-      side: [d + a / 2, h / 2, 0],
-      'three-quarter': [d * 0.72, h * 0.7 + d * 0.28, d * 0.82],
-      top: [0, d + h, 0.001],
-    }
-    const [x, y, z] = positions[view.name]
-    void c.setLookAt(x, y, z, 0, h / 2, 0, !reduced)
-  }, [view, width, height, background, exploded, visibleHeight, reduced])
+    const [a, h, f] = [(x1 - x0) * MM, (y1 - y0) * MM, (z1 - z0) * MM]
+    const radius = Math.hypot(a, h, f) / 2
+    const vertical = (FOV * Math.PI) / 180
+    const narrowest = Math.min(vertical, 2 * Math.atan(Math.tan(vertical / 2) * aspect))
+    const d = (radius / Math.sin(narrowest / 2)) * 1.1 + 0.15
+    // Aimed a little above the middle, so the scene bar over the top of the 3D does not cover it.
+    const target = [((x0 + x1) / 2) * MM, ((y0 + y1) / 2) * MM + d * Math.tan(vertical / 2) * 0.12, ((z0 + z1) / 2) * MM]
+    const [dx, dy, dz] = VIEWPOINTS[view.name]
+    const n = Math.hypot(dx, dy, dz)
+    void c.setLookAt(target[0] + (dx / n) * d, target[1] + (dy / n) * d, target[2] + (dz / n) * d, target[0], target[1], target[2], !reduced)
+  }, [view, x0, x1, y0, y1, z0, z1, aspect, reduced])
 
   return <CameraControls ref={controls} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
 }
@@ -97,12 +100,22 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const changes = useStore((s) => s.changes)
   const reveal = useStore((s) => s.reveal)
   const select = useStore((s) => s.select)
+  const hiddenIds = useStore((s) => s.hidden)
+  const hidden = useMemo(() => hiddenIn(hiddenIds, design), [hiddenIds, design])
+  const shown = useMemo(() => design.pieces.filter((p) => !hidden.includes(p.id)), [design, hidden])
   const touch = useTouch()
   const reduced = useReducedMotion()
   const [quality, setQuality] = useState(!touch)
   const dark = useDark()
 
-  const { pushes, height: visibleHeight } = useMemo(() => offsets(geo, design, exploded), [geo, design, exploded])
+  const explosion = useMemo(() => (exploded ? explode : assembled)(design, geo.boxes), [geo, design, exploded])
+  const { width, depth } = design.dimensions
+  // The furniture group is centered on the origin, so the camera frames the same box shifted with it.
+  const frame = useMemo(() => {
+    const b = explosion.bounds
+    return { ...b, x0: b.x0 - width / 2, x1: b.x1 - width / 2, z0: b.z0 - depth / 2, z1: b.z1 - depth / 2 }
+  }, [explosion, width, depth])
+  const pushes = useMemo(() => new Map([...explosion.offsets].map(([id, [x, y, z]]) => [id, [x * MM, y * MM, z * MM] as [number, number, number]])), [explosion])
   // A material not in the catalog is drawn as the usual board: pine plywood of 18 mm.
   const lookOf = (material: string) => {
     const board = materialById(catalog, material)
@@ -111,9 +124,9 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
-    <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: 35, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
+    <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: FOV, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
       <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
-      <CameraRig design={design} visibleHeight={visibleHeight} reduced={reduced} />
+      <CameraRig frame={frame} reduced={reduced} />
       <hemisphereLight args={[dark ? '#6b5f52' : '#fff6e8', dark ? '#1a1612' : '#b89a78', dark ? 0.5 : 0.8]} />
       <directionalLight position={[2.5, 4.5, 3.2]} intensity={dark ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
@@ -125,7 +138,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
       </Environment>
 
       <group position={[(-design.dimensions.width / 2) * MM, 0, (-design.dimensions.depth / 2) * MM]}>
-        {design.pieces.map((p) => (
+        {shown.map((p) => (
           <PieceMesh
             key={`${p.id}-${reveal}`}
             piece={p}
@@ -145,7 +158,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             onSelect={select}
           />
         ))}
-        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} />
+        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} hidden={hidden} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}
@@ -157,12 +170,12 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
         {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={dark} />}
-        {dimensions && exploded && <PieceMeasures design={design} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
+        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
       </group>
 
-      <ContactShadows position={[0, 0.0005, 0]} opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
+      <GroundShadow opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
       <Grid
-        position={[0, 0, 0]}
+        position={[0, GRID_Y, 0]}
         args={[20, 20]}
         cellSize={0.1}
         cellThickness={0.6}

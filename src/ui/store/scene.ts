@@ -20,6 +20,8 @@ export interface SceneChanges {
 
 export interface SceneSlice {
   selection: string | null
+  /** Pieces the person hid to see behind them: view only, never saved into the design or its history. */
+  hidden: string[]
   exploded: boolean
   dimensions: boolean
   view: { name: View; nonce: number }
@@ -34,6 +36,8 @@ export interface SceneSlice {
   preview: { design: Design; label: string } | null
 
   select(id: string | null): void
+  hide(id: string): void
+  showAll(): void
   toggleExploded(): void
   toggleDimensions(): void
   viewFrom(view: View): void
@@ -41,6 +45,9 @@ export interface SceneSlice {
   viewVersion(n: number | null): void
   previewFix(fix: Fix | null): void
 }
+
+/** The hidden pieces this design still has: an id a change removed no longer counts. */
+export const hiddenIn = (hidden: string[], design: Design) => hidden.filter((id) => design.pieces.some((p) => p.id === id))
 
 export const shownDesign = (e: DesignState) => e.proposal?.design ?? currentDesign(e)
 
@@ -73,6 +80,7 @@ export function moveTo(set: Set, services: Services, before: DesignState, after:
 
 export const createScene: Slice<SceneSlice> = (set, get) => ({
   selection: null,
+  hidden: [],
   exploded: false,
   dimensions: true,
   view: { name: 'three-quarter', nonce: 0 },
@@ -83,7 +91,10 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   preview: null,
 
   select: (id) => set((s) => ({ selection: s.selection === id ? null : id })),
-  toggleExploded: () => set((s) => ({ exploded: !s.exploded })),
+  hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
+  showAll: () => set({ hidden: [] }),
+  // Apart, the pieces read best from the front three-quarter view, as in assembly instructions.
+  toggleExploded: () => set((s) => (s.exploded ? { exploded: false } : { exploded: true, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 

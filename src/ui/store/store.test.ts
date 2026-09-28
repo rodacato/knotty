@@ -8,7 +8,7 @@ import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { DebugEvent, DebugLog } from '../../ports/DebugLog'
 import { instrumentStore } from '../debug/instrument'
 import type { Services } from '../services'
-import { useStore } from '.'
+import { hiddenIn, useStore } from '.'
 
 // The store composed from its slices, driven with the simulated expert and in-memory adapters.
 
@@ -46,7 +46,7 @@ describe('store', () => {
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
-      'select', 'toggleExploded', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      'select', 'hide', 'showAll', 'toggleExploded', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
       // settings
       'openSettings', 'unlock', 'forgetKeys', 'switchToSimulated', 'closeGate', 'refreshVault', 'saveCatalogSettings',
     ] as const
@@ -89,6 +89,41 @@ describe('store', () => {
     expect(s.state!.chat.some((m) => m.id === 'pending')).toBe(false)
     expect(s.changes.nonce).toBe(1)
     expect(currentDesign(s.state!).name).toBe(exampleBookcase.name)
+  })
+
+  it('coming apart turns the camera to the front three-quarter view; going back together leaves the view', () => {
+    const s = useStore.getState()
+    s.viewFrom('front')
+    s.toggleExploded()
+    expect(useStore.getState()).toMatchObject({ exploded: true, view: { name: 'three-quarter' } })
+    useStore.getState().viewFrom('side')
+    useStore.getState().toggleExploded()
+    expect(useStore.getState()).toMatchObject({ exploded: false, view: { name: 'side' } })
+  })
+
+  it('hides a piece without touching the design, and shows them all again', () => {
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    const before = useStore.getState().state
+    useStore.getState().select('shelf-1')
+    useStore.getState().hide('shelf-1')
+    useStore.getState().hide('shelf-1')
+    useStore.getState().hide('back')
+    let s = useStore.getState()
+    expect(s.hidden).toEqual(['shelf-1', 'back'])
+    expect(s.selection).toBeNull()
+    expect(s.state).toBe(before)
+    expect(currentDesign(s.state!).pieces.map((p) => p.id)).toContain('shelf-1')
+    s.showAll()
+    expect(useStore.getState().hidden).toEqual([])
+    s = useStore.getState()
+    s.hide('top')
+    s.fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    expect(useStore.getState().hidden).toEqual([])
+  })
+
+  it('a hidden piece a change removed no longer counts', () => {
+    const withoutShelf = { ...exampleBookcase, pieces: exampleBookcase.pieces.filter((p) => p.id !== 'shelf-4') }
+    expect(hiddenIn(['shelf-4', 'top'], withoutShelf)).toEqual(['top'])
   })
 
   it('the debug log wraps actions by name without changing what they do', () => {
