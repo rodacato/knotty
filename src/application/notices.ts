@@ -38,6 +38,15 @@ export interface NoticeBoard {
 
 const RANK = { critical: 0, decision: 1, recommendation: 2, detail: 3 }
 
+const sameFor = (others: number) => (others > 0 ? ` Y ${others === 1 ? 'otra pieza' : `${others} piezas más`} igual.` : '')
+
+/** Several pieces with the same problem read as one sentence: the first one's, plus how many more. */
+function groupedMessages(problems: { code: string; message: string }[]): string[] {
+  const groups = new Map<string, string[]>()
+  for (const p of problems) groups.set(p.code, [...(groups.get(p.code) ?? []), p.message])
+  return [...groups.values()].map((messages) => `${messages[0]}${sameFor(messages.length - 1)}`)
+}
+
 /** Findings of the same rule and severity read as one notice, with all their pieces. */
 function findingNotices(findings: Finding[]): Notice[] {
   const groups = new Map<string, Finding[]>()
@@ -49,7 +58,7 @@ function findingNotices(findings: Finding[]): Notice[] {
       kind: 'finding',
       severity: first.severity,
       title: ruleTitle(first.code),
-      message: `${first.message}${group.length > 1 ? ` Y ${group.length - 1 === 1 ? 'otra pieza' : `${group.length - 1} piezas más`} igual.` : ''}`,
+      message: `${first.message}${sameFor(group.length - 1)}`,
       pieces: [...new Set(group.flatMap((h) => h.pieces))],
       findings: group,
     }
@@ -93,7 +102,7 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
       kind: 'proposal',
       severity: 'decision',
       title: 'Propuesta del experto sin aplicar',
-      message: [...state.proposal.holds, ...state.proposal.critical.map((c) => c.message)].join(' ') || state.proposal.summary,
+      message: [...state.proposal.holds, ...groupedMessages(state.proposal.critical)].join(' ') || state.proposal.summary,
       pieces: state.proposal.critical.flatMap((c) => c.pieces),
       findings: [],
     })

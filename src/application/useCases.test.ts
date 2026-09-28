@@ -1112,6 +1112,17 @@ describe('trust: nothing structural goes unasked, and any change can be undone i
 describe('notices: one place for what waits for a decision', () => {
   const wide = { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1100 } }
 
+  it('a pending proposal counts the pieces that share a problem instead of repeating the sentence', async () => {
+    const c = setup()
+    const proposed = await c.adjust(await initialBookcase(c), 'Hazlo de 90 cm de ancho para mi espacio', newSignal())
+    const sagging = proposed.proposal!.critical.filter((x) => x.code === 'R1_SAG')
+    expect(sagging.length).toBeGreaterThan(1)
+
+    const notice = noticeBoard(proposed, testCatalog).pending.find((n) => n.kind === 'proposal')!
+    expect(notice.message).toContain(`${sagging[0].message} Y ${sagging.length - 1 === 1 ? 'otra pieza' : `${sagging.length - 1} piezas más`} igual.`)
+    expect(notice.message).not.toContain(sagging[1].message)
+  })
+
   it('a finding is pending until it is fixed by Knotty (and then shows as resolved) or accepted as it is', () => {
     const c = setup()
     const initial = c.fromExample(wide)
