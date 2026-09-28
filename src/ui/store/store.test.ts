@@ -91,6 +91,16 @@ describe('store', () => {
     expect(currentDesign(s.state!).name).toBe(exampleBookcase.name)
   })
 
+  it('coming apart turns the camera to the front three-quarter view; going back together leaves the view', () => {
+    const s = useStore.getState()
+    s.viewFrom('front')
+    s.toggleExploded()
+    expect(useStore.getState()).toMatchObject({ exploded: true, view: { name: 'three-quarter' } })
+    useStore.getState().viewFrom('side')
+    useStore.getState().toggleExploded()
+    expect(useStore.getState()).toMatchObject({ exploded: false, view: { name: 'side' } })
+  })
+
   it('the debug log wraps actions by name without changing what they do', () => {
     const events: Omit<DebugEvent, 'at'>[] = []
     const stop = instrumentStore({ record: (e: Omit<DebugEvent, 'at'>) => events.push(e) } as unknown as DebugLog)

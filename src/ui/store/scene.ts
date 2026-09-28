@@ -83,7 +83,8 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   preview: null,
 
   select: (id) => set((s) => ({ selection: s.selection === id ? null : id })),
-  toggleExploded: () => set((s) => ({ exploded: !s.exploded })),
+  // Apart, the pieces read best from the front three-quarter view, as in assembly instructions.
+  toggleExploded: () => set((s) => (s.exploded ? { exploded: false } : { exploded: true, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 
