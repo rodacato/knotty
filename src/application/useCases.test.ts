@@ -1190,6 +1190,15 @@ describe('notices: one place for what waits for a decision', () => {
     expect(verdict.checks.find((x) => x.id === 'accepted')?.detail).toBe('Lo dejaste así, bajo tu riesgo: Riesgo de vuelco.')
   })
 
+  it('a recommendation left as it is was optional, so the verdict does not call it a risk', async () => {
+    const c = setup()
+    const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })
+    const recommendation = noticeBoard(initial, testCatalog).recommendations.find((n) => n.title === 'Uso del mueble')!
+    const left = c.acceptNotice(initial, recommendation.findings, recommendation.title)
+    const verdict = await c.reviewPurchase(left, testCatalog, newSignal())
+    expect(verdict.checks.find((x) => x.id === 'accepted')).toBeUndefined()
+  })
+
   it('two checks of one rule on the same pieces are accepted apart: leaving the wall cabinet unanchored does not drop its hanging rail', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleWallCabinet, wallAnchored: false })

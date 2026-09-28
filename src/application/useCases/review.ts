@@ -52,7 +52,7 @@ export function createReview(kit: Kit) {
       purchase: purchase,
       findings: analysis.findings.filter((h) => !isAccepted(h, state.accepted)),
       unmet: unmet,
-      accepted: analysis.findings.flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
+      accepted: analysis.findings.filter((h) => h.severity === 'critical').flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
     })
     const base = { signature: reviewSignature(state, effectiveCatalog), checks: viability.checks, date: now() }
     try {
