@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Minus, Plus, Swap } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, CaretRight, Minus, Plus, Swap } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { describeChange } from '../../domain/editing/changes/changes'
 import type { DesignState } from '../../domain/session/state'
@@ -27,11 +27,12 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
   const count = change.direct.length + (change.dimensions ? 1 : 0)
 
   return (
-    <details className="rounded-2xl border border-line bg-bone/70 px-3 py-2 text-sm">
-      <summary className="cursor-pointer text-xs text-graphite-2">
+    <details className="group text-sm">
+      <summary className="-my-2 flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-graphite focus-visible:outline-2 focus-visible:outline-amber [&::-webkit-details-marker]:hidden">
+        <CaretRight className="shrink-0 text-graphite-2 transition group-open:rotate-90" />
         Qué cambió ({count}){change.followed.length ? ` · ${change.followed.length} ${change.followed.length === 1 ? 'pieza se ajustó sola' : 'piezas se ajustaron solas'}` : ''}
       </summary>
-      <ul className="mt-2 flex flex-col gap-1">
+      <ul className="mt-2 flex flex-col gap-1 pl-6">
         {change.dimensions && <li className="text-xs">Medidas del mueble: {change.dimensions}</li>}
         {change.direct.map((c) => (
           <li key={c.id} className="flex items-center gap-2">
@@ -46,10 +47,10 @@ export function ChangeList({ state, version }: { state: DesignState; version: nu
           </li>
         ))}
       </ul>
-      <button type="button" disabled={thinking} onClick={() => run(undo(version))} className="mt-2 flex items-center gap-1 text-xs font-medium underline disabled:opacity-40">
+      <button type="button" disabled={thinking} onClick={() => run(undo(version))} className="mt-2 ml-6 flex items-center gap-1 text-xs font-medium underline disabled:opacity-40">
         <ArrowCounterClockwise /> Deshacer este cambio
       </button>
-      {error && <p className="mt-1 text-xs text-rust">{error}</p>}
+      {error && <p className="mt-1 pl-6 text-xs text-rust">{error}</p>}
     </details>
   )
 }
