@@ -30,7 +30,7 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
 
   return (
     <form
-      className="flex flex-col gap-3 rounded-2xl border border-line bg-bone p-4 text-sm"
+      className="flex flex-col gap-3 text-sm"
       onSubmit={(e) => {
         e.preventDefault()
         void setOpen()
