@@ -61,8 +61,15 @@
 
 ## 7. Studio target fidelity
 
-**Status:** landed (#123–#128) — `UI-2` (part), `UI-11`, `UI-12`, `UI-14` (part), `UI-16`
+**Status:** landed (#123–#128, #131, #132) — `UI-2`, `UI-11`, `UI-12`, `UI-14`, `UI-16`
 
 - Landed: "Nuevo diseño" as a ghost (#123); History as a flat list with "Volver a esta" visible (#124); Notices without a bordered button inside a way (#125); the tray on one line and a pending proposal inside the expert's message (#126); the cost first in Materials, lists with dividers instead of cards, the piece's edit form under its title (#127); proposal notices grouped (#128).
 - Icons stay as the code has them: the exports draw outline icons and a wrench because Pencil's Phosphor set has no fill weight and no hammer (`design/README.md`).
-- Open, each a decision: K4 against the mobile export's icon-only header; the critical-notice export's per-way buttons against one "Resolver N"; the empty memory bar and the suggestions row on mobile (UI-14); `ChangeList` still boxed and the expert's log under History; the review gate's check list, the sheet diagrams and the desktop cm line, which the exports leave out.
+- Decided 2026-09-28 (Adrian), and where each landed:
+  - K4: on a phone the header stays icons with accessible names; the rule holds for content.
+  - Notices: one grammar, radio ways and "Resolver N"; `flows/studio.pen` redraws Notices / Critical that way.
+  - UI-14: the suggestions hide while the tray has something; the memory bar stays (#132).
+  - History: the "Bitácora" stays; "Qué cambió" is a flat line in chat and History (#132).
+  - Materials: the review gate's check list and the sheet diagrams stay as the app draws them; the desktop edit fields carry mm only.
+  - Hidden pieces take the status chip ahead of a proposal (#131).
+- UI-2 closes in #132 (8 `rounded-2xl` left, none nested); UI-10's icon is fixed, its debug section is still open.

@@ -1996,12 +1996,36 @@
                       "id": "WeEaO",
                       "name": "Triplay de pino 18 mm · ",
                       "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
                       "content": "Triplay de pino 18 mm · Veta a lo largo",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
                     }
                   ]
+                },
+                {
+                  "id": "UoVf0",
+                  "type": "ref",
+                  "ref": "v808wd",
+                  "name": "Ocultar",
+                  "height": 44,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "descendants": {
+                    "x9zoX": {
+                      "enabled": true,
+                      "icon": "eye-slash",
+                      "width": 16,
+                      "height": 16
+                    },
+                    "u7yM9": {
+                      "content": "Ocultar"
+                    }
+                  }
                 },
                 {
                   "type": "frame",
@@ -4334,195 +4358,347 @@
                 },
                 {
                   "type": "frame",
-                  "id": "z05Ys",
-                  "name": "Instant fix",
+                  "id": "DULDk",
+                  "name": "Ways",
                   "width": "fill_container",
-                  "stroke": "$line",
-                  "strokeWidth": {
-                    "top": 1
-                  },
                   "layout": "vertical",
-                  "gap": 8,
-                  "padding": [
-                    10,
-                    0,
-                    0,
-                    0
-                  ],
+                  "gap": 6,
                   "children": [
                     {
                       "type": "frame",
-                      "id": "fpCje",
-                      "name": "Label",
-                      "gap": 6,
+                      "id": "g3rFMC",
+                      "name": "Al instante",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$graphite",
+                      "strokeWidth": 1.5,
+                      "gap": 10,
+                      "padding": [
+                        8,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "z7oXy",
+                          "name": "Radio",
+                          "width": 18,
+                          "height": 18,
+                          "cornerRadius": "$radius-full",
+                          "stroke": "$graphite",
+                          "strokeWidth": 1.5,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "S2oRU",
+                              "name": "Dot",
+                              "fill": "$graphite",
+                              "width": 8,
+                              "height": 8
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wLeeI",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "l3H4i",
+                              "name": "Caption",
+                              "gap": 5,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "PgdXQ",
+                                  "name": "lightning",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "lightning",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "c9avG7",
+                                  "name": "Al instante",
+                                  "fill": "$graphite",
+                                  "content": "Al instante",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "rJaw7",
+                              "name": "Un apoyo al centro, deba",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Un apoyo al centro, debajo de cada una (5 piezas)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ALx7m",
+                      "name": "A la bandeja, para el experto",
+                      "width": "fill_container",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "gap": 10,
+                      "padding": [
+                        8,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "s1rRkj",
+                          "name": "Radio",
+                          "width": 18,
+                          "height": 18,
+                          "cornerRadius": "$radius-full",
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.5,
+                          "justifyContent": "center",
+                          "alignItems": "center"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "nZ8l6",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "D5e21",
+                              "name": "Caption",
+                              "gap": 5,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "w8ydM",
+                                  "name": "tray",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "tray",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "S0t4fq",
+                                  "name": "A la bandeja, para el ex",
+                                  "fill": "$graphite",
+                                  "content": "A la bandeja, para el experto",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "IcNcX",
+                              "name": "Que el experto decida",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Que el experto decida",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "HFot4",
+                      "name": "Aceptar así, bajo mi riesgo",
+                      "width": "fill_container",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "gap": 10,
+                      "padding": [
+                        8,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hqOkL",
+                          "name": "Radio",
+                          "width": 18,
+                          "height": 18,
+                          "cornerRadius": "$radius-full",
+                          "stroke": "$graphite-2",
+                          "strokeWidth": 1.5,
+                          "justifyContent": "center",
+                          "alignItems": "center"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "DRgJq",
+                          "name": "Text",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 1,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "mDxt3",
+                              "name": "Caption",
+                              "gap": 5,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "E2fqky",
+                                  "name": "Aceptar así, bajo mi rie",
+                                  "fill": "$graphite",
+                                  "content": "Aceptar así, bajo mi riesgo",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WNmNo",
+              "name": "Resolve bar",
+              "width": "fill_container",
+              "fill": "$paper",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                10,
+                16,
+                12,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Dzn90",
+                  "name": "Summary",
+                  "gap": 14,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nbHBg",
+                      "name": "1 al instante",
+                      "gap": 5,
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "icon",
-                          "id": "Z7lxUS",
+                          "id": "JBFeq",
                           "name": "lightning",
-                          "width": 14,
-                          "height": 14,
+                          "width": 13,
+                          "height": 13,
                           "icon": "lightning",
                           "library": "phosphor",
                           "fill": "$graphite"
                         },
                         {
                           "type": "text",
-                          "id": "mesIz",
-                          "name": "Al instante",
-                          "fill": "$graphite",
-                          "content": "Al instante",
+                          "id": "vFqg8",
+                          "name": "1 al instante",
+                          "fill": "$graphite-2",
+                          "content": "1 al instante",
                           "fontFamily": "$font-sans",
                           "fontSize": 12,
-                          "fontWeight": "600"
+                          "fontWeight": "normal"
                         }
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "mHPiq",
-                      "name": "Un apoyo al centro, deba",
-                      "fill": "$graphite",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Un apoyo al centro, debajo de cada una (5 piezas)",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    },
-                    {
                       "type": "frame",
-                      "id": "d1Ado",
-                      "name": "Actions",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "id": "q5Dzz",
-                          "type": "ref",
-                          "ref": "YWzaw",
-                          "name": "Ver",
-                          "height": 36,
-                          "width": "fill_container",
-                          "descendants": {
-                            "Ks4jq": {
-                              "icon": "eye"
-                            },
-                            "B1O4O": {
-                              "content": "Ver",
-                              "fontSize": 13
-                            }
-                          }
-                        },
-                        {
-                          "id": "d1ChZq",
-                          "type": "ref",
-                          "ref": "qTkhL",
-                          "name": "Aplicar",
-                          "height": 36,
-                          "width": "fill_container",
-                          "descendants": {
-                            "uBIcr": {
-                              "enabled": true,
-                              "icon": "lightning"
-                            },
-                            "eeaCW": {
-                              "content": "Aplicar",
-                              "fontSize": 13
-                            },
-                            "bWG6r": {
-                              "enabled": false
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "hkBKG",
-                  "name": "To the expert",
-                  "width": "fill_container",
-                  "stroke": "$line",
-                  "strokeWidth": {
-                    "top": 1
-                  },
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": [
-                    10,
-                    0,
-                    0,
-                    0
-                  ],
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "wCKwP",
-                      "name": "Label",
-                      "gap": 6,
+                      "id": "ONGiO",
+                      "x": 99,
+                      "y": 0,
+                      "name": "1 al experto",
+                      "enabled": false,
+                      "gap": 5,
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "icon",
-                          "id": "r8vbe",
+                          "id": "asXES",
                           "name": "tray",
-                          "width": 14,
-                          "height": 14,
+                          "width": 13,
+                          "height": 13,
                           "icon": "tray",
                           "library": "phosphor",
                           "fill": "$graphite"
                         },
                         {
                           "type": "text",
-                          "id": "IwRAu",
-                          "name": "A la bandeja, para el ex",
-                          "fill": "$graphite",
-                          "content": "A la bandeja, para el experto",
+                          "id": "UYPy4",
+                          "name": "1 al experto",
+                          "fill": "$graphite-2",
+                          "content": "1 al experto",
                           "fontFamily": "$font-sans",
                           "fontSize": 12,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "hJaEm",
-                      "name": "Chips",
-                      "gap": 8,
-                      "alignItems": "center",
-                      "children": [
-                        {
-                          "id": "y1sJaG",
-                          "type": "ref",
-                          "ref": "H3gc82",
-                          "name": "Que el experto decida",
-                          "descendants": {
-                            "T6qOPu": {
-                              "content": "Que el experto decida"
-                            }
-                          }
+                          "fontWeight": "normal"
                         }
                       ]
                     }
                   ]
                 },
                 {
-                  "id": "R6QWDQ",
+                  "id": "xwoyI",
                   "type": "ref",
-                  "ref": "YWzaw",
-                  "name": "Aceptar así, bajo mi riesgo",
+                  "ref": "qTkhL",
+                  "name": "Resolver 1",
                   "width": "fill_container",
-                  "height": 40,
+                  "height": 44,
                   "descendants": {
-                    "Ks4jq": {
-                      "enabled": false
+                    "eeaCW": {
+                      "content": "Resolver 1"
                     },
-                    "B1O4O": {
-                      "content": "Aceptar así, bajo mi riesgo",
-                      "fontSize": 13
+                    "bWG6r": {
+                      "enabled": false
                     }
                   }
                 }
@@ -5355,7 +5531,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe furniture is the interface (D38): the 3D is never covered, and every action says whether it happens now or goes to the expert.\n2. ENTRY POINTS\nAfter Capture (flows/capture.pen), or an example from Home.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — one-row scene bar with \"Armado\" labeled (UI-5); \"+\" is a quiet ghost next to settings (UI-11)\n- Piece / Selected — the piece replaces the panel, like Notices and History already do; the 3D stays whole (B-2, the rule in Studio.tsx:146)\n- Conversation / Thinking\n- Conversation / Proposal pending — one status chip over the 3D (UI-5); the instant fix is the primary action; \"Aplicar así, bajo mi riesgo\" is a visible secondary button (UI-6, UI-17)\n- Notices / Critical — ⚡ Al instante vs tray A la bandeja: one grammar (UI-6); no card inside a card, no uppercase labels (UI-2)\n- Conversation / Tray — the tray is one line, the chat stays readable (UI-14)\n- Notices / Several, after choosing — nothing comes pre-checked; each notice picks its way; one \"Resolver N\" applies the ⚡ ones now (one version) and sends the rest to the expert in one request (UI-15)\n- Materials / Expert working in the background — nothing is disabled; a global indicator with the real stage and Cancel sits over the 3D (UI-15)\n- Materials / Expert answered — a count on Conversación and \"Resuelto: …\" over the 3D (UI-18)\n- Materials screens show the estimated cost before the review; the list stays behind it (UI-16, D30 holds). \"~$3,165\" is from the v2 capture (300 mm deep)\n4. BUSINESS RULES\nUnchanged: D4, D30, D34, D36, D37.\n5. COPY SOURCE\nsrc/ui/** and the simulated expert. The ⚡ fix and group resolve: src/ui/chat/ProposalFix.tsx (\"Aplicar con un apoyo al centro\") and src/ui/studio/NoticePanel.tsx (\"Resolver 2\", \"al instante\", \"al experto\", \"Resuelto: …\").\n6. STATES NOT DRAWN\nNone: every state in code is drawn or captured. The ⋯ menu was dropped — UI-11 chose a quiet \"+\" instead.\n7. OPEN FINDINGS\nUI-1, UI-2, UI-3, UI-5, UI-6, UI-11, UI-14, UI-15, UI-16, UI-17, UI-18, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe furniture is the interface (D38): the 3D is never covered, and every action says whether it happens now or goes to the expert.\n2. ENTRY POINTS\nAfter Capture (flows/capture.pen), or an example from Home.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — one-row scene bar with \"Armado\" labeled (UI-5); \"+\" is a quiet ghost next to settings (UI-11); on a phone the header is icons with accessible names (K4 narrowed to content, decided 2026-09-28)\n- Piece / Selected — the piece replaces the panel, like Notices and History already do; the 3D stays whole (B-2, the rule in Studio.tsx:146)\n- Conversation / Thinking\n- Conversation / Proposal pending — one status chip over the 3D (UI-5); the instant fix is the primary action; \"Aplicar así, bajo mi riesgo\" is a visible secondary button (UI-6, UI-17)\n- Notices / Critical — the same radio ways and one \"Resolver 1\" as Several (decided 2026-09-28: one grammar, UI-6, UI-15); no card inside a card (UI-2)\n- Conversation / Tray — the tray is one line, the chat stays readable (UI-14)\n- Notices / Several, after choosing — nothing comes pre-checked; each notice picks its way; one \"Resolver N\" applies the ⚡ ones now (one version) and sends the rest to the expert in one request (UI-15)\n- Materials / Expert working in the background — nothing is disabled; a global indicator with the real stage and Cancel sits over the 3D (UI-15)\n- Materials / Expert answered — a count on Conversación and \"Resuelto: …\" over the 3D (UI-18)\n- Materials screens show the estimated cost before the review; the list stays behind it (UI-16, D30 holds). \"~$3,165\" is from the v2 capture (300 mm deep)\n4. BUSINESS RULES\nUnchanged: D4, D30, D34, D36, D37.\n5. COPY SOURCE\nsrc/ui/** and the simulated expert. The ⚡ fix and group resolve: src/ui/chat/ProposalFix.tsx (\"Aplicar con un apoyo al centro\") and src/ui/studio/NoticePanel.tsx (\"Resolver 2\", \"al instante\", \"al experto\", \"Resuelto: …\").\n6. STATES NOT DRAWN\nNone: every state in code is drawn or captured. The ⋯ menu was dropped — UI-11 chose a quiet \"+\" instead.\n7. OPEN FINDINGS\nUI-1, UI-2, UI-3, UI-5, UI-6, UI-11, UI-14, UI-15, UI-16, UI-17, UI-18, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -5389,6 +5565,18 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "LEErG",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-28 · design catches up with #131 and the owner's decisions: Piece / Hidden, show all; \"Ocultar\" in the piece sheets; Notices / Critical in the Several grammar; no cm line on desktop editing; scenes regenerated with the new camera and shadows · K4, UI-6, UI-14",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -8530,12 +8718,36 @@
                       "id": "mQv5m",
                       "name": "Triplay de pino 18 mm · ",
                       "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
                       "content": "Triplay de pino 18 mm · Veta a lo largo",
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "normal"
                     }
                   ]
+                },
+                {
+                  "id": "h1Gmj",
+                  "type": "ref",
+                  "ref": "v808wd",
+                  "name": "Ocultar",
+                  "height": 44,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "descendants": {
+                    "x9zoX": {
+                      "enabled": true,
+                      "icon": "eye-slash",
+                      "width": 16,
+                      "height": 16
+                    },
+                    "u7yM9": {
+                      "content": "Ocultar"
+                    }
+                  }
                 },
                 {
                   "type": "frame",
@@ -11547,7 +11759,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe rest of the Studio's sections in the same grammar as band 1.\n2. ENTRY POINTS\nTap a piece, \"Editar a mano\"; the Mueble and Materiales tabs; the version button in the header.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Piece / Editing by hand — the edit form lives in the piece sheet, the 3D stays whole (B-2); move buttons follow the piece's axis (PieceEditor.tsx MOVE)\n- Furniture / Plan sheet — the tab is the plan sheet only; the kind is one compact line; the expert's memory is no longer here (UI-4)\n- Materials / Fix before buying — cost first (UI-16), then the verdict and the checks; sentence-case labels (UI-2)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app, unchanged\n- History / Two versions — a flat timeline, no card inside a card; \"Volver a esta\" is a visible button (UI-17 family)\n- Captures of the app for the states that stay as they are: the expert asks with options, the expert failed with \"Reintentar\", a hand edit rejected with its alternatives, the plan sheet with changes, a kind change that needs a redo, reviewing, not viable with \"Ver la lista de todos modos\", cut settings, editing a price, viewing an old version, the expert's settings, unlocking saved keys, and confirming \"Nuevo diseño\"\n- Conversation / Expert's memory, open — the memory folds above the conversation: closed it is one line with a count; open it holds the requirements, the design decisions and the add-note field (UI-4, src/ui/chat/Memory.tsx)\nCaptures retaken 2026-09-27 with K6, UI-4, UI-20 and UI-21 in code\n4. BUSINESS RULES\nHand edits apply at once and are checked like any change; the plan applies on \"Aplicar\" (D34). The list stays behind the review (D30).\n5. COPY SOURCE\nsrc/ui/studio/{PieceEditor,FurniturePanel,PlanSheet,Materials,Verdict,HistoryPanel}.tsx; src/ui/chat/Memory.tsx; verdict text from the simulated expert. \"~$3,165\" from the v2 capture.\n6. STATES NOT DRAWN\nNone.\n7. OPEN FINDINGS\nUI-2, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe rest of the Studio's sections in the same grammar as band 1.\n2. ENTRY POINTS\nTap a piece, \"Editar a mano\"; the Mueble and Materiales tabs; the version button in the header.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Piece / Editing by hand — the edit form lives in the piece sheet, the 3D stays whole (B-2); move buttons follow the piece's axis (PieceEditor.tsx MOVE)\n- Piece / Hidden, show all — \"Ocultar\" in the piece sheet hides it; while any piece is hidden the status chip says \"1 pieza oculta\" with \"Mostrar todo\", ahead of a proposal (decided 2026-09-28, #131)\n- History keeps \"Bitácora: qué hizo el experto\" under the list, and \"Qué cambió\" is a flat line (decided 2026-09-28)\n- Furniture / Plan sheet — the tab is the plan sheet only; the kind is one compact line; the expert's memory is no longer here (UI-4)\n- Materials / Fix before buying — cost first (UI-16), then the verdict and the checks; sentence-case labels (UI-2)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app, unchanged\n- History / Two versions — a flat timeline, no card inside a card; \"Volver a esta\" is a visible button (UI-17 family)\n- Captures of the app for the states that stay as they are: the expert asks with options, the expert failed with \"Reintentar\", a hand edit rejected with its alternatives, the plan sheet with changes, a kind change that needs a redo, reviewing, not viable with \"Ver la lista de todos modos\", cut settings, editing a price, viewing an old version, the expert's settings, unlocking saved keys, and confirming \"Nuevo diseño\"\n- Conversation / Expert's memory, open — the memory folds above the conversation: closed it is one line with a count; open it holds the requirements, the design decisions and the add-note field (UI-4, src/ui/chat/Memory.tsx)\nCaptures retaken 2026-09-27 with K6, UI-4, UI-20 and UI-21 in code\n4. BUSINESS RULES\nHand edits apply at once and are checked like any change; the plan applies on \"Aplicar\" (D34). The list stays behind the review (D30).\n5. COPY SOURCE\nsrc/ui/studio/{PieceEditor,FurniturePanel,PlanSheet,Materials,Verdict,HistoryPanel}.tsx; src/ui/chat/Memory.tsx; src/ui/studio/{PieceSheet,Studio}.tsx for \"Ocultar\" and the hidden chip; verdict text from the simulated expert. \"~$3,165\" from the v2 capture.\n6. STATES NOT DRAWN\nSeveral pieces hidden: the same chip, \"N piezas ocultas\".\n7. OPEN FINDINGS\nUI-2, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -12797,12 +13009,36 @@
                               "id": "SUMoc",
                               "name": "Triplay de pino 18 mm · ",
                               "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
                               "content": "Triplay de pino 18 mm · Veta a lo largo",
                               "fontFamily": "$font-sans",
                               "fontSize": 13,
                               "fontWeight": "normal"
                             }
                           ]
+                        },
+                        {
+                          "id": "wxnzp",
+                          "type": "ref",
+                          "ref": "v808wd",
+                          "name": "Ocultar",
+                          "height": 44,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "descendants": {
+                            "x9zoX": {
+                              "enabled": true,
+                              "icon": "eye-slash",
+                              "width": 16,
+                              "height": 16
+                            },
+                            "u7yM9": {
+                              "content": "Ocultar"
+                            }
+                          }
                         },
                         {
                           "type": "frame",
@@ -12921,16 +13157,6 @@
                                   "fontWeight": "normal"
                                 }
                               ]
-                            },
-                            {
-                              "type": "text",
-                              "id": "sQ9Qr",
-                              "name": "55.3 cm",
-                              "fill": "$graphite-2",
-                              "content": "55.3 cm",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -12992,16 +13218,6 @@
                                   "fontWeight": "normal"
                                 }
                               ]
-                            },
-                            {
-                              "type": "text",
-                              "id": "X0eA1",
-                              "name": "36.9 cm",
-                              "fill": "$graphite-2",
-                              "content": "36.9 cm",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -13063,16 +13279,6 @@
                                   "fill": "$graphite-2"
                                 }
                               ]
-                            },
-                            {
-                              "type": "text",
-                              "id": "FL1ds",
-                              "name": "1.8 cm",
-                              "fill": "$graphite-2",
-                              "content": "1.8 cm",
-                              "fontFamily": "$font-mono",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
                             }
                           ]
                         }
@@ -16383,7 +16589,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2)\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line. Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2); the fields carry mm only, no cm line (decided 2026-09-28); \"Ocultar\" next to the close button\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Sheets to buy and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nHidden pieces on desktop: the same chip as mobile. The review gate's check list and the sheet diagrams stay as the app draws them (decided 2026-09-28): see the Materials captures.\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -18078,6 +18284,827 @@
           "fontFamily": "$font-mono",
           "fontSize": 16,
           "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "cFbZ0",
+      "x": 1270,
+      "y": 3042,
+      "name": "Studio / Piece / Hidden, show all (mobile)",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$bone",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "ZEVJX",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "$bone",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 6,
+          "padding": [
+            0,
+            8,
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "o9OZE",
+              "type": "ref",
+              "ref": "xWBPf",
+              "name": "Emblem",
+              "width": 28,
+              "height": 28,
+              "cornerRadius": 7
+            },
+            {
+              "type": "frame",
+              "id": "vAnYq",
+              "name": "Title",
+              "clip": true,
+              "width": "fill_container",
+              "height": 38,
+              "layout": "vertical",
+              "gap": 1,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "fLLIP",
+                  "name": "Aparador",
+                  "fill": "$graphite",
+                  "content": "Aparador",
+                  "fontFamily": "$font-display",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "jaJzn",
+                  "name": "940 × 1600 × 400 mm · 16",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width-height",
+                  "width": "fill_container",
+                  "height": 14,
+                  "content": "940 × 1600 × 400 mm · 160 cm de ancho",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JJQjB",
+              "name": "History",
+              "height": 36,
+              "cornerRadius": "$radius-xl",
+              "gap": 4,
+              "padding": [
+                0,
+                9
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "EmLvo",
+                  "name": "clock-counter-clockwise",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "clock-counter-clockwise",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "Gmq7H",
+                  "name": "v1",
+                  "fill": "$graphite-2",
+                  "content": "v1",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v22ka",
+              "name": "Notices",
+              "height": 36,
+              "cornerRadius": "$radius-xl",
+              "gap": 4,
+              "padding": [
+                0,
+                9
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "enBbX",
+                  "name": "bell",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "bell",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SWrZa",
+              "name": "Settings",
+              "height": 36,
+              "cornerRadius": "$radius-xl",
+              "gap": 4,
+              "padding": [
+                0,
+                9
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "cwOnC",
+                  "name": "dots-three",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "gear-six",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MORiO",
+              "name": "Nuevo diseño",
+              "width": 36,
+              "height": 36,
+              "cornerRadius": "$radius-xl",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "kL3t7",
+                  "name": "plus",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "plus",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fjzJT",
+          "name": "Scene",
+          "width": "fill_container",
+          "height": 410,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "../assets/studio/scene/mobile-aparador-hidden.jpg",
+            "mode": "fill"
+          },
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "K8WIr7",
+              "x": 12,
+              "y": 12,
+              "name": "Scene bar",
+              "fill": "$bone",
+              "cornerRadius": "$radius-full",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#2B282514",
+                "offset": {
+                  "x": 0,
+                  "y": 2
+                },
+                "blur": 8
+              },
+              "gap": 2,
+              "padding": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "t8kvg",
+                  "name": "Frente",
+                  "height": 32,
+                  "cornerRadius": "$radius-full",
+                  "padding": [
+                    0,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "UuHmJ",
+                      "name": "Frente",
+                      "fill": "$graphite",
+                      "content": "Frente",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "E8DUQD",
+                  "name": "Lado",
+                  "height": 32,
+                  "cornerRadius": "$radius-full",
+                  "padding": [
+                    0,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uUE3E",
+                      "name": "Lado",
+                      "fill": "$graphite",
+                      "content": "Lado",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "x4Cj2",
+                  "name": "3/4",
+                  "height": 32,
+                  "fill": "$graphite",
+                  "cornerRadius": "$radius-full",
+                  "padding": [
+                    0,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pW2p2",
+                      "name": "3/4",
+                      "fill": "$bone",
+                      "content": "3/4",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "D9rLH",
+                  "name": "Arriba",
+                  "height": 32,
+                  "cornerRadius": "$radius-full",
+                  "padding": [
+                    0,
+                    11
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h9eb4",
+                      "name": "Arriba",
+                      "fill": "$graphite",
+                      "content": "Arriba",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "Nx1hM",
+                  "name": "Divider",
+                  "fill": "$line",
+                  "width": 1,
+                  "height": 18
+                },
+                {
+                  "type": "frame",
+                  "id": "F85iX",
+                  "name": "Armado",
+                  "height": 32,
+                  "cornerRadius": "$radius-full",
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    11,
+                    0,
+                    9
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "fcCX0",
+                      "name": "arrows-out",
+                      "width": 15,
+                      "height": 15,
+                      "icon": "arrows-out",
+                      "library": "phosphor",
+                      "fill": "$graphite"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Jvbey",
+                      "name": "Armado",
+                      "fill": "$graphite",
+                      "content": "Armado",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EgxNv",
+                  "name": "Cotas",
+                  "width": 32,
+                  "height": 32,
+                  "fill": "$graphite",
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "DOVOP",
+                      "name": "ruler",
+                      "width": 15,
+                      "height": 15,
+                      "icon": "ruler",
+                      "library": "phosphor",
+                      "fill": "$bone"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FHtp3",
+              "x": 12,
+              "y": 60,
+              "name": "Status · hidden",
+              "height": 30,
+              "fill": "$bone",
+              "cornerRadius": "$radius-full",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                0,
+                4,
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "jrPgB",
+                  "name": "eye",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "eye-slash",
+                  "library": "phosphor",
+                  "fill": "$graphite"
+                },
+                {
+                  "type": "text",
+                  "id": "aReBy",
+                  "name": "Label",
+                  "fill": "$graphite",
+                  "content": "1 pieza oculta",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "w4HEp",
+                  "name": "Mostrar todo",
+                  "height": 24,
+                  "fill": "$kraft",
+                  "cornerRadius": "$radius-full",
+                  "gap": 4,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "HSZnt",
+                      "name": "eye",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "eye",
+                      "library": "phosphor",
+                      "fill": "$graphite"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uuMkj",
+                      "name": "Label",
+                      "fill": "$graphite",
+                      "content": "Mostrar todo",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kl2FE",
+          "name": "Panel",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "VfDsU",
+              "name": "Tabs",
+              "width": "fill_container",
+              "height": 44,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 4,
+              "padding": [
+                0,
+                8
+              ],
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WbHGw",
+                  "name": "Conversación",
+                  "height": 44,
+                  "stroke": "$amber",
+                  "strokeWidth": {
+                    "bottom": 2
+                  },
+                  "layout": "vertical",
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ESHTh",
+                      "name": "Conversación",
+                      "fill": "$graphite",
+                      "content": "Conversación",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "V6ymy",
+                  "name": "Mueble",
+                  "height": 44,
+                  "layout": "vertical",
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "z7xbj",
+                      "name": "Mueble",
+                      "fill": "$graphite-2",
+                      "content": "Mueble",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GCyJ7",
+                  "name": "Materiales",
+                  "height": 44,
+                  "layout": "vertical",
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "jDs3m",
+                      "name": "Materiales",
+                      "fill": "$graphite-2",
+                      "content": "Materiales",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "i8xKK5",
+                  "name": "Spacer",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "P17KD",
+                  "name": "Grow panel",
+                  "width": 36,
+                  "height": 44,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "dk3MR",
+                      "name": "caret-up",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "caret-up",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "h72pnq",
+              "name": "Messages",
+              "clip": true,
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "padding": [
+                14,
+                16,
+                0,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Fh8Ky",
+                  "name": "Expert message",
+                  "width": 330,
+                  "fill": "$paper",
+                  "cornerRadius": [
+                    16,
+                    16,
+                    16,
+                    6
+                  ],
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MICqC",
+                      "name": "Author",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "OGe6i",
+                          "name": "pencil-simple",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "pencil-simple",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Lhh3e",
+                          "name": "Experto",
+                          "fill": "$graphite-2",
+                          "content": "Experto",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "M35Kc3",
+                          "name": "v1",
+                          "fill": "$graphite-2",
+                          "content": "v1",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "cfCGJ",
+                      "name": "Aquí tienes un aparador ",
+                      "fill": "$graphite",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Aquí tienes un aparador de ejemplo. Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano. Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo...",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cvecC",
+              "name": "Suggestions",
+              "clip": true,
+              "width": "fill_container",
+              "gap": 8,
+              "padding": [
+                8,
+                16
+              ],
+              "children": [
+                {
+                  "id": "lqZIt",
+                  "type": "ref",
+                  "ref": "H3gc82",
+                  "name": "Hazlo de 90 cm de ancho",
+                  "descendants": {
+                    "T6qOPu": {
+                      "content": "Hazlo de 90 cm de ancho"
+                    }
+                  }
+                },
+                {
+                  "id": "HoAlc",
+                  "type": "ref",
+                  "ref": "H3gc82",
+                  "name": "Que aguante libros pesados",
+                  "descendants": {
+                    "T6qOPu": {
+                      "content": "Que aguante libros pesados"
+                    }
+                  }
+                },
+                {
+                  "id": "Ie7Cx",
+                  "type": "ref",
+                  "ref": "H3gc82",
+                  "name": "Baja una repisa 10 cm",
+                  "descendants": {
+                    "T6qOPu": {
+                      "content": "Baja una repisa 10 cm"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kUfNF",
+              "name": "Composer",
+              "width": "fill_container",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "gap": 8,
+              "padding": [
+                8,
+                12,
+                12,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Ij0RW",
+                  "name": "Field",
+                  "width": "fill_container",
+                  "height": 44,
+                  "cornerRadius": "$radius-full",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hw1jv",
+                      "name": "Pide un cambio: «refuerz",
+                      "fill": "$graphite-2",
+                      "content": "Pide un cambio: «refuerza la base»…",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Z6o0JC",
+                  "name": "Send (disabled)",
+                  "opacity": 0.4,
+                  "width": 44,
+                  "height": 44,
+                  "fill": "$graphite",
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "KKC0y",
+                      "name": "paper-plane-right",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "paper-plane-right",
+                      "library": "phosphor",
+                      "fill": "$bone"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
