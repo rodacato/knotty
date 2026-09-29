@@ -5,6 +5,7 @@ import type { Catalog } from '../domain/materials/catalog'
 import type { DebugLog } from '../ports/DebugLog'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'
+import type { ReferenceStore } from '../ports/ReferenceStore'
 import type { ImageProcessor } from '../ports/ImageProcessor'
 
 export interface Services {
@@ -12,6 +13,8 @@ export interface Services {
   catalog: Catalog
   materials: MaterialCatalog
   images: ImageProcessor
+  /** The furniture of reference: the home screen's starting points come from here. */
+  references: ReferenceStore
   preferences: Preferences
   debug: DebugLog
   /** The hidden test bench: fixed cases against the connected expert, and every module variant. */

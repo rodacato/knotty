@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
-import { BASES, exampleDesign, exampleSideboard } from '../../domain/furniture/examples'
+import { exampleDesign } from '../../domain/furniture/examples'
+import { exampleSideboard, testBases } from '../../domain/furniture/fixtures/references.test-util'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
@@ -29,7 +30,7 @@ const bed: BedPlan = {
 }
 const designs: [string, Design][] = [
   ...[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => [d.name, d] as [string, Design]),
-  ...BASES.map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
+  ...testBases.map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
   ['Cama', buildBed(bed, testCatalog).design],
 ]
 

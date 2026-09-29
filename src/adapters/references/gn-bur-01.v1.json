@@ -1,0 +1,28 @@
+{
+  "format": 1,
+  "code": "GN-BUR-01",
+  "id": "nightstand",
+  "home": { "order": 5, "category": "bedroom" },
+  "name": "Buró",
+  "kind": "nightstand",
+  "inspiredBy": "KC-BUR-01",
+  "notes": "Buró con un cajón arriba y un hueco abierto abajo.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró",
+    "dimensions": { "width": 450, "height": 500, "depth": 350 },
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": false,
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.6, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.4, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      }
+    ]
+  }
+}

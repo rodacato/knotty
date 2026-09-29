@@ -1,0 +1,39 @@
+{
+  "format": 1,
+  "code": "GN-APA-01",
+  "id": "low-sideboard",
+  "home": { "order": 1, "category": "storage" },
+  "name": "Aparador bajo",
+  "kind": "sideboard",
+  "inspiredBy": "KC-APA-02",
+  "notes": "Aparador bajo de tres columnas: una puerta a cada lado con un entrepaño detrás y un hueco abierto en medio.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Aparador bajo",
+    "dimensions": { "width": 1500, "height": 700, "depth": 390 },
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      }
+    ]
+  }
+}

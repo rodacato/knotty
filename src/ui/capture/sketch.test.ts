@@ -1,18 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { resolveGeometry } from '../../domain/design/resolve'
-import { BASES, exampleDesign } from '../../domain/furniture/examples'
+import { exampleDesign } from '../../domain/furniture/examples'
+import { testBases } from '../../domain/furniture/fixtures/references.test-util'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { paintOrder, sketch } from './sketch'
 
 const boxesOf = (id: string) => {
-  const { design } = exampleDesign(BASES.find((b) => b.id === id)!, testCatalog)
+  const { design } = exampleDesign(testBases.find((b) => b.id === id)!, testCatalog)
   const geo = resolveGeometry(design, testCatalog)
   if (!geo.ok) throw new Error('does not resolve')
   return { design, boxes: geo.value.boxes }
 }
 
 describe('the sketch of a base', () => {
-  it.each(BASES.map((b) => [b.name, b.id]))('%s: every piece is drawn once, three faces each, inside its frame', (_, id) => {
+  it.each(testBases.map((b) => [b.name, b.id]))('%s: every piece is drawn once, three faces each, inside its frame', (_, id) => {
     const { design, boxes } = boxesOf(id)
     const { polygons, width, height } = sketch(boxes)
     expect(polygons).toHaveLength(3 * design.pieces.length)

@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "code": "GN-OTR-01",
+  "id": "shoe-rack",
+  "home": { "order": 4, "category": "storage" },
+  "name": "Zapatera",
+  "inspiredBy": "KC-OTR-03",
+  "notes": "Zapatera de cuatro niveles con dos puertas, anclada al muro.",
+  "plan": {
+    "kind": "shoeRack",
+    "name": "Zapatera",
+    "dimensions": { "width": 630, "height": 1000, "depth": 380 },
+    "material": "T18",
+    "levels": 4,
+    "bootLevel": false,
+    "front": "doors",
+    "base": "kick",
+    "seat": false,
+    "wallMounted": true
+  }
+}

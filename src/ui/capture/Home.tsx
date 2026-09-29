@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, Cube } from '@phosphor-icons/react'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import { BASES, exampleDesign, type Base, type BaseCategory } from '../../domain/furniture/examples'
+import { exampleDesign, type Base, type BaseCategory } from '../../domain/furniture/examples'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
 import { Logo, Emblem } from '../system/Brand'
@@ -15,7 +15,7 @@ const CATEGORIES: [BaseCategory | 'all', string][] = [
   ['tables', 'Mesas'],
 ]
 /** Filters pay off only past six bases, two rows on a desk. */
-const FILTERED = BASES.length > 6
+const FILTER_FROM = 6
 
 const FACE: Record<Face, string> = { front: 'fill-birch', top: 'fill-[color-mix(in_srgb,var(--color-birch)_60%,white)]', side: 'fill-pine' }
 
@@ -60,6 +60,8 @@ function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const fromExample = useStore((s) => s.fromExample)
+  const { references } = useServices()
+  const bases = useMemo(() => references.home(), [references])
   const [category, setCategory] = useState<BaseCategory | 'all'>('all')
   return (
     <main className="mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-12 md:flex-row md:gap-16">
@@ -87,7 +89,7 @@ export function Home() {
           </h2>
           <p className="text-sm text-graphite-2">Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.</p>
         </div>
-        {FILTERED && (
+        {bases.length > FILTER_FROM && (
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map(([id, label]) => (
               <Chip key={id} active={category === id} aria-pressed={category === id} onClick={() => setCategory(id)}>
@@ -97,7 +99,7 @@ export function Home() {
           </div>
         )}
         <div className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-3">
-          {BASES.filter((b) => category === 'all' || b.category === category).map((base) => (
+          {bases.filter((b) => category === 'all' || b.category === category).map((base) => (
             <BaseCard key={base.id} base={base} onOpen={fromExample} />
           ))}
         </div>

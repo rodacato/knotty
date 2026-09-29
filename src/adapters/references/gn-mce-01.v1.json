@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "code": "GN-MCE-01",
+  "id": "coffee-table",
+  "home": { "order": 6, "category": "tables" },
+  "name": "Mesa de centro",
+  "notes": "Mesa de centro con una repisa baja entre los costados.",
+  "plan": {
+    "kind": "table",
+    "use": "coffee",
+    "name": "Mesa de centro",
+    "material": "T18",
+    "dimensions": { "width": 1000, "height": 420, "depth": 550 },
+    "overhang": 0,
+    "shelf": true,
+    "pedestal": { "side": "none", "drawers": 0 }
+  }
+}
