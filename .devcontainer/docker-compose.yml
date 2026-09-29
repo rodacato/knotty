@@ -1,0 +1,24 @@
+services:
+  workspace:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    # tini as PID 1 — `sleep infinity` never reaps, so git/node zombies pile up.
+    init: true
+    volumes:
+      - ..:/workspaces/knotty:cached
+      # Linux binaries (oxlint, rolldown, tailwind oxide) must not overwrite the host's node_modules.
+      - node-modules:/workspaces/knotty/node_modules
+      # The shell-history feature writes to /dc/shellhistory, NOT /commandhistory (which persists nothing).
+      - commandhistory:/dc/shellhistory
+    # .host.env comes from initialize.sh, local.env from you; the later file wins. See README.md.
+    env_file:
+      - path: .host.env
+        required: false
+      - path: local.env
+        required: false
+    command: sleep infinity
+
+volumes:
+  node-modules:
+  commandhistory:
