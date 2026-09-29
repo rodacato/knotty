@@ -25,8 +25,10 @@ const VIEW: Record<Axis, { across: Axis; up: Axis; sides: Record<Side, Edge> }> 
 const SHORT: Partial<Record<Edge, string>> = { left: 'Izq.', right: 'Der.' }
 
 const W = 280
-const H = 110
-const PAD = 26
+const H = 124
+const PAD = 32
+/** The piece an edge rests against, drawn as a hatched strip outside the face. */
+const BAND = 9
 
 function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo: Geometry; chosen: Set<Edge>; against: Map<Edge, string | null>; name: (id: string) => string }) {
   const box = geo.boxes.get(piece.id)!
@@ -40,15 +42,33 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
     const other = against.get(edge)
     return other ? `${EDGE_LABEL[edge]} · contra ${name(other).toLowerCase()}` : EDGE_LABEL[edge]
   }
+  const pad = (side: Side) => (against.get(sides[side]) ? BAND + 3 : 0)
   const where: Record<Side, { x: number; y: number; anchor: 'middle' | 'end' | 'start' }> = {
-    top: { x: W / 2, y: y0 - 7, anchor: 'middle' },
-    bottom: { x: W / 2, y: y0 + h + 15, anchor: 'middle' },
-    left: { x: x0 - 5, y: y0 + h / 2 + 4, anchor: 'end' },
-    right: { x: x0 + w + 5, y: y0 + h / 2 + 4, anchor: 'start' },
+    top: { x: W / 2, y: y0 - 7 - pad('top'), anchor: 'middle' },
+    bottom: { x: W / 2, y: y0 + h + 15 + pad('bottom'), anchor: 'middle' },
+    left: { x: x0 - 5 - pad('left'), y: y0 + h / 2 + 4, anchor: 'end' },
+    right: { x: x0 + w + 5 + pad('right'), y: y0 + h / 2 + 4, anchor: 'start' },
   }
+  const bands: Record<Side, [number, number, number, number]> = { top: [x0, y0 - BAND, w, BAND], bottom: [x0, y0 + h, w, BAND], left: [x0 - BAND, y0, BAND, h], right: [x0 + w, y0, BAND, h] }
+  const hatch = `hatch-${useId().replace(/:/g, '')}`
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`La cara de ${piece.name.toLowerCase()} con sus cuatro cantos`}>
+      <defs>
+        <pattern id={hatch} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="5" className="stroke-graphite-2/60" strokeWidth="1.5" />
+        </pattern>
+      </defs>
       <rect x={x0} y={y0} width={w} height={h} className="fill-kraft-2" />
+      {(Object.keys(sides) as Side[]).map((side) => {
+        const other = against.get(sides[side])
+        if (!other) return null
+        const [bx, by, bw, bh] = bands[side]
+        return (
+          <rect key={`against-${side}`} x={bx} y={by} width={bw} height={bh} fill={`url(#${hatch})`} className="stroke-graphite-2/40" strokeWidth="0.75">
+            <title>{`Queda contra ${name(other).toLowerCase()}: no se ve`}</title>
+          </rect>
+        )
+      })}
       {(Object.keys(sides) as Side[]).map((side) => {
         const edge = sides[side]
         const [x1, y1, x2, y2] = lines[side]
@@ -140,6 +160,12 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               </Chip>
             ))}
           </div>
+          {hiddenChosen.map((e) => (
+            <p key={e} className="flex items-start gap-2 text-xs text-graphite">
+              <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
+              {EDGE_LABEL[e]} queda contra {name(against.get(e)!).toLowerCase()}: no se ve, así que el perfil no se dibuja ni entra en la lista de compra.
+            </p>
+          ))}
           <p className="text-sm text-graphite">{chosen.size ? `Perfil de ${chosen.size === 1 ? 'el canto elegido' : `los ${chosen.size} cantos elegidos`}` : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
           <div role="radiogroup" aria-label="Perfil del canto" className="flex flex-col gap-2">
             {EDGE_PROFILE_IDS.map((id) => {
@@ -170,12 +196,6 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               )
             })}
           </div>
-          {hiddenChosen.map((e) => (
-            <p key={e} className="flex items-start gap-2 text-xs text-graphite">
-              <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
-              {EDGE_LABEL[e]} queda contra {name(against.get(e)!).toLowerCase()}: no se ve, así que el perfil no se dibuja ni entra en la lista de compra.
-            </p>
-          ))}
           {profile && EDGE_PROFILES[profile].cut && banded.length > 0 && (
             <p className="flex items-start gap-2 text-xs text-graphite">
               <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
