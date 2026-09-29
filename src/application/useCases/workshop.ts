@@ -3,7 +3,7 @@ import { EDGE_LABEL, edgeNeighbours, profilesOf, withPieceProfiles } from '../..
 import { JOINT_GUIDE } from '../../domain/design/jointGuide'
 import type { Edge } from '../../domain/design/schema'
 import { chooseJoint as jointChoice, jointGroups, type ChoosableJoint, type JointGroupId } from '../../domain/editing/joints/choice'
-import { EDGE_PROFILES, minThicknessFor, type EdgeProfileId } from '../../domain/materials/edgeProfiles'
+import { EDGE_PROFILES, type EdgeProfileId } from '../../domain/materials/edgeProfiles'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { named } from '../named'
 import { knownErrors, tryCandidate } from './candidate'
@@ -38,16 +38,14 @@ export function createWorkshop(kit: Kit) {
     return { ok: true, state: save(noted(withVersion, 'user', `Cambié a mano: ${summary}.`)), notes }
   }
 
-  /** The profile of the chosen edges of one piece; `profile` null leaves them straight. Only edges that show can take one. */
+  /** The profile of the chosen edges of one piece; `profile` null leaves them straight. Any edge of the face takes one: the sheet warns when it will not show, or the board or the tools do not allow it. */
   function chooseEdgeProfiles(state: DesignState, pieceId: string, edges: Edge[], profile: EdgeProfileId | null): WorkshopResult {
     const design = currentDesign(state)
     const analysis = analyze(design, catalog, state.requirements)
     const piece = design.pieces.find((p) => p.id === pieceId)
     if (!analysis.geo || !piece) return { ok: false, message: 'No encuentro esa pieza en el diseño.' }
-    const free = new Set(edgeNeighbours(design, analysis.geo, pieceId).filter((n) => !n.against).map((n) => n.edge))
-    const chosen = edges.filter((e) => free.has(e))
-    if (chosen.length < edges.length) return { ok: false, message: 'Ese canto queda contra otra pieza: no se ve, así que no lleva perfil.' }
-    if (profile && analysis.geo.thicknesses.get(pieceId)! < minThicknessFor(profile)) return { ok: false, message: `${EDGE_PROFILES[profile].name} pide un tablero de al menos ${minThicknessFor(profile)} mm.` }
+    const onFace = new Set(edgeNeighbours(design, analysis.geo, pieceId).map((n) => n.edge))
+    const chosen = edges.filter((e) => onFace.has(e))
     const choices = profile ? chosen.map((edge) => ({ edge, profile })) : []
     const before = profilesOf(design, pieceId)
     if (before.length === choices.length && choices.every((c) => before.some((b) => b.edge === c.edge && b.profile === c.profile))) return { ok: true, state, notes: [] }

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { CaretDown, CaretUp, Warning } from '@phosphor-icons/react'
+import { useId, useState } from 'react'
 import { EDGE_LABEL, edgeNeighbours, profilesOf } from '../../domain/design/edges'
 import type { Geometry } from '../../domain/design/resolve'
 import type { Axis, Design, Edge, Piece } from '../../domain/design/schema'
@@ -8,7 +9,7 @@ import { useStore } from '../store'
 import { Chip, Title } from '../system/components'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 
-// The edges of the selected piece that show, and the profile the person gives them (acabados.md §11). The 3D still draws them straight.
+// The edges of the selected piece and the profile the person gives them (acabados.md §11). Nothing is locked: what will not show, or the board or the tools do not allow, gets a warning that says why.
 
 const TERM: Record<EdgeProfileId, TermKey> = { eased: 'easedEdge', 'roundover-3': 'roundover', 'roundover-6': 'roundover', chamfer: 'chamfer' }
 
@@ -54,7 +55,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
         const style = chosen.has(edge) ? 'stroke-amber' : against.get(edge) ? 'stroke-graphite-2/40' : 'stroke-graphite-2'
         return (
           <g key={side}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} className={style} strokeWidth={chosen.has(edge) ? 4 : 1.5} strokeLinecap="round" />
+            <line x1={x1} y1={y1} x2={x2} y2={y2} className={style} strokeWidth={chosen.has(edge) ? 4 : 1.5} strokeLinecap="round" strokeDasharray={chosen.has(edge) && against.get(edge) ? '2 6' : undefined} />
             <text x={where[side].x} y={where[side].y} textAnchor={where[side].anchor} className="fill-graphite-2 text-[9px]">
               {side === 'top' || side === 'bottom' ? label(edge) : (SHORT[edge] ?? EDGE_LABEL[edge])}
             </text>
@@ -67,15 +68,46 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
 
 const listed = (words: string[]) => (words.length > 1 ? `${words.slice(0, -1).join(', ')} y ${words.at(-1)!.toLowerCase()}` : (words[0] ?? ''))
 
+/** A warning the person opens by tapping it, like the help: a touch screen has no hover. */
+function AlertButton({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-label={label}
+      onClick={(e) => {
+        e.preventDefault()
+        onToggle()
+      }}
+      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
+    >
+      <span className={`grid size-5 place-items-center rounded-full transition ${open ? 'bg-graphite text-bone' : 'bg-kraft text-graphite'}`}>
+        <Warning size={12} weight="bold" />
+      </span>
+    </button>
+  )
+}
+
+function AlertNote({ children }: { children: string }) {
+  return (
+    <p role="note" className="animate-appear rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
+      {children}
+    </p>
+  )
+}
+
 export function EdgesSection({ design, geo, piece, editable }: { design: Design; geo: Geometry; piece: Piece; editable: boolean }) {
   const level = useStore((s) => s.catalogSettings.toolLevel)
   const choose = useStore((s) => s.chooseEdgeProfiles)
   const help = useHelp<EdgeProfileId>()
+  const alert = useHelp<string>()
   const [error, setError] = useState<string | null>(null)
   const neighbours = edgeNeighbours(design, geo, piece.id)
   const against = new Map(neighbours.map((n) => [n.edge, n.against]))
-  const stored = profilesOf(design, piece.id).filter((c) => against.has(c.edge) && !against.get(c.edge))
+  const stored = profilesOf(design, piece.id).filter((c) => against.has(c.edge))
   const chosen = new Set(stored.map((c) => c.edge))
+  const [open, setOpen] = useState(stored.length > 0)
+  const body = useId()
   const profile = stored.length && stored.every((c) => c.profile === stored[0].profile) ? stored[0].profile : null
   const thickness = geo.thicknesses.get(piece.id)!
   const name = (id: string) => design.pieces.find((p) => p.id === id)?.name ?? id
@@ -85,54 +117,76 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
   }
   const toggle = (edge: Edge) => apply(chosen.has(edge) ? [...chosen].filter((e) => e !== edge) : [...chosen, edge], profile ?? DEFAULT_EDGE_PROFILE)
   const banded = [...chosen].filter((e) => piece.edges.includes(e))
+  const hiddenChosen = [...chosen].filter((e) => against.get(e))
+  const summary = !stored.length ? 'Rectos' : profile ? `${stored.length} con ${EDGE_PROFILES[profile].name.toLowerCase()}` : `${stored.length} con perfil`
 
   return (
-    <section className="flex flex-col gap-3 border-t border-line pt-3">
-      <div className="flex items-baseline justify-between">
-        <Title className="text-lg">Cantos</Title>
-        <span className="text-xs text-graphite-2">Los que se ven</span>
-      </div>
-      <FaceDrawing piece={piece} geo={geo} chosen={chosen} against={against} name={name} />
-      <div className="flex flex-wrap gap-1.5">
-        {neighbours.map(({ edge, against: other }) => (
-          <Chip key={edge} active={chosen.has(edge)} aria-pressed={chosen.has(edge)} disabled={!editable || !!other} title={other ? `Queda contra ${name(other).toLowerCase()}: no se ve` : undefined} onClick={() => toggle(edge)}>
-            {EDGE_LABEL[edge]}
-          </Chip>
-        ))}
-      </div>
-      <p className="text-sm text-graphite">{chosen.size ? `Perfil de ${chosen.size === 1 ? 'el canto elegido' : `los ${chosen.size} cantos elegidos`}` : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
-      <div role="radiogroup" aria-label="Perfil del canto" className="flex flex-col gap-2">
-        {EDGE_PROFILE_IDS.map((id) => {
-          const p = EDGE_PROFILES[id]
-          const fit = profileFit(id, level, thickness)
-          const thin = !fit.ok && fit.reason === 'thin'
-          const disabled = !editable || !chosen.size || thin
-          return (
-            <div key={id} className="flex flex-col gap-2">
-              <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-2 border-graphite' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
-                <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => apply([...chosen], id)} className="mt-1 accent-graphite" />
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="flex items-center gap-1">
-                    <span className="font-semibold">{p.name}</span>
-                    <HelpButton term={TERMS[TERM[id]]} open={help.open === id} onToggle={() => help.toggle(id)} />
-                    {!fit.ok && fit.reason === 'router' && <span className="ml-auto shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-medium">No con tu herramienta</span>}
-                  </span>
-                  <span className="text-xs text-graphite-2">{p.detail}</span>
-                  {!fit.ok && fit.reason === 'router' && <span className="text-xs text-graphite-2">Puedes pedirlo en la maderería.</span>}
-                  {thin && <span className="text-xs text-graphite-2">Pide un tablero de al menos {fit.minThickness} mm; esta pieza es de {thickness} mm.</span>}
-                </span>
-              </label>
-              {help.open === id && <HelpPanel term={TERMS[TERM[id]]} onClose={help.close} />}
-            </div>
-          )
-        })}
-      </div>
-      {profile && EDGE_PROFILES[profile].cut && banded.length > 0 && (
-        <p className="text-xs text-graphite">
-          {listed(banded.map((e) => EDGE_LABEL[e]))} {banded.length === 1 ? 'lleva' : 'llevan'} cubrecanto: un perfil cortado y el cubrecanto de chapa no van juntos. Para un canto perfilado sin capas a la vista se usa canto macizo.
-        </p>
+    <section className="flex flex-col gap-3 border-t border-line pt-1">
+      <Title className="text-lg">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={body} className="-mx-1 flex min-h-11 w-full items-center gap-2 rounded-lg px-1 text-left focus-visible:outline-2 focus-visible:outline-amber">
+          <span>Cantos</span>
+          <span className="flex-1 truncate text-right font-sans text-xs font-normal tracking-normal text-graphite-2">{summary}</span>
+          {open ? <CaretUp className="text-graphite-2" /> : <CaretDown className="text-graphite-2" />}
+        </button>
+      </Title>
+      {open && (
+        <div id={body} className="flex flex-col gap-3">
+          <FaceDrawing piece={piece} geo={geo} chosen={chosen} against={against} name={name} />
+          <div className="flex flex-wrap gap-1.5">
+            {neighbours.map(({ edge, against: other }) => (
+              <Chip key={edge} active={chosen.has(edge)} aria-pressed={chosen.has(edge)} disabled={!editable} onClick={() => toggle(edge)}>
+                {EDGE_LABEL[edge]}
+                {other && <Warning size={14} weight="bold" aria-label="No se ve" />}
+              </Chip>
+            ))}
+          </div>
+          <p className="text-sm text-graphite">{chosen.size ? `Perfil de ${chosen.size === 1 ? 'el canto elegido' : `los ${chosen.size} cantos elegidos`}` : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
+          <div role="radiogroup" aria-label="Perfil del canto" className="flex flex-col gap-2">
+            {EDGE_PROFILE_IDS.map((id) => {
+              const p = EDGE_PROFILES[id]
+              const fit = profileFit(id, level, thickness)
+              const why = fit.ok ? null : fit.reason === 'thin' ? `Necesita un tablero de al menos ${fit.minThickness} mm; esta pieza es de ${thickness} mm. Se puede elegir, pero no sale como se dibuja.` : 'Solo se hace con router y en tu nivel de herramienta no lo tienes. Puedes pedirlo en la maderería.'
+              const disabled = !editable || !chosen.size
+              return (
+                <div key={id} className="flex flex-col gap-2">
+                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-2 border-graphite' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
+                    <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => apply([...chosen], id)} className="mt-1 accent-graphite" />
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold">{p.name}</span>
+                        <HelpButton term={TERMS[TERM[id]]} open={help.open === id} onToggle={() => help.toggle(id)} />
+                        {why && (
+                          <span className="ml-auto">
+                            <AlertButton label={`Aviso de ${p.name}`} open={alert.open === id} onToggle={() => alert.toggle(id)} />
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs text-graphite-2">{p.detail}</span>
+                    </span>
+                  </label>
+                  {why && alert.open === id && <AlertNote>{why}</AlertNote>}
+                  {help.open === id && <HelpPanel term={TERMS[TERM[id]]} onClose={help.close} />}
+                </div>
+              )
+            })}
+          </div>
+          {hiddenChosen.map((e) => (
+            <p key={e} className="flex items-start gap-2 text-xs text-graphite">
+              <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
+              {EDGE_LABEL[e]} queda contra {name(against.get(e)!).toLowerCase()}: no se ve, así que el perfil no se dibuja ni entra en la lista de compra.
+            </p>
+          ))}
+          {profile && EDGE_PROFILES[profile].cut && banded.length > 0 && (
+            <p className="flex items-start gap-2 text-xs text-graphite">
+              <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
+              <span>
+                {listed(banded.map((e) => EDGE_LABEL[e]))} {banded.length === 1 ? 'lleva' : 'llevan'} cubrecanto: un perfil cortado y el cubrecanto de chapa no van juntos. Para un canto perfilado sin capas a la vista se usa canto macizo.
+              </span>
+            </p>
+          )}
+          {error && <p className="text-xs text-rust">{error}</p>}
+        </div>
       )}
-      {error && <p className="text-xs text-rust">{error}</p>}
     </section>
   )
 }
