@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, ClockCounterClockwise, Eye, EyeSlash, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Eye, EyeSlash, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
@@ -194,6 +194,9 @@ export function Studio({ state }: { state: DesignState }) {
   const cancel = useStore((s) => s.cancel)
   const hidden = hiddenIn(useStore((s) => s.hidden), shownDesign)
   const showAll = useStore((s) => s.showAll)
+  const focusedId = useStore((s) => s.focus)
+  const unfocus = useStore((s) => s.unfocus)
+  const focusedPiece = focusedId && focusedId === selection ? shownDesign.pieces.find((p) => p.id === focusedId) : undefined
 
   // What changes what you are looking at comes first: an old version, the expert at work, a proposal or preview; then problems, pieces to confirm, what the last change resolved.
   const statuses: Status[] = [
@@ -225,6 +228,20 @@ export function Studio({ state }: { state: DesignState }) {
             actions: (
               <button type="button" onClick={cancel} aria-label="Cancelar" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
                 <X />
+              </button>
+            ),
+          },
+        ]
+      : []),
+    ...(focusedPiece
+      ? [
+          {
+            key: 'focus',
+            icon: <Crosshair />,
+            label: `Enfocada: ${focusedPiece.name}`,
+            actions: (
+              <button type="button" onClick={unfocus} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
+                <ArrowsOut /> Ver todo el mueble
               </button>
             ),
           },

@@ -6,7 +6,7 @@ import { contactBetween } from './validation/contact'
 // The four edges around a piece's face, and which of them rest against another piece: those cannot be seen, so they take no profile.
 
 /** Where each edge is: the axis it faces along and whether it is the smaller (0) or larger (1) end. */
-const EDGE_SIDE: Record<Edge, { axis: Axis; end: 0 | 1 }> = {
+export const EDGE_SIDE: Record<Edge, { axis: Axis; end: 0 | 1 }> = {
   front: { axis: 'z', end: 1 },
   back: { axis: 'z', end: 0 },
   left: { axis: 'x', end: 0 },

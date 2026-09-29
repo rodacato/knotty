@@ -20,6 +20,8 @@ export interface SceneChanges {
 
 export interface SceneSlice {
   selection: string | null
+  /** The piece the camera turns and zooms about; null frames the whole furniture. Choosing a piece sets it, and the person can leave it while keeping the selection. */
+  focus: string | null
   /** Pieces the person hid to see behind them: view only, never saved into the design or its history. */
   hidden: string[]
   exploded: boolean
@@ -36,6 +38,7 @@ export interface SceneSlice {
   preview: { design: Design; label: string } | null
 
   select(id: string | null): void
+  unfocus(): void
   hide(id: string): void
   showAll(): void
   toggleExploded(): void
@@ -81,6 +84,7 @@ export function moveTo(set: Set, services: Services, before: DesignState, after:
 
 export const createScene: Slice<SceneSlice> = (set, get) => ({
   selection: null,
+  focus: null,
   hidden: [],
   exploded: false,
   dimensions: true,
@@ -91,7 +95,12 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   reveal: 0,
   preview: null,
 
-  select: (id) => set((s) => ({ selection: s.selection === id ? null : id })),
+  select: (id) =>
+    set((s) => {
+      const selection = s.selection === id ? null : id
+      return { selection, focus: selection }
+    }),
+  unfocus: () => set({ focus: null }),
   hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
   showAll: () => set({ hidden: [] }),
   // Apart, the pieces read best from the front three-quarter view, as in assembly instructions.

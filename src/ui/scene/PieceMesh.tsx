@@ -6,6 +6,7 @@ import type { MeshStandardMaterial, Texture } from 'three'
 import type { Axis, Piece } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
 import type { BoardTone } from '../../domain/materials/grades'
+import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
 
 const MM = 0.001
@@ -64,14 +65,18 @@ interface PieceMeshProps {
   reduced: boolean
   /** Delay of the reveal from sketch to wood; the parent remounts the piece to repeat it. */
   delay: number
+  /** The profiles on the edges that show: the piece is cut to them instead of drawn as a box. */
+  shapes: EdgeShape[]
   onSelect: (id: string) => void
 }
 
-export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, onSelect }: PieceMeshProps) {
+export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, onSelect }: PieceMeshProps) {
   const [over, setOver] = useState(false)
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
   const maps = useMemo(() => faceTextures(piece, box, tone, plies), [piece, box, tone, plies])
+  const cut = useMemo(() => (shapes.length ? profiledGeometry({ x: size[0], y: size[1], z: size[2] }, piece.normal, shapes) : null), [shapes, piece.normal, size[0], size[1], size[2]]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => cut?.dispose(), [cut])
 
   const sketch = piece.confidence === 'low'
   const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1
@@ -118,7 +123,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
       onPointerOver={(e) => (e.stopPropagation(), setOver(true), (document.body.style.cursor = 'pointer'))}
       onPointerOut={() => (setOver(false), (document.body.style.cursor = ''))}
     >
-      <boxGeometry />
+      {cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
       {maps.map((map, i) => (
         <meshStandardMaterial
           key={i}
@@ -135,7 +140,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
         />
       ))}
       <Edges
-        threshold={15}
+        threshold={cut ? 30 : 15}
         color={problem ? '#b4452f' : selected || ghost || marked ? '#d98a2b' : '#2b2825'}
         lineWidth={selected ? 2.5 : problem ? 2.2 : marked || sketch ? 1.8 : 1}
         transparent

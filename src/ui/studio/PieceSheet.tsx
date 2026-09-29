@@ -68,7 +68,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
             ))}
           </dl>
         )}
-        {!editing && <EdgesSection design={design} geo={geo} piece={p} editable={editable} />}
+        {!editing && <EdgesSection key={p.id} design={design} geo={geo} piece={p} editable={editable} />}
         {p.confidence === 'low' && (
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-paper px-3 py-2 text-sm">
             <span className="flex-1">El experto no pudo confirmar esta pieza con las fotos.</span>

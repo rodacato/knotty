@@ -2,22 +2,29 @@ import { CameraControls, ContactShadows, Environment, Grid, Lightformer, Perform
 import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber'
 import { EffectComposer, N8AO } from '@react-three/postprocessing'
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
+import { Vector3 } from 'three'
 import type { Design } from '../../domain/design/schema'
 import type { Box, Geometry } from '../../domain/design/resolve'
 import { materialById, type Catalog } from '../../domain/materials/catalog'
 import { boardLook } from '../../domain/materials/grades'
 import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
+import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
+import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { assembled, explode } from './explode'
 import { Hardware } from './Hardware'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
+import type { EdgeShape } from './edgeGeometry'
 import { PieceMesh } from './PieceMesh'
 import { RemovedGhost } from './RemovedGhost'
 import { useReducedMotion, useDark, useTouch } from './preferences'
 
 const MM = 0.001
 const FOV = 35
+/** A chamfer has no radius: this is the size of its cut, in mm. */
+const CHAMFER = 3
+const NO_SHAPES: EdgeShape[] = []
 
 interface SceneProps {
   design: Design
@@ -68,33 +75,41 @@ const VIEWPOINTS: Record<View, [number, number, number]> = {
   top: [0, 1, 0.001],
 }
 
-/** Frames the box around what is shown, assembled or apart, from the chosen view. */
-function CameraRig({ frame, reduced }: { frame: Box; reduced: boolean }) {
+/** Frames the box around what is shown, or around the selected piece so the camera turns and zooms about it. */
+function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box | null; focusId: string | null; reduced: boolean }) {
   const controls = useRef<CameraControls>(null)
   const view = useStore((s) => s.view)
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height))
-  const { x0, x1, y0, y1, z0, z1 } = frame
+  const latest = useRef({ frame, focus })
+  useEffect(() => void (latest.current = { frame, focus }))
 
-  useEffect(() => {
+  const place = (keepDirection: boolean) => {
     const c = controls.current
     if (!c) return
+    const { x0, x1, y0, y1, z0, z1 } = latest.current.focus ?? latest.current.frame
     const [a, h, f] = [(x1 - x0) * MM, (y1 - y0) * MM, (z1 - z0) * MM]
     const radius = Math.hypot(a, h, f) / 2
     const vertical = (FOV * Math.PI) / 180
     const narrowest = Math.min(vertical, 2 * Math.atan(Math.tan(vertical / 2) * aspect))
-    const d = (radius / Math.sin(narrowest / 2)) * 1.1 + 0.15
+    const d = Math.max(0.45, (radius / Math.sin(narrowest / 2)) * 1.1 + 0.15)
     // Aimed a little above the middle, so the scene bar over the top of the 3D does not cover it.
     const target = [((x0 + x1) / 2) * MM, ((y0 + y1) / 2) * MM + d * Math.tan(vertical / 2) * 0.12, ((z0 + z1) / 2) * MM]
-    const [dx, dy, dz] = VIEWPOINTS[view.name]
-    const n = Math.hypot(dx, dy, dz)
+    const [dx, dy, dz] = keepDirection ? c.getPosition(new Vector3()).sub(c.getTarget(new Vector3())).toArray() : VIEWPOINTS[view.name]
+    const n = Math.hypot(dx, dy, dz) || 1
     void c.setLookAt(target[0] + (dx / n) * d, target[1] + (dy / n) * d, target[2] + (dz / n) * d, target[0], target[1], target[2], !reduced)
-  }, [view, x0, x1, y0, y1, z0, z1, aspect, reduced])
+  }
 
-  return <CameraControls ref={controls} makeDefault minDistance={0.3} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
+  const { x0, x1, y0, y1, z0, z1 } = frame
+  useEffect(() => place(false), [view, x0, x1, y0, y1, z0, z1, aspect, reduced]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Choosing or leaving a piece keeps the angle the person is looking from; editing its size does not move the camera.
+  useEffect(() => place(true), [focusId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return <CameraControls ref={controls} makeDefault dollyToCursor minDistance={0.15} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
 }
 
 export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: SceneProps) {
   const selection = useStore((s) => s.selection)
+  const focused = useStore((s) => s.focus)
   const exploded = useStore((s) => s.exploded)
   const dimensions = useStore((s) => s.dimensions)
   const changes = useStore((s) => s.changes)
@@ -116,17 +131,35 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
     return { ...b, x0: b.x0 - width / 2, x1: b.x1 - width / 2, z0: b.z0 - depth / 2, z1: b.z1 - depth / 2 }
   }, [explosion, width, depth])
   const pushes = useMemo(() => new Map([...explosion.offsets].map(([id, [x, y, z]]) => [id, [x * MM, y * MM, z * MM] as [number, number, number]])), [explosion])
+  const focusId = focused && focused === selection && shown.some((p) => p.id === focused) ? focused : null
+  const focus = useMemo(() => {
+    const box = focusId ? geo.boxes.get(focusId) : undefined
+    if (!box) return null
+    const [dx, dy, dz] = explosion.offsets.get(focusId!) ?? [0, 0, 0]
+    return { x0: box.x0 + dx - width / 2, x1: box.x1 + dx - width / 2, y0: box.y0 + dy, y1: box.y1 + dy, z0: box.z0 + dz - depth / 2, z1: box.z1 + dz - depth / 2 }
+  }, [focusId, geo, explosion, width, depth])
   // A material not in the catalog is drawn as the usual board: pine plywood of 18 mm.
   const lookOf = (material: string) => {
     const board = materialById(catalog, material)
     return board ? boardLook(board.grade, board.thickness) : boardLook('pine-plywood', 18)
   }
+  // Only the edges that show are cut; the ones that rest against another piece stay square.
+  const shapesOf = useMemo(() => {
+    const by = new Map<string, EdgeShape[]>()
+    for (const p of design.pieces) {
+      const chosen = profilesOf(design, p.id)
+      if (!chosen.length) continue
+      const free = new Set(edgeNeighbours(design, geo, p.id).filter((n) => !n.against).map((n) => n.edge))
+      by.set(p.id, chosen.filter((c) => free.has(c.edge)).map((c) => ({ edge: c.edge, radius: (EDGE_PROFILES[c.profile].radius ?? CHAMFER) * MM, round: EDGE_PROFILES[c.profile].radius !== null })))
+    }
+    return by
+  }, [design, geo])
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
     <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: FOV, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
       <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
-      <CameraRig frame={frame} reduced={reduced} />
+      <CameraRig frame={frame} focus={focus} focusId={focusId} reduced={reduced} />
       <hemisphereLight args={[dark ? '#6b5f52' : '#fff6e8', dark ? '#1a1612' : '#b89a78', dark ? 0.5 : 0.8]} />
       <directionalLight position={[2.5, 4.5, 3.2]} intensity={dark ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
@@ -155,6 +188,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             isNew={changes.added.includes(p.id)}
             reduced={reduced}
             delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
+            shapes={shapesOf.get(p.id) ?? NO_SHAPES}
             onSelect={select}
           />
         ))}

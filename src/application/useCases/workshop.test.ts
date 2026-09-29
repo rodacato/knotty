@@ -76,11 +76,18 @@ describe('choosing edge profiles', () => {
     expect(straight.ok && currentDesign(straight.state).edgeProfiles).toEqual([])
   })
 
-  it('refuses an edge that rests on another piece, and a radius the board is too thin for', () => {
+  it('takes an edge that rests on another piece and a radius the board is too thin for, and ignores one that is not on the face', () => {
     const c = setup()
     const initial = planned(c)
-    expect(c.chooseEdgeProfiles(initial, 'top', ['back'], 'eased')).toMatchObject({ ok: false, message: expect.stringContaining('queda contra otra pieza') })
-    expect(c.chooseEdgeProfiles(initial, 'back', ['top'], 'roundover-6')).toMatchObject({ ok: false, message: 'Redondeo 6 mm pide un tablero de al menos 12 mm.' })
+    const hidden = c.chooseEdgeProfiles(initial, 'top', ['back'], 'eased')
+    if (!hidden.ok) throw new Error(hidden.message)
+    expect(currentDesign(hidden.state).edgeProfiles).toEqual([{ piece: 'top', edge: 'back', profile: 'eased' }])
+    const thin = c.chooseEdgeProfiles(initial, 'back', ['top'], 'roundover-6')
+    if (!thin.ok) throw new Error(thin.message)
+    expect(currentDesign(thin.state).edgeProfiles).toEqual([{ piece: 'back', edge: 'top', profile: 'roundover-6' }])
+    const off = c.chooseEdgeProfiles(initial, 'top', ['bottom'], 'eased')
+    if (!off.ok) throw new Error(off.message)
+    expect(currentDesign(off.state).edgeProfiles).toBeUndefined()
   })
 })
 
