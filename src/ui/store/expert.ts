@@ -19,6 +19,8 @@ export interface CaptureInput {
   notes: string
   /** What the person said the furniture is; null lets Knotty tell. */
   kind: DesignKind | null
+  /** The room the person has for it, in mm; it stays in the draft and does not go to the expert. */
+  space?: Partial<Dimensions> | null
 }
 
 export interface ExpertSlice {

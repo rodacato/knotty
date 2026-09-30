@@ -33,6 +33,8 @@ export interface SessionSlice {
   startCapture(): void
   adjustBase(base: Base): void
   closeAdjust(): void
+  /** Leaves the capture for the home with the bases. */
+  goHome(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
   /** A whole session from elsewhere (the bench) becomes the current design. */
@@ -118,6 +120,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   closeAdjust: () => set({ adjusting: null }),
 
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
+
+  goHome: () => set({ phase: 'home', reconstructionError: null, draft: null }),
 
   openState(state) {
     const { services } = get()
