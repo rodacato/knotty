@@ -10,6 +10,7 @@ import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { useStore } from '../store'
 import { JointsSection } from './Joints'
 import { PlanFields, type Locks } from './PlanFields'
+import { FinishSection } from './FinishSection'
 import { SavingSheet } from './SavingSheet'
 
 // The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.
@@ -105,7 +106,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
       )}
 
       <p className="-mb-2 text-sm text-graphite">Fija lo que no se mueve; lo demás puede cambiar para ahorrar material.</p>
-      <PlanFields module={moduleOf(draft)} plan={draft} onChange={set} locks={locks} />
+      <PlanFields module={moduleOf(draft)} plan={draft} onChange={set} locks={locks} afterMeasures={<FinishSection state={state} />} />
 
       <JointsSection design={currentDesign(state)} />
 

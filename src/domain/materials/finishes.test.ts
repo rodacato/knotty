@@ -8,7 +8,7 @@ import saved from '../session/state-v1.fixture.json'
 import { migrateState } from '../session/migrate'
 import { currentDesign, DesignState } from '../session/state'
 import { applySettings, Catalog, finishSkus, type FinishSku } from './catalog'
-import { FINISH_IDS, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf } from './finishes'
+import { FINISH_IDS, FINISH_LOOK, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf, NATURAL_PINE } from './finishes'
 import { containersFor, estimateFinish, finishArea, finishLitres } from './finishPurchase'
 import { estimatePurchase } from './purchase'
 
@@ -60,6 +60,31 @@ describe('finish knowledge', () => {
   })
 })
 
+describe('how a finish looks', () => {
+  const light = (hex: string) => [1, 3, 5].reduce((sum, i) => sum + parseInt(hex.slice(i, i + 2), 16), 0)
+
+  it('every finish has a colour, a sheen and whether it shows the grain; no finish is the unfinished wood but none', () => {
+    for (const id of FINISH_IDS) {
+      const look = FINISH_LOOK[id]
+      expect(look.color).toMatch(/^#[0-9A-F]{6}$/)
+      expect(look.roughness).toBeGreaterThan(0)
+      expect(look.roughness).toBeLessThanOrEqual(1)
+    }
+    expect(FINISH_LOOK.none.color).toBe(NATURAL_PINE)
+    expect(FINISH_IDS.filter((id) => FINISH_LOOK[id].color === NATURAL_PINE)).toEqual(['none'])
+  })
+
+  it('oils and varnishes go darker and warmer than the bare wood, and only paint hides the grain', () => {
+    for (const id of ['polyurethane', 'marine-varnish', 'danish-oil'] as const) expect(light(FINISH_LOOK[id].color)).toBeLessThan(light(NATURAL_PINE))
+    expect(FINISH_IDS.filter((id) => !FINISH_LOOK[id].grain)).toEqual(['paint'])
+  })
+
+  it('a varnish shines more than an oil, and an oil more than the bare wood (acabados.md §16.1)', () => {
+    expect(FINISH_LOOK.polyurethane.roughness).toBeLessThan(FINISH_LOOK['danish-oil'].roughness)
+    expect(FINISH_LOOK['danish-oil'].roughness).toBeLessThan(FINISH_LOOK.none.roughness)
+  })
+})
+
 describe('litres and containers', () => {
   it('the reference worked example: 6 m², 3 coats of Polyform 3000 → 2.8 L (acabados.md §14.1)', () => {
     // 6 × 3 ÷ (8 × 0.8) = 18 ÷ 6.4 = 2.8125
@@ -88,6 +113,14 @@ describe('litres and containers', () => {
     expect(counts(containersFor(0.3, [sku(1), sku(4)]))).toEqual([[1, 1]])
     expect(counts(containersFor(2.81, [sku(1, 300), sku(4, 800)]))).toEqual([[4, 1]])
     expect(containersFor(2, [])).toEqual([])
+  })
+
+  it('a hardwax oil has no coverage in the reference: it is listed with its coats, no litres and no invented number', () => {
+    expect(FINISH_PRODUCTS['hardwax-oil'].coverage).toBeNull()
+    expect(FINISHES['hardwax-oil'].missing).toEqual(expect.arrayContaining([expect.stringMatching(/coverage/)]))
+    const f = estimateFinish({ ...exampleBookcase, finish: 'hardwax-oil' }, geo(exampleBookcase), testCatalog)!
+    expect(f.lines.map((l) => [l.product, l.coats, l.litres, l.containers.length])).toEqual([['hardwax-oil', 2, null, 0]])
+    expect(finishSkus(testCatalog, 'hardwax-oil').map((x) => x.litres)).toEqual([0.75, 1.3])
   })
 
   it('a finish the reference cannot measure is listed without litres, and is not a missing price', () => {

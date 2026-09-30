@@ -97,7 +97,8 @@ Ejemplo de ficha, **Polyform Barniz 11000 Mate + Catalizador 250** (poliuretano 
 | **Barniz de color base agua** (Polyform Barniz Color BA, acrílico) | Interiores; tiñe y protege en un paso | A 25 °C y 50 % HR: tacto 15–30 min; duro 45–60 min; uso 24 h; mínimo 2 manos (3 si la madera es muy porosa), lija 240 entre manos; hasta 10 % de agua; rendimiento 10–15 m²/L a 25 µm; **no apto para exteriores** | ✅ [12] |
 | **Tinte y barniz en uno** (Minwax PolyShades, en Home Depot MX) | Interiores; cómodo | 2 manos; da menos control del color que tinta + barniz por separado | ⚠️ [26] |
 | **Barniz marino alquidálico** (Polyform Home Barniz Marino) | Interiores y exteriores; «en exteriores tiene un tiempo de vida moderado» | Tacto 1–2 h; duro 4–6 h; 4 h entre manos; uso normal 7 días; brillante 85–100 unidades; mate 0–30; rendimiento 9–10 m²/L (brillante) y 7–8 m²/L (mate y semimate); 76–127 µm (3–5 milésimas) por mano; lija 240/320 entre manos | ✅ [11] |
-| **Barniz *spar*** (marino flexible) | Exteriores | Formulado para aguantar el sol mejor que los barnices comunes | ⚠️ [1] |
+| **Barniz *spar*** (marino flexible) | Exteriores | Formulado para aguantar el sol mejor que los barnices comunes; el *spar* «marino» de tienda suele traer muy poco absorbente de UV | ⚠️ [1]; ✅ [40][41] |
+| **Barniz de secado con aceite en trapo** (*wiping varnish*, tipo Arm-R-Seal) | Cubiertas y muebles de uso; interiores | Barniz muy diluido que se aplica con trapo o esponja; **5 o 6 manos** para una mesa de centro, unas 5–6 h entre manos, uso ligero a los 7 días y durabilidad plena a los 30; lija 320 o más entre manos con poca presión. «Superior a aceites o cera en piezas de mucho uso.» Sin rendimiento por litro en las fuentes abiertas ❓ | ⚠️ [37][40] |
 
 **Amarillamiento:** los poliuretanos de isocianato **aromático** se oscurecen con la luz; por eso los recubrimientos que deben conservar el color usan isocianatos **alifáticos** [7] ✅. En la práctica: sobre maple, abedul o pintura blanca, preferir base agua o alifático ⚠️. Comex agrupa sus productos base agua para madera (barniz, sellador, esmalte) por menos olor, secado rápido y poco amarillamiento [28] ⚠️.
 
@@ -113,11 +114,29 @@ Los aceites penetran, casi no hacen película y dejan la textura de la madera; s
 | **Tung puro** | Cura de **5 a 30 días** según clima; manos muy delgadas | Mate a satinado ligero, tono dorado; efecto «mojado»; casi no se oscurece | La mejor resistencia al agua de los aceites puros | ✅ [2][4] |
 | «Acabado de tung» (*tung oil finish*) | Muchas veces es mezcla de aceite con barniz, no tung puro | — | — | ✅ [4] |
 | **Danés** (*Danish oil*) | Aceite (tung o linaza polimerizada) con ≈ ⅓ de barniz; 4–24 h entre manos; 3 manos, retirando el exceso | Satinado duro; oscurece la madera | Resiste líquidos razonablemente | ✅ [6] |
-| **Aceite-cera dura** (*hardwax oil*) | Aceites y ceras naturales; 1–2 manos | Mate a satinado natural | Buena en pisos y cubiertas | ❓ (sin fuente abierta) |
+| **Aceite-cera dura** (*hardwax oil*, tipo Osmo Polyx-Oil o Rubio Monocoat) | Mezcla de aceites vegetales y ceras que penetra y **no forma película**. Osmo: 2 manos, 8–10 h entre manos, 2–3 semanas de curado antes de exponerlo a humedad; Rubio (dos componentes): 1 mano, uso normal a los 5 días. Se aplica y se retira con trapo, sin lijar entre manos | Mate, satinado o brillante según el producto; conserva la veta a la vista y al tacto | En una prueba de agua, 2 manos protegieron al menos como 2 de poliuretano en trapo; el fabricante Rubio dice que el poliuretano protege más contra líquidos y químicos. Se repara por zona: se lija al grano de alrededor y se da más | ✅ [33][35]; ⚠️ [34][36] |
 | **Aceite mineral** (parafina líquida) | No cura | Casi invisible | Solo para tablas de picar; no se enrancia | ✅ [1] |
 | Aceites vegetales de cocina (oliva, maíz, cártamo) | No curan | — | **No usar**: se enrancian y alimentan hongos y bacterias | ✅ [1] |
 
 Rendimiento del aceite danés: ≈ 12.5 m²/L [6] ⚠️.
+
+**Aceite-cera dura, lo que falta saber.** El rendimiento de Osmo tiene dos cifras que no coinciden (unos 260 pies² por litro con 2 manos en la página del fabricante [36], contra «24 m² por litro» por mano en un resultado de búsqueda de su ficha), así que no se fija ❓. Rubio da 30–50 m²/L en una sola mano en la página de su distribuidor mexicano [49] ⚠️. Ninguna página abierta dice que el aceite-cera dura sea apto para alimentos ❓ (Rubio lo dice de su Oil Plus 2C en esa página [49]; la declaración de juguetes de Osmo, EN 71-3, no equivale). En México se consigue **por importación en línea**, no en Home Depot MX ni en Comex (§17).
+
+### 6.1 Cera, aceite, aceite-cera o barniz: cuál elegir
+
+Orden de protección contra agua, manchas y desgaste, de mayor a menor, como síntesis de las fuentes citadas (ninguna publica una tabla única) ⚠️: **poliuretano o laca catalizada > barniz, incluido el de trapo ≈ poliuretano base agua > aceite-cera dura ≈ nitro > danés > tung > linaza > cera** [19][33][34][37][40].
+
+| Si quiero... | Uso... | Por qué |
+|---|---|---|
+| Tacto natural y veta a la vista | Aceite-cera dura, 2 manos | No forma película; mate a satinado [34][35][36] |
+| Máxima protección (cubierta, cocina, baño) | Poliuretano de aceite o catalizado (§4, §5) | Resiste mejor calor, humedad y desgaste [34] |
+| Reparar por zonas | Aceite-cera dura o aceite; nitro si hay pistola | Se lija al grano de alrededor y se da más [33]; la nitro funde la mano nueva con la anterior |
+| Apto para alimentos | Aceite mineral o parafina (§7); tung puro ya curado; cera al secar el solvente | Ficha por producto ❓; del aceite-cera dura y el poliuretano curado ❓ |
+| Principiante | Aceite-cera dura o poliuretano en trapo | Aplicación indulgente [33] |
+| Claro sin amarillear | Base agua, CAB-acrílica o alifático (§5) | ⚠️ |
+| Exterior | Pintura sobre triplay resistente al agua, o marino de verdad | Los «marinos» de tienda traen poco UV [40][41] |
+
+La cera **sola** protege poco y por poco tiempo: sirve de tacto final, no de protección (§7) [2] ✅.
 
 ---
 
@@ -126,6 +145,20 @@ Rendimiento del aceite danés: ≈ 12.5 m²/L [6] ⚠️.
 - La cera da un acabado mate si no se pule y protege poco y por poco tiempo [2] ✅.
 - La **cera de parafina** (de vela) no se enrancia, no alimenta microbios y es de las formas más simples de terminar tablas de picar y cubiertas de cocina de madera maciza; se aplica entibiando la pieza [1] ✅.
 - Sobre triplay, la cera sola es para piezas decorativas; como capa final sobre aceite o barniz da tacto sedoso ⚠️.
+
+### 7.1 Lo que no se combina
+
+| No combinar | Por qué | Confianza |
+|---|---|---|
+| **Cera debajo de cualquier acabado** | Es la única excepción a «casi cualquier producto se aplica sobre otro si está seco»: encima de cera no adhiere nada | ⚠️ [39] |
+| **Pulidor de muebles con silicona antes de acabar** | Deja ojo de pescado; se quita con solvente | ✅ [38] |
+| **Base agua sobre aceite sin curar** (linaza cocida, danés) | No adhiere y queda pegajoso; con linaza, esperar de 3 a 7 días antes de poliuretano | ✅ [42][43] |
+| **Poliuretano sobre goma laca con cera** | El poliuretano no pega sobre goma laca común: usar desencerada | ⚠️ [43] |
+| **Laca sobre barniz** | Puede ampollar; se pone una capa de goma laca desencerada de barrera | ⚠️ [39] |
+| **Tinta y acondicionador antes de tiempo** | Si se tiñe antes de las 2 h del envase, la tinta se mezcla con el acondicionador líquido y el manchado sigue | ⚠️ [44] |
+| **Película dura sobre aceite-cera dura** | Sin fuente abierta; el fabricante pide sus propios productos de mantenimiento | ❓ |
+
+El pino es la madera que peor se mancha, y el manchado no se arregla ni lijando: hay que quitar hasta 1/32″ (unos 0.8 mm) de madera, que en la chapa fina del triplay puede atravesarla ✅ [44]. Con tinta, el gel *stain* rinde mejor que el acondicionador de tienda ⚠️ [44].
 
 ---
 
@@ -228,7 +261,8 @@ El canto tiene dos decisiones independientes: su **perfil** (la forma de la aris
 - **Exterior e interior:** son exteriores los costados por fuera, la cubierta o el techo, y los frentes de puertas y cajones; lo demás (repisas, interior del casco, trasera por dentro) es interior. La trasera por fuera, contra el muro, no se ve ⚠️.
 - **Frentes distintos del casco:** la combinación bicolor más pedida es casco blanco y frentes (puertas y frentes de cajón) en tinta nogal ⚠️. Una pieza suelta de otro color (una cubierta) es la excepción.
 - **Cantos:** el cubrecanto de chapa y el canto macizo se acaban con el mismo sistema que la cara; el de PVC o melamina no se toca [18] ⚠️. En cocina y baño se **sellan todos los cantos**, incluso los que no se ven: por ahí entra la humedad ✅ [1][11].
-- **Las dos caras:** una pieza grande acabada (o laminada) por una sola cara se alabea, porque una cara gana y pierde humedad más rápido que la otra. Acabar o al menos sellar las dos caras igual ⚠️ (práctica de taller; ver también el laminado en §10).
+- **Las dos caras:** acabar o al menos sellar las dos caras igual es práctica de taller y da tacto y aspecto parejos, y en cocina y baño evita que la humedad entre por lo que no se selló ⚠️. Lo que **no** está probado es que el acabado de una sola cara alabee la pieza: para madera maciza, Flexner y *Popular Woodworking* lo desmienten (el alabeo viene de la humedad de la madera, no del acabado) ✅ [31][32]; para triplay no hay fuente abierta ❓. Sí se alabea una pieza con **una sola cara laminada o enchapada**, por el adhesivo, y se balancea con la misma chapa o laminado por el otro lado ✅ [31].
+- **Por superficie:** ninguna fuente abierta describe «capa dura arriba y ligera abajo» como práctica establecida ❓. Lo que sí hay: una cubierta lleva más manos que el resto por desgaste (5–6 manos de barniz en trapo en una mesa [37]) y el único método de acabado previo de triplay para gabinetes que se encontró usa el mismo sistema en todo el mueble [44] ⚠️. Tratar distinto la cubierta es normal; acabar el resto con menos manos es práctica de taller sin fuente ❓. Sellar es lo mínimo.
 
 ---
 
@@ -385,10 +419,14 @@ Si se quiere un color exacto de una marca, se pide por su código en la tienda; 
 | Marca | Líneas para madera | Nota |
 |---|---|---|
 | **Comex / Polyform** | Barniz 3000 (también en versión base agua [19]), 11000 (también base agua [27]), Home Barniz Marino, Barniz Color BA, tintas, línea base agua [28], esmalte Acqua 100 Total [29] | Comex es empresa de PPG Industries [20] ✅; las cartas técnicas citan la NOM-123-SEMARNAT para COV [9] |
-| **Sayer Lack** | Selladores y lacas de nitrocelulosa (Sellalack), poliuretanos, catalizados, tintas al aceite (ManchaSayer); diluyente D-8000 | [13][14][24] ✅ |
+| **Sayer Lack** | Selladores y lacas de nitrocelulosa (Sellalack), poliuretanos, catalizados, tintas al aceite (ManchaSayer); diluyente D-8000. En Home Depot MX (2026-09-30): barniz poliuretano Poly Lack UB-0740 de 1 L a $495, 6–8 m²/L, uso final de 5 a 7 días, **solo interior** [47] | [13][14][24] ✅; precio y ficha de tienda ⚠️ [47] |
+| **Behr** | En Home Depot MX (2026-09-30): barniz de poliuretano base agua satinado de 946 mL a $479, 10 m²/L, 2 manos, interior, bajo olor [48]; tinta al aceite de 946 mL a $345, 14 m²/L, 1 mano | ⚠️ [48] |
 | **Berel** | Mancha al aceite, fondo para madera, esmaltes | [15][16] ✅ |
 | **Minwax** | PolyShades (tinte y barniz en uno), en Home Depot MX | [26] ⚠️ |
-| Otras | Osmo, Rust-Oleum y marcas de tienda | ❓ disponibilidad no verificada |
+| **Osmo, Rubio Monocoat** (aceite-cera dura) | **Solo importación en línea**: Osmo Polyx-Oil de 0.75 L desde unos $2,300 en Amazon MX (cerca de $3,065 el litro, precio de un resultado de búsqueda); Rubio Monocoat Oil Plus 2C de 1.3 L a $4,054.75 en su distribuidor oficial en México (cerca de $3,119 el litro) [49][50]. Fiddes, Bona y Sikkens no se encontraron en México | ⚠️ [49][50] (precios del 2026-09-30, cambian sin aviso) |
+| Otras | Rust-Oleum y marcas de tienda | ❓ disponibilidad no verificada |
+
+**Cuidado con el «aceite danés» de Home Depot MX.** El producto que la tienda llama «aceite danés» de Sayer Lack (1 L, $449, en teka, roble y nogal) es, según su propia ficha, un **barniz base aceite con color y protección UV para exteriores**, de una sola mano, 6–8 h entre manos y 24 h de secado final, que se aplica con brocha o pistola y se limpia con diluyente [46]. No es el aceite danés de §6 (aceite con un tercio de barniz, tres manos a trapo). Home Depot MX no vende aceite de linaza ni de tung para madera, ni cera de abeja o carnauba; solo ceras de piso y pulidores de mantenimiento ⚠️ (búsqueda del 2026-09-30).
 
 ---
 
@@ -416,7 +454,7 @@ Si se quiere un color exacto de una marca, se pide por su código en la tienda; 
 9. **¿Cuánto barniz compro?** Área total × número de manos ÷ (rendimiento × 0.8); por ejemplo, con Polyform 3000 (8 m²/L) cuenta 6.4 m² por litro y por mano. ⚠️ [9]
 10. **¿Por qué hay que redondear las aristas?** Porque el barniz se adelgaza ahí y se gasta primero, y una arista viva se astilla. ⚠️
 11. **¿Puedo redondear un canto con cubrecanto de chapa?** No con router: la chapa se rompe. Mata la arista con lija o usa canto macizo. ⚠️
-12. **¿Tengo que barnizar por dentro?** Conviene al menos sellar: una pieza acabada por una sola cara tiende a torcerse, y en cocina y baño la humedad entra por lo que no se selló. ⚠️ [1]
+12. **¿Tengo que barnizar por dentro?** Conviene al menos sellar: en cocina y baño la humedad entra por lo que no se selló, y el tacto queda parejo. Que una pieza acabada por una sola cara «se tuerza» no está demostrado (§12) ❓; sí se tuerce la que lleva laminado o chapa por un solo lado. ⚠️ [31][32]
 
 ---
 
@@ -424,7 +462,13 @@ Si se quiere un color exacto de una marca, se pide por su código en la tienda; 
 
 - ❓ Precios en México de los productos citados (litro y galón), con fecha.
 - ❓ Ficha de la laca catalizada de Sayer y su compatibilidad con selladores.
-- ❓ Disponibilidad en México de aceites-cera duros (Osmo y similares) y su ficha.
+- ❓ Ficha técnica completa de Osmo Polyx-Oil (rendimiento por mano, aplicación, limpieza): las cifras de §6 vienen de la página del fabricante y de un resultado de búsqueda, y no coinciden.
+- ❓ Precios en México de los aceites-cera duros en las páginas de los vendedores: los de Amazon MX y Mercado Libre vienen de resultados de búsqueda.
+- ❓ Aptitud para alimentos del aceite-cera dura y del poliuretano curado en fuentes independientes.
+- ❓ Cartas técnicas de Polyform 3000 Base Agua y Barniz Tinte de Comex (rendimiento, manos, secado).
+- ❓ Rendimiento por litro del barniz de trapo y de los «aceites daneses» de Sayer.
+- ❓ Si el acabado de una sola cara alabea el triplay de pino de 12–18 mm.
+- ❓ Receta de sellado de cantos con cola blanca diluida y si bloquea la tinta.
 - ❓ Espesor de la chapa de cara del triplay de pino BC que se vende en México (define cuánto se puede lijar).
 - ❓ Unidades de brillo de satinado y semimate en las fichas mexicanas.
 - ❓ Colores orientativos: compararlos con muestras reales de tinta sobre pino radiata.
@@ -463,3 +507,23 @@ Si se quiere un color exacto de una marca, se pide por su código en la tienda; 
 28. Comex, «4 productos base agua para acabados de madera». https://www.comex.com.mx/tutoriales-oficios/4-productos-base-agua-para-acabados-de-madera
 29. Comex, «Acqua 100 Total». https://www.comex.com.mx/esmaltes/acqua-100-total-1-litro
 30. Home Depot MX, cubrecanto de madera preencolado de 16 mm (SKU 838882). https://pro.homedepot.com.mx/pro/materiales-de-construccion/melamina/cubrecanto-de-madera-16-mm-838882 (también https://www.homedepot.com.mx/p/canplast-cubrecanto-pre-engomado-de-madera-1500-x-16-cm-pino-838882)
+31. Bob Flexner, «Finishing Both Sides Is Warped Thinking», *Woodshop News*. https://www.woodshopnews.com/columns-blogs/finishing-both-sides-is-warped-thinking
+32. *Popular Woodworking*, «Finish Both Sides? Not Necessary». https://www.popularwoodworking.com/article/finish_both_sides_not_necessary/
+33. *Fine Woodworking*, «Testing Hard-Wax Oil Finishes» (2024). https://www.finewoodworking.com/2024/06/24/testing-hard-wax-oil-finishes
+34. Rubio Monocoat USA (fabricante), «Hardwax Oil vs. Polyurethane». https://www.rubiomonocoatusa.com/blogs/blog/hardwax-oil-vs-polyurethane
+35. Rubio Monocoat USA (fabricante), «What Is Hardwax Oil?». https://www.rubiomonocoatusa.com/blogs/blog/what-is-hardwax-oil
+36. Osmo Canada (fabricante), «Polyx-Oil High Solid». https://osmo.ca/product/polyx-oil-high-solid/
+37. The Wood Whisperer, «Durable End Table Finish – Try Wiping Varnish!». https://thewoodwhisperer.com/articles/durable-end-table-finish/
+38. *Popular Woodworking* (Flexner), «Fish Eye & Silicone». https://www.popularwoodworking.com/finishing/fish-eye-silicone/
+39. *Popular Woodworking* (Flexner), «Finish Compatibility». https://www.popularwoodworking.com/finishing/flexner-on-finishing-finish-compatibility/
+40. *Popular Woodworking* (Flexner), «The Many Faces of Varnish». https://www.popularwoodworking.com/article/the_many_faces_of_varnish/
+41. Wikipedia, «Spar varnish». https://en.wikipedia.org/wiki/Spar_varnish
+42. WoodWeb, «Water-Based Polyurethane Over Boiled Linseed Oil». https://woodweb.com/knowledge_base/WaterBased_Polyurethane_Over_Boiled_Linseed_Oil.html
+43. *Fine Woodworking* (foro), «Urethane over linseed oil». https://www.finewoodworking.com/forum/urethane-over-linseed-oil
+44. *Popular Woodworking*, «Pre-finishing Plywood» y «Battling Blotching». https://www.popularwoodworking.com/finishing/pre-finishing-plywood/ y https://www.popularwoodworking.com/article/battling_blotching/
+45. Woodworking Network, «How to prevent panel warp» (fragmento; la página dio 403). https://www.woodworkingnetwork.com/best-practices-guide/gluing-laminating-veneering/how-prevent-panel-warp
+46. Home Depot MX, Sayer Lack «Aceite danés» de 1 L, teka (consultada el 2026-09-30). https://www.homedepot.com.mx/p/sayer-lack-aceite-danes-de-1-l-teka-hi-013030-604596
+47. Home Depot MX, Sayer Lack barniz poliuretano para madera transparente mate, 1 L, UB-0740 (2026-09-30). https://www.homedepot.com.mx/p/sayer-lack-barniz-poliuretano-para-madera-transparente-mate-alta-resistencia-1-l-ub-074030-724760
+48. Home Depot MX, Behr barniz de poliuretano base agua satinado, 946 mL, B8150 (2026-09-30). https://www.homedepot.com.mx/p/behr-specialty-maderas-barniz-de-poliuretano-base-agua-para-madera-satinado-alta-resistencia-946-ml-b8150-146779
+49. Rubio Monocoat México (distribuidor oficial), Oil Plus 2C 1.3 L (2026-09-30). https://rubiomonocoatmexico.com/products/oil-plus-part-a-1-3-litros
+50. Amazon México, Osmo Polyx aceite de cera dura, 0.75 L (precio de un resultado de búsqueda, 2026-09-30). https://www.amazon.com.mx/OSMO-Polyx-Aceite-cera-dura/dp/B003RDW1UY

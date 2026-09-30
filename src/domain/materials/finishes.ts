@@ -5,13 +5,13 @@ import { z } from 'zod'
 
 /** The products a finish is made of; the catalog sells each one in containers (`FinishSku.product`). */
 export const FINISH_PRODUCT_IDS = [
-  'polyurethane-1k', 'marine-varnish', 'water-based-color-varnish', 'nitro-sealer', 'nitro-lacquer', 'wood-primer', 'enamel', 'danish-oil',
+  'polyurethane-1k', 'marine-varnish', 'water-based-color-varnish', 'nitro-sealer', 'nitro-lacquer', 'wood-primer', 'enamel', 'danish-oil', 'hardwax-oil',
 ] as const
 export const FinishProductId = z.enum(FINISH_PRODUCT_IDS)
 export type FinishProductId = z.infer<typeof FinishProductId>
 
 /** The finishes the person can choose; absent on a design means 'none'. */
-export const FINISH_IDS = ['none', 'polyurethane', 'marine-varnish', 'water-based-color-varnish', 'lacquer', 'paint', 'danish-oil'] as const
+export const FINISH_IDS = ['none', 'polyurethane', 'marine-varnish', 'water-based-color-varnish', 'lacquer', 'paint', 'danish-oil', 'hardwax-oil'] as const
 export const FinishId = z.enum(FINISH_IDS)
 export type FinishId = z.infer<typeof FinishId>
 
@@ -91,6 +91,15 @@ export const FINISH_PRODUCTS: Record<FinishProductId, FinishProduct> = {
     drying: { touch: null, recoat: null, use: null },
     confidence: 'single-source',
     source: 'docs/carpinteria/acabados.md §9 and §14.1 [29]',
+  },
+  // No data sheet in the reference (acabados.md §6 and §20): nothing about the product is invented; the store has to say how much.
+  'hardwax-oil': {
+    name: 'Aceite con cera (aceite-cera dura)',
+    example: 'Aceite-cera dura',
+    coverage: null,
+    drying: { touch: null, recoat: null, use: null },
+    confidence: 'single-source',
+    source: 'docs/carpinteria/acabados.md §6 and §7',
   },
   'danish-oil': {
     name: 'Aceite danés',
@@ -206,7 +215,40 @@ export const FINISHES: Record<FinishId, Finish> = {
     missing: ['grit between coats'],
     source: 'docs/carpinteria/acabados.md §6, §14.1 and §18 [6]',
   },
+  'hardwax-oil': {
+    name: 'Aceite con cera',
+    layers: [{ role: 'finish', product: 'hardwax-oil', coats: 2 }],
+    sanding: { faces: FACES, betweenCoats: null },
+    indoorsOnly: null,
+    advice: 'Aceite y cera en un solo producto: penetra y deja un tacto mate a satinado, casi natural. Se aplica en capas muy finas y se retira el exceso; una zona rayada se repara sin lijar todo. Pregunta en la tienda cuánto rinde y cuánto tarda en secar.',
+    missing: ['coverage in m²/L', 'drying times', 'grit between coats', 'the product sold in Mexico and its price'],
+    source: 'docs/carpinteria/acabados.md §6, §7 and §20',
+  },
 }
+
+/** How a finish looks on the pine plywood: the colour it settles on and how much light it scatters (acabados.md §16.1 and §16.2). */
+export interface FinishLook {
+  color: string
+  /** 0 is a mirror and 1 is chalk; brillante ≥ 85 and mate ≤ 30 gloss units are the two ends the reference gives. */
+  roughness: number
+  /** False when the finish hides the grain (paint). */
+  grain: boolean
+}
+
+export const NATURAL_PINE = '#E9D3A6'
+
+export const FINISH_LOOK: Record<FinishId, FinishLook> = {
+  none: { color: NATURAL_PINE, roughness: 0.85, grain: true },
+  polyurethane: { color: '#DAB477', roughness: 0.22, grain: true },
+  'marine-varnish': { color: '#D7AE70', roughness: 0.25, grain: true },
+  'water-based-color-varnish': { color: '#E7CFA0', roughness: 0.5, grain: true },
+  lacquer: { color: '#E2C590', roughness: 0.8, grain: true },
+  paint: { color: '#F3F1EC', roughness: 0.45, grain: false },
+  'danish-oil': { color: '#CFA066', roughness: 0.55, grain: true },
+  // The reference has no colour for a hardwax oil: it takes the wax's («casi natural») and a satin between mate and satinado.
+  'hardwax-oil': { color: '#E4C99A', roughness: 0.65, grain: true },
+}
+
 
 /** The finish of a design: none when the person has not chosen one. */
 export const finishOf = (design: { finish?: FinishId }): FinishId => design.finish ?? 'none'

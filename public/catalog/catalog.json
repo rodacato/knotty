@@ -463,6 +463,22 @@
       "litres": 4,
       "sku": null,
       "price": null
+    },
+    {
+      "id": "hardwax-oil-0.75l",
+      "name": "Aceite con cera (aceite-cera dura) 0.75 L",
+      "product": "hardwax-oil",
+      "litres": 0.75,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "hardwax-oil-1.3l",
+      "name": "Aceite con cera (aceite-cera dura) 1.3 L",
+      "product": "hardwax-oil",
+      "litres": 1.3,
+      "sku": null,
+      "price": null
     }
   ],
   "layout": {
