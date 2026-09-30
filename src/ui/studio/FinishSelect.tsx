@@ -43,6 +43,7 @@ export function FinishSelect({ value, onChange }: { value: FinishId; onChange: (
         aria-label="Acabado"
         aria-expanded={open}
         aria-controls={list}
+        aria-activedescendant={open ? `${list}-${FINISH_IDS[active]}` : undefined}
         onClick={() => (setActive(FINISH_IDS.indexOf(value)), setOpen(!open))}
         className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-line bg-bone px-3 text-left text-sm"
       >
@@ -55,11 +56,12 @@ export function FinishSelect({ value, onChange }: { value: FinishId; onChange: (
           {FINISH_IDS.map((id, i) => (
             <li
               key={id}
+              id={`${list}-${id}`}
               role="option"
               aria-selected={id === value}
               onPointerEnter={() => setActive(i)}
               onClick={() => choose(id)}
-              className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm ${i === active ? 'bg-kraft' : ''} ${id === value ? 'font-medium' : ''}`}
+              className={`flex cursor-pointer items-center gap-2 min-h-11 rounded-lg px-2 text-sm ${i === active ? 'bg-kraft' : ''} ${id === value ? 'font-medium' : ''}`}
             >
               <Dot finish={id} />
               {FINISHES[id].name}
