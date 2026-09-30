@@ -154,6 +154,17 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
     }
     return by
   }, [design, geo])
+  const hingeLeft = useMemo(() => {
+    const by = new Map<string, boolean>()
+    for (const u of design.joints) {
+      const door = geo.boxes.get(u.a)
+      const upright = geo.boxes.get(u.b)
+      if (u.type !== 'cup-hinge' || !door || !upright) continue
+      const middle = (upright.x0 + upright.x1) / 2
+      by.set(u.a, Math.abs(middle - door.x0) <= Math.abs(middle - door.x1))
+    }
+    return by
+  }, [design, geo])
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
@@ -189,6 +200,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             reduced={reduced}
             delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
             shapes={shapesOf.get(p.id) ?? NO_SHAPES}
+            hingeOnLeft={hingeLeft.get(p.id)}
             onSelect={select}
           />
         ))}

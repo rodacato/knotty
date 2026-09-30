@@ -69,19 +69,21 @@ interface PieceMeshProps {
   delay: number
   /** The profiles on the edges that show: the piece is cut to them instead of drawn as a box. */
   shapes: EdgeShape[]
+  /** Experiment: where a door hangs, so its pull goes on the free edge. */
+  hingeOnLeft?: boolean
   onSelect: (id: string) => void
 }
 
-export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, onSelect }: PieceMeshProps) {
+export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, hingeOnLeft, onSelect }: PieceMeshProps) {
   const [over, setOver] = useState(false)
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
   const maps = useMemo(() => faceTextures(piece, box, tone, plies), [piece, box, tone, plies])
   const cut = useMemo(() => (shapes.length ? profiledGeometry({ x: size[0], y: size[1], z: size[2] }, piece.normal, shapes) : null), [shapes, piece.normal, size[0], size[1], size[2]]) // eslint-disable-line react-hooks/exhaustive-deps
   const voided = useMemo(() => {
-    const voids = spikeCuts(piece, box)
+    const voids = spikeCuts(piece, box, hingeOnLeft)
     return voids.length ? cutGeometry(box, voids) : null
-  }, [piece, box])
+  }, [piece, box, hingeOnLeft])
   useEffect(() => () => cut?.dispose(), [cut])
   useEffect(() => () => voided?.dispose(), [voided])
 
