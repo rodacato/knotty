@@ -1,5 +1,5 @@
 {
-  "version": "2.19",
+  "version": "2.20",
   "children": [
     {
       "type": "frame",
@@ -577,7 +577,7 @@
                 "type": "image",
                 "enabled": true,
                 "url": "../../public/icon-192.png",
-                "mode": "fill"
+                "mode": "cover"
               },
               "width": 40,
               "height": 40
@@ -856,7 +856,7 @@
         "type": "image",
         "enabled": true,
         "url": "../assets/capture/mobile-home.jpg",
-        "mode": "fill"
+        "mode": "cover"
       },
       "layout": "none"
     },
@@ -873,7 +873,7 @@
         "type": "image",
         "enabled": true,
         "url": "../assets/capture/mobile-analyzing.jpg",
-        "mode": "fill"
+        "mode": "cover"
       },
       "layout": "none"
     },
@@ -890,7 +890,7 @@
         "type": "image",
         "enabled": true,
         "url": "../assets/capture/desktop-home.jpg",
-        "mode": "fill"
+        "mode": "cover"
       },
       "layout": "none"
     },
@@ -907,7 +907,7 @@
         "type": "image",
         "enabled": true,
         "url": "../assets/capture/desktop-analyzing.jpg",
-        "mode": "fill"
+        "mode": "cover"
       },
       "layout": "none"
     },
@@ -937,6 +937,18 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "E1PFFF",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Home and Analyzing captures retaken with the bases grid in code (#139); the 2026-09-28 proposal \"Start from a base\" now differs from the app (tagline, line sketches instead of photo-like cards) and is marked as such · UI-7",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -1386,7 +1398,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -1510,7 +1522,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -1652,7 +1664,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -2648,7 +2660,7 @@
                                 "type": "image",
                                 "enabled": true,
                                 "url": "../assets/studio/scene/mobile-aparador.jpg",
-                                "mode": "fill"
+                                "mode": "cover"
                               },
                               "cornerRadius": "$radius-xl",
                               "layout": "none",
@@ -2772,7 +2784,7 @@
                                 "type": "image",
                                 "enabled": true,
                                 "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                                "mode": "fill"
+                                "mode": "cover"
                               },
                               "cornerRadius": "$radius-xl",
                               "layout": "none",
@@ -2914,7 +2926,7 @@
                                 "type": "image",
                                 "enabled": true,
                                 "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                                "mode": "fill"
+                                "mode": "cover"
                               },
                               "cornerRadius": "$radius-xl",
                               "layout": "none",
@@ -3136,7 +3148,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED and in code (photos-d39, 2026-09-27).\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n- A photo's note stays open as a text field while it has text: closing it on blur moved \"Analizar\" under the pointer and lost the click (UI-8).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nAPPROVED and in code (photos-d39, 2026-09-27).\n1. PURPOSE\nStart a design in one screen, in the order a person thinks: what furniture, how big if they know, photos if they have them, and anything else in their own words.\n2. ENTRY POINTS\nHome \"Nuevo diseño\" (src/ui/capture/Home.tsx). A failed design comes back here with everything kept. Home also offers \"O empieza de una base\" (Home.tsx, #139): a grid of bases drawn as line sketches (sketch.ts) with category chips past six bases; \"Capture / Home\" is the app as it is now. \"Start from a base\" is the 2026-09-28 proposal (photo-like cards, no tagline) and differs from what shipped: the owner decides which stands.\n3. SCREENS (columns are the steps, left → right; a step's states stack below it)\n- Home\n- One screen, no expert connected: the banner first, with \"Conectar experto\" and \"Probar con los ejemplos simulados\"; neutral, not amber (K6)\n- One screen, empty: kind undecided, no measures, no photos; the description is the way in (\"Diseñar sin fotos\")\n- One screen, filled: Librero chosen, typical measures added and editable, 3 photos (one still being read), a note\n- Analyzing\n4. BUSINESS RULES\n- Measures are optional. \"Agregar medidas\" fills the kind's typical measures (NEW: a table per kind; only tables have one today, TYPICAL_TABLE_DIMENSIONS). Changing the kind before touching them re-fills them.\n- Without a kind, \"Agregar medidas\" starts from 600 × 1800 × 300, today's default.\n- One \"Agregar fotos\", up to 5, camera or gallery; each photo is read when added and the model labels its view; the person fixes the label if wrong (D39).\n- No required photos, and the expert no longer asks for photos in the chat (D39 amended 2026-09-27).\n- A photo's note stays open as a text field while it has text: closing it on blur moved \"Analizar\" under the pointer and lost the click (UI-8).\n5. COPY SOURCE\nsrc/ui/capture/Capture.tsx, src/ui/system/KindSelect.tsx. NEW: \"¿Qué mueble quieres?\", \"Agregar medidas\", \"Sin medidas\" (removes them), \"Típicas de un librero; cámbialas si ya mediste el tuyo.\", \"Fotos\", \"Agregar fotos\", \"hasta 5\", \"3 de 5\", \"Agregar una nota\", \"Mirando la foto…\". Thumbnails are 3D renders standing in for photos.\n6. STATES NOT DRAWN\nDark mode (the tokens carry it). Every other state is in the states band below.\n7. OPEN FINDINGS\nUI-7, UI-8, UI-19 · D39\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -4425,7 +4437,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -4549,7 +4561,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -4691,7 +4703,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -5296,7 +5308,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -5422,7 +5434,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -5564,7 +5576,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -6355,7 +6367,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -6479,7 +6491,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -6621,7 +6633,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -6745,7 +6757,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -6878,7 +6890,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -7444,7 +7456,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -7568,7 +7580,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -7710,7 +7722,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -8420,7 +8432,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -8544,7 +8556,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -8686,7 +8698,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -9353,7 +9365,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -9474,7 +9486,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -9616,7 +9628,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -10219,7 +10231,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -10343,7 +10355,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-aparador-piece.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -10485,7 +10497,7 @@
                         "type": "image",
                         "enabled": true,
                         "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                        "mode": "fill"
+                        "mode": "cover"
                       },
                       "cornerRadius": "$radius-xl",
                       "layout": "none",
@@ -11309,7 +11321,7 @@
       "id": "CZI6H",
       "x": 760,
       "y": 1114,
-      "name": "Capture / Home / Start from a base (mobile)",
+      "name": "Capture / Home / Start from a base (mobile, proposal, differs from the code)",
       "clip": true,
       "width": 390,
       "height": 844,
@@ -11481,7 +11493,7 @@
                     "type": "image",
                     "enabled": true,
                     "url": "../assets/studio/scene/mobile-aparador.jpg",
-                    "mode": "fill"
+                    "mode": "cover"
                   },
                   "cornerRadius": "$radius-xl",
                   "stroke": "$line",
@@ -11532,7 +11544,7 @@
                     "type": "image",
                     "enabled": true,
                     "url": "../assets/studio/scene/mobile-librero-v2.jpg",
-                    "mode": "fill"
+                    "mode": "cover"
                   },
                   "cornerRadius": "$radius-xl",
                   "stroke": "$line",
@@ -11699,7 +11711,7 @@
       "id": "LTzKJ",
       "x": 760,
       "y": 8359,
-      "name": "Capture / Home / Start from a base (desktop)",
+      "name": "Capture / Home / Start from a base (desktop, proposal, differs from the code)",
       "clip": true,
       "width": 1440,
       "height": 900,
@@ -11858,7 +11870,7 @@
                                 "type": "image",
                                 "enabled": true,
                                 "url": "../assets/studio/scene/desktop-aparador.jpg",
-                                "mode": "fill"
+                                "mode": "cover"
                               },
                               "cornerRadius": "$radius-xl",
                               "stroke": "$line",
@@ -11906,7 +11918,7 @@
                                 "type": "image",
                                 "enabled": true,
                                 "url": "../assets/studio/scene/desktop-librero-v2.jpg",
-                                "mode": "fill"
+                                "mode": "cover"
                               },
                               "cornerRadius": "$radius-xl",
                               "stroke": "$line",
