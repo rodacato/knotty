@@ -940,6 +940,54 @@
         },
         {
           "type": "text",
+          "id": "j1j10l",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Home / Catalog first: a tighter hero so the first row of bases shows above the 900 px fold; the mono tagline \"Muebles de triplay · DIY\" is out of the header; \"Ver todo\" waits until there are more than nine fichas · UI-31",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "z76xa",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Home / Catalog first after a blind ui-review: the primary button depends on the expert (Adrian chose state-based, UI-31); expert-connected variant drawn; chips 44 px with a bolder selected one (UI-30); a count and the order of the measures under the title; a verb on the last tile; a note for a category with one base; the footer without what the header already says · UI-29, UI-30, UI-31",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "o7dyX",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Home / Catalog first revised with Adrian's notes: no \"Avanzado\" tag; the door's button is primary; \"Destacados\" replaces \"Todos\"; the last tile is \"¿No está el tuyo?\"; a header with the expert's status and Ajustes; a footer; Home / Category, few bases draws the worst case · UI-29",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "e910s",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Home / Catalog first (desktop): the entry decided in UI-29 (bases first, the custom path a named door); first draft, nine tiles of which two are placeholders until there are nine fichas; mobile waits for the desktop to be approved · UI-29",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "gIjiO",
           "name": "Entry",
           "fill": "$graphite",
@@ -3204,7 +3252,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-27\nSame flow, rules and copy as the mobile band.\n3. SCREENS (columns are the steps; step 4 has no desktop screen: the mobile states apply)\n- Home\n- One screen, no expert connected: the banner above the two columns (at most 760 wide, so it reads); kind, measures and description on the left, photos on the right\n- One screen, empty: the same without the banner\n- One screen, filled: fits in 900 px without scrolling\n- Analyzing\n6. STATES NOT DRAWN\nThe mobile states band applies as is: errors and the missing key sit above the actions, in the left column's width.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-30\nSame flow, rules and copy as the mobile band.\n3. SCREENS (columns are the steps; step 4 has no desktop screen: the mobile states apply)\n- Home — the app as it is: the tagline and \"Nuevo diseño\" on the left, the bases on the right (Home.tsx)\n- Home / Catalog first (desktop, scroll, proposal, UI-29) — the bases are the hero: nine tiles, stable order per session, each opening a working ficha; the custom path is a named door in the hero (\"Diseña el tuyo\"; its button is primary only when an expert is connected, \"Conectar experto\" in secondary otherwise: Home / Catalog first and Home / Catalog first, expert connected), and the last tile of every list is \"¿No está el tuyo?\", which goes to the same path. \"Destacados\" is a curated selection; each category loads all of its fichas (Home / Category, few bases: the worst case, one ficha). The header carries the expert's status and Ajustes; the footer says where designs live. NEW strings, not in code: \"Elige un mueble. Ajústalo. Arma tú mismo.\", \"Empieza de una base\", \"Destacados\", \"Diseña el tuyo\", \"Necesita tu experto conectado; las bases no.\", \"¿No está el tuyo?\", \"Cuéntanos qué es, con fotos o una descripción.\", \"Experto sin conectar\" / \"Experto conectado\", \"Conectar experto\", \"9 destacados · alto × ancho × fondo, en mm\", \"Diseña el tuyo →\", \"Solo hay una base de mesas por ahora.\", \"Tus diseños se guardan en este navegador.\"; the headline ends \"Ármalo tú mismo\"; the header's Ajustes and the footer's v0.2.0 exist in code. Reused: the sub-line, the bases note, the category names, \"Nuevo diseño\", the tagline sentence. Tiles 8 and 9 are placeholders: there are seven fichas today. The movement (a slow turn of each sketch) is not drawn.\n- One screen, no expert connected: the banner above the two columns (at most 760 wide, so it reads); kind, measures and description on the left, photos on the right\n- One screen, empty: the same without the banner\n- One screen, filled: fits in 900 px without scrolling\n- Analyzing\n6. STATES NOT DRAWN\nThe mobile states band applies as is: errors and the missing key sit above the actions, in the left column's width.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -12215,6 +12263,2375 @@
           "fontFamily": "$font-mono",
           "fontSize": 16,
           "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "eeIX2",
+      "x": 760,
+      "y": 9379,
+      "name": "Capture / Home / Catalog first (desktop, scroll, proposal)",
+      "clip": true,
+      "width": 1440,
+      "height": 1880,
+      "fill": "$bone",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Dx2y8",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 72,
+          "gap": 12,
+          "padding": [
+            0,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "WPxCg",
+              "name": "Brand",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "Eleqd",
+                  "type": "ref",
+                  "ref": "L4zXz",
+                  "name": "Emblem",
+                  "width": 40,
+                  "height": 40
+                },
+                {
+                  "type": "text",
+                  "id": "NOyxf",
+                  "name": "Knotty",
+                  "fill": "$graphite",
+                  "content": "Knotty",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DpNQv",
+              "name": "Expert and settings",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "floc9",
+                  "name": "Expert status (NEW)",
+                  "height": 36,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-full",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "P2AwJ",
+                      "name": "Dot",
+                      "width": 8,
+                      "height": 8,
+                      "stroke": "$graphite-2",
+                      "strokeWidth": 1.5
+                    },
+                    {
+                      "type": "text",
+                      "id": "IZEag",
+                      "name": "Experto sin conectar",
+                      "fill": "$graphite",
+                      "content": "Experto sin conectar",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "id": "UdcAz",
+                  "type": "ref",
+                  "ref": "xuboc",
+                  "name": "Ajustes",
+                  "descendants": {
+                    "HdCEC": {
+                      "enabled": true,
+                      "icon": "gear-six"
+                    },
+                    "yPtaR": {
+                      "content": "Ajustes"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zJLjf",
+          "name": "Hero",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 64,
+          "padding": [
+            28,
+            80,
+            36,
+            80
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Ydfj3",
+              "name": "Hero text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rlauU",
+                  "name": "Headline (NEW)",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Elige un mueble. Ajústalo. Ármalo tú mismo.",
+                  "lineHeight": 1.1,
+                  "fontFamily": "$font-display",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "S4FGQ1",
+                  "name": "Subline",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Al final sabes cómo se arma y cuántas hojas comprar.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 20,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ifqZu",
+              "name": "Custom door",
+              "width": 420,
+              "fill": "$paper",
+              "cornerRadius": "$radius-3xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 28,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nxr1a",
+                  "name": "Door title (NEW)",
+                  "fill": "$graphite",
+                  "content": "Diseña el tuyo",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "eB5KX",
+                  "name": "Door body",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "l8nJP",
+                  "type": "ref",
+                  "ref": "Aknuq",
+                  "name": "Conectar experto (secondary)",
+                  "width": "fill_container",
+                  "height": 48,
+                  "descendants": {
+                    "U2IdG": {
+                      "enabled": false
+                    },
+                    "D2EIC": {
+                      "content": "Conectar experto"
+                    },
+                    "bqaF2": {
+                      "enabled": true
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "ya5yN",
+                  "name": "Expert note (NEW)",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Necesita tu experto conectado; las bases no.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ncQzq",
+          "name": "Body",
+          "width": "fill_container",
+          "gap": 48,
+          "padding": [
+            36,
+            80,
+            80,
+            80
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "HY2Yi",
+              "name": "Bases",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZBzVK",
+                  "name": "Bases head",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "jEpgj",
+                      "name": "Title (NEW wording)",
+                      "fill": "$graphite",
+                      "content": "Empieza de una base",
+                      "fontFamily": "$font-display",
+                      "fontSize": 32,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "PsAEI",
+                      "name": "Bases note",
+                      "fill": "$graphite-2",
+                      "content": "Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q8Kfi",
+                      "name": "Count and order (NEW)",
+                      "fill": "$graphite-2",
+                      "content": "9 destacados · alto × ancho × fondo, en mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "d44Cew",
+                  "name": "Category chips",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "YUpll",
+                      "type": "ref",
+                      "ref": "BvIfv",
+                      "name": "Chip Todos",
+                      "height": 44,
+                      "descendants": {
+                        "Yy1ru": {
+                          "content": "Destacados",
+                          "fontWeight": "700",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "y08bM",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Recámara",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Recámara",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "zUTCr",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Guardar",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Guardar",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "K3IeHQ",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Mesas",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Mesas",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "x4sH7W",
+                  "name": "Grid 3x3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CiCRL",
+                      "name": "Row 1",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ost48",
+                          "name": "Base Aparador bajo",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "f44e5E",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-1.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "B7xXQp",
+                              "name": "Aparador bajo",
+                              "fill": "$graphite",
+                              "content": "Aparador bajo",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "AzNVV",
+                              "name": "700 × 1500 × 390",
+                              "fill": "$graphite-2",
+                              "content": "700 × 1500 × 390",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "E8Aqd0",
+                          "name": "Base Librero abierto",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "K9Dapg",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-2.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "l7ady",
+                              "name": "Librero abierto",
+                              "fill": "$graphite",
+                              "content": "Librero abierto",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "CLxMi",
+                              "name": "1950 × 900 × 290",
+                              "fill": "$graphite-2",
+                              "content": "1950 × 900 × 290",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "j8PGnx",
+                          "name": "Base Cama con cajones",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "x1KmZg",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-3.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "DeofX",
+                              "name": "Cama con cajones",
+                              "fill": "$graphite",
+                              "content": "Cama con cajones",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "C7hXW",
+                              "name": "1000 × 1956 × 1370",
+                              "fill": "$graphite-2",
+                              "content": "1000 × 1956 × 1370",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "MbIyN",
+                      "name": "Row 2",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "qDTzh",
+                          "name": "Base Zapatera",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "k6ejT",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-4.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ll0PY",
+                              "name": "Zapatera",
+                              "fill": "$graphite",
+                              "content": "Zapatera",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "oAxzg",
+                              "name": "1000 × 630 × 380",
+                              "fill": "$graphite-2",
+                              "content": "1000 × 630 × 380",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "QlUgb",
+                          "name": "Base Buró",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "bdgDP",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-5.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "yi72C",
+                              "name": "Buró",
+                              "fill": "$graphite",
+                              "content": "Buró",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uax7Q",
+                              "name": "500 × 450 × 350",
+                              "fill": "$graphite-2",
+                              "content": "500 × 450 × 350",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PPyxj",
+                          "name": "Base Mesa de centro",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "rJZRZ",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-6.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "T8fMEQ",
+                              "name": "Mesa de centro",
+                              "fill": "$graphite",
+                              "content": "Mesa de centro",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QkYHN",
+                              "name": "420 × 1000 × 550",
+                              "fill": "$graphite-2",
+                              "content": "420 × 1000 × 550",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zyxJa",
+                      "name": "Row 3",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Zag0o",
+                          "name": "Base Aparador con patas",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Ze1b0",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-7.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "qgbTZ",
+                              "name": "Aparador con patas",
+                              "fill": "$graphite",
+                              "content": "Aparador con patas",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "k17tb",
+                              "name": "940 × 1600 × 400",
+                              "fill": "$graphite-2",
+                              "content": "940 × 1600 × 400",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UkdUp",
+                          "name": "Base (base 8, NEW: no ficha yet)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "LINGP",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": "$kraft-2",
+                              "cornerRadius": "$radius-2xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "KGiQe",
+                                  "name": "cube",
+                                  "width": 32,
+                                  "height": 32,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "zMTpI",
+                              "name": "(base 8, NEW: no ficha yet)",
+                              "fill": "$graphite",
+                              "content": "(base 8, NEW: no ficha yet)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Oetri",
+                              "name": "—",
+                              "fill": "$graphite-2",
+                              "content": "—",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "aQ1nH",
+                          "name": "Base not here (NEW)",
+                          "width": "fill_container",
+                          "height": 361,
+                          "fill": "$kraft",
+                          "cornerRadius": "$radius-2xl",
+                          "stroke": "$line",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 12,
+                          "padding": 32,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "aEnJl",
+                              "name": "Plus",
+                              "width": 48,
+                              "height": 48,
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "B7v5sy",
+                                  "name": "plus",
+                                  "width": 20,
+                                  "height": 20,
+                                  "icon": "plus",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "SOqND",
+                              "name": "¿No está el tuyo?",
+                              "fill": "$graphite",
+                              "content": "¿No está el tuyo?",
+                              "textAlign": "center",
+                              "fontFamily": "$font-display",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "n3Dta6",
+                              "name": "Cuéntanos qué es, con fotos o una descri",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Cuéntanos qué es, con fotos o una descripción.",
+                              "lineHeight": 1.4,
+                              "textAlign": "center",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Pvp7J",
+                              "name": "Verb (NEW)",
+                              "fill": "$graphite",
+                              "content": "Diseña el tuyo →",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "n6vuh",
+          "name": "Footer",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 32,
+          "padding": [
+            32,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "R4fkaC",
+              "name": "Local note (NEW)",
+              "fill": "$graphite-2",
+              "content": "Tus diseños se guardan en este navegador.",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "EPqPo",
+              "name": "Version and settings",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nvusL",
+                  "name": "v0.2.0",
+                  "fill": "$graphite-2",
+                  "content": "v0.2.0",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "jcb9n",
+      "x": 760,
+      "y": 11499,
+      "name": "Capture / Home / Category, few bases (desktop, proposal)",
+      "clip": true,
+      "width": 1440,
+      "height": 1151,
+      "fill": "$bone",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "o7Tw34",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 72,
+          "gap": 12,
+          "padding": [
+            0,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "LOzNm",
+              "name": "Brand",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "vBTnm",
+                  "type": "ref",
+                  "ref": "L4zXz",
+                  "name": "Emblem",
+                  "width": 40,
+                  "height": 40
+                },
+                {
+                  "type": "text",
+                  "id": "oYFWs",
+                  "name": "Knotty",
+                  "fill": "$graphite",
+                  "content": "Knotty",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FN9Qm",
+              "name": "Expert and settings",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "q2kd87",
+                  "name": "Expert status (NEW)",
+                  "height": 36,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-full",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "xrgP5",
+                      "name": "Dot",
+                      "width": 8,
+                      "height": 8,
+                      "stroke": "$graphite-2",
+                      "strokeWidth": 1.5
+                    },
+                    {
+                      "type": "text",
+                      "id": "nB2zm",
+                      "name": "Experto sin conectar",
+                      "fill": "$graphite",
+                      "content": "Experto sin conectar",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "id": "nmcHZ",
+                  "type": "ref",
+                  "ref": "xuboc",
+                  "name": "Ajustes",
+                  "descendants": {
+                    "HdCEC": {
+                      "enabled": true,
+                      "icon": "gear-six"
+                    },
+                    "yPtaR": {
+                      "content": "Ajustes"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "AJwMa",
+          "name": "Hero",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 64,
+          "padding": [
+            28,
+            80,
+            36,
+            80
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "zEOe8",
+              "name": "Hero text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HIQe8",
+                  "name": "Headline (NEW)",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Elige un mueble. Ajústalo. Ármalo tú mismo.",
+                  "lineHeight": 1.1,
+                  "fontFamily": "$font-display",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "sarlk",
+                  "name": "Subline",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Al final sabes cómo se arma y cuántas hojas comprar.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 20,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oHLcB",
+              "name": "Custom door",
+              "width": 420,
+              "fill": "$paper",
+              "cornerRadius": "$radius-3xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 28,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "PGfYw",
+                  "name": "Door title (NEW)",
+                  "fill": "$graphite",
+                  "content": "Diseña el tuyo",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Vojqs",
+                  "name": "Door body",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "kTPHv",
+                  "type": "ref",
+                  "ref": "Aknuq",
+                  "name": "Conectar experto (secondary)",
+                  "width": "fill_container",
+                  "height": 48,
+                  "descendants": {
+                    "U2IdG": {
+                      "enabled": false
+                    },
+                    "D2EIC": {
+                      "content": "Conectar experto"
+                    },
+                    "bqaF2": {
+                      "enabled": true
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "kUycu",
+                  "name": "Expert note (NEW)",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Necesita tu experto conectado; las bases no.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "V3ucZ",
+          "name": "Body",
+          "width": "fill_container",
+          "gap": 48,
+          "padding": [
+            36,
+            80,
+            80,
+            80
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "RiQUr",
+              "name": "Bases",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "E7gEDm",
+                  "name": "Bases head",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ccA0D",
+                      "name": "Title (NEW wording)",
+                      "fill": "$graphite",
+                      "content": "Empieza de una base",
+                      "fontFamily": "$font-display",
+                      "fontSize": 32,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SPBfg",
+                      "name": "Bases note",
+                      "fill": "$graphite-2",
+                      "content": "Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bsLbL",
+                      "name": "Count and order (NEW)",
+                      "fill": "$graphite-2",
+                      "content": "1 mesa · alto × ancho × fondo, en mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "VjMUk",
+                  "name": "Category chips",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "pbXk3",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Destacados",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Destacados",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "Z1rIBH",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Recámara",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Recámara",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "RiPBs",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Guardar",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Guardar",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "XC62g",
+                      "type": "ref",
+                      "ref": "BvIfv",
+                      "name": "Chip Mesas",
+                      "height": 44,
+                      "descendants": {
+                        "Yy1ru": {
+                          "content": "Mesas",
+                          "fontWeight": "700",
+                          "fontSize": 14
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Viqpq",
+                  "name": "Grid 3x3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "u25Mg",
+                      "name": "Row 2",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "XmabI",
+                          "name": "Base Mesa de centro",
+                          "width": 413,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "tkh4z",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-6.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "AR0GM",
+                              "name": "Mesa de centro",
+                              "fill": "$graphite",
+                              "content": "Mesa de centro",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "NASj1",
+                              "name": "420 × 1000 × 550",
+                              "fill": "$graphite-2",
+                              "content": "420 × 1000 × 550",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vsFqC",
+                          "name": "Base not here (NEW)",
+                          "width": 413,
+                          "height": 361,
+                          "fill": "$kraft",
+                          "cornerRadius": "$radius-2xl",
+                          "stroke": "$line",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 12,
+                          "padding": 32,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "Me98G",
+                              "name": "Plus",
+                              "width": 48,
+                              "height": 48,
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "iJwEF",
+                                  "name": "plus",
+                                  "width": 20,
+                                  "height": 20,
+                                  "icon": "plus",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "DPbLM",
+                              "name": "¿No está el tuyo?",
+                              "fill": "$graphite",
+                              "content": "¿No está el tuyo?",
+                              "textAlign": "center",
+                              "fontFamily": "$font-display",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "AfWaj",
+                              "name": "Cuéntanos qué es, con fotos o una descri",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Cuéntanos qué es, con fotos o una descripción.",
+                              "lineHeight": 1.4,
+                              "textAlign": "center",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "zKzWE",
+                              "name": "Verb (NEW)",
+                              "fill": "$graphite",
+                              "content": "Diseña el tuyo →",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "gD77T",
+                  "name": "Few bases note (NEW)",
+                  "fill": "$graphite-2",
+                  "content": "Solo hay una base de mesas por ahora.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "lQ8HE",
+          "name": "Footer",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 32,
+          "padding": [
+            32,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "s8psxb",
+              "name": "Local note (NEW)",
+              "fill": "$graphite-2",
+              "content": "Tus diseños se guardan en este navegador.",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "tWjql",
+              "name": "Version and settings",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HMqf2",
+                  "name": "v0.2.0",
+                  "fill": "$graphite-2",
+                  "content": "v0.2.0",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ot7tM",
+      "x": 2320,
+      "y": 9379,
+      "name": "Capture / Home / Catalog first, expert connected (desktop, scroll, proposal)",
+      "clip": true,
+      "width": 1440,
+      "height": 1848,
+      "fill": "$bone",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "S2NJQd",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 72,
+          "gap": 12,
+          "padding": [
+            0,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "M8PGU",
+              "name": "Brand",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "V9OdB",
+                  "type": "ref",
+                  "ref": "L4zXz",
+                  "name": "Emblem",
+                  "width": 40,
+                  "height": 40
+                },
+                {
+                  "type": "text",
+                  "id": "lBviY",
+                  "name": "Knotty",
+                  "fill": "$graphite",
+                  "content": "Knotty",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qBDpn",
+              "name": "Expert and settings",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TDJ9F",
+                  "name": "Expert status (NEW)",
+                  "height": 36,
+                  "fill": "$bone",
+                  "cornerRadius": "$radius-full",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "AZcNA",
+                      "name": "Dot",
+                      "fill": "$graphite",
+                      "width": 8,
+                      "height": 8,
+                      "stroke": "$graphite-2",
+                      "strokeWidth": 1.5
+                    },
+                    {
+                      "type": "text",
+                      "id": "UyM32",
+                      "name": "Experto sin conectar",
+                      "fill": "$graphite",
+                      "content": "Experto conectado",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "id": "wwQ3S",
+                  "type": "ref",
+                  "ref": "xuboc",
+                  "name": "Ajustes",
+                  "descendants": {
+                    "HdCEC": {
+                      "enabled": true,
+                      "icon": "gear-six"
+                    },
+                    "yPtaR": {
+                      "content": "Ajustes"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "W8PfB",
+          "name": "Hero",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 64,
+          "padding": [
+            28,
+            80,
+            36,
+            80
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tbnj0",
+              "name": "Hero text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "C8zBOc",
+                  "name": "Headline (NEW)",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Elige un mueble. Ajústalo. Ármalo tú mismo.",
+                  "lineHeight": 1.1,
+                  "fontFamily": "$font-display",
+                  "fontSize": 52,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "E6Cbqu",
+                  "name": "Subline",
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Al final sabes cómo se arma y cuántas hojas comprar.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 20,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mZAlF",
+              "name": "Custom door",
+              "width": 420,
+              "fill": "$paper",
+              "cornerRadius": "$radius-3xl",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 28,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "h7iyaY",
+                  "name": "Door title (NEW)",
+                  "fill": "$graphite",
+                  "content": "Diseña el tuyo",
+                  "fontFamily": "$font-display",
+                  "fontSize": 28,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "ROiIG",
+                  "name": "Door body",
+                  "fill": "$graphite",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$font-sans",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "Dppxu",
+                  "type": "ref",
+                  "ref": "Nh9e4",
+                  "name": "Nuevo diseño (primary)",
+                  "width": "fill_container",
+                  "height": 48
+                },
+                {
+                  "type": "text",
+                  "id": "a7USVf",
+                  "x": 28,
+                  "y": 205,
+                  "name": "Expert note (NEW)",
+                  "enabled": false,
+                  "fill": "$graphite-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container(364)",
+                  "content": "Necesita tu experto conectado; las bases no.",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wYsNw",
+          "name": "Body",
+          "width": "fill_container",
+          "gap": 48,
+          "padding": [
+            36,
+            80,
+            80,
+            80
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "qyKkP",
+              "name": "Bases",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "S1SP4Y",
+                  "name": "Bases head",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LGFaB",
+                      "name": "Title (NEW wording)",
+                      "fill": "$graphite",
+                      "content": "Empieza de una base",
+                      "fontFamily": "$font-display",
+                      "fontSize": 32,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uZhX8",
+                      "name": "Bases note",
+                      "fill": "$graphite-2",
+                      "content": "Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 16,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "E0WRS",
+                      "name": "Count and order (NEW)",
+                      "fill": "$graphite-2",
+                      "content": "9 destacados · alto × ancho × fondo, en mm",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "J7ZkCp",
+                  "name": "Category chips",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "bpccG",
+                      "type": "ref",
+                      "ref": "BvIfv",
+                      "name": "Chip Todos",
+                      "height": 44,
+                      "descendants": {
+                        "Yy1ru": {
+                          "content": "Destacados",
+                          "fontWeight": "700",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "XiOzj",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Recámara",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Recámara",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "PvFgs",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Guardar",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Guardar",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    },
+                    {
+                      "id": "nsJlP",
+                      "type": "ref",
+                      "ref": "LSeLh",
+                      "name": "Chip Mesas",
+                      "height": 44,
+                      "descendants": {
+                        "Uhltp": {
+                          "content": "Mesas",
+                          "fontWeight": "500",
+                          "fontSize": 14
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zpBzs",
+                  "name": "Grid 3x3",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "oZ1GD",
+                      "name": "Row 1",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "H7avtb",
+                          "name": "Base Aparador bajo",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "lL4fM",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-1.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "pkQOb",
+                              "name": "Aparador bajo",
+                              "fill": "$graphite",
+                              "content": "Aparador bajo",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "g5644o",
+                              "name": "700 × 1500 × 390",
+                              "fill": "$graphite-2",
+                              "content": "700 × 1500 × 390",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "me04N",
+                          "name": "Base Librero abierto",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "THC7x",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-2.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "aGffC",
+                              "name": "Librero abierto",
+                              "fill": "$graphite",
+                              "content": "Librero abierto",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "TyX70",
+                              "name": "1950 × 900 × 290",
+                              "fill": "$graphite-2",
+                              "content": "1950 × 900 × 290",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "D1HA5p",
+                          "name": "Base Cama con cajones",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "En22b",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-3.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ZcPQE",
+                              "name": "Cama con cajones",
+                              "fill": "$graphite",
+                              "content": "Cama con cajones",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "XK2TA",
+                              "name": "1000 × 1956 × 1370",
+                              "fill": "$graphite-2",
+                              "content": "1000 × 1956 × 1370",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qYbnM",
+                      "name": "Row 2",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "zZxBY",
+                          "name": "Base Zapatera",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "c5GEy0",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-4.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "F7prac",
+                              "name": "Zapatera",
+                              "fill": "$graphite",
+                              "content": "Zapatera",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "QUJAU",
+                              "name": "1000 × 630 × 380",
+                              "fill": "$graphite-2",
+                              "content": "1000 × 630 × 380",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vopZl",
+                          "name": "Base Buró",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "lCC2T",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-5.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "f0Wd09",
+                              "name": "Buró",
+                              "fill": "$graphite",
+                              "content": "Buró",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "X3Ja4D",
+                              "name": "500 × 450 × 350",
+                              "fill": "$graphite-2",
+                              "content": "500 × 450 × 350",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q5oeX9",
+                          "name": "Base Mesa de centro",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "j3slU",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-6.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "HBOMA",
+                              "name": "Mesa de centro",
+                              "fill": "$graphite",
+                              "content": "Mesa de centro",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "srLMr",
+                              "name": "420 × 1000 × 550",
+                              "fill": "$graphite-2",
+                              "content": "420 × 1000 × 550",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aHrdM",
+                      "name": "Row 3",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "i7W6w",
+                          "name": "Base Aparador con patas",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "d0b5js",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": {
+                                "type": "image",
+                                "enabled": true,
+                                "url": "../assets/capture/base-7.png",
+                                "mode": "cover"
+                              },
+                              "cornerRadius": "$radius-2xl",
+                              "justifyContent": "center",
+                              "alignItems": "center"
+                            },
+                            {
+                              "type": "text",
+                              "id": "IoRCM",
+                              "name": "Aparador con patas",
+                              "fill": "$graphite",
+                              "content": "Aparador con patas",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Whmii",
+                              "name": "940 × 1600 × 400",
+                              "fill": "$graphite-2",
+                              "content": "940 × 1600 × 400",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J6Nzy",
+                          "name": "Base (base 8, NEW: no ficha yet)",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "weUoK",
+                              "name": "Sketch",
+                              "width": "fill_container",
+                              "height": 307,
+                              "fill": "$kraft-2",
+                              "cornerRadius": "$radius-2xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "pdku4",
+                                  "name": "cube",
+                                  "width": 32,
+                                  "height": 32,
+                                  "icon": "cube",
+                                  "library": "phosphor",
+                                  "fill": "$graphite-2"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "AQ4n2",
+                              "name": "(base 8, NEW: no ficha yet)",
+                              "fill": "$graphite",
+                              "content": "(base 8, NEW: no ficha yet)",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 16,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "L3KoF",
+                              "name": "—",
+                              "fill": "$graphite-2",
+                              "content": "—",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bjPFk",
+                          "name": "Base not here (NEW)",
+                          "width": "fill_container",
+                          "height": 361,
+                          "fill": "$kraft",
+                          "cornerRadius": "$radius-2xl",
+                          "stroke": "$line",
+                          "strokeWidth": 1,
+                          "layout": "vertical",
+                          "gap": 12,
+                          "padding": 32,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "J5PSQ",
+                              "name": "Plus",
+                              "width": 48,
+                              "height": 48,
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "FV4c2",
+                                  "name": "plus",
+                                  "width": 20,
+                                  "height": 20,
+                                  "icon": "plus",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "RcYZD",
+                              "name": "¿No está el tuyo?",
+                              "fill": "$graphite",
+                              "content": "¿No está el tuyo?",
+                              "textAlign": "center",
+                              "fontFamily": "$font-display",
+                              "fontSize": 24,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "bguYr",
+                              "name": "Cuéntanos qué es, con fotos o una descri",
+                              "fill": "$graphite-2",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Cuéntanos qué es, con fotos o una descripción.",
+                              "lineHeight": 1.4,
+                              "textAlign": "center",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "EstQt",
+                              "name": "Verb (NEW)",
+                              "fill": "$graphite",
+                              "content": "Diseña el tuyo →",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "I0TGn",
+          "name": "Footer",
+          "width": "fill_container",
+          "fill": "$kraft",
+          "gap": 32,
+          "padding": [
+            32,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "e6Q9w5",
+              "name": "Local note (NEW)",
+              "fill": "$graphite-2",
+              "content": "Tus diseños se guardan en este navegador.",
+              "fontFamily": "$font-sans",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Jxplh",
+              "name": "Version and settings",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "aulSN",
+                  "name": "v0.2.0",
+                  "fill": "$graphite-2",
+                  "content": "v0.2.0",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
         }
       ]
     }
