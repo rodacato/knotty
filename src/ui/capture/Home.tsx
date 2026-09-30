@@ -1,21 +1,15 @@
 import { useMemo, useState } from 'react'
-import { ArrowRight, Cube } from '@phosphor-icons/react'
+import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import { exampleDesign, type Base, type BaseCategory } from '../../domain/furniture/examples'
+import { exampleDesign, type Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
-import { Logo, Emblem } from '../system/Brand'
+import { AppFooter } from '../shell/AppFooter'
+import { AppHeader } from '../shell/AppHeader'
+import { useExpertStatus } from '../shell/expertStatus'
+import { basesOfFilter, countLine, FILTERS, onlyOneNote, type CategoryFilter } from './catalog'
 import { useStore } from '../store'
 import { sketch, type Face } from './sketch'
-
-const CATEGORIES: [BaseCategory | 'all', string][] = [
-  ['all', 'Todos'],
-  ['bedroom', 'Recámara'],
-  ['storage', 'Guardar'],
-  ['tables', 'Mesas'],
-]
-/** Filters pay off only past six bases, two rows on a desk. */
-const FILTER_FROM = 6
 
 const FACE: Record<Face, string> = { front: 'fill-birch', top: 'fill-[color-mix(in_srgb,var(--color-birch)_60%,white)]', side: 'fill-pine' }
 
@@ -44,15 +38,42 @@ function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }
     <button
       type="button"
       onClick={() => onOpen(base)}
-      className="group flex flex-col gap-1.5 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+      className="group flex flex-col gap-1.5 rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
     >
-      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl border border-line bg-kraft p-3 transition group-hover:bg-kraft-2 group-active:scale-[0.98]">
+      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-kraft p-4 md:p-6 transition group-hover:bg-kraft-2 group-active:scale-[0.98]">
         {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6 text-graphite-2" />}
       </span>
-      <span className="text-sm font-medium text-graphite">{base.name}</span>
-      <span className="numerals text-xs text-graphite-2" aria-label={`${height} de alto, ${width} de ancho, ${depth} de fondo, en milímetros`}>
+      <span className="text-base font-medium text-graphite md:text-lg">{base.name}</span>
+      <span className="numerals text-sm text-graphite-2" aria-label={`${height} de alto, ${width} de ancho, ${depth} de fondo, en milímetros`}>
         {Math.round(height)} × {Math.round(width)} × {Math.round(depth)}
       </span>
+    </button>
+  )
+}
+
+function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row' }) {
+  const cell = layout === 'cell'
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`group items-center gap-4 rounded-2xl border border-line bg-kraft text-left transition hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${
+        cell ? 'hidden min-h-full flex-col justify-center px-6 py-8 text-center md:flex' : 'col-span-2 flex p-5 md:hidden'
+      }`}
+    >
+      <span className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-bone">
+        <Plus className="size-5" />
+      </span>
+      <span className={`flex flex-col gap-1 ${cell ? 'items-center' : 'flex-1'}`}>
+        <span className="font-display text-xl leading-tight font-semibold md:text-2xl">¿No está el tuyo?</span>
+        <span className="text-sm text-graphite-2 md:text-base">Cuéntanos qué es, con fotos o una descripción.</span>
+        {cell && (
+          <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium">
+            Diseña el tuyo <ArrowRight weight="bold" />
+          </span>
+        )}
+      </span>
+      {!cell && <ArrowRight className="size-5 shrink-0" />}
     </button>
   )
 }
@@ -60,50 +81,64 @@ function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const fromExample = useStore((s) => s.fromExample)
+  const openSettings = useStore((s) => s.openSettings)
   const { references } = useServices()
+  const { connected } = useExpertStatus()
   const bases = useMemo(() => references.home(), [references])
-  const [category, setCategory] = useState<BaseCategory | 'all'>('all')
+  const [filter, setFilter] = useState<CategoryFilter>('featured')
+  const shown = basesOfFilter(bases, filter)
+  const designYourOwn = connected ? startCapture : () => openSettings(true)
   return (
-    <main className="mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center gap-10 px-6 py-12 md:flex-row md:gap-16">
-      <div className="flex max-w-md flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <Emblem className="size-10 shadow-[0_8px_20px_-10px_rgba(43,40,37,.6)]" />
-          <p className="numerals text-sm text-graphite-2">Muebles de triplay · DIY</p>
-        </div>
-        <h1 className="text-6xl leading-[0.95] md:text-7xl">
-          <Logo />
-        </h1>
-        <p className="text-lg leading-relaxed text-graphite">
-          Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay que puedes explorar, ajustar platicando y armar tú mismo. Al final sabes cómo se arma y cuántas hojas comprar.
-        </p>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button variant="primary" className="min-h-12 px-6 text-base" onClick={startCapture}>
-            Nuevo diseño <ArrowRight weight="bold" />
-          </Button>
-        </div>
+    <div className="flex min-h-full flex-col">
+      <AppHeader />
+      <div className="bg-kraft">
+        <section className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-5 pt-4 pb-6 md:flex-row md:items-center md:justify-between md:gap-12 md:px-8 md:py-10" aria-labelledby="home-title">
+          <div className="flex max-w-3xl flex-col gap-3">
+            <h1 id="home-title" className="font-display font-semibold tracking-tight text-4xl leading-[1.05] md:text-6xl md:leading-[1.05]">
+              Elige un mueble. Ajústalo. Ármalo tú mismo.
+            </h1>
+            <p className="text-base text-graphite-2 md:text-xl">Al final sabes cómo se arma y cuántas hojas comprar.</p>
+          </div>
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-bone p-4 md:w-[420px] md:shrink-0 md:flex-col md:items-stretch md:gap-4 md:rounded-3xl md:p-7">
+            <div className="flex flex-col gap-1 md:gap-3">
+              <h2 className="font-display text-xl leading-tight font-semibold md:text-2xl">Diseña el tuyo</h2>
+              <p className="text-sm text-graphite-2 md:hidden">Con fotos o una descripción.</p>
+              <p className="hidden text-base md:block">Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay.</p>
+            </div>
+            <Button variant={connected ? 'primary' : 'secondary'} className="min-h-11 shrink-0 px-5 text-base md:min-h-12" onClick={designYourOwn}>
+              {connected ? 'Nuevo diseño' : 'Conectar experto'} <ArrowRight weight="bold" className="hidden md:block" />
+            </Button>
+            {!connected && <p className="hidden text-sm text-graphite-2 md:block">Necesita tu experto conectado; las bases no.</p>}
+          </div>
+        </section>
       </div>
-      <section className="flex w-full max-w-md flex-col gap-4 md:max-w-xl" aria-labelledby="bases-title">
-        <div className="flex flex-col gap-1">
-          <h2 id="bases-title" className="font-display text-2xl leading-tight font-semibold">
-            O empieza de una base
-          </h2>
-          <p className="text-sm text-graphite-2">Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.</p>
-        </div>
-        {bases.length > FILTER_FROM && (
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map(([id, label]) => (
-              <Chip key={id} active={category === id} aria-pressed={category === id} onClick={() => setCategory(id)}>
+      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-5 px-5 py-8 md:px-8 md:py-12">
+        <section className="flex flex-col gap-5" aria-labelledby="bases-title">
+          <div className="flex flex-col gap-1">
+            <h2 id="bases-title" className="font-display text-3xl leading-tight font-semibold md:text-4xl">
+              Empieza de una base
+            </h2>
+            <p className="text-base text-graphite-2 md:text-lg">Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.</p>
+            <p className="numerals text-sm text-graphite-2">{countLine(shown.length, filter)}</p>
+          </div>
+          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+            {FILTERS.map(([id, label]) => (
+              <Chip key={id} active={filter === id} aria-pressed={filter === id} className={`min-h-11 shrink-0 px-5 text-sm! ${filter === id ? 'font-bold!' : ''}`} onClick={() => setFilter(id)}>
                 {label}
               </Chip>
             ))}
           </div>
-        )}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-3">
-          {bases.filter((b) => category === 'all' || b.category === category).map((base) => (
-            <BaseCard key={base.id} base={base} onOpen={fromExample} />
-          ))}
-        </div>
-      </section>
-    </main>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8">
+            {shown.map((base) => (
+              <BaseCard key={base.id} base={base} onOpen={fromExample} />
+            ))}
+            <OwnDoor onOpen={designYourOwn} layout="cell" />
+            <OwnDoor onOpen={designYourOwn} layout="row" />
+          </div>
+          {onlyOneNote(shown.length, filter) && <p className="text-base text-graphite-2">{onlyOneNote(shown.length, filter)}</p>}
+        </section>
+      </main>
+      <AppFooter />
+    </div>
   )
 }
