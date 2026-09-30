@@ -5,6 +5,7 @@ import type { Geometry } from '../../domain/design/resolve'
 import type { Axis, Design, Edge, Piece } from '../../domain/design/schema'
 import { DEFAULT_EDGE_PROFILE, EDGE_PROFILE_IDS, EDGE_PROFILES, profileFit, type EdgeProfileId } from '../../domain/materials/edgeProfiles'
 import { TERMS, type TermKey } from '../glossary'
+import { countEdges } from './edgeCounts'
 import { useStore } from '../store'
 import { Chip, Title } from '../system/components'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
@@ -25,8 +26,9 @@ const VIEW: Record<Axis, { across: Axis; up: Axis; sides: Record<Side, Edge> }> 
 const SHORT: Partial<Record<Edge, string>> = { left: 'Izq.', right: 'Der.' }
 
 const W = 280
-const H = 124
-const PAD = 32
+const H = 132
+const PAD_X = 36
+const PAD_Y = 36
 /** The piece an edge rests against, drawn as a hatched strip outside the face. */
 const BAND = 9
 
@@ -34,7 +36,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
   const box = geo.boxes.get(piece.id)!
   const { across, up, sides } = VIEW[piece.normal]
   const [a, u] = [box[`${across}1`] - box[`${across}0`], box[`${up}1`] - box[`${up}0`]]
-  const scale = Math.min((W - 2 * PAD) / a, (H - 2 * PAD) / u)
+  const scale = Math.min((W - 2 * PAD_X) / a, (H - 2 * PAD_Y) / u)
   const [w, h] = [Math.max(24, a * scale), Math.max(16, u * scale)]
   const [x0, y0] = [(W - w) / 2, (H - h) / 2]
   const lines: Record<Side, [number, number, number, number]> = { top: [x0, y0, x0 + w, y0], bottom: [x0, y0 + h, x0 + w, y0 + h], left: [x0, y0, x0, y0 + h], right: [x0 + w, y0, x0 + w, y0 + h] }
@@ -44,8 +46,8 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
   }
   const pad = (side: Side) => (against.get(sides[side]) ? BAND + 3 : 0)
   const where: Record<Side, { x: number; y: number; anchor: 'middle' | 'end' | 'start' }> = {
-    top: { x: W / 2, y: y0 - 7 - pad('top'), anchor: 'middle' },
-    bottom: { x: W / 2, y: y0 + h + 15 + pad('bottom'), anchor: 'middle' },
+    top: { x: W / 2, y: y0 - 8 - pad('top'), anchor: 'middle' },
+    bottom: { x: W / 2, y: y0 + h + 17 + pad('bottom'), anchor: 'middle' },
     left: { x: x0 - 5 - pad('left'), y: y0 + h / 2 + 4, anchor: 'end' },
     right: { x: x0 + w + 5 + pad('right'), y: y0 + h / 2 + 4, anchor: 'start' },
   }
@@ -76,7 +78,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
         return (
           <g key={side}>
             <line x1={x1} y1={y1} x2={x2} y2={y2} className={style} strokeWidth={chosen.has(edge) ? 4 : 1.5} strokeLinecap="round" strokeDasharray={chosen.has(edge) && against.get(edge) ? '2 6' : undefined} />
-            <text x={where[side].x} y={where[side].y} textAnchor={where[side].anchor} className="fill-graphite-2 text-[9px]">
+            <text x={where[side].x} y={where[side].y} textAnchor={where[side].anchor} className="fill-graphite-2 text-[11px]">
               {side === 'top' || side === 'bottom' ? label(edge) : (SHORT[edge] ?? EDGE_LABEL[edge])}
             </text>
           </g>
@@ -126,6 +128,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
   const against = new Map(neighbours.map((n) => [n.edge, n.against]))
   const stored = profilesOf(design, piece.id).filter((c) => against.has(c.edge))
   const chosen = new Set(stored.map((c) => c.edge))
+  const [changing, setChanging] = useState(false)
   const [open, setOpen] = useState(stored.length > 0)
   const body = useId()
   const profile = stored.length && stored.every((c) => c.profile === stored[0].profile) ? stored[0].profile : null
@@ -136,9 +139,10 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
     setError(r.ok ? null : r.message)
   }
   const toggle = (edge: Edge) => apply(chosen.has(edge) ? [...chosen].filter((e) => e !== edge) : [...chosen, edge], profile ?? DEFAULT_EDGE_PROFILE)
-  const banded = [...chosen].filter((e) => piece.edges.includes(e))
-  const hiddenChosen = [...chosen].filter((e) => against.get(e))
-  const summary = !stored.length ? 'Rectos' : profile ? `${stored.length} con ${EDGE_PROFILES[profile].name.toLowerCase()}` : `${stored.length} con perfil`
+  const { shown, hidden: hiddenChosen } = countEdges([...chosen], against)
+  const banded = shown.filter((e) => piece.edges.includes(e))
+  const summary = !shown.length ? 'Rectos' : profile ? `${shown.length} con ${EDGE_PROFILES[profile].name.toLowerCase()}` : `${shown.length} con perfil`
+  const collapsed = profile !== null && shown.length > 0 && !changing
 
   return (
     <section className="flex flex-col gap-3 border-t border-line pt-1">
@@ -160,23 +164,28 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               </Chip>
             ))}
           </div>
-          {hiddenChosen.map((e) => (
-            <p key={e} className="flex items-start gap-2 text-xs text-graphite">
+          {hiddenChosen.length > 0 && (
+            <p className="flex items-start gap-2 text-xs text-graphite">
               <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
-              {EDGE_LABEL[e]} queda contra {name(against.get(e)!).toLowerCase()}: no se ve, así que el perfil no se dibuja ni entra en la lista de compra.
+              <span>
+                {listed(hiddenChosen.map((e) => `${EDGE_LABEL[e]} (contra ${name(against.get(e)!).toLowerCase()})`))} {hiddenChosen.length === 1 ? 'queda' : 'quedan'} donde no se ve, así que {hiddenChosen.length === 1 ? 'su perfil no se dibuja' : 'sus perfiles no se dibujan'} ni {hiddenChosen.length === 1 ? 'entra' : 'entran'} en la lista de compra.
+              </span>
             </p>
-          ))}
-          <p className="text-sm text-graphite">{chosen.size ? `Perfil de ${chosen.size === 1 ? 'el canto elegido' : `los ${chosen.size} cantos elegidos`}` : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
+          )}
+          <p className="text-sm text-graphite">{shown.length ? shown.length === 1 ? 'Perfil del canto elegido' : `Perfil de los ${shown.length} cantos elegidos` : chosen.size ? 'Ninguno de los cantos elegidos se ve; elige uno que sí se vea para perfilarlo.' : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
           <div role="radiogroup" aria-label="Perfil del canto" className="flex flex-col gap-2">
-            {EDGE_PROFILE_IDS.map((id) => {
+            {(collapsed ? [profile!] : EDGE_PROFILE_IDS).map((id) => {
               const p = EDGE_PROFILES[id]
               const fit = profileFit(id, level, thickness)
               const why = fit.ok ? null : fit.reason === 'thin' ? `Necesita un tablero de al menos ${fit.minThickness} mm; esta pieza es de ${thickness} mm. Se puede elegir, pero no sale como se dibuja.` : 'Solo se hace con router y en tu nivel de herramienta no lo tienes. Puedes pedirlo en la maderería.'
               const disabled = !editable || !chosen.size
               return (
                 <div key={id} className="flex flex-col gap-2">
-                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-2 border-graphite' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
-                    <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => apply([...chosen], id)} className="mt-1 accent-graphite" />
+                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-amber bg-amber-soft' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
+                    <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => {
+                      apply([...chosen], id)
+                      setChanging(false)
+                    }} className="mt-1 accent-graphite" />
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="flex items-center gap-1">
                         <span className="font-semibold">{p.name}</span>
@@ -196,6 +205,11 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               )
             })}
           </div>
+          {collapsed && editable && (
+            <button type="button" onClick={() => setChanging(true)} className="-mt-1 min-h-11 self-start rounded-lg px-1 text-sm font-medium underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-amber">
+              Cambiar perfil
+            </button>
+          )}
           {profile && EDGE_PROFILES[profile].cut && banded.length > 0 && (
             <p className="flex items-start gap-2 text-xs text-graphite">
               <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
