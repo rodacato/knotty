@@ -80,7 +80,7 @@ function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row
 
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
-  const fromExample = useStore((s) => s.fromExample)
+  const adjustBase = useStore((s) => s.adjustBase)
   const openConnect = useStore((s) => s.openConnect)
   const { references } = useServices()
   const { connected } = useExpertStatus()
@@ -130,7 +130,7 @@ export function Home() {
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8">
             {shown.map((base) => (
-              <BaseCard key={base.id} base={base} onOpen={fromExample} />
+              <BaseCard key={base.id} base={base} onOpen={adjustBase} />
             ))}
             <OwnDoor onOpen={designYourOwn} layout="cell" />
             <OwnDoor onOpen={designYourOwn} layout="row" />

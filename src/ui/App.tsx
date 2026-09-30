@@ -12,6 +12,7 @@ import { DebugPanel } from './debug/DebugPanel'
 import { useStore } from './store'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
+const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 
 const Loading = () => (
@@ -26,10 +27,17 @@ const Loading = () => (
 function Screen() {
   const phase = useStore((s) => s.phase)
   const state = useStore((s) => s.state)
+  const adjusting = useStore((s) => s.adjusting)
   if (phase === 'studio' && state)
     return (
       <Suspense fallback={<Loading />}>
         <Studio state={state} />
+      </Suspense>
+    )
+  if (phase === 'home' && adjusting)
+    return (
+      <Suspense fallback={<Loading />}>
+        <AdjustBase base={adjusting} />
       </Suspense>
     )
   if (phase === 'analyzing') return <Analyzing />
