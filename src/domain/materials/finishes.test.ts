@@ -8,7 +8,7 @@ import saved from '../session/state-v1.fixture.json'
 import { migrateState } from '../session/migrate'
 import { currentDesign, DesignState } from '../session/state'
 import { applySettings, Catalog, finishSkus, type FinishSku } from './catalog'
-import { FINISH_IDS, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf } from './finishes'
+import { FINISH_IDS, FINISH_LOOK, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf, NATURAL_PINE } from './finishes'
 import { containersFor, estimateFinish, finishArea, finishLitres } from './finishPurchase'
 import { estimatePurchase } from './purchase'
 
@@ -57,6 +57,31 @@ describe('finish knowledge', () => {
       expect(skus.length).toBeGreaterThan(0)
       for (const s of skus) expect(s.price).toBeNull()
     }
+  })
+})
+
+describe('how a finish looks', () => {
+  const light = (hex: string) => [1, 3, 5].reduce((sum, i) => sum + parseInt(hex.slice(i, i + 2), 16), 0)
+
+  it('every finish has a colour, a sheen and whether it shows the grain; no finish is the unfinished wood but none', () => {
+    for (const id of FINISH_IDS) {
+      const look = FINISH_LOOK[id]
+      expect(look.color).toMatch(/^#[0-9A-F]{6}$/)
+      expect(look.roughness).toBeGreaterThan(0)
+      expect(look.roughness).toBeLessThanOrEqual(1)
+    }
+    expect(FINISH_LOOK.none.color).toBe(NATURAL_PINE)
+    expect(FINISH_IDS.filter((id) => FINISH_LOOK[id].color === NATURAL_PINE)).toEqual(['none'])
+  })
+
+  it('oils and varnishes go darker and warmer than the bare wood, and only paint hides the grain', () => {
+    for (const id of ['polyurethane', 'marine-varnish', 'danish-oil'] as const) expect(light(FINISH_LOOK[id].color)).toBeLessThan(light(NATURAL_PINE))
+    expect(FINISH_IDS.filter((id) => !FINISH_LOOK[id].grain)).toEqual(['paint'])
+  })
+
+  it('a varnish shines more than an oil, and an oil more than the bare wood (acabados.md §16.1)', () => {
+    expect(FINISH_LOOK.polyurethane.roughness).toBeLessThan(FINISH_LOOK['danish-oil'].roughness)
+    expect(FINISH_LOOK['danish-oil'].roughness).toBeLessThan(FINISH_LOOK.none.roughness)
   })
 })
 

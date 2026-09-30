@@ -226,5 +226,29 @@ export const FINISHES: Record<FinishId, Finish> = {
   },
 }
 
+/** How a finish looks on the pine plywood: the colour it settles on and how much light it scatters (acabados.md §16.1 and §16.2). */
+export interface FinishLook {
+  color: string
+  /** 0 is a mirror and 1 is chalk; brillante ≥ 85 and mate ≤ 30 gloss units are the two ends the reference gives. */
+  roughness: number
+  /** False when the finish hides the grain (paint). */
+  grain: boolean
+}
+
+export const NATURAL_PINE = '#E9D3A6'
+
+export const FINISH_LOOK: Record<FinishId, FinishLook> = {
+  none: { color: NATURAL_PINE, roughness: 0.85, grain: true },
+  polyurethane: { color: '#DAB477', roughness: 0.22, grain: true },
+  'marine-varnish': { color: '#D7AE70', roughness: 0.25, grain: true },
+  'water-based-color-varnish': { color: '#E7CFA0', roughness: 0.5, grain: true },
+  lacquer: { color: '#E2C590', roughness: 0.8, grain: true },
+  paint: { color: '#F3F1EC', roughness: 0.45, grain: false },
+  'danish-oil': { color: '#CFA066', roughness: 0.55, grain: true },
+  // The reference has no colour for a hardwax oil: it takes the wax's («casi natural») and a satin between mate and satinado.
+  'hardwax-oil': { color: '#E4C99A', roughness: 0.65, grain: true },
+}
+
+
 /** The finish of a design: none when the person has not chosen one. */
 export const finishOf = (design: { finish?: FinishId }): FinishId => design.finish ?? 'none'

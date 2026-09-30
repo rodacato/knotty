@@ -7,6 +7,7 @@ import type { Design } from '../../domain/design/schema'
 import type { Box, Geometry } from '../../domain/design/resolve'
 import { materialById, type Catalog } from '../../domain/materials/catalog'
 import { boardLook } from '../../domain/materials/grades'
+import { finishOf } from '../../domain/materials/finishes'
 import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
@@ -154,6 +155,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
     }
     return by
   }, [design, geo])
+  const finish = finishOf(design)
   const order = useMemo(() => [...design.pieces].sort((a, b) => geo.boxes.get(a.id)!.y0 - geo.boxes.get(b.id)!.y0).map((p) => p.id), [design, geo])
 
   return (
@@ -189,6 +191,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             reduced={reduced}
             delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
             shapes={shapesOf.get(p.id) ?? NO_SHAPES}
+            finish={finish}
             onSelect={select}
           />
         ))}

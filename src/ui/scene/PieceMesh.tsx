@@ -8,6 +8,7 @@ import type { Box } from '../../domain/design/resolve'
 import type { BoardTone } from '../../domain/materials/grades'
 import { cutBox } from '../../domain/design/cuts'
 import { cutGeometry } from './cutGeometry'
+import { FINISH_LOOK, NATURAL_PINE, type FinishId } from '../../domain/materials/finishes'
 import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
 
@@ -69,10 +70,20 @@ interface PieceMeshProps {
   delay: number
   /** The profiles on the edges that show: the piece is cut to them instead of drawn as a box. */
   shapes: EdgeShape[]
+  /** The finish the design has, drawn as its colour and sheen. */
+  finish: FinishId
   onSelect: (id: string) => void
 }
 
-export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, onSelect }: PieceMeshProps) {
+const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+/** A colour that multiplies the natural wood to the finish's: it can darken and warm, not lighten (paint replaces the grain instead). */
+const tintFor = (finish: FinishId) => {
+  const [target, natural] = [channels(FINISH_LOOK[finish].color), channels(NATURAL_PINE)]
+  const mix = target.map((c, i) => Math.min(1, c / natural[i]))
+  return `#${mix.map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`
+}
+
+export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, finish, onSelect }: PieceMeshProps) {
   const [over, setOver] = useState(false)
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
@@ -83,6 +94,8 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
   useEffect(() => () => cut?.dispose(), [cut])
   useEffect(() => () => voided?.dispose(), [voided])
 
+  const look = FINISH_LOOK[finish]
+  const tint = useMemo(() => tintFor(finish), [finish])
   const sketch = piece.confidence === 'low'
   const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1
   const target: [number, number, number] = [center[0] + offset[0], center[1] + offset[1], center[2] + offset[2]]
@@ -131,16 +144,16 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
       {voided ? <primitive object={voided} attach="geometry" /> : cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
       {maps.map((map, i) => (
         <meshStandardMaterial
-          key={i}
+          key={`${i}-${finish}`}
           ref={(m) => void (materials.current[i] = m)}
           attach={`material-${i}`}
-          map={map}
-          roughness={0.78}
+          map={look.grain ? map : undefined}
+          roughness={look.roughness}
           metalness={0}
           transparent
           opacity={0}
           depthWrite={finalOpacity > 0.5}
-          color={ghost ? '#f2b56b' : '#ffffff'}
+          color={ghost ? '#f2b56b' : look.grain ? tint : look.color}
           emissive="#d98a2b"
         />
       ))}
