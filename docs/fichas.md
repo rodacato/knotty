@@ -28,6 +28,8 @@ npm run probe -- --all                              # todas, una línea cada una
 npm run probe -- --diff kc-apa-01 candidata.json    # qué cambiaría una candidata; no escribe nada
 npm run probe -- --adopt kc-apa-01 candidata.json   # la vuelve la versión siguiente (o la versión 1 de una nueva)
 npm run probe -- --update kc-apa-01                 # reescribe solo su `expect`
+npm run probe -- --explain kc-apa-01                # la ficha en palabras, generada de su plan y sus metadatos
+npm run probe -- --explain kc-apa-01 candidata.json # lo mismo para una candidata, como quedaría adoptada
 ```
 
 `npm test` corre la misma comparación de `--all`: un cambio del motor que mueve una compra o agrega un aviso falla con la línea exacta.
@@ -64,7 +66,7 @@ npm run probe -- --update kc-apa-01                 # reescribe solo su `expect`
      }
    }
    ```
-4. **Ver qué haría** con `--diff <código> candidata.json`. Dice qué cambia y, siempre, el veredicto del motor (válido o no, piezas y avisos), también para una referencia nueva; un aviso crítico sale marcado. Si el motor no puede construirlo, dice por qué y no se adopta. Todavía no hay una vista previa en 3D de una candidata: se ve en la app después de adoptarla, con `home`.
+4. **Ver qué haría** con `--diff <código> candidata.json`. Dice qué cambia y, siempre, el veredicto del motor (válido o no, piezas y avisos), también para una referencia nueva; un aviso crítico sale marcado. Si el motor no puede construirlo, dice por qué y no se adopta. Para leerla antes de adoptar, `--explain <código> candidata.json` la dice en palabras, y `--diff` marca las líneas que cambian respecto a la versión vigente. Todavía no hay una vista previa en 3D de una candidata: se ve en la app después de adoptarla, con `home`.
 5. **Adoptarla** con `--adopt`. Una `KC-…` nueva tiene que traer también su soporte, dificultad, rasgos, adaptaciones y huecos. La dificultad parte de la del tipo de mueble en `docs/carpinteria/muebles-y-medidas.md` (§1); cuando ese rango es de dos niveles (por ejemplo 2–3), se toma el más alto si el diseño tiene frentes embutidos, patas o muchos cajones. Es un criterio provisional.
 6. **Comprobar** con `probe -- <código>` y abrirla en la app (`home` la pone en la pantalla de inicio).
 
