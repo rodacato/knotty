@@ -118,6 +118,7 @@ describe('construction variants', () => {
     top: ['between', 'over'],
     back: ['nailed', 'none'],
     shelves: ['movable', 'fixed'],
+    hinges: ['outside', 'inside'],
     pulls: ['none', 'notch', 'handle'],
   }
   const combos = Object.entries(options).reduce<CabinetConstruction[]>(
@@ -155,10 +156,23 @@ describe('construction variants', () => {
   })
 
   it('an overlay door takes the hinge for what it covers: straight on an outer side, cranked on a divider it shares', () => {
-    const hinges = (p: CabinetPlan) => Object.fromEntries(buildCabinet(p, testCatalog).design.joints.filter((u) => u.type === 'cup-hinge').map((u) => [u.a, `${u.b} ${u.hardware[0]?.hardwareId}`]))
+    const hinges = (p: CabinetPlan, side: CabinetConstruction['hinges'] = 'outside') =>
+      Object.fromEntries(buildCabinet({ ...p, construction: { ...p.construction, hinges: side } }, testCatalog).design.joints.filter((u) => u.type === 'cup-hinge').map((u) => [u.a, `${u.b} ${u.hardware[0]?.hardwareId}`]))
     expect(hinges(PLANS.wallCabinet)).toEqual({ 'c1-h1-door-left': 'side-left cup-hinge-35-full', 'c1-h1-door-right': 'side-right cup-hinge-35-full' })
     const twoColumns = plan({ name: 'Alacena doble', dimensions: { width: 1000, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 1 })] }, { width: 1, cells: [cell('door', 1, { doors: 1 })] }] })
-    expect(hinges(twoColumns)).toEqual({ 'c1-h1-door': 'div-1 cup-hinge-35-half', 'c2-h1-door': 'div-1 cup-hinge-35-half' })
+    expect(hinges(twoColumns, 'inside')).toEqual({ 'c1-h1-door': 'div-1 cup-hinge-35-half', 'c2-h1-door': 'div-1 cup-hinge-35-half' })
+  })
+
+  it('the hinges are on the outer edges or the inner ones, as the plan says, and the doors of two leaves do not change', () => {
+    const twoColumns = plan({ name: 'Alacena doble', dimensions: { width: 1000, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 1 })] }, { width: 1, cells: [cell('door', 1, { doors: 1 })] }] })
+    const hung = (p: CabinetPlan, hinges: CabinetConstruction['hinges']) =>
+      Object.fromEntries(buildCabinet({ ...p, construction: { ...p.construction, hinges } }, testCatalog).design.joints.filter((u) => u.type === 'cup-hinge').map((u) => [u.a, u.b]))
+    expect(hung(twoColumns, 'outside')).toEqual({ 'c1-h1-door': 'side-left', 'c2-h1-door': 'side-right' })
+    expect(hung(twoColumns, 'inside')).toEqual({ 'c1-h1-door': 'div-1', 'c2-h1-door': 'div-1' })
+    expect(hung(PLANS.wallCabinet, 'outside')).toEqual(hung(PLANS.wallCabinet, 'inside'))
+    const inset = { ...twoColumns, construction: { ...twoColumns.construction, doors: 'inset' as const } }
+    expect(hung(inset, 'outside')).toEqual({ 'c1-h1-door': 'side-left', 'c2-h1-door': 'side-right' })
+    expect(hung(inset, 'inside')).toEqual({ 'c1-h1-door': 'div-1', 'c2-h1-door': 'div-1' })
   })
 
   it('overlay drawer fronts cover the carcass edge; inset ones sit flush inside', () => {

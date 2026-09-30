@@ -15,7 +15,7 @@ describe('explain', () => {
     const r = reference('KC-APA-01')
     expect(explain({ ...r, expect: probe(r, testCatalog) })).toBe(
       [
-        'KC-APA-01 v3 · sideboard',
+        'KC-APA-01 v4 · sideboard',
         'Piece: cabinet, 1600 × 940 × 400 mm, T18, on legs, wall-mounted.',
         'Construction: inset doors, inset drawer fronts, top between the sides, nailed back, movable shelves.',
         'Grid: 4 columns of equal width. Cells from the bottom up:',

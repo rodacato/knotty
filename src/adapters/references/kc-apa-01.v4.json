@@ -19,7 +19,7 @@
     "material": "T18",
     "base": "legs",
     "wallMounted": true,
-    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "hinges": "outside", "pulls": "notch" },
     "columns": [
       {
         "width": 1,
