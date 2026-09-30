@@ -8,7 +8,7 @@ import { Expect } from './probe'
 
 export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables'] as const
 
-/** What a ficha shows of the furniture, from a closed list; what Knotty cannot draw yet goes in `gaps`, not here. */
+/** What the piece has, from a closed list, whether or not the plan can draw it; what the plan cannot draw of it is also said in `gaps`. */
 export const FEATURES = [
   'inset-doors', 'inset-drawers', 'overlay-doors', 'legs', 'kick', 'wall-anchor', 'wall-hung', 'open-niche', 'no-back',
   'sliding-doors', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',

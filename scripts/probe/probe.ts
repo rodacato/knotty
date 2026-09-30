@@ -3,7 +3,7 @@ import { createBundledReferences } from '../../src/adapters/references/store'
 import { formatFicha } from '../../src/adapters/references/format'
 import { Catalog } from '../../src/domain/materials/catalog'
 import { prepareAdoption } from '../../src/domain/furniture/adopt'
-import { differences, probe } from '../../src/domain/furniture/probe'
+import { describeExpect, differences, probe, type Expect } from '../../src/domain/furniture/probe'
 import { loadReferences, type Reference } from '../../src/domain/furniture/references'
 
 // Checks a ficha against what the engine makes of it. Usage:
@@ -45,6 +45,10 @@ const report = ({ upper, existing, adoption }: NonNullable<ReturnType<typeof pla
   console.log(existing ? `${upper}: version ${existing.version}${adoption.changes.length ? ` → ${adoption.version}` : ', nothing new'}` : `${upper}: new reference, version 1`)
   for (const path of adoption.changes) console.log(`  changed ${path}`)
   for (const line of adoption.expectChanges) console.log(`  expect ${line}`)
+  // Always the verdict, also for a new reference: «accepted» alone says nothing about whether the engine likes it.
+  const made = adoption.ficha.expect as Expect
+  console.log(`  engine: ${describeExpect(made)}`)
+  if (made.findings.some((f) => f.startsWith('critical:'))) console.log('  ⚠ a critical finding: check the plan (an anchor missing, a base, a span) before adopting it')
 }
 
 const find = (code: string) => {

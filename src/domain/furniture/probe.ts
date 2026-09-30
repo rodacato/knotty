@@ -54,3 +54,6 @@ export function differences(expected: Expect, actual: Expect): string[] {
   }
   return lines
 }
+
+/** What the engine made of a plan, in one line, for a person reading `probe`: «valid, 55 pieces, findings: critical:R4_TIPPING». */
+export const describeExpect = (e: Expect) => `${e.valid ? 'valid' : 'NOT valid'}, ${e.pieces} pieces, findings: ${e.findings.length ? e.findings.join(' ') : 'none'}`

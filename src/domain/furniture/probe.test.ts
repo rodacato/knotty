@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from './fixtures/catalog.test-util'
 import { testReferences } from './fixtures/references.test-util'
-import { differences, probe, type Expect } from './probe'
+import { describeExpect, differences, probe, type Expect } from './probe'
 
 // `npm run probe -- --all` checks the same as the first test here: what the engine makes of every shipped ficha is what its file says.
 
@@ -44,5 +44,12 @@ describe('differences', () => {
       'hardware.cup-hinge-35: expected 4, got none',
       'hardware.drawer-slide-35: expected none, got 2',
     ])
+  })
+})
+
+describe('describeExpect', () => {
+  it('says the verdict, the pieces and the findings, or that there are none', () => {
+    expect(describeExpect({ valid: true, pieces: 55, findings: [], sheets: {}, hardware: {} })).toBe('valid, 55 pieces, findings: none')
+    expect(describeExpect({ valid: false, pieces: 3, findings: ['critical:R4_TIPPING', 'detail:R7_BASE'], sheets: {}, hardware: {} })).toBe('NOT valid, 3 pieces, findings: critical:R4_TIPPING detail:R7_BASE')
   })
 })
