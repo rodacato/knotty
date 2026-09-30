@@ -75,7 +75,7 @@ export function explain(f: Explainable): string {
     ...(f.support || f.difficulty ? [`Support: ${[f.support, f.difficulty && `difficulty ${f.difficulty}`].filter(Boolean).join(' · ')}`] : []),
     ...list('Features', f.features),
     ...list('Adaptations', f.adaptations, '; '),
-    ...list('Gaps', f.gaps, '; '),
+    ...list('Gaps', f.gaps),
     ...(f.expect ? [`Engine: ${describeExpect(f.expect)}`] : []),
   ].join('\n')
 }
