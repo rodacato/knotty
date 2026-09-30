@@ -214,3 +214,26 @@ describe('the pulls field', () => {
     expect(isVisible(field, PLANS.wallCabinet)).toBe(true)
   })
 })
+
+describe('overlay drawer fronts on a shallow piece', () => {
+  const nightstand = (depth: number, drawerFronts: CabinetConstruction['drawerFronts']) =>
+    buildCabinet({ ...PLANS.nightstand, dimensions: { width: 450, height: 500, depth }, construction: { ...DEFAULT_CONSTRUCTION, drawerFronts } }, testCatalog)
+  const drawerParts = (design: ReturnType<typeof buildCabinet>['design']) => design.pieces.filter((p) => p.role.startsWith('drawer')).length
+
+  it('the front outside the carcass does not eat the drawer depth: a 350 mm nightstand takes a drawer either way', () => {
+    for (const fronts of ['inset', 'overlay'] as const) {
+      const { design, notes } = nightstand(350, fronts)
+      expect(analyze(design, testCatalog).valid).toBe(true)
+      expect({ fronts, drawer: drawerParts(design) > 0, notes }).toEqual({ fronts, drawer: true, notes: [] })
+    }
+  })
+
+  it('a drawer that does not fit becomes an open cell and the carcass is not left set back for a front that is not there', () => {
+    const { design, notes } = nightstand(300, 'overlay')
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    expect(drawerParts(design)).toBe(0)
+    expect(notes).toEqual([expect.stringMatching(/^Cajón 1: No cabe un cajón/)])
+    expect(design.pieces.find((p) => p.id === 'side-left')!.z.to).toMatchObject({ ref: 'furniture.z1', offset: 0 })
+  })
+})
