@@ -211,6 +211,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     pieces.push(panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -half)), y: extent(ref('bottom.y1'), ref('top.y0')), z: depth() })),
   )
 
+  /** The column and cell each drawer asked for, in the order of `drawers`. */
+  const drawerCells: [column: number, cell: number][] = []
   const drawers: { operation: AddDrawer; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
   plan.columns.forEach((column, i) => {
     const n = plan.columns.length
@@ -282,8 +284,9 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       }
       if (cell.content === 'drawer') {
         const k = drawers.length + 1
+        drawerCells.push([i, j])
         drawers.push({
-          operation: { op: 'addDrawer', group: `drawer-${k}`, name: `Cajón ${k}`, left: left, right: right, bottom: bottom, top: top, front: 'side-left.z1', back: backFace, material: plan.material, bottomMaterial: backBoard(catalog).id },
+          operation: { op: 'addDrawer', group: `drawer-${k}`, name: `Cajón ${k}`, left: left, right: right, bottom: bottom, top: top, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: backFace, material: plan.material, bottomMaterial: backBoard(catalog).id },
           overlay,
         })
       }
@@ -311,6 +314,12 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const placed = addDrawers(design, drawers.map((d) => d.operation), catalog, withFronts)
   design = placed.design
   const notes = [...placed.notes]
+  // A drawer that does not fit is left as an open cell; the carcass was set back for its front, so it is built again without it.
+  const dropped = drawers.flatMap((d, n) => (design.pieces.some((p) => p.id === `${d.operation.group}-front`) ? [] : [drawerCells[n]]))
+  if (dropped.length) {
+    const columns = plan.columns.map((col, i) => ({ ...col, cells: col.cells.map((cell, j) => (dropped.some(([a, b]) => a === i && b === j) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell)) }))
+    return { design: buildCabinet({ ...plan, columns }, catalog).design, notes }
+  }
   // What a carpenter adds without being asked, each kept only if the design still holds with it:
   // on a kick, the floor rests on a support under each divider; hung on the wall, a rail at the top and back takes the screws.
   const extras: Operation[] = []
