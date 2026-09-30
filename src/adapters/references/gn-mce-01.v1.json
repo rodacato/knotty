@@ -14,5 +14,12 @@
     "overhang": 0,
     "shelf": true,
     "pedestal": { "side": "none", "drawers": 0 }
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 8,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 6, "pocket-screw-1-1/4": 8, "screw-8x2": 40, "white-glue": 1 }
   }
 }

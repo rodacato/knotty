@@ -2,10 +2,20 @@ import { z } from 'zod'
 import { DesignKind } from '../design/kind'
 import { FinishId } from '../materials/finishes'
 import { FurniturePlan } from './modules/plan'
+import { Expect } from './probe'
 
 // The ficha of a piece of furniture of reference, as a file: <code>.v<version>.json, the version in the name as the prompts' is (kc-apa-01.v2.json replaces kc-apa-01.v1.json). The files live in adapters/references/.
 
 export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables'] as const
+
+/** What the piece has, from a closed list, whether or not the plan can draw it; what the plan cannot draw of it is also said in `gaps`. */
+export const FEATURES = [
+  'inset-doors', 'inset-drawers', 'overlay-doors', 'legs', 'kick', 'wall-anchor', 'wall-hung', 'open-niche', 'no-back',
+  'sliding-doors', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',
+] as const
+
+/** exact: the plan says all that matters of the piece; adapted: it builds something close, and `adaptations` says what changed; unsupported: it cannot be built. */
+export const SUPPORT = ['exact', 'adapted', 'unsupported'] as const
 
 /** KC: checked against a product of the reference catalog. GN: a generic starting point with no product behind it. */
 const CODE = /^(KC|GN)-[A-Z]+-\d{2}$/
@@ -25,8 +35,17 @@ export const ReferenceFile = z
     /** What it is, for the person. */
     notes: z.string().min(1),
     plan: FurniturePlan,
+    /** How hard it is to build, 1 to 4 (docs/carpinteria/muebles-y-medidas.md §1). */
+    difficulty: z.number().int().min(1).max(4).optional(),
+    support: z.enum(SUPPORT).optional(),
+    features: z.array(z.enum(FEATURES)).optional(),
+    adaptations: z.array(z.string().min(1)).optional(),
+    gaps: z.array(z.string().min(1)).optional(),
+    /** What the engine makes of the plan; `probe` checks it and rewrites it. */
+    expect: Expect,
   })
   .strict()
+  .refine((r) => !r.code.startsWith('KC-') || (r.support && r.difficulty && r.features && r.adaptations && r.gaps), { message: 'a KC reference says its support, difficulty, features, adaptations and gaps' })
 
 export type Reference = z.infer<typeof ReferenceFile> & { version: number }
 

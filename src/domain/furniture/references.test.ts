@@ -61,4 +61,19 @@ describe('references', () => {
     expect(loadReferences(files).map((r) => r.code)).toEqual(['GN-ZZZ-02', 'GN-ZZZ-01', 'GN-AAA-01'])
     expect(basesOf(loadReferences(files)).map((b) => b.code)).toEqual(['GN-ZZZ-02', 'GN-ZZZ-01'])
   })
+
+  it('refuse a ficha that does not say what the engine makes of it', () => {
+    const { expect: _, ...file } = sample()
+    expect(load(`./references/${file.code.toLowerCase()}.v1.json`, file)).toThrow(/expect/)
+  })
+
+  it('want a checked product to say how it is supported, and only from the closed list of features', () => {
+    const file = sample()
+    const kc = { ...file, code: 'KC-ZZZ-01', id: 'kc' }
+    expect(load('./references/kc-zzz-01.v1.json', kc)).toThrow(/a KC reference says/)
+    const complete = { ...kc, support: 'adapted', difficulty: 3, features: ['legs'], adaptations: [], gaps: [] }
+    expect(loadReferences({ './references/kc-zzz-01.v1.json': complete })).toHaveLength(1)
+    expect(load('./references/kc-zzz-01.v1.json', { ...complete, features: ['carved'] })).toThrow(/features/)
+    expect(load('./references/kc-zzz-01.v1.json', { ...complete, difficulty: 5 })).toThrow(/difficulty/)
+  })
 })

@@ -3,7 +3,7 @@ import type { DesignKind } from '../design/kind'
 import type { Catalog } from '../materials/catalog'
 import type { FinishId } from '../materials/finishes'
 import { buildPlan, type FurniturePlan } from './modules/plan'
-import { HOME_CATEGORIES, type Reference } from './references'
+import type { HOME_CATEGORIES, Reference } from './references'
 
 // What the person can start from: a ready design, or a plan Knotty builds (a base), so the plan sheet and the local requests work from the first click.
 
