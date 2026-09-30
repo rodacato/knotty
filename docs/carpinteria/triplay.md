@@ -280,7 +280,7 @@ Humedad relativa media anual en algunas ciudades (Wikipedia, tablas climáticas 
 | Ciudad de México | ❓ sin dato verificado | temporada de lluvias de junio a septiembre | ≈ 9–11 % (estimado) | ❓ |
 
 - El *Wood Handbook* recomienda instalar la madera de interiores con **8 %** de humedad en promedio (6–10 % por pieza) en la mayor parte de EUA, 6 % en zonas secas y 11 % en costas húmedas y cálidas [18] ✅. AraucoPly sale de fábrica con **8 %** [11] ⚠️. En Mérida o en la costa, el triplay va a ganar humedad después de comprarlo.
-- El triplay casi no cambia de medida en su plano [15] ✅, pero **sí** se alabea si una cara está sellada y la otra no, o si se guarda recargado en la pared ⚠️. Regla de taller: sellar o barnizar **las dos caras y los cantos** con el mismo número de manos ⚠️ (ver [acabados.md](acabados.md)).
+- El triplay casi no cambia de medida en su plano [15] ✅ y se alabea si se guarda recargado en la pared ⚠️. Sellar o barnizar **las dos caras y los cantos** con el mismo número de manos es práctica de taller y da un tacto parejo, pero que el acabado de una sola cara alabee el triplay no está demostrado ❓ (ver [acabados.md](acabados.md) §12): sí se alabea el que lleva laminado o chapa por un solo lado.
 - **Aclimatar**: dejar la hoja de 2 a 7 días, acostada sobre separadores, en el cuarto donde se va a armar ⚠️ (práctica de taller; no se encontró fuente primaria).
 - Baños y cocinas: preferir adhesivo fenólico y canto sellado; el MDF o el aglomerado estándar se hinchan al mojarse [37] ⚠️.
 
