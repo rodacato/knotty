@@ -1,5 +1,5 @@
 ---
-id: cabinet@5
+id: cabinet@6
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -18,6 +18,7 @@ id: cabinet@5
   - `top`: "between" (top between the sides) or "over" (top over the sides, as in nightstands and side tables).
   - `back`: "nailed" (nailed back, the usual) or "none" (no back, only if the person asks).
   - `shelves`: "movable" (on pins) or "fixed" (screwed, firmer).
+  - `hinges`: one-leaf doors hang "outside" (the usual, doors open toward the middle) or "inside" (open outward).
   - `pulls`: how doors and drawer fronts open. "none" unless asked or clearly shown in the photos (doors or drawers alone are "none"; handles cost money); "notch" for a finger notch routed in the front's edge; "handle" for a handle, knob or hole pull (bought, one per door leaf and drawer front). One choice for the whole piece.
 - `columns`: left to right, with their width as a fraction of the total. Each column lists its openings from bottom to top, with their height as a fraction and their content:
   - "open": an open opening; in `shelves`, how many movable shelves are inside.

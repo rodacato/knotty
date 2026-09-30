@@ -67,6 +67,13 @@ function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, num
   return makeJoint('', a.id, b.id, 'butt-screw', t ? [{ hardwareId: t.id, count: null }] : [])
 }
 
+/** The hinge of a door on the upright it hangs from, with the catalog's hinge for how the door sits on it. */
+export function hingeOn(door: Piece, upright: Piece, boxes: Map<string, Box>, catalog: Catalog): Omit<Joint, 'id'> {
+  const mount = doorMount(boxes.get(door.id)!, boxes.get(upright.id)!)
+  const item = (mount && hingeFor(catalog, mount)) || pickHardware(catalog, 'hinge')
+  return makeJoint('', door.id, upright.id, 'cup-hinge', item ? [{ hardwareId: item.id, count: null }] : [])
+}
+
 /** A door hangs from the upright closest to one of its edges. */
 function hinge(door: Piece, box: Box, neighbours: { piece: Piece; box: Box }[], catalog: Catalog): Omit<Joint, 'id'> | null {
   const uprights = neighbours.filter((x) => x.piece.normal === 'x' && x.piece.role !== 'door')

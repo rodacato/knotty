@@ -14,7 +14,7 @@
     "material": "T18",
     "base": "kick",
     "wallMounted": true,
-    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "none" },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "hinges": "outside", "pulls": "none" },
     "columns": [
       {
         "width": 1,
@@ -41,6 +41,6 @@
     "pieces": 14,
     "findings": [],
     "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "brad-nail-1": 46, "cup-hinge-35-half": 4, "edge-banding-19": 13, "screw-8x2": 46, "shelf-pin-5": 8, "white-glue": 2 }
+    "hardware": { "brad-nail-1": 46, "cup-hinge-35-full": 4, "edge-banding-19": 13, "screw-8x2": 46, "shelf-pin-5": 8, "white-glue": 2 }
   }
 }

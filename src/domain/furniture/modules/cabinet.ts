@@ -3,7 +3,8 @@ import { startAt, partway, endAt, makePiece, ref, extent, makeJoint } from '../.
 import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Position, type Design, type Piece, type Joint, Pulls } from '../../design/schema'
 import { analyze } from '../../checks/analysis'
 import { ASSUMPTIONS, pocketScrewId } from '../../checks/structure/assumptions'
-import { completeJoints } from '../../design/joints'
+import { completeJoints, hingeOn } from '../../design/joints'
+import { resolveGeometry } from '../../design/resolve'
 import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
@@ -21,11 +22,12 @@ export const CabinetConstruction = z.object({
   top: z.enum(['between', 'over']).describe('between: the top goes between the sides; over: the top sits on the sides'),
   back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
   shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
+  hinges: z.enum(['outside', 'inside']).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle'),
   pulls: Pulls.default('none').describe('none: no pull; notch: finger notch routed in each front; handle: one handle per door leaf and drawer front'),
 })
 export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
-export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', pulls: 'none' }
+export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', hinges: 'outside', pulls: 'none' }
 
 export const CabinetPlan = z.object({
   kind: z.literal('cabinet'),
@@ -51,6 +53,7 @@ export const CABINET_LABELS = {
     top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima' } },
     back: { label: 'Trasera', options: { nailed: 'Clavada', none: 'Sin trasera' } },
     shelves: { label: 'Repisas', options: { movable: 'Móviles', fixed: 'Fijas' } },
+    hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro' } },
     pulls: { label: 'Jaladeras', options: { none: 'Ninguna', notch: 'Muesca', handle: 'Jaladera' } },
   } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string> } },
 }
@@ -213,6 +216,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
 
   /** The column and cell each drawer asked for, in the order of `drawers`. */
   const drawerCells: [column: number, cell: number][] = []
+  // Overlay doors are found by contact, which picks the nearest upright: the hinge side has to be said once the pieces exist.
+  const hung: { door: string; upright: string }[] = []
   const drawers: { operation: AddDrawer; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
   plan.columns.forEach((column, i) => {
     const n = plan.columns.length
@@ -239,6 +244,9 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       const overlay = { x: extent(overLeft, overRight), y: extent(overBottom, overTop) }
       const inset = { x: extent(ref(left, GAP), ref(right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) }
 
+      // One leaf hangs on the outer edge or the inner one, by which half of the furniture its column is in; a column in the middle hangs on the left.
+      const middle = ((i === 0 ? 0 : columnEdges[i - 1]) + columnEdges[i]) / 2
+      const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
       const behindDoor = cell.content === 'door'
       const shelves = cell.content === 'open' || behindDoor ? (cell.shelves ?? 0) : 0
       for (let k = 1; k <= shelves; k++)
@@ -271,7 +279,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
         const [x0, x1] = [box.x.from!, box.x.to!]
         const doors =
           leaves === 1
-            ? [{ id: `${id}-door`, name: `Puerta${label}`, x: extent(x0, x1), hinge: left }]
+            ? [{ id: `${id}-door`, name: `Puerta${label}`, x: extent(x0, x1), hinge: hangsLeft ? left : right }]
             : [
                 { id: `${id}-door-left`, name: `Puerta izquierda${label}`, x: extent(x0, partway(left, right, 0.5, -GAP / 2)), hinge: left },
                 { id: `${id}-door-right`, name: `Puerta derecha${label}`, x: extent(partway(left, right, 0.5, GAP / 2), x1), hinge: right },
@@ -280,6 +288,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
           pieces.push(makePiece({ ...leaf, id: d.id, name: d.name, role: 'door', x: d.x, y: box.y }))
           // An inset door touches nothing: its hinge is declared, not found by contact.
           if (build.doors === 'inset') joints.push(makeJoint(`j-${d.id}`, d.id, pieceOf(d.hinge), 'cup-hinge', insetHinge ? [{ hardwareId: insetHinge.id, count: null }] : []))
+          else hung.push({ door: d.id, upright: pieceOf(d.hinge) })
         }
       }
       if (cell.content === 'drawer') {
@@ -332,6 +341,16 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   for (const extra of extras) {
     const result = applyOperations(design, [extra], catalog)
     if (result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid) design = result.value.design
+  }
+  const geometry = resolveGeometry(design, catalog)
+  if (geometry.ok) {
+    const byId = new Map(design.pieces.map((p) => [p.id, p]))
+    const declared = hung.flatMap((h) => {
+      const door = byId.get(h.door)
+      const upright = byId.get(h.upright)
+      return door && upright ? [{ ...hingeOn(door, upright, geometry.value.boxes, catalog), id: `j-${h.door}` }] : []
+    })
+    design = { ...design, joints: [...design.joints, ...declared] }
   }
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
   const pulls = plan.construction.pulls
@@ -398,6 +417,13 @@ function benchCabinets(): [string, CabinetPlan][] {
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
 
+const hasCell = (p: CabinetPlan, test: (cell: Cell) => boolean) => p.columns.some((col) => col.cells.some(test))
+/** A choice with nothing to decide stays out of the form. */
+const VISIBLE_WHEN: Partial<Record<keyof CabinetConstruction, (p: CabinetPlan) => boolean>> = {
+  hinges: (p) => hasCell(p, (x) => x.content === 'door' && (x.doors ?? 1) < 2),
+  pulls: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
+}
+
 /** One choice per way of building it, in the order of its labels. */
 const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof CabinetConstruction)[]).map((key) =>
   choice<CabinetPlan, string>({
@@ -407,7 +433,7 @@ const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof C
     get: (p) => p.construction[key],
     set: (p, value) => ({ ...p, construction: { ...p.construction, [key]: value } }),
     // Nothing to open, nothing to choose.
-    visibleWhen: key === 'pulls' ? (p) => p.columns.some((col) => col.cells.some((x) => x.content === 'door' || x.content === 'drawer')) : undefined,
+    visibleWhen: VISIBLE_WHEN[key],
   }),
 )
 
