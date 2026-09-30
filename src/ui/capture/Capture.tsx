@@ -237,7 +237,7 @@ export function Capture() {
               <p className="text-base text-graphite-2">{missingKey ?? 'Él lee tus fotos y tu descripción y arma el diseño. Las bases ya hechas no lo necesitan.'}</p>
             </div>
             {simulated && (
-              <Button variant="ghost" className="min-h-11 self-start px-3 text-base text-graphite-2 md:self-center" onClick={() => setWithSimulated(true)}>
+              <Button variant="ghost" className="min-h-11 self-start px-3 text-base! text-graphite-2 md:self-center" onClick={() => setWithSimulated(true)}>
                 Probar con los ejemplos simulados
               </Button>
             )}
@@ -305,7 +305,7 @@ export function Capture() {
             {withoutPhotos ? (
               <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-graphite-2 bg-kraft/60 p-6 text-center lg:min-h-[240px]">
                 <Image size={28} className="text-graphite" />
-                <Button variant="secondary" className="min-h-12 px-6 text-base" onClick={() => picker.current?.click()} disabled={processing}>
+                <Button variant="secondary" className="min-h-12 px-6 text-base!" onClick={() => picker.current?.click()} disabled={processing}>
                   <Camera weight="bold" /> Agregar fotos
                 </Button>
               </div>
@@ -365,7 +365,7 @@ export function Capture() {
 
         <div className="-mx-5 flex flex-col items-center gap-3 border-t border-line px-5 pt-5 md:mx-0 md:border-t-0 md:px-0 md:pt-2">
           {usable ? (
-            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg shadow-md" disabled={!canAnalyze} onClick={analyzeCapture}>
+            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg! shadow-md" disabled={!canAnalyze} onClick={analyzeCapture}>
               {blocker ?? (
                 <>
                   Diseñar mi mueble <ArrowRight weight="bold" />
@@ -373,14 +373,14 @@ export function Capture() {
               )}
             </Button>
           ) : (
-            <Button variant="secondary" className="min-h-14 w-full max-w-[720px] text-lg" onClick={() => openConnect(true)}>
+            <Button variant="secondary" className="min-h-14 w-full max-w-[720px] text-lg!" onClick={() => openConnect(true)}>
               {missingKey && <Key weight="bold" />} Conectar experto <ArrowRight weight="bold" />
             </Button>
           )}
           <p className="text-center text-base text-graphite-2">Suele tomar menos de un minuto; las fotos y el diseño usan tu llave.</p>
           <p className="flex flex-wrap items-center justify-center gap-x-2 text-base text-graphite-2">
             ¿Prefieres una base ya hecha?
-            <Button variant="ghost" className="min-h-11 px-3 text-base text-graphite-2" onClick={goHome}>
+            <Button variant="ghost" className="min-h-11 px-3 text-base! text-graphite-2" onClick={goHome}>
               <ArrowLeft weight="bold" /> Ver bases
             </Button>
           </p>
