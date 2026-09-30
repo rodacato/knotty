@@ -1,3 +1,4 @@
+import { recordStage, type StageLine } from '../capture/stageLog'
 import { ExpertError, type OnProgress, type Stage } from '../../application/useCases'
 import { applySettings } from '../../domain/materials/catalog'
 import { trayRequest } from '../../domain/session/tray/tray'
@@ -22,6 +23,10 @@ export interface CaptureInput {
 
 export interface ExpertSlice {
   stage: { name: Stage; attempt: number; progress?: { done: number; total: number } } | null
+  /** The last steps of the design attempt in progress, for the waiting screen; never saved. */
+  stageLog: StageLine[]
+  /** When the design attempt in progress began (epoch milliseconds). */
+  waitStartedAt: number
   thinking: boolean
   reconstructionError: string | null
   /** What the expert did in a design attempt that failed, for «Ver qué pasó». */
@@ -60,6 +65,8 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
 
 export const createExpert: Slice<ExpertSlice> = (set, get) => ({
   stage: null,
+  stageLog: [],
+  waitStartedAt: 0,
   thinking: false,
   reconstructionError: null,
   failedTrace: [],
@@ -72,11 +79,13 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     const { services } = get()
     if (!services) return
     const controller = new AbortController()
-    set({ phase: 'analyzing', controller, stage: { name: input.photos.length ? 'reading-photos' : 'designing', attempt: 0 }, reconstructionError: null, draft: input })
+    const first = { name: input.photos.length ? ('reading-photos' as const) : ('designing' as const), attempt: 0 }
+    const startedAt = Date.now()
+    set({ phase: 'analyzing', controller, stage: first, stageLog: recordStage([], first, startedAt), waitStartedAt: startedAt, reconstructionError: null, draft: input })
     // A retry orphans the previous request: whatever it answers no longer counts.
     const isCurrent = () => get().controller === controller
     try {
-      const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set({ stage: { name, attempt, progress } }))
+      const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set((s) => ({ stage: { name, attempt, progress }, stageLog: recordStage(s.stageLog, { name, attempt, progress }, Date.now()) })))
       if (!isCurrent()) return
       set((s) => ({ state, phase: 'studio', stage: null, controller: null, draft: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
     } catch (e) {

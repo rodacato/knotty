@@ -1,8 +1,9 @@
 import { Check } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { ATTEMPTS, type Stage } from '../../application/useCases'
+import { type Stage } from '../../application/useCases'
 import { Button } from '../system/components'
 import { useStore } from '../store'
+import { HISTORY_LINES, secondsSince } from './stageLog'
 
 const stages = (withPhotos: boolean, pieceByPiece: boolean): { id: Stage; text: string }[] => [
   ...(withPhotos ? [{ id: 'reading-photos' as const, text: 'Mirando las fotos' }] : []),
@@ -41,6 +42,44 @@ function Stroke() {
   )
 }
 
+// Opacity by distance from the current line: the old ones fade upward and never below 45%.
+const FADE = [1, 0.75, 0.6, 0.45]
+
+function History() {
+  const log = useStore((s) => s.stageLog)
+  const startedAt = useStore((s) => s.waitStartedAt)
+  const controller = useStore((s) => s.controller)
+  const last = log[log.length - 1]
+  const lineSeconds = useSeconds(controller, last?.at)
+  if (!last) return null
+  return (
+    <footer className="w-full border-t border-line px-6 pt-5 pb-8">
+      <ul className="mx-auto flex w-full max-w-xl flex-col gap-2" aria-live="polite" aria-label="Lo que ha hecho el experto">
+        {log.map((line, i) => {
+          const fromBottom = log.length - 1 - i
+          const current = fromBottom === 0
+          return (
+            <li
+              key={`${line.at}-${line.text}`}
+              style={{ opacity: FADE[fromBottom] }}
+              className={`flex items-baseline gap-4 text-sm motion-safe:transition-opacity ${current ? 'font-medium text-graphite' : 'text-graphite-2'} ${fromBottom === HISTORY_LINES - 1 ? 'max-sm:hidden' : ''}`}
+            >
+              <span className="numerals w-10 shrink-0 text-xs text-graphite-2">{clock(secondsSince(startedAt, line.at))}</span>
+              <span className="min-w-0 flex-1">{line.text}</span>
+              {current && (
+                <span className="flex shrink-0 items-center gap-3" aria-hidden>
+                  <span className="numerals text-xs font-normal text-graphite-2">{clock(lineSeconds)}</span>
+                  <span className="size-2 rounded-full bg-amber motion-safe:animate-pulse" />
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </footer>
+  )
+}
+
 export function Analyzing() {
   const stage = useStore((s) => s.stage)
   const cancel = useStore((s) => s.cancel)
@@ -55,52 +94,52 @@ export function Analyzing() {
   const STAGES = stages(withPhotos, pieceByPiece)
   const current = STAGES.findIndex((e) => e.id === stage?.name)
   return (
-    <main className="flex min-h-full flex-col items-center justify-center gap-8 px-6" aria-live="polite">
-      <Stroke />
-      <ol className="flex flex-col gap-3">
-        {STAGES.map((e, i) => {
-          const taken = current > i
-          const inProgress = current === i || (stage?.name === 'correcting' && e.id === 'checking')
-          return (
-            <li key={e.id} className={`flex items-center gap-3 transition ${taken || inProgress ? 'text-graphite' : 'text-graphite-2/50'}`}>
-              <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-amber' : 'border-line'}`}>
-                {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 animate-pulse rounded-full bg-amber" /> : null}
-              </span>
-              <span className={inProgress ? 'font-medium' : ''}>
-                {e.text}
-                {e.id === 'reading-photos' && stage?.progress && inProgress && (
-                  <span className="numerals text-graphite-2">
-                    {' '}
-                    ({Math.min(stage.progress.done + 1, stage.progress.total)} de {stage.progress.total})
-                  </span>
-                )}
-              </span>
-            </li>
-          )
-        })}
-      </ol>
-      {stage?.name === 'correcting' && (
-        <p className="max-w-xs text-center text-sm text-graphite">
-          Intento {stage.attempt + 1} de {ATTEMPTS}: el experto está corrigiendo piezas que no cerraban.
-        </p>
-      )}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <p className="numerals text-sm text-graphite-2">{clock(seconds)}</p>
-        {attemptSeconds >= PATIENCE && (
-          <p className="max-w-xs text-sm text-graphite">
-            {pieceByPiece
-              ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'
-              : stage?.name === 'correcting'
-                ? 'Cada corrección vuelve a escribir el diseño completo; tarda lo mismo que el primer intento.'
-                : 'Sigue trabajando; esto suele tomar menos de un minuto.'}
-          </p>
-        )}
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={cancel}>
-            Cancelar
-          </Button>
+    <main className="flex min-h-full flex-col">
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-8">
+        <div className="flex flex-col items-center gap-3">
+          <Stroke />
+          <p className="numerals text-sm text-graphite-2">{clock(seconds)}</p>
+        </div>
+        <ol className="flex flex-col gap-3">
+          {STAGES.map((e, i) => {
+            const taken = current > i
+            const inProgress = current === i || (stage?.name === 'correcting' && e.id === 'checking')
+            return (
+              <li key={e.id} className={`flex items-center gap-3 transition ${taken || inProgress ? 'text-graphite' : 'text-graphite-2/50'}`}>
+                <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-amber' : 'border-line'}`}>
+                  {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 animate-pulse rounded-full bg-amber" /> : null}
+                </span>
+                <span className={inProgress ? 'font-medium' : ''}>
+                  {e.text}
+                  {e.id === 'reading-photos' && stage?.progress && inProgress && (
+                    <span className="numerals text-graphite-2">
+                      {' '}
+                      ({Math.min(stage.progress.done + 1, stage.progress.total)} de {stage.progress.total})
+                    </span>
+                  )}
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+        <div className="flex flex-col items-center gap-3 text-center">
+          {attemptSeconds >= PATIENCE && (
+            <p className="max-w-xs text-sm text-graphite" role="status">
+              {pieceByPiece
+                ? 'Este mueble no es un gabinete, así que el experto lo diseña pieza por pieza: puede tardar de 2 a 4 minutos. Sigue trabajando.'
+                : stage?.name === 'correcting'
+                  ? 'Cada corrección vuelve a escribir el diseño completo; tarda lo mismo que el primer intento.'
+                  : 'Sigue trabajando; esto suele tomar menos de un minuto.'}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={cancel}>
+              Cancelar
+            </Button>
+          </div>
         </div>
       </div>
+      <History />
     </main>
   )
 }
