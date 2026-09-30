@@ -60,7 +60,7 @@ describe('the labels of each module', () => {
       ['cabinet base', CABINET_LABELS.base, CabinetPlan.shape.base.options],
       ['cabinet cell', CABINET_LABELS.cell, Cell.shape.content.options],
       ['cabinet construction', CABINET_LABELS.construction, Object.keys(CabinetConstruction.shape)],
-      ...Object.entries(CabinetConstruction.shape).map(([key, schema]): [string, object, readonly string[]] => [`cabinet ${key}`, CABINET_LABELS.construction[key as keyof CabinetConstruction].options, schema.options]),
+      ...Object.entries(CabinetConstruction.shape).map(([key, schema]): [string, object, readonly string[]] => [`cabinet ${key}`, CABINET_LABELS.construction[key as keyof CabinetConstruction].options, ('options' in schema ? schema : schema.unwrap()).options]),
     ]
     for (const [name, labels, values] of sets) expect({ name, values: Object.keys(labels) }).toEqual({ name, values: [...values] })
   })

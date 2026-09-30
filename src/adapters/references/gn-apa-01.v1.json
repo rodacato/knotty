@@ -14,7 +14,7 @@
     "material": "T18",
     "base": "kick",
     "wallMounted": true,
-    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "none" },
     "columns": [
       {
         "width": 1,

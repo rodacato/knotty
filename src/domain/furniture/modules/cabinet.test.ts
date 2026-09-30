@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
-import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
+import { isVisible } from './fields'
+import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
 import { LEG_HEIGHT } from './common'
+import { estimatePurchase } from '../../materials/purchase'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
@@ -39,7 +41,7 @@ describe('buildCabinet', () => {
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
-    expect(notes).toEqual([])
+    expect(notes.filter((n) => !n.startsWith('Muesca'))).toEqual([])
   })
 
   it('makes one drawer per drawer cell, with slides', () => {
@@ -116,6 +118,7 @@ describe('construction variants', () => {
     top: ['between', 'over'],
     back: ['nailed', 'none'],
     shelves: ['movable', 'fixed'],
+    pulls: ['none', 'notch', 'handle'],
   }
   const combos = Object.entries(options).reduce<CabinetConstruction[]>(
     (all, [key, values]) => all.flatMap((c) => values.map((v) => ({ ...c, [key]: v }))),
@@ -138,7 +141,7 @@ describe('construction variants', () => {
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
-    expect(notes).toEqual([])
+    expect(notes.filter((n) => !n.startsWith('Muesca'))).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
@@ -166,5 +169,48 @@ describe('construction variants', () => {
     }
     expect(front('overlay').x0).toBe(2)
     expect(front('inset').x0).toBeGreaterThan(18)
+  })
+})
+
+describe('pulls', () => {
+  const buy = (pulls: CabinetConstruction['pulls']) => {
+    const { design, notes } = buildCabinet({ ...PLANS.sideboard, construction: { ...PLANS.sideboard.construction, pulls } }, testCatalog)
+    const a = analyze(design, testCatalog)
+    return { design, notes, purchase: estimatePurchase(design, a.geo!, testCatalog) }
+  }
+  const handles = (p: ReturnType<typeof buy>['purchase']) => p.hardware.find((h) => h.hardware.role === 'handle')
+
+  it('buys one handle for each door leaf and drawer front, and prices them', () => {
+    const { design, purchase } = buy('handle')
+    expect(design.pulls).toBe('handle')
+    expect(handles(purchase)).toMatchObject({ count: 6, cost: 6 * 45 })
+  })
+
+  it('a notch or no pull buys nothing; the notch is said in the notes', () => {
+    expect(handles(buy('none').purchase)).toBeUndefined()
+    const notch = buy('notch')
+    expect(handles(notch.purchase)).toBeUndefined()
+    expect(notch.notes).toEqual([expect.stringMatching(/Muesca.*6 frentes/)])
+    expect(buy('handle').notes).toEqual([])
+    expect(buy('none').design.pulls).toBeUndefined()
+  })
+
+  it('leaves the list as it was for a cabinet with no doors or drawers', () => {
+    const { design } = buildCabinet({ ...PLANS.bookcase, construction: { ...DEFAULT_CONSTRUCTION, pulls: 'handle' } }, testCatalog)
+    expect(handles(estimatePurchase(design, analyze(design, testCatalog).geo!, testCatalog))).toBeUndefined()
+  })
+
+  it('a plan saved before pulls existed still reads, as no pull', () => {
+    const { pulls: _, ...old } = DEFAULT_CONSTRUCTION
+    expect(CabinetPlan.parse({ ...PLANS.bookcase, construction: old }).construction.pulls).toBe('none')
+  })
+})
+
+describe('the pulls field', () => {
+  const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'choice' && f.key === 'construction.pulls')!
+  it('is offered only when there is a door or a drawer to open', () => {
+    expect(isVisible(field, PLANS.bookcase)).toBe(false)
+    expect(isVisible(field, PLANS.drawerChest)).toBe(true)
+    expect(isVisible(field, PLANS.wallCabinet)).toBe(true)
   })
 })

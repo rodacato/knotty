@@ -99,6 +99,10 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   const counts = new Map<string, number>()
   const add = (id: string, n: number) => counts.set(id, (counts.get(id) ?? 0) + n)
   for (const u of design.joints) for (const h of u.hardware) add(h.hardwareId, h.count ?? hardwarePerJoint(u, geo))
+  // A handle joins nothing, so it is counted from the fronts it opens.
+  const handle = pickHardware(catalog, 'handle')
+  const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
+  if (design.pulls === 'handle' && handle && fronts) add(handle.id, fronts)
   const glued = design.joints.filter((u) => u.glue).length
   const glue = pickHardware(catalog, 'glue')
   if (glued && glue) add(glue.id, Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
