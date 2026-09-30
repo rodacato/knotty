@@ -14,9 +14,9 @@ Vive en `src/adapters/references/<código>.v<N>.json` (por ejemplo `kc-apa-01.v1
 | `plan` | La ficha que entiende el motor (`FurniturePlan`): medidas, base, construcción, columnas y celdas |
 | `home` | Opcional. Con él es una tarjeta de la pantalla de inicio (`order`, `category`); sin él sigue siendo referencia para las pruebas |
 | `expect` | Lo que el motor hace del plan: válido, piezas, avisos, hojas y herrajes. Lo escribe `probe`; una candidata no lo trae |
-| `support`, `difficulty`, `features`, `adaptations`, `gaps` | Una `KC-…` los dice todos: cómo se soporta (`exact`, `adapted`, `unsupported`), la dificultad de 1 a 4, qué rasgos tiene (lista cerrada `FEATURES`), qué se adaptó y qué falta |
+| `support`, `difficulty`, `features`, `adaptations`, `gaps` | Una `KC-…` los dice todos: cómo se soporta (`exact`, `adapted`, `unsupported`), la dificultad de 1 a 4, qué rasgos tiene y cuáles no puede dibujar Knotty (etiquetas de la lista cerrada `FEATURES`) y qué se adaptó (texto) |
 
-`format` (siempre 1) lo agrega `probe`. **`features`** dice lo que el mueble tiene, de la lista cerrada `FEATURES` (`src/domain/furniture/references.ts`), lo dibuje Knotty o no; **`gaps`** dice lo que Knotty no puede dibujar de él, así que un rasgo que el plan no dibuja va en los dos. `support` es `exact` solo si no hay adaptaciones ni huecos; en cuanto hay uno, `adapted`.
+`format` (siempre 1) lo agrega `probe`. **`features`** dice lo que el mueble tiene, de la lista cerrada `FEATURES` (`src/domain/furniture/references.ts`), lo dibuje Knotty o no; **`gaps`** dice, con las mismas etiquetas, lo que Knotty no puede dibujar de él: siempre es un subconjunto de `features` (una etiqueta en `gaps` que no está en `features` se rechaza). Contar huecos entre muebles es contar etiquetas. Si lo que ves no cabe en ninguna, no se inventa una: se anota en la respuesta como etiqueta propuesta y se agrega a `FEATURES` a propósito. `no-back` vale para cualquier parte sin trasera, no solo para el mueble entero. Las `adaptations` sí son texto libre. `support` es `exact` solo si no hay adaptaciones ni huecos; en cuanto hay uno, `adapted`.
 
 El archivo se escribe siempre igual (`probe` lo hace), para que un cambio mueva pocas líneas. **Las fotos de referencia no se guardan en el repo.**
 

@@ -8,10 +8,10 @@ import { Expect } from './probe'
 
 export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables'] as const
 
-/** What the piece has, from a closed list, whether or not the plan can draw it; what the plan cannot draw of it is also said in `gaps`. */
+/** What the piece has, from a closed list, whether or not the plan can draw it. `gaps` uses the same words for what the plan cannot draw, so counting the gaps across pieces is counting words. A new one is added here on purpose. */
 export const FEATURES = [
   'inset-doors', 'inset-drawers', 'overlay-doors', 'legs', 'kick', 'wall-anchor', 'wall-hung', 'open-niche', 'no-back',
-  'sliding-doors', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',
+  'sliding-doors', 'asymmetric-arrangement', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',
 ] as const
 
 /** exact: the plan says all that matters of the piece; adapted: it builds something close, and `adaptations` says what changed; unsupported: it cannot be built. */
@@ -40,12 +40,14 @@ export const ReferenceFile = z
     support: z.enum(SUPPORT).optional(),
     features: z.array(z.enum(FEATURES)).optional(),
     adaptations: z.array(z.string().min(1)).optional(),
-    gaps: z.array(z.string().min(1)).optional(),
+    /** What the piece has and the plan cannot draw: always a subset of `features`. */
+    gaps: z.array(z.enum(FEATURES)).optional(),
     /** What the engine makes of the plan; `probe` checks it and rewrites it. */
     expect: Expect,
   })
   .strict()
   .refine((r) => !r.code.startsWith('KC-') || (r.support && r.difficulty && r.features && r.adaptations && r.gaps), { message: 'a KC reference says its support, difficulty, features, adaptations and gaps' })
+  .refine((r) => (r.gaps ?? []).every((g) => r.features?.includes(g)), { message: 'a gap is a feature the plan cannot draw: every gap is also in features', path: ['gaps'] })
 
 export type Reference = z.infer<typeof ReferenceFile> & { version: number }
 
