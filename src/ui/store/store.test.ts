@@ -3,6 +3,7 @@ import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { createUseCases } from '../../application/useCases'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
+import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { DebugEvent, DebugLog } from '../../ports/DebugLog'
@@ -25,6 +26,7 @@ function services(): Services {
     materials: { load: async () => testCatalog, settings: () => NO_SETTINGS, saveSettings: () => {} },
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
+    references: testReferences,
     debug: {} as Services['debug'],
     bench: {} as Services['bench'],
   }

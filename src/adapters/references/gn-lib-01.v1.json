@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "code": "GN-LIB-01",
+  "id": "open-bookcase",
+  "home": { "order": 2, "category": "storage" },
+  "name": "Librero abierto",
+  "kind": "bookcase",
+  "inspiredBy": "KC-LIB-01",
+  "notes": "Librero abierto de dos columnas con repisas móviles, trasera clavada y anclado al muro.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero abierto",
+    "dimensions": { "width": 900, "height": 1950, "depth": 290 },
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "open", "shelves": 5, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "open", "shelves": 5, "doors": null }
+        ]
+      }
+    ]
+  }
+}

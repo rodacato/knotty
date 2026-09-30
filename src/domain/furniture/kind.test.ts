@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from './fixtures/bookcase'
-import { sideboardPlan } from './examples'
+import { sideboardPlan } from './fixtures/references.test-util'
 import { MODULES } from './modules/plan'
 import { kindChange, kindOf, planForKind, settleKind, startingKind, type KnownKind } from './kind'
 

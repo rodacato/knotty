@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../checks/analysis'
 import { estimatePurchase } from '../materials/purchase'
 import { testCatalog } from './fixtures/catalog.test-util'
-import { BASES, exampleDesign, exampleSideboard, sideboardPlan } from './examples'
+import { exampleDesign } from './examples'
+import { exampleSideboard, sideboardPlan, testBases } from './fixtures/references.test-util'
 import { buildPlan } from './modules/plan'
 
 // The bases are the first thing a person opens: every one is a plan that comes out clean, as the bench asks of every module variant.
 
 describe('examples', () => {
-  it.each(BASES.map((b) => [b.name, b] as const))('%s, built from its plan, is valid, as asked, and has no findings above a detail', (_, base) => {
+  it.each(testBases.map((b) => [b.name, b] as const))('%s, built from its plan, is valid, as asked, and has no findings above a detail', (_, base) => {
     expect(buildPlan(base.plan, testCatalog).notes).toEqual([])
     const { design, plan } = exampleDesign(base, testCatalog)
     expect(plan).toBe(base.plan)
@@ -17,9 +18,10 @@ describe('examples', () => {
     expect(analysis.valid && analysis.findings.filter((f) => f.severity !== 'detail').map((f) => `${f.code}: ${f.message}`)).toEqual([])
   })
 
-  it('every base has its own id, and a catalog reference only as a neutral code', () => {
-    expect(new Set(BASES.map((b) => b.id)).size).toBe(BASES.length)
-    expect(BASES.flatMap((b) => b.reference ?? []).filter((code) => !/^KC-[A-Z]+-\d{2}$/.test(code))).toEqual([])
+  it('every base has its own id and code, and only a generic one points at a catalog product', () => {
+    expect(new Set(testBases.map((b) => b.id)).size).toBe(testBases.length)
+    expect(new Set(testBases.map((b) => b.code)).size).toBe(testBases.length)
+    expect(testBases.filter((b) => b.inspiredBy && !b.code.startsWith('GN-')).map((b) => b.code)).toEqual([])
   })
 
   it('the sideboard carries its notes and finish, and its shopping list does not move', () => {

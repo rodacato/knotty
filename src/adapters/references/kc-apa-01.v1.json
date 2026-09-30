@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "code": "KC-APA-01",
+  "id": "sideboard-on-legs",
+  "home": { "order": 7, "category": "storage" },
+  "name": "Aparador con patas",
+  "kind": "sideboard",
+  "finish": "polyurethane",
+  "notes": "Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Aparador con patas",
+    "dimensions": { "width": 1600, "height": 940, "depth": 400 },
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.375, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.375, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ]
+  }
+}

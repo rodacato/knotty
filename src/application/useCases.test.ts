@@ -10,7 +10,7 @@ import type { Operation } from '../domain/editing/operations/schema'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../domain/furniture/fixtures/wallCabinet'
-import { BASES, exampleSideboard } from '../domain/furniture/examples'
+import { exampleSideboard, testBases } from '../domain/furniture/fixtures/references.test-util'
 import { findingKey } from '../domain/checks/structure/finding'
 import { ruleTitle } from '../domain/checks/structure/registry'
 import { currentDesign, type DesignState } from '../domain/session/state'
@@ -970,7 +970,7 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(currentDesign(state).finish).toBe('polyurethane')
   })
 
-  it.each(BASES.map((b) => [b.name, b] as const))('the base %s opens with its plan, its name and no call to the expert', (name, base) => {
+  it.each(testBases.map((b) => [b.name, b] as const))('the base %s opens with its plan, its name and no call to the expert', (name, base) => {
     const { llm, calls } = counting()
     const state = setup(llm).openExample(base)
     expect(calls).toEqual([])
