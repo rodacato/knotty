@@ -52,6 +52,14 @@ export const PieceId = z
   .regex(/^[a-z0-9-]+$/, 'Solo minúsculas, números y guiones')
   .refine((id) => id !== 'furniture', '"furniture" está reservado')
 
+/** A stretch of one axis of a piece, measured from its start, its end or its middle, so it follows the piece when it is resized. */
+export const Span = z.object({ from: z.enum(['start', 'end', 'center']), offset: z.number(), length: z.number().positive() })
+export type Span = z.infer<typeof Span>
+
+/** A box taken out of a piece, drawn as a void: it changes neither the cut list, the purchase nor the checks. Knotty's data, not the expert's. */
+export const Cut = z.object({ x: Span, y: Span, z: Span })
+export type Cut = z.infer<typeof Cut>
+
 export const Piece = z.object({
   id: PieceId,
   name: z.string().min(1),
@@ -67,6 +75,7 @@ export const Piece = z.object({
   edges: z.array(Edge).describe('Edges with edge banding'),
   group: z.string().nullable(),
   confidence: PieceConfidence,
+  cuts: z.array(Cut).optional(),
 })
 export type Piece = z.infer<typeof Piece>
 
