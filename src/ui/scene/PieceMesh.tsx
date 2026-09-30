@@ -6,6 +6,8 @@ import type { MeshStandardMaterial, Texture } from 'three'
 import type { Axis, Piece } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
 import type { BoardTone } from '../../domain/materials/grades'
+import { cutBox } from '../../domain/design/cuts'
+import { cutGeometry } from './cutGeometry'
 import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
 
@@ -75,8 +77,11 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
   const maps = useMemo(() => faceTextures(piece, box, tone, plies), [piece, box, tone, plies])
+  // A piece with cuts is drawn from what is left of its box; the profiles of its edges are not drawn on it.
+  const voided = useMemo(() => (piece.cuts?.length ? cutGeometry(box, piece.cuts.map((c) => cutBox(box, c))) : null), [piece.cuts, box])
   const cut = useMemo(() => (shapes.length ? profiledGeometry({ x: size[0], y: size[1], z: size[2] }, piece.normal, shapes) : null), [shapes, piece.normal, size[0], size[1], size[2]]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => cut?.dispose(), [cut])
+  useEffect(() => () => voided?.dispose(), [voided])
 
   const sketch = piece.confidence === 'low'
   const finalOpacity = dimmed ? 0.12 : ghost ? 0.55 : sketch ? 0.92 : 1
@@ -123,7 +128,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
       onPointerOver={(e) => (e.stopPropagation(), setOver(true), (document.body.style.cursor = 'pointer'))}
       onPointerOut={() => (setOver(false), (document.body.style.cursor = ''))}
     >
-      {cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
+      {voided ? <primitive object={voided} attach="geometry" /> : cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
       {maps.map((map, i) => (
         <meshStandardMaterial
           key={i}
