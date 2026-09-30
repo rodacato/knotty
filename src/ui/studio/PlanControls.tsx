@@ -12,7 +12,7 @@ export function Segmented({ value, options, onChange, label }: { value: string; 
           role="radio"
           aria-checked={value === id}
           onClick={() => onChange(id)}
-          className={`rounded-full px-2.5 py-1 text-xs transition ${value === id ? 'bg-graphite text-bone' : 'text-graphite-2 hover:text-graphite'}`}
+          className={`relative rounded-full px-2.5 py-1 text-xs transition before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-[''] ${value === id ? 'bg-graphite text-bone' : 'text-graphite-2 hover:text-graphite'}`}
         >
           {text}
         </button>
@@ -24,11 +24,11 @@ export function Segmented({ value, options, onChange, label }: { value: string; 
 export function Stepper({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   return (
     <span className="inline-flex items-center gap-1" aria-label={label}>
-      <button type="button" aria-label={`Menos ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="grid size-6 place-items-center rounded-full border border-line disabled:opacity-30">
+      <button type="button" aria-label={`Menos ${label}`} disabled={value <= min} onClick={() => onChange(value - 1)} className="relative grid size-6 place-items-center rounded-full border border-line before:absolute before:-inset-2.5 before:content-[''] disabled:opacity-30">
         <Minus size={10} />
       </button>
       <span className="numerals w-5 text-center text-xs">{value}</span>
-      <button type="button" aria-label={`Más ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="grid size-6 place-items-center rounded-full border border-line disabled:opacity-30">
+      <button type="button" aria-label={`Más ${label}`} disabled={value >= max} onClick={() => onChange(value + 1)} className="relative grid size-6 place-items-center rounded-full border border-line before:absolute before:-inset-2.5 before:content-[''] disabled:opacity-30">
         <Plus size={10} />
       </button>
     </span>
