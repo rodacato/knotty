@@ -1,27 +1,26 @@
-import { ArrowClockwise, ArrowRight, Camera, Image, Key, NotePencil, Plus, Robot, Ruler, Trash, Warning, X } from '@phosphor-icons/react'
-import { useMemo, useRef, useState } from 'react'
-import type { Dimensions } from '../../domain/design/schema'
-import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
+import { ArrowClockwise, ArrowLeft, ArrowRight, Camera, Image, Key, NotePencil, PlugsConnected, Plus, Trash, Warning } from '@phosphor-icons/react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
+import type { DesignKind } from '../../domain/design/kind'
 import { VIEWS, viewLabel, type View } from '../../domain/furniture/reading/reading'
-import { MEASURE_RANGE, typicalDimensions } from '../../domain/furniture/typical'
 import { missing } from '../../ports/Preferences'
+import { AppFooter } from '../shell/AppFooter'
+import { AppHeader } from '../shell/AppHeader'
+import { expertConnected } from '../shell/expertStatus'
 import { useServices } from '../services'
-import { Button, Pencil, Title } from '../system/components'
+import { Button, Pencil } from '../system/components'
 import { Field, Input, Select, TextArea } from '../system/Field'
 import { KindSelect } from '../system/KindSelect'
 import { useStore } from '../store'
 import { TraceLog } from '../studio/TraceLog'
+import { designBlocker, spaceError, spaceFromMm, spaceToMm, type SpaceKey } from './form'
 
 const MAX_PHOTOS = 5
 
-const MEASURES: { key: keyof Dimensions; name: string }[] = [
-  { key: 'height', name: 'Alto' },
-  { key: 'width', name: 'Ancho' },
-  { key: 'depth', name: 'Fondo' },
+const SPACE_SIDES: { key: SpaceKey; name: string; example: string }[] = [
+  { key: 'width', name: 'Ancho', example: 'Ej. 90' },
+  { key: 'depth', name: 'Fondo', example: 'Ej. 40' },
+  { key: 'height', name: 'Alto', example: 'Ej. 180' },
 ]
-
-/** Without photos, the expert works with what you tell it: asks for a description with some substance. */
-const MIN_DESCRIPTION = 15
 
 interface TakenPhoto {
   id: string
@@ -34,8 +33,6 @@ interface TakenPhoto {
   reading: boolean
 }
 
-const inRange = (key: keyof Dimensions, value: number) => value >= MEASURE_RANGE[key][0] && value <= MEASURE_RANGE[key][1]
-
 function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPhoto; index: number; onRemove: () => void; onNote: (note: string) => void; onView: (view: View) => void }) {
   const [writing, setWriting] = useState(false)
   const name = photo.view ? viewLabel(photo.view) : `${index + 1}`
@@ -43,7 +40,12 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
     <div className="flex flex-col gap-1.5">
       <div className="relative aspect-[8/7] overflow-hidden rounded-xl">
         <img src={photo.thumbnail} alt={`Foto ${name}`} className="absolute inset-0 h-full w-full object-cover" />
-        <button type="button" onClick={onRemove} aria-label={`Quitar foto ${name}`} className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow">
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Quitar foto ${name}`}
+          className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow"
+        >
           <Trash />
         </button>
         <div className="absolute bottom-2 left-2">
@@ -52,7 +54,13 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
               <Pencil className="h-4 w-8 text-amber" /> Mirando la foto…
             </span>
           ) : (
-            <Select size="sm" value={photo.view ?? ''} onChange={(e) => onView(e.target.value as View)} aria-label={`Vista de la foto ${index + 1}`} className="text-sm font-medium">
+            <Select
+              size="sm"
+              value={photo.view ?? ''}
+              onChange={(e) => onView(e.target.value as View)}
+              aria-label={`Vista de la foto ${index + 1}`}
+              className="text-sm font-medium"
+            >
               {!photo.view && <option value="">¿Qué vista?</option>}
               {VIEWS.map((v) => (
                 <option key={v} value={v}>
@@ -83,21 +91,56 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
   )
 }
 
+const LABEL = 'text-base font-medium text-graphite'
+
+function Block({
+  label,
+  help,
+  helpBelow,
+  htmlFor,
+  children,
+  className = '',
+}: {
+  label: string
+  help?: ReactNode
+  helpBelow?: ReactNode
+  htmlFor?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`flex flex-col gap-1.5 ${className}`}>
+      <label htmlFor={htmlFor} className={LABEL}>
+        {label}
+      </label>
+      {help && <p className="text-sm text-graphite-2">{help}</p>}
+      {children}
+      {helpBelow && <p className="text-sm text-graphite">{helpBelow}</p>}
+    </div>
+  )
+}
+
 export function Capture() {
   const { images, preferences, useCases } = useServices()
   const reconstruct = useStore((s) => s.reconstruct)
   const error = useStore((s) => s.reconstructionError)
   const failedTrace = useStore((s) => s.failedTrace)
-  const openSettings = useStore((s) => s.openSettings)
   const openConnect = useStore((s) => s.openConnect)
+  const goHome = useStore((s) => s.goHome)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
   const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
-  const [measures, setMeasures] = useState<Dimensions | null>(draft?.measures ?? null)
-  // Measures the person typed stay when the kind changes; untouched ones follow the kind.
-  const [measuresTouched, setMeasuresTouched] = useState(draft?.measures != null)
+  const [space, setSpace] = useState(() => spaceFromMm(draft?.space))
   const [photos, setPhotos] = useState<TakenPhoto[]>(
-    () => draft?.photos.map((f, i) => ({ id: `draft-${i}`, base64: f.base64, note: f.note, view: f.view ?? draft.thumbnails[i]?.view ?? null, thumbnail: draft.thumbnails[i]?.dataUrl ?? '', reading: false })) ?? [],
+    () =>
+      draft?.photos.map((f, i) => ({
+        id: `draft-${i}`,
+        base64: f.base64,
+        note: f.note,
+        view: f.view ?? draft.thumbnails[i]?.view ?? null,
+        thumbnail: draft.thumbnails[i]?.dataUrl ?? '',
+        reading: false,
+      })) ?? [],
   )
   const [notes, setNotes] = useState(draft?.notes ?? '')
   const [processing, setProcessing] = useState(false)
@@ -108,6 +151,8 @@ export function Capture() {
   const config = useMemo(() => preferences.load(), [preferences, settingsOpen])
   const missingKey = missing(config)
   const simulated = config.active === 'simulated'
+  const connected = expertConnected(config)
+  const usable = connected || (simulated && withSimulated)
 
   const update = (id: string, change: Partial<TakenPhoto>) => setPhotos((all) => all.map((f) => (f.id === id ? { ...f, ...change } : f)))
 
@@ -118,7 +163,13 @@ export function Capture() {
     try {
       for (const file of chosen) {
         const r = await images.reduce(file)
-        const photo: TakenPhoto = { id: crypto.randomUUID(), base64: r.base64, thumbnail: r.thumbnail, view: null, reading: !missingKey }
+        const photo: TakenPhoto = {
+          id: crypto.randomUUID(),
+          base64: r.base64,
+          thumbnail: r.thumbnail,
+          view: null,
+          reading: !missingKey,
+        }
         setPhotos((all) => [...all, photo].slice(0, MAX_PHOTOS))
         if (!missingKey)
           void useCases
@@ -131,22 +182,26 @@ export function Capture() {
     }
   }
 
-  const chooseKind = (next: DesignKind | null) => {
-    setKind(next)
-    if (measures && !measuresTouched) setMeasures(typicalDimensions(next))
-  }
-
   const withoutPhotos = photos.length === 0
-  const enoughDescription = notes.trim().length >= MIN_DESCRIPTION
-  const validMeasures = !measures || MEASURES.every((m) => inRange(m.key, measures[m.key]))
-  const canAnalyze = !missingKey && !processing && validMeasures && (!simulated || withSimulated) && (!withoutPhotos || enoughDescription || simulated)
+  const blocker = designBlocker({
+    description: notes,
+    photos: photos.length,
+    reading: processing,
+    space,
+  })
+  const canAnalyze = usable && blocker === null
   const analyzeCapture = () =>
     reconstruct({
-      measures,
-      photos: photos.map((f) => ({ base64: f.base64, ...(f.note?.trim() ? { note: f.note.trim() } : {}), ...(f.view ? { view: f.view } : {}) })),
+      measures: null,
+      photos: photos.map((f) => ({
+        base64: f.base64,
+        ...(f.note?.trim() ? { note: f.note.trim() } : {}),
+        ...(f.view ? { view: f.view } : {}),
+      })),
       thumbnails: photos.map((f) => ({ view: f.view, dataUrl: f.thumbnail })),
       notes: notes.trim(),
       kind,
+      space: spaceToMm(space),
     })
 
   const pickerInput = (
@@ -164,185 +219,174 @@ export function Capture() {
   )
 
   return (
-    <main className="mx-auto flex min-h-full max-w-3xl flex-col gap-7 px-4 py-8 sm:px-6 lg:max-w-6xl">
-      <Title>¿Qué mueble quieres?</Title>
+    <div className="flex min-h-full flex-col">
+      <AppHeader />
+      <main className="mx-auto flex w-full max-w-[1184px] flex-1 flex-col gap-7 px-5 py-6 md:px-8 md:py-10">
+        <header className="flex flex-col gap-1">
+          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight [font-variation-settings:'opsz'_48] md:text-4xl">¿Qué mueble quieres?</h1>
+          <p className="text-lg text-graphite-2 md:text-xl">Con fotos, con palabras o con las dos.</p>
+        </header>
 
-      {simulated && !withSimulated && (
-        <div className="flex max-w-3xl flex-col gap-3 rounded-2xl border border-line bg-kraft p-4">
-          <p className="flex items-start gap-2 font-medium">
-            <Robot className="mt-0.5 shrink-0" weight="bold" /> Conecta tu experto para diseñar tu mueble
-          </p>
-          <p className="text-sm text-graphite">
-            Sin una API key solo responde el modo simulado, que no entiende tu mueble: arma uno de tres ejemplos (librero, buró o alacena). Con Claude, OpenAI o SheLLM el experto sí lee
-            tus fotos y tu descripción.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={() => openConnect(true)}>
-              <Key weight="bold" /> Conectar experto
-            </Button>
-            <Button variant="ghost" className="underline" onClick={() => setWithSimulated(true)}>
-              Probar con los ejemplos simulados
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {withoutPhotos && <p className="-mt-3 text-graphite">¿No tienes el mueble enfrente? Descríbelo abajo y el experto lo arma con eso.</p>}
-
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,480px)_1fr] lg:grid-rows-[auto_auto_1fr] lg:gap-x-16">
-        <Field label="Tipo de mueble" help={!kind && 'Si no lo eliges, Knotty lo saca de tus fotos y tu descripción. Lo puedes cambiar después.'} className="lg:col-start-1">
-          <KindSelect value={kind} onChange={chooseKind} none="Que Knotty lo decida" />
-        </Field>
-
-        <section className="flex flex-col gap-2 lg:col-start-1" aria-label="Medidas">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium">Medidas</p>
-            {measures ? (
-              <Button
-                variant="ghost"
-                className="min-h-9 px-2"
-                onClick={() => {
-                  setMeasures(null)
-                  setMeasuresTouched(false)
-                }}
-              >
-                <X /> Sin medidas
-              </Button>
-            ) : (
-              <Button variant="secondary" onClick={() => setMeasures(typicalDimensions(kind))}>
-                <Ruler /> Agregar medidas
+        {!usable && (
+          <div className="flex flex-col gap-3 rounded-3xl border-2 border-graphite bg-kraft-2 p-4 md:flex-row md:items-center md:gap-5 md:px-7 md:py-5" role="note">
+            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-graphite text-bone">
+              <PlugsConnected size={22} weight="bold" />
+            </span>
+            <div className="flex flex-1 flex-col gap-1">
+              <p className="text-lg font-medium">Conecta tu experto para diseñar tu mueble</p>
+              <p className="text-base text-graphite-2">{missingKey ?? 'Él lee tus fotos y tu descripción y arma el diseño. Las bases ya hechas no lo necesitan.'}</p>
+            </div>
+            {simulated && (
+              <Button variant="ghost" className="min-h-11 self-start px-3 text-base! text-graphite-2 md:self-center" onClick={() => setWithSimulated(true)}>
+                Probar con los ejemplos simulados
               </Button>
             )}
           </div>
-          <p className="text-xs text-graphite">
-            {!measures
-              ? 'Sin medidas: el experto propone unas típicas para ese mueble y luego las ajustas en el chat.'
-              : measuresTouched
-                ? 'Son tus medidas: se quedan aunque cambies el tipo.'
-                : kind
-                  ? `Típicas de ${KIND_NOUN[kind]}; cámbialas si ya mediste el tuyo.`
-                  : 'Las medidas generales por fuera, en milímetros. Con cinta métrica basta.'}
-          </p>
-          {measures && (
-            <div className="grid grid-cols-3 gap-2">
-              {MEASURES.map((m) => (
-                <Field key={m.key} label={m.name}>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    unit="mm"
-                    min={MEASURE_RANGE[m.key][0]}
-                    max={MEASURE_RANGE[m.key][1]}
-                    step={10}
-                    value={measures[m.key] || ''}
-                    invalid={!inRange(m.key, measures[m.key])}
-                    onChange={(e) => {
-                      setMeasures({ ...measures, [m.key]: Number(e.target.value) })
-                      setMeasuresTouched(true)
-                    }}
-                  />
-                </Field>
-              ))}
-            </div>
-          )}
-        </section>
+        )}
 
-        <section className="flex flex-col gap-2 lg:col-start-2 lg:row-span-3 lg:row-start-1" aria-label="Fotos">
-          {pickerInput}
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Fotos</p>
-            {photos.length >= MAX_PHOTOS && <span className="numerals text-xs text-graphite-2">{photos.length} de {MAX_PHOTOS}</span>}
+        <div className="grid gap-7 lg:grid-cols-2 lg:gap-x-16">
+          <div className="flex flex-col gap-7">
+            <Block label="Tipo de mueble" htmlFor="kind" helpBelow={!kind && 'Si no lo eliges, el experto lo saca de tus fotos y tu descripción. Lo puedes cambiar después.'}>
+              <KindSelect id="kind" value={kind} onChange={setKind} none="Que el experto lo decida" />
+            </Block>
+
+            <Block
+              label={withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}
+              htmlFor="description"
+              help={withoutPhotos ? 'Una o dos frases: qué es, sus partes y para qué lo quieres.' : 'Opcional: lo que las fotos no muestran.'}
+            >
+              <TextArea
+                id="description"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={withoutPhotos ? 4 : 3}
+                placeholder={withoutPhotos ? 'Ej. librero de 5 repisas, sin puertas, pegado a la pared' : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'}
+              />
+            </Block>
+
+            <section className="flex flex-col gap-1.5" aria-labelledby="space-title">
+              <h2 id="space-title" className={LABEL}>
+                Espacio disponible
+              </h2>
+              <div className="grid grid-cols-3 gap-3">
+                {SPACE_SIDES.map((side) => {
+                  const problem = spaceError(side.key, space[side.key])
+                  return (
+                    <Field key={side.key} label={side.name} error={problem}>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        unit="cm"
+                        placeholder={side.example}
+                        value={space[side.key]}
+                        invalid={problem !== null}
+                        onChange={(e) => setSpace({ ...space, [side.key]: e.target.value })}
+                      />
+                    </Field>
+                  )
+                })}
+              </div>
+              <p className="text-sm text-graphite">Aproximado, en cm, está bien. Sin esto el experto propone unas medidas típicas.</p>
+            </section>
           </div>
-          {withoutPhotos ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-graphite-2 p-6 text-center">
-              <Image size={28} className="text-graphite" />
-              <Button variant="primary" className="min-h-12 px-6" onClick={() => picker.current?.click()} disabled={processing}>
-                <Camera weight="bold" /> Agregar fotos
-              </Button>
-              <span className="text-xs text-graphite-2">hasta {MAX_PHOTOS}</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {photos.map((f, i) => (
-                <PhotoTile
-                  key={f.id}
-                  photo={f}
-                  index={i}
-                  onRemove={() => setPhotos((all) => all.filter((x) => x.id !== f.id))}
-                  onNote={(note) => update(f.id, { note })}
-                  onView={(view) => update(f.id, { view })}
-                />
-              ))}
-              {photos.length < MAX_PHOTOS && (
-                <button
-                  type="button"
-                  onClick={() => picker.current?.click()}
-                  disabled={processing}
-                  className="flex aspect-[8/7] flex-col items-center justify-center gap-1 rounded-xl border-[1.5px] border-graphite-2 text-graphite disabled:opacity-50"
-                >
-                  <Plus size={22} />
-                  <span className="text-sm font-medium">Agregar fotos</span>
-                  <span className="numerals text-xs text-graphite-2">
-                    {photos.length} de {MAX_PHOTOS}
-                  </span>
-                </button>
+
+          <section className="flex flex-col gap-1.5" aria-labelledby="photos-title">
+            {pickerInput}
+            <div className="flex items-center justify-between">
+              <h2 id="photos-title" className={LABEL}>
+                Fotos
+              </h2>
+              {photos.length >= MAX_PHOTOS && (
+                <span className="numerals text-xs text-graphite-2">
+                  {photos.length} de {MAX_PHOTOS}
+                </span>
               )}
             </div>
-          )}
-        </section>
+            {withoutPhotos ? (
+              <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-graphite-2 bg-kraft/60 p-6 text-center lg:min-h-[240px]">
+                <Image size={28} className="text-graphite" />
+                <Button variant="secondary" className="min-h-12 px-6 text-base!" onClick={() => picker.current?.click()} disabled={processing}>
+                  <Camera weight="bold" /> Agregar fotos
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {photos.map((f, i) => (
+                  <PhotoTile
+                    key={f.id}
+                    photo={f}
+                    index={i}
+                    onRemove={() => setPhotos((all) => all.filter((x) => x.id !== f.id))}
+                    onNote={(note) => update(f.id, { note })}
+                    onView={(view) => update(f.id, { view })}
+                  />
+                ))}
+                {photos.length < MAX_PHOTOS && (
+                  <button
+                    type="button"
+                    onClick={() => picker.current?.click()}
+                    disabled={processing}
+                    className="flex aspect-[8/7] flex-col items-center justify-center gap-1 rounded-xl border-[1.5px] border-graphite-2 text-graphite disabled:opacity-50"
+                  >
+                    <Plus size={22} />
+                    <span className="text-sm font-medium">Agregar fotos</span>
+                    <span className="numerals text-xs text-graphite-2">
+                      {photos.length} de {MAX_PHOTOS}
+                    </span>
+                  </button>
+                )}
+              </div>
+            )}
+            <p className="text-base text-graphite-2">Hasta {MAX_PHOTOS} fotos. Se envían a tu experto para leerlas.</p>
+          </section>
+        </div>
 
-        <Field
-          label={withoutPhotos ? 'Describe el mueble' : '¿Algo que el experto deba saber?'}
-          help={withoutPhotos && 'Ayuda decir qué es, cuántas repisas, puertas o cajones lleva, qué va a cargar y cómo te lo imaginas. Lo que no digas, el experto lo pregunta.'}
-          className="lg:col-start-1 lg:self-start"
-        >
-          <TextArea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={withoutPhotos ? 4 : 2}
-            placeholder={
-              withoutPhotos
-                ? 'Ej. librero de 5 repisas para libros, sin puertas, con zoclo al frente y un cajón abajo; lo quiero pegado a la pared'
-                : 'Ej. va a cargar libros; mi espacio mide 90 cm de ancho'
-            }
-          />
-        </Field>
-      </div>
-
-      {error && (
-        <div className="flex flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
-          <div className="flex items-start gap-2">
-            <Warning className="mt-0.5 shrink-0" weight="bold" />
-            <span className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
-            {canAnalyze && (
-              <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
-                <ArrowClockwise weight="bold" /> Reintentar
-              </Button>
+        {error && (
+          <div className="mx-auto flex w-full max-w-[720px] flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
+            <div className="flex items-start gap-2">
+              <Warning className="mt-0.5 shrink-0" weight="bold" />
+              <span className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
+              {canAnalyze && (
+                <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
+                  <ArrowClockwise weight="bold" /> Reintentar
+                </Button>
+              )}
+            </div>
+            {failedTrace.length > 0 && (
+              <details className="text-graphite">
+                <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
+                <div className="mt-2">
+                  <TraceLog trace={failedTrace} />
+                </div>
+              </details>
             )}
           </div>
-          {failedTrace.length > 0 && (
-            <details className="text-graphite">
-              <summary className="cursor-pointer text-xs underline">Ver qué pasó</summary>
-              <div className="mt-2">
-                <TraceLog trace={failedTrace} />
-              </div>
-            </details>
+        )}
+
+        <div className="-mx-5 flex flex-col items-center gap-3 border-t border-line px-5 pt-5 md:mx-0 md:border-t-0 md:px-0 md:pt-2">
+          {usable ? (
+            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg! shadow-md" disabled={!canAnalyze} onClick={analyzeCapture}>
+              {blocker ?? (
+                <>
+                  Diseñar mi mueble <ArrowRight weight="bold" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button variant="secondary" className="min-h-14 w-full max-w-[720px] text-lg!" onClick={() => openConnect(true)}>
+              {missingKey && <Key weight="bold" />} Conectar experto <ArrowRight weight="bold" />
+            </Button>
           )}
+          <p className="text-center text-base text-graphite-2">Suele tomar menos de un minuto; las fotos y el diseño usan tu llave.</p>
+          <p className="flex flex-wrap items-center justify-center gap-x-2 text-base text-graphite-2">
+            ¿Prefieres una base ya hecha?
+            <Button variant="ghost" className="min-h-11 px-3 text-base! text-graphite-2" onClick={goHome}>
+              <ArrowLeft weight="bold" /> Ver bases
+            </Button>
+          </p>
         </div>
-      )}
-      {missingKey && (
-        <p className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
-          <Key weight="bold" /> {missingKey}
-          <Button variant="ghost" className="min-h-8 px-2 underline" onClick={() => openSettings(true)}>
-            Configurar
-          </Button>
-        </p>
-      )}
-      <div className="flex justify-end">
-        <Button variant="primary" className="min-h-12 px-6" disabled={!canAnalyze} onClick={analyzeCapture}>
-          {withoutPhotos ? 'Diseñar sin fotos' : 'Analizar'} <ArrowRight weight="bold" />
-        </Button>
-      </div>
-    </main>
+      </main>
+      <AppFooter />
+    </div>
   )
 }
