@@ -247,7 +247,7 @@ export function Settings() {
 }
 
 /** SheLLM runs on the person's machine: explains what it is and how to let this page talk to it. */
-function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void }) {
+export function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void }) {
   const [copied, setCopied] = useState(false)
   const origin = location.origin
   const line = `SHELLM_CORS_ORIGINS=${origin}`

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Settings } from './settings/Settings'
 import { KeysGate } from './settings/Keys'
+import { ConnectExpert } from './connect/ConnectExpert'
 import { Analyzing } from './capture/Analyzing'
 import { Capture } from './capture/Capture'
 import { Home } from './capture/Home'
@@ -56,6 +57,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
     <ServicesContext.Provider value={services}>
       <Screen />
       <Settings />
+      <ConnectExpert />
       <KeysGate />
       <DebugPanel />
     </ServicesContext.Provider>

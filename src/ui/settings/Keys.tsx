@@ -7,6 +7,8 @@ import { Button, Title } from '../system/components'
 import { Input } from '../system/Field'
 import { useStore } from '../store'
 
+export const UNLOCK_TEXT = 'Tienes llaves guardadas y cifradas en este navegador. Escribe tu frase para usarlas.'
+
 /** Opens the encrypted saved keys; forgetting them asks first because it cannot be undone. */
 export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; autoFocus?: boolean }) {
   const unlock = useStore((s) => s.unlock)
@@ -36,7 +38,7 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
         void setOpen()
       }}
     >
-      <p>Tienes llaves guardadas y cifradas en este navegador. Escribe tu frase para usarlas.</p>
+      <p>{UNLOCK_TEXT}</p>
       <div className="flex gap-2">
         <Input
           type="password"
@@ -81,11 +83,12 @@ export function KeysGate() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const close = useStore((s) => s.closeGate)
   const switchToSimulated = useStore((s) => s.switchToSimulated)
-  const openSettings = useStore((s) => s.openSettings)
+  const openConnect = useStore((s) => s.openConnect)
   const config = preferences.load()
   const locked = vault === 'locked'
   const missingKey = missing(config)
-  const visible = !closed && !settingsOpen && (locked || !!missingKey)
+  const connectOpen = useStore((s) => s.connectOpen)
+  const visible = !closed && !settingsOpen && !connectOpen && (locked || !!missingKey)
   const name = config.active === 'simulated' ? '' : PRESETS[config.active].label
 
   return (
@@ -124,7 +127,7 @@ export function KeysGate() {
                   variant="primary"
                   onClick={() => {
                     close()
-                    openSettings(true)
+                    openConnect(true)
                   }}
                 >
                   Poner la llave
