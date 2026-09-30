@@ -172,7 +172,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               </span>
             </p>
           )}
-          <p className="text-sm text-graphite">{shown.length ? `Perfil de ${shown.length === 1 ? 'el canto elegido' : `los ${shown.length} cantos elegidos`}` : chosen.size ? 'Ninguno de los cantos elegidos se ve; elige uno que sí se vea para perfilarlo.' : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
+          <p className="text-sm text-graphite">{shown.length ? shown.length === 1 ? 'Perfil del canto elegido' : `Perfil de los ${shown.length} cantos elegidos` : chosen.size ? 'Ninguno de los cantos elegidos se ve; elige uno que sí se vea para perfilarlo.' : 'Elige los cantos que quieres perfilar; los demás quedan rectos.'}</p>
           <div role="radiogroup" aria-label="Perfil del canto" className="flex flex-col gap-2">
             {(collapsed ? [profile!] : EDGE_PROFILE_IDS).map((id) => {
               const p = EDGE_PROFILES[id]
