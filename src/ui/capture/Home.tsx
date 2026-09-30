@@ -64,7 +64,7 @@ function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row
       <span className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-bone">
         <Plus className="size-5" />
       </span>
-      <span className={`flex flex-col gap-1 ${cell ? 'items-center' : 'flex-1'}`}>
+      <span className={`flex flex-col gap-1 ${cell ? 'items-center text-center' : 'flex-1'}`}>
         <span className="font-display text-xl leading-tight font-semibold md:text-2xl">¿No está el tuyo?</span>
         <span className="text-sm text-graphite-2 md:text-base">Cuéntanos qué es, con fotos o una descripción.</span>
         {cell && (
