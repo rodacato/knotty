@@ -74,6 +74,11 @@ const JOINT_TYPES = [
   'butt-screw', 'pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket',
   'glue-nail', 'shelf-pin', 'cup-hinge', 'drawer-slide',
 ] as const
+/** How the doors and drawer fronts are opened: nothing, a notch in the edge, or a handle bought for each. */
+export const PULLS = ['none', 'notch', 'handle'] as const
+export const Pulls = z.enum(PULLS)
+export type Pulls = z.infer<typeof Pulls>
+
 export const JointType = z.enum(JOINT_TYPES)
 export type JointType = z.infer<typeof JointType>
 
@@ -107,6 +112,8 @@ export const Design = z.object({
   kind: DesignKind.optional(),
   /** Who said what it is; absent with a kind is the module or example that built it. */
   kindSource: KindSource.optional(),
+  /** How the fronts are opened, from the plan; absent is none. Knotty's data, not the expert's: its schemas leave it out. */
+  pulls: Pulls.optional(),
   /** A bed's mattress, from its plan. */
   mattress: MattressSize.optional(),
   /** The finish the person chose in Materiales; absent is none. The person's, not the expert's: its schemas leave it out. */
