@@ -66,11 +66,19 @@ const correction = (previous: unknown, errors: string): Content => ({
   text: `## Your previous answer could not be used\n${errors}\n\nPrevious answer:\n\`\`\`json\n${JSON.stringify(previous)}\n\`\`\`\nFix it and answer again in full.`,
 })
 
+/** The room the person has, as a limit: only the sides they filled in, and the rest stay for the expert to choose. */
+function spaceLine(space: ReconstructionRequest['space']): string {
+  const given = (['width', 'height', 'depth'] as const).filter((key) => space?.[key])
+  if (!space || !given.length) return ''
+  const sides = given.map((key) => `${key} up to ${space[key]} mm`).join(', ')
+  return `\nThe space they have for it, approximate: ${sides}. The furniture must fit inside it with a little slack, so choose typical measures within that space and say in the explanation which ones you chose. The sides they did not mention are unknown: use the typical ones.`
+}
+
 /** What a design or skeleton request carries: measures, the person's words, and the photo reading or the photos themselves. */
 function designRequest(s: ReconstructionRequest): Content[] {
   const measures = s.measures
     ? `Furniture measures: width ${s.measures.width} mm, height ${s.measures.height} mm, depth ${s.measures.depth} mm.`
-    : 'The person does not know the measures: propose typical ones for that furniture and say so in the explanation.'
+    : `The person does not know the measures: propose typical ones for that furniture and say so in the explanation.${spaceLine(s.space)}`
   const kind = s.kind ? `\nThe person chose what this furniture is: ${KIND_NOUN[s.kind]} (${s.kind}).` : ''
   const reading = s.reading
     ? `\nThe photos are not attached: they were already read. This is what they show (relative proportions, columns from left to right and openings from bottom to top):\n${JSON.stringify(s.reading)}`

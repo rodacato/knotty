@@ -1,11 +1,11 @@
 ---
-id: reconstruction@13
+id: reconstruction@14
 ---
 # Task: rebuild the furniture from photos or from a description
 
 You receive the overall measures of a piece of furniture (or a note that the person does not know them) and either photos (each with the person's note, if any) or a description written by the person. Produce the complete model in `design`:
 
-- `dimensions` are exactly the given measures. If there are none, propose the typical ones for that furniture in Mexico (a single bed takes a {{individualMattress}} mm mattress, a nightstand is about 500 × 450 × 400 mm) and say so in the explanation.
+- `dimensions` are exactly the given measures. If there are none, propose the typical ones for that furniture in Mexico (a single bed takes a {{individualMattress}} mm mattress, a nightstand is about 500 × 450 × 400 mm) and say so in the explanation. If the person gave the space they have instead, the piece must fit inside it with a little slack: take typical measures within that space and say which ones you chose.
 - Include every plywood piece that can be seen or that the furniture needs to stand (sides, bottom, top, shelves, dividers, back, kick, doors). The app adds the common joints: only the special ones go in `joints`.
 - Use short lowercase ids with hyphens ("side-left", "shelf-2") and clear piece names in Spanish.
 - Set `load` on shelves according to their apparent use; if unknown, "medium", and ask what will be stored.

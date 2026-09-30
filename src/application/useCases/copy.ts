@@ -1,6 +1,7 @@
 import type { Design, Dimensions } from '../../domain/design/schema'
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { viewLabel } from '../../domain/furniture/reading/reading'
+import type { SpaceOverflow } from '../../domain/furniture/quick'
 import type { Repair } from '../../domain/editing/repair/repair'
 import type { Photo } from '../../ports/LLMProvider'
 
@@ -21,6 +22,11 @@ export function initialRequest(input: { measures: Dimensions | null; photos: Pho
 
 export const estimatedMeasures = ({ width, height, depth }: Dimensions) =>
   `Como no tenías las medidas, las estimé: ${height} × ${width} × ${depth} mm (alto, ancho, fondo). Dime las reales cuando las tengas y lo ajusto.`
+
+const SPACE_SIDE = { width: 'ancho', height: 'alto', depth: 'fondo' } as const
+
+export const doesNotFitSpace = (over: SpaceOverflow[]) =>
+  `Ojo: no cabe en tu espacio. ${over.map((o) => `${SPACE_SIDE[o.axis]} ${o.size} mm (tienes ${o.room})`).join(', ')}. Dime si lo achico o si el espacio es otro.`
 
 export const repairedOnMyOwn = (repairs: Repair[]) => `Ajusté por mi cuenta ${repairs.length === 1 ? 'un detalle' : `${repairs.length} detalles`}: ${repairs.map((x) => x.message).join(' ')}`
 

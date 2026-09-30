@@ -86,6 +86,15 @@ describe('reconstruct without photos', () => {
     expect(state.chat[1].suggestions.length).toBeGreaterThan(0)
   })
 
+  it('warns when what the expert built does not fit the space the person gave, and only then', async () => {
+    const tight = await setup().reconstruct({ measures: null, space: { width: 100 }, photos: [], thumbnails: [], notes: 'Un buró sencillo con una repisa' }, newSignal())
+    expect(tight.chat[1].text).toMatch(/no cabe en tu espacio\. ancho \d+ mm \(tienes 100\)/)
+    const roomy = await setup().reconstruct({ measures: null, space: { width: 5000, height: 5000, depth: 5000 }, photos: [], thumbnails: [], notes: 'Un buró sencillo con una repisa' }, newSignal())
+    expect(roomy.chat[1].text).not.toContain('no cabe')
+    const none = await setup().reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Un buró sencillo con una repisa' }, newSignal())
+    expect(none.chat[1].text).not.toContain('no cabe')
+  })
+
   it('the simulated expert does not make up a bookcase when asked for other furniture', async () => {
     await expect(setup().reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Una banca para el recibidor' }, newSignal())).rejects.toThrow(/conecta un experto real/)
   })

@@ -1,5 +1,5 @@
 ---
-id: table@2
+id: table@3
 ---
 # pick
 - A **table or desk**: a top on two plywood sides, with aprons. It goes in `table`.
@@ -11,7 +11,7 @@ id: table@2
 - `use`: "dining", "coffee", "side" (side table or nightstand) or "desk".
 - `name`: the name for the person ("Escritorio con cajonera", "Mesa de centro").
 - `material`: {{materials}}. Usually the 18 mm one.
-- `dimensions`: length (`width`), height and depth in mm. Use the given measures; if there are none, the typical ones: {{typicalTableSizes}}.
+- `dimensions`: length (`width`), height and depth in mm. Use the given measures; if there are none, the typical ones: {{typicalTableSizes}}. If the person gave the space they have instead, the piece must fit inside it with a little slack: take typical measures within that space and say which ones you chose.
 - `overhang`: how far the top sticks out past the sides; 0 if the sides reach the edge (the usual for desks and coffee tables), 30–80 for dining tables.
 - `shelf`: a low shelf between the sides, on coffee and side tables. A desk does not have one.
 - `pedestal`: desks only, a drawer unit on one side: `side` "none", "left" or "right" (seen from the front) and `drawers` {{pedestalDrawerCount}}; without one, "none" and 0.

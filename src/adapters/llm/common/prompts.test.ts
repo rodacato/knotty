@@ -232,10 +232,10 @@ const approxTokens = (text: string) => Math.round(text.length / 3.5)
 const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2480, bed: 2060, table: 1870, shoeRack: 1930 }
 
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 5820, cabinet: 3045, bed: 2105, table: 1840, shoeRack: 1960 }
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 5950, cabinet: 3110, bed: 2105, table: 1840, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@1). */
-const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3310, adjust: 2750 } }
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3380, adjust: 2750 } }
 
 describe('token budget', () => {
   it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {

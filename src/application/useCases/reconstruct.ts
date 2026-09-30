@@ -5,6 +5,7 @@ import { completeJoints } from '../../domain/design/joints'
 import { exampleDesign, type Example } from '../../domain/furniture/examples'
 import { buildPlan, MODULE_OF_KIND, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { mergeReadings, photoKey, viewLabel, type PhotoReading } from '../../domain/furniture/reading/reading'
+import { spaceOverflow } from '../../domain/furniture/quick'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import { currentDesign, type DesignState, type Thumbnail } from '../../domain/session/state'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
@@ -15,12 +16,12 @@ import { knownKind, planForKind, startingKind, withKind } from '../../domain/fur
 import { isPersonNote } from '../../domain/checks/requirements/requirements'
 import { error, type DesignError } from '../../domain/design/validation/errors'
 import { expertPlans, type ExpertResponse, type Photo, type ReconstructionRequest, type ReconstructionResponse } from '../../ports/LLMProvider'
-import { CANCELLED, EXPERT_FAILED, estimatedMeasures, initialRequest, partsStillOff, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
+import { CANCELLED, EXPERT_FAILED, doesNotFitSpace, estimatedMeasures, initialRequest, partsStillOff, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
 import { ATTEMPTS, type Kit, type OnProgress } from './kit'
 
 /** `kind`: what the person said the furniture is, if they chose it. */
-type Input = { measures: Dimensions | null; photos: Photo[]; thumbnails: Thumbnail[]; notes: string; kind?: DesignKind | null }
+type Input = { measures: Dimensions | null; space?: Partial<Dimensions> | null; photos: Photo[]; thumbnails: Thumbnail[]; notes: string; kind?: DesignKind | null }
 
 /** A design the expert made, before it becomes a session or a version. `problems`: validation errors left unresolved. */
 type Designed = { design: Design; r: ReconstructionResponse; response: ExpertResponse<ReconstructionResponse>; problems: DesignError[]; repairs: Repair[]; plan: FurniturePlan | null }
@@ -90,7 +91,7 @@ export function createReconstruct(kit: Kit) {
     /** One skeleton call built and checked; `off` is what differs from the doors and drawers the request asked for. */
     let calls = 0
     const skeleton = (correction: ReconstructionRequest['correction']) =>
-      expertCall(() => llm.planDesign!({ measures: input.measures, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
+      expertCall(() => llm.planDesign!({ measures: input.measures, space: input.space, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
         step: 'plan',
         attempt: calls++,
         signal,
@@ -166,7 +167,7 @@ export function createReconstruct(kit: Kit) {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
       onProgress(attempt ? 'correcting' : 'designing-pieces', attempt)
-      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, photos: photosForDesign, notes: input.notes, reading: reading, catalog: catalog, correction: correction, kind: input.kind ?? null }, signal), {
+      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, space: input.space, photos: photosForDesign, notes: input.notes, reading: reading, catalog: catalog, correction: correction, kind: input.kind ?? null }, signal), {
         step: 'reconstruct',
         attempt,
         signal,
@@ -239,6 +240,8 @@ export function createReconstruct(kit: Kit) {
   function initialState(input: Input, { design, r, response, problems, repairs, plan }: Designed, trace: TraceEntry[]): DesignState {
     const fromPlan = plan && moduleOf(plan).measuresNote(plan, design.dimensions)
     const estimated = fromPlan ? [fromPlan] : input.measures ? [] : [estimatedMeasures(design.dimensions)]
+    const overSpace = input.space ? spaceOverflow(design.dimensions, input.space) : []
+    const spaceNote = overSpace.length ? [doesNotFitSpace(overSpace)] : []
     const repaired = repairs.length ? [repairedOnMyOwn(repairs)] : []
     const pendingItems = problems.length ? [leftUnresolved(describeProblems(traceErrors(problems)))] : []
     return {
@@ -250,7 +253,7 @@ export function createReconstruct(kit: Kit) {
       decisions: [],
       chat: [
         message('user', initialRequest(input), { thumbnail: input.thumbnails[0]?.dataUrl ?? null }),
-        message('expert', [r.explanation, ...repaired, ...pendingItems, ...estimated, ...(response.warnings ?? [])].join('\n\n'), {
+        message('expert', [r.explanation, ...repaired, ...pendingItems, ...estimated, ...spaceNote, ...(response.warnings ?? [])].join('\n\n'), {
           questions: r.questions.slice(0, 3),
           suggestions: [...(problems.length ? ['Corrige las piezas marcadas'] : []), ...r.suggestions].slice(0, 4),
           version: 1,
