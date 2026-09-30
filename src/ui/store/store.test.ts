@@ -44,7 +44,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'startCapture', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'startCapture', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
@@ -63,6 +63,17 @@ describe('store', () => {
     expect(useStore.getState().state).toBeNull()
     expect(s.undoChange(1)).toEqual({ ok: false, message: 'No hay un diseño abierto.' })
     expect(s.editPiece('x', { kind: 'move', axis: 'y', delta: 10 })).toEqual({ ok: false, message: 'No hay un diseño abierto.', alternatives: [] })
+  })
+
+  it('adjusting a base is a step of the home screen: it saves nothing and opening the Studio ends it', () => {
+    const base = testReferences.home()[0]
+    useStore.getState().adjustBase(base)
+    expect(useStore.getState()).toMatchObject({ adjusting: base, phase: 'home', state: null })
+    useStore.getState().closeAdjust()
+    expect(useStore.getState().adjusting).toBeNull()
+    useStore.getState().adjustBase(base)
+    useStore.getState().fromExample(base)
+    expect(useStore.getState()).toMatchObject({ adjusting: null, phase: 'studio' })
   })
 
   it('a session command replaces the state and animates the change in the scene', () => {

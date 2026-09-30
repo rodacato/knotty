@@ -2,7 +2,7 @@ import type { PieceEdit, PieceEditResult, WorkshopResult } from '../../applicati
 import type { Notice } from '../../application/notices'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
-import type { Example } from '../../domain/furniture/examples'
+import type { Base, Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { SavingSearch } from '../../domain/furniture/saving/saving'
 import { applySettings } from '../../domain/materials/catalog'
@@ -25,10 +25,14 @@ export interface SessionSlice {
   services: Services | null
   state: DesignState | null
   phase: Phase
+  /** The base being adjusted before the Studio; a step of the home screen, never saved. */
+  adjusting: Base | null
 
   start(services: Services): void
   newDesign(): void
   startCapture(): void
+  adjustBase(base: Base): void
+  closeAdjust(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
   /** A whole session from elsewhere (the bench) becomes the current design. */
@@ -96,6 +100,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   services: null,
   state: null,
   phase: 'home',
+  adjusting: null,
 
   start(services) {
     const state = services.useCases.load()
@@ -105,21 +110,25 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ state: null, phase: 'capture', selection: null, hidden: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null })
   },
 
-  startCapture: () => set({ phase: 'capture', reconstructionError: null, draft: null }),
+  adjustBase: (base) => set({ adjusting: base }),
+
+  closeAdjust: () => set({ adjusting: null }),
+
+  startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
   openState(state) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', viewedVersion: null, selection: null, hidden: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', adjusting: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),
