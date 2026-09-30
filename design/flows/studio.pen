@@ -5696,6 +5696,18 @@
         },
         {
           "type": "text",
+          "id": "ddRVk",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · Furniture / Quick adjust of a base (desktop, proposal): eight controls chosen by measuring what each one changes (look, fit, cost), grouped by intent, with a live summary of sheets and cost and an undo; reviewed blind and fixed (labelled finish row, the price inside its group, structural-warning wording) · UI-33, UI-34",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "l6JWU",
           "name": "Entry",
           "fill": "$graphite",
@@ -16918,7 +16930,7 @@
           "fill": "$graphite",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-30\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128, #135, #137–#138, #142–#147): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line, the usage-review proposals (#135), edge profiles and the focus chip (#137, #138), and the cabinet's pulls, hinges, cuts and finish (#142–#147). Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2); the fields carry mm only, no cm line (decided 2026-09-28); \"Ocultar\" next to the close button\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Piece / Selected, editing — the status chip \"Enfocada: <pieza>\" with \"Ver todo el mueble\" sits under the scene bar (#137)\n- Furniture / Cabinet plan sheet, finish — the same sheet as mobile in the 420 px panel: Acabado under the measures, the cabinet's fronts, hinges and pulls (#142–#147)\n- Piece / Edge profile — the hatched strip, dotted hidden edges and per-edge notes, as mobile (#137, #138)\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Cut list and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nHidden pieces on desktop: the same chip as mobile. The review gate's check list and the sheet diagrams stay as the app draws them (decided 2026-09-28): see the Materials captures.\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
+          "content": "kit-version-source: 0.3.0 · brief-schema: 1 · updated: 2026-09-30\nTHE DESIGN WE WANT, compared against the app. In code (#110–#117, #123–#128, #135, #137–#138, #142–#147): the piece in the panel, one status chip, notices resolved together, Field and readable text, amber for selection only (K6), the expert's memory above the conversation (UI-4), a quiet \"+\" (UI-11), the cost first in Materials (UI-16), History and Notices without nested cards, the tray on one line, the usage-review proposals (#135), edge profiles and the focus chip (#137, #138), and the cabinet's pulls, hinges, cuts and finish (#142–#147). Open decisions are in CODE_CHANGES §7. Icons in this file are Pencil's (no fill weight, no hammer): the code's icons win. Screens named \"capture\" are the app as it is and stay that way.\n1. PURPOSE\nThe same Studio at a desk (D38: equal weight): 3D on the left, a 420 px panel on the right.\n2. ENTRY POINTS\nSame as the mobile bands.\n3. SCREENS (columns are areas; a column's states stack below it)\n- Conversation / Default — labels on everything: \"Armado\", \"Cotas\", \"Simulado\", \"Nuevo diseño\" as a ghost (UI-11, Doña Carmen)\n- Piece / Selected, editing — the piece takes the panel, same pattern as mobile; editing is open because there is room (B-2); the fields carry mm only, no cm line (decided 2026-09-28); \"Ocultar\" next to the close button\n- Conversation / Proposal pending — status chip over the 3D; ⚡ fix as the primary action; \"bajo mi riesgo\" a visible secondary (UI-6, UI-17)\n- Piece / Selected, editing — the status chip \"Enfocada: <pieza>\" with \"Ver todo el mueble\" sits under the scene bar (#137)\n- Furniture / Cabinet plan sheet, finish — the same sheet as mobile in the 420 px panel: Acabado under the measures, the cabinet's fronts, hinges and pulls (#142–#147)\n- Piece / Edge profile — the hatched strip, dotted hidden edges and per-edge notes, as mobile (#137, #138)\n- Furniture / Quick adjust of a base (proposal, 2026-09-30): for a base furniture, the top of the Mueble tab is a card with eight controls by intent, each one measured to change something: \"Qué quepa\" (alto, ancho, fondo), \"Cómo se ve\" (acabado, base, jaladeras) and \"Cuánto cuesta\" (grosor, with 12 mm dimmed because it raises structural warnings), a live summary of sheets and approximate cost, \"Deshacer\" and a collapsed \"Todas las opciones\" (the plan sheet as it is). It applies at once, unlike the plan sheet's \"Aplicar\": a decision to confirm (UI-34). NEW strings: \"Ajuste rápido\", \"Lo que más cambia el mueble.\", \"Qué quepa\", \"Cómo se ve\", \"Cuánto cuesta\", \"Con 12 mm el plano marca avisos de estructura.\", \"Aproximado, sin revisar todavía\", \"Todas las opciones\", \"Deshacer\". The numbers (4 hojas, ~$6,060) are the sideboard base's own, measured with the domain's estimate.\n- Notices / Several, after choosing — one \"Resolver 2\" (UI-15)\n- Notices / Nothing pending, Furniture / No plan sheet, Materials / Cut list and Sheet layout: captures of the app\n- Settings / The expert, and New design confirm: captures of the app\n- Materials / Cost first, expert working — cost and sheets without waiting, the expert working in the background with the global indicator (UI-15, UI-16)\n4. BUSINESS RULES\nDesktop ≥ 768 px (Studio.tsx useDesktop). D30, D34, D36, D37 unchanged.\n5. COPY SOURCE\nSame as the mobile bands, plus the sheet rows from Materials.tsx.\n6. STATES NOT DRAWN\nHidden pieces on desktop: the same chip as mobile. The review gate's check list and the sheet diagrams stay as the app draws them (decided 2026-09-28): see the Materials captures.\nThe rest of the states on desktop are the mobile ones in the side panel; history and the plan sheet are the same, wider.\nLIFT, later: the piece sheet leaves half the desktop panel empty — room for the piece's cut-list line and its joints drawn.\n7. OPEN FINDINGS\nUI-6, UI-11, UI-15, UI-16, UI-17, B-2\n8. HISTORY\n→ LOG frame, below.",
           "lineHeight": 1.5,
           "fontFamily": "$font-mono",
           "fontSize": 12,
@@ -42613,6 +42625,1212 @@
           "fontFamily": "$font-mono",
           "fontSize": 16,
           "fontWeight": "700"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MgboB",
+      "x": 5440,
+      "y": 16436,
+      "name": "Studio / Furniture / Quick adjust of a base (desktop, proposal)",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$bone",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "i9gaC",
+          "name": "Header",
+          "width": "fill_container",
+          "height": 56,
+          "gap": 12,
+          "padding": [
+            0,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "zbkam",
+              "type": "ref",
+              "ref": "xWBPf",
+              "name": "Emblem",
+              "width": 32,
+              "height": 32
+            },
+            {
+              "type": "frame",
+              "id": "s5cbiC",
+              "name": "Name",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "l9TEkn",
+                  "name": "Cama alta con cabecera",
+                  "fill": "$graphite",
+                  "content": "Aparador",
+                  "fontFamily": "$font-display",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "KGa4l",
+                  "name": "1400 × 1900 × 400 mm",
+                  "fill": "$graphite-2",
+                  "content": "940 × 1600 × 400 mm · 160 cm de ancho",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oHPQ5",
+              "name": "Header button",
+              "height": 36,
+              "gap": 6,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "kKQtb",
+                  "name": "clock-counter-clockwise",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "clock-counter-clockwise",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "Peat8",
+                  "name": "v3",
+                  "fill": "$graphite-2",
+                  "content": "v1",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vckQU",
+              "name": "Header button",
+              "height": 36,
+              "gap": 6,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "PnIlB",
+                  "name": "bell",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "bell",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "k0P5gj",
+              "name": "Header button",
+              "height": 36,
+              "gap": 6,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "m1XnE2",
+                  "name": "gear-six",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "gear-six",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "XaYDw",
+                  "name": "SheLLM · claude",
+                  "fill": "$graphite-2",
+                  "content": "SheLLM · claude",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "h8Fgf",
+              "name": "Header button",
+              "height": 36,
+              "gap": 6,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "N0HbH",
+                  "name": "plus",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "plus",
+                  "library": "phosphor",
+                  "fill": "$graphite-2"
+                },
+                {
+                  "type": "text",
+                  "id": "lr0G1",
+                  "name": "Nuevo diseño",
+                  "fill": "$graphite-2",
+                  "content": "Nuevo diseño",
+                  "fontFamily": "$font-sans",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uiZl4",
+          "name": "Separator",
+          "width": "fill_container",
+          "height": 1,
+          "fill": "$line"
+        },
+        {
+          "type": "frame",
+          "id": "N77gE5",
+          "name": "Grid",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Gqh1y",
+              "name": "Scene",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../assets/studio/scene/desktop-aparador.jpg",
+                "mode": "cover"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center"
+            },
+            {
+              "type": "frame",
+              "id": "Lccqj",
+              "name": "Panel 420",
+              "clip": true,
+              "width": 420,
+              "height": "fill_container",
+              "fill": "$bone",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "g8bnMr",
+                  "name": "Tabs",
+                  "width": "fill_container",
+                  "height": 48,
+                  "gap": 2,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "QEmO4",
+                      "name": "Tab",
+                      "height": 48,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "BIqgT",
+                          "name": "chat-circle-text",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "chat-circle-text",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        },
+                        {
+                          "type": "text",
+                          "id": "sYr9J",
+                          "name": "Conversación",
+                          "fill": "$graphite-2",
+                          "content": "Conversación",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "P0FXD",
+                      "name": "Tab",
+                      "height": 48,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "lWDZW",
+                          "name": "armchair",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "armchair",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "lJeeC",
+                          "name": "Mueble",
+                          "fill": "$graphite",
+                          "content": "Mueble",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "R0NLz",
+                      "name": "Tab",
+                      "height": 48,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "LS9pj",
+                          "name": "stack",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "stack",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        },
+                        {
+                          "type": "text",
+                          "id": "I9kgue",
+                          "name": "Materiales",
+                          "fill": "$graphite-2",
+                          "content": "Materiales",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Fq2fN",
+                  "name": "Separator",
+                  "width": "fill_container",
+                  "height": 1,
+                  "fill": "$line"
+                },
+                {
+                  "type": "frame",
+                  "id": "KHpex",
+                  "name": "Plan",
+                  "clip": true,
+                  "width": "fill_container",
+                  "height": 794,
+                  "layout": "vertical",
+                  "gap": 20,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ZlKNu",
+                      "name": "Head",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q4Wt3",
+                          "name": "Ajuste rápido",
+                          "fill": "$graphite",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Ajuste rápido",
+                          "fontFamily": "$font-display",
+                          "fontSize": 22,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "K3hHY",
+                          "name": "lightning",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "lightning",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "tFWv1",
+                          "name": "Al instante",
+                          "fill": "$graphite",
+                          "content": "Al instante",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "id": "jTYlh",
+                          "type": "ref",
+                          "ref": "v808wd",
+                          "name": "Deshacer",
+                          "opacity": 0.5,
+                          "descendants": {
+                            "x9zoX": {
+                              "enabled": true,
+                              "icon": "arrow-counter-clockwise"
+                            },
+                            "u7yM9": {
+                              "content": "Deshacer"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "aEw2X",
+                      "name": "Sub (NEW)",
+                      "fill": "$graphite-2",
+                      "content": "Lo que más cambia el mueble.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Jtr8B",
+                      "name": "Group Que quepa",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SPnjS",
+                          "name": "Que quepa",
+                          "fill": "$graphite",
+                          "content": "Qué quepa",
+                          "fontFamily": "$font-display",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "GhUkv",
+                          "name": "Medidas",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "PjegI",
+                              "name": "Alto",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "huHbp",
+                                  "name": "Alto",
+                                  "fill": "$graphite-2",
+                                  "content": "Alto",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "i4KsU",
+                                  "name": "Box 940",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "cornerRadius": "$radius-xl",
+                                  "stroke": "$line",
+                                  "strokeWidth": 1,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "bo3oT",
+                                      "name": "940",
+                                      "fill": "$graphite",
+                                      "content": "940",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 16,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Y2Y1Y",
+                                      "name": "mm",
+                                      "fill": "$graphite-2",
+                                      "content": "mm",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "ZACRs",
+                              "name": "Ancho",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "qc1rz",
+                                  "name": "Ancho",
+                                  "fill": "$graphite-2",
+                                  "content": "Ancho",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nq3tg",
+                                  "name": "Box 1600",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "cornerRadius": "$radius-xl",
+                                  "stroke": "$line",
+                                  "strokeWidth": 1,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "Jb43p",
+                                      "name": "1600",
+                                      "fill": "$graphite",
+                                      "content": "1600",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 16,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "x2NWs",
+                                      "name": "mm",
+                                      "fill": "$graphite-2",
+                                      "content": "mm",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "F2PjKH",
+                              "name": "Fondo",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "mNEAC",
+                                  "name": "Fondo",
+                                  "fill": "$graphite-2",
+                                  "content": "Fondo",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "Ln4J5",
+                                  "name": "Box 400",
+                                  "width": "fill_container",
+                                  "height": 44,
+                                  "cornerRadius": "$radius-xl",
+                                  "stroke": "$line",
+                                  "strokeWidth": 1,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "justifyContent": "space_between",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "fJWjw",
+                                      "name": "400",
+                                      "fill": "$graphite",
+                                      "content": "400",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 16,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "Z3VGy",
+                                      "name": "mm",
+                                      "fill": "$graphite-2",
+                                      "content": "mm",
+                                      "fontFamily": "$font-mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JJqM2",
+                      "name": "Group Cómo se ve",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CLqW2",
+                          "name": "Cómo se ve",
+                          "fill": "$graphite",
+                          "content": "Cómo se ve",
+                          "fontFamily": "$font-display",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YYv7C",
+                          "name": "Row Acabado",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bH4Y8",
+                              "name": "Acabado",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Acabado",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "vVKkQ",
+                              "name": "FinishSelect",
+                              "width": 248,
+                              "height": 44,
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-xl",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "gap": 8,
+                              "padding": [
+                                0,
+                                12
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "vTvSD",
+                                  "name": "Dot",
+                                  "fill": "#DAB477",
+                                  "width": 16,
+                                  "height": 16,
+                                  "stroke": "$line",
+                                  "strokeWidth": 1
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "TG1Ov",
+                                  "name": "Barniz de poliuretano",
+                                  "fill": "$graphite",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "Barniz de poliuretano",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "uNLey",
+                                  "name": "caret-down",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "caret-down",
+                                  "library": "phosphor",
+                                  "fill": "$graphite"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HVQm6",
+                          "name": "Row Base",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "n8k8H",
+                              "name": "Base",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Base",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Q10NEJ",
+                              "name": "Segmented",
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "padding": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "AoUJL",
+                                  "name": "Con zoco",
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "ndhR0",
+                                      "name": "Con zoco",
+                                      "fill": "$graphite-2",
+                                      "content": "Con zoco",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "ZSOSZ",
+                                  "name": "Directa",
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "l3CYVx",
+                                      "name": "Directa",
+                                      "fill": "$graphite-2",
+                                      "content": "Directa",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "P7yqP2",
+                                  "name": "Con patas",
+                                  "height": 32,
+                                  "fill": "$graphite",
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "WwD5r",
+                                      "name": "Con patas",
+                                      "fill": "$bone",
+                                      "content": "Con patas",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "G7DHVI",
+                          "name": "Row Jaladeras",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "f9KjGW",
+                              "name": "Jaladeras",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Jaladeras",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "zbynf",
+                              "name": "Segmented",
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "padding": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "Vnr1x",
+                                  "name": "Ninguna",
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "APzQK",
+                                      "name": "Ninguna",
+                                      "fill": "$graphite-2",
+                                      "content": "Ninguna",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "gugoS",
+                                  "name": "Muesca",
+                                  "height": 32,
+                                  "fill": "$graphite",
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "XArGO",
+                                      "name": "Muesca",
+                                      "fill": "$bone",
+                                      "content": "Muesca",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "yTaUk",
+                                  "name": "Jaladera",
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "vhaVK",
+                                      "name": "Jaladera",
+                                      "fill": "$graphite-2",
+                                      "content": "Jaladera",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "lxZ6a",
+                      "name": "Group Cuánto cuesta",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "c3oV98",
+                          "name": "Cuánto cuesta",
+                          "fill": "$graphite",
+                          "content": "Cuánto cuesta",
+                          "fontFamily": "$font-display",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eVHgP",
+                          "name": "Row Grosor del triplay",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "BAHxA",
+                              "name": "Grosor del triplay",
+                              "fill": "$graphite",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "Grosor del triplay",
+                              "fontFamily": "$font-sans",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "qK8L0",
+                              "name": "Segmented",
+                              "fill": "$bone",
+                              "cornerRadius": "$radius-full",
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "padding": 2,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "X924n",
+                                  "name": "12 mm",
+                                  "opacity": 0.55,
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "SMhmG",
+                                      "name": "12 mm",
+                                      "fill": "$graphite-2",
+                                      "content": "12 mm",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    },
+                                    {
+                                      "type": "icon",
+                                      "id": "X4FeJ7",
+                                      "name": "warning",
+                                      "width": 13,
+                                      "height": 13,
+                                      "icon": "warning",
+                                      "library": "phosphor",
+                                      "fill": "$graphite"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nc5ZY",
+                                  "name": "15 mm",
+                                  "height": 32,
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "o3SIYy",
+                                      "name": "15 mm",
+                                      "fill": "$graphite-2",
+                                      "content": "15 mm",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "K7SME",
+                                  "name": "18 mm",
+                                  "height": 32,
+                                  "fill": "$graphite",
+                                  "cornerRadius": "$radius-full",
+                                  "gap": 4,
+                                  "padding": [
+                                    0,
+                                    12
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "YluYT",
+                                      "name": "18 mm",
+                                      "fill": "$bone",
+                                      "content": "18 mm",
+                                      "fontFamily": "$font-sans",
+                                      "fontSize": 13,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "B1liiQ",
+                          "name": "Thickness note (NEW)",
+                          "fill": "$graphite-2",
+                          "content": "Con 12 mm el plano marca avisos de estructura.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Y6L6A2",
+                          "name": "Live summary",
+                          "width": "fill_container",
+                          "fill": "$kraft",
+                          "cornerRadius": "$radius-xl",
+                          "gap": 12,
+                          "padding": [
+                            14,
+                            16
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "J7Z12",
+                              "name": "Sheets",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "NW2gW",
+                                  "name": "4 hojas de triplay",
+                                  "fill": "$graphite",
+                                  "content": "4 hojas de triplay",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 15,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "kQCvq",
+                                  "name": "Aproximado, sin revisar todavía",
+                                  "fill": "$graphite-2",
+                                  "content": "Aproximado, sin revisar todavía",
+                                  "fontFamily": "$font-sans",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "J6HoZ",
+                              "name": "Cost",
+                              "fill": "$graphite",
+                              "content": "~$6,060",
+                              "fontFamily": "$font-display",
+                              "fontSize": 20,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UME7J",
+                      "name": "All options",
+                      "width": "fill_container",
+                      "height": 44,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "top": 1
+                      },
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "sshCG",
+                          "name": "Todas las opciones",
+                          "fill": "$graphite",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Todas las opciones",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "L9URM",
+                          "name": "caret-down",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "caret-down",
+                          "library": "phosphor",
+                          "fill": "$graphite-2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
