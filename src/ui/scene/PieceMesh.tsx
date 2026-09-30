@@ -145,6 +145,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
         />
       ))}
       <Edges
+        key={voided?.uuid ?? cut?.uuid ?? "box"}
         threshold={cut ? 30 : 15}
         color={problem ? '#b4452f' : selected || ghost || marked ? '#d98a2b' : '#2b2825'}
         lineWidth={selected ? 2.5 : problem ? 2.2 : marked || sketch ? 1.8 : 1}
