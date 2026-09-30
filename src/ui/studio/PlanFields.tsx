@@ -104,6 +104,14 @@ function Fields<P>({ fields, plan, onChange, locks }: { fields: FieldSpec<P>[]; 
 }
 
 /** A plan's form, from its module's fields. */
-export function PlanFields<P extends { kind: string }>({ module, plan, onChange, locks }: { module: FurnitureModule<P>; plan: P; onChange: (plan: P) => void; locks?: Locks }) {
-  return <Fields fields={module.fields} plan={plan} onChange={onChange} locks={locks} />
+export function PlanFields<P extends { kind: string }>({ module, plan, onChange, locks, afterMeasures }: { module: FurnitureModule<P>; plan: P; onChange: (plan: P) => void; locks?: Locks; afterMeasures?: ReactNode }) {
+  // Something that is not part of the plan goes right after the measures (or after the first section, when the module has none).
+  const at = Math.max(0, module.fields.findIndex((f) => f.type === 'section' && f.title === 'Medidas')) + 1
+  return (
+    <>
+      <Fields fields={module.fields.slice(0, at)} plan={plan} onChange={onChange} locks={locks} />
+      {afterMeasures}
+      <Fields fields={module.fields.slice(at)} plan={plan} onChange={onChange} locks={locks} />
+    </>
+  )
 }
