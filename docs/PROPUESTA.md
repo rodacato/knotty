@@ -10,14 +10,14 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 
 | # | Decisión | Motivo |
 |---|---|---|
-| D1 | Dominio, casos de uso y código de negocio en español | Es el lenguaje del problema y del usuario |
+| D1 | ~~Dominio, casos de uso y código de negocio en español~~ **Reemplazada por D33**: el código va en inglés y solo lo que lee la persona en español | Era el lenguaje del problema y del usuario; D33 separa los dos públicos |
 | D2 | La fuente de verdad es un modelo paramétrico con **cotas que referencian caras** de otras piezas | Cambiar un ancho o un espesor se propaga de forma determinista, sin pedirle al LLM que recalcule |
 | D3 | El LLM propone **operaciones tipadas**; el dominio las aplica y valida | El LLM nunca regenera el modelo completo en un ajuste |
 | D4 | Un cambio con un problema estructural crítico nuevo se muestra como **vista previa** con opciones, no se aplica directo | "Si algo no se puede determinar, pregunta en vez de suponer" |
 | D5 | Los requisitos del usuario no se revierten al volver a una versión | Son hechos del mundo ("mi espacio mide 90 cm"), no del diseño |
 | D6 | La compactación del contexto es determinista (sin llamadas extra al LLM) | Costo y previsibilidad |
-| D7 | Material base: **triplay de pino**, E = 6 000 MPa (veta paralela) / 3 500 MPa (perpendicular) | Es el que se consigue en Home Depot MX; valores conservadores, calibrables |
-| D8 | Cajones fuera de la primera fase; entran después como grupo de piezas | Validar primero lo esencial |
+| D7 | Material base: **triplay de pino**, con la rigidez (E) por espesor y por dirección de la veta, en `src/domain/materials/grades.ts` | Es el que se consigue en Home Depot MX; valores conservadores, calibrables |
+| D8 | Cajones fuera de la primera fase; entran después como grupo de piezas (cumplida: D23) | Validar primero lo esencial |
 | D9 | BYOK tomado de [ai-town](https://github.com/rodacato/ai-town) (`src/providers/llm/`), corrigiendo lo pendiente de su `docs/REVIEW-1.0.md` §3 | Reusar lo que ya funciona |
 | D10 | Solo piezas ortogonales (prismas alineados a los ejes) | Cubre el triplay DIY; las piezas inclinadas quedan fuera de alcance |
 | D11 | Stack: Vite, React 19, TypeScript, Zod 4, Vitest; three.js + react-three-fiber + drei + postprocessing + @react-spring/three; Radix, Tailwind v4, Zustand, Phosphor, Fontsource. Sin Pixi.js | El centro es 3D; Pixi es 2D y sumaría un segundo motor gráfico |
@@ -27,18 +27,18 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D15 | Salida estructurada con `output_config.format` (Anthropic) y `response_format: json_schema` (OpenAI), no herramienta forzada | Algunos modelos nuevos de Anthropic rechazan `tool_choice` forzado |
 | D16 | Ante un crítico sin opciones del experto, la app ofrece como botones las alternativas que calculó el motor | El usuario siempre tiene una salida concreta y el experto no tiene que inventarlas |
 | D17 | Las cotas se dibujan como etiquetas dentro de la escena (sprites), no como HTML | El HTML de drei se perdía al remontar la escena |
-| D18 | El repo se llama **Knotty** (*naughty knots*); la app sigue presentándose como Despiece por ahora | Nombre amplio y memorable para cuando crezca más allá del despiece |
+| D18 | El repo y la app se llaman **Knotty** (*naughty knots*); la marca, en D24 | Nombre amplio y memorable para cuando crezca más allá del despiece |
 | D19 | SheLLM como proveedor, compatible con OpenAI; si el host no acepta esquema estricto o imágenes, la app se degrada sola y lo recuerda | Funciona con el SheLLM de hoy y aprovecha lo nuevo sin cambios |
 | D21 | Las decisiones de diseño se guardan con cada versión y se restauran al volver a ella; los requisitos no | Las decisiones describen el diseño; los requisitos, el mundo del usuario |
 | D22 | Precios del catálogo estimados (no consultados en tienda) y editables en la app; los cambios de precio y de parámetros de corte viven en el dispositivo | Hay costo desde el día uno sin fingir precisión; el usuario los corrige con su tienda |
-| D23 | Los cajones se piden con una operación compuesta (`agregarCajon`): el LLM da el hueco y el dominio arma las seis piezas, las uniones y elige la corredera | Colocar seis piezas con holguras de corredera a mano es frágil para un LLM; así el cajón siempre sale correcto y paramétrico |
+| D23 | Los cajones se piden con una operación compuesta (`addDrawer`): el LLM da el hueco y el dominio arma las seis piezas, las uniones y elige la corredera | Colocar seis piezas con holguras de corredera a mano es frágil para un LLM; así el cajón siempre sale correcto y paramétrico |
 | D24 | Marca Knotty: un nudo de madera como símbolo (pino con veta) y como la «o» del logotipo en Fraunces. La funcionalidad sigue llamándose despiece | Un símbolo de madera se entiende al instante y funciona desde el favicon de 16 px hasta el ícono de la app |
-| D25 | También se puede diseñar sin fotos, con una descripción; el experto pregunta lo que falte y los cajones los ofrece como pregunta para armarlos con `agregarCajon` | Sirve para diseñar un mueble que todavía no existe o probar sin tener el mueble enfrente |
+| D25 | También se puede diseñar sin fotos, con una descripción; el experto pregunta lo que falte y los cajones los ofrece como pregunta para armarlos con `addDrawer` | Sirve para diseñar un mueble que todavía no existe o probar sin tener el mueble enfrente |
 | D26 | Primer uso: las medidas son opcionales (el experto estima las típicas y lo dice), el pedido inicial queda en el chat, varias preguntas se contestan en un solo mensaje y el experto propone `sugerencias` de siguiente paso | Retroalimentación del primer uso: muchas preguntas una por una y medidas obligatorias frenaban el arranque |
 | D27 | Para diseñar se pide conectar un experto real; el simulado queda como «ejemplos» y dice que no sabe cuando le piden otro mueble | El simulado siempre armaba un librero, lo que parecía un error del experto |
 | D28 | Reintentar sin perder nada: la captura se conserva si falla y el chat ofrece reenviar el último pedido. Las peticiones compatibles se cortan a los 5 min y SheLLM explica qué revisar si no conecta | Una espera larga que termina en «no se pudo conectar» obligaba a empezar de cero |
 | D29 | Hoja real de 2440 × 1218 mm (así la lista Home Depot MX) y refilado de 15 mm por orilla: hoja útil de 2410 × 1188 | Las orillas de fábrica llegan golpeadas; los optimizadores usan 5–6 mm por orilla en tablero de taller, y el triplay de tienda pide más sin tirar el 8 % que costarían 5 cm |
-| D30 | La lista de compra aparece después de una revisión: primero cuentas deterministas (medidas, hoja útil, estructura, tiras, boceto, margen) y luego el dictamen del carpintero (prompt `dictamen@1`). El carpintero puede endurecer el veredicto, nunca suavizarlo; si no contesta, valen las cuentas. Si no es viable, la lista se ve solo a propósito | Que nadie compre material para algo que matemáticamente no se puede armar o que tiene un error de origen |
+| D30 | La lista de compra aparece después de una revisión: primero cuentas deterministas (medidas, hoja útil, estructura, tiras, boceto, margen) y luego el dictamen del carpintero (prompt `review`). El carpintero puede endurecer el veredicto, nunca suavizarlo; si no contesta, valen las cuentas. Si no es viable, la lista se ve solo a propósito | Que nadie compre material para algo que matemáticamente no se puede armar o que tiene un error de origen |
 | D31 | Diseñar por pasos: lectura de cada foto (en paralelo y guardada), esqueleto de medidas y módulos, módulos convertidos en piezas por Knotty, reparación por reglas y, al final, detalles del experto. Cada paso guarda su resultado con la huella de lo que recibió y no se repite | La línea base con SheLLM mostró que casi todo el tiempo y el costo se iban en reescribir el diseño completo en cada reintento; en pasos chicos, cada uno se ve en cuanto llega |
 | D32 | Nunca tirar un diseño pagado: si los intentos no pasan la validación, se muestra el último con los problemas marcados y se corrige desde el chat | Tres intentos fallidos costaban ~$0.33 USD sin mostrar nada |
 | D33 | La interfaz y los textos para la persona quedan en español de México; el código (nombres, archivos, carpetas, lógica y comentarios), los datos guardados, los ids y los prompts van en inglés, y los prompts piden al experto que escriba en español lo que lee la persona. Se migró un módulo por PR, con migración de formato para lo guardado (terminada el 2026-09-25) | Pedido del autor el 2026-09-25; los datos, prompts y carpetas, pedido posterior del mismo día |
@@ -56,6 +56,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D44 | **Nivel de herramienta** en Ajustes (nivel 1 por omisión, los niveles de `fabricacion-y-armado.md` §1): dice qué uniones y qué perfiles de canto puede hacer la persona. En la ficha se elige la unión por grupo (cuerpo, trasera, cajones) entre las que no cambian las medidas de las piezas; ranura, rebaje y confirmat se muestran pero no se eligen todavía | Elegir sin saber la herramienta lleva a planos que no se pueden armar; las uniones que cambian el despiece piden otra entrega |
 | D45 | **Perfil de los cantos** por pieza: matar arista, redondeo 3 o 6 mm, chaflán; cualquier canto de la cara se puede elegir: uno que toca otra pieza, un tablero muy delgado para ese radio, un redondeo de router sin router o un canto con cubrecanto lo dice con un aviso que se abre al tocarlo, sin bloquear. Se guarda en el diseño como el acabado y sale en Materiales (un canto que no se ve no entra en la lista) y se dibuja en 3D a escala real, solo en los cantos que se ven | Es lo que haría un router de mesa; un perfil que no se ve no vale la pena (`acabados.md` §11) |
 | D46 | **Empezar de una base**: en el inicio, 7 muebles armados por su módulo (con ficha), dibujados en SVG desde sus piezas. Cada uno pasa la revisión estructural sin hallazgos; los que se parecen a un producto del catálogo de referencia llevan su código KC solo en los datos, nunca la marca ni el nombre | Empezar de algo cercano y ajustarlo en la ficha es más rápido que describirlo desde cero |
+| D47 | **La app funciona sola; el experto es opcional.** Las bases ya hechas se ajustan sin experto ni llave (catálogo → «Ajusta tu base» → Estudio). El experto entra en «Diseña el tuyo» (fotos o descripción) y en las consultas del Estudio. En Inicio, el botón de esa puerta es primario solo con un experto conectado; sin él queda secundario («Conectar experto») y las bases llevan el peso. No se le pone la etiqueta «avanzado». Decidido el 2026-09-30 (UI-29 y UI-31 en `design/DECISIONS.md`) | La parte calculada (fichas, revisiones, ajustes rápidos) ya da valor sin llave; poner primero el camino que pide una llave es lo que más estorba a quien llega. Vuelve a discutirse si la mayoría llega con una pieza que copiar o con un experto ya conectado |
 
 ---
 
@@ -66,14 +67,15 @@ Cómo es la app hoy, según `src/ui/`. El diseño que se busca vive en `design/f
 ### Flujo
 
 ```
-Inicio → Captura (una pantalla) → El experto analiza → Estudio
+Inicio (catálogo de bases) → Ajusta tu base → Estudio
+Inicio → Captura («Diseña el tuyo») → El experto analiza → Estudio
 ```
 
-`App.tsx` elige la pantalla por la fase del store: `Home`, `Capture`, `Analyzing` o `Studio` (este último se carga aparte, porque trae el 3D). Ajustes (`Settings`), el aviso de llaves (`KeysGate`) y la bitácora de depuración van encima de cualquiera.
+`App.tsx` elige la pantalla por la fase del store: `Home` (y, con una base elegida, `AdjustBase`), `Capture`, `Analyzing` o `Studio` (este último se carga aparte, porque trae el 3D). Ajustes (`Settings`), el diálogo «Conecta tu experto» (`ConnectExpert`), el aviso de llaves (`KeysGate`) y la bitácora de depuración van encima de cualquiera.
 
-- **Inicio** (`capture/Home.tsx`): la marca, una frase de qué hace, «Nuevo diseño» y los ejemplos, que abren el Estudio sin experto.
-- **Captura** (`capture/Capture.tsx`, D40): una sola pantalla con el tipo de mueble (opcional: «Que Knotty lo decida»), las medidas (opcionales; «Agregar medidas» pone las típicas del tipo y las que la persona escribe se quedan aunque cambie el tipo), las fotos y lo que quiera decir con sus palabras. Fotos según D39: un solo «Agregar fotos», hasta 5, sin ranuras; cada una se lee al agregarla, el modelo propone su vista y la persona solo la corrige si está mal; cada foto admite una nota. Sin fotos, la descripción pide al menos 15 caracteres y el botón dice «Diseñar sin fotos». En escritorio las fotos van en una columna a la derecha. Si el diseño falla, la captura se conserva y se ofrece «Reintentar» con «Ver qué pasó» (D28).
-- **Análisis** (`capture/Analyzing.tsx`): las etapas reales del caso de uso («Mirando las fotos (n de m)», «Pensando el diseño» o «Diseñando pieza por pieza», «Midiendo que todo cierre», «Revisando la estructura»), un reloj, un trazo de lápiz dibujando un mueble y «Cancelar». Pasados 30 s explica por qué tarda.
+- **Inicio** (`capture/Home.tsx`, D47): las bases primero, con filtro por categoría, y la puerta «Diseña el tuyo» (botón primario «Nuevo diseño» con experto conectado, secundario «Conectar experto» sin él); el último mosaico, «¿No está el tuyo?», lleva al mismo camino. Una base abre «Ajusta tu base» (`capture/AdjustBase.tsx`): lo que su ficha deja cambiar, el resumen de hojas y costo, y «Abrir en el Studio». El encabezado lleva el estado del experto y Ajustes.
+- **Captura** (`capture/Capture.tsx`, D40): una sola pantalla con el tipo de mueble (opcional: «Que el experto lo decida»), el espacio disponible (opcional, en cm, por lado; llega al experto como un límite y no como las medidas del mueble, y si el diseño se pasa el experto lo dice), las fotos y lo que quiera decir con sus palabras. Fotos según D39: un solo «Agregar fotos», hasta 5, sin ranuras; cada una se lee al agregarla, el modelo propone su vista y la persona solo la corrige si está mal; cada foto admite una nota. Sin fotos, la descripción pide al menos 15 caracteres y el botón dice «Diseñar mi mueble» (o «Conectar experto» si no hay uno). En escritorio las fotos van en una columna a la derecha. Si el diseño falla, la captura se conserva y se ofrece «Reintentar» con «Ver qué pasó» (D28).
+- **Análisis** (`capture/Analyzing.tsx`): las etapas reales del caso de uso («Mirando las fotos (n de m)», «Pensando el diseño» o «Diseñando pieza por pieza», «Midiendo que todo cierre», «Revisando la estructura»), un reloj, un trazo de lápiz dibujando un mueble, el historial de las últimas líneas de lo que el experto ha hecho y «Cancelar». Pasados 30 s explica por qué tarda.
 
 ### Estudio
 
@@ -83,7 +85,7 @@ Inicio → Captura (una pantalla) → El experto analiza → Estudio
 - **Escena**: encima del 3D, una barra con Frente · Lado · 3/4 · Arriba · Armado (vista explosionada) · Cotas, y debajo una sola ficha de estado (`StatusChip`), la de mayor prioridad: versión vieja a la vista, el experto trabajando (si no se ve el chat), pieza enfocada («Ver todo el mueble»), piezas ocultas («Mostrar todo»), propuesta o solución en vista previa, problemas sin resolver, piezas por confirmar y lo último que se resolvió. Al elegir una pieza la cámara gira y se acerca alrededor de ella y no del mueble (el zoom va hacia donde apuntas), para llegar a una esquina; salir del foco deja la pieza elegida y regresa al mueble completo.
 - **Panel**: tres pestañas, Conversación · Mueble · Materiales.
   - *Conversación* (`chat/Chat.tsx`): los mensajes del experto con lo que cambió cada versión (`ChangeList`), sus preguntas con respuestas en botón, las propuestas que esperan confirmación (D36: «Sí, aplícalo», «Ver propuesta», «No, déjalo como estaba») y chips de sugerencia. La bandeja (`chat/Tray.tsx`, D34) junta avisos, respuestas y pedidos para mandarlos al experto en un solo pedido.
-  - *Mueble* (`studio/FurniturePanel.tsx`): el tipo de mueble y de dónde salió, la ficha (`PlanSheet`) para los módulos que la tienen, que se aplica al instante con «Aplicar» o «Descartar», lo que el experto recuerda (requisitos y decisiones, que se pueden quitar), las fotos y, sin ficha, la lista de piezas.
+  - *Mueble* (`studio/FurniturePanel.tsx`): el tipo de mueble y de dónde salió, la ficha (`PlanSheet`) para los módulos que la tienen, que se aplica con «Aplicar» o se deja con «Descartar», lo que el experto recuerda (requisitos y decisiones, que se pueden quitar), las fotos y, sin ficha, la lista de piezas.
   - *Materiales* (`studio/Materials.tsx`, D30): primero la revisión («Revisar y ver materiales») y su veredicto; si es viable o se puede arreglar, el costo aproximado, las hojas de triplay con su acomodo en SVG y el desperdicio, herrajes y consumibles, el acabado y la lista de corte. Los precios son de referencia y se tocan para poner el de la tienda. Si no es viable, la lista se ve solo con «Ver la lista de todos modos».
 - **Avisos e historial** toman el lugar de las pestañas, no tapan el 3D. *Avisos* (`studio/NoticePanel.tsx`, D37): cada aviso con su sello de severidad y sus salidas, «Al instante» (con «Ver» para la vista previa en 3D), «A la bandeja, para el experto» o «Aceptar así, bajo mi riesgo»; abajo, «Resolver n» aplica lo elegido. *Historial* (`studio/HistoryPanel.tsx`): versiones de la más nueva a la más vieja, con lo que cambió; «Ver» la muestra en el 3D y «Volver a esta» crea una versión nueva igual.
 - **Pieza**: tocarla en el 3D o en una lista la abre en el panel (`studio/PieceSheet.tsx`): material, veta, largo, ancho y espesor en mm y cm, uniones con enlace a la otra pieza y «Editar a mano» (`PieceEditor`: largo, ancho, espesor y mover por pasos, al instante y revisado como cualquier cambio). Las demás piezas quedan tenues. `Escape` o tocar fuera la cierra. Una pieza que el experto no pudo confirmar ofrece «Está bien así».
@@ -143,7 +145,7 @@ knotty/
    ├─ adapters/
    │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/
    │  │  ├─ common/          expert (arma los pedidos) · prompts · configuration · vault · jsonSchema · errors
-   │  │  └─ prompts/         system.v9 · reconstruction.v11 · skeleton.v10 · adjust.v10 · plan-adjust.v8 · reading.v3 · review.v4
+   │  │  └─ prompts/         un archivo por prompt (`nombre.vN.md`), más `modules/` y `kinds/`
    │  ├─ persistence/        localStorage, con migración de formatos
    │  ├─ catalog/            catálogo JSON y ajustes de precio y corte de la persona
    │  ├─ image/              reducción de fotos y miniaturas
@@ -157,17 +159,17 @@ knotty/
 
 - **Fronteras** comprobadas por `src/architecture.test.ts`: `domain/` solo importa zod y no toca el navegador; `application/` y `ports/`, dominio y puertos; `ui/`, todo menos `adapters/`. Dentro del dominio, cada grupo importa solo lo que hoy importa (paso 28): nadie importa `session/`; `design/` y `materials/` no importan `furniture/`, `editing/` ni `session/`; `checks/` no importa `editing/` ni `session/`.
 - **Zod en el dominio** es aceptable: es TypeScript puro.
-- **`LLMProvider` expresa intenciones**: `reconstruct`, `planDesign` (esqueleto), `adjustPlan`, `proposeAdjustment`, `readPhoto` y `reviewPurchase`. Anthropic, OpenAI y SheLLM comparten `common/` y `prompts/` y solo difieren en transporte; el simulado implementa la interfaz con reglas fijas. El ciclo de corrección vive en `application/` y se prueba sin red.
+- **`LLMProvider` expresa intenciones**: `reconstruct`, `planDesign` (esqueleto), `adjustPlan`, `proposeAdjustment`, `readPhoto` y `reviewPurchase`. `planDesign` y `adjustPlan` son `null` cuando el proveedor no los tiene (el simulado): sin esqueleto, el diseño va pieza por pieza. Anthropic, OpenAI y SheLLM comparten `common/` y `prompts/` y solo difieren en transporte; el simulado implementa la interfaz con reglas fijas. El ciclo de corrección vive en `application/` y se prueba sin red.
 - **Salida estructurada**: los esquemas Zod son la única fuente; de ahí sale el JSON Schema. Por el modo estricto (sin `oneOf`, todos los campos requeridos) los esquemas usan uniones discriminadas por `op` y opcionales como `nullable`. Siempre se re-valida con Zod.
-- **Prompts versionados**: cada archivo lleva frontmatter `id: system@9`; cada versión del diseño guarda qué prompt y modelo la produjeron.
+- **Prompts versionados**: cada archivo lleva frontmatter `id: nombre@versión` (por ejemplo `system@11`); cada versión del diseño guarda qué prompt y modelo la produjeron.
 
 ### BYOK (tomado de ai-town)
 
 Se reutiliza el enfoque de `ai-town/src/providers/llm/`:
 
-- `config.ts`: presets por proveedor (`mock` = Simulado, `anthropic`, `openai`) con host, modelo y etiqueta; la configuración se guarda **sin llaves**.
-- `vault.ts`: llaves recordadas **cifradas con frase de paso** (PBKDF2 600k + AES-GCM); si no, viven solo en memoria.
-- `transport.ts`: `listModels` para elegir modelo de una lista; `describeError` con mensajes en español (key inválida, límite, CORS, timeout).
+- `ports/Preferences.ts` y `common/configuration.ts`: presets por proveedor (`simulated`, `anthropic`, `openai` y `shellm`) con modelo sugerido y etiqueta; la configuración se guarda **sin llaves**.
+- `vault.ts`: llaves recordadas **cifradas con frase de paso** (PBKDF2 + AES-GCM); si no, viven solo en memoria.
+- `listModels` (en el puerto de preferencias) para elegir modelo de una lista; `common/errors.ts` con mensajes en español (key inválida, límite, CORS, timeout).
 
 Cambios para Knotty (entonces Despiece):
 
@@ -332,7 +334,7 @@ Solo se mandan en la reconstrucción. En los ajustes, lo visual vive en `notes`.
 
 - Clave `knotty:design` → `DesignState` (`domain/session/state.ts`): `{ format, measures, versions[{ n, design, summary, reason, operations, date, origin, decisions, plan, extras }], current, requirements, decisions, chat, thumbnails, proposal, review, trace, accepted, tray }`.
 - Snapshots completos (~10 KB). Tope de 40 versiones: se conserva la v1 y se podan las intermedias más viejas. Si no cabe, primero se sueltan las miniaturas.
-- **Formatos**: hoy `format: 6`. `domain/session/migrate.ts` lee cualquier formato anterior, uno a la vez (1 en español, 2 con códigos en español, 3 con ids de herrajes viejos, 4 con la cara `mueble.`, 5 con la comprobación `aceptados`). Cambiar un campo guardado pide subir el formato y agregar su migración con prueba.
+- **Formatos**: el vigente es el `format` de `domain/session/state.ts`. `domain/session/migrate.ts` lee cualquier formato anterior, uno a la vez. Cambiar un campo guardado pide subir el formato y agregar su migración con prueba.
 - Otras claves: `knotty:expert` (configuración sin llaves), `knotty:vault` (llaves cifradas), `knotty:tab-keys` (sessionStorage), `knotty:catalog-settings` (precios y corte). Lo guardado con las claves `despiece:v1:*` se mueve al leerlo (`adapters/storedKey.ts`).
 
 ---
