@@ -89,6 +89,7 @@ export function Capture() {
   const error = useStore((s) => s.reconstructionError)
   const failedTrace = useStore((s) => s.failedTrace)
   const openSettings = useStore((s) => s.openSettings)
+  const openConnect = useStore((s) => s.openConnect)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
   const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
@@ -176,7 +177,7 @@ export function Capture() {
             tus fotos y tu descripción.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={() => openSettings(true)}>
+            <Button variant="primary" onClick={() => openConnect(true)}>
               <Key weight="bold" /> Conectar experto
             </Button>
             <Button variant="ghost" className="underline" onClick={() => setWithSimulated(true)}>

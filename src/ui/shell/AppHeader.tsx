@@ -6,6 +6,7 @@ import { useExpertStatus } from './expertStatus'
 
 export function AppHeader() {
   const openSettings = useStore((s) => s.openSettings)
+  const openConnect = useStore((s) => s.openConnect)
   const { connected } = useExpertStatus()
   return (
     <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-3 md:px-8 md:py-4">
@@ -14,7 +15,7 @@ export function AppHeader() {
       <div className="flex-1" />
       <button
         type="button"
-        onClick={() => openSettings(true)}
+        onClick={() => (connected ? openSettings(true) : openConnect(true))}
         className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-bone px-4 text-sm font-medium transition hover:bg-kraft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
       >
         <span aria-hidden className={`size-2.5 rounded-full border-[1.5px] border-graphite ${connected ? 'bg-graphite' : ''}`} />

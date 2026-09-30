@@ -81,13 +81,13 @@ function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const fromExample = useStore((s) => s.fromExample)
-  const openSettings = useStore((s) => s.openSettings)
+  const openConnect = useStore((s) => s.openConnect)
   const { references } = useServices()
   const { connected } = useExpertStatus()
   const bases = useMemo(() => references.home(), [references])
   const [filter, setFilter] = useState<CategoryFilter>('featured')
   const shown = basesOfFilter(bases, filter)
-  const designYourOwn = connected ? startCapture : () => openSettings(true)
+  const designYourOwn = connected ? startCapture : () => openConnect(true)
   return (
     <div className="flex min-h-full flex-col">
       <AppHeader />
