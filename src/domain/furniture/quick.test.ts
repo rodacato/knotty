@@ -6,7 +6,7 @@ import { testReferences } from './fixtures/references.test-util'
 import type { CabinetPlan } from './modules/cabinet'
 import { countLimits, quickCounts, setCount } from './modules/cabinetCounts'
 import { buildPlan, MODULES } from './modules/plan'
-import { checkBuilt, fitToSpace, isQuick, measureLimits, summarizePlan } from './quick'
+import { checkBuilt, fitToSpace, isQuick, measureLimits, spaceOverflow, summarizePlan } from './quick'
 import { valueFields } from './modules/fields'
 
 const cabinets = testReferences.all().flatMap((r) => (r.plan.kind === 'cabinet' ? [[r.code, r.plan] as [string, CabinetPlan]] : []))
@@ -151,5 +151,25 @@ describe('the summary of a plan', () => {
     expect(before.ok && after.ok && after.cost !== before.cost).toBe(true)
     const broken = { ...plan, dimensions: { ...plan.dimensions, width: 10 } }
     expect(summarizePlan(broken, testCatalog).ok).toBe(false)
+  })
+})
+
+describe('spaceOverflow', () => {
+  const piece = { width: 900, height: 1800, depth: 350 }
+
+  it('names each axis that passes the space', () => {
+    expect(spaceOverflow(piece, { width: 800, height: 2000, depth: 300 })).toEqual([
+      { axis: 'width', size: 900, room: 800 },
+      { axis: 'depth', size: 350, room: 300 },
+    ])
+  })
+
+  it('counts a measure equal to the space as fitting', () => {
+    expect(spaceOverflow(piece, { width: 900, height: 1800 })).toEqual([])
+  })
+
+  it('never flags a side the person left empty', () => {
+    expect(spaceOverflow(piece, { height: 2000 })).toEqual([])
+    expect(spaceOverflow(piece, {})).toEqual([])
   })
 })

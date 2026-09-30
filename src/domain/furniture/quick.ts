@@ -172,3 +172,17 @@ export function summarizePlan(plan: FurniturePlan, catalog: Catalog, finish?: De
   const sheets = purchase.sheets.map((s) => ({ material: s.material.id, name: s.material.name, thickness: s.material.thickness, sheets: s.sheets }))
   return { ok: true, sheets, totalSheets: sheets.reduce((n, s) => n + s.sheets, 0), cost: purchase.cost.total, missingPrices: purchase.cost.missingPrices }
 }
+
+export interface SpaceOverflow {
+  axis: MeasureAxis
+  size: number
+  room: number
+}
+
+/** The axes where the measures pass the space the person gave; a side they left empty is never over. */
+export function spaceOverflow(dimensions: Dimensions, space: Partial<Dimensions>): SpaceOverflow[] {
+  return (['width', 'height', 'depth'] as const).flatMap((axis) => {
+    const room = space[axis]
+    return room && dimensions[axis] > room ? [{ axis, size: dimensions[axis], room }] : []
+  })
+}

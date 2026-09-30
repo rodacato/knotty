@@ -1,5 +1,5 @@
 ---
-id: cabinet@7
+id: cabinet@8
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -8,7 +8,7 @@ id: cabinet@7
 ## The plan (`cabinet`)
 
 - `name`: the name for the person, in Spanish ("Librero", "Buró con cajón").
-- `dimensions`: outside width, height and depth in mm. Use the given measures exactly; if there are none, the typical ones for that furniture in Mexico, and say so in the explanation.
+- `dimensions`: outside width, height and depth in mm. Use the given measures exactly; if there are none, the typical ones for that furniture in Mexico, and say so in the explanation. If the person gave the space they have instead, the piece must fit inside it with a little slack: take typical measures within that space and say which ones you chose.
 - `material`: {{materials}}. Usually the 18 mm one.
 - `base`: "kick" if it has a kick plate at the front (bookcases, dressers, floor cabinets), "floor" if it sits directly or hangs (wall cabinets, low nightstands), "legs" if the box stands on legs (sideboards, credenzas, TV stands or nightstands on legs). With "legs" the app builds straight plywood legs under a frame and adds legs in between on a wide piece; the height in `dimensions` includes the legs. Tapered or splayed legs are built straight: say so in the explanation.
 - `wallMounted`: true if it hangs from or is anchored to the wall: wall cabinets; anything with drawers or doors from {{storageAnchorHeight}} high, whatever its depth; and open bookcases that are tall (over about {{tallFurnitureHeight}}) or shallow for their height. A tall bookcase that is not anchored can tip over: anchor it unless the person says otherwise.

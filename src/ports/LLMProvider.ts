@@ -150,6 +150,8 @@ export interface PhotoReadingRequest {
 export interface ReconstructionRequest {
   /** null: the person does not know them and the expert estimates them. */
   measures: Dimensions | null
+  /** The room the person has for it, approximate and in mm, for any sides they filled in; it is a limit, not the furniture's measures. */
+  space?: Partial<Dimensions> | null
   photos: Photo[]
   notes: string
   /** What was read from the photos beforehand; when present, the photos are not sent again. */
