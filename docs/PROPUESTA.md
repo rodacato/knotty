@@ -628,6 +628,8 @@ Un módulo por PR, con las pruebas pasando; la interfaz y los textos para la per
 
 46. Los huecos de una ficha son etiquetas. `gaps` era texto libre y contar cuántos muebles comparten un hueco pedía releer cada lista; ahora usa las mismas etiquetas que `features` (`FEATURES`), y siempre es un subconjunto: un hueco es un rasgo que el plan no puede dibujar. Una etiqueta nueva se agrega a propósito a la lista, con una de arreglo asimétrico (`asymmetric-arrangement`) para lo que hoy no cabe: divisores verticales distintos por nivel. `KC-APA-01` pasa a `v2`, porque cambian sus metadatos: es la primera ficha que sube de versión.
 
+47. Cuatro etiquetas nuevas en `FEATURES`: `splayed-legs`, `raised-sides`, `slatted-fronts` y `slatted-base`. Salen de leer con fotos los 71 productos del catálogo de referencia (69 candidatas): las lecturas metían las patas que se abren o se estrechan en `angled-cut` (48 de 69 lo traían, casi todas por las patas), los costados que suben sobre la cubierta aparecieron en al menos cinco con tres nombres distintos, y los frentes de tiras pegadas y las bases de tablillas se mezclaban con `routed-fronts` y con una base corrida. Es aditivo: ninguna ficha existente cambia (`probe -- --all` sigue igual) y `docs/fichas.md` dice cuándo usar cada una. Las patas inclinadas siguen sin construirse: el modelo son cajas alineadas a ejes.
+
 Los pasos 5 a 8 traducen el código sin cambiar la forma de los datos; el 9 cambia de una vez los datos guardados, lo que escribe el experto y los prompts, con migración de formato; el 10 mueve carpetas.
 
 ---

@@ -79,5 +79,8 @@ describe('references', () => {
     expect(load('./references/kc-zzz-01.v1.json', { ...complete, gaps: ['casters'] })).toThrow(/every gap is also in features/)
     expect(load('./references/kc-zzz-01.v1.json', { ...complete, gaps: ['fluted fronts'] })).toThrow(/gaps/)
     expect(loadReferences({ './references/kc-zzz-01.v1.json': { ...complete, features: ['legs', 'casters'], gaps: ['casters'] } })).toHaveLength(1)
+    // The words readers kept reaching for: legs that lean, sides that rise over the top, fronts and bases made of slats.
+    const words = ['splayed-legs', 'raised-sides', 'slatted-fronts', 'slatted-base']
+    expect(loadReferences({ './references/kc-zzz-01.v1.json': { ...complete, features: words, gaps: words } })).toHaveLength(1)
   })
 })
