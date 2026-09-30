@@ -90,6 +90,14 @@ describe('litres and containers', () => {
     expect(containersFor(2, [])).toEqual([])
   })
 
+  it('a hardwax oil has no coverage in the reference: it is listed with its coats, no litres and no invented number', () => {
+    expect(FINISH_PRODUCTS['hardwax-oil'].coverage).toBeNull()
+    expect(FINISHES['hardwax-oil'].missing).toEqual(expect.arrayContaining([expect.stringMatching(/coverage/)]))
+    const f = estimateFinish({ ...exampleBookcase, finish: 'hardwax-oil' }, geo(exampleBookcase), testCatalog)!
+    expect(f.lines.map((l) => [l.product, l.coats, l.litres, l.containers.length])).toEqual([['hardwax-oil', 2, null, 0]])
+    expect(finishSkus(testCatalog, 'hardwax-oil').map((x) => x.litres)).toEqual([0.75, 1.3])
+  })
+
   it('a finish the reference cannot measure is listed without litres, and is not a missing price', () => {
     const f = estimateFinish({ ...exampleBookcase, finish: 'lacquer' }, geo(exampleBookcase), testCatalog)!
     expect(f.lines.map((l) => [l.product, l.litres, l.containers.length])).toEqual([['nitro-sealer', null, 0], ['nitro-lacquer', null, 0]])
