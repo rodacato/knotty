@@ -6,6 +6,8 @@ import type { Slice } from './types'
 
 export interface SettingsSlice {
   settingsOpen: boolean
+  /** The "Conecta tu experto" step. */
+  connectOpen: boolean
   vault: VaultState
   /** The keys notice on arrival was already handled or postponed. */
   gateClosed: boolean
@@ -13,6 +15,7 @@ export interface SettingsSlice {
   catalogSettings: CatalogSettings
 
   openSettings(open: boolean): void
+  openConnect(open: boolean): void
   unlock(passphrase: string): Promise<void>
   forgetKeys(): void
   switchToSimulated(): void
@@ -24,11 +27,13 @@ export interface SettingsSlice {
 
 export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   settingsOpen: false,
+  connectOpen: false,
   vault: 'none',
   gateClosed: false,
   catalogSettings: NO_SETTINGS,
 
   openSettings: (settingsOpen) => set({ settingsOpen }),
+  openConnect: (connectOpen) => set({ connectOpen }),
 
   async unlock(passphrase) {
     const { services } = get()

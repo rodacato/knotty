@@ -9,6 +9,7 @@ export const expertConnected = (config: LLMConfiguration): boolean => config.act
 export function useExpertStatus(): { connected: boolean } {
   const { preferences } = useServices()
   const settingsOpen = useStore((s) => s.settingsOpen)
-  // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
-  return useMemo(() => ({ connected: expertConnected(preferences.load()) }), [preferences, settingsOpen])
+  const connectOpen = useStore((s) => s.connectOpen)
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen and connectOpen are the recompute triggers: preferences live in storage, outside React
+  return useMemo(() => ({ connected: expertConnected(preferences.load()) }), [preferences, settingsOpen, connectOpen])
 }
