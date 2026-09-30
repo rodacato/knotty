@@ -26,8 +26,8 @@ export function Chip({ active = false, className = '', children, ...props }: But
   return (
     <button
       type="button"
-      className={`animate-appear inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition active:scale-[0.96] disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-amber ${
-        active ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone text-graphite hover:bg-kraft'
+      className={`animate-appear relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-amber ${
+        active ? 'border-amber bg-amber-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}
     >

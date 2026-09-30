@@ -295,7 +295,7 @@ export function Studio({ state }: { state: DesignState }) {
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
         {overlay === 'notices' ? <Bell className="text-graphite" weight="duotone" /> : <ClockCounterClockwise className="text-graphite" />}
         <h2 className="flex-1 text-sm font-medium">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
-        <button type="button" onClick={() => setOverlay(null)} aria-label="Cerrar" className="grid size-9 place-items-center rounded-full text-graphite-2 hover:bg-kraft">
+        <button type="button" onClick={() => setOverlay(null)} aria-label="Cerrar" className="relative grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
           <X />
         </button>
       </div>
@@ -326,7 +326,7 @@ export function Studio({ state }: { state: DesignState }) {
               </Tabs.Trigger>
             ))}
             {!desktop && (
-              <button type="button" onClick={() => setTallPanel((v) => !v)} className="ml-auto grid size-9 place-items-center rounded-full text-graphite-2 hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
+              <button type="button" onClick={() => setTallPanel((v) => !v)} className="relative ml-auto grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
                 {tallPanel ? <CaretDown /> : <CaretUp />}
               </button>
             )}

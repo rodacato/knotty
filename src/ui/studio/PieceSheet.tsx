@@ -40,7 +40,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
           <Button variant="ghost" className="min-h-11 shrink-0 px-3" onClick={() => hide(p.id)}>
             <EyeSlash /> Ocultar
           </Button>
-          <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 hover:bg-kraft">
+          <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
             <X />
           </button>
         </div>

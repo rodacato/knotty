@@ -89,7 +89,7 @@ export function Settings() {
             <Dialog.Title asChild>
               <Title className="text-xl">El experto</Title>
             </Dialog.Title>
-            <Dialog.Close className="grid size-9 place-items-center rounded-full hover:bg-kraft" aria-label="Cerrar">
+            <Dialog.Close className="relative grid size-9 place-items-center rounded-full before:absolute before:-inset-1 before:content-[''] hover:bg-kraft" aria-label="Cerrar">
               <X />
             </Dialog.Close>
           </div>
