@@ -29,5 +29,12 @@
         ]
       }
     ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 18,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 57, "edge-banding-19": 13, "screw-8x2": 25, "shelf-pin-5": 40, "white-glue": 1 }
   }
 }

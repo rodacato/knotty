@@ -87,6 +87,7 @@ KNOTTY_BASELINE=none npm run compare                                            
 | Prompts, esquemas que ve el experto o el contexto que se le manda | Banco con experto (4), comparado con el anterior |
 | Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
 | El catálogo | Banco sin experto (3) y la pestaña Materiales (2) |
+| Una ficha de referencia, o el motor que la construye | `npm run probe -- --all`: cada ficha debe seguir como dice su `expect`. Si una diferencia es la esperada, `npm run probe -- --update <código>` reescribe el `expect` y el diff del PR la muestra; si no, es un error |
 
 ## Cambios que piden cuidado
 

@@ -14,5 +14,12 @@
     "height": 400,
     "drawers": { "side": "both", "count": 2, "position": "center" },
     "headboard": { "style": "plain", "height": 1000, "depth": 0, "shelves": 0 }
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 43,
+    "findings": [],
+    "sheets": { "T18": 5, "TR6": 1 },
+    "hardware": { "brad-nail-1": 64, "drawer-slide-50": 4, "edge-banding-19": 26, "screw-8x1": 16, "screw-8x2": 170, "white-glue": 4 }
   }
 }
