@@ -5696,6 +5696,18 @@
         },
         {
           "type": "text",
+          "id": "l6JWU",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · \"Expert failed, retry\" moved to the side for review: with the simulated expert the chat shows \"Cancelado.\" and Reintentar; a real provider error text needs a real failure. Every other state in this file was reached in the app with the simulated expert (Materials / Not viable too, with a 2600 mm width; its capture is still the old one) · UI-2",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "FW5hH",
           "name": "Entry",
           "fill": "$graphite",
@@ -18066,8 +18078,8 @@
     {
       "type": "frame",
       "id": "g7iu3",
-      "x": 760,
-      "y": 4970,
+      "x": 4330,
+      "y": 150,
       "name": "Studio / Conversation / Expert failed, retry (mobile, capture)",
       "clip": true,
       "width": 390,
@@ -42582,6 +42594,25 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ERWIk",
+      "x": 4330,
+      "y": 100,
+      "name": "STEP — Mobile · 390 · To review: not reachable with the simulated expert",
+      "children": [
+        {
+          "type": "text",
+          "id": "fwqYA",
+          "name": "Text",
+          "fill": "$graphite",
+          "content": "STEP — Mobile · 390 · To review: not reachable with the simulated expert",
+          "fontFamily": "$font-mono",
+          "fontSize": 16,
+          "fontWeight": "700"
         }
       ]
     }

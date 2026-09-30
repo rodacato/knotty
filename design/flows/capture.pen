@@ -940,6 +940,18 @@
         },
         {
           "type": "text",
+          "id": "gIjiO",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-09-30 · two states moved to the side for review because the simulated expert cannot produce them: \"Photo reading failed\" (the app shows only \"¿Qué vista?\", no failure text) and \"Design failed, retry\" (copy.ts's \"No logré armar un modelo…\" needs a real expert that fails validation; the simulated one shows a different message) · UI-7",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "E1PFFF",
           "name": "Entry",
           "fill": "$graphite",
@@ -4066,8 +4078,8 @@
     {
       "type": "frame",
       "id": "H4Ye1",
-      "x": 1780,
-      "y": 2256,
+      "x": 3310,
+      "y": 150,
       "name": "Capture / One screen / Photo reading failed (mobile)",
       "clip": true,
       "width": 390,
@@ -7085,8 +7097,8 @@
     {
       "type": "frame",
       "id": "FCgMY",
-      "x": 2290,
-      "y": 1271,
+      "x": 3310,
+      "y": 1234,
       "name": "Capture / One screen / Design failed, retry (mobile)",
       "clip": true,
       "width": 390,
@@ -12184,6 +12196,25 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "i1Nox",
+      "x": 3310,
+      "y": 100,
+      "name": "STEP — Mobile · 390 · To review: not reachable with the simulated expert",
+      "children": [
+        {
+          "type": "text",
+          "id": "xny2m",
+          "name": "Text",
+          "fill": "$graphite",
+          "content": "STEP — Mobile · 390 · To review: not reachable with the simulated expert",
+          "fontFamily": "$font-mono",
+          "fontSize": 16,
+          "fontWeight": "700"
         }
       ]
     }
