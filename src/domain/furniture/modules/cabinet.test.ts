@@ -118,6 +118,7 @@ describe('construction variants', () => {
     top: ['between', 'over'],
     back: ['nailed', 'none'],
     shelves: ['movable', 'fixed'],
+    fronts: ['flat', 'grooved'],
     hinges: ['outside', 'inside'],
     pulls: ['none', 'notch', 'handle'],
   }

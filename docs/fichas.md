@@ -24,7 +24,7 @@ Cuatro etiquetas que conviene no confundir:
 - `slatted-fronts`: frentes hechos de tiras pegadas. `routed-fronts` es una ranura de router sobre una cara lisa.
 - `slatted-base`: la base de una cama hecha de tablillas sueltas en lugar de un tablero corrido.
 
-`notch-pulls` ya se dibuja en el gabinete (`construction.pulls: "notch"`), así que una ficha que lo usa lo pone en `features` y no en `gaps`; con herrajes es `"handle"`, que suma una jaladera por hoja de puerta y frente de cajón a la compra.
+`routed-fronts` también se dibuja en el gabinete (`construction.fronts: "grooved"`), con ranuras verticales; si el frente es de tiras pegadas y no de router, sigue siendo un hueco. `notch-pulls` ya se dibuja en el gabinete (`construction.pulls: "notch"`), así que una ficha que lo usa lo pone en `features` y no en `gaps`; con herrajes es `"handle"`, que suma una jaladera por hoja de puerta y frente de cajón a la compra.
 
 El archivo se escribe siempre igual (`probe` lo hace), para que un cambio mueva pocas líneas. **Las fotos de referencia no se guardan en el repo.**
 

@@ -10,7 +10,7 @@
   "difficulty": 3,
   "features": ["inset-doors","inset-drawers","legs","wall-anchor","open-niche","no-back","routed-fronts","notch-pulls","angled-cut","asymmetric-arrangement"],
   "adaptations": ["straight legs of two glued layers under a set-back apron, instead of splayed legs"],
-  "gaps": ["routed-fronts","angled-cut","no-back","asymmetric-arrangement"],
+  "gaps": ["angled-cut","no-back","asymmetric-arrangement"],
   "notes": "Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano.",
   "plan": {
     "kind": "cabinet",
@@ -19,7 +19,7 @@
     "material": "T18",
     "base": "legs",
     "wallMounted": true,
-    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "hinges": "outside", "pulls": "notch" },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "grooved", "hinges": "outside", "pulls": "notch" },
     "columns": [
       {
         "width": 1,

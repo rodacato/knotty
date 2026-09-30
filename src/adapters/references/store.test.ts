@@ -7,7 +7,7 @@ describe('reference store', () => {
   it('has every ficha shipped, and gives the latest of one by its code', () => {
     expect(store.all().length).toBeGreaterThan(0)
     for (const r of store.all()) expect(store.latest(r.code)).toBe(r)
-    expect(store.latest('KC-APA-01')).toMatchObject({ code: 'KC-APA-01', version: 4, plan: { kind: 'cabinet', base: 'legs' } })
+    expect(store.latest('KC-APA-01')).toMatchObject({ code: 'KC-APA-01', version: 5, plan: { kind: 'cabinet', base: 'legs' } })
   })
 
   it('answers null for a code it does not have', () => {

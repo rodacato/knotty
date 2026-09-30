@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Design, type Dimensions } from '../domain/design/schema'
+import { Design, Piece, type Dimensions } from '../domain/design/schema'
 import type { DesignKind } from '../domain/design/kind'
 import { Decision } from '../domain/session/history/history'
 import type { Catalog } from '../domain/materials/catalog'
@@ -15,7 +15,7 @@ import { CarpenterOpinion, type Check } from '../domain/checks/viability/viabili
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
 
 /** The design as the expert writes it: what the furniture is (`kind`, `mattress`) and its finish and edge profiles are Knotty's data, so its schema stays as it was. */
-const ExpertDesign = Design.omit({ kind: true, kindSource: true, mattress: true, pulls: true, finish: true, edgeProfiles: true })
+const ExpertDesign = Design.extend({ pieces: z.array(Piece.omit({ cuts: true })) }).omit({ kind: true, kindSource: true, mattress: true, pulls: true, finish: true, edgeProfiles: true })
 
 export const ReconstructionResponse = z.object({
   explanation: z.string().describe('What you saw and how you interpreted it, in 2–4 sentences for the person, in Spanish'),
