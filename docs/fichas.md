@@ -93,6 +93,6 @@ Como se agregaron las patas al gabinete es el recorrido típico:
 5. **La guía del experto** (`adapters/llm/prompts/modules/<módulo>.vN.md`, escrita a mano para gabinete, cama y mesa): se sube su versión y su presupuesto en `prompts.test.ts`. Como cambia lo que ve el experto, hay que correr `npm run compare` a mano (cuesta tokens) y comparar con el último reporte.
 6. **Pruebas** del módulo (`<módulo>.test.ts`): la opción, sus piezas y lo que no debe pasar.
 7. **Las fichas.** `probe -- --all` dice cuáles se movieron. Las diferencias esperadas se aceptan con `--update`; una inesperada es un error. Después, adoptar la candidata que antes se adaptó, ya sin la adaptación, y quitarla de `gaps`.
-8. **Un paso en `docs/PROPUESTA.md`.**
+8. **Una decisión o un invariante en `docs/PROPUESTA.md`**, solo si hay un porqué que el código no dice; el diario de la entrega va en el cuerpo del PR.
 
 El detalle de qué correr según lo que tocaste está en [CONTRIBUTING.md](../CONTRIBUTING.md).
