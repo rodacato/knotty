@@ -10,6 +10,21 @@ export type Labels<V extends string> = Record<V, { option: string; phrase: strin
 
 export type Resized<P> = { ok: true; plan: P } | { ok: false; message: string }
 
+/** What a module lets the person change fast, as the quick adjust of a base asks it. */
+export type QuickCountKind = 'drawer' | 'door' | 'open'
+
+/** A module declares what is quick; one with no `quick` has nothing the quick adjust can ask. */
+export interface QuickSpec<P> {
+  /** Whether the outside measures can be fitted to a space. */
+  measures: boolean
+  /** The counts the person can change, from the cells of the plan. */
+  counts: readonly QuickCountKind[]
+  /** Keys of `fields` that are quick: the quick adjust shows those and no others. */
+  fields: readonly string[]
+  /** What the plan asked for and the built design does not have, in words for the person; null when it came out as asked. */
+  builtAsAsked(plan: P, design: Design): string | null
+}
+
 export interface FurnitureModule<P extends { kind: string }> {
   kind: P['kind']
   schema: z.ZodType<P>
@@ -37,4 +52,6 @@ export interface FurnitureModule<P extends { kind: string }> {
   benchVariants(): [string, P][]
   /** Its plan's form, section by section: the studio draws it, so a new kind needs no form of its own. */
   fields: FieldSpec<P>[]
+  /** What is quick about it; absent for the kinds whose base has nothing to ask quickly. */
+  quick?: QuickSpec<P>
 }

@@ -12,7 +12,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Column, type Cell } from '../reading/reading'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_INSET, LEG_WIDTH, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
-import type { FurnitureModule, Labels } from './module'
+import type { FurnitureModule, Labels, QuickSpec } from './module'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
@@ -460,6 +460,22 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),
 ]
 
+const drawersBuilt = (design: Design) => design.pieces.filter((p) => p.role === 'drawer-front').length
+const doorLeavesAsked = (plan: CabinetPlan) => plan.columns.flatMap((c) => c.cells).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
+
+/** What is quick in a cabinet: its measures, the counts of drawers, doors and open niches, and the few choices that move the cost or the look most. */
+const cabinetQuick: QuickSpec<CabinetPlan> = {
+  measures: true,
+  counts: ['drawer', 'door', 'open'],
+  fields: ['base', 'construction.pulls', 'material'],
+  builtAsAsked: (plan, design) => {
+    const asked = count(plan, 'drawer')
+    if (drawersBuilt(design) !== asked) return `Solo caben ${drawersBuilt(design)} de ${asked} cajones en esos huecos.`
+    if (design.pieces.filter((p) => p.role === 'door').length !== doorLeavesAsked(plan)) return 'Una puerta no quedó como se pidió.'
+    return null
+  },
+}
+
 export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
@@ -474,4 +490,5 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   traceLabel: (plan) => `Gabinete de ${plan.columns.length} ${plan.columns.length === 1 ? 'columna' : 'columnas'}`,
   benchVariants: benchCabinets,
   fields: cabinetFields,
+  quick: cabinetQuick,
 }
