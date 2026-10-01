@@ -101,11 +101,16 @@ function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box 
   }
 
   const { x0, x1, y0, y1, z0, z1 } = frame
-  useEffect(() => place(false), [view, x0, x1, y0, y1, z0, z1, aspect, reduced]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => place(false), [view, aspect, reduced]) // eslint-disable-line react-hooks/exhaustive-deps
+  const placed = useRef(false)
+  useEffect(() => {
+    if (placed.current) place(true)
+    placed.current = true
+  }, [x0, x1, y0, y1, z0, z1]) // eslint-disable-line react-hooks/exhaustive-deps
   // Choosing or leaving a piece keeps the angle the person is looking from; editing its size does not move the camera.
   useEffect(() => place(true), [focusId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <CameraControls ref={controls} makeDefault dollyToCursor minDistance={0.15} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={0.35} />
+  return <CameraControls ref={controls} makeDefault dollyToCursor minDistance={0.15} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={reduced ? 0.01 : 0.35} draggingSmoothTime={reduced ? 0.01 : 0.125} />
 }
 
 export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: SceneProps) {
@@ -195,7 +200,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             onSelect={select}
           />
         ))}
-        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} hidden={hidden} />
+        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} hidden={hidden} reduced={reduced} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}

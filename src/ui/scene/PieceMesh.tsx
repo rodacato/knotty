@@ -106,7 +106,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
     immediate: reduced,
   })
   const { opacity } = useSpring({ from: { opacity: reduced ? finalOpacity : 0 }, to: { opacity: finalOpacity }, delay: reduced ? 0 : delay, immediate: reduced, config: { tension: 120, friction: 20 } })
-  const [{ glow }] = useSpring(() => ({ from: { glow: highlight ? 1 : 0 }, to: { glow: 0 }, config: { duration: 1800 }, reset: true }), [highlight])
+  const [{ glow }] = useSpring(() => ({ from: { glow: highlight ? 1 : 0 }, to: { glow: 0 }, config: { duration: 1800 }, reset: true, immediate: reduced }), [highlight])
 
   const materials = useRef<(MeshStandardMaterial | null)[]>([])
   useEffect(() => () => maps.forEach((m) => m.dispose()), [maps])

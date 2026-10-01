@@ -8,6 +8,7 @@ import { TextArea } from '../system/Field'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
+import { useReducedMotion } from '../scene/preferences'
 import { Memory } from './Memory'
 import { ProposalFixButton } from './ProposalFix'
 import { Tray } from './Tray'
@@ -209,6 +210,7 @@ export function Chat({ state }: { state: DesignState }) {
   const [text, setText] = useState('')
   const list = useRef<HTMLDivElement>(null)
   const seconds = useSeconds(thinking)
+  const reduced = useReducedMotion()
   const last = state.chat.at(-1)
   const previous = state.chat.at(-2)
   // If the last attempt failed, the same request is sent again with one click.
@@ -217,8 +219,8 @@ export function Chat({ state }: { state: DesignState }) {
   const suggestions = thinking || state.tray.length || last?.author !== 'expert' || last.error ? [] : last.suggestions.length ? last.suggestions : state.versions.length <= 1 ? SUGGESTIONS : []
 
   useEffect(() => {
-    list.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })
-  }, [state.chat.length, state.tray.length, thinking])
+    list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
+  }, [state.chat.length, state.tray.length, thinking]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const send = () => {
     if ((!text.trim() && !state.tray.length) || thinking) return

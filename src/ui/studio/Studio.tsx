@@ -359,7 +359,7 @@ export function Studio({ state }: { state: DesignState }) {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 transition-[height] duration-300 ease-out" style={{ height: tallPanel ? '30%' : '52%' }}>
+          <div className="min-h-0" style={{ height: tallPanel ? '30%' : '52%' }}>
             {scene}
           </div>
           <div className="min-h-0 flex-1 border-t border-line">{panel}</div>
