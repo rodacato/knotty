@@ -8,6 +8,7 @@ import { SheLLM } from '../settings/Settings'
 import { useStore } from '../store'
 import { Button, Title } from '../system/components'
 import { Field, Input } from '../system/Field'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { expertConnected } from '../shell/expertStatus'
 import { connectBlocker, planConnect } from './plan'
@@ -209,18 +210,11 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
           </>
         }
       >
-        <div role="radiogroup" aria-label="Experto" className="grid gap-2">
+        <RadioGroup label="Experto" className="grid gap-2">
           {PROVIDERS.map((p) => {
             const selected = provider === p
             return (
-              <button
-                key={p}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => setProvider(p)}
-                className={`flex min-h-11 flex-col gap-0.5 rounded-2xl border px-4 py-3 text-left transition ${selected ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
-              >
+              <RadioCard key={p} checked={selected} mark={false} onChange={() => setProvider(p)} className="flex flex-col gap-0.5 rounded-2xl px-4 py-3 text-left">
                 <span className="flex items-center gap-2.5 text-lg font-medium">
                   <span
                     aria-hidden
@@ -231,10 +225,10 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
                   {PRESETS[p].label}
                 </span>
                 <span className="pl-[34px] text-sm text-graphite-2">{PRESETS[p].description}</span>
-              </button>
+              </RadioCard>
             )
           })}
-        </div>
+        </RadioGroup>
 
         {provider === 'shellm' && <SheLLM host={effectiveHost} onHost={(h) => setHost(h.trim())} />}
 

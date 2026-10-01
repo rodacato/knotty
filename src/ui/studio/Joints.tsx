@@ -11,6 +11,7 @@ import { TERMS } from '../glossary'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button, Title } from '../system/components'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 
 // Joints the person picks per group of pieces, against the tools they said they have (fabricacion-y-armado.md §1.3).
 
@@ -117,12 +118,12 @@ function JointCard({ option, selected, onSelect }: { option: Option; selected: b
       {option.blocked && <span className="block text-xs text-graphite-2">{option.blocked}</span>}
     </>
   )
-  const frame = `flex w-full flex-col gap-1.5 rounded-2xl border p-3 text-left text-sm ${selected ? 'border-graphite border-2' : 'border-line'}`
-  if (option.blocked) return <div className={frame}>{body}</div>
+  const frame = `flex w-full flex-col gap-1.5 rounded-2xl p-3 text-left text-sm`
+  if (option.blocked) return <div className={`${frame} border border-line`}>{body}</div>
   return (
-    <button type="button" role="radio" aria-checked={selected} onClick={onSelect} className={`${frame} transition hover:bg-kraft`}>
+    <RadioCard checked={selected} onChange={onSelect} className={frame}>
       {body}
-    </button>
+    </RadioCard>
   )
 }
 
@@ -149,13 +150,13 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
               onClick={() => !o.blocked && onSelect(o.joint)}
               className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-amber-soft' : ''}`}
             >
-              <td className="px-3 py-2">
+              <td className={`px-3 py-2 ${selected === o.joint ? 'shadow-[inset_3px_0_0_0_var(--graphite)]' : ''}`}>
                 {o.blocked ? (
                   <span className="block text-sm font-semibold">{g.name}</span>
                 ) : (
-                  <button type="button" role="radio" aria-checked={selected === o.joint} onClick={() => onSelect(o.joint)} className="block text-left text-sm font-semibold">
+                  <RadioCard variant="bare" checked={selected === o.joint} onChange={() => onSelect(o.joint)} className="block text-left text-sm font-semibold">
                     {g.name}
-                  </button>
+                  </RadioCard>
                 )}
                 <span className="mt-1 inline-block">
                   <FitTag fit={o.fit} />
@@ -226,14 +227,14 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
             <Dialog.Description className="text-sm text-graphite">
               {group.label.split(': ')[1] ?? group.label} · con tu herramienta ({TOOL_LEVEL_LABELS[level].short}):
             </Dialog.Description>
-            <div role="radiogroup" aria-label={group.title} className="flex flex-col gap-2 lg:hidden">
+            <RadioGroup label={group.title} className="flex flex-col gap-2 lg:hidden">
               {options.map((o) => (
                 <JointCard key={o.joint} option={o} selected={selected === o.joint} onSelect={() => setSelected(o.joint)} />
               ))}
-            </div>
-            <div className="hidden overflow-hidden rounded-2xl border border-line lg:block">
+            </RadioGroup>
+            <RadioGroup label={group.title} className="hidden overflow-hidden rounded-2xl border border-line lg:block">
               <JointTable options={options} selected={selected} onSelect={setSelected} />
-            </div>
+            </RadioGroup>
           </div>
           <div className="flex flex-col gap-2 border-t border-line px-4 py-3 lg:flex-row lg:items-center lg:px-5">
             <p className="flex-1 text-xs text-graphite-2">Las pruebas casi nunca son en triplay de pino: la resistencia se lee como orden, no como número.</p>

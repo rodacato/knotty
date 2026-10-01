@@ -29,6 +29,8 @@ Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendo
 
 **Pending in the `.pen`:** the `focus`, `on-rust` and changed `rust` / `paper` variables; a disabled variant of the buttons (no longer an instance at `opacity: 0.4`).
 
+**Added (UI-47):** `RadioCard` and `RadioGroup` in `src/ui/system/RadioCard.tsx`: a native radio input under a styled label, replacing the nine hand-written `role="radio"` buttons (one tab stop per group, arrow keys, `name` and `checked` from the browser). Variants `card` (border, tint and a check on the corner), `pill`, `segment` and `bare`; the focus ring shows on the card when the hidden input is focused. `.pen` re-vendoring pending: the component is not in `ui-kit.lib.pen` yet.
+
 ## 0.3.0 — amber for selection only, Field, no TakePhoto
 
 Lands with the code of K6 (`amber-k6`), K7 (#113) and D39 (#115). A **value** change and a removal: every flow re-vendors.

@@ -1,23 +1,17 @@
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { LockSimple, LockSimpleOpen, Minus, Plus } from '@phosphor-icons/react'
 
 // The small controls of a plan: choices, counts, measures and the lock that keeps «Ahorrar material» off a field.
 
 export function Segmented({ value, options, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; onChange: (v: string) => void; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex rounded-full border border-line bg-bone p-0.5">
+    <RadioGroup label={label} className="inline-flex rounded-full border border-line bg-bone p-0.5">
       {options.map(([id, text]) => (
-        <button
-          key={id}
-          type="button"
-          role="radio"
-          aria-checked={value === id}
-          onClick={() => onChange(id)}
-          className={`relative rounded-full px-2.5 py-1 text-xs transition before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-[''] ${value === id ? 'bg-graphite text-bone' : 'text-graphite-2 hover:text-graphite'}`}
-        >
+        <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="px-2.5 py-1 text-xs before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-['']">
           {text}
-        </button>
+        </RadioCard>
       ))}
-    </div>
+    </RadioGroup>
   )
 }
 
