@@ -44,6 +44,8 @@ export const ASSUMPTIONS = {
   tipping: {
     /** Furniture with drawers or doors from this height up is anchored, whatever its depth: the threshold of ASTM F2057-23. */
     storageHeight: 686,
+    /** Share of storageHeight just below it where the verdict is a recommendation, so a few mm of measuring do not flip it between critical and nothing. */
+    storageMargin: 0.1,
     /** Open furniture (no drawers or doors): height ÷ depth from which it is anchored, and from which it is very unstable past criticalHeight. */
     recommendedRatio: 3,
     criticalRatio: 4,
@@ -110,6 +112,7 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'screws.pairRoom': noReference('Knotty’s room between two screws near the ends of a short joint; the reference only spaces them 150–200 apart on long ones'),
   'screws.pocketScrews': cite(VALUES, '6-uniones', 'Tornillo de bolsillo'),
   'tipping.storageHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Altura desde la que se ancla'),
+  'tipping.storageMargin': noReference('Knotty’s tolerance for reading a height off a photo or a tape; the reference gives the 686 line and no band around it, and says depth does not rescue a chest'),
   'tipping.recommendedRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),

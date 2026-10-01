@@ -77,6 +77,50 @@ describe('R4 tipping', () => {
     expect(storage({ ...exampleBookcase, wallAnchored: false })).toEqual([])
   })
 
+  // Margin just under the line (ASSUMPTIONS.tipping.storageMargin): a recommendation, never critical, never silent for long.
+  const verdict = (d: Design) => findings(d, 'R4_TIPPING').map((h) => `${h.severity}:${h.check}`)
+  const chestAt = (height: number, extra: Partial<CabinetPlan> = {}) => cabinet(height, [cell('drawer'), cell('drawer')], extra)
+
+  it('goes from nothing to a recommendation to critical as the height crosses the margin and the line', () => {
+    expect(verdict(chestAt(500))).toEqual([])
+    expect(verdict(chestAt(600))).toEqual([])
+    expect(verdict(chestAt(630))).toEqual(['recommendation:tipping.storage-near'])
+    expect(verdict(chestAt(680))).toEqual(['recommendation:tipping.storage-near'])
+    expect(verdict(chestAt(686))).toEqual(['critical:tipping.storage'])
+    expect(verdict(chestAt(700))).toEqual(['critical:tipping.storage'])
+    expect(verdict(chestAt(1800))).toEqual(['critical:tipping.storage'])
+  })
+
+  it('700 mm and 680 mm both ask for the anchor, one as critical and one as a recommendation', () => {
+    const [near] = findings(chestAt(680), 'R4_TIPPING')
+    expect(near.alternatives[0].key).toBe('anchor-to-wall')
+    expect(near.data).toMatchObject({ height: 680, min: 686 })
+  })
+
+  it('anchored, nothing in the margin or above it', () => {
+    expect(verdict(chestAt(650, { wallMounted: true }))).toEqual([])
+    expect(verdict(chestAt(700, { wallMounted: true }))).toEqual([])
+  })
+
+  it('depth does not lift a storage piece out of critical, and tall and shallow stays critical', () => {
+    const deep = { dimensions: { width: 500, height: 900, depth: 800 } }
+    const shallow = { dimensions: { width: 500, height: 1500, depth: 250 } }
+    expect(verdict(cabinet(900, [cell('drawer')], deep))).toEqual(['critical:tipping.storage'])
+    expect(verdict(cabinet(1500, [cell('door', 2)], shallow))).toEqual(['critical:tipping.storage'])
+  })
+
+  it('open furniture keeps its own ratio: tall and shallow is critical, tall and deep is not', () => {
+    const open = (depth: number) => ({ ...exampleBookcase, wallAnchored: false, dimensions: { ...exampleBookcase.dimensions, height: 1500, depth } })
+    expect(findings(open(300), 'R4_TIPPING')[0].severity).toBe('critical')
+    expect(findings(open(600), 'R4_TIPPING')).toEqual([])
+  })
+
+  it('a shallow piece in the margin answers to its ratio, not to a second finding', () => {
+    const d = cabinet(650, [cell('door', 1)], { dimensions: { width: 500, height: 650, depth: 200 } })
+    expect(findings(d, 'R4_TIPPING')).toHaveLength(1)
+    expect(findings(d, 'R4_TIPPING')[0].data).toHaveProperty('ratio')
+  })
+
   it('a bed, a desk or a wall cabinet are not storage furniture: their drawers or doors do not ask for the anti-tip kit', () => {
     const bed = buildBed({ kind: 'bed', name: 'Cama', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }, testCatalog).design
     const desk = buildTable({ kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, shelf: false, pedestal: { side: 'left', drawers: 3 } }, testCatalog).design
