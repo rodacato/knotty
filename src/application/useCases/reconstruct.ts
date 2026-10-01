@@ -232,7 +232,7 @@ export function createReconstruct(kit: Kit) {
       })
     } catch (e) {
       const text = signal.aborted ? CANCELLED : e instanceof Error ? e.message : EXPERT_FAILED
-      return save({ ...asked, trace: appendTrace(state.trace, e instanceof ExpertError ? e.trace : trace), chat: [...asked.chat, message('expert', text, { error: true })] })
+      return save({ ...asked, trace: appendTrace(state.trace, e instanceof ExpertError ? e.trace : trace), chat: [...asked.chat, message('expert', text, { error: true, failure: signal.aborted ? 'cancelled' : 'connection' })] })
     }
   }
 
