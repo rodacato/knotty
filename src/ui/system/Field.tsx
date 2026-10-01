@@ -6,7 +6,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 
 type Size = 'md' | 'sm'
 
-const FRAME = 'rounded-xl border bg-bone text-base text-graphite outline-none transition focus:border-amber focus-within:border-amber disabled:opacity-60 has-disabled:opacity-60'
+const FRAME = 'rounded-xl border bg-bone text-base text-graphite outline-none transition focus:border-focus focus-within:border-focus disabled:opacity-60 has-disabled:opacity-60'
 const HEIGHT: Record<Size, string> = { md: 'min-h-11 px-3', sm: 'min-h-8 px-2' }
 const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-line')
 

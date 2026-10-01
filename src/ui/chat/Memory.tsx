@@ -24,7 +24,7 @@ function Chips({ items }: { items: { key: string; text: string; onRemove: () => 
             type="button"
             onClick={i.onRemove}
             aria-label={`Quitar: ${i.text}`}
-            className="grid size-7 shrink-0 place-items-center rounded-full text-graphite-2 hover:text-rust focus-visible:outline-2 focus-visible:outline-amber"
+            className="grid size-7 shrink-0 place-items-center rounded-full text-graphite-2 hover:text-rust"
           >
             <X size={14} />
           </button>
@@ -50,7 +50,7 @@ export function Memory({ state }: { state: DesignState }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls={body}
-        className="flex min-h-11 w-full items-center gap-2.5 px-4 text-left text-graphite focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-amber"
+        className="flex min-h-11 w-full items-center gap-2.5 px-4 text-left text-graphite focus-visible:-outline-offset-2"
       >
         <Notebook size={18} />
         <span className="flex-1 text-[15px] font-medium">Lo que el experto recuerda</span>

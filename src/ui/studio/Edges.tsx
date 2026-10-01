@@ -101,7 +101,7 @@ function AlertButton({ label, open, onToggle }: { label: string; open: boolean; 
         e.preventDefault()
         onToggle()
       }}
-      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
+      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full"
     >
       <span className={`grid size-5 place-items-center rounded-full transition ${open ? 'bg-graphite text-bone' : 'bg-kraft text-graphite'}`}>
         <Warning size={12} weight="bold" />
@@ -147,7 +147,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
   return (
     <section className="flex flex-col gap-3 border-t border-line pt-1">
       <Title className="text-lg">
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={body} className="-mx-1 flex min-h-11 w-full items-center gap-2 rounded-lg px-1 text-left focus-visible:outline-2 focus-visible:outline-amber">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={body} className="-mx-1 flex min-h-11 w-full items-center gap-2 rounded-lg px-1 text-left">
           <span>Cantos</span>
           <span className="flex-1 truncate text-right font-sans text-xs font-normal tracking-normal text-graphite-2">{summary}</span>
           {open ? <CaretUp className="text-graphite-2" /> : <CaretDown className="text-graphite-2" />}
@@ -206,7 +206,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
             })}
           </div>
           {collapsed && editable && (
-            <button type="button" onClick={() => setChanging(true)} className="-mt-1 min-h-11 self-start rounded-lg px-1 text-sm font-medium underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-amber">
+            <button type="button" onClick={() => setChanging(true)} className="-mt-1 min-h-11 self-start rounded-lg px-1 text-sm font-medium underline underline-offset-2">
               Cambiar perfil
             </button>
           )}

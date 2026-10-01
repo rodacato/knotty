@@ -7,14 +7,14 @@ const VARIANTS: Record<Variant, string> = {
   primary: 'bg-graphite text-bone hover:bg-graphite/90 shadow-[0_1px_0_rgba(255,255,255,.15)_inset,0_6px_16px_-8px_rgba(43,40,37,.6)]',
   secondary: 'bg-kraft text-graphite border border-line hover:bg-kraft-2',
   ghost: 'text-graphite-2 hover:bg-kraft hover:text-graphite',
-  danger: 'bg-rust text-white hover:bg-rust/90',
+  danger: 'bg-rust text-on-rust hover:bg-rust/90',
 }
 
 export function Button({ variant = 'secondary', className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
       type="button"
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition active:scale-[0.97] disabled:pointer-events-none disabled:bg-kraft disabled:text-graphite-2 disabled:shadow-[inset_0_0_0_1px_var(--line)] ${VARIANTS[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -26,7 +26,7 @@ export function Chip({ active = false, className = '', children, ...props }: But
   return (
     <button
       type="button"
-      className={`animate-appear relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-amber ${
+      className={`animate-appear relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
         active ? 'border-amber bg-amber-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}

@@ -34,7 +34,7 @@ const heading = 'font-display text-xl font-semibold md:text-2xl'
 
 function Counter({ kind, value, min, max, onChange }: { kind: QuickCountKind; value: number; min: number; max: number; onChange: (next: number) => void }) {
   const { label, noun } = COUNT_LABELS[kind]
-  const round = 'grid size-11 place-items-center rounded-full border border-line bg-bone transition hover:bg-kraft active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber'
+  const round = 'grid size-11 place-items-center rounded-full border border-line bg-bone transition hover:bg-kraft active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35'
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-base">{label}</span>
@@ -103,7 +103,7 @@ export function AdjustBase({ base }: { base: Base }) {
         <AppHeader />
       </div>
       <header className="flex items-center justify-between px-3 py-1 md:hidden">
-        <button type="button" onClick={closeAdjust} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-base text-graphite-2 focus-visible:outline-2 focus-visible:outline-amber">
+        <button type="button" onClick={closeAdjust} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-base text-graphite-2">
           <ArrowLeft className="size-5" /> Bases
         </button>
         <Button variant="ghost" className="min-h-11 px-3" aria-label="Ajustes" onClick={() => openSettings(true)}>
@@ -124,7 +124,7 @@ export function AdjustBase({ base }: { base: Base }) {
         </div>
         <section aria-labelledby="adjust-title" className="flex min-h-0 flex-1 flex-col border-line md:border-l">
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pt-6 pb-4 md:px-9 md:pt-5">
-            <button type="button" onClick={closeAdjust} className="-ml-2 hidden min-h-11 w-fit items-center gap-2 rounded-xl px-2 text-base text-graphite-2 hover:text-graphite focus-visible:outline-2 focus-visible:outline-amber md:inline-flex">
+            <button type="button" onClick={closeAdjust} className="-ml-2 hidden min-h-11 w-fit items-center gap-2 rounded-xl px-2 text-base text-graphite-2 hover:text-graphite md:inline-flex">
               <ArrowLeft className="size-4" /> Ver bases
             </button>
             <div className="flex flex-col gap-1">
@@ -148,7 +148,7 @@ export function AdjustBase({ base }: { base: Base }) {
                     return (
                       <label key={axis} className="flex flex-col gap-1 text-base text-graphite-2">
                         {label}
-                        <span className={`flex min-h-12 items-center gap-1 rounded-2xl border bg-bone px-3 focus-within:outline-2 focus-within:outline-amber ${unreadable ? 'border-rust' : 'border-line'}`}>
+                        <span className={`flex min-h-12 items-center gap-1 rounded-2xl border bg-bone px-3 focus-within:outline-2 focus-within:outline-focus ${unreadable ? 'border-rust' : 'border-line'}`}>
                           <input
                             inputMode="decimal"
                             value={typed[axis]}

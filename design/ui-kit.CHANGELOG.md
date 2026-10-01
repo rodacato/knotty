@@ -8,6 +8,27 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.4.0 — focus, inactive buttons and dark contrast (code landed, `.pen` re-vendoring pending)
+
+Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendors. The `.pen` files are not touched in this version; `ui-kit.lib.pen` and its `kit-version` stay at 0.3.0 until the re-vendoring.
+
+**Added:** tokens `focus` (light `#9a5a10`, dark `#d98a2b`) and `on-rust` (light `#ffffff`, dark `#1d1a17`). One global `:focus-visible` rule (2 px, offset 2 px) replaces the per-component `focus-visible:outline-amber`; `Field` borders use `focus` too.
+
+**Changed:** `rust` light `#b4452f` to `#a63d29`, dark `#d9674f` to `#e57d66`; `paper` dark `#3a332b` to `#2a2622` (a slight elevation of `bone`, no longer a raised brown). `Button` disabled is a muted fill (`kraft`, label `graphite-2`, 1 px `line` ring) in all variants instead of `opacity-40`; `Button/Danger` label uses `on-rust`.
+
+| Pair | Before | After |
+|---|---|---|
+| Focus ring on `bone` / `kraft`, light | 2.43 / 2.17 | 4.82 / 4.30 |
+| Focus ring on `bone`, dark | 6.29 | 6.29 (unchanged) |
+| Label on `rust`, light | 5.48 (white) | 6.32 |
+| Label on `rust`, dark | 3.50 (white) | 6.15 |
+| `rust` text on `paper`, dark | 3.56 | 5.33 |
+| `rust` text on its 10 % tint, light | 4.22 | 4.82 |
+| Disabled label, light (primary) | 2.29 | 4.77 |
+| Disabled label, dark (primary) | 3.33 | 6.65 |
+
+**Pending in the `.pen`:** the `focus`, `on-rust` and changed `rust` / `paper` variables; a disabled variant of the buttons (no longer an instance at `opacity: 0.4`).
+
 ## 0.3.0 — amber for selection only, Field, no TakePhoto
 
 Lands with the code of K6 (`amber-k6`), K7 (#113) and D39 (#115). A **value** change and a removal: every flow re-vendors.

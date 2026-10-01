@@ -46,7 +46,7 @@ export function LockToggle({ locked, name, onToggle }: { locked: boolean; name: 
         e.preventDefault()
         onToggle()
       }}
-      className="-my-2 -ml-2 grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
+      className="-my-2 -ml-2 grid size-11 shrink-0 place-items-center rounded-full"
     >
       <span className={`grid size-7 place-items-center rounded-full transition ${locked ? 'bg-graphite text-bone' : 'border border-line text-graphite-2'}`}>
         {locked ? <LockSimple size={14} weight="fill" /> : <LockSimpleOpen size={14} />}

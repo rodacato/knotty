@@ -16,7 +16,7 @@ export function AppHeader() {
       <button
         type="button"
         onClick={() => (connected ? openSettings(true) : openConnect(true))}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-bone px-4 text-sm font-medium transition hover:bg-kraft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-bone px-4 text-sm font-medium transition hover:bg-kraft"
       >
         <span aria-hidden className={`size-2.5 rounded-full border-[1.5px] border-graphite ${connected ? 'bg-graphite' : ''}`} />
         <span className="md:hidden">{connected ? 'Con experto' : 'Sin experto'}</span>

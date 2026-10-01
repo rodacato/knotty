@@ -153,7 +153,7 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
                 {o.blocked ? (
                   <span className="block text-sm font-semibold">{g.name}</span>
                 ) : (
-                  <button type="button" role="radio" aria-checked={selected === o.joint} onClick={() => onSelect(o.joint)} className="block text-left text-sm font-semibold focus-visible:outline-2 focus-visible:outline-amber">
+                  <button type="button" role="radio" aria-checked={selected === o.joint} onClick={() => onSelect(o.joint)} className="block text-left text-sm font-semibold">
                     {g.name}
                   </button>
                 )}

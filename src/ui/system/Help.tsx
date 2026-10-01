@@ -21,7 +21,7 @@ export function HelpButton({ term, open, onToggle }: { term: Term; open: boolean
         e.preventDefault()
         onToggle()
       }}
-      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
+      className="-my-2.5 grid size-11 shrink-0 place-items-center rounded-full"
     >
       <span className={`grid size-5 place-items-center rounded-full transition ${open ? 'bg-graphite text-bone' : 'bg-kraft text-graphite'}`}>
         <Question size={12} weight="bold" />

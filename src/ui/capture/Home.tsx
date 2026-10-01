@@ -38,7 +38,7 @@ function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }
     <button
       type="button"
       onClick={() => onOpen(base)}
-      className="group flex flex-col gap-1.5 rounded-2xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+      className="group flex flex-col gap-1.5 rounded-2xl text-left"
     >
       <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-kraft p-4 md:p-6 transition group-hover:bg-kraft-2 group-active:scale-[0.98]">
         {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6 text-graphite-2" />}
@@ -57,7 +57,7 @@ function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row
     <button
       type="button"
       onClick={onOpen}
-      className={`group items-center gap-4 rounded-2xl border border-line bg-kraft text-left transition hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${
+      className={`group items-center gap-4 rounded-2xl border border-line bg-kraft text-left transition hover:bg-kraft-2 ${
         cell ? 'hidden min-h-full flex-col justify-center px-6 py-8 text-center md:flex' : 'col-span-2 flex p-5 md:hidden'
       }`}
     >
