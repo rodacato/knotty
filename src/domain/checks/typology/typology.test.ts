@@ -63,7 +63,7 @@ describe('the kind is data, not the name', () => {
   })
 
   it('a table says which table it is: a coffee table named "comedor" is judged as a coffee table', () => {
-    const plan: TablePlan = { kind: 'table', use: 'coffee', name: 'Mesa de comedor', material: 'T18', dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 } }
+    const plan: TablePlan = { kind: 'table', use: 'coffee', name: 'Mesa de comedor', material: 'T18', dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel' }
     const table = buildTable(plan, testCatalog).design
     expect(table.kind).toBe('coffeeTable')
     expect(usage(table)).toEqual([])

@@ -10,7 +10,7 @@ import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Column, type Cell } from '../reading/reading'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 
@@ -103,11 +103,7 @@ function legBase(plan: CabinetPlan, t: number, frontSetback: number, dividers: n
   const pocket = (a: string, b: string) => joints.push(makeJoint(`j-${a}-${b}`, a, b, 'pocket-screw', [{ hardwareId: pocketScrewId(t), count: 2 }]))
   const y = extent(ref('furniture.y0'), ref('bottom.y0'))
   const apronY = extent(null, ref('bottom.y0'), LEG_APRON)
-  // Two layers of the board glued face to face: the first where it is placed, the second on the side the leg grows towards.
-  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) =>
-    [1, 2].forEach((layer) =>
-      board({ id: `${id}-${layer}`, name: `${name} (capa ${layer})`, role: 'divider', normal: 'x', x: layer === 1 ? first : towards === 'right' ? startAt(ref(`${id}-1.x1`)) : endAt(ref(`${id}-1.x0`)), y, z }),
-    )
+  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) => pieces.push(...legLayers(plan.material, id, name, first, towards, y, z))
   const frontZ = extent(null, ref('furniture.z1', -frontSetback - LEG_INSET), LEG_WIDTH)
   const backZ = extent(ref('furniture.z0', LEG_INSET), null, LEG_WIDTH)
   leg('leg-front-left', 'Pata delantera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', frontZ)

@@ -123,7 +123,7 @@ describe('R4 tipping', () => {
 
   it('a bed, a desk or a wall cabinet are not storage furniture: their drawers or doors do not ask for the anti-tip kit', () => {
     const bed = buildBed({ kind: 'bed', name: 'Cama', mattress: 'individual', material: 'T18', height: 400, legs: 'none', legHeight: 150, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }, testCatalog).design
-    const desk = buildTable({ kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, shelf: false, pedestal: { side: 'left', drawers: 3 } }, testCatalog).design
+    const desk = buildTable({ kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, shelf: false, pedestal: { side: 'left', drawers: 3 }, legs: 'panel' }, testCatalog).design
     for (const d of [bed, desk, { ...exampleWallCabinet, wallAnchored: false, dimensions: { ...exampleWallCabinet.dimensions, height: 900 } }]) expect(storage(d)).toEqual([])
   })
 })

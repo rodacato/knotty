@@ -232,7 +232,7 @@ const approxTokens = (text: string) => Math.round(text.length / 3.5)
 const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2530, bed: 2090, table: 1870, shoeRack: 1930 }
 
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6070, cabinet: 3140, bed: 2105, table: 1840, shoeRack: 1960 }
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6160, cabinet: 3140, bed: 2105, table: 1840, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@1). */
 const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3410, adjust: 2790 } }

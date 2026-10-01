@@ -68,6 +68,7 @@ function tableFrom(notes: string, measures: Dimensions | null): TablePlan | null
     overhang: use === 'dining' ? 50 : 0,
     shelf: use === 'coffee' || use === 'side',
     pedestal: { side: drawers ? (/izquier/.test(text) ? 'left' : 'right') : 'none', drawers: Math.min(4, drawers) },
+    legs: 'panel',
   }
 }
 
