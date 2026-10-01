@@ -348,8 +348,8 @@ const bedFields: FieldSpec<BedPlan>[] = [
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
-    choice({ key: 'legs', label: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
-    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
+    choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
+    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
   ]),
   section('Cajones', [
     note('Los lados se ven desde el pie de la cama.'),

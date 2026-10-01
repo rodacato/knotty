@@ -247,7 +247,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
   ]),
-  section('Patas', [choice({ key: 'legs', label: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) })]),
+  section('Patas', [choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) })]),
   section((p) => (isDesk(p) ? 'Cajonera' : 'Abajo'), [
     choice({
       key: 'pedestal.side',

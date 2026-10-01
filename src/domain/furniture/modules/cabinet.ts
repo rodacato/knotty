@@ -464,7 +464,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
-    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
+    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
   ]),
