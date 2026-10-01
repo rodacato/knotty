@@ -7,14 +7,18 @@ interface ApiError {
   status?: number
   name?: string
   message?: string
+  cause?: unknown
 }
+
+// The SDK leaves `name` as 'Error'; its connection failure is the only status-less error carrying the network error as `cause`.
+const isSdkConnectionFailure = (e: ApiError) => e.status === undefined && e.cause instanceof Error
 
 export function describeError(err: unknown): string {
   if (!(err instanceof Error)) return 'Error desconocido.'
   const e = err as ApiError
   if (e.name === 'AbortError') return 'Cancelado.'
   if (e.name === 'APIConnectionTimeoutError') return 'El proveedor tardó demasiado en responder.'
-  if (e.name === 'APIConnectionError' || err instanceof TypeError) return CORS
+  if (e.name === 'APIConnectionError' || err instanceof TypeError || isSdkConnectionFailure(e)) return CORS
   switch (e.status) {
     case 401:
       return 'La API key no es válida.'
