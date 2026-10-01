@@ -4,15 +4,17 @@ import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
 import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
-import { LEG_HEIGHT } from './common'
+import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
+import { FurniturePlan } from './plan'
+import { cutList } from '../../materials/cutList'
 import { estimatePurchase } from '../../materials/purchase'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
-const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
+const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
 
 const PLANS: Record<string, CabinetPlan> = {
   bookcase: plan({ name: 'Librero' }),
-  nightstand: plan({ name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, base: 'floor', wallMounted: false, columns: [{ width: 1, cells: [cell('open', 0.6, { shelves: 0 }), cell('drawer', 0.4)] }] }),
+  nightstand: plan({ name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, base: 'floor', legHeight: 150, wallMounted: false, columns: [{ width: 1, cells: [cell('open', 0.6, { shelves: 0 }), cell('drawer', 0.4)] }] }),
   wallCabinet: plan({ name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, base: 'floor', columns: [{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }] }),
   tvStand: plan({
     name: 'Mueble de TV',
@@ -108,6 +110,68 @@ describe('on legs', () => {
   it('a plan saved before there were legs still reads, and one with legs too: a new value needs no migration', () => {
     expect(CabinetPlan.parse(PLANS.bookcase).base).toBe('kick')
     expect(CabinetPlan.parse(PLANS.sideboard).base).toBe('legs')
+  })
+})
+
+describe('leg height', () => {
+  const onLegs = (legHeight: number | undefined, extra: Partial<CabinetPlan> = {}) => ({ ...PLANS.sideboard, ...(legHeight === undefined ? {} : { legHeight }), ...extra })
+  const { legHeight: _omitted, ...saved } = PLANS.sideboard
+  const analyzed = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, a }
+  }
+
+  it.each([[99, false], [100, true], [150, true], [300, true], [301, false]])('takes %i mm of legs: %s', (legHeight, ok) => {
+    expect(CabinetPlan.safeParse({ ...PLANS.sideboard, legHeight }).success).toBe(ok)
+  })
+
+  it('rejects legs that leave the box under the least, with a no cupo message, and only on legs', () => {
+    const tooLow = FurniturePlan.safeParse(onLegs(300, { dimensions: { width: 1600, height: 300 + MIN_CARCASS_HEIGHT - 1, depth: 400 } }))
+    expect(tooLow.success).toBe(false)
+    expect(tooLow.error?.issues[0]).toMatchObject({ path: ['legHeight'], message: expect.stringMatching(/^No cupo/) })
+    expect(FurniturePlan.safeParse(onLegs(300, { dimensions: { width: 1600, height: 300 + MIN_CARCASS_HEIGHT, depth: 400 } })).success).toBe(true)
+    expect(FurniturePlan.safeParse({ ...PLANS.nightstand, legHeight: 300 }).success).toBe(true)
+  })
+
+  it('a plan saved without it gets 150 and builds exactly as one that says so', () => {
+    const old = CabinetPlan.parse(saved)
+    expect(old.legHeight).toBe(LEG_HEIGHT)
+    expect(buildCabinet(old, testCatalog)).toEqual(buildCabinet(PLANS.sideboard, testCatalog))
+    expect(FurniturePlan.parse(saved)).toEqual({ ...saved, legHeight: LEG_HEIGHT })
+  })
+
+  it.each([LEG_HEIGHT_RANGE.min, 220, LEG_HEIGHT_RANGE.max])('moves the floor and not the ceiling with %i mm legs', (legHeight) => {
+    const { design, a } = analyzed(onLegs(legHeight))
+    const box = (id: string) => a.geo.boxes.get(id)!
+    expect(box('bottom').y0).toBe(legHeight)
+    expect(box('leg-front-left-1').y1).toBe(legHeight)
+    expect(box('apron-front').y1).toBe(legHeight)
+    expect(box('side-left').y1).toBe(design.dimensions.height)
+    expect(design.dimensions.height).toBe(PLANS.sideboard.dimensions.height)
+  })
+
+  it('the cut list follows the height: the legs are cut at it and the sides at what is left', () => {
+    const lines = (legHeight: number) => {
+      const { design, a } = analyzed(onLegs(legHeight))
+      const list = cutList(design, a.geo)
+      return { leg: list.find((l) => l.ids.includes('leg-front-left-1'))!, side: list.find((l) => l.ids.includes('side-left'))! }
+    }
+    const [low, high] = [lines(100), lines(300)]
+    expect([low.leg.length, high.leg.length]).toEqual([100, 300])
+    expect([low.side.length, high.side.length]).toEqual([PLANS.sideboard.dimensions.height - 100, PLANS.sideboard.dimensions.height - 300])
+  })
+
+  it('does not change what the tipping rule sees: the total height and the depth between the legs stay', () => {
+    const codes = (legHeight: number) => analyzed({ ...onLegs(legHeight), wallMounted: false }).a.findings.map((f) => f.code).sort()
+    expect(codes(LEG_HEIGHT_RANGE.max)).toEqual(codes(LEG_HEIGHT_RANGE.min))
+  })
+
+  it('is on the form only with legs, and every bench variant of the module holds', () => {
+    const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).flatMap((f) => (f.type === 'numbers' ? f.fields : [])).find((f) => f.key === 'legHeight')!
+    expect(field).toMatchObject({ min: 100, max: 300 })
+    expect(cabinetModule.benchVariants().map(([name, p]) => [name, p.legHeight])).toEqual(expect.arrayContaining([['aparador con patas de 100 mm', 100], ['aparador con patas de 300 mm', 300]]))
   })
 })
 

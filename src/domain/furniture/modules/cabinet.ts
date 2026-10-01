@@ -10,7 +10,7 @@ import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Column, type Cell } from '../reading/reading'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_INSET, LEG_WIDTH, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 
@@ -31,6 +31,8 @@ export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none' }
 
+const LEG_HEIGHT_MESSAGE = `Las patas miden entre ${LEG_HEIGHT_RANGE.min} y ${LEG_HEIGHT_RANGE.max} mm.`
+
 export const CabinetPlan = z.object({
   kind: z.literal('cabinet'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Librero", "Buró con cajón"'),
@@ -39,11 +41,21 @@ export const CabinetPlan = z.object({
   base: z
     .enum(['kick', 'floor', 'legs'])
     .describe('kick: kick plate at the front; floor: the bottom of the furniture sits directly on the floor; legs: the box stands on legs under a frame screwed to its bottom, as sideboards and credenzas do'),
+  legHeight: z
+    .number()
+    .min(LEG_HEIGHT_RANGE.min, LEG_HEIGHT_MESSAGE)
+    .max(LEG_HEIGHT_RANGE.max, LEG_HEIGHT_MESSAGE)
+    .default(LEG_HEIGHT)
+    .describe(`Leg height in mm with base legs, ${LEG_HEIGHT_RANGE.min}–${LEG_HEIGHT_RANGE.max}; inside the total height, the box keeps ${MIN_CARCASS_HEIGHT}+`),
   wallMounted: z.boolean().describe('Whether it is anchored to or hung from the wall'),
   construction: CabinetConstruction,
   columns: z.array(Column).min(1).describe('Left to right; each one with its openings from bottom to top'),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
+
+/** The legs take height from the box above them: what is left must still hold a bottom, a top and an opening. */
+export const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+export const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
@@ -201,7 +213,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
       }),
     )
   pieces.push(
-    panel({ id: 'bottom', name: 'Piso', role: 'bottom', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', onLegs ? LEG_HEIGHT : 0)), z: depth(), load: 'medium' }),
+    panel({ id: 'bottom', name: 'Piso', role: 'bottom', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' }),
     build.top === 'over'
       ? panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: depth() })
       : panel({ id: 'top', name: 'Techo', role: 'top', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: endAt(ref('furniture.y1')), z: depth() }),
@@ -373,6 +385,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
   if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
   if (before.material !== after.material) changes.push(`material ${after.material}`)
   if (before.base !== after.base) changes.push(CABINET_LABELS.base[after.base].phrase)
+  if (after.base === 'legs' && before.legHeight !== after.legHeight) changes.push(`patas de ${after.legHeight} mm`)
   if (before.wallMounted !== after.wallMounted) changes.push(after.wallMounted ? 'anclado al muro' : 'sin anclar')
   for (const key of Object.keys(CABINET_LABELS.construction) as (keyof CabinetConstruction)[]) {
     if (before.construction[key] === after.construction[key]) continue
@@ -390,7 +403,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
 
 function benchCabinets(): [string, CabinetPlan][] {
   const cell = (content: Cell['content'], height = 1, shelves: number | null = null, doors: number | null = null): Cell => ({ height, content, shelves, doors })
-  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
+  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', legHeight: LEG_HEIGHT, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
   const list: [string, CabinetPlan][] = [
     ['librero', cabinet('Librero', { width: 600, height: 1800, depth: 300 }, [{ width: 1, cells: [cell('open', 1, 4)] }])],
     ['buró', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'floor', wallMounted: false })],
@@ -415,8 +428,9 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['buró con patas', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'legs', wallMounted: false })],
   ]
   const sideboard = list.find(([name]) => name === 'aparador con patas')![1]
+  const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
-  return [...list, ...withPulls]
+  return [...list, ...withPulls, ...legHeights]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -454,6 +468,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
+    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
   ]),

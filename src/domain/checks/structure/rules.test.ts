@@ -58,7 +58,7 @@ describe('R4 tipping', () => {
   // docs/carpinteria/valores-de-referencia.md §12: from 686 mm, anything with drawers or doors is anchored (ASTM F2057-23).
   const cell = (content: Cell['content'], doors: number | null = null): Cell => ({ height: 1, content, shelves: 0, doors })
   const cabinet = (height: number, cells: Cell[], extra: Partial<CabinetPlan> = {}) =>
-    buildCabinet({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 500, height, depth: 450 }, material: 'T18', base: 'floor', wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells }], ...extra }, testCatalog).design
+    buildCabinet({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 500, height, depth: 450 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells }], ...extra }, testCatalog).design
   const storage = (d: Design) => findings(d, 'R4_TIPPING').filter((h) => h.check === 'tipping.storage')
 
   it('furniture with drawers or doors from 686 mm high is anchored, whatever its depth or its name', () => {
@@ -150,7 +150,7 @@ describe('R6 doors', () => {
   const withHinge = (d: Design, hardwareId: string): Design => ({ ...d, joints: d.joints.map((u) => (u.type === 'cup-hinge' ? { ...u, hardware: u.hardware.map((h) => ({ ...h, hardwareId })) } : u)) })
 
   it('an inset door on a straight hinge does not close in place, and Knotty swaps it for the super-cranked one', () => {
-    const inset = buildCabinet({ kind: 'cabinet', name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', wallMounted: true, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] }, testCatalog).design
+    const inset = buildCabinet({ kind: 'cabinet', name: 'Alacena', dimensions: { width: 760, height: 720, depth: 320 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: true, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 1, doors: 2 }] }] }, testCatalog).design
     expect(findings(inset, 'R6_DOORS')).toEqual([])
     const wrong = withHinge(inset, 'cup-hinge-35-full')
     const r6 = findings(wrong, 'R6_DOORS')

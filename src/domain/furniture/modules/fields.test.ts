@@ -39,7 +39,7 @@ function candidates(field: ValueField<Plan>, plan: Plan): unknown[] {
     case 'stepper':
       return Array.from({ length: field.max - field.min + 1 }, (_, i) => field.min + i)
     case 'number':
-      return [field.get(plan) + 50]
+      return [Math.min(field.get(plan) + 50, field.max ?? Infinity)]
     case 'custom': {
       const columns = field.get(plan)
       return [[...columns, columns[0]], ...(columns.length > 1 ? [columns.slice(1)] : [])]

@@ -16,7 +16,7 @@ const contextOf = (design: Design): RuleContext => {
   return { design, geo: a.geo, catalog: testCatalog, contacts: a.contacts }
 }
 const bookcase = buildCabinet(
-  { kind: 'cabinet', name: 'Librero', dimensions: { width: 600, height: 1800, depth: 200 }, material: 'T18', base: 'floor', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: null, doors: null }] }] },
+  { kind: 'cabinet', name: 'Librero', dimensions: { width: 600, height: 1800, depth: 200 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: null, doors: null }] }] },
   testCatalog,
 ).design
 

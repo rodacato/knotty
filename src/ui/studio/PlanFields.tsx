@@ -15,6 +15,12 @@ const CUSTOM: { [K in keyof CustomValues]: ComponentType<{ label: string; value:
 }
 
 /** An emptied number shows as empty rather than 0, unless 0 is the minimum. */
+/** What a typed measure breaks of its bounds, in words; null when it holds. */
+export const outOfRange = (value: number, min?: number, max?: number) => {
+  if ((min === undefined || value >= min) && (max === undefined || value <= max)) return null
+  return min !== undefined && max !== undefined ? `Entre ${min} y ${max} mm.` : min !== undefined ? `Mínimo ${min} mm.` : `Máximo ${max} mm.`
+}
+
 const numberText = (value: number, min = 1) => (value || value === min ? value : '')
 
 /** Which fields are locked for «Ahorrar material», and how to lock or free one; without it the form has no locks. */
@@ -62,6 +68,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
     case 'number':
       return (
         <Field
+          error={outOfRange(field.get(plan), field.min, field.max)}
           label={
             <span className="flex items-center gap-1">
               {lock(field)}
@@ -69,7 +76,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
             </span>
           }
         >
-          <Input type="number" inputMode="numeric" min={field.min} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)))} />
+          <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)))} />
         </Field>
       )
     case 'choice':

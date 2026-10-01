@@ -41,7 +41,7 @@ export function createEdits(kit: Kit) {
   /** A change made on the plan itself: rebuilt at once, no expert involved. */
   function applyPlan(state: DesignState, plan: FurniturePlan): { ok: true; state: DesignState; notes: string[] } | { ok: false; message: string } {
     const parsed = FurniturePlan.safeParse(plan)
-    if (!parsed.success) return { ok: false, message: 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
+    if (!parsed.success) return { ok: false, message: parsed.error.issues.find((i) => i.code === 'custom' || i.path[0] === 'legHeight')?.message ?? 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
     const current = currentPlan(state)
     const rebuilt = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
     const { notes, dropped } = rebuilt

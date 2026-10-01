@@ -575,6 +575,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     dimensions: { width: 500, height: 900, depth: 450 },
     material: 'T18',
     base: 'kick' as const,
+    legHeight: 150,
     wallMounted: true,
     construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
@@ -743,6 +744,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     dimensions: { width: 500, height: 900, depth: 450 },
     material: 'T18',
     base: 'kick' as const,
+    legHeight: 150,
     wallMounted: true,
     construction: DEFAULT_CONSTRUCTION,
     columns: [{ width: 1, cells: Array.from({ length: n }, () => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],
@@ -996,7 +998,7 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
   })
 
   it('a change with a new critical finding waits for the person with the rules options, as through the expert\'s plan', async () => {
-    const { llm, calls } = counting({ ...createSimulated(0), planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: { name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'kick', wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
+    const { llm, calls } = counting({ ...createSimulated(0), planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: { name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
     const c = setup(llm)
     const initial = await c.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Una cajonera' }, newSignal())
     calls.length = 0
@@ -1064,7 +1066,7 @@ describe('editing a piece by hand, without the expert', () => {
   })
 
   it('on a design with a plan, the hand edit rides on top as an extra, and widening goes through the plan', async () => {
-    const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
+    const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
     const simulated = createSimulated(0)
     const c = setup({ ...simulated, planDesign: async () => ({ value: { explanation: 'Librero.', ...answerWith(null), cabinet: plan, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
     const initial = await c.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Un librero' }, newSignal())

@@ -12,6 +12,7 @@ const cabinet = (extra: Partial<CabinetPlan> = {}): CabinetPlan => ({
   dimensions: { width: 500, height: 900, depth: 450 },
   material: 'T18',
   base: 'kick',
+  legHeight: 150,
   wallMounted: false,
   construction: DEFAULT_CONSTRUCTION,
   columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 1, doors: null }, { height: 1, content: 'drawer', shelves: null, doors: null }] }],
