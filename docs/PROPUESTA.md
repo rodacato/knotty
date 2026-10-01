@@ -446,6 +446,7 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 ### Fichas, módulos y tipo de mueble
 
 - **Cada tipo de mueble es un módulo registrado** (`MODULES`, `MODULE_OF_KIND`) y no compila si a un tipo le falta el suyo. Agregar uno no debe tocar la ficha, el banco ni el esquema del experto: se generan desde el registro. Si agregar un módulo obliga a editar otro lado, ese lado hay que generalizarlo.
+- **`legHeight` (gabinete con patas):** milímetros, de 100 a 300, 150 por omisión (una ficha sin el campo sigue valiendo). La altura total incluye las patas: cambiarlas mueve el piso, no el techo, y la caja que queda (alto − patas) no baja de 200 mm (si no, «No cupo»). Los tres números son sin referencia (`MODULE_SOURCES`). No medido con `npm run compare` (diferido hasta 1.0).
 - **Los cortes (`Piece.cuts`) solo se dibujan.** No cambian la lista de corte, la compra ni las reglas: la pieza sigue siendo el tablero entero. El experto no los ve.
 - **Quién decide el tipo** (`settleKind`): la persona siempre, y nada la pisa salvo ella; después ejemplo o ficha, foto y palabras, y a igual confianza el más nuevo. Un uso afina la palabra de su módulo. El tipo pasa de versión en versión (`addVersion`), igual que el acabado y los cantos: un gabinete rearmado desde su ficha sigue siendo librero.
 - **Cambiar de módulo no convierte la ficha:** se ofrece «Rehacer como…», que diseña de nuevo con las medidas de antes solo como referencia.

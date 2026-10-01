@@ -19,6 +19,7 @@ const wallCabinet = (cells: CabinetPlan['columns'][number]['cells']): CabinetPla
   dimensions: { width: 800, height: 700, depth: 300 },
   material: 'T18',
   base: 'floor',
+  legHeight: 150,
   wallMounted: true,
   construction: DEFAULT_CONSTRUCTION,
   columns: [{ width: 1, cells }],

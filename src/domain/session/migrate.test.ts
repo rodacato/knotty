@@ -107,9 +107,9 @@ describe('migrateState', () => {
     v6.proposal.plan = cabinet
     const state = DesignState.parse(migrateState(JSON.parse(JSON.stringify(v6))))
     expect(state.format).toBe(9)
-    expect(state.versions[0].plan).toEqual({ kind: 'cabinet', ...cabinet })
+    expect(state.versions[0].plan).toEqual({ kind: 'cabinet', legHeight: 150, ...cabinet })
     expect(state.versions.at(-1)!.plan).toEqual(bed)
-    expect(state.proposal?.plan).toEqual({ kind: 'cabinet', ...cabinet })
+    expect(state.proposal?.plan).toEqual({ kind: 'cabinet', legHeight: 150, ...cabinet })
     // What is saved again reads back the same.
     expect(DesignState.parse(migrateState(JSON.parse(JSON.stringify(state))))).toEqual(state)
   })

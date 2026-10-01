@@ -23,6 +23,9 @@ export const KICK_HEIGHT = { cabinet: 70, pedestal: 70, bed: 70 } as const
 export const KICK_SETBACK = 30
 /** On legs: from the floor to the underside of the box, the height of the frame under it, the depth of a leg of two glued layers, and how far legs and frame sit back from the edges. */
 export const LEG_HEIGHT = 150
+/** What a person may choose for the legs' height, and the least that must stay for the box above them (the total height includes the legs). */
+export const LEG_HEIGHT_RANGE = { min: 100, max: 300 } as const
+export const MIN_CARCASS_HEIGHT = 200
 export const LEG_APRON = 80
 export const LEG_WIDTH = 72
 export const LEG_INSET = 30
@@ -32,6 +35,8 @@ export const MODULE_SOURCES: Record<string, Source> = {
   KICK_HEIGHT: cite(VALUES, '10-medidas-de-muebles-y-ergonomía', '**50–70** alto en recámara'),
   KICK_SETBACK: noReference('the reference sets a kick back 50 mm only in kitchens; 30 is Knotty’s for bedroom and living-room furniture'),
   LEG_HEIGHT: noReference('the reference gives no height for legs under a box; about 150 is what the reference sideboard KC-APA-01 (940 × 1600 × 400 on four splayed legs) shows'),
+  LEG_HEIGHT_RANGE: noReference('the reference gives no range for legs: under 100 the 80 mm apron nearly touches the floor, over 300 they need a thicker section and bracing'),
+  MIN_CARCASS_HEIGHT: noReference('the reference gives no least box height; under 200 a bottom, a top and a drawer or a shelf no longer fit between them'),
   LEG_APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
   LEG_WIDTH: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', '2 × 18 = 36 × 72 mm'),
   LEG_INSET: noReference('the same setback as a kick, KICK_SETBACK: the legs stay out of the way of feet and still stand close to the edges'),

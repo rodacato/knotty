@@ -2,14 +2,14 @@ import { z } from 'zod'
 import type { DesignKind } from '../../design/kind'
 import type { Catalog } from '../../materials/catalog'
 import { BedPlan, bedModule } from './bed'
-import { CabinetPlan, cabinetModule } from './cabinet'
+import { CabinetPlan, cabinetModule, carcassFits, CARCASS_TOO_LOW } from './cabinet'
 import type { FurnitureModule } from './module'
 import { ShoeRackPlan, shoeRackModule } from './shoeRack'
 import { TablePlan, tableModule } from './table'
 
 // The ficha of any piece of furniture Knotty builds by itself, and the module that knows each kind.
 
-export const FurniturePlan = z.discriminatedUnion('kind', [CabinetPlan, BedPlan, TablePlan, ShoeRackPlan])
+export const FurniturePlan = z.discriminatedUnion('kind', [CabinetPlan, BedPlan, TablePlan, ShoeRackPlan]).refine((p) => p.kind !== 'cabinet' || carcassFits(p), { message: CARCASS_TOO_LOW, path: ['legHeight'] })
 export type FurniturePlan = z.infer<typeof FurniturePlan>
 export type FurnitureKind = FurniturePlan['kind']
 export type PlanOf<K extends FurnitureKind> = Extract<FurniturePlan, { kind: K }>

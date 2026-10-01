@@ -20,6 +20,7 @@ const cabinet = (height: number) => ({
   dimensions: { width: 500, height, depth: 450 },
   material: 'T18',
   base: 'kick' as const,
+  legHeight: 150,
   wallMounted: true,
   construction: DEFAULT_CONSTRUCTION,
   columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }],

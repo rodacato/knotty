@@ -55,6 +55,8 @@ export interface NumberField<P> extends Shown<P>, Edits<P, number>, Named {
   unit: 'mm'
   /** The lowest the input offers; 1 without it. */
   min?: number
+  /** The highest the plan takes; no limit without it. */
+  max?: number
 }
 
 /** Measures side by side. */

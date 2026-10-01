@@ -14,6 +14,7 @@ const plan = (construction: Partial<CabinetConstruction>): CabinetPlan => ({
   dimensions: { width: 1500, height: 700, depth: 390 },
   material: 'T18',
   base: 'floor',
+  legHeight: 150,
   wallMounted: true,
   construction: { ...DEFAULT_CONSTRUCTION, ...construction },
   columns: [

@@ -143,7 +143,7 @@ describe('createExpert', () => {
 
   it('edits the plan with its own short prompt: the context, the current plan and the request', async () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
-    const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
+    const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const r = await expert.adjustPlan!({ context: '## Diseño', request: '¿Aguanta?', plan, catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(r.origin.promptId).toBe('plan-adjust@12+cabinet@8')
     expect(calls[0].system).toContain('"T15" (15 mm)')
@@ -166,14 +166,14 @@ describe('createExpert', () => {
     const designed = await skeleton.planDesign!({ measures: null, photos: [], notes: 'aparador', reading: null, catalog: testCatalog, correction: null, routeKind: 'sideboard' }, new AbortController().signal)
     expect(designed.origin.promptId).toBe('skeleton@16+cabinet@8+sideboard@3')
     const { expert } = fake({ explanation: 'x', ...answerWith(null), summary: 'r', action: 'answer', questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
-    const plan = { kind: 'cabinet' as const, name: 'Aparador', dimensions: { width: 1600, height: 940, depth: 400 }, material: 'T18', base: 'kick' as const, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [] }
+    const plan = { kind: 'cabinet' as const, name: 'Aparador', dimensions: { width: 1600, height: 940, depth: 400 }, material: 'T18', base: 'kick' as const, legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [] }
     const adjusted = await expert.adjustPlan!({ context: '', request: 'x', plan, kind: 'sideboard', catalog: testCatalog, correction: null }, new AbortController().signal)
     expect(adjusted.origin.promptId).toBe('plan-adjust@12+cabinet@8+sideboard@3')
   })
 
   it('the plan correction round carries the previous plan and why it did not build', async () => {
     const { expert, calls } = fake({ explanation: 'x', summary: 'r', action: 'answer', ...answerWith(null), questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
-    const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
+    const plan = { kind: 'cabinet' as const, name: 'Buró', dimensions: { width: 450, height: 550, depth: 400 }, material: 'T18', base: 'floor' as const, legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [] }
     await expert.adjustPlan!({ context: '', request: 'x', plan, catalog: testCatalog, correction: { previousResponse: { action: 'plan' }, errors: '- E_X: no cabe' } }, new AbortController().signal)
     expect(calls[0].content[1]).toMatchObject({ text: expect.stringMatching(/## Your previous answer could not be used\n- E_X: no cabe[\s\S]*"action":"plan"/) })
   })

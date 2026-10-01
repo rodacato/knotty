@@ -6,7 +6,7 @@ import type { Cell } from '../reading/reading'
 import { ASSUMPTIONS } from '../../checks/structure/assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
-import { DEFAULT_THICKNESS, KICK_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
+import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
@@ -93,6 +93,7 @@ function asCabinet(plan: ShoeRackPlan, layout: ReturnType<typeof layoutOf>): Cab
     dimensions: plan.dimensions,
     material: plan.material,
     base: plan.base,
+    legHeight: LEG_HEIGHT,
     wallMounted: plan.wallMounted,
     construction: { ...DEFAULT_CONSTRUCTION, top: plan.seat ? 'over' : 'between', shelves: 'fixed' },
     columns: Array.from({ length: layout.columns }, () => ({ width: 1, cells })),

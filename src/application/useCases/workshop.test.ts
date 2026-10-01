@@ -23,6 +23,7 @@ const sideboard = (extra: Partial<CabinetPlan> = {}): CabinetPlan => ({
   dimensions: { width: 1200, height: 800, depth: 400 },
   material: 'T18',
   base: 'floor',
+  legHeight: 150,
   wallMounted: false,
   construction: { ...DEFAULT_CONSTRUCTION, top: 'over' },
   columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 1, doors: null }] }],
