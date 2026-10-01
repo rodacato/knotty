@@ -84,6 +84,8 @@ function bedFrom(notes: string): BedPlan | null {
     mattress,
     material: 'T18',
     height: 400,
+    legs: 'none',
+    legHeight: 150,
     drawers: {
       side: !drawers ? 'none' : both ? 'both' : /derech/.test(text) ? 'right' : 'left',
       count: Math.min(4, Math.max(1, countBefore(text, 'caj') ?? 3)),
