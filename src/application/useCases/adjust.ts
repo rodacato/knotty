@@ -289,7 +289,7 @@ export function createAdjust(kit: Kit) {
       const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...plan })
       return reply([r.explanation, ...settings, ...remaining, ...warnings.map((a) => a.message)].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
     }
-    return reply(adjustFailed(lastError), { error: true })
+    return reply(adjustFailed(lastError), { error: true, failure: 'rejection' })
   }
 
   async function adjust(state: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress = () => {}, answering: string | null = null): Promise<DesignState> {
@@ -302,8 +302,8 @@ export function createAdjust(kit: Kit) {
     try {
       return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {
-      if (signal.aborted) return round.reply(CANCELLED, { error: true })
-      return round.reply(e instanceof Error ? e.message : EXPERT_FAILED, { error: true })
+      if (signal.aborted) return round.reply(CANCELLED, { error: true, failure: 'cancelled' })
+      return round.reply(e instanceof Error ? e.message : EXPERT_FAILED, { error: true, failure: 'connection' })
     }
   }
 

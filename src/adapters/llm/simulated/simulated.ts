@@ -305,7 +305,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null): 
   return adjustment({
     explanation: 'En modo simulado solo entiendo algunos pedidos. Prueba con uno de estos:',
     summary: 'Sin cambios',
-    questions: [{ text: 'Pedidos de ejemplo', options: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Hazlo de 50 cm de fondo', 'Agrega un cajón abajo'] }],
+    suggestions: ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Hazlo de 50 cm de fondo', 'Agrega un cajón abajo'],
   })
 }
 

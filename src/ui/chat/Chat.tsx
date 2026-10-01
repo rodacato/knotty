@@ -9,6 +9,7 @@ import { useServices } from '../services'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { useReducedMotion } from '../scene/preferences'
+import { answerGiven, applyLabel, openQuestions, recovery, suggestionsFor } from './chatLogic'
 import { Memory } from './Memory'
 import { ProposalFixButton } from './ProposalFix'
 import { Tray } from './Tray'
@@ -23,8 +24,6 @@ export const STAGES: Record<Stage, string> = {
   correcting: 'Corrigiendo un detalle…',
   'reviewing-criticals': 'Revisando los puntos críticos…',
 }
-
-const SUGGESTIONS = ['Hazlo de 90 cm de ancho', 'Que aguante libros pesados', 'Baja una repisa 10 cm', 'Refuerza la base']
 
 /** Several pieces with the same problem are counted in a single line. */
 function groupByCode<T extends { code: string }>(critical: T[]) {
@@ -48,9 +47,6 @@ function useSeconds(active: boolean) {
   return seconds
 }
 
-/** Open questions with quick answers across the chat: with more than one, answers wait in the tray. */
-const openQuestions = (state: DesignState) => state.chat.filter((m) => m.author === 'expert' && !m.answered).flatMap((m) => m.questions.filter((p, i) => p.options && !m.answers.includes(questionAnswerKey(i))))
-
 /** One question answers at once (Knotty builds the option if it can); with several, or a tray, answers wait there as text for the expert. */
 function Questions({ m, state, hidden = [] }: { m: Message; state: DesignState; hidden?: number[] }) {
   const chooseOption = useStore((s) => s.chooseOption)
@@ -64,17 +60,19 @@ function Questions({ m, state, hidden = [] }: { m: Message; state: DesignState; 
       {m.questions.map((p, i) => {
         if (hidden.includes(i)) return null
         const taken = m.answered || m.answers.includes(questionAnswerKey(i))
+        const given = taken ? answerGiven(state, m, i) : null
         return (
           <div key={i} className="flex flex-col gap-2">
             {m.questions.length > 1 || p.text !== m.text ? <p className="text-sm font-medium">{p.text}</p> : null}
-            {p.options && (
+            {p.options && taken && <p className="text-sm text-graphite">{given ? `Respondiste: ${given}` : 'Pregunta respondida.'}</p>}
+            {p.options && !taken && (
               <div className="flex flex-wrap gap-2">
                 {p.options.map((o) => (
                   <Chip
                     key={o}
                     active={chosen(i) === o}
                     aria-pressed={batch ? chosen(i) === o : undefined}
-                    disabled={taken || thinking}
+                    disabled={thinking}
                     onClick={() => (batch ? toggleTray(answerItem(m.id, i, p.text, o)) : void chooseOption(m.id, i, o))}
                   >
                     {o}
@@ -90,7 +88,7 @@ function Questions({ m, state, hidden = [] }: { m: Message; state: DesignState; 
   )
 }
 
-function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: (() => void) | null }) {
+function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover: { kind: 'retry' | 'edit'; run: () => void } | null }) {
   const thinking = useStore((s) => s.thinking)
   const applyProposal = useStore((s) => s.applyProposal)
   const discardProposal = useStore((s) => s.discardProposal)
@@ -144,9 +142,17 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             {p}
           </p>
         ))}
-        {retry && (
-          <Button variant="secondary" className="mt-3 min-h-9 text-xs" onClick={retry} disabled={thinking}>
-            <ArrowClockwise weight="bold" /> Reintentar
+        {recover && (
+          <Button variant="secondary" className="mt-3 min-h-9 text-xs" onClick={recover.run} disabled={thinking}>
+            {recover.kind === 'retry' ? (
+              <>
+                <ArrowClockwise weight="bold" /> Reintentar
+              </>
+            ) : (
+              <>
+                <PencilSimple weight="bold" /> Cambiar mi pedido
+              </>
+            )}
           </Button>
         )}
         {pending && (
@@ -173,21 +179,15 @@ function Bubble({ m, state, retry }: { m: Message; state: DesignState; retry: ((
             </ul>
             <div className="mt-3 flex flex-col gap-2">
               {state.proposal!.critical.length > 0 && <ProposalFixButton state={state} className="w-full" />}
-              {state.proposal!.critical.length ? (
-                <Button variant="secondary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
-                  Aplicar así, bajo mi riesgo
-                </Button>
-              ) : (
-                <Button variant="primary" className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
-                  Sí, aplícalo
-                </Button>
-              )}
+              <Button variant={state.proposal!.critical.length ? 'secondary' : 'primary'} className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+                {applyLabel(state.proposal!.critical.length)}
+              </Button>
               <div className="flex flex-wrap justify-between gap-2">
                 <Button variant="ghost" className="min-h-10" onClick={toggleProposal}>
                   {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
                 </Button>
                 <Button variant="ghost" className="min-h-10" onClick={discardProposal} disabled={thinking}>
-                  <ArrowCounterClockwise /> {state.proposal!.critical.length ? 'Descartar' : 'No, déjalo como estaba'}
+                  <ArrowCounterClockwise /> Descartar
                 </Button>
               </div>
             </div>
@@ -213,10 +213,9 @@ export function Chat({ state }: { state: DesignState }) {
   const reduced = useReducedMotion()
   const last = state.chat.at(-1)
   const previous = state.chat.at(-2)
-  // If the last attempt failed, the same request is sent again with one click.
-  const retry = last?.error && previous?.author === 'user' ? () => void adjust(previous.text) : null
-  // The tray and the suggestions compete for the same room on a phone; while the tray waits, it wins.
-  const suggestions = thinking || state.tray.length || last?.author !== 'expert' || last.error ? [] : last.suggestions.length ? last.suggestions : state.versions.length <= 1 ? SUGGESTIONS : []
+  const kind = recovery(last, previous)
+  const recover = kind && previous ? { kind, run: kind === 'retry' ? () => void adjust(previous.text) : () => setText(previous.text) } : null
+  const suggestions = suggestionsFor(state, thinking)
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
@@ -233,15 +232,12 @@ export function Chat({ state }: { state: DesignState }) {
       <Memory state={state} />
       <div ref={list} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pt-4 pb-3" role="log" aria-live="polite" aria-label="Conversación con el experto">
         {state.chat.map((m) => (
-          <Bubble key={m.id} m={m} state={state} retry={m === last ? retry : null} />
+          <Bubble key={m.id} m={m} state={state} recover={m === last ? recover : null} />
         ))}
         {thinking && (
           <div className="flex items-center gap-2 self-start rounded-2xl border border-line bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
             <Pencil className="h-5 w-12 text-amber" /> {stage ? STAGES[stage.name] : 'Pensando…'}
             {seconds >= 10 && <span className="numerals text-xs">· {seconds} s</span>}
-            <button type="button" onClick={cancel} className="-my-2.5 ml-1 min-h-11 rounded-full px-2 hover:text-graphite focus-visible:outline-2 focus-visible:outline-amber">
-              Cancelar
-            </button>
           </div>
         )}
       </div>

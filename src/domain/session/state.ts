@@ -28,6 +28,8 @@ export const Message = z.object({
   version: z.number().nullable(),
   proposal: z.enum(['pending', 'applied', 'discarded']).nullable(),
   error: z.boolean(),
+  /** Why an error message happened; null in older saves, which are treated as a connection failure. */
+  failure: z.enum(['connection', 'cancelled', 'rejection']).nullable().default(null),
   /** A thumbnail of the photo the person sent with this message. */
   thumbnail: z.string().nullable().default(null),
   /** Which questions ("p0") of this message were answered; with all of them, it is `answered`. */

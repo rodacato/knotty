@@ -17,7 +17,7 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
         <p className="flex items-center gap-1.5 text-sm font-medium">
           <TrayIcon weight="duotone" className="text-graphite" /> Bandeja · {items.length}
         </p>
-        <Button variant="primary" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={onSend}>
+        <Button variant="secondary" className="min-h-8 px-3 text-xs" disabled={thinking} onClick={onSend}>
           <ChatCircleText weight="fill" /> Consultar al experto
         </Button>
       </div>
