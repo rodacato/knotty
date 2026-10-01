@@ -24,7 +24,7 @@ function Chips({ items }: { items: { key: string; text: string; onRemove: () => 
             type="button"
             onClick={i.onRemove}
             aria-label={`Quitar: ${i.text}`}
-            className="grid size-7 shrink-0 place-items-center rounded-full text-graphite-2 hover:text-rust"
+            className="relative grid size-7 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-2 before:content-[''] hover:text-rust"
           >
             <X size={14} />
           </button>

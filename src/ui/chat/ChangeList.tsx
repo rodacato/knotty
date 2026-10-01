@@ -50,7 +50,7 @@ export function ChangeList({ state, version, inBubble = false }: { state: Design
           </li>
         ))}
       </ul>
-      <button type="button" disabled={thinking} onClick={() => run(undo(version))} className={`mt-2 flex items-center gap-1 text-xs font-medium hover:underline disabled:opacity-40 ${inBubble ? '' : 'ml-4'}`}>
+      <button type="button" disabled={thinking} onClick={() => run(undo(version))} className={`relative mt-2 flex items-center gap-1 text-xs font-medium before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-[''] hover:underline disabled:opacity-40 ${inBubble ? '' : 'ml-4'}`}>
         <ArrowCounterClockwise /> Deshacer este cambio
       </button>
       {error && <p className={`mt-1 text-xs text-rust ${inBubble ? '' : 'pl-4'}`}>{error}</p>}

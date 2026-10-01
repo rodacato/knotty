@@ -27,6 +27,8 @@ Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendo
 | Disabled label, light (primary) | 2.29 | 4.77 |
 | Disabled label, dark (primary) | 3.33 | 6.65 |
 
+**Touch targets (`UI-54`):** `Button` is `min-h-11` (44 px), up from `min-h-10`, in all variants; the call sites that tried to be smaller are gone. The `.pen` `Button` components are still 40 px until the re-vendoring.
+
 **Pending in the `.pen`:** the `focus`, `on-rust` and changed `rust` / `paper` variables; a disabled variant of the buttons (no longer an instance at `opacity: 0.4`).
 
 ## 0.3.0 — amber for selection only, Field, no TakePhoto

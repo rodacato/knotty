@@ -88,7 +88,7 @@ export function PieceEditor({ piece, box, catalog }: { piece: Piece; box: Box; c
         <div className="flex flex-col gap-1.5 rounded-xl bg-rust/10 p-2 text-xs text-rust">
           <span>{result.message}</span>
           {result.alternatives.map((a) => (
-            <Button key={a.label} variant="secondary" className="min-h-8 self-start text-xs" onClick={() => run(resizeFurniture(a.axis, a.value))}>
+            <Button key={a.label} variant="secondary" className="self-start text-xs" onClick={() => run(resizeFurniture(a.axis, a.value))}>
               {a.label}
             </Button>
           ))}

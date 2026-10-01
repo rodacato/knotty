@@ -25,7 +25,7 @@ export interface Locks {
 
 function Row({ label, lock, children }: { label: string; lock: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+    <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm">
       <span className="flex items-center gap-1">
         {lock}
         {label}

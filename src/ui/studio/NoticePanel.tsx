@@ -50,7 +50,7 @@ function PreviewButton({ fix }: { fix: Fix }) {
   const previewFix = useStore((s) => s.previewFix)
   const showing = preview?.label === fix.label
   return (
-    <Button variant="ghost" className={`min-h-9 shrink-0 px-3 text-xs ${showing ? 'bg-kraft text-graphite' : ''}`} onClick={() => previewFix(showing ? null : fix)} aria-pressed={showing}>
+    <Button variant="ghost" className={`shrink-0 px-3 text-xs ${showing ? 'bg-kraft text-graphite' : ''}`} onClick={() => previewFix(showing ? null : fix)} aria-pressed={showing}>
       {showing ? <EyeSlash /> : <Eye />} {showing ? 'Ocultar' : 'Ver'}
     </Button>
   )
@@ -92,7 +92,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
       {notice.pieces.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {notice.pieces.map((id) => (
-            <button key={id} type="button" onClick={() => select(id)} className="min-h-8 rounded-full border border-line px-3 text-xs text-graphite transition hover:border-graphite">
+            <button key={id} type="button" onClick={() => select(id)} className="relative min-h-8 rounded-full border border-line px-3 text-xs text-graphite transition before:absolute before:-inset-x-px before:-inset-y-2 before:content-[''] hover:border-graphite">
               {name(id)}
             </button>
           ))}
@@ -117,14 +117,14 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
         <div className="flex flex-col gap-2">
           {risky && <ProposalFixButton state={state} />}
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" className="min-h-10" onClick={toggleProposal}>
+            <Button variant="secondary" onClick={toggleProposal}>
               {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
             </Button>
-            <Button variant={risky ? 'secondary' : 'primary'} className="min-h-10 flex-1" disabled={thinking} onClick={applyProposal}>
+            <Button variant={risky ? 'secondary' : 'primary'} className="flex-1" disabled={thinking} onClick={applyProposal}>
               {risky ? 'Aplicar así, bajo mi riesgo' : 'Sí, aplícalo'}
             </Button>
           </div>
-          <Button variant="ghost" className="min-h-10 self-start" disabled={thinking} onClick={discardProposal}>
+          <Button variant="ghost" className="self-start" disabled={thinking} onClick={discardProposal}>
             <ArrowCounterClockwise /> No, déjalo como estaba
           </Button>
         </div>
@@ -140,10 +140,10 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
             ))}
           </div>
           <div className="flex items-center justify-between gap-2">
-            <button type="button" onClick={onAnswer} className="flex min-h-9 items-center gap-1 text-sm text-graphite underline">
+            <button type="button" onClick={onAnswer} className="flex min-h-11 items-center gap-1 text-sm text-graphite underline">
               <ChatCircleText /> Ver en la conversación
             </button>
-            <Button variant="ghost" className="min-h-9 px-3 text-sm text-graphite-2" disabled={thinking} onClick={() => dismissQuestion(notice)}>
+            <Button variant="ghost" className="px-3 text-sm text-graphite-2" disabled={thinking} onClick={() => dismissQuestion(notice)}>
               <X /> Descartar
             </Button>
           </div>
@@ -159,7 +159,7 @@ function SetAside({ label, notices, onReopen }: { label: string; notices: Notice
   if (!notices.length) return null
   return (
     <div className="px-4 py-3 text-sm">
-      <button type="button" className="min-h-9 text-sm text-graphite underline" onClick={() => setShown((v) => !v)}>
+      <button type="button" className="min-h-11 text-sm text-graphite underline" onClick={() => setShown((v) => !v)}>
         {shown ? 'Ocultar' : 'Ver'} {label} ({notices.length})
       </button>
       {shown && (
@@ -169,7 +169,7 @@ function SetAside({ label, notices, onReopen }: { label: string; notices: Notice
               <span className="flex-1">
                 <span className="font-medium">{n.title}:</span> {n.message}
               </span>
-              <button type="button" onClick={() => onReopen(n)} className="flex min-h-9 shrink-0 items-center gap-1 text-sm underline">
+              <button type="button" onClick={() => onReopen(n)} className="flex min-h-11 shrink-0 items-center gap-1 text-sm underline">
                 <ArrowCounterClockwise /> Reabrir
               </button>
             </li>

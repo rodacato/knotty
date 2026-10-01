@@ -44,7 +44,7 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
           type="button"
           onClick={onRemove}
           aria-label={`Quitar foto ${name}`}
-          className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow"
+          className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow before:absolute before:-inset-1 before:content-['']"
         >
           <Trash />
         </button>
@@ -83,7 +83,7 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
           className="resize-none"
         />
       ) : (
-        <button type="button" onClick={() => setWriting(true)} className="flex min-h-9 items-center gap-1.5 self-start rounded-lg px-1.5 text-sm text-graphite">
+        <button type="button" onClick={() => setWriting(true)} className="flex min-h-11 items-center gap-1.5 self-start rounded-lg px-1.5 text-sm text-graphite">
           <NotePencil className="shrink-0" /> Agregar una nota
         </button>
       )}
@@ -347,7 +347,7 @@ export function Capture() {
               <Warning className="mt-0.5 shrink-0" weight="bold" />
               <span role="alert" className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
               {canAnalyze && (
-                <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
+                <Button variant="ghost" className="shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
                   <ArrowClockwise weight="bold" /> Reintentar
                 </Button>
               )}
