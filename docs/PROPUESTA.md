@@ -491,6 +491,9 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 
 - El banco sin experto revisa hallazgos estructurales pero no las advertencias de geometría: `W_CONTACT_WITHOUT_JOINT` («se tocan pero no tienen unión») sale en la cama base y en unas 140 variantes de los módulos sin que nada lo marque.
 - R5 en un mueble abierto que no es caja: se juzga por caja (ver «Invariantes») y tiene solución construible (fajas). Queda: ¿aplicarla sola en el primer diseño, como una reparación por reglas? Y la regla todavía ignora los `brace` diagonales que ponga el experto.
+- R5 y el anclaje al muro: ¿un librero abierto anclado al muro cuenta como escuadrado? Los documentos de carpintería dicen que las escuadras no detienen el desescuadre, así que hoy el anclaje no se toma en cuenta; falta decidir si debe.
+- Patas de la cama: las patas bajo la esquina de lateral y cabecera dan unos 18 × 36 mm de contacto. ¿Alcanza esa unión, o hace falta otra?
+- Mesa con patas: faltan los faldones de los extremos, las patas de en medio pasando de 1200 mm y qué pasa con el entrepaño bajo en una mesa larga con patas.
 
 - Precios y SKU reales de triplay de pino 12/15/18 mm y trasera 3/6 mm en Home Depot MX.
 - Calibrar E del triplay de pino con una prueba casera (entrepaño cargado, medir flecha) cuando haya app.
