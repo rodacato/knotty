@@ -8,7 +8,7 @@ export interface Status {
   actions?: ReactNode
 }
 
-const LOOK = 'animate-appear pointer-events-auto flex min-h-9 items-center gap-2 rounded-full border border-line bg-bone/95 py-1 pl-3 text-xs font-medium text-graphite shadow-sm backdrop-blur'
+const LOOK = 'animate-appear pointer-events-auto flex min-h-9 items-center max-w-full min-w-0 gap-2 rounded-full border border-line bg-bone/95 py-1 pl-3 text-xs font-medium text-graphite shadow-sm backdrop-blur'
 
 /** One status over the 3D at a time: the first of the list, which the caller orders by priority. */
 export function StatusChip({ statuses }: { statuses: Status[] }) {
@@ -16,22 +16,22 @@ export function StatusChip({ statuses }: { statuses: Status[] }) {
   if (!status) return null
   const body = (
     <>
-      {status.icon}
-      <span>{status.label}</span>
+      <span className="flex shrink-0">{status.icon}</span>
+      <span className="min-w-0 truncate">{status.label}</span>
     </>
   )
   if (status.onClick)
     return (
-      <div role="status" className="contents">
+      <div key={status.key} role="status" className="contents">
         <button type="button" onClick={status.onClick} className={`${LOOK} pr-3 hover:bg-kraft`}>
           {body}
         </button>
       </div>
     )
   return (
-    <div role="status" className={`${LOOK} ${status.actions ? 'pr-1' : 'pr-3'}`}>
+    <div key={status.key} role="status" className={`${LOOK} ${status.actions ? 'pr-1' : 'pr-3'}`}>
       {body}
-      {status.actions}
+      {status.actions && <span className="flex shrink-0 items-center gap-1">{status.actions}</span>}
     </div>
   )
 }
