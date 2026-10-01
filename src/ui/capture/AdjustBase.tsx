@@ -14,7 +14,7 @@ import { SceneBoundary } from '../scene/SceneBoundary'
 import { AppHeader } from '../shell/AppHeader'
 import { useServices } from '../services'
 import { useStore } from '../store'
-import { FinishSelect } from '../studio/FinishSelect'
+import { FinishSelect } from '../system/FinishSelect'
 import { Button } from '../system/components'
 import { axisNote, blocking, chosenExample, COUNT_LABELS, isUnreadable, SPACE_AXES, spaceOf, summaryLines, type SpaceAxis } from './adjust'
 

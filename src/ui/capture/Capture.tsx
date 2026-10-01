@@ -11,7 +11,7 @@ import { Button, Pencil } from '../system/components'
 import { Field, Input, Select, TextArea } from '../system/Field'
 import { KindSelect } from '../system/KindSelect'
 import { useStore } from '../store'
-import { TraceLog } from '../studio/TraceLog'
+import { TraceLog } from '../system/TraceLog'
 import { designBlocker, spaceError, spaceFromMm, spaceToMm, type SpaceKey } from './form'
 
 const MAX_PHOTOS = 5
