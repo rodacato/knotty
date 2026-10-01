@@ -25,6 +25,8 @@ const bed: BedPlan = {
   mattress: 'individual',
   material: 'T18',
   height: 400,
+  legs: 'none',
+  legHeight: 150,
   drawers: { side: 'both', count: 3, position: 'head' },
   headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 2 },
 }

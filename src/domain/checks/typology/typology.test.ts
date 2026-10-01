@@ -43,7 +43,7 @@ describe('detectKind', () => {
 })
 
 describe('the kind is data, not the name', () => {
-  const bedPlan: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }
+  const bedPlan: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, legs: 'none', legHeight: 150, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }
 
   it('a bed the module built keeps its checks and its mattress when renamed', () => {
     const bed = buildBed(bedPlan, testCatalog).design

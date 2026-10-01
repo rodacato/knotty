@@ -727,7 +727,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
   })
 
   it('a bed goes through its own plan and Knotty builds it, measures from the mattress', async () => {
-    const bed: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, drawers: { side: 'left', count: 3, position: 'head' }, headboard: { style: 'storage', height: 1100, depth: 250, shelves: 2 } }
+    const bed: BedPlan = { kind: 'bed', name: 'Cama individual', mattress: 'individual', material: 'T18', height: 400, legs: 'none', legHeight: 150, drawers: { side: 'left', count: 3, position: 'head' }, headboard: { style: 'storage', height: 1100, depth: 250, shelves: 2 } }
     const { llm, calls } = withPlan(null, false, bed)
     const state = await setup(llm).reconstruct(request('Una cama individual con cajones y cabecera librero'), newSignal())
     expect(calls).toEqual(['plan'])

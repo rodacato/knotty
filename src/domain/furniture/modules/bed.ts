@@ -1,10 +1,10 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent } from '../../design/builders'
-import type { FaceRef, Design, Piece } from '../../design/schema'
+import type { Extent, FaceRef, Design, Piece } from '../../design/schema'
 import { MattressSize } from '../../design/kind'
 import { completeJoints } from '../../design/joints'
 import { backBoard, type Catalog } from '../../materials/catalog'
-import { addDrawers, cm, KICK_HEIGHT, MAX_SPAN, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
@@ -20,12 +20,24 @@ const MATTRESS_SIZES = Object.entries(MATTRESSES)
   .map(([name, [width, length]]) => `${name} ${width / 10} × ${length / 10}`)
   .join(', ')
 
+const LEG_HEIGHT_MESSAGE = `Las patas miden entre ${LEG_HEIGHT_RANGE.min} y ${LEG_HEIGHT_RANGE.max} mm.`
+
 export const BedPlan = z.object({
   kind: z.literal('bed'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Cama individual con cajones"'),
   mattress: MattressSize.describe(`Mattress size: ${MATTRESS_SIZES} cm`),
   material: z.string().describe('Plywood id, usually "T18"'),
   height: z.number().positive().describe('Base height in mm, from the floor to where the mattress rests; usually 300–450'),
+  legs: z
+    .enum(['none', 'legs'])
+    .default('none')
+    .describe('none: the frame stands on the floor; legs: the frame is raised on four legs at the corners, and more along the length if it is long. Not with drawers: their bench needs the plinth'),
+  legHeight: z
+    .number()
+    .min(LEG_HEIGHT_RANGE.min, LEG_HEIGHT_MESSAGE)
+    .max(LEG_HEIGHT_RANGE.max, LEG_HEIGHT_MESSAGE)
+    .default(LEG_HEIGHT)
+    .describe(`Leg height in mm with legs, ${LEG_HEIGHT_RANGE.min}–${LEG_HEIGHT_RANGE.max}; inside the base height, the frame keeps ${MIN_CARCASS_HEIGHT}+`),
   drawers: z.object({
     side: z.enum(['none', 'left', 'right', 'both']).describe('Which side they open on, seen from the foot of the bed: none, left, right or both'),
     count: z.number().int().min(0).max(MAX_DRAWERS_PER_SIDE).describe('How many drawers per side; 0 if there are none'),
@@ -39,6 +51,12 @@ export const BedPlan = z.object({
   }),
 })
 export type BedPlan = z.infer<typeof BedPlan>
+
+export const hasDrawers = (plan: BedPlan) => plan.drawers.side !== 'none' && plan.drawers.count > 0
+/** The legs take height from the frame above them: what is left must still hold the platform and its rails. */
+export const frameFits = (plan: BedPlan) => plan.legs !== 'legs' || plan.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+export const FRAME_TOO_LOW = `No cupo: con esas patas el marco de la cama queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto de la base.`
+export const LEGS_WITH_DRAWERS = 'No cupo: una cama con cajones no lleva patas, el zoclo sostiene el banco de cajones.'
 
 export const BED_LABELS = {
   mattress: {
@@ -58,6 +76,10 @@ export const BED_LABELS = {
     center: { option: 'Centro', phrase: 'al centro' },
     foot: { option: 'Pie', phrase: 'hacia el pie' },
   } satisfies Labels<BedPlan['drawers']['position']>,
+  legs: {
+    none: { option: 'Sin patas', phrase: 'sin patas' },
+    legs: { option: 'Cuatro patas', phrase: 'con patas' },
+  } satisfies Labels<BedPlan['legs']>,
   headboard: {
     none: { option: 'Sin cabecera', phrase: 'sin cabecera' },
     plain: { option: 'Lisa', phrase: 'cabecera lisa' },
@@ -102,6 +124,30 @@ interface BuiltBed {
   notes: string[]
 }
 
+/**
+ * The legs of a raised frame: two layers of the board glued face to face (36 × 72) at each corner, flush with the outside of the frame,
+ * and more along each side so no stretch between two is longer than the platform can span.
+ */
+function legsOf(span: number, t: number, headEnd: FaceRef, panel: ReturnType<typeof panelOf>): Piece[] {
+  const pieces: Piece[] = []
+  const y = extent(ref('furniture.y0'), ref('foot-panel.y0'))
+  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) =>
+    [1, 2].forEach((layer) =>
+      pieces.push(panel({ id: `${id}-${layer}`, name: `${name} (capa ${layer})`, role: 'divider', normal: 'x', x: layer === 1 ? first : towards === 'right' ? startAt(ref(`${id}-1.x1`)) : endAt(ref(`${id}-1.x0`)), y, z, edges: [] })),
+    )
+  const sides = [
+    ['left', 'izquierda', extent(null, ref('furniture.z1'), LEG_WIDTH)],
+    ['right', 'derecha', extent(ref('furniture.z0'), null, LEG_WIDTH)],
+  ] as const
+  for (const [side, words, z] of sides) {
+    leg(`leg-head-${side}`, `Pata de la cabecera ${words}`, startAt(ref(headEnd)), 'right', z)
+    leg(`leg-foot-${side}`, `Pata del pie ${words}`, endAt(ref('foot-panel.x1')), 'left', z)
+    const n = supportsAcross(span, 2 * t)
+    for (let k = 1; k <= n; k++) leg(`leg-middle-${side}-${k}`, `Pata intermedia ${words} ${n > 1 ? `${k} ` : ''}`.trim(), startAt(partway(`leg-head-${side}-2.x1`, `leg-foot-${side}-1.x0`, k / (n + 1), -t)), 'right', z)
+  }
+  return pieces
+}
+
 export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const t = thicknessOf(catalog, plan.material)
   const size = bedSize(plan, t)
@@ -113,6 +159,9 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const notes: string[] = []
   const style = plan.headboard.style
   const deep = style === 'bookcase' || style === 'storage'
+  const lift = plan.legs === 'legs' && !hasDrawers(plan) ? plan.legHeight : 0
+  // The frame stands on its legs: its pieces start where they end, the platform stays where the mattress rests.
+  const frameY0 = ref('furniture.y0', lift)
 
   // Headboard: a plain board, or a shallow box open toward the mattress.
   if (style === 'plain') pieces.push(headboardPanel({ id: 'headboard', name: 'Cabecera', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), grain: 'length' }))
@@ -143,8 +192,8 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   // Base: head and foot ends, a spine down the middle and the platform on top.
   const headEnd: FaceRef = style === 'plain' ? 'headboard.x1' : 'head-panel.x1'
   if (style !== 'plain')
-    pieces.push(panel({ id: 'head-panel', name: 'Cabecero de la base', role: 'side', normal: 'x', x: deep ? endAt(ref('furniture.x0', hd)) : startAt(ref('furniture.x0')), y: extent(ref('furniture.y0'), ref('furniture.y0', plan.height - t)), z: deep ? extent(ref('head-side-right.z1'), ref('head-side-left.z0')) : extent(ref('furniture.z0'), ref('furniture.z1')) }))
-  pieces.push(panel({ id: 'foot-panel', name: 'Piecero', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y0', plan.height - t)), z: extent(ref('furniture.z0'), ref('furniture.z1')) }))
+    pieces.push(panel({ id: 'head-panel', name: 'Cabecero de la base', role: 'side', normal: 'x', x: deep ? endAt(ref('furniture.x0', hd)) : startAt(ref('furniture.x0')), y: extent(frameY0, ref('furniture.y0', plan.height - t)), z: deep ? extent(ref('head-side-right.z1'), ref('head-side-left.z0')) : extent(ref('furniture.z0'), ref('furniture.z1')) }))
+  pieces.push(panel({ id: 'foot-panel', name: 'Piecero', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(frameY0, ref('furniture.y0', plan.height - t)), z: extent(ref('furniture.z0'), ref('furniture.z1')) }))
   const platformX = extent(ref(style === 'none' ? 'head-panel.x0' : headEnd), ref('furniture.x1'))
   const platformY = endAt(ref('furniture.y0', plan.height))
   const split = size.length > ONE_SHEET
@@ -156,7 +205,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     )
   else pieces.push(panel({ id: 'platform', name: 'Plataforma', role: 'bottom', normal: 'y', x: platformX, y: platformY, z: extent(ref('furniture.z0'), ref('furniture.z1')), load: 'heavy', grain: 'length' }))
   const under = (side: 'left' | 'right'): FaceRef => (split ? `platform-${side}.y0` : 'platform.y0')
-  pieces.push(panel({ id: 'spine', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(ref('furniture.y0'), ref(under('left'))), z: startAt(ref('furniture.z0', middle - t / 2)), grain: 'length' }))
+  pieces.push(panel({ id: 'spine', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(frameY0, ref(under('left'))), z: startAt(ref('furniture.z0', middle - t / 2)), grain: 'length' }))
 
   // Each side: drawers between dividers, or a closed rail.
   const drawers: AddDrawer[] = []
@@ -169,10 +218,10 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     const crossMembers = (from: number, to: number, span: number) => {
       const count = supportsAcross(to - from, t)
       for (let k = 1; k <= count; k++)
-        pieces.push(panel({ id: `rail-${side}-${span}-${k}`, name: `Travesaño ${label} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(ref('furniture.y0'), ref(under(side))), z: side === 'left' ? extent(ref('spine.z1'), ref(`side-${side}-${span}.z0`)) : extent(ref(`side-${side}-${span}.z1`), ref('spine.z0')) }))
+        pieces.push(panel({ id: `rail-${side}-${span}-${k}`, name: `Travesaño ${label} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(frameY0, ref(under(side))), z: side === 'left' ? extent(ref('spine.z1'), ref(`side-${side}-${span}.z0`)) : extent(ref(`side-${side}-${span}.z1`), ref('spine.z0')) }))
     }
     if (!hasDrawers) {
-      pieces.push(panel({ id: `side-${side}-1`, name: `Costado ${label}`, role: 'side', normal: 'z', z: faceZ, x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(ref('furniture.y0'), ref(under(side))), grain: 'length' }))
+      pieces.push(panel({ id: `side-${side}-1`, name: `Costado ${label}`, role: 'side', normal: 'z', z: faceZ, x: extent(ref(headEnd), ref('foot-panel.x0')), y: extent(frameY0, ref(under(side))), grain: 'length' }))
       crossMembers(0, inner, 1)
       continue
     }
@@ -231,6 +280,8 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     })
   }
 
+  if (lift > 0) pieces.push(...legsOf(size.width - 4 * t - Math.max(hd, t), t, headEnd, panel))
+
   const design: Design = {
     schema: 1,
     name: plan.name,
@@ -251,6 +302,8 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   const changes: string[] = []
   if (before.mattress !== after.mattress) changes.push(BED_LABELS.mattress[after.mattress].phrase)
   if (before.height !== after.height) changes.push(`base de ${after.height} mm`)
+  if (before.legs !== after.legs) changes.push(BED_LABELS.legs[after.legs].phrase)
+  if (after.legs === 'legs' && before.legHeight !== after.legHeight) changes.push(`patas de ${after.legHeight} mm`)
   if (before.material !== after.material) changes.push(`material ${after.material}`)
   const [a, b] = [before.drawers, after.drawers]
   if (a.side !== b.side) changes.push(BED_LABELS.drawerSide[b.side].phrase)
@@ -274,9 +327,15 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, drawers: { side, count: side === 'none' ? 0 : 3, position }, headboard: { style, height: 1100, depth: 250, shelves: 2 } },
           ])
         }
+  const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
+  for (const mattress of MattressSize.options)
+    for (const legHeight of [LEG_HEIGHT_RANGE.min, LEG_HEIGHT, LEG_HEIGHT_RANGE.max])
+      variants.push([`${mattress}, cabecera lisa, patas de ${legHeight} mm`, { ...base, mattress, legHeight, height: legHeight + 250 }])
+  for (const style of BedPlan.shape.headboard.shape.style.options.filter((s) => s !== 'plain'))
+    variants.push([`matrimonial, ${BED_LABELS.headboard[style].phrase}, patas de ${LEG_HEIGHT} mm`, { ...base, headboard: { ...base.headboard, style } }])
   return variants
 }
 
@@ -291,6 +350,9 @@ const bedFields: FieldSpec<BedPlan>[] = [
     note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+    note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
+    choice({ key: 'legs', label: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
+    numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
   ]),
   section('Cajones', [
     note('Los lados se ven desde el pie de la cama.'),
@@ -301,7 +363,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
       ...fromLabels(BED_LABELS.drawerSide),
       get: (p) => p.drawers.side,
       // Choosing a side puts at least one drawer on it.
-      set: (p, side) => withDrawers(p, { side, count: side === 'none' ? p.drawers.count : Math.max(1, p.drawers.count) }),
+      set: (p, side) => ({ ...withDrawers(p, { side, count: side === 'none' ? p.drawers.count : Math.max(1, p.drawers.count) }), legs: side === 'none' ? p.legs : 'none' }),
     }),
     stepper({ key: 'drawers.count', label: 'Por lado', ariaLabel: 'cajones por lado', min: 1, max: MAX_DRAWERS_PER_SIDE, visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.count, set: (p, count) => withDrawers(p, { count }) }),
     choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', ...fromLabels(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),

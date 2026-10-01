@@ -53,7 +53,7 @@ describe('R1 shelf sag', () => {
   })
 
   it('the platform of a bed carries a person, who gets off: it does not creep; the same boards as shelves do', () => {
-    const bed = buildPlan({ kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'none', height: 1100, depth: 250, shelves: 0 } }, testCatalog).design
+    const bed = buildPlan({ kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'none', legHeight: 150, drawers: { side: 'both', count: 3, position: 'head' }, headboard: { style: 'none', height: 1100, depth: 250, shelves: 0 } }, testCatalog).design
     const sag = (d: Design) => findings(d).filter((h) => h.code === 'R1_SAG')
     expect(sag(bed)).toEqual([])
     const shelves = sag({ ...bed, kind: undefined, mattress: undefined, name: 'Mueble' })
