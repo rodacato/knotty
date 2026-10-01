@@ -22,12 +22,14 @@ export function StatusChip({ statuses }: { statuses: Status[] }) {
   )
   if (status.onClick)
     return (
-      <button type="button" onClick={status.onClick} className={`${LOOK} pr-3 hover:bg-kraft`}>
-        {body}
-      </button>
+      <div role="status" className="contents">
+        <button type="button" onClick={status.onClick} className={`${LOOK} pr-3 hover:bg-kraft`}>
+          {body}
+        </button>
+      </div>
     )
   return (
-    <div className={`${LOOK} ${status.actions ? 'pr-1' : 'pr-3'}`}>
+    <div role="status" className={`${LOOK} ${status.actions ? 'pr-1' : 'pr-3'}`}>
       {body}
       {status.actions}
     </div>
