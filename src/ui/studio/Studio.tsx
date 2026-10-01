@@ -16,6 +16,8 @@ import { hiddenIn, visibleDesign, useStore, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
+import { InvalidCanvas } from './InvalidCanvas'
+import { previousUsableVersion } from '../../domain/session/history/history'
 import { PieceSheet } from './PieceSheet'
 import { StatusChip, type Status } from './StatusChip'
 import { named } from '../../application/named'
@@ -185,6 +187,7 @@ export function Studio({ state }: { state: DesignState }) {
   const select = useStore((s) => s.select)
 
   const shownGeo = shownAnalysis.geo
+  const previousVersion = shownGeo ? null : previousUsableVersion(state.versions, state.current, (v) => analyze(v.design, catalog).valid)
   const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
   const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.pieces.some((p) => p.id === v))))]
   const selection = useStore((s) => s.selection)
@@ -282,10 +285,15 @@ export function Studio({ state }: { state: DesignState }) {
           </SceneBoundary>
         </div>
       ) : (
-        <div role="alert" className="grid h-full place-items-center p-6 text-center text-sm text-rust">Este diseño tiene errores: {named(shownDesign, shownProblems[0]?.message)}</div>
+        <InvalidCanvas
+          detail={named(shownDesign, shownProblems[0]?.message)}
+          previous={previousVersion}
+          onBack={() => previousVersion !== null && backToVersion(previousVersion)}
+          onNotices={() => setOverlay('notices')}
+        />
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        <SceneBar />
+        {shownGeo && <SceneBar />}
         <StatusChip statuses={statuses} />
       </div>
     </div>
@@ -342,7 +350,12 @@ export function Studio({ state }: { state: DesignState }) {
             {currentAnalysis.valid ? (
               <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
             ) : (
-              <p className="p-4 text-sm text-graphite">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
+              <div className="flex flex-col items-start gap-3 p-4">
+                <p className="text-sm text-graphite">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
+                <Button className="min-h-11" onClick={() => setOverlay('notices')}>
+                  Ver los avisos
+                </Button>
+              </div>
             )}
           </Tabs.Content>
         </Tabs.Root>
