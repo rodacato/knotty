@@ -13,6 +13,7 @@ import { EDGE_LABEL, profiledEdges } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { hasRouter } from '../../domain/materials/tools'
 import { Title } from '../system/components'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
@@ -228,20 +229,13 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   return (
     <section className="flex flex-col gap-3">
       <Title className="text-lg">Acabado</Title>
-      <div role="radiogroup" aria-label="Acabado" className="flex flex-wrap gap-1.5">
+      <RadioGroup label="Acabado" className="flex flex-wrap gap-1.5">
         {FINISH_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="radio"
-            aria-checked={finishOf(design) === id}
-            onClick={() => choose(id)}
-            className={`rounded-full border px-3 py-1.5 text-xs transition ${finishOf(design) === id ? 'border-graphite bg-graphite text-bone' : 'border-line bg-bone text-graphite-2 hover:text-graphite'}`}
-          >
+          <RadioCard key={id} variant="pill" checked={finishOf(design) === id} onChange={() => choose(id)} className="px-3 py-1.5 text-xs">
             {FINISHES[id].name}
-          </button>
+          </RadioCard>
         ))}
-      </div>
+      </RadioGroup>
       <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
       <ProfiledEdges design={design} geo={geo} />
       {finish && (

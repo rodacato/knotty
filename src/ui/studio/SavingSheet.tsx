@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Eye, LockSimple, Stack } from '@phosphor-icons/r
 import { useState } from 'react'
 import type { Release, Saving, SavingSearch, SheetCount } from '../../domain/furniture/saving/saving'
 import { Button } from '../system/components'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { useStore } from '../store'
 
 // What «Ahorrar material» found: up to three ways to use fewer sheets, or, when there is none, which lock is worth freeing.
@@ -30,8 +31,8 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
   const previewFix = useStore((s) => s.previewFix)
   const showing = preview?.design === option.design
   return (
-    <div className={`flex flex-col gap-2 rounded-2xl border p-3.5 text-sm transition ${chosen ? 'border-graphite bg-kraft/60' : 'border-line bg-bone'}`}>
-      <button type="button" role="radio" aria-checked={chosen} onClick={onChoose} className="flex flex-col gap-2 rounded-lg text-left">
+    <div className={`relative flex flex-col gap-2 rounded-2xl border p-3.5 text-sm transition ${chosen ? 'border-graphite bg-kraft/60' : 'border-line bg-bone'}`}>
+      <RadioCard variant="bare" mark checked={chosen} onChange={onChoose} className="flex flex-col gap-2 rounded-lg text-left">
         <span className="flex w-full items-start justify-between gap-2">
           <span className="font-semibold">{option.title}</span>
           <span className="numerals shrink-0 rounded-md bg-kraft px-1.5 py-0.5 font-mono text-xs">
@@ -45,7 +46,7 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
             </span>
           ))}
         </span>
-      </button>
+      </RadioCard>
       <Button variant="ghost" aria-pressed={showing} className={`min-h-11 self-start border border-line px-3 text-xs ${showing ? 'bg-kraft text-graphite' : ''}`} onClick={() => previewFix(showing ? null : { design: option.design, label: option.title })}>
         <Eye /> Ver
       </Button>
@@ -77,11 +78,11 @@ export function SavingSheet({ search, onUse, onRelease, onBack }: { search: Savi
     <div className="flex flex-col gap-4">
       {search.today.length > 0 && <Header search={search} />}
       {search.options.length > 0 ? (
-        <div role="radiogroup" aria-label="Opciones para ahorrar material" className="flex flex-col gap-3">
+        <RadioGroup label="Opciones para ahorrar material" className="flex flex-col gap-3">
           {search.options.map((o, i) => (
             <OptionCard key={o.title} option={o} chosen={i === chosen} onChoose={() => setChosen(i)} />
           ))}
-        </div>
+        </RadioGroup>
       ) : (
         <>
           <div className="flex flex-col gap-1.5 rounded-2xl bg-kraft/60 p-4 text-sm">

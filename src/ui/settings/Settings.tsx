@@ -6,6 +6,7 @@ import { Unlock } from './Keys'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
@@ -100,25 +101,23 @@ export function Settings() {
 
           {locked && <Unlock />}
 
-          <div role="radiogroup" className="grid gap-2">
+          <RadioGroup className="grid gap-2">
             {PROVIDERS.map((p) => (
-              <button
+              <RadioCard
                 key={p}
-                type="button"
-                role="radio"
-                aria-checked={active === p}
-                aria-label={PRESETS[p].label}
-                onClick={() => {
+                checked={active === p}
+                label={PRESETS[p].label}
+                onChange={() => {
                   if (p !== active) setModels({ kind: 'idle' })
                   setDraft((b) => ({ ...b, active: p }))
                 }}
-                className={`flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition ${active === p ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
+                className="flex flex-col items-start rounded-2xl px-4 py-3 text-left"
               >
                 <span className="font-medium">{PRESETS[p].label}</span>
                 <span className="text-xs text-graphite">{PRESETS[p].description}</span>
-              </button>
+              </RadioCard>
             ))}
-          </div>
+          </RadioGroup>
 
           {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} />}
 
@@ -198,23 +197,16 @@ export function Settings() {
           <fieldset className="flex flex-col gap-2 border-t border-line pt-4">
             <legend className="mb-1.5 font-medium">¿Qué herramienta tienes?</legend>
             <p className="-mt-1 text-xs text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
-            <div role="radiogroup" aria-label="Tu herramienta" className="grid gap-1.5">
+            <RadioGroup label="Tu herramienta" className="grid gap-1.5">
               {TOOL_LEVELS.map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  role="radio"
-                  aria-checked={toolLevel === level}
-                  onClick={() => setToolLevel(level)}
-                  className={`flex flex-col items-start rounded-xl border px-3 py-2 text-left text-sm transition ${toolLevel === level ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
-                >
+                <RadioCard key={level} checked={toolLevel === level} onChange={() => setToolLevel(level)} className="flex flex-col items-start rounded-xl px-3 py-2 text-left text-sm">
                   <span className="font-medium">
                     {TOOL_LEVEL_LABELS[level].name} <span className="font-normal text-graphite-2">· nivel {level}</span>
                   </span>
                   <span className="text-xs text-graphite">{TOOL_LEVEL_LABELS[level].tools}</span>
-                </button>
+                </RadioCard>
               ))}
-            </div>
+            </RadioGroup>
           </fieldset>
 
           <label className="flex min-h-11 items-center gap-2 border-t border-line pt-3 text-xs text-graphite">

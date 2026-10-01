@@ -8,6 +8,7 @@ import { currentDesign, type DesignState } from '../../domain/session/state'
 import { answerItem, answerItemId, noticeItemId, type TrayItem } from '../../domain/session/tray/tray'
 import { useServices } from '../services'
 import { Button, Chip, Stamp } from '../system/components'
+import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { useStore } from '../store'
 import { ProposalFixButton } from '../chat/ProposalFix'
 
@@ -31,7 +32,7 @@ function WayOption({ chosen, caption, icon, label, onChoose, preview }: { chosen
   const thinking = useStore((s) => s.thinking)
   return (
     <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${chosen ? 'border-graphite bg-paper ring-1 ring-graphite' : 'border-line'}`}>
-      <button type="button" role="radio" aria-checked={chosen} disabled={thinking} onClick={onChoose} className="flex min-h-9 min-w-0 flex-1 items-center gap-3 text-left disabled:opacity-40">
+      <RadioCard variant="bare" checked={chosen} disabled={thinking} onChange={onChoose} className="flex min-h-9 min-w-0 flex-1 items-center gap-3 text-left">
         <span className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${chosen ? 'border-graphite' : 'border-graphite-2'}`}>{chosen && <span className="size-2 rounded-full bg-graphite" />}</span>
         <span className="min-w-0">
           <span className="flex items-center gap-1.5 text-xs font-semibold">
@@ -39,7 +40,7 @@ function WayOption({ chosen, caption, icon, label, onChoose, preview }: { chosen
           </span>
           {label && <span className="block text-sm">{label}</span>}
         </span>
-      </button>
+      </RadioCard>
       {preview}
     </div>
   )
@@ -100,7 +101,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
       )}
 
       {decides && (
-        <div role="radiogroup" aria-label={notice.title} className="flex flex-col gap-2">
+        <RadioGroup label={notice.title} className="flex flex-col gap-2">
           {fixes.map((f) => (
             <WayOption key={f.label} chosen={way?.kind === 'fix' && way.fix.label === f.label} caption="Al instante" icon={<Lightning weight="fill" />} label={f.label} onChoose={() => onWay({ kind: 'fix', fix: f })} preview={<PreviewButton fix={f} />} />
           ))}
@@ -110,7 +111,7 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
           })}
           {!optional && <WayOption chosen={isExpert(noticeItem(notice, null))} caption="A la bandeja, para el experto" icon={<Tray />} label="Que el experto decida" onChoose={() => onWay({ kind: 'expert', item: noticeItem(notice, null) })} />}
           {notice.kind === 'finding' && <WayOption chosen={way?.kind === 'accept'} caption={optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'} onChoose={() => onWay({ kind: 'accept' })} />}
-        </div>
+        </RadioGroup>
       )}
 
       {notice.kind === 'proposal' && (
