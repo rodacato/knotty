@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Lightning, Stack, Warning } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Check, Stack, Warning } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
@@ -123,7 +123,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
         </div>
         <div className="flex gap-2">
           <Button variant="primary" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
-            <Lightning weight="fill" /> Aplicar
+            <Check weight="fill" /> Aplicar
           </Button>
           <Button variant="ghost" className="min-h-10" disabled={!changes.length} onClick={() => set(source.plan!)}>
             <ArrowCounterClockwise /> Descartar
