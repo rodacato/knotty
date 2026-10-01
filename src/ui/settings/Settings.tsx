@@ -217,7 +217,7 @@ export function Settings() {
             </div>
           </fieldset>
 
-          <label className="flex items-center gap-2 border-t border-line pt-3 text-xs text-graphite">
+          <label className="flex min-h-11 items-center gap-2 border-t border-line pt-3 text-xs text-graphite">
             <input
               type="checkbox"
               checked={debugVisible}

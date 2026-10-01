@@ -53,7 +53,7 @@ export function ReviewGate({ stale }: { stale: boolean }) {
           <span className="flex items-center gap-2">
             <Pencil className="h-5 w-12 text-amber" /> Revisando el plano…
           </span>
-          <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={cancel}>
+          <Button variant="ghost" className="px-2 text-xs" onClick={cancel}>
             <Stop weight="fill" /> Cancelar
           </Button>
         </div>
@@ -82,7 +82,7 @@ function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onReques
           </button>
         )}
         {c.status !== 'ok' && c.request && (
-          <Button variant="secondary" className="mt-1.5 min-h-8 text-xs" disabled={thinking} onClick={() => onRequest(c.request!)}>
+          <Button variant="secondary" className="mt-1.5 text-xs" disabled={thinking} onClick={() => onRequest(c.request!)}>
             <Wrench /> {c.request}
           </Button>
         )}
@@ -118,7 +118,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
               <span className="text-sm font-medium">{p.title}</span>
               <span className="text-sm text-graphite">{p.detail}</span>
               {p.request && (
-                <Button variant="secondary" className="min-h-8 self-start text-xs" disabled={thinking} onClick={() => onRequest(p.request!)}>
+                <Button variant="secondary" className="self-start text-xs" disabled={thinking} onClick={() => onRequest(p.request!)}>
                   <Wrench /> {p.request}
                 </Button>
               )}
@@ -149,7 +149,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
         </div>
       )}
 
-      <Button variant="ghost" className="min-h-8 self-start px-2 text-xs text-graphite-2" disabled={!!reviewing} onClick={() => void review()}>
+      <Button variant="ghost" className="self-start px-2 text-xs text-graphite-2" disabled={!!reviewing} onClick={() => void review()}>
         <ArrowClockwise /> {reviewing ? 'Revisando…' : 'Revisar de nuevo'}
       </Button>
     </section>

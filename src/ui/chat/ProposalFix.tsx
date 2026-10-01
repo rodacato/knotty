@@ -22,7 +22,7 @@ export function ProposalFixButton({ state, className = '' }: { state: DesignStat
   const fix = useMemo(() => useCases.proposalFix(state), [useCases, state])
   if (!fix) return null
   return (
-    <Button variant="primary" className={`min-h-10 ${className}`} onClick={applyProposalWithFix} disabled={thinking}>
+    <Button variant="primary" className={className} onClick={applyProposalWithFix} disabled={thinking}>
       <Lightning /> {withFix(fix)}
     </Button>
   )

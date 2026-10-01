@@ -129,7 +129,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
                 onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`numerals rounded-full px-1.5 py-px text-xs underline decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-graphite' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
+                className={`numerals relative rounded-full px-1.5 py-px text-xs underline before:absolute before:-inset-x-3 before:-inset-y-3.5 before:content-[''] decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-graphite' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
               >
                 v{m.version}
               </button>
@@ -144,7 +144,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
           </p>
         ))}
         {recover && (
-          <Button variant="secondary" className="mt-3 min-h-9 text-xs" onClick={recover.run} disabled={thinking}>
+          <Button variant="secondary" className="mt-3 text-xs" onClick={recover.run} disabled={thinking}>
             {recover.kind === 'retry' ? (
               <>
                 <ArrowClockwise weight="bold" /> Reintentar
@@ -180,14 +180,14 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
             </ul>
             <div className="mt-3 flex flex-col gap-2">
               {state.proposal!.critical.length > 0 && <ProposalFixButton state={state} className="w-full" />}
-              <Button variant={state.proposal!.critical.length ? 'secondary' : 'primary'} className="min-h-10 w-full" onClick={applyProposal} disabled={thinking}>
+              <Button variant={state.proposal!.critical.length ? 'secondary' : 'primary'} className="w-full" onClick={applyProposal} disabled={thinking}>
                 {applyLabel(state.proposal!.critical.length)}
               </Button>
               <div className="flex flex-wrap justify-between gap-2">
-                <Button variant="ghost" className="min-h-10" onClick={toggleProposal}>
+                <Button variant="ghost" onClick={toggleProposal}>
                   {showProposal ? <EyeSlash /> : <Eye />} {showProposal ? 'Ver el actual' : 'Ver propuesta'}
                 </Button>
-                <Button variant="ghost" className="min-h-10" onClick={discardProposal} disabled={thinking}>
+                <Button variant="ghost" onClick={discardProposal} disabled={thinking}>
                   <ArrowCounterClockwise /> Descartar
                 </Button>
               </div>

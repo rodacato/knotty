@@ -122,10 +122,10 @@ export function PlanSheet({ state }: { state: DesignState }) {
           <HelpButton term={TERMS.saveMaterial} open={help.open === 'saveMaterial'} onToggle={() => help.toggle('saveMaterial')} />
         </div>
         <div className="flex gap-2">
-          <Button variant="primary" className="min-h-10 flex-1" disabled={!changes.length} onClick={apply}>
+          <Button variant="primary" className="flex-1" disabled={!changes.length} onClick={apply}>
             <Check weight="fill" /> Aplicar
           </Button>
-          <Button variant="ghost" className="min-h-10" disabled={!changes.length} onClick={() => set(source.plan!)}>
+          <Button variant="ghost" disabled={!changes.length} onClick={() => set(source.plan!)}>
             <ArrowCounterClockwise /> Descartar
           </Button>
         </div>

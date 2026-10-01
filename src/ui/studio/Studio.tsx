@@ -54,7 +54,7 @@ function SceneBar() {
   const toggleExploded = useStore((s) => s.toggleExploded)
   const dimensions = useStore((s) => s.dimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
-  const button = (active: boolean) => `grid min-h-9 min-w-9 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+  const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
   return (
     <div className="pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur">
       <div className="flex items-center" role="group" aria-label="Vistas">
@@ -119,18 +119,18 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
           {summary}
         </p>
       </div>
-      <Button variant="ghost" className={`min-h-9 gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
+      <Button variant="ghost" className={`gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
         <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
       </Button>
-      <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
+      <Button variant="ghost" className={`relative px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
         {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
       </Button>
-      <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
+      <Button variant="ghost" className="px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
         <GearSix /> <span className="hidden sm:inline">{label}</span>
       </Button>
       <ConfirmNew>
-        <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" aria-label="Nuevo diseño">
+        <Button variant="ghost" className="px-2 text-xs sm:px-3" aria-label="Nuevo diseño">
           <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
         </Button>
       </ConfirmNew>
@@ -214,10 +214,10 @@ export function Studio({ state }: { state: DesignState }) {
             label: `Viendo v${viewedVersion}`,
             actions: (
               <>
-                <button type="button" onClick={() => backToVersion(viewedVersion)} className="flex min-h-7 items-center gap-1 rounded-full bg-kraft px-2 hover:bg-kraft-2">
+                <button type="button" onClick={() => backToVersion(viewedVersion)} className="relative flex min-h-7 items-center gap-1 rounded-full bg-kraft px-2 before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2">
                   <ArrowCounterClockwise /> Volver a esta
                 </button>
-                <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
+                <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
                   <X />
                 </button>
               </>
@@ -232,7 +232,7 @@ export function Studio({ state }: { state: DesignState }) {
             icon: <Pencil className="h-3 w-8 text-amber" />,
             label: stage ? STAGES[stage.name] : 'Pensando…',
             actions: (
-              <button type="button" onClick={cancel} aria-label="Cancelar" className="grid size-7 place-items-center rounded-full hover:bg-kraft">
+              <button type="button" onClick={cancel} aria-label="Cancelar" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
                 <X />
               </button>
             ),

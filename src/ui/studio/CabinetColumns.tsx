@@ -50,7 +50,7 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
       )}
       {cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
       {onRemove && (
-        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="ml-auto text-graphite-2 hover:text-rust">
+        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-rust">
           <Trash size={14} />
         </button>
       )}
@@ -66,7 +66,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-semibold">{label}</h3>
-        <Button variant="ghost" className="min-h-8 px-2 text-xs" onClick={() => onChange([...columns, { width: columns.reduce((s, c) => s + c.width, 0) / columns.length, cells: [newCell()] }])}>
+        <Button variant="ghost" className="px-2 text-xs" onClick={() => onChange([...columns, { width: columns.reduce((s, c) => s + c.width, 0) / columns.length, cells: [newCell()] }])}>
           <Plus /> Columna
         </Button>
       </div>
@@ -91,7 +91,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                 %
               </label>
               {columns.length > 1 && (
-                <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => onChange(columns.filter((_, j) => j !== i))} className="ml-auto text-graphite-2 hover:text-rust">
+                <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => onChange(columns.filter((_, j) => j !== i))} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-rust">
                   <Trash size={14} />
                 </button>
               )}
@@ -112,7 +112,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                   />
                 ))}
             </ol>
-            <button type="button" onClick={() => setColumn(i, { ...column, cells: [...column.cells, newCell()] })} className="self-start text-xs text-graphite-2 underline">
+            <button type="button" onClick={() => setColumn(i, { ...column, cells: [...column.cells, newCell()] })} className="relative self-start text-xs text-graphite-2 underline before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-['']">
               Agregar un hueco arriba
             </button>
           </div>

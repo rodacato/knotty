@@ -22,7 +22,7 @@ export function ToolLine() {
     <div className="flex items-center gap-2 rounded-xl bg-kraft px-3 py-2 text-sm">
       <Wrench className="shrink-0" />
       <span className="min-w-0 flex-1">Tu herramienta: {TOOL_LEVEL_LABELS[level].short}</span>
-      <button type="button" onClick={() => openSettings(true)} className="min-h-9 shrink-0 text-xs text-graphite-2 underline-offset-2 hover:text-graphite hover:underline">
+      <button type="button" onClick={() => openSettings(true)} className="min-h-11 shrink-0 text-xs text-graphite-2 underline-offset-2 hover:text-graphite hover:underline">
         Cambiar en Ajustes
       </button>
     </div>
@@ -267,7 +267,7 @@ export function JointsSection({ design }: { design: Design }) {
               <span className="block font-medium">{g.current in JOINT_GUIDE ? JOINT_GUIDE[g.current as GuideJoint].name : JOINTS[g.current].label.singular}</span>
             </span>
             <Button
-                className="min-h-10 shrink-0 rounded-full"
+                className="shrink-0 rounded-full"
                 onClick={() => {
                   setNotes([])
                   setOpen(g.id)

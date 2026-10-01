@@ -63,7 +63,7 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
           aria-label="Precio en pesos"
           className="w-24 text-right"
         />
-        <button type="submit" aria-label="Guardar precio" className="grid size-7 place-items-center rounded-full bg-graphite text-bone">
+        <button type="submit" aria-label="Guardar precio" className="relative grid size-7 place-items-center rounded-full bg-graphite text-bone before:absolute before:-inset-2 before:content-['']">
           <Check size={12} weight="bold" />
         </button>
       </form>
@@ -76,7 +76,7 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
           setText(value === null ? '' : String(value))
           setEditing(true)
         }}
-        className={`numerals inline-flex items-center gap-1 rounded-md px-1 text-xs transition hover:bg-kraft ${changed ? 'text-graphite' : 'text-graphite-2'}`}
+        className={`numerals relative inline-flex items-center gap-1 rounded-md px-1 text-xs before:absolute before:-inset-x-1 before:-inset-y-3.5 before:content-['']  transition hover:bg-kraft ${changed ? 'text-graphite' : 'text-graphite-2'}`}
         title="Cambiar por el precio de tu tienda"
       >
         {value === null ? 'sin precio' : `${changed ? '' : '~'}${weights.format(value)} ${unit}`}
@@ -84,7 +84,7 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
         <PencilSimple size={11} />
       </button>
       {changed && value !== base && (
-        <button type="button" onClick={reset} aria-label="Volver al precio del catálogo" title="Volver al precio del catálogo" className="text-graphite-2 hover:text-graphite">
+        <button type="button" onClick={reset} aria-label="Volver al precio del catálogo" title="Volver al precio del catálogo" className="relative text-graphite-2 before:absolute before:-inset-[18px] before:content-[''] hover:text-graphite">
           <ArrowCounterClockwise size={11} />
         </button>
       )}
