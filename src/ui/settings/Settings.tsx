@@ -1,11 +1,12 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, Eye, EyeSlash, LockKey, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, LockKey, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
+import { Reveal } from '../system/Reveal'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
@@ -133,9 +134,7 @@ export function Settings() {
                   placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
                   className="numerals"
                   end={
-                    <button type="button" onClick={() => setShowKey((v) => !v)} aria-label={showKey ? 'Ocultar' : 'Mostrar'} className="text-graphite-2">
-                      {showKey ? <EyeSlash /> : <Eye />}
-                    </button>
+                    <Reveal what="llave" shown={showKey} onToggle={() => setShowKey((v) => !v)} />
                   }
                 />
               </Field>

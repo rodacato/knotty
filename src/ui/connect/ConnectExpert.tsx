@@ -1,13 +1,14 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Check, Eye, EyeSlash, LockKey, X } from '@phosphor-icons/react'
+import { Check, LockKey, X } from '@phosphor-icons/react'
 import { useState, type ReactNode } from 'react'
 import { MIN_PASSPHRASE, PRESETS, type RealProvider } from '../../ports/Preferences'
 import { useServices } from '../services'
-import { UNLOCK_TEXT } from '../settings/Keys'
+import { ForgetKeys, PassphraseField, UNLOCK_TEXT, useUnlockPassphrase } from '../settings/Keys'
 import { SheLLM } from '../settings/Settings'
 import { useStore } from '../store'
 import { Button, Title } from '../system/components'
 import { Field, Input } from '../system/Field'
+import { Reveal } from '../system/Reveal'
 import { expertConnected } from '../shell/expertStatus'
 import { connectBlocker, planConnect } from './plan'
 
@@ -58,14 +59,6 @@ function Shell({ title, description, footer, children, onClose }: { title: strin
   )
 }
 
-function Reveal({ shown, onToggle }: { shown: boolean; onToggle: () => void }) {
-  return (
-    <button type="button" onClick={onToggle} aria-label={shown ? 'Ocultar' : 'Mostrar'} className="grid size-9 shrink-0 place-items-center text-graphite-2">
-      {shown ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
-    </button>
-  )
-}
-
 function Body({ onClose }: { onClose: () => void }) {
   const vault = useStore((s) => s.vault)
   const [startsNew, setStartsNew] = useState(false)
@@ -78,32 +71,18 @@ function Body({ onClose }: { onClose: () => void }) {
 
 function Saved({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
   const { preferences } = useServices()
-  const unlock = useStore((s) => s.unlock)
-  const [passphrase, setPassphrase] = useState('')
-  const [shown, setShown] = useState(false)
-  const [error, setError] = useState('')
-  const [opening, setOpening] = useState(false)
   const config = preferences.load()
   const provider = config.active === 'simulated' ? null : config.active
-
-  const open = async () => {
-    setOpening(true)
-    setError('')
-    try {
-      await unlock(passphrase)
-      if (expertConnected(preferences.load())) onClose()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudieron abrir.')
-    }
-    setOpening(false)
-  }
+  const { passphrase, setPassphrase, error, opening, open, canOpen } = useUnlockPassphrase(() => {
+    if (expertConnected(preferences.load())) onClose()
+  })
 
   return (
     <form
       className="contents"
       onSubmit={(e) => {
         e.preventDefault()
-        if (passphrase && !opening) void open()
+        if (canOpen) void open()
       }}
     >
       <Shell
@@ -133,19 +112,16 @@ function Saved({ onClose, onNew }: { onClose: () => void; onNew: () => void }) {
           </div>
         )}
         <p className="text-base text-graphite-2">{UNLOCK_TEXT}</p>
-        <Field label="Frase" error={error}>
-          <Input
-            type={shown ? 'text' : 'password'}
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
-            placeholder="Frase secreta"
-            autoComplete="current-password"
-            autoFocus
-            invalid={!!error}
-            className="numerals"
-            end={<Reveal shown={shown} onToggle={() => setShown((v) => !v)} />}
-          />
-        </Field>
+        <PassphraseField
+          label="Frase"
+          placeholder="Frase secreta"
+          value={passphrase}
+          onChange={setPassphrase}
+          error={error}
+          autoFocus
+          inputClassName="numerals"
+        />
+        <ForgetKeys />
       </Shell>
     </form>
   )
@@ -277,7 +253,7 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
             onChange={(e) => setApiKey(e.target.value.trim())}
             placeholder={KEY_PLACEHOLDER[provider]}
             className="numerals"
-            end={<Reveal shown={showKey} onToggle={() => setShowKey((v) => !v)} />}
+            end={<Reveal what="llave" shown={showKey} onToggle={() => setShowKey((v) => !v)} />}
           />
         </Field>
 
@@ -299,7 +275,7 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
               onChange={(e) => setPassphrase(e.target.value)}
               placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más)`}
               className="numerals"
-              end={<Reveal shown={showPassphrase} onToggle={() => setShowPassphrase((v) => !v)} />}
+              end={<Reveal what="frase" shown={showPassphrase} onToggle={() => setShowPassphrase((v) => !v)} />}
             />
           </Field>
         )}

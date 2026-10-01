@@ -1,25 +1,84 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { LockKey } from '@phosphor-icons/react'
-import { useId, useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { missing, PRESETS } from '../../ports/Preferences'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
-import { ErrorText, Input } from '../system/Field'
+import { Field, Input } from '../system/Field'
+import { Reveal } from '../system/Reveal'
 import { useStore } from '../store'
 
 export const UNLOCK_TEXT = 'Tienes llaves guardadas y cifradas en este navegador. Escribe tu frase para usarlas.'
 
-/** Opens the encrypted saved keys; forgetting them asks first because it cannot be undone. */
-export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; autoFocus?: boolean }) {
-  const unlock = useStore((s) => s.unlock)
+/** The passphrase of the saved keys, with its eye and its error under the field. */
+export function PassphraseField({
+  value,
+  onChange,
+  error,
+  label,
+  hiddenLabel = false,
+  placeholder,
+  autoFocus = false,
+  className = '',
+  inputClassName = '',
+}: {
+  value: string
+  onChange: (value: string) => void
+  error: string
+  label: ReactNode
+  hiddenLabel?: boolean
+  placeholder: string
+  autoFocus?: boolean
+  className?: string
+  inputClassName?: string
+}) {
+  const [shown, setShown] = useState(false)
+  return (
+    <Field label={label} hiddenLabel={hiddenLabel} error={error} className={className}>
+      <Input
+        type={shown ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoComplete="current-password"
+        autoFocus={autoFocus}
+        invalid={!!error}
+        className={inputClassName}
+        end={<Reveal what="frase" shown={shown} onToggle={() => setShown((v) => !v)} />}
+      />
+    </Field>
+  )
+}
+
+/** Forgetting the saved keys asks first because it cannot be undone. */
+export function ForgetKeys() {
   const forgetKeys = useStore((s) => s.forgetKeys)
+  const [asking, setAsking] = useState(false)
+  return asking ? (
+    <p className="flex flex-wrap items-center gap-2 text-xs">
+      ¿Borrar las llaves guardadas? No se pueden recuperar.
+      <button type="button" className="font-medium underline" onClick={() => setAsking(false)}>
+        No
+      </button>
+      <button type="button" className="font-medium text-rust underline" onClick={forgetKeys}>
+        Sí, borrarlas
+      </button>
+    </p>
+  ) : (
+    <button type="button" className="self-start text-xs font-medium text-rust" onClick={() => setAsking(true)}>
+      Olvidé la frase: borrar las llaves guardadas
+    </button>
+  )
+}
+
+/** Opens the encrypted saved keys. */
+export function useUnlockPassphrase(onOpen?: () => void) {
+  const unlock = useStore((s) => s.unlock)
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
-  const errorId = useId()
   const [opening, setOpening] = useState(false)
-  const [forgetting, setForgetting] = useState(false)
 
-  const setOpen = async () => {
+  const open = async () => {
     setOpening(true)
     setError('')
     try {
@@ -31,48 +90,37 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
     setOpening(false)
   }
 
+  return { passphrase, setPassphrase, error, opening, open, canOpen: !!passphrase && !opening }
+}
+
+export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; autoFocus?: boolean }) {
+  const { passphrase, setPassphrase, error, opening, open, canOpen } = useUnlockPassphrase(onOpen)
+
   return (
     <form
       className="flex flex-col gap-3 text-sm"
       onSubmit={(e) => {
         e.preventDefault()
-        void setOpen()
+        if (canOpen) void open()
       }}
     >
       <p>{UNLOCK_TEXT}</p>
-      <div className="flex gap-2">
-        <Input
-          type="password"
-          value={passphrase}
-          onChange={(e) => setPassphrase(e.target.value)}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+        <PassphraseField
+          label="Frase secreta"
+          hiddenLabel
           placeholder="Tu frase secreta"
-          aria-label="Frase secreta"
-          autoComplete="current-password"
+          value={passphrase}
+          onChange={setPassphrase}
+          error={error}
           autoFocus={autoFocus}
-          invalid={!!error}
-          aria-describedby={error ? errorId : undefined}
           className="flex-1"
         />
-        <Button type="submit" variant="secondary" disabled={!passphrase || opening}>
+        <Button type="submit" variant="primary" className="min-h-11" disabled={!passphrase || opening}>
           {opening ? 'Abriendo…' : 'Desbloquear'}
         </Button>
       </div>
-      {error && <ErrorText id={errorId}>{error}</ErrorText>}
-      {forgetting ? (
-        <p className="flex flex-wrap items-center gap-2 text-xs">
-          ¿Borrar las llaves guardadas? No se pueden recuperar.
-          <button type="button" className="font-medium underline" onClick={() => setForgetting(false)}>
-            No
-          </button>
-          <button type="button" className="font-medium text-rust underline" onClick={forgetKeys}>
-            Sí, borrarlas
-          </button>
-        </p>
-      ) : (
-        <button type="button" className="self-start text-xs font-medium text-rust" onClick={() => setForgetting(true)}>
-          Olvidé la frase: borrar las llaves guardadas
-        </button>
-      )}
+      <ForgetKeys />
     </form>
   )
 }
@@ -117,9 +165,9 @@ export function KeysGate() {
             <p className="text-sm text-graphite">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
-            <button type="button" className="text-sm font-medium text-rust" onClick={close}>
+            <Button variant="ghost" onClick={close}>
               Ahora no
-            </button>
+            </Button>
             <div className="flex gap-2">
               <Button variant="secondary" onClick={switchToSimulated}>
                 Usar el modo simulado
