@@ -10,7 +10,7 @@ const FRAME = 'rounded-xl border bg-bone text-base text-graphite outline-none tr
 const HEIGHT: Record<Size, string> = { md: 'min-h-11 px-3', sm: 'min-h-8 px-2' }
 const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-line')
 
-const FieldContext = createContext<{ describedBy?: string; invalid: boolean }>({ invalid: false })
+const FieldContext = createContext<{ id?: string; describedBy?: string; invalid: boolean }>({ invalid: false })
 
 /** An error line announced as soon as it appears; `id` is what the control's `aria-describedby` points at. */
 export function ErrorText({ id, className = '', children }: { id?: string; className?: string; children: ReactNode }) {
@@ -21,16 +21,17 @@ export function ErrorText({ id, className = '', children }: { id?: string; class
   )
 }
 
-/** A control with its label on top and, under it, an error or a help line. */
-export function Field({ label, help, error, className = '', children }: { label: ReactNode; help?: ReactNode; error?: ReactNode; className?: string; children: ReactNode }) {
+/** A control with its label on top and, under it, an error or a help line; a hidden label takes no room. */
+export function Field({ label, hiddenLabel = false, help, error, className = '', children }: { label: ReactNode; hiddenLabel?: boolean; help?: ReactNode; error?: ReactNode; className?: string; children: ReactNode }) {
   const noteId = useId()
+  const controlId = useId()
   const describedBy = error || help ? noteId : undefined
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="contents">
-        <span className="text-sm text-graphite-2">{label}</span>
-        <FieldContext.Provider value={{ describedBy, invalid: !!error }}>{children}</FieldContext.Provider>
+      <label htmlFor={controlId} className={hiddenLabel ? 'sr-only' : 'text-sm text-graphite-2'}>
+        {label}
       </label>
+      <FieldContext.Provider value={{ id: controlId, describedBy, invalid: !!error }}>{children}</FieldContext.Provider>
       {error ? <ErrorText id={noteId}>{error}</ErrorText> : help && <span id={noteId} className="text-xs text-graphite">{help}</span>}
     </div>
   )
@@ -38,7 +39,7 @@ export function Field({ label, help, error, className = '', children }: { label:
 
 function useControlAria(invalid?: boolean) {
   const field = useContext(FieldContext)
-  return { 'aria-invalid': invalid || field.invalid || undefined, 'aria-describedby': field.describedBy }
+  return { id: field.id, 'aria-invalid': invalid || field.invalid || undefined, 'aria-describedby': field.describedBy }
 }
 
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & { size?: Size; invalid?: boolean; unit?: string; end?: ReactNode }
