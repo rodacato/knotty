@@ -87,3 +87,9 @@ export function pruneVersions(versions: Version[]): Version[] {
   const [first, ...rest] = versions
   return [first, ...rest.slice(-(LIMITS.versions - 1))]
 }
+
+/** The nearest version before `current` that passes `isUsable`, or null when none does. */
+export function previousUsableVersion(versions: Version[], current: number, isUsable: (v: Version) => boolean): number | null {
+  const before = versions.filter((v) => v.n < current).sort((a, b) => b.n - a.n)
+  return before.find(isUsable)?.n ?? null
+}
