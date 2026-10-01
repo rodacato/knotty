@@ -34,9 +34,9 @@ export function createHistory(kit: Kit) {
     const current = currentDesign(state)
     const r = restorePieces(current, before.design, ids, catalog)
     const pieces = current.pieces.concat(before.design.pieces)
-    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named(pieces, r.errors[0]?.message) || 'choca con lo que cambió después'}` }
+    if (!r.ok) return { ok: false, message: `No se puede regresar así: ${named({ pieces }, r.errors[0]?.message) || 'choca con lo que cambió después'}` }
     const added = newErrors(analyze(r.design, catalog, state.requirements), knownErrors(analyze(current, catalog, state.requirements)))
-    if (added.length) return { ok: false, message: `No se puede regresar así: ${named(pieces, added[0].message)}` }
+    if (added.length) return { ok: false, message: `No se puede regresar así: ${named({ pieces }, added[0].message)}` }
     const names = ids.map((id) => before.design.pieces.find((p) => p.id === id)?.name ?? current.pieces.find((p) => p.id === id)?.name ?? id)
     const summary = `Regresar ${names.join(', ')}`
     const operations: Operation[] = ids.flatMap((id): Operation[] => {

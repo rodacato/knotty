@@ -15,6 +15,7 @@ import { updateRequirements, type Requirement } from '../../domain/checks/requir
 import { currentDesign, markAnswered, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
+import { named, withCandidate } from '../named'
 import { expertPlans, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
@@ -270,7 +271,7 @@ export function createAdjust(kit: Kit) {
       if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
       if (verdict.kind === 'retry' && verdict.reason === 'invalid') {
         correction = { previousResponse: r, errors: listErrors(verdict.errors) }
-        lastError = verdict.errors[0]?.message ?? 'el cambio no se pudo aplicar'
+        lastError = named(withCandidate(design, candidate && !candidate.ok ? candidate.design : null), verdict.errors[0]?.message) || 'el cambio no se pudo aplicar'
         stage = 'correcting'
         attempt++
         continue

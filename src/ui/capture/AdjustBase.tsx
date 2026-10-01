@@ -1,3 +1,4 @@
+import { named } from '../../application/named'
 import { ArrowLeft, ArrowRight, GearSix, Minus, Plus } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { resolveGeometry } from '../../domain/design/resolve'
@@ -73,7 +74,7 @@ export function AdjustBase({ base }: { base: Base }) {
   const shown = useMemo(() => {
     const { design } = exampleDesign({ ...base, plan: fit.plan, finish }, catalog)
     const geo = resolveGeometry(design, catalog)
-    return { design, geo: geo.ok ? geo.value : null, error: geo.ok ? null : geo.errors[0]?.message }
+    return { design, geo: geo.ok ? geo.value : null, error: geo.ok ? null : named(design, geo.errors[0]?.message) }
   }, [base, fit.plan, finish, catalog])
 
   const cabinet = fit.plan.kind === 'cabinet' ? (fit.plan as CabinetPlan) : null

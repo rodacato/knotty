@@ -10,7 +10,7 @@ import { applyOperations } from '../../domain/editing/operations/apply'
 import type { Operation } from '../../domain/editing/operations/schema'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { describeProblems, traceErrors } from '../../domain/session/trace/trace'
-import { named } from '../named'
+import { named, withCandidate } from '../named'
 import { knownErrors, tryCandidate } from './candidate'
 import { currentPlan, layered } from './currentPlan'
 import type { Kit } from './kit'
@@ -48,7 +48,7 @@ export function createEdits(kit: Kit) {
     const design = byPerson(currentDesign(state), rebuilt.design)
     const analysis = analyze(design, catalog, state.requirements)
     if (!analysis.valid) {
-      const first = named(design.pieces, analysis.errors[0]?.message ?? '')
+      const first = named(design, analysis.errors[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errors))}. ${first}` }
     }
     const previous = current.plan
@@ -115,7 +115,7 @@ export function createEdits(kit: Kit) {
       edit.kind === 'length'
         ? [{ label: `Cambiar el ${DIMENSION_LABEL[DIMENSION_OF_AXIS[edit.axis]]} del mueble en ${edit.value - Math.round(size(edit.axis)) > 0 ? '+' : ''}${Math.round(edit.value - size(edit.axis))} mm`, axis: edit.axis, value: Math.round(design.dimensions[DIMENSION_OF_AXIS[edit.axis]] + edit.value - size(edit.axis)) }]
         : []
-    return { ok: false, message: `Así no queda: ${(named(design.pieces, reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
+    return { ok: false, message: `Así no queda: ${(named(withCandidate(design, candidate.design), reason) || 'la pieza está amarrada a otras').replace(/\.$/, '')}.`, alternatives }
   }
 
   /** The whole piece of furniture grows or shrinks along one axis; through the plan when there is one. */
