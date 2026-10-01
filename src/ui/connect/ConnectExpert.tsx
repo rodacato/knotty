@@ -219,7 +219,7 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setProvider(p)}
-                className={`flex min-h-11 flex-col gap-0.5 rounded-2xl border px-4 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${selected ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
+                className={`flex min-h-11 flex-col gap-0.5 rounded-2xl border px-4 py-3 text-left transition ${selected ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}
               >
                 <span className="flex items-center gap-2.5 text-lg font-medium">
                   <span

@@ -154,7 +154,7 @@ function CutSettings({ base }: { base: LayoutSettings }) {
   const keys: (keyof LayoutSettings)[] = ['trim', 'kerf', 'clearance']
   return (
     <details className="text-sm">
-      <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium focus-visible:outline-2 focus-visible:outline-amber">
+      <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium">
         <Sliders /> Ajustes de corte
       </summary>
       <div className="mt-1 grid grid-cols-3 gap-2">

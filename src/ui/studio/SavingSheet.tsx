@@ -31,7 +31,7 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
   const showing = preview?.design === option.design
   return (
     <div className={`flex flex-col gap-2 rounded-2xl border p-3.5 text-sm transition ${chosen ? 'border-graphite bg-kraft/60' : 'border-line bg-bone'}`}>
-      <button type="button" role="radio" aria-checked={chosen} onClick={onChoose} className="flex flex-col gap-2 rounded-lg text-left focus-visible:outline-2 focus-visible:outline-amber">
+      <button type="button" role="radio" aria-checked={chosen} onClick={onChoose} className="flex flex-col gap-2 rounded-lg text-left">
         <span className="flex w-full items-start justify-between gap-2">
           <span className="font-semibold">{option.title}</span>
           <span className="numerals shrink-0 rounded-md bg-kraft px-1.5 py-0.5 font-mono text-xs">
@@ -55,7 +55,7 @@ function OptionCard({ option, chosen, onChoose }: { option: Saving; chosen: bool
 
 function ReleaseRow({ release, onRelease }: { release: Release; onRelease: () => void }) {
   return (
-    <button type="button" onClick={onRelease} className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-bone p-3 text-left text-sm hover:bg-kraft focus-visible:outline-2 focus-visible:outline-amber">
+    <button type="button" onClick={onRelease} className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-bone p-3 text-left text-sm hover:bg-kraft">
       <span className="grid size-7 shrink-0 place-items-center rounded-full border border-line text-graphite-2">
         <LockSimple size={14} />
       </span>

@@ -17,6 +17,8 @@
   --color-amber: var(--amber);
   --color-amber-soft: var(--amber-soft);
   --color-rust: var(--rust);
+  --color-on-rust: var(--on-rust);
+  --color-focus: var(--focus);
   --color-slate: var(--slate);
   --color-paper: var(--paper);
   --color-birch: #e2c9a2;
@@ -36,7 +38,9 @@
   --line: rgb(43 40 37 / 0.12);
   --amber: #d98a2b;
   --amber-soft: rgb(217 138 43 / 0.14);
-  --rust: #b4452f;
+  --rust: #a63d29;
+  --on-rust: #ffffff;
+  --focus: #9a5a10;
   --slate: #56697a;
   --scene-bg: #efe7da;
   --paper: #f4ede1;
@@ -52,11 +56,20 @@
     --graphite-2: #b3a896;
     --line: rgb(239 231 218 / 0.12);
     --amber-soft: rgb(217 138 43 / 0.2);
-    --rust: #d9674f;
+    --rust: #e57d66;
+    --on-rust: #1d1a17;
+    --focus: #d98a2b;
     --slate: #8aa0b3;
     --scene-bg: #221e1a;
-    --paper: #3a332b;
+    --paper: #2a2622;
     color-scheme: dark;
+  }
+}
+
+@layer base {
+  *:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 }
 

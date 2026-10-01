@@ -121,7 +121,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
       </Button>
       <Button variant="ghost" className={`relative min-h-9 px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
-        {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-white">{pending}</span>}
+        {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
       </Button>
       <Button variant="ghost" className="min-h-9 px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
         <GearSix /> <span className="hidden sm:inline">{label}</span>
@@ -241,7 +241,7 @@ export function Studio({ state }: { state: DesignState }) {
             icon: <Crosshair />,
             label: `Enfocada: ${focusedPiece.name}`,
             actions: (
-              <button type="button" onClick={unfocus} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
+              <button type="button" onClick={unfocus} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2">
                 <ArrowsOut /> Ver todo el mueble
               </button>
             ),
@@ -256,7 +256,7 @@ export function Studio({ state }: { state: DesignState }) {
             icon: <EyeSlash />,
             label: hidden.length === 1 ? '1 pieza oculta' : `${hidden.length} piezas ocultas`,
             actions: (
-              <button type="button" onClick={showAll} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
+              <button type="button" onClick={showAll} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2">
                 <Eye /> Mostrar todo
               </button>
             ),
