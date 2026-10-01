@@ -1,10 +1,10 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { LockKey } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { missing, PRESETS } from '../../ports/Preferences'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
-import { Input } from '../system/Field'
+import { ErrorText, Input } from '../system/Field'
 import { useStore } from '../store'
 
 export const UNLOCK_TEXT = 'Tienes llaves guardadas y cifradas en este navegador. Escribe tu frase para usarlas.'
@@ -15,6 +15,7 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
   const forgetKeys = useStore((s) => s.forgetKeys)
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
+  const errorId = useId()
   const [opening, setOpening] = useState(false)
   const [forgetting, setForgetting] = useState(false)
 
@@ -49,13 +50,14 @@ export function Unlock({ onOpen, autoFocus = false }: { onOpen?: () => void; aut
           autoComplete="current-password"
           autoFocus={autoFocus}
           invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
           className="flex-1"
         />
         <Button type="submit" variant="secondary" disabled={!passphrase || opening}>
           {opening ? 'Abriendo…' : 'Desbloquear'}
         </Button>
       </div>
-      {error && <p className="text-xs text-rust">{error}</p>}
+      {error && <ErrorText id={errorId}>{error}</ErrorText>}
       {forgetting ? (
         <p className="flex flex-wrap items-center gap-2 text-xs">
           ¿Borrar las llaves guardadas? No se pueden recuperar.

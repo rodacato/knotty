@@ -345,7 +345,7 @@ export function Capture() {
           <div className="mx-auto flex w-full max-w-[720px] flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
             <div className="flex items-start gap-2">
               <Warning className="mt-0.5 shrink-0" weight="bold" />
-              <span className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
+              <span role="alert" className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
               {canAnalyze && (
                 <Button variant="ghost" className="min-h-8 shrink-0 px-2 text-rust underline" onClick={analyzeCapture}>
                   <ArrowClockwise weight="bold" /> Reintentar

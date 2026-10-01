@@ -6,6 +6,7 @@ import { isLocked, type SavingSearch } from '../../domain/furniture/saving/savin
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { TERMS } from '../glossary'
 import { Button } from '../system/components'
+import { ErrorText } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { useStore } from '../store'
 import { JointsSection } from './Joints'
@@ -111,7 +112,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
       <JointsSection design={currentDesign(state)} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
-        {message && <p className={`text-xs ${message.kind === 'error' ? 'text-rust' : 'text-graphite'}`}>{message.text}</p>}
+        {message && (message.kind === 'error' ? <ErrorText>{message.text}</ErrorText> : <p className="text-xs text-graphite">{message.text}</p>)}
         <p className="text-xs text-graphite">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         {help.open && <HelpPanel term={TERMS[help.open]} onClose={help.close} />}
         <div className="flex items-center gap-1">
