@@ -8,6 +8,10 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## Unreleased — escapees that joined the kit (code landed, `.pen` re-vendoring pending)
+
+UI-47, mechanical move, no visual change: `TraceLog` and `FinishSelect` moved from `src/ui/studio/` to `src/ui/system/`; both need a component in `ui-kit.lib.pen`. Still in their feature folders because they read the services or the store: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
+
 ## 0.4.0 — focus, inactive buttons and dark contrast (code landed, `.pen` re-vendoring pending)
 
 Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendors. The `.pen` files are not touched in this version; `ui-kit.lib.pen` and its `kit-version` stay at 0.3.0 until the re-vendoring.

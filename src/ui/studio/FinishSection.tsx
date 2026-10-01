@@ -1,7 +1,7 @@
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { finishOf } from '../../domain/materials/finishes'
 import { useStore } from '../store'
-import { FinishSelect } from './FinishSelect'
+import { FinishSelect } from '../system/FinishSelect'
 
 /** How it will look: the finish is chosen while designing and the wood shows it at once. What it takes to buy is in Materiales. */
 export function FinishSection({ state }: { state: DesignState }) {

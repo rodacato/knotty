@@ -3,7 +3,7 @@ import { currentDesign, type DesignState } from '../../domain/session/state'
 import { ChangeList } from '../chat/ChangeList'
 import { Button } from '../system/components'
 import { useStore } from '../store'
-import { TraceLog } from './TraceLog'
+import { TraceLog } from '../system/TraceLog'
 
 // Every version, newest first, with what changed in each and how to go back: seen from the header, not a tab.
 
