@@ -20,6 +20,7 @@ import { InvalidCanvas } from './InvalidCanvas'
 import { previousUsableVersion } from '../../domain/session/history/history'
 import { PieceSheet } from './PieceSheet'
 import { StatusChip, type Status } from './StatusChip'
+import { resolvedChipLabel, resolvedVisible } from './chipLabels'
 import { named } from '../../application/named'
 import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
@@ -146,6 +147,7 @@ export function Studio({ state }: { state: DesignState }) {
   const desktop = useDesktop()
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
+  const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
   // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const toggleOverlay = (o: Overlay) => setOverlay((v) => (v === o ? null : o))
@@ -266,14 +268,40 @@ export function Studio({ state }: { state: DesignState }) {
           },
         ]
       : []),
-    ...(proposal ? [{ key: 'proposal', icon: <Eye weight="bold" />, label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar' }] : []),
+    ...(proposal
+      ? [
+          {
+            key: 'proposal',
+            icon: <Eye weight="bold" />,
+            label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar',
+            actions: preview ? undefined : (
+              <button type="button" onClick={toChat} className="-my-1 flex min-h-11 items-center rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
+                Ver propuesta
+              </button>
+            ),
+          },
+        ]
+      : []),
     ...(shownGeo && shownProblems.length > 0
       ? [{ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`, onClick: () => setOverlay('notices') }]
       : []),
     ...(toConfirm.length > 0 && viewedVersion === null && !proposal
       ? [{ key: 'confirm', icon: <PencilSimpleLine />, label: toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`, onClick: () => select(toConfirm[0].id) }]
       : []),
-    ...(board.resolved.length > 0 && overlay !== 'notices' ? [{ key: 'resolved', icon: <CheckCircle weight="fill" className="text-slate" />, label: `Resuelto: ${board.resolved[0]}` }] : []),
+    ...(resolvedVisible(board.resolved, dismissedResolved, state.current) && overlay !== 'notices'
+      ? [
+          {
+            key: 'resolved',
+            icon: <CheckCircle weight="fill" className="text-slate" />,
+            label: resolvedChipLabel(board.resolved[0]),
+            actions: (
+              <button type="button" onClick={() => setDismissedResolved(state.current)} aria-label="Cerrar" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
+                <X />
+              </button>
+            ),
+          },
+        ]
+      : []),
   ]
 
   const scene = (
