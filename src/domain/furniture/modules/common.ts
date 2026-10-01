@@ -1,5 +1,5 @@
-import { makePiece } from '../../design/builders'
-import type { Design, Dimensions, Piece } from '../../design/schema'
+import { endAt, makePiece, ref, startAt } from '../../design/builders'
+import type { Design, Dimensions, Extent, Piece } from '../../design/schema'
 import { materialById, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
@@ -49,6 +49,12 @@ export const panelOf =
   (material: string) =>
   (p: PanelSpec): Piece =>
     makePiece({ material, edges: ['front'], ...p })
+
+/** A leg of two layers of the board glued face to face: the first where it is placed, the second on the side the leg grows towards. */
+export const legLayers = (material: string, id: string, name: string, first: Extent, towards: 'right' | 'left', y: Extent, z: Extent): Piece[] =>
+  [1, 2].map((layer) =>
+    makePiece({ material, id: `${id}-${layer}`, name: `${name} (capa ${layer})`, role: 'divider', normal: 'x', x: layer === 1 ? first : towards === 'right' ? startAt(ref(`${id}-1.x1`)) : endAt(ref(`${id}-1.x0`)), y, z }),
+  )
 
 /** How many supports split a length so no stretch between them is longer than `span`, each support `t` thick. */
 export const supportsAcross = (length: number, t: number, span = MAX_SPAN) => Math.ceil(length / (span + t)) - 1

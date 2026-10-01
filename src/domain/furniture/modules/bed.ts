@@ -4,7 +4,7 @@ import type { Extent, FaceRef, Design, Piece } from '../../design/schema'
 import { MattressSize } from '../../design/kind'
 import { completeJoints } from '../../design/joints'
 import { backBoard, type Catalog } from '../../materials/catalog'
-import { addDrawers, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 
@@ -128,13 +128,10 @@ interface BuiltBed {
  * The legs of a raised frame: two layers of the board glued face to face (36 × 72) at each corner, flush with the outside of the frame,
  * and more along each side so no stretch between two is longer than the platform can span.
  */
-function legsOf(span: number, t: number, headEnd: FaceRef, panel: ReturnType<typeof panelOf>): Piece[] {
+function legsOf(span: number, t: number, headEnd: FaceRef, material: string): Piece[] {
   const pieces: Piece[] = []
   const y = extent(ref('furniture.y0'), ref('foot-panel.y0'))
-  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) =>
-    [1, 2].forEach((layer) =>
-      pieces.push(panel({ id: `${id}-${layer}`, name: `${name} (capa ${layer})`, role: 'divider', normal: 'x', x: layer === 1 ? first : towards === 'right' ? startAt(ref(`${id}-1.x1`)) : endAt(ref(`${id}-1.x0`)), y, z, edges: [] })),
-    )
+  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) => pieces.push(...legLayers(material, id, name, first, towards, y, z))
   const sides = [
     ['left', 'izquierda', extent(null, ref('furniture.z1'), LEG_WIDTH)],
     ['right', 'derecha', extent(ref('furniture.z0'), null, LEG_WIDTH)],
@@ -280,7 +277,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     })
   }
 
-  if (lift > 0) pieces.push(...legsOf(size.width - 4 * t - Math.max(hd, t), t, headEnd, panel))
+  if (lift > 0) pieces.push(...legsOf(size.width - 4 * t - Math.max(hd, t), t, headEnd, plan.material))
 
   const design: Design = {
     schema: 1,

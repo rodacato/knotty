@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
+import { cutList } from '../../materials/cutList'
+import { estimatePurchase } from '../../materials/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { buildTable, type TablePlan } from './table'
+import { buildTable, TablePlan } from './table'
 
 const table = (p: Partial<TablePlan> = {}): TablePlan => ({
   kind: 'table',
@@ -12,6 +14,7 @@ const table = (p: Partial<TablePlan> = {}): TablePlan => ({
   overhang: 50,
   shelf: false,
   pedestal: { side: 'none', drawers: 0 },
+  legs: 'panel',
   ...p,
 })
 
@@ -78,5 +81,99 @@ describe('buildTable', () => {
     const { design, notes } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0, shelf: true }), testCatalog)
     expect(design.pieces.some((p) => p.id === 'low-shelf')).toBe(false)
     expect(notes).toEqual([expect.stringContaining('estorba las piernas')])
+  })
+
+  describe('on legs', () => {
+    const ids = (p: TablePlan) => buildTable(p, testCatalog).design.pieces.map((x) => x.id)
+    const box = (p: TablePlan, id: string) => analyze(buildTable(p, testCatalog).design, testCatalog).geo!.boxes.get(id)!
+    const LEGGED: [string, Partial<TablePlan>][] = CASES.map(([name, p]) => [name, { ...p, legs: 'legs' as const }])
+
+    it.each(LEGGED)('%s: valid, with nothing to warn about', (_, p) => {
+      const { design, notes } = buildTable(table(p), testCatalog)
+      const a = analyze(design, testCatalog)
+      if (!a.valid) throw new Error(JSON.stringify(a.errors.slice(0, 3)))
+      expect(notes).toEqual([])
+      expect(a.findings.map((h) => h.message)).toEqual([])
+    })
+
+    it('four legs take the place of the two panel ends, and the aprons stay', () => {
+      const panels = ids(table())
+      const legs = ids(table({ legs: 'legs' }))
+      expect(panels.filter((id) => id.startsWith('side-'))).toHaveLength(2)
+      expect(legs.filter((id) => id.startsWith('side-'))).toEqual([])
+      expect(legs.filter((id) => /^leg-(front|back)-(left|right)-[12]$/.test(id))).toHaveLength(8)
+      expect(legs).toEqual(expect.arrayContaining(['apron-front', 'apron-back', 'apron-left', 'apron-right']))
+      const b = box(table({ legs: 'legs' }), 'leg-front-left-1')
+      expect([b.y0, b.y1]).toEqual([0, 750 - 18])
+    })
+
+    it('a leg is 36 × 72 mm from the floor to the underside of the top, at the corners of the ends', () => {
+      const plan = table({ legs: 'legs' })
+      const [a, b, c] = ['leg-front-left-1', 'leg-front-left-2', 'leg-back-right-1'].map((id) => box(plan, id))
+      expect(b.x1 - a.x0).toBe(36)
+      expect(a.z1 - a.z0).toBe(72)
+      expect([a.x0, c.x1, c.z0, a.z1]).toEqual([50, 1450, 50, 850])
+    })
+
+    it('a table with no overhang and no apron-less span: the back apron of a desk stays 300 high', () => {
+      const plan = table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0, legs: 'legs' })
+      const b = box(plan, 'apron-back')
+      expect(b.y1 - b.y0).toBe(300)
+    })
+
+    it('with a pedestal, its side keeps the panel and the legs go in the other two corners', () => {
+      const left = ids(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'left', drawers: 3 }, legs: 'legs' }))
+      expect(left).toContain('side-left')
+      expect(left).not.toContain('side-right')
+      expect(left.filter((id) => id.startsWith('leg-') && id.endsWith('-1'))).toEqual(['leg-front-right-1', 'leg-back-right-1'])
+      expect(left).toEqual(expect.arrayContaining(['ped-div', 'ped-back', 'apron-right']))
+      expect(left).not.toContain('apron-left')
+      const right = ids(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'right', drawers: 2 }, legs: 'legs' }))
+      expect(right).toContain('side-right')
+      expect(right).not.toContain('side-left')
+    })
+
+    it('a plan saved before legs existed builds exactly as a plan on panels', () => {
+      const { legs: _, ...old } = table()
+      const parsed = TablePlan.parse(old)
+      expect(parsed.legs).toBe('panel')
+      expect(buildTable(parsed, testCatalog)).toEqual(buildTable(table({ legs: 'panel' }), testCatalog))
+    })
+
+    it('a long table gets a leg in the middle, front and back, and never two legs more than 1 200 mm apart', () => {
+      for (const width of [1500, 1800, 2400]) {
+        const plan = table({ legs: 'legs', dimensions: { width, height: 750, depth: 900 } })
+        const { design } = buildTable(plan, testCatalog)
+        const geo = analyze(design, testCatalog).geo!
+        const floor = design.pieces.filter((p) => p.id.startsWith('leg-')).map((p) => geo.boxes.get(p.id)!).sort((a, b) => a.x0 - b.x0)
+        const gaps = floor.slice(1).map((b, i) => b.x0 - floor[i].x1).filter((g) => g > 0)
+        expect(Math.max(...gaps)).toBeLessThanOrEqual(1200)
+        expect(design.pieces.some((p) => p.id.startsWith('leg-middle'))).toBe(true)
+      }
+      expect(ids(table({ legs: 'legs', dimensions: { width: 1100, height: 750, depth: 900 } })).some((id) => id.startsWith('leg-middle'))).toBe(false)
+    })
+
+    it('a cleat that falls on a middle leg runs between its posts and never crosses them', () => {
+      const { design } = buildTable(table({ legs: 'legs', dimensions: { width: 2400, height: 750, depth: 900 } }), testCatalog)
+      const a = analyze(design, testCatalog)
+      if (!a.valid) throw new Error(JSON.stringify(a.errors.slice(0, 3)))
+      expect(a.findings.map((h) => h.message)).toEqual([])
+    })
+
+    it('the cut list and the buy list change with the legs', () => {
+      const built = (p: TablePlan) => {
+        const { design } = buildTable(p, testCatalog)
+        const geo = analyze(design, testCatalog).geo!
+        return { cuts: cutList(design, geo), purchase: estimatePurchase(design, geo, testCatalog) }
+      }
+      const [panels, legs] = [built(table()), built(table({ legs: 'legs' }))]
+      expect(panels.cuts.some((c) => c.name.startsWith('Costado'))).toBe(true)
+      expect(legs.cuts.some((c) => c.name.startsWith('Costado'))).toBe(false)
+      expect(legs.cuts.filter((c) => c.name.startsWith('Pata')).reduce((n, c) => n + c.count, 0)).toBe(12)
+      expect(legs.cuts.find((c) => c.name.startsWith('Pata'))).toMatchObject({ thickness: 18, width: 72, length: 732 })
+      expect(legs.purchase.hardware.length).toBeGreaterThan(0)
+      const sheets = (b: typeof panels) => b.purchase.sheets.reduce((n, l) => n + l.sheets, 0)
+      expect(sheets(legs)).toBeLessThanOrEqual(sheets(panels))
+    })
   })
 })
