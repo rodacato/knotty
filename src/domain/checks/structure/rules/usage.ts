@@ -40,23 +40,25 @@ function footprintDepth({ design, geo }: RuleContext): number {
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /**
- * R4, storage: drawers or doors open and full, or a child climbing them, pull the furniture forward whatever its depth.
+ * R4, storage: drawers or doors open and full, or a child climbing them, pull the furniture forward whatever its depth; critical from the line, a recommendation in the margin just under it.
  * Found by what it has (drawers, doors) and how tall it is, not by its name. Null when it is not storage furniture.
  */
 function storageTipping({ design, catalog }: RuleContext): Finding[] | null {
   const { height } = design.dimensions
-  const { storageHeight } = ASSUMPTIONS.tipping
+  const { storageHeight, storageMargin } = ASSUMPTIONS.tipping
   const drawers = drawerGroups(design).length
   const doors = design.pieces.filter((p) => p.role === 'door').length
   const use = useOf(design)
-  if ((!drawers && !doors) || height < storageHeight || (use && NOT_STORAGE.includes(use))) return null
+  const bandFloor = storageHeight * (1 - storageMargin)
+  if ((!drawers && !doors) || height < bandFloor || (use && NOT_STORAGE.includes(use))) return null
   if (design.wallAnchored) return []
+  const near = height < storageHeight
   const parts = [drawers && plural(drawers, 'cajón', 'cajones'), doors && plural(doors, 'puerta', 'puertas')].filter(Boolean).join(' y ')
   return [
     {
       code: 'R4_TIPPING',
-      severity: 'critical',
-      check: 'tipping.storage',
+      severity: near ? 'recommendation' : 'critical',
+      check: near ? 'tipping.storage-near' : 'tipping.storage',
       pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
       message: `Mide ${height} mm de alto y tiene ${parts}: abierto y cargado, o si un niño se sube, se va de frente. Desde ${storageHeight} mm, un mueble con cajones o puertas va anclado al muro.`,
       data: { height: height, drawers: drawers, doors: doors, min: storageHeight },
@@ -93,7 +95,15 @@ function ratioTipping(ctx: RuleContext): Finding[] {
 const deeper = (height: number, setback: number) => Math.ceil((height / ASSUMPTIONS.tipping.recommendedRatio + setback) / 10) * 10
 
 /** R4: furniture that can fall forward goes anchored to the wall. */
-export const tippingRule: Rule = (ctx) => storageTipping(ctx) ?? ratioTipping(ctx)
+export const tippingRule: Rule = (ctx) => {
+  const storage = storageTipping(ctx)
+  // Just under the line, a shallow piece still answers to its own ratio.
+  if (storage?.[0]?.severity === 'recommendation') {
+    const byRatio = ratioTipping(ctx)
+    return byRatio.length ? byRatio : storage
+  }
+  return storage ?? ratioTipping(ctx)
+}
 
 /** How a door sits, as the person reads it next to the hinge it takes. */
 const MOUNT_TEXT: Record<DoorMount, string> = {

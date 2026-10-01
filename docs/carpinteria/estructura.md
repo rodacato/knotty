@@ -333,6 +333,7 @@ Momento que la voltea:   4 cajones × 9.5 kg × (0.40 − 0.20) m          = 7.5
 ### 6.3 Recomendaciones
 
 - **Todo mueble de guardado con cajones o puertas de 686 mm de alto o más va anclado al muro**, se llame como se llame (cómoda, buró alto, zapatera, clóset). La norma lo pide para muebles de ropa; el cálculo del §6.2 muestra que aplica a cualquier casco de triplay con cajones. ✅ [12]
+- Knotty avisa como recomendación (no crítico) entre 617 y 685 mm, por la tolerancia al medir; el margen es de Knotty, no de la norma. ⚠️
 - **Para revisar la estabilidad sin anclaje**, compara el momento que lo sostiene (masa × distancia del centro de gravedad al punto de giro) contra el que lo voltea: cajones abiertos y llenos, más 27.2 kg en la orilla del cajón más alto que esté a 1 422 mm o menos. Si voltea, se ancla con un kit antivuelco. ✅ criterios [12]; ❓ la simplificación.
 - **Libreros y roperos sin cajones:** con una relación alto/fondo de 3 o más conviene anclarlos; con 4 o más y más de 1 200 mm de alto, anclarlos es obligatorio. Recomendable anclar todo librero desde 1 200 mm. ⚠️ Umbrales de taller sin fuente, pero en la dirección correcta.
 - **Anclaje:** al menos 2 anclajes, a la estructura del muro (no solo a la tablaroca) (§8), nunca a la trasera delgada. ⚠️
