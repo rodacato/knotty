@@ -1,7 +1,8 @@
 import { ArrowClockwise, ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
-import { questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
+import { named, withCandidate } from '../../application/named'
+import { currentDesign, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
@@ -171,7 +172,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <Stamp severity="critical" />
                   <span>
-                    {first.message}
+                    {named(withCandidate(currentDesign(state), state.proposal!.design), first.message)}
                     {more > 0 && <span className="text-graphite"> Y {more === 1 ? 'otra pieza' : `${more} piezas más`} con el mismo problema.</span>}
                   </span>
                 </li>

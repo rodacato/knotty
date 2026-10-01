@@ -7,7 +7,7 @@ import type { Catalog } from '../domain/materials/catalog'
 import { checkRequirements } from '../domain/checks/requirements/requirements'
 import { currentDesign, questionAnswerKey, type DesignState } from '../domain/session/state'
 import { noticeItemId, type TrayItem } from '../domain/session/tray/tray'
-import { named } from './named'
+import { named, withCandidate } from './named'
 
 // Everything that waits for a decision, in one list: what the rules found, what the expert proposes or asks, what is still broken.
 
@@ -81,14 +81,14 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog, analysi
       kind: 'problem',
       severity: 'critical',
       title: 'Problemas sin resolver',
-      message: analysis.errors.map((e) => named(design.pieces, e.message)).join(' '),
+      message: analysis.errors.map((e) => named(design, e.message)).join(' '),
       pieces: [...new Set(analysis.errors.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && design.pieces.some((p) => p.id === v))))],
       findings: [],
     })
   for (const e of checkRequirements(design, state.requirements))
     notices.push({ key: `requirement:${e.message}`, kind: 'requirement', severity: 'critical', title: 'Tus requisitos', message: e.message, pieces: [], findings: [] })
   if (analysis.valid) notices.push(...findingNotices(analysis.findings))
-  return notices
+  return notices.map((n) => ({ ...n, message: named(design, n.message) }))
 }
 
 /**
@@ -111,7 +111,7 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
       kind: 'proposal',
       severity: 'decision',
       title: 'Propuesta del experto sin aplicar',
-      message: [...state.proposal.holds, ...groupedMessages(state.proposal.critical)].join(' ') || state.proposal.summary,
+      message: named(withCandidate(design, state.proposal.design), [...state.proposal.holds, ...groupedMessages(state.proposal.critical)].join(' ')) || state.proposal.summary,
       pieces: state.proposal.critical.flatMap((c) => c.pieces),
       findings: [],
     })

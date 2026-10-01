@@ -5,7 +5,7 @@ import type { Edge } from '../../domain/design/schema'
 import { chooseJoint as jointChoice, jointGroups, type ChoosableJoint, type JointGroupId } from '../../domain/editing/joints/choice'
 import { EDGE_PROFILES, type EdgeProfileId } from '../../domain/materials/edgeProfiles'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { named } from '../named'
+import { named, withCandidate } from '../named'
 import { knownErrors, tryCandidate } from './candidate'
 import { currentPlan, layered } from './currentPlan'
 import type { Kit } from './kit'
@@ -26,14 +26,14 @@ export function createWorkshop(kit: Kit) {
     if (!analysis.geo || !target) return { ok: false, message: 'No encuentro esas uniones en el diseño.' }
     const choice = jointChoice(design, analysis.geo, group, type, catalog)
     const critical = choice.findings.filter((f) => f.severity === 'critical')
-    if (critical.length) return { ok: false, message: `Con estos tableros no: ${named(design.pieces, critical[0].message)}` }
+    if (critical.length) return { ok: false, message: `Con estos tableros no: ${named(design, critical[0].message)}` }
     if (!choice.operations.length) return { ok: true, state, notes: [] }
     const candidate = tryCandidate(design, choice.operations, catalog, state.requirements, { known: knownErrors(analysis) })
-    if (!candidate.ok) return { ok: false, message: `Así no queda: ${named(design.pieces, candidate.added[0]?.message ?? '')}` }
+    if (!candidate.ok) return { ok: false, message: `Así no queda: ${named(withCandidate(design, candidate.design), candidate.added[0]?.message ?? '')}` }
     const name = JOINT_GUIDE[type].name
     const summary = `${target.label.split(':')[0]}: ${name.toLowerCase()}`
     const withVersion = addVersion(state, candidate.design, { summary: summary.slice(0, 90), reason: `A mano: ${summary}`, operations: choice.operations, origin: null, ...layered(currentPlan(state), choice.operations) })
-    const notes = [...new Set(choice.findings.map((f) => named(design.pieces, f.message)))]
+    const notes = [...new Set(choice.findings.map((f) => named(design, f.message)))]
     if (choice.kept) notes.push(`${choice.kept === 1 ? 'Una unión va' : `${choice.kept} uniones van`} en ranura o rebaje y se queda${choice.kept === 1 ? '' : 'n'} así.`)
     return { ok: true, state: save(noted(withVersion, 'user', `Cambié a mano: ${summary}.`)), notes }
   }

@@ -18,7 +18,7 @@ export const newErrors = (analysis: Analysis, known: Set<string>) => (analysis.v
 /** `errors` are all the problems of a refused candidate, `added` the ones it brought. */
 export type Candidate =
   | { ok: true; design: Design; analysis: Analysis; repairs: Repair[]; warnings: DesignWarning[] }
-  | { ok: false; errors: DesignError[]; added: DesignError[]; repairs: Repair[] }
+  | { ok: false; errors: DesignError[]; added: DesignError[]; repairs: Repair[]; design?: Design }
 
 export type Accepted = Extract<Candidate, { ok: true }>
 
@@ -36,6 +36,6 @@ export function tryCandidate(
   const { design: next, repairs } = options.repair ? repairDesign(joined, catalog, requirements) : { design: joined, repairs: [] }
   const analysis = analyze(next, catalog, requirements)
   const added = newErrors(analysis, options.known ?? new Set())
-  if (!analysis.valid && added.length) return { ok: false, errors: analysis.errors, added, repairs }
+  if (!analysis.valid && added.length) return { ok: false, errors: analysis.errors, added, repairs, design: next }
   return { ok: true, design: next, analysis, repairs, warnings: applied.value.warnings }
 }

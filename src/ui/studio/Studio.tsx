@@ -18,6 +18,7 @@ import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
 import { PieceSheet } from './PieceSheet'
 import { StatusChip, type Status } from './StatusChip'
+import { named } from '../../application/named'
 import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
@@ -281,7 +282,7 @@ export function Studio({ state }: { state: DesignState }) {
           </SceneBoundary>
         </div>
       ) : (
-        <div role="alert" className="grid h-full place-items-center p-6 text-center text-sm text-rust">Este diseño tiene errores: {shownProblems[0]?.message}</div>
+        <div role="alert" className="grid h-full place-items-center p-6 text-center text-sm text-rust">Este diseño tiene errores: {named(shownDesign, shownProblems[0]?.message)}</div>
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         <SceneBar />
