@@ -114,3 +114,18 @@ describe.each(modules.map((m) => [m.kind, m] as const))('the %s form', (_, modul
       }
   })
 })
+
+describe('the part of a field', () => {
+  const partOf = (f: ValueField<Plan>) => (f as { part?: string }).part
+  const declared = modules.flatMap((m) => valueFields(m.fields).flatMap((f) => (partOf(f) === undefined ? [] : [`${m.kind}.${f.key}=${partOf(f)}`])))
+
+  it('is declared on the leg fields, and on no other yet', () => {
+    expect(declared.sort()).toEqual(['bed.legHeight=Patas', 'bed.legs=Patas', 'cabinet.legHeight=Patas', 'table.legs=Patas'])
+  })
+
+  it('is absent from a field that does not declare it', () => {
+    const field = valueFields(MODULES.cabinet.fields).find((f) => f.key === 'material')
+    expect(field).toBeDefined()
+    expect('part' in field!).toBe(false)
+  })
+})

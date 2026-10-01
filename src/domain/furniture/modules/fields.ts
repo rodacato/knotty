@@ -26,6 +26,8 @@ interface Named {
   ariaLabel?: string
   /** Locked until the person frees it: «Ahorrar material» never changes it on its own. */
   lockedByDefault?: boolean
+  /** The part of the furniture it shapes ("Patas"), so the form can group by part. */
+  part?: string
 }
 
 /** Segmented buttons, one per option. */
