@@ -8,6 +8,14 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.4.1 — the rest of `system/` that the kit lacked (additive; the flows stay at 0.4.0)
+
+No existing component changes, so no flow has to re-vendor. Found by the blind review of the 0.4.0 sheet.
+
+**Added:** `HelpButton/Closed` and `/Open` (a 20 px disc with the question mark; the 44 px touch ring is not drawn), `HelpPanel` (the term, its meaning and its note, from `glossary.ts`), `Reveal/Hidden` and `/Shown` (the 36 px eye of a secret field), `RadioCard/Disabled` (the `Off` card at `opacity: 0.4`, as the code does), and three states of `Field/Input`: `error` (a `rust` border and the `role="alert"` line under it), `help` (the 12 px help line) and `sm` (a 32 px box with 8 px of padding). Samples use strings that exist in the code.
+
+**Still not in the kit:** hover states, the focus states of `Field` and `FinishSelect` (they come from the global rule, so there is nothing of their own to draw), the error state of `Select` and `TextArea`, and the three other `Button/Disabled` variants (the code gives all four the same look). The finish list shows 4 of the 8 options; the real one scrolls at 288 px.
+
 ## 0.4.0 — focus, inactive buttons, dark contrast, RadioCard (`ui-kit.lib.pen` at 0.4.0; the flows still vendor 0.3.0)
 
 Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendors. `ui-kit.lib.pen` carries the version (`kit-version` 0.4.0); `flows/studio.pen` and `flows/capture.pen` still say `kit-version-source` 0.3.0 until they are re-vendored.
@@ -34,8 +42,6 @@ Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendo
 **Added (UI-47):** `RadioCard` and `RadioGroup` in `src/ui/system/RadioCard.tsx`: a native radio input under a styled label, replacing the nine hand-written `role="radio"` buttons (one tab stop per group, arrow keys, `name` and `checked` from the browser). Variants `card` (border, tint and a check on the corner), `pill`, `segment` and `bare`; the focus ring shows on the card when the hidden input is focused. In `ui-kit.lib.pen` as `RadioCard/Off`, `RadioCard/On` (graphite border, `amber-soft` fill and the check badge on the corner, placed for a 240 px card), `RadioPill/Off`, `RadioPill/On`, `Segment/Off` and `Segment/On`. `RadioGroup` is behavior only and has no component.
 
 **Added (UI-47 escapees):** `FinishSelect/Closed`, `FinishSelect/List` and `TraceLog`, mirrored from `src/ui/system/` after the move. The `TraceLog` status icons are outline, as Pencil's Phosphor set has no fill weight (the code uses fill). Foundations shows `on-rust` as a pair on `rust`, and the type specimens now use strings that exist in the code. Still in their feature folders, so not in the kit: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
-
-**In `system/` and not yet in the kit:** `HelpButton`, `Reveal`, the error state of `Field` (`rust` border, `role="alert"` line), `Field` at size `sm` and its help line; the disabled `RadioCard` (`opacity-40`) and hover states. The finish list shows 4 of the 8 options; the real one scrolls at 288 px.
 
 ## 0.3.0 — amber for selection only, Field, no TakePhoto
 
