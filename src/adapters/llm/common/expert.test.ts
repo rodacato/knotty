@@ -178,6 +178,17 @@ describe('createExpert', () => {
     expect(calls[0].content[1]).toMatchObject({ text: expect.stringMatching(/## Your previous answer could not be used\n- E_X: no cabe[\s\S]*"action":"plan"/) })
   })
 
+  it('a knowledge selection adds the craft blocks to the prompt id of every call, and none leaves it as it was', async () => {
+    const knowledge = { core: 'short' as const, guide: null, guideSize: 'short' as const, tools: 2 as const }
+    const state = { measures: null, photos: [], notes: 'x', reading: null, catalog: testCatalog, correction: null, knowledge }
+    const review = fake({ verdict: 'needs-changes', summary: 's', problems: [], tips: ['t'] }).expert
+    expect((await review.reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog, knowledge }, new AbortController().signal)).origin.promptId).toBe('system@11+review@5+core@1+tools@1')
+    const skeleton = fake({ explanation: 'x', ...answerWith(null), questions: [], requirements: [], suggestions: [] }).expert
+    expect((await skeleton.planDesign!(state, new AbortController().signal)).origin.promptId).toBe('skeleton@16+all+core@1+tools@1')
+    const photo = fake({ view: 'front', kind: 'librero', confidence: 'high', description: 'Un librero', proportions: null, base: 'kick', topOverhangs: null, columns: null, details: [], doubts: [] }).expert
+    expect((await photo.readPhoto({ photo: { base64: 'AAA' }, context: '', knowledge }, new AbortController().signal)).origin.promptId).toBe('reading@4+core@1')
+  })
+
   it('an answer that does not match the schema throws InvalidResponse with the problems', async () => {
     const { expert } = fake({ explanation: 'x', operations: [{ op: 'volar' }] })
     const promise = expert.proposeAdjustment({ context: '', request: 'x', design: exampleBookcase, proposal: null, catalog: testCatalog, correction: null }, new AbortController().signal)

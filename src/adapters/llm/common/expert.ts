@@ -22,7 +22,7 @@ import { PhotoReading } from '../../../domain/furniture/reading/reading'
 import { KIND_NOUN } from '../../../domain/design/kind'
 import { describeProblems, strictSchema } from './jsonSchema'
 import { FURNITURE_KINDS, MODULE_OF_KIND, type FurnitureKind } from '../../../domain/furniture/modules/plan'
-import { ADJUSTMENT, planAdjustmentFor as planAdjustmentPrompt, PURCHASE_REVIEW, skeletonFor, promptIdOf, READING, RECONSTRUCTION, render, systemFor } from './prompts'
+import { ADJUSTMENT, planAdjustmentFor as planAdjustmentPrompt, PURCHASE_REVIEW, skeletonFor, promptIdOf, readingFor, RECONSTRUCTION, render, systemFor } from './prompts'
 
 export type Content = { kind: 'text'; text: string } | { kind: 'image'; base64: string }
 
@@ -105,21 +105,21 @@ export function createExpert(t: Transport, label: string): LLMProvider {
     async reconstruct(s: ReconstructionRequest, signal) {
       const content = designRequest(s)
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
-      const { json, usage, warnings } = await t.completeJSON(systemFor(RECONSTRUCTION, s.catalog), content, RECONSTRUCTION_SCHEMA, 'reconstruction', signal)
-      return { value: validate(ReconstructionResponse, json), origin: { promptId: promptIdOf(RECONSTRUCTION), provider: t.provider, model: t.model }, usage, warnings }
+      const { json, usage, warnings } = await t.completeJSON(systemFor(RECONSTRUCTION, s.catalog, s.knowledge), content, RECONSTRUCTION_SCHEMA, 'reconstruction', signal)
+      return { value: validate(ReconstructionResponse, json), origin: { promptId: promptIdOf(RECONSTRUCTION, s.knowledge), provider: t.provider, model: t.model }, usage, warnings }
     },
     async proposeAdjustment(s: AdjustmentRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${s.context}\n\n## The person's request\n${s.request}` }]
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors))
-      const { json, usage, warnings } = await t.completeJSON(systemFor(ADJUSTMENT, s.catalog), content, ADJUSTMENT_SCHEMA, 'adjustment', signal)
-      return { value: validate(AdjustmentResponse, json), origin: { promptId: promptIdOf(ADJUSTMENT), provider: t.provider, model: t.model }, usage, warnings }
+      const { json, usage, warnings } = await t.completeJSON(systemFor(ADJUSTMENT, s.catalog, s.knowledge), content, ADJUSTMENT_SCHEMA, 'adjustment', signal)
+      return { value: validate(AdjustmentResponse, json), origin: { promptId: promptIdOf(ADJUSTMENT, s.knowledge), provider: t.provider, model: t.model }, usage, warnings }
     },
     async planDesign(s: ReconstructionRequest, signal) {
       const content = designRequest(s)
       if (s.correction) content.push(correction(s.correction.previousResponse, s.correction.errors.map((e) => `- ${e.code}: ${e.message}`).join('\n')))
       const module = s.routeKind ? MODULE_OF_KIND[s.routeKind] : null
       const { schema, json: jsonSchema } = SKELETONS.find((k) => k.kind === module)!
-      const prompt = skeletonFor(module, s.routeKind ?? null)
+      const prompt = skeletonFor(module, s.routeKind ?? null, s.knowledge)
       const { json, usage, warnings } = await t.completeJSON(render(prompt, s.catalog), content, jsonSchema, 'skeleton', signal)
       // Without the kind every module was asked for; with it, only its own: the others are null either way.
       const value: PlanResponse = { ...answerWith(null), ...validate(schema, json) }
@@ -129,7 +129,7 @@ export function createExpert(t: Transport, label: string): LLMProvider {
       const content: Content[] = [{ kind: 'text', text: `${r.context}\n\n## Current plan\n${JSON.stringify(r.plan)}\n\n## The person's request\n${r.request}` }]
       if (r.correction) content.push(correction(r.correction.previousResponse, r.correction.errors))
       const { schema, json: jsonSchema } = PLAN_ADJUSTMENT_SCHEMAS[r.plan.kind]
-      const prompt = planAdjustmentPrompt(r.plan.kind, r.kind ?? null)
+      const prompt = planAdjustmentPrompt(r.plan.kind, r.kind ?? null, r.knowledge)
       const { json, usage, warnings } = await t.completeJSON(render(prompt, r.catalog), content, jsonSchema, 'plan_adjustment', signal)
       // The other modules' fields were never asked for: null, as the app reads every one.
       const value: PlanAdjustment = { ...answerWith(null), ...validate(schema, json) }
@@ -140,13 +140,14 @@ export function createExpert(t: Transport, label: string): LLMProvider {
         { kind: 'text', text: `${r.photo.note ? `The person says about this photo: ${r.photo.note}` : 'The person left no note about this photo.'}${r.context ? `\nWhat the person is after: ${r.context}` : ''}` },
         { kind: 'image', base64: r.photo.base64 },
       ]
-      const { json, usage, warnings } = await t.completeJSON(render(READING, null), content, READING_SCHEMA, 'photo_reading', signal)
-      return { value: validate(PhotoReading, json), origin: { promptId: READING.id, provider: t.provider, model: t.model }, usage, warnings }
+      const prompt = readingFor(r.knowledge)
+      const { json, usage, warnings } = await t.completeJSON(render(prompt, null), content, READING_SCHEMA, 'photo_reading', signal)
+      return { value: validate(PhotoReading, json), origin: { promptId: prompt.id, provider: t.provider, model: t.model }, usage, warnings }
     },
     async reviewPurchase(s: ReviewRequest, signal) {
       const content: Content[] = [{ kind: 'text', text: `${s.context}\n\n${s.review}` }]
-      const { json, usage, warnings } = await t.completeJSON(systemFor(PURCHASE_REVIEW, s.catalog), content, REVIEW_SCHEMA, 'purchase_review', signal)
-      return { value: validate(ReviewResponse, json), origin: { promptId: promptIdOf(PURCHASE_REVIEW), provider: t.provider, model: t.model }, usage, warnings }
+      const { json, usage, warnings } = await t.completeJSON(systemFor(PURCHASE_REVIEW, s.catalog, s.knowledge), content, REVIEW_SCHEMA, 'purchase_review', signal)
+      return { value: validate(ReviewResponse, json), origin: { promptId: promptIdOf(PURCHASE_REVIEW, s.knowledge), provider: t.provider, model: t.model }, usage, warnings }
     },
   }
 }

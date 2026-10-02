@@ -10,7 +10,7 @@ import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULE_OF_KIND, MODULES } from '../../../domain/furniture/modules/plan'
 import type { DesignKind } from '../../../domain/design/kind'
 import { WRITTEN_BY_HAND } from './modulePrompts'
-import { KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, skeletonFor, systemFor } from './prompts'
+import { CRAFT_CORE, CRAFT_TOOLS, KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, planAdjustmentFor, PROMPTS, PURCHASE_REVIEW, READING, RECONSTRUCTION, render, SKELETON, skeletonFor, systemFor } from './prompts'
 import { strictSchema } from './jsonSchema'
 import { planAdjustmentFor as planAdjustmentSchema, PlanResponse, planResponseFor } from '../../../ports/LLMProvider'
 import { fill, placeholdersIn, promptValues } from './promptValues'
@@ -25,7 +25,7 @@ const contains = (text: string, literal: string) => new RegExp(`(?<![\\d.])${esc
 
 describe('prompt files', () => {
   it('each file is loaded and named after its id (name@version → name.vversion.md)', () => {
-    const loaded = [...PROMPTS.slice(0, 5), SKELETON, PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS), ...Object.values(KIND_PROMPTS)]
+    const loaded = [...PROMPTS.slice(0, 5), SKELETON, PLAN_ADJUSTMENT, ...Object.values(MODULE_PROMPTS), ...Object.values(KIND_PROMPTS), CRAFT_CORE, CRAFT_TOOLS]
     expect(byName.map((f) => f.name).sort()).toEqual(loaded.map((p) => `${p.id.replace('@', '.v')}.md`).sort())
   })
 
