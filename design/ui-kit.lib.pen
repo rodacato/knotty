@@ -19,7 +19,7 @@
           "id": "Xb2lE",
           "name": "ui-kit 0.1.0 — Foundations",
           "fill": "$graphite",
-          "content": "ui-kit 0.4.0 — Foundations",
+          "content": "ui-kit 0.4.1 — Foundations",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -1530,7 +1530,7 @@
           "id": "RvRnr",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.4.0 — Components",
+          "content": "ui-kit 0.4.1 — Components",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -3262,6 +3262,446 @@
               ]
             }
           ]
+        },
+        {
+          "type": "frame",
+          "id": "nktrQ",
+          "name": "System — Help · Reveal · Field states · disabled RadioCard",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "h4QXu8",
+              "name": "Section title",
+              "fill": "$graphite-2",
+              "content": "System — HelpButton (closed · open) · Reveal (hidden · shown) · RadioCard/Disabled · HelpPanel · Field/Input (error · help · sm)",
+              "fontFamily": "$font-sans",
+              "fontSize": 13,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "atUj0",
+              "name": "Row",
+              "gap": 24,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "h33gDp",
+                  "name": "HelpButton/Closed",
+                  "reusable": true,
+                  "width": 20,
+                  "height": 20,
+                  "fill": "$kraft",
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "DJgpp",
+                      "name": "Question",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "question",
+                      "library": "phosphor",
+                      "weight": 700,
+                      "fill": "$graphite"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bUjD5",
+                  "name": "HelpButton/Open",
+                  "reusable": true,
+                  "width": 20,
+                  "height": 20,
+                  "fill": "$graphite",
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "p733t",
+                      "name": "Question",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "question",
+                      "library": "phosphor",
+                      "weight": 700,
+                      "fill": "$bone"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wTyOb",
+                  "name": "Reveal/Hidden",
+                  "reusable": true,
+                  "width": 36,
+                  "height": 36,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "pP5vG",
+                      "name": "Eye",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "eye",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nP5pW",
+                  "name": "Reveal/Shown",
+                  "reusable": true,
+                  "width": 36,
+                  "height": 36,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S076y",
+                      "name": "Eye",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "eye-slash",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "XexIv",
+                  "name": "RadioCard/Disabled",
+                  "reusable": true,
+                  "opacity": 0.4,
+                  "width": 240,
+                  "height": 44,
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LaSGj",
+                      "name": "Label",
+                      "fill": "$graphite",
+                      "content": "Barniz de poliuretano",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mAb8X",
+                  "name": "Field/Input · sm",
+                  "reusable": true,
+                  "width": 160,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zBDFt",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "Espesor",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "rLJQv",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 32,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        8
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "D3nb5L",
+                          "name": "Value",
+                          "fill": "$graphite",
+                          "content": "18",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XiFzT",
+                          "name": "Unit",
+                          "fill": "$graphite-2",
+                          "content": "mm",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xPg4i",
+              "name": "Row",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "EHko7",
+                  "name": "HelpPanel",
+                  "reusable": true,
+                  "width": 360,
+                  "fill": "$paper",
+                  "cornerRadius": "$radius-xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xj0Ve",
+                      "name": "Head",
+                      "width": "fill_container",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ulGh1",
+                          "name": "Book",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "book-open",
+                          "library": "phosphor",
+                          "fill": "$graphite"
+                        },
+                        {
+                          "type": "text",
+                          "id": "uAZ4U",
+                          "name": "Term",
+                          "fill": "$graphite",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Ahorrar material",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "B8UNQT",
+                          "name": "Close",
+                          "width": 36,
+                          "height": 36,
+                          "cornerRadius": "$radius-full",
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "AM4Yi",
+                              "name": "x",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "x",
+                              "library": "phosphor",
+                              "fill": "$graphite-2"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "i9PDyk",
+                      "name": "Meaning",
+                      "fill": "$graphite",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Busca otra combinación de lo que no fijaste para que las piezas quepan en menos hojas de triplay.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Qm1bj",
+                      "name": "Note",
+                      "fill": "$graphite-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Lo fijado con candado no se toca, y nada cambia hasta que eliges una opción y la aplicas.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-sans",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qwRwP",
+                  "name": "Field/Input · error",
+                  "reusable": true,
+                  "width": 240,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QEJLQ",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "Frase",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WOu2Q",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$rust",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AC2W7",
+                          "name": "Value",
+                          "fill": "$graphite",
+                          "content": "••••••••",
+                          "fontFamily": "$font-mono",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "fqGK2",
+                      "name": "Note",
+                      "fill": "$rust",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "La frase no es correcta.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Wtejk",
+                  "name": "Field/Input · help",
+                  "reusable": true,
+                  "width": 480,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "p6gqu8",
+                      "name": "Label",
+                      "fill": "$graphite-2",
+                      "content": "¿Algo que el experto deba saber?",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "xU3px",
+                      "name": "Box",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$bone",
+                      "cornerRadius": "$radius-xl",
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "mdvsh",
+                          "name": "Value",
+                          "fill": "$graphite-2",
+                          "content": "Ej. va a cargar libros; mi espacio mide 90 cm de ancho",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 16,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "a7YHL",
+                      "name": "Note",
+                      "fill": "$graphite",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Opcional: lo que las fotos no muestran.",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -3356,7 +3796,7 @@
   "variables": {
     "kit-version": {
       "type": "string",
-      "value": "0.4.0"
+      "value": "0.4.1"
     },
     "bone": {
       "type": "color",
