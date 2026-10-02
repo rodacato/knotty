@@ -42,6 +42,13 @@ describe('parseArgs', () => {
     expect(parseArgs(['concurrency', 'a,b']).error).toMatch(/no son niveles/)
   })
 
+  it('runs the hard suite, and lists it with --list', () => {
+    expect(parseArgs(['hard'])).toEqual({ command: 'hard', list: false })
+    expect(parseArgs(['hard', '--list'])).toEqual({ command: 'hard', list: true })
+    expect(parseArgs(['hard', 'C01']).error).toMatch(/Argumento desconocido/)
+    expect(parseArgs(['hard', '--accept']).error).toMatch(/Opción desconocida/)
+  })
+
   it('asks for help and refuses what it does not understand', () => {
     expect(parseArgs(['--help'])).toEqual({ command: 'help' })
     expect(parseArgs(['replay', '--help'])).toEqual({ command: 'help' })
@@ -50,6 +57,15 @@ describe('parseArgs', () => {
     expect(parseArgs(['replay', '../etc/passwd']).error).toMatch(/no es el id/)
     expect(parseArgs(['replay', '--fast', RUN]).error).toMatch(/Opción desconocida/)
     expect(parseArgs(['replya']).error).toMatch(/desconocido/)
+  })
+})
+
+describe('compare:hard', () => {
+  it('refuses, runs nothing and says why when the private directory is absent', () => {
+    const missing = join(tmpdir(), 'knotty-cli-no-bank')
+    const r = spawnSync(process.execPath, [join(import.meta.dirname, 'cli.mjs'), 'hard', '--list'], { encoding: 'utf8', env: { ...process.env, KNOTTY_HARD_DIR: missing } })
+    expect(r.status).toBe(3)
+    expect(r.stdout).toMatch(/No se encontró la batería privada.*No se corrió nada/)
   })
 })
 

@@ -17,6 +17,7 @@
     "compare:resume": "node scripts/compare/cli.mjs resume",
     "compare:promote": "node scripts/compare/cli.mjs promote",
     "compare:concurrency": "node scripts/compare/cli.mjs concurrency",
+    "compare:hard": "node scripts/compare/cli.mjs hard",
     "probe": "node scripts/probe/run.mjs"
   },
   "dependencies": {

@@ -5,7 +5,7 @@ import { loadKeys } from './keys.ts'
 // One test runs the whole bench (the orchestrator caps concurrency per host); the entry point (cli.mjs) picks which file to run.
 const target = process.env.KNOTTY_COMPARE_TARGET ?? 'models'
 // Only the targets that call a provider need keys.
-if (['models', 'resume', 'concurrency'].includes(target)) loadKeys()
+if (['models', 'resume', 'concurrency', 'hard'].includes(target) && !process.env.KNOTTY_HARD_LIST) loadKeys()
 
 export default defineConfig({
   test: {

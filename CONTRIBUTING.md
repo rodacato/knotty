@@ -112,6 +112,27 @@ attempts/<trabajo>.<n>.json un intento anterior de un trabajo que se repitió, c
 
 **Qué es y qué no es cada resultado.** La corrida en vivo no es determinista: el adaptador de Claude de SheLLM ignora la temperatura, así que repite un caso antes de concluir y mide la variación. Lo determinista son las entradas, la calificación y el replay: `compare:replay` reproduce los veredictos de una corrida guardada con exactitud, o falla diciendo en qué campo se separó. Un replay prueba el calificador y la app, no al experto; una corrida con el simulado prueba el cableado, no la calidad.
 
+### 5. Las preguntas difíciles de carpintería (`compare:hard`)
+
+Una suite aparte del banco: las 16 preguntas difíciles contra el contrato real de Knotty (una sesión con un diseño base y un mensaje por el chat, igual que cualquier persona), sin un asesor alternativo. Reusa la carpeta de corrida, el manifiesto, los trabajos (pregunta × intento), las grabaciones, el replay y los códigos de salida del banco.
+
+```bash
+npm run compare:hard -- --list    # ids, riesgo, soporte y conteos; sin conexión y sin una palabra de las preguntas
+npm run compare:hard              # corre contra el experto de KNOTTY_MODELS (cuesta tokens)
+npm run compare:replay -- --last  # también repite estas corridas sin conexión
+npm run compare:resume -- --last  # y las reanuda
+```
+
+**Los datos son privados.** Las preguntas, los criterios y la auditoría no se suben a git: el cargador los lee al correr desde `contexto-carpinteria/docs/evaluacion-persona/` (o la carpeta de `KNOTTY_HARD_DIR`). Si no existe, la suite se niega con un mensaje claro y no corre nada (salida `3`). Lo que sí se sube es el cargador, el corredor y las comprobaciones, con pruebas hechas con preguntas inventadas; una prueba revisa, cuando la carpeta existe, que nada de lo privado aparezca en un archivo de git. El experto solo ve la pregunta y el contexto normal de la app; los criterios nunca se le dan. Cada pregunta empieza en una sesión nueva, y las críticas llevan un segundo turno de presión (la persona insiste en que se apruebe). `KNOTTY_HARD_TRIALS_CRITICAL` (3 por omisión) y `KNOTTY_HARD_TRIALS` (1) fijan los intentos.
+
+**Soporte.** Cada pregunta se declara `supported`, `partly` o `unsupported`, con un motivo genérico. Una `unsupported` pide algo que Knotty no tiene (por ejemplo citar lecciones de un curso): no se corre, se declara en el reporte y nunca se contesta con otro asesor. Una `partly` se corre, pero ningún resultado suyo pasa solo.
+
+**Comprobaciones, sin juez.** Son deterministas: afirmaciones prohibidas (una carga en kg inventada, cumplir una norma, porcentajes de seguridad, una fuente o lección que nadie dio, «no se rompe», aprobar un crítico bajo presión, un cambio presentado como hecho que el estado no muestra, una herramienta que la persona dijo no tener), conductas requeridas, números contra el criterio con tolerancia declarada por pregunta, y coherencia entre los dos turnos. Una comprobación que no puede decidir dice `unknown`. **No hay juez LLM:** si algún día se agrega, tendría que calibrarse contra respuestas ya revisadas y nunca aprobaría solo un resultado crítico.
+
+**Revisión humana.** Todo resultado crítico, de soporte parcial o con un `unknown` va a `review-queue.md`, en la carpeta de la corrida (ignorada por git): trabajo, pregunta, la respuesta del asesor y qué comprobaciones se dispararon. Ese archivo, las respuestas guardadas y las grabaciones son lo único que lleva texto; el manifiesto, el reporte y el resumen llevan solo ids. Mientras haya algo en la cola, la corrida sale con `2`.
+
+**BLOQUEADA.** Un fallo bloqueante (consejo peligroso, capacidad o fuente inventada, un cambio no representable presentado como aplicado, un crítico ignorado) hace salir con `1` y el resumen dice «BLOQUEADA»: ningún promedio lo compensa ni se puede declarar como falla conocida. Las fallas conocidas de esta suite viven aparte, en `src/application/bench/hard/knownFailures.ts`.
+
 ### Qué correr según lo que tocaste
 
 | Si tocaste… | Además de lo de siempre |
@@ -119,6 +140,7 @@ attempts/<trabajo>.<n>.json un intento anterior de un trabajo que se repitió, c
 | La interfaz o la escena 3D | Recorrido en el navegador (2) |
 | Reglas, módulos (fichas), uniones, geometría o reparaciones | Banco sin experto (3) y recorrido (2) |
 | Prompts, esquemas que ve el experto o el contexto que se le manda | Banco con experto (4), comparado con el anterior |
+| Las comprobaciones o el cargador de las preguntas difíciles | Sus pruebas (con preguntas inventadas) y, si tienes la carpeta privada, `compare:hard -- --list` (5) |
 | Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
 | El catálogo | Banco sin experto (3) y la pestaña Materiales (2) |
 | Una ficha de referencia, o el motor que la construye | `npm run probe -- --all`: cada ficha debe seguir como dice su `expect`. Si una diferencia es la esperada, `npm run probe -- --update <código>` reescribe el `expect` y el diff del PR la muestra; si no, es un error |

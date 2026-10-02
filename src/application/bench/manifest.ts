@@ -80,6 +80,8 @@ export const Manifest = z.object({
   runId: z.string().min(1),
   createdAt: z.string().min(1),
   label: z.string(),
+  /** Which suite the run belongs to; absent in the bench's own runs. */
+  suite: z.enum(['bench', 'hard']).optional(),
   commit: z.string().regex(/^[0-9a-f]{40}$/, 'full 40-character commit'),
   state: z.object({ dirty: z.boolean(), stateHash: hash.nullable() }),
   hashes: z.object({

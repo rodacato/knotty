@@ -24,14 +24,17 @@ export const HELP = `Uso:
                                                    fija la corrida como base (scripts/compare/baseline.json) si nada lo impide
   npm run compare:concurrency -- 2,4[,6]           la misma batería a cada nivel de concurrencia, uno tras otro, y una tabla (cuesta tokens)
                                                    los niveles 5 y 6 piden --allow-6; más de 6 se rechaza
+  npm run compare:hard                             las 16 preguntas difíciles contra el contrato real; los datos son privados y se leen al correr (cuesta tokens)
+  npm run compare:hard -- --list                   ids, soporte y conteos, sin conexión y sin texto
   npm run compare -- --help
 
 Variables de entorno de la corrida: KNOTTY_MODELS, KNOTTY_CASES, KNOTTY_REPEAT, KNOTTY_LABEL, KNOTTY_PARALLEL (por host, 2 por omisión),
 KNOTTY_BASELINE (corrida, archivo o none; por omisión scripts/compare/baseline.json), KNOTTY_PROMOTE_TO (otro archivo para promote).
+Suite difícil: KNOTTY_HARD_DIR (carpeta privada; por omisión contexto-carpinteria/docs/evaluacion-persona/), KNOTTY_HARD_TRIALS_CRITICAL (3) y KNOTTY_HARD_TRIALS (1).
 Cada corrida queda en scripts/compare/results/<corrida>/. Salida: 0 pasa (o solo fallas conocidas), 1 regresión, 2 corrida incompleta o con errores de infraestructura, 3 argumentos inválidos.`
 
-const COMMANDS = ['run', 'replay', 'resume', 'promote', 'concurrency']
-const FLAGS = { replay: ['--regrade'], resume: ['--retry-infra', '--retry-failed'], promote: ['--accept'], concurrency: ['--allow-6'] }
+const COMMANDS = ['run', 'replay', 'resume', 'promote', 'concurrency', 'hard']
+const FLAGS = { replay: ['--regrade'], resume: ['--retry-infra', '--retry-failed'], promote: ['--accept'], concurrency: ['--allow-6'], hard: ['--list'] }
 
 /** Turns argv into what to do; `error` is set when the arguments make no sense. */
 export function parseArgs(argv) {
@@ -45,6 +48,11 @@ export function parseArgs(argv) {
   const unknown = rest.find((a) => a.startsWith('--') && a !== '--last' && !flags.includes(a))
   if (unknown) return { command, error: `Opción desconocida: ${unknown}` }
   const targets = rest.filter((a) => !a.startsWith('--') || a === '--last')
+
+  if (command === 'hard') {
+    if (targets.length) return { command, error: `Argumento desconocido: ${targets[0]}` }
+    return { command, list: rest.includes('--list') }
+  }
 
   if (command === 'concurrency') {
     if (targets.length !== 1) return { command, error: 'Pasa los niveles separados por coma: npm run compare:concurrency -- 2,4' }
@@ -80,7 +88,7 @@ function fail(message) {
   process.exit(3)
 }
 
-const TARGET = { run: 'models', replay: 'replay', resume: 'resume', promote: 'promote', concurrency: 'concurrency' }
+const TARGET = { run: 'models', replay: 'replay', resume: 'resume', promote: 'promote', concurrency: 'concurrency', hard: 'hard' }
 
 function main(argv) {
   const parsed = parseArgs(argv)
@@ -89,7 +97,9 @@ function main(argv) {
 
   const results = process.env.KNOTTY_RESULTS_DIR ?? join(here, 'results')
   const env = { ...process.env, KNOTTY_COMPARE_TARGET: TARGET[parsed.command] }
-  if (parsed.command === 'concurrency') {
+  if (parsed.command === 'hard') {
+    if (parsed.list) env.KNOTTY_HARD_LIST = '1'
+  } else if (parsed.command === 'concurrency') {
     env.KNOTTY_CONCURRENCY_LEVELS = parsed.levels
     if (parsed.allowSix) env.KNOTTY_ALLOW_6 = '1'
   } else if (parsed.command !== 'run') {

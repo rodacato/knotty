@@ -26,6 +26,7 @@ export interface RunResults {
 /** The finished jobs of a run as they were saved, in the manifest's order; a done job whose file is missing is left out, and the promotion then says so. */
 export function readRunResults(store: RunStore): RunResults {
   const manifest = store.readManifest()
+  if (manifest.suite === 'hard') throw new Error(`La corrida ${manifest.runId} es de la suite difícil: no tiene filas del banco y no se compara ni se promueve como base.`)
   const saved = manifest.jobs.filter((j) => j.status === 'done' && store.hasJob(j.jobId)).map((j) => store.readJob(j.jobId) as StoredJob)
   return {
     manifest,

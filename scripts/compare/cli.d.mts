@@ -1,7 +1,7 @@
 export const HELP: string
 
 export interface Parsed {
-  command: 'help' | 'run' | 'replay' | 'resume' | 'promote' | 'concurrency'
+  command: 'help' | 'run' | 'replay' | 'resume' | 'promote' | 'concurrency' | 'hard'
   runId?: string
   last?: boolean
   regrade?: boolean
@@ -9,6 +9,7 @@ export interface Parsed {
   mode?: 'resume' | 'retry-infra' | 'retry-failed'
   levels?: string
   allowSix?: boolean
+  list?: boolean
   error?: string
 }
 
