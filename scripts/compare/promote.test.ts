@@ -1,10 +1,13 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 import { parseManifest } from '../../src/application/bench/manifest'
 import { promoteRun } from './promoteRun'
 import { RATE_LIMIT, scripted, simulatedRun, tempDir } from './runs.test-util'
 import { createRunStore } from './store'
+
+// These tests run whole scenarios: a CI runner is slower than the default limit allows.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 })
 
 const dir = tempDir()
 afterAll(() => dir.remove())

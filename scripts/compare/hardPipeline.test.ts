@@ -1,7 +1,7 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import data from '../../public/catalog/catalog.json'
 import { createSimulated } from '../../src/adapters/llm/simulated/simulated'
 import { advisor, synthetic } from '../../src/application/bench/hard/fixtures.test-util'
@@ -9,6 +9,9 @@ import { Catalog } from '../../src/domain/materials/catalog'
 import { replayHard, resumeHard, runHard, type HardCommon, type HardOptions } from './hardRun'
 import { createRunStore } from './store'
 import { createTelemetry } from './telemetry'
+
+// These tests run whole scenarios: a CI runner is slower than the default limit allows.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 })
 
 // The suite through the whole runner, offline, with invented cases and a scripted candidate: run, files, replay, resume.
 

@@ -2,8 +2,11 @@ import { spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HELP, lastRun, parseArgs } from './cli.mjs'
+
+// These tests start processes: a CI runner is slower than the default limit allows.
+vi.setConfig({ testTimeout: 30_000 })
 
 const RUN = '20261002-154501007-abcdef12'
 const dirs: string[] = []

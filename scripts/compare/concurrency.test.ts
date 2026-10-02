@@ -1,8 +1,11 @@
-import { afterAll, expect, it } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
 import { concurrencyTable } from '../../src/application/bench/concurrency'
 import { measureLevels } from './concurrencyRun'
 import { compareOptions, tempDir } from './runs.test-util'
 import { readManifests } from './store'
+
+// These tests run whole scenarios: a CI runner is slower than the default limit allows.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 })
 
 const dir = tempDir()
 afterAll(() => dir.remove())
