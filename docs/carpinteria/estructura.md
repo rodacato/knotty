@@ -12,7 +12,7 @@
 
 1. **El pandeo de una repisa se calcula con la fórmula de viga simplemente apoyada con carga uniforme** (§1.1). La fórmula es de manual; lo que decide el resultado son tres supuestos: la rigidez del triplay, la fluencia y la carga. ✅
 2. **Los valores que circulan en calculadoras y tablas de taller son optimistas.** E = 6 000 MPa es el de APA para especies del Grupo 1 (abeto Douglas, pino del sur); el triplay de pino radiata medido da 4 742 MPa [7]. Con la veta atravesada, un triplay de 5 capas baja a ≈ 1 700–1 900 MPa [6]. Y la fluencia de los tableros no es 1.5 (madera maciza) sino ≈ 2.0: NDS [8], Eurocódigo 5 [9] y Wood Handbook [10] coinciden.
-3. Con valores realistas (E∥ 4 500, E⊥ 2 000, fluencia 2.0), **una repisa de 18 mm con libros no debería pasar de ≈ 540 mm sin apoyo si quieres que se vea recta**, y a partir de **≈ 830 mm** se ve claramente pandeada (≈ L/100). La regla de taller «18 mm, no más de 80–90 cm» y el Sagulator (813 mm [2]) marcan el límite de lo *aceptable*, no el de lo *invisible*: ignoran la fluencia o usan un E alto.
+3. Con valores realistas (E∥ 4 500, E⊥ 2 000, fluencia 2.0), **una repisa de 18 mm con libros no debería pasar de ≈ 530 mm sin apoyo si quieres que se vea recta** (≈ 540 con 18 mm exactos), y a partir de **≈ 810 mm** (≈ 830 con 18 exactos) se ve claramente pandeada (≈ L/100). La regla de taller «18 mm, no más de 80–90 cm» y el Sagulator (813 mm [2]) marcan el límite de lo *aceptable*, no el de lo *invisible*: ignoran la fluencia o usan un E alto.
 4. **Una tira de refuerzo de madera maciza de 18 × 40 mm pegada al frente triplica la rigidez** (`I` × 3.0): la repisa de 18 mm con libros pasa de 540 a 780 mm. Es la solución más barata antes de subir de espesor (§1.7).
 5. **Una cómoda de triplay de 90 cm se vuelca sola** si se abren todos los cajones llenos de ropa, sin necesidad de que un niño se suba (cálculo propio con la prueba de ASTM F2057-23 [12]). La norma aplica desde 686 mm (27") de alto: **toda cajonera de esa altura o más va anclada al muro** (§6).
 6. En México **no encontré una NOM vigente de estabilidad de muebles**; solo las NMX-Q-038 a 044 de 1981–1982 (muebles domésticos) [24]. La «NOM-167-SCFI-2009» que cita un blog [25] no aparece en el DOF. ❓
@@ -118,7 +118,7 @@ Las fuentes discrepan: la ficha medida de radiata da 4 742 y APA Grupo 1 ≈ 5 9
 **Lectura:**
 
 - **L/360 sobre el pandeo final** coincide con el límite de lo visible (L/384–L/400 [1][2]). Por debajo de eso, la repisa se ve recta. ✅
-- **L/100 sobre el pandeo final** es el límite de «claramente pandeada». Sale de la AWS: su L/144 instantánea con 244 kg/m² equivale, con libros de 150 kg/m² y fluencia 2, a `δ_final = δ_AWS × 150/244 × 2 = 1.23 · δ_AWS` → L/117; redondeado a L/100. ⚠️ Con este criterio, la repisa de 18 mm con libros llega al límite en ≈ 830 mm, que es justo donde la regla de taller dice «ya no» (80–90 cm) [2][3]. Si se prefiere más margen, L/120 lo lleva a ≈ 780 mm.
+- **L/100 sobre el pandeo final** es el límite de «claramente pandeada». Sale de la AWS: su L/144 instantánea con 244 kg/m² equivale, con libros de 150 kg/m² y fluencia 2, a `δ_final = δ_AWS × 150/244 × 2 = 1.23 · δ_AWS` → L/117; redondeado a L/100. ⚠️ Con este criterio, la repisa de 18 mm con libros llega al límite en ≈ 810–830 mm, que es justo donde la regla de taller dice «ya no» (80–90 cm) [2][3]. Si se prefiere más margen, L/120 lo lleva a ≈ 780 mm.
 - L/200 como límite resulta demasiado estricto con valores realistas: marcaría como inaceptable una repisa de 18 mm con libros desde 680 mm, cuando la industria (AWS) acepta L/144 instantánea con 244 kg/m².
 - **Un pandeo es un problema de apariencia, no de seguridad**, salvo cuando la pieza carga personas (asientos, camas: §7), donde además se revisa la resistencia.
 
@@ -126,18 +126,18 @@ Las fuentes discrepan: la ficha medida de radiata da 4 742 y APA Grupo 1 ≈ 5 9
 
 ### 1.6 Tabla de claros máximos recomendados
 
-Supuestos: triplay de pino con la veta de las caras a lo largo del claro, `E = 4 500 MPa`, `k = 2.0`, apoyo simple, carga repartida. Cada celda es **claro sin pandeo visible (L/360) / claro límite (L/100)**, en mm, redondeado a 10. Vale para cualquier fondo (§1.1). ❓ Cálculo propio con [1][6][7][8].
+Supuestos: triplay de pino con la veta de las caras a lo largo del claro, `E = 4 500 MPa`, `k = 2.0`, apoyo simple, carga repartida. Cada celda es **claro sin pandeo visible (L/360) / claro límite (L/100)**, en mm, redondeado a 10. Vale para cualquier fondo (§1.1). Las filas de 12, 15 y 18 mm usan el **espesor real** (nominal − 0.5: 11.5, 14.5 y 17.5), como la regla de pandeo de Knotty, que no se lo resta a las hojas de menos de 9 mm (traseras, fondos de cajón); con el nominal exacto el claro de 18 mm con libros sale 540 / 830. ❓ Cálculo propio con [1][6][7][8].
 
 | Espesor | Ligera 50 kg/m² | Media 100 | Libros 150 | Biblioteca (AWS) 244 |
 |---|---|---|---|---|
-| 12 mm | 520 / 800 | 410 / 630 | 360 / 550 | 310 / 470 |
-| 15 mm | 650 / 1 000 | 520 / 790 | 450 / 690 | 380 / 590 |
-| 18 mm | 780 / 1 200 | 620 / 950 | **540 / 830** | 460 / 710 |
-| 2 × 18 mm laminado y pegado (36) | 1 560 / 2 390 | 1 240 / 1 900 | 1 080 / 1 660 | 920 / 1 410 |
-| 15 mm + tira de refuerzo 18 × 40 | 1 100 / 1 690 | 880 / 1 340 | 760 / 1 170 | 650 / 1 000 |
-| 18 mm + tira de refuerzo 18 × 40 | 1 130 / 1 730 | 900 / 1 370 | **780 / 1 200** | 670 / 1 020 |
+| 12 mm | 500 / 760 | 400 / 610 | 350 / 530 | 290 / 450 |
+| 15 mm | 630 / 960 | 500 / 760 | 440 / 670 | 370 / 570 |
+| 18 mm | 760 / 1 160 | 600 / 920 | **530 / 810** | 450 / 690 |
+| 2 × 18 mm laminado y pegado (36, con el nominal) | 1 560 / 2 390 | 1 240 / 1 900 | 1 080 / 1 660 | 920 / 1 410 |
+| 15 mm + tira de refuerzo 18 × 40 (con el nominal) | 1 100 / 1 690 | 880 / 1 340 | 760 / 1 170 | 650 / 1 000 |
+| 18 mm + tira de refuerzo 18 × 40 (con el nominal) | 1 130 / 1 730 | 900 / 1 370 | **780 / 1 200** | 670 / 1 020 |
 
-- **Con la veta atravesada** (`E⊥ = 2 000`), la repisa de 18 mm con libros baja a 410 mm. Por eso la veta de las caras va siempre a lo largo del claro. ✅
+- **Con la veta atravesada** (`E⊥ = 2 000`), la repisa de 18 mm con libros baja a ≈ 400 mm. Por eso la veta de las caras va siempre a lo largo del claro. ✅
 - **Comparación con las fuentes:** WoodBin da 813 mm (32") para 3/4" de triplay [2]. Se reproduce con `E = 6 000`, sin fluencia y a L/384 (cálculo: 847 mm). Las reglas de taller de 60–90 cm [3][28] son del mismo orden. La tabla es más conservadora porque incluye la fluencia y un E de pino radiata.
 - **Laminar dos hojas solo sirve si van pegadas en toda la cara**: pegadas, `I` se multiplica por 8 y el claro por 2. Solo atornilladas, cada hoja trabaja sola: `I` × 2 y el claro × 1.26. WOODWEB: «arriba de 34" laminamos dos capas de 3/4" con canto de 1½"» [3]. ⚠️
 

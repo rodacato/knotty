@@ -177,7 +177,7 @@ Formato: **mín / típica / máx** en mm.
 | Carga por repisa (referencia comercial) | — | 30 kg | — | BILLY de 800: 30 kg/repisa [19] | ⚠️ |
 | Carga de libros por metro lineal | 30 | 50 | 60 kg/m | 20–40 lb/ft; 35 lb/ft en bibliotecas [31] | ⚠️ |
 | Pandeo admisible de repisa (criterio de la Sagulator) | — | ≤ 1.7 mm por metro | — | 0.02"/ft; la Sagulator suma 50 % por fluencia [31] (para triplay con carga sostenida conviene contar el doble, ver [estructura.md](estructura.md)) | ⚠️ |
-| Claro de repisa de triplay de 18 mm con libros | 540 | 760–810 | 830 | Sin pandeo visible hasta ≈ 540; límite (L/100) en ≈ 830 con E 4500 MPa y fluencia ×2 ([estructura.md](estructura.md)); la regla comercial de 760–810 (30–32") [55]† es «aceptable», no «recta» | ⚠️ |
+| Claro de repisa de triplay de 18 mm con libros | 540 | 760–810 | 830 | Sin pandeo visible hasta ≈ 540; límite (L/100) en ≈ 830 con E 4500 MPa, fluencia ×2 y 18 mm exactos (con el espesor real de 17.5, ≈ 530 y ≈ 810; [estructura.md](estructura.md)); la regla comercial de 760–810 (30–32") [55]† es «aceptable», no «recta» | ⚠️ |
 
 ### 2.6 Zapateras
 

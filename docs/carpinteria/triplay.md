@@ -120,7 +120,7 @@ Combinaciones típicas: **B/BB** (lo mejor), **BB/BB**, **BB/CP**, **CP/CP** [30
 **Espesor real contra nominal.** La hoja de ¾" de EUA mide 23/32" = 18.26 mm [14][42] ✅. El triplay métrico de 18 mm puede medir de 17.1 a 18.1 mm y seguir en norma [19] ✅. En México una maderería vende triplay de **17.5 mm** con ese nombre [25] ⚠️. **Home Depot MX solo publica el espesor nominal** [2][3] ⚠️. Dos consecuencias de oficio ⚠️:
 
 - **Mide tu triplay con vernier** antes de hacer una Ranura o un rebaje: el ancho de la Ranura se saca del espesor **real** de la pieza que entra, no del nominal.
-- Para calcular el pandeo, usa también el espesor real; si no lo has medido, 17.5 mm para una hoja de 18 es un buen valor por omisión.
+- Para calcular el pandeo, usa también el espesor real; si no lo has medido, 17.5 mm para una hoja de 18 es un buen valor por omisión. La regla de pandeo de Knotty lo hace así (nominal − 0.5), salvo en las hojas de menos de 9 mm.
 
 ### Medidas de hoja
 
@@ -242,7 +242,7 @@ Ejemplo: repisa de 18 mm, fondo 300 mm, libros 150 kg/m², apoyo simple, carga r
 | Umbral L/360 (no se nota) | 1.67 mm | 2.22 mm |
 | Umbral L/100 (límite práctico) | 6.0 mm | 8.0 mm |
 
-Con los valores recomendados el pandeo es ≈ 1.8 veces el del valor optimista. Una repisa de 18 mm con libros no se ve pandeada hasta ≈ **540 mm** de claro y llega al límite práctico en ≈ **830 mm**, que coincide con la regla de taller «18 mm, no más de 80–90 cm». Con la veta cruzada el límite baja a ≈ 410 mm. La tabla completa de claros por espesor y carga está en [estructura.md](estructura.md).
+Con los valores recomendados el pandeo es ≈ 1.8 veces el del valor optimista. Con el espesor real (17.5), una repisa de 18 mm con libros no se ve pandeada hasta ≈ **530 mm** de claro y llega al límite práctico en ≈ **810 mm** (540 y 830 con 18 exactos), que coincide con la regla de taller «18 mm, no más de 80–90 cm». Con la veta cruzada el límite baja a ≈ 400 mm. La tabla completa de claros por espesor y carga está en [estructura.md](estructura.md).
 
 Para comparar: la Sagulator sugiere como meta **1.7 mm por metro** de claro (0.02" por pie, ≈ L/590) y dice que el ojo nota **2.5 mm por metro** (1/32" por pie, ≈ L/400) [21] ⚠️. L/360 queda cerca del límite de lo visible.
 

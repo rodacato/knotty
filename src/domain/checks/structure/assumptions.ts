@@ -10,6 +10,10 @@ export const ASSUMPTIONS = {
   /** kg/m² on the shelf. */
   loads: { none: 0, light: 50, medium: 100, heavy: 150 } satisfies Record<Load, number>,
   gravity: 9.81,
+  /** A board is thinner than its nominal thickness by this much (18 → 17.5); the sag is judged with the real one. */
+  realThicknessAllowance: 0.5,
+  /** Thinner boards (backs, drawer bottoms) are not taken to fall short: the allowance is only known for the carcass boards. */
+  realThicknessFrom: 9,
   /** Final sag is compared with span / limit: past the first it shows, past the second the shelf looks badly bowed. */
   deflectionLimit: { recommended: 360, critical: 100 },
   racking: {
@@ -97,6 +101,8 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'loads.medium': cite(VALUES, '5-cargas', 'Carga media'),
   'loads.heavy': cite(VALUES, '5-cargas', 'Carga pesada (libros)'),
   gravity: noReference('standard gravity in m/s², physics rather than a craft number'),
+  realThicknessAllowance: cite(VALUES, '1-material', 'Espesor real'),
+  realThicknessFrom: noReference('the reference gives the shortfall for 15 and 18 mm boards only; Knotty does not extend it to the 3 and 6 mm backs and bottoms'),
   'deflectionLimit.recommended': cite(VALUES, '4-pandeo', 'Flecha final sin pandeo visible'),
   'deflectionLimit.critical': cite(VALUES, '4-pandeo', 'Flecha final límite'),
   'racking.criticalHeight': cite(STRUCTURE, '2-rigidez-y-escuadrado-racking', 'A partir de ≈ 600 mm de alto'),

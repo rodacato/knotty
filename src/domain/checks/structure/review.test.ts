@@ -6,7 +6,7 @@ import { exampleNightstand } from '../../furniture/fixtures/nightstand'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
 import { newCriticals } from './review'
-import { maxSpan, deflection, deflectionSeverity } from './rules/deflection'
+import { maxSpan, deflection, sagThickness, deflectionSeverity } from './rules/deflection'
 import { stiffness } from '../../materials/grades'
 import { buildPlan, MODULES } from '../../furniture/modules/plan'
 
@@ -25,15 +25,25 @@ describe('R1 shelf sag', () => {
     expect(findings(design).filter((h) => h.code === 'R1_SAG' && h.pieces.includes(bottom.id))).toEqual([])
   })
 
-  // docs/carpinteria/valores-de-referencia.md §4: 18 mm radiata pine (E∥ 4500, E⊥ 2000), books (150 kg/m²), creep × 2.
-  it('reproduces the spans of the reference (18 mm, books, final sag)', () => {
-    expect(maxSpan(300, 18, 'heavy', 4500)).toBeCloseTo(540, -1)
-    expect(maxSpan(300, 18, 'medium', 4500)).toBeCloseTo(620, -1)
-    expect(maxSpan(300, 18, 'light', 4500)).toBeCloseTo(780, -1)
-    expect(maxSpan(300, 18, 'heavy', 2000)).toBeCloseTo(410, -1)
-    // The limit: at ≈ 830 mm the final sag reaches span / 100.
-    expect(deflection(830, 300, 18, 'heavy', 4500)).toBeCloseTo(830 / 100, 0)
-    expect(deflection(600, 300, 18, 'heavy', 4500)).toBeCloseTo(2.27, 1)
+  // docs/carpinteria/valores-de-referencia.md §4: 18 mm radiata pine (E∥ 4500, E⊥ 2000), books (150 kg/m²), creep × 2, real thickness 17.5.
+  it('reproduces the spans of the reference (18 mm nominal, books, final sag)', () => {
+    expect(maxSpan(300, 18, 'heavy', 4500)).toBeCloseTo(530, -1)
+    expect(maxSpan(300, 18, 'medium', 4500)).toBeCloseTo(600, -1)
+    expect(maxSpan(300, 18, 'light', 4500)).toBeCloseTo(760, -1)
+    expect(maxSpan(300, 18, 'heavy', 2000)).toBeCloseTo(400, -1)
+    // The limit: at ≈ 810 mm the final sag reaches span / 100.
+    expect(deflection(810, 300, 18, 'heavy', 4500)).toBeCloseTo(810 / 100, 0)
+    expect(deflection(600, 300, 18, 'heavy', 4500)).toBeCloseTo(2.47, 1)
+  })
+
+  it('the real thickness is the nominal one less the allowance, except for thin boards', () => {
+    expect(sagThickness(18)).toBe(17.5)
+    expect(sagThickness(15)).toBe(14.5)
+    expect(sagThickness(6)).toBe(6)
+    expect(sagThickness(3)).toBe(3)
+    const sag = (t: number) => deflection(600, 300, t, 'heavy', 4500)
+    expect(sag(15) / sag(18)).toBeCloseTo((17.5 / 14.5) ** 3, 5)
+    expect(sag(3) / sag(6)).toBeCloseTo(2 ** 3, 5)
   })
 
   it('a load that stays creeps × 2, one that passes does not', () => {

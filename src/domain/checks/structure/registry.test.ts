@@ -29,7 +29,7 @@ describe('rule registry', () => {
   })
 
   it('every rule starts at version 1; sag at 3 (reference values changed, then bookcase shelves hold books), tipping at 3 and the base at 2 since they read legs, racking at 2 since it judges each box', () => {
-    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 3], ['R4_TIPPING', 3], ['R5_RACKING', 2], ['R7_BASE', 2]])
+    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 4], ['R4_TIPPING', 3], ['R5_RACKING', 2], ['R7_BASE', 2]])
     expect(defineRule({ code: 'TEST', title: 'Prueba', check: () => [] }).version).toBe(1)
   })
 

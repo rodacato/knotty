@@ -31,6 +31,9 @@ describe('R1 sag in a bookcase', () => {
     const [first] = sag(shelves(900, 'bookcase'))
     expect(first).toMatchObject({ severity: 'critical', data: { load: 'heavy', span: 864 } })
     expect(first!.message).toContain('libros')
+    // The finding speaks of the board the person buys; the sag and the span are judged with its real thickness.
+    expect(first!.data.thickness).toBe(18)
+    expect(first!.data.maxSpan).toBe(526)
     expect(first!.alternatives.map((a) => a.key)).toContain('center-divider')
   })
 

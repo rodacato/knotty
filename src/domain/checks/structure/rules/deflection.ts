@@ -12,17 +12,20 @@ import { useOf } from '../../typology/typology'
 
 const LOAD_NAME: Record<Load, string> = { none: 'sin carga', light: 'carga ligera', medium: 'carga media', heavy: 'libros' }
 
+/** What the board measures, for the sag: the nominal thickness less the allowance, except for thin boards. */
+export const sagThickness = (nominal: number) => (nominal >= ASSUMPTIONS.realThicknessFrom ? nominal - ASSUMPTIONS.realThicknessAllowance : nominal)
+
 /** Simply supported beam under a uniform load: δ = 5·w·L⁴ / (384·E·I) × creep, the final sag. In mm. */
-export function deflection(span: number, depth: number, thickness: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
+export function deflection(span: number, depth: number, nominal: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
-  const inertia = (depth * thickness ** 3) / 12
+  const inertia = (depth * sagThickness(nominal) ** 3) / 12
   return ((5 * w * span ** 4) / (384 * modulus * inertia)) * ASSUMPTIONS.creep[duration]
 }
 
-/** The longest span whose sag stays within span / the recommended limit. */
-export function maxSpan(depth: number, thickness: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
+/** The longest span (of a board of this nominal thickness) whose sag stays within span / the recommended limit. */
+export function maxSpan(depth: number, nominal: number, load: Load, modulus: number, duration: LoadDuration = 'permanent') {
   const w = (ASSUMPTIONS.loads[load] * ASSUMPTIONS.gravity * depth) / 1e6
-  const inertia = (depth * thickness ** 3) / 12
+  const inertia = (depth * sagThickness(nominal) ** 3) / 12
   return Math.cbrt((384 * modulus * inertia) / (5 * w * ASSUMPTIONS.creep[duration] * ASSUMPTIONS.deflectionLimit.recommended))
 }
 

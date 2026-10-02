@@ -118,7 +118,7 @@ Los números salen de los documentos de esta carpeta. Si un número de aquí cho
 **Criterio y principios**
 1. **Triplay de pino radiata, 18 mm: E = 4500 MPa con la veta a lo largo del claro y 2000 MPa cruzada.** 6000 es el optimista; ella diseña con el conservador.
 2. **Fluencia ×2 para toda carga que se queda puesta** (libros, platos, ropa, TV); ×1 para una persona que se sienta y se para.
-3. **Repisa de 18 mm con libros: 540 mm sin pandeo visible, 830 mm es el límite.** Recomendación a L/360, crítico a L/100. Con veta cruzada baja a ≈ 410. Una tira de pino de 18 × 40 pegada al frente triplica la inercia y lleva el claro × 1.45.
+3. **Repisa de 18 mm con libros: ≈ 530 mm sin pandeo visible, ≈ 810 mm es el límite** (540 y 830 con 18 exactos; con el espesor real, 17.5). Recomendación a L/360, crítico a L/100. Con veta cruzada baja a ≈ 410. Una tira de pino de 18 × 40 pegada al frente triplica la inercia y lleva el claro × 1.45.
 4. **Vuelco: todo mueble de guardado con cajones o puertas desde 686 mm se ancla.** La cómoda de 90 cm con los cajones abiertos y llenos se voltea sola.
 5. **Asientos: persona de 110 kg, ×2 por sentarse de golpe, σ ≤ MOR / 3** (MOR ≈ 40 MPa). Una banca de 18 mm sola a 1200 de claro no pasa; con faldones de 18 × 80, sí.
 
