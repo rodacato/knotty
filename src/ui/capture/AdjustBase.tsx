@@ -155,7 +155,7 @@ export function AdjustBase({ base }: { base: Base }) {
                             placeholder={String(Math.round(baseMeasures[axis] / 10))}
                             aria-invalid={unreadable}
                             onChange={(e) => setTyped((t) => ({ ...t, [axis]: e.target.value }))}
-                            className="numerals min-w-0 flex-1 bg-transparent text-lg text-graphite outline-none placeholder:text-graphite-2/70"
+                            className="numerals min-w-0 flex-1 bg-transparent text-lg text-graphite outline-none placeholder:text-graphite-2"
                           />
                           <span className="numerals text-xs text-graphite-2">cm</span>
                         </span>
