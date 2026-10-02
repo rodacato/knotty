@@ -13175,14 +13175,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "P7B4FG",
-                      "name": "API de Anthropic con tu API key.",
-                      "fill": "$graphite-2",
-                      "content": "API de Anthropic con tu API key.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "tqlRi",
+                      "name": "Description",
+                      "width": "fill_container",
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "P7B4FG",
+                          "name": "API de Anthropic con tu API key.",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "API de Anthropic con tu API key.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 },
@@ -13234,14 +13250,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "oQTw4",
-                      "name": "API de OpenAI con tu API key. Elige un m",
-                      "fill": "$graphite-2",
-                      "content": "API de OpenAI con tu API key. Elige un modelo con visión.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "S7yQf",
+                      "name": "Description",
+                      "width": "fill_container",
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oQTw4",
+                          "name": "API de OpenAI con tu API key. Elige un m",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "API de OpenAI con tu API key. Elige un modelo con visión.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 },
@@ -13293,14 +13325,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "TEgik",
-                      "name": "Tu suscripción de Claude Code o Codex co",
-                      "fill": "$graphite-2",
-                      "content": "Tu suscripción de Claude Code o Codex como API, corriendo en tu máquina.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "f0CCT",
+                      "name": "Description",
+                      "width": "fill_container",
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TEgik",
+                          "name": "Tu suscripción de Claude Code o Codex co",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Tu suscripción de Claude Code o Codex como API, corriendo en tu máquina.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -14549,11 +14597,11 @@
                   "type": "text",
                   "id": "w8bwI",
                   "name": "Frase",
-                  "fill": "$graphite",
+                  "fill": "$graphite-2",
                   "content": "Frase",
                   "fontFamily": "$font-sans",
                   "fontSize": 14,
-                  "fontWeight": "500"
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "frame",
@@ -20047,16 +20095,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "g0PH4Y",
-                      "name": "API de Anthropic con tu API key.",
-                      "fill": "$graphite-2",
-                      "textGrowth": "fixed-width",
+                      "type": "frame",
+                      "id": "hKDVS",
+                      "name": "Description",
                       "width": "fill_container",
-                      "content": "API de Anthropic con tu API key.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "g0PH4Y",
+                          "name": "API de Anthropic con tu API key.",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "API de Anthropic con tu API key.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 },
@@ -20108,16 +20170,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "O4Fni",
-                      "name": "API de OpenAI con tu API key. Elige un m",
-                      "fill": "$graphite-2",
-                      "textGrowth": "fixed-width",
+                      "type": "frame",
+                      "id": "g8OwqA",
+                      "name": "Description",
                       "width": "fill_container",
-                      "content": "API de OpenAI con tu API key. Elige un modelo con visión.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "O4Fni",
+                          "name": "API de OpenAI con tu API key. Elige un m",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "API de OpenAI con tu API key. Elige un modelo con visión.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 },
@@ -20169,16 +20245,30 @@
                       ]
                     },
                     {
-                      "type": "text",
-                      "id": "LCoMx",
-                      "name": "Tu suscripción de Claude Code o Codex co",
-                      "fill": "$graphite-2",
-                      "textGrowth": "fixed-width",
+                      "type": "frame",
+                      "id": "ts6hQ",
+                      "name": "Description",
                       "width": "fill_container",
-                      "content": "Tu suscripción de Claude Code o Codex como API, corriendo en tu máquina.",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
+                      "padding": [
+                        0,
+                        0,
+                        0,
+                        34
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LCoMx",
+                          "name": "Tu suscripción de Claude Code o Codex co",
+                          "fill": "$graphite-2",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Tu suscripción de Claude Code o Codex como API, corriendo en tu máquina.",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -20541,11 +20631,11 @@
                   "type": "text",
                   "id": "p3yAp",
                   "name": "Frase",
-                  "fill": "$graphite",
+                  "fill": "$graphite-2",
                   "content": "Frase",
                   "fontFamily": "$font-sans",
                   "fontSize": 14,
-                  "fontWeight": "500"
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "frame",
