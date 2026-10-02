@@ -15,6 +15,7 @@ import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { knownKind, planForKind, startingKind, withKind } from '../../domain/furniture/kind'
 import { isPersonNote } from '../../domain/checks/requirements/requirements'
 import { error, type DesignError } from '../../domain/design/validation/errors'
+import { knowledgeForNew } from '../knowledge'
 import { expertPlans, type ExpertResponse, type Photo, type ReconstructionRequest, type ReconstructionResponse } from '../../ports/LLMProvider'
 import { CANCELLED, EXPERT_FAILED, doesNotFitSpace, estimatedMeasures, initialRequest, partsStillOff, leftUnresolved, reconstructFailed, redoRequest, redone, repairedOnMyOwn } from './copy'
 import { ExpertError, expertCall, traceEntry } from './expertCall'
@@ -42,7 +43,7 @@ export function createReconstruct(kit: Kit) {
       const llm = kit.llm()
       const trace: TraceEntry[] = []
       for (let attempt = 0; attempt < 2; attempt++) {
-        const call = await expertCall(() => llm.readPhoto({ photo, context }, signal), { step: 'read', attempt, signal, trace, onFailure: 'skip', subject: 'Foto' })
+        const call = await expertCall(() => llm.readPhoto({ photo, context, knowledge: knowledgeForNew(null, kit.toolLevel(), 'photo') }, signal), { step: 'read', attempt, signal, trace, onFailure: 'skip', subject: 'Foto' })
         if (!call.ok) continue
         trace.push(traceEntry('read', attempt, call.started, call.response, 'ok', [], [], `Foto: ${viewLabel(call.response.value.view)}`))
         return { reading: call.response.value, trace }
@@ -91,7 +92,7 @@ export function createReconstruct(kit: Kit) {
     /** One skeleton call built and checked; `off` is what differs from the doors and drawers the request asked for. */
     let calls = 0
     const skeleton = (correction: ReconstructionRequest['correction']) =>
-      expertCall(() => llm.planDesign!({ measures: input.measures, space: input.space, photos: photos, notes: input.notes, reading: reading, catalog: promptCatalog(), correction, kind: input.kind ?? null, routeKind: hint }, signal), {
+      expertCall(() => llm.planDesign!({ measures: input.measures, space: input.space, photos: photos, notes: input.notes, reading: reading, catalog: promptCatalog(), correction, kind: input.kind ?? null, routeKind: hint, knowledge: knowledgeForNew(hint, kit.toolLevel(), 'skeleton') }, signal), {
         step: 'plan',
         attempt: calls++,
         signal,
@@ -167,7 +168,7 @@ export function createReconstruct(kit: Kit) {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
       onProgress(attempt ? 'correcting' : 'designing-pieces', attempt)
-      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, space: input.space, photos: photosForDesign, notes: input.notes, reading: reading, catalog: promptCatalog(), correction: correction, kind: input.kind ?? null }, signal), {
+      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, space: input.space, photos: photosForDesign, notes: input.notes, reading: reading, catalog: promptCatalog(), correction: correction, kind: input.kind ?? null, knowledge: knowledgeForNew(input.kind ?? null, kit.toolLevel(), 'reconstruct') }, signal), {
         step: 'reconstruct',
         attempt,
         signal,

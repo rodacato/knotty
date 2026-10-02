@@ -10,6 +10,7 @@ import type { DesignError } from '../domain/design/validation/errors'
 import { CabinetPlan } from '../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULES, type FurnitureKind, type FurniturePlan, type PlanOf } from '../domain/furniture/modules/plan'
 import type { PhotoReading, View } from '../domain/furniture/reading/reading'
+import type { KnowledgeSelection } from '../domain/furniture/knowledge/select'
 import { CarpenterOpinion, type Check } from '../domain/checks/viability/viability'
 
 // What the expert can answer. The same schemas produce the structured output's JSON Schema and validate the answer.
@@ -51,6 +52,8 @@ export interface ReviewRequest {
   /** The arithmetic checks, for whoever does not read text (the simulated expert). */
   checks: Check[]
   catalog: Catalog
+  /** What carpentry knowledge the expert should get; the provider ignores it until it reads it. */
+  knowledge?: KnowledgeSelection | null
 }
 
 /** The expert names the kind by the field it fills, so its cabinet has no `kind` (every other plan carries its own): what it sees stays as it was. */
@@ -128,6 +131,8 @@ export interface PlanAdjustRequest {
   /** What the furniture is, for the guide of its use when there is one. */
   kind?: DesignKind | null
   catalog: Catalog
+  /** What carpentry knowledge the expert should get; the provider ignores it until it reads it. */
+  knowledge?: KnowledgeSelection | null
   /** On the correction round: the plan answered before and why it did not build. */
   correction: { previousResponse: unknown; errors: string } | null
 }
@@ -145,6 +150,8 @@ export interface PhotoReadingRequest {
   photo: Photo
   /** The person's general description, so the reading knows what to look for. */
   context: string
+  /** What carpentry knowledge the expert should get; the provider ignores it until it reads it. */
+  knowledge?: KnowledgeSelection | null
 }
 
 export interface ReconstructionRequest {
@@ -163,6 +170,8 @@ export interface ReconstructionRequest {
   kind?: DesignKind | null
   /** What the furniture is known to be, from any source: the skeleton asks only for its module. Null or without a module: every module. */
   routeKind?: DesignKind | null
+  /** What carpentry knowledge the expert should get; the provider ignores it until it reads it. */
+  knowledge?: KnowledgeSelection | null
 }
 
 export interface AdjustmentRequest {
@@ -174,6 +183,8 @@ export interface AdjustmentRequest {
   /** Operations of the pending proposal, if any; they are also described in the context. */
   proposal: Operation[] | null
   catalog: Catalog
+  /** What carpentry knowledge the expert should get; the provider ignores it until it reads it. */
+  knowledge?: KnowledgeSelection | null
   correction: { previousResponse: unknown; errors: string } | null
 }
 
