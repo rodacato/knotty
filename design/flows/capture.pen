@@ -13121,7 +13121,7 @@
                   "width": "fill_container",
                   "fill": "$amber-soft",
                   "cornerRadius": "$radius-2xl",
-                  "stroke": "$amber",
+                  "stroke": "$graphite",
                   "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
@@ -14596,6 +14596,16 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "text",
+              "id": "e7u8b",
+              "name": "Forget keys (from code)",
+              "fill": "$rust",
+              "content": "Olvidé la frase: borrar las llaves guardadas",
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "500"
             },
             {
               "type": "frame",
@@ -16201,55 +16211,11 @@
                   "fontWeight": "600"
                 },
                 {
-                  "type": "frame",
-                  "id": "F92fM",
+                  "id": "Y8lJ0",
+                  "type": "ref",
+                  "ref": "L2JxEW",
                   "name": "FinishSelect",
-                  "width": "fill_container",
-                  "height": 44,
-                  "fill": "$bone",
-                  "cornerRadius": "$radius-xl",
-                  "stroke": "$line",
-                  "strokeWidth": 1,
-                  "gap": 8,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "ellipse",
-                      "id": "tFryF",
-                      "name": "Dot",
-                      "fill": "#DAB477",
-                      "width": 16,
-                      "height": 16,
-                      "stroke": "$line",
-                      "strokeWidth": 1
-                    },
-                    {
-                      "type": "text",
-                      "id": "F0UHy",
-                      "name": "Barniz de poliuretano",
-                      "fill": "$graphite",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Barniz de poliuretano",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "icon",
-                      "id": "b2lNi",
-                      "name": "caret-down",
-                      "width": 14,
-                      "height": 14,
-                      "icon": "caret-down",
-                      "library": "phosphor",
-                      "fill": "$graphite"
-                    }
-                  ]
+                  "width": "fill_container"
                 }
               ]
             },
@@ -19834,55 +19800,11 @@
                   "fontWeight": "600"
                 },
                 {
-                  "type": "frame",
-                  "id": "Hfzt8",
+                  "id": "q9o3Ml",
+                  "type": "ref",
+                  "ref": "L2JxEW",
                   "name": "FinishSelect",
-                  "width": "fill_container",
-                  "height": 48,
-                  "fill": "$bone",
-                  "cornerRadius": "$radius-xl",
-                  "stroke": "$line",
-                  "strokeWidth": 1,
-                  "gap": 8,
-                  "padding": [
-                    0,
-                    12
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "ellipse",
-                      "id": "W7GMXd",
-                      "name": "Dot",
-                      "fill": "#DAB477",
-                      "width": 16,
-                      "height": 16,
-                      "stroke": "$line",
-                      "strokeWidth": 1
-                    },
-                    {
-                      "type": "text",
-                      "id": "iIEja",
-                      "name": "Barniz de poliuretano",
-                      "fill": "$graphite",
-                      "textGrowth": "fixed-width",
-                      "width": "fill_container",
-                      "content": "Barniz de poliuretano",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 14,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "icon",
-                      "id": "Iol5H",
-                      "name": "caret-down",
-                      "width": 14,
-                      "height": 14,
-                      "icon": "caret-down",
-                      "library": "phosphor",
-                      "fill": "$graphite"
-                    }
-                  ]
+                  "width": "fill_container"
                 }
               ]
             }
@@ -20071,7 +19993,7 @@
                   "width": "fill_container",
                   "fill": "$amber-soft",
                   "cornerRadius": "$radius-2xl",
-                  "stroke": "$amber",
+                  "stroke": "$graphite",
                   "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 2,
@@ -20677,6 +20599,16 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "text",
+              "id": "VwUMd",
+              "name": "Forget keys (from code)",
+              "fill": "$rust",
+              "content": "Olvidé la frase: borrar las llaves guardadas",
+              "fontFamily": "$font-sans",
+              "fontSize": 12,
+              "fontWeight": "500"
             }
           ]
         },
