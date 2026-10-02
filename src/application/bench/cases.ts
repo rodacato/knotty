@@ -82,6 +82,29 @@ export const BENCH_CASES: BenchCase[] = [
     ],
   },
   {
+    id: 'bookcase-wide-books',
+    notes: 'Un librero ancho para libros pesados, de unos 120 de ancho, 180 de alto y como 30 de fondo, con 4 repisas y sin puertas',
+    measures: null,
+    // "Unos" and "como" are approximate: the width is the one thing that must not drift, since it decides the divider and the shelf span.
+    expected: { width: [1150, 1250], height: [1700, 1900], depth: [250, 350] },
+    parts: { doors: 0, drawers: 0 },
+  },
+  {
+    id: 'bookcase-drill-only',
+    notes: 'Quiero un librero de unos 90 de ancho para mi cuarto. Solo tengo un taladro y una sierra caladora, no tengo nada más',
+    measures: null,
+    expected: { width: [850, 950], height: [900, 2100], depth: [200, 400] },
+    parts: { doors: 0, drawers: 0 },
+  },
+  {
+    id: 'bookcase-adjust-wider',
+    notes: 'Librero de 5 repisas para libros, sin puertas, va pegado a la pared',
+    measures: { height: 1800, width: 800, depth: 300 },
+    expected: { height: [1800, 1800], width: [800, 800], depth: [300, 300] },
+    adjust: ['Mejor hazlo de 110 de ancho', '¿Por qué le salió una división? ¿Aguanta si le pongo libros pesados?'],
+    parts: { doors: 0, drawers: 0 },
+  },
+  {
     id: 'bed-drawers',
     notes:
       'Quiero una cama individual con una base con cajones 3, y una cabecera como librero para poner cosas con un espacio cerrado donde va la almohada pero despues con 2 entrepaños como librero',
