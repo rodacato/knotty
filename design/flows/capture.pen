@@ -1542,6 +1542,18 @@
         },
         {
           "type": "text",
+          "id": "q6EM3O",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-10-02 · kit 0.4.0 · re-vendored: focus and on-rust tokens, rust and paper values, 44 px buttons, Button/Disabled in place of the dimmed instances, RadioCard, FinishSelect and TraceLog added; the saved-keys dialog gains \"Olvidé la frase\", the chosen provider card has a graphite border and its description indented, the finish select is the kit component. Known drift left: the desktop Adjust your base is drawn with the mobile type sizes (30 / 19 / 14 against 36 / 24 / 16) · UI-40, UI-45, UI-46, UI-47, UI-53, UI-54",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
           "id": "BYAi1",
           "name": "Entry",
           "fill": "$graphite",
