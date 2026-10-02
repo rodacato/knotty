@@ -6,6 +6,9 @@ import skeleton from '../prompts/skeleton.v16.md?raw'
 import reading from '../prompts/reading.v4.md?raw'
 import reconstruction from '../prompts/reconstruction.v14.md?raw'
 import system from '../prompts/system.v11.md?raw'
+import core from '../prompts/craft/core.v1.md?raw'
+import tools from '../prompts/craft/tools.v1.md?raw'
+import type { KnowledgeSelection } from '../../../domain/furniture/knowledge/select'
 import { FURNITURE_KINDS, MODULE_OF_KIND, type FurnitureKind } from '../../../domain/furniture/modules/plan'
 import type { DesignKind } from '../../../domain/design/kind'
 import { WRITTEN_BY_HAND, moduleGuide, modulePick, moduleSummary } from './modulePrompts'
@@ -45,6 +48,26 @@ function readSections(raw: string): SectionedPrompt {
   return { ...prompt, sections }
 }
 
+/** The craft sense every expert call shares, by size (photo, short, full), and what the person's tools allow, by level. */
+export const CRAFT_CORE = readSections(core)
+export const CRAFT_TOOLS = readSections(tools)
+
+/** The craft blocks a selection asks for; null without one. A photo reading gets only its own core. */
+export function craftBlock(knowledge: KnowledgeSelection | null | undefined): Prompt | null {
+  if (!knowledge) return null
+  const withTools = knowledge.core !== 'photo' && knowledge.tools !== null
+  const parts = [CRAFT_CORE.sections[knowledge.core], ...(withTools ? [CRAFT_TOOLS.sections[String(knowledge.tools)]] : [])]
+  return { id: [CRAFT_CORE.id, ...(withTools ? [CRAFT_TOOLS.id] : [])].join('+'), text: parts.join('\n\n') }
+}
+
+/** Last, after everything the prompt already said, so the prefix that cached before still does. */
+function withCraft(prompt: Prompt, knowledge: KnowledgeSelection | null | undefined): Prompt {
+  const block = craftBlock(knowledge)
+  return block ? { id: `${prompt.id}+${block.id}`, text: `${prompt.text}\n\n${block.text}` } : prompt
+}
+
+export const readingFor = (knowledge?: KnowledgeSelection | null) => withCraft(READING, knowledge && { ...knowledge, core: 'photo', tools: null })
+
 const MODULE_FILES = import.meta.glob<string>('../prompts/modules/*.md', { query: '?raw', import: 'default', eager: true })
 
 /** The prose written by hand for a module, tuned with `npm run compare`, by its kind. */
@@ -74,26 +97,26 @@ const LISTED = [...WRITTEN_BY_HAND, ...FURNITURE_KINDS.filter((kind) => !WRITTEN
  * The skeleton as sent. With the module the furniture is known to be, only that module: its line, its guide and its field.
  * Without one (the kind is unknown, or has no module), every module, as it always was: the expert picks.
  */
-export function skeletonFor(kind: FurnitureKind | null, use: DesignKind | null = null): Prompt {
+export function skeletonFor(kind: FurnitureKind | null, use: DesignKind | null = null, knowledge?: KnowledgeSelection | null): Prompt {
   const { intro, all, one, rest } = SKELETON.sections
   if (!kind) {
     const parts = LISTED.map(moduleParts)
     const text = [intro, all.replace('{{modulePicks}}', parts.map((p) => p.pick).join('\n')), ...parts.map((p) => p.skeleton), rest].join('\n\n')
-    return { id: `${SKELETON.id}+all`, text }
+    return withCraft({ id: `${SKELETON.id}+all`, text }, knowledge)
   }
   const parts = moduleParts(kind)
   const guide = guideFor(kind, use)
   const text = [intro, one.replace('{{modulePick}}', parts.pick).replace('{{moduleField}}', kind), parts.skeleton, ...(guide ? [guide.text] : []), rest].join('\n\n')
-  return { id: [SKELETON.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }
+  return withCraft({ id: [SKELETON.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }, knowledge)
 }
 
 /** The plan-adjust prompt for one module: the expert reads only the kind of plan it is editing. Its id names both parts. */
-export function planAdjustmentFor(kind: FurnitureKind, use: DesignKind | null = null): Prompt {
+export function planAdjustmentFor(kind: FurnitureKind, use: DesignKind | null = null, knowledge?: KnowledgeSelection | null): Prompt {
   const parts = moduleParts(kind)
   const guide = guideFor(kind, use)
   const rules = parts.rules ? `\n${parts.rules.replace(/^/gm, '  ')}` : ''
   const text = PLAN_ADJUSTMENT.text.replace('{{module}}', guide ? `${parts.plan}\n\n${guide.text}` : parts.plan).replace('{{moduleChanges}}', parts.changes).replace('{{moduleField}}', kind).replace('{{moduleRules}}', rules)
-  return { id: [PLAN_ADJUSTMENT.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }
+  return withCraft({ id: [PLAN_ADJUSTMENT.id, parts.id, ...(guide ? [guide.id] : [])].join('+'), text }, knowledge)
 }
 
 /** Every use with a guide of its own, with its module. */
@@ -116,5 +139,5 @@ export const PROMPTS = [
 export const render = (prompt: Prompt, catalog: Catalog | null) => fill(prompt.text, catalog)
 
 /** System + task: stable between calls to make the most of the provider's cache. */
-export const systemFor = (task: Prompt, catalog: Catalog) => `${render(SYSTEM, catalog)}\n\n${render(task, catalog)}`
-export const promptIdOf = (task: Prompt) => `${SYSTEM.id}+${task.id}`
+export const systemFor = (task: Prompt, catalog: Catalog, knowledge?: KnowledgeSelection | null) => withCraft({ id: '', text: `${render(SYSTEM, catalog)}\n\n${render(task, catalog)}` }, knowledge).text
+export const promptIdOf = (task: Prompt, knowledge?: KnowledgeSelection | null) => withCraft({ id: `${SYSTEM.id}+${task.id}`, text: '' }, knowledge).id
