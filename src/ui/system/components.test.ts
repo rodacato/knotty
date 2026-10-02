@@ -4,6 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Button, Chip } from './components'
+import { FORGET_HIT_AREA } from '../settings/Keys'
 
 const UI = join(__dirname, '..')
 
@@ -26,6 +27,14 @@ describe('touch targets', () => {
     const markup = renderToStaticMarkup(h(Chip, null, 'x'))
     expect(markup).toContain('min-h-9')
     expect(markup).toContain('before:-inset-y-[5px]')
+  })
+
+  it('the forget-keys link keeps a 44 px hit area on the idle link and on both confirmation buttons', () => {
+    expect(FORGET_HIT_AREA).toContain('before:-inset-y-3.5')
+    expect(FORGET_HIT_AREA).toContain('before:inset-x-0')
+    const source = readFileSync(join(UI, 'settings/Keys.tsx'), 'utf8')
+    const body = source.slice(source.indexOf('export function ForgetKeys'), source.indexOf('/** Opens the encrypted'))
+    expect(body.match(/\$\{FORGET_HIT_AREA\}/g)).toHaveLength(3)
   })
 
   // The radio sites belong to the RadioCard pass (UI-47); they are listed so they cannot grow unnoticed.

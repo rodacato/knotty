@@ -50,6 +50,9 @@ export function PassphraseField({
   )
 }
 
+/** 16 px text lines get a 44 px hit area without changing the look. */
+export const FORGET_HIT_AREA = "relative before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-['']"
+
 /** Forgetting the saved keys asks first because it cannot be undone. */
 export function ForgetKeys() {
   const forgetKeys = useStore((s) => s.forgetKeys)
@@ -57,15 +60,15 @@ export function ForgetKeys() {
   return asking ? (
     <p className="flex flex-wrap items-center gap-2 text-xs">
       ¿Borrar las llaves guardadas? No se pueden recuperar.
-      <button type="button" className="font-medium underline" onClick={() => setAsking(false)}>
+      <button type="button" className={`font-medium underline ${FORGET_HIT_AREA}`} onClick={() => setAsking(false)}>
         No
       </button>
-      <button type="button" className="font-medium text-rust underline" onClick={forgetKeys}>
+      <button type="button" className={`font-medium text-rust underline ${FORGET_HIT_AREA}`} onClick={forgetKeys}>
         Sí, borrarlas
       </button>
     </p>
   ) : (
-    <button type="button" className="self-start text-xs font-medium text-rust" onClick={() => setAsking(true)}>
+    <button type="button" className={`self-start text-xs font-medium text-rust ${FORGET_HIT_AREA}`} onClick={() => setAsking(true)}>
       Olvidé la frase: borrar las llaves guardadas
     </button>
   )
