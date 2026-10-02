@@ -11188,24 +11188,16 @@
           "alignItems": "center",
           "children": [
             {
-              "id": "HWAX1",
+              "id": "gfzhq",
               "type": "ref",
-              "ref": "Nh9e4",
-              "name": "Diseñar sin fotos",
-              "height": 56,
-              "padding": [
-                0,
-                24
-              ],
-              "opacity": 0.4,
+              "ref": "jwDNp",
+              "name": "Diseñar sin fotos (disabled)",
               "width": 520,
+              "height": 56,
               "descendants": {
-                "Le89K": {
+                "mNoxe": {
                   "content": "Describe tu mueble o agrega una foto",
                   "fontSize": 16
-                },
-                "uO48v": {
-                  "enabled": false
                 }
               }
             },
@@ -13487,17 +13479,13 @@
                   }
                 },
                 {
-                  "id": "BZlFM",
+                  "id": "Rj2QM",
                   "type": "ref",
-                  "ref": "Nh9e4",
+                  "ref": "jwDNp",
                   "name": "Conectar (disabled)",
-                  "opacity": 0.4,
                   "descendants": {
-                    "Le89K": {
+                    "mNoxe": {
                       "content": "Falta tu llave"
-                    },
-                    "uO48v": {
-                      "enabled": false
                     }
                   }
                 }
@@ -14647,17 +14635,13 @@
                   }
                 },
                 {
-                  "id": "Q4zhB8",
+                  "id": "JUS5H",
                   "type": "ref",
-                  "ref": "Nh9e4",
-                  "name": "Desbloquear",
-                  "opacity": 0.4,
+                  "ref": "jwDNp",
+                  "name": "Desbloquear (disabled)",
                   "descendants": {
-                    "Le89K": {
+                    "mNoxe": {
                       "content": "Desbloquear"
-                    },
-                    "uO48v": {
-                      "enabled": false
                     }
                   }
                 }
@@ -20449,19 +20433,15 @@
           ],
           "children": [
             {
-              "id": "cmYNh",
+              "id": "T6fqfw",
               "type": "ref",
-              "ref": "Nh9e4",
+              "ref": "jwDNp",
               "name": "Conectar (disabled)",
               "width": "fill_container",
               "height": 52,
-              "opacity": 0.4,
               "descendants": {
-                "Le89K": {
+                "mNoxe": {
                   "content": "Falta tu llave"
-                },
-                "uO48v": {
-                  "enabled": false
                 }
               }
             },
@@ -20723,19 +20703,15 @@
           ],
           "children": [
             {
-              "id": "LPIZL",
+              "id": "e0S5r",
               "type": "ref",
-              "ref": "Nh9e4",
+              "ref": "jwDNp",
               "name": "Desbloquear (disabled)",
               "width": "fill_container",
               "height": 52,
-              "opacity": 0.4,
               "descendants": {
-                "Le89K": {
+                "mNoxe": {
                   "content": "Desbloquear"
-                },
-                "uO48v": {
-                  "enabled": false
                 }
               }
             },
@@ -22134,19 +22110,15 @@
           "alignItems": "center",
           "children": [
             {
-              "id": "f6vagx",
+              "id": "eX9js",
               "type": "ref",
-              "ref": "Nh9e4",
+              "ref": "jwDNp",
               "name": "Diseñar (disabled)",
               "width": "fill_container",
               "height": 52,
-              "opacity": 0.4,
               "descendants": {
-                "Le89K": {
+                "mNoxe": {
                   "content": "Describe tu mueble o agrega una foto"
-                },
-                "uO48v": {
-                  "enabled": false
                 }
               }
             },
