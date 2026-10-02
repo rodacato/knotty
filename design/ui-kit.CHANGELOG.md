@@ -8,6 +8,10 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## Unreleased
+
+**Moved into `src/ui/system/` as pure-props components (no visual change, no new copy; the `.pen` files are not touched):** `PassphraseField`, `ForgetKeysPrompt` and `UnlockForm` (file `Unlock.tsx`), `SheLLM` (takes `origin` and `learnUrl` as props), `ChangeListView` (takes the described change, `thinking` and the select, restore and undo callbacks) and `ProposalFixAction` (label, `onApply`, `disabled`). The connected wrappers (`Unlock`, `ForgetKeys`, `ChangeList`, `ProposalFixButton`) stay in `settings/` and `chat/` and read the store and the services.
+
 ## 0.4.1 — the rest of `system/` that the kit lacked (additive; the flows stay at 0.4.0)
 
 No existing component changes, so no flow has to re-vendor. Found by the blind review of the 0.4.0 sheet.

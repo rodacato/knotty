@@ -1,10 +1,9 @@
-import { Lightning } from '@phosphor-icons/react'
 import { useMemo } from 'react'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
-import { Button } from '../system/components'
 import { useStore } from '../store'
+import { ProposalFixAction } from '../system/ProposalFix'
 
 // The design names the center solutions by what they add; the key does not say it, the label does (the same key adds a support under a floor).
 const DESIGN_WORDS: [string, string][] = [
@@ -22,8 +21,6 @@ export function ProposalFixButton({ state, className = '' }: { state: DesignStat
   const fix = useMemo(() => useCases.proposalFix(state), [useCases, state])
   if (!fix) return null
   return (
-    <Button variant="primary" className={className} onClick={applyProposalWithFix} disabled={thinking}>
-      <Lightning /> {withFix(fix)}
-    </Button>
+    <ProposalFixAction label={withFix(fix)} onApply={applyProposalWithFix} disabled={thinking} className={className} />
   )
 }
