@@ -8,9 +8,17 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
-## Unreleased
+## 0.4.2 — states, contrast pairs and the pure components (additive; the flows stay at 0.4.0)
 
-**Moved into `src/ui/system/` as pure-props components (no visual change, no new copy; the `.pen` files are not touched):** `PassphraseField`, `ForgetKeysPrompt` and `UnlockForm` (file `Unlock.tsx`), `SheLLM` (takes `origin` and `learnUrl` as props), `ChangeListView` (takes the described change, `thinking` and the select, restore and undo callbacks) and `ProposalFixAction` (label, `onApply`, `disabled`). The connected wrappers (`Unlock`, `ForgetKeys`, `ChangeList`, `ProposalFixButton`) stay in `settings/` and `chat/` and read the store and the services.
+No existing component changes except the finish list, so no flow has to re-vendor.
+
+**Added to Components:** the focus ring on a `FinishSelect` (beside the Button, Chip and RadioCard ones) and how a `Field` shows focus: its box has `outline-none` and only the border turns `focus` (1 px, 4.82:1 on `bone`), so it has no 2 px ring; a *Hover* section with the states the code gives under a pointer — `Button` primary (`graphite/90`, drawn as the `graphite` fill at 90 % behind the label), secondary (`kraft-2`), ghost (`kraft`), danger (`rust/90`), `Chip/Inactive`, `RadioCard/Off`, `RadioPill/Off` and `Segment/Off`; and the pure components that joined `system/` with the move of the escapees (#188): `ForgetKeysPrompt` (idle and asking), `UnlockForm`, `SheLLM`, `ChangeListView` (open) and `ProposalFixAction`. Pencil has one style per text, so the first paragraph of `SheLLM` and its link are drawn as two texts.
+
+**Added to Foundations:** a *Contrast pairs* table computed from the token values (the ratios of 0.4.0: focus 4.82 on `bone`, label on `rust` 6.32 and 6.15, `graphite-2` on `kraft` 4.77 and 6.65, `rust` on `paper` 5.43 and 5.33, and the rest of the pairs the product uses), a *Radii* heading, and swatch labels at 12 px.
+
+**Changed:** `FinishSelect/List` shows the 8 options in its 288 px (`max-h-72`) box, clipped as the code scrolls. The flows keep their vendored copy with 4 options.
+
+**Not drawn, on purpose:** the error state of `Select` and `TextArea` (`Field` wires it but no screen of the app uses it with a message, and a message would be invented); the three other `Button/Disabled` variants (the code gives all four the same look); hover for `Chip/Active`, `RadioCard/On` and the other selected states, which the code leaves unchanged. Light only.
 
 ## 0.4.1 — the rest of `system/` that the kit lacked (additive; the flows stay at 0.4.0)
 
