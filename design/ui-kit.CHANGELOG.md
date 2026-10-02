@@ -14,6 +14,8 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 **To know:** `slate` on `kraft` measures 4.47:1 in light, 0.03 under AA for small text; the table already marks that pair as large text, UI and focus. `radius-stamp` (4 px) stays: the `Stamp` draws a `rounded-[4px]`, not a Tailwind step.
 
+**Found by the blind review of the dark sheet and logged, not changed here:** the placeholder of a field has no colour of its own (UI-63) and the border of a field is about 1.3:1 (UI-64); on dark the closed `HelpButton` disc (`kraft` on `bone`) is barely visible, though its icon is not; the primary button's shadow goes flat on dark.
+
 **Still not in the kit:** the error state of `Select` and `TextArea` (no screen of the app uses it with a message), the three other `Button/Disabled` variants (the code gives all four the same look) and hover for the selected states (the code leaves them unchanged).
 
 ## 0.4.2 — states, contrast pairs and the pure components (additive; the flows stay at 0.4.0)

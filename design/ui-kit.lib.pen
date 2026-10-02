@@ -1347,7 +1347,7 @@
                   "name": "Pair",
                   "fill": "$graphite-2",
                   "textGrowth": "fixed-width",
-                  "width": 220,
+                  "width": 340,
                   "content": "Pair",
                   "fontFamily": "$font-mono",
                   "fontSize": 12,
@@ -1403,7 +1403,7 @@
                   "type": "frame",
                   "id": "a1s1Is",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1494,7 +1494,7 @@
                   "type": "frame",
                   "id": "D0lr5",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1585,7 +1585,7 @@
                   "type": "frame",
                   "id": "mMOIO",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1676,7 +1676,7 @@
                   "type": "frame",
                   "id": "WjGrF",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1767,7 +1767,7 @@
                   "type": "frame",
                   "id": "VPSSf",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1858,7 +1858,7 @@
                   "type": "frame",
                   "id": "wxAP2",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -1949,7 +1949,7 @@
                   "type": "frame",
                   "id": "y6hmWU",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2040,7 +2040,7 @@
                   "type": "frame",
                   "id": "GZBwV",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2131,7 +2131,7 @@
                   "type": "frame",
                   "id": "o7UGB",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2222,7 +2222,7 @@
                   "type": "frame",
                   "id": "q9iis",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2313,7 +2313,7 @@
                   "type": "frame",
                   "id": "xcHHC",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2404,7 +2404,7 @@
                   "type": "frame",
                   "id": "Unoq5",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2495,7 +2495,7 @@
                   "type": "frame",
                   "id": "cD32O",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -2586,7 +2586,7 @@
                   "type": "frame",
                   "id": "xJ9HX",
                   "name": "Pair",
-                  "width": 220,
+                  "width": 340,
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
