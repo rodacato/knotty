@@ -2,10 +2,13 @@ import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseRecording, type Recording } from '../../src/adapters/llm/replay'
-import { assertNoSecrets, parseManifest, type Manifest } from '../../src/application/bench/manifest'
+import type { Classification, JobRecord, Manifest } from '../../src/application/bench/manifest'
+import { assertNoSecrets, parseManifest } from '../../src/application/bench/manifest'
+import type { ReportRow } from '../../src/application/bench/report'
 
 // One directory per run: manifest, one file per job, its recording, telemetry and design, and the report.
 //   <root>/<runId>/manifest.json  jobs/<jobId>.json  recordings/<jobId>.json  telemetry/<jobId>.json  designs/<jobId>.json  report.md
+//   attempts/<jobId>.<n>.json: an earlier attempt of a job, kept whole when the job runs again.
 
 export const RUN_ID = /^\d{8}-\d{9}-[0-9a-f]{6,}$/
 
@@ -19,6 +22,31 @@ export function writeAtomic(path: string, text: string) {
     rmSync(tmp, { force: true })
     throw e
   }
+}
+
+/** What a finished job saves in jobs/<jobId>.json. */
+export interface StoredJob {
+  jobId: string
+  runId: string
+  caseId: string
+  trial: number
+  spec: string
+  graderVersion: string
+  classification: Classification
+  stepErrors: string[]
+  stateHash: string | null
+  queuedMs: number
+  row: ReportRow
+}
+
+export interface AttemptInfo {
+  jobId: string
+  attempt: number
+  file: string
+  caseId: string
+  trial: number
+  /** How that attempt ended: its classification, or its status when it never produced a result. */
+  ended: string
 }
 
 const SUBDIRS = ['jobs', 'recordings', 'telemetry', 'designs'] as const
@@ -56,6 +84,29 @@ export function createRunStore(root: string, runId: string) {
     writeTelemetry: (jobId: string, value: unknown) => write('telemetry', jobId, value),
     readTelemetry: (jobId: string) => read(file('telemetry', jobId)),
     writeDesign: (jobId: string, value: unknown) => write('designs', jobId, value),
+    /** Moves everything the job left into attempts/, so running it again never overwrites it; returns the attempt's number. */
+    archiveAttempt(job: JobRecord): number {
+      const attempts = join(dir, 'attempts')
+      mkdirSync(attempts, { recursive: true })
+      const attempt = readdirSync(attempts).filter((f) => f.startsWith(`${job.jobId}.`) && f.endsWith('.json')).length + 1
+      const readIf = (kind: Kind) => (existsSync(file(kind, job.jobId)) ? read(file(kind, job.jobId)) : null)
+      const saved = { jobId: job.jobId, attempt, record: job, result: readIf('jobs'), recording: readIf('recordings'), telemetry: readIf('telemetry'), design: readIf('designs') }
+      assertNoSecrets(saved)
+      writeAtomic(join(attempts, `${job.jobId}.${attempt}.json`), json(saved))
+      for (const kind of SUBDIRS) rmSync(file(kind, job.jobId), { force: true })
+      return attempt
+    },
+    listAttempts(): AttemptInfo[] {
+      const attempts = join(dir, 'attempts')
+      if (!existsSync(attempts)) return []
+      return readdirSync(attempts)
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => {
+          const saved = read(join(attempts, f)) as { jobId: string; attempt: number; record: JobRecord }
+          return { jobId: saved.jobId, attempt: saved.attempt, file: `attempts/${f}`, caseId: saved.record.caseId, trial: saved.record.trial, ended: saved.record.outcome ?? saved.record.status }
+        })
+        .sort((a, b) => a.jobId.localeCompare(b.jobId) || a.attempt - b.attempt)
+    },
     writeReport(markdown: string) {
       mkdirSync(dir, { recursive: true })
       writeAtomic(join(dir, 'report.md'), markdown)

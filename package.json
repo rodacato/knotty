@@ -14,6 +14,9 @@
     "test:coverage": "vitest run --coverage",
     "compare": "node scripts/compare/cli.mjs",
     "compare:replay": "node scripts/compare/cli.mjs replay",
+    "compare:resume": "node scripts/compare/cli.mjs resume",
+    "compare:promote": "node scripts/compare/cli.mjs promote",
+    "compare:concurrency": "node scripts/compare/cli.mjs concurrency",
     "probe": "node scripts/probe/run.mjs"
   },
   "dependencies": {

@@ -1,11 +1,11 @@
-import { existsSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
+import { loadKeys } from './keys.ts'
 
 // Apart from the tests: it calls real providers, takes minutes and costs tokens.
-// One test runs the whole bench (the orchestrator caps concurrency per host); the entry point (cli.mjs) picks the live file or the offline replay.
+// One test runs the whole bench (the orchestrator caps concurrency per host); the entry point (cli.mjs) picks which file to run.
 const target = process.env.KNOTTY_COMPARE_TARGET ?? 'models'
-// The replay never calls a provider, so it never loads the keys.
-if (target === 'models' && existsSync('.env')) process.loadEnvFile('.env')
+// Only the targets that call a provider need keys.
+if (['models', 'resume', 'concurrency'].includes(target)) loadKeys()
 
 export default defineConfig({
   test: {

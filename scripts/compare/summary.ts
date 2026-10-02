@@ -1,5 +1,6 @@
 import type { Classification } from '../../src/application/bench/manifest'
 import { caseLine, problemsOf, type ReportRow } from '../../src/application/bench/report'
+import type { AttemptInfo } from './store'
 
 // What a finished run prints and how it exits. Pure: the orchestrator hands over what happened.
 
@@ -10,6 +11,8 @@ export interface JobOutcome {
   status: 'done' | 'failed' | 'cancelled'
   classification?: Classification
   row?: ReportRow
+  /** Errors the app showed in the chat during the job: infrastructure failures hide there. */
+  stepErrors?: string[]
   /** Why the job could not produce a result. */
   error?: string
   seconds: number
@@ -24,13 +27,16 @@ export interface RunFacts {
   outcomes: JobOutcome[]
   wallMs: number
   resultsPath: string
+  /** The comparison with the baseline, already worded. */
+  baselineLines?: string[]
+  attempts?: AttemptInfo[]
 }
 
-export const EXIT = { ok: 0, regression: 1, incomplete: 2 } as const
+export const EXIT = { ok: 0, regression: 1, incomplete: 2, arguments: 3 } as const
 
 /** A regression wins over an incomplete run; a declared known failure alone does not fail the run. */
-export function exitCodeOf(outcomes: JobOutcome[]): number {
-  if (outcomes.some((o) => o.classification === 'regression')) return EXIT.regression
+export function exitCodeOf(outcomes: JobOutcome[], options: { baselineRegression?: boolean } = {}): number {
+  if (options.baselineRegression || outcomes.some((o) => o.classification === 'regression')) return EXIT.regression
   if (outcomes.some((o) => o.status !== 'done' || o.classification === 'infrastructure')) return EXIT.incomplete
   return EXIT.ok
 }
@@ -46,6 +52,12 @@ export function progressLine(o: JobOutcome): string {
   if (o.status === 'cancelled') return `  - ${name} → cancelado`
   if (o.status === 'failed' || !o.row || !o.classification) return `  ! ${name} → no terminó: ${o.error ?? 'sin mensaje'}`
   return `  ${MARK[o.classification]} ${name} → ${LABEL[o.classification]} · ${caseLine(o.row)}`
+}
+
+/** Every earlier attempt of a job that ran again; none is ever dropped. */
+export function attemptsLines(attempts: AttemptInfo[]): string[] {
+  if (!attempts.length) return []
+  return ['## Intentos anteriores', '', 'Cada intento anterior de un trabajo que se repitió se guardó completo; ninguno se descarta.', '', '| Caso | Intento | Terminó como | Archivo |', '|---|---|---|---|', ...attempts.map((a) => `| ${a.caseId} t${a.trial} | ${a.attempt} | ${a.ended} | ${a.file} |`), '']
 }
 
 export function runSummary(f: RunFacts): string {
@@ -74,6 +86,8 @@ export function runSummary(f: RunFacts): string {
     `Correcciones: ${corrections.length ? corrections.join(' ') : 'ninguna'} · casos con error: ${rows.filter((r) => !r.row.ok).length}`,
     ...(problems.length ? ['', 'Lo que no cuadró:', ...problems] : []),
     ...(failed.length ? ['', 'Trabajos sin resultado:', ...failed] : []),
+    ...(f.attempts?.length ? ['', `Intentos anteriores guardados: ${f.attempts.length} (${f.attempts.map((a) => `${a.caseId} t${a.trial} #${a.attempt}: ${a.ended}`).join(', ')})`] : []),
+    ...(f.baselineLines?.length ? ['', ...f.baselineLines] : []),
     '',
     `Reporte: ${f.resultsPath}`,
   ].join('\n')

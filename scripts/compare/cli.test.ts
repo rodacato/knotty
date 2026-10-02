@@ -21,6 +21,27 @@ describe('parseArgs', () => {
     expect(parseArgs(['replay', '--regrade', '--last'])).toEqual({ command: 'replay', last: true, regrade: true })
   })
 
+  it('resumes a run by id or the last one, with the retry mode', () => {
+    expect(parseArgs(['resume', '--last'])).toEqual({ command: 'resume', last: true, mode: 'resume' })
+    expect(parseArgs(['resume', RUN, '--retry-infra'])).toEqual({ command: 'resume', runId: RUN, mode: 'retry-infra' })
+    expect(parseArgs(['resume', '--retry-failed', '--last'])).toEqual({ command: 'resume', last: true, mode: 'retry-failed' })
+    expect(parseArgs(['resume', '--last', '--retry-infra', '--retry-failed']).error).toMatch(/no los dos/)
+    expect(parseArgs(['resume', '--last', '--accept']).error).toMatch(/Opción desconocida/)
+  })
+
+  it('promotes only with --accept', () => {
+    expect(parseArgs(['promote', '--last'])).toEqual({ command: 'promote', last: true, accept: false })
+    expect(parseArgs(['promote', RUN, '--accept'])).toEqual({ command: 'promote', runId: RUN, accept: true })
+    expect(parseArgs(['promote']).error).toMatch(/--last/)
+  })
+
+  it('takes concurrency levels and the acknowledgement for the high ones', () => {
+    expect(parseArgs(['concurrency', '2,4'])).toEqual({ command: 'concurrency', levels: '2,4', allowSix: false })
+    expect(parseArgs(['concurrency', '2,4,6', '--allow-6'])).toEqual({ command: 'concurrency', levels: '2,4,6', allowSix: true })
+    expect(parseArgs(['concurrency']).error).toMatch(/niveles/)
+    expect(parseArgs(['concurrency', 'a,b']).error).toMatch(/no son niveles/)
+  })
+
   it('asks for help and refuses what it does not understand', () => {
     expect(parseArgs(['--help'])).toEqual({ command: 'help' })
     expect(parseArgs(['replay', '--help'])).toEqual({ command: 'help' })
@@ -53,6 +74,14 @@ describe('the entry point', () => {
     const r = run(['--help'])
     expect(r.status).toBe(0)
     expect(r.stdout).toBe(`${HELP}\n`)
+  })
+
+  it('refuses bad arguments with exit 3 for every command, before starting anything', () => {
+    for (const args of [['resume'], ['promote', 'nope'], ['concurrency'], ['concurrency', 'x'], ['resume', '--last', '--retry-infra', '--retry-failed']]) expect(run(args).status).toBe(3)
+    const empty = mkdtempSync(join(tmpdir(), 'knotty-cli-'))
+    dirs.push(empty)
+    expect(run(['resume', '--last'], { KNOTTY_RESULTS_DIR: empty }).stderr).toMatch(/No hay corridas/)
+    expect(run(['promote', RUN], { KNOTTY_RESULTS_DIR: empty }).stderr).toMatch(/No existe la corrida/)
   })
 
   it('refuses a malformed or missing run id before starting anything', () => {

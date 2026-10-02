@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { createBench } from './bench'
-import { againstBaseline, caseLine, problemsOf, reportMarkdown, terminalSummary, toBaseline, type ReportRow } from './report'
+import { againstBaseline, caseLine, problemsOf, reportMarkdown, toBaseline, type ReportRow } from './report'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 const run = async (id: string, change: Partial<(typeof bench.cases)[number]> = {}): Promise<ReportRow> => {
@@ -67,17 +67,8 @@ describe('the report', () => {
     expect(halfway).not.toContain('## Contra la base')
     const done = reportMarkdown(rows, meta, toBaseline(rows, meta))
     expect(done).not.toContain('En curso')
-    expect(done).toContain('## Contra la base')
+    expect(done).toContain('## Contra la base (tabla informativa)')
+    expect(reportMarkdown(rows, meta, null, 1, ['## Contra la base', 'verificada'])).toContain('## Contra la base\nverificada')
     expect(done).toContain('| Modelo | Llamada | Prompt | Llamadas | Entrada (mín.) |')
-  })
-})
-
-describe('the summary the terminal shows at the end', () => {
-  it('the table by model, and the baseline section, or how to set one', async () => {
-    const rows = [await run('bookcase')]
-    const withBase = terminalSummary(rows, toBaseline(rows, meta))
-    expect(withBase).toContain('| simulated | 1/1 |')
-    expect(withBase).toContain('## Contra la base')
-    expect(terminalSummary(rows, null)).toContain('Sin base: KNOTTY_SAVE_BASELINE=1 fija esta corrida.')
   })
 })
