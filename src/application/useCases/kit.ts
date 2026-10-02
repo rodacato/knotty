@@ -2,6 +2,7 @@ import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import { abbreviate, pruneVersions, type Origin } from '../../domain/session/history/history'
 import type { Catalog } from '../../domain/materials/catalog'
+import { DEFAULT_TOOL_LEVEL, type ToolLevel } from '../../domain/materials/tools'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Operation } from '../../domain/editing/operations/schema'
 import type { Requirement } from '../../domain/checks/requirements/requirements'
@@ -23,6 +24,8 @@ export interface Dependencies {
   catalog: Catalog
   /** The catalog the expert reads, with the person's settings applied; read on every call so an edit in Materiales reaches the next prompt. */
   promptCatalog?: () => Catalog
+  /** The person's tool level, read on every call like the catalog; the app default when nobody says. */
+  toolLevel?: () => ToolLevel
   repository: DesignRepository
   now?: () => string
   newId?: () => string
@@ -87,7 +90,8 @@ export function createKit(deps: Dependencies) {
   }
 
   const promptCatalog = () => deps.promptCatalog?.() ?? catalog
-  return { llm: () => deps.llm(), catalog, promptCatalog, repository, now, newId, message, save, addVersion, noted, findingsOf }
+  const toolLevel = () => deps.toolLevel?.() ?? DEFAULT_TOOL_LEVEL
+  return { llm: () => deps.llm(), catalog, promptCatalog, toolLevel, repository, now, newId, message, save, addVersion, noted, findingsOf }
 }
 
 export type Kit = ReturnType<typeof createKit>

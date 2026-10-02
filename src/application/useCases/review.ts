@@ -8,6 +8,7 @@ import { currentDesign, type DesignState, type PurchaseReview } from '../../doma
 import { heldAcceptance, isAccepted } from '../../domain/checks/structure/accepted'
 import { reviewViability, worst } from '../../domain/checks/viability/viability'
 import { buildContext } from '../context'
+import { knowledgeFor } from '../knowledge'
 import { ExpertError } from './expertCall'
 import { reviewText } from './forExpert'
 import type { Kit } from './kit'
@@ -63,6 +64,7 @@ export function createReview(kit: Kit) {
           design: design,
           checks: viability.checks,
           catalog: effectiveCatalog,
+          knowledge: knowledgeFor(state, kit.toolLevel(), 'review'),
         },
         signal,
       )

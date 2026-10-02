@@ -17,6 +17,7 @@ import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { named, withCandidate } from '../named'
 import { expertPlans, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { knowledgeFor } from '../knowledge'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, stillPending } from './copy'
@@ -174,7 +175,7 @@ export function createAdjust(kit: Kit) {
     let correction: PlanAdjustRequest['correction'] = null
     for (let attempt = 0; attempt < PLAN_ATTEMPTS; attempt++) {
       onProgress(correction ? 'correcting' : 'proposing', attempt)
-      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, kind: use, catalog: promptCatalog(), correction }, signal), {
+      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, kind: use, catalog: promptCatalog(), knowledge: knowledgeFor(withRequest, kit.toolLevel(), 'plan-adjust'), correction }, signal), {
         step: 'adjust',
         attempt,
         signal,
@@ -237,7 +238,7 @@ export function createAdjust(kit: Kit) {
       const call = await expertCall(
         () =>
           llm.proposeAdjustment(
-            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, catalog: promptCatalog(), correction: correction },
+            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, catalog: promptCatalog(), knowledge: knowledgeFor(withRequest, kit.toolLevel(), 'piece'), correction: correction },
             signal,
           ),
         { step: 'adjust', attempt, signal, trace, onFailure: 'correct' },
