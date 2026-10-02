@@ -45,4 +45,22 @@ describe('StatusChip', () => {
   it('keeps the button a button inside a status region', () => {
     expect(render(h(StatusChip, { statuses: [{ ...base, onClick: () => {} }] }))).toMatch(/^<div role="status"[^>]*><button/)
   })
+
+  describe('placeholder colour', () => {
+    const tagOf = (markup: string, tag: string) => new RegExp(`<${tag}[^>]*>`).exec(markup)?.[0] ?? ''
+    const CLASS = 'placeholder:text-graphite-2'
+
+    it('reaches a plain input and a textarea', () => {
+      expect(tagOf(render(h(Input)), 'input')).toContain(CLASS)
+      expect(tagOf(render(h(TextArea)), 'textarea')).toContain(CLASS)
+    })
+
+    it('reaches the inner input, not the frame, when there is a unit or an end', () => {
+      for (const props of [{ unit: 'cm' }, { end: h('button', null, 'x') }]) {
+        const markup = render(h(Input, props))
+        expect(tagOf(markup, 'span')).not.toContain(CLASS)
+        expect(tagOf(markup, 'input')).toContain(CLASS)
+      }
+    })
+  })
 })

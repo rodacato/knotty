@@ -7,6 +7,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 type Size = 'md' | 'sm'
 
 const FRAME = 'rounded-xl border bg-bone text-base text-graphite outline-none transition focus:border-focus focus-within:border-focus disabled:opacity-60 has-disabled:opacity-60'
+const PLACEHOLDER = 'placeholder:text-graphite-2'
 const HEIGHT: Record<Size, string> = { md: 'min-h-11 px-3', sm: 'min-h-8 px-2' }
 const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-line')
 
@@ -48,11 +49,11 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & { size?:
 export function Input({ size = 'md', invalid, unit, end, className = '', ...props }: InputProps) {
   const aria = useControlAria(invalid)
   const numeric = props.type === 'number' || props.inputMode === 'numeric' || props.inputMode === 'decimal'
-  const box = `min-w-0 ${FRAME} ${HEIGHT[size]} ${border(invalid)} ${numeric ? 'numerals' : ''} ${className}`
+  const box = `min-w-0 ${FRAME} ${unit || end ? '' : PLACEHOLDER} ${HEIGHT[size]} ${border(invalid)} ${numeric ? 'numerals' : ''} ${className}`
   if (!unit && !end) return <input {...aria} className={box} {...props} />
   return (
     <span className={`flex items-center gap-2 ${box}`}>
-      <input {...aria} className="w-full min-w-0 self-stretch bg-transparent outline-none" {...props} />
+      <input {...aria} className={`w-full min-w-0 self-stretch bg-transparent outline-none ${PLACEHOLDER}`} {...props} />
       {unit && <span className="numerals text-xs text-graphite-2">{unit}</span>}
       {end}
     </span>
@@ -75,5 +76,5 @@ type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: b
 
 export function TextArea({ invalid, className = '', ...props }: TextAreaProps) {
   const aria = useControlAria(invalid)
-  return <textarea {...aria} className={`${FRAME} ${border(invalid)} px-3 py-2.5 ${className}`} {...props} />
+  return <textarea {...aria} className={`${FRAME} ${PLACEHOLDER} ${border(invalid)} px-3 py-2.5 ${className}`} {...props} />
 }
