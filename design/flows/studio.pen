@@ -3709,8 +3709,10 @@
                   "type": "frame",
                   "id": "LVadF",
                   "name": "Thinking",
-                  "fill": "$paper",
+                  "fill": "$bone",
                   "cornerRadius": "$radius-2xl",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
                   "gap": 10,
                   "padding": [
                     10,
@@ -3744,16 +3746,6 @@
                       "content": "· 12 s",
                       "fontFamily": "$font-mono",
                       "fontSize": 12,
-                      "fontWeight": "normal"
-                    },
-                    {
-                      "type": "text",
-                      "id": "LWCUy",
-                      "name": "Cancelar",
-                      "fill": "$graphite-2",
-                      "content": "Cancelar",
-                      "fontFamily": "$font-sans",
-                      "fontSize": 13,
                       "fontWeight": "normal"
                     }
                   ]
@@ -4237,13 +4229,14 @@
               "x": 12,
               "y": 60,
               "name": "Status",
-              "height": 30,
               "fill": "$bone",
               "cornerRadius": "$radius-full",
               "stroke": "$line",
               "strokeWidth": 1,
               "gap": 6,
               "padding": [
+                0,
+                4,
                 0,
                 12
               ],
@@ -4268,6 +4261,31 @@
                   "fontFamily": "$font-sans",
                   "fontSize": 12,
                   "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "C7LY7",
+                  "name": "Ver propuesta (action)",
+                  "height": 44,
+                  "fill": "$kraft",
+                  "cornerRadius": "$radius-full",
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BLoFL",
+                      "name": "Label",
+                      "fill": "$graphite",
+                      "content": "Ver propuesta",
+                      "fontFamily": "$font-sans",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
                 }
               ]
             }
@@ -4497,7 +4515,7 @@
                           "enabled": false
                         },
                         "B1O4O": {
-                          "content": "Aplicar así, bajo mi riesgo",
+                          "content": "Aplicar así",
                           "fontSize": 13
                         }
                       }
@@ -6363,6 +6381,18 @@
           "fontFamily": "$font-mono",
           "fontSize": 14,
           "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "bCqza",
+          "name": "Entry",
+          "fill": "$graphite",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "2026-10-02 · kit 0.4.0 · re-vendored: focus and on-rust tokens, rust and paper values, 44 px buttons, Button/Disabled in place of the dimmed instances (Aplicar now carries the check, UI-36), RadioCard, FinishSelect and TraceLog added; Thinking pill without \"Cancelar\" and sized to its content; proposal buttons read \"Aplicar así\" for a critical proposal; the proposal chip carries \"Ver propuesta\" and the resolved chip a close · UI-36, UI-40, UI-45, UI-46, UI-47, UI-51, UI-56. Not redrawn: the 30 captures of the real app (retake them), the new states, the legs row",
+          "fontFamily": "$font-mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
         },
         {
           "type": "text",
@@ -8832,13 +8862,15 @@
               "x": 12,
               "y": 60,
               "name": "Status: resolved",
-              "height": 30,
+              "height": 36,
               "fill": "$bone",
               "cornerRadius": "$radius-full",
               "stroke": "$line",
               "strokeWidth": 1,
               "gap": 6,
               "padding": [
+                0,
+                4,
                 0,
                 12
               ],
@@ -8863,6 +8895,28 @@
                   "fontFamily": "$font-sans",
                   "fontSize": 12,
                   "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "VQU03",
+                  "name": "Cerrar",
+                  "width": 28,
+                  "height": 28,
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "t6UkMU",
+                      "name": "x",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "x",
+                      "library": "phosphor",
+                      "fill": "$graphite"
+                    }
+                  ]
                 }
               ]
             }
@@ -14919,7 +14973,6 @@
                   "x": 16,
                   "y": 68,
                   "name": "Status",
-                  "height": 34,
                   "fill": "$bone",
                   "cornerRadius": "$radius-full",
                   "stroke": "$line",
@@ -14927,9 +14980,9 @@
                   "gap": 8,
                   "padding": [
                     0,
-                    6,
+                    4,
                     0,
-                    14
+                    12
                   ],
                   "alignItems": "center",
                   "children": [
@@ -14952,6 +15005,31 @@
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "YeYjS",
+                      "name": "Ver propuesta (action)",
+                      "height": 44,
+                      "fill": "$kraft",
+                      "cornerRadius": "$radius-full",
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "v2xWtO",
+                          "name": "Label",
+                          "fill": "$graphite",
+                          "content": "Ver propuesta",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -15276,7 +15354,7 @@
                               "enabled": false
                             },
                             "B1O4O": {
-                              "content": "Aplicar así, bajo mi riesgo",
+                              "content": "Aplicar así",
                               "fontSize": 13
                             }
                           }
@@ -44471,6 +44549,18 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "ACeQn",
+      "x": 14784,
+      "y": 1208,
+      "name": "Frame 1",
+      "clip": true,
+      "width": 3,
+      "height": 5,
+      "fill": "#FFFFFF",
+      "layout": "none"
     }
   ],
   "themes": {
