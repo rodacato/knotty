@@ -705,15 +705,27 @@
                   "gap": 6,
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": "$radius-xl",
-                      "id": "nrmsS",
+                      "type": "frame",
+                      "id": "YwS6m",
                       "name": "Chip",
-                      "fill": "$on-rust",
                       "width": 80,
                       "height": 56,
-                      "stroke": "$line",
-                      "strokeWidth": 1
+                      "fill": "$rust",
+                      "cornerRadius": "$radius-xl",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "wsrzp",
+                          "name": "Aa",
+                          "fill": "$on-rust",
+                          "content": "Aa",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
                     },
                     {
                       "type": "text",
@@ -1185,15 +1197,27 @@
                   "gap": 6,
                   "children": [
                     {
-                      "type": "rectangle",
-                      "cornerRadius": "$radius-xl",
-                      "id": "aN9nu",
+                      "type": "frame",
+                      "id": "BMSwb",
                       "name": "Chip",
-                      "fill": "$on-rust",
                       "width": 80,
                       "height": 56,
-                      "stroke": "$line",
-                      "strokeWidth": 1
+                      "fill": "$rust",
+                      "cornerRadius": "$radius-xl",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YebQ4",
+                          "name": "Aa",
+                          "fill": "$on-rust",
+                          "content": "Aa",
+                          "fontFamily": "$font-sans",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
                     },
                     {
                       "type": "text",
@@ -1234,7 +1258,7 @@
               "id": "rRlBe",
               "name": "¿Cuánto mide?",
               "fill": "$graphite",
-              "content": "¿Cuánto mide?",
+              "content": "Hojas de triplay",
               "fontFamily": "$font-display",
               "fontSize": 24,
               "fontWeight": "600"
@@ -1254,7 +1278,7 @@
               "id": "VBOoL",
               "name": "Las medidas generales por fuera, en milímetros. Con cinta métrica basta.",
               "fill": "$graphite-2",
-              "content": "Las medidas generales por fuera, en milímetros. Con cinta métrica basta.",
+              "content": "Todavía no hay llamadas al experto en este diseño.",
               "fontFamily": "$font-sans",
               "fontSize": 15,
               "fontWeight": "normal"
@@ -1264,7 +1288,7 @@
               "id": "vSP9J",
               "name": "Inter 400 · 15 / 14 / 12 — interface",
               "fill": "$graphite-2",
-              "content": "Inter 400 · 15 / 14 / 12 — interface",
+              "content": "Inter 400 · 16 / 15 / 14 / 13 / 12 — interface",
               "fontFamily": "$font-mono",
               "fontSize": 11,
               "fontWeight": "normal"
@@ -1534,7 +1558,7 @@
               "id": "cjKhP",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Button — primary · secondary · ghost · danger · disabled",
+              "content": "Button — primary · secondary · ghost · danger · disabled (the code gives all four variants the same disabled look)",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -1628,7 +1652,10 @@
                     {
                       "type": "icon",
                       "id": "Z4GvzV",
+                      "x": 16,
+                      "y": 15,
                       "name": "Leading icon",
+                      "enabled": false,
                       "width": 14,
                       "height": 14,
                       "icon": "image",
@@ -1640,7 +1667,7 @@
                       "id": "bFrzY",
                       "name": "Label",
                       "fill": "$graphite",
-                      "content": "Galería",
+                      "content": "Ver el actual",
                       "fontFamily": "$font-sans",
                       "fontSize": 14,
                       "fontWeight": "500"
@@ -2082,7 +2109,7 @@
                   "name": "Title",
                   "reusable": true,
                   "fill": "$graphite",
-                  "content": "Fotos o descripción",
+                  "content": "Acabado",
                   "fontFamily": "$font-display",
                   "fontSize": 24,
                   "fontWeight": "600",
@@ -2307,7 +2334,7 @@
                       "id": "gfRMZ",
                       "name": "Label",
                       "fill": "$graphite",
-                      "content": "Que Knotty lo decida",
+                      "content": "Que el experto lo decida",
                       "fontFamily": "$font-sans",
                       "fontSize": 16,
                       "fontWeight": "normal"
@@ -2732,7 +2759,7 @@
               "id": "w2M8S",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Focus ring — one global rule: 2 px $focus, offset 2 px (shown on a Button, a Chip and a RadioCard)",
+              "content": "Focus ring — one global rule: 2 px focus, offset 2 px (shown on a Button, a Chip and a RadioCard)",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -2818,7 +2845,7 @@
               "id": "DkOMq",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "System — FinishSelect (closed · list) · TraceLog",
+              "content": "System — FinishSelect (closed · list, 4 of 8 shown) · TraceLog",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -3065,7 +3092,7 @@
                       "id": "OwFIN",
                       "name": "Summary",
                       "fill": "$graphite-2",
-                      "content": "2 llamadas · 1 sin experto · 12 s · 840 tokens de salida",
+                      "content": "2 llamadas · 12 s · 840 tokens de salida",
                       "fontFamily": "$font-mono",
                       "fontSize": 12,
                       "fontWeight": "normal"

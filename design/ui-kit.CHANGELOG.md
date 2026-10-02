@@ -33,7 +33,9 @@ Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendo
 
 **Added (UI-47):** `RadioCard` and `RadioGroup` in `src/ui/system/RadioCard.tsx`: a native radio input under a styled label, replacing the nine hand-written `role="radio"` buttons (one tab stop per group, arrow keys, `name` and `checked` from the browser). Variants `card` (border, tint and a check on the corner), `pill`, `segment` and `bare`; the focus ring shows on the card when the hidden input is focused. In `ui-kit.lib.pen` as `RadioCard/Off`, `RadioCard/On` (graphite border, `amber-soft` fill and the check badge on the corner, placed for a 240 px card), `RadioPill/Off`, `RadioPill/On`, `Segment/Off` and `Segment/On`. `RadioGroup` is behavior only and has no component.
 
-**Added (UI-47 escapees):** `FinishSelect/Closed`, `FinishSelect/List` and `TraceLog`, mirrored from `src/ui/system/` after the move. Still in their feature folders, so not in the kit: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
+**Added (UI-47 escapees):** `FinishSelect/Closed`, `FinishSelect/List` and `TraceLog`, mirrored from `src/ui/system/` after the move. The `TraceLog` status icons are outline, as Pencil's Phosphor set has no fill weight (the code uses fill). Foundations shows `on-rust` as a pair on `rust`, and the type specimens now use strings that exist in the code. Still in their feature folders, so not in the kit: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
+
+**In `system/` and not yet in the kit:** `HelpButton`, `Reveal`, the error state of `Field` (`rust` border, `role="alert"` line), `Field` at size `sm` and its help line; the disabled `RadioCard` (`opacity-40`) and hover states. The finish list shows 4 of the 8 options; the real one scrolls at 288 px.
 
 ## 0.3.0 — amber for selection only, Field, no TakePhoto
 
