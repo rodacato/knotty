@@ -13,8 +13,8 @@ describe('knowledgeFor', () => {
     expect(knowledgeFor(c.openExample(exampleSideboard), 2, 'plan-adjust')).toEqual({ core: 'short', guide: 'sideboard', guideSize: 'full', tools: 2 })
   })
 
-  it('gives no guide to a design without a plan', () => {
-    expect(knowledgeFor(c.fromExample(exampleBookcase), 1, 'piece').guide).toBeNull()
+  it('a design without a plan takes the guide of its use from the module that use maps to', () => {
+    expect(knowledgeFor(c.fromExample(exampleBookcase), 1, 'piece').guide).toBe('bookcase')
   })
 
   it('lowers the tools by what the person said', () => {

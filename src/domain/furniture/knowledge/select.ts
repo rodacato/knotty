@@ -41,7 +41,8 @@ function toolsFor(toolLevel: ToolLevel, requirements: Requirement[]): ToolLevel 
 
 export function selectKnowledge({ use, module, toolLevel, requirements, stage }: KnowledgeInput): KnowledgeSelection {
   const photo = stage === 'photo'
-  const guided = use !== null && MODULE_OF_KIND[use] !== null && MODULE_OF_KIND[use] === module
+  const ofUse = use && MODULE_OF_KIND[use]
+  const guided = ofUse !== null && (module === null || module === ofUse)
   return {
     core: CORE[stage],
     guide: !photo && guided ? use : null,

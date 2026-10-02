@@ -24,7 +24,7 @@ describe('selectKnowledge', () => {
   it.each([
     ['bookcase', 'cabinet', 'bookcase'],
     ['bookcase', 'bed', null],
-    ['bookcase', null, null],
+    ['bookcase', null, 'bookcase'],
     [null, 'cabinet', null],
     ['bench', null, null],
     ['desk', 'table', 'desk'],
