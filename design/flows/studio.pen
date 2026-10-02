@@ -11125,39 +11125,34 @@
                   "gap": 8,
                   "children": [
                     {
-                      "id": "H6h1NU",
+                      "id": "ZT0na",
                       "type": "ref",
-                      "ref": "qTkhL",
+                      "ref": "bTxwk",
                       "name": "Aplicar (disabled)",
                       "width": "fill_container",
                       "height": 44,
-                      "opacity": 0.4,
                       "descendants": {
-                        "uBIcr": {
+                        "zFT8R": {
                           "enabled": true,
-                          "icon": "lightning"
+                          "icon": "check"
                         },
-                        "eeaCW": {
+                        "Q69vml": {
                           "content": "Aplicar"
-                        },
-                        "bWG6r": {
-                          "enabled": false
                         }
                       }
                     },
                     {
-                      "id": "iJkRK",
+                      "id": "C4Qcp",
                       "type": "ref",
-                      "ref": "v808wd",
-                      "name": "Descartar",
+                      "ref": "bTxwk",
+                      "name": "Descartar (disabled)",
                       "height": 44,
-                      "opacity": 0.4,
                       "descendants": {
-                        "x9zoX": {
+                        "zFT8R": {
                           "enabled": true,
                           "icon": "arrow-counter-clockwise"
                         },
-                        "u7yM9": {
+                        "Q69vml": {
                           "content": "Descartar"
                         }
                       }
@@ -18501,26 +18496,19 @@
                       }
                     },
                     {
-                      "id": "OzonB",
+                      "id": "eOIvF",
                       "type": "ref",
-                      "ref": "YWzaw",
+                      "ref": "bTxwk",
                       "name": "Agregar nota (disabled)",
                       "height": 44,
-                      "padding": [
-                        0,
-                        12
-                      ],
-                      "opacity": 0.4,
                       "descendants": {
-                        "Ks4jq": {
+                        "zFT8R": {
+                          "enabled": true,
                           "icon": "plus",
                           "width": 14,
                           "height": 14
                         },
-                        "B1O4O": {
-                          "enabled": false
-                        },
-                        "Uvzk6": {
+                        "Q69vml": {
                           "enabled": false
                         }
                       }
@@ -27470,39 +27458,34 @@
               "gap": 8,
               "children": [
                 {
-                  "id": "cZWee",
+                  "id": "huByX",
                   "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Aplicar",
+                  "ref": "bTxwk",
+                  "name": "Aplicar (disabled)",
                   "width": "fill_container",
-                  "height": 40,
-                  "opacity": 0.4,
+                  "height": 44,
                   "descendants": {
-                    "uBIcr": {
+                    "zFT8R": {
                       "enabled": true,
-                      "icon": "lightning"
+                      "icon": "check"
                     },
-                    "eeaCW": {
+                    "Q69vml": {
                       "content": "Aplicar"
-                    },
-                    "bWG6r": {
-                      "enabled": false
                     }
                   }
                 },
                 {
-                  "id": "bhzIV",
+                  "id": "fCAHl",
                   "type": "ref",
-                  "ref": "v808wd",
-                  "name": "Descartar",
-                  "height": 40,
-                  "opacity": 0.4,
+                  "ref": "bTxwk",
+                  "name": "Descartar (disabled)",
+                  "height": 44,
                   "descendants": {
-                    "x9zoX": {
+                    "zFT8R": {
                       "enabled": true,
                       "icon": "arrow-counter-clockwise"
                     },
-                    "u7yM9": {
+                    "Q69vml": {
                       "content": "Descartar"
                     }
                   }
@@ -36188,39 +36171,34 @@
                       "gap": 8,
                       "children": [
                         {
-                          "id": "vzoVX",
+                          "id": "haE3m",
                           "type": "ref",
-                          "ref": "qTkhL",
-                          "name": "Aplicar",
+                          "ref": "bTxwk",
+                          "name": "Aplicar (disabled)",
                           "width": "fill_container",
-                          "height": 40,
-                          "opacity": 0.4,
+                          "height": 44,
                           "descendants": {
-                            "uBIcr": {
+                            "zFT8R": {
                               "enabled": true,
-                              "icon": "lightning"
+                              "icon": "check"
                             },
-                            "eeaCW": {
+                            "Q69vml": {
                               "content": "Aplicar"
-                            },
-                            "bWG6r": {
-                              "enabled": false
                             }
                           }
                         },
                         {
-                          "id": "muIdO",
+                          "id": "k82OD9",
                           "type": "ref",
-                          "ref": "v808wd",
-                          "name": "Descartar",
-                          "height": 40,
-                          "opacity": 0.4,
+                          "ref": "bTxwk",
+                          "name": "Descartar (disabled)",
+                          "height": 44,
                           "descendants": {
-                            "x9zoX": {
+                            "zFT8R": {
                               "enabled": true,
                               "icon": "arrow-counter-clockwise"
                             },
-                            "u7yM9": {
+                            "Q69vml": {
                               "content": "Descartar"
                             }
                           }
@@ -37759,7 +37737,7 @@
       "name": "Studio / Furniture / Cabinet plan sheet (mobile, scroll)",
       "clip": true,
       "width": 390,
-      "height": 1512,
+      "height": 1516,
       "fill": "$bone",
       "layout": "vertical",
       "children": [
@@ -40369,39 +40347,34 @@
               "gap": 8,
               "children": [
                 {
-                  "id": "ZpPjh",
+                  "id": "GGp30",
                   "type": "ref",
-                  "ref": "qTkhL",
-                  "name": "Aplicar",
+                  "ref": "bTxwk",
+                  "name": "Aplicar (disabled)",
                   "width": "fill_container",
-                  "height": 40,
-                  "opacity": 0.4,
+                  "height": 44,
                   "descendants": {
-                    "uBIcr": {
+                    "zFT8R": {
                       "enabled": true,
-                      "icon": "lightning"
+                      "icon": "check"
                     },
-                    "eeaCW": {
+                    "Q69vml": {
                       "content": "Aplicar"
-                    },
-                    "bWG6r": {
-                      "enabled": false
                     }
                   }
                 },
                 {
-                  "id": "GzZpm",
+                  "id": "zo4en",
                   "type": "ref",
-                  "ref": "v808wd",
-                  "name": "Descartar",
-                  "height": 40,
-                  "opacity": 0.4,
+                  "ref": "bTxwk",
+                  "name": "Descartar (disabled)",
+                  "height": 44,
                   "descendants": {
-                    "x9zoX": {
+                    "zFT8R": {
                       "enabled": true,
                       "icon": "arrow-counter-clockwise"
                     },
-                    "u7yM9": {
+                    "Q69vml": {
                       "content": "Descartar"
                     }
                   }
@@ -43232,39 +43205,34 @@
                       "gap": 8,
                       "children": [
                         {
-                          "id": "lCbHx",
+                          "id": "aunW9",
                           "type": "ref",
-                          "ref": "qTkhL",
-                          "name": "Aplicar",
+                          "ref": "bTxwk",
+                          "name": "Aplicar (disabled)",
                           "width": "fill_container",
-                          "height": 40,
-                          "opacity": 0.4,
+                          "height": 44,
                           "descendants": {
-                            "uBIcr": {
+                            "zFT8R": {
                               "enabled": true,
-                              "icon": "lightning"
+                              "icon": "check"
                             },
-                            "eeaCW": {
+                            "Q69vml": {
                               "content": "Aplicar"
-                            },
-                            "bWG6r": {
-                              "enabled": false
                             }
                           }
                         },
                         {
-                          "id": "WvW1x",
+                          "id": "zs6gZ",
                           "type": "ref",
-                          "ref": "v808wd",
-                          "name": "Descartar",
-                          "height": 40,
-                          "opacity": 0.4,
+                          "ref": "bTxwk",
+                          "name": "Descartar (disabled)",
+                          "height": 44,
                           "descendants": {
-                            "x9zoX": {
+                            "zFT8R": {
                               "enabled": true,
                               "icon": "arrow-counter-clockwise"
                             },
-                            "u7yM9": {
+                            "Q69vml": {
                               "content": "Descartar"
                             }
                           }
@@ -43709,17 +43677,17 @@
                           "fontWeight": "500"
                         },
                         {
-                          "id": "jTYlh",
+                          "id": "amjPb",
                           "type": "ref",
-                          "ref": "v808wd",
-                          "name": "Deshacer",
-                          "opacity": 0.5,
+                          "ref": "bTxwk",
+                          "name": "Deshacer (disabled)",
+                          "height": 44,
                           "descendants": {
-                            "x9zoX": {
+                            "zFT8R": {
                               "enabled": true,
                               "icon": "arrow-counter-clockwise"
                             },
-                            "u7yM9": {
+                            "Q69vml": {
                               "content": "Deshacer"
                             }
                           }
