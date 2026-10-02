@@ -8,13 +8,9 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
-## Unreleased — escapees that joined the kit (code landed, `.pen` re-vendoring pending)
+## 0.4.0 — focus, inactive buttons, dark contrast, RadioCard (`ui-kit.lib.pen` at 0.4.0; the flows still vendor 0.3.0)
 
-UI-47, mechanical move, no visual change: `TraceLog` and `FinishSelect` moved from `src/ui/studio/` to `src/ui/system/`; both need a component in `ui-kit.lib.pen`. Still in their feature folders because they read the services or the store: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
-
-## 0.4.0 — focus, inactive buttons and dark contrast (code landed, `.pen` re-vendoring pending)
-
-Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendors. The `.pen` files are not touched in this version; `ui-kit.lib.pen` and its `kit-version` stay at 0.3.0 until the re-vendoring.
+Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendors. `ui-kit.lib.pen` carries the version (`kit-version` 0.4.0); `flows/studio.pen` and `flows/capture.pen` still say `kit-version-source` 0.3.0 until they are re-vendored.
 
 **Added:** tokens `focus` (light `#9a5a10`, dark `#d98a2b`) and `on-rust` (light `#ffffff`, dark `#1d1a17`). One global `:focus-visible` rule (2 px, offset 2 px) replaces the per-component `focus-visible:outline-amber`; `Field` borders use `focus` too.
 
@@ -31,11 +27,13 @@ Lands with `UI-40`, `UI-45` and `UI-46`. A **value** change: every flow re-vendo
 | Disabled label, light (primary) | 2.29 | 4.77 |
 | Disabled label, dark (primary) | 3.33 | 6.65 |
 
-**Touch targets (`UI-54`):** `Button` is `min-h-11` (44 px), up from `min-h-10`, in all variants; the call sites that tried to be smaller are gone. The `.pen` `Button` components are still 40 px until the re-vendoring.
+**Touch targets (`UI-54`):** `Button` is `min-h-11` (44 px), up from `min-h-10`, in all variants; the call sites that tried to be smaller are gone.
 
-**Pending in the `.pen`:** the `focus`, `on-rust` and changed `rust` / `paper` variables; a disabled variant of the buttons (no longer an instance at `opacity: 0.4`).
+**In `ui-kit.lib.pen`:** the `focus` and `on-rust` variables, the changed `rust` and `paper` values, the four `Button` components at 44 px with `Button/Danger` labelled in `on-rust`, and `Button/Disabled` (a `kraft` fill, `graphite-2` label and `line` ring) in place of the instance at `opacity: 0.4`. Foundations shows `focus` and `on-rust` in both modes; Components gains a *Focus ring* section (the global rule, drawn on a Button, a Chip and a RadioCard).
 
-**Added (UI-47):** `RadioCard` and `RadioGroup` in `src/ui/system/RadioCard.tsx`: a native radio input under a styled label, replacing the nine hand-written `role="radio"` buttons (one tab stop per group, arrow keys, `name` and `checked` from the browser). Variants `card` (border, tint and a check on the corner), `pill`, `segment` and `bare`; the focus ring shows on the card when the hidden input is focused. `.pen` re-vendoring pending: the component is not in `ui-kit.lib.pen` yet.
+**Added (UI-47):** `RadioCard` and `RadioGroup` in `src/ui/system/RadioCard.tsx`: a native radio input under a styled label, replacing the nine hand-written `role="radio"` buttons (one tab stop per group, arrow keys, `name` and `checked` from the browser). Variants `card` (border, tint and a check on the corner), `pill`, `segment` and `bare`; the focus ring shows on the card when the hidden input is focused. In `ui-kit.lib.pen` as `RadioCard/Off`, `RadioCard/On` (graphite border, `amber-soft` fill and the check badge on the corner, placed for a 240 px card), `RadioPill/Off`, `RadioPill/On`, `Segment/Off` and `Segment/On`. `RadioGroup` is behavior only and has no component.
+
+**Added (UI-47 escapees):** `FinishSelect/Closed`, `FinishSelect/List` and `TraceLog`, mirrored from `src/ui/system/` after the move. Still in their feature folders, so not in the kit: `ChangeList`, `ProposalFix`, `settings/Keys` (`Unlock`, `PassphraseField`, `ForgetKeys`, `useUnlockPassphrase`, `UNLOCK_TEXT`) and `SheLLM`.
 
 ## 0.3.0 — amber for selection only, Field, no TakePhoto
 
