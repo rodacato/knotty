@@ -28,7 +28,7 @@ type Designed = { design: Design; r: ReconstructionResponse; response: ExpertRes
 
 /** Starting a design: from photos and a description through the expert, or from a ready example. */
 export function createReconstruct(kit: Kit) {
-  const { catalog, now, message, save, addVersion } = kit
+  const { catalog, promptCatalog, now, message, save, addVersion } = kit
 
   // Readings by photo and note: Capture reads a photo when it is added, and designing reuses that read, even one still in flight.
   const readings = new Map<string, Promise<{ reading: PhotoReading | null; trace: TraceEntry[] }>>()
@@ -91,7 +91,7 @@ export function createReconstruct(kit: Kit) {
     /** One skeleton call built and checked; `off` is what differs from the doors and drawers the request asked for. */
     let calls = 0
     const skeleton = (correction: ReconstructionRequest['correction']) =>
-      expertCall(() => llm.planDesign!({ measures: input.measures, space: input.space, photos: photos, notes: input.notes, reading: reading, catalog: catalog, correction, kind: input.kind ?? null, routeKind: hint }, signal), {
+      expertCall(() => llm.planDesign!({ measures: input.measures, space: input.space, photos: photos, notes: input.notes, reading: reading, catalog: promptCatalog(), correction, kind: input.kind ?? null, routeKind: hint }, signal), {
         step: 'plan',
         attempt: calls++,
         signal,
@@ -167,7 +167,7 @@ export function createReconstruct(kit: Kit) {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       // Not a cabinet (or its plan failed): the expert writes every piece, which takes minutes, and the wait says so.
       onProgress(attempt ? 'correcting' : 'designing-pieces', attempt)
-      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, space: input.space, photos: photosForDesign, notes: input.notes, reading: reading, catalog: catalog, correction: correction, kind: input.kind ?? null }, signal), {
+      const call = await expertCall(() => llm.reconstruct({ measures: input.measures, space: input.space, photos: photosForDesign, notes: input.notes, reading: reading, catalog: promptCatalog(), correction: correction, kind: input.kind ?? null }, signal), {
         step: 'reconstruct',
         attempt,
         signal,

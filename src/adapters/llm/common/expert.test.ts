@@ -82,7 +82,7 @@ describe('createExpert', () => {
     expect(r.origin.promptId).toBe('system@11+reconstruction@14')
     expect(calls[0].system).toContain('T18: Triplay de pino 18 mm')
     expect(calls[0].content).toEqual([
-      { kind: 'text', text: 'Furniture measures: width 570 mm, height 1800 mm, depth 300 mm.\nThe person\'s notes: para libros' },
+      { kind: 'text', text: 'Furniture measures: width 550 mm, height 1800 mm, depth 300 mm.\nThe person\'s notes: para libros' },
       { kind: 'text', text: 'Photo 1: front' },
       { kind: 'image', base64: 'AAA' },
     ])

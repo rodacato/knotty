@@ -61,14 +61,14 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Fluencia, carga pasajera | **1.0** | — | factor | Una persona, un asiento | ✅ [4][5][6] | [estructura.md](estructura.md) |
 | Flecha final sin pandeo visible | **≤ L/360** | — | — | Meta de diseño | ✅ [7] | [estructura.md](estructura.md) |
 | Flecha final límite | **≤ L/100** | L/120 si se quiere más estricto | — | Más allá, la repisa se ve muy pandeada | ⚠️ [7] | [estructura.md](estructura.md) |
-| Claro de repisa de 18 mm con libros, sin pandeo visible | **540** | — | mm | Pino radiata, veta a lo largo | ⚠️ cálculo | [estructura.md](estructura.md) |
-| Claro de repisa de 18 mm con libros, límite | **830** | regla de taller: 800–900 | mm | ídem | ⚠️ cálculo | [estructura.md](estructura.md) |
+| Claro de repisa de 18 mm con libros, sin pandeo visible | **530** (540 con 18 exactos) | — | mm | Pino radiata, veta a lo largo; con el espesor real (17.5) | ⚠️ cálculo | [estructura.md](estructura.md) |
+| Claro de repisa de 18 mm con libros, límite | **810** (830 con 18 exactos) | regla de taller: 800–900 | mm | ídem | ⚠️ cálculo | [estructura.md](estructura.md) |
 | Repisa de 18 mm con tira de pino de 18 × 40 pegada al frente | **780** sin pandeo visible / **1200** límite | rigidez × 3, claro × 1.45 | mm | Tira pegada en toda su longitud | ⚠️ cálculo | [estructura.md](estructura.md) |
-| Repisa de 18 mm con veta cruzada, libros | ≈ **410** | — | mm | Cuando el despiece obliga a cortar atravesado | ⚠️ cálculo | [estructura.md](estructura.md) |
+| Repisa de 18 mm con veta cruzada, libros | ≈ **400** (410 con 18 exactos) | — | mm | Cuando el despiece obliga a cortar atravesado | ⚠️ cálculo | [estructura.md](estructura.md) |
 
 **Por qué fluencia ×2 y no ×1.5.** El 1.5 viene de calculadoras pensadas para madera maciza [8]; para tableros, la norma estadounidense de madera (NDS, K_cr = 2.0) [4], el Eurocódigo 5 [5] y el *Wood Handbook* [6] coinciden en 2.
 
-**Por qué L/100 como límite.** El estándar de carpintería arquitectónica (AWS) acepta L/144 instantánea con 244 kg/m² [7]; con libros (150 kg/m²) y fluencia ×2 eso equivale a ≈ L/117 final. L/100 deja el límite de una repisa de 18 mm con libros en ≈ 830 mm, que coincide con la regla de taller «18 mm, no más de 80–90 cm». Un pandeo es un problema de apariencia, no de seguridad.
+**Por qué L/100 como límite.** El estándar de carpintería arquitectónica (AWS) acepta L/144 instantánea con 244 kg/m² [7]; con libros (150 kg/m²) y fluencia ×2 eso equivale a ≈ L/117 final. L/100 deja el límite de una repisa de 18 mm con libros en ≈ 810–830 mm, que coincide con la regla de taller «18 mm, no más de 80–90 cm». Un pandeo es un problema de apariencia, no de seguridad.
 
 ## 5. Cargas
 

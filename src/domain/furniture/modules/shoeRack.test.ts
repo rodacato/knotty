@@ -29,13 +29,22 @@ describe('the shoe rack', () => {
   })
 
   it('has as many shoe levels as its plan, split by fixed shelves, each tall enough for a low shoe', () => {
-    const { design, boxes: b } = boxes(rack())
+    const { design, boxes: b } = boxes(rack({ dimensions: { width: 700, height: 900, depth: 330 } }))
     const shelves = design.pieces.filter((p) => p.role === 'shelf')
     expect(shelves).toHaveLength(3)
     expect(shelves.every((p) => p.support !== 'movable' && p.load === 'light')).toBe(true)
     const tops = [b.get('bottom')!.y1, ...shelves.map((p) => b.get(p.id)!.y1)].sort((x, y) => x - y)
     const bottoms = [...shelves.map((p) => b.get(p.id)!.y0), b.get('top')!.y0].sort((x, y) => x - y)
     for (const [i, y] of tops.entries()) expect(bottoms[i] - y).toBeGreaterThanOrEqual(150)
+  })
+
+  it('splits into columns where the sag rule would flag a shelf, judged with the real thickness', () => {
+    const within = built(rack({ dimensions: { width: 700, height: 900, depth: 330 } })).design
+    const past = built(rack({ dimensions: { width: 800, height: 900, depth: 330 } })).design
+    expect(within.pieces.filter((p) => p.role === 'shelf')).toHaveLength(3)
+    expect(past.pieces.filter((p) => p.role === 'shelf')).toHaveLength(6)
+    expect(findingsOf(within).filter((f) => f.code === 'R1_SAG')).toEqual([])
+    expect(findingsOf(past).filter((f) => f.code === 'R1_SAG')).toEqual([])
   })
 
   it('with doors, closes its front; wide, with two leaves', () => {

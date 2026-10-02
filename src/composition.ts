@@ -2,6 +2,7 @@ import { createAnthropic } from './adapters/llm/anthropic'
 import { createPreferences } from './adapters/llm/common/configuration'
 import { createCompatible } from './adapters/llm/compatibleOpenAI'
 import { createSimulated } from './adapters/llm/simulated/simulated'
+import { applySettings } from './domain/materials/catalog'
 import { createJsonCatalog } from './adapters/catalog/json'
 import { createLocalDebugLog } from './adapters/debug/localDebugLog'
 import { withDebugLog } from './adapters/debug/loggedProvider'
@@ -36,7 +37,7 @@ export async function compose(): Promise<Services> {
   if (!opened) debug.record({ kind: 'app', summary: `Knotty ${__APP_COMMIT__} abierto`, data: { commit: __APP_COMMIT__, userAgent: navigator.userAgent, viewport: `${innerWidth}×${innerHeight}` } })
   opened = true
   const expert = () => withDebugLog(providerFor(preferences.load()), debug)
-  const useCases = createUseCases({ llm: expert, catalog, repository: createLocalRepository() })
+  const useCases = createUseCases({ llm: expert, catalog, promptCatalog: () => applySettings(catalog, materials.settings()), repository: createLocalRepository() })
   // The bench talks to the same expert, through the log: raw answers from a bench run land there too.
   const bench = createBench({ llm: expert, catalog })
   return { useCases, catalog, materials, images: createCanvasProcessor(), references: createBundledReferences(), preferences, debug, bench }

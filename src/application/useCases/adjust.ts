@@ -81,7 +81,7 @@ const askAboutCriticals = (questions: Message['questions'], criticals: Finding[]
 
 /** A chat request to change the design: through the plan when there is one, else piece by piece, judged before it is applied. */
 export function createAdjust(kit: Kit) {
-  const { catalog, message, save, addVersion, findingsOf } = kit
+  const { catalog, promptCatalog, message, save, addVersion, findingsOf } = kit
 
   /** Everything one request works with. */
   function roundFor(withRequest: DesignState, request: string, signal: AbortSignal, onProgress: OnProgress) {
@@ -174,7 +174,7 @@ export function createAdjust(kit: Kit) {
     let correction: PlanAdjustRequest['correction'] = null
     for (let attempt = 0; attempt < PLAN_ATTEMPTS; attempt++) {
       onProgress(correction ? 'correcting' : 'proposing', attempt)
-      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, kind: use, catalog, correction }, signal), {
+      const call = await expertCall(() => llm.adjustPlan!({ context, request, plan, kind: use, catalog: promptCatalog(), correction }, signal), {
         step: 'adjust',
         attempt,
         signal,
@@ -237,7 +237,7 @@ export function createAdjust(kit: Kit) {
       const call = await expertCall(
         () =>
           llm.proposeAdjustment(
-            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, catalog: catalog, correction: correction },
+            { context: context, request: request, design: design, proposal: withRequest.proposal?.operations ?? null, catalog: promptCatalog(), correction: correction },
             signal,
           ),
         { step: 'adjust', attempt, signal, trace, onFailure: 'correct' },
