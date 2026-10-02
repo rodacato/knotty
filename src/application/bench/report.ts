@@ -22,14 +22,33 @@ export interface Baseline extends RunMeta {
 
 export const toBaseline = (rows: ReportRow[], meta: RunMeta): Baseline => ({ ...meta, rows })
 
-/** What is wrong with a case, for its ✓ or × while the run goes: empty when it came out valid, sensible, as asked and viable. */
-export function problemsOf(r: ReportRow): string[] {
+/** What is wrong with a case, for its ✓ or × while the run goes: empty when every step came out as asked, valid and viable. A failure carried from an earlier step is told once. */
+export function problemsOf(r: Omit<ReportRow, 'model' | 'prompt'>): string[] {
   if (!r.ok) return [`falló: ${r.error ?? 'sin mensaje'}`]
-  return [
-    ...(r.reasonable === false ? [`no razonable (${r.measures}, ${r.path === 'plan' ? 'ficha' : 'piezas'})`] : []),
-    ...(r.structure?.ok === false ? [`estructura: ${describeStructure(r.structure)}`] : []),
-    ...(r.criticals ? [`${r.criticals} ${r.criticals === 1 ? 'crítico' : 'críticos'} (${r.rules.join(' ')})`] : []),
-  ]
+  const steps = r.steps ?? []
+  const reported = new Set<string>()
+  const firstTime = (e: { id: string; detail: string }) => !reported.has(`${e.id.split(':').slice(1).join(':')} ${e.detail}`) && !!reported.add(`${e.id.split(':').slice(1).join(':')} ${e.detail}`)
+  const fromSteps = steps.flatMap((s) => {
+    const errored = s.outcome === 'error' || s.outcome === 'rejected'
+    return [
+      ...(errored ? [`${s.label}: ${s.outcome === 'error' ? 'error del experto o de la conexión' : 'el experto no logró aplicar el cambio'}`] : []),
+      ...(s.design.valid ? [] : [`${s.label}: diseño inválido (${s.design.problems.join(' ') || 'sin detalle'})`]),
+      ...s.expectations.flatMap((e) => {
+        if (e.status === 'fail' && !(errored && e.kind === 'outcome') && firstTime(e)) return [`${s.label}: ${e.detail}${e.subject === 'proposal' ? ' (propuesta pendiente)' : ''}`]
+        return e.status === 'unknown' && e.mandatory && firstTime(e) ? [`${s.label}: sin poder evaluar (${e.detail})`] : []
+      }),
+    ]
+  })
+  const legacy = steps.length
+    ? []
+    : [
+        ...(r.reasonable === false ? [`no razonable (${r.measures}, ${r.path === 'plan' ? 'ficha' : 'piezas'})`] : []),
+        ...(r.structure?.ok === false ? [`estructura: ${describeStructure(r.structure)}`] : []),
+        ...(r.verdict !== 'viable' ? [`veredicto ${r.verdict}`] : []),
+        ...(r.adjustments.some((a) => a.outcome === 'error') ? [`pedidos con error: ${r.adjustments.filter((a) => a.outcome === 'error').map((a) => `«${a.request}»`).join(' ')}`] : []),
+      ]
+  const criticals = r.criticals ? [`${r.criticals} ${r.criticals === 1 ? 'crítico' : 'críticos'} (${r.rules.join(' ')})`] : []
+  return [...fromSteps, ...(r.reasonable === null ? ['sin evaluar las medidas'] : []), ...legacy, ...criticals]
 }
 
 /** One line per case while the run goes: «ficha · 28 s · 1 intento · 3/3/3 · viable». */

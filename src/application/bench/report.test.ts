@@ -19,10 +19,31 @@ describe('the problems of a case, for its ✓ or ×', () => {
   })
 
   it('names what differs: the structure, and a failure with its message', async () => {
-    expect(problemsOf(await run('bookcase', { parts: { doors: 2 } }))).toEqual(['estructura: puertas 0 (pidió 2)'])
+    expect(problemsOf(await run('bookcase', { parts: { doors: 2 } }))).toEqual(['diseño inicial: puertas 0 (pidió 2)'])
     const failed = await run('plant-stand')
     expect(problemsOf(failed)).toEqual([expect.stringMatching(/^falló: /)])
     expect(caseLine(failed)).toMatch(/^falló en \d+ s$/)
+  })
+})
+
+describe('a row saved before the grader had steps', () => {
+  it('still loads and is judged by its own fields, now including its verdict and its failed requests', async () => {
+    const { steps: _steps, reconstruction: _reconstruction, graderVersion: _version, ...legacy } = await run('bookcase')
+    expect(problemsOf(legacy)).toEqual([])
+    expect(problemsOf({ ...legacy, verdict: 'invalid' })).toEqual(['veredicto invalid'])
+    expect(problemsOf({ ...legacy, verdict: 'needs-changes', criticals: 1, rules: ['R5_RACKING'] })).toEqual(['veredicto needs-changes', '1 crítico (R5_RACKING)'])
+    expect(problemsOf({ ...legacy, reasonable: null })).toEqual(['sin evaluar las medidas'])
+    expect(problemsOf({ ...legacy, adjustments: [{ request: 'Hazla más bonita', by: 'expert', calls: 1, outcome: 'error' }] })).toEqual(['pedidos con error: «Hazla más bonita»'])
+    expect(caseLine(legacy)).toBe('piezas · 0 s · 2 intentos · puertas 0 · cajones 0 · viable')
+  })
+})
+
+describe('the problems of a graded row', () => {
+  it('count an invalid final design and a null structure that the steps cannot answer', async () => {
+    const row = await run('bookcase')
+    const last = row.steps!.at(-1)!
+    const invalid = { ...row, verdict: 'invalid', steps: [...row.steps!.slice(0, -1), { ...last, design: { ...last.design, valid: false, verdict: 'invalid', problems: ['E_X'] } }] }
+    expect(problemsOf(invalid)).toEqual(['«¿Cuánto cuesta?»: diseño inválido (E_X)'])
   })
 })
 
