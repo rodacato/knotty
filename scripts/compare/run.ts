@@ -22,8 +22,10 @@ import type { Telemetry } from './telemetry'
 
 // Runs the bench's cases as jobs: one directory per run, a manifest saved after every job, every expert answer recorded for replay.
 
-/** Per provider host, until SheLLM's real limit is measured: the same 2 the bench has always used. KNOTTY_PARALLEL overrides it. */
+/** Per provider host. SheLLM took 4 at once with no queue and no errors (2026-10-02, 50 requests); the other providers keep the 2 the bench has always used, because their limits are unmeasured. KNOTTY_PARALLEL overrides it. */
 export const DEFAULT_PARALLEL = 2
+export const SHELLM_PARALLEL = 4
+export const defaultParallel = (spec: string) => (spec.startsWith('shellm') ? SHELLM_PARALLEL : DEFAULT_PARALLEL)
 export const REQUEST_MS = 5 * 60_000
 export const JOB_MS = 15 * 60_000
 

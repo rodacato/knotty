@@ -82,7 +82,7 @@ npm run compare:promote -- --last --accept            # fija la corrida como bas
 npm run compare:concurrency -- 2,4                    # la misma batería a 2 y a 4 a la vez, una tras otra, y una tabla
 ```
 
-`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`); si le falta la llave o la dirección, se detiene antes de correr nada. `KNOTTY_PARALLEL` fija cuántos trabajos van a la vez por host. Cada trabajo imprime su ✓ o × en cuanto termina, con lo que no cuadró, y al final sale el resumen y «Contra la base». Al arrancar avisa si tu checkout no es `origin/main` (commits de más o de menos, cambios sin commit): mide el código que tienes, no el de `main`. Los casos largos arrancan primero, según lo que tardaron antes.
+`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`); si le falta la llave o la dirección, se detiene antes de correr nada. `KNOTTY_PARALLEL` fija cuántos trabajos van a la vez por host: 4 por omisión con SheLLM (medido el 2026-10-02 con 39 trabajos: sin cola en su servidor, sin errores y 406 s contra 679 s a 2 a la vez) y 2 con los demás proveedores, cuyo límite no se midió. Si tu `.env` define `KNOTTY_PARALLEL`, manda sobre estos valores. Cada trabajo imprime su ✓ o × en cuanto termina, con lo que no cuadró, y al final sale el resumen y «Contra la base». Al arrancar avisa si tu checkout no es `origin/main` (commits de más o de menos, cambios sin commit): mide el código que tienes, no el de `main`. Los casos largos arrancan primero, según lo que tardaron antes.
 
 **Dónde queda.** Cada corrida vive en `scripts/compare/results/<corrida>/`, fuera de git, y se reescribe después de cada trabajo: si cortas la corrida, lo hecho se queda.
 

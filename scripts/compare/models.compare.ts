@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { expect, it } from 'vitest'
 import { loadBaseline } from './baselineFile'
 import { catalog, hostOf, modelsFromEnv, preflight, provider, reportExit, resultsDir, setting } from './live'
-import { DEFAULT_PARALLEL, runCompare } from './run'
+import { defaultParallel, runCompare } from './run'
 import { createTelemetry } from './telemetry'
 
 // Runs the bench's fixed cases against each model and grades them with Knotty's own checks. Run by hand: npm run compare.
@@ -37,7 +37,7 @@ it('runs the bench against each expert', async () => {
   preflight(models)
   const only = setting('KNOTTY_CASES', 'KNOTTY_CASOS')?.split(',') ?? null
   const repeat = Number(setting('KNOTTY_REPEAT', 'KNOTTY_REPETICIONES') ?? 1)
-  const parallel = Number(setting('KNOTTY_PARALLEL', 'KNOTTY_PARALELO') ?? DEFAULT_PARALLEL)
+  const parallelFor = (spec: string) => Number(setting('KNOTTY_PARALLEL', 'KNOTTY_PARALELO') ?? defaultParallel(spec))
   const label = setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'current format'
   const baseline = loadBaseline(setting('KNOTTY_BASELINE', 'KNOTTY_BASE'), { resultsDir: resultsDir() })
 
@@ -55,7 +55,7 @@ it('runs the bench against each expert', async () => {
       cases: only,
       repeat,
       label,
-      parallel,
+      parallel: parallelFor(spec),
       baseline,
       telemetry,
       signal: stop.signal,

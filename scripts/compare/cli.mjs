@@ -28,7 +28,7 @@ export const HELP = `Uso:
   npm run compare:hard -- --list                   ids, soporte y conteos, sin conexión y sin texto
   npm run compare -- --help
 
-Variables de entorno de la corrida: KNOTTY_MODELS, KNOTTY_CASES, KNOTTY_REPEAT, KNOTTY_LABEL, KNOTTY_PARALLEL (por host, 2 por omisión),
+Variables de entorno de la corrida: KNOTTY_MODELS, KNOTTY_CASES, KNOTTY_REPEAT, KNOTTY_LABEL, KNOTTY_PARALLEL (por host; 4 para SheLLM, que se midió sin cola ni errores, y 2 para los demás),
 KNOTTY_BASELINE (corrida, archivo o none; por omisión scripts/compare/baseline.json), KNOTTY_PROMOTE_TO (otro archivo para promote).
 Suite difícil: KNOTTY_HARD_DIR (carpeta privada; por omisión contexto-carpinteria/docs/evaluacion-persona/), KNOTTY_HARD_TRIALS_CRITICAL (3) y KNOTTY_HARD_TRIALS (1).
 Cada corrida queda en scripts/compare/results/<corrida>/. Salida: 0 pasa (o solo fallas conocidas), 1 regresión, 2 corrida incompleta o con errores de infraestructura, 3 argumentos inválidos.`

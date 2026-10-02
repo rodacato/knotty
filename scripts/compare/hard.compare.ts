@@ -35,7 +35,7 @@ it('runs the hard questions against the connected expert', async () => {
   }
 
   const { catalog, hostOf, modelsFromEnv, preflight, provider, resultsDir, setting } = await import('./live')
-  const { DEFAULT_PARALLEL } = await import('./run')
+  const { defaultParallel } = await import('./run')
   const { createTelemetry } = await import('./telemetry')
   const telemetry = createTelemetry()
   telemetry.install()
@@ -58,7 +58,7 @@ it('runs the hard questions against the connected expert', async () => {
       only,
       trials: { critical: trialsFrom('KNOTTY_HARD_TRIALS_CRITICAL', DEFAULT_TRIALS.critical), normal: trialsFrom('KNOTTY_HARD_TRIALS', DEFAULT_TRIALS.normal) },
       label: setting('KNOTTY_LABEL', 'KNOTTY_ETIQUETA') ?? 'hard questions',
-      parallel: Number(setting('KNOTTY_PARALLEL', 'KNOTTY_PARALELO') ?? DEFAULT_PARALLEL),
+      parallel: Number(setting('KNOTTY_PARALLEL', 'KNOTTY_PARALELO') ?? defaultParallel(spec)),
       telemetry,
       signal: stop.signal,
     })
