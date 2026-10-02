@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, ArrowSquareOut, Check, Copy, LockKey, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, LockKey, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
@@ -8,6 +8,7 @@ import { Button, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
+import { SheLLM } from '../system/SheLLM'
 import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
@@ -119,7 +120,7 @@ export function Settings() {
             ))}
           </RadioGroup>
 
-          {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} />}
+          {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} origin={location.origin} learnUrl={SHELLM_URL} />}
 
           {connection && active !== 'simulated' && (
             <div className="flex flex-col gap-4">
@@ -234,39 +235,5 @@ export function Settings() {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
-}
-
-/** SheLLM runs on the person's machine: explains what it is and how to let this page talk to it. */
-export function SheLLM({ host, onHost }: { host: string; onHost: (h: string) => void }) {
-  const [copied, setCopied] = useState(false)
-  const origin = location.origin
-  const line = `SHELLM_CORS_ORIGINS=${origin}`
-  const copy = async () => {
-    await navigator.clipboard.writeText(line)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-  return (
-    <div className="flex flex-col gap-3 text-sm">
-      <p>
-        <span className="font-medium">SheLLM</span> convierte tu suscripción de Claude Code o Codex en una API local, así el experto no gasta créditos de API.{' '}
-        <a href={SHELLM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium underline underline-offset-2">
-          Conoce SheLLM <ArrowSquareOut />
-        </a>
-      </p>
-      <Field label="Dirección">
-        <Input value={host} onChange={(e) => onHost(e.target.value)} placeholder="http://127.0.0.1:6100" className="numerals" />
-      </Field>
-      <div className="flex flex-col gap-1.5">
-        <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
-        <span className="flex items-center gap-2 rounded-xl bg-kraft px-3 py-2">
-          <code className="numerals flex-1 truncate text-xs">{line}</code>
-          <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-graphite-2 hover:text-graphite">
-            {copied ? <Check /> : <Copy />}
-          </button>
-        </span>
-      </div>
-    </div>
   )
 }

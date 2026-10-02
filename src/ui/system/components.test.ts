@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { Button, Chip } from './components'
-import { FORGET_HIT_AREA } from '../settings/Keys'
+import { FORGET_HIT_AREA } from './Unlock'
 
 const UI = join(__dirname, '..')
 
@@ -32,8 +32,8 @@ describe('touch targets', () => {
   it('the forget-keys link keeps a 44 px hit area on the idle link and on both confirmation buttons', () => {
     expect(FORGET_HIT_AREA).toContain('before:-inset-y-3.5')
     expect(FORGET_HIT_AREA).toContain('before:inset-x-0')
-    const source = readFileSync(join(UI, 'settings/Keys.tsx'), 'utf8')
-    const body = source.slice(source.indexOf('export function ForgetKeys'), source.indexOf('/** Opens the encrypted'))
+    const source = readFileSync(join(UI, 'system/Unlock.tsx'), 'utf8')
+    const body = source.slice(source.indexOf('export function ForgetKeysPrompt'), source.indexOf('/** The passphrase form'))
     expect(body.match(/\$\{FORGET_HIT_AREA\}/g)).toHaveLength(3)
   })
 

@@ -1,10 +1,11 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { Check, LockKey, X } from '@phosphor-icons/react'
 import { useState, type ReactNode } from 'react'
-import { MIN_PASSPHRASE, PRESETS, type RealProvider } from '../../ports/Preferences'
+import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type RealProvider } from '../../ports/Preferences'
 import { useServices } from '../services'
-import { ForgetKeys, PassphraseField, UNLOCK_TEXT, useUnlockPassphrase } from '../settings/Keys'
-import { SheLLM } from '../settings/Settings'
+import { ForgetKeys, useUnlockPassphrase } from '../settings/Keys'
+import { SheLLM } from '../system/SheLLM'
+import { PassphraseField, UNLOCK_TEXT } from '../system/Unlock'
 import { useStore } from '../store'
 import { Button, Title } from '../system/components'
 import { Field, Input } from '../system/Field'
@@ -230,7 +231,7 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
           })}
         </RadioGroup>
 
-        {provider === 'shellm' && <SheLLM host={effectiveHost} onHost={(h) => setHost(h.trim())} />}
+        {provider === 'shellm' && <SheLLM host={effectiveHost} onHost={(h) => setHost(h.trim())} origin={location.origin} learnUrl={SHELLM_URL} />}
 
         {provider === 'openai' && !PRESETS.openai.suggestedModel && (
           <Field label="Modelo">

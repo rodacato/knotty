@@ -1,7 +1,7 @@
 import { createElement as h } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { PassphraseField } from '../settings/Keys'
+import { PassphraseField } from './Unlock'
 import { Reveal } from './Reveal'
 
 const render = (node: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(node)
