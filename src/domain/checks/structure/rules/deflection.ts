@@ -73,14 +73,19 @@ function alternatives(p: Piece, { span, depth, thickness, load, modulus, duratio
   return list
 }
 
+/** A cabinet's shelves are built for a medium load; in a bookcase they hold books. Read here, not at build, because the person can change the kind without rebuilding. */
+const loadOf = (p: Piece, use: ReturnType<typeof useOf>): Load => (use === 'bookcase' && p.role === 'shelf' && p.load === 'medium' ? 'heavy' : p.load)
+
 export const deflectionRule: Rule = (ctx) => {
   // A person on a bed or a bench gets off: that load does not creep. What a shelf holds stays.
-  const person = personSurface(ctx, useOf(ctx.design))
+  const use = useOf(ctx.design)
+  const person = personSurface(ctx, use)
   return ctx.design.pieces.flatMap((p): Finding[] => {
+    const load = loadOf(p, use)
     const box = ctx.geo.boxes.get(p.id)
     const thickness = ctx.geo.thicknesses.get(p.id)
     const board = materialById(ctx.catalog, p.material)
-    if (!box || !thickness || !board || p.normal !== 'y' || p.load === 'none') return []
+    if (!box || !thickness || !board || p.normal !== 'y' || load === 'none') return []
     // A piece lying on the floor has the floor under all of it: there is no span to sag.
     if (box.y0 <= CONTACT_TOLERANCE) return []
     const span = freeSpan(p.id, box, ctx)
@@ -89,12 +94,12 @@ export const deflectionRule: Rule = (ctx) => {
     const grain = grainToSpan(p, box)
     const modulus = modulusOf(board, grain)
     const duration: LoadDuration = person.has(p.id) ? 'passing' : 'permanent'
-    const delta = deflection(span, depth, thickness, p.load, modulus, duration)
+    const delta = deflection(span, depth, thickness, load, modulus, duration)
     const severity = deflectionSeverity(delta, span)
     if (!severity) return []
     const limit = span / ASSUMPTIONS.deflectionLimit.recommended
-    const loadName = duration === 'passing' ? 'una persona encima' : LOAD_NAME[p.load]
-    const beam = { span, depth, thickness, load: p.load, modulus, duration }
+    const loadName = duration === 'passing' ? 'una persona encima' : LOAD_NAME[load]
+    const beam = { span, depth, thickness, load, modulus, duration }
     return [
       {
         code: 'R1_SAG',
@@ -102,7 +107,7 @@ export const deflectionRule: Rule = (ctx) => {
         pieces: [p.id],
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${loadName} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
         // The longest span this board takes: a fact for the expert, not a way out.
-        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load: p.load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, p.load, modulus, duration), 0) },
+        data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, load, modulus, duration), 0) },
         alternatives: alternatives(p, beam, grain, ctx.catalog),
       },
     ]

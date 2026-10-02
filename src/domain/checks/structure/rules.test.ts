@@ -20,6 +20,30 @@ const findings = (d: Design, code: string) => {
   return a.findings.filter((h) => h.code === code)
 }
 
+describe('R1 sag in a bookcase', () => {
+  const shelves = (width: number, kind: Design['kind']): Design => {
+    const plan: CabinetPlan = { kind: 'cabinet', name: 'Mueble', dimensions: { width, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 100, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 3, doors: null }] }] }
+    return { ...buildCabinet(plan, testCatalog).design, kind }
+  }
+  const sag = (d: Design) => findings(d, 'R1_SAG').filter((h) => h.pieces[0]!.includes('shelf'))
+
+  it('judges a bookcase shelf as books and offers the supports that fix it', () => {
+    const [first] = sag(shelves(900, 'bookcase'))
+    expect(first).toMatchObject({ severity: 'critical', data: { load: 'heavy', span: 864 } })
+    expect(first!.message).toContain('libros')
+    expect(first!.alternatives.map((a) => a.key)).toContain('center-divider')
+  })
+
+  it('keeps the same width as any other cabinet at medium load', () => {
+    const found = sag(shelves(900, 'cabinet'))
+    expect(found.map((h) => [h.severity, h.data.load])).toEqual([['recommendation', 'medium'], ['recommendation', 'medium'], ['recommendation', 'medium']])
+  })
+
+  it('leaves a narrow bookcase alone', () => {
+    expect(sag(shelves(500, 'bookcase'))).toEqual([])
+  })
+})
+
 describe('R3 screws', () => {
   it('asks for a longer screw when it does not go 25 mm into the piece that takes it', () => {
     const d = structuredClone(exampleBookcase)

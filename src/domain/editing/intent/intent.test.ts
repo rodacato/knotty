@@ -47,7 +47,7 @@ describe('parseIntent', () => {
     ['Que mida 2 m de alto.', 'bookcase', edit('dimensions.height', 2000)],
     ['35 cm de fondo', 'bookcase', edit('dimensions.depth', 350)],
     ['Cambia el ancho a 750 mm', 'bookcase', edit('dimensions.width', 750)],
-    ['más angosto 10 cm', 'bookcase', edit('dimensions.width', 500)],
+    ['más angosto 10 cm', 'bookcase', edit('dimensions.width', 450)],
     ['Hazlo 5 cm más bajo', 'bookcase', edit('dimensions.height', 1750)],
     ['quítale 10 cm de alto', 'bookcase', edit('dimensions.height', 1700)],
     ['Hazla de 1.60 m de largo', 'dining', edit('dimensions.width', 1600)],
@@ -177,7 +177,7 @@ describe('answerQuestion', () => {
     expect(answerQuestion('cost', design, testCatalog, plans.bookcase)).toMatch(/^Unos \$[\d,]+: \$[\d,]+ de triplay \(\d+ hojas\) y \$[\d,]+ de herrajes, cubrecanto\. Son precios de referencia/)
   })
   it('says the measures, or the module note when they come from the plan', () => {
-    expect(answerQuestion('measures', design, testCatalog, plans.bookcase)).toBe('Mide 1800 × 600 × 300 mm (alto, ancho, fondo): 180 cm de alto, 60 cm de ancho y 30 cm de fondo.')
+    expect(answerQuestion('measures', design, testCatalog, plans.bookcase)).toBe('Mide 1800 × 550 × 300 mm (alto, ancho, fondo): 180 cm de alto, 55 cm de ancho y 30 cm de fondo.')
     expect(answerQuestion('measures', buildPlan(plans.bed, testCatalog).design, testCatalog, plans.bed)).toMatch(/^Las medidas salen del colchón individual/)
   })
 })

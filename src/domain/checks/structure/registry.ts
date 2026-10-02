@@ -25,7 +25,7 @@ export interface RuleDefinition<C extends string = string> {
 export const defineRule = <const C extends string>(rule: Omit<RuleDefinition<C>, 'appliesTo' | 'version'> & Partial<Pick<RuleDefinition<C>, 'appliesTo' | 'version'>>): RuleDefinition<C> => ({ appliesTo: 'all', version: 1, ...rule })
 
 export const RULES = [
-  defineRule({ code: 'R1_SAG', title: 'Entrepaños que se pandean', version: 2, check: deflectionRule }),
+  defineRule({ code: 'R1_SAG', title: 'Entrepaños que se pandean', version: 3, check: deflectionRule }),
   defineRule({ code: 'R2_JOINT_THICKNESS', title: 'Espesor para la unión', check: jointThicknessRule }),
   defineRule({ code: 'R3_SCREWS', title: 'Tornillos', check: screwRule }),
   defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', version: 3, check: tippingRule }),
