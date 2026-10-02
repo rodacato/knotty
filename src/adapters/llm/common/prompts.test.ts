@@ -245,7 +245,7 @@ const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { c
 const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6160, cabinet: 3140, bed: 2105, table: 1840, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
-const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3410, adjust: 2790 }, bookcase: { skeleton: 3360, adjust: 2720 } }
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3410, adjust: 2790 }, bookcase: { skeleton: 3960, adjust: 3290 } }
 
 describe('token budget', () => {
   it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {

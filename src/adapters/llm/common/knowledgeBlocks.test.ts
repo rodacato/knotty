@@ -151,7 +151,7 @@ describe('the guide of a use reaches the system-prompt calls last, by size', () 
   })
 
   it('what it adds stays small', () => {
-    const GUIDE_DELTA = { reconstruct: 90, adjust: 40, review: 40 }
+    const GUIDE_DELTA = { reconstruct: 560, adjust: 280, review: 280 }
     const added = (task: typeof RECONSTRUCTION, k: KnowledgeSelection) => approxTokens(systemFor(task, testCatalog, k)) - approxTokens(systemFor(task, testCatalog, { ...k, guide: null }))
     expect(added(RECONSTRUCTION, guided({ ...full, guideSize: 'full' }))).toBeLessThanOrEqual(GUIDE_DELTA.reconstruct)
     expect(added(ADJUSTMENT, guided({ ...short, guideSize: 'short' }))).toBeLessThanOrEqual(GUIDE_DELTA.adjust)

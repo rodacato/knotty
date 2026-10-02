@@ -19,6 +19,9 @@ const value = (text: string, ...alsoGuard: string[]): PromptValue => ({ text, gu
 /** A bare number also shows up in unrelated examples: it is guarded with its unit. */
 const measure = (mm: number, ...alsoGuard: string[]): PromptValue => ({ text: String(mm), guards: [`${mm} mm`, ...alsoGuard] })
 
+/** A number that reads as a bare digit: guarded only in the phrases that carry it. */
+const phrased = (text: string | number, ...guards: string[]): PromptValue => ({ text: String(text), guards })
+
 const dims = (...mm: number[]) => mm.join(' × ')
 const cm = ([min, max]: readonly [number, number]) => `${min / 10}–${max / 10} cm`
 const range = ([min, max]: readonly [number, number]) => `${min}–${max}`
@@ -47,6 +50,10 @@ const DOMAIN = {
   tallFurnitureHeight: value(`${ASSUMPTIONS.tipping.criticalHeight / 1000} m`, `${ASSUMPTIONS.tipping.criticalHeight} mm`),
   screwPenetration: measure(ASSUMPTIONS.screws.minPenetration),
   // A whole inch (1") also closes every JSON string in the examples: only the fractional sizes guard.
+  realThicknessAllowance: measure(ASSUMPTIONS.realThicknessAllowance),
+  tipRatio: phrased(ASSUMPTIONS.tipping.recommendedRatio, `${ASSUMPTIONS.tipping.recommendedRatio} times`, 'three times'),
+  nailedBackThickness: phrased(ASSUMPTIONS.racking.nailedBackThickness, `${ASSUMPTIONS.racking.nailedBackThickness} mm or more`),
+  backJoins: phrased(ASSUMPTIONS.racking.backJoins, `${ASSUMPTIONS.racking.backJoins} perimeter`, 'three perimeter'),
   pocketScrews: value(pocketScrews(), ...new Set(ASSUMPTIONS.screws.pocketScrews.map((row) => inches(row.length)).filter((size) => !/^\d+"$/.test(size)))),
   defaultConstruction: value(
     (Object.keys(CONSTRUCTION_LABEL) as (keyof CabinetConstruction)[]).map((k) => `${CONSTRUCTION_LABEL[k]} "${DEFAULT_CONSTRUCTION[k]}"`).join(', '),
