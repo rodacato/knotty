@@ -13,11 +13,14 @@ interface ApiError {
 // The SDK leaves `name` as 'Error'; its connection failure is the only status-less error carrying the network error as `cause`.
 const isSdkConnectionFailure = (e: ApiError) => e.status === undefined && e.cause instanceof Error
 
+// The SDK's timeout is a status-less error with no `cause` and its fixed default message; the message survives minification, the class name does not.
+const isSdkTimeout = (e: ApiError) => e.status === undefined && e.cause === undefined && e.message === 'Request timed out.'
+
 export function describeError(err: unknown): string {
   if (!(err instanceof Error)) return 'Error desconocido.'
   const e = err as ApiError
   if (e.name === 'AbortError') return 'Cancelado.'
-  if (e.name === 'APIConnectionTimeoutError') return 'El proveedor tardó demasiado en responder.'
+  if (e.name === 'APIConnectionTimeoutError' || isSdkTimeout(e)) return 'El proveedor tardó demasiado en responder.'
   if (e.name === 'APIConnectionError' || err instanceof TypeError || isSdkConnectionFailure(e)) return CORS
   switch (e.status) {
     case 401:
