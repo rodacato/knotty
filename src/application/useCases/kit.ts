@@ -21,6 +21,8 @@ export const ATTEMPTS = 3
 export interface Dependencies {
   llm: () => LLMProvider
   catalog: Catalog
+  /** The catalog the expert reads, with the person's settings applied; read on every call so an edit in Materiales reaches the next prompt. */
+  promptCatalog?: () => Catalog
   repository: DesignRepository
   now?: () => string
   newId?: () => string
@@ -84,7 +86,8 @@ export function createKit(deps: Dependencies) {
     return a.valid ? a.findings : []
   }
 
-  return { llm: () => deps.llm(), catalog, repository, now, newId, message, save, addVersion, noted, findingsOf }
+  const promptCatalog = () => deps.promptCatalog?.() ?? catalog
+  return { llm: () => deps.llm(), catalog, promptCatalog, repository, now, newId, message, save, addVersion, noted, findingsOf }
 }
 
 export type Kit = ReturnType<typeof createKit>

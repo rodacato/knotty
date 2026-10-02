@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { testCatalog } from '../../../domain/furniture/fixtures/catalog.test-util'
-import { materialById, usableSheet } from '../../../domain/materials/catalog'
+import { applySettings, materialById, usableSheet } from '../../../domain/materials/catalog'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/editing/operations/drawer'
 import { ASSUMPTIONS } from '../../../domain/checks/structure/assumptions'
 import { MATTRESSES } from '../../../domain/furniture/modules/bed'
@@ -87,6 +87,15 @@ describe('rendered prompts carry the values the code enforces', () => {
   it('a door takes two leaves past the width the structure check allows', () => {
     expect(skeleton).toContain(`wider than ${ASSUMPTIONS.doors.maxWidth} mm`)
     expect(planAdjust).toContain(`wider than ${ASSUMPTIONS.doors.maxWidth} mm`)
+  })
+
+  it('the person’s settings change the rendered prompts, and the base catalog stays the default', () => {
+    const board = testCatalog.materials[0]
+    const effective = applySettings(testCatalog, { prices: { [board.id]: 98765 }, layout: { ...testCatalog.layout, trim: 33 } })
+    for (const task of [RECONSTRUCTION, skeletonFor(null), planAdjustmentFor(FURNITURE_KINDS[0])]) expect(render(task, effective)).not.toContain('98765')
+    expect(systemFor(RECONSTRUCTION, effective)).not.toBe(systemFor(RECONSTRUCTION, testCatalog))
+    expect(systemFor(RECONSTRUCTION, effective)).toContain('33 mm are trimmed')
+    expect(systemFor(RECONSTRUCTION, testCatalog)).toContain(`${testCatalog.layout.trim} mm are trimmed`)
   })
 
   it('the usable sheet follows the catalog, trim included', () => {
