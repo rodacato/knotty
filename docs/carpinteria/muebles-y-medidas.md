@@ -288,6 +288,8 @@ Formato: **mín / típica / máx** en mm.
 
 | Regla | Detalle | Fuente | Conf. |
 |---|---|---|---|
+| Partir del objeto que condiciona el diseño | Antes de dar medidas, preguntar qué va a guardar, sostener o recibir y por dónde entra: el objeto más grande o más delicado (una tele, un colchón, una caja) y el espacio para meterlo y sacarlo mandan sobre una medida estándar | Práctica de taller | ⚠️ |
+| Adaptar a la hoja solo si se conserva la función | Bajar o ajustar una medida para caber en la hoja o ahorrar un corte solo si no sacrifica un espacio imprescindible; decir cuánto se ahorra (ver [fabricación y armado](fabricacion-y-armado.md) §2.5) | Práctica de taller | ⚠️ |
 | Divisor vertical cada ≤ 800 mm con libros (≤ 900 con carga ligera) | Una repisa de triplay de 18 mm con libros no se ve pandeada hasta ≈ 540 mm y llega al límite en ≈ 830 (con tira de refuerzo al frente, ≈ 780 sin pandeo visible); los sistemas comerciales usan columnas de 400–1000 (BILLY 800, PAX 500–1000, METOD 400–800) | [55]†, [31], [18][19][11]† | ✅ |
 | Puerta abatible de ≤ 600 mm de ancho | Las tablas de bisagras de Blum valen hasta 600; de 601 a 650 lleva una bisagra más; de ahí en adelante, dos hojas (y un hueco de más de 1200, dividirlo con un divisor) | [36]; 24" máx. [37]; clóset: 500 [16] | ✅ |
 | Puerta más alta que ancha | Una puerta más ancha que alta se vence; mejor abatible o corrediza | [37] | ⚠️ |

@@ -112,6 +112,8 @@ Reglas:
 
 Fuentes de esta sección consultadas el 2026-09-28. El ahorro se cuenta **en hojas**, no en m²: bajar área en un mueble que sigue necesitando las mismas hojas no ahorra nada (ver [estructura](estructura.md) §3, que también trae los ahorros ocultos: techo por travesaños, trasera en rebaje, marcos, grados de cara; aquí no se repiten).
 
+**Antes de ajustar una medida para ahorrar un corte**, comprobar que esa medida no es obligatoria (el espacio en la pared, lo que va a guardar). Se adapta al formato de la hoja solo si conserva la función; no se sacrifica un espacio imprescindible por ahorrar un corte, y se dice cuánto se ahorra de verdad, en hojas, antes de proponerlo. ⚠️ práctica de taller (agregado el 2026-10-03)
+
 **Cómo se corta la hoja.** Las seccionadoras y la sierra de tienda cortan **de lado a lado** (corte «en guillotina»): primero tiras, luego cada tira en piezas (§2.3). Así trabaja la industria del mueble con tableros [45] y así conviene diseñar. Las madererías mexicanas ofrecen optimizador de cortes [3][40][41]; Carpisur lo da **gratis con la compra** de los tableros y muestra cómo queda la veta [40] ⚠️. Un acomodo libre (no guillotina, de router CNC) puede aprovechar algo más, pero con piezas y cortes más difíciles de manejar en la máquina [46]; no se encontró una fuente leída que mida la diferencia ❓.
 
 **Desperdicio reportado** (ambas fuentes venden optimizadores y no publican método; úsese como orden de magnitud):
@@ -199,7 +201,9 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 | 14 | **Acabado** | Lijar, sellar y dar acabado (ver [acabados](acabados.md)). Desmontar herrajes si se barniza. | ❓ |
 | 15 | **Instalar** | Nivelar, anclar al muro (§9). | ✅ [7][28] |
 
-**Ensayo en seco y número de prensas.** Presentar en seco (paso 3) sirve para tres cosas: ver que todo encaja, ver que cada unión se alcanza con el taladro y las prensas, y contar cuántas prensas hacen falta. Si las uniones que se pegan juntas piden más prensas de las que hay, o más tiempo que el tiempo abierto de la cola (abajo), el armado se parte en etapas más cortas en vez de apurarlo. ⚠️ deducido de los tiempos de abajo (agregado el 2026-10-03)
+**Ensayo en seco y número de prensas.** Presentar en seco (paso 3) sirve para tres cosas: ver que todo encaja, ver que cada unión se alcanza con el taladro y las prensas, y contar cuántas prensas hacen falta. Si las uniones que se pegan juntas piden más prensas de las que hay, el armado se parte en etapas según las prensas disponibles (por ejemplo, un marco primero y el otro después, o una L, luego otra L y la T al final), cada una dentro del tiempo de trabajo de la cola (abajo), en vez de apurarlo. El tiempo en prensa es más largo que el de trabajo. ⚠️ práctica de taller (agregado el 2026-10-03)
+
+**Control antes de encolar.** Si falta alguno, no se empieza a pegar: las piezas identificadas y con su orientación marcada; las uniones cierran en seco; las sobremedidas que dependían del montaje ya están resueltas; las ranuras y rebajes están hechos (lo que va dentro se mete antes de cerrar el cuerpo); hay prensas para cada unión que se pega junta; y la cola da el tiempo de trabajo que el armado necesita (ver abajo). ⚠️ práctica de taller (agregado el 2026-10-03)
 
 **Tiempos de pegamento.** El pegamento blanco que más se compra en México es el **Resistol 850**: según su ficha técnica, 15 min de tiempo abierto, 30–40 min en prensa, se puede manipular a las 4 h y aguanta carga a las 24 h; se aplica entre 10 y 40 °C (ver [uniones y herrajes](uniones-y-herrajes.md)). Seca transparente y **no es resistente al agua** [9]. Otras colas PVA dan tiempos parecidos pero no iguales: la Titebond Original da 4–6 min de tiempo abierto, 30–60 min en prensa y resistencia total a las 24 h [25]. Conviene seguir la ficha del pegamento que se use. ✅ [25][9]
 
@@ -220,7 +224,11 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 | **Separadores de 2–3 mm** (monedas, tarjetas) | Dejar parejas las separaciones al colgar puertas y frentes. | ❓ |
 | **Pedir a la maderería que etiquete** | Cada pieza con su número de la lista [3]. | ⚠️ [3] |
 | **Pieza de sacrificio** (un retazo de triplay pegado a la salida) | Al salir el taladro o la sierra por la cara de atrás, el retazo sostiene las fibras y evita astillado y rebaba (ver [triplay](triplay.md), astillado). | ⚠️ |
-| **Marcas de orientación** en cada pieza (frente, arriba, izq./der.) | No armar al revés una pieza casi simétrica. | ⚠️ |
+| **Escuadra por inversión** | Trazar una línea con la escuadra, voltearla y trazar otra junto a la primera: si no coinciden, la escuadra o el canto no están a 90°. | ⚠️ |
+| **Centro por doble medida** | Marcar la misma distancia desde cada canto; si las dos marcas no coinciden, el centro está en medio de ellas. | ⚠️ |
+| **Comprobar que la unión cierre** | En tarugos o ranuras, no basta con que las piezas entren: la junta debe cerrar sin luz. Si hay luz, algo traba al fondo. | ⚠️ |
+| **Último apriete a mano** | Empezar con el atornillador eléctrico y rematar a mano: se controla el torque con la muñeca y no se pasa de largo. | ⚠️ |
+| **Marcas de orientación** en cada pieza | Un triángulo en el canto de atrás, con la punta hacia arriba (o letras de montaje): si al armar queda una marca sola, hay una pieza al revés. Útil en piezas casi simétricas. | ⚠️ |
 | **Retazos de prueba** del mismo triplay y espesor real | Probar un ajuste, una ranura o una perforación antes de hacerlo en la pieza buena. | ⚠️ |
 
 ---
@@ -259,10 +267,11 @@ Ejemplos (❓): un **buró** con una puerta y un cajón, nivel 1 con cortes de t
 | 8 | Cajón sin holgura de corredera | No entra o no corre | Caja 26 mm más angosta que el hueco (13 mm por lado); revisar la ficha de la corredera [8] | ✅ [8] |
 | 9 | Perforar la cazoleta en la cara equivocada o sin tope | Puerta arruinada | Marcar la cara interior; tope a 11.5–13 mm [11] | ⚠️ [11] |
 | 10 | Puertas pares sin reflejar | Dos puertas izquierdas | Marcar «izq.» y «der.» antes de perforar | ❓ |
-| 11 | Pegamento escurrido sin limpiar | El barniz no agarra y queda mancha | Hay dos prácticas: limpiarlo con trapo húmedo antes de que seque, o dejarlo gelificar y retirarlo. Esparcirlo con el dedo no. Seguir lo que diga la ficha de la cola | ❓ |
+| 11 | Pegamento escurrido sin limpiar | El barniz no agarra y queda mancha | Dejarlo gelificar y retirarlo con un formón o una espátula, o dejarlo secar y lijarlo. No esparcirlo con el dedo ni con un trapo o un pincel mojado: lo extiende, deja una mancha que sale al dar el acabado y el agua levanta la fibra del triplay. Aplicar la cola sin llegar al ángulo interior ayuda a que no escurra. Seguir lo que diga la ficha de la cola | ⚠️ práctica de taller |
 | 12 | Mueble que no pasa por la puerta o no se puede parar | Hay que desarmarlo o cortarlo | Revisar el transporte desde el diseño (§8) | ✅ [30] |
 | 13 | No anclarlo | Riesgo de vuelco | Kit antivuelco a un poste o muro sólido [7][28] | ✅ [7][28] |
 | 14 | Cargar antes de 24 h | Uniones que se abren | Esperar el curado [25] | ✅ [25] |
+| 15 | Cambiar de hoja o de espesor sin revisar lo que depende de él | Ranuras que no entran o quedan flojas, tornillos que asoman, cazoletas que no asientan | Medir el espesor real de la hoja nueva y revisar ranuras, rebajes, largo de tornillo y profundidad de cazoleta (se deduce de que esas medidas dependen del espesor; no es una regla citada) | ❓ |
 
 ### 6.1 Antes de corregir: síntoma, hipótesis, comprobación
 
