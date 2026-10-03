@@ -169,10 +169,10 @@ describe('a run that cannot be shown to be the same measurement', () => {
 
 describe('the comparison with the baseline', () => {
   it('makes the run exit 1 when a requirement got worse than the verified baseline, and says which', async () => {
-    const base = await simulatedRun(dir.path, [], { cases: ['bookcase'] })
+    const base = await simulatedRun(dir.path, [], { cases: ['bookcase'], repeat: 6 })
     const baseline = loadBaseline(base.runId, { resultsDir: dir.path })
     const out: string[] = []
-    const run = await simulatedRun(dir.path, out, { cases: ['bookcase'], baseline, makeProvider: scripted(() => 'boom') })
+    const run = await simulatedRun(dir.path, out, { cases: ['bookcase'], repeat: 6, baseline, makeProvider: scripted(() => 'boom') })
     expect(run.exitCode).toBe(1)
     const report = readFileSync(join(run.dir, 'report.md'), 'utf8')
     expect(report).toMatch(/Comparación verificada/)

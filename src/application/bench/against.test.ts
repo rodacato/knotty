@@ -10,6 +10,7 @@ const good = (caseId: string) => resultOf({ caseId, steps: [stepOf('s', [expecta
 const bad = (caseId: string) => resultOf({ caseId, verdict: 'needs-changes', steps: [stepOf('s', [expectation('0:verdict', 'fail', 'veredicto needs-changes')])] })
 const row = (r: GradedResult): ReportRow => ({ ...r, model: 'shellm:claude', prompt: null })
 const trial = (r: GradedResult, n = 0, classification?: TrialRecord['classification']): TrialRecord => ({ caseId: r.caseId, trial: n, result: r, classification: classification ?? classifyTrial(r, { known: KNOWN_FAILURES }) })
+const many = (r: GradedResult, n: number) => Array.from({ length: n }, () => r)
 const meta = { label: 'base', commit: 'abc1234', date: '2026-09-26T19:31:00.000Z', checkout: null }
 const candidate = (trials: TrialRecord[], over = {}): Candidate => {
   const { jobs: _jobs, ...identity } = manifestOf(over)
@@ -34,10 +35,25 @@ describe('against a baseline with an identity', () => {
   })
 
   it('names the requirement that got worse and flags the regression', () => {
-    const s = stand(promoted([good('bed')]), candidate([trial(bad('bed'))]))
+    const s = stand(promoted(many(good('bed'), 6)), candidate(many(bad('bed'), 6).map((r, n) => trial(r, n))))
     expect(s.regression).toBe(true)
     expect(s.lines.join('\n')).toMatch(/Regresiones: bed caso completo, bed 0:verdict/)
-    expect(s.lines.join('\n')).toMatch(/\| bed \| REGRESIÓN \| .*0:verdict: REGRESIÓN \(1\/1 → 0\/1\)/)
+    expect(s.lines.join('\n')).toMatch(/\| bed \| REGRESIÓN \| .*0:verdict: REGRESIÓN \(6\/6 → 0\/6\)/)
+  })
+
+  it('does not call a regression what a sample of three cannot tell from variation, and says so', () => {
+    const s = stand(promoted(many(good('bed'), 3)), candidate(many(bad('bed'), 3).map((r, n) => trial(r, n))))
+    expect(s.regression).toBe(false)
+    expect(s.lines.join('\n')).toMatch(/Sin poder distinguirlos de la variación: bed[^\n]*menos de 4 repeticiones/)
+  })
+
+  it('reads the noise from the cases whose prompts did not change, and keeps them apart from the affected ones', () => {
+    const calls = (promptId: string) => [{ step: 'skeleton' as const, promptId, seconds: 1, input: 1, output: 1 }]
+    const withPrompt = (r: GradedResult, promptId: string): GradedResult => ({ ...r, callLog: calls(promptId) })
+    const base = promoted([withPrompt(good('bed'), 'p1'), withPrompt(good('desk'), 'p1')])
+    const s = stand(base, candidate([trial(withPrompt(good('bed'), 'p1')), trial(withPrompt(good('desk'), 'p2'))]))
+    expect(s.comparison?.compatible && s.comparison.cases.map((c) => [c.caseId, c.exposure])).toEqual([['bed', 'control'], ['desk', 'affected']])
+    expect(s.lines.join('\n')).toMatch(/Ruido medido con 1 casos de control[^\n]*0 cambiaron/)
   })
 
   it('lists an infrastructure failure apart and keeps it out of the rates', () => {
@@ -71,7 +87,7 @@ describe('against a baseline with an identity', () => {
 
 describe('against a legacy baseline with no identity', () => {
   it('compares by case and says it is unverified', () => {
-    const s = stand(toBaseline([row(good('bed'))], meta), candidate([trial(bad('bed'))]))
+    const s = stand(toBaseline(many(good('bed'), 6).map(row), meta), candidate(many(bad('bed'), 6).map((r, n) => trial(r, n))))
     expect(s.kind).toBe('unverified')
     expect(s.regression).toBe(true)
     expect(s.lines.join('\n')).toMatch(/SIN VERIFICAR/)
