@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowLeft, BookOpen, CaretDown, CaretRight, Minus, Plus, Wrench, X } from '@phosphor-icons/react'
+import { ArrowLeft, BookOpen, CaretDown, CaretRight, Check, Minus, Plus, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit } from '../../domain/design/jointGuide'
@@ -225,7 +225,8 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 lg:px-5">
             <PieceParts />
             <Dialog.Description className="text-sm text-graphite">
-              {group.label.split(': ')[1] ?? group.label} · con tu herramienta ({TOOL_LEVEL_LABELS[level].short}):
+              <span className="block first-letter:uppercase">{group.label.split(': ')[1] ?? group.label}.</span>
+              <span className="block text-graphite-2">Lo que puedes hacer con tu herramienta: {TOOL_LEVEL_LABELS[level].short}.</span>
             </Dialog.Description>
             <RadioGroup label={group.title} className="flex flex-col gap-2 lg:hidden">
               {options.map((o) => (
@@ -239,9 +240,15 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
           <div className="flex flex-col gap-2 border-t border-line px-4 py-3 lg:flex-row lg:items-center lg:px-5">
             <p className="flex-1 text-xs text-graphite-2">Las pruebas casi nunca son en triplay de pino: la resistencia se lee como orden, no como número.</p>
             {error && <p className="text-xs text-rust">{error}</p>}
-            <Button variant="primary" className="min-h-11" disabled={!chosen || !!chosen.blocked || selected === group.current} onClick={use}>
-              Usar {JOINT_GUIDE[selected].name.toLowerCase()}
-            </Button>
+            {selected === group.current ? (
+              <p className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-graphite">
+                <Check weight="bold" /> Ya la usas
+              </p>
+            ) : (
+              <Button variant="primary" className="min-h-11" disabled={!chosen || !!chosen.blocked} onClick={use}>
+                Usar {JOINT_GUIDE[selected].name.toLowerCase()}
+              </Button>
+            )}
           </div>
         </Dialog.Content>
       </Dialog.Portal>
