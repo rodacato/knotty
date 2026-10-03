@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { closeSync, existsSync, fstatSync, openSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { hardDirOf, leakNeedles } from './hardLoader'
@@ -18,10 +18,19 @@ const isNumber = (needle: string) => /^\d+(?:\.\d+)?$/.test(needle)
 function trackedTexts(): { path: string; text: string }[] {
   const listed = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }).split('\0').filter(Boolean)
   return listed.flatMap((path) => {
-    const full = join(root, path)
-    if (!existsSync(full) || !statSync(full).isFile() || statSync(full).size > 4_000_000) return []
-    const buffer = readFileSync(full)
-    return buffer.includes(0) ? [] : [{ path, text: norm(buffer.toString('utf8')) }]
+    // One descriptor for the check and the read: the file cannot change in between.
+    let fd: number | null = null
+    try {
+      fd = openSync(join(root, path), 'r')
+      const stat = fstatSync(fd)
+      if (!stat.isFile() || stat.size > 4_000_000) return []
+      const buffer = readFileSync(fd)
+      return buffer.includes(0) ? [] : [{ path, text: norm(buffer.toString('utf8')) }]
+    } catch {
+      return []
+    } finally {
+      if (fd !== null) closeSync(fd)
+    }
   })
 }
 
