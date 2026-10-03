@@ -125,6 +125,7 @@ export interface Comparison {
   /** Trials left out of every pass rate because the provider failed. */
   infrastructure: { side: 'base' | 'candidate'; caseId: string; trial: number; error?: string }[]
   caseDiffs: Compatibility['cases']
+  varies: string[]
 }
 
 export interface Incomparable {
@@ -181,7 +182,7 @@ function judge(base: Counts, candidate: Counts, tolerance: number): Status {
 /** Per case and requirement, how the candidate stands against the base; only for runs that are compatible. */
 export function compareRuns(base: RunSet, candidate: RunSet, options: { tolerance?: number } = {}): Comparison | Incomparable {
   const tolerance = options.tolerance ?? 0
-  const compat = compatibility(base.manifest, candidate.manifest)
+  const compat = compatibility(base.manifest, candidate.manifest, 'compare')
   if (!compat.compatible) return { compatible: false, reasons: compat.reasons }
 
   const caseIds = [...new Set([...candidate.trials, ...base.trials].map((t) => t.caseId))]
@@ -204,5 +205,5 @@ export function compareRuns(base: RunSet, candidate: RunSet, options: { toleranc
 
   const infra = (side: 'base' | 'candidate', run: RunSet) =>
     run.trials.filter((t) => t.classification === 'infrastructure').map((t) => ({ side, caseId: t.caseId, trial: t.trial, error: t.error ?? t.result.error ?? undefined }))
-  return { compatible: true, cases, infrastructure: [...infra('base', base), ...infra('candidate', candidate)], caseDiffs: compat.cases }
+  return { compatible: true, cases, infrastructure: [...infra('base', base), ...infra('candidate', candidate)], caseDiffs: compat.cases, varies: compat.varies }
 }
