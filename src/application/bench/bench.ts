@@ -102,6 +102,8 @@ export interface ModuleCheck {
   variant: string
   valid: boolean
   findings: string[]
+  /** The geometry warnings: they do not fail the bench, the workshop lists them. */
+  warnings: string[]
 }
 
 export type CallStep = 'skeleton' | 'pieces' | 'plan-adjust' | 'adjust' | 'review' | 'reading'
@@ -274,16 +276,18 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog; no
     }
   }
 
+  /** Every variant of every module, as the plan the bench builds it from. */
+  const variants = () => Object.values(MODULES).flatMap((module) => module.benchVariants().map(([variant, plan]) => ({ module: module.kind, variant, plan: plan as FurniturePlan })))
+
   /** Every variant of the modules, with no expert: any that comes out invalid or with findings is a bug in Knotty. */
   function runModules(): ModuleCheck[] {
-    const check = (module: ModuleCheck['module'], variant: string, design: Design): ModuleCheck => {
-      const a = analyze(design, catalog)
-      return { module, variant, valid: a.valid, findings: a.valid ? a.findings.map((h) => `${h.severity}: ${h.message}`) : a.errors.map((e) => e.message) }
-    }
-    return Object.values(MODULES).flatMap((module) => module.benchVariants().map(([variant, plan]) => check(module.kind, variant, buildPlan(plan, catalog).design)))
+    return variants().map(({ module, variant, plan }) => {
+      const a = analyze(buildPlan(plan, catalog).design, catalog)
+      return { module, variant, valid: a.valid, findings: a.valid ? a.findings.map((h) => `${h.severity}: ${h.message}`) : a.errors.map((e) => e.message), warnings: a.valid ? a.warnings.map((w) => w.message) : [] }
+    })
   }
 
-  return { cases: BENCH_CASES, runCase, runModules }
+  return { cases: BENCH_CASES, runCase, runModules, variants }
 }
 
 export type Bench = ReturnType<typeof createBench>

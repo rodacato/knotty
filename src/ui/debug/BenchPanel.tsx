@@ -1,64 +1,23 @@
-import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, WarningCircle, X, XCircle } from '@phosphor-icons/react'
+import { ArrowSquareOut, DownloadSimple, Flask, Play, Stop, X } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useRef, useState } from 'react'
-import { describeAdjustments, describeStructure, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
-import { problemsOf } from '../../application/bench/report'
+import { useState } from 'react'
+import type { ModuleCheck } from '../../application/bench/bench'
 import { moduleName, moduleNames } from '../../domain/furniture/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { useStore } from '../store'
+import { CaseList } from './CaseList'
+import { useCaseRun } from './useCaseRun'
 
 // A hidden test bench next to the log: the fixed cases against the connected expert, and every variant of the modules, graded by Knotty's own checks.
 
-/** Two at a time, as in the comparison script: enough to be quick without hitting a provider's limits. */
-const PARALLEL = 2
-
-function Verdict({ r }: { r: BenchResult }) {
-  if (!r.ok) return <XCircle className="text-rust" weight="fill" aria-label="Falló" />
-  if (!problemsOf(r).length) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
-  return <WarningCircle className="text-amber" weight="fill" aria-label="Con observaciones" />
-}
-
-
 export function BenchPanel() {
-  const { bench, preferences } = useServices()
+  const { bench } = useServices()
   const openState = useStore((s) => s.openState)
   const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<Set<string>>(new Set(bench.cases.map((c) => c.id)))
-  const [results, setResults] = useState<Record<string, BenchResult | 'running'>>({})
   const [modules, setModules] = useState<ModuleCheck[] | null>(null)
   const [confirming, setConfirming] = useState<string | null>(null)
-  const controller = useRef<AbortController | null>(null)
-  const running = Object.values(results).some((r) => r === 'running')
-  const prefs = preferences.load()
-  const expert = prefs.active === 'simulated' ? 'Simulado' : `${prefs.active} · ${prefs.connections[prefs.active].model}`
-
-  const run = async () => {
-    const ctrl = new AbortController()
-    controller.current = ctrl
-    const queue = bench.cases.filter((c) => selected.has(c.id))
-    setResults((r) => ({ ...r, ...Object.fromEntries(queue.map((c) => [c.id, 'running' as const])) }))
-    const worker = async () => {
-      for (let c = queue.shift(); c && !ctrl.signal.aborted; c = queue.shift()) {
-        const r = await bench.runCase(c, ctrl.signal)
-        setResults((all) => ({ ...all, [c.id]: r }))
-      }
-    }
-    await Promise.all(Array.from({ length: PARALLEL }, worker))
-    // Whatever did not start stays as it was before the run.
-    setResults((all) => Object.fromEntries(Object.entries(all).filter(([, r]) => r !== 'running')))
-  }
-
-  const download = () => {
-    const done = Object.values(results).filter((r): r is BenchResult => r !== 'running')
-    const bundle = { format: 'knotty-bench@1', exportedAt: new Date().toISOString(), commit: __APP_COMMIT__, expert, results: done, modules }
-    const url = URL.createObjectURL(new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' }))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `knotty-bench-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  const { selected, results, running, expert, run, stop, toggle, toggleAll, download, hasResults } = useCaseRun()
 
   const moduleFailures = modules?.filter((m) => !m.valid || m.findings.length) ?? []
 
@@ -78,7 +37,7 @@ export function BenchPanel() {
               <span className="block text-xs text-graphite-2">Casos fijos contra {expert}, calificados con las cuentas de Knotty</span>
             </Dialog.Title>
             <Dialog.Description className="sr-only">Corre los casos de prueba contra el experto conectado y revisa los módulos sin experto.</Dialog.Description>
-            <Button variant="secondary" className="min-h-8 px-2 text-xs" onClick={download} disabled={!Object.keys(results).length && !modules}>
+            <Button variant="secondary" className="min-h-8 px-2 text-xs" onClick={() => download(modules)} disabled={!hasResults && !modules}>
               <DownloadSimple /> Exportar
             </Button>
             <Dialog.Close asChild>
@@ -92,11 +51,11 @@ export function BenchPanel() {
             <section className="flex flex-col gap-2 border-b border-line p-3">
               <div className="flex items-center gap-2">
                 <h3 className="flex-1 text-sm font-semibold">Con el experto</h3>
-                <button type="button" className="text-xs text-graphite-2 underline" onClick={() => setSelected(selected.size === bench.cases.length ? new Set() : new Set(bench.cases.map((c) => c.id)))}>
+                <button type="button" className="text-xs text-graphite-2 underline" onClick={toggleAll}>
                   {selected.size === bench.cases.length ? 'Ninguno' : 'Todos'}
                 </button>
                 {running ? (
-                  <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={() => controller.current?.abort()}>
+                  <Button variant="secondary" className="min-h-8 px-3 text-xs" onClick={stop}>
                     <Stop weight="fill" /> Detener
                   </Button>
                 ) : (
@@ -106,72 +65,32 @@ export function BenchPanel() {
                 )}
               </div>
               <p className="text-[11px] text-graphite-2">Cada caso usa tu llave y cuesta lo que un diseño; no toca tu diseño actual. Las respuestas crudas quedan en la bitácora.</p>
-              <ul className="flex flex-col divide-y divide-line rounded-xl border border-line bg-bone">
-                {bench.cases.map((c) => {
-                  const r = results[c.id]
-                  return (
-                    <li key={c.id} className="flex flex-col gap-1 px-3 py-2 text-sm">
-                      <label className="flex items-start gap-2">
-                        <input type="checkbox" className="mt-1" checked={selected.has(c.id)} disabled={running} onChange={() => setSelected((s) => (s.has(c.id) ? new Set([...s].filter((x) => x !== c.id)) : new Set([...s, c.id])))} />
-                        <span className="min-w-0 flex-1">
-                          <span className="font-medium">{c.id}</span> <span className="text-graphite-2">· {c.notes}</span>
-                        </span>
-                        {r === 'running' ? <span className="text-xs text-graphite-2">corriendo…</span> : r ? <Verdict r={r} /> : null}
-                      </label>
-                      {r && r !== 'running' && (
-                        <div className="ml-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-graphite-2">
-                          {r.ok ? (
-                            <>
-                              <span className="numerals">{r.seconds.toFixed(0)} s</span>
-                              <span>{r.path === 'plan' ? 'por ficha' : 'pieza por pieza'}</span>
-                              <span>
-                                {r.calls} {r.calls === 1 ? 'llamada' : 'llamadas'}
-                                {r.corrections.length ? ` (corrigió ${r.corrections.join(', ')})` : ''}
-                              </span>
-                              {r.inputTokens !== null && <span className="numerals">{r.inputTokens.toLocaleString('es-MX')} tokens de entrada</span>}
-                              <span className="numerals">{r.measures} mm</span>
-                              {!r.reasonable && <span className="text-rust">medidas raras</span>}
-                              {r.structure && <span className={r.structure.ok === false ? 'text-rust' : undefined}>{describeStructure(r.structure)}</span>}
-                              <span>
-                                {r.verdict}
-                                {r.criticals ? ` · ${r.criticals} críticos (${r.rules.join(' ')})` : ''}
-                              </span>
-                              {r.adjustments.length > 0 && <span>{describeAdjustments(r.adjustments)}</span>}
-                              {problemsOf(r).map((p) => (
-                                <span key={p} className="basis-full text-rust">
-                                  {p}
-                                </span>
-                              ))}
-                              {r.state &&
-                                (confirming === c.id ? (
-                                  <button
-                                    type="button"
-                                    className="font-medium text-rust underline"
-                                    onClick={() => {
-                                      openState(r.state!)
-                                      setConfirming(null)
-                                      setOpen(false)
-                                    }}
-                                  >
-                                    Sí, reemplaza mi diseño
-                                  </button>
-                                ) : (
-                                  <button type="button" className="flex items-center gap-1 underline" onClick={() => setConfirming(c.id)}>
-                                    <ArrowSquareOut /> Abrir en el estudio
-                                  </button>
-                                ))}
-                            </>
-                          ) : (
-                            <span className="text-rust">
-                              {r.error} ({r.seconds.toFixed(0)} s)
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </li>
+              <CaseList
+                cases={bench.cases}
+                selected={selected}
+                results={results}
+                running={running}
+                onToggle={toggle}
+                openAction={(id, r) =>
+                  confirming === id ? (
+                    <button
+                      type="button"
+                      className="font-medium text-rust underline"
+                      onClick={() => {
+                        openState(r.state!)
+                        setConfirming(null)
+                        setOpen(false)
+                      }}
+                    >
+                      Sí, reemplaza mi diseño
+                    </button>
+                  ) : (
+                    <button type="button" className="flex items-center gap-1 underline" onClick={() => setConfirming(id)}>
+                      <ArrowSquareOut /> Abrir en el estudio
+                    </button>
                   )
-                })}
-              </ul>
+                }
+              />
             </section>
 
             <section className="flex flex-col gap-2 p-3">

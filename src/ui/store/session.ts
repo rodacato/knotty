@@ -13,6 +13,7 @@ import type { ChoosableJoint, JointGroupId } from '../../domain/editing/joints/c
 import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
+import { debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
 import type { Get, Set, Slice } from './types'
@@ -124,7 +125,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   enterLab() {
     const { services } = get()
-    if (!services?.debug.visible()) return
+    if (!services || !debugAccess(services.debug)) return
     get().controller?.abort()
     services.sandbox.enter()
     set({ state: null, phase: 'lab', adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, exploded: false, draft: null, thinking: false, stage: null })
