@@ -111,6 +111,10 @@ export const BENCH_CASES: BenchCase[] = [
         changes: ['width'],
         expect: [{ kind: 'dimensions', ranges: { width: [1100, 1100], height: [1800, 1800], depth: [300, 300] } }],
       },
+      // A pending proposal leaves the current design at its width: the question after it changes nothing.
+      '¿Por qué le salió una división? ¿Aguanta si le pongo libros pesados?': {
+        expect: [{ kind: 'dimensions', ranges: { width: [800, 1100], height: [1800, 1800], depth: [300, 300] } }],
+      },
     },
   },
   {
