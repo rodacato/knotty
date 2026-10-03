@@ -1,4 +1,4 @@
-import { Copy, DownloadSimple, Trash, X } from '@phosphor-icons/react'
+import { Copy, DownloadSimple, Hammer, Trash, X } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useCallback, useEffect, useState } from 'react'
 import type { DebugEvent, DebugKind } from '../../ports/DebugLog'
@@ -7,6 +7,7 @@ import { Button } from '../system/components'
 import { Knot } from '../system/Brand'
 import { useStore } from '../store'
 import { captureGlobalErrors, instrumentStore } from './instrument'
+import { debugAccess } from './access'
 import { BenchPanel } from './BenchPanel'
 import { KonamiTrail } from './KonamiTrail'
 
@@ -44,7 +45,9 @@ function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<t
 export function DebugPanel() {
   const { debug, preferences } = useServices()
   const state = useStore((s) => s.state)
-  const [visible, setVisible] = useState(() => debug.visible() || new URLSearchParams(location.search).has('debug'))
+  const phase = useStore((s) => s.phase)
+  const enterLab = useStore((s) => s.enterLab)
+  const [visible, setVisible] = useState(() => debugAccess(debug))
   const [open, setOpen] = useState(false)
   const [kinds, setKinds] = useState<Set<DebugKind>>(new Set(KINDS.map((k) => k.id)))
   const [, refresh] = useState(0)
@@ -117,7 +120,14 @@ export function DebugPanel() {
   return (
     <>
     {trail}
-    <BenchPanel />
+    {phase !== 'lab' && (
+      <>
+        <BenchPanel />
+        <button type="button" onClick={enterLab} className="fixed bottom-3 left-60 z-50 flex items-center gap-1.5 rounded-full bg-graphite px-3 py-1.5 text-xs font-medium text-bone shadow-lg" aria-label="Abrir el taller de muebles">
+          <Hammer className="size-4" /> Taller
+        </button>
+      </>
+    )}
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
         <button type="button" className="fixed bottom-3 left-3 z-50 flex items-center gap-1.5 rounded-full bg-graphite px-3 py-1.5 text-xs font-medium text-bone shadow-lg" aria-label="Abrir las entrañas de la madera: la bitácora de depuración">

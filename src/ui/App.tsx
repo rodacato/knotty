@@ -13,6 +13,7 @@ import { useStore } from './store'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
 const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
+const Lab = lazy(() => import('./lab/Lab').then((m) => ({ default: m.Lab })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 
 const Loading = () => (
@@ -28,6 +29,12 @@ function Screen() {
   const phase = useStore((s) => s.phase)
   const state = useStore((s) => s.state)
   const adjusting = useStore((s) => s.adjusting)
+  if (phase === 'lab')
+    return (
+      <Suspense fallback={<Loading />}>
+        <Lab />
+      </Suspense>
+    )
   if (phase === 'studio' && state)
     return (
       <Suspense fallback={<Loading />}>

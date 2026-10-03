@@ -487,6 +487,8 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 - **Con SheLLM, los tokens de entrada se comparan con la llamada más baja de cada prompt**: envuelve al CLI de Claude, que suma un prompt de sistema cacheado propio. Los presupuestos de tokens de `prompts.test.ts` frenan el crecimiento y están en caracteres ÷ 3.5: no cuentan tokens reales (el JSON gasta más).
 - **Un requisito de espacio es la medida del mueble completo**, nunca de una parte: el experto anotaba «cada escalón mide 25 cm de fondo» y la app rechazaba su propio diseño. Un caso del banco puede nombrar su camino (`path`, ficha o pieza por pieza) y, si el diseño llega por el otro, cuenta como no razonable.
 - **Un caso del banco ambiguo a propósito se queda ambiguo.** `sideboard` no dice «contra el muro»: un R4 crítico ahí significa que el experto no aplicó la regla, no que la persona pidió algo inseguro. Sin la variante explícita no se sabría si falló leer el acomodo o las cuentas.
+- **El taller trabaja en un repositorio en memoria** (`createSandboxedRepository`): mientras está abierto nada se lee ni se escribe del diseño guardado, y al salir vuelve el que había. Solo se entra desde el acceso de depuración (`debugAccess`), y lo que abre el taller no cambia de pantalla (`phase: 'lab'`). Reusa el Studio, `Scene` y el banco; no los copia.
+- **Los avisos de geometría no reprueban el banco, pero el taller los muestra** (`ModuleCheck.warnings`, pestaña «Hallazgos»): una variante con avisos sale como «con avisos» en la lista del taller y limpia en `runModules` para el banco.
 
 ### Historial y sesión
 
@@ -495,7 +497,7 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 
 ## Preguntas abiertas
 
-- El banco sin experto revisa hallazgos estructurales pero no las advertencias de geometría: `W_CONTACT_WITHOUT_JOINT` («se tocan pero no tienen unión») sale en la cama base y en unas 140 variantes de los módulos sin que nada lo marque.
+- El banco sin experto revisa hallazgos estructurales pero no las advertencias de geometría: `W_CONTACT_WITHOUT_JOINT` («se tocan pero no tienen unión») sale en la cama base y en unas 140 variantes de los módulos. El taller ya las lista por variante; falta decidir si el banco debe reprobarlas o si cada una necesita su unión.
 - R5 en un mueble abierto que no es caja: se juzga por caja (ver «Invariantes») y tiene solución construible (fajas). Queda: ¿aplicarla sola en el primer diseño, como una reparación por reglas? Y la regla todavía ignora los `brace` diagonales que ponga el experto.
 - R5 y el anclaje al muro: ¿un librero abierto anclado al muro cuenta como escuadrado? Los documentos de carpintería dicen que las escuadras no detienen el desescuadre, así que hoy el anclaje no se toma en cuenta; falta decidir si debe.
 - Patas de la cama: las patas bajo la esquina de lateral y cabecera dan unos 18 × 36 mm de contacto. ¿Alcanza esa unión, o hace falta otra?

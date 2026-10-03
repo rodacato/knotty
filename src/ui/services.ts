@@ -3,6 +3,7 @@ import type { Bench } from '../application/bench/bench'
 import type { UseCases } from '../application/useCases'
 import type { Catalog } from '../domain/materials/catalog'
 import type { DebugLog } from '../ports/DebugLog'
+import type { Sandbox } from '../ports/DesignRepository'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'
 import type { ReferenceStore } from '../ports/ReferenceStore'
@@ -19,6 +20,8 @@ export interface Services {
   debug: DebugLog
   /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
   bench: Bench
+  /** The workshop's throwaway designs: while it is on, the saved design stays untouched. */
+  sandbox: Sandbox
 }
 
 export const ServicesContext = createContext<Services | null>(null)
