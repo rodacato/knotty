@@ -4,7 +4,7 @@ import type { Design } from '../../domain/design/schema'
 import { JOINTS } from '../../domain/design/jointSpecs'
 import { faceSize, type Geometry } from '../../domain/design/resolve'
 import type { Catalog } from '../../domain/materials/catalog'
-import { Button, cm } from '../system/components'
+import { Button, Title, cm } from '../system/components'
 import { useStore } from '../store'
 import { EdgesSection } from './Edges'
 import { PieceEditor } from './PieceEditor'
@@ -78,7 +78,9 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
           </div>
         )}
         {joints.length > 0 && (
-          <ul className="flex flex-col gap-1.5 border-t border-line pt-3 text-sm">
+          <section className="flex flex-col gap-2 border-t border-line pt-3">
+          <Title className="text-lg">Uniones</Title>
+          <ul className="flex flex-col gap-1.5 text-sm">
             {joints.map((u) => {
               const other = u.a === p.id ? u.b : u.a
               const count = u.hardware.reduce((n, h) => n + (h.count ?? 0), 0)
@@ -97,6 +99,7 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
               )
             })}
           </ul>
+          </section>
         )}
       </div>
       {editable && !editing && (

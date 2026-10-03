@@ -13,9 +13,9 @@ import { PlanSheet } from './PlanSheet'
 
 // The furniture as decided: its kind, its plan when it has one, the photos and, without a plan, its pieces.
 
-const SOURCE: Record<KindSource, string> = {
+const SOURCE: Record<KindSource, string | null> = {
   person: 'Lo elegiste tú.',
-  example: 'Lo dice el ejemplo.',
+  example: null,
   plan: 'Knotty lo sabe por cómo se armó.',
   photo: 'Knotty lo vio en tus fotos.',
   words: 'Knotty lo dedujo de tus palabras.',
@@ -31,6 +31,7 @@ function KindPicker({ state }: { state: DesignState }) {
   const id = useId()
   const design = currentDesign(state)
   const known = kindOf(design)
+  const said = known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'
   const current = known.kind === 'unknown' ? null : known.kind
   const choose = (kind: DesignKind | null) => {
     setError(null)
@@ -50,7 +51,7 @@ function KindPicker({ state }: { state: DesignState }) {
         <span className="w-30 shrink-0">
           <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
         </span>
-        {!redo && !error && <span className="min-w-0 flex-1 basis-24 text-sm text-graphite">{known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'}</span>}
+        {!redo && !error && said && <span className="min-w-0 flex-1 basis-24 text-sm text-graphite">{said}</span>}
       </div>
       {error && <p className="text-xs text-rust">{error}</p>}
       {redo && (
