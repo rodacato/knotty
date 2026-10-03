@@ -5,6 +5,8 @@ export interface Workshop {
   bench: ReactNode
   /** What the folded bench shows on its rail. */
   benchRail: ReactNode
+  /** What goes in the header next to the expert's switch: the export of the open design. */
+  actions: ReactNode
   expert: ReactNode
   onExit: () => void
 }

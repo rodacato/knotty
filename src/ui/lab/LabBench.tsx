@@ -6,7 +6,7 @@ import { useCaseRun } from '../debug/useCaseRun'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
-import type { ModuleGroup, Verdict, VariantRow } from './variants'
+import type { FichaRow, ModuleGroup, Verdict, VariantRow } from './variants'
 
 // The bench inside the workshop: every variant is a door into the Studio, and the expert's cases run from the same place.
 
@@ -20,12 +20,14 @@ export const variantKey = (module: string, variant: string) => `${module}/${vari
 
 interface LabBenchProps {
   groups: ModuleGroup[]
+  fichas: FichaRow[]
   opened: string | null
   onOpen: (module: ModuleGroup['module'], row: VariantRow) => void
+  onOpenFicha: (row: FichaRow) => void
   onReview: () => void
 }
 
-export function LabBench({ groups, opened, onOpen, onReview }: LabBenchProps) {
+export function LabBench({ groups, fichas, opened, onOpen, onOpenFicha, onReview }: LabBenchProps) {
   const { bench } = useServices()
   const openState = useStore((s) => s.openState)
   const { selected, results, running, expert, run, stop, toggle, toggleAll } = useCaseRun()
@@ -93,6 +95,31 @@ export function LabBench({ groups, opened, onOpen, onReview }: LabBenchProps) {
         })}
       </section>
 
+      <section className="flex flex-col gap-1 border-t border-line px-3 py-3">
+        <h3 className="px-1 text-sm font-semibold">Fichas</h3>
+        <p className="px-1 pb-1 text-xs leading-snug text-graphite-2">Los muebles de referencia de Knotty. Ábrelos, mejóralos con el experto y exporta el plan.</p>
+        {fichas.map((f) => {
+          const key = `ficha/${f.reference.code}`
+          const sel = opened === key
+          const { icon: Icon, className, label } = ICON[f.verdict]
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={sel}
+              onClick={() => onOpenFicha(f)}
+              className={`flex min-h-11 items-center gap-2.5 rounded-lg border px-3 text-left text-sm ${sel ? 'border-amber bg-amber-soft font-semibold' : 'border-transparent hover:bg-kraft'}`}
+            >
+              <Icon weight="regular" className={`shrink-0 ${className}`} size={18} aria-label={label} />
+              <span className="flex-1">{f.reference.name}</span>
+              <span className="font-mono text-[11px] font-normal text-graphite-2">
+                {f.reference.code} v{f.reference.version}
+              </span>
+            </button>
+          )
+        })}
+      </section>
+
       <section className="flex flex-col gap-2 border-t border-line px-3 py-3">
         <div className="flex items-center gap-2 px-1">
           <h3 className="flex-1 text-sm font-semibold">Con el experto</h3>
@@ -109,6 +136,7 @@ export function LabBench({ groups, opened, onOpen, onReview }: LabBenchProps) {
             </Button>
           )}
         </div>
+        <p className="px-1 text-xs leading-snug text-graphite-2">Le manda al modelo conectado pedidos fijos, como los que escribiría una persona, y califica el diseño que devuelve con las cuentas de Knotty. Toca «Ver qué pasó» en un caso para ver qué se le pidió, qué hizo y qué se comprobó. Cuesta tokens.</p>
         <CaseList
           cases={bench.cases}
           selected={selected}

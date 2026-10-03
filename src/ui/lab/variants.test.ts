@@ -3,7 +3,8 @@ import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
-import { groupVariants } from './variants'
+import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
+import { groupVariants, listFichas } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -27,5 +28,12 @@ describe('the workshop variant list', () => {
     const rows = groupVariants(stub).flatMap((g) => g.variants)
     expect(rows.map((r) => r.verdict)).toEqual(['invalid', 'note', 'ok'])
     expect(rows[1].notes).toEqual(['se tocan pero no tienen unión'])
+  })
+
+  it('lists every ficha with a verdict, in the order the store gives them', () => {
+    const rows = listFichas(testReferences.all(), testCatalog)
+    expect(rows.map((r) => r.reference.code)).toEqual(testReferences.all().map((r) => r.code))
+    expect(rows.length).toBeGreaterThan(5)
+    for (const r of rows) expect(['ok', 'note', 'invalid']).toContain(r.verdict)
   })
 })

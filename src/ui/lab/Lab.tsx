@@ -7,7 +7,9 @@ import { Button, Title } from '../system/components'
 import { Drawer } from './Drawer'
 import { LabBench, variantKey } from './LabBench'
 import { ModelSwitch } from './ModelSwitch'
-import { groupVariants } from './variants'
+import { ExportFicha } from './ExportFicha'
+import type { Origin } from './candidate'
+import { groupVariants, listFichas } from './variants'
 import type { Workshop } from './workshop'
 
 const Studio = lazy(() => import('../studio/Studio').then((m) => ({ default: m.Studio })))
@@ -50,22 +52,31 @@ function Empty({ workshop }: { workshop: Workshop }) {
 }
 
 export function Lab() {
-  const { bench } = useServices()
+  const { bench, references, catalog } = useServices()
   const state = useStore((s) => s.state)
   const fromExample = useStore((s) => s.fromExample)
   const leaveLab = useStore((s) => s.leaveLab)
   const [groups, setGroups] = useState(() => groupVariants(bench))
   const [opened, setOpened] = useState<string | null>(null)
+  const [origin, setOrigin] = useState<Origin>({ code: null })
+  const fichas = useMemo(() => listFichas(references.all(), catalog), [references, catalog])
   const rows = useMemo(() => groups.flatMap((g) => g.variants), [groups])
 
   const workshop: Workshop = {
     bench: (
       <LabBench
         groups={groups}
+        fichas={fichas}
         opened={state ? opened : null}
         onOpen={(module, row) => {
           setOpened(variantKey(module, row.variant))
+          setOrigin({ code: null })
           fromExample({ name: row.plan.name, plan: row.plan, notes: '' })
+        }}
+        onOpenFicha={({ reference: r }) => {
+          setOpened(`ficha/${r.code}`)
+          setOrigin({ code: r.code })
+          fromExample({ name: r.name, plan: r.plan, notes: r.notes, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) })
         }}
         onReview={() => setGroups(groupVariants(bench))}
       />
@@ -78,6 +89,7 @@ export function Lab() {
         </span>
       </>
     ),
+    actions: <ExportFicha origin={origin} />,
     expert: <ModelSwitch />,
     onExit: leaveLab,
   }

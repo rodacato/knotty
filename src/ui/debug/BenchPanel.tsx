@@ -64,7 +64,7 @@ export function BenchPanel() {
                   </Button>
                 )}
               </div>
-              <p className="text-[11px] text-graphite-2">Cada caso usa tu llave y cuesta lo que un diseño; no toca tu diseño actual. Las respuestas crudas quedan en la bitácora.</p>
+              <p className="text-[11px] text-graphite-2">Le manda al modelo conectado pedidos fijos, como los que escribiría una persona, y califica el diseño que devuelve con las cuentas de Knotty. Toca «Ver qué pasó» en un caso para ver qué se le pidió, qué hizo y qué se comprobó. Cada caso usa tu llave y cuesta lo que un diseño; no toca tu diseño actual. Las respuestas crudas quedan en la bitácora.</p>
               <CaseList
                 cases={bench.cases}
                 selected={selected}

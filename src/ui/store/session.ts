@@ -120,7 +120,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set((s) => ({ state: null, phase: s.phase === 'lab' ? 'lab' : 'capture', adjusting: null, selection: null, hidden: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null }))
+    set((s) => ({ state: null, phase: s.phase === 'lab' ? 'lab' : 'capture', adjusting: null, selection: null, hidden: [], flagged: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null }))
   },
 
   enterLab() {
@@ -128,7 +128,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     if (!services || !debugAccess(services.debug)) return
     get().controller?.abort()
     services.sandbox.enter()
-    set({ state: null, phase: 'lab', adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, exploded: false, draft: null, thinking: false, stage: null })
+    set({ state: null, phase: 'lab', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null })
   },
 
   leaveLab() {
@@ -137,7 +137,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     get().controller?.abort()
     services.sandbox.leave()
     const state = services.useCases.load()
-    set((s) => ({ state, phase: state ? 'studio' : 'home', viewedVersion: null, selection: null, hidden: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
+    set((s) => ({ state, phase: state ? 'studio' : 'home', viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   adjustBase: (base) => set({ adjusting: base }),
@@ -151,13 +151,13 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   openState(state) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.adopt(state), phase: studioOr(s.phase), adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.adopt(state), phase: studioOr(s.phase), adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.openExample(example), phase: studioOr(s.phase), adjusting: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.openExample(example), phase: studioOr(s.phase), adjusting: null, selection: null, hidden: [], flagged: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),

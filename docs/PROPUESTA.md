@@ -489,6 +489,8 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 - **Un caso del banco ambiguo a propósito se queda ambiguo.** `sideboard` no dice «contra el muro»: un R4 crítico ahí significa que el experto no aplicó la regla, no que la persona pidió algo inseguro. Sin la variante explícita no se sabría si falló leer el acomodo o las cuentas.
 - **El taller trabaja en un repositorio en memoria** (`createSandboxedRepository`): mientras está abierto nada se lee ni se escribe del diseño guardado, y al salir vuelve el que había. Solo se entra desde el acceso de depuración (`debugAccess`), y lo que abre el taller no cambia de pantalla (`phase: 'lab'`). Reusa el Studio, `Scene` y el banco; no los copia.
 - **Los avisos de geometría no reprueban el banco, pero el taller los muestra** (`ModuleCheck.warnings`, pestaña «Hallazgos»): una variante con avisos sale como «con avisos» en la lista del taller y limpia en `runModules` para el banco.
+- **El taller exporta una ficha como candidata, nunca la escribe** (`candidateOf`): solo si el diseño sigue siendo su plan (sin cambios pieza por pieza), y lo que descarga es lo que `probe --diff/--adopt` ya acepta. Cada caso del experto se lee por pasos (`caseSteps`): qué se pidió, qué hizo el experto y qué comprobó la calificación.
+- **Un mensaje de las reglas habla de las piezas por su nombre** donde la persona lo lee (`named`), y el taller marca en el 3D las piezas de un aviso (`flag`, solo vista, como `hidden`).
 
 ### Historial y sesión
 

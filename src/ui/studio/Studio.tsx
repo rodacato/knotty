@@ -130,7 +130,10 @@ function Header({ state, pending, overlay, onOpen, workshop }: { state: DesignSt
         {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
       </Button>
       {workshop ? (
-        workshop.expert
+        <>
+          {workshop.actions}
+          {workshop.expert}
+        </>
       ) : (
         <Button variant="ghost" className="px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
           <GearSix /> <span className="hidden sm:inline">{label}</span>
@@ -206,6 +209,8 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
   const previousVersion = shownGeo ? null : previousUsableVersion(state.versions, state.current, (v) => analyze(v.design, catalog).valid)
   const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
   const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.pieces.some((p) => p.id === v))))]
+  const flagged = useStore((s) => s.flagged)
+  const markedPieces = [...new Set([...problemPieces, ...flagged.filter((id) => shownDesign.pieces.some((p) => p.id === id))])]
   const selection = useStore((s) => s.selection)
   const showsPiece = !!shownGeo && shownDesign.pieces.some((p) => p.id === selection)
   const editable = viewedVersion === null && !proposal
@@ -325,7 +330,7 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
       {shownGeo ? (
         <div className="h-full" role="img" aria-label={`${shownDesign.name} en 3D: ${shownDesign.dimensions.height} × ${shownDesign.dimensions.width} × ${shownDesign.dimensions.depth} mm, ${shownDesign.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shownDesign} geo={shownGeo} catalog={catalog} ghosts={changes.added} marked={changes.changed} problems={problemPieces} />
+            <Scene design={shownDesign} geo={shownGeo} catalog={catalog} ghosts={changes.added} marked={changes.changed} problems={markedPieces} />
           </SceneBoundary>
         </div>
       ) : (
@@ -406,7 +411,7 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
           </Tabs.Content>
           {workshop && (
             <Tabs.Content value="findings" className="min-h-0 flex-1 overflow-y-auto">
-              <Findings name={current.name} analysis={currentAnalysis} />
+              <Findings design={current} analysis={currentAnalysis} />
             </Tabs.Content>
           )}
         </Tabs.Root>
