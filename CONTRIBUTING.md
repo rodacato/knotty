@@ -62,6 +62,8 @@ Abre la app con `?debug` al final de la dirección (o el código Konami, o `Ctrl
 
 ### 4. El banco con experto real (cuesta tokens)
 
+Para qué sirve cada modo, cómo leer el resultado, cuánto cuesta y cómo medir un cambio de prompts: [docs/compare.md](docs/compare.md).
+
 Cada corrida es un conjunto de trabajos (un caso por intento), con identidad, manifiesto y las respuestas reales del experto guardadas. Los comandos:
 
 ```bash
