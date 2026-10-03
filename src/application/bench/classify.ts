@@ -4,6 +4,7 @@ import type { StepResult } from './grading'
 import type { KnownFailure } from './knownFailures'
 import { compatibility, type Classification, type Compatibility, type ManifestIdentity } from './manifest'
 import { problemsOf, type ReportRow } from './report'
+import { ALPHA, fisherP } from './significance'
 
 /** A case result as the report keeps it, with or without the model and prompt columns. */
 export type GradedResult = Omit<ReportRow, 'model' | 'prompt'>
@@ -106,11 +107,17 @@ export interface RequirementComparison {
   status: Status
   base: Tally | null
   candidate: Tally | null
+  /** Fisher's exact p of the two pass counts; null when there is nothing to compare. A rate that moved with a p above the alpha is variation, not a finding. */
+  p: number | null
 }
+
+/** Whether the prompts a case's calls used are the same in both runs: a control case measures the noise, an affected one the change. */
+export type Exposure = 'affected' | 'control' | 'unknown'
 
 export interface CaseComparison {
   caseId: string
   status: Status
+  exposure: Exposure
   requirements: RequirementComparison[]
 }
 
@@ -167,21 +174,39 @@ function countFor(trials: TrialRecord[]): Map<string, Counts> {
 
 const SEVERITY: Status[] = ['incompatible', 'regression', 'known', 'variation', 'improvement', 'new', 'retired', 'unmeasured', 'same']
 
-function judge(base: Counts, candidate: Counts, tolerance: number): Status {
-  const failed = (c: Counts) => c.tally.counted - c.tally.passed
+/** `exact` calls any extra failure beyond the tolerance a regression; `significance` only a difference its sample can tell from variation. */
+export type Rule = 'exact' | 'significance'
+
+const failed = (c: Counts) => c.tally.counted - c.tally.passed
+
+function judge(base: Counts, candidate: Counts, tolerance: number, rule: Rule): { status: Status; p: number } {
+  const p = fisherP({ failed: failed(base), counted: base.tally.counted }, { failed: failed(candidate), counted: candidate.tally.counted })
   const cFail = failed(candidate)
-  if (cFail > 0 && candidate.knownFails === cFail) return 'known'
+  if (cFail > 0 && candidate.knownFails === cFail) return { status: 'known', p }
   // Scaled to the candidate's trial count so runs with different repeats compare by rate.
   const extra = cFail - (failed(base) / base.tally.counted) * candidate.tally.counted
-  if (Math.abs(extra) < 1e-9) return 'same'
-  if (extra > tolerance) return 'regression'
-  if (extra < -tolerance) return 'improvement'
-  return 'variation'
+  if (Math.abs(extra) < 1e-9) return { status: 'same', p }
+  if (rule === 'significance') return { status: p >= ALPHA ? 'variation' : extra > 0 ? 'regression' : 'improvement', p }
+  if (extra > tolerance) return { status: 'regression', p }
+  if (extra < -tolerance) return { status: 'improvement', p }
+  return { status: 'variation', p }
+}
+
+const promptsOf = (trials: TrialRecord[]): string[] | null => {
+  const used = trials.flatMap((t) => (t.result.callLog ?? []).map((c) => `${c.step}:${c.promptId}`))
+  return used.length ? [...new Set(used)].sort() : null
+}
+
+function exposureOf(was: TrialRecord[], now: TrialRecord[]): Exposure {
+  const [before, after] = [promptsOf(was), promptsOf(now)]
+  if (!before || !after) return 'unknown'
+  return before.join() === after.join() ? 'control' : 'affected'
 }
 
 /** Per case and requirement, how the candidate stands against the base; only for runs that are compatible. */
-export function compareRuns(base: RunSet, candidate: RunSet, options: { tolerance?: number } = {}): Comparison | Incomparable {
+export function compareRuns(base: RunSet, candidate: RunSet, options: { tolerance?: number; rule?: Rule } = {}): Comparison | Incomparable {
   const tolerance = options.tolerance ?? 0
+  const rule = options.rule ?? 'exact'
   const compat = compatibility(base.manifest, candidate.manifest, 'compare')
   if (!compat.compatible) return { compatible: false, reasons: compat.reasons }
 
@@ -189,18 +214,19 @@ export function compareRuns(base: RunSet, candidate: RunSet, options: { toleranc
   const cases = caseIds.map((caseId): CaseComparison => {
     const mine = (run: RunSet) => run.trials.filter((t) => t.caseId === caseId)
     const [was, now] = [mine(base), mine(candidate)]
-    if (compat.cases.changed.includes(caseId)) return { caseId, status: 'incompatible', requirements: [] }
-    if (!was.length) return { caseId, status: 'new', requirements: [] }
-    if (!now.length) return { caseId, status: 'retired', requirements: [] }
+    if (compat.cases.changed.includes(caseId)) return { caseId, status: 'incompatible', exposure: 'unknown', requirements: [] }
+    if (!was.length) return { caseId, status: 'new', exposure: 'unknown', requirements: [] }
+    if (!now.length) return { caseId, status: 'retired', exposure: 'unknown', requirements: [] }
     const [before, after] = [countFor(was), countFor(now)]
-    if (!after.size) return { caseId, status: 'unmeasured', requirements: [] }
+    if (!after.size) return { caseId, status: 'unmeasured', exposure: exposureOf(was, now), requirements: [] }
     const requirements = [...after].map(([id, c]): RequirementComparison => {
       const b = before.get(id)
-      return { id, status: b ? judge(b, c, tolerance) : 'new', base: b?.tally ?? null, candidate: c.tally }
+      const verdict = b ? judge(b, c, tolerance, rule) : null
+      return { id, status: verdict?.status ?? 'new', base: b?.tally ?? null, candidate: c.tally, p: verdict?.p ?? null }
     })
-    const dropped = [...before].filter(([id]) => !after.has(id)).map(([id, c]): RequirementComparison => ({ id, status: 'retired', base: c.tally, candidate: null }))
+    const dropped = [...before].filter(([id]) => !after.has(id)).map(([id, c]): RequirementComparison => ({ id, status: 'retired', base: c.tally, candidate: null, p: null }))
     const all = [...requirements, ...dropped]
-    return { caseId, status: SEVERITY.find((s) => all.some((r) => r.status === s))!, requirements: all }
+    return { caseId, status: SEVERITY.find((s) => all.some((r) => r.status === s))!, exposure: exposureOf(was, now), requirements: all }
   })
 
   const infra = (side: 'base' | 'candidate', run: RunSet) =>

@@ -3,6 +3,7 @@ import type { KnownFailure } from './knownFailures'
 import type { ManifestIdentity } from './manifest'
 import type { PromotedBaseline } from './promote'
 import type { Baseline } from './report'
+import { repeatsToTell } from './significance'
 
 // «Contra la base»: a run against the saved baseline, only as far as the two can be shown to be the same measurement.
 
@@ -59,7 +60,7 @@ const heading = (baseline: Baseline) => `Base: «${baseline.label}», commit ${b
 export function standingAgainst(baseline: Baseline | PromotedBaseline, candidate: Candidate, options: { known: KnownFailure[]; benchCases?: string[] }): Standing {
   const identity = identityOf(baseline)
   const base = { manifest: identity ?? candidate.manifest, trials: trialsOfRows(baseline.rows, options.known) }
-  const comparison = compareRuns(base, candidate)
+  const comparison = compareRuns(base, candidate, { rule: 'significance' })
   if (!comparison.compatible) {
     return { kind: 'incompatible', comparison: null, regression: false, reasons: comparison.reasons, lines: ['## Contra la base', '', heading(baseline), '', `No se compara: la base y esta corrida no midieron lo mismo (${comparison.reasons.join('; ')}).`, ''] }
   }
@@ -70,6 +71,9 @@ export function standingAgainst(baseline: Baseline | PromotedBaseline, candidate
   const worse = cases.flatMap((c) => c.requirements.filter((r) => r.status === 'regression').map((r) => `${c.caseId} ${requirement(r.id)}`))
   const count = (s: Status) => cases.filter((c) => c.status === s).length
   const { added, retired, changed } = comparison.caseDiffs
+  const control = cases.filter((c) => c.exposure === 'control' && c.status !== 'unmeasured')
+  const noisy = control.filter((c) => !['same', 'known'].includes(c.status))
+  const doubtful = cases.filter((c) => c.exposure !== 'control' && c.requirements.some((r) => r.status === 'variation' && r.base && r.candidate && r.base.passed / r.base.counted !== r.candidate.passed / r.candidate.counted))
   const infra = comparison.infrastructure.map((i) => `${i.side === 'base' ? 'base' : 'esta corrida'} ${i.caseId} t${i.trial}${i.error ? ` (${cell(i.error).slice(0, 80)})` : ''}`)
   const lines = [
     '## Contra la base',
@@ -80,6 +84,8 @@ export function standingAgainst(baseline: Baseline | PromotedBaseline, candidate
     '',
     `Resultado: ${worse.length} requisitos en regresión · ${count('improvement')} casos mejoran · ${count('known')} con falla conocida · ${count('variation')} con variación · ${count('same')} iguales`,
     ...(worse.length ? [`Regresiones: ${worse.join(', ')}`] : []),
+    ...(control.length ? [`Ruido medido con ${control.length} casos de control (mismos prompts en las dos corridas): ${noisy.length} cambiaron${noisy.length ? ` (${noisy.map((c) => c.caseId).join(', ')})` : ''}. Una diferencia en un caso afectado que no supere ese ruido es variación.`] : []),
+    ...(doubtful.length ? [`Sin poder distinguirlos de la variación: ${doubtful.map((c) => c.caseId).join(', ')}. Una regresión solo se declara si la muestra la distingue (p < 0.05); con menos de ${repeatsToTell()} repeticiones por lado nada se distingue, y ahí conviene repetir solo estos casos.`] : []),
     ...(added.length || retired.length || changed.length ? [`Casos nuevos: ${added.join(', ') || 'ninguno'} · retirados: ${retired.join(', ') || 'ninguno'} · cambiados (no se comparan): ${changed.join(', ') || 'ninguno'}`] : []),
     '',
     '| Caso | Estado | Requisitos que cambiaron |',
