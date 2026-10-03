@@ -15,3 +15,6 @@ design/references/
 /.devcontainer/local.env
 /.devcontainer/.host.env
 /.devcontainer/.host.env.tmp
+
+# Private evaluation data (the hard suite reads it at run time; never tracked)
+/private/

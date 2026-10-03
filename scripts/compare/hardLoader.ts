@@ -7,7 +7,7 @@ import { sha256 } from './hashing'
 
 // Turns the private evaluation files into the suite's two sides, at run time. The files are never tracked and nothing read here is kept beyond the process.
 
-export const DEFAULT_HARD_DIR = 'contexto-carpinteria/docs/evaluacion-persona'
+export const DEFAULT_HARD_DIR = 'private/hard-suite'
 
 /** Where the private files are: KNOTTY_HARD_DIR, or the default under the repository root. */
 export const hardDirOf = (repoRoot: string, env: Record<string, string | undefined> = process.env): string => resolve(repoRoot, env.KNOTTY_HARD_DIR ?? DEFAULT_HARD_DIR)
