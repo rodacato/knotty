@@ -32,6 +32,7 @@ Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers i
 |---|---|---|---|
 | `capture.pen` | Start a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…), and Home with the bases to start from. 15 mobile, 11 desktop | 0.4.0 | Opening the app with no design |
 | `studio.pen` | The Studio by area — conversation, piece, notices, furniture, materials, history, settings — with their states. 47 mobile, 20 desktop | 0.4.0 | After analysis, or from an example (`src/ui/App.tsx`) |
+| `lab.pen` | The hidden workshop for evaluating furniture: the bench and the Studio panel as collapsible drawers around the real Studio, on throwaway designs (UI-65). 5 desktop, no mobile | 0.3.0 | The debug access (Konami code, Ctrl+Shift+D, ?debug), «Taller» |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 
