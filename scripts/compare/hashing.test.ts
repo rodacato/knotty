@@ -33,7 +33,7 @@ describe('hashing', () => {
 
   it('hashes the real prompt and schema files, all of them, as plain hex', () => {
     const prompts = hashPrompts(process.cwd())
-    expect(Object.keys(prompts)).toEqual(expect.arrayContaining(['src/adapters/llm/prompts/system.v11.md', 'src/adapters/llm/common/promptValues.ts']))
+    expect(Object.keys(prompts)).toEqual(expect.arrayContaining(['src/adapters/llm/prompts/system.v12.md', 'src/adapters/llm/common/promptValues.ts']))
     expect(Object.keys(prompts).some((k) => k.includes('/kinds/'))).toBe(true)
     const schemas = hashSchemas(process.cwd())
     expect(Object.keys(schemas)).toContain('src/ports/LLMProvider.ts')
