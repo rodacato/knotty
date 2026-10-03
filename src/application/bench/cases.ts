@@ -88,6 +88,8 @@ export const BENCH_CASES: BenchCase[] = [
     // "Unos" and "como" are approximate: the width is the one thing that must not drift, since it decides the divider and the shelf span.
     expected: { width: [1150, 1250], height: [1700, 1900], depth: [250, 350] },
     parts: { doors: 0, drawers: 0 },
+    // «4 repisas»: three or four loose shelves above the bottom board, or five boards counting it; a divider at the centre is a different role.
+    expect: [{ kind: 'pieces', roles: ['shelf'], count: [3, 5] }],
   },
   {
     id: 'bookcase-drill-only',
@@ -103,6 +105,13 @@ export const BENCH_CASES: BenchCase[] = [
     expected: { height: [1800, 1800], width: [800, 800], depth: [300, 300] },
     adjust: ['Mejor hazlo de 110 de ancho', '¿Por qué le salió una división? ¿Aguanta si le pongo libros pesados?'],
     parts: { doors: 0, drawers: 0 },
+    afterRequest: {
+      'Mejor hazlo de 110 de ancho': {
+        outcomes: ['applied', 'pending'],
+        changes: ['width'],
+        expect: [{ kind: 'dimensions', ranges: { width: [1100, 1100], height: [1800, 1800], depth: [300, 300] } }],
+      },
+    },
   },
   {
     id: 'bed-drawers',
