@@ -8,7 +8,7 @@ import { groupVariants, listFichas } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
-describe('the workshop variant list', () => {
+describe('the bench drawer variant list', () => {
   it('lists every variant of every module, each with a verdict', () => {
     const groups = groupVariants(bench)
     const expected = Object.values(MODULES).reduce((n, m) => n + m.benchVariants().length, 0)

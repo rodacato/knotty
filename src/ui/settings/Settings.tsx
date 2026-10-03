@@ -9,7 +9,6 @@ import { Field, Input, Select } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { SheLLM } from '../system/SheLLM'
-import { DEBUG_VISIBILITY } from '../debug/DebugPanel'
 import { useStore } from '../store'
 import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
 
@@ -24,8 +23,9 @@ const SAVED: { id: KeyStorage; name: string; detail: string }[] = [
 type ModelsState = { kind: 'idle' | 'loading' } | { kind: 'ready'; models: string[] } | { kind: 'error'; message: string }
 
 export function Settings() {
-  const { preferences, debug } = useServices()
-  const [debugVisible, setDebugVisible] = useState(() => debug.visible())
+  const { preferences } = useServices()
+  const debugVisible = useStore((s) => s.debugVisible)
+  const setDebugVisible = useStore((s) => s.setDebugVisible)
   const open = useStore((s) => s.settingsOpen)
   const setOpen = useStore((s) => s.openSettings)
   const [draft, setDraft] = useState<LLMConfiguration>(preferences.load())
@@ -222,11 +222,7 @@ export function Settings() {
               type="checkbox"
               className="mt-0.5 size-5 shrink-0 accent-amber"
               checked={debugVisible}
-              onChange={(e) => {
-                debug.setVisible(e.target.checked)
-                setDebugVisible(e.target.checked)
-                dispatchEvent(new CustomEvent(DEBUG_VISIBILITY, { detail: e.target.checked }))
-              }}
+              onChange={(e) => setDebugVisible(e.target.checked)}
             />
             <span>
               Mostrar las entrañas de la madera

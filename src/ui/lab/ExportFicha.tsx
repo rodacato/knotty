@@ -3,9 +3,9 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useState } from 'react'
 import { useStore } from '../store'
 import { Button } from '../system/components'
-import { adoptionCommands, candidateOf, type Origin } from './candidate'
+import { adoptionCommands, candidateOf } from './candidate'
 
-// The workshop cannot write the repo: it hands the ficha back as a file for `probe`, which checks it and rewrites the ficha.
+// The debug tools cannot write the repo: it hands the ficha back as a file for `probe`, which checks it and rewrites the ficha.
 
 function Command({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
@@ -29,8 +29,9 @@ function Command({ text }: { text: string }) {
   )
 }
 
-export function ExportFicha({ origin }: { origin: Origin }) {
+export function ExportFicha() {
   const state = useStore((s) => s.state)
+  const origin = { code: useStore((s) => s.sandboxOrigin) }
   const [open, setOpen] = useState(false)
   const candidate = state ? candidateOf(state, origin) : null
 

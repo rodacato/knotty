@@ -4,7 +4,7 @@ import type { Reference } from '../../domain/furniture/references'
 import { buildPlan, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
 
-// The workshop's list: every variant of every module, with what Knotty finds in it.
+// The bench drawer's list: every variant of every module, with what Knotty finds in it.
 
 export type Verdict = 'ok' | 'note' | 'invalid'
 

@@ -20,10 +20,7 @@ import type { Get, Set, Slice } from './types'
 
 // The open design and the commands that change it without asking the expert.
 
-type Phase = 'home' | 'capture' | 'analyzing' | 'studio' | 'lab'
-
-/** The workshop keeps its own screen whatever it opens: a design there is a throwaway, not a step of the person's flow. */
-const studioOr = (phase: Phase): Phase => (phase === 'lab' ? 'lab' : 'studio')
+type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
 
 export interface SessionSlice {
   services: Services | null
@@ -34,10 +31,16 @@ export interface SessionSlice {
 
   start(services: Services): void
   newDesign(): void
-  /** The hidden workshop: only from the debug access, on throwaway designs; nothing it does reaches the saved one. */
-  enterLab(): void
+  /** The debug tools' throwaway designs: while on, nothing reaches the saved design. It is a state of the app, not a screen. */
+  sandboxed: boolean
+  /** The ficha the sandbox's design was opened from, for exporting it back; null for anything else. */
+  sandboxOrigin: string | null
+  /** Opens a variant or a ficha on a throwaway design; only with the debug access. */
+  sandboxExample(example: Example, origin?: string | null): void
+  /** Opens a design a bench case made, on a throwaway design. */
+  sandboxState(state: DesignState): void
   /** Back to the saved design, as it was. */
-  leaveLab(): void
+  leaveSandbox(): void
   startCapture(): void
   adjustBase(base: Base): void
   closeAdjust(): void
@@ -106,6 +109,17 @@ function shown(set: Set, get: Get, r: WorkshopResult): WorkshopResult {
   return r
 }
 
+/** The sandbox starts the first time something from the bench opens; only with the debug access. */
+function enterSandbox(get: Get, set: Set): boolean {
+  const { services, sandboxed } = get()
+  if (!services || !debugAccess(services.debug)) return false
+  if (sandboxed) return true
+  get().controller?.abort()
+  services.sandbox.enter()
+  set({ sandboxed: true })
+  return true
+}
+
 export const createSession: Slice<SessionSlice> = (set, get) => ({
   services: null,
   state: null,
@@ -114,30 +128,37 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   start(services) {
     const state = services.useCases.load()
-    set({ services, state, phase: state ? 'studio' : 'home', reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
+    set({ services, state, phase: state ? 'studio' : 'home', debugVisible: debugAccess(services.debug), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
   },
 
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set((s) => ({ state: null, phase: s.phase === 'lab' ? 'lab' : 'capture', adjusting: null, selection: null, hidden: [], flagged: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null }))
+    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], flagged: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null })
   },
 
-  enterLab() {
-    const { services } = get()
-    if (!services || !debugAccess(services.debug)) return
-    get().controller?.abort()
-    services.sandbox.enter()
-    set({ state: null, phase: 'lab', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null })
+  sandboxed: false,
+  sandboxOrigin: null,
+
+  sandboxExample(example, origin = null) {
+    if (!enterSandbox(get, set)) return
+    set({ sandboxOrigin: origin })
+    get().fromExample(example)
   },
 
-  leaveLab() {
+  sandboxState(state) {
+    if (!enterSandbox(get, set)) return
+    set({ sandboxOrigin: null })
+    get().openState(state)
+  },
+
+  leaveSandbox() {
     const { services } = get()
-    if (!services || get().phase !== 'lab') return
+    if (!services || !get().sandboxed) return
     get().controller?.abort()
     services.sandbox.leave()
     const state = services.useCases.load()
-    set((s) => ({ state, phase: state ? 'studio' : 'home', viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
+    set((s) => ({ sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   adjustBase: (base) => set({ adjusting: base }),
@@ -151,13 +172,13 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   openState(state) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.adopt(state), phase: studioOr(s.phase), adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.openExample(example), phase: studioOr(s.phase), adjusting: null, selection: null, hidden: [], flagged: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', adjusting: null, selection: null, hidden: [], flagged: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),

@@ -49,7 +49,7 @@ function services(): Services {
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
     references: testReferences,
-    debug: {} as Services['debug'],
+    debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
     bench: {} as Services['bench'],
     sandbox: { enter: () => {}, leave: () => {}, active: () => false },
   }

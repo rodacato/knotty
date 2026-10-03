@@ -102,7 +102,7 @@ export interface ModuleCheck {
   variant: string
   valid: boolean
   findings: string[]
-  /** The geometry warnings: they do not fail the bench, the workshop lists them. */
+  /** The geometry warnings: they do not fail the bench, the bench drawer lists them. */
   warnings: string[]
 }
 

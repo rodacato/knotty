@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Eye, EyeSlash, Flask, GearSix, Plus, Ruler, SignOut, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Eye, EyeSlash, Flask, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
@@ -27,9 +27,9 @@ import { currentPlan } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
 import { moduleOf } from '../../domain/furniture/modules/plan'
 import { NoticePanel } from './NoticePanel'
-import { Drawer } from '../lab/Drawer'
+import { ExportFicha } from '../lab/ExportFicha'
 import { Findings, findingsCount } from '../lab/Findings'
-import type { Workshop } from '../lab/workshop'
+import { ModelSwitch } from '../lab/ModelSwitch'
 
 const VIEWS: { id: View; name: string }[] = [
   { id: 'front', name: 'Frente' },
@@ -104,7 +104,9 @@ function ConfirmNew({ children }: { children: ReactNode }) {
 
 type Overlay = 'notices' | 'history'
 
-function Header({ state, pending, overlay, onOpen, workshop }: { state: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void; workshop?: Workshop }) {
+function Header({ state, pending, overlay, onOpen }: { state: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
+  const debugVisible = useStore((s) => s.debugVisible)
+  const sandboxed = useStore((s) => s.sandboxed)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -129,10 +131,10 @@ function Header({ state, pending, overlay, onOpen, workshop }: { state: DesignSt
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
         {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
       </Button>
-      {workshop ? (
+      {debugVisible ? (
         <>
-          {workshop.actions}
-          {workshop.expert}
+          {sandboxed && <ExportFicha />}
+          <ModelSwitch />
         </>
       ) : (
         <Button variant="ghost" className="px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
@@ -144,16 +146,11 @@ function Header({ state, pending, overlay, onOpen, workshop }: { state: DesignSt
           <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
         </Button>
       </ConfirmNew>
-      {workshop && (
-        <Button variant="ghost" className="px-2 text-xs sm:px-3" onClick={workshop.onExit} aria-label="Salir del taller">
-          <SignOut /> <span className="hidden sm:inline">Salir del taller</span>
-        </Button>
-      )}
     </header>
   )
 }
 
-export function Studio({ state, workshop }: { state: DesignState; workshop?: Workshop }) {
+export function Studio({ state }: { state: DesignState }) {
   const { catalog } = useServices()
   const showProposal = useStore((s) => s.showProposal)
   const viewedVersion = useStore((s) => s.viewedVersion)
@@ -162,8 +159,9 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
   const desktop = useDesktop()
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
-  const [benchOpen, setBenchOpen] = useState(true)
-  const [panelOpen, setPanelOpen] = useState(true)
+  const debugVisible = useStore((s) => s.debugVisible)
+  const sandboxed = useStore((s) => s.sandboxed)
+  const leaveSandbox = useStore((s) => s.leaveSandbox)
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
   // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
   const [overlay, setOverlay] = useState<Overlay | null>(null)
@@ -321,8 +319,21 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
           },
         ]
       : []),
-    // Last, because the chip shows only the first status: what changes what you see must not hide behind the workshop's reminder.
-    ...(workshop ? [{ key: 'workshop', icon: <Flask />, label: 'Taller: nada de esto se guarda' }] : []),
+    // Last, because the chip shows only the first status: what changes what you see must not hide behind the sandbox's reminder.
+    ...(sandboxed
+      ? [
+          {
+            key: 'sandbox',
+            icon: <Flask />,
+            label: 'Taller: nada de esto se guarda',
+            actions: (
+              <button type="button" onClick={leaveSandbox} className="relative flex min-h-7 items-center rounded-full bg-kraft px-3 before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2">
+                Salir
+              </button>
+            ),
+          },
+        ]
+      : []),
   ]
 
   const scene = (
@@ -367,12 +378,12 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
       <div className={`h-full min-h-0 ${showsPiece ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
-          <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] ${workshop && desktop ? 'pr-14' : ''}`} aria-label="Panel">
+          <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
             {[
               { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
               { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
               { id: 'materials', name: 'Materiales', icon: <Stack /> },
-              ...(workshop ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
+              ...(debugVisible ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
             ].map((t) => (
               <Tabs.Trigger
                 key={t.id}
@@ -409,7 +420,7 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
               </div>
             )}
           </Tabs.Content>
-          {workshop && (
+          {debugVisible && (
             <Tabs.Content value="findings" className="min-h-0 flex-1 overflow-y-auto">
               <Findings design={current} analysis={currentAnalysis} />
             </Tabs.Content>
@@ -421,30 +432,8 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
 
   return (
     <div className="flex h-dvh flex-col">
-      <Header state={state} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} workshop={workshop} />
-      {desktop && workshop ? (
-        <div className="flex min-h-0 flex-1">
-          <Drawer side="left" open={benchOpen} onToggle={() => setBenchOpen((v) => !v)} label="el banco" width="w-[380px]" rail={workshop.benchRail}>
-            {workshop.bench}
-          </Drawer>
-          <div className="min-w-0 flex-1">{scene}</div>
-          <Drawer
-            side="right"
-            open={panelOpen}
-            onToggle={() => setPanelOpen((v) => !v)}
-            label="el panel"
-            width="w-[420px]"
-            rail={
-              <>
-                <Warning />
-                <span className="numerals font-mono text-[11px] text-graphite-2">{findingsCount(currentAnalysis)}</span>
-              </>
-            }
-          >
-            {panel}
-          </Drawer>
-        </div>
-      ) : desktop ? (
+      <Header state={state} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
+      {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {scene}
           <aside className="min-h-0 border-l border-line">{panel}</aside>

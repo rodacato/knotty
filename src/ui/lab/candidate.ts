@@ -1,7 +1,7 @@
 import { currentPlan } from '../../application/useCases'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 
-// A ficha is a plan, so the workshop can hand back only what a plan says: `npm run probe -- --diff/--adopt` takes the file and does the rest.
+// A ficha is a plan, so the debug tools can hand back only what a plan says: `npm run probe -- --diff/--adopt` takes the file and does the rest.
 
 export interface Origin {
   /** The ficha the design was opened from, when it was. */

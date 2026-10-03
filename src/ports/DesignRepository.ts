@@ -6,7 +6,7 @@ export interface DesignRepository {
   clear(): void
 }
 
-/** Lets the workshop work on throwaway designs: while it is on, nothing reaches the saved one. */
+/** Lets the debug tools work on throwaway designs: while it is on, nothing reaches the saved one. */
 export interface Sandbox {
   enter(): void
   leave(): void
