@@ -26,6 +26,13 @@ describe('against a baseline with an identity', () => {
     expect(s.lines).toContain('| bed | igual | — |')
   })
 
+  it('compares a run whose prompts changed and prints what varies', () => {
+    const changed = { hashes: { ...manifestOf().hashes, prompts: { skeleton: 'NEW' } } }
+    const s = stand(promoted([good('bed')]), candidate([trial(good('bed'))], changed))
+    expect(s).toMatchObject({ kind: 'verified', regression: false })
+    expect(s.lines.join('\n')).toMatch(/Lo que varía[^\n]*prompts differ/)
+  })
+
   it('names the requirement that got worse and flags the regression', () => {
     const s = stand(promoted([good('bed')]), candidate([trial(bad('bed'))]))
     expect(s.regression).toBe(true)

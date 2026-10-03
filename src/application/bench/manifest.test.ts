@@ -101,7 +101,7 @@ describe('compatibility', () => {
 
   it('the same identity is compatible, however the concurrency, repeat or commit differ', () => {
     const b = identity({ commit: 'b'.repeat(40), config: { ...a.config, repeat: 5, concurrency: { default: 6, perHost: { h: 4 } } } })
-    expect(compatibility(a, b)).toEqual({ compatible: true, reasons: [], cases: { added: [], retired: [], changed: [] } })
+    expect(compatibility(a, b)).toEqual({ compatible: true, reasons: [], varies: [], cases: { added: [], retired: [], changed: [] } })
   })
 
   it('a different grader version is incompatible', () => {
@@ -124,13 +124,25 @@ describe('compatibility', () => {
     expect(compatibility(a, identity({ hashes: { ...a.hashes, ...hashes } })).compatible).toBe(false)
   })
 
+  it('compares runs whose prompts or schemas differ, and says what varies; resuming still refuses them', () => {
+    const b = identity({ hashes: { ...a.hashes, prompts: { skeleton: 'p1', cabinet: 'NEW' }, schemas: 's2' } })
+    expect(compatibility(a, b, 'compare')).toMatchObject({ compatible: true, reasons: [], varies: ['prompts differ: cabinet', 'schemas differ'] })
+    expect(compatibility(a, b, 'resume').compatible).toBe(false)
+  })
+
+  it('compares nothing across another grader, catalog, corpus or provider, whatever the mode', () => {
+    for (const other of [identity({ hashes: { ...a.hashes, graderVersion: '9' } }), identity({ hashes: { ...a.hashes, catalog: 'c2' } }), identity({ hashes: { ...a.hashes, corpus: 'k' } }), identity({ provider: { ...a.provider, spec: 'openai:gpt' } })]) {
+      expect(compatibility(a, other, 'compare').compatible).toBe(false)
+    }
+  })
+
   it('a different provider spec is incompatible', () => {
     expect(compatibility(a, identity({ provider: { ...a.provider, spec: 'openai:gpt' } })).compatible).toBe(false)
   })
 
   it('lists added, retired and changed cases; only the global differences make the runs incompatible', () => {
     const b = identity({ hashes: { ...a.hashes, cases: { bed: 'h-bed', desk: 'CHANGED', sofa: 'h-sofa' } } })
-    expect(compatibility(a, b)).toEqual({ compatible: true, reasons: [], cases: { added: ['sofa'], retired: [], changed: ['desk'] } })
+    expect(compatibility(a, b)).toEqual({ compatible: true, reasons: [], varies: [], cases: { added: ['sofa'], retired: [], changed: ['desk'] } })
     expect(compatibility(b, a).cases).toEqual({ added: [], retired: ['sofa'], changed: ['desk'] })
   })
 })

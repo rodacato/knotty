@@ -143,6 +143,8 @@ export interface Compatibility {
   compatible: boolean
   /** Why the runs cannot be compared at all. */
   reasons: string[]
+  /** What differs between two runs that are still comparable (prompts, schemas): what the comparison is measuring. */
+  varies: string[]
   /** Per-case differences: a changed case is incomparable on its own, an added or retired one is only listed. */
   cases: { added: string[]; retired: string[]; changed: string[] }
 }
@@ -154,12 +156,17 @@ function differingKeys(a: string | Record<string, string>, b: string | Record<st
   return [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => a[k] !== b[k]).sort()
 }
 
-export function compatibility(a: ManifestIdentity, b: ManifestIdentity): Compatibility {
+// Comparing two runs measures a prompt or schema change, so it lands in `varies`; resuming one needs them unchanged.
+export function compatibility(a: ManifestIdentity, b: ManifestIdentity, mode: 'resume' | 'compare' = 'resume'): Compatibility {
   const reasons: string[] = []
+  const varies: string[] = []
   if (a.hashes.graderVersion !== b.hashes.graderVersion) reasons.push(`grader version ${a.hashes.graderVersion} vs ${b.hashes.graderVersion}`)
   for (const part of ['prompts', 'schemas'] as const) {
     const keys = differingKeys(a.hashes[part], b.hashes[part])
-    if (keys.length) reasons.push(`${part} differ${keys[0] === '*' ? '' : `: ${keys.join(', ')}`}`)
+    if (!keys.length) continue
+    const text = `${part} differ${keys[0] === '*' ? '' : `: ${keys.join(', ')}`}`
+    if (mode === 'compare') varies.push(text)
+    else reasons.push(text)
   }
   if (a.hashes.catalog !== b.hashes.catalog) reasons.push('catalog differs')
   if (a.hashes.corpus !== b.hashes.corpus) reasons.push('corpus differs')
@@ -170,5 +177,5 @@ export function compatibility(a: ManifestIdentity, b: ManifestIdentity): Compati
   const added = Object.keys(right).filter((k) => !(k in left)).sort()
   const retired = Object.keys(left).filter((k) => !(k in right)).sort()
   const changed = Object.keys(left).filter((k) => k in right && left[k] !== right[k]).sort()
-  return { compatible: reasons.length === 0, reasons, cases: { added, retired, changed } }
+  return { compatible: reasons.length === 0, reasons, varies, cases: { added, retired, changed } }
 }

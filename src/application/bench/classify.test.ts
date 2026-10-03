@@ -179,6 +179,14 @@ describe('compareRuns', () => {
     expect(Object.fromEntries(r.cases.map((c) => [c.caseId, c.status]))).toEqual({ bed: 'same', desk: 'incompatible' })
   })
 
+  it('compares two runs whose prompts changed: that change is what is being measured', () => {
+    const base = run([trial('bed', 0, good()), trial('bed', 1, good())])
+    const cand = run([trial('bed', 0, good()), trial('bed', 1, good())], manifestOf({ hashes: { ...manifestOf().hashes, prompts: { skeleton: 'NEW' } } }))
+    const r = compared(base, cand)
+    expect(r.compatible).toBe(true)
+    expect(r.cases[0].status).toBe('same')
+  })
+
   it('refuses to compare a different grader version, with the reason, and a re-graded run keeps its provenance', () => {
     const other = manifestOf({ hashes: { ...manifestOf().hashes, graderVersion: '3' }, regradedFrom: { runId: 'old-run', graderVersion: '2' } })
     expect(other.regradedFrom).toEqual({ runId: 'old-run', graderVersion: '2' })
