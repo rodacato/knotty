@@ -91,12 +91,12 @@ describe('the bench', () => {
         call('skeleton', 'skeleton@15+cabinet@2', 3000, 800),
         call('skeleton', 'skeleton@15+cabinet@2', 2000, null, 20),
         call('skeleton', 'skeleton@15+cabinet@2+sideboard@1', 3200, 900),
-        call('plan-adjust', 'plan-adjust@12+cabinet@2', null, null),
+        call('plan-adjust', 'plan-adjust@13+cabinet@2', null, null),
       ]),
     ).toEqual([
       { step: 'skeleton', promptId: 'skeleton@15+cabinet@2', calls: 2, input: 2500, minInput: 2000, output: 800, seconds: 15 },
       { step: 'skeleton', promptId: 'skeleton@15+cabinet@2+sideboard@1', calls: 1, input: 3200, minInput: 3200, output: 900, seconds: 10 },
-      { step: 'plan-adjust', promptId: 'plan-adjust@12+cabinet@2', calls: 1, input: null, minInput: null, output: null, seconds: 10 },
+      { step: 'plan-adjust', promptId: 'plan-adjust@13+cabinet@2', calls: 1, input: null, minInput: null, output: null, seconds: 10 },
     ])
   })
 

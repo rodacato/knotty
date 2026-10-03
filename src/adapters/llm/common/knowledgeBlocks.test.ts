@@ -76,7 +76,7 @@ describe('a selection adds its blocks last and says so in the id', () => {
   it('the system prompt and the task keep their place and the blocks follow', () => {
     for (const task of [RECONSTRUCTION, ADJUSTMENT, PURCHASE_REVIEW]) {
       expect(systemFor(task, testCatalog, full)).toBe(`${systemFor(task, testCatalog)}\n\n${block(full).text}`)
-      expect(promptIdOf(task, full)).toBe(`${promptIdOf(task)}+core@1+tools@1`)
+      expect(promptIdOf(task, full)).toBe(`${promptIdOf(task)}+core@2+tools@1`)
     }
   })
 
@@ -111,7 +111,7 @@ describe('the guide of a use reaches the system-prompt calls last, by size', () 
     expect(text.indexOf(CRAFT_CORE.sections[k.core])).toBeLessThan(text.indexOf(CRAFT_TOOLS.sections[String(k.tools)]))
     expect(text.indexOf(CRAFT_TOOLS.sections[String(k.tools)])).toBeLessThan(text.lastIndexOf(body))
     expect(promptIdOf(task, k)).toBe(`${promptIdOf(task, { ...k, guide: null })}+bookcase@1`)
-    expect(promptIdOf(task, k)).toMatch(/\+core@1\+tools@1\+bookcase@1$/)
+    expect(promptIdOf(task, k)).toMatch(/\+core@2\+tools@1\+bookcase@1$/)
   })
 
   it('without a guide in the selection nothing is added, with or without craft blocks', () => {
@@ -160,8 +160,8 @@ describe('the guide of a use reaches the system-prompt calls last, by size', () 
 })
 
 describe('what a selection adds to each call stays small', () => {
-  /** About 10 % above what each block measured when set (core@1, tools@1), characters ÷ 3.5. */
-  const DELTA_BUDGET = { reconstruct: 540, skeleton: 540, adjust: 430, planAdjust: 430, review: 430, reading: 40 }
+  /** About 10 % above what each block measured when set (core@2, tools@1), characters ÷ 3.5. */
+  const DELTA_BUDGET = { reconstruct: 560, skeleton: 560, adjust: 450, planAdjust: 450, review: 450, reading: 40 }
   const added = (sent: string, plain: string) => approxTokens(sent) - approxTokens(plain)
 
   it('reconstruct, skeleton, adjust, plan-adjust, review and reading', () => {
