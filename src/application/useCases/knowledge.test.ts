@@ -38,7 +38,7 @@ describe('the knowledge selected for the expert', () => {
   it('carries the person’s tool level and the chosen kind’s guide to the skeleton', async () => {
     const { c, seen } = build(3)
     await c.reconstruct(request, signal())
-    expect(sent(seen, 'planDesign')).toEqual({ core: 'full', guide: 'bookcase', guideSize: 'full', tools: 3 })
+    expect(sent(seen, 'planDesign')).toEqual({ core: 'full', guide: 'bookcase', guideSize: 'full', tools: 3, advice: { use: 'bookcase', operations: ['plan'] } })
   })
 
   it('defaults to level 1 when nobody says', async () => {
@@ -62,7 +62,7 @@ describe('the knowledge selected for the expert', () => {
     const state = c.openExample(exampleSideboard)
     await c.adjust(state, 'Hazlo más elegante', signal())
     await c.reviewPurchase(state, testCatalog, signal())
-    expect(sent(seen, 'adjustPlan')).toEqual({ core: 'short', guide: 'sideboard', guideSize: 'full', tools: 2 })
+    expect(sent(seen, 'adjustPlan')).toEqual({ core: 'short', guide: 'sideboard', guideSize: 'full', tools: 2, advice: { use: 'sideboard', operations: ['adjust', 'chat'] } })
     expect(sent(seen, 'proposeAdjustment')).toMatchObject({ core: 'short', guideSize: 'short', tools: 2 })
     expect(sent(seen, 'reviewPurchase')).toMatchObject({ core: 'short', guideSize: 'short', tools: 2 })
   })
@@ -70,6 +70,6 @@ describe('the knowledge selected for the expert', () => {
   it('selects no guide and no tools for a photo reading', async () => {
     const { c, seen } = build(3)
     await c.readPhoto({ base64: 'abc' }, 'Un librero')
-    expect(sent(seen, 'readPhoto')).toEqual({ core: 'photo', guide: null, guideSize: 'short', tools: null })
+    expect(sent(seen, 'readPhoto')).toEqual({ core: 'photo', guide: null, guideSize: 'short', tools: null, advice: { use: null, operations: [] } })
   })
 })

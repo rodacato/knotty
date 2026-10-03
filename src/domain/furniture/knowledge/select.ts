@@ -2,6 +2,7 @@ import type { DesignKind } from '../../design/kind'
 import type { Requirement } from '../../checks/requirements/requirements'
 import type { ToolLevel } from '../../materials/tools'
 import { MODULE_OF_KIND, type FurnitureKind } from '../modules/plan'
+import type { Operation } from './claims'
 
 export type KnowledgeStage = 'photo' | 'skeleton' | 'plan-adjust' | 'piece' | 'review' | 'reconstruct'
 
@@ -10,6 +11,8 @@ export interface KnowledgeSelection {
   guide: DesignKind | null
   guideSize: 'full' | 'short'
   tools: ToolLevel | null
+  /** What the registry of known claims is asked for: the kind of furniture and the operations this call performs. A photo asks for none. */
+  advice: { use: DesignKind | null; operations: Operation[] }
 }
 
 export interface KnowledgeInput {
@@ -23,6 +26,9 @@ export interface KnowledgeInput {
 
 const CORE: Record<KnowledgeStage, KnowledgeSelection['core']> = { photo: 'photo', review: 'short', piece: 'short', 'plan-adjust': 'short', skeleton: 'full', reconstruct: 'full' }
 const GUIDE_SIZE: Record<KnowledgeStage, KnowledgeSelection['guideSize']> = { photo: 'short', review: 'short', piece: 'short', 'plan-adjust': 'full', skeleton: 'full', reconstruct: 'full' }
+
+// The conversational call also answers how to cut, join and finish, so it reads the chat advice too.
+const OPERATIONS: Record<KnowledgeStage, Operation[]> = { photo: [], skeleton: ['plan'], reconstruct: ['plan'], piece: ['plan'], 'plan-adjust': ['adjust', 'chat'], review: ['review'] }
 
 /** Level 1 is store cuts plus a drill, level 2 adds a circular saw, pocket jig and 35 mm bit, level 3 the table saw and router (fabricacion-y-armado.md §1.1). */
 const CAPS: { cap: ToolLevel; says: RegExp }[] = [
@@ -48,5 +54,6 @@ export function selectKnowledge({ use, module, toolLevel, requirements, stage }:
     guide: !photo && guided ? use : null,
     guideSize: GUIDE_SIZE[stage],
     tools: photo ? null : toolsFor(toolLevel, requirements),
+    advice: { use: photo ? null : use, operations: OPERATIONS[stage] },
   }
 }

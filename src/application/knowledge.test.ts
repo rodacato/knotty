@@ -10,7 +10,7 @@ const c = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, 
 
 describe('knowledgeFor', () => {
   it('takes the guide from a design built with its module', () => {
-    expect(knowledgeFor(c.openExample(exampleSideboard), 2, 'plan-adjust')).toEqual({ core: 'short', guide: 'sideboard', guideSize: 'full', tools: 2 })
+    expect(knowledgeFor(c.openExample(exampleSideboard), 2, 'plan-adjust')).toEqual({ core: 'short', guide: 'sideboard', guideSize: 'full', tools: 2, advice: { use: 'sideboard', operations: ['adjust', 'chat'] } })
   })
 
   it('a design without a plan takes the guide of its use from the module that use maps to', () => {

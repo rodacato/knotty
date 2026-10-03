@@ -17,8 +17,23 @@ describe('selectKnowledge', () => {
     expect(selectKnowledge({ ...base, stage })).toMatchObject({ core, guideSize })
   })
 
+  it.each<[KnowledgeStage, string[]]>([
+    ['photo', []],
+    ['skeleton', ['plan']],
+    ['reconstruct', ['plan']],
+    ['piece', ['plan']],
+    ['plan-adjust', ['adjust', 'chat']],
+    ['review', ['review']],
+  ])('%s asks the registry for %j', (stage, operations) => {
+    expect(selectKnowledge({ ...base, stage }).advice.operations).toEqual(operations)
+  })
+
+  it('asks for the kind even when the module has no guide for it', () => {
+    expect(selectKnowledge({ ...base, use: 'bookcase', module: 'bed', stage: 'skeleton' })).toMatchObject({ guide: null, advice: { use: 'bookcase' } })
+  })
+
   it('a photo has no guide and no tools, whatever the design is', () => {
-    expect(selectKnowledge({ ...base, stage: 'photo', requirements: [tool('solo taladro')] })).toEqual({ core: 'photo', guide: null, guideSize: 'short', tools: null })
+    expect(selectKnowledge({ ...base, stage: 'photo', requirements: [tool('solo taladro')] })).toEqual({ core: 'photo', guide: null, guideSize: 'short', tools: null, advice: { use: null, operations: [] } })
   })
 
   it.each([

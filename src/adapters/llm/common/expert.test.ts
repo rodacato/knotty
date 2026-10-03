@@ -179,7 +179,7 @@ describe('createExpert', () => {
   })
 
   it('a knowledge selection adds the craft blocks to the prompt id of every call, and none leaves it as it was', async () => {
-    const knowledge = { core: 'short' as const, guide: null, guideSize: 'short' as const, tools: 2 as const }
+    const knowledge = { core: 'short' as const, guide: null, guideSize: 'short' as const, tools: 2 as const, advice: { use: null, operations: [] } }
     const state = { measures: null, photos: [], notes: 'x', reading: null, catalog: testCatalog, correction: null, knowledge }
     const review = fake({ verdict: 'needs-changes', summary: 's', problems: [], tips: ['t'] }).expert
     expect((await review.reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog, knowledge }, new AbortController().signal)).origin.promptId).toBe('system@11+review@5+core@1+tools@1')

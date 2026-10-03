@@ -8,6 +8,7 @@ import reconstruction from '../prompts/reconstruction.v14.md?raw'
 import system from '../prompts/system.v11.md?raw'
 import core from '../prompts/craft/core.v1.md?raw'
 import tools from '../prompts/craft/tools.v1.md?raw'
+import { adviceFor } from '../../../domain/furniture/knowledge/claims'
 import type { KnowledgeSelection } from '../../../domain/furniture/knowledge/select'
 import { FURNITURE_KINDS, MODULE_OF_KIND, type FurnitureKind } from '../../../domain/furniture/modules/plan'
 import type { DesignKind } from '../../../domain/design/kind'
@@ -60,13 +61,26 @@ export function craftBlock(knowledge: KnowledgeSelection | null | undefined): Pr
   return { id: [CRAFT_CORE.id, ...(withTools ? [CRAFT_TOOLS.id] : [])].join('+'), text: parts.join('\n\n') }
 }
 
-/** Last, after everything the prompt already said, so the prefix that cached before still does. */
-function withCraft(prompt: Prompt, knowledge: KnowledgeSelection | null | undefined): Prompt {
-  const block = craftBlock(knowledge)
-  return block ? { id: `${prompt.id}+${block.id}`, text: `${prompt.text}\n\n${block.text}` } : prompt
+const CLAIMS_ID = 'claims@1'
+
+/** Workshop advice from the registry of known claims, in its own words and without ids; null when the call or the kind has none. */
+export function claimsBlock(knowledge: KnowledgeSelection | null | undefined): Prompt | null {
+  if (!knowledge) return null
+  const advice = [...new Map(knowledge.advice.operations.flatMap((op) => adviceFor(knowledge.advice.use, op)).map((a) => [a.claimId, a])).values()]
+  if (!advice.length) return null
+  const lines = advice.map((a) => `- ${a.rule}${a.condition ? ` Applies when: ${a.condition}${a.missing ? ` Missing: ${a.missing}` : ''}` : ''}`)
+  return { id: CLAIMS_ID, text: ['## Workshop practice', 'Guidance from general workshop practice, not a rule of the app and not a safety guarantee. Say it as advice with its condition, and do not present it as checked.', ...lines].join('\n') }
 }
 
-export const readingFor = (knowledge?: KnowledgeSelection | null) => withCraft(READING, knowledge && { ...knowledge, core: 'photo', tools: null })
+/** Last, after everything the prompt already said, so the prefix that cached before still does. */
+function withCraft(prompt: Prompt, knowledge: KnowledgeSelection | null | undefined): Prompt {
+  const craft = craftBlock(knowledge)
+  if (!craft) return prompt
+  const claims = claimsBlock(knowledge)
+  return { id: [prompt.id, craft.id, ...(claims ? [claims.id] : [])].join('+'), text: [prompt.text, craft.text, ...(claims ? [claims.text] : [])].join('\n\n') }
+}
+
+export const readingFor = (knowledge?: KnowledgeSelection | null) => withCraft(READING, knowledge && { ...knowledge, core: 'photo', tools: null, advice: { use: null, operations: [] } })
 
 const MODULE_FILES = import.meta.glob<string>('../prompts/modules/*.md', { query: '?raw', import: 'default', eager: true })
 

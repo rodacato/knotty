@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../../domain/furniture/fixtures/bookcase'
 import { testCatalog } from '../../../domain/furniture/fixtures/catalog.test-util'
-import type { KnowledgeSelection } from '../../../domain/furniture/knowledge/select'
+import { adviceFor } from '../../../domain/furniture/knowledge/claims'
+import { selectKnowledge, type KnowledgeSelection, type KnowledgeStage } from '../../../domain/furniture/knowledge/select'
 import { TOOL_LEVELS } from '../../../domain/materials/tools'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS } from '../../../domain/furniture/modules/plan'
-import { ADJUSTMENT, KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, guideBlock, PURCHASE_REVIEW, RECONSTRUCTION, READING, SKELETON, CRAFT_CORE, CRAFT_TOOLS, craftBlock, planAdjustmentFor, promptIdOf, readingFor, render, skeletonFor, systemFor } from './prompts'
+import { ADJUSTMENT, KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, guideBlock, PURCHASE_REVIEW, RECONSTRUCTION, READING, SKELETON, CRAFT_CORE, CRAFT_TOOLS, craftBlock, claimsBlock, planAdjustmentFor, promptIdOf, readingFor, render, skeletonFor, systemFor } from './prompts'
 import { createExpert, type Transport } from './expert'
 
-const full: KnowledgeSelection = { core: 'full', guide: null, guideSize: 'full', tools: 3 }
-const short: KnowledgeSelection = { core: 'short', guide: null, guideSize: 'short', tools: 1 }
-const photo: KnowledgeSelection = { core: 'photo', guide: null, guideSize: 'short', tools: null }
+const full: KnowledgeSelection = { core: 'full', guide: null, guideSize: 'full', tools: 3, advice: { use: null, operations: [] } }
+const short: KnowledgeSelection = { core: 'short', guide: null, guideSize: 'short', tools: 1, advice: { use: null, operations: [] } }
+const photo: KnowledgeSelection = { core: 'photo', guide: null, guideSize: 'short', tools: null, advice: { use: null, operations: [] } }
 const signal = new AbortController().signal
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
@@ -218,5 +219,53 @@ describe('the expert sends the blocks of the selection it was given', () => {
     const photoOnly = _ === 'readPhoto'
     expect(plain).not.toContain('Craft sense.')
     expect(withBlocks).toBe(`${plain}\n\n${photoOnly ? CRAFT_CORE.sections.photo : craftBlock(short)!.text}`)
+  })
+})
+
+describe('the workshop practice block', () => {
+  const selected = (stage: KnowledgeStage, use: 'bookcase' | null = 'bookcase') => selectKnowledge({ use, module: use && 'cabinet', materials: [], toolLevel: 3, requirements: [], stage })
+
+  it('is absent without a selection, for a photo and for a selection that asks for nothing', () => {
+    expect(claimsBlock(null)).toBeNull()
+    expect(claimsBlock(selected('photo'))).toBeNull()
+    expect(claimsBlock(full)).toBeNull()
+  })
+
+  it('carries the rules the registry gives for the kind and the stage, in its own words and without ids', () => {
+    for (const stage of ['skeleton', 'plan-adjust', 'review'] as const) {
+      const knowledge = selected(stage)
+      const block = claimsBlock(knowledge)!
+      const wanted = knowledge.advice.operations.flatMap((op) => adviceFor('bookcase', op))
+      expect(wanted.length).toBeGreaterThan(0)
+      for (const advice of new Set(wanted)) {
+        expect(block.text).toContain(advice.rule)
+        expect(block.text).not.toContain(advice.claimId)
+      }
+      expect(block.id).toBe('claims@1')
+    }
+  })
+
+  it('says a conditional rule with its condition, and never lists a rule twice', () => {
+    const block = claimsBlock(selected('plan-adjust'))!
+    expect(block.text).toMatch(/Applies when: /)
+    const rules = block.text.split('\n').filter((l) => l.startsWith('- '))
+    expect(new Set(rules).size).toBe(rules.length)
+  })
+
+  it('comes after the craft blocks in the text and in the id, on top of what the call already said', () => {
+    const knowledge = selected('skeleton')
+    const prompt = skeletonFor('cabinet', 'bookcase', knowledge)
+    expect(prompt.id).toMatch(/\+core@1\+tools@1\+claims@1$/)
+    expect(prompt.text.indexOf(craftBlock(knowledge)!.text)).toBeLessThan(prompt.text.indexOf(claimsBlock(knowledge)!.text))
+    expect(prompt.text.endsWith(claimsBlock(knowledge)!.text)).toBe(true)
+  })
+
+  it('reaches the system-prompt calls, and the photo reading never carries it', () => {
+    expect(promptIdOf(ADJUSTMENT, selected('plan-adjust'))).toContain('claims@1')
+    expect(readingFor(selected('plan-adjust')).id).toBe('reading@4+core@1')
+  })
+
+  it('stays within a budget per stage so the notes do not grow past what a call can spare', () => {
+    for (const [stage, tokens] of [['skeleton', 1050], ['plan-adjust', 1550], ['review', 700]] as const) expect(approxTokens(claimsBlock(selected(stage))!.text)).toBeLessThanOrEqual(tokens)
   })
 })
