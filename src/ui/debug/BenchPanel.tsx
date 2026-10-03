@@ -2,6 +2,7 @@ import { ArrowSquareOut, CheckCircle, DownloadSimple, Flask, Play, Stop, Warning
 import * as Dialog from '@radix-ui/react-dialog'
 import { useRef, useState } from 'react'
 import { describeAdjustments, describeStructure, type BenchResult, type ModuleCheck } from '../../application/bench/bench'
+import { problemsOf } from '../../application/bench/report'
 import { moduleName, moduleNames } from '../../domain/furniture/modules/plan'
 import { useServices } from '../services'
 import { Button } from '../system/components'
@@ -14,7 +15,7 @@ const PARALLEL = 2
 
 function Verdict({ r }: { r: BenchResult }) {
   if (!r.ok) return <XCircle className="text-rust" weight="fill" aria-label="Falló" />
-  if (r.verdict === 'viable' && r.reasonable && r.structure?.ok !== false) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
+  if (!problemsOf(r).length) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
   return <WarningCircle className="text-amber" weight="fill" aria-label="Con observaciones" />
 }
 
@@ -136,6 +137,11 @@ export function BenchPanel() {
                                 {r.criticals ? ` · ${r.criticals} críticos (${r.rules.join(' ')})` : ''}
                               </span>
                               {r.adjustments.length > 0 && <span>{describeAdjustments(r.adjustments)}</span>}
+                              {problemsOf(r).map((p) => (
+                                <span key={p} className="basis-full text-rust">
+                                  {p}
+                                </span>
+                              ))}
                               {r.state &&
                                 (confirming === c.id ? (
                                   <button

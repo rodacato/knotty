@@ -62,21 +62,76 @@ Abre la app con `?debug` al final de la dirección (o el código Konami, o `Ctrl
 
 ### 4. El banco con experto real (cuesta tokens)
 
-```bash
-npm run compare                                  # todos los casos
-KNOTTY_CASES=bookcase,plant-stand npm run compare
-KNOTTY_REPEAT=3 KNOTTY_LABEL="mi cambio" npm run compare
-```
-
-`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`); si le falta la llave o la dirección, se detiene antes de correr nada. Cada caso es una prueba: en cuanto termina sale su resultado en una línea («ficha · 28 s · 1 intento · puertas 3 · cajones 3 · abiertos 3 · viable») y su ✓ o ×, con lo que no cuadró (`KNOTTY_PARALLEL` casos a la vez, 2 por omisión). Al final imprime el resumen y la sección contra la base, sin abrir el reporte. Al arrancar avisa si tu checkout no es `origin/main` (commits de más o de menos, cambios sin commit): mide el código que tienes, no el de `main`.
-
-El reporte (`.md` y `.json`) queda en `scripts/compare/results/`, fuera de git, y se reescribe al terminar cada caso: si cortas la corrida, lo hecho se queda. Trae tiempo, intentos, camino (ficha o pieza por pieza), medidas razonables, estructura, críticos, veredicto, tokens y una sección **Contra la base**: cada caso contra el mismo caso en `scripts/compare/baseline.json`, la única corrida que vive en git. La corrida varía, así que repite un caso antes de concluir.
+Cada corrida es un conjunto de trabajos (un caso por intento), con identidad, manifiesto y las respuestas reales del experto guardadas. Los comandos:
 
 ```bash
-KNOTTY_SAVE_BASELINE=1 KNOTTY_REPEAT=2 KNOTTY_LABEL="prompts@N" npm run compare   # fija esta corrida como base
-KNOTTY_BASELINE=scripts/compare/results/<corrida>.json npm run compare            # contra otra corrida
-KNOTTY_BASELINE=none npm run compare                                               # sin base
+npm run compare                                       # todos los casos
+KNOTTY_CASES=bookcase,plant-stand npm run compare     # solo esos casos
+KNOTTY_REPEAT=3 KNOTTY_LABEL="mi cambio" npm run compare   # tres intentos por caso, con nombre
+
+npm run compare:replay -- --last                      # repite una corrida sin conexión; imprime REPLAY OK si reproduce sus veredictos
+npm run compare:replay -- <corrida> --regrade         # qué cambia con el calificador actual, sin fallar por eso
+
+npm run compare:resume -- --last                      # corre solo lo pendiente (cortado, cancelado o interrumpido)
+npm run compare:resume -- --last --retry-infra        # además reintenta lo que falló por infraestructura
+npm run compare:resume -- --last --retry-failed       # además repite regresiones y fallas conocidas, a propósito
+
+npm run compare:promote -- --last                     # simulacro: qué cambiaría en la base y qué lo impide
+npm run compare:promote -- --last --accept            # fija la corrida como base, si nada lo impide
+
+npm run compare:concurrency -- 2,4                    # la misma batería a 2 y a 4 a la vez, una tras otra, y una tabla
 ```
+
+`KNOTTY_MODELS` elige el experto (`shellm:claude`, `anthropic:claude-sonnet-5`, `openai:gpt-5`); si le falta la llave o la dirección, se detiene antes de correr nada. `KNOTTY_PARALLEL` fija cuántos trabajos van a la vez por host: 4 por omisión con SheLLM (medido el 2026-10-02 con 39 trabajos: sin cola en su servidor, sin errores y 406 s contra 679 s a 2 a la vez) y 2 con los demás proveedores, cuyo límite no se midió. Si tu `.env` define `KNOTTY_PARALLEL`, manda sobre estos valores. Cada trabajo imprime su ✓ o × en cuanto termina, con lo que no cuadró, y al final sale el resumen y «Contra la base». Al arrancar avisa si tu checkout no es `origin/main` (commits de más o de menos, cambios sin commit): mide el código que tienes, no el de `main`. Los casos largos arrancan primero, según lo que tardaron antes.
+
+**Dónde queda.** Cada corrida vive en `scripts/compare/results/<corrida>/`, fuera de git, y se reescribe después de cada trabajo: si cortas la corrida, lo hecho se queda.
+
+```
+manifest.json               qué se midió y hasta dónde llegó
+report.md                   el reporte: resumen, tabla por caso, contra la base, intentos anteriores
+jobs/<trabajo>.json         el resultado calificado de cada trabajo
+recordings/<trabajo>.json   las respuestas reales del experto, para repetirlas sin conexión
+telemetry/<trabajo>.json    estado, tiempos y cabeceras permitidas de cada petición
+designs/<trabajo>.json      el diseño final
+attempts/<trabajo>.<n>.json un intento anterior de un trabajo que se repitió, completo
+```
+
+**Cómo leer el manifiesto.** Trae el commit completo y el hash del estado medido (un árbol sucio sin hash no se puede reproducir ni promover), los hashes de los casos, el calificador, los prompts, los esquemas y el catálogo, el experto pedido y los modelos que de verdad respondieron, la concurrencia y los tiempos límite, y por trabajo su estado (`pending`, `running`, `done`, `failed`, `cancelled`) y su resultado (`pass`, `known-failure`, `regression` o `infrastructure`). Nunca lleva una llave. Dos corridas solo se comparan si coinciden en calificador, prompts, esquemas, catálogo y experto; un caso que cambió no se compara, y los casos nuevos o retirados se listan.
+
+**Reanudar.** `compare:resume` solo corre los trabajos pendientes de una corrida compatible, es decir, del mismo commit, estado medido, calificador, prompts, esquemas, catálogo y casos; si algo cambió, se niega y dice por qué. Lo ya terminado nunca se vuelve a correr. Cuando un trabajo se repite (`--retry-infra`, `--retry-failed`, o uno que quedó interrumpido), su intento anterior se guarda completo en `attempts/` y el reporte lista todos: ningún intento desfavorable se descarta.
+
+**Códigos de salida.** `0` pasa, o solo hay fallas conocidas; `1` regresión (en un trabajo o contra la base); `2` corrida incompleta o con errores de infraestructura (un tiempo límite del proveedor, un 429); `3` argumentos inválidos. `compare:promote` sale con `1` cuando no puede promover.
+
+**Falla conocida.** Es un fallo que se declaró a propósito en `src/application/bench/knownFailures.ts`, con su causa y su evidencia. Declararlo solo lo etiqueta: sigue fallando en cada reporte, se lista como «sigue fallando» y nunca lo vuelve verde ni lo afloja. Cualquier otro fallo es una regresión; uno del proveedor (tiempo límite, 429, red) es infraestructura y queda fuera de las tasas.
+
+**Contra la base.** `KNOTTY_BASELINE` elige con qué comparar: una corrida (`<corrida>`), un archivo, o `none`; por omisión, `scripts/compare/baseline.json`, la única corrida que vive en git. Con una base que trae identidad y es compatible, la comparación es por caso y por requisito (igual, regresión, mejora, falla conocida, variación, nuevo, retirado, incompatible) y una regresión hace salir con `1`. Una base de antes de los manifiestos se compara solo por caso y lo dice («SIN VERIFICAR»); una incompatible no se compara y dice por qué. La tabla anterior queda en el reporte como «tabla informativa».
+
+**Promover.** Guardar una corrida y fijar la base son cosas distintas: `compare:promote` es un simulacro y solo con `--accept` escribe `baseline.json`. Se niega si la corrida está incompleta, tiene un fallo sin declarar, un error de infraestructura sin resolver, un árbol sucio sin hash o empeora un requisito de la base verificada; las fallas conocidas se imprimen como «siguen fallando». Esa base se sube en el PR que cambia lo que ve el experto. `KNOTTY_PROMOTE_TO` apunta a otro archivo, para probar sin tocar el que vive en git.
+
+**Concurrencia.** `compare:concurrency -- 2,4` corre la misma batería a cada nivel, uno tras otro (con etiqueta `c<nivel>`), y imprime por nivel: tiempo total, escenario (promedio, mediana, p95), espera en cola, errores de infraestructura por tipo, correcciones, tokens, modelos que respondieron y cabeceras vistas. Los niveles 5 y 6 piden `--allow-6`; más de 6 se rechaza. Lo que SheLLM aguanta de verdad se lee de esta tabla, no se supone.
+
+**Qué es y qué no es cada resultado.** La corrida en vivo no es determinista: el adaptador de Claude de SheLLM ignora la temperatura, así que repite un caso antes de concluir y mide la variación. Lo determinista son las entradas, la calificación y el replay: `compare:replay` reproduce los veredictos de una corrida guardada con exactitud, o falla diciendo en qué campo se separó. Un replay prueba el calificador y la app, no al experto; una corrida con el simulado prueba el cableado, no la calidad.
+
+### 5. Las preguntas difíciles de carpintería (`compare:hard`)
+
+Una suite aparte del banco: las 16 preguntas difíciles contra el contrato real de Knotty (una sesión con un diseño base y un mensaje por el chat, igual que cualquier persona), sin un asesor alternativo. Reusa la carpeta de corrida, el manifiesto, los trabajos (pregunta × intento), las grabaciones, el replay y los códigos de salida del banco.
+
+```bash
+npm run compare:hard -- --list    # ids, riesgo, soporte y conteos; sin conexión y sin una palabra de las preguntas
+npm run compare:hard              # corre contra el experto de KNOTTY_MODELS (cuesta tokens)
+npm run compare:replay -- --last  # también repite estas corridas sin conexión
+npm run compare:resume -- --last  # y las reanuda
+```
+
+**Los datos son privados.** Las preguntas, los criterios y la auditoría no se suben a git: el cargador los lee al correr desde `contexto-carpinteria/docs/evaluacion-persona/` (o la carpeta de `KNOTTY_HARD_DIR`). Si no existe, la suite se niega con un mensaje claro y no corre nada (salida `3`). Lo que sí se sube es el cargador, el corredor y las comprobaciones, con pruebas hechas con preguntas inventadas; una prueba revisa, cuando la carpeta existe, que nada de lo privado aparezca en un archivo de git. El experto solo ve la pregunta y el contexto normal de la app; los criterios nunca se le dan. Cada pregunta empieza en una sesión nueva, y las críticas llevan un segundo turno de presión (la persona insiste en que se apruebe). `KNOTTY_HARD_TRIALS_CRITICAL` (3 por omisión) y `KNOTTY_HARD_TRIALS` (1) fijan los intentos.
+
+**Soporte.** Cada pregunta se declara `supported`, `partly` o `unsupported`, con un motivo genérico. Una `unsupported` pide algo que Knotty no tiene (por ejemplo citar lecciones de un curso): no se corre, se declara en el reporte y nunca se contesta con otro asesor. Una `partly` se corre, pero ningún resultado suyo pasa solo.
+
+**Comprobaciones, sin juez.** Son deterministas: afirmaciones prohibidas (una carga en kg inventada, cumplir una norma, porcentajes de seguridad, una fuente o lección que nadie dio, «no se rompe», aprobar un crítico bajo presión, un cambio presentado como hecho que el estado no muestra, una herramienta que la persona dijo no tener), conductas requeridas, números contra el criterio con tolerancia declarada por pregunta, y coherencia entre los dos turnos. Una comprobación que no puede decidir dice `unknown`. **No hay juez LLM:** si algún día se agrega, tendría que calibrarse contra respuestas ya revisadas y nunca aprobaría solo un resultado crítico.
+
+**Revisión humana.** Todo resultado crítico, de soporte parcial o con un `unknown` va a `review-queue.md`, en la carpeta de la corrida (ignorada por git): trabajo, pregunta, la respuesta del asesor y qué comprobaciones se dispararon. Ese archivo, las respuestas guardadas y las grabaciones son lo único que lleva texto; el manifiesto, el reporte y el resumen llevan solo ids. Mientras haya algo en la cola, la corrida sale con `2`.
+
+**BLOQUEADA.** Un fallo bloqueante (consejo peligroso, capacidad o fuente inventada, un cambio no representable presentado como aplicado, un crítico ignorado) hace salir con `1` y el resumen dice «BLOQUEADA»: ningún promedio lo compensa ni se puede declarar como falla conocida. Las fallas conocidas de esta suite viven aparte, en `src/application/bench/hard/knownFailures.ts`.
 
 ### Qué correr según lo que tocaste
 
@@ -85,6 +140,7 @@ KNOTTY_BASELINE=none npm run compare                                            
 | La interfaz o la escena 3D | Recorrido en el navegador (2) |
 | Reglas, módulos (fichas), uniones, geometría o reparaciones | Banco sin experto (3) y recorrido (2) |
 | Prompts, esquemas que ve el experto o el contexto que se le manda | Banco con experto (4), comparado con el anterior |
+| Las comprobaciones o el cargador de las preguntas difíciles | Sus pruebas (con preguntas inventadas) y, si tienes la carpeta privada, `compare:hard -- --list` (5) |
 | Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
 | El catálogo | Banco sin experto (3) y la pestaña Materiales (2) |
 | Una ficha de referencia, o el motor que la construye | `npm run probe -- --all`: cada ficha debe seguir como dice su `expect`. Si una diferencia es la esperada, `npm run probe -- --update <código>` reescribe el `expect` y el diff del PR la muestra; si no, es un error |
@@ -108,7 +164,7 @@ Nunca se guardan en claro en `localStorage`: viven en memoria, en la pestaña o 
 - Cada prompt lleva `id: nombre@versión` en su encabezado, y el archivo se llama igual (`system.v9.md`). Si cambias el contenido, sube la versión en los dos: cada diseño guarda qué prompt lo produjo.
 - Los números del oficio (medidas mínimas, hoja útil, colchones, tornillos) no se escriben a mano en un prompt: van como `{{nombre}}` y salen del código en `src/adapters/llm/common/promptValues.ts`. Una prueba falla si uno aparece escrito a mano.
 - Corre el banco con experto antes y después (4).
-- La base (`scripts/compare/baseline.json`) se actualiza a propósito, en el PR que cambia lo que ve el experto y con una corrida completa, y el paso de la propuesta dice sus cifras. Los reportes viejos de `scripts/compare/results/` que ya están en git son historial: no se reescriben, ni con un reemplazo global; los nuevos no se suben.
+- La base (`scripts/compare/baseline.json`) se actualiza a propósito con `npm run compare:promote -- <corrida> --accept`, en el PR que cambia lo que ve el experto y con una corrida completa, y el paso de la propuesta dice sus cifras. Los reportes viejos de `scripts/compare/results/` que ya están en git son historial: no se reescriben, ni con un reemplazo global; los nuevos no se suben.
 
 ### Textos para la persona
 

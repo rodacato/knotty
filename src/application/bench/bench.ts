@@ -1,14 +1,14 @@
-import { designParts } from '../../domain/editing/intent/counts'
 import { analyze } from '../../domain/checks/analysis'
 import { buildPlan, MODULES, type FurnitureKind, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
-import { estimatePurchase } from '../../domain/materials/purchase'
-import { currentDesign, type DesignState } from '../../domain/session/state'
-import { reviewViability } from '../../domain/checks/viability/viability'
+import { currentVersion, type DesignState } from '../../domain/session/state'
 import type { LLMProvider } from '../../ports/LLMProvider'
 import { createUseCases } from '../useCases'
 import { BENCH_CASES, type BenchCase, type Part } from './cases'
+import { countParts, GRADER_VERSION, gradeStep, outcomeOf, reasonableOf, scenarioOf, type DesignGrade, type Scenario, type StepResult } from './grading'
+
+export { countParts }
 
 // A test bench: the fixed cases run against the expert that is connected, and every variant of Knotty's modules, each measured and graded.
 
@@ -29,10 +29,11 @@ export interface BenchResult {
   pieces: number
   joints: number
   measures: string
-  /** Measures within the case's ranges, and the expected path and module when the case names them. */
+  /** The final measures within the case's ranges, and the expected path and module when the case names them. */
   reasonable: boolean | null
-  /** The doors, drawers and open openings the case asks for against the design's; null when the case does not say. */
+  /** The doors, drawers and open openings the case asks for against the final design's; null when the case does not name exact counts. */
   structure: Structure | null
+  /** Criticals, rules and verdict of the final design, after every request. */
   criticals: number
   rules: string[]
   /** Error codes sent back to the expert when it retried. */
@@ -43,7 +44,14 @@ export interface BenchResult {
   adjustments: Adjustment[]
   /** The whole session, after its requests, to open it in the studio or export it. */
   state: DesignState | null
+  /** Each step graded on the state it left, with its expectations; absent in rows saved before the grader had steps. */
+  steps?: StepResult[]
+  /** The first design graded on its own, before any request. */
+  reconstruction?: Reconstruction | null
+  graderVersion?: string
 }
+
+export type Reconstruction = DesignGrade & { reasonable: boolean | null; structure: Structure | null }
 
 export interface Adjustment {
   request: string
@@ -52,6 +60,8 @@ export interface Adjustment {
   calls: number
   outcome: 'version' | 'proposal' | 'answer' | 'error'
 }
+
+const LEGACY_OUTCOME: Record<StepResult['outcome'], Adjustment['outcome']> = { applied: 'version', pending: 'proposal', answer: 'answer', rejected: 'error', error: 'error' }
 
 const OUTCOME: Record<Adjustment['outcome'], string> = { version: 'versión', proposal: 'propuesta', answer: 'respuesta', error: 'error' }
 
@@ -69,18 +79,16 @@ export interface Structure {
 
 const PART_LABEL: Record<Part, string> = { doors: 'puertas', drawers: 'cajones', open: 'abiertos' }
 
-/** Doors and drawers by their pieces, so a design piece by piece counts too; open openings from the cells of a cabinet's plan. */
-export function countParts(design: Design, plan: FurniturePlan | null): Record<Part, number | null> {
-  const open = plan?.kind === 'cabinet' ? plan.columns.flatMap((c) => c.cells).filter((c) => c.content === 'open').length : null
-  return { ...designParts(design), open }
-}
+/** The exact counts a step asks for; ranges are expectations of their own and are not part of the structure. */
+const exactParts = (scenario: Scenario, step: number): Structure['expected'] =>
+  Object.fromEntries(scenario.steps[step].expect.flatMap((e) => (e.kind === 'parts' && typeof e.count === 'number' && !e.unsupported ? [[e.part, e.count] as const] : [])))
 
-function structureOf(c: BenchCase, design: Design, plan: FurniturePlan | null): Structure | null {
-  if (!c.parts) return null
+function structureOf(expected: Structure['expected'], design: Design, plan: FurniturePlan | null): Structure | null {
+  const asked = Object.entries(expected) as [Part, number][]
+  if (!asked.length) return null
   const found = countParts(design, plan)
-  const asked = Object.entries(c.parts) as [Part, number][]
   const ok = asked.some(([part, n]) => found[part] !== null && found[part] !== n) ? false : asked.some(([part]) => found[part] === null) ? null : true
-  return { expected: c.parts, found, ok }
+  return { expected, found, ok }
 }
 
 /** For the report and the bench: «puertas 4 (pidió 3) · cajones 3 · abiertos ? (pidió 3)». */
@@ -174,18 +182,28 @@ function measured(llm: LLMProvider, calls: Call[]): LLMProvider {
   }
 }
 
-/** The case's requests one after the other, each with the calls it made; the design's own calls stay out of the count. */
-async function adjustAll(useCases: ReturnType<typeof createUseCases>, state: DesignState, requests: string[], calls: Call[], signal: AbortSignal) {
+/** The case's requests one after the other, each graded on the state it left; the design's own calls stay out of the count. */
+async function adjustAll(p: {
+  useCases: ReturnType<typeof createUseCases>
+  state: DesignState
+  scenario: Scenario
+  first: StepResult
+  calls: Call[]
+  signal: AbortSignal
+  grade: (index: number, before: DesignState, after: DesignState, outcome: StepResult['outcome'], previous: StepResult) => StepResult
+}) {
   const adjustments: Adjustment[] = []
-  for (const request of requests) {
-    const before = { calls: calls.length, current: state.current }
-    state = await useCases.adjust(state, request, signal)
-    const made = calls.length - before.calls
-    const last = state.chat.at(-1)
-    const outcome = last?.error ? 'error' : state.proposal ? 'proposal' : state.current !== before.current ? 'version' : 'answer'
-    adjustments.push({ request, by: made ? 'expert' : 'knotty', calls: made, outcome })
+  const steps = [p.first]
+  let state = p.state
+  for (const [i, spec] of p.scenario.steps.slice(1).entries()) {
+    const before = state
+    const made = p.calls.length
+    state = await p.useCases.adjust(state, spec.request!, p.signal)
+    const outcome = outcomeOf(before, state)
+    adjustments.push({ request: spec.request!, by: p.calls.length - made ? 'expert' : 'knotty', calls: p.calls.length - made, outcome: LEGACY_OUTCOME[outcome] })
+    steps.push(p.grade(i + 1, before, state, outcome, steps.at(-1)!))
   }
-  return { adjustments, state }
+  return { adjustments, steps, state }
 }
 
 const record = ({ step, promptId, seconds, input, output }: Call): CallRecord => ({ step, promptId, seconds, input, output })
@@ -196,62 +214,64 @@ const inMemory = () => {
   return { load: () => state, save: (x: DesignState) => void (state = x), clear: () => void (state = null) }
 }
 
-function withinExpected(c: BenchCase, d: Design['dimensions']) {
-  const inside = (m: Design['dimensions']) => Object.entries(c.expected).every(([k, [min, max]]) => m[k as keyof typeof m] >= min && m[k as keyof typeof m] <= max)
-  return inside(d) || (!!c.anyOrientation && inside({ ...d, width: d.depth, depth: d.width }))
-}
-
-export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog }) {
+export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog; now?: () => string; newId?: () => string }) {
   const { catalog } = deps
 
   async function runCase(c: BenchCase, signal: AbortSignal): Promise<BenchResult> {
     const calls: Call[] = []
     const provider = deps.llm()
-    const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory() })
+    const useCases = createUseCases({ llm: () => measured(provider, calls), catalog: catalog, repository: inMemory(), now: deps.now, newId: deps.newId })
     const start = performance.now()
-    const empty = { callLog: [], inputTokens: null, adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, structure: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null }
+    const empty = { callLog: [], inputTokens: null, adjustments: [], path: null, pieces: 0, joints: 0, measures: '—', reasonable: null, structure: null, criticals: 0, rules: [], corrections: [], repairs: 0, verdict: '—', outputTokens: null, state: null, steps: [], reconstruction: null, graderVersion: GRADER_VERSION }
     try {
-      const state = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
+      const scenario = scenarioOf(c)
+      const initial = await useCases.reconstruct({ measures: c.measures, photos: [], thumbnails: [], notes: c.notes }, signal)
       const seconds = (performance.now() - start) / 1000
-      const design = currentDesign(state)
-      const d = design.dimensions
       const total = (of: (c: Call) => number | null) => {
         const values = calls.map(of)
         return values.length && values.every((t) => t !== null) ? values.reduce((s, t) => s! + t!, 0) : null
       }
-      const path = state.versions[0].plan ? ('plan' as const) : ('pieces' as const)
-      const common = {
+      const path = initial.versions[0].plan ? ('plan' as const) : ('pieces' as const)
+      const grade = (index: number, before: DesignState | null, after: DesignState, outcome: StepResult['outcome'], previous: StepResult | null) =>
+        gradeStep({ catalog, spec: scenario.steps[index], index, before, after, outcome, previous })
+      const first = grade(0, null, initial, 'applied', null)
+      const firstVersion = initial.versions[0]
+      const reconstruction: Reconstruction = { ...first.design, reasonable: reasonableOf([first]), structure: structureOf(exactParts(scenario, 0), firstVersion.design, firstVersion.plan ?? null) }
+      const designCalls = {
+        calls: calls.length,
+        outputTokens: total((c) => c.output),
+        inputTokens: total((c) => c.input),
+        corrections: [...new Set(calls.flatMap((l) => l.corrects))],
+        repairs: initial.trace.reduce((n, t) => n + t.repairs.length, 0),
+      }
+      const adjusted = await adjustAll({ useCases, state: initial, scenario, first, calls, signal, grade })
+      const last = adjusted.steps.at(-1)!
+      const finalVersion = currentVersion(adjusted.state)
+      return {
         caseId: c.id,
         ok: true,
         error: null,
         seconds,
-        calls: calls.length,
-        outputTokens: total((c) => c.output),
-        inputTokens: total((c) => c.input),
+        ...designCalls,
         path,
-        pieces: design.pieces.length,
-        joints: design.joints.length,
-        measures: `${d.height} × ${d.width} × ${d.depth}`,
-        reasonable: withinExpected(c, d) && (!c.path || c.path === path) && (!c.module || state.versions[0].plan?.kind === c.module),
-        structure: structureOf(c, design, state.versions[0].plan ?? null),
-        corrections: [...new Set(calls.flatMap((l) => l.corrects))],
-        repairs: state.trace.reduce((n, t) => n + t.repairs.length, 0),
+        pieces: last.design.pieces,
+        joints: last.design.joints,
+        measures: last.design.measures,
+        reasonable: reasonableOf(adjusted.steps),
+        structure: structureOf(exactParts(scenario, scenario.steps.length - 1), finalVersion.design, finalVersion.plan ?? null),
+        criticals: last.design.criticals,
+        rules: last.design.rules,
+        verdict: last.design.verdict,
+        adjustments: adjusted.adjustments,
+        state: adjusted.state,
+        steps: adjusted.steps,
+        reconstruction,
+        graderVersion: GRADER_VERSION,
+        callLog: calls.map(record),
       }
-      const graded = grade(design)
-      const adjusted = await adjustAll(useCases, state, c.adjust ?? [], calls, signal)
-      return { ...common, ...graded, ...adjusted, callLog: calls.map(record) }
     } catch (e) {
       return { ...empty, caseId: c.id, ok: false, error: e instanceof Error ? e.message : String(e), seconds: (performance.now() - start) / 1000, calls: calls.length, callLog: calls.map(record) }
     }
-  }
-
-  function grade(design: Design) {
-    const a = analyze(design, catalog)
-    if (!a.valid) return { criticals: 0, rules: [], verdict: 'invalid' }
-    const purchase = estimatePurchase(design, a.geo, catalog)
-    const viability = reviewViability({ design, analysis: a, catalog, purchase, unmet: [] })
-    const criticals = a.findings.filter((h) => h.severity === 'critical')
-    return { criticals: criticals.length, rules: [...new Set(criticals.map((h) => h.code))], verdict: viability.verdict }
   }
 
   /** Every variant of the modules, with no expert: any that comes out invalid or with findings is a bug in Knotty. */

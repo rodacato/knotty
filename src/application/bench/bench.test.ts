@@ -107,6 +107,13 @@ describe('the bench', () => {
     expect(checked.filter((r) => r.read !== r.expected)).toEqual([])
   })
 
+  it('grades every step on its own state and keeps the first design apart from the final one', async () => {
+    const r = await bench.runCase(bench.cases.find((c) => c.id === 'bookcase')!, signal())
+    expect(r.steps!.map((s) => [s.step, s.outcome])).toEqual([[0, 'applied'], [1, 'answer']])
+    expect(r.reconstruction).toMatchObject({ verdict: r.verdict, reasonable: true, structure: { ok: true } })
+    expect(r.steps!.every((s) => s.proposal === null)).toBe(true)
+  })
+
   it('a case the expert cannot do is reported, not thrown', async () => {
     const r = await bench.runCase({ id: 'bench', notes: 'Una banca para el recibidor', measures: null, expected: {} }, signal())
     expect(r).toMatchObject({ ok: false, error: expect.stringContaining('conecta un experto real') })
