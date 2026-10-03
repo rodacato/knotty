@@ -120,7 +120,7 @@ Agregado el 2026-10-03. El ajuste se decide por lo que la pieza tiene que hacer,
 
 | Qué debe hacer la pieza | Ajuste | Cómo comprobarlo sin cortar de más |
 |---|---|---|
-| Quedar fija (trasera pegada, tarugos, una caja que se pega) | Apretado, pero que entre sin vencer resistencia: si necesita prensa o golpes para entrar, está de más | Presentarla en seco; si traba, ver [fabricación y armado](fabricacion-y-armado.md) §6.1 |
+| Quedar fija (trasera pegada, tarugos, una caja que se pega) | Apretado, pero que entre con la fuerza de las manos y se sostenga solo: si necesita prensa o golpes para entrar, está de más, porque la cola también ocupa espacio. Una pieza pegada no debe llevar juego, que le quita resistencia a la cola | Presentarla en seco; si traba, ver [fabricación y armado](fabricacion-y-armado.md) §6.1 |
 | Poder quitarse (repisa móvil, panel desmontable) | Con un juego chico, para sacarla y ponerla con una mano | Probar con la pieza real, con la mano y no con herramienta |
 | Deslizarse (puerta corredera, cajón sin corredera) | Con juego suficiente para que no roce aunque el triplay se hinche un poco, y sin que baile | Deslizarla varias veces; si roza en un punto, marcarlo y rebajar solo ahí |
 
