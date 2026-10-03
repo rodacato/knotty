@@ -220,7 +220,6 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
 
   // What changes what you are looking at comes first: an old version, the expert at work, a proposal or preview; then problems, pieces to confirm, what the last change resolved.
   const statuses: Status[] = [
-    ...(workshop ? [{ key: 'workshop', icon: <Flask />, label: 'Taller: nada de esto se guarda' }] : []),
     ...(viewedVersion !== null
       ? [
           {
@@ -317,6 +316,8 @@ export function Studio({ state, workshop }: { state: DesignState; workshop?: Wor
           },
         ]
       : []),
+    // Last, because the chip shows only the first status: what changes what you see must not hide behind the workshop's reminder.
+    ...(workshop ? [{ key: 'workshop', icon: <Flask />, label: 'Taller: nada de esto se guarda' }] : []),
   ]
 
   const scene = (
