@@ -114,6 +114,18 @@ Las uniones que se pueden hacer en los niveles 1 y 2 de [fabricación y armado](
 | **Escuadra metálica** | 1 | Solo pide taladro y desarmador, y se quita cuando quieras. | Se ve mucho y no evita que el casco se descuadre ⚠️. |
 | **Ranura hecha en la maderería** | 1 (si la maderería la hace) | La repisa o el fondo se apoya en el canal y la carga no depende del tornillo [67]; además alinea las piezas. | Profundidad de un tercio del espesor, nunca más de la mitad [20][21]; sin pegamento fue la peor al descuadre [75], y hay que darle a la maderería el espesor real del triplay. |
 
+### 3.4 Ajuste: fijo, con juego o desmontable
+
+Agregado el 2026-10-03. El ajuste se decide por lo que la pieza tiene que hacer, antes que por la medida. Los milímetros de correderas y bisagras son datos de ficha (§6); para lo demás no hay una cifra con fuente, así que se prueba. ⚠️ práctica de taller.
+
+| Qué debe hacer la pieza | Ajuste | Cómo comprobarlo sin cortar de más |
+|---|---|---|
+| Quedar fija (trasera pegada, tarugos, una caja que se pega) | Apretado, pero que entre sin vencer resistencia: si necesita prensa o golpes para entrar, está de más | Presentarla en seco; si traba, ver [fabricación y armado](fabricacion-y-armado.md) §6.1 |
+| Poder quitarse (repisa móvil, panel desmontable) | Con un juego chico, para sacarla y ponerla con una mano | Probar con la pieza real, con la mano y no con herramienta |
+| Deslizarse (puerta corredera, cajón sin corredera) | Con juego suficiente para que no roce aunque el triplay se hinche un poco, y sin que baile | Deslizarla varias veces; si roza en un punto, marcarlo y rebajar solo ahí |
+
+Antes de cortar la pieza buena, probar el ajuste con un retazo del mismo triplay y espesor real. ❓ Falta una fuente para dar milímetros de juego en repisas móviles y puertas corredizas de triplay.
+
 ---
 
 ## 4. Sistema 32 mm y soportes de repisa

@@ -299,7 +299,7 @@ El astillado aparece donde el diente **sale** de la madera [33] ✅:
 | Sierra de riel (*track saw*) | Hacia abajo | Protector contra astillado del riel |
 | Router y CNC | — | Broca de espiral descendente (*down-cut*) o de compresión; tabla de sacrificio |
 
-Trucos de todas: marcar el corte con **cúter** antes de cortar, poner **cinta de pintor** sobre la línea y hacer una primera pasada poco profunda que solo corte la chapa [33] ✅.
+Trucos de todas: marcar el corte con **cúter** antes de cortar, poner **cinta de pintor** sobre la línea y hacer una primera pasada poco profunda que solo corte la chapa [33] ✅. Al taladrar, poner un retazo de triplay detrás de la pieza para que la broca salga sobre él (pieza de sacrificio) ⚠️ práctica de taller.
 
 ### Corte en tienda
 
