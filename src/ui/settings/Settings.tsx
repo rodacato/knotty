@@ -87,16 +87,19 @@ export function Settings() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col gap-5 overflow-y-auto rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
-          <div className="flex items-center justify-between">
+        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-bone shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+          <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <Dialog.Title asChild>
-              <Title className="text-xl">El experto</Title>
+              <Title className="text-xl">Ajustes</Title>
             </Dialog.Title>
             <Dialog.Close className="relative grid size-9 place-items-center rounded-full before:absolute before:-inset-1 before:content-[''] hover:bg-kraft" aria-label="Cerrar">
               <X />
             </Dialog.Close>
           </div>
-          <Dialog.Description className="-mt-3 text-sm text-graphite">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5">
+          <section className="flex flex-col gap-4">
+          <Title className="text-lg">Experto</Title>
+          <Dialog.Description className="-mt-2 text-sm text-graphite">
             Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
           </Dialog.Description>
 
@@ -195,9 +198,11 @@ export function Settings() {
             </div>
           )}
 
-          <fieldset className="flex flex-col gap-2 border-t border-line pt-4">
-            <legend className="mb-1.5 font-medium">¿Qué herramienta tienes?</legend>
-            <p className="-mt-1 text-xs text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
+          </section>
+
+          <section className="flex flex-col gap-2 border-t border-line pt-5">
+            <Title className="text-lg">Tu herramienta</Title>
+            <p className="text-xs text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
             <RadioGroup label="Tu herramienta" className="grid gap-1.5">
               {TOOL_LEVELS.map((level) => (
                 <RadioCard key={level} checked={toolLevel === level} onChange={() => setToolLevel(level)} className="flex flex-col items-start rounded-xl px-3 py-2 text-left text-sm">
@@ -208,11 +213,14 @@ export function Settings() {
                 </RadioCard>
               ))}
             </RadioGroup>
-          </fieldset>
+          </section>
 
-          <label className="flex min-h-11 items-center gap-2 border-t border-line pt-3 text-xs text-graphite">
+          <section className="flex flex-col gap-2 border-t border-line pt-5">
+          <Title className="text-lg">Avanzado</Title>
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
             <input
               type="checkbox"
+              className="mt-0.5 size-5 shrink-0 accent-amber"
               checked={debugVisible}
               onChange={(e) => {
                 debug.setVisible(e.target.checked)
@@ -220,11 +228,16 @@ export function Settings() {
                 dispatchEvent(new CustomEvent(DEBUG_VISIBILITY, { detail: e.target.checked }))
               }}
             />
-            Mostrar las entrañas de la madera: la bitácora para mandar reportes de lo que pasó
+            <span>
+              Mostrar las entrañas de la madera
+              <span className="block text-xs text-graphite">La bitácora para mandar reportes de lo que pasó.</span>
+            </span>
           </label>
+          </section>
+          </div>
 
-          {error && <p className="text-sm text-rust">{error}</p>}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3">
+          {error && <p role="alert" className="mr-auto min-w-0 flex-1 basis-40 text-sm text-rust">{error}</p>}
             <Dialog.Close asChild>
               <Button variant="ghost">Cancelar</Button>
             </Dialog.Close>
