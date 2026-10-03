@@ -25,6 +25,7 @@ const KINDS: { id: DebugKind; label: string }[] = [
 ]
 const COLOR: Record<DebugKind, string> = { llm: 'bg-amber-soft', action: 'bg-kraft', stage: 'bg-bone', error: 'bg-rust/15 text-rust', app: 'bg-slate/15' }
 const time = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+const exportName = () => `knotty-debug-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
 
 /** Everything needed to understand or rebuild a session, without API keys. */
 function exportBundle(events: DebugEvent[], preferences: ReturnType<ReturnType<typeof useServices>['preferences']['load']>, design: unknown) {
@@ -103,7 +104,7 @@ export function DebugPanel() {
     const url = URL.createObjectURL(new Blob([bundle()], { type: 'application/json' }))
     const a = document.createElement('a')
     a.href = url
-    a.download = `knotty-debug-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`
+    a.download = exportName()
     a.click()
     URL.revokeObjectURL(url)
   }
