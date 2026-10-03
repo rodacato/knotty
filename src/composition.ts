@@ -8,6 +8,7 @@ import { createLocalDebugLog } from './adapters/debug/localDebugLog'
 import { withDebugLog } from './adapters/debug/loggedProvider'
 import { createCanvasProcessor } from './adapters/image/canvas'
 import { createLocalRepository } from './adapters/persistence/localStorage'
+import { createSandboxedRepository } from './adapters/persistence/sandbox'
 import { createBundledReferences } from './adapters/references/store'
 import { createBench } from './application/bench/bench'
 import { createUseCases } from './application/useCases'
@@ -36,9 +37,10 @@ export async function compose(): Promise<Services> {
   const debug = createLocalDebugLog()
   if (!opened) debug.record({ kind: 'app', summary: `Knotty ${__APP_COMMIT__} abierto`, data: { commit: __APP_COMMIT__, userAgent: navigator.userAgent, viewport: `${innerWidth}×${innerHeight}` } })
   opened = true
+  const repository = createSandboxedRepository(createLocalRepository())
   const expert = () => withDebugLog(providerFor(preferences.load()), debug)
-  const useCases = createUseCases({ llm: expert, catalog, promptCatalog: () => applySettings(catalog, materials.settings()), toolLevel: () => materials.settings().toolLevel, repository: createLocalRepository() })
+  const useCases = createUseCases({ llm: expert, catalog, promptCatalog: () => applySettings(catalog, materials.settings()), toolLevel: () => materials.settings().toolLevel, repository })
   // The bench talks to the same expert, through the log: raw answers from a bench run land there too.
   const bench = createBench({ llm: expert, catalog })
-  return { useCases, catalog, materials, images: createCanvasProcessor(), references: createBundledReferences(), preferences, debug, bench }
+  return { useCases, catalog, materials, images: createCanvasProcessor(), references: createBundledReferences(), preferences, debug, bench, sandbox: repository }
 }

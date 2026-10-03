@@ -19,7 +19,10 @@ import type { Get, Set, Slice } from './types'
 
 // The open design and the commands that change it without asking the expert.
 
-type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
+type Phase = 'home' | 'capture' | 'analyzing' | 'studio' | 'lab'
+
+/** The workshop keeps its own screen whatever it opens: a design there is a throwaway, not a step of the person's flow. */
+const studioOr = (phase: Phase): Phase => (phase === 'lab' ? 'lab' : 'studio')
 
 export interface SessionSlice {
   services: Services | null
@@ -30,6 +33,10 @@ export interface SessionSlice {
 
   start(services: Services): void
   newDesign(): void
+  /** The hidden workshop: only from the debug access, on throwaway designs; nothing it does reaches the saved one. */
+  enterLab(): void
+  /** Back to the saved design, as it was. */
+  leaveLab(): void
   startCapture(): void
   adjustBase(base: Base): void
   closeAdjust(): void
@@ -112,7 +119,24 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null })
+    set((s) => ({ state: null, phase: s.phase === 'lab' ? 'lab' : 'capture', adjusting: null, selection: null, hidden: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null }))
+  },
+
+  enterLab() {
+    const { services } = get()
+    if (!services?.debug.visible()) return
+    get().controller?.abort()
+    services.sandbox.enter()
+    set({ state: null, phase: 'lab', adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, exploded: false, draft: null, thinking: false, stage: null })
+  },
+
+  leaveLab() {
+    const { services } = get()
+    if (!services || get().phase !== 'lab') return
+    get().controller?.abort()
+    services.sandbox.leave()
+    const state = services.useCases.load()
+    set((s) => ({ state, phase: state ? 'studio' : 'home', viewedVersion: null, selection: null, hidden: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   adjustBase: (base) => set({ adjusting: base }),
@@ -126,13 +150,13 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   openState(state) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.adopt(state), phase: studioOr(s.phase), adjusting: null, viewedVersion: null, selection: null, hidden: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', adjusting: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => ({ state: services.useCases.openExample(example), phase: studioOr(s.phase), adjusting: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),
