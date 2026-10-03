@@ -62,3 +62,35 @@ describe('validateGeometry', () => {
     expect(validate(d).warnings.map((a) => a.data)).toEqual([{ a: 'kick', b: 'bottom' }])
   })
 })
+
+describe('a seam between two panels over a shared support', () => {
+  const half = (id: string, from: number, to: number, role: 'bottom' | 'shelf' = 'bottom') => makePiece({ id, name: id, role, material: 'T18', normal: 'y', x: extent(mm(0), mm(1000)), y: extent(mm(72), mm(90)), z: extent(mm(from), mm(to)) })
+  const spine = (length: number) => makePiece({ id: 'spine', name: 'Larguero', role: 'other', material: 'T18', normal: 'z', x: extent(mm(0), mm(length)), y: extent(mm(0), mm(72)), z: startAt(mm(491)) })
+  const bed = (o: { length?: number; joined?: string[]; right?: 'bottom' | 'shelf' }): Design => ({
+    schema: 1,
+    name: 'Tableros',
+    dimensions: { width: 1000, height: 90, depth: 1000 },
+    wallAnchored: false,
+    notes: '',
+    pieces: [half('left', 0, 500), half('right', 500, 1000, o.right), spine(o.length ?? 1000)],
+    joints: (o.joined ?? ['left', 'right']).map((id) => makeJoint(`j-${id}`, id, 'spine', 'butt-screw')),
+  })
+  const seamWarnings = (d: Design) => validate(d).warnings.filter((w) => w.data?.a === 'left' && w.data?.b === 'right')
+
+  it('is not a joint when a support joined to both holds the whole seam', () => {
+    expect(seamWarnings(bed({}))).toEqual([])
+  })
+
+  it('still warns when only one of the panels is joined to the support', () => {
+    expect(seamWarnings(bed({ joined: ['left'] }))).toHaveLength(1)
+  })
+
+  it('still warns when the support holds only a short stretch of the seam', () => {
+    expect(seamWarnings(bed({ length: 200 }))).toHaveLength(1)
+  })
+
+  it('does not take two pieces of different roles for a seam', () => {
+    expect(seamWarnings(bed({ right: 'shelf' }))).toHaveLength(1)
+  })
+})
+

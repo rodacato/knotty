@@ -499,7 +499,7 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 
 ## Preguntas abiertas
 
-- El banco sin experto revisa hallazgos estructurales pero no las advertencias de geometría: `W_CONTACT_WITHOUT_JOINT` («se tocan pero no tienen unión») sale en la cama base y en unas 140 variantes de los módulos. El taller ya las lista por variante; falta decidir si el banco debe reprobarlas o si cada una necesita su unión.
+- Los avisos de geometría («se tocan pero no tienen unión») salen solo de la cama. Dos tableros del mismo rol, en un mismo plano y canto con canto, sobre un apoyo común unido a los dos, ya no avisan (`supportedSeam`, claro máximo de `estructura.md` §7.3); una junta sin apoyo sí. Quedan los de las patas contra el marco, los costados de la cabecera contra la plataforma y el zoclo, y el frente del compartimento contra el cabecero de la base: son decisiones de carpintería (declarar la unión o cambiar cómo se arma), no de la regla. Mientras queden, el banco no los reprueba.
 - R5 en un mueble abierto que no es caja: se juzga por caja (ver «Invariantes») y tiene solución construible (fajas). Queda: ¿aplicarla sola en el primer diseño, como una reparación por reglas? Y la regla todavía ignora los `brace` diagonales que ponga el experto.
 - R5 y el anclaje al muro: ¿un librero abierto anclado al muro cuenta como escuadrado? Los documentos de carpintería dicen que las escuadras no detienen el desescuadre, así que hoy el anclaje no se toma en cuenta; falta decidir si debe.
 - Patas de la cama: las patas bajo la esquina de lateral y cabecera dan unos 18 × 36 mm de contacto. ¿Alcanza esa unión, o hace falta otra?
