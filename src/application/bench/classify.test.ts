@@ -45,6 +45,13 @@ describe('classifyTrial', () => {
     expect(classifyTrial(r, { known })).toBe('regression')
   })
 
+  it('the wide bookcase failing through the discarded plan is a known failure, and still has problems', () => {
+    const wide = (rules: string[]) => resultOf({ caseId: 'bookcase-wide-books', verdict: 'needs-changes', criticals: rules.length, rules, steps: [stepOf('diseño inicial', [expectation('0:verdict', 'fail', 'veredicto needs-changes (esperado viable)')])] })
+    expect(problemsOf(wide(['R1_SAG'])).length).toBeGreaterThan(0)
+    expect(classifyTrial(wide(['R1_SAG', 'R3_SCREWS']), { known })).toBe('known-failure')
+    expect(classifyTrial(wide(['R1_SAG', 'R9_DRAWERS']), { known })).toBe('regression')
+  })
+
   it('a known failure of one case does not excuse the same failure in another', () => {
     expect(classifyTrial(plantStand({ caseId: 'desk' }), { known })).toBe('regression')
   })
