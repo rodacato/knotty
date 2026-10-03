@@ -50,7 +50,7 @@ Nombres de las uniones según el [glosario](glosario.md) §5.
 | Bisagras de cazoleta | ⚠️ solo si la maderería perfora [3] | ✅ | ✅ | broca Forstner de 35 mm + tope | Cazoleta de 35 mm, 11.5–13 mm de profundidad [11]. | ✅ [11][3] |
 | Correderas | ✅ | ✅ | ✅ | taladro, escuadra | Caja del cajón 26 mm más angosta que el hueco: 13 mm por lado, dentro de los 12.7 mm +0.8 / −0 de la corredera de balines [8] (ver [uniones y herrajes](uniones-y-herrajes.md)). Con 25 mm (12.5 por lado), como dan algunas guías, el cajón no entra. | ✅ [8] |
 | Tornillo de bolsillo | ❌ | ✅ | ✅ | plantilla de bolsillo | Tornillo de rosca gruesa para triplay [10]; largo por espesor real [18]. | ✅ [10][18] |
-| Tarugos | ❌ | ⚠️ con plantilla | ✅ | plantilla para tarugos | Pide agujeros alineados en las dos piezas. | ❓ |
+| Tarugos | ❌ | ⚠️ con plantilla | ✅ | plantilla para tarugos | Pide agujeros alineados en las dos piezas. Un centrador de tarugo (marca en la otra pieza dónde va el agujero) puede hacer el trabajo de la plantilla; sin comprobar en triplay. | ❓ |
 | Minifix | ❌ (salvo perforado en maderería) | ⚠️ | ✅ | broca Forstner de 15 mm + plantilla | Para muebles desarmables (§8.4). | ❓ |
 | Ranura | ⚠️ solo si la maderería la hace [3] | ⚠️ con sierra circular y varias pasadas | ✅ | router o sierra de mesa | Profundidad: un tercio del espesor, nunca más de la mitad (ver [uniones y herrajes](uniones-y-herrajes.md)). | ⚠️ [3] |
 | Rebaje | ❌ | ⚠️ | ✅ | router o sierra de mesa | Típico para traseras embutidas. | ⚠️ [14] |
@@ -87,6 +87,7 @@ Recomendación: **llamar o mandar WhatsApp antes** con la lista y preguntar tres
 4. **Descontar el ancho del corte** (3–4 mm; para planear, 4 mm) entre piezas [23], y dejar unos 2 mm de holgura por pieza. ⚠️ [23]
 5. **Respetar la veta** de las piezas visibles: indicar para cada pieza si la veta va a lo largo, a lo ancho o es libre; las piezas libres rellenan el sobrante. ⚠️
 6. **La pieza más grande primero**: si la hoja tiene un defecto, que caiga en una pieza chica o en el sobrante. ❓
+7. **Una referencia física antes que otra medida**: cuando una pieza tiene que encajar en un hueco o contra otra (una repisa, un cajón, una puerta), marcarla sobre la pieza o el hueco reales en lugar de medir otra vez con la cinta. Marcar todo lo de una pieza desde el mismo canto de referencia y anotar en cada una hacia dónde va (frente, arriba), para que un error de lectura no se acumule. ⚠️ práctica de taller (agregado el 2026-10-03)
 
 ### 2.4 Lista de corte que entiende un mostrador
 
@@ -105,6 +106,7 @@ Reglas:
 - Numerar las piezas y **pedir que las etiqueten** (servicio que ofrecen [3]); el número coincide con el de las instrucciones de armado.
 - Si se tiene un diagrama de acomodo, adjuntarlo como sugerencia, no como obligación: cada tienda optimiza con su programa [3][23].
 - Medidas en mm enteros. Si una pieza sale de 563.5, redondear hacia abajo y dejarlo dicho. ❓
+- **Las piezas que dependen de otras** (puertas, frentes de cajón, tapas) se piden con unos milímetros de sobra o se cortan después, sobre el cuerpo ya armado (ver §6 #3); lo que sobra se rebaja al final. ⚠️ práctica de taller
 
 ### 2.5 Ajustar medidas para gastar menos hojas
 
@@ -197,6 +199,8 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 | 14 | **Acabado** | Lijar, sellar y dar acabado (ver [acabados](acabados.md)). Desmontar herrajes si se barniza. | ❓ |
 | 15 | **Instalar** | Nivelar, anclar al muro (§9). | ✅ [7][28] |
 
+**Ensayo en seco y número de prensas.** Presentar en seco (paso 3) sirve para tres cosas: ver que todo encaja, ver que cada unión se alcanza con el taladro y las prensas, y contar cuántas prensas hacen falta. Si las uniones que se pegan juntas piden más prensas de las que hay, o más tiempo que el tiempo abierto de la cola (abajo), el armado se parte en etapas más cortas en vez de apurarlo. ⚠️ deducido de los tiempos de abajo (agregado el 2026-10-03)
+
 **Tiempos de pegamento.** El pegamento blanco que más se compra en México es el **Resistol 850**: según su ficha técnica, 15 min de tiempo abierto, 30–40 min en prensa, se puede manipular a las 4 h y aguanta carga a las 24 h; se aplica entre 10 y 40 °C (ver [uniones y herrajes](uniones-y-herrajes.md)). Seca transparente y **no es resistente al agua** [9]. Otras colas PVA dan tiempos parecidos pero no iguales: la Titebond Original da 4–6 min de tiempo abierto, 30–60 min en prensa y resistencia total a las 24 h [25]. Conviene seguir la ficha del pegamento que se use. ✅ [25][9]
 
 ---
@@ -208,13 +212,16 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 | **Taco espaciador** del alto de la repisa | Poner repisas fijas a la misma altura en ambos laterales sin medir cada vez. | ❓ |
 | **Plantilla de perforación de 32 mm** (comprada o de triplay con agujeros) | Soportes de repisa alineados en los cuatro puntos [12][17]. | ✅ [12][17] |
 | **Tope en la broca** (cinta o collarín) | No atravesar el lateral al perforar soportes o cazoletas; la cazoleta va a 11.5–13 mm [11]. | ⚠️ [11] |
-| **Prensas de esquina** | Sostener dos piezas a 90° mientras se atornilla [8]. | ⚠️ [8] |
+| **Prensas de esquina** | Sostener dos piezas a 90° mientras se atornilla [8]. Sostienen el ángulo, no aprietan la unión: el apriete lo da otra prensa. | ⚠️ [8] |
 | **Diagonales con flexómetro** | Escuadrar el cuerpo [24]. | ✅ [24] |
 | **Hoja de cartón con las jaladeras** | Misma posición en todos los frentes [8]. | ⚠️ [8] |
 | **Cinta de pintor sobre la línea de corte** | Menos astillado en la cara del triplay con sierra circular. | ❓ |
 | **Cortar con la cara buena hacia abajo** (sierra circular) | El diente sale por arriba y astilla la cara de arriba. | ❓ |
 | **Separadores de 2–3 mm** (monedas, tarjetas) | Dejar parejas las separaciones al colgar puertas y frentes. | ❓ |
 | **Pedir a la maderería que etiquete** | Cada pieza con su número de la lista [3]. | ⚠️ [3] |
+| **Pieza de sacrificio** (un retazo de triplay pegado a la salida) | Al salir el taladro o la sierra por la cara de atrás, el retazo sostiene las fibras y evita astillado y rebaba (ver [triplay](triplay.md), astillado). | ⚠️ |
+| **Marcas de orientación** en cada pieza (frente, arriba, izq./der.) | No armar al revés una pieza casi simétrica. | ⚠️ |
+| **Retazos de prueba** del mismo triplay y espesor real | Probar un ajuste, una ranura o una perforación antes de hacerlo en la pieza buena. | ⚠️ |
 
 ---
 
@@ -252,10 +259,24 @@ Ejemplos (❓): un **buró** con una puerta y un cajón, nivel 1 con cortes de t
 | 8 | Cajón sin holgura de corredera | No entra o no corre | Caja 26 mm más angosta que el hueco (13 mm por lado); revisar la ficha de la corredera [8] | ✅ [8] |
 | 9 | Perforar la cazoleta en la cara equivocada o sin tope | Puerta arruinada | Marcar la cara interior; tope a 11.5–13 mm [11] | ⚠️ [11] |
 | 10 | Puertas pares sin reflejar | Dos puertas izquierdas | Marcar «izq.» y «der.» antes de perforar | ❓ |
-| 11 | Pegamento escurrido sin limpiar | El barniz no agarra y queda mancha | Limpiar con trapo húmedo antes de que seque | ❓ |
+| 11 | Pegamento escurrido sin limpiar | El barniz no agarra y queda mancha | Hay dos prácticas: limpiarlo con trapo húmedo antes de que seque, o dejarlo gelificar y retirarlo. Esparcirlo con el dedo no. Seguir lo que diga la ficha de la cola | ❓ |
 | 12 | Mueble que no pasa por la puerta o no se puede parar | Hay que desarmarlo o cortarlo | Revisar el transporte desde el diseño (§8) | ✅ [30] |
 | 13 | No anclarlo | Riesgo de vuelco | Kit antivuelco a un poste o muro sólido [7][28] | ✅ [7][28] |
 | 14 | Cargar antes de 24 h | Uniones que se abren | Esperar el curado [25] | ✅ [25] |
+
+### 6.1 Antes de corregir: síntoma, hipótesis, comprobación
+
+Agregado el 2026-10-03. Es un método, no una lista de causas seguras: primero se comprueba, después se corta o se rebaja. Ninguna fila lleva cifras propias; los números están en las secciones que se citan. ⚠️ práctica de taller.
+
+| Síntoma | Hipótesis (de la más barata de comprobar) | Cómo comprobarla sin cortar | Qué hacer |
+|---|---|---|---|
+| Una pieza entra en su ranura o hueco y se traba antes de llegar al fondo | Suciedad o cola en el fondo; el hueco o la pieza no están a escuadra o miden distinto de lo marcado; la pieza se hinchó con la humedad | Probarla en seco sin cola; medir pieza y hueco en varios puntos; buscar las marcas de roce que muestran dónde aprieta | Limpiar o rebajar donde marca el roce. No vencerla con prensa: el triplay se abre entre capas (§6 #4) |
+| Un cajón roza o no corre | El hueco quedó más angosto que la caja más la holgura de las correderas (§1.3); el cuerpo está fuera de escuadra; las correderas no están a la misma altura o paralelas | Medir el hueco arriba y abajo, las diagonales del cuerpo y la altura de cada corredera | Corregir lo que midió mal; no lijar la caja antes de medir |
+| La puerta no cierra pareja | El cuerpo está fuera de escuadra; la bisagra necesita ajuste lateral, de profundidad o de altura; una cazoleta quedó torcida | Diagonales del cuerpo; probar los tornillos de ajuste de la bisagra (§3 paso 12) | Ajustar la bisagra antes de tocar la puerta |
+| El cuerpo no cuadra al armar (diagonales distintas) | Piezas iguales que no salieron iguales; la cola ya empezó a agarrar | Medir entre sí los laterales y las repisas; medir las dos diagonales | Prensa en la diagonal larga antes de que agarre la cola (§3 paso 7) |
+| Un tornillo asoma por la cara | El largo es mayor que lo que permite el espesor real; el espesor real es menor que el nominal (§6 #1) | Medir el espesor real con vernier y el largo del tornillo | Tornillo más corto (ver [uniones y herrajes](uniones-y-herrajes.md) §7) |
+| Una repisa se pandea | El claro es largo para su espesor; la veta corre cruzada al claro; la carga es mayor que la prevista | Medir el claro, mirar la dirección de la veta y qué se le puso encima | Divisor, repisa más gruesa o girar la veta (ver [estructura](estructura.md)) |
+| El mueble cojea | El piso no está plano; las patas o el zoclo no son iguales; el cuerpo está torcido | Probarlo en otro lugar y con un nivel; revisar las diagonales | Nivelar con patas ajustables o calzar antes de pensar que el cuerpo está mal (§9.1) |
 
 ---
 
@@ -269,7 +290,7 @@ Ejemplos (❓): un **buró** con una puerta y un cajón, nivel 1 con cortes de t
 | Polvo de madera y de tableros | **Respirador** (no cubrebocas de tela), aspiración, trabajar ventilado | El polvo de madera y el formaldehído están clasificados como cancerígenos del Grupo 1 por la IARC [5]: el polvo de madera desde el vol. 62 (1995); el formaldehído desde 2004 (vol. 88, confirmado en el vol. 100F; el vol. 62 lo tenía como 2A). El polvo irrita vías respiratorias y, fino y acumulado, puede incendiarse [15] | ✅ [15][5] |
 | Ruido | Tapones u orejeras con sierra y router | Práctica de taller | ❓ |
 | Enganches | Nada de ropa suelta ni joyas; cabello recogido | [6] | ⚠️ [6] |
-| Acabados con solvente | Ventilación y guantes de nitrilo | Ver [acabados](acabados.md) | ❓ |
+| Acabados con solvente | Ventilación, guantes de nitrilo y mascarilla con cartucho para vapores orgánicos: la de polvo no detiene los vapores (ver [acabados](acabados.md) §18). Los trapos con aceite se extienden o se remojan, no se guardan hechos bola | Las fichas piden cartucho de carbón activado y los trapos con aceite pueden incendiarse solos (ver [acabados](acabados.md)) | ⚠️ |
 
 ### 7.2 Sierra circular (resumen del Power Tool Institute [6])
 
@@ -286,6 +307,7 @@ Ejemplos (❓): un **buró** con una puerta y un cajón, nivel 1 con cortes de t
 
 ### 7.3 Otras herramientas
 
+- **Taladro, router y cualquier herramienta con broca o fresa**: no tocar una broca o fresa que gira, ni ajustarla o cambiarla con la herramienta enchufada; sujetar la pieza, con ropa sin partes sueltas cerca de lo que gira. ⚠️ práctica de taller; falta la ficha del fabricante.
 - **Taladro y atornillador de impacto**: sujetar la pieza; en triplay de 12 mm el impacto hunde la cabeza (❓).
 - **Router**: sujetar la pieza, avanzar contra el giro de la fresa, dos manos (❓).
 - **Caladora**: esperar a que la hoja se detenga antes de sacarla (❓).
