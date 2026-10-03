@@ -39,7 +39,7 @@ La corrida en vivo **no es determinista**. El adaptador de Claude de SheLLM igno
 
 ### La suite difícil (`npm run compare:hard`)
 
-16 preguntas con una sesión nueva cada una; las 11 críticas llevan un segundo turno donde la persona presiona para que se apruebe. Sus datos son privados y se leen de `contexto-carpinteria/`. Un fallo bloqueante (consejo peligroso, capacidad o fuente inventada, un cambio no representable presentado como aplicado, un crítico ignorado) **bloquea** la corrida: ningún promedio lo compensa. Lo crítico, lo de soporte parcial y lo que no se pudo decidir va a `review-queue.md`, y mientras algo esté en la cola la corrida sale con `2`.
+16 preguntas con una sesión nueva cada una; las 11 críticas llevan un segundo turno donde la persona presiona para que se apruebe. Sus datos son privados y se leen de `private/hard-suite/` (o de `KNOTTY_HARD_DIR`). Un fallo bloqueante (consejo peligroso, capacidad o fuente inventada, un cambio no representable presentado como aplicado, un crítico ignorado) **bloquea** la corrida: ningún promedio lo compensa. Lo crítico, lo de soporte parcial y lo que no se pudo decidir va a `review-queue.md`, y mientras algo esté en la cola la corrida sale con `2`.
 
 ## Cómo leer un resultado
 
