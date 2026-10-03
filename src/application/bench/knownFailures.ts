@@ -31,4 +31,10 @@ export const KNOWN_FAILURES: KnownFailure[] = [
     reason: 'the real expert makes the single bed longer than the 1900-2200 mm range the case allows',
     evidence: 'lengths of 2218 to 2238 mm observed on 2026-10-02 against the real expert',
   },
+  {
+    caseId: 'bookcase-wide-books',
+    covers: { rules: ['R1_SAG', 'R2_JOINT_THICKNESS', 'R3_SCREWS', 'R5_RACKING'], expectations: ['verdict', 'pieces:shelf'] },
+    reason: 'the one-piece back of a 120 cm bookcase is wider than the usable sheet (E_TOO_BIG_FOR_SHEET), the plan is discarded and the piece-by-piece fallback ends with criticals or too many shelves',
+    evidence: 'no run of this case has been viable: 0 of 6 on main without the bookcase guide and 0 of 5 with it, on 2026-10-03, each with different problems',
+  },
 ]

@@ -85,7 +85,26 @@ function moduleParts(kind: FurnitureKind): { id: string; pick: string; skeleton:
 const KIND_FILES = import.meta.glob<string>('../prompts/kinds/*.md', { query: '?raw', import: 'default', eager: true })
 
 /** Short guides by use (a sideboard, a bookcase), written by hand from what the reference catalog taught: added after their module's own guide. */
-export const KIND_PROMPTS = Object.fromEntries(Object.values(KIND_FILES).map((raw) => read(raw)).map((p) => [p.id.split('@')[0], p])) as Partial<Record<DesignKind, Prompt>>
+export interface GuidePrompt extends Prompt {
+  /** The `# short` section, for the calls that carry no module: null when the guide has none. `text` is the rest. */
+  short: string | null
+}
+
+function readGuide(raw: string): GuidePrompt {
+  const prompt = read(raw)
+  const heading = /^# short[ \t]*\n/m.exec(prompt.text)
+  if (!heading) return { ...prompt, short: null }
+  return { id: prompt.id, text: prompt.text.slice(0, heading.index).trim(), short: prompt.text.slice(heading.index + heading[0].length).trim() }
+}
+
+export const KIND_PROMPTS = Object.fromEntries(Object.values(KIND_FILES).map((raw) => readGuide(raw)).map((p) => [p.id.split('@')[0], p])) as Partial<Record<DesignKind, GuidePrompt>>
+
+/** The guide a selection asks for in the system-prompt calls, at its size; null when it has none or its file has no text of that size. */
+export function guideBlock(use: DesignKind | null, size: KnowledgeSelection['guideSize']): Prompt | null {
+  const guide = use && KIND_PROMPTS[use]
+  const text = guide && (size === 'short' ? guide.short : guide.text)
+  return guide && text ? { id: guide.id, text } : null
+}
 
 /** The guide for this use of this module, if there is one. */
 const guideFor = (module: FurnitureKind, use: DesignKind | null) => (use && MODULE_OF_KIND[use] === module ? KIND_PROMPTS[use] : undefined)
@@ -139,5 +158,11 @@ export const PROMPTS = [
 export const render = (prompt: Prompt, catalog: Catalog | null) => fill(prompt.text, catalog)
 
 /** System + task: stable between calls to make the most of the provider's cache. */
-export const systemFor = (task: Prompt, catalog: Catalog, knowledge?: KnowledgeSelection | null) => withCraft({ id: '', text: `${render(SYSTEM, catalog)}\n\n${render(task, catalog)}` }, knowledge).text
-export const promptIdOf = (task: Prompt, knowledge?: KnowledgeSelection | null) => withCraft({ id: `${SYSTEM.id}+${task.id}`, text: '' }, knowledge).id
+const withGuide = (prompt: Prompt, knowledge: KnowledgeSelection | null | undefined): Prompt => {
+  const block = knowledge && knowledge.guide ? guideBlock(knowledge.guide, knowledge.guideSize) : null
+  return block ? { id: `${prompt.id}+${block.id}`, text: `${prompt.text}\n\n${block.text}` } : prompt
+}
+
+/** The most specific text goes last: system, task, craft core and tools, then the guide of the use. */
+export const systemFor = (task: Prompt, catalog: Catalog, knowledge?: KnowledgeSelection | null) => withGuide(withCraft({ id: '', text: `${render(SYSTEM, catalog)}\n\n${render(task, catalog)}` }, knowledge), knowledge).text
+export const promptIdOf = (task: Prompt, knowledge?: KnowledgeSelection | null) => withGuide(withCraft({ id: `${SYSTEM.id}+${task.id}`, text: '' }, knowledge), knowledge).id

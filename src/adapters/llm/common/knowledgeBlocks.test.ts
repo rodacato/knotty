@@ -5,10 +5,10 @@ import type { KnowledgeSelection } from '../../../domain/furniture/knowledge/sel
 import { TOOL_LEVELS } from '../../../domain/materials/tools'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS } from '../../../domain/furniture/modules/plan'
-import { ADJUSTMENT, PURCHASE_REVIEW, RECONSTRUCTION, READING, SKELETON, CRAFT_CORE, CRAFT_TOOLS, craftBlock, planAdjustmentFor, promptIdOf, readingFor, render, skeletonFor, systemFor } from './prompts'
+import { ADJUSTMENT, KIND_PROMPTS, MODULE_PROMPTS, PLAN_ADJUSTMENT, guideBlock, PURCHASE_REVIEW, RECONSTRUCTION, READING, SKELETON, CRAFT_CORE, CRAFT_TOOLS, craftBlock, planAdjustmentFor, promptIdOf, readingFor, render, skeletonFor, systemFor } from './prompts'
 import { createExpert, type Transport } from './expert'
 
-const full: KnowledgeSelection = { core: 'full', guide: 'bookcase', guideSize: 'full', tools: 3 }
+const full: KnowledgeSelection = { core: 'full', guide: null, guideSize: 'full', tools: 3 }
 const short: KnowledgeSelection = { core: 'short', guide: null, guideSize: 'short', tools: 1 }
 const photo: KnowledgeSelection = { core: 'photo', guide: null, guideSize: 'short', tools: null }
 const signal = new AbortController().signal
@@ -83,6 +83,79 @@ describe('a selection adds its blocks last and says so in the id', () => {
   it('the photo reading gets the photo core only, whatever else the selection says', () => {
     for (const k of [photo, full, short]) expect(readingFor(k)).toEqual({ id: `${READING.id}+${CRAFT_CORE.id}`, text: `${READING.text}\n\n${CRAFT_CORE.sections.photo}` })
     expect(readingFor(full).text).not.toContain('Tools:')
+  })
+})
+
+describe('the guide of a use reaches the system-prompt calls last, by size', () => {
+  const guide = KIND_PROMPTS.bookcase!
+  const guided = (k: KnowledgeSelection): KnowledgeSelection => ({ ...k, guide: 'bookcase' })
+  const calls = [
+    [RECONSTRUCTION, 'full'],
+    [ADJUSTMENT, 'short'],
+    [PURCHASE_REVIEW, 'short'],
+  ] as const
+
+  it('the file keeps its body as the full text and its `# short` section apart', () => {
+    expect(guide.short).toMatch(/^A bookcase holds books/)
+    expect(guide.text).not.toContain('# short')
+    expect(guide.text).not.toContain(guide.short!)
+    expect(KIND_PROMPTS.sideboard!.short).toBeNull()
+  })
+
+  it.each(calls)('%#: core, then tools, then the guide at its size, and the id says so in that order', (task, size) => {
+    const k = guided({ ...(size === 'full' ? full : short), guideSize: size })
+    const text = systemFor(task, testCatalog, k)
+    const body = size === 'full' ? guide.text : guide.short!
+    expect(text.endsWith(`\n\n${body}`)).toBe(true)
+    expect(text.indexOf(craftBlock(k)!.text)).toBeLessThan(text.lastIndexOf(body))
+    expect(text.indexOf(CRAFT_CORE.sections[k.core])).toBeLessThan(text.indexOf(CRAFT_TOOLS.sections[String(k.tools)]))
+    expect(text.indexOf(CRAFT_TOOLS.sections[String(k.tools)])).toBeLessThan(text.lastIndexOf(body))
+    expect(promptIdOf(task, k)).toBe(`${promptIdOf(task, { ...k, guide: null })}+bookcase@1`)
+    expect(promptIdOf(task, k)).toMatch(/\+core@1\+tools@1\+bookcase@1$/)
+  })
+
+  it('without a guide in the selection nothing is added, with or without craft blocks', () => {
+    for (const k of [full, short]) for (const [task] of calls) expect(systemFor(task, testCatalog, k)).toBe(`${systemFor(task, testCatalog)}\n\n${craftBlock(k)!.text}`)
+  })
+
+  it('a short guide never carries the full body and a full one never the short text', () => {
+    for (const [task] of calls) {
+      expect(systemFor(task, testCatalog, guided({ ...short, guideSize: 'short' }))).not.toContain(guide.text)
+      expect(systemFor(task, testCatalog, guided({ ...full, guideSize: 'full' }))).not.toContain(guide.short!)
+    }
+  })
+
+  it('a guide without a `# short` section sends nothing extra to adjust and review, and its full body goes to reconstruct', () => {
+    const k: KnowledgeSelection = { ...short, guide: 'sideboard', guideSize: 'short' }
+    expect(guideBlock('sideboard', 'short')).toBeNull()
+    for (const task of [ADJUSTMENT, PURCHASE_REVIEW]) {
+      expect(systemFor(task, testCatalog, k)).toBe(systemFor(task, testCatalog, { ...k, guide: null }))
+      expect(promptIdOf(task, k)).toBe(promptIdOf(task, { ...k, guide: null }))
+    }
+    expect(promptIdOf(RECONSTRUCTION, { ...full, guide: 'sideboard' })).toMatch(/\+tools@1\+sideboard@3$/)
+  })
+
+  it('skeleton and plan-adjust keep their own place and ids, and never the short text', () => {
+    const k = guided({ ...full, guideSize: 'full' })
+    expect(skeletonFor('cabinet', 'bookcase', k).id).toBe(`${SKELETON.id}+${MODULE_PROMPTS.cabinet!.id}+bookcase@1+${craftBlock(k)!.id}`)
+    expect(planAdjustmentFor('cabinet', 'bookcase', k).id).toBe(`${PLAN_ADJUSTMENT.id}+${MODULE_PROMPTS.cabinet!.id}+bookcase@1+${craftBlock(k)!.id}`)
+    for (const sent of [skeletonFor('cabinet', 'bookcase', k), planAdjustmentFor('cabinet', 'bookcase', k)]) {
+      expect(sent.text).toContain(guide.text)
+      expect(sent.text).not.toContain(guide.short!)
+      expect(sent.text.split(guide.text)).toHaveLength(2)
+    }
+  })
+
+  it('the photo reading never gets a guide', () => {
+    expect(readingFor({ ...photo, guide: 'bookcase' })).toEqual(readingFor(photo))
+  })
+
+  it('what it adds stays small', () => {
+    const GUIDE_DELTA = { reconstruct: 560, adjust: 280, review: 280 }
+    const added = (task: typeof RECONSTRUCTION, k: KnowledgeSelection) => approxTokens(systemFor(task, testCatalog, k)) - approxTokens(systemFor(task, testCatalog, { ...k, guide: null }))
+    expect(added(RECONSTRUCTION, guided({ ...full, guideSize: 'full' }))).toBeLessThanOrEqual(GUIDE_DELTA.reconstruct)
+    expect(added(ADJUSTMENT, guided({ ...short, guideSize: 'short' }))).toBeLessThanOrEqual(GUIDE_DELTA.adjust)
+    expect(added(PURCHASE_REVIEW, guided({ ...short, guideSize: 'short' }))).toBeLessThanOrEqual(GUIDE_DELTA.review)
   })
 })
 
