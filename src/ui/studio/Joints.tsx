@@ -5,6 +5,7 @@ import { analyze } from '../../domain/checks/analysis'
 import { GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit } from '../../domain/design/jointGuide'
 import { JOINTS } from '../../domain/design/jointSpecs'
 import type { Design } from '../../domain/design/schema'
+import { named } from '../../application/named'
 import { chooseJoint, isChoosable, jointGroups, type JointGroup } from '../../domain/editing/joints/choice'
 import { TOOL_LEVEL_LABELS } from '../../domain/materials/tools'
 import { TERMS } from '../glossary'
@@ -195,7 +196,7 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
         return { joint, fit, warnings: [], blocked: joint === 'confirmat' ? 'Knotty todavía no la arma: no se elige aquí.' : 'Cambia la forma de las piezas: no se elige aquí.' }
       const findings = a.geo ? chooseJoint(design, a.geo, group.id, joint, catalog).findings : []
       const critical = findings.some((f) => f.severity === 'critical')
-      return { joint, fit, warnings: [...new Set(findings.map((f) => f.message))].slice(0, 2), blocked: critical ? 'No con estos tableros.' : null }
+      return { joint, fit, warnings: [...new Set(findings.map((f) => named(design, f.message)))].slice(0, 2), blocked: critical ? 'No con estos tableros.' : null }
     })
   }, [design, catalog, group.id, level])
   const chosen = options.find((o) => o.joint === selected)

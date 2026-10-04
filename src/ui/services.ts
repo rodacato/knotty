@@ -20,7 +20,7 @@ export interface Services {
   debug: DebugLog
   /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
   bench: Bench
-  /** The workshop's throwaway designs: while it is on, the saved design stays untouched. */
+  /** The debug tools' throwaway designs: while it is on, the saved design stays untouched. */
   sandbox: Sandbox
 }
 

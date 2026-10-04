@@ -1,7 +1,10 @@
 import type { Bench, ModuleCheck } from '../../application/bench/bench'
-import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import { analyze } from '../../domain/checks/analysis'
+import type { Reference } from '../../domain/furniture/references'
+import { buildPlan, type FurniturePlan } from '../../domain/furniture/modules/plan'
+import type { Catalog } from '../../domain/materials/catalog'
 
-// The workshop's list: every variant of every module, with what Knotty finds in it.
+// The bench drawer's list: every variant of every module, with what Knotty finds in it.
 
 export type Verdict = 'ok' | 'note' | 'invalid'
 
@@ -30,4 +33,20 @@ export function groupVariants(bench: Pick<Bench, 'variants' | 'runModules'>): Mo
     groups.set(module, [...(groups.get(module) ?? []), row])
   }
   return [...groups].map(([module, variants]) => ({ module, variants }))
+}
+
+export interface FichaRow {
+  reference: Reference
+  verdict: Verdict
+  notes: string[]
+}
+
+/** Every ficha Knotty ships, built and checked as the bench checks a variant. */
+export function listFichas(references: readonly Reference[], catalog: Catalog): FichaRow[] {
+  return references.map((reference) => {
+    const a = analyze(buildPlan(reference.plan, catalog).design, catalog)
+    if (!a.valid) return { reference, verdict: 'invalid', notes: a.errors.map((e) => e.message) }
+    const notes = [...a.findings.map((f) => f.message), ...a.warnings.map((w) => w.message)]
+    return { reference, verdict: notes.length ? 'note' : 'ok', notes }
+  })
 }

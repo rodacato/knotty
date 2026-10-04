@@ -5,7 +5,7 @@ import { useServices } from '../services'
 /** Two at a time, as in the comparison script: enough to be quick without hitting a provider's limits. */
 const PARALLEL = 2
 
-/** Running the fixed cases against the connected expert, shared by the bench dialog and the workshop. */
+/** Running the fixed cases against the connected expert, shared by the bench drawer's cases and any other place that runs them. */
 export function useCaseRun() {
   const { bench, preferences } = useServices()
   const [selected, setSelected] = useState<Set<string>>(new Set(bench.cases.map((c) => c.id)))

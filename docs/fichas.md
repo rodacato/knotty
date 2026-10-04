@@ -42,6 +42,10 @@ npm run probe -- --explain kc-apa-01 candidata.json # lo mismo para una candidat
 
 `npm test` corre la misma comparación de `--all`: un cambio del motor que mueve una compra o agrega un aviso falla con la línea exacta.
 
+## Mejorar una ficha en el taller
+
+El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `?debug`) lista todas las fichas: ábrela, pídele cambios al experto o muévele los campos, y con «Exportar ficha» baja un archivo candidato. El taller no escribe en el repositorio: el archivo se revisa con `--diff` y se adopta con `--adopt`, como cualquier candidata. Solo exporta lo que cabe en un plan; si se cambiaron piezas sueltas después del plan, lo dice y no exporta (esos cambios se vuelven a pedir en los campos de la ficha).
+
 ## 1. De una idea o unas fotos a una ficha
 
 1. **Mirar el mueble entero.** Para cada foto, no solo la general: bisagras, repisas detrás de las puertas, cómo abren los cajones, la base, las jaladeras. Escribir, de abajo hacia arriba:

@@ -24,6 +24,8 @@ export interface SceneSlice {
   focus: string | null
   /** Pieces the person hid to see behind them: view only, never saved into the design or its history. */
   hidden: string[]
+  /** Pieces a message is about, marked in the 3D until the person picks other ones or leaves: view only, like `hidden`. */
+  flagged: string[]
   exploded: boolean
   dimensions: boolean
   view: { name: View; nonce: number }
@@ -40,6 +42,8 @@ export interface SceneSlice {
   select(id: string | null): void
   unfocus(): void
   hide(id: string): void
+  /** Marks the pieces; the same ones again clears the mark. */
+  flag(ids: string[]): void
   showAll(): void
   toggleExploded(): void
   toggleDimensions(): void
@@ -86,6 +90,7 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   selection: null,
   focus: null,
   hidden: [],
+  flagged: [],
   exploded: false,
   dimensions: true,
   view: { name: 'three-quarter', nonce: 0 },
@@ -103,6 +108,7 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   unfocus: () => set({ focus: null }),
   hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
   showAll: () => set({ hidden: [] }),
+  flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
   // Apart, the pieces read best from the front three-quarter view, as in assembly instructions.
   toggleExploded: () => set((s) => (s.exploded ? { exploded: false } : { exploded: true, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),

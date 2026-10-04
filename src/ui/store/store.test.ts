@@ -27,7 +27,7 @@ function services(): Services {
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
     references: testReferences,
-    debug: {} as Services['debug'],
+    debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
     bench: {} as Services['bench'],
     sandbox: { enter: () => {}, leave: () => {}, active: () => false },
   }
@@ -45,7 +45,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'enterLab', 'leaveLab', 'startCapture', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene

@@ -13,7 +13,10 @@ export interface SettingsSlice {
   gateClosed: boolean
   /** The person's prices and cutting settings over the catalog. */
   catalogSettings: CatalogSettings
+  /** The debug tools are shown: the Konami code, Ctrl+Shift+D, the settings switch or `?debug`. */
+  debugVisible: boolean
 
+  setDebugVisible(visible: boolean): void
   openSettings(open: boolean): void
   openConnect(open: boolean): void
   unlock(passphrase: string): Promise<void>
@@ -31,7 +34,12 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   vault: 'none',
   gateClosed: false,
   catalogSettings: NO_SETTINGS,
+  debugVisible: false,
 
+  setDebugVisible: (debugVisible) => {
+    get().services?.debug.setVisible(debugVisible)
+    set({ debugVisible })
+  },
   openSettings: (settingsOpen) => set({ settingsOpen }),
   openConnect: (connectOpen) => set({ connectOpen }),
 

@@ -8,12 +8,11 @@ import { Home } from './capture/Home'
 import { ServicesContext, type Services } from './services'
 import { Pencil } from './system/components'
 import { Knot } from './system/Brand'
-import { DebugPanel } from './debug/DebugPanel'
+import { DebugShell } from './debug/DebugShell'
 import { useStore } from './store'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
 const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
-const Lab = lazy(() => import('./lab/Lab').then((m) => ({ default: m.Lab })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 
 const Loading = () => (
@@ -29,12 +28,6 @@ function Screen() {
   const phase = useStore((s) => s.phase)
   const state = useStore((s) => s.state)
   const adjusting = useStore((s) => s.adjusting)
-  if (phase === 'lab')
-    return (
-      <Suspense fallback={<Loading />}>
-        <Lab />
-      </Suspense>
-    )
   if (phase === 'studio' && state)
     return (
       <Suspense fallback={<Loading />}>
@@ -70,11 +63,12 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
   if (!services) return <Loading />
   return (
     <ServicesContext.Provider value={services}>
-      <Screen />
+      <DebugShell>
+        <Screen />
+      </DebugShell>
       <Settings />
       <ConnectExpert />
       <KeysGate />
-      <DebugPanel />
     </ServicesContext.Provider>
   )
 }
