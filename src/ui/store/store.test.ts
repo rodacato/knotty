@@ -51,7 +51,7 @@ describe('store', () => {
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
-      'select', 'hide', 'showAll', 'setMode', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      'select', 'hide', 'showAll', 'setMode', 'edit', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
       // plan draft
       'editPlan', 'undoPlanEdit', 'discardPlanDraft', 'applyPlanDraft', 'selectCell', 'selectPart',
       // settings
@@ -226,26 +226,28 @@ describe('the plan draft', () => {
     expect(draftOf(s)).toBeNull()
   })
 
-  it('the interior view looks from the front with no piece chosen, and leaving it lets go of the chosen cell', () => {
+  it('editing inside looks from the front with no piece chosen, and leaving goes back to how the person was looking', () => {
     openCabinet()
     const s = useStore.getState()
+    s.setMode('exploded')
+    s.viewFrom('side')
     s.select('side-left')
-    s.setMode('interior')
-    expect(useStore.getState().selection).toBeNull()
-    s.selectCell([0, 0])
-    expect(useStore.getState()).toMatchObject({ mode: 'interior', view: { name: 'front' }, cell: [0, 0] })
-    useStore.getState().setMode('closed')
-    expect(useStore.getState().cell).toBeNull()
+    s.edit('inside')
+    expect(useStore.getState()).toMatchObject({ editing: 'inside', mode: 'closed', view: { name: 'front' }, selection: null })
+    useStore.getState().selectCell([0, 0])
+    useStore.getState().edit(null)
+    expect(useStore.getState()).toMatchObject({ editing: null, mode: 'exploded', view: { name: 'side' }, cell: null })
   })
 
-  it('opening a part lets go of the chosen piece, and changing how the furniture shows closes the part', () => {
+  it('opening a part lets go of the chosen piece, and moving to the other side closes it but keeps where to go back', () => {
     openCabinet()
     const s = useStore.getState()
+    s.edit('outside')
     s.select('side-left')
     s.selectPart('body', 'side-left')
     expect(useStore.getState()).toMatchObject({ selection: null, part: { id: 'body', piece: 'side-left' } })
-    useStore.getState().setMode('open')
-    expect(useStore.getState().part).toBeNull()
+    useStore.getState().edit('inside')
+    expect(useStore.getState()).toMatchObject({ part: null, beforeEditing: { mode: 'closed', view: 'three-quarter' } })
   })
 
   it('is left behind by a version made anywhere else', () => {

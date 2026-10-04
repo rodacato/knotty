@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
@@ -10,13 +10,10 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { draftOf, useStore, type SceneMode, type View } from '../store'
+import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { Parts } from '../../domain/furniture/modules/parts'
-import { CellSheet } from './CellSheet'
-import { PartSheet } from './PartSheet'
-import { DraftBar } from './DraftBar'
-import { FurniturePanel } from './FurniturePanel'
+import { EditPanel } from './EditPanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
 import { InvalidCanvas } from './InvalidCanvas'
@@ -43,7 +40,6 @@ const VIEWS: { id: View; name: string }[] = [
 const MODES: { id: SceneMode; name: string; Icon: Icon }[] = [
   { id: 'closed', name: 'Cerrado', Icon: Cube },
   { id: 'open', name: 'Abierto', Icon: DoorOpen },
-  { id: 'interior', name: 'Interior', Icon: GridFour },
   { id: 'exploded', name: 'Armado', Icon: ArrowsOut },
 ]
 
@@ -59,12 +55,15 @@ function useDesktop() {
   return matches
 }
 
-/** Only a cabinet with its plan has cells to edit; another piece of furniture has no interior view. */
-function SceneBar({ interior }: { interior: boolean }) {
+/** Editing is a group of its own (UI-74): while editing, how the furniture shows is the edit's, so the states to look at it give way. Only a plan with parts inside has an inside to edit. */
+function SceneBar({ inside }: { inside: boolean }) {
   const view = useStore((s) => s.view.name)
   const viewFrom = useStore((s) => s.viewFrom)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
+  const editing = useStore((s) => s.editing)
+  const edit = useStore((s) => s.edit)
+  const sides: { id: EditSide; name: string; Icon: Icon }[] = [{ id: 'outside', name: 'Exterior', Icon: PencilSimple }, ...(inside ? [{ id: 'inside' as const, name: 'Interior', Icon: GridFour }] : [])]
   const dimensions = useStore((s) => s.dimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
   const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
@@ -77,10 +76,22 @@ function SceneBar({ interior }: { interior: boolean }) {
           </button>
         ))}
       </div>
+      {!editing && (
+        <>
+          <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+          <div className="flex items-center" role="group" aria-label="Estado del mueble">
+            {MODES.map(({ id, name, Icon }) => (
+              <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
+                <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <div className="flex items-center" role="group" aria-label="Estado del mueble">
-        {MODES.filter(({ id }) => id !== 'interior' || interior).map(({ id, name, Icon }) => (
-          <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
+      <div className="flex items-center" role="group" aria-label="Editar">
+        {sides.map(({ id, name, Icon }) => (
+          <button key={id} type="button" className={`${button(editing === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => editing !== id && edit(id)} aria-pressed={editing === id} aria-label={`Editar: ${name}`} title={name}>
             <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
           </button>
         ))}
@@ -174,7 +185,7 @@ export function Studio({ state }: { state: DesignState }) {
   const selectPiece = useStore((s) => s.select)
   const previewFix = useStore((s) => s.previewFix)
   const debugVisible = useStore((s) => s.debugVisible)
-  const mode = useStore((s) => s.mode)
+  const editingSide = useStore((s) => s.editing)
   const chosenCell = useStore((s) => s.cell)
   const chosenPart = useStore((s) => s.part)
   const draft = useStore(draftOf)
@@ -186,9 +197,9 @@ export function Studio({ state }: { state: DesignState }) {
   const editable = !source.diverged && view.viewedVersion === null ? editing : null
   const parts = editable ? moduleOf(editable).parts : null
   const interiorPlan = editable?.kind === 'cabinet' ? (editable as CabinetPlan) : null
-  const inside = mode === 'interior' && !!interiorPlan
-  // Inside, the part «Huecos y repisas» holds the panel until a cell is chosen; any other part is outside.
-  const partOpen = parts && chosenPart && parts.list.some((p) => p.id === chosenPart.id) && (!inside || (chosenPart.id === 'cells' && !chosenCell)) ? chosenPart : null
+  const inside = editingSide === 'inside'
+  const insideParts = !!parts?.list.some((p) => p.side === 'inside')
+  const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
   const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
@@ -242,14 +253,9 @@ export function Studio({ state }: { state: DesignState }) {
         />
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        {geo && <SceneBar interior={!!interiorPlan} />}
-        {!inside && !partOpen && <StatusChip statuses={statuses} />}
+        {geo && <SceneBar inside={insideParts} />}
+        {!editingSide && <StatusChip statuses={statuses} />}
       </div>
-      {editable && source.plan && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center md:inset-x-4 md:bottom-4">
-          <DraftBar applied={source.plan} />
-        </div>
-      )}
     </div>
   )
 
@@ -268,16 +274,23 @@ export function Studio({ state }: { state: DesignState }) {
 
   const panel = (
     <>
-      {inside && chosenCell && geo && <CellSheet plan={interiorPlan} path={chosenCell} geo={geo} />}
-      {partOpen && editable && <PartSheet key={partOpen.id} state={state} plan={editable} design={current} part={partOpen} />}
-      {!inside && !partOpen && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
-      <div className={`h-full min-h-0 ${(inside && chosenCell) || partOpen || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
+      {editingSide && (
+        <EditPanel
+          state={state}
+          side={editingSide}
+          plan={editable}
+          applied={editable ? source.plan : null}
+          geo={currentAnalysis.geo ?? null}
+          pieceSheet={view.showsPiece && geo ? <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} /> : null}
+        />
+      )}
+      {!editingSide && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
+      <div className={`h-full min-h-0 ${editingSide || view.showsPiece ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
             {[
               { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
-              { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
               { id: 'materials', name: 'Materiales', icon: <Stack /> },
               ...(debugVisible ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
             ].map((t) => (
@@ -300,9 +313,6 @@ export function Studio({ state }: { state: DesignState }) {
           </Tabs.List>
           <Tabs.Content value="chat" className="min-h-0 flex-1">
             <Chat state={state} />
-          </Tabs.Content>
-          <Tabs.Content value="furniture" className="min-h-0 flex-1 overflow-y-auto">
-            <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
           </Tabs.Content>
           <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
             {currentAnalysis.valid ? (

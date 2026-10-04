@@ -13,7 +13,7 @@ import { PlanSheet } from './PlanSheet'
 import { PartsList } from './PartsList'
 import { draftOf } from '../store'
 
-// The furniture as decided: its kind, its plan when it has one, the photos and, without a plan, its pieces.
+// Editing the furniture from outside (UI-74): its kind, the parts of its plan when it has one, the photos and, without a plan, its pieces.
 
 const SOURCE: Record<KindSource, string | null> = {
   person: 'Lo elegiste tú.',
@@ -101,7 +101,7 @@ function Photos({ state }: { state: DesignState }) {
   )
 }
 
-export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geometry | null }) {
+export function OutsideList({ state, geo }: { state: DesignState; geo: Geometry | null }) {
   const source = useMemo(() => currentPlan(state), [state])
   const hasPlan = !!source.plan
   const draft = useStore(draftOf)
@@ -111,7 +111,7 @@ export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geomet
     <div className="flex flex-col">
       <KindPicker state={state} />
       {plan ? (
-        <PartsList state={state} plan={plan} />
+        <PartsList state={state} plan={plan} side="outside" />
       ) : hasPlan ? (
         <PlanSheet state={state} />
       ) : (

@@ -135,17 +135,21 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
   const reveal = useStore((s) => s.reveal)
   const select = useStore((s) => s.select)
   const hiddenIds = useStore((s) => s.hidden)
-  const inside = mode === 'interior' && !!cabinet
+  const editing = useStore((s) => s.editing)
+  const edit = useStore((s) => s.edit)
+  const inside = editing === 'inside'
   const selectPart = useStore((s) => s.selectPart)
-  // Outside, a piece that belongs to a part opens that part; a board inside, or any piece apart, opens the piece.
+  // A piece that belongs to a part opens it, entering editing its side if the person was only looking; a board inside, or any piece apart, opens the piece.
   const pick = (id: string) => {
     const piece = design.pieces.find((p) => p.id === id)
-    const part = parts && mode !== 'exploded' && piece ? parts.ofPiece(piece) : null
-    if (part) selectPart(part, id)
-    else {
+    const part = parts && mode !== 'exploded' && piece ? parts.list.find((p) => p.id === parts.ofPiece(piece)) : undefined
+    if (!part) {
       selectPart(null)
       select(id)
+      return
     }
+    if (editing !== part.side) edit(part.side)
+    selectPart(part.id, id)
   }
   const hidden = useMemo(() => hiddenIn(hiddenIds, design), [hiddenIds, design])
   const shown = useMemo(() => design.pieces.filter((p) => !hidden.includes(p.id) && !(inside && isFront(p))), [design, hidden, inside])
@@ -228,7 +232,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
             onSelect={inside ? () => {} : pick}
           />
         ))}
-        {inside && <InteriorOverlay plan={cabinet} geo={geo} width={width} depth={depth} />}
+        {inside && cabinet && <InteriorOverlay plan={cabinet} geo={geo} width={width} depth={depth} />}
         <Hardware design={design} geo={geo} catalog={catalog} offsets={pushes} swings={swings} selected={selection} hidden={inside ? fronts : hidden} apart={exploded} reduced={reduced} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
