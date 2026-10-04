@@ -8,7 +8,7 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["wall-hung","wall-anchor","open-niche","overlay-doors","asymmetric-arrangement","multi-body"],
-  "adaptations": ["Birch-looking ply drawn as T18 plywood; no wax-oil id, danish-oil is the closest finish (photos show a clear or raw finish).","Overall 2000 x 650 x 290 mm: seller gave 65, 200 and 29 cm; 200 is clearly the width, 65 the height, 29 the depth.","Wide right door hinges on the side in the model; in the photos it may open upward.","hangs on the wall in the piece; the plan stands its lowest box on the floor, since it cannot say hung at a height","separate boxes side by side in the piece; the plan shares one divider between neighbours"],
+  "adaptations": ["Birch-looking ply drawn as T18 plywood; no wax-oil id, danish-oil is the closest finish (photos show a clear or raw finish).","Overall 2000 x 650 x 290 mm: seller gave 65, 200 and 29 cm; 200 is clearly the width, 65 the height, 29 the depth.","wide right door drawn as two leaves hinged on the sides: one leaf of 620 mm is too heavy on its hinges; in the photos it may be one leaf opening upward, which the plan cannot say","hangs on the wall in the piece; the plan stands its lowest box on the floor, since it cannot say hung at a height","separate boxes side by side in the piece; the plan shares one divider between neighbours"],
   "gaps": ["multi-body"],
   "notes": "Repisa colgada de pared hecha de cajas de triplay a distintas alturas: nichos abiertos, dos puertas y una tapa ancha a la derecha.",
   "plan": {
@@ -62,7 +62,7 @@
         "width": 0.31,
         "cells": [
           { "content": "void", "shelves": null, "doors": null, "height": 0.22 },
-          { "height": 0.45, "content": "door", "shelves": 0, "doors": 1 },
+          { "height": 0.45, "content": "door", "shelves": 0, "doors": 2 },
           { "content": "void", "shelves": null, "doors": null, "height": 0.33 }
         ]
       }
@@ -70,9 +70,9 @@
   },
   "expect": {
     "valid": true,
-    "pieces": 28,
-    "findings": ["recommendation:R10_USE","recommendation:R6_DOORS"],
+    "pieces": 29,
+    "findings": ["recommendation:R10_USE"],
     "sheets": { "T18": 1, "TR6": 1 },
-    "hardware": { "brad-nail-1": 76, "cup-hinge-35-full": 2, "cup-hinge-35-half": 4, "edge-banding-19": 13, "screw-8x2": 48, "white-glue": 3 }
+    "hardware": { "brad-nail-1": 76, "cup-hinge-35-full": 2, "cup-hinge-35-half": 6, "edge-banding-19": 14, "screw-8x2": 48, "white-glue": 3 }
   }
 }
