@@ -8,6 +8,7 @@ import { doorMount } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../assumptions'
+import { tippingBalance } from './tippingBalance'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
 
@@ -40,33 +41,41 @@ function footprintDepth({ design, geo }: RuleContext): number {
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /**
- * R4, storage: drawers or doors open and full, or a child climbing them, pull the furniture forward whatever its depth; critical from the line, a recommendation in the margin just under it.
- * Found by what it has (drawers, doors) and how tall it is, not by its name. Null when it is not storage furniture.
+ * R4, storage: drawers or doors open and full, or a child hanging from a drawer, pull the furniture forward; it is judged by what holds it against what pulls it.
+ * Found by what it has (drawers, doors) and how tall it is, not by its name; under the height line it is at most a recommendation. Null when it is not storage furniture or it holds up on its own, so the ratio decides.
  */
-function storageTipping({ design, catalog }: RuleContext): Finding[] | null {
+function storageTipping({ design, geo, catalog }: RuleContext): Finding[] | null {
   const { height } = design.dimensions
-  const { storageHeight, storageMargin } = ASSUMPTIONS.tipping
+  const { storageHeight, storageMargin, balanceMargin } = ASSUMPTIONS.tipping
   const drawers = drawerGroups(design).length
   const doors = design.pieces.filter((p) => p.role === 'door').length
   const use = useOf(design)
   const bandFloor = storageHeight * (1 - storageMargin)
   if ((!drawers && !doors) || height < bandFloor || (use && NOT_STORAGE.includes(use))) return null
   if (design.wallAnchored) return []
-  const near = height < storageHeight
+  const balance = tippingBalance(design, geo, standing(design, geo).boxes.map(({ box }) => box))
+  if (!balance) return null
+  const level = balance.pullsWithChild / balance.holds
+  if (level < balanceMargin) return null
+  const critical = height >= storageHeight && level >= 1
   const parts = [drawers && plural(drawers, 'cajón', 'cajones'), doors && plural(doors, 'puerta', 'puertas')].filter(Boolean).join(' y ')
+  const figures = `lo jalan ${roundTo(balance.pullsWithChild, 1)} kg·m y lo sostienen ${roundTo(balance.holds, 1)} kg·m`
+  const alone = balance.pulls >= balance.holds
+  const how = !drawers ? 'con las puertas abiertas' : alone ? 'con los cajones abiertos y llenos' : 'si un niño se cuelga de un cajón abierto'
   return [
     {
       code: 'R4_TIPPING',
-      severity: near ? 'recommendation' : 'critical',
-      check: near ? 'tipping.storage-near' : 'tipping.storage',
+      severity: critical ? 'critical' : 'recommendation',
+      check: critical ? 'tipping.storage' : 'tipping.storage-near',
       pieces: design.pieces.filter((p) => p.role === 'side').map((p) => p.id),
-      message: `Mide ${height} mm de alto y tiene ${parts}: abierto y cargado, o si un niño se sube, se va de frente. Desde ${storageHeight} mm, un mueble con cajones o puertas va anclado al muro.`,
-      data: { height: height, drawers: drawers, doors: doors, min: storageHeight },
+      message: critical
+        ? `Mide ${height} mm de alto y tiene ${parts}: ${how} se va de frente (${figures}). Va anclado al muro.`
+        : `Mide ${height} mm de alto y tiene ${parts}: ${how} queda cerca de irse de frente (${figures}). Conviene anclarlo al muro.`,
+      data: { height: height, drawers: drawers, doors: doors, min: storageHeight, holds: roundTo(balance.holds, 1), pulls: roundTo(balance.pulls, 1), pullsWithChild: roundTo(balance.pullsWithChild, 1) },
       alternatives: [{ key: 'anchor-to-wall', description: 'Anclarlo al muro con un kit antivuelco', data: antiTipData(catalog) }],
     },
   ]
 }
-
 /** R4, open furniture: tall and shallow, it falls forward when pulled or when a child climbs it. On legs, what counts is how deep the legs stand. */
 function ratioTipping(ctx: RuleContext): Finding[] {
   const { design, catalog } = ctx

@@ -50,6 +50,14 @@ export const ASSUMPTIONS = {
     storageHeight: 686,
     /** Share of storageHeight just below it where the verdict is a recommendation, so a few mm of measuring do not flip it between critical and nothing. */
     storageMargin: 0.1,
+    /** Mass of plywood in the balance, kg/m³: the light density, since a lighter piece is the worst case for tipping. */
+    density: 500,
+    /** Clothes in a drawer, kg per m³ of its inside (the stability test of ASTM F2057-23). */
+    drawerLoad: 136,
+    /** A child hanging from the edge of the highest drawer that is no higher than reach: kg and mm. */
+    child: { mass: 27.2, reach: 1422 },
+    /** From this share of what pulls the furniture forward against what holds it up, the verdict is a recommendation; at 1 it is critical. */
+    balanceMargin: 0.8,
     /** Open furniture (no drawers or doors): height ÷ depth from which it is anchored, and from which it is very unstable past criticalHeight. */
     recommendedRatio: 3,
     criticalRatio: 4,
@@ -119,6 +127,10 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'screws.pocketScrews': cite(VALUES, '6-uniones', 'Tornillo de bolsillo'),
   'tipping.storageHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Altura desde la que se ancla'),
   'tipping.storageMargin': noReference('Knotty’s tolerance for reading a height off a photo or a tape; the reference gives the 686 line and no band around it, and says depth does not rescue a chest'),
+  'tipping.density': cite(STRUCTURE, '6-vuelco-y-anclaje', 'triplay de 500 kg/m³'),
+  'tipping.drawerLoad': cite(VALUES, '12-vuelco-y-anclaje', 'ropa 136 kg/m³'),
+  'tipping.child': cite(VALUES, '12-vuelco-y-anclaje', '27.2 kg en la orilla del cajón más alto (hasta 1422 mm)'),
+  'tipping.balanceMargin': noReference('Knotty’s tolerance for a balance built from a simplified model (drawers fully out, doors open at 90°); the reference gives the test and no band around it'),
   'tipping.recommendedRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
