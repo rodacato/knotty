@@ -1,0 +1,78 @@
+{
+  "format": 1,
+  "code": "KC-REP-02",
+  "id": "staggered-wall-shelf",
+  "name": "Repisa de pared escalonada",
+  "kind": "wallCabinet",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["wall-hung","wall-anchor","open-niche","overlay-doors","asymmetric-arrangement","multi-body"],
+  "adaptations": ["Birch-looking ply drawn as T18 plywood; no wax-oil id, danish-oil is the closest finish (photos show a clear or raw finish).","Overall 2000 x 650 x 290 mm: seller gave 65, 200 and 29 cm; 200 is clearly the width, 65 the height, 29 the depth.","Wide right door hinges on the side in the model; in the photos it may open upward.","hangs on the wall in the piece; the plan stands its lowest box on the floor, since it cannot say hung at a height","separate boxes side by side in the piece; the plan shares one divider between neighbours"],
+  "gaps": ["multi-body"],
+  "notes": "Repisa colgada de pared hecha de cajas de triplay a distintas alturas: nichos abiertos, dos puertas y una tapa ancha a la derecha.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Repisa de pared escalonada",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 2000, "height": 650, "depth": 290 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 0.15,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.4 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.4 },
+          { "content": "void", "shelves": null, "doors": null, "height": 0.2 }
+        ]
+      },
+      {
+        "width": 0.145,
+        "cells": [
+          { "height": 0.72, "content": "door", "shelves": 0, "doors": 1 },
+          { "content": "void", "shelves": null, "doors": null, "height": 0.28 }
+        ]
+      },
+      {
+        "width": 0.1,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.24 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.46 },
+          { "content": "void", "shelves": null, "doors": null, "height": 0.3 }
+        ]
+      },
+      {
+        "width": 0.15,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.25 },
+          { "height": 0.75, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 0.15,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.25 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.26 },
+          { "content": "void", "shelves": null, "doors": null, "height": 0.49 }
+        ]
+      },
+      {
+        "width": 0.31,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.22 },
+          { "height": 0.45, "content": "door", "shelves": 0, "doors": 1 },
+          { "content": "void", "shelves": null, "doors": null, "height": 0.33 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 28,
+    "findings": ["recommendation:R10_USE","recommendation:R6_DOORS"],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 76, "cup-hinge-35-full": 2, "cup-hinge-35-half": 4, "edge-banding-19": 13, "screw-8x2": 48, "white-glue": 3 }
+  }
+}
