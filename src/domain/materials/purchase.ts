@@ -43,7 +43,7 @@ export interface Purchase {
 }
 
 /** How much hardware a joint takes when the model does not say: by spacing along the joint. */
-export function hardwarePerJoint(u: Joint, geo: Geometry): number {
+export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number {
   const a = geo.boxes.get(u.a)
   const b = geo.boxes.get(u.b)
   const length = a && b ? jointLength(a, b) : 0
