@@ -48,8 +48,10 @@ export function opening(design: Design, boxes: Map<string, Box>): Opening {
     const box = boxes.get(door.id)!
     const onLeft = Math.abs(center(upright, 'x') - box.x0) <= Math.abs(center(upright, 'x') - box.x1)
     const out = center(box, 'z') >= center(all, 'z') ? 1 : -1
-    // Pivot on the inner face, where the hinge cup is screwed: the door swings away from the furniture and not through it.
-    const pivot: [number, number] = [onLeft ? box.x0 : box.x1, out > 0 ? box.z0 : box.z1]
+    // An overlay door turns about the corner of its inner face, in front of the upright; one set inside the opening turns about the corner of its outer face, so its inner corner moves away from the upright instead of into it.
+    const inset = Math.min(box.z1, upright.z1) - Math.max(box.z0, upright.z0) > 1
+    const [inner, outer] = out > 0 ? [box.z0, box.z1] : [box.z1, box.z0]
+    const pivot: [number, number] = [onLeft ? box.x0 : box.x1, inset ? outer : inner]
     // About the vertical axis a positive turn carries +x toward −z, so the free edge goes out with the opposite sign of (side × face).
     swings.set(door.id, { pivot, angle: -(onLeft ? 1 : -1) * out * DOOR_ANGLE })
     const width = box.x1 - box.x0
