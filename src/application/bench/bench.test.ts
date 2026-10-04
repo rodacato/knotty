@@ -13,7 +13,7 @@ describe('the bench', () => {
   it('builds every module variant valid and with nothing to warn about', () => {
     const checks = bench.runModules()
     expect(checks.length).toBeGreaterThan(60)
-    expect(checks.filter((c) => !c.valid || c.findings.length)).toEqual([])
+    expect(checks.filter((c) => !c.valid || c.findings.length || c.warnings.length)).toEqual([])
   })
 
   it('runs a case and grades it: a bookcase designed piece by piece', async () => {
