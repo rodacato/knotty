@@ -1,6 +1,7 @@
 import { roundTo } from '../../../design/resolve'
 import { contactBetween, jointLength } from '../../../design/validation/contact'
 import { hardwareByRole } from '../../../materials/catalog'
+import { hardwarePerJoint } from '../../../materials/purchase'
 import type { Finding, Rule } from '../finding'
 import { ASSUMPTIONS, pocketScrewFor } from '../../../assumptions'
 import { noReference, type Source } from '../../../sources'
@@ -79,7 +80,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
     }
 
     const joint = jointLength(boxA, boxB)
-    const count = u.hardware.reduce((n, h) => n + (h.count ?? 2), 0)
+    const count = u.hardware.reduce((n, h) => n + (h.count ?? hardwarePerJoint(u, geo)), 0)
     if (u.type === 'butt-screw' && !intoFace && joint > 0 && count >= 2 && joint < 2 * ASSUMPTIONS.screws.endDistance + ASSUMPTIONS.screws.pairRoom)
       found.push({
         code: 'R3_SCREWS',

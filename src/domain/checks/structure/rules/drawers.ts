@@ -62,7 +62,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
 
     const front = design.pieces.find((p) => p.group === g && p.role === 'drawer-front')
     if (!front) continue
-    const frontRubs = contacts.filter((c) => (c.a === front.id || c.b === front.id) && design.pieces.find((p) => p.id === (c.a === front.id ? c.b : c.a))?.group !== g)
+    // What the front closes against along the way it opens (an overlay front on the edges of the box) does not rub.
+    const frontRubs = contacts.filter((c) => (c.a === front.id || c.b === front.id) && c.axis !== front.normal && design.pieces.find((p) => p.id === (c.a === front.id ? c.b : c.a))?.group !== g)
     if (frontRubs.length)
       found.push({
         code: 'R9_DRAWERS',
