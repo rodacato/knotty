@@ -1,8 +1,9 @@
 import type { Bench, ModuleCheck } from '../../application/bench/bench'
 import { analyze } from '../../domain/checks/analysis'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import type { HOME_CATEGORIES, Reference } from '../../domain/furniture/references'
-import { buildPlan, type FurniturePlan } from '../../domain/furniture/modules/plan'
+import { exampleDesign } from '../../domain/furniture/examples'
+import type { Reference } from '../../domain/furniture/references'
+import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
 
 // The bench drawer's list: every variant of every module, with what Knotty finds in it.
@@ -44,10 +45,10 @@ export interface FichaRow {
   boxes: Map<string, Box> | null
 }
 
-/** Every ficha Knotty ships, built and checked as the bench checks a variant. */
+/** Every ficha Knotty ships, built and checked as `probe` does: with its kind, so the use notices (R10) count too. */
 export function listFichas(references: readonly Reference[], catalog: Catalog): FichaRow[] {
   return references.map((reference) => {
-    const { design } = buildPlan(reference.plan, catalog)
+    const { design } = exampleDesign({ name: reference.name, plan: reference.plan, notes: reference.notes, kind: reference.kind, finish: reference.finish }, catalog)
     const geo = resolveGeometry(design, catalog)
     const boxes = geo.ok ? geo.value.boxes : null
     const a = analyze(design, catalog)
@@ -57,24 +58,54 @@ export function listFichas(references: readonly Reference[], catalog: Catalog): 
   })
 }
 
-/** The home screen's categories, plus every ficha and the ones the home screen does not show. */
-export type FichaFilter = 'all' | 'featured' | (typeof HOME_CATEGORIES)[number] | 'off-home'
+export type Room = 'bedroom' | 'living' | 'dining' | 'office' | 'kitchen' | 'entry'
 
-export const FICHA_FILTERS: [FichaFilter, string][] = [
-  ['all', 'Todas'],
-  ['featured', 'Destacadas'],
+export const ROOMS: [Room, string][] = [
   ['bedroom', 'Recámara'],
-  ['storage', 'Guardar'],
-  ['tables', 'Mesas'],
-  ['seating', 'Asientos'],
-  ['off-home', 'Fuera de la portada'],
+  ['living', 'Sala'],
+  ['dining', 'Comedor'],
+  ['office', 'Oficina'],
+  ['kitchen', 'Cocina'],
+  ['entry', 'Entrada'],
 ]
 
-export function fichasOf(rows: readonly FichaRow[], filter: FichaFilter): FichaRow[] {
-  return rows.filter(({ reference: { home } }) => {
-    if (filter === 'all') return true
-    if (filter === 'off-home') return !home
-    if (filter === 'featured') return !!home?.featured
-    return home?.category === filter
-  })
+/** Where a piece goes, by the family in its code (KC-APA-01 is an APA); a piece can go in more than one room. */
+const ROOMS_OF_FAMILY: Record<string, Room[]> = {
+  CAM: ['bedroom'],
+  BUR: ['bedroom'],
+  CAJ: ['bedroom'],
+  TV: ['living'],
+  CON: ['living'],
+  MCE: ['living'],
+  REP: ['living'],
+  LIB: ['living', 'office'],
+  APA: ['living', 'dining'],
+  MES: ['dining'],
+  ASI: ['dining'],
+  ESC: ['office'],
+}
+
+/** OTR holds whatever fits no family, so each one says its own room. */
+const ROOMS_OF_CODE: Record<string, Room[]> = {
+  'KC-OTR-02': ['kitchen', 'living'],
+  'GN-OTR-01': ['entry'],
+  'KC-ASI-02': ['dining', 'kitchen'],
+}
+
+export const roomsOf = ({ code }: Pick<Reference, 'code'>): Room[] => ROOMS_OF_CODE[code] ?? ROOMS_OF_FAMILY[code.split('-')[1]] ?? []
+
+export interface FichaQuery {
+  room: Room | 'all'
+  onHome: boolean
+  withFindings: boolean
+  source: 'all' | 'KC' | 'GN'
+}
+
+export const ANY_FICHA: FichaQuery = { room: 'all', onHome: false, withFindings: false, source: 'all' }
+
+export function fichasOf(rows: readonly FichaRow[], q: FichaQuery): FichaRow[] {
+  return rows.filter(
+    ({ reference: r, verdict }) =>
+      (q.room === 'all' || roomsOf(r).includes(q.room)) && (!q.onHome || !!r.home) && (!q.withFindings || verdict !== 'ok') && (q.source === 'all' || r.code.startsWith(`${q.source}-`)),
+  )
 }

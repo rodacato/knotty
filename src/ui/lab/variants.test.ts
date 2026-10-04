@@ -4,7 +4,7 @@ import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { fichasOf, groupVariants, listFichas } from './variants'
+import { ANY_FICHA, fichasOf, groupVariants, listFichas, roomsOf, type Room } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -37,13 +37,25 @@ describe('the bench drawer variant list', () => {
     for (const r of rows) expect(['ok', 'note', 'invalid']).toContain(r.verdict)
   })
 
-  it('splits the fichas by the home screen, and keeps the ones it does not show apart', () => {
+  it('says of each ficha what probe recorded in it, kind included', () => {
+    for (const r of listFichas(testReferences.all(), testCatalog)) expect([r.reference.code, r.notes.length]).toEqual([r.reference.code, r.reference.expect.findings?.length ?? 0])
+  })
+
+  it('puts every ficha Knotty ships in a room, and a piece can be in more than one', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    const offHome = fichasOf(rows, 'off-home')
-    const byCategory = (['bedroom', 'storage', 'tables', 'seating'] as const).flatMap((c) => fichasOf(rows, c))
-    expect(offHome.every((r) => !r.reference.home)).toBe(true)
-    expect(byCategory.length + offHome.length).toBe(fichasOf(rows, 'all').length)
-    expect(fichasOf(rows, 'featured').every((r) => r.reference.home?.featured)).toBe(true)
+    expect(rows.filter((r) => !roomsOf(r.reference).length).map((r) => r.reference.code)).toEqual([])
+    const sideboard = (room: Room) => fichasOf(rows, { ...ANY_FICHA, room }).some((r) => r.reference.code === 'KC-APA-01')
+    expect([sideboard('living'), sideboard('dining'), sideboard('bedroom')]).toEqual([true, true, false])
+  })
+
+  it('combines a room with the toggles, and every ficha it shows meets all of them', () => {
+    const rows = listFichas(testReferences.all(), testCatalog)
+    const q = { room: 'bedroom', onHome: true, withFindings: false, source: 'KC' } as const
+    const shown = fichasOf(rows, q)
+    expect(shown.length).toBeGreaterThan(0)
+    for (const { reference: r } of shown) expect([roomsOf(r).includes('bedroom'), !!r.home, r.code.startsWith('KC-')]).toEqual([true, true, true])
+    expect(fichasOf(rows, { ...ANY_FICHA, source: 'KC' }).length + fichasOf(rows, { ...ANY_FICHA, source: 'GN' }).length).toBe(rows.length)
+    expect(fichasOf(rows, { ...ANY_FICHA, withFindings: true }).every((r) => r.verdict !== 'ok')).toBe(true)
   })
 
   it('has a thumbnail for every ficha Knotty ships', () => {
