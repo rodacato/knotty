@@ -71,6 +71,20 @@ describe('choosing a joint', () => {
     expect(chooseJoint(thick.design, thick.geo, 'body', 'dowel', testCatalog).findings).toEqual([])
   })
 
+  it('a plugged dowel takes the same dowels to buy as a hidden one and keeps the cut list', () => {
+    const { design, geo } = built()
+    const through = (type: 'dowel' | 'plugged-dowel') => {
+      const applied = applyOperations(design, chooseJoint(design, geo, 'body', type, testCatalog).operations, testCatalog)
+      if (!applied.ok) throw new Error('not applied')
+      return applied.value.design
+    }
+    const [hidden, plugged] = [through('dowel'), through('plugged-dowel')]
+    const dowels = (d: typeof design) => estimatePurchase(d, geo, testCatalog).hardware.filter((h) => h.hardware.role === 'dowel').map((h) => h.count)
+    expect(dowels(plugged)).toEqual(dowels(hidden))
+    expect(dowels(plugged)[0]).toBeGreaterThan(0)
+    expect(plugged.pieces).toEqual(hidden.pieces)
+  })
+
   it('asks for nothing when the group already has that joint', () => {
     const { design, geo } = built()
     expect(chooseJoint(design, geo, 'back', 'glue-nail', testCatalog).operations).toEqual([])

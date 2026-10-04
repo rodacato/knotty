@@ -37,4 +37,29 @@ describe('hardware to draw', () => {
       expect(Math.min(h.center[0] - door.x0, door.x1 - h.center[0])).toBeCloseTo(22.5, 5)
     }
   })
+  it('puts the plugs of a plugged dowel on the outside face of the piece it goes through, spaced along the joint', () => {
+    const { design } = buildCabinet(
+      { kind: 'cabinet', name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 1, doors: null }] }] },
+      testCatalog,
+    )
+    const body = design.joints.find((u) => u.type === 'butt-screw' && design.pieces.find((p) => p.id === u.a)?.role === 'side')!
+    const plugged = { ...design, joints: design.joints.map((u) => (u.id === body.id ? { ...u, type: 'plugged-dowel' as const } : u)) }
+    const geo = analyze(plugged, testCatalog).geo!
+    const plugs = hardwareParts(plugged, geo.boxes).filter((h) => h.kind === 'plug')
+    expect(plugs.length).toBeGreaterThanOrEqual(2)
+    const side = geo.boxes.get(body.a)!
+    const other = geo.boxes.get(body.b)!
+    const sideIsLeft = (side.x0 + side.x1) / 2 < (other.x0 + other.x1) / 2
+    for (const p of plugs) {
+      if (p.kind !== 'plug') continue
+      expect(p.owner).toBe(body.a)
+      expect(p.axis).toBe('x')
+      expect(p.outward).toBe(sideIsLeft ? -1 : 1)
+      expect(p.center[0]).toBe(sideIsLeft ? side.x0 : side.x1)
+      expect(p.center[1]).toBeGreaterThanOrEqual(Math.max(side.y0, other.y0))
+      expect(p.center[1]).toBeLessThanOrEqual(Math.min(side.y1, other.y1))
+    }
+    const along = plugs.map((p) => (p.kind === 'plug' ? p.center[2] : 0))
+    expect(new Set(along).size).toBe(plugs.length)
+  })
 })

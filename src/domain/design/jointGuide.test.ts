@@ -12,6 +12,7 @@ const NAMES: Record<string, GuideJoint> = {
   'Escuadra metálica': 'bracket',
   'Tornillo de bolsillo': 'pocket-screw',
   Tarugos: 'dowel',
+  'Tarugo con tapón': 'plugged-dowel',
   Minifix: 'cam-lock',
   Ranura: 'dado',
   Rebaje: 'rabbet',

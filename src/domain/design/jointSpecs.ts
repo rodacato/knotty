@@ -43,6 +43,14 @@ const SPECS = {
     glue: true,
     hardware: 'dowel',
   },
+  'plugged-dowel': {
+    label: { singular: 'tarugo con tapón', plural: 'tarugos con tapón' },
+    minThickness: { a: 15, b: 15 },
+    rigid: true,
+    holdsThinBoard: false,
+    glue: true,
+    hardware: 'dowel',
+  },
   'cam-lock': {
     label: { singular: 'minifix', plural: 'minifix' },
     minThickness: { a: 15, b: 15 },
