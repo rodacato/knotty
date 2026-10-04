@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "code": "KC-MES-03",
+  "id": "tapered-leg-dining-table",
+  "name": "Mesa de comedor de patas cónicas",
+  "kind": "diningTable",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","curved-cut"],
+  "adaptations": ["Solid oak or raulí is written in T18 plywood","Slats under the top read as the cleats","tapered legs drawn as four straight legs with an apron all round; the curved apron joints are plain"],
+  "gaps": ["curved-cut"],
+  "notes": "Mesa de comedor de 160 x 90 cm con cubierta que sobresale poco, faldones bajo la cubierta y cuatro patas cónicas.",
+  "plan": {
+    "kind": "table",
+    "use": "dining",
+    "name": "Mesa de comedor",
+    "material": "T18",
+    "dimensions": { "width": 1600, "height": 750, "depth": 900 },
+    "overhang": 20,
+    "shelf": false,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "legs"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 19,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 6, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 30, "screw-8x2": 76, "white-glue": 2 }
+  }
+}
