@@ -1,17 +1,17 @@
 import { Plus, Trash } from '@phosphor-icons/react'
-import { CABINET_LABELS } from '../../domain/furniture/modules/cabinet'
-import type { Cell, Column } from '../../domain/furniture/reading/reading'
+import { CABINET_LABELS, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
 import { Button } from '../system/components'
 import { Input, Select } from '../system/Field'
 import { Segmented, Stepper } from './PlanControls'
 
 // A cabinet's columns and their cells: the one part of a plan that no generic field can draw.
 
-const CONTENTS = Object.entries(CABINET_LABELS.cell) as [Cell['content'], string][]
-const newCell = (): Cell => ({ height: 1, content: 'open', shelves: 0, doors: null })
+const CONTENTS = Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]
+const newCell = (): PlanCell => ({ height: 1, content: 'open', shelves: 0, doors: null })
 const percent = (value: number, all: number[]) => Math.round((value / (all.reduce((s, v) => s + v, 0) || 1)) * 100)
 
-function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; heights: number[]; index: number; onChange: (c: Cell) => void; onRemove: (() => void) | null }) {
+/** `canBeVoid`: only the cell at an end of its column can be left with nothing built. */
+function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell: PlanCell; heights: number[]; index: number; canBeVoid: boolean; onChange: (c: PlanCell) => void; onRemove: (() => void) | null }) {
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-xl bg-kraft/60 px-2 py-1.5">
       <Select
@@ -19,11 +19,11 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
         aria-label={`Hueco ${index + 1}`}
         value={cell.content}
         onChange={(e) => {
-          const content = e.target.value as Cell['content']
+          const content = e.target.value as PlanCell['content']
           onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
         }}
       >
-        {CONTENTS.map(([id, text]) => (
+        {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (
           <option key={id} value={id}>
             {text}
           </option>
@@ -59,8 +59,8 @@ function CellRow({ cell, heights, index, onChange, onRemove }: { cell: Cell; hei
 }
 
 /** Left to right, each column with its cells from top to bottom as the person sees them. */
-export function CabinetColumns({ label, value: columns, onChange }: { label: string; value: Column[]; onChange: (columns: Column[]) => void }) {
-  const setColumn = (i: number, column: Column) => onChange(columns.map((c, j) => (j === i ? column : c)))
+export function CabinetColumns({ label, value: columns, onChange }: { label: string; value: PlanColumn[]; onChange: (columns: PlanColumn[]) => void }) {
+  const setColumn = (i: number, column: PlanColumn) => onChange(columns.map((c, j) => (j === i ? column : c)))
   const widths = columns.map((c) => c.width)
   return (
     <section className="flex flex-col gap-2">
@@ -107,6 +107,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                     cell={cell}
                     heights={heights}
                     index={j}
+                    canBeVoid={column.cells.length > 1 && (j === 0 || j === column.cells.length - 1)}
                     onChange={(c) => setColumn(i, { ...column, cells: column.cells.map((x, k) => (k === j ? c : x)) })}
                     onRemove={column.cells.length > 1 ? () => setColumn(i, { ...column, cells: column.cells.filter((_, k) => k !== j) }) : null}
                   />

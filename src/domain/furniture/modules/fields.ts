@@ -1,5 +1,5 @@
 import type { BoardUse } from '../../materials/catalog'
-import type { Column } from '../reading/reading'
+import type { PlanColumn } from './cabinet'
 
 // A plan's form as data: each module lists its fields and the studio draws them, so a new kind of furniture needs no form of its own.
 // Every field reads and writes the plan through a typed get/set pair; set gives back the same plan when the value does not change.
@@ -77,7 +77,7 @@ export interface NoteField<P> extends Shown<P> {
 /** What each custom field edits: the parts of a plan no generic control can. */
 export interface CustomValues {
   /** A cabinet's columns and their cells. */
-  cabinetColumns: Column[]
+  cabinetColumns: PlanColumn[]
 }
 
 /** A part of the form the studio draws with its own component, named here; it draws its own title. */

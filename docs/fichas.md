@@ -59,6 +59,7 @@ El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `
 
    Tres cosas que el plan hace de cierta manera y conviene saber antes de escribirlo:
    - Cada columna llega de arriba abajo y tiene un solo ancho: los divisores verticales de arriba y de abajo son los mismos. Un mueble cuyos niveles tienen divisores verticales en lugares distintos no tiene forma de decirlo sin perder algo (va a `gaps`). Lo que cada columna reparte por su cuenta es la altura de sus celdas, como fracciones de esa columna.
+   - Una columna puede **no llegar al piso o al techo**: su primera o su última celda es `content: "void"` y ahí no se construye nada (cajas que cuelgan a distinta altura bajo una tapa, tapas escalonadas). Va solo en un extremo de la columna, y al menos una columna llega al piso y otra al techo. El experto no la escribe: solo una ficha o el editor.
    - En una base con patas, `dimensions.height` incluye las patas.
    - Un mueble alto con cajones se ancla al muro (`wallMounted: true`), y uno con puertas también cuando es ancho y poco profundo; si no, `--diff` lo marca con un aviso crítico de vuelco (`R4_TIPPING`).
 2. **Elegir el módulo** (`src/domain/furniture/modules/`: gabinete, cama, mesa, zapatera). Si ninguno cabe, ya sabes que hay soporte por agregar (sección 2).

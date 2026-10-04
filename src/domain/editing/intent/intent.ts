@@ -1,7 +1,7 @@
 import type { Design } from '../../design/schema'
 import { valueFields, type ChoiceField, type CustomField, type NumberField, type StepperField, type ValueField } from '../../furniture/modules/fields'
 import { FurniturePlan, moduleOf } from '../../furniture/modules/plan'
-import type { Cell, Column } from '../../furniture/reading/reading'
+import type { PlanCell, PlanColumn } from '../../furniture/modules/cabinet'
 
 // The chat requests Knotty understands by itself, without the expert: one clear change to the plan, or a question its own numbers answer.
 // Anything else is null and goes to the expert: a wrong guess costs more than a call, so only whole requests that read one way are taken.
@@ -132,7 +132,7 @@ function gridCounters(plan: Plan, field: CustomField<Plan>): Counter[] {
   if (field.component !== 'cabinetColumns') return []
   const columns = field.get(plan)
   const cells = columns.flatMap((c, i) => c.cells.map((cell, j) => ({ cell, i, j })))
-  const withCell = (i: number, j: number, cell: Cell): Column[] => columns.map((c, ci) => (ci !== i ? c : { ...c, cells: c.cells.map((x, cj) => (cj === j ? cell : x)) }))
+  const withCell = (i: number, j: number, cell: PlanCell): PlanColumn[] => columns.map((c, ci) => (ci !== i ? c : { ...c, cells: c.cells.map((x, cj) => (cj === j ? cell : x)) }))
   const counters: Counter[] = []
   const shelved = cells.filter(({ cell }) => cell.content === 'open' || cell.content === 'door')
   if (shelved.length === 1) {

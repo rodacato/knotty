@@ -3,7 +3,9 @@ import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
-import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
+import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, type CabinetConstruction, type PlanCell } from './cabinet'
+import { quickCounts } from './cabinetCounts'
+import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
 import { FurniturePlan } from './plan'
 import { cutList } from '../../materials/cutList'
@@ -315,5 +317,113 @@ describe('overlay drawer fronts on a shallow piece', () => {
     expect(drawerParts(design)).toBe(0)
     expect(notes).toEqual([expect.stringMatching(/^Cajón 1: No cabe un cajón/)])
     expect(design.pieces.find((p) => p.id === 'side-left')!.z.to).toMatchObject({ ref: 'furniture.z1', offset: 0 })
+  })
+})
+
+describe('a void in a column', () => {
+  const empty = (height: number): PlanCell => ({ height, content: 'void', shelves: null, doors: null })
+  const open = (height = 1) => cell('open', height, { shelves: 0 })
+  const open3 = { ...DEFAULT_CONSTRUCTION, back: 'none' as const, top: 'over' as const, shelves: 'fixed' as const }
+  // Three boxes under one top: the outer ones stop short of the floor, the middle one stands on it.
+  const hanging = (extra: Partial<CabinetPlan> = {}) =>
+    plan({ name: 'Repisa', dimensions: { width: 1200, height: 400, depth: 250 }, base: 'floor', construction: open3, columns: [{ width: 0.3, cells: [empty(0.3), open(0.7)] }, { width: 0.4, cells: [open()] }, { width: 0.3, cells: [empty(0.5), open(0.5)] }], ...extra })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, piece: (id: string) => design.pieces.find((x) => x.id === id) }
+  }
+
+  it('builds nothing where the void is: no piece reaches into it', () => {
+    const { design, box } = built(hanging())
+    const floor = box('c1-sep-1')
+    const inVoid = design.pieces.filter((p) => {
+      const b = box(p.id)
+      return b.x1 > box('side-left').x1 + 1 && b.x0 < box('div-1').x0 - 1 && b.y0 < floor.y0 - 1
+    })
+    expect(inVoid.map((p) => p.id)).toEqual([])
+  })
+
+  it('the fixed shelf next to the void is the floor of its column, and its side starts there', () => {
+    const { piece, box } = built(hanging())
+    expect(piece('c1-sep-1')).toMatchObject({ role: 'bottom', name: 'Piso de la columna 1' })
+    expect(box('side-left').y0).toBe(box('c1-sep-1').y0)
+    expect(box('side-right').y0).toBe(box('c3-sep-1').y0)
+    expect(box('side-right').y0).toBeGreaterThan(box('side-left').y0)
+  })
+
+  it('the floor comes in a stretch under the columns that reach it, and under the dividers that end it', () => {
+    const { design, box } = built(hanging())
+    expect(design.pieces.filter((p) => p.role === 'bottom' && p.id.startsWith('bottom')).map((p) => p.id)).toEqual(['bottom'])
+    expect([box('bottom').x0, box('bottom').x1]).toEqual([box('div-1').x0, box('div-2').x1])
+    expect(box('div-1').y0).toBe(box('bottom').y1)
+  })
+
+  it('a nailed back is one per column, as tall as what the column builds, and a kick follows the floor', () => {
+    const { design, box, a } = built(
+      plan({ name: 'Aparador', dimensions: { width: 1200, height: 800, depth: 400 }, wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns: [{ width: 1, cells: [cell('door', 1, { doors: 1, shelves: 0 })] }, { width: 1, cells: [empty(0.4), open(0.6)] }, { width: 1, cells: [open()] }] }),
+    )
+    const ids = (role: string) => design.pieces.filter((p) => p.role === role).map((p) => p.id)
+    expect(ids('back')).toEqual(['back', 'back-2', 'back-3'])
+    expect(box('back-2').y0).toBe(box('c2-sep-1').y0)
+    expect(ids('kick')).toEqual(['kick', 'kick-2'])
+    expect(ids('bottom')).toEqual(['bottom', 'bottom-2', 'c2-sep-1'])
+    // A support under a divider only where the floor runs on both sides of it.
+    expect(design.pieces.some((p) => p.id.startsWith('bottom-support'))).toBe(false)
+    expect(a.findings).toEqual([])
+    expect(a.warnings).toEqual([])
+  })
+
+  it('on legs the raised column floats over the frame, with no loose contact', () => {
+    const { a, box } = built(plan({ name: 'Librero', dimensions: { width: 880, height: 760, depth: 350 }, base: 'legs', wallMounted: false, columns: [{ width: 0.37, cells: [open(0.5), open(0.5)] }, { width: 0.63, cells: [empty(0.3), open(0.7)] }] }))
+    expect(a.warnings).toEqual([])
+    expect(a.findings).toEqual([])
+    expect(box('c2-sep-1').y0).toBeGreaterThan(box('bottom').y1)
+  })
+
+  it('at the top, each column that stops short gets its own roof and the top covers only the rest', () => {
+    const { design, box, piece } = built(
+      plan({ name: 'Librero', dimensions: { width: 1200, height: 1800, depth: 300 }, base: 'floor', construction: { ...open3, top: 'between' }, columns: [{ width: 1, cells: [open(0.5), open(0.5)] }, { width: 1, cells: [open(0.6), empty(0.4)] }, { width: 1, cells: [open(0.4), open(0.3), empty(0.3)] }] }),
+    )
+    expect(piece('c2-sep-1')).toMatchObject({ role: 'top', name: 'Techo de la columna 2' })
+    expect(design.pieces.filter((p) => p.id.startsWith('top')).map((p) => p.id)).toEqual(['top'])
+    expect(box('top').x1).toBe(box('div-1').x0)
+    expect(box('side-right').y1).toBe(box('c3-sep-2').y1)
+    // The divider between two columns that stop short reaches the higher roof.
+    expect(box('div-2').y1).toBe(box('c3-sep-2').y1)
+  })
+
+  it('a plan with no void builds the same pieces as before, by the same ids', () => {
+    const { design } = buildCabinet(PLANS.tvStand, testCatalog)
+    expect(design.pieces.filter((p) => ['back', 'bottom', 'top', 'kick', 'side', 'divider'].includes(p.role)).map((p) => p.id)).toEqual(['back', 'side-left', 'side-right', 'kick', 'bottom', 'top', 'div-1', 'div-2', 'bottom-support-1', 'bottom-support-2'])
+  })
+
+  it('goes only at an end of its column, one per end, and some column reaches the floor and some the top', () => {
+    const ok = (columns: CabinetPlan['columns']) => FurniturePlan.safeParse(hanging({ columns })).success
+    expect(ok(hanging().columns)).toBe(true)
+    expect(ok([{ width: 1, cells: [open(), empty(1), open()] }])).toBe(false)
+    expect(ok([{ width: 1, cells: [empty(1), empty(1), open()] }, { width: 1, cells: [open()] }])).toBe(false)
+    expect(ok([{ width: 1, cells: [empty(1)] }, { width: 1, cells: [open()] }])).toBe(false)
+    expect(ok([{ width: 1, cells: [empty(1), open()] }, { width: 1, cells: [empty(1), open()] }])).toBe(false)
+    expect(ok([{ width: 1, cells: [open(), empty(1)] }, { width: 1, cells: [open(), empty(1)] }])).toBe(false)
+    const refused = FurniturePlan.safeParse(hanging({ columns: [{ width: 1, cells: [open(), empty(1), open()] }] }))
+    expect(refused.success ? '' : refused.error.issues[0].message).toMatch(/^Un hueco vacío va abajo o arriba/)
+  })
+
+  it('with nothing to hang from, it is built as an open cell and the person is told', () => {
+    const { design, notes } = buildCabinet(hanging({ columns: [{ width: 1, cells: [empty(0.3), open(0.7)] }] }), testCatalog)
+    expect(analyze(design, testCatalog).valid).toBe(true)
+    expect(notes).toEqual([expect.stringMatching(/^Un hueco vacío va abajo o arriba/)])
+    expect(design.pieces.some((p) => p.id === 'bottom')).toBe(true)
+  })
+
+  it('is not something the expert can say: its columns keep the cells it had', () => {
+    expect(ExpertColumns.safeParse(hanging().columns).success).toBe(false)
+    expect(ExpertColumns.safeParse(PLANS.tvStand.columns).success).toBe(true)
+  })
+
+  it('is not counted as a niche, and reads as nothing built', () => {
+    expect(quickCounts(hanging())).toEqual({ drawer: 0, door: 0, open: 3 })
+    expect(explain({ plan: hanging() })).toContain('nothing built (0.3)')
   })
 })

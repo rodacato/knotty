@@ -1,4 +1,4 @@
-import type { Cell } from './reading/reading'
+import type { PlanCell } from './modules/cabinet'
 import { describeExpect, type Expect } from './probe'
 import type { FurniturePlan } from './modules/plan'
 import { DEFAULT_FINGERS } from './modules/fingerJoints'
@@ -21,13 +21,14 @@ export interface Explainable {
 const BASE = { kick: 'on a kick plate', floor: 'directly on the floor', legs: 'on legs' } as const
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-function cellText(cell: Cell): string {
+function cellText(cell: PlanCell): string {
   const shelves = cell.shelves ? ` with ${plural(cell.shelves, 'shelf').replace('shelfs', 'shelves')}` : ''
   const body = {
     door: cell.doors && cell.doors > 1 ? `${cell.doors}-leaf door` : 'door',
     drawer: 'drawer',
     open: 'open niche',
     closed: 'closed panel',
+    void: 'nothing built',
   }[cell.content]
   return `${body}${cell.content === 'drawer' ? '' : shelves} (${cell.height})`
 }

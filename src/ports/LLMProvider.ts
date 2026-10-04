@@ -7,7 +7,7 @@ import { Operation } from '../domain/editing/operations/schema'
 import { Requirement } from '../domain/checks/requirements/requirements'
 import { Question } from '../domain/session/state'
 import type { DesignError } from '../domain/design/validation/errors'
-import { CabinetPlan } from '../domain/furniture/modules/cabinet'
+import { CabinetPlan, ExpertColumns } from '../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULES, type FurnitureKind, type FurniturePlan, type PlanOf } from '../domain/furniture/modules/plan'
 import type { PhotoReading, View } from '../domain/furniture/reading/reading'
 import type { KnowledgeSelection } from '../domain/furniture/knowledge/select'
@@ -57,7 +57,7 @@ export interface ReviewRequest {
 }
 
 /** The expert names the kind by the field it fills, so its cabinet has no `kind` (every other plan carries its own): what it sees stays as it was. */
-const ExpertCabinetPlan = CabinetPlan.omit({ kind: true })
+const ExpertCabinetPlan = CabinetPlan.omit({ kind: true }).extend({ columns: ExpertColumns })
 type ExpertPlan<K extends FurnitureKind> = K extends 'cabinet' ? z.infer<typeof ExpertCabinetPlan> : PlanOf<K>
 export type ExpertPlans = { [K in FurnitureKind]: ExpertPlan<K> | null }
 
