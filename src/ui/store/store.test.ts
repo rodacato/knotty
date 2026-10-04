@@ -226,10 +226,12 @@ describe('the plan draft', () => {
     expect(draftOf(s)).toBeNull()
   })
 
-  it('the interior view looks from the front, and leaving it lets go of the chosen cell', () => {
+  it('the interior view looks from the front with no piece chosen, and leaving it lets go of the chosen cell', () => {
     openCabinet()
     const s = useStore.getState()
+    s.select('side-left')
     s.setMode('interior')
+    expect(useStore.getState().selection).toBeNull()
     s.selectCell([0, 0])
     expect(useStore.getState()).toMatchObject({ mode: 'interior', view: { name: 'front' }, cell: [0, 0] })
     useStore.getState().setMode('closed')

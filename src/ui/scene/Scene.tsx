@@ -201,7 +201,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], int
             offset={pushes.get(p.id)!}
             swing={swings.get(p.id) ?? null}
             selected={selection === p.id}
-            dimmed={!!selection && selection !== p.id}
+            dimmed={!inside && !!selection && selection !== p.id}
             ghost={ghosts.includes(p.id)}
             marked={marked.includes(p.id)}
             problem={problems.includes(p.id)}

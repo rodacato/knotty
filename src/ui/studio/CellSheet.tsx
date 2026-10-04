@@ -43,6 +43,8 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
   const voidable = canBeVoid(plan, path)
   const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
   const inherited = plan.construction.back === 'nailed' ? 'con trasera' : 'sin trasera'
+  const build = (patch: Partial<CabinetPlan['construction']>) => editPlan({ ...plan, construction: { ...plan.construction, ...patch } })
+  const { doors, drawerFronts } = CABINET_LABELS.construction
   const sides = joinSides(plan, path)
 
   return (
@@ -71,6 +73,20 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-graphite-2">Repisas adentro</span>
             <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
+          </div>
+        )}
+        {cell.content === 'door' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Cómo cierran</span>
+            <Segmented label="Cómo cierran las puertas" value={plan.construction.doors} options={Object.entries(doors.options)} onChange={(v) => build({ doors: v as CabinetPlan['construction']['doors'] })} />
+            <p className="text-xs text-graphite-2">Cambia todas las puertas del mueble.</p>
+          </div>
+        )}
+        {cell.content === 'drawer' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Frente del cajón</span>
+            <Segmented label="Frentes de cajón" value={plan.construction.drawerFronts} options={Object.entries(drawerFronts.options)} onChange={(v) => build({ drawerFronts: v as CabinetPlan['construction']['drawerFronts'] })} />
+            <p className="text-xs text-graphite-2">Cambia los frentes de todos los cajones del mueble.</p>
           </div>
         )}
         {cell.content === 'door' && (
