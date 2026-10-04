@@ -13,7 +13,8 @@ import { PieceEditor } from './PieceEditor'
 
 const GRAIN = { length: 'a lo largo', width: 'a lo ancho', any: 'libre' }
 
-export function PieceSheet({ design, geo, catalog, editable }: { design: Design; geo: Geometry; catalog: Catalog; editable: boolean }) {
+/** `closable`: false inside the edit panel, whose breadcrumbs lead back. */
+export function PieceSheet({ design, geo, catalog, editable, closable = true }: { design: Design; geo: Geometry; catalog: Catalog; editable: boolean; closable?: boolean }) {
   const confirmPiece = useStore((s) => s.confirmPiece)
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
@@ -40,9 +41,11 @@ export function PieceSheet({ design, geo, catalog, editable }: { design: Design;
           <Button variant="ghost" className="min-h-11 shrink-0 px-3" onClick={() => hide(p.id)}>
             <EyeSlash /> Ocultar
           </Button>
-          <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
-            <X />
-          </button>
+          {closable && (
+            <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+              <X />
+            </button>
+          )}
         </div>
         {editable && (
           <p className="flex items-center gap-1.5 text-xs font-semibold">

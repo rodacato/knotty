@@ -857,6 +857,7 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
       side: 'outside',
       fields: ['base', 'legHeight', 'wallMounted'],
       joints: ['base'],
+      jointsTitle: 'Uniones de la base',
       summary: (p) => `${p.base === 'legs' ? `Sobre patas de ${p.legHeight} mm` : CABINET_LABELS.base[p.base].option}${p.wallMounted ? ', anclado al muro' : ''}`,
     },
     {
@@ -865,6 +866,7 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
       side: 'outside',
       fields: ['construction.top', 'construction.back'],
       joints: ['body', 'back'],
+      jointsTitle: 'Uniones del cuerpo y la trasera',
       summary: ({ construction: c }) => `Techo ${c.top === 'between' ? 'entre laterales' : 'encima'}${c.top === 'fingers' ? ', esquinas de dedos' : ''}, ${c.back === 'nailed' ? 'trasera clavada' : 'sin trasera'}`,
     },
     {
@@ -880,7 +882,9 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
       name: 'Cajones',
       side: 'outside',
       fields: ['construction.drawerFronts', 'construction.drawerCorners', 'drawerFingers'],
+      alsoShows: ['construction.fronts', 'construction.pulls'],
       joints: ['drawers'],
+      jointsTitle: 'Uniones de las cajas de los cajones',
       summary: (p) => (drawersOf(p) ? `${counted(drawersOf(p), 'cajón', 'cajones')}, frentes ${lower(words.drawerFronts.options[p.construction.drawerFronts])}` : 'Sin cajones: agrégalos en los huecos'),
     },
     {

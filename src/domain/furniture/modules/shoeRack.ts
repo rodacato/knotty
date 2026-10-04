@@ -172,13 +172,14 @@ const SHOE_RACK_PARTS: Parts<ShoeRackPlan> = {
   list: [
     sizePart(),
     woodPart(),
-    { id: 'base', name: 'Base', side: 'outside', fields: ['base', 'wallMounted'], joints: ['base'], summary: (p) => `${SHOE_RACK_LABELS.base[p.base].option}${p.wallMounted ? ', anclada al muro' : ''}` },
+    { id: 'base', name: 'Base', side: 'outside', fields: ['base', 'wallMounted'], joints: ['base'], jointsTitle: 'Uniones de la base', summary: (p) => `${SHOE_RACK_LABELS.base[p.base].option}${p.wallMounted ? ', anclada al muro' : ''}` },
     {
       id: 'shoes',
       name: 'Zapatos',
       side: 'inside',
       fields: ['levels', 'bootLevel', 'front', 'seat'],
       joints: ['body', 'back'],
+      jointsTitle: 'Uniones del cuerpo y la trasera',
       summary: (p) => `${counted(p.levels, 'nivel', 'niveles')}${p.bootLevel ? ', uno para botas' : ''}, ${lower(SHOE_RACK_LABELS.front[p.front].option)}${p.seat ? ', con asiento' : ''}`,
     },
   ],

@@ -18,6 +18,8 @@ describe.each(FURNITURE_KINDS)('the parts of %s', (kind) => {
     expect(gathered.filter((k) => !form.includes(k))).toEqual([])
     expect(form.filter((k) => !gathered.includes(k))).toEqual(kind === 'cabinet' ? ['columns'] : [])
     expect(new Set(gathered).size).toBe(gathered.length)
+    expect(module.parts.list.flatMap((p) => p.alsoShows ?? []).filter((k) => !gathered.includes(k))).toEqual([])
+    expect(module.parts.list.filter((p) => p.joints.length && !p.jointsTitle).map((p) => p.id)).toEqual([])
   })
 
   it('give every piece a part it opens, but a cabinet’s boards inside, which the interior view edits', () => {

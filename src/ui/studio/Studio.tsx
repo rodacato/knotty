@@ -313,7 +313,7 @@ export function Studio({ state }: { state: DesignState }) {
           plan={editable}
           applied={editable ? source.plan : null}
           geo={currentAnalysis.geo ?? null}
-          pieceSheet={view.showsPiece && geo ? <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} /> : null}
+          pieceSheet={view.showsPiece && geo ? <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} closable={false} /> : null}
         />
       )}
       {!editingSide && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}

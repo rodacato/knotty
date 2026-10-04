@@ -12,7 +12,11 @@ export interface PartSpec<P> {
   side: 'outside' | 'inside'
   /** The keys of the plan's fields it gathers. */
   fields: string[]
+  /** Fields of another part it also shows, because they change this one too: a cabinet's pulls are the doors' and the drawers'. */
+  alsoShows?: string[]
   joints: JointGroupId[]
+  /** What its joints are called, as «Uniones de la base»; needed when it has joints. */
+  jointsTitle?: string
   /** How it is now, in one line; `finish` is the name of the design's finish. */
   summary(plan: P, finish: string): string
 }

@@ -338,7 +338,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
     },
     woodPart(),
     { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
-    { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs'], joints: ['body', 'base'], summary: (p) => TABLE_LABELS.legs[p.legs].option },
+    { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => TABLE_LABELS.legs[p.legs].option },
     {
       id: 'under',
       name: 'Abajo',
@@ -346,6 +346,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
       side: 'outside',
       fields: ['pedestal.side', 'pedestal.drawers', 'shelf'],
       joints: ['drawers', 'back'],
+      jointsTitle: 'Uniones de la cajonera',
       summary: (p) =>
         isDesk(p) ? (p.pedestal.side === 'none' ? 'Sin cajonera' : `${counted(p.pedestal.drawers, 'cajón', 'cajones')}, ${lower(TABLE_LABELS.pedestal[p.pedestal.side].phrase)}`) : p.shelf ? 'Con repisa baja' : 'Sin repisa baja',
     },

@@ -442,6 +442,7 @@ const BED_PARTS: Parts<BedPlan> = {
       side: 'outside',
       fields: ['legs', 'legHeight'],
       joints: ['body', 'base'],
+      jointsTitle: 'Uniones del armazón',
       summary: (p) => (hasDrawers(p) ? 'Sobre el zoclo de los cajones' : p.legs === 'legs' ? `Sobre patas de ${p.legHeight} mm` : 'Directo en el piso'),
     },
     {
@@ -450,6 +451,7 @@ const BED_PARTS: Parts<BedPlan> = {
       side: 'outside',
       fields: ['drawers.side', 'drawers.count', 'drawers.position'],
       joints: ['drawers'],
+      jointsTitle: 'Uniones de las cajas de los cajones',
       summary: (p) => (hasDrawers(p) ? `${counted(p.drawers.count, 'cajón', 'cajones')} por lado, ${BED_LABELS.drawerSide[p.drawers.side].phrase.replace('cajones ', '')}` : 'Sin cajones'),
     },
     {
@@ -458,6 +460,7 @@ const BED_PARTS: Parts<BedPlan> = {
       side: 'outside',
       fields: ['headboard.style', 'headboard.height', 'headboard.depth', 'headboard.shelves'],
       joints: ['back'],
+      jointsTitle: 'Uniones de la cabecera',
       summary: (p) => (p.headboard.style === 'none' ? 'Sin cabecera' : `${BED_LABELS.headboard[p.headboard.style].option}, de ${p.headboard.height} mm desde el piso`),
     },
   ],

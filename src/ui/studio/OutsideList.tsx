@@ -46,15 +46,11 @@ function KindPicker({ state }: { state: DesignState }) {
   }
   return (
     <section className="flex flex-col gap-2 px-4 pt-4">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <label htmlFor={id} className="text-sm text-graphite-2">
-          Tipo de mueble
-        </label>
-        <span className="w-30 shrink-0">
-          <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
-        </span>
-        {!redo && !error && said && <span className="min-w-0 flex-1 basis-24 text-sm text-graphite">{said}</span>}
-      </div>
+      <label htmlFor={id} className="text-sm text-graphite-2">
+        Tipo de mueble
+      </label>
+      <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
+      {!redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
       {error && <p className="text-xs text-rust">{error}</p>}
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">

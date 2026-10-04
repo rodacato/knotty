@@ -1,4 +1,3 @@
-import { X } from '@phosphor-icons/react'
 import type { Geometry } from '../../domain/design/resolve'
 import { CABINET_LABELS, type CabinetPlan, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { cellAt, cellLayout, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
@@ -59,9 +58,6 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
               </p>
             )}
           </div>
-          <button type="button" onClick={() => selectCell(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
-            <X />
-          </button>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -87,6 +83,13 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
             <span className="text-sm text-graphite-2">Frente del cajón</span>
             <Segmented label="Frentes de cajón" value={plan.construction.drawerFronts} options={Object.entries(drawerFronts.options)} onChange={(v) => build({ drawerFronts: v as CabinetPlan['construction']['drawerFronts'] })} />
             <p className="text-xs text-graphite-2">Cambia los frentes de todos los cajones del mueble.</p>
+          </div>
+        )}
+        {(cell.content === 'door' || cell.content === 'drawer') && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Jaladeras</span>
+            <Segmented label="Jaladeras" value={plan.construction.pulls} options={Object.entries(CABINET_LABELS.construction.pulls.options)} onChange={(v) => build({ pulls: v as CabinetPlan['construction']['pulls'] })} />
+            <p className="text-xs text-graphite-2">Cambia las jaladeras de todas las puertas y cajones del mueble.</p>
           </div>
         )}
         {cell.content === 'door' && (
