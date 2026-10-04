@@ -6,7 +6,7 @@ import { z } from 'zod'
 export const DESIGN_KINDS = [
   'cabinet', 'bookcase', 'wardrobe', 'wallCabinet', 'shoeRack', 'drawers', 'nightstand', 'sideboard', 'tvStand',
   'bed',
-  'table', 'desk', 'diningTable', 'coffeeTable', 'sideTable',
+  'table', 'desk', 'diningTable', 'coffeeTable', 'sideTable', 'workbench',
   'bench',
 ] as const
 export const DesignKind = z.enum(DESIGN_KINDS)
@@ -17,7 +17,7 @@ export const KIND_NOUN: Record<DesignKind, string> = {
   cabinet: 'un gabinete', bookcase: 'un librero', wardrobe: 'un clóset', wallCabinet: 'una alacena', shoeRack: 'una zapatera', drawers: 'una cajonera',
   nightstand: 'un buró', sideboard: 'un aparador', tvStand: 'un mueble de TV',
   bed: 'una cama',
-  table: 'una mesa', desk: 'un escritorio', diningTable: 'una mesa de comedor', coffeeTable: 'una mesa de centro', sideTable: 'una mesa lateral',
+  table: 'una mesa', desk: 'un escritorio', diningTable: 'una mesa de comedor', coffeeTable: 'una mesa de centro', sideTable: 'una mesa lateral', workbench: 'una mesa de trabajo',
   bench: 'una banca',
 }
 

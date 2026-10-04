@@ -59,7 +59,7 @@ export const measured = <const L extends MetricLimits>(constraint: MetricConstra
 export const checked = <const L extends Limits>(constraint: FunctionConstraint<L>): FunctionConstraint<L> => constraint
 
 /** The smallest area, in m², a level of horizontal pieces needs to count as the surface of each kind that has one. */
-const SURFACE_AREA: Partial<Record<DesignKind, number>> = { bed: 0.6, desk: 0.25, diningTable: 0.1, coffeeTable: 0.1, sideTable: 0.1, bench: 0.05 }
+const SURFACE_AREA: Partial<Record<DesignKind, number>> = { bed: 0.6, desk: 0.25, workbench: 0.25, diningTable: 0.1, coffeeTable: 0.1, sideTable: 0.1, bench: 0.05 }
 
 const horizontal = (design: Design, geo: Geometry) =>
   design.pieces.filter((p) => p.normal === 'y' && !p.group && geo.boxes.has(p.id)).map((p) => ({ piece: p, box: geo.boxes.get(p.id)! }))

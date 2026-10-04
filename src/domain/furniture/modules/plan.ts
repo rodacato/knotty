@@ -27,7 +27,7 @@ export const MODULE_OF_KIND: Record<DesignKind, FurnitureKind | null> = {
   cabinet: 'cabinet', bookcase: 'cabinet', wardrobe: 'cabinet', wallCabinet: 'cabinet', drawers: 'cabinet', nightstand: 'cabinet', sideboard: 'cabinet', tvStand: 'cabinet',
   bed: 'bed',
   shoeRack: 'shoeRack',
-  table: 'table', desk: 'table', diningTable: 'table', coffeeTable: 'table', sideTable: 'table',
+  table: 'table', desk: 'table', diningTable: 'table', coffeeTable: 'table', sideTable: 'table', workbench: 'table',
   bench: null,
 }
 

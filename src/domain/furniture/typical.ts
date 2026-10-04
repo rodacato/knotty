@@ -22,6 +22,7 @@ export const TYPICAL_DIMENSIONS: Record<DesignKind, Dimensions> = {
   desk: TYPICAL_TABLE_DIMENSIONS.desk,
   coffeeTable: TYPICAL_TABLE_DIMENSIONS.coffee,
   sideTable: TYPICAL_TABLE_DIMENSIONS.side,
+  workbench: TYPICAL_TABLE_DIMENSIONS.standing,
   bench: { width: 1200, height: 450, depth: 350 },
 }
 
