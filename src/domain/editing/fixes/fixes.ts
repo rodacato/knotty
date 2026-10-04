@@ -7,7 +7,7 @@ import { normalize } from '../../design/normalize'
 import { findingKey, type Alternative, type Finding } from '../../checks/structure/finding'
 import { isBuildKey, type AlternativeKey } from '../../checks/structure/alternatives'
 import { materialById, slideForBox, type Catalog, type HardwareRole } from '../../materials/catalog'
-import { pocketScrewId } from '../../checks/structure/assumptions'
+import { pocketScrewId } from '../../assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
 

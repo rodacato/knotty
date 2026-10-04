@@ -4,7 +4,7 @@ import { CONTACT_TOLERANCE, freeSpan } from '../../../design/boxes'
 import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../../../materials/catalog'
 import { stiffness } from '../../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
-import { ASSUMPTIONS, type LoadDuration } from '../assumptions'
+import { ASSUMPTIONS, type LoadDuration } from '../../../assumptions'
 import { personSurface } from '../../typology/constraint'
 import { useOf } from '../../typology/typology'
 

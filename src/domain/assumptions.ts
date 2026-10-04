@@ -1,5 +1,4 @@
-import type { Load } from '../../design/schema'
-import { cite, noReference, STRUCTURE, JOINTS_DOC, VALUES, type Source } from '../../sources'
+import { cite, noReference, STRUCTURE, JOINTS_DOC, VALUES, type Source } from './sources'
 
 // Engineering assumptions as data, to calibrate them without touching the rules, each with its source (ASSUMPTION_SOURCES). Pine plywood from Home Depot MX.
 // What depends on the board (its stiffness) is in materials/grades.ts.
@@ -8,7 +7,7 @@ export const ASSUMPTIONS = {
   /** Final sag ÷ initial sag: a load that stays (books, dishes, clothes, a TV) makes it grow; one that passes (a person) does not (NDS K_cr, Eurocode 5, Wood Handbook). */
   creep: { permanent: 2, passing: 1 },
   /** kg/m² on the shelf. */
-  loads: { none: 0, light: 50, medium: 100, heavy: 150 } satisfies Record<Load, number>,
+  loads: { none: 0, light: 50, medium: 100, heavy: 150 },
   gravity: 9.81,
   /** A board is thinner than its nominal thickness by this much (18 → 17.5); the sag is judged with the real one. */
   realThicknessAllowance: 0.5,

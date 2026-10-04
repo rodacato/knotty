@@ -7,7 +7,7 @@ import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } f
 import { doorMount } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
-import { hingesFor, ASSUMPTIONS } from '../assumptions'
+import { hingesFor, ASSUMPTIONS } from '../../../assumptions'
 import { tippingBalance } from './tippingBalance'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.

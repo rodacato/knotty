@@ -3,7 +3,7 @@ import { JOINTS } from '../../../design/jointSpecs'
 import { roundTo } from '../../../design/resolve'
 import { thinnestBoard, type Catalog } from '../../../materials/catalog'
 import type { Finding, Rule, Severity } from '../finding'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS } from '../../../assumptions'
 
 // R2: each joint needs enough board on each side, and a groove or rabbet must not weaken what takes it.
 

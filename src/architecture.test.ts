@@ -49,14 +49,13 @@ describe('architecture', () => {
   }
 
   // Inside the domain, six groups by intent. materials and design are the base; checks, furniture and editing build on them;
-  // session sits on top and nothing imports it. These are the edges that exist today: design ↔ materials, design and materials →
-  // checks (structure/assumptions), checks → furniture (the mattresses of the bed) and furniture ↔ editing are cycles to cut.
-  // A new edge between groups has to be added here on purpose. Loose files at the root
-  // (sources.ts) are shared by every group and import none.
+  // session sits on top and nothing imports it. These are the edges that exist today: design ↔ materials and furniture ↔ editing
+  // are cycles to cut. A new edge between groups has to be added here on purpose. Loose files at the root (sources.ts,
+  // assumptions.ts) are shared by every group and import none.
   const GROUPS: Record<string, string[]> = {
-    materials: ['design', 'checks'],
-    design: ['materials', 'checks'],
-    checks: ['design', 'materials', 'furniture'],
+    materials: ['design'],
+    design: ['materials'],
+    checks: ['design', 'materials'],
     furniture: ['design', 'materials', 'checks', 'editing'],
     editing: ['design', 'materials', 'checks', 'furniture'],
     session: ['design', 'materials', 'checks', 'furniture', 'editing'],
@@ -67,8 +66,8 @@ describe('architecture', () => {
     return rest.length ? first : '(root)'
   }
 
-  it('domain/ holds only its groups and sources', () => {
-    const entries = readdirSync(DOMAIN).filter((name) => !/^sources(\.test(-util)?)?\.ts$/.test(name))
+  it('domain/ holds only its groups and what they all share', () => {
+    const entries = readdirSync(DOMAIN).filter((name) => !/^(sources|assumptions)(\.test(-util)?)?\.ts$/.test(name))
     expect(entries.sort()).toEqual(Object.keys(GROUPS).sort())
   })
 

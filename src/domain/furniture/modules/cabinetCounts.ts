@@ -1,4 +1,4 @@
-import { ASSUMPTIONS } from '../../checks/structure/assumptions'
+import { ASSUMPTIONS } from '../../assumptions'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
 import { checkBuilt } from '../quick'

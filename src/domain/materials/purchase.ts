@@ -1,7 +1,7 @@
 import type { Design, Joint } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { jointLength } from '../design/validation/contact'
-import { hingesFor } from '../checks/structure/assumptions'
+import { hingesFor } from '../assumptions'
 import { layOut, type MaterialLayout } from './layout'
 import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from './catalog'
 import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'

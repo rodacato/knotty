@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent } from '../../design/builders'
 import type { Extent, FaceRef, Design, Piece } from '../../design/schema'
-import { MattressSize } from '../../design/kind'
+import { MATTRESSES, MattressSize } from '../../design/kind'
 import { completeJoints } from '../../design/joints'
 import { backBoard, type Catalog } from '../../materials/catalog'
 import { addDrawers, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
@@ -10,9 +10,6 @@ import type { FurnitureModule, Labels } from './module'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
-
-/** Mattress sizes sold in Mexico, width × length in mm. */
-export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const satisfies Record<MattressSize, readonly [number, number]>
 
 /** The most drawers a side of the base takes. */
 export const MAX_DRAWERS_PER_SIDE = 4

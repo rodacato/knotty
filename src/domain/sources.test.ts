@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ASSUMPTIONS, ASSUMPTION_SOURCES } from './checks/structure/assumptions'
+import { ASSUMPTIONS, ASSUMPTION_SOURCES } from './assumptions'
 import { GEOMETRY_SOURCES } from './design/validation/geometry'
 import { VIABILITY_SOURCES } from './checks/viability/viability'
 import { MODULE_SOURCES } from './furniture/modules/common'

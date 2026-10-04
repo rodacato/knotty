@@ -2,7 +2,7 @@ import { roundTo } from '../../../design/resolve'
 import { contactBetween, jointLength } from '../../../design/validation/contact'
 import { hardwareByRole } from '../../../materials/catalog'
 import type { Finding, Rule } from '../finding'
-import { ASSUMPTIONS, pocketScrewFor } from '../assumptions'
+import { ASSUMPTIONS, pocketScrewFor } from '../../../assumptions'
 import { noReference, type Source } from '../../../sources'
 
 const INCH = 25.4

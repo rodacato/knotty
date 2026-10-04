@@ -11,7 +11,7 @@ import { BED_LABELS, type BedPlan } from '../../../domain/furniture/modules/bed'
 import { DEFAULT_THICKNESS, KICK_HEIGHT } from '../../../domain/furniture/modules/common'
 import { BOOT_LEVEL_HEIGHT, LEVEL_HEIGHT, PAIR_WIDTH, SHOE_RACK_DEPTH, type ShoeRackPlan } from '../../../domain/furniture/modules/shoeRack'
 import { TABLE_LABELS, TYPICAL_TABLE_DIMENSIONS, type TablePlan } from '../../../domain/furniture/modules/table'
-import { ASSUMPTIONS } from '../../../domain/checks/structure/assumptions'
+import { ASSUMPTIONS } from '../../../domain/assumptions'
 import { answerWith, type LLMProvider, type ExpertResponse, type AdjustmentResponse, type ReviewResponse, type PlanResponse, type ReconstructionResponse, type ReviewRequest } from '../../../ports/LLMProvider'
 
 // Fixed answers to develop without an API: it recognizes a few requests by keyword, on the example furniture.

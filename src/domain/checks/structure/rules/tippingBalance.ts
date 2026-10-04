@@ -1,6 +1,6 @@
 import { isDrawerPart, type Design, type Piece } from '../../../design/schema'
 import type { Box, Geometry } from '../../../design/resolve'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS } from '../../../assumptions'
 
 /** What holds a piece of storage furniture up and what pulls it forward, in kg·m about the front edge of what it stands on. */
 export interface TippingBalance {

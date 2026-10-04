@@ -4,7 +4,7 @@ import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Piece, 
 import { completeJoints } from '../../design/joints'
 import type { DesignKind } from '../../design/kind'
 import { backBoard, type Catalog } from '../../materials/catalog'
-import { ASSUMPTIONS, pocketScrewId } from '../../checks/structure/assumptions'
+import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'

@@ -1,4 +1,4 @@
-import { hingesFor } from '../checks/structure/assumptions'
+import { hingesFor } from '../assumptions'
 import { dowelsAlong } from '../materials/purchase'
 import type { Axis, Design } from './schema'
 import type { Box } from './resolve'

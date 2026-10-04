@@ -1,4 +1,4 @@
-import { ASSUMPTIONS, pocketScrewId } from '../checks/structure/assumptions'
+import { ASSUMPTIONS, pocketScrewId } from '../assumptions'
 import { hardwareByRole, hingeFor, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
 import { doorMount } from './doors'
 import { contactBetween, contacts, type Contact } from './validation/contact'

@@ -1,9 +1,10 @@
 import { boardsFor, usableSheet, type BoardMaterial, type BoardUse, type Catalog } from '../../../domain/materials/catalog'
 import { DEFAULT_CONSTRUCTION, type CabinetConstruction } from '../../../domain/furniture/modules/cabinet'
-import { MATTRESSES, MAX_DRAWERS_PER_SIDE } from '../../../domain/furniture/modules/bed'
+import { MAX_DRAWERS_PER_SIDE } from '../../../domain/furniture/modules/bed'
+import { MATTRESSES } from '../../../domain/design/kind'
 import { MAX_PEDESTAL_DRAWERS, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/table'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/editing/operations/drawer'
-import { ASSUMPTIONS } from '../../../domain/checks/structure/assumptions'
+import { ASSUMPTIONS } from '../../../domain/assumptions'
 import { BOOKCASE_DEPTH, DESK_HEIGHT, WARDROBE_DEPTH } from '../../../domain/checks/typology/constraints'
 
 // The craft numbers the prompts mention, taken from the code that enforces them: a prompt writes {{name}} instead of the number.

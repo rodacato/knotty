@@ -95,7 +95,7 @@ Como se agregaron las patas al gabinete es el recorrido típico:
 
 1. **El plan** (`modules/<módulo>.ts`): la opción nueva en el esquema, con su `.describe` (es lo que lee el experto), y sus etiquetas para la hoja de la ficha.
 2. **El constructor** (mismo archivo, y `modules/common.ts` para lo que comparten): las piezas y uniones que la opción agrega. Knotty construye cada pieza, así que no se pueden traslapar.
-3. **Los supuestos numéricos** (`domain/checks/structure/assumptions.ts`): cada cifra con su fuente.
+3. **Los supuestos numéricos** (`domain/assumptions.ts`): cada cifra con su fuente.
 4. **Las revisiones** (`domain/checks/structure/`): si una regla existente lee lo que cambió, se sube su versión; si hace falta una nueva, va en el registro.
 5. **La guía del experto** (`adapters/llm/prompts/modules/<módulo>.vN.md`, escrita a mano para gabinete, cama y mesa): se sube su versión y su presupuesto en `prompts.test.ts`. Como cambia lo que ve el experto, hay que correr `npm run compare` a mano (cuesta tokens) y comparar con el último reporte.
 6. **Pruebas** del módulo (`<módulo>.test.ts`): la opción, sus piezas y lo que no debe pasar.
