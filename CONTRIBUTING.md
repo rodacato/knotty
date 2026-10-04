@@ -144,7 +144,7 @@ npm run compare:resume -- --last  # y las reanuda
 | Si tocaste… | Además de lo de siempre |
 |---|---|
 | La interfaz o la escena 3D | Recorrido en el navegador (2) |
-| Reglas, módulos (fichas), uniones, geometría o reparaciones | Banco sin experto (3) y recorrido (2) |
+| Reglas, módulos (fichas), uniones, geometría o reparaciones | Banco sin experto (3) y recorrido (2). Si una variante cambia de forma, `fingerprints.test.ts` falla diciendo cuáles; si fue a propósito, `UPDATE_FINGERPRINTS=1 npx vitest run src/application/bench/fingerprints.test.ts` reescribe `fingerprints.json` y el diff del PR enseña qué se movió |
 | Prompts, esquemas que ve el experto o el contexto que se le manda | Banco con experto (4), comparado con el anterior |
 | Las comprobaciones o el cargador de las preguntas difíciles | Sus pruebas (con preguntas inventadas) y, si tienes la carpeta privada, `compare:hard -- --list` (5) |
 | Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
