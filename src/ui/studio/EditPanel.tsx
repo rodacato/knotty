@@ -6,7 +6,7 @@ import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/pla
 import { partName } from '../../domain/furniture/modules/parts'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
-import { draftOf, useStore, type EditSide } from '../store'
+import { useStore, type EditSide } from '../store'
 import { CellSheet } from './CellSheet'
 import { DraftBar } from './DraftBar'
 import { OutsideList } from './OutsideList'
@@ -42,15 +42,6 @@ function Breadcrumbs({ steps }: { steps: { label: string; up?: () => void }[] })
   )
 }
 
-/** Leaving with changes not applied asks what to do with them; without any, it just leaves. */
-function useLeave() {
-  const draft = useStore(draftOf)
-  const edit = useStore((s) => s.edit)
-  const [asking, setAsking] = useState(false)
-  const leave = () => (draft ? setAsking(true) : edit(null))
-  return { asking, leave, stay: () => setAsking(false) }
-}
-
 export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { state: DesignState; side: EditSide; plan: FurniturePlan | null; applied: FurniturePlan | null; geo: Geometry | null; pieceSheet: ReactNode }) {
   const edit = useStore((s) => s.edit)
   const apply = useStore((s) => s.applyPlanDraft)
@@ -61,7 +52,8 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
   const select = useStore((s) => s.select)
   const selectPart = useStore((s) => s.selectPart)
   const selectCell = useStore((s) => s.selectCell)
-  const { asking, leave, stay } = useLeave()
+  const asking = useStore((s) => s.leaving)
+  const leave = useStore((s) => s.leave)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -99,7 +91,7 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
         <h2 className="sr-only">{TITLE[side]}</h2>
         <Breadcrumbs steps={steps} />
-        <button type="button" onClick={leave} aria-label="Salir de editar" title="Salir (Esc)" className="relative grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+        <button type="button" onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)" className="relative grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
           <X />
         </button>
       </div>
@@ -129,7 +121,7 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
             >
               Descartar
             </Button>
-            <Button variant="ghost" onClick={stay}>
+            <Button variant="ghost" onClick={() => leave(false)}>
               Seguir editando
             </Button>
           </div>

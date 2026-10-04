@@ -51,7 +51,7 @@ describe('store', () => {
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
-      'select', 'hide', 'showAll', 'setMode', 'edit', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      'select', 'hide', 'showAll', 'setMode', 'edit', 'leave', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
       // plan draft
       'editPlan', 'undoPlanEdit', 'discardPlanDraft', 'applyPlanDraft', 'selectCell', 'selectPart',
       // settings
@@ -237,6 +237,28 @@ describe('the plan draft', () => {
     useStore.getState().selectCell([0, 0])
     useStore.getState().edit(null)
     expect(useStore.getState()).toMatchObject({ editing: null, mode: 'exploded', view: { name: 'side' }, cell: null })
+  })
+
+  it('editing outside looks from three-quarter with the drawers in, whatever the person was looking at', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.setMode('open')
+    s.viewFrom('top')
+    s.edit('outside')
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', mode: 'closed', view: { name: 'three-quarter' } })
+  })
+
+  it('leaving with changes not applied asks first and stays; without any, it leaves', () => {
+    const { plan } = openCabinet()
+    useStore.getState().edit('outside')
+    useStore.getState().editPlan(wider(plan, 100))
+    useStore.getState().leave()
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', leaving: true })
+    useStore.getState().leave(false)
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', leaving: false })
+    useStore.getState().discardPlanDraft()
+    useStore.getState().leave()
+    expect(useStore.getState()).toMatchObject({ editing: null, leaving: false })
   })
 
   it('opening a part lets go of the chosen piece, and moving to the other side closes it but keeps where to go back', () => {

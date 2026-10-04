@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
@@ -106,6 +106,18 @@ function EditBar({ inside }: { inside: boolean }) {
           <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
         </button>
       ))}
+    </div>
+  )
+}
+
+/** The way out of editing, where the eye lands (UI-76): at the top in the middle, and at the foot on a phone, where the bars fill the top. */
+function LeaveEditing() {
+  const leave = useStore((s) => s.leave)
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center md:top-4 md:bottom-auto">
+      <Button variant="primary" className="pointer-events-auto min-h-11 gap-1.5 rounded-full px-4 shadow-sm" onClick={() => leave()} title="Salir (Esc)">
+        <Check weight="bold" /> Terminar de editar
+      </Button>
     </div>
   )
 }
@@ -283,6 +295,7 @@ export function Studio({ state }: { state: DesignState }) {
         </div>
         {geo && <EditBar inside={insideParts} />}
       </div>
+      {editingSide && <LeaveEditing />}
       {geo && (
         <div className="pointer-events-none absolute right-3 bottom-3 z-10 md:right-4 md:bottom-4">
           <DimensionsToggle />
