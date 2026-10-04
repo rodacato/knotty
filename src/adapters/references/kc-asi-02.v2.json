@@ -10,7 +10,7 @@
   "features": ["angled-cut","curved-cut","legs"],
   "adaptations": ["Solid jequitiba (hardwood) drawn in T18 plywood","Low H stretcher and the foot rail not drawn","Rounded seat edge not drawn","Width 340 and depth 290 estimated from photo proportions against the 650 height","four splayed round-edged legs drawn as four straight legs with an apron all round","no stool kind: sideTable is the closest"],
   "gaps": ["angled-cut","curved-cut"],
-  "notes": "Taburete alto de cuatro patas ligeramente abiertas, asiento con el borde frontal redondeado y travesaños bajos en H para los pies. Se adapta como una mesa lateral alta de triplay con dos costados y faldones.",
+  "notes": "Taburete alto de cuatro patas ligeramente abiertas, asiento con el borde frontal redondeado y travesaños bajos en H para los pies. En Knotty queda como un taburete cuadrado de triplay con cuatro patas rectas y faldón; no se dibujan los travesaños ni el borde redondeado.",
   "plan": {
     "kind": "table",
     "use": "side",
