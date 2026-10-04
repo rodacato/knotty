@@ -1,0 +1,138 @@
+{
+  "format": 1,
+  "code": "KC-LIB-01",
+  "id": "staggered-bookcase",
+  "name": "Librero escalonado",
+  "kind": "bookcase",
+  "support": "adapted",
+  "difficulty": 2,
+  "features": ["wall-anchor","open-niche","no-back","asymmetric-arrangement"],
+  "adaptations": ["the sides and the divider of the top level rise above the top shelf; the plan closes with a top between the sides, flush","the bottom shelf sits about 100 mm above the floor between the sides, with nothing under it; drawn on the floor"],
+  "gaps": [],
+  "notes": "Librero alto y angosto de triplay, sin trasera, con repisas fijas de lado a lado y divisores verticales en lugares distintos en cada nivel.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero escalonado",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 900, "height": 1950, "depth": 290 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "none", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          {
+            "height": 0.187,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.5,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.5,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.159,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.67,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.33,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.353,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.34,
+                "cells": [
+                  { "height": 0.38, "content": "open", "shelves": 0, "doors": null },
+                  { "height": 0.62, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.66,
+                "cells": [
+                  { "height": 0.54, "content": "open", "shelves": 0, "doors": null },
+                  { "height": 0.46, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.166,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.5,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.5,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.136,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.66,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.34,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 15,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 2 },
+    "hardware": { "edge-banding-19": 13, "screw-8x2": 52, "white-glue": 2 }
+  }
+}
