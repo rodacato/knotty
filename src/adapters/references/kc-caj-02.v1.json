@@ -1,0 +1,80 @@
+{
+  "format": 1,
+  "code": "KC-CAJ-02",
+  "id": "chest-mixed-fronts",
+  "name": "Cómoda con cajones, puertas y nicho",
+  "kind": "drawers",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","inset-drawers","legs","open-niche","no-back","asymmetric-arrangement","angled-cut"],
+  "adaptations": ["Original may be solid pine; written in T18 plywood","danish-oil used as the closest to the natural clear look (no wax-oil id; real finish unknown)","the clipped notch corners of the fronts are drawn as finger notches","the niche has no back in the piece; the plan has one back for all of it","the short angled feet are drawn as 100 mm straight legs, the least the module allows","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["no-back","angled-cut"],
+  "notes": "Cómoda baja de triplay con un nicho abierto arriba a la izquierda, tres cajones, dos puertas y patas cortas bajo un marco.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Cómoda con cajones, puertas y nicho",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1200, "height": 800, "depth": 390 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          {
+            "height": 0.47,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.32,
+                "cells": [
+                  { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
+                ]
+              },
+              {
+                "width": 0.68,
+                "cells": [
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.53,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.66,
+                "cells": [
+                  { "height": 0.48, "content": "drawer", "shelves": null, "doors": null },
+                  { "height": 0.52, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.34,
+                "cells": [
+                  { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "legHeight": 100
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 43,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 107, "cup-hinge-35-inset": 4, "drawer-slide-35": 3, "edge-banding-19": 24, "pocket-screw-1-1/4": 16, "screw-8x1": 12, "screw-8x1-1/4": 8, "screw-8x2": 104, "white-glue": 4 }
+  }
+}
