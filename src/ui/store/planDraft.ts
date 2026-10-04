@@ -22,8 +22,8 @@ export interface PlanDraftSlice {
   planDraft: PlanDraft | null
   /** The cell of the cabinet chosen in the interior view. */
   cell: CellPath | null
-  /** One change to the draft, built at once; back to the applied plan, there is no draft. */
-  editPlan(plan: FurniturePlan): void
+  /** One change to the draft, built at once; back to the applied plan, there is no draft. `merge` folds it into the last step, as a drag does. */
+  editPlan(plan: FurniturePlan, merge?: boolean): void
   undoPlanEdit(): void
   discardPlanDraft(): void
   applyPlanDraft(): { ok: true; notes: string[] } | { ok: false; message: string }
@@ -48,12 +48,12 @@ export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
     planDraft: null,
     cell: null,
 
-    editPlan(plan) {
+    editPlan(plan, merge = false) {
       const s = get()
       const draft = draftOf(s)
       const before = draft?.plan ?? (s.state ? currentPlan(s.state).plan : null)
       if (!before || same(before, plan)) return
-      set({ planDraft: built(plan, [...(draft?.steps ?? []), before]) })
+      set({ planDraft: built(plan, merge && draft ? draft.steps : [...(draft?.steps ?? []), before]) })
     },
     undoPlanEdit() {
       const draft = draftOf(get())

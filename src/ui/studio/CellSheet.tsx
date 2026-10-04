@@ -1,0 +1,121 @@
+import { X } from '@phosphor-icons/react'
+import type { Geometry } from '../../domain/design/resolve'
+import { CABINET_LABELS, type CabinetPlan, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { cellAt, cellLayout, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { Chip } from '../system/components'
+import { useStore } from '../store'
+import { Segmented, Stepper } from './PlanControls'
+
+// The chosen cell of the interior view takes the panel, like a chosen piece: what it holds, and how to cut or join it.
+
+const JOIN_WORDS: Record<JoinSide, string> = { up: 'Con el de arriba', down: 'Con el de abajo', left: 'Con el de la izquierda', right: 'Con el de la derecha' }
+
+/** A void goes only at an end of one of the furniture's own columns. */
+const canBeVoid = (plan: CabinetPlan, path: CellPath) => path.length === 2 && plan.columns[path[0]].cells.length > 1 && (path[1] === 0 || path[1] === plan.columns[path[0]].cells.length - 1)
+
+export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPath; geo: Geometry }) {
+  const editPlan = useStore((s) => s.editPlan)
+  const selectCell = useStore((s) => s.selectCell)
+  const cell = cellAt(plan, path)
+  if (!cell) return null
+  const rect = cellLayout(plan, geo.boxes)?.cells.find((c) => c.path.join('.') === path.join('.'))
+  const change = (patch: Partial<PlanCell>) => {
+    const next = structuredClone(plan)
+    const target = cellAt(next, path)!
+    Object.assign(target, patch)
+    if ('back' in patch && patch.back === undefined) delete target.back
+    editPlan(next)
+  }
+  const choose = (content: PlanCell['content']) =>
+    change({ content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}) })
+  const cut = (direction: 'columns' | 'rows', n: number) => {
+    const next = splitCell(plan, path, direction, n)
+    if (!next) return
+    editPlan(next)
+    selectCell(cellAt(next, path) ? path : [...path, 0, 0])
+  }
+  const join = (side: JoinSide) => {
+    const r = joinCells(plan, path, side)
+    if (!r) return
+    editPlan(r.plan)
+    selectCell(r.path)
+  }
+  const voidable = canBeVoid(plan, path)
+  const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
+  const inherited = plan.construction.back === 'nailed' ? 'con trasera' : 'sin trasera'
+  const sides = joinSides(plan, path)
+
+  return (
+    <section className="flex h-full min-h-0 flex-col" aria-label="Hueco elegido">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-lg leading-tight font-semibold">Hueco elegido</h2>
+            {rect && (
+              <p className="numerals font-mono text-sm text-graphite-2">
+                {Math.round(rect.x1 - rect.x0)} × {Math.round(rect.y1 - rect.y0)} mm
+              </p>
+            )}
+          </div>
+          <button type="button" onClick={() => selectCell(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+            <X />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-graphite-2">Qué lleva</span>
+          <Segmented label="Qué lleva" value={cell.content} options={contents} onChange={(v) => choose(v as PlanCell['content'])} />
+          {!voidable && cell.content !== 'void' && <p className="text-xs text-graphite-2">«Vacío» va en el hueco de arriba o de abajo de una columna, para que esa columna no llegue al piso o al techo.</p>}
+        </div>
+        {(cell.content === 'open' || cell.content === 'door') && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-graphite-2">Repisas adentro</span>
+            <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
+          </div>
+        )}
+        {cell.content === 'door' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Hojas</span>
+            <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => change({ doors: Number(v) })} />
+          </div>
+        )}
+        {cell.content !== 'void' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Trasera</span>
+            <Segmented
+              label="Trasera"
+              value={cell.back === undefined ? 'inherit' : String(cell.back)}
+              options={[['inherit', `Como el mueble (${inherited})`], ['true', 'Con trasera'], ['false', 'Sin trasera']]}
+              onChange={(v) => change({ back: v === 'inherit' ? undefined : v === 'true' })}
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-graphite-2">Dividir</span>
+          <div className="flex flex-wrap gap-2">
+            {([['columns', 2, '2 columnas'], ['columns', 3, '3 columnas'], ['rows', 2, '2 filas'], ['rows', 3, '3 filas']] as const).map(([direction, n, label]) => (
+              <Chip key={label} onClick={() => cut(direction, n)}>
+                {label}
+              </Chip>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-graphite-2">Juntar</span>
+          {sides.length ? (
+            <div className="flex flex-wrap gap-2">
+              {sides.map((side) => (
+                <Chip key={side} onClick={() => join(side)}>
+                  {JOIN_WORDS[side]}
+                </Chip>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-graphite-2">Nada que juntar: este hueco no salió de dividir uno junto a él.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

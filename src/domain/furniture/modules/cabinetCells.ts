@@ -126,8 +126,12 @@ export interface CellRect {
 export interface LineRect extends Line {
   /** In mm: x for a line between columns, y for one between cells. */
   position: number
+  /** Across the line, where it runs from and to. */
   from: number
   to: number
+  /** Along the line's axis, the span it divides: its share of that span is where it sits. */
+  start: number
+  end: number
 }
 
 /** Each cell and line of a built cabinet seen from the front, in mm: the shares `buildCabinet` places its boards by, inside its sides, bottom and top. */
@@ -145,14 +149,14 @@ export function cellLayout(plan: CabinetPlan, boxes: Map<string, Box>): { cells:
   const row = (columns: PlanColumn[], at: number[], x0: number, x1: number, y0: number, y1: number) => {
     const e = edges(columns.map((c) => c.width))
     columns.forEach((column, i) => {
-      if (i < columns.length - 1) lines.push({ axis: 'columns', at, index: i, position: x0 + e[i] * (x1 - x0), from: y0, to: y1 })
+      if (i < columns.length - 1) lines.push({ axis: 'columns', at, index: i, position: x0 + e[i] * (x1 - x0), from: y0, to: y1, start: x0, end: x1 })
       stack(column.cells, [...at, i], i === 0 ? x0 : x0 + e[i - 1] * (x1 - x0) + half, i === columns.length - 1 ? x1 : x0 + e[i] * (x1 - x0) - half, y0, y1)
     })
   }
   const stack = (stackCells: PlanCell[], at: number[], x0: number, x1: number, y0: number, y1: number) => {
     const e = edges(stackCells.map((c) => c.height))
     stackCells.forEach((cell, j) => {
-      if (j < stackCells.length - 1) lines.push({ axis: 'cells', at, index: j, position: y0 + e[j] * (y1 - y0), from: x0, to: x1 })
+      if (j < stackCells.length - 1) lines.push({ axis: 'cells', at, index: j, position: y0 + e[j] * (y1 - y0), from: x0, to: x1, start: y0, end: y1 })
       const cy0 = j === 0 ? y0 : y0 + e[j - 1] * (y1 - y0) + half
       const cy1 = j === stackCells.length - 1 ? y1 : y0 + e[j] * (y1 - y0) - half
       if (cell.columns) row(cell.columns, [...at, j], x0, x1, cy0, cy1)

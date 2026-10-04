@@ -18,7 +18,7 @@ export interface SceneChanges {
   nonce: number
 }
 
-export type SceneMode = 'closed' | 'open' | 'exploded'
+export type SceneMode = 'closed' | 'open' | 'interior' | 'exploded'
 
 export interface SceneSlice {
   selection: string | null
@@ -28,7 +28,7 @@ export interface SceneSlice {
   hidden: string[]
   /** Pieces a message is about, marked in the 3D until the person picks other ones or leaves: view only, like `hidden`. */
   flagged: string[]
-  /** How the furniture shows: as built, with drawers out and doors open, or apart piece by piece. */
+  /** How the furniture shows: as built, with drawers out and doors open, without its fronts to edit its cells, or apart piece by piece. */
   mode: SceneMode
   dimensions: boolean
   view: { name: View; nonce: number }
@@ -112,8 +112,9 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
   showAll: () => set({ hidden: [] }),
   flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
-  // Apart or open, the furniture reads best from the front three-quarter view.
-  setMode: (mode) => set((s) => (s.mode === mode ? {} : { mode, ...(mode === 'closed' ? {} : { view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }) })),
+  // Apart or open, the furniture reads best from the front three-quarter view; its cells, from the front.
+  setMode: (mode) =>
+    set((s) => (s.mode === mode ? {} : { mode, cell: null, ...(mode === 'closed' ? {} : { view: { name: mode === 'interior' ? 'front' : 'three-quarter', nonce: s.view.nonce + 1 } }) })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 

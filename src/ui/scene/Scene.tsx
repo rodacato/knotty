@@ -10,6 +10,8 @@ import { boardLook } from '../../domain/materials/grades'
 import { finishOf } from '../../domain/materials/finishes'
 import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
+import { InteriorOverlay } from './InteriorOverlay'
+import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { assembled, explode, type Explosion } from './explode'
@@ -39,6 +41,8 @@ interface SceneProps {
   marked: string[]
   /** Pieces with unresolved validation problems. */
   problems?: string[]
+  /** The cabinet plan whose cells the interior view edits; without one there is no interior. */
+  interior?: CabinetPlan | null
 }
 
 /** Runs once per frame, in the order it mounts among its siblings. */
@@ -115,7 +119,10 @@ function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box 
   return <CameraControls ref={controls} makeDefault dollyToCursor minDistance={0.15} maxDistance={12} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={reduced ? 0.01 : 0.35} draggingSmoothTime={reduced ? 0.01 : 0.125} />
 }
 
-export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: SceneProps) {
+/** What closes a cell: the interior view leaves it out to show what is behind. */
+const isFront = (p: Design['pieces'][number]) => p.role === 'door' || p.role === 'drawer-front' || p.id.endsWith('-cover')
+
+export function Scene({ design, geo, catalog, ghosts, marked, problems = [], interior = null }: SceneProps) {
   const selection = useStore((s) => s.selection)
   const focused = useStore((s) => s.focus)
   const mode = useStore((s) => s.mode)
@@ -125,8 +132,10 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const reveal = useStore((s) => s.reveal)
   const select = useStore((s) => s.select)
   const hiddenIds = useStore((s) => s.hidden)
+  const inside = mode === 'interior' && !!interior
   const hidden = useMemo(() => hiddenIn(hiddenIds, design), [hiddenIds, design])
-  const shown = useMemo(() => design.pieces.filter((p) => !hidden.includes(p.id)), [design, hidden])
+  const shown = useMemo(() => design.pieces.filter((p) => !hidden.includes(p.id) && !(inside && isFront(p))), [design, hidden, inside])
+  const fronts = useMemo(() => [...hidden, ...design.pieces.filter(isFront).map((p) => p.id)], [design, hidden])
   const touch = useTouch()
   const reduced = useReducedMotion()
   const [quality, setQuality] = useState(!touch)
@@ -202,10 +211,11 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
             shapes={shapesOf.get(p.id) ?? NO_SHAPES}
             finish={finish}
-            onSelect={select}
+            onSelect={inside ? () => {} : select}
           />
         ))}
-        <Hardware design={design} geo={geo} catalog={catalog} offsets={pushes} swings={swings} selected={selection} hidden={hidden} apart={exploded} reduced={reduced} />
+        {inside && <InteriorOverlay plan={interior} geo={geo} width={width} depth={depth} />}
+        <Hardware design={design} geo={geo} catalog={catalog} offsets={pushes} swings={swings} selected={selection} hidden={inside ? fronts : hidden} apart={exploded} reduced={reduced} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}

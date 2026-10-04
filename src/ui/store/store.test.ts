@@ -226,6 +226,16 @@ describe('the plan draft', () => {
     expect(draftOf(s)).toBeNull()
   })
 
+  it('the interior view looks from the front, and leaving it lets go of the chosen cell', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.setMode('interior')
+    s.selectCell([0, 0])
+    expect(useStore.getState()).toMatchObject({ mode: 'interior', view: { name: 'front' }, cell: [0, 0] })
+    useStore.getState().setMode('closed')
+    expect(useStore.getState().cell).toBeNull()
+  })
+
   it('is left behind by a version made anywhere else', () => {
     const { plan } = openCabinet()
     useStore.getState().editPlan(wider(plan, 100))

@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { Armchair, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
@@ -10,7 +10,10 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { useStore, type SceneMode, type View } from '../store'
+import { draftOf, useStore, type SceneMode, type View } from '../store'
+import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
+import { CellSheet } from './CellSheet'
+import { DraftBar } from './DraftBar'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
@@ -38,6 +41,7 @@ const VIEWS: { id: View; name: string }[] = [
 const MODES: { id: SceneMode; name: string; Icon: Icon }[] = [
   { id: 'closed', name: 'Cerrado', Icon: Cube },
   { id: 'open', name: 'Abierto', Icon: DoorOpen },
+  { id: 'interior', name: 'Interior', Icon: GridFour },
   { id: 'exploded', name: 'Armado', Icon: ArrowsOut },
 ]
 
@@ -53,7 +57,8 @@ function useDesktop() {
   return matches
 }
 
-function SceneBar() {
+/** Only a cabinet with its plan has cells to edit; another piece of furniture has no interior view. */
+function SceneBar({ interior }: { interior: boolean }) {
   const view = useStore((s) => s.view.name)
   const viewFrom = useStore((s) => s.viewFrom)
   const mode = useStore((s) => s.mode)
@@ -62,7 +67,7 @@ function SceneBar() {
   const toggleDimensions = useStore((s) => s.toggleDimensions)
   const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
   return (
-    <div className="pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur">
+    <div className="pointer-events-auto flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur [scrollbar-width:none]">
       <div className="flex items-center" role="group" aria-label="Vistas">
         {VIEWS.map((v) => (
           <button key={v.id} type="button" className={button(view === v.id)} onClick={() => viewFrom(v.id)} aria-pressed={view === v.id}>
@@ -72,7 +77,7 @@ function SceneBar() {
       </div>
       <span className="mx-1 h-5 w-px bg-line" aria-hidden />
       <div className="flex items-center" role="group" aria-label="Estado del mueble">
-        {MODES.map(({ id, name, Icon }) => (
+        {MODES.filter(({ id }) => id !== 'interior' || interior).map(({ id, name, Icon }) => (
           <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
             <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
           </button>
@@ -167,7 +172,15 @@ export function Studio({ state }: { state: DesignState }) {
   const selectPiece = useStore((s) => s.select)
   const previewFix = useStore((s) => s.previewFix)
   const debugVisible = useStore((s) => s.debugVisible)
+  const mode = useStore((s) => s.mode)
+  const chosenCell = useStore((s) => s.cell)
+  const draft = useStore(draftOf)
   const desktop = useDesktop()
+  // The plan whose cells the interior view edits: the draft's, or the one applied; none on an old version or when the expert left the plan behind.
+  const source = currentPlan(state)
+  const editing = draft?.plan ?? source.plan
+  const interiorPlan = !source.diverged && view.viewedVersion === null && editing?.kind === 'cabinet' ? (editing as CabinetPlan) : null
+  const inside = mode === 'interior' && !!interiorPlan
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -208,7 +221,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={view.changes.added} marked={view.changes.changed} problems={view.marked} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : view.changes.changed} problems={view.marked} interior={interiorPlan} />
           </SceneBoundary>
         </div>
       ) : (
@@ -220,9 +233,14 @@ export function Studio({ state }: { state: DesignState }) {
         />
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        {geo && <SceneBar />}
-        <StatusChip statuses={statuses} />
+        {geo && <SceneBar interior={!!interiorPlan} />}
+        {!inside && <StatusChip statuses={statuses} />}
       </div>
+      {inside && source.plan && (
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center md:inset-x-4 md:bottom-4">
+          <DraftBar applied={source.plan} />
+        </div>
+      )}
     </div>
   )
 
@@ -241,8 +259,9 @@ export function Studio({ state }: { state: DesignState }) {
 
   const panel = (
     <>
-      {view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
-      <div className={`h-full min-h-0 ${view.showsPiece ? 'hidden' : ''}`}>
+      {inside && chosenCell && geo && <CellSheet plan={interiorPlan} path={chosenCell} geo={geo} />}
+      {!inside && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
+      <div className={`h-full min-h-0 ${(inside && chosenCell) || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
