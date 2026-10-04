@@ -100,6 +100,12 @@ describe('R9 drawers and screws into a face', () => {
     expect(r9(13.7)).toEqual([expect.stringContaining('flojo')])
   })
 
+  it('a front with no gap to the side rubs', () => {
+    const d = withDrawer(deep)
+    d.pieces.find((p) => p.id === 'drawer-1-front')!.x = { ...d.pieces.find((p) => p.id === 'drawer-1-front')!.x, from: ref('side-left.x1') }
+    expect(findingsOf(d).filter((h) => h.check === 'drawer.front-rubs').map((h) => h.pieces)).toEqual([['drawer-1-front', 'side-left']])
+  })
+
   it('a 3 mm bottom in a wide drawer sags', () => {
     const d = withDrawer({ ...deep, dimensions: { ...deep.dimensions, width: 700 } }, [drawer({ bottomMaterial: 'TR3' })])
     expect(findingsOf(d).filter((h) => h.code === 'R9_DRAWERS').map((h) => [h.severity, h.pieces[0]])).toEqual([['recommendation', 'drawer-1-bottom']])
@@ -117,5 +123,27 @@ describe('R9 drawers and screws into a face', () => {
     expect(findingsOf(d).map((h) => [h.code, h.severity, h.data.joint])).toEqual([['R3_SCREWS', 'critical', 'j-drawer-1-subfront-front']])
     // The longest that stays in: through 15 and into 15, 3 mm short of coming out (ta + tb − 3).
     expect(findingsOf(d)[0].alternatives[0].data.length).toBe(27)
+  })
+
+  // An opening of 97 leaves a box of 59 (97 − 12 under, − 6 of bottom, − 20 over): too low for two screws 25 mm from each end.
+  const lowDrawer = () => {
+    const d = structuredClone(deep)
+    d.pieces.find((p) => p.id === 'shelf-1')!.y = startAt(ref('bottom.y1', 97))
+    return withDrawer(d)
+  }
+  const boxScrews = (d: Design) => estimatePurchase(d, analysis(d).geo, testCatalog).hardware.find((h) => h.hardware.id === 'screw-8x2')?.count
+
+  it('a low box takes one screw in the middle of each corner, and R3 has nothing to say', () => {
+    const d = lowDrawer()
+    const side = analysis(d).geo.boxes.get('drawer-1-side-left')!
+    expect(side.y1 - side.y0).toBeCloseTo(59, 5)
+    expect(findingsOf(d).filter((h) => h.code === 'R3_SCREWS')).toEqual([])
+    expect(boxScrews(withDrawer(deep))! - boxScrews(d)!).toBe(4)
+  })
+
+  it('two screws said outright in a low box are still too close to the ends', () => {
+    const d = lowDrawer()
+    d.joints = d.joints.map((u) => (u.id === 'j-drawer-1-side-left-back' ? { ...u, hardware: [{ ...u.hardware[0], count: 2 }] } : u))
+    expect(findingsOf(d).map((h) => [h.check, h.data.joint])).toEqual([['screw.end-distance', 'j-drawer-1-side-left-back']])
   })
 })

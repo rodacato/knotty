@@ -1,7 +1,7 @@
 import type { Design, Joint } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { jointLength } from '../design/validation/contact'
-import { hingesFor } from '../assumptions'
+import { ASSUMPTIONS, hingesFor } from '../assumptions'
 import { layOut, type MaterialLayout } from './layout'
 import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from './catalog'
 import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'
@@ -10,6 +10,9 @@ import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finish
 
 const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
+
+/** The shortest butt joint that takes two screws, each far enough from its end (R3); a shorter one takes one in the middle. */
+const screwPairNeeds = 2 * ASSUMPTIONS.screws.endDistance + ASSUMPTIONS.screws.pairRoom
 
 /** How many dowels, spaced along a joint of this length and never fewer than two. */
 export const dowelsAlong = (length: number) => Math.max(2, Math.ceil((length - 2 * END_MARGIN) / SPACING.dowel) + 1)
@@ -50,6 +53,7 @@ export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number
   const bySpacing = (spacing: number, minimum: number) => Math.max(minimum, Math.ceil((length - 2 * END_MARGIN) / spacing) + 1)
   switch (u.type) {
     case 'butt-screw':
+      return length > 0 && length < screwPairNeeds ? 1 : bySpacing(SPACING.screw, 2)
     case 'pocket-screw':
       return bySpacing(SPACING.screw, 2)
     case 'dowel':

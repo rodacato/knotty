@@ -722,7 +722,12 @@ function benchCabinets(): [string, CabinetPlan][] {
     const plan = list.find(([n]) => n === name)![1]
     return [`${name} con cubierta de dedos`, { ...plan, construction: { ...plan.construction, top: 'fingers' } }]
   })
-  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells]
+  // Drawer fronts that close against the front edges of the box, and a drawer too low for two screws at each corner.
+  const withDrawerEdges: [string, CabinetPlan][] = [
+    ['cajonera con frentes sobrepuestos', { ...drawerChest, construction: { ...drawerChest.construction, drawerFronts: 'overlay' } }],
+    ['buró con cajón bajito', cabinet('Buró', { width: 500, height: 450, depth: 400 }, [{ width: 1, cells: [cell('open', 0.75, 0), cell('drawer', 0.25)] }], { base: 'floor', wallMounted: false })],
+  ]
+  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })

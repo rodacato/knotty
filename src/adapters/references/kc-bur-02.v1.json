@@ -32,8 +32,8 @@
   "expect": {
     "valid": true,
     "pieces": 23,
-    "findings": ["recommendation:R3_SCREWS","recommendation:R3_SCREWS","recommendation:R3_SCREWS","recommendation:R3_SCREWS","recommendation:R5_RACKING"],
+    "findings": ["recommendation:R5_RACKING"],
     "sheets": { "T18": 1, "TR6": 1 },
-    "hardware": { "brad-nail-1": 14, "drawer-slide-30": 1, "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 8, "screw-8x2": 52, "white-glue": 2 }
+    "hardware": { "brad-nail-1": 14, "drawer-slide-30": 1, "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 8, "screw-8x2": 48, "white-glue": 2 }
   }
 }
