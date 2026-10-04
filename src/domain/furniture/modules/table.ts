@@ -70,126 +70,178 @@ export const TABLE_KIND: Record<TablePlan['use'], DesignKind> = { dining: 'dinin
 
 const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium' }
 
-export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
-  const t = thicknessOf(catalog, plan.material)
-  const { width, height, depth } = plan.dimensions
-  const panel = panelOf(plan.material)
-  const pieces: Piece[] = []
-  const joints: Joint[] = []
-  const notes: string[] = []
+const ENDS = ['left', 'right'] as const
+type End = (typeof ENDS)[number]
+type Row = 'front' | 'back'
+
+/** What the plan settles once and every part of the table reads. */
+function layoutOf(plan: TablePlan, catalog: Catalog) {
   const desk = plan.use === 'desk'
   const inset = Math.min(plan.overhang, MAX_END_INSET)
-  const endsZ = extent(ref('furniture.z0', desk ? 0 : inset), ref('furniture.z1', -inset))
-  const pedestal = desk && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0 ? plan.pedestal.side : null
-  let drawers: AddDrawer[] = []
-
-  pieces.push(panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] }))
-
-  // Four legs instead of two panel ends; the side that carries the pedestal keeps its panel.
-  const legsAt = { left: plan.legs === 'legs' && pedestal !== 'left', right: plan.legs === 'legs' && pedestal !== 'right' }
-  const endY = extent(ref('furniture.y0'), ref('top.y0'))
   const backInset = desk ? 0 : inset
+  const pedestal = desk && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0 ? plan.pedestal.side : null
+  return {
+    plan,
+    catalog,
+    t: thicknessOf(catalog, plan.material),
+    panel: panelOf(plan.material),
+    desk,
+    inset,
+    backInset,
+    pedestal,
+    // Four legs instead of two panel ends; the side that carries the pedestal keeps its panel.
+    legs: { left: plan.legs === 'legs' && pedestal !== 'left', right: plan.legs === 'legs' && pedestal !== 'right' },
+    endY: extent(ref('furniture.y0'), ref('top.y0')),
+    endsZ: extent(ref('furniture.z0', backInset), ref('furniture.z1', -inset)),
+  }
+}
+type Layout = ReturnType<typeof layoutOf>
+
+/** One side of the open part under the top: the face that bounds it, and the piece an apron meets there in each row. */
+type Bound = { face: FaceRef } & Record<Row, string>
+
+/** The open part, between its left and right bounds. */
+type Open = [Bound, Bound]
+
+const endThickness = (l: Layout, end: End) => (l.legs[end] ? 2 * l.t : l.t)
+
+/** The inner face of an end: its panel, or the inner layer of its legs. */
+function endBound(l: Layout, end: End): Bound {
+  const face = end === 'left' ? 'x1' : 'x0'
+  if (!l.legs[end]) return { face: `side-${end}.${face}`, front: `side-${end}`, back: `side-${end}` }
+  return { face: `leg-front-${end}-2.${face}`, front: `leg-front-${end}-2`, back: `leg-back-${end}-2` }
+}
+
+/** The outer piece of the right end in a row, which sets where the aprons stand in depth. */
+const rightEnd = (l: Layout, row: Row) => (l.legs.right ? `leg-${row}-right-1` : 'side-right')
+
+function ends(l: Layout): Piece[] {
+  const { plan, inset, backInset, endY } = l
   const legZ = { front: extent(null, ref('furniture.z1', -inset), LEG_WIDTH), back: extent(ref('furniture.z0', backInset), null, LEG_WIDTH) }
-  for (const end of ['left', 'right'] as const) {
+  return ENDS.flatMap((end) => {
     const [side, name, towards] = end === 'left' ? ['izquierdo', 'izquierda', 'right' as const] : ['derecho', 'derecha', 'left' as const]
     const x = end === 'left' ? startAt(ref('furniture.x0', plan.overhang)) : endAt(ref('furniture.x1', -plan.overhang))
-    if (!legsAt[end]) pieces.push(panel({ id: `side-${end}`, name: `Costado ${side}`, role: 'side', normal: 'x', x, y: endY, z: endsZ }))
-    else
-      for (const row of ['front', 'back'] as const)
-        pieces.push(...legLayers(plan.material, `leg-${row}-${end}`, `Pata ${row === 'front' ? 'delantera' : 'trasera'} ${name}`, x, towards, endY, legZ[row]))
-  }
-  const endThickness = (end: 'left' | 'right') => (legsAt[end] ? 2 * t : t)
-  const rightEnd = legsAt.right ? 'leg-front-right-1' : 'side-right'
+    if (!l.legs[end]) return [l.panel({ id: `side-${end}`, name: `Costado ${side}`, role: 'side', normal: 'x', x, y: endY, z: l.endsZ })]
+    return (['front', 'back'] as const).flatMap((row) => legLayers(plan.material, `leg-${row}-${end}`, `Pata ${row === 'front' ? 'delantera' : 'trasera'} ${name}`, x, towards, endY, legZ[row]))
+  })
+}
 
-  // The open part between the ends, or between the pedestal and the far end.
-  const legFaces: [FaceRef, FaceRef] = [legsAt.left ? 'leg-front-left-2.x1' : 'side-left.x1', legsAt.right ? 'leg-front-right-2.x0' : 'side-right.x0']
-  let [openLeft, openRight] = legFaces
-  if (pedestal) {
-    const outer = pedestal === 'left' ? 'side-left' : 'side-right'
-    const between = pedestal === 'left' ? extent(ref('side-left.x1'), ref('ped-div.x0')) : extent(ref('ped-div.x1'), ref('side-right.x0'))
-    const zBox = extent(ref('ped-back.z1'), ref(`${outer}.z1`))
-    pieces.push(
-      panel({ id: 'ped-div', name: 'Costado interior de la cajonera', role: 'divider', normal: 'x', x: pedestal === 'left' ? startAt(ref('side-left.x1', PEDESTAL - 2 * t)) : endAt(ref('side-right.x0', -(PEDESTAL - 2 * t))), y: extent(ref('furniture.y0'), ref('top.y0')), z: endsZ }),
-      panel({ id: 'ped-back', name: 'Fondo de la cajonera', role: 'back', normal: 'z', x: between, y: extent(ref('furniture.y0'), ref('top.y0')), z: startAt(ref(`${outer}.z0`)) }),
-      panel({ id: 'ped-kick', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('furniture.y0'), null, KICK_HEIGHT.pedestal), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
-      panel({ id: 'ped-bottom', name: 'Piso de la cajonera', role: 'bottom', normal: 'y', x: between, y: startAt(ref('ped-kick.y1')), z: zBox, load: 'medium' }),
-    )
-    const n = plan.pedestal.drawers
-    for (let k = 1; k < n; k++)
-      pieces.push(panel({ id: `ped-sep-${k}`, name: `Separador ${k} de la cajonera`, role: 'shelf', normal: 'y', x: between, y: startAt(partway('ped-bottom.y1', 'top.y0', k / n, -t / 2)), z: zBox, load: 'light' }))
-    const [left, right]: [FaceRef, FaceRef] = pedestal === 'left' ? ['side-left.x1', 'ped-div.x0'] : ['ped-div.x1', 'side-right.x0']
-    drawers = Array.from({ length: n }, (_, i) => ({
-      op: 'addDrawer' as const,
-      group: `drawer-${i + 1}`,
-      name: `Cajón ${i + 1}`,
-      left,
-      right,
-      bottom: i === 0 ? 'ped-bottom.y1' : `ped-sep-${i}.y1`,
-      top: i === n - 1 ? 'top.y0' : `ped-sep-${i + 1}.y0`,
-      front: `${outer}.z1`,
-      back: 'ped-back.z1',
-      material: plan.material,
-      bottomMaterial: backBoard(catalog).id,
-    }))
-    openLeft = pedestal === 'left' ? 'ped-div.x1' : legFaces[0]
-    openRight = pedestal === 'left' ? legFaces[1] : 'ped-div.x0'
-  }
+/** The drawer pedestal of a desk: its box, its drawers, and its inner side as the bound of the open part. */
+function pedestalBox(l: Layout, side: End): { pieces: Piece[]; drawers: AddDrawer[]; bound: Bound } {
+  const { plan, catalog, panel, t, endY } = l
+  const outer = `side-${side}`
+  const [left, right]: [FaceRef, FaceRef] = side === 'left' ? ['side-left.x1', 'ped-div.x0'] : ['ped-div.x1', 'side-right.x0']
+  const between = extent(ref(left), ref(right))
+  const zBox = extent(ref('ped-back.z1'), ref(`${outer}.z1`))
+  const n = plan.pedestal.drawers
+  const pieces = [
+    panel({ id: 'ped-div', name: 'Costado interior de la cajonera', role: 'divider', normal: 'x', x: side === 'left' ? startAt(ref('side-left.x1', PEDESTAL - 2 * t)) : endAt(ref('side-right.x0', -(PEDESTAL - 2 * t))), y: endY, z: l.endsZ }),
+    panel({ id: 'ped-back', name: 'Fondo de la cajonera', role: 'back', normal: 'z', x: between, y: endY, z: startAt(ref(`${outer}.z0`)) }),
+    panel({ id: 'ped-kick', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('furniture.y0'), null, KICK_HEIGHT.pedestal), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
+    panel({ id: 'ped-bottom', name: 'Piso de la cajonera', role: 'bottom', normal: 'y', x: between, y: startAt(ref('ped-kick.y1')), z: zBox, load: 'medium' }),
+    ...Array.from({ length: n - 1 }, (_, i) => i + 1).map((k) =>
+      panel({ id: `ped-sep-${k}`, name: `Separador ${k} de la cajonera`, role: 'shelf', normal: 'y', x: between, y: startAt(partway('ped-bottom.y1', 'top.y0', k / n, -t / 2)), z: zBox, load: 'light' }),
+    ),
+  ]
+  const drawers = Array.from({ length: n }, (_, i): AddDrawer => ({
+    op: 'addDrawer',
+    group: `drawer-${i + 1}`,
+    name: `Cajón ${i + 1}`,
+    left,
+    right,
+    bottom: i === 0 ? 'ped-bottom.y1' : `ped-sep-${i}.y1`,
+    top: i === n - 1 ? 'top.y0' : `ped-sep-${i + 1}.y0`,
+    front: `${outer}.z1`,
+    back: 'ped-back.z1',
+    material: plan.material,
+    bottomMaterial: backBoard(catalog).id,
+  }))
+  return { pieces, drawers, bound: { face: side === 'left' ? 'ped-div.x1' : 'ped-div.x0', front: 'ped-div', back: 'ped-div' } }
+}
 
-  // Aprons front and back tie the ends; screwed from inside with pocket screws, they keep the table square.
-  const apronX = extent(ref(openLeft), ref(openRight))
-  pieces.push(
-    panel({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x: apronX, y: extent(null, ref('top.y0'), APRON), z: endAt(ref(`${rightEnd}.z1`)) }),
-    panel({ id: 'apron-back', name: desk ? 'Faldón trasero' : 'Faldón de atrás', role: 'apron', normal: 'z', x: apronX, y: extent(null, ref('top.y0'), desk ? MODESTY : APRON), z: startAt(ref(`${legsAt.right ? 'leg-back-right-1' : 'side-right'}.z0`)) }),
-  )
-  for (const apron of ['apron-front', 'apron-back'])
-    for (const end of [openLeft, openRight].map((f) => f.split('.')[0]).map((id) => (apron === 'apron-back' ? id.replace('leg-front', 'leg-back') : id)))
-      joints.push(makeJoint(`j-${apron}-${end}`, apron, end, 'pocket-screw', [{ hardwareId: pocketScrewId(t), count: 2 }]))
-  for (const end of ['left', 'right'] as const) {
-    if (!legsAt[end]) continue
+/** Aprons front and back tie the ends; screwed from inside with pocket screws, they keep the table square. Legs take one more on each side. */
+function aprons(l: Layout, open: Open): { pieces: Piece[]; joints: Joint[] } {
+  const { panel, t, desk } = l
+  const screws = [{ hardwareId: pocketScrewId(t), count: 2 }]
+  const x = extent(ref(open[0].face), ref(open[1].face))
+  const pieces = [
+    panel({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), APRON), z: endAt(ref(`${rightEnd(l, 'front')}.z1`)) }),
+    panel({ id: 'apron-back', name: desk ? 'Faldón trasero' : 'Faldón de atrás', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), desk ? MODESTY : APRON), z: startAt(ref(`${rightEnd(l, 'back')}.z0`)) }),
+  ]
+  const joints = (['front', 'back'] as const).flatMap((row) => open.map((bound) => makeJoint(`j-apron-${row}-${bound[row]}`, `apron-${row}`, bound[row], 'pocket-screw', screws)))
+  for (const end of ENDS) {
+    if (!l.legs[end]) continue
     const [front, back] = [`leg-front-${end}-1`, `leg-back-${end}-1`]
     pieces.push(panel({ id: `apron-${end}`, name: `Faldón ${end === 'left' ? 'izquierdo' : 'derecho'}`, role: 'apron', normal: 'x', x: end === 'left' ? startAt(ref(`${front}.x0`)) : endAt(ref(`${front}.x1`)), y: extent(null, ref('top.y0'), APRON), z: extent(ref(`${back}.z1`), ref(`${front}.z0`)) }))
-    for (const leg of [front, back]) joints.push(makeJoint(`j-apron-${end}-${leg}`, `apron-${end}`, leg, 'pocket-screw', [{ hardwareId: pocketScrewId(t), count: 2 }]))
+    for (const leg of [front, back]) joints.push(makeJoint(`j-apron-${end}-${leg}`, `apron-${end}`, leg, 'pocket-screw', screws))
   }
+  return { pieces, joints }
+}
 
-  // Cleats between the aprons, so the top never spans more than it can.
-  const openWidth = width - 2 * plan.overhang - (pedestal ? PEDESTAL + endThickness(pedestal === 'left' ? 'right' : 'left') : endThickness('left') + endThickness('right'))
+/** What holds the top across the open part: cleats between the aprons, so it never spans more than it can, and legs in between where two would stand too far apart. */
+function supports(l: Layout, open: Open): { pieces: Piece[]; middleLegs: number } {
+  const { plan, panel, t, pedestal, endY } = l
+  const [left, right] = [open[0].face, open[1].face]
+  const openWidth = plan.dimensions.width - 2 * plan.overhang - (pedestal ? PEDESTAL + endThickness(l, pedestal === 'left' ? 'right' : 'left') : endThickness(l, 'left') + endThickness(l, 'right'))
   const cleats = supportsAcross(openWidth, t)
-  // Legs in between where two would stand too far apart; a cleat that falls on one runs between its front and back posts, or is the leg itself.
   const middle = plan.legs === 'legs' ? supportsAcross(openWidth, 2 * t, ASSUMPTIONS.legs.maxSpan) : 0
   const onMiddleLeg = (share: number) => Array.from({ length: middle }, (_, j) => (j + 1) / (middle + 1)).some((m) => Math.abs(m - share) < 1e-9)
-  const room = depth - backInset - inset - 2 * t
+  const room = plan.dimensions.depth - l.backInset - l.inset - 2 * t
   const twoRows = room > 2 * LEG_WIDTH
+  const pieces: Piece[] = []
   for (let k = 1; k <= middle; k++) {
-    const first = startAt(partway(openLeft, openRight, k / (middle + 1), -t))
+    const first = startAt(partway(left, right, k / (middle + 1), -t))
     const rows: [string, string, Extent][] = twoRows
       ? [['front', 'del frente', extent(null, ref('apron-front.z0'), LEG_WIDTH)], ['back', 'de atrás', extent(ref('apron-back.z1'), null, LEG_WIDTH)]]
       : [['', '', extent(ref('apron-back.z1'), ref('apron-front.z0'))]]
     for (const [row, words, z] of rows) pieces.push(...legLayers(plan.material, `leg-middle-${k}${row ? `-${row}` : ''}`, `Pata intermedia ${middle > 1 ? `${k} ` : ''}${words}`.trim(), first, 'right', endY, z))
   }
+  // A cleat that falls on a middle leg runs between its front and back posts, or is the leg itself.
   for (let k = 1; k <= cleats; k++) {
     const share = k / (cleats + 1)
     const middleIndex = Math.round(share * (middle + 1))
     const atLeg = onMiddleLeg(share)
     if (atLeg && !twoRows) continue
     const z = atLeg ? extent(ref(`leg-middle-${middleIndex}-back-1.z1`), ref(`leg-middle-${middleIndex}-front-1.z0`)) : extent(ref('apron-back.z1'), ref('apron-front.z0'))
-    pieces.push(panel({ id: `rail-${k}`, name: `Travesaño ${k}`, role: 'divider', normal: 'x', x: startAt(partway(openLeft, openRight, share, -t / 2)), y: extent(ref('apron-front.y0'), ref('top.y0')), z }))
+    pieces.push(panel({ id: `rail-${k}`, name: `Travesaño ${k}`, role: 'divider', normal: 'x', x: startAt(partway(left, right, share, -t / 2)), y: extent(ref('apron-front.y0'), ref('top.y0')), z }))
   }
+  return { pieces, middleLegs: middle }
+}
 
-  const lowShelf = plan.shelf && !desk && middle === 0
-  if (lowShelf) {
-    pieces.push(panel({ id: 'low-shelf', name: 'Repisa baja', role: 'shelf', normal: 'y', x: extent(ref(openLeft), ref(openRight)), y: startAt(ref('furniture.y0', SHELF_HEIGHT)), z: endsZ, load: 'light' }))
-    // The shelf sits close to the floor: short feet under it are simpler than anything above.
-    const feet = supportsAcross(width - 2 * plan.overhang - endThickness('left') - endThickness('right'), t)
-    for (let k = 1; k <= feet; k++)
-      pieces.push(panel({ id: `shelf-leg-${k}`, name: `Apoyo ${k} de la repisa`, role: 'divider', normal: 'x', x: startAt(partway(openLeft, openRight, k / (feet + 1), -t / 2)), y: extent(ref('furniture.y0'), ref('low-shelf.y0')), z: endsZ }))
+/** The low shelf of a coffee or side table, on short feet; a desk and a long table on legs take none, and say why. */
+function lowShelf(l: Layout, open: Open, middleLegs: number): { pieces: Piece[]; notes: string[] } {
+  const { plan, panel, t, desk } = l
+  if (!plan.shelf) return { pieces: [], notes: [] }
+  if (desk) return { pieces: [], notes: ['Un escritorio no lleva repisa baja: estorba las piernas.'] }
+  if (middleLegs > 0) return { pieces: [], notes: ['Una mesa tan larga sobre patas no lleva repisa baja: las patas de en medio estorban.'] }
+  const [left, right] = [open[0].face, open[1].face]
+  // The shelf sits close to the floor: short feet under it are simpler than anything above.
+  const feet = supportsAcross(plan.dimensions.width - 2 * plan.overhang - endThickness(l, 'left') - endThickness(l, 'right'), t)
+  return {
+    pieces: [
+      panel({ id: 'low-shelf', name: 'Repisa baja', role: 'shelf', normal: 'y', x: extent(ref(left), ref(right)), y: startAt(ref('furniture.y0', SHELF_HEIGHT)), z: l.endsZ, load: 'light' }),
+      ...Array.from({ length: feet }, (_, i) => i + 1).map((k) =>
+        panel({ id: `shelf-leg-${k}`, name: `Apoyo ${k} de la repisa`, role: 'divider', normal: 'x', x: startAt(partway(left, right, k / (feet + 1), -t / 2)), y: extent(ref('furniture.y0'), ref('low-shelf.y0')), z: l.endsZ }),
+      ),
+    ],
+    notes: [],
   }
-  if (plan.shelf && !desk && !lowShelf) notes.push('Una mesa tan larga sobre patas no lleva repisa baja: las patas de en medio estorban.')
-  if (plan.shelf && desk) notes.push('Un escritorio no lleva repisa baja: estorba las piernas.')
+}
 
-  const design: Design = { schema: 1, name: plan.name, dimensions: { width: width, height: height, depth: depth }, wallAnchored: false, notes: '', pieces: pieces, joints: joints, kind: TABLE_KIND[plan.use] }
-  const placed = addDrawers(design, drawers, catalog)
-  notes.push(...placed.notes)
-  return { design: completeJoints(placed.design, catalog), notes }
+export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
+  const l = layoutOf(plan, catalog)
+  const top = l.panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] })
+  const box = l.pedestal ? pedestalBox(l, l.pedestal) : null
+  // The open part between the ends, or between the pedestal and the far end.
+  const open: Open = [l.pedestal === 'left' && box ? box.bound : endBound(l, 'left'), l.pedestal === 'right' && box ? box.bound : endBound(l, 'right')]
+  const tied = aprons(l, open)
+  const held = supports(l, open)
+  const shelf = lowShelf(l, open, held.middleLegs)
+
+  const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
+  const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
+  const placed = addDrawers(design, box?.drawers ?? [], catalog)
+  return { design: completeJoints(placed.design, catalog), notes: [...shelf.notes, ...placed.notes] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
