@@ -114,7 +114,7 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
   // Apart or open, the furniture reads best from the front three-quarter view; its cells, from the front.
   setMode: (mode) =>
-    set((s) => (s.mode === mode ? {} : { mode, cell: null, ...(mode === 'interior' ? { selection: null, focus: null } : {}), ...(mode === 'closed' ? {} : { view: { name: mode === 'interior' ? 'front' : 'three-quarter', nonce: s.view.nonce + 1 } }) })),
+    set((s) => (s.mode === mode ? {} : { mode, cell: null, part: null, ...(mode === 'interior' ? { selection: null, focus: null } : {}), ...(mode === 'closed' ? {} : { view: { name: mode === 'interior' ? 'front' : 'three-quarter', nonce: s.view.nonce + 1 } }) })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 

@@ -53,7 +53,7 @@ describe('store', () => {
       // scene
       'select', 'hide', 'showAll', 'setMode', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
       // plan draft
-      'editPlan', 'undoPlanEdit', 'discardPlanDraft', 'applyPlanDraft', 'selectCell',
+      'editPlan', 'undoPlanEdit', 'discardPlanDraft', 'applyPlanDraft', 'selectCell', 'selectPart',
       // settings
       'openSettings', 'unlock', 'forgetKeys', 'switchToSimulated', 'closeGate', 'refreshVault', 'saveCatalogSettings',
     ] as const
@@ -236,6 +236,16 @@ describe('the plan draft', () => {
     expect(useStore.getState()).toMatchObject({ mode: 'interior', view: { name: 'front' }, cell: [0, 0] })
     useStore.getState().setMode('closed')
     expect(useStore.getState().cell).toBeNull()
+  })
+
+  it('opening a part lets go of the chosen piece, and changing how the furniture shows closes the part', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.select('side-left')
+    s.selectPart('body', 'side-left')
+    expect(useStore.getState()).toMatchObject({ selection: null, part: { id: 'body', piece: 'side-left' } })
+    useStore.getState().setMode('open')
+    expect(useStore.getState().part).toBeNull()
   })
 
   it('is left behind by a version made anywhere else', () => {

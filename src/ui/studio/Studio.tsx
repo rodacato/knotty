@@ -13,6 +13,8 @@ import { Emblem } from '../system/Brand'
 import { draftOf, useStore, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import { CellSheet } from './CellSheet'
+import { PartSheet } from './PartSheet'
+import { partOfPiece } from '../../domain/furniture/modules/cabinetParts'
 import { DraftBar } from './DraftBar'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
@@ -174,6 +176,7 @@ export function Studio({ state }: { state: DesignState }) {
   const debugVisible = useStore((s) => s.debugVisible)
   const mode = useStore((s) => s.mode)
   const chosenCell = useStore((s) => s.cell)
+  const chosenPart = useStore((s) => s.part)
   const draft = useStore(draftOf)
   const desktop = useDesktop()
   // The plan whose cells the interior view edits: the draft's, or the one applied; none on an old version or when the expert left the plan behind.
@@ -181,6 +184,8 @@ export function Studio({ state }: { state: DesignState }) {
   const editing = draft?.plan ?? source.plan
   const interiorPlan = !source.diverged && view.viewedVersion === null && editing?.kind === 'cabinet' ? (editing as CabinetPlan) : null
   const inside = mode === 'interior' && !!interiorPlan
+  const partOpen = !inside && interiorPlan && chosenPart ? chosenPart : null
+  const partPieces = partOpen ? shown.pieces.filter((p) => partOfPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -221,7 +226,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : view.changes.changed} problems={view.marked} interior={interiorPlan} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} />
           </SceneBoundary>
         </div>
       ) : (
@@ -234,9 +239,9 @@ export function Studio({ state }: { state: DesignState }) {
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
         {geo && <SceneBar interior={!!interiorPlan} />}
-        {!inside && <StatusChip statuses={statuses} />}
+        {!inside && !partOpen && <StatusChip statuses={statuses} />}
       </div>
-      {inside && source.plan && (
+      {(inside || partOpen) && source.plan && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center md:inset-x-4 md:bottom-4">
           <DraftBar applied={source.plan} />
         </div>
@@ -260,8 +265,9 @@ export function Studio({ state }: { state: DesignState }) {
   const panel = (
     <>
       {inside && chosenCell && geo && <CellSheet plan={interiorPlan} path={chosenCell} geo={geo} />}
-      {!inside && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
-      <div className={`h-full min-h-0 ${(inside && chosenCell) || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
+      {partOpen && interiorPlan && <PartSheet key={partOpen.id} plan={interiorPlan} design={current} part={partOpen} />}
+      {!inside && !partOpen && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
+      <div className={`h-full min-h-0 ${(inside && chosenCell) || partOpen || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">

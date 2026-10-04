@@ -1,6 +1,7 @@
 import { currentPlan } from '../../application/useCases'
 import type { Design } from '../../domain/design/schema'
 import type { CellPath } from '../../domain/furniture/modules/cabinetCells'
+import type { CabinetPart } from '../../domain/furniture/modules/cabinetParts'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Slice } from './types'
 
@@ -22,12 +23,15 @@ export interface PlanDraftSlice {
   planDraft: PlanDraft | null
   /** The cell of the cabinet chosen in the interior view. */
   cell: CellPath | null
+  /** The part of the cabinet opened by touching the closed furniture, and the piece that was touched. */
+  part: { id: CabinetPart; piece: string | null } | null
   /** One change to the draft, built at once; back to the applied plan, there is no draft. `merge` folds it into the last step, as a drag does. */
   editPlan(plan: FurniturePlan, merge?: boolean): void
   undoPlanEdit(): void
   discardPlanDraft(): void
   applyPlanDraft(): { ok: true; notes: string[] } | { ok: false; message: string }
   selectCell(path: CellPath | null): void
+  selectPart(part: CabinetPart | null, piece?: string | null): void
 }
 
 const same = (a: FurniturePlan, b: FurniturePlan) => JSON.stringify(a) === JSON.stringify(b)
@@ -47,6 +51,7 @@ export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
   return {
     planDraft: null,
     cell: null,
+    part: null,
 
     editPlan(plan, merge = false) {
       const s = get()
@@ -71,5 +76,6 @@ export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
       return r
     },
     selectCell: (cell) => set({ cell }),
+    selectPart: (id, piece = null) => set({ part: id ? { id, piece } : null, ...(id ? { selection: null, focus: null } : {}) }),
   }
 }
