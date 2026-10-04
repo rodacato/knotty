@@ -1,0 +1,31 @@
+{
+  "format": 1,
+  "code": "KC-MES-01",
+  "id": "dining-table-tapered-legs",
+  "name": "Mesa de comedor de patas cónicas",
+  "kind": "diningTable",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","angled-cut","curved-cut"],
+  "adaptations": ["Original in solid jequitiba; written in T18 plywood.","Rounded top corners and eased edge are drawn square.","four tapered splayed legs drawn as four straight legs with an apron all round"],
+  "gaps": ["angled-cut","curved-cut"],
+  "notes": "Mesa de comedor para seis personas, de 150 × 90 cm, con cubierta de esquinas redondeadas y cuatro patas cónicas abiertas hacia afuera, unidas por faldones bajo la cubierta.",
+  "plan": {
+    "kind": "table",
+    "use": "dining",
+    "name": "Mesa de comedor",
+    "material": "T18",
+    "dimensions": { "width": 1500, "height": 750, "depth": 900 },
+    "overhang": 80,
+    "shelf": false,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "legs"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 19,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 6, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 30, "screw-8x2": 72, "white-glue": 2 }
+  }
+}
