@@ -3,7 +3,7 @@ import { DIMENSION_OF_AXIS, type Design, type Load } from '../../design/schema'
 import { materialById, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import type { Cell } from '../reading/reading'
-import { ASSUMPTIONS } from '../../checks/structure/assumptions'
+import { ASSUMPTIONS } from '../../assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
 import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
@@ -24,7 +24,7 @@ export const BOOT_LEVEL_HEIGHT = 450
 /** A level of shoes, a few pairs of about a kilo each. */
 const SHELF_LOAD: Load = 'light'
 /** The most levels the form offers. */
-export const MAX_LEVELS = 10
+const MAX_LEVELS = 10
 
 export const ShoeRackPlan = z.object({
   kind: z.literal('shoeRack'),

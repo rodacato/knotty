@@ -5,13 +5,13 @@ import type { Finding, RuleContext, Severity } from '../structure/finding'
 
 // A check by kind of furniture as data: a measure with a minimum or a maximum is read by the evaluator; anything else brings its own function.
 
-export type Limit = number | readonly [number, number]
+type Limit = number | readonly [number, number]
 export type Limits = Readonly<Record<string, Limit>>
 /** Below `min` or above `max`, a finding; other limits only go in the message. */
 export type MetricLimits = Limits & { readonly min?: number; readonly max?: number }
 
 /** Where the limits come from: a section of docs/carpinteria and the row that has them, or why there is none. */
-export type Source = `docs/carpinteria/${string}.md#${string}` | `no reference: ${string}`
+type Source = `docs/carpinteria/${string}.md#${string}` | `no reference: ${string}`
 
 /** What the furniture is used on: its top, its seat or its platform. */
 export interface Surface {
@@ -33,7 +33,7 @@ interface ConstraintBase<L extends Limits> {
   source: Source
 }
 
-export type Metric = 'width' | 'height' | 'depth' | 'surfaceHeight'
+type Metric = 'width' | 'height' | 'depth' | 'surfaceHeight'
 
 export interface MetricConstraint<L extends MetricLimits = MetricLimits> extends ConstraintBase<L> {
   metric: Metric
@@ -47,7 +47,7 @@ export interface MetricConstraint<L extends MetricLimits = MetricLimits> extends
 }
 
 /** A finding of this check, with its code and check id filled in. */
-export type Report = (severity: Severity, pieces: string[], message: string, data?: Finding['data'], alternatives?: Finding['alternatives']) => Finding
+type Report = (severity: Severity, pieces: string[], message: string, data?: Finding['data'], alternatives?: Finding['alternatives']) => Finding
 
 export interface FunctionConstraint<L extends Limits = Limits> extends ConstraintBase<L> {
   find(input: UseInput, limits: L, report: Report): Finding[]

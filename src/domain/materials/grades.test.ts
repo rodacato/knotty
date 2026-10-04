@@ -4,7 +4,7 @@ import saved from '../session/state-v1.fixture.json'
 import { migrateState } from '../session/migrate'
 import { DesignState } from '../session/state'
 import { testCatalog } from '../furniture/fixtures/catalog.test-util'
-import { ASSUMPTIONS } from '../checks/structure/assumptions'
+import { ASSUMPTIONS } from '../assumptions'
 import { applySettings, backBoard, BOARD_USES, boardsFor, Catalog, materialById, thinnestBoard } from './catalog'
 import { boardLook, GRADE_IDS, GRADES, stiffness } from './grades'
 

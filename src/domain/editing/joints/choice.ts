@@ -10,7 +10,7 @@ import type { Operation } from '../operations/schema'
 // The person picks how a group of pieces is joined; the chosen type and its hardware replace the ones Knotty inferred.
 
 /** They fasten the same pieces without cutting any: a groove or a rabbet changes the cut list, so it is not picked here. */
-export const CHOOSABLE_JOINTS = ['butt-screw', 'pocket-screw', 'dowel', 'plugged-dowel', 'cam-lock', 'glue-nail', 'bracket'] as const satisfies readonly JointType[]
+const CHOOSABLE_JOINTS = ['butt-screw', 'pocket-screw', 'dowel', 'plugged-dowel', 'cam-lock', 'glue-nail', 'bracket'] as const satisfies readonly JointType[]
 export type ChoosableJoint = (typeof CHOOSABLE_JOINTS)[number]
 export const isChoosable = (type: string): type is ChoosableJoint => (CHOOSABLE_JOINTS as readonly string[]).includes(type)
 

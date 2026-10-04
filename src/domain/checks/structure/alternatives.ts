@@ -39,5 +39,5 @@ export type AlternativeKey = keyof typeof ALTERNATIVES
 /** The keys Knotty builds by itself. */
 export type BuildKey = { [K in AlternativeKey]: (typeof ALTERNATIVES)[K] extends 'build' ? K : never }[AlternativeKey]
 
-export const isAlternativeKey = (key: string): key is AlternativeKey => Object.hasOwn(ALTERNATIVES, key)
+const isAlternativeKey = (key: string): key is AlternativeKey => Object.hasOwn(ALTERNATIVES, key)
 export const isBuildKey = (key: string): key is BuildKey => isAlternativeKey(key) && ALTERNATIVES[key] === 'build'

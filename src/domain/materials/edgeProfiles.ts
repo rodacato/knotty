@@ -32,7 +32,7 @@ export const DEFAULT_EDGE_PROFILE: EdgeProfileId = 'eased'
 export type ProfileFit = { ok: true } | { ok: false; reason: 'router' } | { ok: false; reason: 'thin'; minThickness: number }
 
 /** The thinnest board it fits: the radius cannot pass half the thickness (§11.1). */
-export const minThicknessFor = (id: EdgeProfileId) => 2 * (EDGE_PROFILES[id].radius ?? 0)
+const minThicknessFor = (id: EdgeProfileId) => 2 * (EDGE_PROFILES[id].radius ?? 0)
 
 /** Whether the person can make it on a board this thick with their tools. */
 export function profileFit(id: EdgeProfileId, level: ToolLevel, thickness: number): ProfileFit {

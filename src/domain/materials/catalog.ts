@@ -42,7 +42,7 @@ export const HardwareRole = z.enum(HARDWARE_ROLES)
 export type HardwareRole = z.infer<typeof HardwareRole>
 
 /** How a door sits on the upright its hinge is screwed to: over all its edge, over half of it (two doors share it) or inside the opening. */
-export const DOOR_MOUNTS = ['overlay', 'half-overlay', 'inset'] as const
+const DOOR_MOUNTS = ['overlay', 'half-overlay', 'inset'] as const
 export const DoorMount = z.enum(DOOR_MOUNTS)
 export type DoorMount = z.infer<typeof DoorMount>
 

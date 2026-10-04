@@ -11,7 +11,7 @@ import type { Finding } from '../domain/checks/structure/finding'
 // Sent with every change: more context costs more and distracts the expert.
 const TOKEN_BUDGET = 12_000
 const RECENT_MESSAGES = 6
-export const estimateTokens = (text: string) => Math.ceil(text.length / 3.5)
+const estimateTokens = (text: string) => Math.ceil(text.length / 3.5)
 
 /** A finding's ways out as the expert reads them; the longest span a sagging board takes goes last, as one more fact to work with. */
 export function describeAlternatives(h: Finding) {

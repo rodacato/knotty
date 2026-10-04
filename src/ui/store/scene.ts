@@ -80,7 +80,7 @@ export function transition(before: Design, after: Design, catalog: Services['cat
 }
 
 /** The scene change from one session to the next, each seen through the design it shows (its proposal, if any). */
-export function sessionTransition(before: DesignState, after: DesignState, catalog: Services['catalog'], previous: SceneChanges): SceneChanges {
+function sessionTransition(before: DesignState, after: DesignState, catalog: Services['catalog'], previous: SceneChanges): SceneChanges {
   return transition(shownDesign(before), shownDesign(after), catalog, previous.nonce + 1)
 }
 

@@ -31,11 +31,14 @@ export const kindLabel = (kind: DesignKind) => {
  * Where the kind came from, from most to least trusted: the person chose it; an example or a plan says it; the photos show it; the words suggest it.
  * Knotty never overrides what the person chose.
  */
-export const KIND_SOURCES = ['person', 'example', 'plan', 'photo', 'words'] as const
+const KIND_SOURCES = ['person', 'example', 'plan', 'photo', 'words'] as const
 export const KindSource = z.enum(KIND_SOURCES)
 export type KindSource = z.infer<typeof KindSource>
 
-/** Mattress sizes sold in Mexico; their measures live with the bed module. */
-export const MATTRESS_SIZES = ['individual', 'matrimonial', 'queen', 'king'] as const
+/** Mattress sizes sold in Mexico. */
+const MATTRESS_SIZES = ['individual', 'matrimonial', 'queen', 'king'] as const
 export const MattressSize = z.enum(MATTRESS_SIZES)
 export type MattressSize = z.infer<typeof MattressSize>
+
+/** Their width × length in mm. */
+export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const satisfies Record<MattressSize, readonly [number, number]>

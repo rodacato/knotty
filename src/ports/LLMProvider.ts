@@ -71,7 +71,7 @@ const planFields = (describe: (what: string) => string) =>
   }
 
 /** Every plan field, as the schema and the prompts name them: "`bed`, `table` or `cabinet`". */
-export const planFieldList = () => `${FURNITURE_KINDS.slice(0, -1).map((k) => `\`${k}\``).join(', ')} or \`${FURNITURE_KINDS.at(-1)}\``
+const planFieldList = () => `${FURNITURE_KINDS.slice(0, -1).map((k) => `\`${k}\``).join(', ')} or \`${FURNITURE_KINDS.at(-1)}\``
 
 /** The plan the expert gave for each kind: when it fills more than one field, the first one in the order of MODULES counts. */
 export const expertPlans = (r: ExpertPlans): { [K in FurnitureKind]: PlanOf<K> | null } =>

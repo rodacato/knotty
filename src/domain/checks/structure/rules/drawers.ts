@@ -6,7 +6,7 @@ import { CONTACT_TOLERANCE, drawerGroups } from '../../../design/boxes'
 import { slideFor, slideForBox, SLIDE_BACK_CLEARANCE, thinnestBoard, type Catalog } from '../../../materials/catalog'
 import type { Geometry } from '../../../design/resolve'
 import type { Finding, Rule } from '../finding'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS } from '../../../assumptions'
 
 /** Whether a gap is within what the slide takes, to a tenth of a millimetre: up to 0.8 more than it asks, nothing less. */
 const runnerFits = (gap: number, needs: number) => {

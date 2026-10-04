@@ -5,8 +5,8 @@ import type { ReportRow } from './report'
 // The same battery at several concurrency levels, side by side: what each level cost in time, errors and tokens.
 
 /** Above this level a run needs an explicit acknowledgement; above MAX_LEVEL it is refused outright. */
-export const FREE_LEVEL = 4
-export const MAX_LEVEL = 6
+const FREE_LEVEL = 4
+const MAX_LEVEL = 6
 
 export interface JobDetail {
   row?: Pick<ReportRow, 'error' | 'corrections' | 'inputTokens' | 'outputTokens'>

@@ -16,7 +16,7 @@ import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import { debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
-import type { Get, Set, Slice } from './types'
+import type { Get, Set, Slice, Store } from './types'
 
 // The open design and the commands that change it without asking the expert.
 
@@ -102,12 +102,27 @@ function withSession<R>(get: Get, command: (services: Services, state: DesignSta
   return services && state ? command(services, state) : closed
 }
 
-/** A choice made by hand: when it made a version, the scene moves to it. */
-function shown(set: Set, get: Get, r: WorkshopResult): WorkshopResult {
-  const { services, state } = get()
-  if (r.ok && services && state && r.state !== state) moveTo(set, services, state, r.state, { viewedVersion: null })
-  return r
+const CLOSED = { ok: false as const, message: NO_DESIGN }
+const NO_EDIT = { ...CLOSED, alternatives: [] }
+
+/** A command that may make a version: when it does, the scene moves to it. The result goes back as the use case gave it. */
+function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C = typeof CLOSED>(set: Set, get: Get, command: (services: Services, state: DesignState) => R, closed: C = CLOSED as C, also: Partial<Store> = {}): R | C {
+  return withSession<R | C>(
+    get,
+    (services, state) => {
+      const r = command(services, state)
+      if (r.ok && r.state !== state) moveTo(set, services, state, r.state, { viewedVersion: null, ...also })
+      return r
+    },
+    closed,
+  )
 }
+
+/** What the scene keeps about one design and must not carry into another. */
+const ANOTHER_DESIGN = { adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null } satisfies Partial<Store>
+
+/** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
+const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
 
 /** The sandbox starts the first time something from the bench opens; only with the debug access. */
 function enterSandbox(get: Get, set: Set): boolean {
@@ -134,7 +149,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], flagged: [], mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ ...ANOTHER_DESIGN, state: null, phase: 'capture', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
   },
 
   sandboxed: false,
@@ -158,7 +173,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     get().controller?.abort()
     services.sandbox.leave()
     const state = services.useCases.load()
-    set((s) => ({ sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, mode: 'closed', draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
+    set((s) => ({ ...ANOTHER_DESIGN, sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', mode: 'closed', draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   adjustBase: (base) => set({ adjusting: base }),
@@ -172,13 +187,13 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   openState(state) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.adopt(state), phase: 'studio', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => opened(s, services.useCases.adopt(state)))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    set((s) => ({ state: services.useCases.openExample(example), phase: 'studio', adjusting: null, selection: null, hidden: [], flagged: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+    set((s) => opened(s, services.useCases.openExample(example)))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),
@@ -211,97 +226,24 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   confirmPiece: (id) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.confirmPiece(state, id))),
   chooseFinish: (finish) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseFinish(state, finish))),
-  chooseJoint: (group, type) => withSession(get, (services, state) => shown(set, get, services.useCases.chooseJoint(state, group, type)), { ok: false as const, message: NO_DESIGN }),
-  chooseEdgeProfiles: (pieceId, edges, profile) =>
-    withSession(get, (services, state) => shown(set, get, services.useCases.chooseEdgeProfiles(state, pieceId, edges, profile)), { ok: false as const, message: NO_DESIGN }),
-  chooseKind: (kind) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.chooseKind(state, kind)
-        if (!r.ok) return r
-        moveTo(set, services, state, r.state, { viewedVersion: null })
-        return { ok: true as const }
-      },
-      { ok: false as const, message: NO_DESIGN },
-    ),
+  chooseJoint: (group, type) => versioned(set, get, (services, state) => services.useCases.chooseJoint(state, group, type)),
+  chooseEdgeProfiles: (pieceId, edges, profile) => versioned(set, get, (services, state) => services.useCases.chooseEdgeProfiles(state, pieceId, edges, profile)),
+  chooseKind: (kind) => versioned(set, get, (services, state) => services.useCases.chooseKind(state, kind)),
   addNote: (text) => withSession(get, (services, state) => set({ state: services.useCases.addRequirement(state, text) })),
   removeNote: (id) => withSession(get, (services, state) => set({ state: services.useCases.removeRequirement(state, id) })),
   removeDecision: (topic) => withSession(get, (services, state) => set({ state: services.useCases.removeDecision(state, topic) })),
   applyFix: (fix) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.applyFix(state, fix), { preview: null, viewedVersion: null })),
-  applyFixes: (fixes) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.applyFixes(state, fixes)
-        if (!r.ok) return r
-        moveTo(set, services, state, r.state, { preview: null, viewedVersion: null })
-        return { ok: true as const }
-      },
-      { ok: false as const, message: NO_DESIGN },
-    ),
+  applyFixes: (fixes) => versioned(set, get, (services, state) => services.useCases.applyFixes(state, fixes), CLOSED, { preview: null }),
   acceptNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.acceptNotice(state, notice.findings, notice.title) })),
   reopenNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.reopenNotice(state, notice.findings) })),
   dismissQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.dismissQuestion(state, notice.question.messageId, notice.question.index) })),
   reopenQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.reopenQuestion(state, notice.question.messageId, notice.question.index) })),
 
-  restoreFromVersion: (n, ids) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.restoreFromVersion(state, n, ids)
-        if (!r.ok) return r
-        moveTo(set, services, state, r.state, { viewedVersion: null })
-        return { ok: true as const }
-      },
-      { ok: false as const, message: NO_DESIGN },
-    ),
-
-  undoChange: (n) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.undoChange(state, n)
-        if (!r.ok) return r
-        moveTo(set, services, state, r.state, { viewedVersion: null })
-        return { ok: true as const }
-      },
-      { ok: false as const, message: NO_DESIGN },
-    ),
-
-  editPiece: (id, edit) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.editPiece(state, id, edit)
-        if (r.ok) moveTo(set, services, state, r.state, { viewedVersion: null })
-        return r
-      },
-      { ok: false, message: NO_DESIGN, alternatives: [] },
-    ),
-
-  resizeFurniture: (axis, value) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.resizeFurniture(state, axis, value)
-        if (r.ok) moveTo(set, services, state, r.state, { viewedVersion: null })
-        return r
-      },
-      { ok: false, message: NO_DESIGN, alternatives: [] },
-    ),
-
-  applyPlan: (plan) =>
-    withSession(
-      get,
-      (services, state) => {
-        const r = services.useCases.applyPlan(state, plan)
-        if (!r.ok) return r
-        moveTo(set, services, state, r.state, { viewedVersion: null })
-        return { ok: true as const, notes: r.notes }
-      },
-      { ok: false as const, message: NO_DESIGN },
-    ),
+  restoreFromVersion: (n, ids) => versioned(set, get, (services, state) => services.useCases.restoreFromVersion(state, n, ids)),
+  undoChange: (n) => versioned(set, get, (services, state) => services.useCases.undoChange(state, n)),
+  editPiece: (id, edit) => versioned(set, get, (services, state) => services.useCases.editPiece(state, id, edit), NO_EDIT),
+  resizeFurniture: (axis, value) => versioned(set, get, (services, state) => services.useCases.resizeFurniture(state, axis, value), NO_EDIT),
+  applyPlan: (plan) => versioned(set, get, (services, state) => services.useCases.applyPlan(state, plan)),
 
   lockField: (key, locked) => withSession(get, (services, state) => set({ state: services.useCases.lockField(state, key, locked) })),
 

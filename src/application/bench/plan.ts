@@ -2,9 +2,9 @@ import { compatibility, type JobRecord, type Manifest, type ManifestIdentity } f
 
 export type PlanMode = 'resume' | 'retry-infra' | 'retry-failed'
 
-export type PlanReason = 'pending' | 'interrupted' | 'cancelled' | 'retry-infra' | 'retry-failed'
+type PlanReason = 'pending' | 'interrupted' | 'cancelled' | 'retry-infra' | 'retry-failed'
 
-export interface PlannedJob {
+interface PlannedJob {
   job: JobRecord
   reason: PlanReason
 }

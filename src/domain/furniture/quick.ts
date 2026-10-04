@@ -83,7 +83,7 @@ export function dimensionsOf(plan: FurniturePlan, catalog: Catalog): Dimensions 
   return buildPlan(plan, catalog).design.dimensions
 }
 
-export type AxisStatus = 'kept' | 'as-asked' | 'rounded-down' | 'raised' | 'lowered'
+type AxisStatus = 'kept' | 'as-asked' | 'rounded-down' | 'raised' | 'lowered'
 
 export interface AxisFit {
   /** What the space gave; null when it did not say this axis. */
@@ -143,7 +143,7 @@ export function fitToSpace(plan: FurniturePlan, space: Partial<Dimensions>, cata
   }
 }
 
-export interface SheetSummary {
+interface SheetSummary {
   material: string
   name: string
   thickness: number

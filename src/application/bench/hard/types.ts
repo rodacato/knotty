@@ -3,14 +3,14 @@ import { z } from 'zod'
 // The hard-question suite keeps two sides apart. The candidate gets a question and the context the app would give anyone; the evaluator keeps what judges the answer.
 // The data itself is private and loaded at run time: nothing here carries a real question, a solution or a rubric.
 
-export const RISKS = ['critical', 'normal'] as const
+const RISKS = ['critical', 'normal'] as const
 export type Risk = (typeof RISKS)[number]
 
-export const BASES = ['plain', 'sagging'] as const
+const BASES = ['plain', 'sagging'] as const
 export type BaseKind = (typeof BASES)[number]
 
-export const SUPPORT_STATUSES = ['supported', 'partly', 'unsupported'] as const
-export type SupportStatus = (typeof SUPPORT_STATUSES)[number]
+const SUPPORT_STATUSES = ['supported', 'partly', 'unsupported'] as const
+type SupportStatus = (typeof SUPPORT_STATUSES)[number]
 
 /** Names a candidate-facing object may never carry, even if a type is bypassed. */
 export const SOLUTION_FIELDS = ['expected', 'solution', 'solutions', 'rubric', 'criteria', 'checks', 'key', 'reference', 'audit', 'coverage', 'risk', 'numeric', 'answer', 'notes'] as const

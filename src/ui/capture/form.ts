@@ -2,7 +2,7 @@ import type { Dimensions } from '../../domain/design/schema'
 import { MEASURE_RANGE } from '../../domain/furniture/typical'
 
 /** Without photos, the expert works with what you tell it: asks for a description with some substance. */
-export const MIN_DESCRIPTION = 15
+const MIN_DESCRIPTION = 15
 
 export type SpaceKey = keyof Dimensions
 
@@ -21,7 +21,7 @@ export function parseCm(text: string): number | null {
   return Number.isFinite(value) ? value : null
 }
 
-export const spaceRangeCm = (key: SpaceKey): readonly [number, number] => [MEASURE_RANGE[key][0] / MM_PER_CM, MEASURE_RANGE[key][1] / MM_PER_CM]
+const spaceRangeCm = (key: SpaceKey): readonly [number, number] => [MEASURE_RANGE[key][0] / MM_PER_CM, MEASURE_RANGE[key][1] / MM_PER_CM]
 
 /** The error a side of the space has, or null when it is empty or fine. */
 export function spaceError(key: SpaceKey, text: string): string | null {

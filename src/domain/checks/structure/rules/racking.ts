@@ -1,5 +1,5 @@
 import type { Finding, Rule } from '../finding'
-import { ASSUMPTIONS } from '../assumptions'
+import { ASSUMPTIONS } from '../../../assumptions'
 import { JOINTS } from '../../../design/jointSpecs'
 import type { Design, JointType } from '../../../design/schema'
 import { backBoard } from '../../../materials/catalog'

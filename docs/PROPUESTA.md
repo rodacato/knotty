@@ -347,7 +347,7 @@ Solo se mandan en la reconstrucción. En los ajustes, lo visual vive en `notes`.
 
 ## 5. Reglas estructurales
 
-Los supuestos viven en `domain/checks/structure/assumptions.ts` como datos y cada regla en `domain/checks/structure/rules/`. Cada hallazgo devuelve `{ code, severity, pieces, message, data, alternatives }` (severidad `critical`, `recommendation` o `detail`): el LLM narra, no calcula. Las alternativas las simula el motor (siguiente espesor, divisor al centro, claro máximo con el espesor actual).
+Los supuestos viven en `domain/assumptions.ts` como datos y cada regla en `domain/checks/structure/rules/`. Cada hallazgo devuelve `{ code, severity, pieces, message, data, alternatives }` (severidad `critical`, `recommendation` o `detail`): el LLM narra, no calcula. Las alternativas las simula el motor (siguiente espesor, divisor al centro, claro máximo con el espesor actual).
 
 ### R1 — Flecha de entrepaños
 

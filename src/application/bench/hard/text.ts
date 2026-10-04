@@ -16,10 +16,10 @@ const CONDITIONAL = /\b(si(?!\s*,)|cuando|despues de|solo si|siempre que|una vez
 /** The text before a match, up to the clause it sits in. */
 const clauseBefore = (sentence: string, index: number): string => sentence.slice(0, index).split(/[,;:]/).at(-1) ?? ''
 
-export type Context = 'asserted' | 'negated' | 'conditional'
+type Context = 'asserted' | 'negated' | 'conditional'
 
 /** How a match reads in its sentence: said outright, said with a negation right before it, or tied to a condition. */
-export function contextOf(sentence: string, index: number): Context {
+function contextOf(sentence: string, index: number): Context {
   const before = sentence.slice(0, index)
   if (NEGATION.test(clauseBefore(sentence, index)) || DISCLAIMER.test(before)) return 'negated'
   return CONDITIONAL.test(before) ? 'conditional' : 'asserted'

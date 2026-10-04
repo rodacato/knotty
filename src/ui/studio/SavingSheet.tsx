@@ -10,7 +10,7 @@ import { useStore } from '../store'
 const sheetsWord = (n: number) => (n === 1 ? 'hoja' : 'hojas')
 
 /** «Hoy: 5 hojas de 18 mm · 3 de 6 mm». */
-export const todayLine = (today: SheetCount[]) => `Hoy: ${today.map((m, i) => `${m.sheets}${i === 0 ? ` ${sheetsWord(m.sheets)}` : ''} de ${m.thickness} mm`).join(' · ')}`
+const todayLine = (today: SheetCount[]) => `Hoy: ${today.map((m, i) => `${m.sheets}${i === 0 ? ` ${sheetsWord(m.sheets)}` : ''} de ${m.thickness} mm`).join(' · ')}`
 
 /** «colchón, alto de la base ni lado de los cajones». */
 const lockedList = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} ni ${names.at(-1)}` : names[0])

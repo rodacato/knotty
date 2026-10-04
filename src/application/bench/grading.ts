@@ -158,7 +158,7 @@ const canonical = (value: unknown): unknown =>
 /** The case as canonical JSON, keys sorted: the same case always gives the same text, to hash wherever it is needed. */
 export const caseFingerprint = (c: BenchCase) => JSON.stringify(canonical(c))
 
-export function gradeDesign(design: Design, state: Pick<DesignState, 'requirements'>, plan: FurniturePlan | null, catalog: Catalog): DesignGrade {
+function gradeDesign(design: Design, state: Pick<DesignState, 'requirements'>, plan: FurniturePlan | null, catalog: Catalog): DesignGrade {
   const base = { pieces: design.pieces.length, joints: design.joints.length, measures: `${design.dimensions.height} × ${design.dimensions.width} × ${design.dimensions.depth}`, counts: countParts(design, plan) }
   const a = analyze(design, catalog, state.requirements)
   if (!a.valid) return { ...base, valid: false, verdict: 'invalid', criticals: 0, rules: [], criticalKeys: [], problems: a.errors.slice(0, 3).map((e) => e.message) }

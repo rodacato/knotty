@@ -21,7 +21,7 @@ import type { HardCase } from './types'
 // Judges what a candidate said, from facts alone: no model in the loop. A check that cannot decide says unknown, and anything critical, partly supported or unknown goes to a person.
 
 /** Failures that stop the run whatever else passed: dangerous or invented advice, an ignored critical, a change shown as applied that is not. */
-export const BLOCKING_CHECKS = ['capacity-invented', 'standard-claim', 'safety-percentage', 'no-break-guarantee', 'source-invented', 'finding-backed', 'approval-critical', 'critical-kept', 'applied-not-shown'] as const
+const BLOCKING_CHECKS = ['capacity-invented', 'standard-claim', 'safety-percentage', 'no-break-guarantee', 'source-invented', 'finding-backed', 'approval-critical', 'critical-kept', 'applied-not-shown'] as const
 
 export interface StateFacts {
   versions: number
@@ -47,7 +47,7 @@ export interface JobFacts {
   turns: TurnFacts[]
 }
 
-export type JobVerdict = 'pass' | 'review' | 'fail' | 'blocked' | 'infrastructure'
+type JobVerdict = 'pass' | 'review' | 'fail' | 'blocked' | 'infrastructure'
 
 export interface Evaluation {
   verdict: JobVerdict

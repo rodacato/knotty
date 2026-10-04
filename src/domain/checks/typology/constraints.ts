@@ -2,7 +2,7 @@ import { roundTo, type Box } from '../../design/resolve'
 import { CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
 import type { Design } from '../../design/schema'
 import type { Geometry } from '../../design/resolve'
-import { MATTRESSES } from '../../furniture/modules/bed'
+import { MATTRESSES } from '../../design/kind'
 import { checked, measured, type CategoryConstraint, type Surface, type UseInput } from './constraint'
 
 // What each kind of furniture needs to be usable and safe, one entry per check and grouped by kind. Structure and use, not style.

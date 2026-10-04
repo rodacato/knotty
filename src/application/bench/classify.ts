@@ -96,12 +96,12 @@ export const trialsOfRows = (rows: ReportRow[], known: KnownFailure[]): TrialRec
 
 export type Status = 'same' | 'regression' | 'improvement' | 'known' | 'variation' | 'new' | 'retired' | 'incompatible' | 'unmeasured'
 
-export interface Tally {
+interface Tally {
   passed: number
   counted: number
 }
 
-export interface RequirementComparison {
+interface RequirementComparison {
   /** An expectation id («1:verdict»), or «case» for the case as a whole. */
   id: string
   status: Status
@@ -112,7 +112,7 @@ export interface RequirementComparison {
 }
 
 /** Whether the prompts a case's calls used are the same in both runs: a control case measures the noise, an affected one the change. */
-export type Exposure = 'affected' | 'control' | 'unknown'
+type Exposure = 'affected' | 'control' | 'unknown'
 
 export interface CaseComparison {
   caseId: string

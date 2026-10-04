@@ -51,7 +51,7 @@ export interface BenchResult {
   graderVersion?: string
 }
 
-export type Reconstruction = DesignGrade & { reasonable: boolean | null; structure: Structure | null }
+type Reconstruction = DesignGrade & { reasonable: boolean | null; structure: Structure | null }
 
 export interface Adjustment {
   request: string

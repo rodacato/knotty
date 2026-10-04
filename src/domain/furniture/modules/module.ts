@@ -8,7 +8,7 @@ import type { FieldSpec } from './fields'
 /** The words for one choice of a plan, in the order the form shows them: `option` on its button, `phrase` inside a sentence. */
 export type Labels<V extends string> = Record<V, { option: string; phrase: string }>
 
-export type Resized<P> = { ok: true; plan: P } | { ok: false; message: string }
+type Resized<P> = { ok: true; plan: P } | { ok: false; message: string }
 
 /** What a module lets the person change fast, as the quick adjust of a base asks it. */
 export type QuickCountKind = 'drawer' | 'door' | 'open'

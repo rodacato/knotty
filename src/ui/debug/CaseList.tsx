@@ -5,7 +5,7 @@ import type { BenchCase } from '../../application/bench/cases'
 import { problemsOf } from '../../application/bench/report'
 import { callLines, caseSteps } from './caseDetail'
 
-export function Verdict({ r }: { r: BenchResult }) {
+function Verdict({ r }: { r: BenchResult }) {
   if (!r.ok) return <XCircle className="text-rust" weight="fill" aria-label="Falló" />
   if (!problemsOf(r).length) return <CheckCircle className="text-slate" weight="fill" aria-label="Viable" />
   return <WarningCircle className="text-graphite" weight="fill" aria-label="Con observaciones" />
