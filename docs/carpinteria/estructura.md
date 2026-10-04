@@ -194,6 +194,7 @@ Un casco (carcass) sin nada que lo triangule se deforma como un paralelogramo cu
 - Un casco queda escuadrado con cualquiera de estas: trasera de 6 mm unida a por lo menos 3 piezas del perímetro; trasera de 3 mm pegada en rebaje o ranura; o un marco con al menos 2 travesaños rígidos, uno de ellos el travesaño trasero de arriba o el zoclo. ✅
 - A partir de ≈ 600 mm de alto, un casco sin nada de lo anterior se tuerce de forma notable. ⚠️ Umbral de taller, sin fuente.
 - Una **repisa fija en ranura y pegada** también rigidiza, aunque no sea travesaño ni zoclo. ⚠️
+- Anclado al muro **por la cubierta o por un travesaño de arriba** (no por la trasera), un casco sin trasera no se descuadra en el plano del muro: la parte de arriba no puede desplazarse respecto al piso. Knotty lo trata como recomendación y pide al menos dos anclajes a la estructura del muro (§8). ❓ Razonamiento de estática, sin ensayo.
 - **La trasera de 3 mm clavada sin pegamento casi no escuadra**: el clavo desgarra la chapa. Si es de 3, va pegada. ⚠️
 - Un librero **abierto por detrás** (sin trasera, como separador de espacios) necesita travesaños atrás, arriba y abajo, y si mide más de 1 200 mm, cartelas o una diagonal. ❓
 

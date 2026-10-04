@@ -157,10 +157,72 @@ describe('R5 racking', () => {
     expect(findings(exampleNightstand).map((h) => [h.code, h.severity])).toEqual([['R5_RACKING', 'recommendation']])
   })
 
-  it('is critical in a tall piece', () => {
+  it('is critical in a tall piece that is not anchored', () => {
     const d = structuredClone(exampleBookcase)
     d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
+    d.wallAnchored = false
     expect(findings(d).find((h) => h.code === 'R5_RACKING')?.severity).toBe('critical')
+  })
+
+  it('anchored through its top, a tall piece without a rigid back is a recommendation that says where the anchor goes', () => {
+    const d = structuredClone(exampleBookcase)
+    d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
+    const found = findings(d).find((h) => h.code === 'R5_RACKING')
+    expect(found).toMatchObject({ severity: 'recommendation', check: 'racking.anchored' })
+    expect(found?.message).toContain('nunca por la trasera')
+    expect(found?.alternatives.some((a) => a.key === 'anchor-to-wall')).toBe(false)
+  })
+
+  it('unanchored, it offers to anchor it, and with nothing to anchor on it is critical whatever the flag says', () => {
+    const d = structuredClone(exampleBookcase)
+    d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
+    d.wallAnchored = false
+    expect(findings(d).find((h) => h.code === 'R5_RACKING')?.alternatives.map((a) => a.key)).toContain('anchor-to-wall')
+    const open = structuredClone(d)
+    open.wallAnchored = true
+    open.pieces.find((p) => p.id === 'top')!.role = 'other'
+    const found = findings(open).find((h) => h.code === 'R5_RACKING')
+    expect(found?.severity).toBe('critical')
+    expect(found?.check).toBeUndefined()
+  })
+
+  it('the line is 600 mm: at it a piece without a rigid back is a recommendation, past it critical', () => {
+    const at = (height: number) => {
+      const d = structuredClone(exampleBookcase)
+      d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
+      d.wallAnchored = false
+      d.dimensions.height = height
+      return findings(d).find((h) => h.code === 'R5_RACKING')?.severity
+    }
+    expect(at(600)).toBe('recommendation')
+    expect(at(601)).toBe('critical')
+  })
+
+  describe('a shelf fixed in a glued groove stiffens the carcass like an apron or a kick', () => {
+    const sidesOf = (d: Design) => new Set(d.pieces.filter((p) => p.role === 'side').map((p) => p.id))
+    const refit = (d: Design, id: string, type: Design['joints'][number]['type'], glue: boolean) => {
+      for (const u of d.joints) if ((u.a === id && sidesOf(d).has(u.b)) || (u.b === id && sidesOf(d).has(u.a))) Object.assign(u, { type, glue, depth: type === 'dado' ? 6 : null })
+    }
+    const carcass = (shelf: 'dado' | 'pocket-screw', glue: boolean) => {
+      const d = structuredClone(exampleBookcase)
+      d.pieces.find((p) => p.id === 'back')!.material = 'TR3'
+      d.wallAnchored = false
+      const shelfId = d.pieces.find((p) => p.role === 'shelf')!.id
+      d.pieces.find((p) => p.id === shelfId)!.support = 'fixed'
+      refit(d, 'kick', 'butt-screw', true)
+      for (const id of ['top', 'bottom']) refit(d, id, 'pocket-screw', false)
+      refit(d, shelfId, shelf, glue)
+      return findings(d).filter((h) => h.code === 'R5_RACKING')
+    }
+
+    it('with the shelf in a glued groove and two rigid rails there is no finding', () => {
+      expect(carcass('dado', true)).toEqual([])
+    })
+
+    it('the same shelf in a groove without glue, or held by pocket screws, is not enough', () => {
+      expect(carcass('dado', false).map((h) => h.severity)).toEqual(['critical'])
+      expect(carcass('pocket-screw', false).map((h) => h.severity)).toEqual(['critical'])
+    })
   })
 
   it('proposes the catalog back board: TR6, described by its thickness', () => {
