@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "code": "KC-CAM-01",
+  "id": "platform-bed",
+  "name": "Cama de plataforma con respaldo",
+  "kind": "bed",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 2,
+  "features": ["legs"],
+  "adaptations": ["Original is pine plywood with oil-wax finish; written as T18 with danish-oil, the closest finish id","Size estimated: 2 plazas read as matrimonial 1350 x 1900; the seller gives no measures","Platform is five loose slotted boards over a frame with a central spine; the module builds its own platform","Headboard is a flat rounded board standing on two posts above the platform; written as a plain headboard 700 mm from the floor","four short tapered legs drawn as four straight legs of an estimated 100 mm (the least the module allows) under the frame"],
+  "gaps": [],
+  "notes": "Cama matrimonial baja de triplay: plataforma de tablones sobre un bastidor de canto con patas cónicas en las esquinas, y un respaldo liso sobre dos postes. Sin cajones.",
+  "plan": {
+    "kind": "bed",
+    "name": "Cama de plataforma con respaldo",
+    "mattress": "matrimonial",
+    "material": "T18",
+    "height": 300,
+    "drawers": { "side": "none", "count": 0, "position": "center" },
+    "headboard": { "style": "plain", "height": 700, "depth": 0, "shelves": 0 },
+    "legs": "legs",
+    "legHeight": 100
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 29,
+    "findings": [],
+    "sheets": { "T18": 3 },
+    "hardware": { "edge-banding-19": 7, "screw-8x1-1/4": 32, "screw-8x2": 184, "white-glue": 4 }
+  }
+}
