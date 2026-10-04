@@ -1,0 +1,54 @@
+{
+  "format": 1,
+  "code": "KC-CON-01",
+  "id": "plywood-console",
+  "name": "Consola de triplay",
+  "kind": "sideboard",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","legs","open-niche","no-back","angled-cut","asymmetric-arrangement"],
+  "adaptations": ["T18 plywood instead of the unspecified original material","width 1200 mm chosen from the 90/120/150 versions","one thin angled leg under each lower box in the piece; drawn as a frame of straight legs, 100 mm under the door box (the least the module allows) and up to the raised box on the right, tied by a stretcher the piece does not have","the notch at the top corner of the door is drawn as a finger notch","anchored to the wall assumed: the photos do not show it; without it the engine says the open box can rack"],
+  "gaps": ["angled-cut"],
+  "notes": "Consola baja sobre patas: arriba tres nichos abiertos, abajo una puerta embutida a la izquierda y un nicho abierto a la derecha. Sin trasera, en triplay natural.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Consola de triplay",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1200, "height": 700, "depth": 290 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "none", "shelves": "fixed", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 0.32,
+        "cells": [
+          { "height": 0.71, "content": "door", "shelves": 0, "doors": 1 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.29 }
+        ]
+      },
+      {
+        "width": 0.2,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.71 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.29 }
+        ]
+      },
+      {
+        "width": 0.48,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.22 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.49 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.29 }
+        ]
+      }
+    ],
+    "legHeight": 100
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 24,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 1 },
+    "hardware": { "cup-hinge-35-inset": 2, "edge-banding-19": 8, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 58, "white-glue": 2 }
+  }
+}
