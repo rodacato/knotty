@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { buildCabinet, DEFAULT_CONSTRUCTION, leafCells, type CabinetPlan, type PlanCell } from './cabinet'
+import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, type CabinetPlan, type PlanCell } from './cabinet'
 import { cellAt, cellLayout, cellPaths, joinCells, joinSides, lineShare, moveLine, splitCell } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
@@ -62,6 +62,12 @@ describe('cutting a cell', () => {
   it('makes a void open, since a part of one could sit between two cells', () => {
     const hanging: CabinetPlan = { ...sideboard, columns: [{ width: 1, cells: [{ ...open(0.3), content: 'void' }, open(0.7)] }, { width: 1, cells: [open()] }] }
     expect(splitCell(hanging, [0, 0], 'rows', 2)!.columns[0].cells.map((c) => c.content)).toEqual(['open', 'open', 'open'])
+  })
+
+  it('reads as the cells it adds, each counted by what it holds', () => {
+    expect(cabinetModule.describeChanges(sideboard, splitCell(sideboard, [0, 0], 'rows', 2)!)).toEqual(['2 puertas'])
+    expect(cabinetModule.describeChanges(sideboard, splitCell(sideboard, [1, 0], 'columns', 3)!)).toEqual(['4 columnas', '3 huecos abiertos'])
+    expect(cabinetModule.describeChanges(splitCell(sideboard, [0, 0], 'rows', 2)!, sideboard)).toEqual(['1 puerta'])
   })
 
   it('refuses a path that reaches no cell, or fewer than two parts', () => {

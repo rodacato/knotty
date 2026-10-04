@@ -694,6 +694,9 @@ const firstBackNamed = (pieces: Piece[]): Piece[] => {
 const count = (plan: CabinetPlan, content: PlanCell['content']) => leafCells(plan.columns).filter((c) => c.content === content).length
 const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
 
+/** How a count of cells reads, one and many. */
+const COUNTED: Record<PlanCell['content'], [string, string]> = { open: ['hueco abierto', 'huecos abiertos'], drawer: ['cajón', 'cajones'], door: ['puerta', 'puertas'], closed: ['hueco tapado', 'huecos tapados'], void: ['hueco vacío', 'huecos vacíos'] }
+
 function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
   const changes: string[] = []
   const a = before.dimensions
@@ -711,7 +714,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
   if (before.columns.length !== after.columns.length) changes.push(`${after.columns.length} ${after.columns.length === 1 ? 'columna' : 'columnas'}`)
   for (const content of Object.keys(CABINET_LABELS.cell) as PlanCell['content'][]) {
     const [was, is] = [count(before, content), count(after, content)]
-    if (was !== is) changes.push(`${is} ${content === 'drawer' ? (is === 1 ? 'cajón' : 'cajones') : `${is === 1 ? 'hueco' : 'huecos'} ${lower(CABINET_LABELS.cell[content])}${is === 1 ? '' : 's'}`}`)
+    if (was !== is) changes.push(`${is} ${COUNTED[content][is === 1 ? 0 : 1]}`)
   }
   if (!changes.length && layout(before) !== layout(after)) changes.push('distribución de los huecos')
   return changes
