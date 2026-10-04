@@ -123,6 +123,8 @@ export const Design = z.object({
   kindSource: KindSource.optional(),
   /** How the fronts are opened, from the plan; absent is none. Knotty's data, not the expert's: its schemas leave it out. */
   pulls: Pulls.optional(),
+  /** Fronts opened otherwise than `pulls`, by their id: a cell that chose its own. Knotty's data, like `pulls`. */
+  pullsOf: z.record(z.string(), Pulls).optional(),
   /** A bed's mattress, from its plan. */
   mattress: MattressSize.optional(),
   /** The finish the person chose in Materiales; absent is none. The person's, not the expert's: its schemas leave it out. */

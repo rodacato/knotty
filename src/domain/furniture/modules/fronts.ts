@@ -51,15 +51,15 @@ function hingeSides(design: Design, boxes: Map<string, Box>): Map<string, boolea
   return sides
 }
 
-/** The design with the notches and the grooves its plan asks for on every door and drawer front. */
-export function withFrontCuts(design: Design, boxes: Map<string, Box>, ask: { notch: boolean; grooved: boolean }): Design {
-  if (!ask.notch && !ask.grooved) return design
+/** The design with the notches and the grooves its plan asks for, door by door and front by front. */
+export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (front: Piece) => { notch: boolean; grooved: boolean }): Design {
   const sides = hingeSides(design, boxes)
   return {
     ...design,
     pieces: design.pieces.map((p) => {
       const box = boxes.get(p.id)
       if (!box || !isFront(p)) return p
+      const ask = askOf(p)
       const cuts = [...(ask.grooved ? grooves(box) : []), ...(ask.notch ? [notch(p, box, sides.get(p.id) ?? false)] : [])]
       return cuts.length ? { ...p, cuts } : p
     }),

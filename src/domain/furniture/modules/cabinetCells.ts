@@ -1,5 +1,5 @@
 import type { Box } from '../../design/resolve'
-import type { CabinetPlan, PlanCell, PlanColumn } from './cabinet'
+import type { CabinetConstruction, CabinetPlan, CellChoice, PlanCell, PlanColumn } from './cabinet'
 
 // Editing the inside of a cabinet by cutting and joining (UI-68): every operation returns a new plan, and each line it adds or removes is a board.
 
@@ -28,6 +28,18 @@ export function cellAt(plan: CabinetPlan, path: CellPath): PlanCell | null {
   if (path.length < 2 || path.length % 2) return null
   const cell = columnOf(plan, path)?.cells[path[path.length - 1]]
   return cell && !cell.columns ? cell : null
+}
+
+/** The cell at `path` choosing `key` on its own, or with `undefined` going back to the furniture's; null when the path does not reach a cell. */
+export function chooseInCell<K extends CellChoice>(plan: CabinetPlan, path: CellPath, key: K, value: CabinetConstruction[K] | undefined): CabinetPlan | null {
+  const next = copy(plan)
+  const cell = cellAt(next, path)
+  if (!cell) return null
+  const own = { ...cell.own, [key]: value }
+  if (value === undefined) delete own[key]
+  if (Object.keys(own).length) cell.own = own
+  else delete cell.own
+  return next
 }
 
 /** Every cell that holds something, with its path, left to right and bottom to top. */

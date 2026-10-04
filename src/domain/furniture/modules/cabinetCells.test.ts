@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, type CabinetPlan, type PlanCell } from './cabinet'
-import { cellAt, cellLayout, cellPaths, joinCells, joinSides, lineShare, moveLine, splitCell } from './cabinetCells'
+import { cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, splitCell } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
 const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
@@ -75,6 +75,22 @@ describe('cutting a cell', () => {
     expect(splitCell(nested, [0, 1], 'rows', 2)).toBeNull()
     expect(splitCell(sideboard, [0, 0], 'rows', 1)).toBeNull()
     expect(splitCell(sideboard, [5, 0], 'rows', 2)).toBeNull()
+  })
+})
+
+describe('a choice of a cell', () => {
+  it('is kept with the cell, and going back to the furniture’s removes it, with nothing left over', () => {
+    const p = sideboard
+    const chosen = chooseInCell(p, [0, 0], 'pulls', 'handle')!
+    expect(cellAt(chosen, [0, 0])!.own).toEqual({ pulls: 'handle' })
+    const both = chooseInCell(chosen, [0, 0], 'fronts', 'grooved')!
+    expect(cellAt(chooseInCell(both, [0, 0], 'pulls', undefined)!, [0, 0])!.own).toEqual({ fronts: 'grooved' })
+    expect(cellAt(chooseInCell(chosen, [0, 0], 'pulls', undefined)!, [0, 0])).not.toHaveProperty('own')
+    expect(cellAt(p, [0, 0])!.own).toBeUndefined()
+  })
+
+  it('refuses a path that reaches no cell', () => {
+    expect(chooseInCell(sideboard, [9, 9], 'pulls', 'handle')).toBeNull()
   })
 })
 

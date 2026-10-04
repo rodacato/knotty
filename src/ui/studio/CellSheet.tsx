@@ -1,6 +1,6 @@
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, type CabinetPlan, type PlanCell } from '../../domain/furniture/modules/cabinet'
-import { cellAt, cellLayout, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { CABINET_LABELS, choicesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { cellAt, cellLayout, chooseInCell, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
 import { Segmented, Stepper } from './PlanControls'
@@ -22,11 +22,11 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     const next = structuredClone(plan)
     const target = cellAt(next, path)!
     Object.assign(target, patch)
-    if ('back' in patch && patch.back === undefined) delete target.back
+    for (const key of ['back', 'own'] as const) if (key in patch && patch[key] === undefined) delete target[key]
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}) })
+    change({ content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return
@@ -41,6 +41,10 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
   }
   const voidable = canBeVoid(plan, path)
   const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
+  const own = (key: CellChoice, value: string) => {
+    const next = chooseInCell(plan, path, key, value === 'inherit' ? undefined : (value as CabinetPlan['construction'][typeof key]))
+    if (next) editPlan(next)
+  }
   const inherited = plan.construction.back === 'nailed' ? 'con trasera' : 'sin trasera'
   const build = (patch: Partial<CabinetPlan['construction']>) => editPlan({ ...plan, construction: { ...plan.construction, ...patch } })
   const { doors, drawerFronts } = CABINET_LABELS.construction
@@ -85,13 +89,16 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
             <p className="text-xs text-graphite-2">Cambia los frentes de todos los cajones del mueble.</p>
           </div>
         )}
-        {(cell.content === 'door' || cell.content === 'drawer') && (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-graphite-2">Jaladeras</span>
-            <Segmented label="Jaladeras" value={plan.construction.pulls} options={Object.entries(CABINET_LABELS.construction.pulls.options)} onChange={(v) => build({ pulls: v as CabinetPlan['construction']['pulls'] })} />
-            <p className="text-xs text-graphite-2">Cambia las jaladeras de todas las puertas y cajones del mueble.</p>
-          </div>
-        )}
+        {choicesFor(cell).map((key) => {
+          const { label, options } = CABINET_LABELS.construction[key]
+          const furniture = (options as Record<string, string>)[plan.construction[key]]
+          return (
+            <div key={key} className="flex flex-col gap-2">
+              <span className="text-sm text-graphite-2">{label}</span>
+              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options)]} onChange={(v) => own(key, v)} />
+            </div>
+          )
+        })}
         {cell.content === 'door' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Hojas</span>

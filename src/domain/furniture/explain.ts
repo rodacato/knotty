@@ -32,7 +32,8 @@ function cellText(cell: PlanCell): string {
     void: 'nothing built',
   }[cell.content]
   const back = cell.back === undefined ? '' : cell.back ? ', with a back' : ', no back'
-  return `${body}${cell.content === 'drawer' ? '' : shelves}${back} (${cell.height})`
+  const own = Object.entries(cell.own ?? {}).map(([key, value]) => `, ${key} ${value}`).join('')
+  return `${body}${cell.content === 'drawer' ? '' : shelves}${back}${own} (${cell.height})`
 }
 
 type Cabinet = Extract<FurniturePlan, { kind: 'cabinet' }>
