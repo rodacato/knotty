@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "code": "KC-REP-03",
+  "id": "stepped-wall-shelf",
+  "name": "Repisa arrimo escalonada",
+  "kind": "bookcase",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 2,
+  "features": ["wall-hung","no-back","open-niche","asymmetric-arrangement","wall-anchor"],
+  "adaptations": ["Original may be pine plywood with wax-oil; written in T18 with the closest finish","Sizes and depth estimated; seller gave none","hangs on the wall in the piece; the plan stands its lowest box on the floor, since it cannot say hung at a height","each box has its own walls in the piece; the plan shares one divider between neighbours"],
+  "gaps": [],
+  "notes": "Repisa de pared larga con cubierta encima y cinco cajones abiertos de distinta altura, colgada sin trasera. Aquí se dibuja con los cinco huecos a la misma altura.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Repisa arrimo escalonada",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 1200, "height": 380, "depth": 250 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "none", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 0.26,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.26 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.74 }
+        ]
+      },
+      {
+        "width": 0.23,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.47 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.53 }
+        ]
+      },
+      {
+        "width": 0.19,
+        "cells": [
+          { "content": "open", "shelves": 0, "doors": null, "height": 1 }
+        ]
+      },
+      {
+        "width": 0.12,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.59 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.41 }
+        ]
+      },
+      {
+        "width": 0.2,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.35 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.65 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 12,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 5, "screw-8x2": 32, "white-glue": 1 }
+  }
+}
