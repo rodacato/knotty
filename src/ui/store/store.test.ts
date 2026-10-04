@@ -91,6 +91,20 @@ describe('store', () => {
     expect(after.changes.modified).toContain('shelf-1')
   })
 
+  it('opening another design leaves behind what the scene kept about the one before', () => {
+    const bookcase = { name: exampleBookcase.name, design: exampleBookcase }
+    useStore.getState().fromExample(bookcase)
+    const r = useStore.getState().editPiece('shelf-1', { kind: 'move', axis: 'y', delta: 40 })
+    if (!r.ok) throw new Error(r.message)
+    useStore.getState().viewVersion(1)
+    useStore.getState().hide('shelf-1')
+    useStore.getState().fromExample(bookcase)
+    expect(useStore.getState()).toMatchObject({ viewedVersion: null, preview: null, hidden: [], selection: null })
+    useStore.getState().viewVersion(1)
+    useStore.getState().newDesign()
+    expect(useStore.getState()).toMatchObject({ viewedVersion: null, state: null, phase: 'capture' })
+  })
+
   it('an expert request shows the message at once and the answer when it arrives', async () => {
     useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
     const asking = useStore.getState().adjust('Hazlo de 90 cm de ancho')
