@@ -1,6 +1,7 @@
 import type { Bench, ModuleCheck } from '../../application/bench/bench'
 import { analyze } from '../../domain/checks/analysis'
-import type { Reference } from '../../domain/furniture/references'
+import { resolveGeometry, type Box } from '../../domain/design/resolve'
+import type { HOME_CATEGORIES, Reference } from '../../domain/furniture/references'
 import { buildPlan, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
 
@@ -39,14 +40,41 @@ export interface FichaRow {
   reference: Reference
   verdict: Verdict
   notes: string[]
+  /** What the thumbnail draws; null when the plan does not resolve. */
+  boxes: Map<string, Box> | null
 }
 
 /** Every ficha Knotty ships, built and checked as the bench checks a variant. */
 export function listFichas(references: readonly Reference[], catalog: Catalog): FichaRow[] {
   return references.map((reference) => {
-    const a = analyze(buildPlan(reference.plan, catalog).design, catalog)
-    if (!a.valid) return { reference, verdict: 'invalid', notes: a.errors.map((e) => e.message) }
+    const { design } = buildPlan(reference.plan, catalog)
+    const geo = resolveGeometry(design, catalog)
+    const boxes = geo.ok ? geo.value.boxes : null
+    const a = analyze(design, catalog)
+    if (!a.valid) return { reference, verdict: 'invalid', notes: a.errors.map((e) => e.message), boxes }
     const notes = [...a.findings.map((f) => f.message), ...a.warnings.map((w) => w.message)]
-    return { reference, verdict: notes.length ? 'note' : 'ok', notes }
+    return { reference, verdict: notes.length ? 'note' : 'ok', notes, boxes }
+  })
+}
+
+/** The home screen's categories, plus every ficha and the ones the home screen does not show. */
+export type FichaFilter = 'all' | 'featured' | (typeof HOME_CATEGORIES)[number] | 'off-home'
+
+export const FICHA_FILTERS: [FichaFilter, string][] = [
+  ['all', 'Todas'],
+  ['featured', 'Destacadas'],
+  ['bedroom', 'Recámara'],
+  ['storage', 'Guardar'],
+  ['tables', 'Mesas'],
+  ['seating', 'Asientos'],
+  ['off-home', 'Fuera de la portada'],
+]
+
+export function fichasOf(rows: readonly FichaRow[], filter: FichaFilter): FichaRow[] {
+  return rows.filter(({ reference: { home } }) => {
+    if (filter === 'all') return true
+    if (filter === 'off-home') return !home
+    if (filter === 'featured') return !!home?.featured
+    return home?.category === filter
   })
 }
