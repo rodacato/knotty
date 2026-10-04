@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "code": "GN-COC-02",
+  "id": "tall-pantry",
+  "name": "Despensa alta",
+  "kind": "cabinet",
+  "notes": "Despensa de dos cuerpos de puertas, el de abajo alto con tres repisas y el de arriba con una, anclada al muro.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Despensa alta",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "dimensions": { "width": 600, "height": 1900, "depth": 400 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.68, "content": "door", "shelves": 3, "doors": 2 },
+          { "height": 0.32, "content": "door", "shelves": 1, "doors": 2 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 15,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 41, "cup-hinge-35-full": 10, "edge-banding-19": 20, "screw-8x2": 26, "shelf-pin-5": 16, "white-glue": 1 }
+  }
+}
