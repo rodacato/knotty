@@ -1,8 +1,8 @@
 import { ArrowCounterClockwise, Check, Stack, Warning } from '@phosphor-icons/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
 import { describePlanChanges, moduleLabels, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
-import { isLocked, type SavingSearch } from '../../domain/furniture/saving/saving'
+import { isLocked } from '../../domain/furniture/saving/saving'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { TERMS } from '../glossary'
 import { Button } from '../system/components'
@@ -13,8 +13,28 @@ import { JointsSection } from './Joints'
 import { PlanFields, type Locks } from './PlanFields'
 import { FinishSection } from './FinishSection'
 import { SavingSheet } from './SavingSheet'
+import { useSavingSearch } from './savingSearch'
 
 // The plan as a form: every decision that shapes the piece of furniture, shown in 3D as a draft and applied without the expert.
+
+/** What the expert changed outside the plan: left behind if the plan is applied, or carried on top of it. */
+export function PlanSourceNotes({ source }: { source: ReturnType<typeof currentPlan> }) {
+  return (
+    <>
+      {source.diverged && (
+        <p className="flex items-start gap-2 rounded-xl border border-line bg-kraft p-3 text-xs">
+          <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
+        </p>
+      )}
+
+      {!source.diverged && source.extras.length > 0 && (
+        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite">
+          Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
+        </p>
+      )}
+    </>
+  )
+}
 
 export function PlanSheet({ state }: { state: DesignState }) {
   const editPlan = useStore((s) => s.editPlan)
@@ -22,33 +42,18 @@ export function PlanSheet({ state }: { state: DesignState }) {
   const discardPlanDraft = useStore((s) => s.discardPlanDraft)
   const pending = useStore(draftOf)
   const lockField = useStore((s) => s.lockField)
-  const findSavings = useStore((s) => s.findSavings)
-  const previewFix = useStore((s) => s.previewFix)
   const help = useHelp<'saveMaterial'>()
-  const [search, setSearch] = useState<SavingSearch | null>(null)
-  const [searching, setSearching] = useState(false)
   const source = useMemo(() => currentPlan(state), [state])
   const draft = pending?.plan ?? source.plan
+  const saving = useSavingSearch(draft)
+  const { search, searching } = saving
   const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
   // A new plan from outside (another version, the expert) leaves the search behind.
   const [synced, setSynced] = useState(source.plan)
   if (synced !== source.plan) {
     setSynced(source.plan)
-    setSearch(null)
+    saving.reset()
   }
-  // The search is synchronous and takes a moment on a phone: the button says so before it starts.
-  useEffect(() => {
-    if (!searching || !draft) return
-    const timer = setTimeout(() => {
-      setSearch(findSavings(draft))
-      setSearching(false)
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [searching, draft, findSavings])
-  // An option seen in 3D belongs to the results: leaving them hides it.
-  useEffect(() => {
-    if (search) return () => previewFix(null)
-  }, [search, previewFix])
 
   if (!source.plan || !draft)
     return (
@@ -65,26 +70,18 @@ export function PlanSheet({ state }: { state: DesignState }) {
   }
 
   const locks: Locks = { locked: (field) => isLocked(field, state.locks), toggle: lockField }
-  const backToForm = () => {
-    previewFix(null)
-    setSearch(null)
-  }
 
   if (search)
     return (
       <div className="flex min-h-full flex-col p-4">
         <SavingSheet
           search={search}
-          onBack={backToForm}
+          onBack={saving.close}
           onUse={(option) => {
-            backToForm()
+            saving.close()
             set(option.plan)
           }}
-          onRelease={(key) => {
-            lockField(key, false)
-            setSearch(null)
-            setSearching(true)
-          }}
+          onRelease={saving.release}
         />
       </div>
     )
@@ -96,17 +93,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
 
   return (
     <div className="flex flex-col gap-5 p-4 pb-28">
-      {source.diverged && (
-        <p className="flex items-start gap-2 rounded-xl border border-line bg-kraft p-3 text-xs">
-          <Warning className="mt-0.5 shrink-0" weight="bold" /> Desde la v{source.since} hubo cambios con el experto que no están en la ficha. Si aplicas la ficha, el mueble vuelve a armarse desde ella y esos cambios se pierden.
-        </p>
-      )}
-
-      {!source.diverged && source.extras.length > 0 && (
-        <p className="rounded-xl bg-kraft/60 p-3 text-xs text-graphite">
-          Encima de la ficha {source.extras.length === 1 ? 'hay un cambio hecho' : `hay ${source.extras.length} cambios hechos`} con el experto. Se conservan al aplicar; si alguno ya no tiene dónde ir, te aviso.
-        </p>
-      )}
+      <PlanSourceNotes source={source} />
 
       <p className="-mb-2 text-sm text-graphite">Fija lo que no se mueve; lo demás puede cambiar para ahorrar material.</p>
       <PlanFields module={moduleOf(draft)} plan={draft} onChange={set} locks={locks} afterMeasures={<FinishSection state={state} />} />
@@ -119,7 +106,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
         <p className="text-xs text-graphite">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         {help.open && <HelpPanel term={TERMS[help.open]} onClose={help.close} />}
         <div className="flex items-center gap-1">
-          <Button variant="secondary" className="min-h-11 flex-1" disabled={searching} onClick={() => setSearching(true)}>
+          <Button variant="secondary" className="min-h-11 flex-1" disabled={searching} onClick={saving.start}>
             <Stack /> {searching ? 'Buscando…' : TERMS.saveMaterial.name}
           </Button>
           <HelpButton term={TERMS.saveMaterial} open={help.open === 'saveMaterial'} onToggle={() => help.toggle('saveMaterial')} />
