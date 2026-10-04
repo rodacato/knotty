@@ -24,7 +24,7 @@ Cuatro etiquetas que conviene no confundir:
 - `slatted-fronts`: frentes hechos de tiras pegadas. `routed-fronts` es una ranura de router sobre una cara lisa.
 - `slatted-base`: la base de una cama hecha de tablillas sueltas en lugar de un tablero corrido.
 
-- `finger-joints`: el mueble tiene esquinas de dedos (*box joint*) a la vista. En un gabinete se dibuja con `construction.drawerCorners: "fingers"` y, si no son los 5 de siempre, `drawerFingers` (de 3 a 21 por esquina): vale para todos los cajones del mueble y se ve de atrás o con el cajón fuera, porque el frente lo tapa. Las esquinas de dedos de un costado con la cubierta, como en el KC-BUR-05, siguen siendo un hueco.
+- `finger-joints`: el mueble tiene esquinas de dedos (*box joint*) a la vista. En un gabinete se dibuja con `construction.drawerCorners: "fingers"` y, si no son los 5 de siempre, `drawerFingers` (de 3 a 21 por esquina): vale para todos los cajones del mueble y se ve de atrás o con el cajón fuera, porque el frente lo tapa. Las esquinas de la cubierta con los costados, como en el KC-BUR-05, se dibujan con `construction.top: "fingers"` (el mismo `drawerFingers`): los costados suben hasta la cara de arriba y quedan a la vista de frente.
 
 `routed-fronts` también se dibuja en el gabinete (`construction.fronts: "grooved"`), con ranuras verticales; si el frente es de tiras pegadas y no de router, sigue siendo un hueco. `notch-pulls` ya se dibuja en el gabinete (`construction.pulls: "notch"`), así que una ficha que lo usa lo pone en `features` y no en `gaps`; con herrajes es `"handle"`, que suma una jaladera por hoja de puerta y frente de cajón a la compra.
 

@@ -47,21 +47,30 @@ function overlap(a: Box, b: Box): Box | null {
   return o.x1 > o.x0 && o.y1 > o.y0 && o.z1 > o.z0 ? o : null
 }
 
-/** In each corner the side keeps the fingers at an even place and loses the odd ones; the end board is the other way around. */
+const AXES = ['x', 'y', 'z'] as const
+const low = (b: Box, e: (typeof AXES)[number]) => b[`${e}0` as const]
+const high = (b: Box, e: (typeof AXES)[number]) => b[`${e}1` as const]
+
+/** The fingers run along the longest side of the corner column; in each slice one board keeps the wood and the other has the void, alternating from the first board. */
 export function withFingerCuts(design: Design, boxes: Map<string, Box>, fingers: number): Design {
   const added = new Map<string, Cut[]>()
   const push = (id: string, cut: Cut) => added.set(id, [...(added.get(id) ?? []), cut])
   for (const u of design.joints) {
     if (u.type !== 'finger') continue
-    const [side, end] = [boxes.get(u.a), boxes.get(u.b)]
-    const corner = side && end && overlap(side, end)
+    const [first, second] = [boxes.get(u.a), boxes.get(u.b)]
+    const corner = first && second && overlap(first, second)
     if (!corner) continue
-    const width = (corner.y1 - corner.y0) / fingers
+    const along = AXES.reduce((best, e) => (high(corner, e) - low(corner, e) > high(corner, best) - low(corner, best) ? e : best))
+    const width = (high(corner, along) - low(corner, along)) / fingers
     for (let i = 0; i < fingers; i++) {
-      const y0 = corner.y0 + i * width
-      const sliceOf = (box: Box) => span('start', round(y0 - box.y0), round(width))
-      if (i % 2 === 1) push(u.a, { x: span('start', -OUT, round(side.x1 - side.x0 + 2 * OUT)), y: sliceOf(side), z: span('start', round(corner.z0 - side.z0), round(corner.z1 - corner.z0)) })
-      else push(u.b, { x: span('start', round(corner.x0 - end.x0), round(corner.x1 - corner.x0)), y: sliceOf(end), z: span('start', -OUT, round(end.z1 - end.z0 + 2 * OUT)) })
+      // The void goes in the board that does not own the slice: the second board on even slices, the first on odd ones.
+      const [id, piece] = i % 2 === 0 ? [u.b, second] : [u.a, first]
+      const slice = { ...corner, [`${along}0`]: low(corner, along) + i * width, [`${along}1`]: low(corner, along) + (i + 1) * width } as Box
+      const spanOf = (e: (typeof AXES)[number]): Span => {
+        const [lo, hi] = [low(slice, e) <= low(piece, e) + 0.01 ? low(piece, e) - OUT : low(slice, e), high(slice, e) >= high(piece, e) - 0.01 ? high(piece, e) + OUT : high(slice, e)]
+        return span('start', round(lo - low(piece, e)), round(hi - lo))
+      }
+      push(id, { x: spanOf('x'), y: spanOf('y'), z: spanOf('z') })
     }
   }
   return added.size ? { ...design, pieces: design.pieces.map((p) => (added.has(p.id) ? { ...p, cuts: [...(p.cuts ?? []), ...added.get(p.id)!] } : p)) } : design

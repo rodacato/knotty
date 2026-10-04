@@ -105,3 +105,39 @@ describe('drawer boxes with fingers', () => {
     expect(notes).toEqual([])
   })
 })
+
+describe('a cabinet top with fingers', () => {
+  const topFingers = (extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ ...chest, construction: { ...DEFAULT_CONSTRUCTION, top: 'fingers' }, ...extra })
+
+  it('is valid with nothing to warn about, and the outer sides run up through the top', () => {
+    const { design, a } = build(topFingers())
+    expect(a.warnings).toEqual([])
+    const side = a.geo!.boxes.get('side-left')!
+    const top = a.geo!.boxes.get('top')!
+    expect(side.y1).toBe(top.y1)
+    expect(top.x1 - top.x0).toBe(500)
+    expect(design.joints.filter((u) => u.type === 'finger').map((u) => [u.a, u.b, u.depth])).toEqual([['side-left', 'top', 18], ['side-right', 'top', 18]])
+  })
+
+  it('cuts the fingers along the depth, alternating between the side and the top', () => {
+    for (const n of [3, 5, 9]) {
+      const { design, a } = build(topFingers({ drawerFingers: n }))
+      const [side, top] = [design.pieces.find((p) => p.id === 'side-left')!, design.pieces.find((p) => p.id === 'top')!]
+      const [sideBox, topBox] = [a.geo!.boxes.get(side.id)!, a.geo!.boxes.get(top.id)!]
+      const column: Box = { x0: sideBox.x0, x1: sideBox.x1, y0: topBox.y0, y1: topBox.y1, z0: sideBox.z0, z1: sideBox.z1 }
+      const [sideVoids, topVoids] = [side.cuts!.map((c) => cutBox(sideBox, c)), top.cuts!.filter((c) => c.x.offset <= 1).map((c) => cutBox(topBox, c))]
+      for (let i = 0; i < 200; i++) {
+        const z = column.z0 + ((i + 0.5) * (column.z1 - column.z0)) / 200
+        const hole = (voids: Box[]) => voids.some((v) => v.z0 <= z && z <= v.z1 && v.x0 <= 9 && v.y0 <= (column.y0 + column.y1) / 2 && (column.y0 + column.y1) / 2 <= v.y1)
+        expect(hole(sideVoids)).not.toBe(hole(topVoids))
+      }
+      expect(new Set(sideVoids.map((v) => Math.round(v.z0))).size).toBe(Math.floor(n / 2))
+    }
+  })
+
+  it('makes the sides as tall as the furniture and says how it is cut', () => {
+    const { design, notes } = build(topFingers())
+    expect(notes.some((m) => m.startsWith('Cubierta con dedos en 2 esquinas, 5 por esquina'))).toBe(true)
+    expect(design.pieces.find((p) => p.id === 'side-left')!.cuts!.length).toBe(2)
+  })
+})
