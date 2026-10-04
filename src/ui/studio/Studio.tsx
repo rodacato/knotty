@@ -1,28 +1,25 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, Flask, GearSix, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { Armchair, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { analyze } from '../../domain/checks/analysis'
-import { differences } from '../../domain/design/diff'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
-import { Chat, STAGES } from '../chat/Chat'
+import { Chat } from '../chat/Chat'
 import { SceneBoundary } from '../scene/SceneBoundary'
 import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
-import { Button, Pencil } from '../system/components'
+import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { hiddenIn, visibleDesign, useStore, type SceneMode, type View } from '../store'
+import { useStore, type SceneMode, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
 import { InvalidCanvas } from './InvalidCanvas'
-import { previousUsableVersion } from '../../domain/session/history/history'
 import { PieceSheet } from './PieceSheet'
-import { StatusChip, type Status } from './StatusChip'
-import { resolvedChipLabel, resolvedVisible } from './chipLabels'
+import { StatusChip } from './StatusChip'
+import { useStatuses } from './statuses'
+import { useStudioView } from './view'
 import { named } from '../../application/named'
-import { noticeBoard } from '../../application/notices'
 import { currentPlan } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
 import { moduleOf } from '../../domain/furniture/modules/plan'
@@ -163,16 +160,16 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
 
 export function Studio({ state }: { state: DesignState }) {
   const { catalog } = useServices()
-  const showProposal = useStore((s) => s.showProposal)
-  const viewedVersion = useStore((s) => s.viewedVersion)
-  const viewVersion = useStore((s) => s.viewVersion)
+  const view = useStudioView(state)
+  const { current, currentAnalysis, shown, geo, board, selection } = view
   const backToVersion = useStore((s) => s.backToVersion)
+  const adjust = useStore((s) => s.adjust)
+  const selectPiece = useStore((s) => s.select)
+  const previewFix = useStore((s) => s.previewFix)
+  const debugVisible = useStore((s) => s.debugVisible)
   const desktop = useDesktop()
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
-  const debugVisible = useStore((s) => s.debugVisible)
-  const sandboxed = useStore((s) => s.sandboxed)
-  const leaveSandbox = useStore((s) => s.leaveSandbox)
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
   // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
   const [overlay, setOverlay] = useState<Overlay | null>(null)
@@ -181,27 +178,13 @@ export function Studio({ state }: { state: DesignState }) {
     setOverlay(null)
     setTab('chat')
   }
-  const adjust = useStore((s) => s.adjust)
-  const selectPiece = useStore((s) => s.select)
   const request = (text: string) => {
     toChat()
     void adjust(text)
   }
 
-  const current = currentDesign(state)
-  const currentAnalysis = useMemo(() => analyze(current, catalog), [current, catalog])
-  const preview = useStore((s) => s.preview)
-  const previewFix = useStore((s) => s.previewFix)
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
   useEffect(() => previewFix(null), [state.current, overlay, previewFix])
-  const shownDesign = preview?.design ?? visibleDesign({ state, viewedVersion, showProposal }) ?? current
-  const proposal = preview?.design ?? (viewedVersion === null && state.proposal && showProposal ? state.proposal.design : null)
-  const board = useMemo(() => noticeBoard(state, catalog, currentAnalysis), [state, catalog, currentAnalysis])
-  const shownAnalysis = useMemo(() => (shownDesign === current ? currentAnalysis : analyze(shownDesign, catalog)), [shownDesign, current, catalog, currentAnalysis])
-  const changes = useMemo(() => {
-    if (!proposal || !currentAnalysis.valid || !shownAnalysis.valid) return { added: [], changed: [] }
-    return differences(current, currentAnalysis.geo.boxes, proposal, shownAnalysis.geo.boxes)
-  }, [proposal, current, currentAnalysis, shownAnalysis])
 
   useEffect(() => {
     const onType = (e: KeyboardEvent) => {
@@ -211,160 +194,33 @@ export function Studio({ state }: { state: DesignState }) {
     return () => window.removeEventListener('keydown', onType)
   }, [selectPiece])
 
-  const toConfirm = current.pieces.filter((p) => p.confidence === 'low')
-  const select = useStore((s) => s.select)
-
-  const shownGeo = shownAnalysis.geo
-  const previousVersion = shownGeo ? null : previousUsableVersion(state.versions, state.current, (v) => analyze(v.design, catalog).valid)
-  const shownProblems = shownAnalysis.valid ? [] : shownAnalysis.errors
-  const problemPieces = [...new Set(shownProblems.flatMap((e) => Object.values(e.data ?? {}).filter((v): v is string => typeof v === 'string' && shownDesign.pieces.some((p) => p.id === v))))]
-  const flagged = useStore((s) => s.flagged)
-  const markedPieces = [...new Set([...problemPieces, ...flagged.filter((id) => shownDesign.pieces.some((p) => p.id === id))])]
-  const selection = useStore((s) => s.selection)
-  const showsPiece = !!shownGeo && shownDesign.pieces.some((p) => p.id === selection)
-  const editable = viewedVersion === null && !proposal
-  const thinking = useStore((s) => s.thinking)
-  const stage = useStore((s) => s.stage)
-  const cancel = useStore((s) => s.cancel)
-  const hidden = hiddenIn(useStore((s) => s.hidden), shownDesign)
-  const showAll = useStore((s) => s.showAll)
-  const focusedId = useStore((s) => s.focus)
-  const unfocus = useStore((s) => s.unfocus)
-  const focusedPiece = focusedId && focusedId === selection ? shownDesign.pieces.find((p) => p.id === focusedId) : undefined
-
-  // What changes what you are looking at comes first: an old version, the expert at work, a proposal or preview; then problems, pieces to confirm, what the last change resolved.
-  const statuses: Status[] = [
-    ...(viewedVersion !== null
-      ? [
-          {
-            key: 'version',
-            icon: <ClockCounterClockwise />,
-            label: `Viendo v${viewedVersion}`,
-            actions: (
-              <>
-                <button type="button" onClick={() => backToVersion(viewedVersion)} className="relative flex min-h-7 items-center gap-1 rounded-full bg-kraft px-2 before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2">
-                  <ArrowCounterClockwise /> Volver a esta
-                </button>
-                <button type="button" onClick={() => viewVersion(null)} aria-label="Dejar de ver" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
-                  <X />
-                </button>
-              </>
-            ),
-          },
-        ]
-      : []),
-    ...(thinking && (tab !== 'chat' || overlay)
-      ? [
-          {
-            key: 'thinking',
-            icon: <Pencil className="h-3 w-8 text-amber" />,
-            label: stage ? STAGES[stage.name] : 'Pensando…',
-            actions: (
-              <button type="button" onClick={cancel} aria-label="Cancelar" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
-                <X />
-              </button>
-            ),
-          },
-        ]
-      : []),
-    ...(focusedPiece
-      ? [
-          {
-            key: 'focus',
-            icon: <Crosshair />,
-            label: `Enfocada: ${focusedPiece.name}`,
-            actions: (
-              <button type="button" onClick={unfocus} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2">
-                <ArrowsOut /> Ver todo el mueble
-              </button>
-            ),
-          },
-        ]
-      : []),
-    // Hidden pieces change what you see as much as a proposal does, and the way back has to stay in sight.
-    ...(hidden.length > 0
-      ? [
-          {
-            key: 'hidden',
-            icon: <EyeSlash />,
-            label: hidden.length === 1 ? '1 pieza oculta' : `${hidden.length} piezas ocultas`,
-            actions: (
-              <button type="button" onClick={showAll} className="-my-1 flex min-h-11 items-center gap-1 rounded-full bg-kraft px-3 hover:bg-kraft-2">
-                <Eye /> Mostrar todo
-              </button>
-            ),
-          },
-        ]
-      : []),
-    ...(proposal
-      ? [
-          {
-            key: 'proposal',
-            icon: <Eye weight="bold" />,
-            label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar',
-            actions: preview ? undefined : (
-              <button type="button" onClick={toChat} className="-my-1 flex min-h-11 items-center rounded-full bg-kraft px-3 hover:bg-kraft-2 focus-visible:outline-2 focus-visible:outline-amber">
-                Ver propuesta
-              </button>
-            ),
-          },
-        ]
-      : []),
-    ...(shownGeo && shownProblems.length > 0
-      ? [{ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: shownProblems.length === 1 ? 'Un problema sin resolver' : `${shownProblems.length} problemas sin resolver`, onClick: () => setOverlay('notices') }]
-      : []),
-    ...(toConfirm.length > 0 && viewedVersion === null && !proposal
-      ? [{ key: 'confirm', icon: <PencilSimpleLine />, label: toConfirm.length === 1 ? `${toConfirm[0].name} por confirmar` : `${toConfirm.length} piezas por confirmar`, onClick: () => select(toConfirm[0].id) }]
-      : []),
-    ...(resolvedVisible(board.resolved, dismissedResolved, state.current) && overlay !== 'notices'
-      ? [
-          {
-            key: 'resolved',
-            icon: <CheckCircle weight="fill" className="text-slate" />,
-            label: resolvedChipLabel(board.resolved[0]),
-            actions: (
-              <button type="button" onClick={() => setDismissedResolved(state.current)} aria-label="Cerrar" className="relative grid size-7 place-items-center rounded-full before:absolute before:-inset-2 before:content-[''] hover:bg-kraft">
-                <X />
-              </button>
-            ),
-          },
-        ]
-      : []),
-    // Last, because the chip shows only the first status: what changes what you see must not hide behind the sandbox's reminder.
-    ...(sandboxed
-      ? [
-          {
-            key: 'sandbox',
-            icon: <Flask />,
-            label: 'Taller: nada de esto se guarda',
-            actions: (
-              <button type="button" onClick={leaveSandbox} className="relative flex min-h-7 items-center rounded-full bg-kraft px-3 before:absolute before:-inset-y-2 before:inset-x-0 before:content-[''] hover:bg-kraft-2">
-                Salir
-              </button>
-            ),
-          },
-        ]
-      : []),
-  ]
+  const statuses = useStatuses(state, view, {
+    chatInSight: tab === 'chat' && !overlay,
+    noticesOpen: overlay === 'notices',
+    dismissedResolved,
+    onDismissResolved: () => setDismissedResolved(state.current),
+    onNotices: () => setOverlay('notices'),
+    onProposal: toChat,
+  })
 
   const scene = (
     <div className="relative h-full min-h-0 bg-[var(--scene-bg)]">
-      {shownGeo ? (
-        <div className="h-full" role="img" aria-label={`${shownDesign.name} en 3D: ${shownDesign.dimensions.height} × ${shownDesign.dimensions.width} × ${shownDesign.dimensions.depth} mm, ${shownDesign.pieces.length} piezas. La lista completa está en Materiales.`}>
+      {geo ? (
+        <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shownDesign} geo={shownGeo} catalog={catalog} ghosts={changes.added} marked={changes.changed} problems={markedPieces} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={view.changes.added} marked={view.changes.changed} problems={view.marked} />
           </SceneBoundary>
         </div>
       ) : (
         <InvalidCanvas
-          detail={named(shownDesign, shownProblems[0]?.message)}
-          previous={previousVersion}
-          onBack={() => previousVersion !== null && backToVersion(previousVersion)}
+          detail={named(shown, view.problems[0]?.message)}
+          previous={view.previousVersion}
+          onBack={() => view.previousVersion !== null && backToVersion(view.previousVersion)}
           onNotices={() => setOverlay('notices')}
         />
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        {shownGeo && <SceneBar />}
+        {geo && <SceneBar />}
         <StatusChip statuses={statuses} />
       </div>
     </div>
@@ -385,8 +241,8 @@ export function Studio({ state }: { state: DesignState }) {
 
   const panel = (
     <>
-      {showsPiece && shownGeo && <PieceSheet key={selection} design={shownDesign} geo={shownGeo} catalog={catalog} editable={editable} />}
-      <div className={`h-full min-h-0 ${showsPiece ? 'hidden' : ''}`}>
+      {view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
+      <div className={`h-full min-h-0 ${view.showsPiece ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
