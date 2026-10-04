@@ -62,4 +62,16 @@ describe('hardware to draw', () => {
     const along = plugs.map((p) => (p.kind === 'plug' ? p.center[2] : 0))
     expect(new Set(along).size).toBe(plugs.length)
   })
+
+  it('puts no plug where two boards are glued face to face, as the layers of a leg', () => {
+    const { design } = buildCabinet(
+      { kind: 'cabinet', name: 'Buró', dimensions: { width: 500, height: 600, depth: 350 }, material: 'T18', base: 'legs', legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 1, doors: null }] }] },
+      testCatalog,
+    )
+    const plugged = { ...design, joints: design.joints.map((u) => (u.type === 'butt-screw' || u.type === 'glue-nail' ? { ...u, type: 'plugged-dowel' as const } : u)) }
+    const geo = analyze(plugged, testCatalog).geo!
+    const owners = new Set(hardwareParts(plugged, geo.boxes).flatMap((h) => (h.kind === 'plug' ? [h.owner] : [])))
+    expect([...owners].filter((id) => id.startsWith('leg-'))).toEqual([])
+    expect(owners.size).toBeGreaterThan(0)
+  })
 })

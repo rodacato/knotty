@@ -47,6 +47,9 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>): Hardware
       const contact = contactBetween(u.a, a, u.b, b)
       if (!contact?.axis) continue
       const face = contact.axis
+      // The dowel goes through the face of a into the edge of b: two boards glued face to face (a laminated leg) have no plug to show.
+      const [pieceA, pieceB] = [design.pieces.find((p) => p.id === u.a), design.pieces.find((p) => p.id === u.b)]
+      if (pieceA?.normal !== face || pieceB?.normal === face) continue
       const outward = (low(b, face) + high(b, face)) / 2 >= (low(a, face) + high(a, face)) / 2 ? -1 : 1
       const around = AXES.filter((e) => e !== face).map((e) => ({ axis: e, lo: Math.max(low(a, e), low(b, e)), hi: Math.min(high(a, e), high(b, e)) }))
       const [along, across] = around[0].hi - around[0].lo >= around[1].hi - around[1].lo ? around : [around[1], around[0]]
