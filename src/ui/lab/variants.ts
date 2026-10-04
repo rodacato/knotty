@@ -58,7 +58,7 @@ export function listFichas(references: readonly Reference[], catalog: Catalog): 
   })
 }
 
-export type Room = 'bedroom' | 'living' | 'dining' | 'office' | 'kitchen' | 'entry'
+export type Room = 'bedroom' | 'living' | 'dining' | 'office' | 'kitchen' | 'entry' | 'workshop'
 
 export const ROOMS: [Room, string][] = [
   ['bedroom', 'Recámara'],
@@ -67,6 +67,7 @@ export const ROOMS: [Room, string][] = [
   ['office', 'Oficina'],
   ['kitchen', 'Cocina'],
   ['entry', 'Entrada'],
+  ['workshop', 'Taller'],
 ]
 
 /** Where a piece goes, by the family in its code (KC-APA-01 is an APA); a piece can go in more than one room. */
@@ -85,6 +86,7 @@ const ROOMS_OF_FAMILY: Record<string, Room[]> = {
   ESC: ['office'],
   COC: ['kitchen'],
   ARC: ['office'],
+  TAL: ['workshop'],
 }
 
 /** OTR holds whatever fits no family, so each one says its own room. */

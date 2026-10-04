@@ -1,0 +1,26 @@
+{
+  "format": 1,
+  "code": "GN-TAL-01",
+  "id": "workbench",
+  "name": "Banco de trabajo",
+  "kind": "workbench",
+  "notes": "Banco de taller para trabajar de pie, con la cubierta volada, travesaños bajo la cubierta y una repisa baja para herramienta. Una cubierta doble lo haría más firme para golpear.",
+  "plan": {
+    "kind": "table",
+    "use": "standing",
+    "name": "Banco de trabajo",
+    "material": "T18",
+    "dimensions": { "width": 1500, "height": 900, "depth": 700 },
+    "overhang": 30,
+    "shelf": true,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "panel"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 10,
+    "findings": [],
+    "sheets": { "T18": 2 },
+    "hardware": { "edge-banding-19": 9, "pocket-screw-1-1/4": 8, "screw-8x2": 56, "white-glue": 1 }
+  }
+}

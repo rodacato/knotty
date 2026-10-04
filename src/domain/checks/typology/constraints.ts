@@ -10,6 +10,8 @@ import { checked, measured, type CategoryConstraint, type Surface, type UseInput
 
 /** Comfortable desk height, in mm. */
 export const DESK_HEIGHT: [number, number] = [700, 780]
+/** Height of a surface worked at standing, in mm. */
+export const WORKBENCH_HEIGHT: [number, number] = [850, 1100]
 /** Depth a bookcase takes so large books do not stick out, in mm; below the first, a warning. */
 export const BOOKCASE_DEPTH: [number, number] = [230, 300]
 /** Depth a closet takes so hangers fit facing front, in mm; below the first, a warning. */
@@ -136,6 +138,17 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     severity: 'recommendation',
     source: `${VALUES}#10-medidas-de-muebles-y-ergonomía «Alto de escritorio»`,
     message: (height, l) => `La cubierta queda a ${roundTo(height, 0)} mm; un escritorio cómodo va de ${l.min} a ${l.max} mm.`,
+    data: (height) => ({ height: roundTo(height, 0) }),
+  }),
+  measured({
+    check: 'workbench.height',
+    appliesTo: ['workbench'],
+    metric: 'surfaceHeight',
+    // From the workshop bench (850–950) to the high counter of a standing desk (1020–1100).
+    limits: { min: WORKBENCH_HEIGHT[0], max: WORKBENCH_HEIGHT[1] },
+    severity: 'recommendation',
+    source: `${FURNITURE}#21-mesas-y-superficies «Mesa de trabajo de pie (taller)»`,
+    message: (height, l) => `La cubierta queda a ${roundTo(height, 0)} mm; una mesa para trabajar de pie va de ${l.min} a ${l.max} mm.`,
     data: (height) => ({ height: roundTo(height, 0) }),
   }),
   checked({

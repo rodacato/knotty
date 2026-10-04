@@ -128,4 +128,8 @@ describe('typologyRule', () => {
   it('a coffee table at dining height', () => {
     expect(usage(cabinet({ name: 'Mesa de centro', dimensions: { width: 1000, height: 750, depth: 550 } }))).toEqual([['recommendation', expect.stringContaining('de centro va de 350 a 500')]])
   })
+
+  it('a workbench by its name is not a bench, and a desk to stand at is not a desk', () => {
+    expect(['Banco de trabajo', 'Mesa de trabajo', 'Mesón de taller', 'Escritorio de pie', 'Banca de entrada', 'Escritorio'].map((name) => detectKind({ name }))).toEqual(['workbench', 'workbench', 'workbench', 'workbench', 'bench', 'desk'])
+  })
 })

@@ -9,6 +9,7 @@ import { CATEGORY_CONSTRAINTS } from './constraints'
 /** Words in a name that say what the furniture is: the fallback for a design that does not say it (designed piece by piece, or saved before designs did). */
 const WORDS: [DesignKind, RegExp][] = [
   ['bed', /\bcama\b|\bbase de cama\b/],
+  ['workbench', /banco de trabajo|mesa de trabajo|mes[oó]n|escritorio (alto|de pie)/],
   ['desk', /escritorio/],
   ['wallCabinet', /alacena|gabinete de pared/],
   ['drawers', /cajonera|c[oó]moda/],

@@ -177,3 +177,23 @@ describe('buildTable', () => {
     })
   })
 })
+
+describe('a table to work at standing', () => {
+  const findingsOf = (p: Partial<TablePlan>) => {
+    const a = analyze(buildTable(table(p), testCatalog).design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return a.findings
+  }
+  const cleats = (p: Partial<TablePlan>) => buildTable(table(p), testCatalog).design.pieces.filter((x) => x.role === 'divider' && /Travesaño/.test(x.name)).length
+  const standing: Partial<TablePlan> = { use: 'standing', name: 'Escritorio de pie', dimensions: { width: 1200, height: 1050, depth: 700 }, overhang: 30 }
+
+  it('spaces the cleats for its heavy top, where a desk of the same size keeps the usual spacing', () => {
+    expect(cleats(standing)).toBeGreaterThan(cleats({ ...standing, use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 700 } }))
+    expect(findingsOf(standing)).toEqual([])
+  })
+
+  it('is judged from 850 to 1100 mm, and a seated height is too low for it', () => {
+    expect(findingsOf({ ...standing, dimensions: { ...standing.dimensions!, height: 900 } })).toEqual([])
+    expect(findingsOf({ ...standing, dimensions: { ...standing.dimensions!, height: 760 } }).map((f) => f.check)).toEqual(['workbench.height'])
+  })
+})
