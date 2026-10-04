@@ -31,7 +31,8 @@ function cellText(cell: PlanCell): string {
     closed: 'closed panel',
     void: 'nothing built',
   }[cell.content]
-  return `${body}${cell.content === 'drawer' ? '' : shelves} (${cell.height})`
+  const back = cell.back === undefined ? '' : cell.back ? ', with a back' : ', no back'
+  return `${body}${cell.content === 'drawer' ? '' : shelves}${back} (${cell.height})`
 }
 
 type Cabinet = Extract<FurniturePlan, { kind: 'cabinet' }>

@@ -34,14 +34,15 @@ export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none', drawerCorners: 'screwed' }
 
 /**
- * A cell of a plan: what the expert can say, plus two things only a ficha or the editor writes: `void`, a stretch of a column where nothing is built,
- * and `columns`, a cell split into columns of its own, each with its cells, as deep as it takes.
+ * A cell of a plan: what the expert can say, plus three things only a ficha or the editor writes: `void`, a stretch of a column where nothing is built,
+ * `columns`, a cell split into columns of its own, each with its cells, as deep as it takes, and `back`, a cell that has a back or not against the furniture's choice.
  */
 export const PlanCell = Cell.extend({
   content: z.enum([...Cell.shape.content.options, 'void']).describe('open: open; drawer: drawer; door: door; closed: covered, not opening; void: nothing is built there'),
   get columns() {
     return z.array(PlanColumn).optional().describe('The cell split into columns, left to right; its own content is not built')
   },
+  back: z.boolean().optional().describe('Whether this opening has a back; absent, as construction.back says'),
 })
 export type PlanCell = z.infer<typeof PlanCell>
 export const PlanColumn = Column.extend({ cells: z.array(PlanCell).describe('Openings from bottom to top') })
@@ -93,6 +94,10 @@ const voidsFit = (plan: CabinetPlan) => {
 const nestedFit = (columns: PlanColumn[], outer: boolean): boolean =>
   columns.every((c) => c.cells.length > 0 && c.cells.every((cell) => (cell.columns ? cell.content !== 'void' && cell.columns.length >= 2 && nestedFit(cell.columns, false) : outer || cell.content !== 'void')))
 const nestingFits = (plan: CabinetPlan) => nestedFit(plan.columns, true)
+/** A back of its own goes in a cell that holds something: not in a void, not in a split cell, whose own columns say it. */
+const backsInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => (cell.back === undefined || (!cell.columns && cell.content !== 'void')) && (!cell.columns || backsInPlace(cell.columns))))
+const backsFit = (plan: CabinetPlan) => backsInPlace(plan.columns)
+const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
 const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
@@ -119,7 +124,7 @@ const SHELF_SETBACK = 5
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
 
-/** The runs of consecutive columns that are flagged, as [first, last]. */
+/** The runs of consecutive columns or cells that are flagged, as [first, last]. */
 const runs = (flags: boolean[]) => flags.reduce<[number, number][]>((list, on, i) => (!on ? list : i > 0 && flags[i - 1] ? [...list.slice(0, -1), [list[list.length - 1][0], i]] : [...list, [i, i]]), [])
 /** The id of the k-th board of a kind: the first keeps the plain name, so what refers to it still does. */
 const nth = (id: string, k: number) => (k === 0 ? id : `${id}-${k + 1}`)
@@ -225,7 +230,11 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
-  const backFace: FaceRef = build.back === 'nailed' ? 'back.z1' : 'furniture.z0'
+  const hasBack = (cell: PlanCell) => cell.back ?? build.back === 'nailed'
+  // Some cell goes against the furniture's choice: each run of cells with a back gets its own, and the first is the one the carcass stands in front of.
+  const cellBacks = cells.some((c) => c.content !== 'void' && hasBack(c) !== (build.back === 'nailed'))
+  const backed = cells.some((c) => c.content !== 'void' && hasBack(c))
+  const backFace: FaceRef = (cellBacks ? backed : build.back === 'nailed') ? 'back.z1' : 'furniture.z0'
   const onLegs = plan.base === 'legs'
   // On legs the box starts where they end: the sides and the back stand on the bottom's level, not on the floor.
   const boxFloor = onLegs ? ref('bottom.y0') : ref('furniture.y0')
@@ -251,6 +260,8 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
     half: t / 2,
     overlays,
     front,
+    hasBack,
+    cellBacks,
     backFace,
     depth: () => extent(ref(backFace), front),
     panel: panelOf(plan.material),
@@ -279,10 +290,10 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
 }
 type Layout = ReturnType<typeof layoutOf>
 
-/** The back: one board, or one per column when a column stops short, as tall as what it builds and meeting at the middle of each divider. */
+/** The back: one board, or one per column when a column stops short, as tall as what it builds and meeting at the middle of each divider; with backs by cell, none here. */
 function backs(l: Layout): Piece[] {
   const { plan, n, half } = l
-  if (l.build.back !== 'nailed') return []
+  if (l.build.back !== 'nailed' || l.cellBacks) return []
   const board = { role: 'back' as const, material: backBoard(l.catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
   if (!l.voids) return [makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(l.boxFloor, ref('furniture.y1')) })]
   return plan.columns.map((_, i) =>
@@ -542,7 +553,32 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     filling.hung.push(...fronts.hung)
     if (cell.content === 'drawer') filling.drawers.push({ cell: [...spec.path, j], bounds: { left: spec.left, right: spec.right, bottom, top }, overlay: opening.overlay })
   })
+  if (l.cellBacks) filling.pieces.push(...cellBacksOf(l, spec))
   return filling
+}
+
+/** With backs by cell, one board for each run of cells of a column that have one: over the outer boards whole, up to the middle of a divider or a shelf it shares. */
+function cellBacksOf(l: Layout, spec: ColumnSpec): Piece[] {
+  const { half } = l
+  const { cells, id, range } = spec
+  const m = cells.length
+  const backed = cells.map((cell) => !cell.columns && cell.content !== 'void' && l.hasBack(cell))
+  const x = extent(spec.left === 'side-left.x1' ? ref('furniture.x0') : ref(spec.left, -half), spec.right === 'side-right.x0' ? ref('furniture.x1') : ref(spec.right, half))
+  // A column's own floor or roof, next to a void, is covered whole like the outer bottom and top.
+  const from = (j: number): Position => (j === 0 ? (spec.bottom === 'bottom.y1' ? l.boxFloor : ref(spec.bottom, -half)) : range && j === range.lo ? ref(`${id}-sep-${j}.y0`) : ref(`${id}-sep-${j}.y1`, -half))
+  const to = (j: number): Position => (j === m - 1 ? (spec.top === 'top.y0' ? ref('furniture.y1') : ref(spec.top, half)) : range && j === range.hi ? ref(`${id}-sep-${j + 1}.y1`) : ref(`${id}-sep-${j + 1}.y0`, half))
+  return runs(backed).map(([a, b], k) =>
+    makePiece({
+      id: `${id}-back-${k + 1}`,
+      name: `Trasera${l.n > 1 || spec.path.length > 1 ? ` de la columna ${spec.name}` : ''}${m > 1 ? (a === b ? ` (hueco ${a + 1})` : ` (huecos ${a + 1} a ${b + 1})`) : ''}`,
+      role: 'back',
+      material: backBoard(l.catalog).id,
+      normal: 'z',
+      x,
+      y: extent(from(a), to(b)),
+      z: startAt(ref('furniture.z0')),
+    }),
+  )
 }
 
 /** What a carpenter adds without being asked, each kept only if the design still holds: a support under each divider on a kick, a rail for the wall screws when hung. */
@@ -627,7 +663,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     dimensions: { width: plan.dimensions.width, height: plan.dimensions.height, depth: plan.dimensions.depth },
     wallAnchored: plan.wallMounted,
     notes: '',
-    pieces: [...carcass(l), ...stand.pieces, ...dividers(l), ...columns.flatMap((c) => c.pieces)],
+    pieces: firstBackNamed([...carcass(l), ...stand.pieces, ...dividers(l), ...columns.flatMap((c) => c.pieces)]),
     joints: [...stand.joints, ...topJoints(l), ...columns.flatMap((c) => c.joints)],
   }
   const overlayOf = new Map(drawers.map((d, k) => [d.group, asked[k].overlay]))
@@ -646,6 +682,13 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung))
   return { design: done.design, notes: [...placed.notes, ...done.notes] }
+}
+
+/** With backs by cell, the first is the `back` every part of the carcass stands in front of. */
+const firstBackNamed = (pieces: Piece[]): Piece[] => {
+  if (pieces.some((p) => p.id === 'back')) return pieces
+  const first = pieces.find((p) => p.role === 'back')
+  return pieces.map((p) => (p === first ? { ...p, id: 'back' } : p))
 }
 
 const count = (plan: CabinetPlan, content: PlanCell['content']) => leafCells(plan.columns).filter((c) => c.content === content).length
@@ -718,6 +761,9 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['librero con divisores por nivel', cabinet('Librero', { width: 900, height: 1500, depth: 300 }, [{ width: 1, cells: [split(0.25, row([0.34, cell('open', 1, 0)], [0.66, cell('open', 1, 0)])), split(0.25, row([0.5, cell('open', 1, 0)], [0.5, cell('open', 1, 0)])), split(0.25, row([0.42, cell('open', 1, 1)], [0.58, cell('open', 1, 0)])), split(0.25, row([0.66, cell('open', 1, 0)], [0.34, cell('open', 1, 0)]))] }], { base: 'floor' })],
     ['cajonera con cajones que cruzan', cabinet('Cajonera', { width: 1150, height: 780, depth: 550 }, [{ width: 1, cells: [split(0.375, row([2, cell('drawer')], [1, cell('drawer')])), split(0.375, row([1, cell('drawer')], [2, cell('drawer')])), split(0.25, row([2, cell('drawer')], [1, cell('open', 1, 1)]))] }], { base: 'legs', wallMounted: true })],
   ]
+  // A back by cell: a bookcase open to the wall in the middle, with a back behind its lowest and highest niches that squares it as two deep rails would.
+  const niche = (back: boolean): PlanCell => ({ ...cell('open', 0.2, 0), ...(back ? {} : { back: false }) })
+  const withCellBacks: [string, CabinetPlan][] = [['librero abierto al muro en medio', cabinet('Librero', { width: 600, height: 1800, depth: 300 }, [{ width: 1, cells: [niche(true), niche(false), niche(false), niche(false), niche(true)] }], { construction: { ...DEFAULT_CONSTRUCTION, shelves: 'fixed' } })]]
   const withTopFingers = ['librero', 'aparador con patas'].map((name): [string, CabinetPlan] => {
     const plan = list.find(([n]) => n === name)![1]
     return [`${name} con cubierta de dedos`, { ...plan, construction: { ...plan.construction, top: 'fingers' } }]
@@ -727,7 +773,7 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['cajonera con frentes sobrepuestos', { ...drawerChest, construction: { ...drawerChest.construction, drawerFronts: 'overlay' } }],
     ['buró con cajón bajito', cabinet('Buró', { width: 500, height: 450, depth: 400 }, [{ width: 1, cells: [cell('open', 0.75, 0), cell('drawer', 0.25)] }], { base: 'floor', wallMounted: false })],
   ]
-  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges]
+  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -797,6 +843,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
     { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
+    { holds: backsFit, message: BACKS_MISPLACED, path: ['columns'] },
   ],
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },

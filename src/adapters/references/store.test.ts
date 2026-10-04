@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { readdirSync } from 'node:fs'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { FEATURED_MAX } from '../../domain/furniture/references'
 import { createBundledReferences, createReferenceStore } from './store'
 
@@ -9,6 +12,11 @@ describe('reference store', () => {
     expect(store.all().length).toBeGreaterThan(0)
     for (const r of store.all()) expect(store.latest(r.code)).toBe(r)
     expect(store.latest('KC-APA-01')).toMatchObject({ code: 'KC-APA-01', version: 5, plan: { kind: 'cabinet', base: 'legs' } })
+  })
+
+  it('holds one reference for each ficha file in its folder, so the fichas drawer lists a new one with nothing else to change', () => {
+    const files = readdirSync(dirname(fileURLToPath(import.meta.url))).filter((f) => f.endsWith('.json'))
+    expect(store.all().map((r) => `${r.code.toLowerCase()}.v${r.version}.json`).sort()).toEqual(files.sort())
   })
 
   it('answers null for a code it does not have', () => {

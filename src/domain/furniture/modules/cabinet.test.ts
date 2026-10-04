@@ -527,3 +527,68 @@ describe('a cell split into columns', () => {
     expect(explain({ plan: levels })).toContain('split into 2 columns')
   })
 })
+
+describe('a back by cell', () => {
+  const open = (height = 1, back?: boolean): PlanCell => ({ height, content: 'open', shelves: 0, doors: null, ...(back === undefined ? {} : { back }) })
+  const drawer = (height = 1, back?: boolean): PlanCell => ({ height, content: 'drawer', shelves: null, doors: null, ...(back === undefined ? {} : { back }) })
+  const built = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, a, box: (id: string) => a.geo.boxes.get(id)!, backs: () => design.pieces.filter((p) => p.role === 'back').map((p) => p.id) }
+  }
+  // Three columns of four niches, with a back in a checkerboard: the first column in its second niche, the second in its first and third.
+  const checkers = plan({
+    name: 'Librero',
+    dimensions: { width: 1200, height: 1800, depth: 350 },
+    base: 'floor',
+    construction: { ...DEFAULT_CONSTRUCTION, back: 'none', shelves: 'fixed' },
+    columns: [{ width: 1, cells: [open(0.25), open(0.25, true), open(0.25), open(0.25)] }, { width: 1, cells: [open(0.25, true), open(0.25), open(0.25, true), open(0.25)] }, { width: 1, cells: [open(), open(), open(), open()] }],
+  })
+
+  it('puts a board only behind the cells that have one, from the middle of each board it shares out to the whole of an outer one', () => {
+    const { backs, box } = built(checkers)
+    expect(backs()).toEqual(['back', 'c2-back-1', 'c2-back-2'])
+    // The first is the one the rest of the box stands in front of.
+    expect(box('c1-sep-1').z0).toBe(box('back').z1)
+    expect(box('back').x0).toBe(box('side-left').x0)
+    expect(box('back').x1).toBe((box('div-1').x0 + box('div-1').x1) / 2)
+    expect(box('back').y0).toBe((box('c1-sep-1').y0 + box('c1-sep-1').y1) / 2)
+    expect(box('c2-back-1').y0).toBe(0)
+  })
+
+  it('a run of cells with a back is one board', () => {
+    const { backs, box, design } = built({ ...checkers, columns: [{ width: 1, cells: [open(0.5, true), open(0.25, true), open(0.25)] }, { width: 1, cells: [open()] }] })
+    expect(backs()).toEqual(['back'])
+    expect(design.pieces.find((p) => p.id === 'back')!.name).toBe('Trasera de la columna 1 (huecos 1 a 2)')
+    expect(box('back').y1).toBe((box('c1-sep-2').y0 + box('c1-sep-2').y1) / 2)
+  })
+
+  it('in a cabinet with a back, a cell without one leaves it open and the rest of the column keeps it', () => {
+    const chest = plan({ name: 'Cajonera', dimensions: { width: 500, height: 840, depth: 450 }, base: 'floor', wallMounted: true, columns: [{ width: 1, cells: [drawer(0.24), drawer(0.24), drawer(0.24), open(0.28, false)] }] })
+    const { backs, box, a } = built(chest)
+    expect(backs()).toEqual(['back'])
+    expect(box('back').y1).toBe((box('c1-sep-3').y0 + box('c1-sep-3').y1) / 2)
+    expect(a.findings.filter((f) => f.severity === 'critical')).toEqual([])
+  })
+
+  it('without a back anywhere, the box goes to the rear edge as one with no back', () => {
+    const { backs, box } = built({ ...checkers, construction: DEFAULT_CONSTRUCTION, columns: checkers.columns.map((c) => ({ ...c, cells: c.cells.map((x) => ({ ...x, back: false })) })) })
+    expect(backs()).toEqual([])
+    expect(box('side-left').z0).toBe(0)
+  })
+
+  it('a plan that says no back by cell builds the same pieces by the same ids', () => {
+    const same = (p: CabinetPlan) => buildCabinet(p, testCatalog).design.pieces.map((x) => x.id)
+    expect(same({ ...PLANS.tvStand, columns: PLANS.tvStand.columns.map((c) => ({ ...c, cells: c.cells.map((x) => ({ ...x, back: true })) })) })).toEqual(same(PLANS.tvStand))
+  })
+
+  it('goes only in a cell that holds something, and is not something the expert can say', () => {
+    const ok = (columns: PlanColumn[]) => FurniturePlan.safeParse({ ...checkers, columns }).success
+    expect(ok(checkers.columns)).toBe(true)
+    expect(ok([{ width: 1, cells: [{ height: 0.3, content: 'void', shelves: null, doors: null, back: true }, open(0.7)] }, { width: 1, cells: [open()] }])).toBe(false)
+    expect(ok([{ width: 1, cells: [{ ...open(), back: true, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open()] }] }] }])).toBe(false)
+    expect('back' in ExpertColumns.parse(checkers.columns)[0].cells[1]).toBe(false)
+    expect(explain({ plan: checkers })).toContain('open niche, with a back (0.25)')
+  })
+})
