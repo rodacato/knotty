@@ -157,7 +157,7 @@ describe('createExpert', () => {
     expect(Object.keys(calls[0].schema.properties as object)).toEqual(['explanation', 'summary', 'action', 'bed', 'questions', 'suggestions', 'requirements', 'decisions'])
     expect(calls[0].system).toContain('goes in `bed`')
     expect(calls[0].system).not.toContain('goes in `cabinet`')
-    expect(r.origin.promptId).toBe('plan-adjust@13+bed@2')
+    expect(r.origin.promptId).toBe('plan-adjust@13+bed@3')
     expect(expertPlans(r.value)).toEqual({ bed: { ...bed, height: 450 }, cabinet: null, table: null, shoeRack: null })
   })
 
