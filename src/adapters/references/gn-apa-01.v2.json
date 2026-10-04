@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-APA-01",
   "id": "low-sideboard",
-  "home": { "order": 1, "category": "storage" },
+  "home": { "order": 12, "category": "storage" },
   "name": "Aparador bajo",
   "kind": "sideboard",
   "inspiredBy": "KC-APA-02",

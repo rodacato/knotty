@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-ASI-03",
   "id": "stacking-stool",
+  "home": { "order": 9, "category": "seating", "featured": true },
   "name": "Taburete bajo",
   "kind": "sideTable",
   "finish": "danish-oil",
@@ -14,7 +15,7 @@
   "plan": {
     "kind": "table",
     "use": "side",
-    "name": "Taburete apilable",
+    "name": "Taburete bajo",
     "material": "T18",
     "dimensions": { "width": 330, "height": 450, "depth": 330 },
     "overhang": 0,

@@ -4,7 +4,7 @@ import { testReferences } from './fixtures/references.test-util'
 import { loadReferences } from './references'
 
 const sample = () => {
-  const { version: _, ...file } = testReferences.all()[0]
+  const { version: _, ...file } = testReferences.all().find((r) => r.code.startsWith('GN-'))!
   return file
 }
 const load = (path: string, raw: unknown) => () => loadReferences({ [path]: raw })

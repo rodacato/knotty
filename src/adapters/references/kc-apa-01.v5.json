@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-APA-01",
   "id": "sideboard-on-legs",
-  "home": { "order": 7, "category": "storage" },
+  "home": { "order": 11, "category": "storage", "featured": true },
   "name": "Aparador con patas",
   "kind": "sideboard",
   "finish": "polyurethane",

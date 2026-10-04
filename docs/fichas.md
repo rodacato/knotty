@@ -12,7 +12,7 @@ Vive en `src/adapters/references/<código>.v<N>.json` (por ejemplo `kc-apa-01.v1
 | `id`, `name`, `notes` | Para la persona: el id en inglés, el nombre y las notas en español. Obligatorios en una referencia nueva |
 | `kind`, `finish` | Opcionales: qué mueble es (`DesignKind`, `src/domain/design/kind.ts`) y su acabado (`src/domain/materials/finishes.ts`). Un gabinete no dice por sí mismo si es aparador o librero |
 | `plan` | La ficha que entiende el motor (`FurniturePlan`): medidas, base, construcción, columnas y celdas |
-| `home` | Opcional. Con él es una tarjeta de la pantalla de inicio (`order`, `category`); sin él sigue siendo referencia para las pruebas |
+| `home` | Opcional. Con él es una tarjeta de la pantalla de inicio: `order`, `category` y, si es `featured`, también en «Destacados» (hasta 11, para que la última celda sea «Diseña tu propio mueble»). Sin él sigue siendo referencia para las pruebas. Una base del inicio tiene el mismo nombre en la ficha y en su `plan`, y no hay dos con el mismo nombre; los destacados van primero en `order` |
 | `expect` | Lo que el motor hace del plan: válido, piezas, avisos, hojas y herrajes. Lo escribe `probe`; una candidata no lo trae |
 | `support`, `difficulty`, `features`, `adaptations`, `gaps` | Una `KC-…` los dice todos: cómo se soporta (`exact`, `adapted`, `unsupported`), la dificultad de 1 a 4, qué rasgos tiene y cuáles no puede dibujar Knotty (etiquetas de la lista cerrada `FEATURES`) y qué se adaptó (texto) |
 

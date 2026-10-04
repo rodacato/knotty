@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-MCE-01",
   "id": "coffee-table",
-  "home": { "order": 6, "category": "tables" },
+  "home": { "order": 14, "category": "tables" },
   "name": "Mesa de centro",
   "notes": "Mesa de centro con una repisa baja entre los costados.",
   "plan": {

@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-BUR-05",
   "id": "fluted-nightstand-on-legs",
+  "home": { "order": 5, "category": "bedroom", "featured": true },
   "name": "Buró con dos cajones y patas",
   "kind": "nightstand",
   "finish": "danish-oil",
