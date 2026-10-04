@@ -22,7 +22,7 @@ const FILES: Record<string, Record<string, string>> = {
   'src/domain/checks/structure/rules/screws.ts': SCREW_RULE_SOURCES,
 }
 /** The rule files: their numbers live in ASSUMPTIONS, so a named constant here needs a source too. */
-const RULES = ['deflection', 'drawers', 'jointThickness', 'racking', 'screws', 'usage'].map((f) => `src/domain/checks/structure/rules/${f}.ts`)
+const RULES = ['deflection', 'drawers', 'jointThickness', 'racking', 'screws', 'tippingBalance', 'usage'].map((f) => `src/domain/checks/structure/rules/${f}.ts`)
 
 /** A named constant set to a number, or to an object of numbers `as const` (KICK_HEIGHT). */
 const NUMERIC_CONSTANT = /^(?:export )?const ([A-Z][A-Z0-9_]*) = (?:-?[\d.]+\b|\{[^}\n]*\d[^}\n]*\} as const)/gm

@@ -10,6 +10,8 @@ import { findingKey } from './finding'
 import { hingesFor } from './assumptions'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../furniture/modules/cabinet'
 import { buildBed } from '../../furniture/modules/bed'
+import { standing } from './rules/usage'
+import { tippingBalance } from './rules/tippingBalance'
 import { buildTable } from '../../furniture/modules/table'
 import type { Cell } from '../../furniture/reading/reading'
 import { fixesFor } from '../../editing/fixes/fixes'
@@ -88,13 +90,64 @@ describe('R4 tipping', () => {
     buildCabinet({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 500, height, depth: 450 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells }], ...extra }, testCatalog).design
   const storage = (d: Design) => findings(d, 'R4_TIPPING').filter((h) => h.check === 'tipping.storage')
 
-  it('furniture with drawers or doors from 686 mm high is anchored, whatever its depth or its name', () => {
+  it('furniture with drawers from 686 mm high is anchored, whatever its depth or its name', () => {
     const chest = cabinet(700, [cell('drawer')])
     expect(storage(chest)).toMatchObject([{ severity: 'critical', data: { height: 700, drawers: 1, doors: 0, min: 686 }, alternatives: [{ key: 'anchor-to-wall' }] }])
-    expect(storage(cabinet(686, [cell('door', 2)]))[0].message).toContain('tiene 2 puertas')
     expect(storage(cabinet(1800, [cell('drawer'), cell('door', 2)], { dimensions: { width: 900, height: 1800, depth: 600 } }))[0].message).toContain('1 cajón y 2 puertas')
     // Named or marked as anything, it is what it has.
     expect(storage({ ...chest, name: 'Librero', kind: 'bookcase' })).toHaveLength(1)
+  })
+
+  // The balance of the stability test (ASTM F2057-23): what holds the furniture up against what pulls it forward, in kg·m about its front edge.
+  const balanceOf = (d: Design) => {
+    const a = analyze(d, testCatalog)
+    if (!a.valid) throw new Error(JSON.stringify(a.errors))
+    return tippingBalance(d, a.geo, standing(d, a.geo).boxes.map(({ box }) => box))!
+  }
+  const wide = (height: number, depth: number, cells: Cell[]) => cabinet(height, cells, { dimensions: { width: 1500, height, depth } })
+
+  it('the chest of the reference, 900 × 800 × 450 with four drawers, pulls more than it holds, even before a child hangs from it', () => {
+    const chest = cabinet(800, [cell('drawer'), cell('drawer'), cell('drawer'), cell('drawer')], { dimensions: { width: 900, height: 800, depth: 450 } })
+    const { holds, pulls, pullsWithChild } = balanceOf(chest)
+    expect(pulls).toBeGreaterThan(holds)
+    expect(pullsWithChild).toBeGreaterThan(pulls)
+    const [found] = storage(chest)
+    expect(found.severity).toBe('critical')
+    expect(found.message).toContain('con los cajones abiertos y llenos se va de frente')
+  })
+
+  it('says it is the child that tips it when the drawers alone would not', () => {
+    const [found] = storage(wide(800, 700, [cell('door', 2), cell('drawer')]))
+    expect(found.severity).toBe('critical')
+    expect(found.message).toContain('si un niño se cuelga de un cajón abierto')
+    const { pulls, holds, pullsWithChild } = found.data as Record<string, number>
+    expect(pulls).toBeLessThan(holds)
+    expect(holds).toBeLessThan(pullsWithChild)
+  })
+
+  it('a child counts only from a drawer within reach: a drawer higher than 1422 mm adds nothing', () => {
+    const high = cabinet(2000, [{ ...cell('door', 2), height: 3 }, cell('drawer')], { dimensions: { width: 800, height: 2000, depth: 500 } })
+    const { pulls, pullsWithChild } = balanceOf(high)
+    expect(pullsWithChild).toBe(pulls)
+    const low = cabinet(2000, [cell('drawer'), { ...cell('door', 2), height: 3 }], { dimensions: { width: 800, height: 2000, depth: 500 } })
+    expect(balanceOf(low).pullsWithChild).toBeGreaterThan(balanceOf(low).pulls)
+  })
+
+  it('doors alone tip it only when wide and shallow enough: depth takes it from critical to a recommendation to nothing', () => {
+    const doors = (depth: number) => wide(900, depth, [cell('door', 3)])
+    expect(verdict(doors(380))).toEqual(['critical:tipping.storage'])
+    expect(verdict(doors(420))).toEqual(['recommendation:tipping.storage-near'])
+    expect(verdict(doors(500))).toEqual([])
+  })
+
+  it('a low cabinet of doors that holds up on its own is not asked to be anchored', () => {
+    expect(verdict(cabinet(900, [cell('door', 2)]))).toEqual([])
+    expect(verdict(cabinet(700, [cell('door', 2)]))).toEqual([])
+  })
+
+  it('what is not for storing keeps out of the balance, whatever its drawers', () => {
+    const chest = cabinet(900, [cell('drawer'), cell('drawer')])
+    for (const kind of ['desk', 'table', 'bed', 'bench', 'wallCabinet'] as const) expect(storage({ ...chest, kind })).toEqual([])
   })
 
   it('below 686 mm, anchored, or open, the anchoring for storage does not apply', () => {
@@ -129,11 +182,12 @@ describe('R4 tipping', () => {
     expect(verdict(chestAt(700, { wallMounted: true }))).toEqual([])
   })
 
-  it('depth does not lift a storage piece out of critical, and tall and shallow stays critical', () => {
+  it('depth does not lift a chest of drawers out of critical, and tall and shallow doors are critical by their ratio', () => {
     const deep = { dimensions: { width: 500, height: 900, depth: 800 } }
     const shallow = { dimensions: { width: 500, height: 1500, depth: 250 } }
     expect(verdict(cabinet(900, [cell('drawer')], deep))).toEqual(['critical:tipping.storage'])
-    expect(verdict(cabinet(1500, [cell('door', 2)], shallow))).toEqual(['critical:tipping.storage'])
+    const [byRatio] = findings(cabinet(1500, [cell('door', 2)], shallow), 'R4_TIPPING')
+    expect(byRatio).toMatchObject({ severity: 'critical', data: { ratio: 6 } })
   })
 
   it('open furniture keeps its own ratio: tall and shallow is critical, tall and deep is not', () => {
