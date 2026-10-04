@@ -883,12 +883,21 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     expect(currentDesign(c.applyProposal(state)).pieces.some((p) => p.role === 'back')).toBe(false)
   })
 
-  it('a plan change that takes away the back on request is not held for it; only its own critical finding waits', async () => {
-    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Quitar la trasera' })
+  it('a plan change that takes away the back and the anchor on request is not held for it; its critical findings wait', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Quitar la trasera' })
     const { c, initial } = await start(llm)
     const state = await c.adjust(initial, 'Quita la trasera del mueble', newSignal())
     expect(state.proposal?.holds).toEqual([])
-    expect(state.proposal?.critical.map((x) => x.code)).toEqual(['R5_RACKING'])
+    expect(state.proposal?.critical.map((x) => x.code)).toContain('R5_RACKING')
+  })
+
+  it('a back taken away from a piece anchored to the wall through its top is only a recommendation, and just happens', async () => {
+    const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Quitar la trasera' })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Quita la trasera del mueble', newSignal())
+    expect(state.versions).toHaveLength(2)
+    expect(state.proposal).toBeNull()
+    expect(currentDesign(state).pieces.some((p) => p.role === 'back')).toBe(false)
   })
 
   it('a plan change that takes away the kick on request just happens', async () => {

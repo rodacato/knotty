@@ -3,6 +3,7 @@ import { ASSUMPTIONS } from '../assumptions'
 import { JOINTS } from '../../../design/jointSpecs'
 import type { Design, JointType } from '../../../design/schema'
 import { backBoard } from '../../../materials/catalog'
+import { antiTipData } from './usage'
 
 const PERIMETER = new Set(['side', 'bottom', 'top'])
 const RAILS = new Set(['bottom', 'top', 'shelf', 'apron', 'kick'])
@@ -30,7 +31,10 @@ export function baysOf(design: Design): string[][] {
   return pairs.size ? [...pairs.values()] : [sides]
 }
 
-/** R5: a carcass with no rigid back and no rigid frame racks like a parallelogram when pushed sideways; judged box by box. */
+/**
+ * R5: a carcass with no rigid back and no rigid frame racks like a parallelogram when pushed sideways; judged box by box.
+ * A shelf fixed in a glued groove stiffens it like an apron or a kick. Anchored to the wall through its top the box cannot rack in the plane of the wall, so it is only a recommendation: where the anchor goes.
+ */
 export const rackingRule: Rule = ({ design, geo, catalog }) => {
   const sides = design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
   if (sides.length < 2) return []
@@ -54,19 +58,27 @@ export const rackingRule: Rule = ({ design, geo, catalog }) => {
     })
 
     const rails = design.pieces.filter((p) => RAILS.has(p.role) && p.support === 'fixed' && bay.every((side) => joinedTo(p.id, (type) => JOINTS[type].rigid).has(side)))
-    const rigidFrame = rails.length >= ASSUMPTIONS.racking.rigidRails && rails.some((p) => p.role === 'apron' || p.role === 'kick')
+    const gluedInGroove = (p: Design['pieces'][number]) => p.role === 'shelf' && bay.every((side) => joinedTo(p.id, (type, glued) => type === 'dado' && glued).has(side))
+    const rigidFrame = rails.length >= ASSUMPTIONS.racking.rigidRails && rails.some((p) => p.role === 'apron' || p.role === 'kick' || gluedInGroove(p))
 
     if (rigidBack || rigidFrame) return []
     // What racks is the box its sides make: in a cabinet the whole height, under a bed's headboard only the base, in a stepped stand each step.
     const height = Math.max(...bay.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
     const back = backBoard(catalog)
+    // The piece the anchor goes through: the top (or an apron) fixed to every side of the box, never the thin back.
+    const anchorsOn = design.pieces.some((p) => (p.role === 'top' || p.role === 'apron') && p.support === 'fixed' && bay.every((side) => joinedTo(p.id, () => true).has(side)))
+    const heldByAnchor = design.wallAnchored && anchorsOn
     const finding: Finding = {
       code: 'R5_RACKING',
-      severity: height > ASSUMPTIONS.racking.criticalHeight ? 'critical' : 'recommendation',
+      severity: !heldByAnchor && height > ASSUMPTIONS.racking.criticalHeight ? 'critical' : 'recommendation',
+      ...(heldByAnchor ? { check: 'racking.anchored' } : {}),
       pieces: bay,
-      message: 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
+      message: heldByAnchor
+        ? 'Sin trasera ni marco rígido, lo que lo escuadra es el anclaje al muro: va por la cubierta o por un travesaño de arriba, nunca por la trasera, con al menos dos anclajes a la estructura del muro.'
+        : 'Nada impide que el mueble se descuadre al empujarlo de lado: la trasera no lo amarra y las uniones no forman un marco rígido.',
       data: { height: height, rigidRails: rails.length },
       alternatives: [
+        ...(!design.wallAnchored && anchorsOn ? [{ key: 'anchor-to-wall' as const, description: 'Anclarlo al muro por la cubierta o por un travesaño de arriba, no por la trasera', data: antiTipData(catalog) }] : []),
         { key: 'back-6mm', description: `Trasera de ${back.thickness} mm clavada y pegada a laterales, piso y techo`, data: { material: back.id } },
         { key: 'back-in-rabbet', description: 'Trasera de 3 mm pegada en rebaje de laterales, piso y techo', data: { type: 'rabbet' } },
         { key: 'rigid-apron', description: rails.length ? 'Faja trasera superior con tornillos de bolsillo a los laterales' : 'Fajas atrás y adelante bajo la cubierta, con tornillos de bolsillo a los laterales', data: { type: 'pocket-screw' } },

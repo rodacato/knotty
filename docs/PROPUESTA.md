@@ -390,7 +390,7 @@ Los supuestos viven en `domain/checks/structure/assumptions.ts` como datos y cad
 
 ### R5 — Escuadrado
 
-El casco necesita al menos uno de: trasera ≥ 6 mm fijada en todo el perímetro; trasera de 3 mm pegada en rebaje; o marco rígido (zoclo + faja superior + entrepaño fijo con bolsillo o tarugo). La regla y sus soluciones suponen una caja: un mueble abierto de varios marcos (un exhibidor escalonado) sale siempre crítico y sin solución que Knotty pueda construir; está en Preguntas abiertas. Si no: crítico con alto > 600 mm, recomendación si es menor.
+El casco necesita al menos uno de: trasera ≥ 6 mm fijada en todo el perímetro; trasera de 3 mm pegada en rebaje; o marco rígido (al menos dos travesaños rígidos, uno de ellos zoclo, faja o un entrepaño fijo pegado en ranura). La regla y sus soluciones suponen una caja: un mueble abierto de varios marcos (un exhibidor escalonado) sale siempre crítico y sin solución que Knotty pueda construir; está en Preguntas abiertas. Si no: crítico con alto > 600 mm, recomendación si es menor. Con `wallAnchored` y una cubierta (o faja) fija unida a los dos costados, el anclaje escuadra el casco en el plano del muro: es solo recomendación (`check: 'racking.anchored'`) y dice por dónde va el anclaje, nunca por la trasera. Sin anclar y con dónde anclar, ofrece «anclar al muro»; sin pieza donde anclar sigue crítico.
 
 ### R6 — Puertas
 
