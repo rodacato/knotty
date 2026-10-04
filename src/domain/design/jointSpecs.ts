@@ -67,6 +67,14 @@ const SPECS = {
     glue: true,
     hardware: null,
   },
+  finger: {
+    label: { singular: 'unión de dedos', plural: 'unión de dedos' },
+    minThickness: { a: 15, b: 15 },
+    rigid: true,
+    holdsThinBoard: false,
+    glue: true,
+    hardware: null,
+  },
   bracket: {
     label: { singular: 'escuadra', plural: 'escuadra' },
     minThickness: null,

@@ -1,6 +1,7 @@
 import type { Cell } from './reading/reading'
 import { describeExpect, type Expect } from './probe'
 import type { FurniturePlan } from './modules/plan'
+import { DEFAULT_FINGERS } from './modules/fingerJoints'
 
 // A ficha said in words, from its plan and its metadata: what a reader needs to understand the piece and to compare two readings of it. Nothing here is stored; it is derived, so it cannot go out of date.
 
@@ -61,6 +62,7 @@ function pieceLines(plan: FurniturePlan): string[] {
   return [
     `Piece: cabinet, ${width} × ${height} × ${depth} mm, ${plan.material}, ${BASE[plan.base]}, ${plan.wallMounted ? '' : 'not '}wall-mounted.`,
     `Construction: ${c.doors} doors, ${c.drawerFronts} drawer fronts, top ${c.top === 'between' ? 'between' : 'over'} the sides, ${c.back === 'nailed' ? 'nailed back' : 'no back'}, ${c.shelves} shelves.`,
+    ...(c.drawerCorners === 'fingers' ? [`Drawer corners: fingers, ${plan.drawerFingers ?? DEFAULT_FINGERS} per corner.`] : []),
     ...gridLines(plan),
   ]
 }

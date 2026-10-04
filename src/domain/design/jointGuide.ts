@@ -8,7 +8,7 @@ import type { JointType } from './schema'
 export type JointFit = 'yes' | 'jig' | 'careful' | 'shop' | 'no'
 
 /** The joints the catalog shows: every structural joint type, plus confirmat, which Knotty does not build yet. */
-export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'cam-lock' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet'> | 'confirmat'
+export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'cam-lock' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet' | 'finger'> | 'confirmat'
 
 export interface JointGuide {
   name: string
@@ -144,10 +144,23 @@ export const JOINT_GUIDE: Record<GuideJoint, JointGuide> = {
     visible: 'discreto',
     knockDown: 'no si va pegado',
   },
+  finger: {
+    name: 'Unión de dedos',
+    definition: 'Los dos tableros se cortan en dedos que se alternan y se entran uno en el otro; con pegamento.',
+    tool: 'router en mesa o sierra de mesa con plantilla',
+    note: 'Dedos del ancho del tablero, más o menos.',
+    fit: ['no', 'no', 'yes'],
+    advantage: 'Mucha superficie de pegado, y la esquina se ve hecha a propósito.',
+    disadvantage: 'Pide precisión: un dedo flojo se nota, y el canto de las chapas queda a la vista.',
+    resistance: 'alta con pegamento',
+    difficulty: 'intermedia',
+    visible: 'los dedos, en la esquina',
+    knockDown: 'no',
+  },
 }
 
 /** The order the catalog shows them in: what anyone can make first, what changes the pieces last. */
-export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'confirmat', 'cam-lock', 'glue-nail', 'bracket', 'dado', 'rabbet']
+export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'confirmat', 'cam-lock', 'glue-nail', 'bracket', 'dado', 'rabbet', 'finger']
 
 /** How the person's level can make it; null when §1.3 does not say. */
 export const jointFit = (joint: GuideJoint, level: ToolLevel): JointFit | null => JOINT_GUIDE[joint].fit?.[level - 1] ?? null

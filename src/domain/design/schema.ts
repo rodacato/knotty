@@ -81,7 +81,7 @@ export type Piece = z.infer<typeof Piece>
 
 const JOINT_TYPES = [
   'butt-screw', 'pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket',
-  'glue-nail', 'shelf-pin', 'cup-hinge', 'drawer-slide',
+  'glue-nail', 'shelf-pin', 'cup-hinge', 'drawer-slide', 'finger',
 ] as const
 /** How the doors and drawer fronts are opened: nothing, a notch in the edge, or a handle bought for each. */
 export const PULLS = ['none', 'notch', 'handle'] as const

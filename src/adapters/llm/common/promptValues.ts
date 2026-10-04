@@ -39,7 +39,7 @@ function pocketScrews() {
   return rows.map((row) => `${inches(row.length)} up to ${row.upTo} mm`).join(' and ')
 }
 
-const CONSTRUCTION_LABEL: Record<keyof CabinetConstruction, string> = { doors: 'doors', drawerFronts: 'drawers', top: 'top', back: 'back', shelves: 'shelves', fronts: 'fronts', hinges: 'hinges', pulls: 'pulls' }
+const CONSTRUCTION_LABEL: Record<keyof CabinetConstruction, string> = { doors: 'doors', drawerFronts: 'drawers', top: 'top', back: 'back', shelves: 'shelves', fronts: 'fronts', hinges: 'hinges', pulls: 'pulls', drawerCorners: 'drawer corners' }
 const TABLE_ORDER = ['dining', 'coffee', 'side', 'desk'] as const
 
 /** Values that come from the domain alone. */

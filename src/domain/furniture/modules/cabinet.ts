@@ -11,7 +11,8 @@ import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Column, type Cell } from '../reading/reading'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
-import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
+import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
@@ -26,10 +27,11 @@ export const CabinetConstruction = z.object({
   fronts: z.enum(['flat', 'grooved']).default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
   hinges: z.enum(['outside', 'inside']).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle'),
   pulls: Pulls.default('none').describe('none: no pull; notch: finger notch routed in each front; handle: one handle per door leaf and drawer front'),
+  drawerCorners: z.enum(['screwed', 'fingers']).default('screwed').describe('screwed, or fingers: the four corners of each drawer box cut as interlocking fingers'),
 })
 export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
-export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none' }
+export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none', drawerCorners: 'screwed' }
 
 const LEG_HEIGHT_MESSAGE = `Las patas miden entre ${LEG_HEIGHT_RANGE.min} y ${LEG_HEIGHT_RANGE.max} mm.`
 
@@ -49,6 +51,7 @@ export const CabinetPlan = z.object({
     .describe(`Leg height in mm with base legs, ${LEG_HEIGHT_RANGE.min}–${LEG_HEIGHT_RANGE.max}; inside the total height, the box keeps ${MIN_CARCASS_HEIGHT}+`),
   wallMounted: z.boolean().describe('Whether it is anchored to or hung from the wall'),
   construction: CabinetConstruction,
+  drawerFingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Fingers per corner with drawerCorners fingers; absent is ${DEFAULT_FINGERS}`),
   columns: z.array(Column).min(1).describe('Left to right; each one with its openings from bottom to top'),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
@@ -70,6 +73,7 @@ export const CABINET_LABELS = {
     fronts: { label: 'Frentes', options: { flat: 'Lisos', grooved: 'Ranurados' } },
     hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro' } },
     pulls: { label: 'Jaladeras', options: { none: 'Ninguna', notch: 'Muesca', handle: 'Jaladera' } },
+    drawerCorners: { label: 'Esquinas del cajón', options: { screwed: 'Atornilladas', fingers: 'De dedos' } },
   } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string> } },
 }
 
@@ -340,6 +344,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     const columns = plan.columns.map((col, i) => ({ ...col, cells: col.cells.map((cell, j) => (dropped.some(([a, b]) => a === i && b === j) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell)) }))
     return { design: buildCabinet({ ...plan, columns }, catalog).design, notes }
   }
+  if (plan.construction.drawerCorners === 'fingers') design = withFingerBoxes(design, catalog)
   // What a carpenter adds without being asked, each kept only if the design still holds with it:
   // on a kick, the floor rests on a support under each divider; hung on the wall, a rail at the top and back takes the screws.
   const extras: Operation[] = []
@@ -365,9 +370,12 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   }
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
   const pulls = plan.construction.pulls
-  const cutFronts = geometry.ok ? withFrontCuts(design, geometry.value.boxes, { notch: pulls === 'notch', grooved: plan.construction.fronts === 'grooved' }) : design
+  const cutBoxes = geometry.ok && plan.construction.drawerCorners === 'fingers' ? withFingerCuts(design, geometry.value.boxes, plan.drawerFingers ?? DEFAULT_FINGERS) : design
+  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, { notch: pulls === 'notch', grooved: plan.construction.fronts === 'grooved' }) : cutBoxes
   const withPulls: Design = pulls === 'none' ? cutFronts : { ...cutFronts, pulls }
   if (pulls === 'notch' && fronts) notes.push(`Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
+  const fingered = fingerDrawers(design)
+  if (fingered) notes.push(`Esquinas de dedos en ${fingered} ${fingered === 1 ? 'cajón' : 'cajones'}, ${plan.drawerFingers ?? DEFAULT_FINGERS} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   return { design: completeJoints(withPulls, catalog), notes }
 }
 
@@ -399,7 +407,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
 
 function benchCabinets(): [string, CabinetPlan][] {
   const cell = (content: Cell['content'], height = 1, shelves: number | null = null, doors: number | null = null): Cell => ({ height, content, shelves, doors })
-  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', legHeight: LEG_HEIGHT, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns, ...extra })
+  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', legHeight: LEG_HEIGHT, wallMounted: true, construction: DEFAULT_CONSTRUCTION, drawerFingers: DEFAULT_FINGERS, columns, ...extra })
   const list: [string, CabinetPlan][] = [
     ['librero', cabinet('Librero', { width: 550, height: 1800, depth: 300 }, [{ width: 1, cells: [cell('open', 1, 4)] }])],
     ['buró', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'floor', wallMounted: false })],
@@ -424,9 +432,11 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['buró con patas', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'legs', wallMounted: false })],
   ]
   const sideboard = list.find(([name]) => name === 'aparador con patas')![1]
+  const drawerChest = list.find(([name]) => name === 'cajonera')![1]
   const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
-  return [...list, ...withPulls, ...legHeights]
+  const withFingers = [3, 5, 9].map((drawerFingers): [string, CabinetPlan] => [`cajonera con ${drawerFingers} dedos`, { ...drawerChest, construction: { ...drawerChest.construction, drawerCorners: 'fingers' }, drawerFingers }])
+  return [...list, ...withPulls, ...legHeights, ...withFingers]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -437,6 +447,7 @@ const VISIBLE_WHEN: Partial<Record<keyof CabinetConstruction, (p: CabinetPlan) =
   fronts: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
   hinges: (p) => hasCell(p, (x) => x.content === 'door' && (x.doors ?? 1) < 2),
   pulls: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
+  drawerCorners: (p) => hasCell(p, (x) => x.content === 'drawer'),
 }
 
 /** One choice per way of building it, in the order of its labels. */
@@ -467,6 +478,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
+    stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer'), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),
 ]
