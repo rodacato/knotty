@@ -43,7 +43,7 @@ const along = (axis: Axis, distance: number): Offset => {
 const add = (a: Offset, b: Offset): Offset => [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 
 /** The gap between parts that come apart: proportional to the furniture, within what reads at a glance. */
-export const gapOf = (design: Design) => Math.min(200, Math.max(60, Math.round(0.12 * Math.max(design.dimensions.width, design.dimensions.height, design.dimensions.depth))))
+const gapOf = (design: Design) => Math.min(200, Math.max(60, Math.round(0.12 * Math.max(design.dimensions.width, design.dimensions.height, design.dimensions.depth))))
 
 function unitsOf(design: Design, boxes: Map<string, Box>): Unit[] {
   const drawers = new Set(drawerGroups(design))

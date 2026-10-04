@@ -17,7 +17,7 @@ import { RadioCard, RadioGroup } from '../system/RadioCard'
 // Joints the person picks per group of pieces, against the tools they said they have (fabricacion-y-armado.md §1.3).
 
 /** «Tu herramienta: intermedio», with the way to change it. */
-export function ToolLine() {
+function ToolLine() {
   const level = useStore((s) => s.catalogSettings.toolLevel)
   const openSettings = useStore((s) => s.openSettings)
   return (

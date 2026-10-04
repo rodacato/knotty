@@ -6,9 +6,8 @@ import { cite, noReference, VALUES } from '../../sources'
 // Adapters import adviceFor and the types, never CLAIMS; claims.test.ts enforces it. Rule text carries no craft number: a number belongs to a cited row of docs/carpinteria or to a check.
 
 export const CLAIM_STATUS = ['valid', 'conditional', 'corrected', 'excluded'] as const
-export type ClaimStatus = (typeof CLAIM_STATUS)[number]
 
-export const CLAIM_SCOPE = [
+const CLAIM_SCOPE = [
   'tool-safety', 'tool-availability', 'panel-properties', 'finishing', 'finishing-safety', 'adhesive-timing',
   'joinery-fit', 'joinery-strength', 'dimensions-example', 'dimensions-real', 'load-capacity', 'stability',
   'sanding', 'workflow', 'provenance',

@@ -16,7 +16,7 @@ export const FinishId = z.enum(FINISH_IDS)
 export type FinishId = z.infer<typeof FinishId>
 
 /** How sure the reference is: ✅ two or more sources, ⚠️ one source or workshop practice. */
-export type Confidence = 'verified' | 'single-source'
+type Confidence = 'verified' | 'single-source'
 
 export interface FinishProduct {
   /** For the person. */

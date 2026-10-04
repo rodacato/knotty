@@ -7,8 +7,8 @@ import { ProviderError } from './common/errors'
 
 export const RECORDING_VERSION = 1
 
-export const METHODS = ['reconstruct', 'planDesign', 'adjustPlan', 'proposeAdjustment', 'readPhoto', 'reviewPurchase'] as const
-export type Method = (typeof METHODS)[number]
+const METHODS = ['reconstruct', 'planDesign', 'adjustPlan', 'proposeAdjustment', 'readPhoto', 'reviewPurchase'] as const
+type Method = (typeof METHODS)[number]
 
 /** Stable stringify: sorted keys, no undefined, no `signal`. */
 export function canonicalJson(value: unknown): string {
@@ -25,7 +25,7 @@ export function canonicalJson(value: unknown): string {
 }
 
 /** cyrb53: a 53-bit non-cryptographic hash, in hex. */
-export function hashString(text: string, seed = 0): string {
+function hashString(text: string, seed = 0): string {
   let h1 = 0xdeadbeef ^ seed
   let h2 = 0x41c6ce57 ^ seed
   for (let i = 0; i < text.length; i++) {
@@ -50,9 +50,9 @@ function identity(value: unknown, catalogStamp: string): unknown {
   )
 }
 
-export const requestKey = (method: string, request: unknown, catalogStamp: string) => `${method}:${hashString(canonicalJson(identity(request, catalogStamp)))}`
+const requestKey = (method: string, request: unknown, catalogStamp: string) => `${method}:${hashString(canonicalJson(identity(request, catalogStamp)))}`
 
-export interface RecordedError {
+interface RecordedError {
   kind: 'invalid-response' | 'provider' | 'other'
   name: string
   message: string
@@ -60,7 +60,7 @@ export interface RecordedError {
   response?: unknown
 }
 
-export type RecordedOutcome =
+type RecordedOutcome =
   | { ok: true; value: unknown; origin: ExpertResponse<unknown>['origin']; usage: ExpertResponse<unknown>['usage']; warnings: string[] }
   | { ok: false; error: RecordedError }
 
@@ -90,7 +90,7 @@ const RecordedErrorSchema = z.object({
   response: z.unknown().optional(),
 })
 
-export const RecordingSchema = z.object({
+const RecordingSchema = z.object({
   version: z.literal(RECORDING_VERSION),
   catalogStamp: z.string(),
   unsupported: z.array(z.enum(METHODS)),

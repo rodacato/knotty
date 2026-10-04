@@ -71,7 +71,7 @@ export function containersFor(litres: number, skus: FinishSku[]): ContainerCount
   return (best ?? []).flatMap((count, i) => (count ? [{ sku: sizes[i], count }] : []))
 }
 
-export interface FinishLine {
+interface FinishLine {
   product: FinishProductId
   /** Coats of this product, sealer or primer included; null when the reference does not say. */
   coats: number | null

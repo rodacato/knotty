@@ -1,4 +1,3 @@
-import type { AdjustmentResponse } from '../../ports/LLMProvider'
 import { createAdjust } from './adjust'
 import { createEdits } from './edits'
 import { createFinish } from './finish'
@@ -78,4 +77,3 @@ export function createUseCases(deps: Dependencies) {
 }
 
 export type UseCases = ReturnType<typeof createUseCases>
-export type { AdjustmentResponse as RespuestaAjuste }

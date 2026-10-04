@@ -16,14 +16,14 @@ export const dowelsAlong = (length: number) => Math.max(2, Math.ceil((length - 2
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
 
-export interface SheetLine {
+interface SheetLine {
   material: BoardMaterial
   sheets: number
   waste: number
   cost: number | null
 }
 
-export interface HardwareLine {
+interface HardwareLine {
   hardware: Hardware
   count: number
   /** How many packs to buy when it comes in packs. */

@@ -22,7 +22,7 @@ export interface Declared {
   support: SupportDecision
 }
 
-export const HARD_EXIT = { ok: 0, regression: 1, incomplete: 2 } as const
+const HARD_EXIT = { ok: 0, regression: 1, incomplete: 2 } as const
 
 const blocked = (o: HardJobOutcome) => o.evaluation?.verdict === 'blocked'
 
@@ -46,7 +46,7 @@ export function progressLine(o: HardJobOutcome): string {
   return `  ${MARK[verdict]} ${name} → ${LABEL[verdict]}${known}${fired.length ? ` · ${fired.join(', ')}` : ''}`
 }
 
-export const declaredLines = (declared: Declared[]): string[] =>
+const declaredLines = (declared: Declared[]): string[] =>
   declared.map((d) => `  ${d.support.status === 'unsupported' ? '∅' : '~'} ${d.questionId} → ${d.support.status === 'unsupported' ? 'no soportada' : 'soporte parcial'} (${d.support.reason ?? 'sin motivo'})`)
 
 export interface HardFacts {

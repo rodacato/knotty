@@ -12,14 +12,14 @@ export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables', 'seating'] as co
 export const FEATURED_MAX = 11
 
 /** What the piece has, from a closed list, whether or not the plan can draw it. `gaps` uses the same words for what the plan cannot draw, so counting the gaps across pieces is counting words. A new one is added here on purpose. */
-export const FEATURES = [
+const FEATURES = [
   'inset-doors', 'inset-drawers', 'overlay-doors', 'legs', 'kick', 'wall-anchor', 'wall-hung', 'open-niche', 'no-back',
   'sliding-doors', 'asymmetric-arrangement', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',
   'splayed-legs', 'raised-sides', 'slatted-fronts', 'slatted-base', 'finger-joints',
 ] as const
 
 /** exact: the plan says all that matters of the piece; adapted: it builds something close, and `adaptations` says what changed; unsupported: it cannot be built. */
-export const SUPPORT = ['exact', 'adapted', 'unsupported'] as const
+const SUPPORT = ['exact', 'adapted', 'unsupported'] as const
 
 /** KC: checked against a product of the reference catalog. GN: a generic starting point with no product behind it. */
 const CODE = /^(KC|GN)-[A-Z]+-\d{2}$/

@@ -24,7 +24,7 @@ export const BOOT_LEVEL_HEIGHT = 450
 /** A level of shoes, a few pairs of about a kilo each. */
 const SHELF_LOAD: Load = 'light'
 /** The most levels the form offers. */
-export const MAX_LEVELS = 10
+const MAX_LEVELS = 10
 
 export const ShoeRackPlan = z.object({
   kind: z.literal('shoeRack'),

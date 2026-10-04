@@ -14,9 +14,9 @@ import { rebuildFromPlan } from '../modules/rebuild'
 // and the design holds as well as before. The rules are docs/carpinteria/fabricacion-y-armado.md §2.5, «Qué puede proponer la app».
 
 /** Builds the search may run, probes included, so it stays well under a second on a phone. */
-export const MAX_EVALUATIONS = 60
+const MAX_EVALUATIONS = 60
 /** And, when nothing saves, builds to find which lock is worth freeing. */
-export const MAX_RELEASE_EVALUATIONS = 24
+const MAX_RELEASE_EVALUATIONS = 24
 /** A measure goes down at most this fraction of itself: past it the piece is another piece. */
 const MAX_REDUCTION = 0.25
 /** Strip counts tried across and along the sheet. */

@@ -3,11 +3,11 @@ import { jobId } from './ids'
 
 // The identity of one bench run: what was measured, with what, and how far it got. Hashes arrive as opaque strings.
 
-export const CLASSIFICATIONS = ['pass', 'known-failure', 'infrastructure', 'regression'] as const
+const CLASSIFICATIONS = ['pass', 'known-failure', 'infrastructure', 'regression'] as const
 export type Classification = (typeof CLASSIFICATIONS)[number]
 
-export const JOB_STATUSES = ['pending', 'running', 'done', 'failed', 'cancelled'] as const
-export type JobStatus = (typeof JOB_STATUSES)[number]
+const JOB_STATUSES = ['pending', 'running', 'done', 'failed', 'cancelled'] as const
+type JobStatus = (typeof JOB_STATUSES)[number]
 
 const FORBIDDEN_HEADERS = new Set(['authorization', 'proxy-authorization', 'cookie', 'set-cookie', 'x-api-key', 'api-key'])
 const ALLOWED_HEADER = /^(x-request-id|request-id|retry-after|x-ratelimit-[a-z-]+|x-queue-[a-z-]+|x-shellm-[a-z-]+|openai-model|anthropic-ratelimit-[a-z-]+)$/

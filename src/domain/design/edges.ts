@@ -16,7 +16,7 @@ export const EDGE_SIDE: Record<Edge, { axis: Axis; end: 0 | 1 }> = {
 }
 
 /** The edges around the face of a piece with this thickness axis, in the order the sheet lists them. */
-export const FACE_EDGES: Record<Axis, Edge[]> = {
+const FACE_EDGES: Record<Axis, Edge[]> = {
   y: ['front', 'left', 'right', 'back'],
   x: ['front', 'top', 'bottom', 'back'],
   z: ['top', 'left', 'right', 'bottom'],

@@ -50,8 +50,8 @@ describe('architecture', () => {
 
   // Inside the domain, six groups by intent. materials and design are the base; checks, furniture and editing build on them;
   // session sits on top and nothing imports it. These are the edges that exist today: design ↔ materials, design and materials →
-  // checks (structure/assumptions), checks → furniture (the mattresses of the bed) and furniture ↔ editing are cycles to cut
-  // (docs/PROPUESTA.md, paso 28). A new edge between groups has to be added here on purpose. Loose files at the root
+  // checks (structure/assumptions), checks → furniture (the mattresses of the bed) and furniture ↔ editing are cycles to cut.
+  // A new edge between groups has to be added here on purpose. Loose files at the root
   // (sources.ts) are shared by every group and import none.
   const GROUPS: Record<string, string[]> = {
     materials: ['design', 'checks'],

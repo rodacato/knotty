@@ -15,11 +15,11 @@ import { assertCandidateSafe, type BaseKind, type CandidateQuestion } from './ty
 // One hard case through the real contract: a session that starts from a base design, and the person's messages through the chat use case, each in a fresh session.
 
 /** The base designs are the app's own bookcase: wide enough, one of them carries a sag finding the app measures by itself. */
-export function baseDesign(kind: BaseKind): Design {
+function baseDesign(kind: BaseKind): Design {
   return kind === 'sagging' ? { ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 850 } } : exampleBookcase
 }
 
-export function stateFacts(state: DesignState, catalog: Catalog): StateFacts {
+function stateFacts(state: DesignState, catalog: Catalog): StateFacts {
   const analysis = analyze(currentDesign(state), catalog, state.requirements)
   const findings = analysis.valid ? analysis.findings : []
   return {
