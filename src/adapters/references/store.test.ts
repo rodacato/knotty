@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { FEATURED_MAX } from '../../domain/furniture/references'
 import { createBundledReferences, createReferenceStore } from './store'
 
 const store = createBundledReferences()
@@ -19,6 +20,17 @@ describe('reference store', () => {
     const placed = store.all().filter((r) => r.home)
     expect(home.map((b) => b.code)).toEqual(placed.map((r) => r.code))
     expect(placed.map((r) => r.home?.order)).toEqual(placed.map((_, i) => i + 1))
+  })
+
+  it('features at most one cell less than the home grid, which keeps the last for designing your own', () => {
+    const featured = store.home().filter((b) => b.featured)
+    expect(featured.length).toBeGreaterThan(0)
+    expect(featured.length).toBeLessThanOrEqual(FEATURED_MAX)
+  })
+
+  it('puts the featured ones first, so a category lists them before the others', () => {
+    const flags = store.home().map((b) => b.featured)
+    expect(flags).toEqual([...flags].sort((a, b) => Number(b) - Number(a)))
   })
 
   it('fails on a bad file instead of shipping it', () => {

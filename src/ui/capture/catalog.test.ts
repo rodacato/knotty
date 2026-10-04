@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import type { Base } from '../../domain/furniture/examples'
 import { basesOfFilter, countLine, onlyOneNote } from './catalog'
 
-const base = (id: string, category: Base['category']) => ({ id, category }) as Base
+const base = (id: string, category: Base['category'], featured = false) => ({ id, category, featured }) as Base
 
-const bases = [base('a', 'storage'), base('b', 'bedroom'), base('c', 'storage'), base('d', 'tables')]
+const bases = [base('a', 'storage', true), base('b', 'bedroom', true), base('c', 'storage'), base('d', 'tables', true)]
 
 describe('basesOfFilter', () => {
-  it('keeps every base in its order for featured', () => {
-    expect(basesOfFilter(bases, 'featured').map((b) => b.id)).toEqual(['a', 'b', 'c', 'd'])
+  it('keeps only the featured bases, in their order, for featured', () => {
+    expect(basesOfFilter(bases, 'featured').map((b) => b.id)).toEqual(['a', 'b', 'd'])
   })
-  it('lists all the bases of a category, in order', () => {
+  it('lists all the bases of a category, featured or not, in order', () => {
     expect(basesOfFilter(bases, 'storage').map((b) => b.id)).toEqual(['a', 'c'])
   })
   it('gives nothing for a category without bases', () => {

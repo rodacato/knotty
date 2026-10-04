@@ -23,13 +23,14 @@ export type Example =
 export type BaseCategory = (typeof HOME_CATEGORIES)[number]
 
 /** A starting point on the home screen: always a plan, so the ficha edits it without the expert. Its `code` is KC-… when it was checked against a catalog product and GN-… when it is generic (`references/`). */
-export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; category: BaseCategory; code: string; version: number; inspiredBy?: string }
+export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; category: BaseCategory; featured: boolean; code: string; version: number; inspiredBy?: string }
 
 const baseOf = (r: Reference & { home: NonNullable<Reference['home']> }): Base => ({
   id: r.id,
   code: r.code,
   version: r.version,
   category: r.home.category,
+  featured: r.home.featured ?? false,
   name: r.name,
   notes: r.notes,
   plan: r.plan,

@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-MES-02",
   "id": "trestle-dining-table",
+  "home": { "order": 8, "category": "tables", "featured": true },
   "name": "Mesa de comedor de caballete",
   "kind": "diningTable",
   "finish": "danish-oil",

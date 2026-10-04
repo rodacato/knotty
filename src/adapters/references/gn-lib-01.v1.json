@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-LIB-01",
   "id": "open-bookcase",
-  "home": { "order": 2, "category": "storage" },
+  "home": { "order": 4, "category": "storage", "featured": true },
   "name": "Librero abierto",
   "kind": "bookcase",
   "inspiredBy": "KC-LIB-01",

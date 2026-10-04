@@ -2,7 +2,8 @@
   "format": 1,
   "code": "KC-MES-01",
   "id": "dining-table-tapered-legs",
-  "name": "Mesa de comedor de patas cónicas",
+  "home": { "order": 18, "category": "tables" },
+  "name": "Mesa de comedor para seis",
   "kind": "diningTable",
   "support": "adapted",
   "difficulty": 3,
@@ -13,7 +14,7 @@
   "plan": {
     "kind": "table",
     "use": "dining",
-    "name": "Mesa de comedor",
+    "name": "Mesa de comedor para seis",
     "material": "T18",
     "dimensions": { "width": 1500, "height": 750, "depth": 900 },
     "overhang": 80,
