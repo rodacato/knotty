@@ -15,6 +15,7 @@ const NAMES: Record<string, GuideJoint> = {
   Minifix: 'cam-lock',
   Ranura: 'dado',
   Rebaje: 'rabbet',
+  'Esquina de dedos': 'finger',
 }
 
 /** A bare ⚠️ is read by the tool the row asks for: a jig, or care with the level's own tools. */

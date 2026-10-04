@@ -12,7 +12,7 @@ export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables'] as const
 export const FEATURES = [
   'inset-doors', 'inset-drawers', 'overlay-doors', 'legs', 'kick', 'wall-anchor', 'wall-hung', 'open-niche', 'no-back',
   'sliding-doors', 'asymmetric-arrangement', 'routed-fronts', 'notch-pulls', 'angled-cut', 'curved-cut', 'multi-body', 'adjustable-height', 'casters', 'glass',
-  'splayed-legs', 'raised-sides', 'slatted-fronts', 'slatted-base',
+  'splayed-legs', 'raised-sides', 'slatted-fronts', 'slatted-base', 'finger-joints',
 ] as const
 
 /** exact: the plan says all that matters of the piece; adapted: it builds something close, and `adaptations` says what changed; unsupported: it cannot be built. */

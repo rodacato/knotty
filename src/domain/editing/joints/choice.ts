@@ -14,7 +14,7 @@ export const CHOOSABLE_JOINTS = ['butt-screw', 'pocket-screw', 'dowel', 'cam-loc
 export type ChoosableJoint = (typeof CHOOSABLE_JOINTS)[number]
 export const isChoosable = (type: string): type is ChoosableJoint => (CHOOSABLE_JOINTS as readonly string[]).includes(type)
 
-const CUT_JOINTS: JointType[] = ['dado', 'rabbet']
+const CUT_JOINTS: JointType[] = ['dado', 'rabbet', 'finger']
 const STRUCTURAL = new Set<JointType>([...CHOOSABLE_JOINTS, ...CUT_JOINTS])
 
 export type JointGroupId = 'body' | 'base' | 'back' | 'drawers'

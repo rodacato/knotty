@@ -65,6 +65,7 @@ export function hardwarePerJoint(u: Joint, geo: Geometry): number {
     case 'drawer-slide':
     case 'dado':
     case 'rabbet':
+    case 'finger':
       return 1
   }
 }

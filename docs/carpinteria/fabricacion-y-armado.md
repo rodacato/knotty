@@ -54,6 +54,7 @@ Nombres de las uniones según el [glosario](glosario.md) §5.
 | Minifix | ❌ (salvo perforado en maderería) | ⚠️ | ✅ | broca Forstner de 15 mm + plantilla | Para muebles desarmables (§8.4). | ❓ |
 | Ranura | ⚠️ solo si la maderería la hace [3] | ⚠️ con sierra circular y varias pasadas | ✅ | router o sierra de mesa | Profundidad: un tercio del espesor, nunca más de la mitad (ver [uniones y herrajes](uniones-y-herrajes.md)). | ⚠️ [3] |
 | Rebaje | ❌ | ⚠️ | ✅ | router o sierra de mesa | Típico para traseras embutidas. | ⚠️ [14] |
+| Esquina de dedos | ❌ | ❌ | ✅ | router en mesa o sierra de mesa con plantilla | Pide dedos del ancho del tablero, más o menos, y un corte preciso. La maderería no la ofrece (no la encontré en sus listas de servicios). | ❓ |
 
 Antes de elegir una unión conviene revisar que se tenga la herramienta o que la maderería pueda hacer la operación; una unión de bolsillo, por ejemplo, no se puede hacer solo con taladro.
 

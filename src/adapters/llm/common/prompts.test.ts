@@ -137,6 +137,7 @@ describe('rendered prompts carry the values the code enforces', () => {
       `fronts "${DEFAULT_CONSTRUCTION.fronts}"`,
       `hinges "${DEFAULT_CONSTRUCTION.hinges}"`,
       `pulls "${DEFAULT_CONSTRUCTION.pulls}"`,
+      `drawer corners "${DEFAULT_CONSTRUCTION.drawerCorners}"`,
     ])
   })
 })
@@ -239,13 +240,13 @@ describe('adjusting a plan asks only about its own module', () => {
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
 /** About 5 % above what each measured when it was set (plan-adjust@13): growing past it has to be on purpose. With every module it was 4 307. */
-const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2570, bed: 2130, table: 1910, shoeRack: 1930 }
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2645, bed: 2130, table: 1910, shoeRack: 1930 }
 
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6160, cabinet: 3140, bed: 2105, table: 1840, shoeRack: 1960 }
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6250, cabinet: 3230, bed: 2105, table: 1840, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
-const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3410, adjust: 2830 }, bookcase: { skeleton: 3960, adjust: 3290 } }
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3495, adjust: 2910 }, bookcase: { skeleton: 3960, adjust: 3290 } }
 
 describe('token budget', () => {
   it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {

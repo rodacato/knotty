@@ -185,6 +185,7 @@ describe('construction variants', () => {
     fronts: ['flat', 'grooved'],
     hinges: ['outside', 'inside'],
     pulls: ['none', 'notch', 'handle'],
+    drawerCorners: ['screwed', 'fingers'],
   }
   const combos = Object.entries(options).reduce<CabinetConstruction[]>(
     (all, [key, values]) => all.flatMap((c) => values.map((v) => ({ ...c, [key]: v }))),
@@ -207,7 +208,7 @@ describe('construction variants', () => {
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
-    expect(notes.filter((n) => !n.startsWith('Muesca'))).toEqual([])
+    expect(notes.filter((n) => !n.startsWith('Muesca') && !n.startsWith('Esquinas de dedos'))).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
