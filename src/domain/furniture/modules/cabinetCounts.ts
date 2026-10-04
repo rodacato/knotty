@@ -1,9 +1,8 @@
 import { ASSUMPTIONS } from '../../checks/structure/assumptions'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
-import type { Cell, Column } from '../reading/reading'
 import { checkBuilt } from '../quick'
-import type { CabinetPlan } from './cabinet'
+import type { CabinetPlan, PlanCell, PlanColumn } from './cabinet'
 import { KICK_HEIGHT, thicknessOf } from './common'
 import type { QuickCountKind } from './module'
 
@@ -17,14 +16,14 @@ export const quickCounts = (plan: CabinetPlan): QuickCounts => {
   return { drawer: cells.filter((c) => c.content === 'drawer').length, door: cells.filter((c) => c.content === 'door').length, open: cells.filter((c) => c.content === 'open').length }
 }
 
-const CONTENT: Record<QuickCountKind, Cell['content']> = { drawer: 'drawer', door: 'door', open: 'open' }
+const CONTENT: Record<QuickCountKind, PlanCell['content']> = { drawer: 'drawer', door: 'door', open: 'open' }
 const cellCount = (plan: CabinetPlan) => plan.columns.reduce((n, c) => n + c.cells.length, 0)
 
 /** The height under the box: what the base lifts it, which is not opening. */
 const baseHeight = (plan: CabinetPlan) => (plan.base === 'kick' ? KICK_HEIGHT.cabinet : plan.base === 'legs' ? plan.legHeight : 0)
 
 /** An opening's size in mm, from the plan alone: the room inside the box is shared by the column's cells by their heights, less the board between them. */
-function openingSize(plan: CabinetPlan, catalog: Catalog, column: Column, height: number): { width: number; height: number } {
+function openingSize(plan: CabinetPlan, catalog: Catalog, column: PlanColumn, height: number): { width: number; height: number } {
   const t = thicknessOf(catalog, plan.material)
   const total = plan.columns.reduce((s, c) => s + c.width, 0)
   const inside = plan.dimensions.height - baseHeight(plan) - 2 * t - (column.cells.length - 1) * t
@@ -32,7 +31,7 @@ function openingSize(plan: CabinetPlan, catalog: Catalog, column: Column, height
   return { width: (column.width / total) * (plan.dimensions.width - 2 * t - (plan.columns.length - 1) * t), height: (height / stack) * inside }
 }
 
-const fresh = (kind: QuickCountKind, width: number): Cell =>
+const fresh = (kind: QuickCountKind, width: number): PlanCell =>
   kind === 'drawer' ? { height: 1, content: 'drawer', shelves: null, doors: null } : kind === 'door' ? { height: 1, content: 'door', shelves: 0, doors: width > ASSUMPTIONS.doors.maxWidth ? 2 : 1 } : { height: 1, content: 'open', shelves: 0, doors: null }
 
 /** The plan with one more cell of the kind, or null when no cell can give half: each half has to keep the lowest opening a drawer fits in. Open niches are split first, the tallest first. */
@@ -41,8 +40,8 @@ function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): Cabin
   const ordered = [...candidates].sort((a, b) => Number(b.cell.content === 'open') - Number(a.cell.content === 'open') || b.size.height - a.size.height)
   for (const { i, j, cell, size } of ordered) {
     const half = cell.height / 2
-    const kept: Cell = { ...cell, height: half, shelves: cell.shelves ? Math.floor(cell.shelves / 2) : cell.shelves }
-    const added: Cell = { ...fresh(kind, size.width), height: half }
+    const kept: PlanCell = { ...cell, height: half, shelves: cell.shelves ? Math.floor(cell.shelves / 2) : cell.shelves }
+    const added: PlanCell = { ...fresh(kind, size.width), height: half }
     const cells = plan.columns[i].cells.flatMap((x, m) => (m === j ? [kept, added] : [x]))
     const next = { ...plan, columns: plan.columns.map((c, n) => (n === i ? { ...c, cells } : c)) }
     if (openingSize(next, catalog, next.columns[i], half).height >= MIN_DRAWER_OPENING_HEIGHT) return next

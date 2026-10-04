@@ -9,7 +9,7 @@ import { withFrontCuts } from './fronts'
 import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
-import { Column, type Cell } from '../reading/reading'
+import { Cell, Column } from '../reading/reading'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, withFingerBoxes, withFingerCuts } from './fingerJoints'
@@ -33,6 +33,18 @@ export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none', drawerCorners: 'screwed' }
 
+/** A cell of a plan: what the expert can say, plus `void`, a stretch of a column where nothing is built. Only a ficha or the editor writes it. */
+export const PlanCell = Cell.extend({
+  content: z.enum([...Cell.shape.content.options, 'void']).describe('open: open; drawer: drawer; door: door; closed: covered, not opening; void: nothing is built there'),
+})
+export type PlanCell = z.infer<typeof PlanCell>
+export const PlanColumn = Column.extend({ cells: z.array(PlanCell).describe('Openings from bottom to top') })
+export type PlanColumn = z.infer<typeof PlanColumn>
+
+const COLUMNS = 'Left to right; each one with its openings from bottom to top'
+/** The columns as the expert says them, without `void`: what it sees stays as it was. */
+export const ExpertColumns = z.array(Column).min(1).describe(COLUMNS)
+
 const LEG_HEIGHT_MESSAGE = `Las patas miden entre ${LEG_HEIGHT_RANGE.min} y ${LEG_HEIGHT_RANGE.max} mm.`
 
 export const CabinetPlan = z.object({
@@ -52,18 +64,29 @@ export const CabinetPlan = z.object({
   wallMounted: z.boolean().describe('Whether it is anchored to or hung from the wall'),
   construction: CabinetConstruction,
   drawerFingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Fingers per corner with drawerCorners fingers; absent is ${DEFAULT_FINGERS}`),
-  columns: z.array(Column).min(1).describe('Left to right; each one with its openings from bottom to top'),
+  columns: z.array(PlanColumn).min(1).describe(COLUMNS),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 
 /** The legs take height from the box above them: what is left must still hold a bottom, a top and an opening. */
 export const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+/** The cells of a column that are built: from the first to the last that is not void. */
+const builtRange = (column: PlanColumn) => {
+  const built = column.cells.flatMap((c, j) => (c.content === 'void' ? [] : [j]))
+  return { lo: built[0] ?? 0, hi: built[built.length - 1] ?? -1, count: built.length, last: column.cells.length - 1 }
+}
+/** A void goes at the bottom or the top of its column, one at each end at most; some column reaches the floor and some the top, or nothing holds the rest. */
+export const voidsFit = (plan: CabinetPlan) => {
+  const ranges = plan.columns.map(builtRange)
+  return ranges.every((r) => r.count > 0 && r.count === r.hi - r.lo + 1 && r.lo <= 1 && r.last - r.hi <= 1) && ranges.some((r) => r.lo === 0) && ranges.some((r) => r.hi === r.last)
+}
+export const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
 export const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
   base: { kick: { option: 'Con zoclo', phrase: 'con zoclo' }, floor: { option: 'Directa', phrase: 'sin zoclo' }, legs: { option: 'Con patas', phrase: 'con patas' } } satisfies Labels<CabinetPlan['base']>,
-  cell: { open: 'Abierto', drawer: 'Cajón', door: 'Puerta', closed: 'Tapado' } satisfies Record<Cell['content'], string>,
+  cell: { open: 'Abierto', drawer: 'Cajón', door: 'Puerta', closed: 'Tapado', void: 'Vacío' } satisfies Record<PlanCell['content'], string>,
   construction: {
     doors: { label: 'Puertas', options: { overlay: 'Sobrepuestas', inset: 'Embutidas' } },
     drawerFronts: { label: 'Frentes de cajón', options: { inset: 'Embutidos', overlay: 'Sobrepuestos' } },
@@ -81,6 +104,11 @@ const GAP = 2
 const SHELF_SETBACK = 5
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
+
+/** The runs of consecutive columns that are flagged, as [first, last]. */
+const runs = (flags: boolean[]) => flags.reduce<[number, number][]>((list, on, i) => (!on ? list : i > 0 && flags[i - 1] ? [...list.slice(0, -1), [list[list.length - 1][0], i]] : [...list, [i, i]]), [])
+/** The id of the k-th board of a kind: the first keeps the plain name, so what refers to it still does. */
+const nth = (id: string, k: number) => (k === 0 ? id : `${id}-${k + 1}`)
 
 /** Fractions as given may not add up to 1; they are scaled so they do. */
 const shares = (values: number[]) => {
@@ -174,6 +202,12 @@ interface BuiltCabinet {
 }
 
 export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
+  // A void with nothing to hang from is built as an open cell, and said, as a drawer that does not fit is.
+  if (!voidsFit(plan)) {
+    const columns = plan.columns.map((col) => ({ ...col, cells: col.cells.map((c) => (c.content === 'void' ? { ...c, content: 'open' as const, shelves: 0, doors: null } : c)) }))
+    const built = buildCabinet({ ...plan, columns }, catalog)
+    return { design: built.design, notes: [VOIDS_MISPLACED, ...built.notes] }
+  }
   const build = plan.construction
   const t = thicknessOf(catalog, plan.material)
   const half = t / 2
@@ -189,34 +223,73 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const onLegs = plan.base === 'legs'
   // On legs the box starts where they end: the sides and the back stand on the bottom's level, not on the floor.
   const boxFloor = onLegs ? ref('bottom.y0') : ref('furniture.y0')
-  const sideHeight = extent(boxFloor, build.top === 'over' ? ref('top.y0') : ref('furniture.y1'))
+  const over = build.top === 'over'
+
+  // A column with a void stops short of the floor or of the top: the fixed shelf next to the void is its own floor or roof, and what ran from side to side comes in stretches.
+  const n = plan.columns.length
+  const ranges = plan.columns.map(builtRange)
+  const onFloor = ranges.map((r) => r.lo === 0)
+  const toTop = ranges.map((r) => r.hi === r.last)
+  const voids = onFloor.includes(false) || toTop.includes(false)
+  const floorBoard = (i: number) => `c${i + 1}-sep-${ranges[i].lo}`
+  const roofBoard = (i: number) => `c${i + 1}-sep-${ranges[i].hi + 1}`
+  const floorLevel = (i: number): Position => (onFloor[i] ? boxFloor : ref(`${floorBoard(i)}.y0`))
+  const roofLevel = (i: number): Position => (toTop[i] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(i)}.y1`))
+  const leftWall = (i: number) => (i === 0 ? 'side-left' : `div-${i}`)
+  const rightWall = (i: number) => (i === n - 1 ? 'side-right' : `div-${i + 1}`)
+  const between = (first: number, last: number) => extent(ref(`${leftWall(first)}.x1`), ref(`${rightWall(last)}.x0`))
+  /** A stretch of floor goes between the sides, and under the divider that ends it: that divider stands on it like the others. */
+  const floorSpan = (first: number, last: number) => extent(first === 0 ? ref('side-left.x1') : ref(`div-${first}.x0`), last === n - 1 ? ref('side-right.x0') : ref(`div-${last + 1}.x1`))
+  const voidShare = (i: number, end: 'lo' | 'hi') => plan.columns[i].cells[end === 'lo' ? 0 : ranges[i].last].height / (plan.columns[i].cells.reduce((s, c) => s + c.height, 0) || 1)
 
   const pieces: Piece[] = []
   const joints: Joint[] = []
-  if (build.back === 'nailed')
-    pieces.push(makePiece({ id: 'back', name: 'Trasera', role: 'back', material: backBoard(catalog).id, normal: 'z', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(boxFloor, ref('furniture.y1')), z: startAt(ref('furniture.z0')) }))
+  if (build.back === 'nailed') {
+    const board = { role: 'back' as const, material: backBoard(catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
+    if (!voids) pieces.push(makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(boxFloor, ref('furniture.y1')) }))
+    // One back per column, as tall as what the column builds, meeting at the middle of each divider.
+    else
+      plan.columns.forEach((_, i) =>
+        pieces.push(
+          makePiece({
+            ...board,
+            id: nth('back', i),
+            name: `Trasera de la columna ${i + 1}`,
+            x: extent(i === 0 ? ref('furniture.x0') : ref(`div-${i}.x0`, half), i === n - 1 ? ref('furniture.x1') : ref(`div-${i + 1}.x0`, half)),
+            y: extent(floorLevel(i), toTop[i] ? ref('furniture.y1') : ref(`${roofBoard(i)}.y1`)),
+          }),
+        ),
+      )
+  }
   pieces.push(
-    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: sideHeight, z: depth() }),
-    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: sideHeight, z: depth() }),
+    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(floorLevel(0), roofLevel(0)), z: depth() }),
+    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(floorLevel(n - 1), roofLevel(n - 1)), z: depth() }),
   )
   if (plan.base === 'kick')
-    pieces.push(
-      makePiece({
-        id: 'kick',
-        name: 'Zoclo',
-        role: 'kick',
-        material: plan.material,
-        normal: 'z',
-        x: extent(ref('side-left.x1'), ref('side-right.x0')),
-        y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet),
-        z: endAt(overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)),
-      }),
+    runs(onFloor).forEach(([first, last], k) =>
+      pieces.push(
+        makePiece({
+          id: nth('kick', k),
+          name: 'Zoclo',
+          role: 'kick',
+          material: plan.material,
+          normal: 'z',
+          x: floorSpan(first, last),
+          y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet),
+          z: endAt(overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)),
+        }),
+      ),
     )
-  pieces.push(
-    panel({ id: 'bottom', name: 'Piso', role: 'bottom', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' }),
-    build.top === 'over'
-      ? panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: depth() })
-      : panel({ id: 'top', name: 'Techo', role: 'top', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: endAt(ref('furniture.y1')), z: depth() }),
+  runs(onFloor).forEach(([first, last], k) =>
+    pieces.push(panel({ id: nth('bottom', k), name: 'Piso', role: 'bottom', normal: 'y', x: floorSpan(first, last), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' })),
+  )
+  runs(toTop).forEach(([first, last], k) =>
+    pieces.push(
+      over
+        ? // Over the walls of its stretch, out to their far faces.
+          panel({ id: nth('top', k), name: 'Cubierta', role: 'top', normal: 'y', x: extent(first === 0 ? ref('furniture.x0') : ref(`div-${first}.x0`), last === n - 1 ? ref('furniture.x1') : ref(`div-${last + 1}.x1`)), y: endAt(ref('furniture.y1')), z: depth() })
+        : panel({ id: nth('top', k), name: 'Techo', role: 'top', normal: 'y', x: between(first, last), y: endAt(ref('furniture.y1')), z: depth() }),
+    ),
   )
 
   const columnEdges = shares(plan.columns.map((c) => c.width))
@@ -225,9 +298,12 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     pieces.push(...stand.pieces)
     joints.push(...stand.joints)
   }
-  columnEdges.slice(0, -1).forEach((share, i) =>
-    pieces.push(panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -half)), y: extent(ref('bottom.y1'), ref('top.y0')), z: depth() })),
-  )
+  columnEdges.slice(0, -1).forEach((share, i) => {
+    // Beside a column that reaches the floor it stands on the bottom; between two that stop short, it starts at the lower of their floors.
+    const from = onFloor[i] || onFloor[i + 1] ? ref('bottom.y1') : ref(`${floorBoard(voidShare(i, 'lo') <= voidShare(i + 1, 'lo') ? i : i + 1)}.y0`)
+    const to = toTop[i] && toTop[i + 1] ? ref('top.y0') : toTop[i] || toTop[i + 1] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(voidShare(i, 'hi') <= voidShare(i + 1, 'hi') ? i : i + 1)}.y1`)
+    pieces.push(panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -half)), y: extent(from, to), z: depth() }))
+  })
 
   /** The column and cell each drawer asked for, in the order of `drawers`. */
   const drawerCells: [column: number, cell: number][] = []
@@ -235,7 +311,6 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const hung: { door: string; upright: string }[] = []
   const drawers: { operation: AddDrawer; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
   plan.columns.forEach((column, i) => {
-    const n = plan.columns.length
     const col = `c${i + 1}`
     const left: FaceRef = i === 0 ? 'side-left.x1' : `div-${i}.x1`
     const right: FaceRef = i === n - 1 ? 'side-right.x0' : `div-${i + 1}.x0`
@@ -243,12 +318,13 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     const overLeft = i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2)
     const overRight = i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2)
     const cellTops = shares(column.cells.map((c) => c.height))
-    cellTops.slice(0, -1).forEach((share, j) =>
-      pieces.push(
-        panel({ id: `${col}-sep-${j + 1}`, name: `Entrepaño fijo ${n > 1 ? `${i + 1}.` : ''}${j + 1}`, role: 'shelf', normal: 'y', x: extent(ref(left), ref(right)), y: startAt(partway('bottom.y1', 'top.y0', share, -half)), z: depth() }),
-      ),
-    )
+    cellTops.slice(0, -1).forEach((share, j) => {
+      // Next to a void the fixed shelf is the column's own floor or roof.
+      const edge = j + 1 === ranges[i].lo ? { name: `Piso de la columna ${i + 1}`, role: 'bottom' as const, load: 'medium' as const } : j === ranges[i].hi ? { name: `Techo de la columna ${i + 1}`, role: 'top' as const } : { name: `Entrepaño fijo ${n > 1 ? `${i + 1}.` : ''}${j + 1}`, role: 'shelf' as const }
+      pieces.push(panel({ id: `${col}-sep-${j + 1}`, normal: 'y', x: extent(ref(left), ref(right)), y: startAt(partway('bottom.y1', 'top.y0', share, -half)), z: depth(), ...edge }))
+    })
     column.cells.forEach((cell, j) => {
+      if (cell.content === 'void') return
       const m = column.cells.length
       const id = `${col}-h${j + 1}`
       const label = `${n > 1 ? ` de la columna ${i + 1}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`
@@ -350,9 +426,9 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const extras: Operation[] = []
   if (plan.base === 'kick')
     columnEdges.slice(0, -1).forEach((_, i) =>
-      extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
+      onFloor[i] && onFloor[i + 1] && extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
     )
-  if (plan.wallMounted && plan.base === 'floor')
+  if (plan.wallMounted && plan.base === 'floor' && !voids)
     extras.push({ op: 'addPiece', piece: panel({ id: 'hanging-rail', name: 'Listón de colgar', role: 'brace', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
   for (const extra of extras) {
     const result = applyOperations(design, [extra], catalog)
@@ -379,7 +455,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   return { design: completeJoints(withPulls, catalog), notes }
 }
 
-const count = (plan: CabinetPlan, content: Cell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
+const count = (plan: CabinetPlan, content: PlanCell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
 const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
 
 function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
@@ -397,7 +473,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
     changes.push(`${lower(label)} ${lower(options[after.construction[key]])}`)
   }
   if (before.columns.length !== after.columns.length) changes.push(`${after.columns.length} ${after.columns.length === 1 ? 'columna' : 'columnas'}`)
-  for (const content of Object.keys(CABINET_LABELS.cell) as Cell['content'][]) {
+  for (const content of Object.keys(CABINET_LABELS.cell) as PlanCell['content'][]) {
     const [was, is] = [count(before, content), count(after, content)]
     if (was !== is) changes.push(`${is} ${content === 'drawer' ? (is === 1 ? 'cajón' : 'cajones') : `${is === 1 ? 'hueco' : 'huecos'} ${lower(CABINET_LABELS.cell[content])}${is === 1 ? '' : 's'}`}`)
   }
@@ -436,12 +512,18 @@ function benchCabinets(): [string, CabinetPlan][] {
   const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
   const withFingers = [3, 5, 9].map((drawerFingers): [string, CabinetPlan] => [`cajonera con ${drawerFingers} dedos`, { ...drawerChest, construction: { ...drawerChest.construction, drawerCorners: 'fingers' }, drawerFingers }])
-  return [...list, ...withPulls, ...legHeights, ...withFingers]
+  // Columns that stop short of the floor: a void at the bottom of one, with the back and the kick in stretches, and one raised over a leg frame.
+  const empty: PlanCell = { height: 0.4, content: 'void', shelves: null, doors: null }
+  const withVoids: [string, CabinetPlan][] = [
+    ['aparador con una columna colgada', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [empty, cell('open', 0.6, 0)] }, { width: 1, cells: [cell('open', 1, 1)] }], { wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' } })],
+    ['librero con una columna levantada', cabinet('Librero', { width: 880, height: 760, depth: 350 }, [{ width: 0.37, cells: [cell('open', 0.5, 0), cell('open', 0.5, 0)] }, { width: 0.63, cells: [{ ...empty, height: 0.3 }, cell('open', 0.7, 0)] }], { base: 'legs', wallMounted: false })],
+  ]
+  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withVoids]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
 
-const hasCell = (p: CabinetPlan, test: (cell: Cell) => boolean) => p.columns.some((col) => col.cells.some(test))
+const hasCell = (p: CabinetPlan, test: (cell: PlanCell) => boolean) => p.columns.some((col) => col.cells.some(test))
 /** A choice with nothing to decide stays out of the form. */
 const VISIBLE_WHEN: Partial<Record<keyof CabinetConstruction, (p: CabinetPlan) => boolean>> = {
   fronts: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),

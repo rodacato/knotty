@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { Cell } from '../reading/reading'
 import { BED_LABELS, BedPlan } from './bed'
-import { CABINET_LABELS, CabinetConstruction, CabinetPlan } from './cabinet'
+import { CABINET_LABELS, CabinetConstruction, CabinetPlan, PlanCell } from './cabinet'
 import { buildPlan, describePlanChanges, FurniturePlan, MODULE_OF_KIND, MODULES, moduleOf } from './plan'
 import { TABLE_LABELS, TablePlan } from './table'
 
@@ -58,7 +57,7 @@ describe('the labels of each module', () => {
       ['table use', TABLE_LABELS.use, TablePlan.shape.use.options],
       ['table pedestal', TABLE_LABELS.pedestal, TablePlan.shape.pedestal.shape.side.options],
       ['cabinet base', CABINET_LABELS.base, CabinetPlan.shape.base.options],
-      ['cabinet cell', CABINET_LABELS.cell, Cell.shape.content.options],
+      ['cabinet cell', CABINET_LABELS.cell, PlanCell.shape.content.options],
       ['cabinet construction', CABINET_LABELS.construction, Object.keys(CabinetConstruction.shape)],
       ...Object.entries(CabinetConstruction.shape).map(([key, schema]): [string, object, readonly string[]] => [`cabinet ${key}`, CABINET_LABELS.construction[key as keyof CabinetConstruction].options, ('options' in schema ? schema : schema.unwrap()).options]),
     ]
