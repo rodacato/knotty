@@ -10,6 +10,11 @@ import type { Swing } from './open'
 const MM = 0.001
 const NO_OFFSET: [number, number, number] = [0, 0, 0]
 const METAL = { color: '#a19e98', metalness: 0.75, roughness: 0.35 }
+/** A plug of a darker wood than the board, sitting a hair proud of the face so it does not flicker against it. */
+const PLUG = { color: '#5e4130', metalness: 0, roughness: 0.85 }
+const PLUG_HEIGHT = 2
+const PLUG_PROUD = 0.8
+const TURN = { x: [0, 0, Math.PI / 2], y: [0, 0, 0], z: [Math.PI / 2, 0, 0] } as const
 /** The hinge arm, from the cup toward the side it is screwed to. */
 const ARM = { length: 45, width: 16, thickness: 10 }
 
@@ -37,7 +42,19 @@ export function Hardware({ design, geo, offsets, swings, selected, hidden, reduc
         const offset = offsets.get(part.owner) ?? NO_OFFSET
         // With a piece selected, only its own hardware stays solid, like the pieces.
         const faded = !!selected && selected !== part.owner
-        const material = <meshStandardMaterial {...METAL} transparent={faded} opacity={faded ? 0.15 : 1} />
+        const material = <meshStandardMaterial {...(part.kind === 'plug' ? PLUG : METAL)} transparent={faded} opacity={faded ? 0.15 : 1} />
+        if (part.kind === 'plug') {
+          const at = [...part.center]
+          at[['x', 'y', 'z'].indexOf(part.axis)] += part.outward * (PLUG_PROUD - PLUG_HEIGHT / 2)
+          return (
+            <Follows key={i} offset={offset} swing={swings.get(part.owner)} reduced={reduced}>
+              <mesh position={[at[0] * MM, at[1] * MM, at[2] * MM]} rotation={TURN[part.axis] as unknown as [number, number, number]}>
+                <cylinderGeometry args={[(part.diameter / 2) * MM, (part.diameter / 2) * MM, PLUG_HEIGHT * MM, 20]} />
+                {material}
+              </mesh>
+            </Follows>
+          )
+        }
         if (part.kind === 'runner') {
           const b = part.box
           return (

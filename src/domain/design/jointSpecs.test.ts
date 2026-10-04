@@ -24,7 +24,7 @@ describe('joint registry', () => {
 
   it('keeps what the rules knew: the rigid joints, the ones that hold a back and the ones without glue', () => {
     const where = (f: (s: (typeof JOINTS)[JointType]) => boolean) => JointType.options.filter((t) => f(JOINTS[t]))
-    expect(where((s) => s.rigid)).toEqual(['pocket-screw', 'dowel', 'cam-lock', 'dado', 'rabbet', 'bracket', 'finger'])
+    expect(where((s) => s.rigid)).toEqual(['pocket-screw', 'dowel', 'plugged-dowel', 'cam-lock', 'dado', 'rabbet', 'bracket', 'finger'])
     expect(where((s) => s.holdsThinBoard)).toEqual(['dado', 'rabbet', 'glue-nail'])
     expect(where((s) => !s.glue)).toEqual(['shelf-pin', 'cup-hinge', 'drawer-slide'])
     expect(JointType.options.filter((t) => !makeJoint('j', 'a', 'b', t).glue)).toEqual(['shelf-pin', 'cup-hinge', 'drawer-slide'])

@@ -8,7 +8,7 @@ import type { JointType } from './schema'
 export type JointFit = 'yes' | 'jig' | 'careful' | 'shop' | 'no'
 
 /** The joints the catalog shows: every structural joint type, plus confirmat, which Knotty does not build yet. */
-export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'cam-lock' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet' | 'finger'> | 'confirmat'
+export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'plugged-dowel' | 'cam-lock' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet' | 'finger'> | 'confirmat'
 
 export interface JointGuide {
   name: string
@@ -64,6 +64,19 @@ export const JOINT_GUIDE: Record<GuideJoint, JointGuide> = {
     resistance: 'alta con pegamento',
     difficulty: 'intermedia (precisión)',
     visible: 'oculta',
+    knockDown: 'no (va pegado)',
+  },
+  'plugged-dowel': {
+    name: 'Tarugo con tapón',
+    definition: 'Un tarugo pegado que atraviesa la cara de una pieza y entra en el canto de la otra; el agujero se cierra con un tapón de madera, a veces de otro color.',
+    tool: 'plantilla para tarugos y tapones de madera',
+    note: 'El tapón se corta con una broca de tapones o se compra, y se pega al ras.',
+    fit: ['no', 'jig', 'yes'],
+    advantage: 'Sin tornillos a la vista y con un detalle de otra madera; el tarugo pegado resiste el descuadre.',
+    disadvantage: 'El agujero tiene que quedar alineado y limpio; el tapón al ras se lija al final, y no se desarma.',
+    resistance: 'alta con pegamento',
+    difficulty: 'intermedia (precisión)',
+    visible: 'el tapón, en la cara',
     knockDown: 'no (va pegado)',
   },
   confirmat: {
@@ -160,7 +173,7 @@ export const JOINT_GUIDE: Record<GuideJoint, JointGuide> = {
 }
 
 /** The order the catalog shows them in: what anyone can make first, what changes the pieces last. */
-export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'confirmat', 'cam-lock', 'glue-nail', 'bracket', 'dado', 'rabbet', 'finger']
+export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'plugged-dowel', 'confirmat', 'cam-lock', 'glue-nail', 'bracket', 'dado', 'rabbet', 'finger']
 
 /** How the person's level can make it; null when §1.3 does not say. */
 export const jointFit = (joint: GuideJoint, level: ToolLevel): JointFit | null => JOINT_GUIDE[joint].fit?.[level - 1] ?? null

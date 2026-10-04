@@ -10,6 +10,9 @@ import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finish
 
 const SPACING = { screw: 200, nail: 150, dowel: 150 }
 const END_MARGIN = 50
+
+/** How many dowels, spaced along a joint of this length and never fewer than two. */
+export const dowelsAlong = (length: number) => Math.max(2, Math.ceil((length - 2 * END_MARGIN) / SPACING.dowel) + 1)
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
 
@@ -50,8 +53,9 @@ export function hardwarePerJoint(u: Joint, geo: Geometry): number {
     case 'pocket-screw':
       return bySpacing(SPACING.screw, 2)
     case 'dowel':
+    case 'plugged-dowel':
     case 'cam-lock':
-      return bySpacing(SPACING.dowel, 2)
+      return dowelsAlong(length)
     case 'glue-nail':
       return bySpacing(SPACING.nail, 2)
     case 'shelf-pin':

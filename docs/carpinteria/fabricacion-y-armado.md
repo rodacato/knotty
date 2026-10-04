@@ -50,6 +50,7 @@ Nombres de las uniones según el [glosario](glosario.md) §5.
 | Bisagras de cazoleta | ⚠️ solo si la maderería perfora [3] | ✅ | ✅ | broca Forstner de 35 mm + tope | Cazoleta de 35 mm, 11.5–13 mm de profundidad [11]. | ✅ [11][3] |
 | Correderas | ✅ | ✅ | ✅ | taladro, escuadra | Caja del cajón 26 mm más angosta que el hueco: 13 mm por lado, dentro de los 12.7 mm +0.8 / −0 de la corredera de balines [8] (ver [uniones y herrajes](uniones-y-herrajes.md)). Con 25 mm (12.5 por lado), como dan algunas guías, el cajón no entra. | ✅ [8] |
 | Tornillo de bolsillo | ❌ | ✅ | ✅ | plantilla de bolsillo | Tornillo de rosca gruesa para triplay [10]; largo por espesor real [18]. | ✅ [10][18] |
+| Tarugo con tapón | ❌ | ⚠️ con plantilla | ✅ | plantilla para tarugos y tapones de madera | El tarugo atraviesa la cara y el agujero se cierra con un tapón; se corta con broca de tapones o se compra. Sin comprobar en triplay. | ❓ |
 | Tarugos | ❌ | ⚠️ con plantilla | ✅ | plantilla para tarugos | Pide agujeros alineados en las dos piezas. Un centrador de tarugo (marca en la otra pieza dónde va el agujero) puede hacer el trabajo de la plantilla; sin comprobar en triplay. | ❓ |
 | Minifix | ❌ (salvo perforado en maderería) | ⚠️ | ✅ | broca Forstner de 15 mm + plantilla | Para muebles desarmables (§8.4). | ❓ |
 | Ranura | ⚠️ solo si la maderería la hace [3] | ⚠️ con sierra circular y varias pasadas | ✅ | router o sierra de mesa | Profundidad: un tercio del espesor, nunca más de la mitad (ver [uniones y herrajes](uniones-y-herrajes.md)). | ⚠️ [3] |
