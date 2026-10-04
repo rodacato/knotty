@@ -25,15 +25,21 @@ export const GEOMETRY_SOURCES: Record<string, Source> = {
 }
 const NO_JOINT_WARNING = new Set(['door', 'drawer-front'])
 
+/** Two parts (groups, like a headboard) already joined may also touch at an edge without a joint: each piece is held by its own part. */
+function joinedParts(design: Design, byId: Map<string, Piece>, a: Piece, b: Piece): boolean {
+  const [partA, partB] = [a.group ?? null, b.group ?? null]
+  if (partA === partB || isDrawerPart(a) || isDrawerPart(b)) return false
+  return design.joints.some((u) => {
+    const [x, y] = [byId.get(u.a)?.group ?? null, byId.get(u.b)?.group ?? null]
+    return (x === partA && y === partB) || (x === partB && y === partA)
+  })
+}
+
 const near = (a: number, b: number) => Math.abs(a - b) <= CONTACT_TOLERANCE
 const low = (b: Box, axis: Axis) => b[`${axis}0`]
 const high = (b: Box, axis: Axis) => b[`${axis}1`]
 
-/**
- * Two panels of one role, in one plane, that meet edge to edge are a seam and not a joint: each is fixed to what holds it, and nothing between them lets
- * the sheets move apart with the weather. That holds only while something joined to both stands under the seam: no stretch of it left without a support
- * longer than a platform may span. A seam hanging in the air keeps its warning.
- */
+/** Coplanar panels of one role meeting edge to edge are a seam, not a joint, while supports joined to both leave no stretch of it longer than SEAM_SPAN. */
 function supportedSeam(design: Design, boxes: Map<string, Box>, c: Contact, a: Piece, b: Piece): boolean {
   if (a.role !== b.role || a.normal !== b.normal || !c.axis || c.axis === a.normal) return false
   const [boxA, boxB] = [boxes.get(a.id), boxes.get(b.id)]
@@ -158,7 +164,7 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     const a = byId.get(c.a)!
     const b = byId.get(c.b)!
     if ([a, b].some((p) => NO_JOINT_WARNING.has(p.role) || p.support === 'movable')) continue
-    if (!design.joints.some((u) => samePair(u, c.a, c.b)) && !supportedSeam(design, geo.boxes, c, a, b))
+    if (!design.joints.some((u) => samePair(u, c.a, c.b)) && !supportedSeam(design, geo.boxes, c, a, b) && !joinedParts(design, byId, a, b))
       warnings.push({ code: 'W_CONTACT_WITHOUT_JOINT', message: `"${c.a}" y "${c.b}" se tocan pero no tienen unión.`, data: { a: c.a, b: c.b } })
   }
 

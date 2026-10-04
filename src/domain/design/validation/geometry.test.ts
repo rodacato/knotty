@@ -94,3 +94,26 @@ describe('a seam between two panels over a shared support', () => {
   })
 })
 
+describe('two parts that are already joined', () => {
+  const part = (id: string, o: Partial<Parameters<typeof makePiece>[0]>) => makePiece({ id, name: id, role: 'back', material: 'T18', normal: 'x', ...o } as Parameters<typeof makePiece>[0])
+  const base = part('base', { role: 'bottom', normal: 'y', x: extent(mm(0), mm(400)), y: startAt(mm(0)), z: extent(mm(0), mm(400)) })
+  const head = part('head', { group: 'headboard', x: startAt(mm(400)), y: extent(mm(0), mm(600)), z: extent(mm(0), mm(400)) })
+  const flap = part('flap', { group: 'headboard', role: 'side', normal: 'z', x: extent(mm(0), mm(400)), y: extent(mm(0), mm(18)), z: startAt(mm(400)) })
+  const design = (joints: ReturnType<typeof makeJoint>[]): Design => ({ schema: 1, name: 'Dos partes', dimensions: { width: 418, height: 600, depth: 418 }, wallAnchored: false, notes: '', pieces: [base, head, flap], joints })
+  const touching = (d: Design) => validate(d).warnings.filter((w) => w.data?.a === 'base' && w.data?.b === 'flap')
+
+  it('may touch at an edge without a joint of their own', () => {
+    expect(touching(design([makeJoint('j-head-base', 'head', 'base', 'butt-screw')]))).toEqual([])
+  })
+
+  it('still warn when nothing joins the two parts', () => {
+    expect(touching(design([]))).toHaveLength(1)
+  })
+
+  it('do not excuse two pieces of the same part', () => {
+    const cap = part('cap', { group: 'headboard', role: 'top', normal: 'y', x: extent(mm(400), mm(418)), y: startAt(mm(600)), z: extent(mm(0), mm(400)) })
+    const d = { ...design([makeJoint('j-head-base', 'head', 'base', 'butt-screw')]), dimensions: { width: 418, height: 618, depth: 418 } }
+    d.pieces = [...d.pieces, cap]
+    expect(validate(d).warnings.some((w) => w.data?.a === 'head' && w.data?.b === 'cap')).toBe(true)
+  })
+})
