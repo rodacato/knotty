@@ -95,6 +95,7 @@ const ROOMS_OF_CODE: Record<string, Room[]> = {
   'GN-OTR-01': ['entry'],
   'KC-OTR-03': ['entry'],
   'KC-OTR-04': ['entry', 'living'],
+  'GN-LIB-02': ['bedroom'],
   'KC-ASI-02': ['dining', 'kitchen'],
 }
 

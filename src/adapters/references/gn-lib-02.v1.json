@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "code": "GN-LIB-02",
+  "id": "bed-back-bookcase",
+  "name": "Librero largo para cama",
+  "kind": "bookcase",
+  "notes": "Librero bajo y largo para poner detrás de una cama individual, contra el muro: abajo un tramo cerrado a la altura de la cama y arriba dos filas de nichos con una puerta al centro. Hace juego con la «Cama individual con librero de cabecera». Va anclado al muro y no se atornilla a la cama.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero largo para cama",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 1900, "height": 1000, "depth": 300 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 17,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "brad-nail-1": 84, "cup-hinge-35-inset": 2, "edge-banding-19": 22, "screw-8x2": 82, "white-glue": 3 }
+  }
+}
