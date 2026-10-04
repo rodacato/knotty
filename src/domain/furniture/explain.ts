@@ -22,6 +22,7 @@ const BASE = { kick: 'on a kick plate', floor: 'directly on the floor', legs: 'o
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 function cellText(cell: PlanCell): string {
+  if (cell.columns) return `split into ${plural(cell.columns.length, 'column')} [${cell.columns.map((c) => c.cells.map(cellText).join(', ')).join(' | ')}] (${cell.height})`
   const shelves = cell.shelves ? ` with ${plural(cell.shelves, 'shelf').replace('shelfs', 'shelves')}` : ''
   const body = {
     door: cell.doors && cell.doors > 1 ? `${cell.doors}-leaf door` : 'door',

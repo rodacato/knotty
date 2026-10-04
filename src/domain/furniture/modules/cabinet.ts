@@ -33,13 +33,22 @@ export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none', drawerCorners: 'screwed' }
 
-/** A cell of a plan: what the expert can say, plus `void`, a stretch of a column where nothing is built. Only a ficha or the editor writes it. */
+/**
+ * A cell of a plan: what the expert can say, plus two things only a ficha or the editor writes: `void`, a stretch of a column where nothing is built,
+ * and `columns`, a cell split into columns of its own, each with its cells, as deep as it takes.
+ */
 export const PlanCell = Cell.extend({
   content: z.enum([...Cell.shape.content.options, 'void']).describe('open: open; drawer: drawer; door: door; closed: covered, not opening; void: nothing is built there'),
+  get columns() {
+    return z.array(PlanColumn).optional().describe('The cell split into columns, left to right; its own content is not built')
+  },
 })
 export type PlanCell = z.infer<typeof PlanCell>
 export const PlanColumn = Column.extend({ cells: z.array(PlanCell).describe('Openings from bottom to top') })
 export type PlanColumn = z.infer<typeof PlanColumn>
+
+/** Every cell that holds something, those inside a split cell included, left to right and bottom to top. */
+export const leafCells = (columns: PlanColumn[]): PlanCell[] => columns.flatMap((c) => c.cells.flatMap((cell) => (cell.columns ? leafCells(cell.columns) : [cell])))
 
 const COLUMNS = 'Left to right; each one with its openings from bottom to top'
 /** The columns as the expert says them, without `void`: what it sees stays as it was. */
@@ -80,6 +89,11 @@ const voidsFit = (plan: CabinetPlan) => {
   const ranges = plan.columns.map(builtRange)
   return ranges.every((r) => r.count > 0 && r.count === r.hi - r.lo + 1 && r.lo <= 1 && r.last - r.hi <= 1) && ranges.some((r) => r.lo === 0) && ranges.some((r) => r.hi === r.last)
 }
+/** A split cell has at least two columns and is not a void; inside it there are no voids. */
+const nestedFit = (columns: PlanColumn[], outer: boolean): boolean =>
+  columns.every((c) => c.cells.length > 0 && c.cells.every((cell) => (cell.columns ? cell.content !== 'void' && cell.columns.length >= 2 && nestedFit(cell.columns, false) : outer || cell.content !== 'void')))
+const nestingFits = (plan: CabinetPlan) => nestedFit(plan.columns, true)
+const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
 const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
@@ -207,7 +221,7 @@ interface BuiltCabinet {
 function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const build = plan.construction
   const t = thicknessOf(catalog, plan.material)
-  const cells = plan.columns.flatMap((c) => c.cells)
+  const cells = leafCells(plan.columns)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
@@ -326,7 +340,8 @@ type Box = { x: Extent; y: Extent }
 
 /** A drawer a cell asks for, before it has its number. */
 interface AskedDrawer {
-  cell: [column: number, cell: number]
+  /** Where its cell is: column, cell, and on through the columns of a split cell. */
+  cell: number[]
   bounds: Pick<AddDrawer, 'left' | 'right' | 'bottom' | 'top'>
   overlay: Box
 }
@@ -405,48 +420,127 @@ function frontsOf(l: Layout, cell: PlanCell, o: Opening): Pick<Filling, 'pieces'
   }
 }
 
-/** One column of the grid: its fixed shelves between cells, and what each cell holds. */
-function column(l: Layout, i: number): Filling {
-  const { plan, n, half, build, ranges } = l
-  const { cells } = plan.columns[i]
-  const col = `c${i + 1}`
+/** A column to fill: where it stands and what it stacks. One of the grid runs between the bottom and the top; one inside a split cell, between that cell's boards. */
+interface ColumnSpec {
+  cells: PlanCell[]
+  /** Column, cell, column… from the plan's columns down to this one. */
+  path: number[]
+  id: string
+  /** For names: «1», or «1.2.1» inside a split cell. */
+  name: string
+  left: FaceRef
+  right: FaceRef
+  bottom: FaceRef
+  top: FaceRef
+  overX: Extent
+  overBottom: Position
+  overTop: Position
+  /** The share of the width between the sides it takes, for which half its doors hang from. */
+  span: [number, number]
+  /** Only a column of the grid may stop short of the floor or the top. */
+  range: ReturnType<typeof builtRange> | null
+}
+
+/** A column of the grid, as `fill` takes it. */
+function gridColumn(l: Layout, i: number): ColumnSpec {
+  const { plan, n, half } = l
+  return {
+    cells: plan.columns[i].cells,
+    path: [i],
+    id: `c${i + 1}`,
+    name: `${i + 1}`,
+    left: i === 0 ? 'side-left.x1' : `div-${i}.x1`,
+    right: i === n - 1 ? 'side-right.x0' : `div-${i + 1}.x0`,
+    bottom: 'bottom.y1',
+    top: 'top.y0',
+    // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
+    overX: extent(i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2), i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2)),
+    overBottom: ref('bottom.y0', GAP),
+    overTop: l.over ? ref('top.y0', -GAP) : ref('furniture.y1', -GAP),
+    span: [i === 0 ? 0 : l.columnEdges[i - 1], l.columnEdges[i]],
+    range: l.ranges[i],
+  }
+}
+
+/** One column: its fixed shelves between cells, and what each cell holds; a split cell gets its dividers and fills its own columns the same way. */
+function fill(l: Layout, spec: ColumnSpec): Filling {
+  const { half, build } = l
+  const { cells, id, range } = spec
   const m = cells.length
-  const left: FaceRef = i === 0 ? 'side-left.x1' : `div-${i}.x1`
-  const right: FaceRef = i === n - 1 ? 'side-right.x0' : `div-${i + 1}.x0`
-  // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
-  const overX = extent(i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2), i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2))
-  const middle = ((i === 0 ? 0 : l.columnEdges[i - 1]) + l.columnEdges[i]) / 2
+  const nested = spec.path.length > 1
+  const middle = (spec.span[0] + spec.span[1]) / 2
   const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
 
   const separators = shares(cells.map((c) => c.height)).slice(0, -1).map((share, j) => {
     // Next to a void the fixed shelf is the column's own floor or roof.
-    const edge = j + 1 === ranges[i].lo ? { name: `Piso de la columna ${i + 1}`, role: 'bottom' as const, load: 'medium' as const } : j === ranges[i].hi ? { name: `Techo de la columna ${i + 1}`, role: 'top' as const } : { name: `Entrepaño fijo ${n > 1 ? `${i + 1}.` : ''}${j + 1}`, role: 'shelf' as const }
-    return l.panel({ id: `${col}-sep-${j + 1}`, normal: 'y', x: extent(ref(left), ref(right)), y: startAt(partway('bottom.y1', 'top.y0', share, -half)), z: l.depth(), ...edge })
+    const edge =
+      range && j + 1 === range.lo
+        ? { name: `Piso de la columna ${spec.name}`, role: 'bottom' as const, load: 'medium' as const }
+        : range && j === range.hi
+          ? { name: `Techo de la columna ${spec.name}`, role: 'top' as const }
+          : { name: `Entrepaño fijo ${l.n > 1 || nested ? `${spec.name}.` : ''}${j + 1}`, role: 'shelf' as const }
+    return l.panel({ id: `${id}-sep-${j + 1}`, normal: 'y', x: extent(ref(spec.left), ref(spec.right)), y: startAt(partway(spec.bottom, spec.top, share, -half)), z: l.depth(), ...edge })
   })
 
   const filling: Filling = { pieces: separators, joints: [], hung: [], drawers: [] }
   cells.forEach((cell, j) => {
     if (cell.content === 'void') return
-    const bottom: FaceRef = j === 0 ? 'bottom.y1' : `${col}-sep-${j}.y1`
-    const top: FaceRef = j === m - 1 ? 'top.y0' : `${col}-sep-${j + 1}.y0`
-    const overBottom = j === 0 ? ref('bottom.y0', GAP) : ref(`${col}-sep-${j}.y0`, half + GAP / 2)
-    const overTop = j === m - 1 ? (l.over ? ref('top.y0', -GAP) : ref('furniture.y1', -GAP)) : ref(`${col}-sep-${j + 1}.y0`, half - GAP / 2)
+    const bottom: FaceRef = j === 0 ? spec.bottom : `${id}-sep-${j}.y1`
+    const top: FaceRef = j === m - 1 ? spec.top : `${id}-sep-${j + 1}.y0`
+    const overBottom = j === 0 ? spec.overBottom : ref(`${id}-sep-${j}.y0`, half + GAP / 2)
+    const overTop = j === m - 1 ? spec.overTop : ref(`${id}-sep-${j + 1}.y0`, half - GAP / 2)
+    const cellId = `${id}-h${j + 1}`
+
+    if (cell.columns) {
+      // A split cell: dividers between its boards, and each of its columns filled as any other.
+      const edges = shares(cell.columns.map((c) => c.width))
+      const k = cell.columns.length
+      const [s0, s1] = spec.span
+      filling.pieces.push(
+        ...edges.slice(0, -1).map((share, d) =>
+          l.panel({ id: `${cellId}-div-${d + 1}`, name: `Divisor ${d + 1} del hueco ${spec.name}.${j + 1}`, role: 'divider', normal: 'x', x: startAt(partway(spec.left, spec.right, share, -half)), y: extent(ref(bottom), ref(top)), z: l.depth() }),
+        ),
+      )
+      cell.columns.forEach((column, c) => {
+        const inner = fill(l, {
+          cells: column.cells,
+          path: [...spec.path, j, c],
+          id: `${cellId}-c${c + 1}`,
+          name: `${spec.name}.${j + 1}.${c + 1}`,
+          left: c === 0 ? spec.left : `${cellId}-div-${c}.x1`,
+          right: c === k - 1 ? spec.right : `${cellId}-div-${c + 1}.x0`,
+          bottom,
+          top,
+          overX: extent(c === 0 ? spec.overX.from! : ref(`${cellId}-div-${c}.x0`, half + GAP / 2), c === k - 1 ? spec.overX.to! : ref(`${cellId}-div-${c + 1}.x0`, half - GAP / 2)),
+          overBottom,
+          overTop,
+          span: [s0 + (c === 0 ? 0 : edges[c - 1]) * (s1 - s0), s0 + edges[c] * (s1 - s0)],
+          range: null,
+        })
+        filling.pieces.push(...inner.pieces)
+        filling.joints.push(...inner.joints)
+        filling.hung.push(...inner.hung)
+        filling.drawers.push(...inner.drawers)
+      })
+      return
+    }
+
     const opening: Opening = {
-      id: `${col}-h${j + 1}`,
-      label: `${n > 1 ? ` de la columna ${i + 1}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`,
-      left,
-      right,
+      id: cellId,
+      label: nested ? ` de la columna ${spec.name}${m > 1 ? ` (hueco ${j + 1})` : ''}` : `${l.n > 1 ? ` de la columna ${spec.name}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`,
+      left: spec.left,
+      right: spec.right,
       bottom,
       top,
-      overlay: { x: overX, y: extent(overBottom, overTop) },
-      inset: { x: extent(ref(left, GAP), ref(right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
+      overlay: { x: spec.overX, y: extent(overBottom, overTop) },
+      inset: { x: extent(ref(spec.left, GAP), ref(spec.right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
       hangsLeft,
     }
     const fronts = frontsOf(l, cell, opening)
     filling.pieces.push(...shelvesOf(l, cell, opening), ...fronts.pieces)
     filling.joints.push(...fronts.joints)
     filling.hung.push(...fronts.hung)
-    if (cell.content === 'drawer') filling.drawers.push({ cell: [i, j], bounds: { left, right, bottom, top }, overlay: opening.overlay })
+    if (cell.content === 'drawer') filling.drawers.push({ cell: [...spec.path, j], bounds: { left: spec.left, right: spec.right, bottom, top }, overlay: opening.overlay })
   })
   return filling
 }
@@ -496,13 +590,22 @@ function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet
   return { design: completeJoints(withPulls, catalog), notes }
 }
 
-/** The plan with some cells built as open ones: what a void with nothing to hang from, or a drawer that does not fit, becomes. */
-const opened = (plan: CabinetPlan, which: (cell: PlanCell, column: number, index: number) => boolean): CabinetPlan => ({
-  ...plan,
-  columns: plan.columns.map((col, i) => ({ ...col, cells: col.cells.map((cell, j) => (which(cell, i, j) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell)) })),
-})
+/** Columns with some cells built as open ones, split cells looked into: what a void with nothing to hang from, or a drawer that does not fit, becomes. */
+const openCells = (columns: PlanColumn[], which: (cell: PlanCell, path: number[]) => boolean, path: number[] = []): PlanColumn[] =>
+  columns.map((col, i) => ({
+    ...col,
+    cells: col.cells.map((cell, j) =>
+      cell.columns ? { ...cell, columns: openCells(cell.columns, which, [...path, i, j]) } : which(cell, [...path, i, j]) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell,
+    ),
+  }))
+const opened = (plan: CabinetPlan, which: (cell: PlanCell, path: number[]) => boolean): CabinetPlan => ({ ...plan, columns: openCells(plan.columns, which) })
 
 export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
+  // A void inside a split cell has nothing to hang from either: it is built as an open cell, and said.
+  if (!nestingFits(plan)) {
+    const built = buildCabinet(opened(plan, (cell, path) => path.length > 2 && cell.content === 'void'), catalog)
+    return { design: built.design, notes: [NESTING_MISPLACED, ...built.notes] }
+  }
   if (!voidsFit(plan)) {
     const built = buildCabinet(opened(plan, (cell) => cell.content === 'void'), catalog)
     return { design: built.design, notes: [VOIDS_MISPLACED, ...built.notes] }
@@ -513,7 +616,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const last = plan.columns.length - 1
   const ends = { left: l.onFloor[0] ? 'bottom.y0' : `${l.floorBoard(0)}.y0`, right: l.onFloor[last] ? 'bottom.y0' : `${l.floorBoard(last)}.y0` } as const
   const stand = l.onLegs ? legBase(plan, t, l.overlays ? t : 0, l.columnEdges.slice(0, -1).map((share) => t + share * (plan.dimensions.width - 2 * t)), ends) : { pieces: [], joints: [] }
-  const columns = plan.columns.map((_, i) => column(l, i))
+  const columns = plan.columns.map((_, i) => fill(l, gridColumn(l, i)))
   const asked = columns.flatMap((c) => c.drawers)
   const drawers = asked.map(({ bounds }, k): AddDrawer => ({ op: 'addDrawer', group: `drawer-${k + 1}`, name: `Cajón ${k + 1}`, ...bounds, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: l.backFace, material: plan.material, bottomMaterial: backBoard(catalog).id }))
 
@@ -538,14 +641,14 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const placed = addDrawers(design, drawers, catalog, withFronts)
   // A drawer that does not fit is left as an open cell; the carcass was set back for its front, so it is built again without it.
   const dropped = drawers.flatMap((d, k) => (placed.design.pieces.some((p) => p.id === `${d.group}-front`) ? [] : [asked[k].cell]))
-  if (dropped.length) return { design: buildCabinet(opened(plan, (_, i, j) => dropped.some(([a, b]) => a === i && b === j)), catalog).design, notes: placed.notes }
+  if (dropped.length) return { design: buildCabinet(opened(plan, (_, path) => dropped.some((cell) => cell.join('.') === path.join('.'))), catalog).design, notes: placed.notes }
 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung))
   return { design: done.design, notes: [...placed.notes, ...done.notes] }
 }
 
-const count = (plan: CabinetPlan, content: PlanCell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
+const count = (plan: CabinetPlan, content: PlanCell['content']) => leafCells(plan.columns).filter((c) => c.content === content).length
 const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
 
 function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
@@ -608,16 +711,23 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['aparador con una columna colgada', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [empty, cell('open', 0.6, 0)] }, { width: 1, cells: [cell('open', 1, 1)] }], { wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' } })],
     ['librero con una columna levantada', cabinet('Librero', { width: 880, height: 760, depth: 350 }, [{ width: 0.39, cells: [cell('open', 0.62, 0), cell('open', 0.38, 0)] }, { width: 0.61, cells: [{ ...empty, height: 0.37 }, cell('open', 0.63, 0)] }], { base: 'legs', wallMounted: false })],
   ]
+  // Split cells: a bookcase whose levels each have their own divider, and a chest whose rows split their drawers each their own way.
+  const split = (height: number, columns: PlanColumn[]): PlanCell => ({ height, content: 'open', shelves: null, doors: null, columns })
+  const row = (...widths: [number, PlanCell][]): PlanColumn[] => widths.map(([width, c]) => ({ width, cells: [c] }))
+  const withSplitCells: [string, CabinetPlan][] = [
+    ['librero con divisores por nivel', cabinet('Librero', { width: 900, height: 1500, depth: 300 }, [{ width: 1, cells: [split(0.25, row([0.34, cell('open', 1, 0)], [0.66, cell('open', 1, 0)])), split(0.25, row([0.5, cell('open', 1, 0)], [0.5, cell('open', 1, 0)])), split(0.25, row([0.42, cell('open', 1, 1)], [0.58, cell('open', 1, 0)])), split(0.25, row([0.66, cell('open', 1, 0)], [0.34, cell('open', 1, 0)]))] }], { base: 'floor' })],
+    ['cajonera con cajones que cruzan', cabinet('Cajonera', { width: 1150, height: 780, depth: 550 }, [{ width: 1, cells: [split(0.375, row([2, cell('drawer')], [1, cell('drawer')])), split(0.375, row([1, cell('drawer')], [2, cell('drawer')])), split(0.25, row([2, cell('drawer')], [1, cell('open', 1, 1)]))] }], { base: 'legs', wallMounted: true })],
+  ]
   const withTopFingers = ['librero', 'aparador con patas'].map((name): [string, CabinetPlan] => {
     const plan = list.find(([n]) => n === name)![1]
     return [`${name} con cubierta de dedos`, { ...plan, construction: { ...plan.construction, top: 'fingers' } }]
   })
-  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids]
+  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
 
-const hasCell = (p: CabinetPlan, test: (cell: PlanCell) => boolean) => p.columns.some((col) => col.cells.some(test))
+const hasCell = (p: CabinetPlan, test: (cell: PlanCell) => boolean) => leafCells(p.columns).some(test)
 /** A choice with nothing to decide stays out of the form. */
 const VISIBLE_WHEN: Partial<Record<keyof CabinetConstruction, (p: CabinetPlan) => boolean>> = {
   fronts: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
@@ -660,7 +770,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
 ]
 
 const drawersBuilt = (design: Design) => design.pieces.filter((p) => p.role === 'drawer-front').length
-const doorLeavesAsked = (plan: CabinetPlan) => plan.columns.flatMap((c) => c.cells).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
+const doorLeavesAsked = (plan: CabinetPlan) => leafCells(plan.columns).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
 
 /** What is quick in a cabinet: its measures, the counts of drawers, doors and open niches, and the few choices that move the cost or the look most. */
 const cabinetQuick: QuickSpec<CabinetPlan> = {
@@ -681,6 +791,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   rules: [
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
+    { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
   ],
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },

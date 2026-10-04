@@ -2,7 +2,7 @@ import { ASSUMPTIONS } from '../../assumptions'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
 import { checkBuilt } from '../quick'
-import type { CabinetPlan, PlanCell, PlanColumn } from './cabinet'
+import { leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
 import { KICK_HEIGHT, thicknessOf } from './common'
 import type { QuickCountKind } from './module'
 
@@ -12,7 +12,7 @@ import type { QuickCountKind } from './module'
 export type QuickCounts = Record<QuickCountKind, number>
 
 export const quickCounts = (plan: CabinetPlan): QuickCounts => {
-  const cells = plan.columns.flatMap((c) => c.cells)
+  const cells = leafCells(plan.columns)
   return { drawer: cells.filter((c) => c.content === 'drawer').length, door: cells.filter((c) => c.content === 'door').length, open: cells.filter((c) => c.content === 'open').length }
 }
 
@@ -36,7 +36,8 @@ const fresh = (kind: QuickCountKind, width: number): PlanCell =>
 
 /** The plan with one more cell of the kind, or null when no cell can give half: each half has to keep the lowest opening a drawer fits in. Open niches are split first, the tallest first. */
 function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
-  const candidates = plan.columns.flatMap((column, i) => column.cells.map((cell, j) => ({ i, j, cell, size: openingSize(plan, catalog, column, cell.height) })))
+  // A split cell or a void is not split again: what is inside a split cell is counted, not changed here.
+  const candidates = plan.columns.flatMap((column, i) => column.cells.flatMap((cell, j) => (cell.columns || cell.content === 'void' ? [] : [{ i, j, cell, size: openingSize(plan, catalog, column, cell.height) }])))
   const ordered = [...candidates].sort((a, b) => Number(b.cell.content === 'open') - Number(a.cell.content === 'open') || b.size.height - a.size.height)
   for (const { i, j, cell, size } of ordered) {
     const half = cell.height / 2
@@ -53,7 +54,7 @@ function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): Cabin
 function shrunk(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
   const found = plan.columns
     .flatMap((column, i) => column.cells.map((cell, j) => ({ i, j, cell, size: openingSize(plan, catalog, column, cell.height) })))
-    .filter((c) => c.cell.content === CONTENT[kind])
+    .filter((c) => !c.cell.columns && c.cell.content === CONTENT[kind])
     .sort((a, b) => a.size.height - b.size.height)[0]
   if (!found || cellCount(plan) === 1) return null
   const { i, j, cell } = found
