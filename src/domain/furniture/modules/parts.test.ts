@@ -40,6 +40,17 @@ describe.each(FURNITURE_KINDS)('the parts of %s', (kind) => {
   })
 })
 
+describe('how a part reads', () => {
+  it('agrees with how many there are', () => {
+    const cabinet = MODULES.cabinet
+    const [, plan] = cabinet.benchVariants().find(([name]) => name === 'alacena')!
+    const doors = cabinet.parts.list.find((p) => p.id === 'doors')!
+    const one = { ...plan, columns: [{ width: 1, cells: [{ height: 1, content: 'door' as const, shelves: 0, doors: 1 }] }] }
+    expect(doors.summary(one, '')).toBe('1 puerta sobrepuesta')
+    expect(doors.summary({ ...one, columns: [...one.columns, ...one.columns] }, '')).toBe('2 puertas sobrepuestas')
+  })
+})
+
 describe('the parts a touch opens', () => {
   const opened = (kind: keyof typeof MODULES, id: string, role = 'side') => (MODULES[kind] as unknown as FurnitureModule<FurniturePlan>).parts.ofPiece({ id, role } as never)
   it('follow what the piece is part of', () => {

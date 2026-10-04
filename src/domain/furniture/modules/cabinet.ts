@@ -843,6 +843,8 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
 const doorsOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'door').length
 const drawersOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'drawer').length
 const words = CABINET_LABELS.construction
+/** «Sobrepuestas» says many; one door is «sobrepuesta». */
+const agreeing = (n: number, plural: string) => (n === 1 ? plural.replace(/s$/, '') : plural)
 
 /** A cabinet seen from outside, and its cells inside, which the interior view edits board by board. */
 export const CABINET_PARTS: Parts<CabinetPlan> = {
@@ -871,7 +873,7 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
       side: 'outside',
       fields: ['construction.doors', 'construction.fronts', 'construction.hinges', 'construction.pulls'],
       joints: [],
-      summary: (p) => (doorsOf(p) ? `${counted(doorsOf(p), 'puerta', 'puertas')} ${lower(words.doors.options[p.construction.doors])}${p.construction.fronts === 'grooved' ? ', ranuradas' : ''}` : 'Sin puertas: agrégalas en los huecos'),
+      summary: (p) => (doorsOf(p) ? `${counted(doorsOf(p), 'puerta', 'puertas')} ${agreeing(doorsOf(p), lower(words.doors.options[p.construction.doors]))}${p.construction.fronts === 'grooved' ? ', ranuradas' : ''}` : 'Sin puertas: agrégalas en los huecos'),
     },
     {
       id: 'drawers',
