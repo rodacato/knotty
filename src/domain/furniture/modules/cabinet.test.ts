@@ -181,7 +181,7 @@ describe('construction variants', () => {
   const options: { [K in keyof CabinetConstruction]: CabinetConstruction[K][] } = {
     doors: ['overlay', 'inset'],
     drawerFronts: ['inset', 'overlay'],
-    top: ['between', 'over'],
+    top: ['between', 'over', 'fingers'],
     back: ['nailed', 'none'],
     shelves: ['movable', 'fixed'],
     fronts: ['flat', 'grooved'],
@@ -210,7 +210,7 @@ describe('construction variants', () => {
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
-    expect(notes.filter((n) => !n.startsWith('Muesca') && !n.startsWith('Esquinas de dedos'))).toEqual([])
+    expect(notes.filter((n) => !n.startsWith('Muesca') && !n.startsWith('Esquinas de dedos') && !n.startsWith('Cubierta con dedos'))).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {

@@ -21,7 +21,7 @@ import type { FurnitureModule, Labels, QuickSpec } from './module'
 export const CabinetConstruction = z.object({
   doors: z.enum(['overlay', 'inset']).describe('overlay: the door covers the front of the furniture; inset: the door sits inside the opening'),
   drawerFronts: z.enum(['inset', 'overlay']).describe('inset: the drawer front sits inside the opening; overlay: the front covers the front of the furniture'),
-  top: z.enum(['between', 'over']).describe('between: the top goes between the sides; over: the top sits on the sides'),
+  top: z.enum(['between', 'over', 'fingers']).describe('between: the top goes between the sides; over: the top sits on the sides; fingers: the top goes over the sides and the corners are cut as interlocking fingers'),
   back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
   shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
   fronts: z.enum(['flat', 'grooved']).default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
@@ -90,7 +90,7 @@ export const CABINET_LABELS = {
   construction: {
     doors: { label: 'Puertas', options: { overlay: 'Sobrepuestas', inset: 'Embutidas' } },
     drawerFronts: { label: 'Frentes de cajón', options: { inset: 'Embutidos', overlay: 'Sobrepuestos' } },
-    top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima' } },
+    top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima', fingers: 'Cubierta con dedos' } },
     back: { label: 'Trasera', options: { nailed: 'Clavada', none: 'Sin trasera' } },
     shelves: { label: 'Repisas', options: { movable: 'Móviles', fixed: 'Fijas' } },
     fronts: { label: 'Frentes', options: { flat: 'Lisos', grooved: 'Ranurados' } },
@@ -213,7 +213,9 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const onLegs = plan.base === 'legs'
   // On legs the box starts where they end: the sides and the back stand on the bottom's level, not on the floor.
   const boxFloor = onLegs ? ref('bottom.y0') : ref('furniture.y0')
-  const over = build.top === 'over'
+  const over = build.top !== 'between'
+  /** The outer sides run up through the top, and the corners where they meet it are cut as fingers. */
+  const fingered = build.top === 'fingers'
 
   // A column with a void stops short of the floor or of the top: the fixed shelf next to the void is its own floor or roof, and what ran from side to side comes in stretches.
   const n = plan.columns.length
@@ -224,6 +226,7 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const roofBoard = (i: number) => `c${i + 1}-sep-${ranges[i].hi + 1}`
   const leftWall = (i: number) => (i === 0 ? 'side-left' : `div-${i}`)
   const rightWall = (i: number) => (i === n - 1 ? 'side-right' : `div-${i + 1}`)
+  const roofLevel = (i: number): Position => (toTop[i] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(i)}.y1`))
   return {
     plan,
     catalog,
@@ -238,6 +241,7 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
     onLegs,
     boxFloor,
     over,
+    fingered,
     n,
     ranges,
     onFloor,
@@ -246,7 +250,9 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
     floorBoard,
     roofBoard,
     floorLevel: (i: number): Position => (onFloor[i] ? boxFloor : ref(`${floorBoard(i)}.y0`)),
-    roofLevel: (i: number): Position => (toTop[i] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(i)}.y1`)),
+    roofLevel,
+    /** Where a side stops: with fingers it runs up through the top. */
+    sideRoof: (i: number): Position => (fingered && toTop[i] ? ref('furniture.y1') : roofLevel(i)),
     between: (first: number, last: number) => extent(ref(`${leftWall(first)}.x1`), ref(`${rightWall(last)}.x0`)),
     /** A stretch of floor goes between the sides, and under the divider that ends it: that divider stands on it like the others. */
     floorSpan: (first: number, last: number) => extent(first === 0 ? ref('side-left.x1') : ref(`div-${first}.x0`), last === n - 1 ? ref('side-right.x0') : ref(`div-${last + 1}.x1`)),
@@ -286,14 +292,22 @@ function carcass(l: Layout): Piece[] {
       : panel({ id: nth('top', k), name: 'Techo', role: 'top', normal: 'y', x: l.between(first, last), y: endAt(ref('furniture.y1')), z: depth() })
   return [
     ...backs(l),
-    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(l.floorLevel(0), l.roofLevel(0)), z: depth() }),
-    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(l.floorLevel(n - 1), l.roofLevel(n - 1)), z: depth() }),
+    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(l.floorLevel(0), l.sideRoof(0)), z: depth() }),
+    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(l.floorLevel(n - 1), l.sideRoof(n - 1)), z: depth() }),
     ...(plan.base === 'kick' ? runs(l.onFloor).map(([first, last], k) => kick(first, last, k)) : []),
     ...runs(l.onFloor).map(([first, last], k) =>
       panel({ id: nth('bottom', k), name: 'Piso', role: 'bottom', normal: 'y', x: l.floorSpan(first, last), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', l.onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' }),
     ),
     ...runs(l.toTop).map(([first, last], k) => top(first, last, k)),
   ]
+}
+
+/** The two outer corners of a top with fingers: the sides go through the top, so they overlap it by its thickness. */
+function topJoints(l: Layout): Joint[] {
+  if (!l.fingered) return []
+  return runs(l.toTop).flatMap(([first, last], k) =>
+    ([['side-left', first === 0], ['side-right', last === l.n - 1]] as const).flatMap(([side, reaches]) => (reaches ? [makeJoint(`j-${nth('top', k)}-${side}`, side, nth('top', k), 'finger', [], { depth: l.t })] : [])),
+  )
 }
 
 function dividers(l: Layout): Piece[] {
@@ -454,7 +468,7 @@ function withExtras(l: Layout, design: Design): Design {
 /** The last of the build, which needs the pieces in place: the hinges of overlay doors, and what is cut into drawer boxes and fronts. */
 function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet {
   const { plan, catalog } = l
-  const { pulls, drawerCorners, fronts: frontStyle } = plan.construction
+  const { pulls, fronts: frontStyle } = plan.construction
   const fingers = plan.drawerFingers ?? DEFAULT_FINGERS
   const notes: string[] = []
   let design = built
@@ -469,12 +483,14 @@ function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet
     design = { ...design, joints: [...design.joints, ...declared] }
   }
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
-  const cutBoxes = geometry.ok && drawerCorners === 'fingers' ? withFingerCuts(design, geometry.value.boxes, fingers) : design
+  const cutBoxes = geometry.ok && design.joints.some((u) => u.type === 'finger') ? withFingerCuts(design, geometry.value.boxes, fingers) : design
   const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, { notch: pulls === 'notch', grooved: frontStyle === 'grooved' }) : cutBoxes
   const withPulls: Design = pulls === 'none' ? cutFronts : { ...cutFronts, pulls }
   if (pulls === 'notch' && fronts) notes.push(`Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
-  const fingered = fingerDrawers(design)
-  if (fingered) notes.push(`Esquinas de dedos en ${fingered} ${fingered === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
+  const fingeredTops = design.joints.filter((u) => u.type === 'finger' && u.b.startsWith('top')).length
+  if (fingeredTops) notes.push(`Cubierta con dedos en ${fingeredTops} ${fingeredTops === 1 ? 'esquina' : 'esquinas'}, ${fingers} por esquina: los costados suben hasta la cara de arriba. Se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
+  const withFingers = fingerDrawers(design)
+  if (withFingers) notes.push(`Esquinas de dedos en ${withFingers} ${withFingers === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   return { design: completeJoints(withPulls, catalog), notes }
 }
 
@@ -504,7 +520,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     wallAnchored: plan.wallMounted,
     notes: '',
     pieces: [...carcass(l), ...stand.pieces, ...dividers(l), ...columns.flatMap((c) => c.pieces)],
-    joints: [...stand.joints, ...columns.flatMap((c) => c.joints)],
+    joints: [...stand.joints, ...topJoints(l), ...columns.flatMap((c) => c.joints)],
   }
   const overlayOf = new Map(drawers.map((d, k) => [d.group, asked[k].overlay]))
   // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
@@ -587,7 +603,11 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['aparador con una columna colgada', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [empty, cell('open', 0.6, 0)] }, { width: 1, cells: [cell('open', 1, 1)] }], { wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' } })],
     ['librero con una columna levantada', cabinet('Librero', { width: 880, height: 760, depth: 350 }, [{ width: 0.37, cells: [cell('open', 0.5, 0), cell('open', 0.5, 0)] }, { width: 0.63, cells: [{ ...empty, height: 0.3 }, cell('open', 0.7, 0)] }], { base: 'legs', wallMounted: false })],
   ]
-  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withVoids]
+  const withTopFingers = ['librero', 'aparador con patas'].map((name): [string, CabinetPlan] => {
+    const plan = list.find(([n]) => n === name)![1]
+    return [`${name} con cubierta de dedos`, { ...plan, construction: { ...plan.construction, top: 'fingers' } }]
+  })
+  return [...list, ...withPulls, ...legHeights, ...withFingers, ...withTopFingers, ...withVoids]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -629,7 +649,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
-    stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer'), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
+    stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),
 ]
