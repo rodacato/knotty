@@ -4,7 +4,7 @@ import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { groupVariants, listFichas } from './variants'
+import { fichasOf, groupVariants, listFichas } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -35,5 +35,18 @@ describe('the bench drawer variant list', () => {
     expect(rows.map((r) => r.reference.code)).toEqual(testReferences.all().map((r) => r.code))
     expect(rows.length).toBeGreaterThan(5)
     for (const r of rows) expect(['ok', 'note', 'invalid']).toContain(r.verdict)
+  })
+
+  it('splits the fichas by the home screen, and keeps the ones it does not show apart', () => {
+    const rows = listFichas(testReferences.all(), testCatalog)
+    const offHome = fichasOf(rows, 'off-home')
+    const byCategory = (['bedroom', 'storage', 'tables', 'seating'] as const).flatMap((c) => fichasOf(rows, c))
+    expect(offHome.every((r) => !r.reference.home)).toBe(true)
+    expect(byCategory.length + offHome.length).toBe(fichasOf(rows, 'all').length)
+    expect(fichasOf(rows, 'featured').every((r) => r.reference.home?.featured)).toBe(true)
+  })
+
+  it('has a thumbnail for every ficha Knotty ships', () => {
+    expect(listFichas(testReferences.all(), testCatalog).filter((r) => !r.boxes).map((r) => r.reference.code)).toEqual([])
   })
 })

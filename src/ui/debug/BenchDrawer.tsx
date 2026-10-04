@@ -1,14 +1,14 @@
 import { ArrowSquareOut, CaretDown, CaretRight, CheckCircle, DownloadSimple, Play, Stop, WarningCircle, XCircle } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { moduleName } from '../../domain/furniture/modules/plan'
-import { groupVariants, listFichas, type FichaRow, type Verdict, type VariantRow } from '../lab/variants'
+import { groupVariants, type Verdict, type VariantRow } from '../lab/variants'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
 import { CaseList } from './CaseList'
 import { useCaseRun } from './useCaseRun'
 
-// «Banco de pruebas»: every variant and ficha is a door into the Studio on a throwaway design, and the expert's fixed cases run from the same place.
+// «Banco de pruebas»: every variant is a door into the Studio on a throwaway design, and the expert's fixed cases run from the same place.
 
 const ICON: Record<Verdict, { icon: typeof CheckCircle; className: string; label: string }> = {
   ok: { icon: CheckCircle, className: 'text-slate', label: 'Limpia' },
@@ -34,13 +34,12 @@ function Row({ selected, verdict, children, onClick }: { selected: boolean; verd
 }
 
 export function BenchDrawer() {
-  const { bench, references, catalog } = useServices()
+  const { bench } = useServices()
   const sandboxed = useStore((s) => s.sandboxed)
   const sandboxExample = useStore((s) => s.sandboxExample)
   const sandboxState = useStore((s) => s.sandboxState)
   const { selected, results, running, expert, run, stop, toggle, toggleAll, download } = useCaseRun()
   const [groups, setGroups] = useState(() => groupVariants(bench))
-  const fichas = useMemo(() => listFichas(references.all(), catalog), [references, catalog])
   const [opened, setOpened] = useState<string | null>(null)
   const [folded, setFolded] = useState<Set<string>>(() => new Set(groups.map((g) => g.module)))
   const rows = groups.flatMap((g) => g.variants)
@@ -50,10 +49,6 @@ export function BenchDrawer() {
   const openVariant = (module: string, row: VariantRow) => {
     setOpened(`${module}/${row.variant}`)
     sandboxExample({ name: row.plan.name, plan: row.plan, notes: '' })
-  }
-  const openFicha = ({ reference: r }: FichaRow) => {
-    setOpened(`ficha/${r.code}`)
-    sandboxExample({ name: r.name, plan: r.plan, notes: r.notes, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) }, r.code)
   }
 
   return (
@@ -107,19 +102,6 @@ export function BenchDrawer() {
             </div>
           )
         })}
-      </section>
-
-      <section className="flex flex-col gap-1 border-t border-line px-3 py-3">
-        <h3 className="px-1 text-sm font-semibold">Fichas</h3>
-        <p className="px-1 pb-1 text-xs leading-snug text-graphite-2">Los muebles de referencia de Knotty. Ábrelos, mejóralos con el experto y exporta el plan.</p>
-        {fichas.map((f) => (
-          <Row key={f.reference.code} selected={current === `ficha/${f.reference.code}`} verdict={f.verdict} onClick={() => openFicha(f)}>
-            <span className="flex-1">{f.reference.name}</span>
-            <span className="font-mono text-[11px] font-normal text-graphite-2">
-              {f.reference.code} v{f.reference.version}
-            </span>
-          </Row>
-        ))}
       </section>
 
       <section className="flex flex-col gap-2 border-t border-line px-3 py-3">

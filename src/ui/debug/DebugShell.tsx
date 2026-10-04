@@ -1,19 +1,21 @@
-import { Flask, TerminalWindow } from '@phosphor-icons/react'
+import { Books, Flask, TerminalWindow } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { BenchDrawer } from './BenchDrawer'
 import { Drawer } from './Drawer'
+import { FichasDrawer } from './FichasDrawer'
 import { captureGlobalErrors, instrumentStore } from './instrument'
 import { KonamiTrail } from './KonamiTrail'
 import { LogDrawer } from './LogDrawer'
 
 // The debug tools: hidden until asked for (Konami code, Ctrl+Shift+D, settings or ?debug), they are a bar on the left of the whole app with one drawer per tool.
 
-type Tool = 'bench' | 'log'
+type Tool = 'bench' | 'fichas' | 'log'
 
 const TOOLS: { id: Tool; label: string; icon: ReactNode }[] = [
   { id: 'bench', label: 'Banco de pruebas', icon: <Flask size={20} /> },
+  { id: 'fichas', label: 'Fichas', icon: <Books size={20} /> },
   { id: 'log', label: 'Entrañas de la madera', icon: <TerminalWindow size={20} /> },
 ]
 
@@ -77,6 +79,9 @@ export function DebugShell({ children }: { children: ReactNode }) {
             </nav>
             <Drawer open={open === 'bench'} onClose={() => show(null)} label="el banco de pruebas" width="md:w-[380px]">
               {seen.has('bench') && <BenchDrawer />}
+            </Drawer>
+            <Drawer open={open === 'fichas'} onClose={() => show(null)} label="las fichas" width="md:w-[420px]">
+              {seen.has('fichas') && <FichasDrawer />}
             </Drawer>
             <Drawer open={open === 'log'} onClose={() => show(null)} label="las entrañas de la madera" width="md:w-[480px]">
               {seen.has('log') && <LogDrawer open={open === 'log'} />}
