@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
-import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, type CabinetConstruction, type PlanCell } from './cabinet'
+import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
 import { quickCounts } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
@@ -451,5 +451,79 @@ describe('a void in a column', () => {
   it('is not counted as a niche, and reads as nothing built', () => {
     expect(quickCounts(hanging())).toEqual({ drawer: 0, door: 0, open: 3 })
     expect(explain({ plan: hanging() })).toContain('nothing built (0.3)')
+  })
+})
+
+describe('a cell split into columns', () => {
+  const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
+  const drawer = (height = 1): PlanCell => ({ height, content: 'drawer', shelves: null, doors: null })
+  const door = (height = 1, doors = 1): PlanCell => ({ height, content: 'door', shelves: 0, doors })
+  const split = (height: number, columns: PlanColumn[]): PlanCell => ({ height, content: 'open', shelves: null, doors: null, columns })
+  const col = (width: number, cells: PlanCell[]): PlanColumn => ({ width, cells })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, has: (id: string) => design.pieces.some((x) => x.id === id) }
+  }
+  // A bookcase whose levels each put their divider in another place.
+  const levels = plan({ name: 'Librero', dimensions: { width: 900, height: 1500, depth: 300 }, base: 'floor', columns: [col(1, [split(0.5, [col(0.34, [open()]), col(0.66, [open()])]), split(0.5, [col(0.66, [open()]), col(0.34, [open()])])])] })
+
+  it('puts the divider of each level where that level asks, between the boards above and below it', () => {
+    const { box } = built(levels)
+    const span = box('side-right').x0 - box('side-left').x1
+    const at = (id: string) => (box(id).x0 + box(id).x1) / 2 - box('side-left').x1
+    expect(at('c1-h1-div-1') / span).toBeCloseTo(0.34, 1)
+    expect(at('c1-h2-div-1') / span).toBeCloseTo(0.66, 1)
+    expect(box('c1-h1-div-1').y0).toBe(box('bottom').y1)
+    expect(box('c1-h1-div-1').y1).toBe(box('c1-sep-1').y0)
+    expect(box('c1-h2-div-1').y0).toBe(box('c1-sep-1').y1)
+    expect(box('c1-h2-div-1').y1).toBe(box('top').y0)
+  })
+
+  it('a drawer across two columns is a cell left whole under one that is split', () => {
+    const { a, box, has } = built(
+      plan({ name: 'Aparador', dimensions: { width: 1900, height: 700, depth: 450 }, base: 'legs', wallMounted: true, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' }, columns: [col(0.77, [drawer(0.28), split(0.72, [col(0.66, [door(1, 2)]), col(0.34, [open()])])]), col(0.23, [door()])] }),
+    )
+    expect(a.findings).toEqual([])
+    expect(a.warnings).toEqual([])
+    const front = box('drawer-1-front')
+    // The front crosses where the divider of the split cell above it stands.
+    expect(front.x0).toBeLessThan(box('c1-h2-div-1').x0)
+    expect(front.x1).toBeGreaterThan(box('c1-h2-div-1').x1)
+    expect(has('c1-h2-c1-h1-door-left') && has('c1-h2-c1-h1-door-right') && has('c2-h1-door')).toBe(true)
+  })
+
+  it('rows split each their own way, as a chest of drawers whose wide drawers cross', () => {
+    const chest = plan({ name: 'Cajonera', dimensions: { width: 1150, height: 780, depth: 550 }, base: 'legs', wallMounted: true, columns: [col(1, [split(0.4, [col(2, [drawer()]), col(1, [drawer()])]), split(0.35, [col(1, [drawer()]), col(2, [drawer()])]), split(0.25, [col(2, [drawer()]), col(1, [open(1, 1)])])])] })
+    const { a, design } = built(chest)
+    expect(a.findings).toEqual([])
+    expect(design.pieces.filter((p) => p.role === 'drawer-front')).toHaveLength(5)
+    expect(quickCounts(chest)).toEqual({ drawer: 5, door: 0, open: 1 })
+    expect(leafCells(chest.columns)).toHaveLength(6)
+  })
+
+  it('a plan with no split cell builds the same pieces by the same ids', () => {
+    expect(buildCabinet(PLANS.tvStand, testCatalog).design.pieces.map((p) => p.id)).toEqual(buildCabinet(structuredClone(PLANS.tvStand), testCatalog).design.pieces.map((p) => p.id))
+    expect(buildCabinet(PLANS.tvStand, testCatalog).design.pieces.some((p) => /-h\d+-c\d+/.test(p.id))).toBe(false)
+  })
+
+  it('has two columns at least, is not a void, and holds no void inside', () => {
+    const ok = (columns: PlanColumn[]) => FurniturePlan.safeParse({ ...levels, columns }).success
+    expect(ok(levels.columns)).toBe(true)
+    expect(ok([col(1, [split(1, [col(1, [open()])])])])).toBe(false)
+    expect(ok([col(1, [{ ...split(1, [col(1, [open()]), col(1, [open()])]), content: 'void' }]), col(1, [open()])])).toBe(false)
+    expect(ok([col(1, [split(1, [col(1, [{ ...open(0.5), content: 'void' }, open(0.5)]), col(1, [open()])])])])).toBe(false)
+  })
+
+  it('a void inside a split cell is built as an open cell, and the person is told', () => {
+    const { notes, a } = built({ ...levels, columns: [col(1, [split(1, [col(1, [{ ...open(0.5), content: 'void' }, open(0.5)]), col(1, [open()])])])] })
+    expect(a.valid).toBe(true)
+    expect(notes[0]).toMatch(/^Un hueco dividido en columnas/)
+  })
+
+  it('is not something the expert can say, and reads as split', () => {
+    expect('columns' in ExpertColumns.parse(levels.columns)[0].cells[0]).toBe(false)
+    expect(explain({ plan: levels })).toContain('split into 2 columns')
   })
 })

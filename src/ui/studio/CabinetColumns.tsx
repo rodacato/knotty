@@ -14,21 +14,26 @@ const percent = (value: number, all: number[]) => Math.round((value / (all.reduc
 function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell: PlanCell; heights: number[]; index: number; canBeVoid: boolean; onChange: (c: PlanCell) => void; onRemove: (() => void) | null }) {
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-xl bg-kraft/60 px-2 py-1.5">
-      <Select
-        size="sm"
-        aria-label={`Hueco ${index + 1}`}
-        value={cell.content}
-        onChange={(e) => {
-          const content = e.target.value as PlanCell['content']
-          onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
-        }}
-      >
-        {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (
-          <option key={id} value={id}>
-            {text}
-          </option>
-        ))}
-      </Select>
+      {cell.columns ? (
+        // A split cell is shown, not edited: its columns come from the ficha.
+        <span className="text-xs text-graphite-2">Dividido en {cell.columns.length} columnas</span>
+      ) : (
+        <Select
+          size="sm"
+          aria-label={`Hueco ${index + 1}`}
+          value={cell.content}
+          onChange={(e) => {
+            const content = e.target.value as PlanCell['content']
+            onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
+          }}
+        >
+          {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (
+            <option key={id} value={id}>
+              {text}
+            </option>
+          ))}
+        </Select>
+      )}
       <label className="flex items-center gap-1 text-xs text-graphite-2">
         alto
         <Input
@@ -43,12 +48,12 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
         />
         %
       </label>
-      {(cell.content === 'open' || cell.content === 'door') && (
+      {!cell.columns && (cell.content === 'open' || cell.content === 'door') && (
         <span className="flex items-center gap-1 text-xs text-graphite-2">
           repisas <Stepper value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => onChange({ ...cell, shelves })} label="repisas" />
         </span>
       )}
-      {cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
+      {!cell.columns && cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
       {onRemove && (
         <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-rust">
           <Trash size={14} />

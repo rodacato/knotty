@@ -5,6 +5,7 @@ import { estimatePurchase } from '../../domain/materials/purchase'
 import { reviewViability } from '../../domain/checks/viability/viability'
 import type { Design, Dimensions } from '../../domain/design/schema'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import { leafCells } from '../../domain/furniture/modules/cabinet'
 import type { Catalog } from '../../domain/materials/catalog'
 import { currentDesign, currentVersion, type DesignState } from '../../domain/session/state'
 import type { AfterRequest, BenchCase, Expect, Outcome, Part, Range } from './cases'
@@ -71,7 +72,7 @@ export interface Scenario {
 
 /** Doors and drawers by their pieces; open openings from the cells of a cabinet's plan. */
 export function countParts(design: Design, plan: FurniturePlan | null): Record<Part, number | null> {
-  const open = plan?.kind === 'cabinet' ? plan.columns.flatMap((c) => c.cells).filter((c) => c.content === 'open').length : null
+  const open = plan?.kind === 'cabinet' ? leafCells(plan.columns).filter((c) => c.content === 'open').length : null
   return { ...designParts(design), open }
 }
 
