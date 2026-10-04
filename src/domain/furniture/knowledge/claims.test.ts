@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { DESIGN_KINDS, type DesignKind } from '../../design/kind'
 import { ROOT, sourceProblem } from '../../sources.test-util'
@@ -180,13 +180,18 @@ describe('the registry stays out of reach', () => {
     expect(users.map((f) => relative(SRC, f))).toEqual([])
   })
 
-  it('names no course, author or lesson coordinate in the tracked file', () => {
+  it('names no lesson coordinate in the tracked file', () => {
     const text = readFileSync(claimFile, 'utf8')
-    const lower = text.toLowerCase()
     expect(text).not.toMatch(/\bL\d{2}\b/)
     expect(text).not.toMatch(/\b\d{1,2}:\d{2}\b/)
     expect(text).not.toMatch(/\b(lesson|lecci[oó]n)\s*\d+/i)
-    const names = ['domest', 'contexto-carp', 'maderist', 'carpinteria profes', 'diseno y construc', 'en contrachapado de']
-    expect(names.filter((fragment) => lower.includes(fragment))).toEqual([])
+  })
+
+  // The names of the courses and authors are private, so they are not written here: they are read from a file outside git, one fragment per line, when it is on this machine.
+  const namesFile = resolve(ROOT, process.env.KNOTTY_PRIVATE_NAMES ?? 'private/leak-names.txt')
+  const privateNames = existsSync(namesFile) ? readFileSync(namesFile, 'utf8').split('\n').map((line) => line.trim().toLowerCase()).filter(Boolean) : []
+  it.skipIf(!privateNames.length)('names no private course or author in the tracked file', () => {
+    const lower = readFileSync(claimFile, 'utf8').toLowerCase()
+    expect(privateNames.filter((fragment) => lower.includes(fragment)).length, 'a private name is in the claims file').toBe(0)
   })
 })
