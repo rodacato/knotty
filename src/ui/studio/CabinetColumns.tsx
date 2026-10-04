@@ -24,7 +24,9 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
           value={cell.content}
           onChange={(e) => {
             const content = e.target.value as PlanCell['content']
-            onChange({ ...cell, content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
+            // A void builds nothing, so it has no back of its own to keep.
+            const { back, ...rest } = cell
+            onChange({ ...(content === 'void' ? rest : { ...rest, back }), content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
           }}
         >
           {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (
@@ -52,6 +54,10 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
         <span className="flex items-center gap-1 text-xs text-graphite-2">
           repisas <Stepper value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => onChange({ ...cell, shelves })} label="repisas" />
         </span>
+      )}
+      {cell.back !== undefined && (
+        // A back by cell is shown, not edited: it comes from the ficha.
+        <span className="text-xs text-graphite-2">{cell.back ? 'Con trasera' : 'Sin trasera'}</span>
       )}
       {!cell.columns && cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
       {onRemove && (
