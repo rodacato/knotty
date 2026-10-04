@@ -374,20 +374,30 @@ describe('a void in a column', () => {
     expect(a.warnings).toEqual([])
   })
 
-  // A raised box at an end, over a leg frame that does not reach it: only the top holds it.
-  const raisedOnLegs = (wallMounted: boolean) =>
-    plan({ name: 'Librero', dimensions: { width: 880, height: 760, depth: 350 }, base: 'legs', wallMounted, columns: [{ width: 0.37, cells: [open(0.5), open(0.5)] }, { width: 0.63, cells: [empty(0.3), open(0.7)] }] })
+  // A box at an end raised over a void: on the floor with nothing under it, only the top holds it; on legs, its legs go up to it.
+  const raised = (base: CabinetPlan['base'], wallMounted: boolean) =>
+    plan({ name: 'Librero', dimensions: { width: 880, height: 760, depth: 350 }, base, wallMounted, columns: [{ width: 0.39, cells: [open(0.62), open(0.38)] }, { width: 0.61, cells: [empty(0.37), open(0.63)] }] })
 
   it('a box at an end that reaches neither the floor nor anything under it is critical: it hangs from the top', () => {
-    const { a, box } = built(raisedOnLegs(false))
-    expect(a.warnings).toEqual([])
-    expect(box('c2-sep-1').y0).toBeGreaterThan(box('bottom').y1)
-    expect(a.findings.map((f) => [f.severity, f.code, f.check, f.pieces])).toEqual([['critical', 'R7_BASE', 'base.hanging', ['side-right', 'c2-sep-1']]])
-    expect(a.findings[0].alternatives.map((x) => x.key)).toEqual(['anchor-to-wall'])
+    const { a } = built(raised('floor', false))
+    expect(a.findings.filter((f) => f.check === 'base.hanging').map((f) => [f.severity, f.pieces])).toEqual([['critical', ['side-right', 'c2-sep-1']]])
+    expect(a.findings.find((f) => f.check === 'base.hanging')!.alternatives.map((x) => x.key)).toEqual(['anchor-to-wall'])
   })
 
   it('anchored to the wall, the wall holds that box and there is nothing to say', () => {
-    expect(built(raisedOnLegs(true)).a.findings).toEqual([])
+    expect(built(raised('floor', true)).a.findings.filter((f) => f.check === 'base.hanging')).toEqual([])
+  })
+
+  it('on legs, the legs of that end go up to the floor of its box, with their side apron, and it stands', () => {
+    const { a, box } = built(raised('legs', false))
+    expect(a.findings).toEqual([])
+    expect(a.warnings).toEqual([])
+    expect(box('leg-front-right-1').y1).toBe(box('c2-sep-1').y0)
+    expect(box('leg-back-right-1').y1).toBe(box('c2-sep-1').y0)
+    expect(box('apron-right').y1).toBe(box('c2-sep-1').y0)
+    // The other end and the front apron stay at the level of the floor that reaches the bottom.
+    expect(box('leg-front-left-1').y1).toBe(box('bottom').y0)
+    expect(box('apron-front').y1).toBe(box('bottom').y0)
   })
 
   it('a column that stops short between two that stand is carried by them, and is not a hanging box', () => {
