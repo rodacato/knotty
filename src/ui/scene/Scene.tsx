@@ -205,7 +205,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             onSelect={select}
           />
         ))}
-        <Hardware design={design} geo={geo} offsets={pushes} swings={swings} selected={selection} hidden={hidden} reduced={reduced} />
+        <Hardware design={design} geo={geo} catalog={catalog} offsets={pushes} swings={swings} selected={selection} hidden={hidden} apart={exploded} reduced={reduced} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}

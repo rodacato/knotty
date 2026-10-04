@@ -4,6 +4,8 @@ import { testCatalog } from '../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../furniture/fixtures/bookcase'
 import { buildCabinet, DEFAULT_CONSTRUCTION } from '../furniture/modules/cabinet'
 import { applyOperations } from '../editing/operations/apply'
+import { exampleNightstand } from '../furniture/fixtures/nightstand'
+import { estimatePurchase } from '../materials/purchase'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {
@@ -13,7 +15,7 @@ describe('hardware to draw', () => {
     ], testCatalog)
     if (!r.ok) throw new Error('no drawer')
     const geo = analyze(r.value.design, testCatalog).geo!
-    const runners = hardwareParts(r.value.design, geo.boxes).filter((h) => h.kind === 'runner')
+    const runners = hardwareParts(r.value.design, geo.boxes, testCatalog).filter((h) => h.kind === 'runner')
     expect(runners).toHaveLength(2)
     const left = runners[0] as Extract<(typeof runners)[number], { kind: 'runner' }>
     const side = geo.boxes.get('drawer-1-side-left')!
@@ -28,7 +30,7 @@ describe('hardware to draw', () => {
       testCatalog,
     )
     const geo = analyze(design, testCatalog).geo!
-    const hinges = hardwareParts(design, geo.boxes).filter((h) => h.kind === 'hinge')
+    const hinges = hardwareParts(design, geo.boxes, testCatalog).filter((h) => h.kind === 'hinge')
     expect(hinges).toHaveLength(4)
     for (const h of hinges) {
       if (h.kind !== 'hinge') continue
@@ -45,7 +47,7 @@ describe('hardware to draw', () => {
     const body = design.joints.find((u) => u.type === 'butt-screw' && design.pieces.find((p) => p.id === u.a)?.role === 'side')!
     const plugged = { ...design, joints: design.joints.map((u) => (u.id === body.id ? { ...u, type: 'plugged-dowel' as const } : u)) }
     const geo = analyze(plugged, testCatalog).geo!
-    const plugs = hardwareParts(plugged, geo.boxes).filter((h) => h.kind === 'plug')
+    const plugs = hardwareParts(plugged, geo.boxes, testCatalog).filter((h) => h.kind === 'plug')
     expect(plugs.length).toBeGreaterThanOrEqual(2)
     const side = geo.boxes.get(body.a)!
     const other = geo.boxes.get(body.b)!
@@ -70,8 +72,80 @@ describe('hardware to draw', () => {
     )
     const plugged = { ...design, joints: design.joints.map((u) => (u.type === 'butt-screw' || u.type === 'glue-nail' ? { ...u, type: 'plugged-dowel' as const } : u)) }
     const geo = analyze(plugged, testCatalog).geo!
-    const owners = new Set(hardwareParts(plugged, geo.boxes).flatMap((h) => (h.kind === 'plug' ? [h.owner] : [])))
+    const owners = new Set(hardwareParts(plugged, geo.boxes, testCatalog).flatMap((h) => (h.kind === 'plug' ? [h.owner] : [])))
     expect([...owners].filter((id) => id.startsWith('leg-'))).toEqual([])
     expect(owners.size).toBeGreaterThan(0)
+  })
+
+  it('draws as many screws, dowels and shelf pins as the shopping list counts', () => {
+    for (const design of [exampleBookcase, exampleNightstand]) {
+      const geo = analyze(design, testCatalog).geo!
+      const parts = hardwareParts(design, geo.boxes, testCatalog)
+      const bought = (role: string) => estimatePurchase(design, geo, testCatalog).hardware.filter((line) => line.hardware.role === role).reduce((n, line) => n + line.count, 0)
+      expect(parts.filter((p) => p.kind === 'screw')).toHaveLength(bought('screw'))
+      expect(parts.filter((p) => p.kind === 'dowel')).toHaveLength(bought('dowel'))
+      expect(parts.filter((p) => p.kind === 'shelf-pin')).toHaveLength(bought('shelf-pin'))
+      expect(parts.filter((p) => p.kind === 'hole')).toHaveLength(bought('screw') + bought('dowel'))
+    }
+  })
+  it('runs a screw from the outside face of the piece it goes through into the other, and marks its hole there', () => {
+    const geo = analyze(exampleBookcase, testCatalog).geo!
+    const u = exampleBookcase.joints.find((j) => j.type === 'butt-screw' && geo.boxes.get(j.a)!.x1 - geo.boxes.get(j.a)!.x0 < 30)!
+    const [through, into] = [geo.boxes.get(u.a)!, geo.boxes.get(u.b)!]
+    const parts = hardwareParts({ ...exampleBookcase, joints: [u] }, geo.boxes, testCatalog)
+    const screws = parts.filter((p) => p.kind === 'screw')
+    const length = testCatalog.hardware.find((h) => h.id === u.hardware[0].hardwareId)!.length!
+    expect(screws.length).toBeGreaterThanOrEqual(2)
+    for (const s of screws) {
+      if (s.kind !== 'screw') continue
+      expect(s.owner).toBe(u.a)
+      expect(s.axis).toBe('x')
+      expect(s.length).toBe(length)
+      const [head, tip] = [s.center[0] + (s.outward * length) / 2, s.center[0] - (s.outward * length) / 2]
+      expect(head).toBeCloseTo(s.outward === 1 ? through.x1 : through.x0, 5)
+      expect(tip).toBeGreaterThan(into.x0)
+      expect(tip).toBeLessThan(into.x1)
+    }
+    const holes = parts.filter((p) => p.kind === 'hole')
+    expect(holes).toHaveLength(screws.length)
+    for (const h of holes) {
+      if (h.kind !== 'hole') continue
+      expect(h.owner).toBe(u.b)
+      expect([into.x0, into.x1]).toContain(h.center[0])
+    }
+  })
+  it('leaves a dowel in the piece that takes it, sticking out no deeper than two thirds of the board it enters', () => {
+    const geo = analyze(exampleNightstand, testCatalog).geo!
+    const u = exampleNightstand.joints.find((j) => j.id === 'j-shelf-left')!
+    const [shelf, side] = [geo.boxes.get(u.a)!, geo.boxes.get(u.b)!]
+    const parts = hardwareParts({ ...exampleNightstand, joints: [u] }, geo.boxes, testCatalog)
+    const dowels = parts.filter((p) => p.kind === 'dowel')
+    expect(dowels).toHaveLength(3)
+    for (const d of dowels) {
+      if (d.kind !== 'dowel') continue
+      expect(d.owner).toBe(u.b)
+      const [lo, hi] = [d.center[0] - d.length / 2, d.center[0] + d.length / 2]
+      expect(lo).toBeGreaterThanOrEqual(side.x0 + (side.x1 - side.x0) / 3 - 1e-6)
+      expect(hi).toBeGreaterThan(shelf.x0)
+      expect(d.center[1]).toBeCloseTo((shelf.y0 + shelf.y1) / 2, 5)
+      expect(d.center[2]).toBeGreaterThan(shelf.z0)
+      expect(d.center[2]).toBeLessThan(shelf.z1)
+    }
+    expect(parts.filter((p) => p.kind === 'hole' && p.owner === u.a)).toHaveLength(3)
+  })
+  it('puts the pins of a movable shelf in the side, just under the shelf', () => {
+    const geo = analyze(exampleBookcase, testCatalog).geo!
+    const u = exampleBookcase.joints.find((j) => j.type === 'shelf-pin')!
+    const [shelf, side] = [geo.boxes.get(u.a)!, geo.boxes.get(u.b)!]
+    const pins = hardwareParts({ ...exampleBookcase, joints: [u] }, geo.boxes, testCatalog)
+    expect(pins).toHaveLength(2)
+    for (const p of pins) {
+      if (p.kind !== 'shelf-pin') throw new Error('not a pin')
+      expect(p.owner).toBe(u.b)
+      expect(p.center[1] + p.diameter / 2).toBeCloseTo(shelf.y0, 5)
+      const [lo, hi] = [p.center[0] - p.length / 2, p.center[0] + p.length / 2]
+      expect(lo < side.x1 && hi > side.x0).toBe(true)
+      expect(lo < shelf.x1 && hi > shelf.x0).toBe(true)
+    }
   })
 })
