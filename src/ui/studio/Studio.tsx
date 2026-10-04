@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
@@ -55,52 +55,76 @@ function useDesktop() {
   return matches
 }
 
-/** Editing is a group of its own (UI-74): while editing, how the furniture shows is the edit's, so the states to look at it give way. Only a plan with parts inside has an inside to edit. */
-function SceneBar({ inside }: { inside: boolean }) {
+const pill = 'pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur'
+const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+
+/** Looking at the furniture (UI-75): the camera in one native menu, and how the furniture shows as icons; the states give way while editing, which decides it. */
+function LookBar() {
   const view = useStore((s) => s.view.name)
   const viewFrom = useStore((s) => s.viewFrom)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
   const editing = useStore((s) => s.editing)
-  const edit = useStore((s) => s.edit)
-  const sides: { id: EditSide; name: string; Icon: Icon }[] = [{ id: 'outside', name: 'Exterior', Icon: PencilSimple }, ...(inside ? [{ id: 'inside' as const, name: 'Interior', Icon: GridFour }] : [])]
-  const dimensions = useStore((s) => s.dimensions)
-  const toggleDimensions = useStore((s) => s.toggleDimensions)
-  const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
   return (
-    <div className="pointer-events-auto flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur [scrollbar-width:none]">
-      <div className="flex items-center" role="group" aria-label="Vistas">
-        {VIEWS.map((v) => (
-          <button key={v.id} type="button" className={button(view === v.id)} onClick={() => viewFrom(v.id)} aria-pressed={view === v.id}>
-            {v.name}
-          </button>
-        ))}
-      </div>
+    <div className={pill}>
+      <label className="relative flex min-h-11 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-graphite hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
+        <VideoCamera weight="bold" aria-hidden />
+        <select value={view} onChange={(e) => viewFrom(e.target.value as View)} aria-label="Vista de la cámara" className="appearance-none bg-transparent pr-4 font-medium outline-none">
+          {VIEWS.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+        <CaretDown className="pointer-events-none absolute right-2.5" aria-hidden />
+      </label>
       {!editing && (
         <>
           <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-          <div className="flex items-center" role="group" aria-label="Estado del mueble">
+          <div className="flex items-center" role="group" aria-label="Cómo se ve el mueble">
             {MODES.map(({ id, name, Icon }) => (
-              <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
-                <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
+              <button key={id} type="button" className={segment(mode === id)} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
+                <Icon weight="bold" />
               </button>
             ))}
           </div>
         </>
       )}
-      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <div className="flex items-center" role="group" aria-label="Editar">
-        {sides.map(({ id, name, Icon }) => (
-          <button key={id} type="button" className={`${button(editing === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => editing !== id && edit(id)} aria-pressed={editing === id} aria-label={`Editar: ${name}`} title={name}>
-            <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
-          </button>
-        ))}
-      </div>
-      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <button type="button" className={`${button(dimensions)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
-        <Ruler weight="bold" /> <span className="hidden sm:inline">Cotas</span>
-      </button>
     </div>
+  )
+}
+
+/** Editing is a mode of its own (UI-74, UI-75), apart from looking. Only a plan with parts inside has an inside to edit. */
+function EditBar({ inside }: { inside: boolean }) {
+  const editing = useStore((s) => s.editing)
+  const edit = useStore((s) => s.edit)
+  const sides: { id: EditSide; name: string; Icon: Icon }[] = [{ id: 'outside', name: 'Exterior', Icon: PencilSimple }, ...(inside ? [{ id: 'inside' as const, name: 'Interior', Icon: GridFour }] : [])]
+  return (
+    <div className={pill} role="group" aria-label="Editar">
+      {sides.map(({ id, name, Icon }) => (
+        <button key={id} type="button" className={`${segment(editing === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => editing !== id && edit(id)} aria-pressed={editing === id} aria-label={`Editar: ${name}`} title={`Editar: ${name}`}>
+          <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** The measures on the furniture: a switch, so it sits apart from what is chosen. */
+function DimensionsToggle() {
+  const dimensions = useStore((s) => s.dimensions)
+  const toggleDimensions = useStore((s) => s.toggleDimensions)
+  return (
+    <button
+      type="button"
+      onClick={toggleDimensions}
+      aria-pressed={dimensions}
+      aria-label="Cotas"
+      title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
+      className={`pointer-events-auto grid size-11 place-items-center rounded-full border shadow-sm backdrop-blur transition ${dimensions ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone/90 text-graphite-2 hover:bg-kraft'}`}
+    >
+      <Ruler weight="bold" />
+    </button>
   )
 }
 
@@ -252,10 +276,18 @@ export function Studio({ state }: { state: DesignState }) {
           onNotices={() => setOverlay('notices')}
         />
       )}
-      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        {geo && <SceneBar inside={insideParts} />}
-        {!editingSide && <StatusChip statuses={statuses} />}
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2 md:inset-x-4 md:top-4">
+        <div className="flex flex-col items-start gap-2">
+          {geo && <LookBar />}
+          {!editingSide && <StatusChip statuses={statuses} />}
+        </div>
+        {geo && <EditBar inside={insideParts} />}
       </div>
+      {geo && (
+        <div className="pointer-events-none absolute right-3 bottom-3 z-10 md:right-4 md:bottom-4">
+          <DimensionsToggle />
+        </div>
+      )}
     </div>
   )
 
