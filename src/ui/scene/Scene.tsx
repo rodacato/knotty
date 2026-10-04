@@ -229,7 +229,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
             delay={changes.added.includes(p.id) ? 0 : order.indexOf(p.id) * 70}
             shapes={shapesOf.get(p.id) ?? NO_SHAPES}
             finish={finish}
-            onSelect={inside ? () => {} : pick}
+            onSelect={inside && cabinet ? () => {} : pick}
           />
         ))}
         {inside && cabinet && <InteriorOverlay plan={cabinet} geo={geo} width={width} depth={depth} />}

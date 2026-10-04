@@ -277,7 +277,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside && interiorPlan ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
           </SceneBoundary>
         </div>
       ) : (

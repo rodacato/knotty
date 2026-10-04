@@ -431,7 +431,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
   ]),
 ]
 
-/** A bed has no outside measures of its own: they come from the mattress, which is its first part. */
+/** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
 const BED_PARTS: Parts<BedPlan> = {
   list: [
     { id: 'mattress', name: 'Colchón', side: 'outside', fields: ['mattress', 'height'], joints: [], summary: (p) => `${BED_LABELS.mattress[p.mattress].option}, base de ${p.height} mm de alto` },
@@ -448,7 +448,7 @@ const BED_PARTS: Parts<BedPlan> = {
     {
       id: 'drawers',
       name: 'Cajones',
-      side: 'outside',
+      side: 'inside',
       fields: ['drawers.side', 'drawers.count', 'drawers.position'],
       joints: ['drawers'],
       jointsTitle: 'Uniones de las cajas de los cajones',
