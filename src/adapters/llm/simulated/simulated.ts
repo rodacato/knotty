@@ -367,7 +367,7 @@ export function createSimulated(delay = 900): LLMProvider {
       const shoeRack = shoeRackFrom(notes, s.measures)
       if (shoeRack)
         return response<PlanResponse>({
-          explanation: `Armé ${shoeRack.seat ? 'una banca zapatera' : 'una zapatera'} de ${shoeRack.dimensions.width / 10} cm de ancho y ${shoeRack.dimensions.height / 10} cm de alto, con ${shoeRack.levels} niveles${shoeRack.front === 'doors' ? ' y puertas' : ''}${shoeRack.wallMounted ? ', anclada al muro' : ''}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
+          explanation: `Armé ${shoeRack.seat ? 'una banca zapatera' : 'una zapatera'} de ${shoeRack.dimensions.width / 10} cm de ancho y ${shoeRack.dimensions.height / 10} cm de alto, con ${shoeRack.levels} niveles${shoeRack.front === 'doors' ? ' y puertas' : ''}${shoeRack.wallMounted ? ', anclada al muro' : ''}. Todo lo puedes cambiar con «Editar», arriba del mueble.`,
           ...answerWith(shoeRack),
           questions: [],
           requirements: [],
@@ -377,7 +377,7 @@ export function createSimulated(delay = 900): LLMProvider {
       const table = bed ? null : tableFrom(notes, s.measures)
       if (table)
         return response<PlanResponse>({
-          explanation: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`,
+          explanation: `Armé ${table.use === 'desk' ? 'un escritorio' : `una ${table.name.toLowerCase()}`} de ${table.dimensions.width / 10} × ${table.dimensions.depth / 10} cm y ${table.dimensions.height / 10} cm de alto${table.pedestal.side === 'none' ? '' : `, con una cajonera de ${table.pedestal.drawers} cajones a la ${table.pedestal.side === 'left' ? 'izquierda' : 'derecha'}`}. Todo lo puedes cambiar con «Editar», arriba del mueble.`,
           ...answerWith(table),
           questions: [],
           requirements: [],
@@ -385,7 +385,7 @@ export function createSimulated(delay = 900): LLMProvider {
         })
       return response<PlanResponse>({
         explanation: bed
-          ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${BED_LABELS.headboard[bed.headboard.style].phrase}. Todo lo puedes cambiar en la ficha, en la pestaña Mueble.`
+          ? `Armé una cama ${bed.mattress} con base de ${bed.height / 10} cm, ${bed.drawers.side === 'none' ? 'sin cajones' : `${bed.drawers.count} cajones ${bed.drawers.side === 'both' ? 'de cada lado' : `del lado ${bed.drawers.side === 'left' ? 'izquierdo' : 'derecho'}`}`} y ${BED_LABELS.headboard[bed.headboard.style].phrase}. Todo lo puedes cambiar con «Editar», arriba del mueble.`
           : '',
         ...answerWith(bed),
         questions: bed ? [{ text: '¿Cuánto peso va a cargar la cama?', options: ['Una persona', 'Dos personas'] }] : [],

@@ -9,7 +9,9 @@ import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { DebugEvent, DebugLog } from '../../ports/DebugLog'
 import { instrumentStore } from '../debug/instrument'
 import type { Services } from '../services'
-import { hiddenIn, useStore } from '.'
+import { draftOf, hiddenIn, useStore } from '.'
+import { currentPlan } from '../../application/useCases'
+import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 
 // The store composed from its slices, driven with the simulated expert and in-memory adapters.
 
@@ -41,7 +43,7 @@ beforeEach(() => {
 })
 
 describe('store', () => {
-  it('keeps every action of the four slices under its name', () => {
+  it('keeps every action of the five slices under its name', () => {
     const s = useStore.getState()
     const actions = [
       // session
@@ -49,7 +51,9 @@ describe('store', () => {
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
-      'select', 'hide', 'showAll', 'setMode', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      'select', 'hide', 'showAll', 'setMode', 'edit', 'leave', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      // plan draft
+      'editPlan', 'undoPlanEdit', 'discardPlanDraft', 'applyPlanDraft', 'selectCell', 'selectPart',
       // settings
       'openSettings', 'unlock', 'forgetKeys', 'switchToSimulated', 'closeGate', 'refreshVault', 'saveCatalogSettings',
     ] as const
@@ -173,5 +177,105 @@ describe('store', () => {
     stop()
     expect(events.map((e) => e.summary)).toEqual([`Abrir el ejemplo ${exampleBookcase.name}`])
     expect(useStore.getState().phase).toBe('studio')
+  })
+})
+
+describe('the plan draft', () => {
+  const openCabinet = () => {
+    const base = testReferences.home().find((b) => b.plan?.kind === 'cabinet')!
+    useStore.getState().fromExample(base)
+    const s = useStore.getState()
+    return { plan: currentPlan(s.state!).plan as CabinetPlan, version: s.state!.current }
+  }
+  const wider = (plan: CabinetPlan, by: number): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, width: plan.dimensions.width + by } })
+
+  it('builds each change at once and shows it, without making a version', () => {
+    const { plan, version } = openCabinet()
+    useStore.getState().editPlan(wider(plan, 100))
+    const s = useStore.getState()
+    expect(draftOf(s)?.design?.dimensions.width).toBe(plan.dimensions.width + 100)
+    expect(s.state!.current).toBe(version)
+  })
+
+  it('undoes one change at a time, and back at the applied plan there is no draft', () => {
+    const { plan } = openCabinet()
+    const s = useStore.getState()
+    s.editPlan(wider(plan, 100))
+    s.editPlan(wider(plan, 200))
+    s.undoPlanEdit()
+    expect((draftOf(useStore.getState())!.plan as CabinetPlan).dimensions.width).toBe(plan.dimensions.width + 100)
+    s.undoPlanEdit()
+    expect(draftOf(useStore.getState())).toBeNull()
+  })
+
+  it('keeps a plan that cannot be built, with why and nothing to show', () => {
+    const { plan } = openCabinet()
+    useStore.getState().editPlan({ ...plan, base: 'legs', legHeight: 150, dimensions: { ...plan.dimensions, height: 300 } })
+    const draft = draftOf(useStore.getState())!
+    expect(draft.design).toBeNull()
+    expect(draft.message).toMatch(/patas/)
+    expect(useStore.getState().applyPlanDraft().ok).toBe(false)
+  })
+
+  it('applying makes one version and ends the draft', () => {
+    const { plan, version } = openCabinet()
+    useStore.getState().editPlan(wider(plan, 100))
+    expect(useStore.getState().applyPlanDraft().ok).toBe(true)
+    const s = useStore.getState()
+    expect(s.state!.current).toBe(version + 1)
+    expect(draftOf(s)).toBeNull()
+  })
+
+  it('editing inside looks from the front with no piece chosen, and leaving goes back to how the person was looking', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.setMode('exploded')
+    s.viewFrom('side')
+    s.select('side-left')
+    s.edit('inside')
+    expect(useStore.getState()).toMatchObject({ editing: 'inside', mode: 'closed', view: { name: 'front' }, selection: null })
+    useStore.getState().selectCell([0, 0])
+    useStore.getState().edit(null)
+    expect(useStore.getState()).toMatchObject({ editing: null, mode: 'exploded', view: { name: 'side' }, cell: null })
+  })
+
+  it('editing outside looks from three-quarter with the drawers in, whatever the person was looking at', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.setMode('open')
+    s.viewFrom('top')
+    s.edit('outside')
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', mode: 'closed', view: { name: 'three-quarter' } })
+  })
+
+  it('leaving with changes not applied asks first and stays; without any, it leaves', () => {
+    const { plan } = openCabinet()
+    useStore.getState().edit('outside')
+    useStore.getState().editPlan(wider(plan, 100))
+    useStore.getState().leave()
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', leaving: true })
+    useStore.getState().leave(false)
+    expect(useStore.getState()).toMatchObject({ editing: 'outside', leaving: false })
+    useStore.getState().discardPlanDraft()
+    useStore.getState().leave()
+    expect(useStore.getState()).toMatchObject({ editing: null, leaving: false })
+  })
+
+  it('opening a part lets go of the chosen piece, and moving to the other side closes it but keeps where to go back', () => {
+    openCabinet()
+    const s = useStore.getState()
+    s.edit('outside')
+    s.select('side-left')
+    s.selectPart('body', 'side-left')
+    expect(useStore.getState()).toMatchObject({ selection: null, part: { id: 'body', piece: 'side-left' } })
+    useStore.getState().edit('inside')
+    expect(useStore.getState()).toMatchObject({ part: null, beforeEditing: { mode: 'closed', view: 'three-quarter' } })
+  })
+
+  it('is left behind by a version made anywhere else', () => {
+    const { plan } = openCabinet()
+    useStore.getState().editPlan(wider(plan, 100))
+    useStore.getState().applyPlan(wider(plan, 300))
+    expect(draftOf(useStore.getState())).toBeNull()
   })
 })

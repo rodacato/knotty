@@ -10,8 +10,10 @@ import { kindOf } from '../../domain/furniture/kind'
 import { useStore } from '../store'
 import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
+import { PartsList } from './PartsList'
+import { draftOf } from '../store'
 
-// The furniture as decided: its kind, its plan when it has one, the photos and, without a plan, its pieces.
+// Editing the furniture from outside (UI-74): its kind, the parts of its plan when it has one, the photos and, without a plan, its pieces.
 
 const SOURCE: Record<KindSource, string | null> = {
   person: 'Lo elegiste tú.',
@@ -44,15 +46,11 @@ function KindPicker({ state }: { state: DesignState }) {
   }
   return (
     <section className="flex flex-col gap-2 px-4 pt-4">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <label htmlFor={id} className="text-sm text-graphite-2">
-          Tipo de mueble
-        </label>
-        <span className="w-30 shrink-0">
-          <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
-        </span>
-        {!redo && !error && said && <span className="min-w-0 flex-1 basis-24 text-sm text-graphite">{said}</span>}
-      </div>
+      <label htmlFor={id} className="text-sm text-graphite-2">
+        Tipo de mueble
+      </label>
+      <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
+      {!redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
       {error && <p className="text-xs text-rust">{error}</p>}
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
@@ -99,12 +97,18 @@ function Photos({ state }: { state: DesignState }) {
   )
 }
 
-export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geometry | null }) {
-  const hasPlan = useMemo(() => !!currentPlan(state).plan, [state])
+export function OutsideList({ state, geo }: { state: DesignState; geo: Geometry | null }) {
+  const source = useMemo(() => currentPlan(state), [state])
+  const hasPlan = !!source.plan
+  const draft = useStore(draftOf)
+  // A plan is edited by its parts (UI-39); one the expert left behind keeps its sheet, with what applying it would lose.
+  const plan = !source.diverged ? (draft?.plan ?? source.plan) : null
   return (
     <div className="flex flex-col">
       <KindPicker state={state} />
-      {hasPlan ? (
+      {plan ? (
+        <PartsList state={state} plan={plan} side="outside" />
+      ) : hasPlan ? (
         <PlanSheet state={state} />
       ) : (
         <p className="px-4 pt-4 text-sm text-graphite">Este mueble no tiene ficha: se ajusta con el experto o editando cada pieza en el 3D.</p>

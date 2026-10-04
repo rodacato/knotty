@@ -258,15 +258,16 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
 }
 
 /** One row per group of joints the design has, with the joint it has now and the way to change it. */
-export function JointsSection({ design }: { design: Design }) {
-  const groups = jointGroups(design)
+/** `only`: the groups of one part of the furniture, when the section sits inside that part. */
+export function JointsSection({ design, only, title = 'Uniones' }: { design: Design; only?: JointGroup['id'][]; title?: string }) {
+  const groups = jointGroups(design).filter((g) => !only || only.includes(g.id))
   const [open, setOpen] = useState<JointGroup['id'] | null>(null)
   const [notes, setNotes] = useState<string[]>([])
   const group = groups.find((g) => g.id === open)
   if (!groups.length) return null
   return (
     <section className="flex flex-col gap-3">
-      <Title className="text-lg">Uniones</Title>
+      <Title className="text-lg">{title}</Title>
       <ToolLine />
       <ul className="flex flex-col gap-3">
         {groups.map((g) => (

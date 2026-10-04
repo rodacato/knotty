@@ -14,8 +14,11 @@ import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGH
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
+import { counted, sizePart, woodPart, type Parts } from './parts'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
+
+const FrontStyle = z.enum(['flat', 'grooved'])
 
 /** How a carpenter would build it: each option is a different way of joining the same box. */
 export const CabinetConstruction = z.object({
@@ -24,18 +27,35 @@ export const CabinetConstruction = z.object({
   top: z.enum(['between', 'over', 'fingers']).describe('between: the top goes between the sides; over: the top sits on the sides; fingers: the top goes over the sides and the corners are cut as interlocking fingers'),
   back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
   shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
-  fronts: z.enum(['flat', 'grooved']).default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
+  fronts: FrontStyle.default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
   hinges: z.enum(['outside', 'inside']).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle'),
   pulls: Pulls.default('none').describe('none: no pull; notch: finger notch routed in each front; handle: one handle per door leaf and drawer front'),
   drawerCorners: z.enum(['screwed', 'fingers']).default('screwed').describe('screwed, or fingers: the four corners of each drawer box cut as interlocking fingers'),
 })
 export type CabinetConstruction = z.infer<typeof CabinetConstruction>
 
+/** The choices of the construction a cell can make on its own; one more is one more key here, and the build and the cell sheet read them all alike. */
+export const CellChoices = z
+  .object({
+    pulls: Pulls.optional().describe('How the fronts of this opening are opened'),
+    fronts: FrontStyle.optional().describe('The style of the fronts of this opening'),
+  } satisfies { [K in keyof CabinetConstruction]?: z.ZodOptional<z.ZodType<CabinetConstruction[K]>> })
+  .describe('What this opening chooses against construction; a choice absent is the furniture\'s')
+export type CellChoice = keyof z.infer<typeof CellChoices>
+export type CellChoices = Partial<Pick<CabinetConstruction, CellChoice>>
+export const CELL_CHOICES = Object.keys(CellChoices.shape) as CellChoice[]
+
+/** The choices a cell can make on its own: those of its fronts, so only a cell with doors or a drawer. */
+export const choicesFor = (cell: PlanCell): CellChoice[] => (cell.content === 'door' || cell.content === 'drawer' ? CELL_CHOICES : [])
+
+/** Two levels: what the cell chose, or else the furniture's. */
+export const choiceIn = <K extends CellChoice>(construction: CabinetConstruction, own: CellChoices | undefined, key: K): CabinetConstruction[K] => own?.[key] ?? construction[key]
+
 export const DEFAULT_CONSTRUCTION: CabinetConstruction = { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none', drawerCorners: 'screwed' }
 
 /**
- * A cell of a plan: what the expert can say, plus three things only a ficha or the editor writes: `void`, a stretch of a column where nothing is built,
- * `columns`, a cell split into columns of its own, each with its cells, as deep as it takes, and `back`, a cell that has a back or not against the furniture's choice.
+ * A cell of a plan: what the expert can say, plus what only a ficha or the editor writes: `void`, a stretch of a column where nothing is built,
+ * `columns`, a cell split into columns of its own, each with its cells, as deep as it takes, `back`, a cell that has a back or not against the furniture's choice, and `own`, the rest of what it chooses on its own.
  */
 export const PlanCell = Cell.extend({
   content: z.enum([...Cell.shape.content.options, 'void']).describe('open: open; drawer: drawer; door: door; closed: covered, not opening; void: nothing is built there'),
@@ -43,6 +63,7 @@ export const PlanCell = Cell.extend({
     return z.array(PlanColumn).optional().describe('The cell split into columns, left to right; its own content is not built')
   },
   back: z.boolean().optional().describe('Whether this opening has a back; absent, as construction.back says'),
+  own: CellChoices.optional(),
 })
 export type PlanCell = z.infer<typeof PlanCell>
 export const PlanColumn = Column.extend({ cells: z.array(PlanCell).describe('Openings from bottom to top') })
@@ -353,6 +374,7 @@ type Box = { x: Extent; y: Extent }
 interface AskedDrawer {
   /** Where its cell is: column, cell, and on through the columns of a split cell. */
   cell: number[]
+  choices: CellChoices
   bounds: Pick<AddDrawer, 'left' | 'right' | 'bottom' | 'top'>
   overlay: Box
 }
@@ -364,6 +386,8 @@ interface Filling {
   /** Overlay doors are found by contact, which picks the nearest upright: the hinge side has to be said once the pieces exist. */
   hung: { door: string; upright: string }[]
   drawers: AskedDrawer[]
+  /** What each door's cell chose on its own, by the door's id. */
+  choices: [string, CellChoices][]
 }
 
 /** One opening of a column: the faces around it, and the box a front takes over it or inside it. */
@@ -493,7 +517,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     return l.panel({ id: `${id}-sep-${j + 1}`, normal: 'y', x: extent(ref(spec.left), ref(spec.right)), y: startAt(partway(spec.bottom, spec.top, share, -half)), z: l.depth(), ...edge })
   })
 
-  const filling: Filling = { pieces: separators, joints: [], hung: [], drawers: [] }
+  const filling: Filling = { pieces: separators, joints: [], hung: [], drawers: [], choices: [] }
   cells.forEach((cell, j) => {
     if (cell.content === 'void') return
     const bottom: FaceRef = j === 0 ? spec.bottom : `${id}-sep-${j}.y1`
@@ -532,6 +556,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
         filling.joints.push(...inner.joints)
         filling.hung.push(...inner.hung)
         filling.drawers.push(...inner.drawers)
+        filling.choices.push(...inner.choices)
       })
       return
     }
@@ -551,7 +576,9 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     filling.pieces.push(...shelvesOf(l, cell, opening), ...fronts.pieces)
     filling.joints.push(...fronts.joints)
     filling.hung.push(...fronts.hung)
-    if (cell.content === 'drawer') filling.drawers.push({ cell: [...spec.path, j], bounds: { left: spec.left, right: spec.right, bottom, top }, overlay: opening.overlay })
+    const choices = cell.own ?? {}
+    filling.choices.push(...fronts.pieces.filter((p) => p.role === 'door').map((p): [string, CellChoices] => [p.id, choices]))
+    if (cell.content === 'drawer') filling.drawers.push({ cell: [...spec.path, j], choices, bounds: { left: spec.left, right: spec.right, bottom, top }, overlay: opening.overlay })
   })
   if (l.cellBacks) filling.pieces.push(...cellBacksOf(l, spec))
   return filling
@@ -598,9 +625,10 @@ function withExtras(l: Layout, design: Design): Design {
 }
 
 /** The last of the build, which needs the pieces in place: the hinges of overlay doors, and what is cut into drawer boxes and fronts. */
-function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet {
+function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<string, CellChoices>): BuiltCabinet {
   const { plan, catalog } = l
-  const { pulls, fronts: frontStyle } = plan.construction
+  const chosen = <K extends CellChoice>(id: string, key: K) => choiceIn(plan.construction, choices.get(id), key)
+  const pullsOf = (id: string) => chosen(id, 'pulls')
   const fingers = plan.drawerFingers ?? DEFAULT_FINGERS
   const notes: string[] = []
   let design = built
@@ -614,16 +642,23 @@ function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet
     })
     design = { ...design, joints: [...design.joints, ...declared] }
   }
-  const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
+  const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').map((p) => p.id)
   const cutBoxes = geometry.ok && design.joints.some((u) => u.type === 'finger') ? withFingerCuts(design, geometry.value.boxes, fingers) : design
-  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, { notch: pulls === 'notch', grooved: frontStyle === 'grooved' }) : cutBoxes
-  const withPulls: Design = pulls === 'none' ? cutFronts : { ...cutFronts, pulls }
-  if (pulls === 'notch' && fronts) notes.push(`Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
+  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, (p) => ({ notch: pullsOf(p.id) === 'notch', grooved: chosen(p.id, 'fronts') === 'grooved' })) : cutBoxes
+  const withPulls: Design = { ...cutFronts, ...pullsField(plan.construction.pulls, fronts, pullsOf) }
+  const notched = fronts.filter((id) => pullsOf(id) === 'notch').length
+  if (notched) notes.push(`Muesca para abrir en el canto de ${notched} ${notched === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
   const fingeredTops = design.joints.filter((u) => u.type === 'finger' && u.b.startsWith('top')).length
   if (fingeredTops) notes.push(`Cubierta con dedos en ${fingeredTops} ${fingeredTops === 1 ? 'esquina' : 'esquinas'}, ${fingers} por esquina: los costados suben hasta la cara de arriba. Se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   const withFingers = fingerDrawers(design)
   if (withFingers) notes.push(`Esquinas de dedos en ${withFingers} ${withFingers === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   return { design: completeJoints(withPulls, catalog), notes }
+}
+
+/** The furniture's pulls, and the fronts whose cell says otherwise; none at all says nothing. */
+function pullsField(pulls: Pulls, fronts: string[], pullsOf: (id: string) => Pulls): Pick<Design, 'pulls' | 'pullsOf'> {
+  const own = fronts.filter((id) => pullsOf(id) !== pulls)
+  return { ...(pulls === 'none' ? {} : { pulls }), ...(own.length ? { pullsOf: Object.fromEntries(own.map((id) => [id, pullsOf(id)])) } : {}) }
 }
 
 /** Columns with some cells built as open ones, split cells looked into: what a void with nothing to hang from, or a drawer that does not fit, becomes. */
@@ -680,7 +715,8 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   if (dropped.length) return { design: buildCabinet(opened(plan, (_, path) => dropped.some((cell) => cell.join('.') === path.join('.'))), catalog).design, notes: placed.notes }
 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
-  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung))
+  const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
+  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices)
   return { design: done.design, notes: [...placed.notes, ...done.notes] }
 }
 
@@ -693,6 +729,9 @@ const firstBackNamed = (pieces: Piece[]): Piece[] => {
 
 const count = (plan: CabinetPlan, content: PlanCell['content']) => leafCells(plan.columns).filter((c) => c.content === content).length
 const layout = (plan: CabinetPlan) => JSON.stringify(plan.columns)
+
+/** How a count of cells reads, one and many. */
+const COUNTED: Record<PlanCell['content'], [string, string]> = { open: ['hueco abierto', 'huecos abiertos'], drawer: ['cajón', 'cajones'], door: ['puerta', 'puertas'], closed: ['hueco tapado', 'huecos tapados'], void: ['hueco vacío', 'huecos vacíos'] }
 
 function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string[] {
   const changes: string[] = []
@@ -711,7 +750,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
   if (before.columns.length !== after.columns.length) changes.push(`${after.columns.length} ${after.columns.length === 1 ? 'columna' : 'columnas'}`)
   for (const content of Object.keys(CABINET_LABELS.cell) as PlanCell['content'][]) {
     const [was, is] = [count(before, content), count(after, content)]
-    if (was !== is) changes.push(`${is} ${content === 'drawer' ? (is === 1 ? 'cajón' : 'cajones') : `${is === 1 ? 'hueco' : 'huecos'} ${lower(CABINET_LABELS.cell[content])}${is === 1 ? '' : 's'}`}`)
+    if (was !== is) changes.push(`${is} ${COUNTED[content][is === 1 ? 0 : 1]}`)
   }
   if (!changes.length && layout(before) !== layout(after)) changes.push('distribución de los huecos')
   return changes
@@ -820,6 +859,12 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),
 ]
 
+/** How many cells of one content choose something of their own, said after the part's summary. */
+function ownWay(plan: CabinetPlan, content: PlanCell['content']): string {
+  const n = leafCells(plan.columns).filter((c) => c.content === content && c.own).length
+  return n ? ` · ${n === 1 ? '1 hueco va distinto' : `${n} huecos van distinto`}` : ''
+}
+
 const drawersBuilt = (design: Design) => design.pieces.filter((p) => p.role === 'drawer-front').length
 const doorLeavesAsked = (plan: CabinetPlan) => leafCells(plan.columns).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
 
@@ -832,6 +877,71 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
     const asked = count(plan, 'drawer')
     if (drawersBuilt(design) !== asked) return `Solo caben ${drawersBuilt(design)} de ${asked} cajones en esos huecos.`
     if (design.pieces.filter((p) => p.role === 'door').length !== doorLeavesAsked(plan)) return 'Una puerta no quedó como se pidió.'
+    return null
+  },
+}
+
+const doorsOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'door').length
+const drawersOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'drawer').length
+const words = CABINET_LABELS.construction
+/** «Sobrepuestas» says many; one door is «sobrepuesta». */
+const agreeing = (n: number, plural: string) => (n === 1 ? plural.replace(/s$/, '') : plural)
+
+/** A cabinet seen from outside, and its cells inside, which the interior view edits board by board. */
+export const CABINET_PARTS: Parts<CabinetPlan> = {
+  list: [
+    sizePart(),
+    woodPart(),
+    {
+      id: 'base',
+      name: 'Base',
+      side: 'outside',
+      fields: ['base', 'legHeight', 'wallMounted'],
+      joints: ['base'],
+      jointsTitle: 'Uniones de la base',
+      summary: (p) => `${p.base === 'legs' ? `Sobre patas de ${p.legHeight} mm` : CABINET_LABELS.base[p.base].option}${p.wallMounted ? ', anclado al muro' : ''}`,
+    },
+    {
+      id: 'body',
+      name: 'Cuerpo',
+      side: 'outside',
+      fields: ['construction.top', 'construction.back'],
+      joints: ['body', 'back'],
+      jointsTitle: 'Uniones del cuerpo y la trasera',
+      summary: ({ construction: c }) => `Techo ${c.top === 'between' ? 'entre laterales' : 'encima'}${c.top === 'fingers' ? ', esquinas de dedos' : ''}, ${c.back === 'nailed' ? 'trasera clavada' : 'sin trasera'}`,
+    },
+    {
+      id: 'doors',
+      name: 'Puertas',
+      side: 'outside',
+      fields: ['construction.doors', 'construction.fronts', 'construction.hinges', 'construction.pulls'],
+      joints: [],
+      summary: (p) => (doorsOf(p) ? `${counted(doorsOf(p), 'puerta', 'puertas')} ${agreeing(doorsOf(p), lower(words.doors.options[p.construction.doors]))}${p.construction.fronts === 'grooved' ? ', ranuradas' : ''}${ownWay(p, 'door')}` : 'Sin puertas: agrégalas en los huecos'),
+    },
+    {
+      id: 'drawers',
+      name: 'Cajones',
+      side: 'outside',
+      fields: ['construction.drawerFronts', 'construction.drawerCorners', 'drawerFingers'],
+      alsoShows: ['construction.fronts', 'construction.pulls'],
+      joints: ['drawers'],
+      jointsTitle: 'Uniones de las cajas de los cajones',
+      summary: (p) => (drawersOf(p) ? `${counted(drawersOf(p), 'cajón', 'cajones')}, frentes ${lower(words.drawerFronts.options[p.construction.drawerFronts])}${ownWay(p, 'drawer')}` : 'Sin cajones: agrégalos en los huecos'),
+    },
+    {
+      id: 'cells',
+      name: 'Huecos y repisas',
+      side: 'inside',
+      fields: ['construction.shelves'],
+      joints: [],
+      summary: (p) => `${counted(leafCells(p.columns).filter((c) => c.content !== 'void').length, 'hueco', 'huecos')}, repisas ${lower(words.shelves.options[p.construction.shelves])}`,
+    },
+  ],
+  ofPiece(piece) {
+    if (piece.role === 'door') return 'doors'
+    if (piece.role.startsWith('drawer-')) return 'drawers'
+    if (piece.role === 'kick' || piece.role === 'apron' || piece.id.startsWith('leg') || piece.id.startsWith('bottom-support')) return 'base'
+    if (piece.role === 'side' || piece.role === 'back' || piece.id === 'hanging-rail' || /^(top|bottom)(-\d+)?$/.test(piece.id)) return 'body'
     return null
   },
 }
@@ -857,4 +967,5 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   benchVariants: benchCabinets,
   fields: cabinetFields,
   quick: cabinetQuick,
+  parts: CABINET_PARTS,
 }

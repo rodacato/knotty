@@ -2,6 +2,7 @@ import type { z } from 'zod'
 import type { Axis, Design, Dimensions } from '../../design/schema'
 import type { Catalog } from '../../materials/catalog'
 import type { FieldSpec } from './fields'
+import type { Parts } from './parts'
 
 // What Knotty knows about one kind of furniture it builds by itself: adding a kind is writing one of these and listing it in MODULES.
 
@@ -65,4 +66,6 @@ export interface FurnitureModule<P extends { kind: string }> {
   fields: FieldSpec<P>[]
   /** What is quick about it; absent for the kinds whose base has nothing to ask quickly. */
   quick?: QuickSpec<P>
+  /** Its parts: every field of its form belongs to one, and touching a piece opens its part. */
+  parts: Parts<P>
 }

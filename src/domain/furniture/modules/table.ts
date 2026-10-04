@@ -10,6 +10,7 @@ import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
+import { counted, woodPart, type Parts } from './parts'
 
 // A table or a desk from its ficha: a top on two panel ends or on four legs, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 
@@ -325,6 +326,38 @@ const tableFields: FieldSpec<TablePlan>[] = [
   ]),
 ]
 
+const TABLE_PARTS: Parts<TablePlan> = {
+  list: [
+    {
+      id: 'size',
+      name: 'Uso y tamaño',
+      side: 'outside',
+      fields: ['use', 'dimensions.height', 'dimensions.width', 'dimensions.depth'],
+      joints: [],
+      summary: ({ use, dimensions: d }) => `${TABLE_LABELS.use[use].name}, ${d.height} de alto × ${d.width} de largo × ${d.depth} de fondo`,
+    },
+    woodPart(),
+    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
+    { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => TABLE_LABELS.legs[p.legs].option },
+    {
+      id: 'under',
+      name: 'Abajo',
+      nameOf: (p) => (isDesk(p) ? 'Cajonera' : 'Abajo'),
+      side: 'outside',
+      fields: ['pedestal.side', 'pedestal.drawers', 'shelf'],
+      joints: ['drawers', 'back'],
+      jointsTitle: 'Uniones de la cajonera',
+      summary: (p) =>
+        isDesk(p) ? (p.pedestal.side === 'none' ? 'Sin cajonera' : `${counted(p.pedestal.drawers, 'cajón', 'cajones')}, ${lower(TABLE_LABELS.pedestal[p.pedestal.side].phrase)}`) : p.shelf ? 'Con repisa baja' : 'Sin repisa baja',
+    },
+  ],
+  ofPiece(piece) {
+    if (piece.id === 'top') return 'top'
+    if (piece.id.startsWith('ped-') || piece.role.startsWith('drawer-') || piece.id === 'low-shelf') return 'under'
+    return 'legs'
+  },
+}
+
 export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
@@ -339,4 +372,5 @@ export const tableModule: FurnitureModule<TablePlan> = {
   traceLabel: (plan) => `Mesa (${plan.use})`,
   benchVariants: benchTables,
   fields: tableFields,
+  parts: TABLE_PARTS,
 }

@@ -72,7 +72,7 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
     ...when(proposal, () => ({
       key: 'proposal',
       icon: <Eye weight="bold" />,
-      label: preview ? `Viendo la solución: ${preview.label}` : 'Viendo la propuesta sin aplicar',
+      label: preview ? ('draft' in preview ? preview.label : `Viendo la solución: ${preview.label}`) : 'Viendo la propuesta sin aplicar',
       actions: preview ? undefined : action(around.onProposal, `${WIDE} focus-visible:outline-2 focus-visible:outline-amber`, 'Ver propuesta'),
     })),
     ...when(view.geo && problems.length > 0, () => ({ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: counted(problems.length, 'Un problema sin resolver', 'problemas sin resolver'), onClick: around.onNotices })),

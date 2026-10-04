@@ -84,7 +84,7 @@ describe('front cuts', () => {
     const { design } = built({})
     const door = design.pieces.find((p) => p.id === 'c1-h1-door')!
     const narrow = { x0: 0, x1: 30, y0: 0, y1: 500, z0: 0, z1: 18 }
-    const cut = withFrontCuts({ ...design, pieces: [door], joints: [] }, new Map([[door.id, narrow]]), { notch: false, grooved: true })
+    const cut = withFrontCuts({ ...design, pieces: [door], joints: [] }, new Map([[door.id, narrow]]), () => ({ notch: false, grooved: true }))
     expect(cut.pieces[0].cuts).toBeUndefined()
   })
 })

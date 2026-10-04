@@ -5,6 +5,7 @@ import type { Box } from '../../domain/design/resolve'
 import { differences } from '../../domain/design/diff'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
+import { draftOf } from './planDraft'
 import type { Set, Slice, Store } from './types'
 
 // What the 3D scene shows and how it moves from one design to the next.
@@ -20,6 +21,9 @@ export interface SceneChanges {
 
 export type SceneMode = 'closed' | 'open' | 'exploded'
 
+/** Editing the furniture from outside or from inside (UI-74): a mode the person enters and leaves, apart from how the furniture shows. */
+export type EditSide = 'outside' | 'inside'
+
 export interface SceneSlice {
   selection: string | null
   /** The piece the camera turns and zooms about; null frames the whole furniture. Choosing a piece sets it, and the person can leave it while keeping the selection. */
@@ -30,6 +34,12 @@ export interface SceneSlice {
   flagged: string[]
   /** How the furniture shows: as built, with drawers out and doors open, or apart piece by piece. */
   mode: SceneMode
+  /** The side being edited; null when the person is only looking. */
+  editing: EditSide | null
+  /** How the person was looking before editing, to go back to it. */
+  beforeEditing: { mode: SceneMode; view: View } | null
+  /** Leaving was asked with changes not applied: the panel asks what to do with them. */
+  leaving: boolean
   dimensions: boolean
   view: { name: View; nonce: number }
   showProposal: boolean
@@ -49,6 +59,10 @@ export interface SceneSlice {
   flag(ids: string[]): void
   showAll(): void
   setMode(mode: SceneMode): void
+  /** Enters editing one side, or leaves it with null; what is not applied is the caller's to settle first. */
+  edit(side: EditSide | null): void
+  /** Leaves editing, or with changes not applied asks first; `false` takes the question back. */
+  leave(asked?: boolean): void
   toggleDimensions(): void
   viewFrom(view: View): void
   toggleProposal(): void
@@ -95,6 +109,9 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   hidden: [],
   flagged: [],
   mode: 'closed',
+  editing: null,
+  beforeEditing: null,
+  leaving: false,
   dimensions: true,
   view: { name: 'three-quarter', nonce: 0 },
   showProposal: true,
@@ -114,6 +131,20 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
   // Apart or open, the furniture reads best from the front three-quarter view.
   setMode: (mode) => set((s) => (s.mode === mode ? {} : { mode, ...(mode === 'closed' ? {} : { view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }) })),
+  // Both sides are edited with the drawers in: outside from the three-quarter view, inside from the front with its fronts left out. Leaving goes back to how the person was looking.
+  edit: (side) =>
+    set((s) => {
+      if (side === s.editing) return {}
+      const back = s.beforeEditing ?? { mode: s.mode, view: s.view.name }
+      const common = { editing: side, leaving: false, cell: null, part: null, selection: null, focus: null }
+      if (!side) return { ...common, beforeEditing: null, mode: back.mode, view: { name: back.view, nonce: s.view.nonce + 1 } }
+      return { ...common, beforeEditing: back, mode: 'closed' as const, view: { name: side === 'inside' ? 'front' : 'three-quarter', nonce: s.view.nonce + 1 } }
+    }),
+  leave: (asked = true) => {
+    if (!asked) return set({ leaving: false })
+    if (draftOf(get())) set({ leaving: true })
+    else get().edit(null)
+  },
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 

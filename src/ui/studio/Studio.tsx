@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, ClockCounterClockwise, Cube, DoorOpen, GearSix, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { activeLabel } from '../../ports/Preferences'
@@ -10,8 +10,10 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { useStore, type SceneMode, type View } from '../store'
-import { FurniturePanel } from './FurniturePanel'
+import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
+import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
+import type { Parts } from '../../domain/furniture/modules/parts'
+import { EditPanel } from './EditPanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
 import { InvalidCanvas } from './InvalidCanvas'
@@ -53,36 +55,88 @@ function useDesktop() {
   return matches
 }
 
-function SceneBar() {
+const pill = 'pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur'
+const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+
+/** Looking at the furniture (UI-75): the camera in one native menu, and how the furniture shows as icons; the states give way while editing, which decides it. */
+function LookBar() {
   const view = useStore((s) => s.view.name)
   const viewFrom = useStore((s) => s.viewFrom)
   const mode = useStore((s) => s.mode)
   const setMode = useStore((s) => s.setMode)
+  const editing = useStore((s) => s.editing)
+  return (
+    <div className={pill}>
+      <label className="relative flex min-h-11 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-graphite hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
+        <VideoCamera weight="bold" aria-hidden />
+        <select value={view} onChange={(e) => viewFrom(e.target.value as View)} aria-label="Vista de la cámara" className="appearance-none bg-transparent pr-4 font-medium outline-none">
+          {VIEWS.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+        <CaretDown className="pointer-events-none absolute right-2.5" aria-hidden />
+      </label>
+      {!editing && (
+        <>
+          <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+          <div className="flex items-center" role="group" aria-label="Cómo se ve el mueble">
+            {MODES.map(({ id, name, Icon }) => (
+              <button key={id} type="button" className={segment(mode === id)} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
+                <Icon weight="bold" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/** Editing is a mode of its own (UI-74, UI-75), apart from looking. Only a plan with parts inside has an inside to edit. */
+function EditBar({ inside }: { inside: boolean }) {
+  const editing = useStore((s) => s.editing)
+  const edit = useStore((s) => s.edit)
+  const sides: { id: EditSide; name: string; Icon: Icon }[] = [{ id: 'outside', name: 'Exterior', Icon: PencilSimple }, ...(inside ? [{ id: 'inside' as const, name: 'Interior', Icon: GridFour }] : [])]
+  return (
+    <div className={pill} role="group" aria-label="Editar">
+      {sides.map(({ id, name, Icon }) => (
+        <button key={id} type="button" className={`${segment(editing === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => editing !== id && edit(id)} aria-pressed={editing === id} aria-label={`Editar: ${name}`} title={`Editar: ${name}`}>
+          <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** The way out of editing, where the eye lands (UI-76): at the top in the middle, and at the foot on a phone, where the bars fill the top. */
+function LeaveEditing() {
+  const leave = useStore((s) => s.leave)
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center md:top-4 md:bottom-auto">
+      <Button variant="primary" className="pointer-events-auto min-h-11 gap-1.5 rounded-full px-4 shadow-sm" onClick={() => leave()} title="Salir (Esc)">
+        <Check weight="bold" /> Terminar de editar
+      </Button>
+    </div>
+  )
+}
+
+/** The measures on the furniture: a switch, so it sits apart from what is chosen. */
+function DimensionsToggle() {
   const dimensions = useStore((s) => s.dimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
-  const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
   return (
-    <div className="pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur">
-      <div className="flex items-center" role="group" aria-label="Vistas">
-        {VIEWS.map((v) => (
-          <button key={v.id} type="button" className={button(view === v.id)} onClick={() => viewFrom(v.id)} aria-pressed={view === v.id}>
-            {v.name}
-          </button>
-        ))}
-      </div>
-      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <div className="flex items-center" role="group" aria-label="Estado del mueble">
-        {MODES.map(({ id, name, Icon }) => (
-          <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
-            <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
-          </button>
-        ))}
-      </div>
-      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <button type="button" className={`${button(dimensions)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
-        <Ruler weight="bold" /> <span className="hidden sm:inline">Cotas</span>
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={toggleDimensions}
+      aria-pressed={dimensions}
+      aria-label="Cotas"
+      title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
+      className={`pointer-events-auto grid size-11 place-items-center rounded-full border shadow-sm backdrop-blur transition ${dimensions ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone/90 text-graphite-2 hover:bg-kraft'}`}
+    >
+      <Ruler weight="bold" />
+    </button>
   )
 }
 
@@ -167,7 +221,22 @@ export function Studio({ state }: { state: DesignState }) {
   const selectPiece = useStore((s) => s.select)
   const previewFix = useStore((s) => s.previewFix)
   const debugVisible = useStore((s) => s.debugVisible)
+  const editingSide = useStore((s) => s.editing)
+  const chosenCell = useStore((s) => s.cell)
+  const chosenPart = useStore((s) => s.part)
+  const draft = useStore(draftOf)
   const desktop = useDesktop()
+  // The plan whose cells the interior view edits: the draft's, or the one applied; none on an old version or when the expert left the plan behind.
+  const source = currentPlan(state)
+  const editing = draft?.plan ?? source.plan
+  // The plan edited from the furniture: by its parts, and a cabinet's cells from the interior view.
+  const editable = !source.diverged && view.viewedVersion === null ? editing : null
+  const parts = editable ? moduleOf(editable).parts : null
+  const interiorPlan = editable?.kind === 'cabinet' ? (editable as CabinetPlan) : null
+  const inside = editingSide === 'inside'
+  const insideParts = !!parts?.list.some((p) => p.side === 'inside')
+  const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
+  const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -208,7 +277,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={view.changes.added} marked={view.changes.changed} problems={view.marked} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside && interiorPlan ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
           </SceneBoundary>
         </div>
       ) : (
@@ -219,10 +288,19 @@ export function Studio({ state }: { state: DesignState }) {
           onNotices={() => setOverlay('notices')}
         />
       )}
-      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-col items-start gap-2 md:inset-x-4 md:top-4">
-        {geo && <SceneBar />}
-        <StatusChip statuses={statuses} />
+      <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2 md:inset-x-4 md:top-4">
+        <div className="flex flex-col items-start gap-2">
+          {geo && <LookBar />}
+          {!editingSide && <StatusChip statuses={statuses} />}
+        </div>
+        {geo && <EditBar inside={insideParts} />}
       </div>
+      {editingSide && <LeaveEditing />}
+      {geo && (
+        <div className="pointer-events-none absolute right-3 bottom-3 z-10 md:right-4 md:bottom-4">
+          <DimensionsToggle />
+        </div>
+      )}
     </div>
   )
 
@@ -241,14 +319,23 @@ export function Studio({ state }: { state: DesignState }) {
 
   const panel = (
     <>
-      {view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
-      <div className={`h-full min-h-0 ${view.showsPiece ? 'hidden' : ''}`}>
+      {editingSide && (
+        <EditPanel
+          state={state}
+          side={editingSide}
+          plan={editable}
+          applied={editable ? source.plan : null}
+          geo={currentAnalysis.geo ?? null}
+          pieceSheet={view.showsPiece && geo ? <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} closable={false} /> : null}
+        />
+      )}
+      {!editingSide && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
+      <div className={`h-full min-h-0 ${editingSide || view.showsPiece ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
             {[
               { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
-              { id: 'furniture', name: 'Mueble', icon: <Armchair /> },
               { id: 'materials', name: 'Materiales', icon: <Stack /> },
               ...(debugVisible ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
             ].map((t) => (
@@ -271,9 +358,6 @@ export function Studio({ state }: { state: DesignState }) {
           </Tabs.List>
           <Tabs.Content value="chat" className="min-h-0 flex-1">
             <Chat state={state} />
-          </Tabs.Content>
-          <Tabs.Content value="furniture" className="min-h-0 flex-1 overflow-y-auto">
-            <FurniturePanel state={state} geo={currentAnalysis.geo ?? null} />
           </Tabs.Content>
           <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
             {currentAnalysis.valid ? (

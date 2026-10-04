@@ -288,6 +288,51 @@ describe('pulls', () => {
   })
 })
 
+describe('a cell choosing on its own', () => {
+  const withOwn = (construction: Partial<CabinetConstruction>, own: Record<string, PlanCell['own']>): CabinetPlan => {
+    const columns = structuredClone(PLANS.sideboard.columns) as PlanColumn[]
+    for (const [at, choices] of Object.entries(own)) {
+      const [i, j] = at.split('.').map(Number)
+      columns[i].cells[j] = { ...columns[i].cells[j], own: choices }
+    }
+    return { ...PLANS.sideboard, construction: { ...PLANS.sideboard.construction, ...construction }, columns }
+  }
+  const build = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const handles = estimatePurchase(design, analyze(design, testCatalog).geo!, testCatalog).hardware.find((h) => h.hardware.role === 'handle')
+    return { design, notes, handles: handles?.count ?? 0 }
+  }
+
+  it('buys handles only for the cells that chose them, when the furniture has none', () => {
+    const { design, handles } = build(withOwn({ pulls: 'none' }, { '0.0': { pulls: 'handle' }, '3.0': { pulls: 'handle' } }))
+    expect(handles).toBe(2)
+    expect(design.pulls).toBeUndefined()
+    expect(Object.values(design.pullsOf ?? {})).toEqual(['handle', 'handle'])
+  })
+
+  it('leaves out of the furniture’s handles a cell that chose none, and the others keep them', () => {
+    expect(build(withOwn({ pulls: 'handle' }, { '1.0': { pulls: 'none' } })).handles).toBe(5)
+  })
+
+  it('cuts a notch only in the fronts of the cell that chose it, and says how many', () => {
+    const { design, notes } = build(withOwn({ pulls: 'none' }, { '3.1': { pulls: 'notch' } }))
+    expect(design.pieces.filter((p) => p.cuts?.length).map((p) => p.role)).toEqual(['drawer-front'])
+    expect(notes).toEqual([expect.stringMatching(/Muesca.*1 frente:/)])
+  })
+
+  it('grooves only the fronts of the cell that chose it, and a cell without a choice keeps the furniture’s', () => {
+    const grooved = (p: CabinetPlan) => build(p).design.pieces.filter((x) => x.cuts?.length).length
+    expect(grooved(withOwn({ fronts: 'flat' }, { '0.0': { fronts: 'grooved' } }))).toBe(1)
+    expect(grooved(withOwn({ fronts: 'grooved' }, { '0.0': { fronts: 'flat' } }))).toBe(5)
+  })
+
+  it('reads back from a ficha with only what the cell chose, never the furniture’s defaults', () => {
+    const parsed = CabinetPlan.parse(withOwn({}, { '0.0': { pulls: 'handle' } }))
+    expect(parsed.columns[0].cells[0].own).toEqual({ pulls: 'handle' })
+    expect(parsed.columns[1].cells[0].own).toBeUndefined()
+  })
+})
+
 describe('the pulls field', () => {
   const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'choice' && f.key === 'construction.pulls')!
   it('is offered only when there is a door or a drawer to open', () => {

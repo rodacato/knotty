@@ -68,7 +68,7 @@ describe('a cabinet plan with other doors or drawers than asked', () => {
     const state = await design(REQUEST)
     expect(asked).toHaveLength(2)
     expect(doors(state)).toBe(4)
-    expect(state.chat.at(-1)?.text).toContain('Ojo: se pidieron 2 puertas y la ficha tiene 4. Si no es lo que querías, cámbialo en la pestaña Mueble.')
+    expect(state.chat.at(-1)?.text).toContain('Ojo: se pidieron 2 puertas y la ficha tiene 4. Si no es lo que querías, cámbialo con «Editar», arriba del mueble.')
   })
 
   it('a plan with what was asked, or a request without a plain count, makes no second call', async () => {
