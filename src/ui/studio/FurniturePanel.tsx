@@ -12,7 +12,6 @@ import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
 import { PartsList } from './PartsList'
 import { draftOf } from '../store'
-import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 
 // The furniture as decided: its kind, its plan when it has one, the photos and, without a plan, its pieces.
 
@@ -106,13 +105,13 @@ export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geomet
   const source = useMemo(() => currentPlan(state), [state])
   const hasPlan = !!source.plan
   const draft = useStore(draftOf)
-  // A cabinet's plan is edited by its parts (UI-39); the other kinds keep their form until they have parts of their own.
-  const cabinet = !source.diverged && source.plan?.kind === 'cabinet' ? ((draft?.plan ?? source.plan) as CabinetPlan) : null
+  // A plan is edited by its parts (UI-39); one the expert left behind keeps its sheet, with what applying it would lose.
+  const plan = !source.diverged ? (draft?.plan ?? source.plan) : null
   return (
     <div className="flex flex-col">
       <KindPicker state={state} />
-      {cabinet ? (
-        <PartsList state={state} plan={cabinet} />
+      {plan ? (
+        <PartsList state={state} plan={plan} />
       ) : hasPlan ? (
         <PlanSheet state={state} />
       ) : (

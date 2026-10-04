@@ -14,6 +14,7 @@ import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGH
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
+import { counted, sizePart, woodPart, type Parts } from './parts'
 
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
@@ -839,6 +840,65 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
   },
 }
 
+const doorsOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'door').length
+const drawersOf = (plan: CabinetPlan) => leafCells(plan.columns).filter((c) => c.content === 'drawer').length
+const words = CABINET_LABELS.construction
+
+/** A cabinet seen from outside, and its cells inside, which the interior view edits board by board. */
+export const CABINET_PARTS: Parts<CabinetPlan> = {
+  list: [
+    sizePart(),
+    woodPart(),
+    {
+      id: 'base',
+      name: 'Base',
+      side: 'outside',
+      fields: ['base', 'legHeight', 'wallMounted'],
+      joints: ['base'],
+      summary: (p) => `${p.base === 'legs' ? `Sobre patas de ${p.legHeight} mm` : CABINET_LABELS.base[p.base].option}${p.wallMounted ? ', anclado al muro' : ''}`,
+    },
+    {
+      id: 'body',
+      name: 'Cuerpo',
+      side: 'outside',
+      fields: ['construction.top', 'construction.back'],
+      joints: ['body', 'back'],
+      summary: ({ construction: c }) => `Techo ${c.top === 'between' ? 'entre laterales' : 'encima'}${c.top === 'fingers' ? ', esquinas de dedos' : ''}, ${c.back === 'nailed' ? 'trasera clavada' : 'sin trasera'}`,
+    },
+    {
+      id: 'doors',
+      name: 'Puertas',
+      side: 'outside',
+      fields: ['construction.doors', 'construction.fronts', 'construction.hinges', 'construction.pulls'],
+      joints: [],
+      summary: (p) => (doorsOf(p) ? `${counted(doorsOf(p), 'puerta', 'puertas')} ${lower(words.doors.options[p.construction.doors])}${p.construction.fronts === 'grooved' ? ', ranuradas' : ''}` : 'Sin puertas: agrégalas en los huecos'),
+    },
+    {
+      id: 'drawers',
+      name: 'Cajones',
+      side: 'outside',
+      fields: ['construction.drawerFronts', 'construction.drawerCorners', 'drawerFingers'],
+      joints: ['drawers'],
+      summary: (p) => (drawersOf(p) ? `${counted(drawersOf(p), 'cajón', 'cajones')}, frentes ${lower(words.drawerFronts.options[p.construction.drawerFronts])}` : 'Sin cajones: agrégalos en los huecos'),
+    },
+    {
+      id: 'cells',
+      name: 'Huecos y repisas',
+      side: 'inside',
+      fields: ['construction.shelves'],
+      joints: [],
+      summary: (p) => `${counted(leafCells(p.columns).filter((c) => c.content !== 'void').length, 'hueco', 'huecos')}, repisas ${lower(words.shelves.options[p.construction.shelves])}`,
+    },
+  ],
+  ofPiece(piece) {
+    if (piece.role === 'door') return 'doors'
+    if (piece.role.startsWith('drawer-')) return 'drawers'
+    if (piece.role === 'kick' || piece.role === 'apron' || piece.id.startsWith('leg') || piece.id.startsWith('bottom-support')) return 'base'
+    if (piece.role === 'side' || piece.role === 'back' || piece.id === 'hanging-rail' || /^(top|bottom)(-\d+)?$/.test(piece.id)) return 'body'
+    return null
+  },
+}
+
 export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
@@ -860,4 +920,5 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   benchVariants: benchCabinets,
   fields: cabinetFields,
   quick: cabinetQuick,
+  parts: CABINET_PARTS,
 }

@@ -12,9 +12,9 @@ import { Button } from '../system/components'
 import { Emblem } from '../system/Brand'
 import { draftOf, useStore, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
+import type { Parts } from '../../domain/furniture/modules/parts'
 import { CellSheet } from './CellSheet'
 import { PartSheet } from './PartSheet'
-import { partOfPiece } from '../../domain/furniture/modules/cabinetParts'
 import { DraftBar } from './DraftBar'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
@@ -182,11 +182,14 @@ export function Studio({ state }: { state: DesignState }) {
   // The plan whose cells the interior view edits: the draft's, or the one applied; none on an old version or when the expert left the plan behind.
   const source = currentPlan(state)
   const editing = draft?.plan ?? source.plan
-  const interiorPlan = !source.diverged && view.viewedVersion === null && editing?.kind === 'cabinet' ? (editing as CabinetPlan) : null
+  // The plan edited from the furniture: by its parts, and a cabinet's cells from the interior view.
+  const editable = !source.diverged && view.viewedVersion === null ? editing : null
+  const parts = editable ? moduleOf(editable).parts : null
+  const interiorPlan = editable?.kind === 'cabinet' ? (editable as CabinetPlan) : null
   const inside = mode === 'interior' && !!interiorPlan
   // Inside, the part «Huecos y repisas» holds the panel until a cell is chosen; any other part is outside.
-  const partOpen = interiorPlan && chosenPart && (!inside || (chosenPart.id === 'cells' && !chosenCell)) ? chosenPart : null
-  const partPieces = partOpen ? shown.pieces.filter((p) => partOfPiece(p) === partOpen.id).map((p) => p.id) : []
+  const partOpen = parts && chosenPart && parts.list.some((p) => p.id === chosenPart.id) && (!inside || (chosenPart.id === 'cells' && !chosenCell)) ? chosenPart : null
+  const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -227,7 +230,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
           </SceneBoundary>
         </div>
       ) : (
@@ -242,7 +245,7 @@ export function Studio({ state }: { state: DesignState }) {
         {geo && <SceneBar interior={!!interiorPlan} />}
         {!inside && !partOpen && <StatusChip statuses={statuses} />}
       </div>
-      {interiorPlan && source.plan && (
+      {editable && source.plan && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center md:inset-x-4 md:bottom-4">
           <DraftBar applied={source.plan} />
         </div>
@@ -266,7 +269,7 @@ export function Studio({ state }: { state: DesignState }) {
   const panel = (
     <>
       {inside && chosenCell && geo && <CellSheet plan={interiorPlan} path={chosenCell} geo={geo} />}
-      {partOpen && interiorPlan && <PartSheet key={partOpen.id} state={state} plan={interiorPlan} design={current} part={partOpen} />}
+      {partOpen && editable && <PartSheet key={partOpen.id} state={state} plan={editable} design={current} part={partOpen} />}
       {!inside && !partOpen && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
       <div className={`h-full min-h-0 ${(inside && chosenCell) || partOpen || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
         {overlayPanel}

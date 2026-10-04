@@ -3,21 +3,21 @@ import type { Design } from '../../domain/design/schema'
 import type { DesignState } from '../../domain/session/state'
 import { FinishSection } from './FinishSection'
 import { CABINET_LABELS, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
-import { CABINET_PARTS, type CabinetPart } from '../../domain/furniture/modules/cabinetParts'
 import type { FieldSpec } from '../../domain/furniture/modules/fields'
-import { moduleOf } from '../../domain/furniture/modules/plan'
+import { partName, type PartSpec } from '../../domain/furniture/modules/parts'
+import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { Button } from '../system/components'
 import { useStore } from '../store'
 import { JointsSection } from './Joints'
 import { PlanFields } from './PlanFields'
 import { Segmented, Stepper } from './PlanControls'
 
-// A part of the cabinet opened from the closed furniture (UI-39): its choices go to the plan's draft, its joints change at once.
+// A part of the furniture, opened from the list or by touching it (UI-39): its choices go to the plan's draft, its joints change at once.
 
 /** The form's fields that belong to the part, keeping a group of measures whole so it keeps its rule for showing. */
-function fieldsOf(fields: FieldSpec<CabinetPlan>[], keys: string[]): FieldSpec<CabinetPlan>[] {
-  return fields.flatMap((f): FieldSpec<CabinetPlan>[] => {
-    if (f.type === 'section') return fieldsOf(f.fields as FieldSpec<CabinetPlan>[], keys)
+function fieldsOf<P>(fields: FieldSpec<P>[], keys: string[]): FieldSpec<P>[] {
+  return fields.flatMap((f): FieldSpec<P>[] => {
+    if (f.type === 'section') return fieldsOf(f.fields as FieldSpec<P>[], keys)
     if (f.type === 'numbers') return f.fields.some((n) => keys.includes(n.key)) ? [f] : []
     return 'key' in f && keys.includes(f.key) ? [f] : []
   })
@@ -52,21 +52,24 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
   )
 }
 
-export function PartSheet({ state, plan, design, part }: { state: DesignState; plan: CabinetPlan; design: Design; part: { id: CabinetPart; piece: string | null } }) {
+export function PartSheet({ state, plan, design, part }: { state: DesignState; plan: FurniturePlan; design: Design; part: { id: string; piece: string | null } }) {
   const editPlan = useStore((s) => s.editPlan)
   const selectPart = useStore((s) => s.selectPart)
   const select = useStore((s) => s.select)
-  const spec = CABINET_PARTS[part.id]
   const module = moduleOf(plan)
-  const keys = part.id === 'body' ? spec.fields.filter((k) => k !== 'construction.top') : spec.fields
-  const fields = fieldsOf(module.fields as FieldSpec<CabinetPlan>[], keys)
+  const spec = (module.parts.list as PartSpec<FurniturePlan>[]).find((p) => p.id === part.id)
+  if (!spec) return null
+  // A cabinet's top is two choices on screen (UI-69), so its field is drawn apart.
+  const cabinetTop = plan.kind === 'cabinet' && part.id === 'body'
+  const keys = cabinetTop ? spec.fields.filter((k) => k !== 'construction.top') : spec.fields
+  const fields = fieldsOf(module.fields as FieldSpec<FurniturePlan>[], keys)
   const piece = part.piece ? design.pieces.find((p) => p.id === part.piece) : undefined
   return (
-    <section className="flex h-full min-h-0 flex-col" aria-label={spec.name}>
+    <section className="flex h-full min-h-0 flex-col" aria-label={partName(spec, plan)}>
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg leading-tight font-semibold">{spec.name}</h2>
+            <h2 className="font-display text-lg leading-tight font-semibold">{partName(spec, plan)}</h2>
             {piece && <p className="text-sm text-graphite-2">Tocaste {piece.name.toLowerCase()}</p>}
           </div>
           {piece && (
@@ -85,10 +88,10 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
             <X />
           </button>
         </div>
-        {part.id === 'body' && <TopChoices plan={plan} />}
-        <PlanFields module={{ ...module, fields }} plan={plan} onChange={(next) => editPlan(next)} />
+        {cabinetTop && <TopChoices plan={plan as CabinetPlan} />}
+        <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={(next) => editPlan(next)} />
         {part.id === 'wood' && <FinishSection state={state} />}
-        {part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
+        {plan.kind === 'cabinet' && part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
         {spec.joints.length > 0 && <JointsSection design={design} only={spec.joints} />}
       </div>
     </section>

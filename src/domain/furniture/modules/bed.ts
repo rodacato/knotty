@@ -7,6 +7,7 @@ import { backBoard, type Catalog } from '../../materials/catalog'
 import { addDrawers, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
+import { counted, woodPart, type Parts } from './parts'
 
 // A bed from its ficha: mattress, base height, drawers and headboard. Knotty builds every piece, as with a cabinet.
 // The bed lies along x with the headboard at x0; seen from the foot, its left side is z1 and its right side z0.
@@ -430,6 +431,44 @@ const bedFields: FieldSpec<BedPlan>[] = [
   ]),
 ]
 
+/** A bed has no outside measures of its own: they come from the mattress, which is its first part. */
+const BED_PARTS: Parts<BedPlan> = {
+  list: [
+    { id: 'mattress', name: 'Colchón', side: 'outside', fields: ['mattress', 'height'], joints: [], summary: (p) => `${BED_LABELS.mattress[p.mattress].option}, base de ${p.height} mm de alto` },
+    woodPart(),
+    {
+      id: 'base',
+      name: 'Base',
+      side: 'outside',
+      fields: ['legs', 'legHeight'],
+      joints: ['body', 'base'],
+      summary: (p) => (hasDrawers(p) ? 'Sobre el zoclo de los cajones' : p.legs === 'legs' ? `Sobre patas de ${p.legHeight} mm` : 'Directo en el piso'),
+    },
+    {
+      id: 'drawers',
+      name: 'Cajones',
+      side: 'outside',
+      fields: ['drawers.side', 'drawers.count', 'drawers.position'],
+      joints: ['drawers'],
+      summary: (p) => (hasDrawers(p) ? `${counted(p.drawers.count, 'cajón', 'cajones')} por lado, ${BED_LABELS.drawerSide[p.drawers.side].phrase.replace('cajones ', '')}` : 'Sin cajones'),
+    },
+    {
+      id: 'headboard',
+      name: 'Cabecera',
+      side: 'outside',
+      fields: ['headboard.style', 'headboard.height', 'headboard.depth', 'headboard.shelves'],
+      joints: ['back'],
+      summary: (p) => (p.headboard.style === 'none' ? 'Sin cabecera' : `${BED_LABELS.headboard[p.headboard.style].option}, de ${p.headboard.height} mm desde el piso`),
+    },
+  ],
+  ofPiece(piece) {
+    if (piece.id.startsWith('head')) return 'headboard'
+    if (piece.role.startsWith('drawer-') || /^(div|kick)-(left|right)/.test(piece.id)) return 'drawers'
+    if (piece.id.startsWith('platform')) return 'mattress'
+    return 'base'
+  },
+}
+
 export const bedModule: FurnitureModule<BedPlan> = {
   kind: 'bed',
   schema: BedPlan,
@@ -454,4 +493,5 @@ export const bedModule: FurnitureModule<BedPlan> = {
   traceLabel: (plan) => `Cama ${plan.mattress}`,
   benchVariants: benchBeds,
   fields: bedFields,
+  parts: BED_PARTS,
 }

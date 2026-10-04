@@ -12,7 +12,7 @@ import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { InteriorOverlay } from './InteriorOverlay'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
-import { partOfPiece } from '../../domain/furniture/modules/cabinetParts'
+import type { Parts } from '../../domain/furniture/modules/parts'
 import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { assembled, explode, type Explosion } from './explode'
@@ -44,6 +44,8 @@ interface SceneProps {
   problems?: string[]
   /** The cabinet plan the person edits from the furniture: its cells in the interior view, its parts from outside. Without one, a touch chooses a piece. */
   cabinet?: CabinetPlan | null
+  /** The parts of the furniture whose plan the person edits: outside the interior view, a piece that belongs to one opens it. */
+  parts?: Parts<never> | null
 }
 
 /** Runs once per frame, in the order it mounts among its siblings. */
@@ -123,7 +125,7 @@ function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box 
 /** What closes a cell: the interior view leaves it out to show what is behind. */
 const isFront = (p: Design['pieces'][number]) => p.role === 'door' || p.role === 'drawer-front' || p.id.endsWith('-cover')
 
-export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cabinet = null }: SceneProps) {
+export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cabinet = null, parts = null }: SceneProps) {
   const selection = useStore((s) => s.selection)
   const focused = useStore((s) => s.focus)
   const mode = useStore((s) => s.mode)
@@ -138,7 +140,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
   // Outside, a piece that belongs to a part opens that part; a board inside, or any piece apart, opens the piece.
   const pick = (id: string) => {
     const piece = design.pieces.find((p) => p.id === id)
-    const part = cabinet && mode !== 'exploded' && piece ? partOfPiece(piece) : null
+    const part = parts && mode !== 'exploded' && piece ? parts.ofPiece(piece) : null
     if (part) selectPart(part, id)
     else {
       selectPart(null)

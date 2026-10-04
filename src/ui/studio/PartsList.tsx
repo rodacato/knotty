@@ -1,7 +1,7 @@
 import { CaretRight, Stack } from '@phosphor-icons/react'
 import { currentPlan } from '../../application/useCases'
-import { CABINET_LABELS, leafCells, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
-import { CABINET_PARTS, type CabinetPart } from '../../domain/furniture/modules/cabinetParts'
+import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
+import { partName, type PartSpec } from '../../domain/furniture/modules/parts'
 import { FINISHES, finishOf } from '../../domain/materials/finishes'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
@@ -11,50 +11,20 @@ import { PlanSourceNotes } from './PlanSheet'
 import { SavingSheet } from './SavingSheet'
 import { useSavingSearch } from './savingSearch'
 
-// A cabinet's plan as its parts, outside and inside (UI-39): each says how it is now and opens the same sheet as touching it on the furniture.
+// A plan as the parts of its furniture, outside and inside (UI-39): each says how it is now and opens the same sheet as touching it on the furniture.
 
-const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
-const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
-
-/** How each part is now, in one line. */
-function stateOf(id: CabinetPart, plan: CabinetPlan, finish: string): string {
-  const c = plan.construction
-  const cells = leafCells(plan.columns)
-  const { construction: labels } = CABINET_LABELS
-  switch (id) {
-    case 'size':
-      return `${plan.dimensions.height} de alto × ${plan.dimensions.width} de ancho × ${plan.dimensions.depth} de fondo, en mm`
-    case 'wood':
-      return `Triplay de ${plan.material.replace(/\D/g, '')} mm · ${finish}`
-    case 'base':
-      return `${plan.base === 'legs' ? `Sobre patas de ${plan.legHeight} mm` : CABINET_LABELS.base[plan.base].option}${plan.wallMounted ? ', anclado al muro' : ''}`
-    case 'body':
-      return `Techo ${c.top === 'between' ? 'entre laterales' : 'encima'}${c.top === 'fingers' ? ', esquinas de dedos' : ''}, ${c.back === 'nailed' ? 'trasera clavada' : 'sin trasera'}`
-    case 'doors': {
-      const n = cells.filter((x) => x.content === 'door').length
-      return n ? `${count(n, 'puerta', 'puertas')} ${lower(labels.doors.options[c.doors])}${c.fronts === 'grooved' ? ', ranuradas' : ''}` : 'Sin puertas: agrégalas en los huecos'
-    }
-    case 'drawers': {
-      const n = cells.filter((x) => x.content === 'drawer').length
-      return n ? `${count(n, 'cajón', 'cajones')}, frentes ${lower(labels.drawerFronts.options[c.drawerFronts])}` : 'Sin cajones: agrégalos en los huecos'
-    }
-    case 'cells':
-      return `${count(cells.filter((x) => x.content !== 'void').length, 'hueco', 'huecos')}, repisas ${lower(labels.shelves.options[c.shelves])}`
-  }
-}
-
-export function PartsList({ state, plan }: { state: DesignState; plan: CabinetPlan }) {
+export function PartsList({ state, plan }: { state: DesignState; plan: FurniturePlan }) {
   const selectPart = useStore((s) => s.selectPart)
   const setMode = useStore((s) => s.setMode)
   const editPlan = useStore((s) => s.editPlan)
   const draft = useStore(draftOf)
-  const source = currentPlan(state)
   const saving = useSavingSearch(plan)
+  const parts = moduleOf(plan).parts.list as PartSpec<FurniturePlan>[]
   const finish = FINISHES[finishOf(currentDesign(state))].name
-  const open = (id: CabinetPart) => {
-    // Inside is edited on the furniture without its fronts: opening it switches the view.
-    if (CABINET_PARTS[id].side === 'inside') setMode('interior')
-    selectPart(id)
+  const open = (part: PartSpec<FurniturePlan>) => {
+    // A cabinet's cells are edited on the furniture without its fronts: opening them switches the view.
+    if (plan.kind === 'cabinet' && part.side === 'inside') setMode('interior')
+    selectPart(part.id)
   }
 
   if (saving.search)
@@ -72,33 +42,35 @@ export function PartsList({ state, plan }: { state: DesignState; plan: CabinetPl
       </div>
     )
 
-  const group = (side: 'outside' | 'inside', title: string) => (
-    <section className="flex flex-col" aria-labelledby={`parts-${side}`}>
-      <h3 id={`parts-${side}`} className="px-4 pt-4 pb-1 font-display text-base font-semibold">
-        {title}
-      </h3>
-      <ul className="flex flex-col">
-        {(Object.keys(CABINET_PARTS) as CabinetPart[])
-          .filter((id) => CABINET_PARTS[id].side === side)
-          .map((id) => (
-            <li key={id}>
-              <button type="button" onClick={() => open(id)} className="grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 text-left hover:bg-kraft focus-visible:outline-2 focus-visible:outline-focus">
+  const group = (side: PartSpec<FurniturePlan>['side'], title: string) => {
+    const these = parts.filter((p) => p.side === side)
+    if (!these.length) return null
+    return (
+      <section className="flex flex-col" aria-labelledby={`parts-${side}`}>
+        <h3 id={`parts-${side}`} className="px-4 pt-4 pb-1 font-display text-base font-semibold">
+          {title}
+        </h3>
+        <ul className="flex flex-col">
+          {these.map((part) => (
+            <li key={part.id}>
+              <button type="button" onClick={() => open(part)} className="grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2.5 text-left hover:bg-kraft focus-visible:outline-2 focus-visible:outline-focus">
                 <span className="flex min-w-0 flex-col">
-                  <span className="font-medium">{CABINET_PARTS[id].name}</span>
-                  <span className="text-sm text-graphite-2">{stateOf(id, plan, finish)}</span>
+                  <span className="font-medium">{partName(part, plan)}</span>
+                  <span className="text-sm text-graphite-2">{part.summary(plan, finish)}</span>
                 </span>
                 <CaretRight className="text-graphite-2" />
               </button>
             </li>
           ))}
-      </ul>
-    </section>
-  )
+        </ul>
+      </section>
+    )
+  }
 
   return (
     <div className="flex flex-col pb-4">
-      <div className="px-4 pt-4">
-        <PlanSourceNotes source={source} />
+      <div className="px-4 pt-4 empty:hidden">
+        <PlanSourceNotes source={currentPlan(state)} />
       </div>
       {group('outside', 'Por fuera')}
       {group('inside', 'Por dentro')}

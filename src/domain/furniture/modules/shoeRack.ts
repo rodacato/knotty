@@ -9,6 +9,7 @@ import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
 import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
+import { counted, sizePart, woodPart, type Parts } from './parts'
 
 // A shoe rack from its ficha (docs/carpinteria/muebles-y-medidas.md §2.6), built as a one-column cabinet with fixed shelves that also brace the shallow box.
 // Its levels are flat: inclined shelves are not buildable yet, since every piece is a box along the axes.
@@ -167,6 +168,23 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   ]),
 ]
 
+const SHOE_RACK_PARTS: Parts<ShoeRackPlan> = {
+  list: [
+    sizePart(),
+    woodPart(),
+    { id: 'base', name: 'Base', side: 'outside', fields: ['base', 'wallMounted'], joints: ['base'], summary: (p) => `${SHOE_RACK_LABELS.base[p.base].option}${p.wallMounted ? ', anclada al muro' : ''}` },
+    {
+      id: 'shoes',
+      name: 'Zapatos',
+      side: 'inside',
+      fields: ['levels', 'bootLevel', 'front', 'seat'],
+      joints: ['body', 'back'],
+      summary: (p) => `${counted(p.levels, 'nivel', 'niveles')}${p.bootLevel ? ', uno para botas' : ''}, ${lower(SHOE_RACK_LABELS.front[p.front].option)}${p.seat ? ', con asiento' : ''}`,
+    },
+  ],
+  ofPiece: (piece) => (piece.role === 'kick' || piece.id.startsWith('bottom-support') || piece.id === 'hanging-rail' ? 'base' : 'shoes'),
+}
+
 export const shoeRackModule: FurnitureModule<ShoeRackPlan> = {
   kind: 'shoeRack',
   schema: ShoeRackPlan,
@@ -181,4 +199,5 @@ export const shoeRackModule: FurnitureModule<ShoeRackPlan> = {
   traceLabel: (plan) => `Zapatera de ${plan.levels} ${plan.levels === 1 ? 'nivel' : 'niveles'} (${lower(SHOE_RACK_LABELS.front[plan.front].option)})`,
   benchVariants: benchShoeRacks,
   fields: shoeRackFields,
+  parts: SHOE_RACK_PARTS,
 }
