@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-ASI-03",
   "id": "stacking-stool",
-  "name": "Taburete apilable",
+  "name": "Taburete bajo",
   "kind": "sideTable",
   "finish": "danish-oil",
   "support": "adapted",
@@ -10,7 +10,7 @@
   "features": ["legs","curved-cut","angled-cut"],
   "adaptations": ["Original: encina blanca maciza; aqui triplay T18.","Asiento redondo (unos 330 mm) se dice como cubierta cuadrada de 330 x 330.","Sin medidas del vendedor: alto 450 mm y diametro 330 mm estimados por proporcion con la mano y el banco de trabajo; acabado aceite (danish-oil) por ser el mas cercano a aceite o cera.","Apilable (patas mas abiertas que el asiento) no se dibuja.","four open square legs with through tenons drawn as four straight legs with an apron all round","no stool kind: sideTable is the closest"],
   "gaps": ["curved-cut","angled-cut"],
-  "notes": "Taburete redondo con cuatro patas ligeramente abiertas, unidas con caja y espiga pasante con cuñas. Se apila. En Knotty queda como un banquito cuadrado de dos costados y faldones.",
+  "notes": "Taburete redondo con cuatro patas ligeramente abiertas, unidas con caja y espiga pasante con cuñas. Se apila. En Knotty queda como un banquito cuadrado de cuatro patas rectas con faldón; no se dibuja que se apila.",
   "plan": {
     "kind": "table",
     "use": "side",
