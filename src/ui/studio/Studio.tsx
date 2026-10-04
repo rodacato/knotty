@@ -184,7 +184,8 @@ export function Studio({ state }: { state: DesignState }) {
   const editing = draft?.plan ?? source.plan
   const interiorPlan = !source.diverged && view.viewedVersion === null && editing?.kind === 'cabinet' ? (editing as CabinetPlan) : null
   const inside = mode === 'interior' && !!interiorPlan
-  const partOpen = !inside && interiorPlan && chosenPart ? chosenPart : null
+  // Inside, the part «Huecos y repisas» holds the panel until a cell is chosen; any other part is outside.
+  const partOpen = interiorPlan && chosenPart && (!inside || (chosenPart.id === 'cells' && !chosenCell)) ? chosenPart : null
   const partPieces = partOpen ? shown.pieces.filter((p) => partOfPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
   const [tab, setTab] = useState('chat')
@@ -241,7 +242,7 @@ export function Studio({ state }: { state: DesignState }) {
         {geo && <SceneBar interior={!!interiorPlan} />}
         {!inside && !partOpen && <StatusChip statuses={statuses} />}
       </div>
-      {(inside || partOpen) && source.plan && (
+      {interiorPlan && source.plan && (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex justify-center md:inset-x-4 md:bottom-4">
           <DraftBar applied={source.plan} />
         </div>
@@ -265,7 +266,7 @@ export function Studio({ state }: { state: DesignState }) {
   const panel = (
     <>
       {inside && chosenCell && geo && <CellSheet plan={interiorPlan} path={chosenCell} geo={geo} />}
-      {partOpen && interiorPlan && <PartSheet key={partOpen.id} plan={interiorPlan} design={current} part={partOpen} />}
+      {partOpen && interiorPlan && <PartSheet key={partOpen.id} state={state} plan={interiorPlan} design={current} part={partOpen} />}
       {!inside && !partOpen && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
       <div className={`h-full min-h-0 ${(inside && chosenCell) || partOpen || (!inside && view.showsPiece) ? 'hidden' : ''}`}>
         {overlayPanel}

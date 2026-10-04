@@ -10,6 +10,9 @@ import { kindOf } from '../../domain/furniture/kind'
 import { useStore } from '../store'
 import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
+import { PartsList } from './PartsList'
+import { draftOf } from '../store'
+import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 
 // The furniture as decided: its kind, its plan when it has one, the photos and, without a plan, its pieces.
 
@@ -100,11 +103,17 @@ function Photos({ state }: { state: DesignState }) {
 }
 
 export function FurniturePanel({ state, geo }: { state: DesignState; geo: Geometry | null }) {
-  const hasPlan = useMemo(() => !!currentPlan(state).plan, [state])
+  const source = useMemo(() => currentPlan(state), [state])
+  const hasPlan = !!source.plan
+  const draft = useStore(draftOf)
+  // A cabinet's plan is edited by its parts (UI-39); the other kinds keep their form until they have parts of their own.
+  const cabinet = !source.diverged && source.plan?.kind === 'cabinet' ? ((draft?.plan ?? source.plan) as CabinetPlan) : null
   return (
     <div className="flex flex-col">
       <KindPicker state={state} />
-      {hasPlan ? (
+      {cabinet ? (
+        <PartsList state={state} plan={cabinet} />
+      ) : hasPlan ? (
         <PlanSheet state={state} />
       ) : (
         <p className="px-4 pt-4 text-sm text-graphite">Este mueble no tiene ficha: se ajusta con el experto o editando cada pieza en el 3D.</p>

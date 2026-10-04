@@ -1,5 +1,7 @@
 import { ArrowRight, X } from '@phosphor-icons/react'
 import type { Design } from '../../domain/design/schema'
+import type { DesignState } from '../../domain/session/state'
+import { FinishSection } from './FinishSection'
 import { CABINET_LABELS, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import { CABINET_PARTS, type CabinetPart } from '../../domain/furniture/modules/cabinetParts'
 import type { FieldSpec } from '../../domain/furniture/modules/fields'
@@ -50,7 +52,7 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
   )
 }
 
-export function PartSheet({ plan, design, part }: { plan: CabinetPlan; design: Design; part: { id: CabinetPart; piece: string | null } }) {
+export function PartSheet({ state, plan, design, part }: { state: DesignState; plan: CabinetPlan; design: Design; part: { id: CabinetPart; piece: string | null } }) {
   const editPlan = useStore((s) => s.editPlan)
   const selectPart = useStore((s) => s.selectPart)
   const select = useStore((s) => s.select)
@@ -85,6 +87,8 @@ export function PartSheet({ plan, design, part }: { plan: CabinetPlan; design: D
         </div>
         {part.id === 'body' && <TopChoices plan={plan} />}
         <PlanFields module={{ ...module, fields }} plan={plan} onChange={(next) => editPlan(next)} />
+        {part.id === 'wood' && <FinishSection state={state} />}
+        {part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
         {spec.joints.length > 0 && <JointsSection design={design} only={spec.joints} />}
       </div>
     </section>

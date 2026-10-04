@@ -34,10 +34,11 @@ describe('the parts of a cabinet', () => {
     expect(by(null)).toEqual(expect.arrayContaining(['div-1', 'c1-sep-1', 'c1-h1-shelf-1']))
   })
 
-  it('gather fields the cabinet’s form has, each in one part only', () => {
+  it('gather every field of the cabinet’s form, each in one part only; the columns are the interior view’s', () => {
     const form = keys(cabinetModule.fields as FieldSpec<CabinetPlan>[])
     const gathered = Object.values(CABINET_PARTS).flatMap((p) => p.fields)
     expect(gathered.filter((k) => !form.includes(k))).toEqual([])
+    expect(form.filter((k) => !gathered.includes(k))).toEqual(['columns'])
     expect(new Set(gathered).size).toBe(gathered.length)
   })
 })
