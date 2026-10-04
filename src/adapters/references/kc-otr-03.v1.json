@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "code": "KC-OTR-03",
+  "id": "sliding-door-shoe-cabinet",
+  "name": "Zapatera baja de puertas acanaladas",
+  "kind": "shoeRack",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["sliding-doors","routed-fronts","legs","angled-cut","curved-cut","raised-sides"],
+  "adaptations": ["two hinged overlay leaves instead of two sliding panels on rails","a divider behind where the two doors meet: one shelf of 964 mm would sag with shoes, two of about 480 do not","straight legs instead of tapered angled ones","sides flush with the top instead of rising above it as a rim on three sides, with square corners","1000 wide by 630 high (legs included) by 400 deep, from the proportions in the photos; the seller did not say the order"],
+  "gaps": ["sliding-doors","angled-cut","curved-cut","raised-sides"],
+  "notes": "Zapatera baja sobre patas, de un solo cuerpo con una repisa a media altura y dos puertas acanaladas al frente. Sirve de banca para calzarse en la entrada.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Zapatera baja de puertas acanaladas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 1000, "height": 630, "depth": 400 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "fixed", "fronts": "grooved" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 23,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 34, "cup-hinge-35-full": 4, "edge-banding-19": 9, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 66, "white-glue": 3 }
+  }
+}

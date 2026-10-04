@@ -1,0 +1,63 @@
+{
+  "format": 1,
+  "code": "KC-OTR-04",
+  "id": "legged-sideboard-niche",
+  "name": "Recibidor con nicho y cajón largo",
+  "kind": "sideboard",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","inset-doors","inset-drawers","sliding-doors","open-niche","no-back","notch-pulls","asymmetric-arrangement","angled-cut"],
+  "adaptations": ["sliding doors drawn as two hinged inset leaves","the pull-out tray in the niche drawn as an open cell with no shelf","solid pine in the photos, written in T18 plywood","anchored to the wall assumed: the photos do not show it, and the engine asks for it from 686 mm","the seller calls it an entryway piece for a broom and a vacuum; the photos show a 450 mm deep sideboard, and that is what is drawn"],
+  "gaps": ["sliding-doors","angled-cut"],
+  "notes": "Recibidor bajo sobre patas: un cajón largo arriba que cruza dos puertas y un nicho abierto, y a la derecha una puerta de toda la altura.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Recibidor con nicho y cajón largo",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1900, "height": 700, "depth": 450 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 0.77,
+        "cells": [
+          {
+            "height": 0.72,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.51,
+                "cells": [
+                  { "height": 1, "content": "door", "shelves": 0, "doors": 2 }
+                ]
+              },
+              {
+                "width": 0.26,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null, "back": false }
+                ]
+              }
+            ]
+          },
+          { "height": 0.28, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      },
+      {
+        "width": 0.23,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 37,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 87, "cup-hinge-35-inset": 6, "drawer-slide-40": 1, "edge-banding-19": 21, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 12, "screw-8x2": 108, "white-glue": 4 }
+  }
+}
