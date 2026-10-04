@@ -7,7 +7,7 @@
   "support": "adapted",
   "difficulty": 4,
   "features": ["inset-doors","inset-drawers","legs","asymmetric-arrangement","routed-fronts"],
-  "adaptations": ["Solid hardwood (manio, rauli, aromo) drawn in T18 plywood","Applied wooden strip pulls not modelled","Bottle rack under the top of the right compartment not modelled","fluted door fronts drawn with vertical router grooves","anchored to the wall assumed: the photos do not show it, and the engine asks for it from 686 mm"],
+  "adaptations": ["Solid hardwood (manio, rauli, aromo) drawn in T18 plywood","Applied wooden strip pulls not modelled","Bottle rack under the top of the right compartment not modelled","fluted door fronts drawn with vertical router grooves","anchored to the wall assumed: the photos do not show it, and the engine asks for it from 686 mm","left compartment drawn as two columns of one door each: a divider hidden behind the meeting doors keeps each shelf near 420 mm, where one 838 mm shelf would sag"],
   "gaps": [],
   "notes": "Mueble bar sobre patas: a la izquierda dos puertas embutidas con un entrepaño, a la derecha una puerta arriba y dos cajones abajo. Puertas acanaladas y jaladeras de tira de madera.",
   "plan": {
@@ -20,9 +20,15 @@
     "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "fronts": "grooved" },
     "columns": [
       {
-        "width": 0.67,
+        "width": 0.335,
         "cells": [
-          { "height": 1, "content": "door", "shelves": 1, "doors": 2 }
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 0.335,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
         ]
       },
       {
@@ -37,9 +43,9 @@
   },
   "expect": {
     "valid": true,
-    "pieces": 37,
-    "findings": ["recommendation:R1_SAG"],
-    "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "brad-nail-1": 68, "cup-hinge-35-inset": 6, "drawer-slide-35": 2, "edge-banding-19": 21, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 8, "screw-8x2": 87, "shelf-pin-5": 4, "white-glue": 4 }
+    "pieces": 39,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "brad-nail-1": 74, "cup-hinge-35-inset": 6, "drawer-slide-35": 2, "edge-banding-19": 21, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 8, "screw-8x2": 93, "shelf-pin-5": 8, "white-glue": 4 }
   }
 }
