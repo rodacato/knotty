@@ -403,7 +403,9 @@ Bisagras por alto, como la tabla de Blum de [valores-de-referencia.md](carpinter
 
 ### R7 — Base
 
-Piso con claro > 800 mm sin apoyo intermedio → recomendación.
+Piso con claro > 800 mm sin apoyo intermedio → recomendación. Patas a más de 1 200 mm entre sí → recomendación de patas intermedias.
+
+Una caja de un extremo que cuelga (`check: 'base.hanging'`): su costado de afuera y el piso al pie de ese costado no llegan al suelo ni descansan en nada, así que solo la sostiene la cubierta → **crítico**, con «anclar al muro» como salida. Anclado al muro no avisa: lo sostiene el muro (las repisas de pared). Una columna que no llega al piso entre dos que sí llegan no cuenta: la cargan sus vecinas, como los cajones colgados de un aparador.
 
 ### R8 — Veta
 

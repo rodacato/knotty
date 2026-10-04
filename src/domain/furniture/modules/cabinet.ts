@@ -581,11 +581,10 @@ function benchCabinets(): [string, CabinetPlan][] {
   const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
   const withFingers = [3, 5, 9].map((drawerFingers): [string, CabinetPlan] => [`cajonera con ${drawerFingers} dedos`, { ...drawerChest, construction: { ...drawerChest.construction, drawerCorners: 'fingers' }, drawerFingers }])
-  // Columns that stop short of the floor: a void at the bottom of one, with the back and the kick in stretches, and one raised over a leg frame.
+  // A column that stops short of the floor between two that reach it, with the back and the kick in stretches.
   const empty: PlanCell = { height: 0.4, content: 'void', shelves: null, doors: null }
   const withVoids: [string, CabinetPlan][] = [
     ['aparador con una columna colgada', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [empty, cell('open', 0.6, 0)] }, { width: 1, cells: [cell('open', 1, 1)] }], { wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' } })],
-    ['librero con una columna levantada', cabinet('Librero', { width: 880, height: 760, depth: 350 }, [{ width: 0.37, cells: [cell('open', 0.5, 0), cell('open', 0.5, 0)] }, { width: 0.63, cells: [{ ...empty, height: 0.3 }, cell('open', 0.7, 0)] }], { base: 'legs', wallMounted: false })],
   ]
   return [...list, ...withPulls, ...legHeights, ...withFingers, ...withVoids]
 }
