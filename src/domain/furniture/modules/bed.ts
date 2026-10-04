@@ -49,11 +49,11 @@ export const BedPlan = z.object({
 })
 export type BedPlan = z.infer<typeof BedPlan>
 
-export const hasDrawers = (plan: BedPlan) => plan.drawers.side !== 'none' && plan.drawers.count > 0
+const hasDrawers = (plan: BedPlan) => plan.drawers.side !== 'none' && plan.drawers.count > 0
 /** The legs take height from the frame above them: what is left must still hold the platform and its rails. */
-export const frameFits = (plan: BedPlan) => plan.legs !== 'legs' || plan.height - plan.legHeight >= MIN_CARCASS_HEIGHT
-export const FRAME_TOO_LOW = `No cupo: con esas patas el marco de la cama queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto de la base.`
-export const LEGS_WITH_DRAWERS = 'No cupo: una cama con cajones no lleva patas, el zoclo sostiene el banco de cajones.'
+const frameFits = (plan: BedPlan) => plan.legs !== 'legs' || plan.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+const FRAME_TOO_LOW = `No cupo: con esas patas el marco de la cama queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto de la base.`
+const LEGS_WITH_DRAWERS = 'No cupo: una cama con cajones no lleva patas, el zoclo sostiene el banco de cajones.'
 
 export const BED_LABELS = {
   mattress: {
@@ -433,6 +433,10 @@ const bedFields: FieldSpec<BedPlan>[] = [
 export const bedModule: FurnitureModule<BedPlan> = {
   kind: 'bed',
   schema: BedPlan,
+  rules: [
+    { holds: frameFits, message: FRAME_TOO_LOW, path: ['legHeight'] },
+    { holds: (plan) => plan.legs !== 'legs' || !hasDrawers(plan), message: LEGS_WITH_DRAWERS, path: ['legs'] },
+  ],
   label: 'una cama',
   expert: { what: 'a bed (a base with or without drawers, and a headboard)' },
   build: buildBed,

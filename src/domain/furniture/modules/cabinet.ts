@@ -69,19 +69,19 @@ export const CabinetPlan = z.object({
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 
 /** The legs take height from the box above them: what is left must still hold a bottom, a top and an opening. */
-export const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
 /** The cells of a column that are built: from the first to the last that is not void. */
 const builtRange = (column: PlanColumn) => {
   const built = column.cells.flatMap((c, j) => (c.content === 'void' ? [] : [j]))
   return { lo: built[0] ?? 0, hi: built[built.length - 1] ?? -1, count: built.length, last: column.cells.length - 1 }
 }
 /** A void goes at the bottom or the top of its column, one at each end at most; some column reaches the floor and some the top, or nothing holds the rest. */
-export const voidsFit = (plan: CabinetPlan) => {
+const voidsFit = (plan: CabinetPlan) => {
   const ranges = plan.columns.map(builtRange)
   return ranges.every((r) => r.count > 0 && r.count === r.hi - r.lo + 1 && r.lo <= 1 && r.last - r.hi <= 1) && ranges.some((r) => r.lo === 0) && ranges.some((r) => r.hi === r.last)
 }
-export const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
-export const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
+const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
+const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
@@ -653,6 +653,10 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
 export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
+  rules: [
+    { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
+    { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
+  ],
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },
   build: buildCabinet,

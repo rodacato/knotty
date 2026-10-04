@@ -1,24 +1,26 @@
 import { z } from 'zod'
 import type { DesignKind } from '../../design/kind'
 import type { Catalog } from '../../materials/catalog'
-import { BedPlan, bedModule, frameFits, FRAME_TOO_LOW, hasDrawers, LEGS_WITH_DRAWERS } from './bed'
-import { CabinetPlan, cabinetModule, carcassFits, CARCASS_TOO_LOW, voidsFit, VOIDS_MISPLACED } from './cabinet'
+import { BedPlan, bedModule } from './bed'
+import { CabinetPlan, cabinetModule } from './cabinet'
 import type { FurnitureModule } from './module'
 import { ShoeRackPlan, shoeRackModule } from './shoeRack'
 import { TablePlan, tableModule } from './table'
 
 // The ficha of any piece of furniture Knotty builds by itself, and the module that knows each kind.
 
-export const FurniturePlan = z.discriminatedUnion('kind', [CabinetPlan, BedPlan, TablePlan, ShoeRackPlan]).refine((p) => p.kind !== 'cabinet' || carcassFits(p), { message: CARCASS_TOO_LOW, path: ['legHeight'] })
-  .refine((p) => p.kind !== 'cabinet' || voidsFit(p), { message: VOIDS_MISPLACED, path: ['columns'] })
-  .refine((p) => p.kind !== 'bed' || frameFits(p), { message: FRAME_TOO_LOW, path: ['legHeight'] })
-  .refine((p) => p.kind !== 'bed' || p.legs !== 'legs' || !hasDrawers(p), { message: LEGS_WITH_DRAWERS, path: ['legs'] })
-export type FurniturePlan = z.infer<typeof FurniturePlan>
+const PlanByKind = z.discriminatedUnion('kind', [CabinetPlan, BedPlan, TablePlan, ShoeRackPlan])
+export type FurniturePlan = z.infer<typeof PlanByKind>
 export type FurnitureKind = FurniturePlan['kind']
 export type PlanOf<K extends FurnitureKind> = Extract<FurniturePlan, { kind: K }>
 
 /** One module per kind, in the order the bench shows them; the type fails to compile if a kind has none. */
 export const MODULES: { [K in FurnitureKind]: FurnitureModule<PlanOf<K>> } = { bed: bedModule, table: tableModule, shoeRack: shoeRackModule, cabinet: cabinetModule }
+
+/** A plan of any kind, holding the rules its module sets between its fields. */
+export const FurniturePlan = PlanByKind.superRefine((plan, ctx) => {
+  for (const rule of moduleOf(plan).rules ?? []) if (!rule.holds(plan)) ctx.addIssue({ code: 'custom', message: rule.message, path: rule.path })
+})
 
 /** The module that builds each kind of furniture; null when Knotty has no ficha for it and the expert designs it piece by piece. */
 export const MODULE_OF_KIND: Record<DesignKind, FurnitureKind | null> = {
