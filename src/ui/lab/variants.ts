@@ -84,6 +84,7 @@ const ROOMS_OF_FAMILY: Record<string, Room[]> = {
   ASI: ['dining'],
   ESC: ['office'],
   COC: ['kitchen'],
+  ARC: ['office'],
 }
 
 /** OTR holds whatever fits no family, so each one says its own room. */
