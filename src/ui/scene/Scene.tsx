@@ -12,7 +12,8 @@ import { hiddenIn, useStore, type View } from '../store'
 import { DimensionLines } from './DimensionLines'
 import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
-import { assembled, explode } from './explode'
+import { assembled, explode, type Explosion } from './explode'
+import { opening, type Swing } from './open'
 import { Hardware } from './Hardware'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
@@ -26,6 +27,7 @@ const FOV = 35
 /** A chamfer has no radius: this is the size of its cut, in mm. */
 const CHAMFER = 3
 const NO_SHAPES: EdgeShape[] = []
+const NO_SWINGS = new Map<string, Swing>()
 
 interface SceneProps {
   design: Design
@@ -116,7 +118,8 @@ function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box 
 export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: SceneProps) {
   const selection = useStore((s) => s.selection)
   const focused = useStore((s) => s.focus)
-  const exploded = useStore((s) => s.exploded)
+  const mode = useStore((s) => s.mode)
+  const exploded = mode === 'exploded'
   const dimensions = useStore((s) => s.dimensions)
   const changes = useStore((s) => s.changes)
   const reveal = useStore((s) => s.reveal)
@@ -129,7 +132,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
   const [quality, setQuality] = useState(!touch)
   const dark = useDark()
 
-  const explosion = useMemo(() => (exploded ? explode : assembled)(design, geo.boxes), [geo, design, exploded])
+  const explosion: Explosion & { swings?: Map<string, Swing> } = useMemo(() => (mode === 'exploded' ? explode : mode === 'open' ? opening : assembled)(design, geo.boxes), [geo, design, mode])
+  const swings = explosion.swings ?? NO_SWINGS
   const { width, depth } = design.dimensions
   // The furniture group is centered on the origin, so the camera frames the same box shifted with it.
   const frame = useMemo(() => {
@@ -186,6 +190,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             tone={lookOf(p.material).tone}
             plies={lookOf(p.material).plies}
             offset={pushes.get(p.id)!}
+            swing={swings.get(p.id) ?? null}
             selected={selection === p.id}
             dimmed={!!selection && selection !== p.id}
             ghost={ghosts.includes(p.id)}
@@ -200,7 +205,7 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [] }: S
             onSelect={select}
           />
         ))}
-        <Hardware design={design} geo={geo} offsets={pushes} selected={selection} hidden={hidden} reduced={reduced} />
+        <Hardware design={design} geo={geo} offsets={pushes} swings={swings} selected={selection} hidden={hidden} reduced={reduced} />
         {changes.removed.filter(() => !reduced).map(({ piece, box }) => (
           <RemovedGhost key={`${piece.id}-${changes.nonce}`} box={box} />
         ))}

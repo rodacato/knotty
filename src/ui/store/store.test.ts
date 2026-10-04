@@ -49,7 +49,7 @@ describe('store', () => {
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
-      'select', 'hide', 'showAll', 'toggleExploded', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
+      'select', 'hide', 'showAll', 'setMode', 'toggleDimensions', 'viewFrom', 'toggleProposal', 'viewVersion', 'previewFix',
       // settings
       'openSettings', 'unlock', 'forgetKeys', 'switchToSimulated', 'closeGate', 'refreshVault', 'saveCatalogSettings',
     ] as const
@@ -105,14 +105,26 @@ describe('store', () => {
     expect(currentDesign(s.state!).name).toBe(exampleBookcase.name)
   })
 
-  it('coming apart turns the camera to the front three-quarter view; going back together leaves the view', () => {
+  it('coming apart or opening turns the camera to the front three-quarter view; closing again leaves the view', () => {
     const s = useStore.getState()
-    s.viewFrom('front')
-    s.toggleExploded()
-    expect(useStore.getState()).toMatchObject({ exploded: true, view: { name: 'three-quarter' } })
-    useStore.getState().viewFrom('side')
-    useStore.getState().toggleExploded()
-    expect(useStore.getState()).toMatchObject({ exploded: false, view: { name: 'side' } })
+    for (const mode of ['exploded', 'open'] as const) {
+      s.viewFrom('front')
+      s.setMode(mode)
+      expect(useStore.getState()).toMatchObject({ mode, view: { name: 'three-quarter' } })
+      useStore.getState().viewFrom('side')
+      useStore.getState().setMode('closed')
+      expect(useStore.getState()).toMatchObject({ mode: 'closed', view: { name: 'side' } })
+    }
+  })
+
+  it('open and apart replace each other, and choosing the mode it is in changes nothing', () => {
+    const s = useStore.getState()
+    s.setMode('open')
+    useStore.getState().setMode('exploded')
+    expect(useStore.getState().mode).toBe('exploded')
+    useStore.getState().viewFrom('top')
+    useStore.getState().setMode('exploded')
+    expect(useStore.getState().view.name).toBe('top')
   })
 
   it('hides a piece without touching the design, and shows them all again', () => {

@@ -134,7 +134,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], flagged: [], exploded: false, reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ state: null, phase: 'capture', adjusting: null, selection: null, hidden: [], flagged: [], mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
   },
 
   sandboxed: false,
@@ -158,7 +158,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     get().controller?.abort()
     services.sandbox.leave()
     const state = services.useCases.load()
-    set((s) => ({ sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, exploded: false, draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
+    set((s) => ({ sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, mode: 'closed', draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   adjustBase: (base) => set({ adjusting: base }),

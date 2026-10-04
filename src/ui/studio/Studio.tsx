@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Armchair, ArrowCounterClockwise, ArrowsIn, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Eye, EyeSlash, Flask, GearSix, Plus, Ruler, Stack, Warning, X } from '@phosphor-icons/react'
+import { Armchair, ArrowCounterClockwise, PencilSimpleLine, ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, CheckCircle, Crosshair, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, Flask, GearSix, Plus, Ruler, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { differences } from '../../domain/design/diff'
@@ -12,7 +12,7 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button, Pencil } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { hiddenIn, visibleDesign, useStore, type View } from '../store'
+import { hiddenIn, visibleDesign, useStore, type SceneMode, type View } from '../store'
 import { FurniturePanel } from './FurniturePanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
@@ -38,6 +38,12 @@ const VIEWS: { id: View; name: string }[] = [
   { id: 'top', name: 'Arriba' },
 ]
 
+const MODES: { id: SceneMode; name: string; Icon: Icon }[] = [
+  { id: 'closed', name: 'Cerrado', Icon: Cube },
+  { id: 'open', name: 'Abierto', Icon: DoorOpen },
+  { id: 'exploded', name: 'Armado', Icon: ArrowsOut },
+]
+
 function useDesktop() {
   const query = '(min-width: 768px)'
   const [matches, setMatches] = useState(() => matchMedia(query).matches)
@@ -53,8 +59,8 @@ function useDesktop() {
 function SceneBar() {
   const view = useStore((s) => s.view.name)
   const viewFrom = useStore((s) => s.viewFrom)
-  const exploded = useStore((s) => s.exploded)
-  const toggleExploded = useStore((s) => s.toggleExploded)
+  const mode = useStore((s) => s.mode)
+  const setMode = useStore((s) => s.setMode)
   const dimensions = useStore((s) => s.dimensions)
   const toggleDimensions = useStore((s) => s.toggleDimensions)
   const button = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
@@ -68,9 +74,14 @@ function SceneBar() {
         ))}
       </div>
       <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <button type="button" className={`${button(exploded)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleExploded} aria-pressed={exploded}>
-        {exploded ? <ArrowsIn weight="bold" /> : <ArrowsOut weight="bold" />} Armado
-      </button>
+      <div className="flex items-center" role="group" aria-label="Estado del mueble">
+        {MODES.map(({ id, name, Icon }) => (
+          <button key={id} type="button" className={`${button(mode === id)} gap-1.5 [grid-auto-flow:column]`} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
+            <Icon weight="bold" /> <span className="hidden sm:inline">{name}</span>
+          </button>
+        ))}
+      </div>
+      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
       <button type="button" className={`${button(dimensions)} gap-1.5 [grid-auto-flow:column]`} onClick={toggleDimensions} aria-pressed={dimensions} aria-label="Cotas" title="Cotas">
         <Ruler weight="bold" /> <span className="hidden sm:inline">Cotas</span>
       </button>

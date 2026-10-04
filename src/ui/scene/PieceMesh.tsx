@@ -1,4 +1,4 @@
-import { animated, useSpring } from '@react-spring/three'
+import { animated, to, useSpring } from '@react-spring/three'
 import { Edges } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -11,6 +11,7 @@ import { cutGeometry } from './cutGeometry'
 import { FINISH_LOOK, NATURAL_PINE, type FinishId } from '../../domain/materials/finishes'
 import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
+import type { Swing } from './open'
 
 const MM = 0.001
 /** (u, v) axes of each BoxGeometry face, in the order of its materials: +x, −x, +y, −y, +z, −z. */
@@ -55,6 +56,8 @@ interface PieceMeshProps {
   tone: BoardTone
   plies: number
   offset: [number, number, number]
+  /** A door open on its hinge: the piece turns about this edge, in mm. */
+  swing: Swing | null
   selected: boolean
   dimmed: boolean
   ghost: boolean
@@ -83,7 +86,7 @@ const tintFor = (finish: FinishId) => {
   return `#${mix.map((c) => Math.round(c * 255).toString(16).padStart(2, '0')).join('')}`
 }
 
-export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, finish, onSelect }: PieceMeshProps) {
+export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, dimmed, ghost, marked, problem, highlight, isNew, reduced, delay, shapes, finish, onSelect }: PieceMeshProps) {
   const [over, setOver] = useState(false)
   const size: [number, number, number] = [(box.x1 - box.x0) * MM, (box.y1 - box.y0) * MM, (box.z1 - box.z0) * MM]
   const center: [number, number, number] = [((box.x0 + box.x1) / 2) * MM, ((box.y0 + box.y1) / 2) * MM, ((box.z0 + box.z1) / 2) * MM]
@@ -105,13 +108,22 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
     config: isNew ? { mass: 1.2, tension: 260, friction: 13 } : { mass: 1, tension: 170, friction: 16 },
     immediate: reduced,
   })
+  const { turn } = useSpring({ turn: swing?.angle ?? 0, config: { mass: 1, tension: 120, friction: 18 }, immediate: reduced })
+  // Turning a piece about an edge also carries its center around it.
+  const pivot = swing ? [swing.pivot[0] * MM, swing.pivot[1] * MM] : [target[0], target[2]]
+  const swung = to([position, turn], (p, t) => {
+    const [x, y, z] = p as unknown as [number, number, number]
+    const [dx, dz] = [center[0] - pivot[0], center[2] - pivot[1]]
+    const [c, s] = [Math.cos(t as number), Math.sin(t as number)]
+    return [x - center[0] + pivot[0] + dx * c + dz * s, y, z - center[2] + pivot[1] - dx * s + dz * c]
+  })
   const { opacity } = useSpring({ from: { opacity: reduced ? finalOpacity : 0 }, to: { opacity: finalOpacity }, delay: reduced ? 0 : delay, immediate: reduced, config: { tension: 120, friction: 20 } })
   const [{ glow }] = useSpring(() => ({ from: { glow: highlight ? 1 : 0 }, to: { glow: 0 }, config: { duration: 1800 }, reset: true, immediate: reduced }), [highlight])
 
   const materials = useRef<(MeshStandardMaterial | null)[]>([])
   useEffect(() => () => maps.forEach((m) => m.dispose()), [maps])
   useFrame(({ invalidate }) => {
-    if (opacity.isAnimating || glow.isAnimating) invalidate()
+    if (opacity.isAnimating || glow.isAnimating || turn.isAnimating) invalidate()
     const o = opacity.get()
     const e = glow.get() * 0.55 + (over && !selected ? 0.08 : 0)
     for (const m of materials.current) {
@@ -133,7 +145,8 @@ export function PieceMesh({ piece, box, tone, plies, offset, selected, dimmed, g
 
   return (
     <animated.mesh
-      position={position as never}
+      position={swung as never}
+      rotation-y={turn as never}
       scale={scale as never}
       castShadow={!dimmed}
       receiveShadow
