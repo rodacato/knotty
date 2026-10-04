@@ -1,7 +1,7 @@
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { byPerson, kindChange, planForKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
-import { DIMENSION_OF_AXIS, DIMENSION_LABEL, type Axis, type Position } from '../../domain/design/schema'
+import { DIMENSION_OF_AXIS, DIMENSION_LABEL, type Axis, type Design, type Position } from '../../domain/design/schema'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import { materialById } from '../../domain/materials/catalog'
 import { describePlanChanges, FurniturePlan, moduleOf } from '../../domain/furniture/modules/plan'
@@ -38,24 +38,32 @@ export function createEdits(kit: Kit) {
     return save(noted(withChange, 'expert', `Anoté ${piece.name.toLowerCase()} como confirmada.`))
   }
 
-  /** A change made on the plan itself: rebuilt at once, no expert involved. */
-  function applyPlan(state: DesignState, plan: FurniturePlan): { ok: true; state: DesignState; notes: string[] } | { ok: false; message: string } {
+  /** The design a plan would give, with the changes made on top of it: what «Aplicar» keeps, and what the 3D shows before it. */
+  function previewPlan(state: DesignState, plan: FurniturePlan): { ok: true; plan: FurniturePlan; design: Design; notes: string[]; dropped: Operation[] } | { ok: false; message: string } {
     const parsed = FurniturePlan.safeParse(plan)
     if (!parsed.success) return { ok: false, message: parsed.error.issues.find((i) => i.code === 'custom' || i.path[0] === 'legHeight')?.message ?? 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
     const current = currentPlan(state)
     const rebuilt = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
-    const { notes, dropped } = rebuilt
     const design = byPerson(currentDesign(state), rebuilt.design)
     const analysis = analyze(design, catalog, state.requirements)
     if (!analysis.valid) {
       const first = named(design, analysis.errors[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errors))}. ${first}` }
     }
+    return { ok: true, plan: parsed.data, design, notes: rebuilt.notes, dropped: rebuilt.dropped }
+  }
+
+  /** A change made on the plan itself: rebuilt at once, no expert involved. */
+  function applyPlan(state: DesignState, plan: FurniturePlan): { ok: true; state: DesignState; notes: string[] } | { ok: false; message: string } {
+    const preview = previewPlan(state, plan)
+    if (!preview.ok) return preview
+    const { design, notes, dropped, plan: parsed } = preview
+    const current = currentPlan(state)
     const previous = current.plan
-    const changes = previous ? describePlanChanges(previous, parsed.data) : []
+    const changes = previous ? describePlanChanges(previous, parsed) : []
     const summary = changes.length ? changes.join(', ') : 'sin cambios'
     const extras = (current.diverged ? [] : current.extras).filter((e) => !dropped.includes(e))
-    const withVersion = addVersion(state, design, { summary: `Ficha: ${summary}`.slice(0, 90), reason: `Desde la ficha: ${summary}`, operations: [], origin: null, plan: parsed.data, extras })
+    const withVersion = addVersion(state, design, { summary: `Ficha: ${summary}`.slice(0, 90), reason: `Desde la ficha: ${summary}`, operations: [], origin: null, plan: parsed, extras })
     return { ok: true, state: save({ ...noted(withVersion, 'user', `Cambié desde la ficha: ${summary}.`), measures: design.dimensions }), notes }
   }
 
@@ -155,5 +163,5 @@ export function createEdits(kit: Kit) {
     return { ok: true, state: save(noted(withVersion, 'user', `Resolví: ${labels.join('; ')}.`)) }
   }
 
-  return { confirmPiece, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes }
+  return { confirmPiece, previewPlan, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes }
 }

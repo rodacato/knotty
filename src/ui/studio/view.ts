@@ -6,7 +6,7 @@ import type { Design } from '../../domain/design/schema'
 import { previousUsableVersion } from '../../domain/session/history/history'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
-import { hiddenIn, useStore, visibleDesign } from '../store'
+import { draftOf, hiddenIn, useStore, visibleDesign } from '../store'
 
 // What the Studio shows of a session, worked out from the session and from what the person is looking at.
 
@@ -36,7 +36,10 @@ export function useStudioView(state: DesignState) {
   const { catalog } = useServices()
   const viewedVersion = useStore((s) => s.viewedVersion)
   const showProposal = useStore((s) => s.showProposal)
-  const preview = useStore((s) => s.preview)
+  const fix = useStore((s) => s.preview)
+  const draft = useStore(draftOf)
+  // The plan being changed shows in 3D like a fix, until it is applied or discarded; never over an old version.
+  const preview = fix ?? (draft?.design && viewedVersion === null ? { design: draft.design, label: 'Cambios de la ficha sin aplicar', draft: true } : null)
   const flagged = useStore((s) => s.flagged)
   const selection = useStore((s) => s.selection)
   const hiddenIds = useStore((s) => s.hidden)

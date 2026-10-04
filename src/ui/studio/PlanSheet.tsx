@@ -8,16 +8,19 @@ import { TERMS } from '../glossary'
 import { Button } from '../system/components'
 import { ErrorText } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
-import { useStore } from '../store'
+import { draftOf, useStore } from '../store'
 import { JointsSection } from './Joints'
 import { PlanFields, type Locks } from './PlanFields'
 import { FinishSection } from './FinishSection'
 import { SavingSheet } from './SavingSheet'
 
-// The plan as a form: every decision that shapes the piece of furniture, applied at once and without the expert.
+// The plan as a form: every decision that shapes the piece of furniture, shown in 3D as a draft and applied without the expert.
 
 export function PlanSheet({ state }: { state: DesignState }) {
-  const applyPlan = useStore((s) => s.applyPlan)
+  const editPlan = useStore((s) => s.editPlan)
+  const applyPlanDraft = useStore((s) => s.applyPlanDraft)
+  const discardPlanDraft = useStore((s) => s.discardPlanDraft)
+  const pending = useStore(draftOf)
   const lockField = useStore((s) => s.lockField)
   const findSavings = useStore((s) => s.findSavings)
   const previewFix = useStore((s) => s.previewFix)
@@ -25,13 +28,12 @@ export function PlanSheet({ state }: { state: DesignState }) {
   const [search, setSearch] = useState<SavingSearch | null>(null)
   const [searching, setSearching] = useState(false)
   const source = useMemo(() => currentPlan(state), [state])
-  const [draft, setDraft] = useState<FurniturePlan | null>(source.plan)
+  const draft = pending?.plan ?? source.plan
   const [message, setMessage] = useState<{ kind: 'error' | 'note'; text: string } | null>(null)
-  // A new plan from outside (another version, the expert) replaces the draft.
+  // A new plan from outside (another version, the expert) leaves the search behind.
   const [synced, setSynced] = useState(source.plan)
   if (synced !== source.plan) {
     setSynced(source.plan)
-    setDraft(source.plan)
     setSearch(null)
   }
   // The search is synchronous and takes a moment on a phone: the button says so before it starts.
@@ -59,7 +61,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
   const changes = describePlanChanges(source.plan, draft)
   const set = (plan: FurniturePlan) => {
     setMessage(null)
-    setDraft(plan)
+    editPlan(plan)
   }
 
   const locks: Locks = { locked: (field) => isLocked(field, state.locks), toggle: lockField }
@@ -88,7 +90,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
     )
 
   const apply = () => {
-    const r = applyPlan(draft)
+    const r = applyPlanDraft()
     setMessage(r.ok ? (r.notes.length ? { kind: 'note', text: r.notes.join(' ') } : null) : { kind: 'error', text: r.message })
   }
 
@@ -112,6 +114,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
       <JointsSection design={currentDesign(state)} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur">
+        {pending?.message && !message && <ErrorText>{pending.message}</ErrorText>}
         {message && (message.kind === 'error' ? <ErrorText>{message.text}</ErrorText> : <p className="text-xs text-graphite">{message.text}</p>)}
         <p className="text-xs text-graphite">{changes.length ? `Cambios: ${changes.join(', ')}.` : 'Sin cambios todavía.'}</p>
         {help.open && <HelpPanel term={TERMS[help.open]} onClose={help.close} />}
@@ -125,7 +128,7 @@ export function PlanSheet({ state }: { state: DesignState }) {
           <Button variant="primary" className="flex-1" disabled={!changes.length} onClick={apply}>
             <Check weight="fill" /> Aplicar
           </Button>
-          <Button variant="ghost" disabled={!changes.length} onClick={() => set(source.plan!)}>
+          <Button variant="ghost" disabled={!changes.length} onClick={discardPlanDraft}>
             <ArrowCounterClockwise /> Descartar
           </Button>
         </div>

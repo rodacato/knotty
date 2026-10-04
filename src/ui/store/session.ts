@@ -119,7 +119,7 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
 }
 
 /** What the scene keeps about one design and must not carry into another. */
-const ANOTHER_DESIGN = { adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null } satisfies Partial<Store>
+const ANOTHER_DESIGN = { adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
