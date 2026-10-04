@@ -126,26 +126,28 @@ const shift = (position: Position, delta: number): Position => (position.type ==
  * set back from the edges; aprons between them, with pocket screws into the legs and the bottom screwed down onto them;
  * legs in between where two would stand too far apart (under a divider when one is close) and rails across, so the bottom never spans more than it can.
  * `frontSetback` is how far the box stops short of the front; `dividers`, the middle of each divider from the left, in mm.
+ * `ends`: where the legs of each end stop, the floor of the column above them; a column raised over a void takes its legs up to it, with its side apron.
  */
-function legBase(plan: CabinetPlan, t: number, frontSetback: number, dividers: number[]): { pieces: Piece[]; joints: Joint[] } {
+function legBase(plan: CabinetPlan, t: number, frontSetback: number, dividers: number[], ends: { left: FaceRef; right: FaceRef } = { left: 'bottom.y0', right: 'bottom.y0' }): { pieces: Piece[]; joints: Joint[] } {
   const { width, depth } = plan.dimensions
   const pieces: Piece[] = []
   const joints: Joint[] = []
   const board = (p: Omit<Parameters<typeof makePiece>[0], 'material'>) => pieces.push(makePiece({ material: plan.material, ...p }))
   const pocket = (a: string, b: string) => joints.push(makeJoint(`j-${a}-${b}`, a, b, 'pocket-screw', [{ hardwareId: pocketScrewId(t), count: 2 }]))
-  const y = extent(ref('furniture.y0'), ref('bottom.y0'))
-  const apronY = extent(null, ref('bottom.y0'), LEG_APRON)
-  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) => pieces.push(...legLayers(plan.material, id, name, first, towards, y, z))
+  const upTo = (face: FaceRef) => extent(ref('furniture.y0'), ref(face))
+  const apronUnder = (face: FaceRef) => extent(null, ref(face), LEG_APRON)
+  const apronY = apronUnder('bottom.y0')
+  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent, top: FaceRef = 'bottom.y0') => pieces.push(...legLayers(plan.material, id, name, first, towards, upTo(top), z))
   const frontZ = extent(null, ref('furniture.z1', -frontSetback - LEG_INSET), LEG_WIDTH)
   const backZ = extent(ref('furniture.z0', LEG_INSET), null, LEG_WIDTH)
-  leg('leg-front-left', 'Pata delantera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', frontZ)
-  leg('leg-front-right', 'Pata delantera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', frontZ)
-  leg('leg-back-left', 'Pata trasera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', backZ)
-  leg('leg-back-right', 'Pata trasera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', backZ)
+  leg('leg-front-left', 'Pata delantera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', frontZ, ends.left)
+  leg('leg-front-right', 'Pata delantera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', frontZ, ends.right)
+  leg('leg-back-left', 'Pata trasera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', backZ, ends.left)
+  leg('leg-back-right', 'Pata trasera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', backZ, ends.right)
   board({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x: extent(ref('leg-front-left-2.x1'), ref('leg-front-right-2.x0')), y: apronY, z: endAt(ref('leg-front-left-1.z1')) })
   board({ id: 'apron-back', name: 'Faldón de atrás', role: 'apron', normal: 'z', x: extent(ref('leg-back-left-2.x1'), ref('leg-back-right-2.x0')), y: apronY, z: startAt(ref('leg-back-left-1.z0')) })
-  board({ id: 'apron-left', name: 'Faldón izquierdo', role: 'apron', normal: 'x', x: startAt(ref('leg-front-left-1.x0')), y: apronY, z: extent(ref('leg-back-left-1.z1'), ref('leg-front-left-1.z0')) })
-  board({ id: 'apron-right', name: 'Faldón derecho', role: 'apron', normal: 'x', x: endAt(ref('leg-front-right-1.x1')), y: apronY, z: extent(ref('leg-back-right-1.z1'), ref('leg-front-right-1.z0')) })
+  board({ id: 'apron-left', name: 'Faldón izquierdo', role: 'apron', normal: 'x', x: startAt(ref('leg-front-left-1.x0')), y: apronUnder(ends.left), z: extent(ref('leg-back-left-1.z1'), ref('leg-front-left-1.z0')) })
+  board({ id: 'apron-right', name: 'Faldón derecho', role: 'apron', normal: 'x', x: endAt(ref('leg-front-right-1.x1')), y: apronUnder(ends.right), z: extent(ref('leg-back-right-1.z1'), ref('leg-front-right-1.z0')) })
   for (const [apron, a, b] of [['apron-front', 'leg-front-left-2', 'leg-front-right-2'], ['apron-back', 'leg-back-left-2', 'leg-back-right-2'], ['apron-left', 'leg-front-left-1', 'leg-back-left-1'], ['apron-right', 'leg-front-right-1', 'leg-back-right-1']]) {
     pocket(apron, a)
     pocket(apron, b)
@@ -507,7 +509,10 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   }
   const l = layoutOf(plan, catalog)
   const { build, t } = l
-  const stand = l.onLegs ? legBase(plan, t, l.overlays ? t : 0, l.columnEdges.slice(0, -1).map((share) => t + share * (plan.dimensions.width - 2 * t))) : { pieces: [], joints: [] }
+  // A column at an end that stops short of the floor takes the legs of that end up to its own floor.
+  const last = plan.columns.length - 1
+  const ends = { left: l.onFloor[0] ? 'bottom.y0' : `${l.floorBoard(0)}.y0`, right: l.onFloor[last] ? 'bottom.y0' : `${l.floorBoard(last)}.y0` } as const
+  const stand = l.onLegs ? legBase(plan, t, l.overlays ? t : 0, l.columnEdges.slice(0, -1).map((share) => t + share * (plan.dimensions.width - 2 * t)), ends) : { pieces: [], joints: [] }
   const columns = plan.columns.map((_, i) => column(l, i))
   const asked = columns.flatMap((c) => c.drawers)
   const drawers = asked.map(({ bounds }, k): AddDrawer => ({ op: 'addDrawer', group: `drawer-${k + 1}`, name: `Cajón ${k + 1}`, ...bounds, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: l.backFace, material: plan.material, bottomMaterial: backBoard(catalog).id }))
@@ -597,10 +602,11 @@ function benchCabinets(): [string, CabinetPlan][] {
   const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
   const withFingers = [3, 5, 9].map((drawerFingers): [string, CabinetPlan] => [`cajonera con ${drawerFingers} dedos`, { ...drawerChest, construction: { ...drawerChest.construction, drawerCorners: 'fingers' }, drawerFingers }])
-  // A column that stops short of the floor between two that reach it, with the back and the kick in stretches.
+  // Columns that stop short of the floor: one between two that reach it, with the back and the kick in stretches; one at an end, raised over a leg frame whose legs go up to it.
   const empty: PlanCell = { height: 0.4, content: 'void', shelves: null, doors: null }
   const withVoids: [string, CabinetPlan][] = [
     ['aparador con una columna colgada', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [empty, cell('open', 0.6, 0)] }, { width: 1, cells: [cell('open', 1, 1)] }], { wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' } })],
+    ['librero con una columna levantada', cabinet('Librero', { width: 880, height: 760, depth: 350 }, [{ width: 0.39, cells: [cell('open', 0.62, 0), cell('open', 0.38, 0)] }, { width: 0.61, cells: [{ ...empty, height: 0.37 }, cell('open', 0.63, 0)] }], { base: 'legs', wallMounted: false })],
   ]
   const withTopFingers = ['librero', 'aparador con patas'].map((name): [string, CabinetPlan] => {
     const plan = list.find(([n]) => n === name)![1]
