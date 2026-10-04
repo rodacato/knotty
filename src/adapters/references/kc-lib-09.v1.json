@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "code": "KC-LIB-09",
+  "id": "low-bookcase-splayed-legs",
+  "name": "Librero bajo de patas abiertas",
+  "kind": "bookcase",
+  "finish": "none",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","open-niche","asymmetric-arrangement","angled-cut","no-back"],
+  "adaptations": ["Original probably solid pine; drawn in T18 plywood.","splayed legs drawn straight: the right ones go up to the raised box, and the low aprons are the stretcher","Back drawn nailed; in the photos the upper-left opening looks see-through.","the loose shelf that rests on the leg frame under the raised box is not drawn","the sides rise a little above the top in the piece; drawn flush"],
+  "gaps": ["angled-cut","no-back"],
+  "notes": "Mueble bajo para tornamesa y discos o libros: dos columnas abiertas sobre patas inclinadas; la izquierda con dos huecos y la derecha con un hueco grande. Falta el nivel bajo del lado derecho, donde va una repisa suelta sobre el bastidor de las patas.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero bajo de patas abiertas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 880, "height": 760, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 0.39,
+        "cells": [
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.62 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.38 }
+        ]
+      },
+      {
+        "width": 0.61,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.37 },
+          { "content": "open", "shelves": 0, "doors": null, "height": 0.63 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 22,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 33, "edge-banding-19": 4, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 10, "screw-8x2": 55, "white-glue": 3 }
+  }
+}
