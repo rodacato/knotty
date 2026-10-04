@@ -374,11 +374,27 @@ describe('a void in a column', () => {
     expect(a.warnings).toEqual([])
   })
 
-  it('on legs the raised column floats over the frame, with no loose contact', () => {
-    const { a, box } = built(plan({ name: 'Librero', dimensions: { width: 880, height: 760, depth: 350 }, base: 'legs', wallMounted: false, columns: [{ width: 0.37, cells: [open(0.5), open(0.5)] }, { width: 0.63, cells: [empty(0.3), open(0.7)] }] }))
+  // A raised box at an end, over a leg frame that does not reach it: only the top holds it.
+  const raisedOnLegs = (wallMounted: boolean) =>
+    plan({ name: 'Librero', dimensions: { width: 880, height: 760, depth: 350 }, base: 'legs', wallMounted, columns: [{ width: 0.37, cells: [open(0.5), open(0.5)] }, { width: 0.63, cells: [empty(0.3), open(0.7)] }] })
+
+  it('a box at an end that reaches neither the floor nor anything under it is critical: it hangs from the top', () => {
+    const { a, box } = built(raisedOnLegs(false))
     expect(a.warnings).toEqual([])
-    expect(a.findings).toEqual([])
     expect(box('c2-sep-1').y0).toBeGreaterThan(box('bottom').y1)
+    expect(a.findings.map((f) => [f.severity, f.code, f.check, f.pieces])).toEqual([['critical', 'R7_BASE', 'base.hanging', ['side-right', 'c2-sep-1']]])
+    expect(a.findings[0].alternatives.map((x) => x.key)).toEqual(['anchor-to-wall'])
+  })
+
+  it('anchored to the wall, the wall holds that box and there is nothing to say', () => {
+    expect(built(raisedOnLegs(true)).a.findings).toEqual([])
+  })
+
+  it('a column that stops short between two that stand is carried by them, and is not a hanging box', () => {
+    const { a } = built(
+      plan({ name: 'Aparador', dimensions: { width: 1200, height: 800, depth: 400 }, wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [empty(0.4), open(0.6)] }, { width: 1, cells: [open()] }] }),
+    )
+    expect(a.findings.filter((f) => f.check === 'base.hanging')).toEqual([])
   })
 
   it('at the top, each column that stops short gets its own roof and the top covers only the rest', () => {

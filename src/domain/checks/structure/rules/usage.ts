@@ -255,8 +255,46 @@ const floorSpan: Rule = (ctx) =>
       ]
     })
 
-/** R7: a floor that rests neither on the ground nor on a full kick needs support in between over a long span; legs, one every so often. */
-export const baseRule: Rule = (ctx) => [...floorSpan(ctx), ...legSpan(ctx)]
+/**
+ * R7, a box at an end that hangs: its outer side ends on a floor that neither reaches the ground nor rests on anything, so only the top holds that box.
+ * Anchored to the wall, the wall holds it.
+ */
+const hangingSide: Rule = ({ design, geo, contacts, catalog }) => {
+  if (design.wallAnchored) return []
+  const touching = (id: string) => contacts.flatMap((c) => (c.a === id ? [c.b] : c.b === id ? [c.a] : []))
+  const restsOnSomething = (id: string, box: Box) =>
+    box.y0 <= CONTACT_TOLERANCE ||
+    touching(id).some((other) => {
+      const below = geo.boxes.get(other)
+      return !!below && Math.abs(below.y1 - box.y0) <= CONTACT_TOLERANCE && overlap(below, box, 'x') > CONTACT_TOLERANCE && overlap(below, box, 'z') > CONTACT_TOLERANCE
+    })
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
+  return design.pieces
+    .filter((p) => p.role === 'side')
+    .flatMap((side): Finding[] => {
+      const box = geo.boxes.get(side.id)
+      if (!box || restsOnSomething(side.id, box)) return []
+      // The floor at the foot of the side: a bottom it touches, at its level.
+      const floor = touching(side.id)
+        .map((id) => byId.get(id))
+        .find((p): p is Piece => p?.role === 'bottom' && Math.abs((geo.boxes.get(p.id)?.y0 ?? Infinity) - box.y0) <= CONTACT_TOLERANCE)
+      if (!floor || restsOnSomething(floor.id, geo.boxes.get(floor.id)!)) return []
+      return [
+        {
+          code: 'R7_BASE',
+          severity: 'critical',
+          check: 'base.hanging',
+          pieces: [side.id, floor.id],
+          message: `${side.name} no llega al piso ni descansa en nada, y tampoco el piso de su caja: esa caja cuelga de la cubierta y no se sostiene.`,
+          data: {},
+          alternatives: [{ key: 'anchor-to-wall', description: 'Anclarlo al muro por la cubierta, para que el muro sostenga esa caja', data: antiTipData(catalog) }],
+        },
+      ]
+    })
+}
+
+/** R7: a floor that rests neither on the ground nor on a full kick needs support in between over a long span; legs, one every so often; and no box at an end may hang. */
+export const baseRule: Rule = (ctx) => [...floorSpan(ctx), ...legSpan(ctx), ...hangingSide(ctx)]
 
 const GRAIN_SHOWS = new Set(['side', 'shelf', 'bottom', 'top', 'divider', 'door'])
 
