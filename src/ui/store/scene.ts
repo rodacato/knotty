@@ -18,6 +18,8 @@ export interface SceneChanges {
   nonce: number
 }
 
+export type SceneMode = 'closed' | 'open' | 'exploded'
+
 export interface SceneSlice {
   selection: string | null
   /** The piece the camera turns and zooms about; null frames the whole furniture. Choosing a piece sets it, and the person can leave it while keeping the selection. */
@@ -26,7 +28,8 @@ export interface SceneSlice {
   hidden: string[]
   /** Pieces a message is about, marked in the 3D until the person picks other ones or leaves: view only, like `hidden`. */
   flagged: string[]
-  exploded: boolean
+  /** How the furniture shows: as built, with drawers out and doors open, or apart piece by piece. */
+  mode: SceneMode
   dimensions: boolean
   view: { name: View; nonce: number }
   showProposal: boolean
@@ -45,7 +48,7 @@ export interface SceneSlice {
   /** Marks the pieces; the same ones again clears the mark. */
   flag(ids: string[]): void
   showAll(): void
-  toggleExploded(): void
+  setMode(mode: SceneMode): void
   toggleDimensions(): void
   viewFrom(view: View): void
   toggleProposal(): void
@@ -91,7 +94,7 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   focus: null,
   hidden: [],
   flagged: [],
-  exploded: false,
+  mode: 'closed',
   dimensions: true,
   view: { name: 'three-quarter', nonce: 0 },
   showProposal: true,
@@ -109,8 +112,8 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
   hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
   showAll: () => set({ hidden: [] }),
   flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
-  // Apart, the pieces read best from the front three-quarter view, as in assembly instructions.
-  toggleExploded: () => set((s) => (s.exploded ? { exploded: false } : { exploded: true, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })),
+  // Apart or open, the furniture reads best from the front three-quarter view.
+  setMode: (mode) => set((s) => (s.mode === mode ? {} : { mode, ...(mode === 'closed' ? {} : { view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }) })),
   toggleDimensions: () => set((s) => ({ dimensions: !s.dimensions })),
   viewFrom: (name) => set((s) => ({ view: { name, nonce: s.view.nonce + 1 } })),
 
