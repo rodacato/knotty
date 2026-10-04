@@ -168,3 +168,42 @@ describe('a bed on legs', () => {
     expect(problems).toEqual([])
   })
 })
+
+describe('a daybed', () => {
+  const daybed = (drawers: BedPlan['drawers'], p: Partial<BedPlan> = {}) => bed({ drawers, headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0 }, ...p })
+  const built = (plan: BedPlan) => {
+    const { design } = buildBed(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, a, box: (id: string) => a.geo.boxes.get(id)! }
+  }
+
+  it.each([
+    ['left', 'side-right-1'],
+    ['right', 'side-left-1'],
+    ['none', 'side-right-1'],
+  ] as const)('with drawers %s, the backrest is %s, full height, and the platform sits inside it and the arms', (side, backrest) => {
+    const { design, a, box } = built(daybed({ side, count: side === 'none' ? 0 : 3, position: 'center' }))
+    expect(a.findings).toEqual([])
+    expect(a.warnings).toEqual([])
+    expect(design.pieces.find((p) => p.id === backrest)).toMatchObject({ name: 'Respaldo', role: 'back' })
+    for (const id of [backrest, 'headboard', 'foot-arm']) expect([box(id).y0, box(id).y1]).toEqual([0, 830])
+    expect(box('platform').x1).toBe(box('foot-arm').x0)
+    expect(backrest === 'side-right-1' ? box('platform').z0 === box(backrest).z1 : box('platform').z1 === box(backrest).z0).toBe(true)
+  })
+
+  it('takes neither legs nor drawers on both sides, and choosing it in the form settles both', () => {
+    const issue = (p: BedPlan) => FurniturePlan.safeParse(p).error?.issues[0]
+    expect(issue(daybed({ side: 'both', count: 2, position: 'head' }))).toMatchObject({ path: ['drawers', 'side'], message: expect.stringMatching(/^No cupo/) })
+    expect(issue(daybed({ side: 'none', count: 0, position: 'head' }, { legs: 'legs' }))).toMatchObject({ path: ['legs'], message: expect.stringMatching(/^No cupo/) })
+    const style = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'headboard.style')
+    if (!style || style.type !== 'choice') throw new Error('no headboard style field')
+    const chosen = style.set(bed({ legs: 'legs', drawers: { side: 'both', count: 2, position: 'head' } }), 'daybed')
+    expect(FurniturePlan.safeParse(chosen).success).toBe(true)
+  })
+
+  it('opens its headboard part from the backrest and both arms', () => {
+    const { design } = built(daybed({ side: 'left', count: 3, position: 'center' }))
+    expect(['headboard', 'foot-arm', 'side-right-1'].map((id) => bedModule.parts.ofPiece(design.pieces.find((p) => p.id === id)!))).toEqual(['headboard', 'headboard', 'headboard'])
+  })
+})
