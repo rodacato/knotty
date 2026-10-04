@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "code": "GN-ARC-01",
+  "id": "filing-cabinet",
+  "name": "Archivero",
+  "kind": "drawers",
+  "notes": "Archivero de dos cajones hondos para carpetas colgantes tamaño carta, sobre zoclo y anclado al muro. Los rieles de aluminio para colgar las carpetas se compran aparte.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Archivero",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "dimensions": { "width": 450, "height": 840, "depth": 600 },
+    "construction": { "doors": "overlay", "drawerFronts": "overlay", "top": "over", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 19,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 52, "drawer-slide-50": 2, "edge-banding-19": 11, "screw-8x1": 8, "screw-8x2": 55, "white-glue": 2 }
+  }
+}
