@@ -124,23 +124,26 @@ interface BuiltBed {
   notes: string[]
 }
 
-/**
- * The legs of a raised frame: two layers of the board glued face to face (36 × 72) at each corner, flush with the outside of the frame,
- * and more along each side so no stretch between two is longer than the platform can span.
- */
-function legsOf(span: number, t: number, headEnd: FaceRef, material: string): Piece[] {
+/** Legs stand inside the frame, floor to platform, against the faces they are screwed to: one screwed only to a lower edge swings like a hinge (estructura.md §2.1). */
+function legsOf(span: number, t: number, headEnd: FaceRef, under: (side: 'left' | 'right') => FaceRef, rails: number, material: string): Piece[] {
   const pieces: Piece[] = []
-  const y = extent(ref('furniture.y0'), ref('foot-panel.y0'))
-  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent) => pieces.push(...legLayers(material, id, name, first, towards, y, z))
   const sides = [
-    ['left', 'izquierda', extent(null, ref('furniture.z1'), LEG_WIDTH)],
-    ['right', 'derecha', extent(ref('furniture.z0'), null, LEG_WIDTH)],
+    ['left', 'izquierda', extent(null, ref('side-left-1.z0'), LEG_WIDTH)],
+    ['right', 'derecha', extent(ref('side-right-1.z1'), null, LEG_WIDTH)],
   ] as const
+  const n = Math.min(supportsAcross(span, 2 * t), rails)
   for (const [side, words, z] of sides) {
-    leg(`leg-head-${side}`, `Pata de la cabecera ${words}`, startAt(ref(headEnd)), 'right', z)
-    leg(`leg-foot-${side}`, `Pata del pie ${words}`, endAt(ref('foot-panel.x1')), 'left', z)
-    const n = supportsAcross(span, 2 * t)
-    for (let k = 1; k <= n; k++) leg(`leg-middle-${side}-${k}`, `Pata intermedia ${words} ${n > 1 ? `${k} ` : ''}`.trim(), startAt(partway(`leg-head-${side}-2.x1`, `leg-foot-${side}-1.x0`, k / (n + 1), -t)), 'right', z)
+    const y = extent(ref('furniture.y0'), ref(under(side)))
+    const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left') => pieces.push(...legLayers(material, id, name, first, towards, y, z))
+    leg(`leg-head-${side}`, `Pata de la cabecera ${words}`, startAt(ref(headEnd)), 'right')
+    leg(`leg-foot-${side}`, `Pata del pie ${words}`, endAt(ref('foot-panel.x0')), 'left')
+    let taken = 0
+    for (let k = 1; k <= n; k++) {
+      const wanted = k / (n + 1)
+      const nearest = Array.from({ length: rails }, (_, j) => j + 1).reduce((best, j) => (Math.abs(wanted - j / (rails + 1)) < Math.abs(wanted - best / (rails + 1)) ? j : best), 1)
+      taken = Math.max(nearest, taken + 1)
+      leg(`leg-middle-${side}-${k}`, `Pata intermedia ${words} ${n > 1 ? `${k} ` : ''}`.trim(), startAt(ref(`rail-${side}-1-${taken}.x1`)), 'right')
+    }
   }
   return pieces
 }
@@ -277,7 +280,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
     })
   }
 
-  if (lift > 0) pieces.push(...legsOf(size.width - 4 * t - Math.max(hd, t), t, headEnd, plan.material))
+  if (lift > 0) pieces.push(...legsOf(size.width - 4 * t - Math.max(hd, t), t, headEnd, under, supportsAcross(inner, t), plan.material))
 
   const design: Design = {
     schema: 1,

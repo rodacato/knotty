@@ -82,7 +82,7 @@ describe('a bed on legs', () => {
     expect(box('foot-panel').y1).toBe(450 - 18)
     expect(box('platform').y1).toBe(450)
     expect(box('leg-foot-left-1').y0).toBe(0)
-    expect(box('leg-foot-left-1').y1).toBe(legHeight)
+    expect(box('leg-foot-left-1').y1).toBe(450 - 18)
     expect(design.dimensions.height).toBe(1100)
     expect(a.valid && a.findings.map((f) => f.code)).toEqual(expect.not.arrayContaining(['unsupported']))
   })
@@ -98,13 +98,31 @@ describe('a bed on legs', () => {
     expect(design.pieces.filter((p) => p.id.startsWith('leg-middle-left'))).toHaveLength(4)
   })
 
-  it('cuts the legs at their height and the sides at what is left', () => {
+  it('screws every leg to the faces it stands against, so nothing is left to warn about', () => {
+    const { design, a } = analyzed(raised(150, { mattress: 'individual' }))
+    const joined = (x: string, y: string, from = design.joints) => from.some((u) => (u.a === x && u.b === y) || (u.a === y && u.b === x))
+    for (const side of ['left', 'right']) {
+      for (const [leg, panel] of [['leg-foot', 'foot-panel'], ['leg-head', 'headboard']]) {
+        expect(joined(`${leg}-${side}-1`, panel)).toBe(true)
+        expect(joined(`${leg}-${side}-1`, `side-${side}-1`)).toBe(true)
+      }
+      const middle = design.pieces.filter((p) => new RegExp(`^leg-middle-${side}-\\d+-1$`).test(p.id))
+      expect(middle.length).toBeGreaterThan(0)
+      for (const m of middle) {
+        expect(joined(m.id, `side-${side}-1`)).toBe(true)
+        expect(design.joints.some((u) => [u.a, u.b].includes(m.id) && [u.a, u.b].some((id) => id.startsWith(`rail-${side}`)))).toBe(true)
+      }
+    }
+    expect(a.valid && a.warnings).toEqual([])
+  })
+
+  it('cuts the legs up to the platform and the sides at what is left', () => {
     const line = (legHeight: number) => {
       const { design, a } = analyzed(raised(legHeight))
       const list = cutList(design, a.geo!)
       return { leg: list.find((l) => l.ids.includes('leg-foot-left-1'))!, side: list.find((l) => l.ids.includes('side-left-1'))! }
     }
-    expect([line(100).leg.length, line(300).leg.length]).toEqual([100, 300])
+    expect([line(100).leg.length, line(300).leg.length]).toEqual([450 - 18, 450 - 18])
     expect([line(100).side.width, line(300).side.width]).toEqual([450 - 100 - 18, 450 - 300 - 18])
   })
 

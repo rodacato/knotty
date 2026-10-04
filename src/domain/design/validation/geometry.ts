@@ -1,10 +1,10 @@
-import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Design } from '../schema'
-import { faceSize, roundTo, type Geometry } from '../resolve'
+import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Axis, type Design, type Piece } from '../schema'
+import { faceSize, roundTo, type Box, type Geometry } from '../resolve'
 import { usableSheet, materialById, type Catalog } from '../../materials/catalog'
 import { CONTACT_TOLERANCE, bounds } from '../boxes'
 import { contacts, samePair, gapBetween, type Contact } from './contact'
 import { error, type DesignWarning, type DesignError } from './errors'
-import { cite, noReference, VALUES, type Source } from '../../sources'
+import { cite, noReference, STRUCTURE, VALUES, type Source } from '../../sources'
 
 // Whether the pieces make a piece of furniture: its measures add up, joints join touching pieces, nothing overlaps or floats, and every piece fits a sheet.
 // The error payloads (code, message, data) keep their shape: the expert reads them, and they share their shape with the structural findings.
@@ -14,13 +14,58 @@ const MEASURE_TOLERANCE = 1
 const RUNNER_GAP = 20
 /** An inset door hangs in its opening with this much gap all around: its hinge joins pieces that do not touch. */
 const HINGE_GAP = 4
+/** The longest stretch of a seam between two panels that may have nothing under it: the top of the reference's 600–700 for a platform. */
+const SEAM_SPAN = 700
 export const GEOMETRY_SOURCES: Record<string, Source> = {
   MEASURE_TOLERANCE: noReference('slack for rounding between the declared measures and where the pieces end'),
   RUNNER_GAP: noReference('how far a runner joint may reach before it is an error; the gap the slide needs is R9’s, reported with its fix'),
   // 2–3 mm between fronts, and a millimetre of slack.
   HINGE_GAP: cite(VALUES, '8-puertas', 'Separación entre frentes'),
+  SEAM_SPAN: cite(STRUCTURE, '73-camas', 'también necesita apoyos a cada ≈ 600–700 mm'),
 }
 const NO_JOINT_WARNING = new Set(['door', 'drawer-front'])
+
+/** Two parts (groups, like a headboard) already joined may also touch at an edge without a joint: each piece is held by its own part. */
+function joinedParts(design: Design, byId: Map<string, Piece>, a: Piece, b: Piece): boolean {
+  const [partA, partB] = [a.group ?? null, b.group ?? null]
+  if (partA === partB || isDrawerPart(a) || isDrawerPart(b)) return false
+  return design.joints.some((u) => {
+    const [x, y] = [byId.get(u.a)?.group ?? null, byId.get(u.b)?.group ?? null]
+    return (x === partA && y === partB) || (x === partB && y === partA)
+  })
+}
+
+const near = (a: number, b: number) => Math.abs(a - b) <= CONTACT_TOLERANCE
+const low = (b: Box, axis: Axis) => b[`${axis}0`]
+const high = (b: Box, axis: Axis) => b[`${axis}1`]
+
+/** Coplanar panels of one role meeting edge to edge are a seam, not a joint, while supports joined to both leave no stretch of it longer than SEAM_SPAN. */
+function supportedSeam(design: Design, boxes: Map<string, Box>, c: Contact, a: Piece, b: Piece): boolean {
+  if (a.role !== b.role || a.normal !== b.normal || !c.axis || c.axis === a.normal) return false
+  const [boxA, boxB] = [boxes.get(a.id), boxes.get(b.id)]
+  if (!boxA || !boxB || !near(low(boxA, a.normal), low(boxB, a.normal)) || !near(high(boxA, a.normal), high(boxB, a.normal))) return false
+  const across = c.axis
+  const seam = near(high(boxA, across), low(boxB, across)) ? high(boxA, across) : high(boxB, across)
+  const along = AXES.find((e) => e !== across && e !== a.normal)!
+  const from = Math.max(low(boxA, along), low(boxB, along))
+  const to = Math.min(high(boxA, along), high(boxB, along))
+  if (to <= from) return false
+  const joined = (id: string, other: string) => design.joints.some((u) => samePair(u, id, other))
+  const stretches = design.pieces
+    .filter((p) => p.id !== a.id && p.id !== b.id && joined(p.id, a.id) && joined(p.id, b.id))
+    .flatMap((p) => boxes.get(p.id) ?? [])
+    .filter((s) => low(s, across) < seam - CONTACT_TOLERANCE && high(s, across) > seam + CONTACT_TOLERANCE)
+    .map((s): [number, number] => [Math.max(from, low(s, along)), Math.min(to, high(s, along))])
+    .filter(([start, end]) => end > start)
+    .sort((x, y) => x[0] - y[0])
+  let reached = from
+  let widest = 0
+  for (const [start, end] of stretches) {
+    widest = Math.max(widest, start - reached)
+    reached = Math.max(reached, end)
+  }
+  return Math.max(widest, to - reached) <= SEAM_SPAN
+}
 
 interface GeometryValidation {
   errors: DesignError[]
@@ -119,7 +164,7 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
     const a = byId.get(c.a)!
     const b = byId.get(c.b)!
     if ([a, b].some((p) => NO_JOINT_WARNING.has(p.role) || p.support === 'movable')) continue
-    if (!design.joints.some((u) => samePair(u, c.a, c.b)))
+    if (!design.joints.some((u) => samePair(u, c.a, c.b)) && !supportedSeam(design, geo.boxes, c, a, b) && !joinedParts(design, byId, a, b))
       warnings.push({ code: 'W_CONTACT_WITHOUT_JOINT', message: `"${c.a}" y "${c.b}" se tocan pero no tienen unión.`, data: { a: c.a, b: c.b } })
   }
 
