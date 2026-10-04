@@ -25,9 +25,20 @@ export interface QuickSpec<P> {
   builtAsAsked(plan: P, design: Design): string | null
 }
 
+/** What has to hold between the fields of a plan, beyond what its schema says of each one. */
+export interface PlanRule<P> {
+  holds(plan: P): boolean
+  /** What the person reads when it does not. */
+  message: string
+  /** The field it is about. */
+  path: string[]
+}
+
 export interface FurnitureModule<P extends { kind: string }> {
   kind: P['kind']
   schema: z.ZodType<P>
+  /** Checked on every plan of its kind, in order; absent when the schema says it all. */
+  rules?: PlanRule<P>[]
   /** What it is, with its article, for the person: "una cama". */
   label: string
   /** What the expert reads about it, in English: its field in the expert's schema and its section in the prompts come from here and from `schema`. */

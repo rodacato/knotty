@@ -69,19 +69,19 @@ export const CabinetPlan = z.object({
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 
 /** The legs take height from the box above them: what is left must still hold a bottom, a top and an opening. */
-export const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
 /** The cells of a column that are built: from the first to the last that is not void. */
 const builtRange = (column: PlanColumn) => {
   const built = column.cells.flatMap((c, j) => (c.content === 'void' ? [] : [j]))
   return { lo: built[0] ?? 0, hi: built[built.length - 1] ?? -1, count: built.length, last: column.cells.length - 1 }
 }
 /** A void goes at the bottom or the top of its column, one at each end at most; some column reaches the floor and some the top, or nothing holds the rest. */
-export const voidsFit = (plan: CabinetPlan) => {
+const voidsFit = (plan: CabinetPlan) => {
   const ranges = plan.columns.map(builtRange)
   return ranges.every((r) => r.count > 0 && r.count === r.hi - r.lo + 1 && r.lo <= 1 && r.last - r.hi <= 1) && ranges.some((r) => r.lo === 0) && ranges.some((r) => r.hi === r.last)
 }
-export const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
-export const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
+const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
+const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
@@ -201,25 +201,15 @@ interface BuiltCabinet {
   notes: string[]
 }
 
-export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
-  // A void with nothing to hang from is built as an open cell, and said, as a drawer that does not fit is.
-  if (!voidsFit(plan)) {
-    const columns = plan.columns.map((col) => ({ ...col, cells: col.cells.map((c) => (c.content === 'void' ? { ...c, content: 'open' as const, shelves: 0, doors: null } : c)) }))
-    const built = buildCabinet({ ...plan, columns }, catalog)
-    return { design: built.design, notes: [VOIDS_MISPLACED, ...built.notes] }
-  }
+/** What the plan settles once and every part of the cabinet reads. */
+function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const build = plan.construction
   const t = thicknessOf(catalog, plan.material)
-  const half = t / 2
   const cells = plan.columns.flatMap((c) => c.cells)
   const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
   const backFace: FaceRef = build.back === 'nailed' ? 'back.z1' : 'furniture.z0'
-  // An inset door is declared with its hinge; an overlay one gets it from completeJoints, straight or cranked by what it covers.
-  const insetHinge = hingeFor(catalog, 'inset') ?? pickHardware(catalog, 'hinge')
-  const depth = () => extent(ref(backFace), front)
-  const panel = panelOf(plan.material)
   const onLegs = plan.base === 'legs'
   // On legs the box starts where they end: the sides and the back stand on the bottom's level, not on the floor.
   const boxFloor = onLegs ? ref('bottom.y0') : ref('furniture.y0')
@@ -230,210 +220,244 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const ranges = plan.columns.map(builtRange)
   const onFloor = ranges.map((r) => r.lo === 0)
   const toTop = ranges.map((r) => r.hi === r.last)
-  const voids = onFloor.includes(false) || toTop.includes(false)
   const floorBoard = (i: number) => `c${i + 1}-sep-${ranges[i].lo}`
   const roofBoard = (i: number) => `c${i + 1}-sep-${ranges[i].hi + 1}`
-  const floorLevel = (i: number): Position => (onFloor[i] ? boxFloor : ref(`${floorBoard(i)}.y0`))
-  const roofLevel = (i: number): Position => (toTop[i] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(i)}.y1`))
   const leftWall = (i: number) => (i === 0 ? 'side-left' : `div-${i}`)
   const rightWall = (i: number) => (i === n - 1 ? 'side-right' : `div-${i + 1}`)
-  const between = (first: number, last: number) => extent(ref(`${leftWall(first)}.x1`), ref(`${rightWall(last)}.x0`))
-  /** A stretch of floor goes between the sides, and under the divider that ends it: that divider stands on it like the others. */
-  const floorSpan = (first: number, last: number) => extent(first === 0 ? ref('side-left.x1') : ref(`div-${first}.x0`), last === n - 1 ? ref('side-right.x0') : ref(`div-${last + 1}.x1`))
-  const voidShare = (i: number, end: 'lo' | 'hi') => plan.columns[i].cells[end === 'lo' ? 0 : ranges[i].last].height / (plan.columns[i].cells.reduce((s, c) => s + c.height, 0) || 1)
-
-  const pieces: Piece[] = []
-  const joints: Joint[] = []
-  if (build.back === 'nailed') {
-    const board = { role: 'back' as const, material: backBoard(catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
-    if (!voids) pieces.push(makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(boxFloor, ref('furniture.y1')) }))
-    // One back per column, as tall as what the column builds, meeting at the middle of each divider.
-    else
-      plan.columns.forEach((_, i) =>
-        pieces.push(
-          makePiece({
-            ...board,
-            id: nth('back', i),
-            name: `Trasera de la columna ${i + 1}`,
-            x: extent(i === 0 ? ref('furniture.x0') : ref(`div-${i}.x0`, half), i === n - 1 ? ref('furniture.x1') : ref(`div-${i + 1}.x0`, half)),
-            y: extent(floorLevel(i), toTop[i] ? ref('furniture.y1') : ref(`${roofBoard(i)}.y1`)),
-          }),
-        ),
-      )
+  return {
+    plan,
+    catalog,
+    build,
+    t,
+    half: t / 2,
+    overlays,
+    front,
+    backFace,
+    depth: () => extent(ref(backFace), front),
+    panel: panelOf(plan.material),
+    onLegs,
+    boxFloor,
+    over,
+    n,
+    ranges,
+    onFloor,
+    toTop,
+    voids: onFloor.includes(false) || toTop.includes(false),
+    floorBoard,
+    roofBoard,
+    floorLevel: (i: number): Position => (onFloor[i] ? boxFloor : ref(`${floorBoard(i)}.y0`)),
+    roofLevel: (i: number): Position => (toTop[i] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(i)}.y1`)),
+    between: (first: number, last: number) => extent(ref(`${leftWall(first)}.x1`), ref(`${rightWall(last)}.x0`)),
+    /** A stretch of floor goes between the sides, and under the divider that ends it: that divider stands on it like the others. */
+    floorSpan: (first: number, last: number) => extent(first === 0 ? ref('side-left.x1') : ref(`div-${first}.x0`), last === n - 1 ? ref('side-right.x0') : ref(`div-${last + 1}.x1`)),
+    voidShare: (i: number, end: 'lo' | 'hi') => plan.columns[i].cells[end === 'lo' ? 0 : ranges[i].last].height / (plan.columns[i].cells.reduce((s, c) => s + c.height, 0) || 1),
+    /** Where each column ends, as a share of the width between the sides. */
+    columnEdges: shares(plan.columns.map((c) => c.width)),
   }
-  pieces.push(
-    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(floorLevel(0), roofLevel(0)), z: depth() }),
-    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(floorLevel(n - 1), roofLevel(n - 1)), z: depth() }),
+}
+type Layout = ReturnType<typeof layoutOf>
+
+/** The back: one board, or one per column when a column stops short, as tall as what it builds and meeting at the middle of each divider. */
+function backs(l: Layout): Piece[] {
+  const { plan, n, half } = l
+  if (l.build.back !== 'nailed') return []
+  const board = { role: 'back' as const, material: backBoard(l.catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
+  if (!l.voids) return [makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(l.boxFloor, ref('furniture.y1')) })]
+  return plan.columns.map((_, i) =>
+    makePiece({
+      ...board,
+      id: nth('back', i),
+      name: `Trasera de la columna ${i + 1}`,
+      x: extent(i === 0 ? ref('furniture.x0') : ref(`div-${i}.x0`, half), i === n - 1 ? ref('furniture.x1') : ref(`div-${i + 1}.x0`, half)),
+      y: extent(l.floorLevel(i), l.toTop[i] ? ref('furniture.y1') : ref(`${l.roofBoard(i)}.y1`)),
+    }),
   )
-  if (plan.base === 'kick')
-    runs(onFloor).forEach(([first, last], k) =>
-      pieces.push(
-        makePiece({
-          id: nth('kick', k),
-          name: 'Zoclo',
-          role: 'kick',
-          material: plan.material,
-          normal: 'z',
-          x: floorSpan(first, last),
-          y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet),
-          z: endAt(overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)),
-        }),
-      ),
-    )
-  runs(onFloor).forEach(([first, last], k) =>
-    pieces.push(panel({ id: nth('bottom', k), name: 'Piso', role: 'bottom', normal: 'y', x: floorSpan(first, last), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' })),
-  )
-  runs(toTop).forEach(([first, last], k) =>
-    pieces.push(
-      over
-        ? // Over the walls of its stretch, out to their far faces.
-          panel({ id: nth('top', k), name: 'Cubierta', role: 'top', normal: 'y', x: extent(first === 0 ? ref('furniture.x0') : ref(`div-${first}.x0`), last === n - 1 ? ref('furniture.x1') : ref(`div-${last + 1}.x1`)), y: endAt(ref('furniture.y1')), z: depth() })
-        : panel({ id: nth('top', k), name: 'Techo', role: 'top', normal: 'y', x: between(first, last), y: endAt(ref('furniture.y1')), z: depth() }),
+}
+
+/** The box: back, sides, kick, floor and top; the last three in stretches when a column stops short. */
+function carcass(l: Layout): Piece[] {
+  const { plan, panel, n, t, depth } = l
+  const kick = (first: number, last: number, k: number) =>
+    makePiece({ id: nth('kick', k), name: 'Zoclo', role: 'kick', material: plan.material, normal: 'z', x: l.floorSpan(first, last), y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet), z: endAt(l.overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)) })
+  const top = (first: number, last: number, k: number) =>
+    l.over
+      ? // Over the walls of its stretch, out to their far faces.
+        panel({ id: nth('top', k), name: 'Cubierta', role: 'top', normal: 'y', x: extent(first === 0 ? ref('furniture.x0') : ref(`div-${first}.x0`), last === n - 1 ? ref('furniture.x1') : ref(`div-${last + 1}.x1`)), y: endAt(ref('furniture.y1')), z: depth() })
+      : panel({ id: nth('top', k), name: 'Techo', role: 'top', normal: 'y', x: l.between(first, last), y: endAt(ref('furniture.y1')), z: depth() })
+  return [
+    ...backs(l),
+    panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(l.floorLevel(0), l.roofLevel(0)), z: depth() }),
+    panel({ id: 'side-right', name: 'Lateral derecho', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(l.floorLevel(n - 1), l.roofLevel(n - 1)), z: depth() }),
+    ...(plan.base === 'kick' ? runs(l.onFloor).map(([first, last], k) => kick(first, last, k)) : []),
+    ...runs(l.onFloor).map(([first, last], k) =>
+      panel({ id: nth('bottom', k), name: 'Piso', role: 'bottom', normal: 'y', x: l.floorSpan(first, last), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', l.onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' }),
     ),
-  )
+    ...runs(l.toTop).map(([first, last], k) => top(first, last, k)),
+  ]
+}
 
-  const columnEdges = shares(plan.columns.map((c) => c.width))
-  if (onLegs) {
-    const stand = legBase(plan, t, overlays ? t : 0, columnEdges.slice(0, -1).map((share) => t + share * (plan.dimensions.width - 2 * t)))
-    pieces.push(...stand.pieces)
-    joints.push(...stand.joints)
-  }
-  columnEdges.slice(0, -1).forEach((share, i) => {
+function dividers(l: Layout): Piece[] {
+  const { onFloor, toTop, over, voidShare } = l
+  return l.columnEdges.slice(0, -1).map((share, i) => {
     // Beside a column that reaches the floor it stands on the bottom; between two that stop short, it starts at the lower of their floors.
-    const from = onFloor[i] || onFloor[i + 1] ? ref('bottom.y1') : ref(`${floorBoard(voidShare(i, 'lo') <= voidShare(i + 1, 'lo') ? i : i + 1)}.y0`)
-    const to = toTop[i] && toTop[i + 1] ? ref('top.y0') : toTop[i] || toTop[i + 1] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${roofBoard(voidShare(i, 'hi') <= voidShare(i + 1, 'hi') ? i : i + 1)}.y1`)
-    pieces.push(panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -half)), y: extent(from, to), z: depth() }))
+    const from = onFloor[i] || onFloor[i + 1] ? ref('bottom.y1') : ref(`${l.floorBoard(voidShare(i, 'lo') <= voidShare(i + 1, 'lo') ? i : i + 1)}.y0`)
+    const to = toTop[i] && toTop[i + 1] ? ref('top.y0') : toTop[i] || toTop[i + 1] ? (over ? ref('top.y0') : ref('furniture.y1')) : ref(`${l.roofBoard(voidShare(i, 'hi') <= voidShare(i + 1, 'hi') ? i : i + 1)}.y1`)
+    return l.panel({ id: `div-${i + 1}`, name: `Divisor ${i + 1}`, role: 'divider', normal: 'x', x: startAt(partway('side-left.x1', 'side-right.x0', share, -l.half)), y: extent(from, to), z: l.depth() })
+  })
+}
+
+type Box = { x: Extent; y: Extent }
+
+/** A drawer a cell asks for, before it has its number. */
+interface AskedDrawer {
+  cell: [column: number, cell: number]
+  bounds: Pick<AddDrawer, 'left' | 'right' | 'bottom' | 'top'>
+  overlay: Box
+}
+
+/** What the cells of the grid put in the box. */
+interface Filling {
+  pieces: Piece[]
+  joints: Joint[]
+  /** Overlay doors are found by contact, which picks the nearest upright: the hinge side has to be said once the pieces exist. */
+  hung: { door: string; upright: string }[]
+  drawers: AskedDrawer[]
+}
+
+/** One opening of a column: the faces around it, and the box a front takes over it or inside it. */
+interface Opening {
+  id: string
+  /** For names: which column and which cell, when there is more than one. */
+  label: string
+  left: FaceRef
+  right: FaceRef
+  bottom: FaceRef
+  top: FaceRef
+  overlay: Box
+  inset: Box
+  /** One leaf hangs on the outer edge or the inner one, by which half of the furniture its column is in; a column in the middle hangs on the left. */
+  hangsLeft: boolean
+}
+
+function shelvesOf(l: Layout, cell: PlanCell, o: Opening): Piece[] {
+  const behindDoor = cell.content === 'door'
+  const shelves = cell.content === 'open' || behindDoor ? (cell.shelves ?? 0) : 0
+  return Array.from({ length: shelves }, (_, i) => i + 1).map((k) =>
+    l.panel({
+      id: `${o.id}-shelf-${k}`,
+      name: `Repisa ${k}${o.label}`,
+      role: 'shelf',
+      normal: 'y',
+      x: extent(ref(o.left), ref(o.right)),
+      y: startAt(partway(o.bottom, o.top, k / (shelves + 1), -l.half)),
+      // Behind a door the shelf stops short of it: an overlay door is in front of the carcass, an inset one inside it.
+      z: extent(ref(l.backFace), behindDoor ? shift(l.front, (l.build.doors === 'inset' ? -l.t : 0) - SHELF_SETBACK) : l.front),
+      load: 'medium',
+      support: l.build.shelves === 'movable' ? 'movable' : 'fixed',
+    }),
+  )
+}
+
+/** What closes a cell: a fixed cover, or one or two door leaves with their hinges. */
+function frontsOf(l: Layout, cell: PlanCell, o: Opening): Pick<Filling, 'pieces' | 'joints' | 'hung'> {
+  const { plan, build } = l
+  const overlaid = build.doors === 'overlay'
+  // Overlay leaves close the front of the piece; inset ones sit flush with the carcass, wherever overlay drawer fronts put it.
+  const leaf = { material: plan.material, normal: 'z' as const, z: endAt(overlaid ? ref('furniture.z1') : l.front), edges: ['front', 'back', 'left', 'right', 'top', 'bottom'] as Piece['edges'] }
+  if (cell.content === 'closed') {
+    // Inset, a fixed cover fills the opening edge to edge and is screwed like any panel.
+    const box = overlaid ? o.overlay : { x: extent(ref(o.left), ref(o.right)), y: extent(ref(o.bottom), ref(o.top)) }
+    return { pieces: [makePiece({ ...leaf, id: `${o.id}-cover`, name: `Tapa${o.label}`, role: 'other', ...box })], joints: [], hung: [] }
+  }
+  if (cell.content !== 'door') return { pieces: [], joints: [], hung: [] }
+
+  const box = overlaid ? o.overlay : o.inset
+  const [x0, x1] = [box.x.from!, box.x.to!]
+  const doors =
+    Math.min(cell.doors ?? 1, 2) === 1
+      ? [{ id: `${o.id}-door`, name: `Puerta${o.label}`, x: extent(x0, x1), hinge: o.hangsLeft ? o.left : o.right }]
+      : [
+          { id: `${o.id}-door-left`, name: `Puerta izquierda${o.label}`, x: extent(x0, partway(o.left, o.right, 0.5, -GAP / 2)), hinge: o.left },
+          { id: `${o.id}-door-right`, name: `Puerta derecha${o.label}`, x: extent(partway(o.left, o.right, 0.5, GAP / 2), x1), hinge: o.right },
+        ]
+  // An inset door is declared with its hinge, since it touches nothing; an overlay one gets it from completeJoints, straight or cranked by what it covers.
+  const insetHinge = hingeFor(l.catalog, 'inset') ?? pickHardware(l.catalog, 'hinge')
+  return {
+    pieces: doors.map((d) => makePiece({ ...leaf, id: d.id, name: d.name, role: 'door', x: d.x, y: box.y })),
+    joints: overlaid ? [] : doors.map((d) => makeJoint(`j-${d.id}`, d.id, pieceOf(d.hinge), 'cup-hinge', insetHinge ? [{ hardwareId: insetHinge.id, count: null }] : [])),
+    hung: overlaid ? doors.map((d) => ({ door: d.id, upright: pieceOf(d.hinge) })) : [],
+  }
+}
+
+/** One column of the grid: its fixed shelves between cells, and what each cell holds. */
+function column(l: Layout, i: number): Filling {
+  const { plan, n, half, build, ranges } = l
+  const { cells } = plan.columns[i]
+  const col = `c${i + 1}`
+  const m = cells.length
+  const left: FaceRef = i === 0 ? 'side-left.x1' : `div-${i}.x1`
+  const right: FaceRef = i === n - 1 ? 'side-right.x0' : `div-${i + 1}.x0`
+  // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
+  const overX = extent(i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2), i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2))
+  const middle = ((i === 0 ? 0 : l.columnEdges[i - 1]) + l.columnEdges[i]) / 2
+  const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
+
+  const separators = shares(cells.map((c) => c.height)).slice(0, -1).map((share, j) => {
+    // Next to a void the fixed shelf is the column's own floor or roof.
+    const edge = j + 1 === ranges[i].lo ? { name: `Piso de la columna ${i + 1}`, role: 'bottom' as const, load: 'medium' as const } : j === ranges[i].hi ? { name: `Techo de la columna ${i + 1}`, role: 'top' as const } : { name: `Entrepaño fijo ${n > 1 ? `${i + 1}.` : ''}${j + 1}`, role: 'shelf' as const }
+    return l.panel({ id: `${col}-sep-${j + 1}`, normal: 'y', x: extent(ref(left), ref(right)), y: startAt(partway('bottom.y1', 'top.y0', share, -half)), z: l.depth(), ...edge })
   })
 
-  /** The column and cell each drawer asked for, in the order of `drawers`. */
-  const drawerCells: [column: number, cell: number][] = []
-  // Overlay doors are found by contact, which picks the nearest upright: the hinge side has to be said once the pieces exist.
-  const hung: { door: string; upright: string }[] = []
-  const drawers: { operation: AddDrawer; overlay: { x: ReturnType<typeof extent>; y: ReturnType<typeof extent> } }[] = []
-  plan.columns.forEach((column, i) => {
-    const col = `c${i + 1}`
-    const left: FaceRef = i === 0 ? 'side-left.x1' : `div-${i}.x1`
-    const right: FaceRef = i === n - 1 ? 'side-right.x0' : `div-${i + 1}.x0`
-    // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
-    const overLeft = i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2)
-    const overRight = i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2)
-    const cellTops = shares(column.cells.map((c) => c.height))
-    cellTops.slice(0, -1).forEach((share, j) => {
-      // Next to a void the fixed shelf is the column's own floor or roof.
-      const edge = j + 1 === ranges[i].lo ? { name: `Piso de la columna ${i + 1}`, role: 'bottom' as const, load: 'medium' as const } : j === ranges[i].hi ? { name: `Techo de la columna ${i + 1}`, role: 'top' as const } : { name: `Entrepaño fijo ${n > 1 ? `${i + 1}.` : ''}${j + 1}`, role: 'shelf' as const }
-      pieces.push(panel({ id: `${col}-sep-${j + 1}`, normal: 'y', x: extent(ref(left), ref(right)), y: startAt(partway('bottom.y1', 'top.y0', share, -half)), z: depth(), ...edge }))
-    })
-    column.cells.forEach((cell, j) => {
-      if (cell.content === 'void') return
-      const m = column.cells.length
-      const id = `${col}-h${j + 1}`
-      const label = `${n > 1 ? ` de la columna ${i + 1}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`
-      const bottom: FaceRef = j === 0 ? 'bottom.y1' : `${col}-sep-${j}.y1`
-      const top: FaceRef = j === m - 1 ? 'top.y0' : `${col}-sep-${j + 1}.y0`
-      const overBottom = j === 0 ? ref('bottom.y0', GAP) : ref(`${col}-sep-${j}.y0`, half + GAP / 2)
-      const overTop = j === m - 1 ? (build.top === 'over' ? ref('top.y0', -GAP) : ref('furniture.y1', -GAP)) : ref(`${col}-sep-${j + 1}.y0`, half - GAP / 2)
-      const overlay = { x: extent(overLeft, overRight), y: extent(overBottom, overTop) }
-      const inset = { x: extent(ref(left, GAP), ref(right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) }
-
-      // One leaf hangs on the outer edge or the inner one, by which half of the furniture its column is in; a column in the middle hangs on the left.
-      const middle = ((i === 0 ? 0 : columnEdges[i - 1]) + columnEdges[i]) / 2
-      const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
-      const behindDoor = cell.content === 'door'
-      const shelves = cell.content === 'open' || behindDoor ? (cell.shelves ?? 0) : 0
-      for (let k = 1; k <= shelves; k++)
-        pieces.push(
-          panel({
-            id: `${id}-shelf-${k}`,
-            name: `Repisa ${k}${label}`,
-            role: 'shelf',
-            normal: 'y',
-            x: extent(ref(left), ref(right)),
-            y: startAt(partway(bottom, top, k / (shelves + 1), -half)),
-            // Behind a door the shelf stops short of it: an overlay door is in front of the carcass, an inset one inside it.
-            z: extent(ref(backFace), behindDoor ? shift(front, (build.doors === 'inset' ? -t : 0) - SHELF_SETBACK) : front),
-            load: 'medium',
-            support: build.shelves === 'movable' ? 'movable' : 'fixed',
-          }),
-        )
-
-      const front6 = ['front', 'back', 'left', 'right', 'top', 'bottom'] as Piece['edges']
-      // Overlay leaves close the front of the piece; inset ones sit flush with the carcass, wherever overlay drawer fronts put it.
-      const leaf = { material: plan.material, normal: 'z' as const, z: endAt(build.doors === 'overlay' ? ref('furniture.z1') : front), edges: front6 }
-      if (cell.content === 'closed') {
-        // Inset, a fixed cover fills the opening edge to edge and is screwed like any panel.
-        const box = build.doors === 'overlay' ? overlay : { x: extent(ref(left), ref(right)), y: extent(ref(bottom), ref(top)) }
-        pieces.push(makePiece({ ...leaf, id: `${id}-cover`, name: `Tapa${label}`, role: 'other', ...box }))
-      }
-      if (cell.content === 'door') {
-        const box = build.doors === 'overlay' ? overlay : inset
-        const leaves = Math.min(cell.doors ?? 1, 2)
-        const [x0, x1] = [box.x.from!, box.x.to!]
-        const doors =
-          leaves === 1
-            ? [{ id: `${id}-door`, name: `Puerta${label}`, x: extent(x0, x1), hinge: hangsLeft ? left : right }]
-            : [
-                { id: `${id}-door-left`, name: `Puerta izquierda${label}`, x: extent(x0, partway(left, right, 0.5, -GAP / 2)), hinge: left },
-                { id: `${id}-door-right`, name: `Puerta derecha${label}`, x: extent(partway(left, right, 0.5, GAP / 2), x1), hinge: right },
-              ]
-        for (const d of doors) {
-          pieces.push(makePiece({ ...leaf, id: d.id, name: d.name, role: 'door', x: d.x, y: box.y }))
-          // An inset door touches nothing: its hinge is declared, not found by contact.
-          if (build.doors === 'inset') joints.push(makeJoint(`j-${d.id}`, d.id, pieceOf(d.hinge), 'cup-hinge', insetHinge ? [{ hardwareId: insetHinge.id, count: null }] : []))
-          else hung.push({ door: d.id, upright: pieceOf(d.hinge) })
-        }
-      }
-      if (cell.content === 'drawer') {
-        const k = drawers.length + 1
-        drawerCells.push([i, j])
-        drawers.push({
-          operation: { op: 'addDrawer', group: `drawer-${k}`, name: `Cajón ${k}`, left: left, right: right, bottom: bottom, top: top, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: backFace, material: plan.material, bottomMaterial: backBoard(catalog).id },
-          overlay,
-        })
-      }
-    })
+  const filling: Filling = { pieces: separators, joints: [], hung: [], drawers: [] }
+  cells.forEach((cell, j) => {
+    if (cell.content === 'void') return
+    const bottom: FaceRef = j === 0 ? 'bottom.y1' : `${col}-sep-${j}.y1`
+    const top: FaceRef = j === m - 1 ? 'top.y0' : `${col}-sep-${j + 1}.y0`
+    const overBottom = j === 0 ? ref('bottom.y0', GAP) : ref(`${col}-sep-${j}.y0`, half + GAP / 2)
+    const overTop = j === m - 1 ? (l.over ? ref('top.y0', -GAP) : ref('furniture.y1', -GAP)) : ref(`${col}-sep-${j + 1}.y0`, half - GAP / 2)
+    const opening: Opening = {
+      id: `${col}-h${j + 1}`,
+      label: `${n > 1 ? ` de la columna ${i + 1}` : ''}${m > 1 ? ` (hueco ${j + 1})` : ''}`,
+      left,
+      right,
+      bottom,
+      top,
+      overlay: { x: overX, y: extent(overBottom, overTop) },
+      inset: { x: extent(ref(left, GAP), ref(right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
+      hangsLeft,
+    }
+    const fronts = frontsOf(l, cell, opening)
+    filling.pieces.push(...shelvesOf(l, cell, opening), ...fronts.pieces)
+    filling.joints.push(...fronts.joints)
+    filling.hung.push(...fronts.hung)
+    if (cell.content === 'drawer') filling.drawers.push({ cell: [i, j], bounds: { left, right, bottom, top }, overlay: opening.overlay })
   })
+  return filling
+}
 
-  // A cabinet's plan does not say whether it is a bookcase or a wardrobe: its design has no `kind` and the checks by use read its name.
-  let design: Design = {
-    schema: 1,
-    name: plan.name,
-    dimensions: { width: plan.dimensions.width, height: plan.dimensions.height, depth: plan.dimensions.depth },
-    wallAnchored: plan.wallMounted,
-    notes: '',
-    pieces: pieces,
-    joints: joints,
-  }
-  const overlayOf = new Map(drawers.map((d) => [d.operation.group, d.overlay]))
-  // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
-  const withFronts = (built: Design, drawer: AddDrawer): Design => {
-    const overlay = overlayOf.get(drawer.group)
-    if (build.drawerFronts !== 'overlay' || !overlay) return built
-    const frontId = `${drawer.group}-front`
-    return { ...built, pieces: built.pieces.map((p) => (p.id === frontId ? { ...p, x: overlay.x, y: overlay.y, z: endAt(ref('furniture.z1')) } : p)) }
-  }
-  const placed = addDrawers(design, drawers.map((d) => d.operation), catalog, withFronts)
-  design = placed.design
-  const notes = [...placed.notes]
-  // A drawer that does not fit is left as an open cell; the carcass was set back for its front, so it is built again without it.
-  const dropped = drawers.flatMap((d, n) => (design.pieces.some((p) => p.id === `${d.operation.group}-front`) ? [] : [drawerCells[n]]))
-  if (dropped.length) {
-    const columns = plan.columns.map((col, i) => ({ ...col, cells: col.cells.map((cell, j) => (dropped.some(([a, b]) => a === i && b === j) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell)) }))
-    return { design: buildCabinet({ ...plan, columns }, catalog).design, notes }
-  }
-  if (plan.construction.drawerCorners === 'fingers') design = withFingerBoxes(design, catalog)
-  // What a carpenter adds without being asked, each kept only if the design still holds with it:
-  // on a kick, the floor rests on a support under each divider; hung on the wall, a rail at the top and back takes the screws.
+/** What a carpenter adds without being asked, each kept only if the design still holds: a support under each divider on a kick, a rail for the wall screws when hung. */
+function withExtras(l: Layout, design: Design): Design {
+  const { plan, panel, catalog, onFloor, backFace } = l
   const extras: Operation[] = []
   if (plan.base === 'kick')
-    columnEdges.slice(0, -1).forEach((_, i) =>
-      onFloor[i] && onFloor[i + 1] && extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
+    l.columnEdges.slice(0, -1).forEach(
+      (_, i) => onFloor[i] && onFloor[i + 1] && extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
     )
-  if (plan.wallMounted && plan.base === 'floor' && !voids)
+  if (plan.wallMounted && plan.base === 'floor' && !l.voids)
     extras.push({ op: 'addPiece', piece: panel({ id: 'hanging-rail', name: 'Listón de colgar', role: 'brace', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
-  for (const extra of extras) {
-    const result = applyOperations(design, [extra], catalog)
-    if (result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid) design = result.value.design
-  }
+  return extras.reduce((kept, extra) => {
+    const result = applyOperations(kept, [extra], catalog)
+    return result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid ? result.value.design : kept
+  }, design)
+}
+
+/** The last of the build, which needs the pieces in place: the hinges of overlay doors, and what is cut into drawer boxes and fronts. */
+function finished(l: Layout, built: Design, hung: Filling['hung']): BuiltCabinet {
+  const { plan, catalog } = l
+  const { pulls, drawerCorners, fronts: frontStyle } = plan.construction
+  const fingers = plan.drawerFingers ?? DEFAULT_FINGERS
+  const notes: string[] = []
+  let design = built
   const geometry = resolveGeometry(design, catalog)
   if (geometry.ok) {
     const byId = new Map(design.pieces.map((p) => [p.id, p]))
@@ -445,14 +469,59 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     design = { ...design, joints: [...design.joints, ...declared] }
   }
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').length
-  const pulls = plan.construction.pulls
-  const cutBoxes = geometry.ok && plan.construction.drawerCorners === 'fingers' ? withFingerCuts(design, geometry.value.boxes, plan.drawerFingers ?? DEFAULT_FINGERS) : design
-  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, { notch: pulls === 'notch', grooved: plan.construction.fronts === 'grooved' }) : cutBoxes
+  const cutBoxes = geometry.ok && drawerCorners === 'fingers' ? withFingerCuts(design, geometry.value.boxes, fingers) : design
+  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, { notch: pulls === 'notch', grooved: frontStyle === 'grooved' }) : cutBoxes
   const withPulls: Design = pulls === 'none' ? cutFronts : { ...cutFronts, pulls }
   if (pulls === 'notch' && fronts) notes.push(`Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
   const fingered = fingerDrawers(design)
-  if (fingered) notes.push(`Esquinas de dedos en ${fingered} ${fingered === 1 ? 'cajón' : 'cajones'}, ${plan.drawerFingers ?? DEFAULT_FINGERS} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
+  if (fingered) notes.push(`Esquinas de dedos en ${fingered} ${fingered === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   return { design: completeJoints(withPulls, catalog), notes }
+}
+
+/** The plan with some cells built as open ones: what a void with nothing to hang from, or a drawer that does not fit, becomes. */
+const opened = (plan: CabinetPlan, which: (cell: PlanCell, column: number, index: number) => boolean): CabinetPlan => ({
+  ...plan,
+  columns: plan.columns.map((col, i) => ({ ...col, cells: col.cells.map((cell, j) => (which(cell, i, j) ? { ...cell, content: 'open' as const, shelves: 0, doors: null } : cell)) })),
+})
+
+export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
+  if (!voidsFit(plan)) {
+    const built = buildCabinet(opened(plan, (cell) => cell.content === 'void'), catalog)
+    return { design: built.design, notes: [VOIDS_MISPLACED, ...built.notes] }
+  }
+  const l = layoutOf(plan, catalog)
+  const { build, t } = l
+  const stand = l.onLegs ? legBase(plan, t, l.overlays ? t : 0, l.columnEdges.slice(0, -1).map((share) => t + share * (plan.dimensions.width - 2 * t))) : { pieces: [], joints: [] }
+  const columns = plan.columns.map((_, i) => column(l, i))
+  const asked = columns.flatMap((c) => c.drawers)
+  const drawers = asked.map(({ bounds }, k): AddDrawer => ({ op: 'addDrawer', group: `drawer-${k + 1}`, name: `Cajón ${k + 1}`, ...bounds, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: l.backFace, material: plan.material, bottomMaterial: backBoard(catalog).id }))
+
+  // A cabinet's plan does not say whether it is a bookcase or a wardrobe: its design has no `kind` and the checks by use read its name.
+  const design: Design = {
+    schema: 1,
+    name: plan.name,
+    dimensions: { width: plan.dimensions.width, height: plan.dimensions.height, depth: plan.dimensions.depth },
+    wallAnchored: plan.wallMounted,
+    notes: '',
+    pieces: [...carcass(l), ...stand.pieces, ...dividers(l), ...columns.flatMap((c) => c.pieces)],
+    joints: [...stand.joints, ...columns.flatMap((c) => c.joints)],
+  }
+  const overlayOf = new Map(drawers.map((d, k) => [d.group, asked[k].overlay]))
+  // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
+  const withFronts = (built: Design, drawer: AddDrawer): Design => {
+    const overlay = overlayOf.get(drawer.group)
+    if (build.drawerFronts !== 'overlay' || !overlay) return built
+    const frontId = `${drawer.group}-front`
+    return { ...built, pieces: built.pieces.map((p) => (p.id === frontId ? { ...p, x: overlay.x, y: overlay.y, z: endAt(ref('furniture.z1')) } : p)) }
+  }
+  const placed = addDrawers(design, drawers, catalog, withFronts)
+  // A drawer that does not fit is left as an open cell; the carcass was set back for its front, so it is built again without it.
+  const dropped = drawers.flatMap((d, k) => (placed.design.pieces.some((p) => p.id === `${d.group}-front`) ? [] : [asked[k].cell]))
+  if (dropped.length) return { design: buildCabinet(opened(plan, (_, i, j) => dropped.some(([a, b]) => a === i && b === j)), catalog).design, notes: placed.notes }
+
+  const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
+  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung))
+  return { design: done.design, notes: [...placed.notes, ...done.notes] }
 }
 
 const count = (plan: CabinetPlan, content: PlanCell['content']) => plan.columns.flatMap((c) => c.cells).filter((c) => c.content === content).length
@@ -584,6 +653,10 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
 export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
+  rules: [
+    { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
+    { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
+  ],
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },
   build: buildCabinet,
