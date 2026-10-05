@@ -19,7 +19,7 @@
           "id": "Xb2lE",
           "name": "ui-kit 0.1.0 — Foundations",
           "fill": "$graphite",
-          "content": "ui-kit 0.4.3 — Foundations",
+          "content": "ui-kit 0.5.0 — Foundations",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -2923,7 +2923,7 @@
           "id": "RvRnr",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.4.3 — Components",
+          "content": "ui-kit 0.5.0 — Components",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -4892,7 +4892,7 @@
               "id": "h4QXu8",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "System — HelpButton (closed · open) · Reveal (hidden · shown) · RadioCard/Disabled · HelpPanel · Field/Input (error · help · sm)",
+              "content": "System — HelpButton (closed · open) · Reveal (hidden · shown) · RadioCard/Disabled · HelpPanel · Field/Input (error · help · sm) · IconButton (md 36 with a 44 hit area · lg 44)",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -5084,6 +5084,52 @@
                           "fontWeight": "normal"
                         }
                       ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QivBl",
+                  "name": "IconButton/md",
+                  "reusable": true,
+                  "width": 36,
+                  "height": 36,
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "HJB3K",
+                      "name": "X",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "x",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "EYTUw",
+                  "name": "IconButton/lg",
+                  "reusable": true,
+                  "width": 44,
+                  "height": 44,
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Lrk66",
+                      "name": "X",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "x",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
                     }
                   ]
                 }
@@ -5332,7 +5378,7 @@
               "id": "vF7TX",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Hover — Button primary (graphite/90) · secondary (kraft-2) · ghost (kraft) · danger (rust/90) · Chip · RadioCard · RadioPill · Segment",
+              "content": "Hover — Button primary (graphite/90) · secondary (kraft-2) · ghost (kraft) · danger (rust/90) · Chip · RadioCard · RadioPill · Segment · IconButton (kraft)",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -5612,6 +5658,30 @@
                       "fontFamily": "$font-sans",
                       "fontSize": 13,
                       "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "D3Bo0t",
+                  "name": "IconButton/md · hover",
+                  "reusable": true,
+                  "width": 36,
+                  "height": 36,
+                  "fill": "$kraft",
+                  "cornerRadius": "$radius-full",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "C2CZpt",
+                      "name": "X",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "x",
+                      "library": "phosphor",
+                      "fill": "$graphite-2"
                     }
                   ]
                 }
@@ -6297,7 +6367,7 @@
           "id": "VqV1w",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.4.3 — Components · dark",
+          "content": "ui-kit 0.5.0 — Components · dark",
           "fontFamily": "$font-display",
           "fontSize": 28,
           "fontWeight": "600"
@@ -6714,7 +6784,7 @@
               "id": "rUuwt",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Radio — pill · segment · help · reveal",
+              "content": "Radio — pill · segment · help · reveal · icon button",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -6785,6 +6855,24 @@
                   "type": "ref",
                   "ref": "nP5pW",
                   "name": "Reveal/Shown"
+                },
+                {
+                  "id": "gdzom",
+                  "type": "ref",
+                  "ref": "QivBl",
+                  "name": "IconButton/md"
+                },
+                {
+                  "id": "u7rSNb",
+                  "type": "ref",
+                  "ref": "EYTUw",
+                  "name": "IconButton/lg"
+                },
+                {
+                  "id": "Eoye0",
+                  "type": "ref",
+                  "ref": "D3Bo0t",
+                  "name": "IconButton/md · hover"
                 }
               ]
             }
@@ -6978,7 +7066,7 @@
   "variables": {
     "kit-version": {
       "type": "string",
-      "value": "0.4.3"
+      "value": "0.5.0"
     },
     "bone": {
       "type": "color",
