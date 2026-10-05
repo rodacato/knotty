@@ -21,6 +21,8 @@ const PLUG_DIAMETER = 10
 const DOWEL = { diameter: 8, length: 40, faceShare: 2 / 3 }
 /** A #8 screw; the length is the catalog's, this one when it does not say. */
 const SCREW = { diameter: 4, length: 38, pilot: 3 }
+/** An M6 connector bolt, in the 7 mm hole that lets it reach its barrel nut. */
+const BOLT = { diameter: 6, pilot: 7 }
 /** A 5 mm shelf pin: this much of it sticks out under the shelf. */
 const SHELF_PIN = { diameter: 5, length: 16, out: 8 }
 const AXES: Axis[] = ['x', 'y', 'z']
@@ -87,7 +89,7 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
       const outward = m.toward === 1 ? -1 : 1
       for (const center of m.points(dowelsAlong(m.length), outward === 1 ? high(a, m.face) : low(a, m.face))) parts.push({ kind: 'plug', owner: u.a, center, axis: m.face, outward, diameter: PLUG_DIAMETER })
     }
-    if (u.type === 'dowel' || u.type === 'butt-screw' || u.type === 'shelf-pin') {
+    if (u.type === 'dowel' || u.type === 'butt-screw' || u.type === 'connector-bolt' || u.type === 'shelf-pin') {
       const m = meeting(a, b)
       if (!m) continue
       const { face, toward, plane } = m
@@ -100,12 +102,13 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
         for (const center of m.points(count, plane + (toward * (inB - inA)) / 2)) parts.push({ kind: 'dowel', owner: u.b, center, axis: face, length: inA + inB, diameter: DOWEL.diameter })
         for (const center of m.points(count, plane)) parts.push({ kind: 'hole', owner: u.a, center, axis: face, outward: toward, diameter: DOWEL.diameter })
       }
-      if (u.type === 'butt-screw') {
+      if (u.type === 'butt-screw' || u.type === 'connector-bolt') {
+        const { diameter, pilot } = u.type === 'connector-bolt' ? BOLT : SCREW
         const length = catalog.hardware.find((h) => h.id === u.hardware[0]?.hardwareId)?.length ?? SCREW.length
         // Through the whole board when a meets b with its face; a piece met by its edge has no outside face to start from.
         const through = depth(a) < length ? depth(a) : length / 2
-        for (const center of m.points(count, plane + toward * (length / 2 - through))) parts.push({ kind: 'screw', owner: u.a, center, axis: face, length, diameter: SCREW.diameter, outward: back })
-        for (const center of m.points(count, plane)) parts.push({ kind: 'hole', owner: u.b, center, axis: face, outward: back, diameter: SCREW.pilot })
+        for (const center of m.points(count, plane + toward * (length / 2 - through))) parts.push({ kind: 'screw', owner: u.a, center, axis: face, length, diameter, outward: back })
+        for (const center of m.points(count, plane)) parts.push({ kind: 'hole', owner: u.b, center, axis: face, outward: back, diameter: pilot })
       }
       // The shelf rests on its pins, so they sit just under it; only on an upright, where under is down.
       if (u.type === 'shelf-pin' && face === 'x') {

@@ -35,7 +35,7 @@ export type BoardMaterial = z.infer<typeof BoardFields>
 
 /** What a hardware item is for: code asks the catalog for a role, never for an id or an id's prefix. */
 export const HARDWARE_ROLES = [
-  'screw', 'pocket-screw', 'nail', 'dowel', 'cam-lock', 'bracket', 'shelf-pin', 'hinge', 'drawer-slide',
+  'screw', 'pocket-screw', 'nail', 'dowel', 'cam-lock', 'connector-bolt', 'bracket', 'shelf-pin', 'hinge', 'drawer-slide',
   'glue', 'edge-banding', 'leveling-foot', 'handle', 'anti-tip',
 ] as const
 export const HardwareRole = z.enum(HARDWARE_ROLES)

@@ -59,6 +59,14 @@ const SPECS = {
     glue: false,
     hardware: 'cam-lock',
   },
+  'connector-bolt': {
+    label: { singular: 'perno con tuerca de barril', plural: 'pernos con tuerca de barril' },
+    minThickness: { a: 15, b: 18 },
+    rigid: true,
+    holdsThinBoard: false,
+    glue: false,
+    hardware: 'connector-bolt',
+  },
   dado: {
     label: { singular: 'canal', plural: 'canal' },
     minThickness: { b: 15 },

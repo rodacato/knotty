@@ -88,6 +88,15 @@ describe('hardware to draw', () => {
       expect(parts.filter((p) => p.kind === 'hole')).toHaveLength(bought('screw') + bought('dowel'))
     }
   })
+  it('draws a connector bolt as a 6 mm rod in a 7 mm hole, one for each the shopping list counts', () => {
+    const bolted = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.type === 'butt-screw' ? { ...u, type: 'connector-bolt' as const, glue: false, hardware: [{ hardwareId: 'connector-bolt-m6', count: null }] } : u)) }
+    const geo = analyze(bolted, testCatalog).geo!
+    const parts = hardwareParts(bolted, geo.boxes, testCatalog)
+    const bolts = estimatePurchase(bolted, geo, testCatalog).hardware.find((line) => line.hardware.role === 'connector-bolt')!.count
+    expect(bolts).toBeGreaterThan(0)
+    expect(parts.filter((p) => p.kind === 'screw' && p.diameter === 6 && p.length === 50)).toHaveLength(bolts)
+    expect(parts.filter((p) => p.kind === 'hole' && p.diameter === 7)).toHaveLength(bolts)
+  })
   it('runs a screw from the outside face of the piece it goes through into the other, and marks its hole there', () => {
     const geo = analyze(exampleBookcase, testCatalog).geo!
     const u = exampleBookcase.joints.find((j) => j.type === 'butt-screw' && geo.boxes.get(j.a)!.x1 - geo.boxes.get(j.a)!.x0 < 30)!

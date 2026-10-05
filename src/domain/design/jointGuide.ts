@@ -8,7 +8,7 @@ import type { JointType } from './schema'
 export type JointFit = 'yes' | 'jig' | 'careful' | 'shop' | 'no'
 
 /** The joints the catalog shows: every structural joint type, plus confirmat, which Knotty does not build yet. */
-export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'plugged-dowel' | 'cam-lock' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet' | 'finger'> | 'confirmat'
+export type GuideJoint = Extract<JointType, 'butt-screw' | 'pocket-screw' | 'dowel' | 'plugged-dowel' | 'cam-lock' | 'connector-bolt' | 'glue-nail' | 'bracket' | 'dado' | 'rabbet' | 'finger'> | 'confirmat'
 
 export interface JointGuide {
   name: string
@@ -105,6 +105,19 @@ export const JOINT_GUIDE: Record<GuideJoint, JointGuide> = {
     visible: 'tapón por dentro',
     knockDown: 'sí, muchas veces',
   },
+  'connector-bolt': {
+    name: 'Perno con tuerca de barril',
+    definition: 'Un perno M6 de cabeza Allen atraviesa la cara de una pieza y enrosca en una tuerca cilíndrica metida en la otra; sin pegamento.',
+    tool: 'taladro, brocas de 7 y 10 mm, plantilla y llave Allen',
+    note: 'No aparece en la tabla de niveles. Los dos barrenos tienen que encontrarse dentro del tablero: con plantilla, o perforado en maderería.',
+    fit: null,
+    advantage: 'Rosca de metal contra metal: se arma y desarma con una llave Allen, y aprieta fuerte.',
+    disadvantage: 'La cabeza del perno y la tuerca quedan a la vista; pide tablero de 18 mm y no hay prueba de cuánto aguanta en triplay de pino.',
+    resistance: 'alta (perno metálico; sin prueba en triplay de pino)',
+    difficulty: 'intermedia (precisión)',
+    visible: 'cabeza del perno y tuerca',
+    knockDown: 'sí, muchas veces',
+  },
   'glue-nail': {
     name: 'Clavo y pegamento',
     definition: 'Clavos sin cabeza más cola blanca; típico de la trasera.',
@@ -173,7 +186,7 @@ export const JOINT_GUIDE: Record<GuideJoint, JointGuide> = {
 }
 
 /** The order the catalog shows them in: what anyone can make first, what changes the pieces last. */
-export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'plugged-dowel', 'confirmat', 'cam-lock', 'glue-nail', 'bracket', 'dado', 'rabbet', 'finger']
+export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel', 'plugged-dowel', 'confirmat', 'cam-lock', 'connector-bolt', 'glue-nail', 'bracket', 'dado', 'rabbet', 'finger']
 
 /** How the person's level can make it; null when §1.3 does not say. */
 export const jointFit = (joint: GuideJoint, level: ToolLevel): JointFit | null => JOINT_GUIDE[joint].fit?.[level - 1] ?? null

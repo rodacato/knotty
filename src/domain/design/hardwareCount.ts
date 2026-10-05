@@ -5,7 +5,9 @@ import { jointLength } from './validation/contact'
 
 // How many dowels, screws, nails, pins and hinges a joint takes when the model does not say. The shopping list buys them and the 3D draws them.
 
-const SPACING = { screw: 200, nail: 150, dowel: 150 }
+const SPACING = { screw: 200, nail: 150, dowel: 150, bolt: 400 }
+/** A joint shorter than this has room for one connector bolt; the reference gives no spacing for them, so both numbers are Knotty's. */
+const BOLT_PAIR_NEEDS = 120
 /** Dowels, plugs and screws keep this far from the ends of the joint. */
 export const END_MARGIN = 50
 
@@ -29,6 +31,8 @@ export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number
     case 'plugged-dowel':
     case 'cam-lock':
       return dowelsAlong(length)
+    case 'connector-bolt':
+      return length > 0 && length < BOLT_PAIR_NEEDS ? 1 : bySpacing(SPACING.bolt, 2)
     case 'glue-nail':
       return bySpacing(SPACING.nail, 2)
     case 'shelf-pin':
