@@ -7,7 +7,7 @@ import { error, type DesignError } from '../../design/validation/errors'
 // A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.
 // A request's fields are the expert's `addDrawer` operation.
 
-const FRONT_GAP = 2
+export const FRONT_GAP = 2
 const BOTTOM_GAP = 12
 const TOP_GAP = 20
 /** The lowest box side worth building. */

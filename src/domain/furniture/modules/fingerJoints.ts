@@ -78,3 +78,7 @@ export function withFingerCuts(design: Design, boxes: Map<string, Box>, fingers:
 
 /** How many drawers have fingers, for the note that tells the person how they are cut. */
 export const fingerDrawers = (design: Design) => boxesOf(design).filter((g) => design.joints.some((u) => u.type === 'finger' && u.a.startsWith(`${g}-`))).length
+
+/** What the person reads about drawers with finger corners: how they are cut and that they show. */
+export const fingerDrawersNote = (drawers: number, fingers: number) =>
+  `Esquinas de dedos en ${drawers} ${drawers === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`

@@ -29,6 +29,9 @@ export const MIN_CARCASS_HEIGHT = 200
 export const LEG_APRON = 80
 export const LEG_WIDTH = 72
 export const LEG_INSET = 30
+/** A bed's trim: how far the lip that keeps the mattress in rises over the platform, and how far the cap over a headboard reaches toward the mattress. */
+export const MATTRESS_LIP = 60
+export const CAP_OVERHANG = 20
 export const MODULE_SOURCES: Record<string, Source> = {
   DEFAULT_THICKNESS: cite(VALUES, '3-espesores-por-pieza', 'Laterales, piso, techo'),
   MAX_SPAN: cite(STRUCTURE, '73-camas', 'también necesita apoyos a cada ≈ 600–700 mm'),
@@ -40,6 +43,8 @@ export const MODULE_SOURCES: Record<string, Source> = {
   LEG_APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
   LEG_WIDTH: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', '2 × 18 = 36 × 72 mm'),
   LEG_INSET: noReference('the same setback as a kick, KICK_SETBACK: the legs stay out of the way of feet and still stand close to the edges'),
+  MATTRESS_LIP: noReference('the reference gives no height for a mattress lip; 60 is under a quarter of the 260 mm mattress, enough to stop it sliding and low enough to sit on'),
+  CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
 }
 
 type PanelSpec = Omit<Parameters<typeof makePiece>[0], 'material'>

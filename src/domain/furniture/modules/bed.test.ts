@@ -190,6 +190,7 @@ describe('a daybed', () => {
     for (const id of [backrest, 'headboard', 'foot-arm']) expect([box(id).y0, box(id).y1]).toEqual([0, 830])
     expect(box('platform').x1).toBe(box('foot-arm').x0)
     expect(backrest === 'side-right-1' ? box('platform').z0 === box(backrest).z1 : box('platform').z1 === box(backrest).z0).toBe(true)
+    expect(box('platform').z1 - box('platform').z0).toBe(990 + 20)
   })
 
   it('takes neither legs nor drawers on both sides, and choosing it in the form settles both', () => {
@@ -205,5 +206,96 @@ describe('a daybed', () => {
   it('opens its headboard part from the backrest and both arms', () => {
     const { design } = built(daybed({ side: 'left', count: 3, position: 'center' }))
     expect(['headboard', 'foot-arm', 'side-right-1'].map((id) => bedModule.parts.ofPiece(design.pieces.find((p) => p.id === id)!))).toEqual(['headboard', 'headboard', 'headboard'])
+  })
+})
+
+describe('the trim and the drawer fronts', () => {
+  const built = (plan: BedPlan) => {
+    const { design, notes } = buildBed(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)! }
+  }
+  const drawn = (drawers: Partial<BedPlan['drawers']>, p: Partial<BedPlan> = {}) => bed({ drawers: { side: 'left', count: 3, position: 'center', ...drawers }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 }, ...p })
+
+  it('builds every new bench variant valid, with nothing to warn about and nothing to say', () => {
+    const problems = bedModule.benchVariants().flatMap(([name, plan]) => {
+      const { design, notes } = buildBed(plan, testCatalog)
+      const a = analyze(design, testCatalog)
+      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Muesca|^Esquinas de dedos/.test(n)), ...(a.valid ? [...a.findings, ...a.warnings].map((f) => f.message) : [a.errors[0].message])].map((m) => `${name}: ${m}`)
+    })
+    expect(problems).toEqual([])
+  })
+
+  it('keeps the mattress its room inside the lips: the bed grows by each lip, and the lips stand on the platform', () => {
+    const { design, box } = built(bed({ lip: true, headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } }))
+    expect(design.dimensions).toEqual({ width: 1900 + 20 + 3 * 18, depth: 990 + 20 + 2 * 18, height: 400 + 60 })
+    expect(box('lip-right').z1 > box('lip-left').z0).toBe(false)
+    expect(box('lip-left').z0 - box('lip-right').z1).toBe(990 + 20)
+    const without = built(bed({ headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } })).box('platform')
+    expect(box('lip-foot').x0 - box('lip-head').x1).toBe(without.x1 - without.x0)
+    for (const id of ['lip-left', 'lip-right', 'lip-head', 'lip-foot']) expect([box(id).y0, box(id).y1]).toEqual([400, 460])
+    expect(bedModule.parts.ofPiece(design.pieces.find((p) => p.id === 'lip-foot')!)).toBe('mattress')
+  })
+
+  it('puts a lip only on the open front of a daybed, and gives its backrest back the room it took', () => {
+    const { design, box } = built(drawn({}, { lip: true, headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0 } }))
+    expect(design.pieces.filter((p) => p.id.startsWith('lip-')).map((p) => p.id)).toEqual(['lip-left'])
+    expect(box('lip-left').z0 - box('side-right-1').z1).toBe(990 + 20)
+    expect([box('lip-left').x0, box('lip-left').x1]).toEqual([box('headboard').x1, box('foot-arm').x0])
+  })
+
+  it('caps a plain headboard and a daybed whole, reaching toward the mattress and flush outside', () => {
+    const plain = built(drawn({}, { headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0, cap: true } }))
+    expect(plain.box('headboard').y1).toBe(1100 - 18)
+    expect(plain.box('head-cap')).toMatchObject({ x0: 0, x1: 18 + 20, y0: 1100 - 18, y1: 1100, z0: 0, z1: plain.design.dimensions.depth })
+    const day = built(drawn({}, { headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0, cap: true } }))
+    for (const id of ['headboard', 'foot-arm', 'side-right-1']) expect(day.box(id).y1).toBe(830 - 18)
+    expect(day.box('foot-cap').x0).toBe(day.box('foot-arm').x0 - 20)
+    expect(day.box('back-cap')).toMatchObject({ x0: day.box('head-cap').x1, x1: day.box('foot-cap').x0, z0: 0, z1: 18 + 20 })
+    expect(['head-cap', 'foot-cap', 'back-cap'].map((id) => bedModule.parts.ofPiece(day.design.pieces.find((p) => p.id === id)!))).toEqual(['headboard', 'headboard', 'headboard'])
+  })
+
+  it('leaves the cap out, and says so, when the headboard is too low to clear the lips', () => {
+    const { design, notes } = buildBed(drawn({}, { lip: true, height: 400, headboard: { style: 'plain', height: 470, depth: 0, shelves: 0, cap: true } }), testCatalog)
+    expect(design.pieces.some((p) => p.id === 'head-cap')).toBe(false)
+    expect(notes).toEqual([expect.stringMatching(/muy baja para el copete/)])
+  })
+
+  it('lays overlay fronts over the dividers they share, with a 2 mm seam, over dividers and kicks set back a board', () => {
+    const { box, design } = built(drawn({ count: 2, mount: 'overlay' }))
+    const [one, two] = [1, 2].map((k) => box(`drawer-left-${k}-front`))
+    expect(two.x0 - one.x1).toBeCloseTo(2, 5)
+    expect((one.x1 + two.x0) / 2).toBeCloseTo((box('div-left-1').x0 + box('div-left-1').x1) / 2, 5)
+    const face = design.dimensions.depth
+    expect([one.z1, box('div-left-1').z1, box('kick-left-1').z1]).toEqual([face, face - 18, face - 18])
+    expect([box('side-left-1').x1, box('side-left-2').x0]).toEqual([box('div-left-0').x1, box('div-left-2').x0])
+    expect([one.x0 - box('div-left-0').x1, box('div-left-2').x0 - two.x1]).toEqual([2, 2])
+  })
+
+  it('cuts notches and grooves into the fronts, says the notch, and buys a handle for each front', () => {
+    const notched = built(drawn({ style: 'grooved', pulls: 'notch' }))
+    const fronts = notched.design.pieces.filter((p) => p.role === 'drawer-front')
+    expect(fronts.every((p) => (p.cuts ?? []).length > 1)).toBe(true)
+    expect(notched.notes).toEqual([expect.stringMatching(/^Muesca para abrir en el canto de 3 frentes/)])
+    expect(built(drawn({ pulls: 'handle' })).design.pulls).toBe('handle')
+    expect(built(drawn({})).design.pulls).toBeUndefined()
+  })
+
+  it('joins the drawer boxes with finger corners when asked, and an old plan builds as before', () => {
+    const fingered = built(drawn({ corners: 'fingers', fingers: 7 }))
+    expect(fingered.design.joints.filter((u) => u.type === 'finger')).toHaveLength(3 * 4)
+    expect(fingered.notes).toEqual([expect.stringMatching(/^Esquinas de dedos en 3 cajones, 7 por esquina/)])
+    const old = BedPlan.parse({ ...drawn({}), lip: undefined })
+    expect(buildBed(old, testCatalog).design).toEqual(buildBed(drawn({ mount: 'inset', style: 'flat', pulls: 'none', corners: 'screwed' }), testCatalog).design)
+  })
+
+  it('shows the front choices only with drawers, and the fingers only with finger corners', () => {
+    const fields = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f]))
+    const shown = (key: string, plan: BedPlan) => fields.filter((f) => 'key' in f && f.key === key).every((f) => !f.visibleWhen || f.visibleWhen(plan))
+    expect(['drawers.mount', 'drawers.pulls', 'drawers.style', 'drawers.corners'].map((k) => shown(k, bed()))).toEqual([false, false, false, false])
+    expect(['drawers.mount', 'drawers.pulls', 'drawers.style', 'drawers.corners'].map((k) => shown(k, drawn({})))).toEqual([true, true, true, true])
+    expect([shown('drawers.fingers', drawn({})), shown('drawers.fingers', drawn({ corners: 'fingers' }))]).toEqual([false, true])
+    expect(shown('headboard.cap', bed())).toBe(false)
   })
 })
