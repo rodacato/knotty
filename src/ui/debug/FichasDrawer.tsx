@@ -48,7 +48,7 @@ export function FichasDrawer() {
 
   const open = ({ reference: r }: FichaRow) => {
     setOpened(r.code)
-    sandboxExample({ name: r.name, plan: r.plan, notes: r.notes, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) }, r.code)
+    sandboxExample({ name: r.name, plan: r.plan, notes: r.notes, code: r.code, version: r.version, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) }, r.code)
   }
 
   return (

@@ -17,7 +17,7 @@ import { currentDesign, type DesignState } from '../domain/session/state'
 import { BY_KNOTTY, byKnotty } from '../domain/session/trace/trace'
 import type { DesignRepository } from '../ports/DesignRepository'
 import { answerWith, InvalidResponse, type LLMProvider, type PlanAdjustment, type PlanAdjustRequest, type ReconstructionRequest, type AdjustmentResponse } from '../ports/LLMProvider'
-import { createUseCases, currentPlan, reviewSignature } from './useCases'
+import { createUseCases, currentPlan, fichaOrigin, reviewSignature } from './useCases'
 import { buildContext } from './context'
 import { noticeBoard } from './notices'
 import { fixesFor } from '../domain/editing/fixes/fixes'
@@ -996,6 +996,19 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(calls).toEqual([])
     expect(currentPlan(state)).toMatchObject({ plan: base.plan, since: 1, diverged: false })
     expect(currentDesign(state).name).toBe(name)
+  })
+
+  it('a base remembers the ficha it was opened from, says when it changed, and a design of its own has none', () => {
+    const c = setup()
+    const base = testBases.find((b) => b.plan.kind === 'cabinet')!
+    const opened = c.openExample(base)
+    expect(fichaOrigin(opened)).toEqual({ code: base.code, version: base.version, changed: false })
+    const plan = currentPlan(opened).plan as CabinetPlan
+    const r = c.applyPlan(opened, { ...plan, dimensions: { ...plan.dimensions, width: plan.dimensions.width + 100 } })
+    if (!r.ok) throw new Error(r.message)
+    expect(fichaOrigin(r.state)).toMatchObject({ code: base.code, changed: true })
+    expect(fichaOrigin(c.backToVersion(r.state, 1))).toMatchObject({ code: base.code, changed: false })
+    expect(fichaOrigin(c.openExample({ name: 'Librero', design: exampleBookcase }))).toBeNull()
   })
 
   it('asking for what the plan has makes no version', async () => {

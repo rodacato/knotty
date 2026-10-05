@@ -33,6 +33,7 @@ const state = (name: string): DesignState => ({
   accepted: [],
   tray: [],
   locks: {},
+  ficha: null,
 })
 
 const nameOf = (s: DesignState | null) => s?.versions[0].design.name

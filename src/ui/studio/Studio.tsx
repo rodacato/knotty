@@ -22,7 +22,7 @@ import { StatusChip } from './StatusChip'
 import { useStatuses } from './statuses'
 import { useStudioView } from './view'
 import { named } from '../../application/named'
-import { currentPlan } from '../../application/useCases'
+import { currentPlan, fichaOrigin } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
 import { moduleOf } from '../../domain/furniture/modules/plan'
 import { NoticePanel } from './NoticePanel'
@@ -164,6 +164,19 @@ function ConfirmNew({ children }: { children: ReactNode }) {
   )
 }
 
+/** Where the design comes from, quietly: the ficha it was opened from and whether it changed, or that it is a design of its own. */
+function FichaOrigin({ state }: { state: DesignState }) {
+  const origin = fichaOrigin(state)
+  const text = origin ? `${origin.code} v${origin.version}${origin.changed ? ' · con cambios' : ''}` : 'Personalizado'
+  const title = origin ? `Sale de la ficha ${origin.code}, versión ${origin.version}${origin.changed ? ', y cambió desde entonces' : ''}` : 'No sale de ninguna ficha: lo diseñaste tú o el experto'
+  return (
+    <span title={title} className="font-mono text-[11px] text-graphite-2/80">
+      {' · '}
+      {text}
+    </span>
+  )
+}
+
 type Overlay = 'notices' | 'history'
 
 function Header({ state, pending, overlay, onOpen }: { state: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
@@ -184,6 +197,7 @@ function Header({ state, pending, overlay, onOpen }: { state: DesignState; pendi
         <p className="truncate font-display text-lg leading-tight font-semibold">{design.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
           {summary}
+          <FichaOrigin state={state} />
         </p>
       </div>
       <Button variant="ghost" className={`gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
