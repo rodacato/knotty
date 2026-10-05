@@ -5,6 +5,7 @@ import { MATTRESSES, MattressSize } from '../../design/kind'
 import { completeJoints } from '../../design/joints'
 import { resolveGeometry } from '../../design/resolve'
 import { backBoard, type Catalog } from '../../materials/catalog'
+import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { addDrawers, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MATTRESS_LIP, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
@@ -58,6 +59,7 @@ export const BedPlan = z.object({
     cap: z.boolean().optional().describe('A cap board on top'),
   }),
   lip: z.boolean().optional().describe('A lip that keeps the mattress in'),
+  assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
 export type BedPlan = z.infer<typeof BedPlan>
 
@@ -463,7 +465,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: done.design, notes: [...head.notes, ...placed.notes, ...done.notes] }
+  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...head.notes, ...placed.notes, ...done.notes] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */
@@ -506,7 +508,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   if ((k.style === 'bookcase' || k.style === 'storage') && h.depth !== k.depth) changes.push(`cabecera de ${k.depth} mm de fondo`)
   if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
   if (k.style !== 'none' && !!h.cap !== !!k.cap) changes.push(k.cap ? 'con copete' : 'sin copete')
-  return changes
+  return [...changes, ...describeAssembly(before, after)]
 }
 
 /** What an absent choice of the drawers means, said out loud: the bench's plans carry every key of the schema. */
@@ -523,7 +525,7 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false }, lip: false },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false }, lip: false, assembly: 'glued' },
           ])
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
@@ -546,6 +548,11 @@ function benchBeds(): [string, BedPlan][] {
     'individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras',
     { ...drawn, mattress: 'individual', lip: true, drawers: { side: 'left', count: 3, position: 'center', mount: 'overlay', pulls: 'handle' }, headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0, cap: true } },
   ])
+  // Knocked down: bolts in the daybed and in a bed on legs, minifix in a queen with drawers on both sides.
+  const named = (name: string) => variants.find(([n]) => n === name)![1]
+  variants.push(['individual, cama de día con copete y tope, desarmable con pernos', { ...named('individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'), assembly: 'bolts' }])
+  variants.push([`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm, desarmable con pernos`, { ...named(`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm`), assembly: 'bolts' }])
+  variants.push(['queen, cabecera librero, cajones de los dos lados, desarmable con minifix', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), assembly: 'cams' }])
   return variants
 }
 
@@ -607,6 +614,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     yesNo({ key: 'headboard.cap', label: 'Copete', visibleWhen: (p) => p.headboard.style !== 'none', get: (p) => !!p.headboard.cap, set: (p, cap) => withHeadboard(p, { cap }) }),
     note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap),
   ]),
+  section('Armado', assemblyFields()),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
@@ -614,6 +622,7 @@ const BED_PARTS: Parts<BedPlan> = {
   list: [
     { id: 'mattress', name: 'Colchón', side: 'outside', fields: ['mattress', 'height', 'lip'], joints: [], summary: (p) => `${BED_LABELS.mattress[p.mattress].option}, base de ${p.height} mm de alto${p.lip ? ', con tope' : ''}` },
     woodPart(),
+    assemblyPart(),
     {
       id: 'base',
       name: 'Base',

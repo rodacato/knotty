@@ -1,5 +1,5 @@
 ---
-id: cabinet@8
+id: cabinet@9
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -21,6 +21,7 @@ id: cabinet@8
   - `fronts`: "flat" (smooth, the usual) or "grooved" (ribbed with vertical grooves, only if the person asks or the photos clearly show them).
   - `hinges`: one-leaf doors hang "outside" (the usual, doors open toward the middle) or "inside" (open outward).
   - `pulls`: how doors and drawer fronts open. "none" unless asked or clearly shown in the photos (doors or drawers alone are "none"; handles cost money); "notch" for a finger notch routed in the front's edge; "handle" for a handle, knob or hole pull (bought, one per door leaf and drawer front). One choice for the whole piece.
+- `assembly`: leave it out, unless a measure is over 1800 mm or the person wants it to come apart: then "cams" (minifix, hidden inside), or "bolts" if asked.
 - `columns`: left to right, with their width as a fraction of the total. Each column lists its openings from bottom to top, with their height as a fraction and their content:
   - "open": an open opening; in `shelves`, how many movable shelves are inside.
   - "drawer": one drawer per opening; the opening must be at least {{minDrawerOpening}} mm high.
@@ -36,7 +37,7 @@ Shelves for books: one every 250–350 mm. If there are photo readings, respect 
 - **Cabinet** (no `kind`): measures, plywood, base (`base`: "kick", "floor" or "legs"; with legs the height includes them), anchoring, how it is built (`construction`) and a grid of columns (left to right, width as a fraction) with openings (bottom to top, height as a fraction) that can be "open" (with `shelves` shelves), "drawer", "door" (with `doors` leaves and `shelves` behind) or "closed". It goes in `cabinet`.
 
 # changes
-measures, number or kind of openings, drawers, doors, shelves, columns, construction, base (kick, legs or directly on the floor), anchoring
+measures, number or kind of openings, drawers, doors, shelves, columns, construction, base (kick, legs or directly on the floor), anchoring, assembly
 
 # rules
 - "overlay" doors cover the front; "inset" ones sit inside the opening. Drawer fronts "inset" or "overlay". Top "between" the sides or "over" them. Back "nailed" or "none". Shelves "movable" or "fixed".
