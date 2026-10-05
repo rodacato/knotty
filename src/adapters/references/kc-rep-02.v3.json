@@ -67,13 +67,14 @@
           { "content": "void", "shelves": null, "doors": null, "height": 0.33 }
         ]
       }
-    ]
+    ],
+    "assembly": "cams"
   },
   "expect": {
     "valid": true,
     "pieces": 29,
     "findings": ["recommendation:R10_USE"],
     "sheets": { "T18": 1, "TR6": 1 },
-    "hardware": { "brad-nail-1": 76, "cup-hinge-35-full": 2, "cup-hinge-35-half": 6, "edge-banding-19": 14, "screw-8x2": 48, "white-glue": 3 }
+    "hardware": { "cam-lock-15": 44, "cup-hinge-35-full": 2, "cup-hinge-35-half": 6, "dowel-8x40": 44, "edge-banding-19": 14, "screw-8x1-1/4": 58, "screw-8x2": 4 }
   }
 }

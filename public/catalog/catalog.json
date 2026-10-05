@@ -156,6 +156,17 @@
       "price": 12
     },
     {
+      "id": "connector-bolt-m6",
+      "role": "connector-bolt",
+      "name": "Perno conector M6 × 50 con tuerca de barril",
+      "unit": "piece",
+      "perPack": null,
+      "length": 50,
+      "sideClearance": null,
+      "sku": null,
+      "price": 15
+    },
+    {
       "id": "shelf-pin-5",
       "role": "shelf-pin",
       "name": "Soporte de repisa 5 mm",

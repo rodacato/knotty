@@ -48,9 +48,10 @@ describe('joint guide', () => {
     expect(ours).toEqual(table)
   })
 
-  it('has no level for confirmat, which §1.3 does not list', () => {
+  it('has no level for confirmat or the connector bolt, which §1.3 does not list', () => {
     expect(jointFit('confirmat', 3)).toBeNull()
     expect(levelsText('confirmat')).toBe('Nivel sin dato')
+    expect(levelsText('connector-bolt')).toBe('Nivel sin dato')
   })
 
   it('says which levels make it, up to the first that makes it plainly', () => {

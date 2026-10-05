@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../../design/builders'
 import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Piece, type Joint } from '../../design/schema'
+import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { completeJoints } from '../../design/joints'
 import type { DesignKind } from '../../design/kind'
 import { backBoard, materialById, type Catalog } from '../../materials/catalog'
@@ -30,6 +31,7 @@ export const TablePlan = z.object({
     drawers: z.number().int().min(0).max(MAX_PEDESTAL_DRAWERS).describe('How many drawers the pedestal has; 0 if there is none'),
   }),
   legs: z.enum(['panel', 'legs']).default('panel').describe('panel: two panel ends; legs: four straight legs from floor to top with an apron all round (the pedestal side keeps its panel); the height of the table is the length of the legs'),
+  assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
 export type TablePlan = z.infer<typeof TablePlan>
 
@@ -249,7 +251,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: completeJoints(placed.design, catalog), notes: [...shelf.notes, ...placed.notes] }
+  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog), notes: [...shelf.notes, ...placed.notes] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -264,11 +266,11 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   if (before.legs !== after.legs) changes.push(TABLE_LABELS.legs[after.legs].phrase)
   if (before.pedestal.side !== after.pedestal.side) changes.push(TABLE_LABELS.pedestal[after.pedestal.side].phrase)
   if (after.pedestal.side !== 'none' && before.pedestal.drawers !== after.pedestal.drawers) changes.push(`${after.pedestal.drawers} ${after.pedestal.drawers === 1 ? 'cajón' : 'cajones'} en la cajonera`)
-  return changes
+  return [...changes, ...describeAssembly(before, after)]
 }
 
 function benchTables(): [string, TablePlan][] {
-  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', ...extra })
+  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', assembly: 'glued', ...extra })
   const variants: [string, TablePlan][] = [
     ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
     ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
@@ -281,7 +283,11 @@ function benchTables(): [string, TablePlan][] {
       (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
     ),
   ]
-  return [...variants, ...variants.map(([name, plan]): [string, TablePlan] => [`${name} con patas`, { ...plan, legs: 'legs' }])]
+  const all = [...variants, ...variants.map(([name, plan]): [string, TablePlan] => [`${name} con patas`, { ...plan, legs: 'legs' }])]
+  // Knocked down: bolts where the aprons meet the legs or the panel ends, and minifix in a desk with its pedestal.
+  const knockedDown = (['comedor largo', 'comedor largo con patas', 'mesa de trabajo con patas'] as const).map((name): [string, TablePlan] => [`${name}, desarmable con pernos`, { ...all.find(([n]) => n === name)![1], assembly: 'bolts' }])
+  const desk = all.find(([n]) => n === 'escritorio con 3 cajones a la izquierda')![1]
+  return [...all, ...knockedDown, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
 }
 
 const isDesk = (plan: TablePlan) => plan.use === 'desk'
@@ -324,6 +330,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     stepper({ key: 'pedestal.drawers', label: 'Cajones', ariaLabel: 'cajones de la cajonera', min: 1, max: MAX_PEDESTAL_DRAWERS, visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: (p) => p.pedestal.drawers, set: (p, drawers) => ({ ...p, pedestal: { ...p.pedestal, drawers } }) }),
     yesNo({ key: 'shelf', label: 'Repisa baja', visibleWhen: (p) => !isDesk(p), get: (p) => p.shelf, set: (p, shelf) => ({ ...p, shelf }) }),
   ]),
+  section('Armado', assemblyFields()),
 ]
 
 const TABLE_PARTS: Parts<TablePlan> = {
@@ -337,6 +344,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
       summary: ({ use, dimensions: d }) => `${TABLE_LABELS.use[use].name}, ${d.height} de alto × ${d.width} de largo × ${d.depth} de fondo`,
     },
     woodPart(),
+    assemblyPart(),
     { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
     { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => TABLE_LABELS.legs[p.legs].option },
     {

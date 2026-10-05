@@ -29,13 +29,14 @@
           { "height": 1, "content": "open", "shelves": 5, "doors": null }
         ]
       }
-    ]
+    ],
+    "assembly": "cams"
   },
   "expect": {
     "valid": true,
     "pieces": 18,
     "findings": [],
     "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "brad-nail-1": 57, "edge-banding-19": 13, "screw-8x2": 25, "shelf-pin-5": 40, "white-glue": 1 }
+    "hardware": { "cam-lock-15": 8, "dowel-8x40": 8, "edge-banding-19": 13, "screw-8x1-1/4": 44, "screw-8x2": 17, "shelf-pin-5": 40 }
   }
 }

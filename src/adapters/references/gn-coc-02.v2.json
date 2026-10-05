@@ -22,13 +22,14 @@
           { "height": 0.32, "content": "door", "shelves": 1, "doors": 2 }
         ]
       }
-    ]
+    ],
+    "assembly": "cams"
   },
   "expect": {
     "valid": true,
     "pieces": 15,
     "findings": [],
     "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "brad-nail-1": 41, "cup-hinge-35-full": 10, "edge-banding-19": 20, "screw-8x2": 26, "shelf-pin-5": 16, "white-glue": 1 }
+    "hardware": { "cam-lock-15": 12, "cup-hinge-35-full": 10, "dowel-8x40": 12, "edge-banding-19": 20, "screw-8x1-1/4": 32, "screw-8x2": 8, "shelf-pin-5": 16 }
   }
 }
