@@ -3,6 +3,7 @@ import type { Design } from '../../domain/design/schema'
 import type { PurchaseReview } from '../../domain/session/state'
 import type { Check, Verdict } from '../../domain/checks/viability/viability'
 import { Button, Pencil } from '../system/components'
+import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: React.ReactNode }> = {
@@ -27,6 +28,7 @@ export function ReviewGate({ stale }: { stale: boolean }) {
   const cancel = useStore((s) => s.cancelReview)
   const reviewing = useStore((s) => s.reviewing)
   const error = useStore((s) => s.verdictError)
+  const { connected } = useExpertStatus()
 
   return (
     <section className="flex flex-col gap-3">
@@ -34,7 +36,9 @@ export function ReviewGate({ stale }: { stale: boolean }) {
         <Hammer weight="duotone" className="mt-1 shrink-0 text-graphite" /> {stale ? 'Cambió el diseño o los ajustes de corte: hay que revisar de nuevo' : 'Antes de comprar, una revisión'}
       </p>
       <p className="text-sm text-graphite">
-        Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar. Tarda unos segundos; con tu experto conectado, hasta un par de minutos.
+        {connected
+          ? 'Un carpintero revisa tu diseño completo para que no compres algo que no se puede armar. Puede tardar hasta un par de minutos.'
+          : 'Knotty revisa las cuentas de tu diseño para que no compres algo que no se puede armar. Tarda unos segundos. Con tu experto conectado, además lo revisa un carpintero.'}
       </p>
       <ul className="flex flex-col gap-1 text-sm">
         {WHAT_IT_CHECKS.map((q) => (
