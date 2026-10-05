@@ -56,7 +56,7 @@ const SPECS = {
     minThickness: { a: 15, b: 15 },
     rigid: true,
     holdsThinBoard: false,
-    glue: true,
+    glue: false,
     hardware: 'cam-lock',
   },
   dado: {
