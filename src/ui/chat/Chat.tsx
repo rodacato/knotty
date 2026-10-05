@@ -2,6 +2,7 @@ import { ArrowClockwise, ArrowCounterClockwise, ArrowRight, Eye, EyeSlash, Paper
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { named, withCandidate } from '../../application/named'
+import { kindOf } from '../../domain/furniture/kind'
 import { currentDesign, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
@@ -221,7 +222,7 @@ export function Chat({ state }: { state: DesignState }) {
   const previous = state.chat.at(-2)
   const kind = recovery(last, previous)
   const recover = kind && previous ? { kind, run: kind === 'retry' ? () => void adjust(previous.text) : () => setText(previous.text) } : null
-  const suggestions = suggestionsFor(state, thinking)
+  const suggestions = suggestionsFor(state, thinking, kindOf(currentDesign(state)).kind)
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
