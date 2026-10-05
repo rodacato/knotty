@@ -1,7 +1,7 @@
 import type { Design } from '../../design/schema'
-import { valueFields, type ChoiceField, type CustomField, type NumberField, type StepperField, type ValueField } from '../../furniture/modules/fields'
-import { FurniturePlan, moduleOf } from '../../furniture/modules/plan'
-import type { PlanCell, PlanColumn } from '../../furniture/modules/cabinet'
+import { valueFields, type ChoiceField, type CustomField, type NumberField, type StepperField, type ValueField } from '../modules/fields'
+import { FurniturePlan, moduleOf } from '../modules/plan'
+import type { PlanCell, PlanColumn } from '../modules/cabinet'
 
 // The chat requests Knotty understands by itself, without the expert: one clear change to the plan, or a question its own numbers answer.
 // Anything else is null and goes to the expert: a wrong guess costs more than a call, so only whole requests that read one way are taken.

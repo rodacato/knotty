@@ -3,7 +3,7 @@ import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildPlan, MODULE_OF_KIND, MODULES } from '../../domain/furniture/modules/plan'
 import { kindFromWords } from '../../domain/checks/typology/typology'
-import { askedParts } from '../../domain/editing/intent/counts'
+import { askedParts } from '../../domain/furniture/intent/counts'
 import { byCallKind, countParts, createBench, describeAdjustments, describeStructure } from './bench'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })

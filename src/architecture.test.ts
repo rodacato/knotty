@@ -48,18 +48,18 @@ describe('architecture', () => {
     })
   }
 
-  // Inside the domain, seven groups by intent. materials (the catalog) is the base and design builds on it; estimate (cut list,
-  // sheet layout, shopping list) reads a design; checks, furniture and editing build on them; session sits on top and nothing
-  // imports it. furniture ↔ editing is the one cycle left to cut. A new edge between groups has to be added here on purpose.
-  // Loose files at the root (sources.ts, assumptions.ts) are shared by every group and import none.
+  // Inside the domain, seven groups by intent, with no cycle between them. materials (the catalog) is the base and design builds
+  // on it; estimate (cut list, sheet layout, shopping list) reads a design; checks judges it; editing changes it; furniture turns a
+  // plan or a request into one; session sits on top and nothing imports it. A new edge between groups has to be added here on
+  // purpose. Loose files at the root (sources.ts, assumptions.ts) are shared by every group and import none.
   const GROUPS: Record<string, string[]> = {
     materials: [],
     design: ['materials'],
     estimate: ['design', 'materials'],
     checks: ['design', 'materials', 'estimate'],
+    editing: ['design', 'materials', 'checks'],
     furniture: ['design', 'materials', 'estimate', 'checks', 'editing'],
-    editing: ['design', 'materials', 'estimate', 'checks', 'furniture'],
-    session: ['design', 'materials', 'checks', 'furniture', 'editing'],
+    session: ['design', 'checks', 'editing', 'furniture'],
   }
   const DOMAIN = join(SRC, 'domain')
   const group = (path: string) => {

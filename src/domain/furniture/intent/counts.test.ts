@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { exampleWallCabinet } from '../../furniture/fixtures/wallCabinet'
+import { exampleBookcase } from '../fixtures/bookcase'
+import { exampleWallCabinet } from '../fixtures/wallCabinet'
 import { askedParts, describeMismatch, designParts, partsMismatch } from './counts'
 
 describe('how many doors and drawers a description asks for', () => {
