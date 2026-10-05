@@ -229,12 +229,12 @@ describe('the trim and the drawer fronts', () => {
 
   it('keeps the mattress its room inside the lips: the bed grows by each lip, and the lips stand on the platform', () => {
     const { design, box } = built(bed({ lip: true, headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } }))
-    expect(design.dimensions).toEqual({ width: 1900 + 20 + 3 * 18, depth: 990 + 20 + 2 * 18, height: 400 + 60 })
+    expect(design.dimensions).toEqual({ width: 1900 + 20 + 3 * 18, depth: 990 + 20 + 2 * 18, height: 400 + 40 })
     expect(box('lip-right').z1 > box('lip-left').z0).toBe(false)
     expect(box('lip-left').z0 - box('lip-right').z1).toBe(990 + 20)
     const without = built(bed({ headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } })).box('platform')
     expect(box('lip-foot').x0 - box('lip-head').x1).toBe(without.x1 - without.x0)
-    for (const id of ['lip-left', 'lip-right', 'lip-head', 'lip-foot']) expect([box(id).y0, box(id).y1]).toEqual([400, 460])
+    for (const id of ['lip-left', 'lip-right', 'lip-head', 'lip-foot']) expect([box(id).y0, box(id).y1]).toEqual([400, 440])
     expect(bedModule.parts.ofPiece(design.pieces.find((p) => p.id === 'lip-foot')!)).toBe('mattress')
   })
 
@@ -257,7 +257,7 @@ describe('the trim and the drawer fronts', () => {
   })
 
   it('leaves the cap out, and says so, when the headboard is too low to clear the lips', () => {
-    const { design, notes } = buildBed(drawn({}, { lip: true, height: 400, headboard: { style: 'plain', height: 470, depth: 0, shelves: 0, cap: true } }), testCatalog)
+    const { design, notes } = buildBed(drawn({}, { lip: true, height: 400, headboard: { style: 'plain', height: 450, depth: 0, shelves: 0, cap: true } }), testCatalog)
     expect(design.pieces.some((p) => p.id === 'head-cap')).toBe(false)
     expect(notes).toEqual([expect.stringMatching(/muy baja para el copete/)])
   })
