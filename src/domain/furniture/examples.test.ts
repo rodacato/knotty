@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../checks/analysis'
-import { estimatePurchase } from '../materials/purchase'
+import { estimatePurchase } from '../estimate/purchase'
 import { testCatalog } from './fixtures/catalog.test-util'
 import { exampleDesign } from './examples'
 import { exampleSideboard, sideboardPlan, testBases } from './fixtures/references.test-util'

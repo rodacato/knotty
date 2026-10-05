@@ -8,8 +8,8 @@ import { quickCounts } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
 import { FurniturePlan } from './plan'
-import { cutList } from '../../materials/cutList'
-import { estimatePurchase } from '../../materials/purchase'
+import { cutList } from '../../estimate/cutList'
+import { estimatePurchase } from '../../estimate/purchase'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })

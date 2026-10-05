@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
-import { cutList } from '../../materials/cutList'
-import { estimatePurchase } from '../../materials/purchase'
+import { cutList } from '../../estimate/cutList'
+import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { buildTable, TablePlan } from './table'
 

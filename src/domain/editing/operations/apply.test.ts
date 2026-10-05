@@ -7,7 +7,7 @@ import { normalize } from '../../design/normalize'
 import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { cutList } from '../../materials/cutList'
+import { cutList } from '../../estimate/cutList'
 import { applyOperations } from './apply'
 import { Operation } from './schema'
 

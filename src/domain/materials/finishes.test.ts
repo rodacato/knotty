@@ -9,8 +9,8 @@ import { migrateState } from '../session/migrate'
 import { currentDesign, DesignState } from '../session/state'
 import { applySettings, Catalog, finishSkus, type FinishSku } from './catalog'
 import { FINISH_IDS, FINISH_LOOK, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf, NATURAL_PINE } from './finishes'
-import { containersFor, estimateFinish, finishArea, finishLitres } from './finishPurchase'
-import { estimatePurchase } from './purchase'
+import { containersFor, estimateFinish, finishArea, finishLitres } from '../estimate/finishPurchase'
+import { estimatePurchase } from '../estimate/purchase'
 
 const geo = (d: Design) => {
   const a = analyze(d, testCatalog)

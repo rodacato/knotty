@@ -1,4 +1,4 @@
-import type { CutLine } from '../../domain/materials/cutList'
+import type { CutLine } from '../../domain/estimate/cutList'
 import type { Finding } from '../../domain/checks/structure/finding'
 import type { DesignError } from '../../domain/design/validation/errors'
 import type { Check } from '../../domain/checks/viability/viability'

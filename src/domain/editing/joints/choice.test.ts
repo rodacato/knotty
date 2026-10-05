@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION } from '../../furniture/modules/cabinet'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { applyOperations } from '../operations/apply'
 import { chooseJoint, jointGroups } from './choice'
 

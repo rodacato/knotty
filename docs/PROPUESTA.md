@@ -137,10 +137,11 @@ knotty/
 ├─ scripts/brand/            SVG de la marca y generate.sh (íconos, favicon, imagen para compartir)
 ├─ scripts/compare/          models.compare.ts: el banco contra expertos reales (npm run compare) · results/
 └─ src/
-   ├─ domain/                TypeScript puro: sin React, sin LLM, sin navegador; seis grupos por intención
-   │  ├─ materials/          catalog · cutList · layout (acomodo en hoja) · purchase · finishes · grades
-   │  ├─ design/             schema · resolve (cotas → geometría) · normalize · builders · drawers · doors · joints · hardware · boxes · diff
+   ├─ domain/                TypeScript puro: sin React, sin LLM, sin navegador; siete grupos por intención
+   │  ├─ materials/          el catálogo: catalog · finishes · grades · edgeProfiles · tools
+   │  ├─ design/             schema · resolve (cotas → geometría) · normalize · builders · drawers · doors · joints · hardware · hardwareCount · boxes · diff
    │  │  └─ validation/      geometry · contact (grafo) · errors
+   │  ├─ estimate/           lo que sale de un diseño: cutList · layout (acomodo en hoja) · purchase · finishPurchase
    │  ├─ checks/             analysis.ts (análisis completo: geometría, contactos, avisos, reglas y requisitos)
    │  │  ├─ structure/       assumptions · review · finding · accepted · rules/ (deflection, jointThickness, racking, screws, drawers, usage)
    │  │  └─ typology/ · viability/ · requirements/   revisiones por tipo de mueble, revisión antes de comprar, requisitos
@@ -166,7 +167,7 @@ knotty/
    └─ architecture.test.ts   fronteras entre capas
 ```
 
-- **Fronteras** comprobadas por `src/architecture.test.ts`: `domain/` solo importa zod y no toca el navegador; `application/` y `ports/`, dominio y puertos; `ui/`, todo menos `adapters/`. Dentro del dominio, cada grupo importa solo lo que hoy importa: nadie importa `session/`; `design/` y `materials/` no importan `furniture/`, `editing/` ni `session/`; `checks/` no importa `editing/` ni `session/`.
+- **Fronteras** comprobadas por `src/architecture.test.ts`: `domain/` solo importa zod y no toca el navegador; `application/` y `ports/`, dominio y puertos; `ui/`, todo menos `adapters/`. Dentro del dominio, cada grupo importa solo lo que hoy importa: nadie importa `session/`; `materials/` no importa ningún grupo; `design/`, solo `materials/`; `estimate/`, solo `design/` y `materials/`; `checks/` no importa `editing/` ni `session/`.
 - **Zod en el dominio** es aceptable: es TypeScript puro.
 - **`LLMProvider` expresa intenciones**: `reconstruct`, `planDesign` (esqueleto), `adjustPlan`, `proposeAdjustment`, `readPhoto` y `reviewPurchase`. `planDesign` y `adjustPlan` son `null` cuando el proveedor no los tiene (el simulado): sin esqueleto, el diseño va pieza por pieza. Anthropic, OpenAI y SheLLM comparten `common/` y `prompts/` y solo difieren en transporte; el simulado implementa la interfaz con reglas fijas. El ciclo de corrección vive en `application/` y se prueba sin red.
 - **Salida estructurada**: los esquemas Zod son la única fuente; de ahí sale el JSON Schema. Por el modo estricto (sin `oneOf`, todos los campos requeridos) los esquemas usan uniones discriminadas por `op` y opcionales como `nullable`. Siempre se re-valida con Zod.

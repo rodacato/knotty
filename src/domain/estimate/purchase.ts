@@ -1,21 +1,12 @@
-import type { Design, Joint } from '../design/schema'
+import type { Design } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
-import { jointLength } from '../design/validation/contact'
-import { ASSUMPTIONS, hingesFor } from '../assumptions'
+import { hardwarePerJoint } from '../design/hardwareCount'
 import { layOut, type MaterialLayout } from './layout'
-import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from './catalog'
+import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from '../materials/catalog'
 import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'
 
 // The shopping list: sheets by thickness, hardware, edge banding, glue and the finish, with an approximate cost.
 
-const SPACING = { screw: 200, nail: 150, dowel: 150 }
-const END_MARGIN = 50
-
-/** The shortest butt joint that takes two screws, each far enough from its end (R3); a shorter one takes one in the middle. */
-const screwPairNeeds = 2 * ASSUMPTIONS.screws.endDistance + ASSUMPTIONS.screws.pairRoom
-
-/** How many dowels, spaced along a joint of this length and never fewer than two. */
-export const dowelsAlong = (length: number) => Math.max(2, Math.ceil((length - 2 * END_MARGIN) / SPACING.dowel) + 1)
 const EDGE_BANDING_WASTE = 1.1
 const JOINTS_PER_GLUE_BOTTLE = 20
 
@@ -43,39 +34,6 @@ export interface Purchase {
   /** Null when the design has no finish. */
   finish: FinishPurchase | null
   cost: { total: number; missingPrices: string[] }
-}
-
-/** How much hardware a joint takes when the model does not say: by spacing along the joint. */
-export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number {
-  const a = geo.boxes.get(u.a)
-  const b = geo.boxes.get(u.b)
-  const length = a && b ? jointLength(a, b) : 0
-  const bySpacing = (spacing: number, minimum: number) => Math.max(minimum, Math.ceil((length - 2 * END_MARGIN) / spacing) + 1)
-  switch (u.type) {
-    case 'butt-screw':
-      return length > 0 && length < screwPairNeeds ? 1 : bySpacing(SPACING.screw, 2)
-    case 'pocket-screw':
-      return bySpacing(SPACING.screw, 2)
-    case 'dowel':
-    case 'plugged-dowel':
-    case 'cam-lock':
-      return dowelsAlong(length)
-    case 'glue-nail':
-      return bySpacing(SPACING.nail, 2)
-    case 'shelf-pin':
-      return 2
-    case 'cup-hinge': {
-      const door = geo.boxes.get(u.a)
-      return hingesFor(door ? door.y1 - door.y0 : 0)
-    }
-    case 'bracket':
-      return 2
-    case 'drawer-slide':
-    case 'dado':
-    case 'rabbet':
-    case 'finger':
-      return 1
-  }
 }
 
 /** Metres of edge banding: the marked edges of every piece added up. */

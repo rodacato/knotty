@@ -1,7 +1,7 @@
 import { analyze } from '../../checks/analysis'
 import type { Design } from '../../design/schema'
 import type { Catalog } from '../../materials/catalog'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { cm } from '../../furniture/modules/common'
 import { moduleOf, type FurniturePlan } from '../../furniture/modules/plan'
 import type { Topic } from './intent'
