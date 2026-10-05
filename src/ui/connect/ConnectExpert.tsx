@@ -7,7 +7,7 @@ import { ForgetKeys, useUnlockPassphrase } from '../settings/Keys'
 import { SheLLM } from '../system/SheLLM'
 import { PassphraseField, UNLOCK_TEXT } from '../system/Unlock'
 import { useStore } from '../store'
-import { Button, Title } from '../system/components'
+import { Button, IconButton, Title } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
@@ -45,8 +45,10 @@ function Shell({ title, description, footer, children, onClose }: { title: strin
           <Dialog.Title asChild>
             <Title className="text-3xl leading-tight">{title}</Title>
           </Dialog.Title>
-          <Dialog.Close className="relative grid size-11 shrink-0 place-items-center rounded-full hover:bg-kraft" aria-label="Cerrar" onClick={onClose}>
-            <X className="size-5" />
+          <Dialog.Close asChild>
+            <IconButton size="lg" aria-label="Cerrar" onClick={onClose}>
+              <X className="size-5" />
+            </IconButton>
           </Dialog.Close>
         </div>
         {description ? (

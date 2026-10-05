@@ -1,6 +1,7 @@
 import { BookOpen, Question, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { Term } from '../glossary'
+import { IconButton } from './components'
 
 // Help opens on tap, never on hover: a touch screen has no hover, so a tooltip would never show.
 
@@ -36,9 +37,9 @@ export function HelpPanel({ term, onClose }: { term: Term; onClose: () => void }
     <div role="note" className="animate-appear flex flex-col gap-1.5 rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
       <p className="flex items-center gap-1.5 font-semibold">
         <BookOpen className="shrink-0" /> <span className="flex-1">{term.name}</span>
-        <button type="button" onClick={onClose} aria-label="Cerrar" className="relative -my-2 -mr-2 grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+        <IconButton onClick={onClose} aria-label="Cerrar" className="-my-2 -mr-2">
           <X />
-        </button>
+        </IconButton>
       </p>
       <p>{term.meaning}</p>
       {term.note && <p className="text-graphite-2">{term.note}</p>}

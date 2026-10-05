@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
 import { useServices } from '../services'
-import { Button, Title } from '../system/components'
+import { Button, IconButton, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
@@ -92,8 +92,10 @@ export function Settings() {
             <Dialog.Title asChild>
               <Title className="text-xl">Ajustes</Title>
             </Dialog.Title>
-            <Dialog.Close className="relative grid size-9 place-items-center rounded-full before:absolute before:-inset-1 before:content-[''] hover:bg-kraft" aria-label="Cerrar">
-              <X />
+            <Dialog.Close asChild>
+              <IconButton aria-label="Cerrar">
+                <X />
+              </IconButton>
             </Dialog.Close>
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5">

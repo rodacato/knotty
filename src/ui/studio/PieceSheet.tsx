@@ -4,7 +4,7 @@ import type { Design } from '../../domain/design/schema'
 import { JOINTS } from '../../domain/design/jointSpecs'
 import { faceSize, type Geometry } from '../../domain/design/resolve'
 import type { Catalog } from '../../domain/materials/catalog'
-import { Button, Title, cm } from '../system/components'
+import { Button, IconButton, Title, cm } from '../system/components'
 import { useStore } from '../store'
 import { EdgesSection } from './Edges'
 import { PieceEditor } from './PieceEditor'
@@ -42,9 +42,9 @@ export function PieceSheet({ design, geo, catalog, editable, closable = true }: 
             <EyeSlash /> Ocultar
           </Button>
           {closable && (
-            <button type="button" onClick={() => select(null)} aria-label="Cerrar" className="relative grid size-9 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+            <IconButton onClick={() => select(null)} aria-label="Cerrar">
               <X />
-            </button>
+            </IconButton>
           )}
         </div>
         {editable && (

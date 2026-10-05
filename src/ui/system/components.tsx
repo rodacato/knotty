@@ -22,6 +22,20 @@ export function Button({ variant = 'secondary', className = '', children, ...pro
   )
 }
 
+const ICON_BUTTON_SIZES = {
+  md: "relative size-9 before:absolute before:-inset-1 before:content-['']",
+  lg: 'size-11',
+}
+
+/** A round button that holds only an icon: 36 px with a 44 px hit area, or 44 px where a finger reaches it over the 3D or in a dialog. */
+export function IconButton({ size = 'md', className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { size?: keyof typeof ICON_BUTTON_SIZES }) {
+  return (
+    <button type="button" className={`grid shrink-0 place-items-center rounded-full text-graphite-2 hover:bg-kraft ${ICON_BUTTON_SIZES[size]} ${className}`} {...props}>
+      {children}
+    </button>
+  )
+}
+
 export function Chip({ active = false, className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
   return (
     <button
