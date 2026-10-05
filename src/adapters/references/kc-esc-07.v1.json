@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-ESC-07",
   "id": "oak-desk-pedestal",
+  "rooms": ["office"],
   "name": "Escritorio de encino con cajonera",
   "kind": "desk",
   "finish": "danish-oil",

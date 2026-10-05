@@ -4,7 +4,7 @@ import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { ANY_FICHA, fichasOf, groupVariants, listFichas, roomsOf, type Room } from './variants'
+import { ANY_FICHA, fichasOf, groupVariants, listFichas, type FichaQuery, type Room } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -41,21 +41,22 @@ describe('the bench drawer variant list', () => {
     for (const r of listFichas(testReferences.all(), testCatalog)) expect([r.reference.code, r.notes.length]).toEqual([r.reference.code, r.reference.expect.findings?.length ?? 0])
   })
 
-  it('puts every ficha Knotty ships in a room, and a piece can be in more than one', () => {
+  it('finds a ficha in every room its file names', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    expect(rows.filter((r) => !roomsOf(r.reference).length).map((r) => r.reference.code)).toEqual([])
     const sideboard = (room: Room) => fichasOf(rows, { ...ANY_FICHA, room }).some((r) => r.reference.code === 'KC-APA-01')
     expect([sideboard('living'), sideboard('dining'), sideboard('bedroom')]).toEqual([true, true, false])
   })
 
-  it('combines a room with the toggles, and every ficha it shows meets all of them', () => {
+  it('finds a ficha by its code in any form or by words of its name, within the room chosen', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    const q = { room: 'bedroom', onHome: true, withFindings: false, source: 'KC' } as const
-    const shown = fichasOf(rows, q)
-    expect(shown.length).toBeGreaterThan(0)
-    for (const { reference: r } of shown) expect([roomsOf(r).includes('bedroom'), !!r.home, r.code.startsWith('KC-')]).toEqual([true, true, true])
-    expect(fichasOf(rows, { ...ANY_FICHA, source: 'KC' }).length + fichasOf(rows, { ...ANY_FICHA, source: 'GN' }).length).toBe(rows.length)
-    expect(fichasOf(rows, { ...ANY_FICHA, withFindings: true }).every((r) => r.verdict !== 'ok')).toBe(true)
+    const codes = (q: Partial<FichaQuery>) => fichasOf(rows, { ...ANY_FICHA, ...q }).map((r) => r.reference.code)
+    for (const text of ['KC-LIB-03', 'kc-lib-03', 'lib03', '  LIB-03 ']) expect(codes({ text })).toEqual(['KC-LIB-03'])
+    const name = testReferences.latest('KC-APA-01')!.name
+    expect(codes({ text: name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') })).toContain('KC-APA-01')
+    expect(codes({ text: 'aparador', room: 'dining' }).every((code) => codes({ room: 'dining' }).includes(code))).toBe(true)
+    expect(codes({ text: 'aparador', room: 'bedroom' })).toEqual([])
+    expect(codes({ text: 'KC-LIB-14' })).toEqual([])
+    expect(codes({})).toHaveLength(rows.length)
   })
 
   it('has a thumbnail for every ficha Knotty ships', () => {

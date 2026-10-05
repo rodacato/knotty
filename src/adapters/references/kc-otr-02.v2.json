@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-OTR-02",
   "id": "bar-cabinet-fluted",
+  "rooms": ["kitchen","living"],
   "name": "Mueble bar con puertas acanaladas",
   "kind": "sideboard",
   "support": "adapted",

@@ -36,6 +36,7 @@ const state = (versions = 1): DesignState => ({
   accepted: [],
   tray: [],
   locks: {},
+  ficha: null,
 })
 
 describe('localStorage repository', () => {

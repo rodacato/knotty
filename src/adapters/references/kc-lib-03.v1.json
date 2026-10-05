@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-LIB-03",
   "id": "cubby-bookcase-sliding-base",
+  "rooms": ["living","office"],
   "name": "Librero de nichos con corredizas",
   "kind": "bookcase",
   "finish": "danish-oil",

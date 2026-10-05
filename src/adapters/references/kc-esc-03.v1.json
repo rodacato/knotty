@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-ESC-03",
   "id": "desk-splayed-legs",
+  "rooms": ["office"],
   "name": "Escritorio con patas abiertas y dos cajones",
   "kind": "desk",
   "finish": "danish-oil",

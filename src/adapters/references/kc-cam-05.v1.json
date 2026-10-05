@@ -3,6 +3,7 @@
   "code": "KC-CAM-05",
   "id": "slat-platform-bed",
   "home": { "order": 17, "category": "bedroom" },
+  "rooms": ["bedroom"],
   "name": "Base de cama de tablones",
   "kind": "bed",
   "support": "adapted",

@@ -3,6 +3,7 @@
   "code": "KC-CAM-04",
   "id": "king-platform-bed",
   "home": { "order": 16, "category": "bedroom" },
+  "rooms": ["bedroom"],
   "name": "Cama king de plataforma con cajones",
   "kind": "bed",
   "finish": "danish-oil",

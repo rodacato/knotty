@@ -1,7 +1,7 @@
 // The one way a ficha file is written, so that a change to a ficha moves only the lines it changes. `probe --update` writes it; the tests read every shipped file back through it.
 
 /** The keys of a ficha in the order they are written. */
-const ORDER = ['format', 'code', 'id', 'home', 'name', 'kind', 'finish', 'inspiredBy', 'support', 'difficulty', 'features', 'adaptations', 'gaps', 'notes', 'plan', 'expect']
+const ORDER = ['format', 'code', 'id', 'home', 'rooms', 'name', 'kind', 'finish', 'inspiredBy', 'support', 'difficulty', 'features', 'adaptations', 'gaps', 'notes', 'plan', 'expect']
 
 const isValue = (v: unknown) => typeof v !== 'object' || v === null
 

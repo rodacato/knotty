@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-COC-03",
   "id": "microwave-cabinet",
+  "rooms": ["kitchen"],
   "name": "Mueble para microondas",
   "kind": "cabinet",
   "notes": "Mueble a la altura de la cubierta: un hueco abierto arriba para el microondas o la cafetera, un cajón y dos puertas abajo, anclado al muro.",

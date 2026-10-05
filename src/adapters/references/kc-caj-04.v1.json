@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-CAJ-04",
   "id": "audio-record-chest",
+  "rooms": ["bedroom"],
   "name": "Cajonera para audio y discos",
   "kind": "drawers",
   "support": "adapted",

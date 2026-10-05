@@ -17,6 +17,9 @@ export type Example =
       finish?: FinishId
       /** What it is, since a cabinet plan does not say it. */
       kind?: DesignKind
+      /** The ficha it is, at its version, when it is one. */
+      code?: string
+      version?: number
     }
 
 /** Where a base goes in the home screen's filter. */

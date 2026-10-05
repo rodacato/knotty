@@ -267,11 +267,12 @@ export function createReconstruct(kit: Kit) {
       accepted: [],
       tray: [],
       locks: {},
+      ficha: null,
     }
   }
 
   /** Starts from a ready design (the examples), without spending a call to the model; with its plan, the plan sheet and the local requests work from the first version. */
-  function fromExample(design: Design, plan: FurniturePlan | null = null): DesignState {
+  function fromExample(design: Design, plan: FurniturePlan | null = null, ficha: DesignState['ficha'] = null): DesignState {
     return save({
       format: 9,
       measures: design.dimensions,
@@ -287,13 +288,14 @@ export function createReconstruct(kit: Kit) {
       accepted: [],
       tray: [],
       locks: {},
+      ficha,
     })
   }
 
   /** One of the home screen's examples: a plan example is built here, with the session's catalog. */
   function openExample(example: Example): DesignState {
     const { design, plan } = exampleDesign(example, catalog)
-    return fromExample(design, plan)
+    return fromExample(design, plan, 'plan' in example && example.code && example.version ? { code: example.code, version: example.version } : null)
   }
 
   /** Capture reads each photo as it is added; nothing cancels it, because designing may be waiting on the same read. */
