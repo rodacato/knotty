@@ -190,6 +190,7 @@ describe('a daybed', () => {
     for (const id of [backrest, 'headboard', 'foot-arm']) expect([box(id).y0, box(id).y1]).toEqual([0, 830])
     expect(box('platform').x1).toBe(box('foot-arm').x0)
     expect(backrest === 'side-right-1' ? box('platform').z0 === box(backrest).z1 : box('platform').z1 === box(backrest).z0).toBe(true)
+    expect(box('platform').z1 - box('platform').z0).toBe(990 + 20)
   })
 
   it('takes neither legs nor drawers on both sides, and choosing it in the form settles both', () => {

@@ -114,11 +114,12 @@ const HEADBOARD_DEPTH = 250
 const headboardDepth = (plan: BedPlan, t: number) => (plan.headboard.style === 'none' ? 0 : plan.headboard.style === 'plain' || plan.headboard.style === 'daybed' ? t : plan.headboard.depth || HEADBOARD_DEPTH)
 
 /** Outer measures from the mattress, the base and the headboard, as the furniture's width (x), height and depth (z). */
+// A daybed's backrest stands beside the platform and takes its thickness out of the mattress's room, so the bed grows by it.
 function bedSize(plan: BedPlan, t: number): BedSize {
   const [mw, ml] = MATTRESSES[plan.mattress]
   return {
     width: headboardDepth(plan, t) + ml + MATTRESS_PLAY + t,
-    length: mw + MATTRESS_PLAY,
+    length: mw + MATTRESS_PLAY + (isDaybed(plan) ? t : 0),
     height: plan.headboard.style === 'none' ? plan.height : Math.max(plan.height, plan.headboard.height),
   }
 }
