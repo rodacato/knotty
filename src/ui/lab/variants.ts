@@ -81,7 +81,11 @@ export const ANY_FICHA: FichaQuery = { room: 'all', text: '' }
 const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 const searchable = ({ code, name }: Pick<Reference, 'code' | 'name'>) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
 
+/** Whether a ficha's code or name has every word of a search. */
+export function matchesText(reference: Pick<Reference, 'code' | 'name'>, text: string) {
+  return plain(text).split(/\s+/).filter(Boolean).every((w) => searchable(reference).includes(w))
+}
+
 export function fichasOf(rows: readonly FichaRow[], q: FichaQuery): FichaRow[] {
-  const words = plain(q.text).split(/\s+/).filter(Boolean)
-  return rows.filter(({ reference: r }) => (q.room === 'all' || r.rooms.includes(q.room)) && words.every((w) => searchable(r).includes(w)))
+  return rows.filter(({ reference: r }) => (q.room === 'all' || r.rooms.includes(q.room)) && matchesText(r, q.text))
 }

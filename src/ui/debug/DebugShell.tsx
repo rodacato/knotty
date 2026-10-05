@@ -1,21 +1,24 @@
-import { Books, Flask, TerminalWindow } from '@phosphor-icons/react'
+import { Books, Flask, House, TerminalWindow } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { BenchDrawer } from './BenchDrawer'
 import { Drawer } from './Drawer'
 import { FichasDrawer } from './FichasDrawer'
+import { RoomDrawer } from '../lab/RoomDrawer'
+import { RoomScene } from '../lab/RoomScene'
 import { captureGlobalErrors, instrumentStore } from './instrument'
 import { KonamiTrail } from './KonamiTrail'
 import { LogDrawer } from './LogDrawer'
 
 // The debug tools: hidden until asked for (Konami code, Ctrl+Shift+D, settings or ?debug), they are a bar on the left of the whole app with one drawer per tool.
 
-type Tool = 'bench' | 'fichas' | 'log'
+type Tool = 'bench' | 'fichas' | 'room' | 'log'
 
 const TOOLS: { id: Tool; label: string; icon: ReactNode }[] = [
   { id: 'bench', label: 'Banco de pruebas', icon: <Flask size={20} /> },
   { id: 'fichas', label: 'Fichas', icon: <Books size={20} /> },
+  { id: 'room', label: 'Cuarto', icon: <House size={20} /> },
   { id: 'log', label: 'Entrañas de la madera', icon: <TerminalWindow size={20} /> },
 ]
 
@@ -83,12 +86,23 @@ export function DebugShell({ children }: { children: ReactNode }) {
             <Drawer open={open === 'fichas'} onClose={() => show(null)} label="las fichas" width="md:w-[420px]">
               {seen.has('fichas') && <FichasDrawer />}
             </Drawer>
+            <Drawer open={open === 'room'} onClose={() => show(null)} label="el cuarto" width="md:w-[380px]">
+              {seen.has('room') && <RoomDrawer />}
+            </Drawer>
             <Drawer open={open === 'log'} onClose={() => show(null)} label="las entrañas de la madera" width="md:w-[480px]">
               {seen.has('log') && <LogDrawer open={open === 'log'} />}
             </Drawer>
           </>
         )}
-        <div className={visible ? 'h-dvh min-w-0 flex-1 overflow-y-auto' : 'contents'}>{children}</div>
+        <div className={visible ? 'relative h-dvh min-w-0 flex-1 overflow-y-auto' : 'contents'}>
+          {children}
+          {/* The room covers the screen without unmounting it, so closing the drawer gives the Studio back as it was. */}
+          {visible && open === 'room' && (
+            <div className="absolute inset-0 z-30 bg-kraft">
+              <RoomScene />
+            </div>
+          )}
+        </div>
       </div>
       <KonamiTrail onComplete={openFromKonami} />
     </>
