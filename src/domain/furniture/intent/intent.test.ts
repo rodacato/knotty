@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
-import { MODULES, buildPlan, type FurniturePlan } from '../../furniture/modules/plan'
+import { exampleBookcase } from '../fixtures/bookcase'
+import { testCatalog } from '../fixtures/catalog.test-util'
+import { MODULES, buildPlan, type FurniturePlan } from '../modules/plan'
 import { answerQuestion } from './answers'
 import { normalize, parseIntent, type Intent } from './intent'
 

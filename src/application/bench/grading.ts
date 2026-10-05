@@ -1,4 +1,4 @@
-import { designParts } from '../../domain/editing/intent/counts'
+import { designParts } from '../../domain/furniture/intent/counts'
 import { analyze } from '../../domain/checks/analysis'
 import { findingKey } from '../../domain/checks/structure/finding'
 import { estimatePurchase } from '../../domain/estimate/purchase'
