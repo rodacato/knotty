@@ -8,6 +8,22 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.6.0 — `Logo` removed (the flows stay at 0.4.0)
+
+**Removed:** the `Logo` master («Knotty» with the knot as its «o») and its instance on the dark sheet, with `Logo` in `src/ui/system/Brand.tsx`. No screen rendered it: the header draws the `Emblem` and the word «Knotty» as text, and the loading screen the `Knot`.
+
+**To know:** a removal is a major bump by the rules above; this one is minor because no flow instances it — checked in `capture`, `studio` and `studio-lab`, where it only exists as the vendored master. Those copies go at each flow's next re-vendor. The Pencil equivalences below that speak of the logo's knot are history.
+
+---
+
+## 0.5.0 — `IconButton` (additive; the flows stay at 0.4.0)
+
+**Added:** `IconButton/md` (36 px), `IconButton/lg` (44 px) and `IconButton/md · hover` (`kraft`), mirrored from `IconButton` in `src/ui/system/components.tsx`: a round button with no fill that holds only an icon in `graphite-2`. The masters sit in the *System — Help · Reveal…* and *Hover* sections, with an instance of each on the dark sheet.
+
+**To know:** the 44 px hit area of the `md` size is a `::before` in the code and is not drawn; the section title says it. The icon is 16 px, the app's default; an instance swaps it and its size where the code does (`size-5` in «Conectar experto»). The code has no focus style of its own for it beyond the global ring, and no disabled one.
+
+---
+
 ## 0.4.3 — the dark sheet, more contrast pairs and the `md` radius (additive; the flows stay at 0.4.0)
 
 **Added:** a *Components · dark* artboard (`theme: dark`) with an instance of every component of the kit, to check them against the dark tokens without duplicating a master; four contrast pairs in the Foundations table (`slate` and `rust` on `kraft`, `graphite` and `graphite-2` on `amber-soft` over `bone`, blended as the browser does); and the `radius-md` token (6 px, Tailwind's `rounded-md`, used by the change-list summary, the cut-settings badge and the sheet layout) with its swatch in Radii.

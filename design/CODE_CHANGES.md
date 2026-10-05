@@ -9,7 +9,7 @@
 | Text inputs, selects and textareas styled by hand | 27 `input`/`select`/`textarea` in 12 files, of which 20 are text fields — the rest are 2 hidden file inputs, a radio, 2 checkboxes and the tape in `MeasureField` | ✅ `src/ui/system/Field.tsx` (K7), in kit 0.3.0 |
 | Status pills over the 3D | 3 in `src/ui/studio/Studio.tsx` | ✅ `src/ui/studio/StatusChip.tsx` (K2) |
 | Proposal actions | 2 renderings of one proposal (`Chat.tsx`, `NoticePanel.tsx`) | ✅ Same actions and weights in both (K1); still two renderings |
-| Round icon-only buttons with no fill (close, back, copy) | 11 in 9 files on 2026-10-05, in four sizes (32, 36, 40 and 44 px), some without the 44 px hit area | ✅ `IconButton` in `src/ui/system/components.tsx`: 36 px with a 44 px hit area, or 44 px. Not in the kit yet. The close of a status pill (28 px inside a 36 px pill) stays local |
+| Round icon-only buttons with no fill (close, back, copy) | 11 in 9 files on 2026-10-05, in four sizes (32, 36, 40 and 44 px), some without the 44 px hit area | ✅ `IconButton` in `src/ui/system/components.tsx`: 36 px with a 44 px hit area, or 44 px. In kit 0.5.0. The close of a status pill (28 px inside a 36 px pill) stays local |
 | `Segmented` | 3 files, all in `src/ui/studio/` | Feature-local: stays in the flow, not the kit |
 | Uppercase labels | 6 left on 2026-09-27 (K1 removed the rest; the `Stamp` stays) | ✅ Sentence case with K5 |
 
