@@ -83,7 +83,8 @@ describe.each(modules.map((m) => [m.kind, m] as const))('the %s form', (_, modul
   it('offers exactly the values its schema takes, on every choice', () => {
     for (const field of fields.filter((f) => f.type === 'choice')) {
       const at = schemaAt(module.schema, field.key)
-      const values = at instanceof z.ZodBoolean ? ['yes', 'no'] : ((at instanceof z.ZodDefault ? at.unwrap() : at) as z.ZodEnum).options
+      const inner = at instanceof z.ZodDefault || at instanceof z.ZodOptional ? at.unwrap() : at
+      const values = inner instanceof z.ZodBoolean ? ['yes', 'no'] : (inner as z.ZodEnum).options
       expect({ [field.key]: field.options.map(([value]) => value).sort() }).toEqual({ [field.key]: [...values].sort() })
     }
   })
