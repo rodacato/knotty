@@ -10,6 +10,7 @@ Vive en `src/adapters/references/<código>.v<N>.json` (por ejemplo `kc-apa-01.v1
 |---|---|
 | `code` | Lo da el argumento de `--adopt`/`--diff`, no el archivo candidato. `KC-…`: un producto de referencia comprobado contra sus fotos. `GN-…`: un punto de partida genérico, sin producto detrás |
 | `id`, `name`, `notes` | Para la persona: el id en inglés, el nombre y las notas en español. Obligatorios en una referencia nueva |
+| `rooms` | Los cuartos donde va, uno o varios de `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` y `workshop` (`ROOMS` en `src/domain/furniture/references.ts`). Obligatorio: así el lab la encuentra por cuarto sin que nadie toque código, y una ficha sin cuarto no se adopta. La portada no los usa; ella tiene `home` |
 | `kind`, `finish` | Opcionales: qué mueble es (`DesignKind`, `src/domain/design/kind.ts`) y su acabado (`src/domain/materials/finishes.ts`). Un gabinete no dice por sí mismo si es aparador o librero |
 | `plan` | La ficha que entiende el motor (`FurniturePlan`): medidas, base, construcción, columnas y celdas |
 | `home` | Opcional. Con él es una tarjeta de la pantalla de inicio: `order`, `category` y, si es `featured`, también en «Destacados» (hasta 11, para que la última celda sea «Diseña tu propio mueble»). Sin él sigue siendo referencia para las pruebas. Una base del inicio tiene el mismo nombre en la ficha y en su `plan`, y no hay dos con el mismo nombre; los destacados van primero en `order` |
@@ -70,6 +71,7 @@ El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `
    ```json
    {
      "id": "night-table",
+     "rooms": ["bedroom"],
      "name": "Buró",
      "notes": "Buró con un cajón arriba y un hueco abierto abajo.",
      "plan": {

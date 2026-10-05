@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-OTR-03",
   "id": "sliding-door-shoe-cabinet",
+  "rooms": ["entry"],
   "name": "Zapatera baja de puertas acanaladas",
   "kind": "shoeRack",
   "support": "adapted",

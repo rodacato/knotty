@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-COC-01",
   "id": "kitchen-island",
+  "rooms": ["kitchen"],
   "name": "Isla de cocina",
   "kind": "cabinet",
   "notes": "Isla a la altura de la cubierta de cocina, de dos cuerpos con dos puertas y una repisa cada uno, sobre zoclo. Lleva puertas y no cajones: una isla no se ancla al muro, y con un cajón abierto se puede ir de frente.",

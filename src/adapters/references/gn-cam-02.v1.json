@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-CAM-02",
   "id": "bookcase-headboard-bed",
+  "rooms": ["bedroom"],
   "name": "Cama individual con librero de cabecera",
   "kind": "bed",
   "notes": "Cama individual con un librero de cabecera de dos nichos y tres cajones al frente. Hace juego con el «Librero largo para cama», que va detrás, contra el muro. En cuarto de niños, redondea las esquinas de los cantos.",

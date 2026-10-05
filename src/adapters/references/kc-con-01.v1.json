@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-CON-01",
   "id": "plywood-console",
+  "rooms": ["living"],
   "name": "Consola de triplay",
   "kind": "sideboard",
   "support": "adapted",

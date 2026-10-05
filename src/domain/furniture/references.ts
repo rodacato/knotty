@@ -8,6 +8,9 @@ import { Expect } from './probe'
 
 export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables', 'seating'] as const
 
+/** The rooms a piece goes in: the lab finds fichas by them, and a piece can go in more than one (a sideboard in the living and the dining room). */
+export const ROOMS = ['bedroom', 'living', 'dining', 'office', 'kitchen', 'entry', 'workshop'] as const
+
 /** The home grid has twelve cells and one is the door to designing your own, so at most this many bases are featured. */
 export const FEATURED_MAX = 11
 
@@ -31,6 +34,7 @@ export const ReferenceFile = z
     id: z.string().min(1),
     /** Where it goes on the home screen: in its category, and in the featured ones when `featured`. A reference without it is still a reference (probe, bench) and does not start a design. */
     home: z.object({ order: z.number().int().positive(), category: z.enum(HOME_CATEGORIES), featured: z.boolean().optional() }).optional(),
+    rooms: z.array(z.enum(ROOMS)).min(1),
     name: z.string().min(1),
     kind: DesignKind.optional(),
     finish: FinishId.optional(),

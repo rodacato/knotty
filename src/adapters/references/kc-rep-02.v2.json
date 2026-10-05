@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-REP-02",
   "id": "staggered-wall-shelf",
+  "rooms": ["living"],
   "name": "Repisa de pared escalonada",
   "kind": "wallCabinet",
   "finish": "danish-oil",

@@ -3,6 +3,7 @@
   "code": "KC-ASI-03",
   "id": "stacking-stool",
   "home": { "order": 9, "category": "seating", "featured": true },
+  "rooms": ["dining"],
   "name": "Taburete bajo",
   "kind": "sideTable",
   "finish": "danish-oil",

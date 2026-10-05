@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-LIB-02",
   "id": "open-bookcase-on-legs",
+  "rooms": ["living","office"],
   "name": "Librero con patas y puertas abajo",
   "kind": "bookcase",
   "support": "adapted",

@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-LIB-02",
   "id": "bed-back-bookcase",
+  "rooms": ["bedroom"],
   "name": "Librero largo para cama",
   "kind": "bookcase",
   "notes": "Librero bajo y largo para poner detrás de una cama individual, contra el muro: abajo un tramo cerrado a la altura de la cama y arriba dos filas de nichos con una puerta al centro. Hace juego con la «Cama individual con librero de cabecera». Va anclado al muro y no se atornilla a la cama.",

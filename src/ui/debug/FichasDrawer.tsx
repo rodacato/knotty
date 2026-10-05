@@ -1,7 +1,7 @@
 import { Cube, XCircle } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Thumbnail } from '../capture/Thumbnail'
-import { ANY_FICHA, fichasOf, listFichas, ROOMS, type FichaQuery, type FichaRow } from '../lab/variants'
+import { ANY_FICHA, fichasOf, listFichas, ROOM_LABELS, type FichaQuery, type FichaRow } from '../lab/variants'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Chip } from '../system/components'
@@ -43,7 +43,7 @@ export function FichasDrawer() {
   const [opened, setOpened] = useState<string | null>(null)
   const shown = fichasOf(rows, query)
   const current = sandboxed ? opened : null
-  const rooms = ROOMS.filter(([room]) => fichasOf(rows, { ...ANY_FICHA, room }).length > 0)
+  const rooms = ROOM_LABELS.filter(([room]) => fichasOf(rows, { ...ANY_FICHA, room }).length > 0)
   const set = (change: Partial<FichaQuery>) => setQuery((q) => ({ ...q, ...change }))
 
   const open = ({ reference: r }: FichaRow) => {

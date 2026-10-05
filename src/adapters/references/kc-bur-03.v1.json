@@ -3,6 +3,7 @@
   "code": "KC-BUR-03",
   "id": "slatted-nightstand",
   "home": { "order": 15, "category": "bedroom" },
+  "rooms": ["bedroom"],
   "name": "Buró de frente ranurado",
   "kind": "nightstand",
   "finish": "danish-oil",

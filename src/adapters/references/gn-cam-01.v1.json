@@ -3,6 +3,7 @@
   "code": "GN-CAM-01",
   "id": "bed-with-drawers",
   "home": { "order": 7, "category": "bedroom", "featured": true },
+  "rooms": ["bedroom"],
   "name": "Cama con cajones",
   "inspiredBy": "KC-CAM-02",
   "notes": "Cama matrimonial con dos cajones de cada lado y cabecera lisa.",

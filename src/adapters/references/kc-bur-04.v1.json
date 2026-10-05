@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-BUR-04",
   "id": "splayed-leg-nightstand",
+  "rooms": ["bedroom"],
   "name": "Velador de patas abiertas y cajón grande",
   "kind": "nightstand",
   "finish": "danish-oil",

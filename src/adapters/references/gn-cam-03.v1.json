@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-CAM-03",
   "id": "daybed",
+  "rooms": ["bedroom"],
   "name": "Cama de día",
   "kind": "bed",
   "notes": "Cama individual que de día es sillón: un respaldo a lo largo y un brazo en cada extremo, a 83 cm, y tres cajones al frente. Con el colchón individual de 99 cm queda honda para sentarse: lleva cojines contra el respaldo.",

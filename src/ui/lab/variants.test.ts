@@ -4,7 +4,7 @@ import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { ANY_FICHA, fichasOf, groupVariants, listFichas, roomsOf, type FichaQuery, type Room } from './variants'
+import { ANY_FICHA, fichasOf, groupVariants, listFichas, type FichaQuery, type Room } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -41,9 +41,8 @@ describe('the bench drawer variant list', () => {
     for (const r of listFichas(testReferences.all(), testCatalog)) expect([r.reference.code, r.notes.length]).toEqual([r.reference.code, r.reference.expect.findings?.length ?? 0])
   })
 
-  it('puts every ficha Knotty ships in a room, and a piece can be in more than one', () => {
+  it('finds a ficha in every room its file names', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    expect(rows.filter((r) => !roomsOf(r.reference).length).map((r) => r.reference.code)).toEqual([])
     const sideboard = (room: Room) => fichasOf(rows, { ...ANY_FICHA, room }).some((r) => r.reference.code === 'KC-APA-01')
     expect([sideboard('living'), sideboard('dining'), sideboard('bedroom')]).toEqual([true, true, false])
   })

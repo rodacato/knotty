@@ -36,6 +36,14 @@ describe('references', () => {
     expect(load(`./references/${file.code.toLowerCase()}.v1.json`, bad)).toThrow(/plan\.dimensions\.width/)
   })
 
+  it('refuse a file that names no room, or a room that is not one', () => {
+    const { rooms: _, ...file } = sample()
+    const path = `./references/${file.code.toLowerCase()}.v1.json`
+    expect(load(path, file)).toThrow(/rooms/)
+    expect(load(path, { ...file, rooms: [] })).toThrow(/rooms/)
+    expect(load(path, { ...file, rooms: ['garage'] })).toThrow(/rooms/)
+  })
+
   it('refuse a key nobody reads, so a typo does not pass', () => {
     const file = sample()
     expect(load(`./references/${file.code.toLowerCase()}.v1.json`, { ...file, categoryy: 'storage' })).toThrow(/categoryy/)

@@ -2,7 +2,7 @@ import type { Bench, ModuleCheck } from '../../application/bench/bench'
 import { analyze } from '../../domain/checks/analysis'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
 import { exampleDesign } from '../../domain/furniture/examples'
-import type { Reference } from '../../domain/furniture/references'
+import type { Reference, ROOMS } from '../../domain/furniture/references'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
 
@@ -58,9 +58,9 @@ export function listFichas(references: readonly Reference[], catalog: Catalog): 
   })
 }
 
-export type Room = 'bedroom' | 'living' | 'dining' | 'office' | 'kitchen' | 'entry' | 'workshop'
+export type Room = (typeof ROOMS)[number]
 
-export const ROOMS: [Room, string][] = [
+export const ROOM_LABELS: [Room, string][] = [
   ['bedroom', 'Recámara'],
   ['living', 'Sala'],
   ['dining', 'Comedor'],
@@ -69,37 +69,6 @@ export const ROOMS: [Room, string][] = [
   ['entry', 'Entrada'],
   ['workshop', 'Taller'],
 ]
-
-/** Where a piece goes, by the family in its code (KC-APA-01 is an APA); a piece can go in more than one room. */
-const ROOMS_OF_FAMILY: Record<string, Room[]> = {
-  CAM: ['bedroom'],
-  BUR: ['bedroom'],
-  CAJ: ['bedroom'],
-  TV: ['living'],
-  CON: ['living'],
-  MCE: ['living'],
-  REP: ['living'],
-  LIB: ['living', 'office'],
-  APA: ['living', 'dining'],
-  MES: ['dining'],
-  ASI: ['dining'],
-  ESC: ['office'],
-  COC: ['kitchen'],
-  ARC: ['office'],
-  TAL: ['workshop'],
-}
-
-/** OTR holds whatever fits no family, so each one says its own room. */
-const ROOMS_OF_CODE: Record<string, Room[]> = {
-  'KC-OTR-02': ['kitchen', 'living'],
-  'GN-OTR-01': ['entry'],
-  'KC-OTR-03': ['entry'],
-  'KC-OTR-04': ['entry', 'living'],
-  'GN-LIB-02': ['bedroom'],
-  'KC-ASI-02': ['dining', 'kitchen'],
-}
-
-export const roomsOf = ({ code }: Pick<Reference, 'code'>): Room[] => ROOMS_OF_CODE[code] ?? ROOMS_OF_FAMILY[code.split('-')[1]] ?? []
 
 export interface FichaQuery {
   room: Room | 'all'
@@ -114,5 +83,5 @@ const searchable = ({ code, name }: Pick<Reference, 'code' | 'name'>) => `${plai
 
 export function fichasOf(rows: readonly FichaRow[], q: FichaQuery): FichaRow[] {
   const words = plain(q.text).split(/\s+/).filter(Boolean)
-  return rows.filter(({ reference: r }) => (q.room === 'all' || roomsOf(r).includes(q.room)) && words.every((w) => searchable(r).includes(w)))
+  return rows.filter(({ reference: r }) => (q.room === 'all' || r.rooms.includes(q.room)) && words.every((w) => searchable(r).includes(w)))
 }

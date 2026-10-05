@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-ARC-01",
   "id": "filing-cabinet",
+  "rooms": ["office"],
   "name": "Archivero",
   "kind": "drawers",
   "notes": "Archivero de dos cajones hondos para carpetas colgantes tamaño carta, sobre zoclo y anclado al muro. Los rieles de aluminio para colgar las carpetas se compran aparte.",
