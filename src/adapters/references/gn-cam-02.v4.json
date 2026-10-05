@@ -15,13 +15,14 @@
     "legs": "none",
     "drawers": { "side": "left", "count": 3, "position": "center" },
     "headboard": { "style": "storage", "height": 1150, "depth": 300, "shelves": 1 },
-    "lip": true
+    "lip": true,
+    "assembly": "bolts"
   },
   "expect": {
     "valid": true,
     "pieces": 42,
     "findings": [],
     "sheets": { "T18": 5, "TR6": 1 },
-    "hardware": { "brad-nail-1": 102, "drawer-slide-45": 3, "edge-banding-19": 27, "screw-8x1": 12, "screw-8x2": 188, "white-glue": 4 }
+    "hardware": { "brad-nail-1": 54, "connector-bolt-m6": 66, "drawer-slide-45": 3, "edge-banding-19": 27, "screw-8x1": 12, "screw-8x2": 133, "white-glue": 2 }
   }
 }

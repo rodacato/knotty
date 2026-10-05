@@ -52,13 +52,14 @@
           { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
         ]
       }
-    ]
+    ],
+    "assembly": "cams"
   },
   "expect": {
     "valid": true,
     "pieces": 37,
     "findings": [],
     "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "brad-nail-1": 87, "cup-hinge-35-inset": 6, "drawer-slide-40": 1, "edge-banding-19": 21, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 12, "screw-8x2": 108, "white-glue": 4 }
+    "hardware": { "brad-nail-1": 26, "cam-lock-15": 20, "cup-hinge-35-inset": 6, "dowel-8x40": 32, "drawer-slide-40": 1, "edge-banding-19": 21, "pocket-screw-1-1/4": 8, "screw-8x1": 4, "screw-8x1-1/4": 64, "screw-8x2": 80, "white-glue": 1 }
   }
 }

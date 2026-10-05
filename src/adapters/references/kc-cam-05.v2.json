@@ -21,13 +21,14 @@
     "drawers": { "side": "none", "count": 0, "position": "center" },
     "headboard": { "style": "none", "height": 300, "depth": 0, "shelves": 0 },
     "legs": "legs",
-    "legHeight": 100
+    "legHeight": 100,
+    "assembly": "bolts"
   },
   "expect": {
     "valid": true,
     "pieces": 29,
     "findings": [],
     "sheets": { "T18": 3 },
-    "hardware": { "edge-banding-19": 6, "screw-8x1-1/4": 32, "screw-8x2": 184, "white-glue": 4 }
+    "hardware": { "connector-bolt-m6": 68, "edge-banding-19": 6, "screw-8x1-1/4": 32, "screw-8x2": 116, "white-glue": 1 }
   }
 }

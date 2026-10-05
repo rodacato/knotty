@@ -16,13 +16,14 @@
     "legHeight": 150,
     "drawers": { "side": "left", "count": 3, "position": "center" },
     "headboard": { "style": "daybed", "height": 800, "depth": 0, "shelves": 0, "cap": true },
-    "lip": true
+    "lip": true,
+    "assembly": "bolts"
   },
   "expect": {
     "valid": true,
     "pieces": 35,
     "findings": [],
     "sheets": { "T18": 4, "TR6": 1 },
-    "hardware": { "brad-nail-1": 106, "drawer-slide-45": 3, "edge-banding-19": 26, "screw-8x1": 12, "screw-8x2": 122, "white-glue": 4 }
+    "hardware": { "brad-nail-1": 54, "connector-bolt-m6": 40, "drawer-slide-45": 3, "edge-banding-19": 26, "screw-8x1": 12, "screw-8x2": 101, "white-glue": 2 }
   }
 }

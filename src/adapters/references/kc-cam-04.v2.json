@@ -20,13 +20,14 @@
     "material": "T18",
     "height": 350,
     "drawers": { "side": "both", "count": 2, "position": "foot" },
-    "headboard": { "style": "plain", "height": 1000, "depth": 0, "shelves": 0 }
+    "headboard": { "style": "plain", "height": 1000, "depth": 0, "shelves": 0 },
+    "assembly": "bolts"
   },
   "expect": {
     "valid": true,
     "pieces": 41,
     "findings": [],
     "sheets": { "T18": 6, "TR6": 1 },
-    "hardware": { "brad-nail-1": 64, "drawer-slide-50": 4, "edge-banding-19": 25, "screw-8x1": 16, "screw-8x2": 182, "white-glue": 4 }
+    "hardware": { "brad-nail-1": 64, "connector-bolt-m6": 36, "drawer-slide-50": 4, "edge-banding-19": 25, "screw-8x1": 16, "screw-8x2": 128, "white-glue": 2 }
   }
 }
