@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-REP-03",
   "id": "stepped-wall-shelf",
+  "rooms": ["living"],
   "name": "Repisa arrimo escalonada",
   "kind": "bookcase",
   "finish": "danish-oil",

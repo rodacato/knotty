@@ -12,7 +12,7 @@ import { createWorkshop } from './workshop'
 
 export { ATTEMPTS, type Stage, type OnProgress } from './kit'
 export { ExpertError } from './expertCall'
-export { currentPlan } from './currentPlan'
+export { currentPlan, fichaOrigin } from './currentPlan'
 export { reviewSignature } from './review'
 export type { PieceEdit, PieceEditResult } from './edits'
 export type { WorkshopResult } from './workshop'

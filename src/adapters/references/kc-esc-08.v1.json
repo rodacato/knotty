@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-ESC-08",
   "id": "plywood-work-table",
+  "rooms": ["office"],
   "name": "Mesa de trabajo para seis",
   "kind": "diningTable",
   "finish": "danish-oil",

@@ -3,6 +3,7 @@
   "code": "KC-CAM-01",
   "id": "platform-bed",
   "home": { "order": 2, "category": "bedroom", "featured": true },
+  "rooms": ["bedroom"],
   "name": "Cama de plataforma con respaldo",
   "kind": "bed",
   "finish": "danish-oil",

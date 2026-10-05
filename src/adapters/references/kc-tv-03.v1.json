@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-TV-03",
   "id": "audio-shelving-unit",
+  "rooms": ["living"],
   "name": "Mueble de audio con repisas escalonadas",
   "kind": "bookcase",
   "finish": "hardwax-oil",

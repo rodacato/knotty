@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-CAJ-02",
   "id": "chest-mixed-fronts",
+  "rooms": ["bedroom"],
   "name": "Cómoda con cajones, puertas y nicho",
   "kind": "drawers",
   "finish": "danish-oil",

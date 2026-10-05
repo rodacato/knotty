@@ -52,10 +52,12 @@ describe('prepareAdoption', () => {
   })
 
   it('starts a new reference at version 1 when the candidate says everything, and asks for what a KC one must say', () => {
-    const generic = { id: 'a-new-one', home: undefined, name: 'Nuevo', notes: 'Algo nuevo.', plan: file.plan }
+    const generic = { id: 'a-new-one', home: undefined, rooms: ['office'], name: 'Nuevo', notes: 'Algo nuevo.', plan: file.plan }
     expect(prepareAdoption(null, generic, 'GN-ZZZ-01', testCatalog)).toMatchObject({ ok: true, version: 1, changes: ['(new reference)'], ficha: { code: 'GN-ZZZ-01', format: 1 } })
     const checked = prepareAdoption(null, generic, 'KC-ZZZ-01', testCatalog)
     expect(!checked.ok && checked.reasons.join()).toMatch(/a KC reference says/)
     expect(prepareAdoption(null, file.plan as Record<string, unknown>, 'GN-ZZZ-01', testCatalog).ok).toBe(false)
+    const { rooms: _, ...roomless } = generic
+    expect(prepareAdoption(null, roomless, 'GN-ZZZ-01', testCatalog)).toMatchObject({ ok: false })
   })
 })

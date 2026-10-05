@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-BUR-01",
   "id": "splay-leg-nightstand",
+  "rooms": ["bedroom"],
   "name": "Velador de patas abiertas",
   "kind": "nightstand",
   "support": "adapted",

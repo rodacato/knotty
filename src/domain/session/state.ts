@@ -111,6 +111,8 @@ export const DesignState = z.object({
   tray: z.array(TrayItem).default([]),
   /** Plan fields the person locked or freed for «Ahorrar material», by key; the rest keep their module's default. */
   locks: z.record(z.string(), z.boolean()).default({}),
+  /** The ficha it was opened from, at that version; null when it was designed from photos or words. */
+  ficha: z.object({ code: z.string(), version: z.number().int().positive() }).nullable().default(null),
 })
 export type DesignState = z.infer<typeof DesignState>
 

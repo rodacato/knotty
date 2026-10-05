@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-BUR-02",
   "id": "nightstand-grooved",
+  "rooms": ["bedroom"],
   "name": "Buró con frente ranurado",
   "kind": "nightstand",
   "finish": "none",

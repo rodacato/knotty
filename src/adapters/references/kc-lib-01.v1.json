@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-LIB-01",
   "id": "staggered-bookcase",
+  "rooms": ["living","office"],
   "name": "Librero escalonado",
   "kind": "bookcase",
   "support": "adapted",

@@ -3,6 +3,7 @@
   "code": "GN-BUR-01",
   "id": "nightstand",
   "home": { "order": 13, "category": "bedroom" },
+  "rooms": ["bedroom"],
   "name": "Buró",
   "kind": "nightstand",
   "inspiredBy": "KC-BUR-01",

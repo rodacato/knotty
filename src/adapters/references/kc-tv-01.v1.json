@@ -3,6 +3,7 @@
   "code": "KC-TV-01",
   "id": "fluted-tv-stand",
   "home": { "order": 1, "category": "storage", "featured": true },
+  "rooms": ["living"],
   "name": "Mueble de TV ranurado",
   "kind": "tvStand",
   "finish": "danish-oil",

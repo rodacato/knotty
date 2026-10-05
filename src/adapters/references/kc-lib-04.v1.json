@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-LIB-04",
   "id": "slatted-drawer-bookcase",
+  "rooms": ["living","office"],
   "name": "Librero con cajones acanalados",
   "kind": "bookcase",
   "finish": "hardwax-oil",
