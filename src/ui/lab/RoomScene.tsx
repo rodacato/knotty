@@ -8,7 +8,7 @@ import { boardLook } from '../../domain/materials/grades'
 import { PieceMesh } from '../scene/PieceMesh'
 import { useDark, useReducedMotion } from '../scene/preferences'
 import { useServices } from '../services'
-import { conflicts, type Placed, type Size } from './room'
+import { conflicts, openingRect, type Opening, type Placed, type Room, type Size } from './room'
 import { useModels, type Model } from './roomModels'
 import { useRoom } from './roomStore'
 
@@ -93,8 +93,33 @@ function useDrag(origin: [number, number], sizeOf: (code: string) => Size | unde
   }
 }
 
+/** A door or a window: the floor it keeps clear, and its hole in the wall when the wall is one the view draws (back and left). */
+function OpeningMarks({ room, opening: o, dark }: { room: Room; opening: Opening; dark: boolean }) {
+  const floor = openingRect(room, o)
+  const door = o.kind === 'door'
+  const [bottom, top] = door ? [0, o.height] : [o.sill, o.sill + o.height]
+  const along = o.offset + o.width / 2
+  const hole = door ? (dark ? '#14110e' : '#6b5a48') : dark ? '#3b4a55' : '#cfe0ea'
+  const wall =
+    o.wall === 'back' ? { position: [along * MM, ((bottom + top) / 2) * MM, 0.002] as const, rotation: 0 } : o.wall === 'left' ? { position: [0.002, ((bottom + top) / 2) * MM, along * MM] as const, rotation: Math.PI / 2 } : null
+  return (
+    <>
+      <mesh rotation-x={-Math.PI / 2} position={[((floor.x0 + floor.x1) / 2) * MM, 0.001, ((floor.z0 + floor.z1) / 2) * MM]}>
+        <planeGeometry args={[(floor.x1 - floor.x0) * MM, (floor.z1 - floor.z0) * MM]} />
+        <meshBasicMaterial color={door ? '#d98a2b' : '#56697a'} transparent opacity={0.18} depthWrite={false} />
+      </mesh>
+      {wall && (
+        <mesh position={wall.position} rotation-y={wall.rotation}>
+          <planeGeometry args={[o.width * MM, (top - bottom) * MM]} />
+          <meshStandardMaterial color={hole} />
+        </mesh>
+      )}
+    </>
+  )
+}
+
 function Contents() {
-  const { room, items, selected, dragging } = useRoom()
+  const { room, items, openings, selected, dragging } = useRoom()
   const models = useModels()
   const dark = useDark()
   const controls = useRef<CameraControls>(null)
@@ -102,7 +127,7 @@ function Contents() {
   const origin: [number, number] = [-room.width / 2, -room.depth / 2]
   const sizeOf = (code: string) => models.get(code)?.design.dimensions
   const drag = useDrag(origin, sizeOf)
-  const bad = useMemo(() => conflicts(room, items, (code) => models.get(code)?.design.dimensions), [room, items, models])
+  const bad = useMemo(() => conflicts(room, items, (code) => models.get(code)?.design.dimensions, openings), [room, items, models, openings])
   useEffect(() => {
     void controls.current?.setLookAt(room.width * MM * 0.9, room.height * MM * 1.4, room.depth * MM * 1.6, 0, 0.4, 0, false)
   }, [room.width, room.depth, room.height])
@@ -129,6 +154,9 @@ function Contents() {
           <planeGeometry args={[room.depth * MM, room.height * MM]} />
           <meshStandardMaterial color={wall} />
         </mesh>
+        {openings.map((o) => (
+          <OpeningMarks key={o.key} room={room} opening={o} dark={dark} />
+        ))}
         {items.map((item) => {
           const model = models.get(item.code)
           return model ? <Piece key={item.key} item={item} model={model} bad={bad.has(item.key)} selected={selected === item.key} onGrab={(e) => drag(item.key, e)} /> : null

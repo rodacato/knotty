@@ -18,11 +18,32 @@ export interface Placed {
   turn: Turn
 }
 
-/** A piece's own width (along x) and depth (along z), unturned. */
+/** A piece's own width (along x) and depth (along z), unturned; its height, when it matters (under a window). */
 export interface Size {
   width: number
   depth: number
+  height?: number
 }
+
+/** The walls as the 3D view shows the room: the back one at z 0, the left one at x 0. */
+export type Wall = 'back' | 'left' | 'right' | 'front'
+
+/** A door or a window in a wall: `offset` runs along the wall from its back or left end; `sill` is how high a window starts. */
+export interface Opening {
+  key: string
+  kind: 'door' | 'window'
+  wall: Wall
+  offset: number
+  width: number
+  height: number
+  sill: number
+}
+
+export const DOOR: Omit<Opening, 'key' | 'wall' | 'offset'> = { kind: 'door', width: 900, height: 2100, sill: 0 }
+export const WINDOW: Omit<Opening, 'key' | 'wall' | 'offset'> = { kind: 'window', width: 1200, height: 1200, sill: 900 }
+
+/** How far into the room a window reaches: a piece within it that rises past the sill covers the window. A prototype's guess, not a rule of the docs. */
+export const WINDOW_REACH = 600
 
 export interface Rect {
   x0: number
@@ -52,22 +73,44 @@ export const outside = (room: Room, r: Rect) => r.x0 < 0 || r.z0 < 0 || r.x1 > r
 /** Two pieces that only touch do not overlap: standing side by side is the point. */
 export const overlaps = (a: Rect, b: Rect) => a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1
 
-/** The pieces that stick out of the room or stand on another, by key. */
-export function conflicts(room: Room, items: Placed[], sizeOf: (code: string) => Size | undefined): Set<string> {
+/** The floor an opening keeps clear: a door, the square its leaf sweeps; a window, a strip along the wall as deep as `WINDOW_REACH`. */
+export function openingRect(room: Room, o: Opening): Rect {
+  const reach = o.kind === 'door' ? o.width : WINDOW_REACH
+  const [a, b] = [o.offset, o.offset + o.width]
+  if (o.wall === 'back') return { x0: a, x1: b, z0: 0, z1: reach }
+  if (o.wall === 'front') return { x0: a, x1: b, z0: room.depth - reach, z1: room.depth }
+  if (o.wall === 'left') return { x0: 0, x1: reach, z0: a, z1: b }
+  return { x0: room.width - reach, x1: room.width, z0: a, z1: b }
+}
+
+export type Conflict = 'outside' | 'overlap' | 'door' | 'window'
+
+export const CONFLICT_TEXT: Record<Conflict, string> = {
+  outside: 'se sale del cuarto',
+  overlap: 'se encima con otro',
+  door: 'estorba una puerta',
+  window: 'tapa una ventana',
+}
+
+/** What is wrong with each piece, by key: it sticks out of the room, stands on another, stands where a door opens, or rises in front of a window past its sill. */
+export function conflicts(room: Room, items: Placed[], sizeOf: (code: string) => Size | undefined, openings: Opening[] = []): Map<string, Conflict[]> {
   const rects = items.flatMap((item) => {
     const size = sizeOf(item.code)
-    return size ? [{ key: item.key, rect: rectOf(item, size) }] : []
+    return size ? [{ key: item.key, rect: rectOf(item, size), height: size.height ?? 0 }] : []
   })
-  const bad = new Set<string>()
+  const found = new Map<string, Conflict[]>()
+  const flag = (key: string, c: Conflict) => found.set(key, [...new Set([...(found.get(key) ?? []), c])])
   for (const [i, a] of rects.entries()) {
-    if (outside(room, a.rect)) bad.add(a.key)
+    if (outside(room, a.rect)) flag(a.key, 'outside')
     for (const b of rects.slice(i + 1))
       if (overlaps(a.rect, b.rect)) {
-        bad.add(a.key)
-        bad.add(b.key)
+        flag(a.key, 'overlap')
+        flag(b.key, 'overlap')
       }
+    for (const o of openings)
+      if (overlaps(a.rect, openingRect(room, o)) && (o.kind === 'door' || a.height > o.sill)) flag(a.key, o.kind)
   }
-  return bad
+  return found
 }
 
 /** The shift along one axis that brings the nearest edge onto a target, if one is within reach. */
