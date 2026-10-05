@@ -99,6 +99,16 @@ describe('choosing a joint', () => {
     expect(chooseJoint(thin.design, thin.geo, 'body', 'connector-bolt', testCatalog).findings[0]).toMatchObject({ code: 'R2_JOINT_THICKNESS', severity: 'critical' })
   })
 
+  it('a minifix comes with two loose dowels to a joint, and as few to a joint as a bolt', () => {
+    const { design, geo } = built()
+    const applied = applyOperations(design, chooseJoint(design, geo, 'body', 'cam-lock', testCatalog).operations, testCatalog)
+    if (!applied.ok) throw new Error('not applied')
+    const body = jointGroups(applied.value.design).find((g) => g.id === 'body')!.joints
+    expect(body.every((u) => !u.glue && u.hardware.map((h) => [h.hardwareId, h.count]).join() === 'cam-lock-15,,dowel-8x40,2')).toBe(true)
+    const count = (role: string) => estimatePurchase(applied.value.design, geo, testCatalog).hardware.find((h) => h.hardware.role === role)!.count
+    expect([count('cam-lock'), count('dowel')]).toEqual([2 * body.length, 2 * body.length])
+  })
+
   it('asks for nothing when the group already has that joint', () => {
     const { design, geo } = built()
     expect(chooseJoint(design, geo, 'back', 'glue-nail', testCatalog).operations).toEqual([])

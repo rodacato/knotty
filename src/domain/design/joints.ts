@@ -37,7 +37,10 @@ export function hardwareFor(catalog: Catalog, type: JointType, a: Piece, b: Piec
   if (type === 'pocket-screw') return [{ hardwareId: pocketScrewId(ta), count: null }]
   const role = JOINTS[type].hardware
   const item = role && pickHardware(catalog, role)
-  return item ? [{ hardwareId: item.id, count: null }] : []
+  const fitting = item ? [{ hardwareId: item.id, count: null }] : []
+  // A minifix pulls the joint tight and takes little shear: two loose dowels beside it take it (uniones-y-herrajes.md §3.2).
+  const dowel = type === 'cam-lock' ? pickHardware(catalog, 'dowel') : undefined
+  return dowel ? [...fitting, { hardwareId: dowel.id, count: 2 }] : fitting
 }
 
 function inferJoint(c: Contact, p: Piece, q: Piece, thicknesses: Map<string, number>, catalog: Catalog): Omit<Joint, 'id'> | null {
