@@ -56,7 +56,7 @@ describe('the sandbox', () => {
     expect(name()).toBe('Variante')
 
     useStore.getState().newDesign()
-    expect(useStore.getState().phase).toBe('capture')
+    expect(useStore.getState().phase).toBe('home')
     expect(useStore.getState().sandboxed).toBe(true)
     useStore.getState().fromExample(variant)
 

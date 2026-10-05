@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-ASI-02",
   "id": "counter-stool",
-  "home": { "order": 19, "category": "seating" },
+  "home": { "order": 19 },
   "rooms": ["dining","kitchen"],
   "name": "Taburete alto",
   "kind": "sideTable",

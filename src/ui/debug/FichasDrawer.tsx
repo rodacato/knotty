@@ -1,7 +1,8 @@
 import { Cube, XCircle } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Thumbnail } from '../capture/Thumbnail'
-import { ANY_FICHA, fichasOf, listFichas, ROOM_LABELS, type FichaQuery, type FichaRow } from '../lab/variants'
+import { ANY, roomChips, type CatalogQuery } from '../capture/catalog'
+import { fichasOf, listFichas, type FichaRow } from '../lab/variants'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Chip } from '../system/components'
@@ -39,12 +40,12 @@ export function FichasDrawer() {
   const sandboxed = useStore((s) => s.sandboxed)
   const sandboxExample = useStore((s) => s.sandboxExample)
   const rows = useMemo(() => listFichas(references.all(), catalog), [references, catalog])
-  const [query, setQuery] = useState<FichaQuery>(ANY_FICHA)
+  const [query, setQuery] = useState<CatalogQuery>(ANY)
   const [opened, setOpened] = useState<string | null>(null)
   const shown = fichasOf(rows, query)
   const current = sandboxed ? opened : null
-  const rooms = ROOM_LABELS.filter(([room]) => fichasOf(rows, { ...ANY_FICHA, room }).length > 0)
-  const set = (change: Partial<FichaQuery>) => setQuery((q) => ({ ...q, ...change }))
+  const chips = useMemo(() => roomChips(rows.map((r) => r.reference), query), [rows, query])
+  const set = (change: Partial<CatalogQuery>) => setQuery((q) => ({ ...q, ...change }))
 
   const open = ({ reference: r }: FichaRow) => {
     setOpened(r.code)
@@ -62,9 +63,9 @@ export function FichasDrawer() {
           <Input type="search" placeholder="Código o nombre: KC-LIB-03, escritorio" value={query.text} onChange={(e) => set({ text: e.target.value })} />
         </Field>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Cuarto">
-          {[['all', 'Todas'] as const, ...rooms].map(([room, label]) => (
+          {chips.map(({ room, label, count }) => (
             <Chip key={room} active={query.room === room} aria-pressed={query.room === room} onClick={() => set({ room })}>
-              {label} <span className="numerals text-graphite-2">{fichasOf(rows, { ...query, room }).length}</span>
+              {label} <span className="numerals text-graphite-2">{count}</span>
             </Chip>
           ))}
         </div>

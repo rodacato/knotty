@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-COC-01",
   "id": "kitchen-island",
+  "home": { "order": 22 },
   "rooms": ["kitchen"],
   "name": "Isla de cocina",
   "kind": "cabinet",

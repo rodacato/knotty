@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-OTR-04",
   "id": "legged-sideboard-niche",
+  "home": { "order": 36 },
   "rooms": ["entry","living"],
   "name": "Recibidor con nicho y cajón largo",
   "kind": "sideboard",

@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-APA-01",
   "id": "low-sideboard",
-  "home": { "order": 12, "category": "storage" },
+  "home": { "order": 12 },
   "rooms": ["living","dining"],
   "name": "Aparador bajo",
   "kind": "sideboard",

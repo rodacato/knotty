@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-CAM-04",
   "id": "king-platform-bed",
-  "home": { "order": 16, "category": "bedroom" },
+  "home": { "order": 16 },
   "rooms": ["bedroom"],
   "name": "Cama king de plataforma con cajones",
   "kind": "bed",

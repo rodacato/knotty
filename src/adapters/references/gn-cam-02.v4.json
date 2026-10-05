@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-CAM-02",
   "id": "bookcase-headboard-bed",
+  "home": { "order": 21 },
   "rooms": ["bedroom"],
   "name": "Cama individual con librero de cabecera",
   "kind": "bed",

@@ -1,13 +1,13 @@
 import { createBundledReferences } from '../../../adapters/references/store'
-import type { Example } from '../examples'
+import { basesOf, type Example } from '../examples'
 import type { CabinetPlan } from '../modules/cabinet'
 import type { FurniturePlan } from '../modules/plan'
 
 /** The references the app ships, as its tests read them. */
 export const testReferences = createBundledReferences()
 
-/** The bases of the home screen. */
-export const testBases = testReferences.home()
+/** The bases the tests hold to what a base has to pass: the ones with a place on the home screen. The rest are listed too, with what is still to fix. */
+export const testBases = basesOf(testReferences.all().filter((r) => r.home))
 
 const sideboard = testReferences.latest('KC-APA-01')
 if (sideboard?.plan.kind !== 'cabinet') throw new Error('the sideboard reference (KC-APA-01) is missing')

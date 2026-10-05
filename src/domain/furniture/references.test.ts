@@ -57,7 +57,7 @@ describe('references', () => {
     expect(() => loadReferences({ [`./references/${name}.v1.json`]: file, './references/gn-zzz-99.v1.json': other })).toThrow(/share the order/)
   })
 
-  it('may be left off the home screen, and then come after the ones on it', () => {
+  it('may have no place on the home screen, and then come after the ones that do', () => {
     const { home, ...file } = sample()
     if (!home) throw new Error('the sample is on the home screen')
     const at = (code: string, order: number) => ({ ...file, code, id: code, home: { ...home, order } })
@@ -67,7 +67,7 @@ describe('references', () => {
       './references/gn-zzz-02.v1.json': at('GN-ZZZ-02', 1),
     }
     expect(loadReferences(files).map((r) => r.code)).toEqual(['GN-ZZZ-02', 'GN-ZZZ-01', 'GN-AAA-01'])
-    expect(basesOf(loadReferences(files)).map((b) => b.code)).toEqual(['GN-ZZZ-02', 'GN-ZZZ-01'])
+    expect(basesOf(loadReferences(files)).map((b) => b.code)).toEqual(['GN-ZZZ-02', 'GN-ZZZ-01', 'GN-AAA-01'])
   })
 
   it('refuse a ficha that does not say what the engine makes of it', () => {

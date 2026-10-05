@@ -47,7 +47,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
@@ -106,7 +106,7 @@ describe('store', () => {
     expect(useStore.getState()).toMatchObject({ viewedVersion: null, preview: null, hidden: [], selection: null })
     useStore.getState().viewVersion(1)
     useStore.getState().newDesign()
-    expect(useStore.getState()).toMatchObject({ viewedVersion: null, state: null, phase: 'capture' })
+    expect(useStore.getState()).toMatchObject({ viewedVersion: null, state: null, phase: 'home' })
   })
 
   it('an expert request shows the message at once and the answer when it arrives', async () => {

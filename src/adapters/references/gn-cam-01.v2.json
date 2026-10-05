@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-CAM-01",
   "id": "bed-with-drawers",
-  "home": { "order": 7, "category": "bedroom", "featured": true },
+  "home": { "order": 7 },
   "rooms": ["bedroom"],
   "name": "Cama con cajones",
   "inspiredBy": "KC-CAM-02",

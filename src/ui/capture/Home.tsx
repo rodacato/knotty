@@ -1,128 +1,153 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
-import { resolveGeometry } from '../../domain/design/resolve'
+import { resolveGeometry, type Box } from '../../domain/design/resolve'
 import { exampleDesign, type Base } from '../../domain/furniture/examples'
+import type { Catalog } from '../../domain/materials/catalog'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
+import { Field, Input } from '../system/Field'
 import { AppFooter } from '../shell/AppFooter'
 import { AppHeader } from '../shell/AppHeader'
 import { useExpertStatus } from '../shell/expertStatus'
-import { basesOfFilter, countLine, FILTERS, onlyOneNote, type CategoryFilter } from './catalog'
+import { matches, noMatchNote, roomChips, sizeLine } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
 
-function BaseCard({ base, onOpen }: { base: Base; onOpen: (base: Base) => void }) {
-  const { catalog } = useServices()
-  const { design, boxes } = useMemo(() => {
+interface Card {
+  base: Base
+  size: ReturnType<typeof sizeLine>
+  /** What the thumbnail draws; null when the plan does not resolve. */
+  boxes: Map<string, Box> | null
+}
+
+const cardsOf = (bases: Base[], catalog: Catalog): Card[] =>
+  bases.map((base) => {
     const { design } = exampleDesign(base, catalog)
     const geo = resolveGeometry(design, catalog)
-    return { design, boxes: geo.ok ? geo.value.boxes : null }
-  }, [base, catalog])
-  const { height, width, depth } = design.dimensions
+    return { base, size: sizeLine(design.dimensions), boxes: geo.ok ? geo.value.boxes : null }
+  })
+
+function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(base)}
-      className="group flex flex-col gap-1.5 rounded-2xl text-left"
-    >
-      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-kraft p-4 md:p-6 transition group-hover:bg-kraft-2 group-active:scale-[0.98]">
+    <button type="button" onClick={() => onOpen(base)} className="group flex flex-col gap-1.5 rounded-2xl text-left">
+      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-kraft p-4 transition group-hover:bg-kraft-2 group-active:scale-[0.98] md:p-6">
         {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6 text-graphite-2" />}
       </span>
       <span className="text-base font-medium text-graphite md:text-lg">{base.name}</span>
-      <span className="numerals text-sm text-graphite-2" aria-label={`${height} de alto, ${width} de ancho, ${depth} de fondo, en milímetros`}>
-        {Math.round(height)} × {Math.round(width)} × {Math.round(depth)}
+      <span className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
+        {size.text}
       </span>
     </button>
   )
 }
 
-function OwnDoor({ onOpen, layout }: { onOpen: () => void; layout: 'cell' | 'row' }) {
-  const cell = layout === 'cell'
+function OwnDoor({ connected, onOpen }: { connected: boolean; onOpen: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={`group items-center gap-4 rounded-2xl border border-line bg-kraft text-left transition hover:bg-kraft-2 ${
-        cell ? 'hidden min-h-full flex-col justify-center px-6 py-8 text-center md:flex' : 'col-span-2 flex p-5 md:hidden'
-      }`}
-    >
-      <span className="grid size-12 shrink-0 place-items-center rounded-full border border-line bg-bone">
-        <Plus className="size-5" />
-      </span>
-      <span className={`flex flex-col gap-1 ${cell ? 'items-center text-center' : 'flex-1'}`}>
-        <span className="font-display text-xl leading-tight font-semibold md:text-2xl">¿No está el tuyo?</span>
-        <span className="text-sm text-graphite-2 md:text-base">Cuéntanos qué es, con fotos o una descripción.</span>
-        {cell && (
-          <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium">
-            Diseña el tuyo <ArrowRight weight="bold" />
-          </span>
-        )}
-      </span>
-      {!cell && <ArrowRight className="size-5 shrink-0" />}
-    </button>
+    <section className="flex flex-col gap-4 rounded-3xl border border-line bg-kraft p-6 md:flex-row md:items-center md:justify-between md:gap-8 md:p-8" aria-labelledby="own-title">
+      <div className="flex flex-col gap-1">
+        <h2 id="own-title" className="font-display text-2xl leading-tight font-semibold md:text-3xl">
+          ¿No está el tuyo?
+        </h2>
+        <p className="text-base text-graphite-2 md:text-lg">Cuéntanos qué es, con fotos o una descripción.</p>
+        {!connected && <p className="text-sm text-graphite-2">Necesita tu experto conectado; las bases no.</p>}
+      </div>
+      <Button variant="primary" className="min-h-12 shrink-0 px-6 text-base" onClick={onOpen}>
+        Diseña el tuyo <ArrowRight weight="bold" />
+      </Button>
+    </section>
   )
+}
+
+/** Whether the bar that follows the mark is pinned to the top, so it can draw the edge the list slides under. */
+function usePinned() {
+  const mark = useRef<HTMLDivElement>(null)
+  const [pinned, setPinned] = useState(false)
+  useEffect(() => {
+    if (!mark.current) return
+    const observer = new IntersectionObserver(([entry]) => setPinned(!entry.isIntersecting && entry.boundingClientRect.top < 0))
+    observer.observe(mark.current)
+    return () => observer.disconnect()
+  }, [])
+  return { mark, pinned }
+}
+
+function useInView() {
+  const target = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    if (!target.current) return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting))
+    observer.observe(target.current)
+    return () => observer.disconnect()
+  }, [])
+  return { target, inView }
 }
 
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const adjustBase = useStore((s) => s.adjustBase)
-  const openConnect = useStore((s) => s.openConnect)
-  const { references } = useServices()
+  const query = useStore((s) => s.browsing)
+  const browse = useStore((s) => s.browse)
+  const { references, catalog } = useServices()
   const { connected } = useExpertStatus()
-  const bases = useMemo(() => references.home(), [references])
-  const [filter, setFilter] = useState<CategoryFilter>('featured')
-  const shown = basesOfFilter(bases, filter)
-  const designYourOwn = connected ? startCapture : () => openConnect(true)
+  const cards = useMemo(() => cardsOf(references.home(), catalog), [references, catalog])
+  const chips = useMemo(() => roomChips(cards.map((c) => c.base), query), [cards, query])
+  const shown = cards.filter((c) => matches(c.base, query))
+  const { mark, pinned } = usePinned()
+  const { target: door, inView: doorInView } = useInView()
   return (
     <div className="flex min-h-full flex-col">
       <AppHeader />
       <div className="bg-kraft">
-        <section className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-5 pt-4 pb-6 md:flex-row md:items-center md:justify-between md:gap-12 md:px-8 md:py-10" aria-labelledby="home-title">
-          <div className="flex max-w-3xl flex-col gap-3">
-            <h1 id="home-title" className="font-display font-semibold tracking-tight text-4xl leading-[1.05] md:text-6xl md:leading-[1.05]">
-              Elige un mueble. Ajústalo. Ármalo tú mismo.
-            </h1>
-            <p className="text-base text-graphite-2 md:text-xl">Al final sabes cómo se arma y cuántas hojas comprar.</p>
-          </div>
-          <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-bone p-4 md:w-[420px] md:shrink-0 md:flex-col md:items-stretch md:gap-4 md:rounded-3xl md:p-7">
-            <div className="flex flex-col gap-1 md:gap-3">
-              <h2 className="font-display text-xl leading-tight font-semibold md:text-2xl">Diseña el tuyo</h2>
-              <p className="text-sm text-graphite-2 md:hidden">Con fotos o una descripción.</p>
-              <p className="hidden text-base md:block">Toma fotos de un mueble y un carpintero experto lo convierte en un diseño de triplay.</p>
-            </div>
-            <Button variant={connected ? 'primary' : 'secondary'} className="min-h-11 shrink-0 px-5 text-base md:min-h-12" onClick={designYourOwn}>
-              {connected ? 'Nuevo diseño' : 'Conectar experto'} <ArrowRight weight="bold" className="hidden md:block" />
-            </Button>
-            {!connected && <p className="hidden text-sm text-graphite-2 md:block">Necesita tu experto conectado; las bases no.</p>}
-          </div>
-        </section>
+        <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-3 px-5 py-10 md:gap-4 md:px-8 md:py-16">
+          <h1 id="home-title" className="font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance md:text-6xl md:leading-[1.05]">
+            Elige un mueble. Ajústalo. Ármalo tú mismo.
+          </h1>
+          <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Cada uno ya tiene ficha: cambias medidas y opciones al instante, sin el experto. Al final sabes cómo se arma y cuántas hojas comprar.</p>
+        </div>
       </div>
-      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-5 px-5 py-8 md:px-8 md:py-12">
-        <section className="flex flex-col gap-5" aria-labelledby="bases-title">
-          <div className="flex flex-col gap-1">
-            <h2 id="bases-title" className="font-display text-3xl leading-tight font-semibold md:text-4xl">
-              Empieza de una base
-            </h2>
-            <p className="text-base text-graphite-2 md:text-lg">Ya tienen ficha: cambias medidas y opciones al instante, sin el experto.</p>
-            <p className="numerals text-sm text-graphite-2">{countLine(shown.length, filter)}</p>
+      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 py-4 md:px-8 md:py-6">
+        <section className="flex flex-col gap-3" aria-labelledby="home-title">
+          <div ref={mark} />
+          <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors duration-150 ease-out md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
+            <Field label="Buscar una base" hiddenLabel>
+              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre: librero, escritorio, buró" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
+            </Field>
+            <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0" role="group" aria-label="Cuarto">
+              {chips.map(({ room, label, count }) => (
+                <Chip key={room} active={query.room === room} aria-pressed={query.room === room} className={`min-h-11 shrink-0 px-5 text-sm! ${query.room === room ? 'font-bold!' : ''}`} onClick={() => browse({ room })}>
+                  {label} <span className="numerals font-normal text-graphite-2">{count}</span>
+                </Chip>
+              ))}
+            </div>
           </div>
-          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
-            {FILTERS.map(([id, label]) => (
-              <Chip key={id} active={filter === id} aria-pressed={filter === id} className={`min-h-11 shrink-0 px-5 text-sm! ${filter === id ? 'font-bold!' : ''}`} onClick={() => setFilter(id)}>
-                {label}
-              </Chip>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8">
-            {shown.map((base) => (
-              <BaseCard key={base.id} base={base} onOpen={adjustBase} />
-            ))}
-            <OwnDoor onOpen={designYourOwn} layout="cell" />
-            <OwnDoor onOpen={designYourOwn} layout="row" />
-          </div>
-          {onlyOneNote(shown.length, filter) && <p className="text-base text-graphite-2">{onlyOneNote(shown.length, filter)}</p>}
+          {shown.length ? (
+            <>
+              <p className="text-sm text-graphite-2">Ancho × fondo × alto.</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8 lg:grid-cols-4">
+                {shown.map((card) => (
+                  <BaseCard key={card.base.id} card={card} onOpen={adjustBase} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="py-4 text-base text-graphite-2" role="status">
+              {noMatchNote(query)}
+            </p>
+          )}
         </section>
+        <div ref={door}>
+          <OwnDoor connected={connected} onOpen={startCapture} />
+        </div>
       </main>
+      <Button
+        variant="primary"
+        inert={doorInView}
+        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full! px-6 text-lg! shadow-xl duration-150 ease-out md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
+        onClick={startCapture}
+      >
+        <Plus weight="bold" /> Diseña el tuyo
+      </Button>
       <AppFooter />
     </div>
   )

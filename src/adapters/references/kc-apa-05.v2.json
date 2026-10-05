@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-APA-05",
   "id": "grooved-cabinet-on-legs",
-  "home": { "order": 6, "category": "storage", "featured": true },
+  "home": { "order": 6 },
   "rooms": ["living","dining"],
   "name": "Estante de puertas ranuradas con patas",
   "kind": "sideboard",

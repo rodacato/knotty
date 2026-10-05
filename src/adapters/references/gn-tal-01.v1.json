@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-TAL-01",
   "id": "workbench",
+  "home": { "order": 27 },
   "rooms": ["workshop"],
   "name": "Banco de trabajo",
   "kind": "workbench",

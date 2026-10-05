@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-APA-04",
   "id": "fluted-sideboard",
+  "home": { "order": 29 },
   "rooms": ["living","dining"],
   "name": "Aparador de tres puertas acanaladas",
   "kind": "sideboard",

@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-ARC-01",
   "id": "filing-cabinet",
+  "home": { "order": 20 },
   "rooms": ["office"],
   "name": "Archivero",
   "kind": "drawers",

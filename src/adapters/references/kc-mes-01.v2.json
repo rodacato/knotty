@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-MES-01",
   "id": "dining-table-tapered-legs",
-  "home": { "order": 18, "category": "tables" },
+  "home": { "order": 18 },
   "rooms": ["dining"],
   "name": "Mesa de comedor para seis",
   "kind": "diningTable",

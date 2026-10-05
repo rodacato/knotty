@@ -1,35 +1,45 @@
-import type { Base, BaseCategory } from '../../domain/furniture/examples'
+import type { Room } from '../../domain/furniture/references'
 
-export type CategoryFilter = BaseCategory | 'featured'
-
-export const FILTERS: [CategoryFilter, string][] = [
-  ['featured', 'Destacados'],
+export const ROOM_LABELS: [Room, string][] = [
   ['bedroom', 'Recámara'],
-  ['storage', 'Guardar'],
-  ['tables', 'Mesas'],
-  ['seating', 'Asientos'],
+  ['living', 'Sala'],
+  ['dining', 'Comedor'],
+  ['office', 'Oficina'],
+  ['kitchen', 'Cocina'],
+  ['entry', 'Entrada'],
+  ['workshop', 'Taller'],
 ]
 
-const COUNT: Record<BaseCategory, [one: string, many: string]> = {
-  bedroom: ['mueble de recámara', 'muebles de recámara'],
-  storage: ['mueble para guardar', 'muebles para guardar'],
-  tables: ['mesa', 'mesas'],
-  seating: ['asiento', 'asientos'],
+export interface CatalogQuery {
+  room: Room | 'all'
+  /** Words of its code or name, in any case, with or without accents or dashes: «lib14», «KC-LIB-14», «escritorio». */
+  text: string
 }
 
-const ONLY_ONE: Record<BaseCategory, string> = {
-  bedroom: 'de recámara',
-  storage: 'para guardar',
-  tables: 'de mesas',
-  seating: 'de asientos',
+export const ANY: CatalogQuery = { room: 'all', text: '' }
+
+type Listed = { code: string; name: string; rooms: readonly Room[] }
+
+const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const searchable = ({ code, name }: Listed) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
+
+export function matches(item: Listed, q: CatalogQuery): boolean {
+  const words = plain(q.text).split(/\s+/).filter(Boolean)
+  return (q.room === 'all' || item.rooms.includes(q.room)) && words.every((w) => searchable(item).includes(w))
 }
 
-/** Featured lists the featured bases in their order; a category lists all of its own, featured or not. */
-export const basesOfFilter = (bases: Base[], filter: CategoryFilter): Base[] => bases.filter((b) => (filter === 'featured' ? b.featured : b.category === filter))
-
-export function countLine(shown: number, filter: CategoryFilter): string {
-  const noun = filter === 'featured' ? (shown === 1 ? 'destacado' : 'destacados') : COUNT[filter][shown === 1 ? 0 : 1]
-  return `${shown} ${noun} · alto × ancho × fondo, en mm`
+/** «Todas» and the rooms that have something, each with how many match the words typed. */
+export function roomChips(items: readonly Listed[], q: CatalogQuery): { room: Room | 'all'; label: string; count: number }[] {
+  const rooms = ROOM_LABELS.filter(([room]) => items.some((i) => i.rooms.includes(room)))
+  return [['all', 'Todas'] as const, ...rooms].map(([room, label]) => ({ room, label, count: items.filter((i) => matches(i, { ...q, room })).length }))
 }
 
-export const onlyOneNote = (shown: number, filter: CategoryFilter): string | null => (shown === 1 && filter !== 'featured' ? `Solo hay una base ${ONLY_ONE[filter]} por ahora.` : null)
+const cm = (mm: number) => (mm / 10).toLocaleString('es-MX', { maximumFractionDigits: 1 })
+
+/** A base's size as the capture form asks for the space: width, depth and height, in cm. */
+export const sizeLine = ({ width, depth, height }: { width: number; depth: number; height: number }) => ({
+  text: `${cm(width)} × ${cm(depth)} × ${cm(height)} cm`,
+  spoken: `${cm(width)} de ancho, ${cm(depth)} de fondo, ${cm(height)} de alto, en centímetros`,
+})
+
+export const noMatchNote = (q: CatalogQuery) => `Ninguna base${q.room === 'all' ? '' : ' de ese cuarto'} tiene «${q.text.trim()}» en su nombre.`

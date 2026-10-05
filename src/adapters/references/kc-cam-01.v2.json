@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-CAM-01",
   "id": "platform-bed",
-  "home": { "order": 2, "category": "bedroom", "featured": true },
+  "home": { "order": 2 },
   "rooms": ["bedroom"],
   "name": "Cama de plataforma con respaldo",
   "kind": "bed",

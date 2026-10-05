@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-LIB-02",
   "id": "bed-back-bookcase",
+  "home": { "order": 26 },
   "rooms": ["bedroom"],
   "name": "Librero largo para cama",
   "kind": "bookcase",

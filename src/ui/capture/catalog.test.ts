@@ -1,40 +1,46 @@
 import { describe, expect, it } from 'vitest'
-import type { Base } from '../../domain/furniture/examples'
-import { basesOfFilter, countLine, onlyOneNote } from './catalog'
+import type { Room } from '../../domain/furniture/references'
+import { ANY, matches, noMatchNote, roomChips, sizeLine } from './catalog'
 
-const base = (id: string, category: Base['category'], featured = false) => ({ id, category, featured }) as Base
+const item = (code: string, name: string, ...rooms: Room[]) => ({ code, name, rooms })
 
-const bases = [base('a', 'storage', true), base('b', 'bedroom', true), base('c', 'storage'), base('d', 'tables', true)]
+const items = [item('KC-LIB-03', 'Librero de nichos', 'living', 'office'), item('KC-BUR-05', 'Buró con cajón', 'bedroom'), item('GN-ESC-01', 'Escritorio de pie', 'office')]
 
-describe('basesOfFilter', () => {
-  it('keeps only the featured bases, in their order, for featured', () => {
-    expect(basesOfFilter(bases, 'featured').map((b) => b.id)).toEqual(['a', 'b', 'd'])
+const codes = (q: Partial<typeof ANY>) => items.filter((i) => matches(i, { ...ANY, ...q })).map((i) => i.code)
+
+describe('matches', () => {
+  it('finds a piece in every room it goes in', () => {
+    expect(codes({ room: 'office' })).toEqual(['KC-LIB-03', 'GN-ESC-01'])
+    expect(codes({ room: 'living' })).toEqual(['KC-LIB-03'])
+    expect(codes({ room: 'kitchen' })).toEqual([])
   })
-  it('lists all the bases of a category, featured or not, in order', () => {
-    expect(basesOfFilter(bases, 'storage').map((b) => b.id)).toEqual(['a', 'c'])
+  it('finds by words of the name without minding accents or case, and by the code in any form', () => {
+    expect(codes({ text: 'BURO cajon' })).toEqual(['KC-BUR-05'])
+    for (const text of ['KC-LIB-03', 'lib03', '  kc-lib-03 ']) expect(codes({ text })).toEqual(['KC-LIB-03'])
   })
-  it('gives nothing for a category without bases', () => {
-    expect(basesOfFilter([base('a', 'storage')], 'tables')).toEqual([])
+  it('searches inside the room chosen, not across all of them', () => {
+    expect(codes({ text: 'librero', room: 'bedroom' })).toEqual([])
   })
 })
 
-describe('countLine', () => {
-  it('counts featured and agrees in number', () => {
-    expect(countLine(9, 'featured')).toBe('9 destacados · alto × ancho × fondo, en mm')
-    expect(countLine(1, 'featured')).toBe('1 destacado · alto × ancho × fondo, en mm')
+describe('roomChips', () => {
+  it('lists only the rooms that have something, after «Todas»', () => {
+    expect(roomChips(items, ANY).map((c) => [c.label, c.count])).toEqual([['Todas', 3], ['Recámara', 1], ['Sala', 1], ['Oficina', 2]])
   })
-  it('names the category', () => {
-    expect(countLine(1, 'tables')).toBe('1 mesa · alto × ancho × fondo, en mm')
-    expect(countLine(3, 'storage')).toBe('3 muebles para guardar · alto × ancho × fondo, en mm')
+  it('counts what the words typed would leave in each room, whichever room is chosen', () => {
+    expect(roomChips(items, { room: 'bedroom', text: 'escritorio' }).map((c) => c.count)).toEqual([1, 0, 0, 1])
   })
 })
 
-describe('onlyOneNote', () => {
-  it('appears for a category with one base', () => {
-    expect(onlyOneNote(1, 'tables')).toBe('Solo hay una base de mesas por ahora.')
+describe('sizeLine', () => {
+  it('says width, depth and height in cm, with a decimal only when there is one', () => {
+    expect(sizeLine({ height: 700, width: 1956, depth: 1370 })).toEqual({ text: '195.6 × 137 × 70 cm', spoken: '195.6 de ancho, 137 de fondo, 70 de alto, en centímetros' })
   })
-  it('does not appear for featured or for several', () => {
-    expect(onlyOneNote(1, 'featured')).toBeNull()
-    expect(onlyOneNote(2, 'tables')).toBeNull()
+})
+
+describe('noMatchNote', () => {
+  it('says what was typed, and the room only when one is chosen', () => {
+    expect(noMatchNote({ room: 'all', text: ' banca ' })).toBe('Ninguna base tiene «banca» en su nombre.')
+    expect(noMatchNote({ room: 'office', text: 'banca' })).toBe('Ninguna base de ese cuarto tiene «banca» en su nombre.')
   })
 })
