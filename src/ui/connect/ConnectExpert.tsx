@@ -137,6 +137,7 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
   const refreshVault = useStore((s) => s.refreshVault)
   const forgetKeys = useStore((s) => s.forgetKeys)
   const switchToSimulated = useStore((s) => s.switchToSimulated)
+  const debugVisible = useStore((s) => s.debugVisible)
   const base = preferences.load()
   const [provider, setProvider] = useState<RealProvider>(base.active === 'simulated' ? 'anthropic' : base.active)
   const [apiKey, setApiKey] = useState('')
@@ -200,16 +201,18 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
             <Button variant="ghost" className="max-md:hidden min-h-11 md:order-2" onClick={onClose}>
               Cancelar
             </Button>
-            <Button
-              variant="ghost"
-              className="min-h-11 md:order-1 md:mr-auto"
-              onClick={() => {
-                switchToSimulated()
-                onClose()
-              }}
-            >
-              Probar con los ejemplos simulados
-            </Button>
+            {debugVisible && (
+              <Button
+                variant="ghost"
+                className="min-h-11 md:order-1 md:mr-auto"
+                onClick={() => {
+                  switchToSimulated()
+                  onClose()
+                }}
+              >
+                Usar el experto simulado
+              </Button>
+            )}
           </>
         }
       >

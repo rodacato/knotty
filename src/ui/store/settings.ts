@@ -8,6 +8,8 @@ export interface SettingsSlice {
   settingsOpen: boolean
   /** The "Conecta tu experto" step. */
   connectOpen: boolean
+  /** The simulated expert was chosen on purpose, so the capture form works with it. */
+  simulatedChosen: boolean
   vault: VaultState
   /** The keys notice on arrival was already handled or postponed. */
   gateClosed: boolean
@@ -31,6 +33,7 @@ export interface SettingsSlice {
 export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   settingsOpen: false,
   connectOpen: false,
+  simulatedChosen: false,
   vault: 'none',
   gateClosed: false,
   catalogSettings: NO_SETTINGS,
@@ -61,7 +64,7 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
     const { services } = get()
     if (!services) return
     void services.preferences.save({ ...services.preferences.load(), active: 'simulated' }).catch(() => {})
-    set({ gateClosed: true })
+    set({ gateClosed: true, simulatedChosen: true })
   },
 
   closeGate: () => set({ gateClosed: true }),
