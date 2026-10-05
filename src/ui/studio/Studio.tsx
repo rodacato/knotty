@@ -3,12 +3,13 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
+import type { Design } from '../../domain/design/schema'
 import { activeLabel } from '../../ports/Preferences'
 import { Chat } from '../chat/Chat'
 import { SceneBoundary } from '../scene/SceneBoundary'
 import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
-import { Button } from '../system/components'
+import { Button, IconButton } from '../system/components'
 import { Emblem } from '../system/Brand'
 import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
@@ -179,22 +180,22 @@ function FichaOrigin({ state }: { state: DesignState }) {
 
 type Overlay = 'notices' | 'history'
 
-function Header({ state, pending, overlay, onOpen }: { state: DesignState; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
+function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
   const debugVisible = useStore((s) => s.debugVisible)
   const sandboxed = useStore((s) => s.sandboxed)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
-  const design = currentDesign(state)
   const { plan, diverged } = currentPlan(state)
-  const summary = plan && !diverged ? moduleOf(plan).summary(plan, design.dimensions) : measuresSummary(design.dimensions)
+  // The plan describes the current version; an older one or a proposal in view only has its measures.
+  const summary = plan && !diverged && shown === currentDesign(state) ? moduleOf(plan).summary(plan, shown.dimensions) : measuresSummary(shown.dimensions)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const label = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
       <Emblem className="size-7 shrink-0 sm:size-8" />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-lg leading-tight font-semibold">{design.name}</p>
+        <p className="truncate font-display text-lg leading-tight font-semibold">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
           {summary}
           <FichaOrigin state={state} />
@@ -323,9 +324,9 @@ export function Studio({ state }: { state: DesignState }) {
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
         {overlay === 'notices' ? <Bell className="text-graphite" weight="duotone" /> : <ClockCounterClockwise className="text-graphite" />}
         <h2 className="flex-1 text-sm font-medium">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
-        <button type="button" onClick={() => setOverlay(null)} aria-label="Cerrar" className="relative grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+        <IconButton onClick={() => setOverlay(null)} aria-label="Cerrar">
           <X />
-        </button>
+        </IconButton>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">{overlay === 'notices' ? <NoticePanel key={state.current} state={state} board={board} onAnswer={toChat} /> : <HistoryPanel state={state} />}</div>
     </section>
@@ -365,9 +366,9 @@ export function Studio({ state }: { state: DesignState }) {
               </Tabs.Trigger>
             ))}
             {!desktop && (
-              <button type="button" onClick={() => setTallPanel((v) => !v)} className="relative ml-auto grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
+              <IconButton onClick={() => setTallPanel((v) => !v)} className="ml-auto" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
                 {tallPanel ? <CaretDown /> : <CaretUp />}
-              </button>
+              </IconButton>
             )}
           </Tabs.List>
           <Tabs.Content value="chat" className="min-h-0 flex-1">
@@ -397,7 +398,7 @@ export function Studio({ state }: { state: DesignState }) {
 
   return (
     <div className="flex h-dvh flex-col">
-      <Header state={state} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
+      <Header state={state} shown={shown} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
       {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {scene}

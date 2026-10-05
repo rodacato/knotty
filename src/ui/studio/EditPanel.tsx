@@ -5,7 +5,7 @@ import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { partName } from '../../domain/furniture/modules/parts'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { Button } from '../system/components'
+import { Button, IconButton } from '../system/components'
 import { useStore, type EditSide } from '../store'
 import { CellSheet } from './CellSheet'
 import { DraftBar } from './DraftBar'
@@ -91,9 +91,9 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
         <h2 className="sr-only">{TITLE[side]}</h2>
         <Breadcrumbs steps={steps} />
-        <button type="button" onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)" className="relative grid size-9 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1 before:content-[''] hover:bg-kraft">
+        <IconButton onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)">
           <X />
-        </button>
+        </IconButton>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
       {asking ? (

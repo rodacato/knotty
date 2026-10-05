@@ -11,7 +11,7 @@ import { TOOL_LEVEL_LABELS } from '../../domain/materials/tools'
 import { TERMS } from '../glossary'
 import { useServices } from '../services'
 import { useStore } from '../store'
-import { Button, Title } from '../system/components'
+import { Button, IconButton, Title } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 
 // Joints the person picks per group of pieces, against the tools they said they have (fabricacion-y-armado.md §1.3).
@@ -213,14 +213,18 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
         <Dialog.Content className="animate-appear fixed inset-0 z-50 flex flex-col bg-bone lg:inset-auto lg:top-1/2 lg:left-1/2 lg:max-h-[85dvh] lg:w-[min(60rem,calc(100vw-4rem))] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-3xl lg:border lg:border-line lg:shadow-2xl">
           <div className="flex items-center gap-2 border-b border-line px-2 py-2 lg:px-5 lg:py-4">
-            <Dialog.Close className="grid size-10 place-items-center rounded-full hover:bg-kraft lg:hidden" aria-label="Volver">
-              <ArrowLeft />
+            <Dialog.Close asChild>
+              <IconButton aria-label="Volver" className="lg:hidden">
+                <ArrowLeft />
+              </IconButton>
             </Dialog.Close>
             <Dialog.Title asChild>
               <Title className="flex-1 text-lg lg:text-xl">{group.title}</Title>
             </Dialog.Title>
-            <Dialog.Close className="grid size-10 place-items-center rounded-full hover:bg-kraft" aria-label="Cerrar">
-              <X />
+            <Dialog.Close asChild>
+              <IconButton aria-label="Cerrar">
+                <X />
+              </IconButton>
             </Dialog.Close>
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 lg:px-5">

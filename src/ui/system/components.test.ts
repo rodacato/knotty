@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { Button, Chip } from './components'
+import { Button, Chip, IconButton } from './components'
 import { FORGET_HIT_AREA } from './Unlock'
 
 const UI = join(__dirname, '..')
@@ -21,6 +21,13 @@ describe('touch targets', () => {
     for (const variant of ['primary', 'secondary', 'ghost', 'danger'] as const) {
       expect(renderToStaticMarkup(h(Button, { variant }, 'x'))).toMatch(/\bmin-h-11\b/)
     }
+  })
+
+  it('the IconButton is 44 px, or 36 px with its hit area stretched to 44', () => {
+    expect(renderToStaticMarkup(h(IconButton, { size: 'lg' }, 'x'))).toMatch(/\bsize-11\b/)
+    const small = renderToStaticMarkup(h(IconButton, null, 'x'))
+    expect(small).toMatch(/\bsize-9\b/)
+    expect(small).toContain('before:-inset-1 ')
   })
 
   it('the Chip keeps a 44 px hit area over its 36 px look', () => {

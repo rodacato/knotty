@@ -2,7 +2,7 @@ import { Copy, DownloadSimple } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useState } from 'react'
 import { useStore } from '../store'
-import { Button } from '../system/components'
+import { Button, IconButton } from '../system/components'
 import { adoptionCommands, candidateOf } from './candidate'
 
 // The debug tools cannot write the repo: it hands the ficha back as a file for `probe`, which checks it and rewrites the ficha.
@@ -12,8 +12,7 @@ function Command({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border border-line bg-bone px-3 py-2">
       <code className="min-w-0 flex-1 overflow-x-auto font-mono text-xs whitespace-nowrap">{text}</code>
-      <button
-        type="button"
+      <IconButton
         aria-label="Copiar el comando"
         onClick={() =>
           void navigator.clipboard.writeText(text).then(() => {
@@ -21,10 +20,9 @@ function Command({ text }: { text: string }) {
             setTimeout(() => setCopied(false), 1500)
           })
         }
-        className="relative grid size-8 shrink-0 place-items-center rounded-full text-graphite-2 before:absolute before:-inset-1.5 before:content-[''] hover:bg-kraft"
       >
         {copied ? <span className="text-xs">Listo</span> : <Copy />}
-      </button>
+      </IconButton>
     </div>
   )
 }
