@@ -5,14 +5,14 @@ import { analyze } from '../../checks/analysis'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { completeJoints, hingeOn } from '../../design/joints'
 import { resolveGeometry } from '../../design/resolve'
-import { withFrontCuts } from './fronts'
+import { notchNote, withFrontCuts } from './fronts'
 import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
-import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, withFingerBoxes, withFingerCuts } from './fingerJoints'
+import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
 
@@ -647,11 +647,11 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, (p) => ({ notch: pullsOf(p.id) === 'notch', grooved: chosen(p.id, 'fronts') === 'grooved' })) : cutBoxes
   const withPulls: Design = { ...cutFronts, ...pullsField(plan.construction.pulls, fronts, pullsOf) }
   const notched = fronts.filter((id) => pullsOf(id) === 'notch').length
-  if (notched) notes.push(`Muesca para abrir en el canto de ${notched} ${notched === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`)
+  if (notched) notes.push(notchNote(notched))
   const fingeredTops = design.joints.filter((u) => u.type === 'finger' && u.b.startsWith('top')).length
   if (fingeredTops) notes.push(`Cubierta con dedos en ${fingeredTops} ${fingeredTops === 1 ? 'esquina' : 'esquinas'}, ${fingers} por esquina: los costados suben hasta la cara de arriba. Se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   const withFingers = fingerDrawers(design)
-  if (withFingers) notes.push(`Esquinas de dedos en ${withFingers} ${withFingers === 1 ? 'cajón' : 'cajones'}, ${fingers} por esquina: se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
+  if (withFingers) notes.push(fingerDrawersNote(withFingers, fingers))
   return { design: completeJoints(withPulls, catalog), notes }
 }
 

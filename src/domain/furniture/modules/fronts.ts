@@ -65,3 +65,6 @@ export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (f
     }),
   }
 }
+
+/** What the person reads when some fronts are opened by a notch: nothing to buy, a router cut. */
+export const notchNote = (fronts: number) => `Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`
