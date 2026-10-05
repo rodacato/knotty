@@ -1,9 +1,9 @@
 import { hingesFor } from '../assumptions'
 import type { Catalog } from '../materials/catalog'
-import { dowelsAlong, hardwarePerJoint } from '../materials/purchase'
 import type { Axis, Design } from './schema'
 import type { Box } from './resolve'
 import { contactBetween } from './validation/contact'
+import { dowelsAlong, END_MARGIN, hardwarePerJoint } from './hardwareCount'
 
 // Where the hardware sits, to draw it: runners in the gap beside each drawer, hinge cups on the inside of each door, wood plugs on the face a dowel goes through,
 // and the dowels, screws and shelf pins of the other joints with the holes they go into. Spaced as the shopping list counts them: typical places, not a drilling template.
@@ -17,8 +17,6 @@ const CUP_INSET = 22.5
 const HINGE_FROM_END = 100
 /** A plug closes the hole of an 8 mm dowel, so it is a little wider. */
 const PLUG_DIAMETER = 10
-/** Dowels, plugs and screws keep this far from the ends of the joint. */
-const END_MARGIN = 50
 /** The catalog's dowel, 8 × 40; into a face it goes no deeper than two thirds of the board (valores-de-referencia.md). */
 const DOWEL = { diameter: 8, length: 40, faceShare: 2 / 3 }
 /** A #8 screw; the length is the catalog's, this one when it does not say. */

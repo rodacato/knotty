@@ -1,7 +1,7 @@
 import { AXES, type Axis, type Design, type Piece } from '../design/schema'
 import { roundTo, type Box, type Geometry } from '../design/resolve'
-import { finishSkus, type Catalog, type FinishSku } from './catalog'
-import { FINISH_PRODUCTS, FINISHES, finishOf, type FinishId, type FinishLayer, type FinishProductId } from './finishes'
+import { finishSkus, type Catalog, type FinishSku } from '../materials/catalog'
+import { FINISH_PRODUCTS, FINISHES, finishOf, type FinishId, type FinishLayer, type FinishProductId } from '../materials/finishes'
 
 // How much finish to buy: the area that gets finished, the litres the reference's formula gives and the containers that hold them.
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { cutBox, woodLeft } from '../../design/cuts'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { withFrontCuts } from './fronts'

@@ -5,7 +5,7 @@ import { exampleBookcase } from '../furniture/fixtures/bookcase'
 import { buildCabinet, DEFAULT_CONSTRUCTION } from '../furniture/modules/cabinet'
 import { applyOperations } from '../editing/operations/apply'
 import { exampleNightstand } from '../furniture/fixtures/nightstand'
-import { estimatePurchase } from '../materials/purchase'
+import { estimatePurchase } from '../estimate/purchase'
 import { hardwareParts } from './hardware'
 
 describe('hardware to draw', () => {

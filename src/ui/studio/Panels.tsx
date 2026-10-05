@@ -1,6 +1,6 @@
 import type { Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
-import { cutList } from '../../domain/materials/cutList'
+import { cutList } from '../../domain/estimate/cutList'
 import { cm } from '../system/components'
 import { useStore } from '../store'
 

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { analyze } from '../checks/analysis'
 import type { Catalog } from '../materials/catalog'
-import { estimatePurchase } from '../materials/purchase'
+import { estimatePurchase } from '../estimate/purchase'
 import { exampleDesign } from './examples'
 import type { Reference } from './references'
 

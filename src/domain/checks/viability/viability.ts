@@ -6,7 +6,7 @@ import type { Analysis } from '../analysis'
 import type { Finding } from '../structure/finding'
 import type { DesignError } from '../../design/validation/errors'
 import type { Catalog } from '../../materials/catalog'
-import type { Purchase } from '../../materials/purchase'
+import type { Purchase } from '../../estimate/purchase'
 import { noReference, type Source } from '../../sources'
 
 // The review before buying: what can be checked with arithmetic, no opinions. The carpenter (the model) gives an opinion on top of it, never against it.

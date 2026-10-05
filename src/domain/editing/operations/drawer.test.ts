@@ -4,7 +4,7 @@ import { startAt, ref } from '../../design/builders'
 import type { Design } from '../../design/schema'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { applyOperations } from './apply'
 import type { Operation } from './schema'
 

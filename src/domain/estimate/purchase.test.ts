@@ -6,7 +6,8 @@ import { exampleNightstand } from '../furniture/fixtures/nightstand'
 import { testCatalog } from '../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../furniture/fixtures/bookcase'
 import { layOut } from './layout'
-import { hardwarePerJoint, estimatePurchase, edgeBandingMeters } from './purchase'
+import { estimatePurchase, edgeBandingMeters } from './purchase'
+import { hardwarePerJoint } from '../design/hardwareCount'
 
 const geo = (d: Design) => {
   const a = analyze(d, testCatalog)

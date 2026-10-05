@@ -1,7 +1,7 @@
 import { designParts } from '../../domain/editing/intent/counts'
 import { analyze } from '../../domain/checks/analysis'
 import { findingKey } from '../../domain/checks/structure/finding'
-import { estimatePurchase } from '../../domain/materials/purchase'
+import { estimatePurchase } from '../../domain/estimate/purchase'
 import { reviewViability } from '../../domain/checks/viability/viability'
 import type { Design, Dimensions } from '../../domain/design/schema'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'

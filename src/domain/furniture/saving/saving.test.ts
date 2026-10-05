@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { BedPlan } from '../modules/bed'
 import { MODULES, type FurniturePlan } from '../modules/plan'

@@ -1,6 +1,6 @@
 import type { Analysis } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
-import { estimatePurchase } from '../../domain/materials/purchase'
+import { estimatePurchase } from '../../domain/estimate/purchase'
 import type { Catalog } from '../../domain/materials/catalog'
 
 // What a built variant comes to, small enough to keep in git: a change to the rules or the builders that moves a piece, a joint or what there is to buy shows as a changed line.

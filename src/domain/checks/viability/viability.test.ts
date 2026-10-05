@@ -7,7 +7,7 @@ import { exampleNightstand } from '../../furniture/fixtures/nightstand'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
 import type { Catalog } from '../../materials/catalog'
-import { estimatePurchase } from '../../materials/purchase'
+import { estimatePurchase } from '../../estimate/purchase'
 import { worst, reviewViability } from './viability'
 
 function review(design: Design, c: Catalog = testCatalog) {

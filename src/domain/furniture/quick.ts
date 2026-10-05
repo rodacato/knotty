@@ -1,7 +1,7 @@
 import type { Design, Dimensions } from '../design/schema'
 import { analyze } from '../checks/analysis'
 import type { Catalog } from '../materials/catalog'
-import { estimatePurchase } from '../materials/purchase'
+import { estimatePurchase } from '../estimate/purchase'
 import { MEASURE_RANGE } from './typical'
 import { buildPlan, moduleOf, type FurniturePlan } from './modules/plan'
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { cutList } from '../../materials/cutList'
+import { cutList } from '../../estimate/cutList'
 import { LEG_HEIGHT_RANGE } from './common'
 import { bedModule, BedPlan, buildBed } from './bed'
 import { FurniturePlan } from './plan'
