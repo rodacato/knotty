@@ -28,6 +28,8 @@ export const LEG_HEIGHT_RANGE = { min: 100, max: 300 } as const
 export const MIN_CARCASS_HEIGHT = 200
 export const LEG_APRON = 80
 export const LEG_WIDTH = 72
+/** A tapered leg's depth at the floor. */
+export const LEG_FOOT = 36
 export const LEG_INSET = 30
 /** A bed's trim: how far the lip that keeps the mattress in rises over the platform, and how far the cap over a headboard reaches toward the mattress. */
 export const MATTRESS_LIP = 40
@@ -42,6 +44,7 @@ export const MODULE_SOURCES: Record<string, Source> = {
   MIN_CARCASS_HEIGHT: noReference('the reference gives no least box height; under 200 a bottom, a top and a drawer or a shelf no longer fit between them'),
   LEG_APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
   LEG_WIDTH: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', '2 × 18 = 36 × 72 mm'),
+  LEG_FOOT: noReference('the reference gives no taper for a leg; 36 leaves the foot square with the two glued layers, half the 72 under the apron'),
   LEG_INSET: noReference('the same setback as a kick, KICK_SETBACK: the legs stay out of the way of feet and still stand close to the edges'),
   MATTRESS_LIP: noReference('the reference gives no height for a mattress lip; 40 is under a sixth of the 260 mm mattress, enough to stop it sliding and low enough to sit on'),
   CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
