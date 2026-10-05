@@ -19,7 +19,7 @@
           "id": "Xb2lE",
           "name": "ui-kit 0.1.0 — Foundations",
           "fill": "$graphite",
-          "content": "ui-kit 0.5.0 — Foundations",
+          "content": "ui-kit 0.6.0 — Foundations",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -2923,7 +2923,7 @@
           "id": "RvRnr",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.5.0 — Components",
+          "content": "ui-kit 0.6.0 — Components",
           "fontFamily": "$font-display",
           "fontSize": 36,
           "fontWeight": "600"
@@ -3474,7 +3474,7 @@
         {
           "type": "frame",
           "id": "x2sTTz",
-          "name": "Brand & type — Title · Pencil · Knot · Logo · Emblem",
+          "name": "Brand & type — Title · Pencil · Knot · Emblem",
           "width": "fill_container",
           "layout": "vertical",
           "gap": 16,
@@ -3484,7 +3484,7 @@
               "id": "oeP4N",
               "name": "Section title",
               "fill": "$graphite-2",
-              "content": "Brand & type — Title · Pencil · Knot · Logo · Emblem",
+              "content": "Brand & type — Title · Pencil · Knot · Emblem",
               "fontFamily": "$font-sans",
               "fontSize": 13,
               "fontWeight": "600"
@@ -3587,76 +3587,6 @@
                       "fill": "$knot-core",
                       "width": 64,
                       "height": 64
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "vuVXQ",
-                  "name": "Logo",
-                  "reusable": true,
-                  "gap": 1,
-                  "alignItems": "end",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "fluev",
-                      "name": "Kn",
-                      "fill": "$graphite",
-                      "content": "Kn",
-                      "fontFamily": "$font-display",
-                      "fontSize": 72,
-                      "fontWeight": "600",
-                      "letterSpacing": -1.4
-                    },
-                    {
-                      "type": "frame",
-                      "id": "hMiVX",
-                      "name": "Knot slot",
-                      "layout": "vertical",
-                      "padding": [
-                        0,
-                        0,
-                        17,
-                        0
-                      ],
-                      "children": [
-                        {
-                          "id": "h4Q13",
-                          "type": "ref",
-                          "ref": "vRgWM",
-                          "name": "Knot",
-                          "width": 40,
-                          "height": 40,
-                          "descendants": {
-                            "Neo4N": {
-                              "width": 40,
-                              "height": 40,
-                              "strokeWidth": 3.125
-                            },
-                            "J6A0N": {
-                              "width": 40,
-                              "height": 40,
-                              "strokeWidth": 3.125
-                            },
-                            "oTF8c": {
-                              "width": 40,
-                              "height": 40
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "type": "text",
-                      "id": "d8xwZ0",
-                      "name": "tty",
-                      "fill": "$graphite",
-                      "content": "tty",
-                      "fontFamily": "$font-display",
-                      "fontSize": 72,
-                      "fontWeight": "600",
-                      "letterSpacing": -1.4
                     }
                   ]
                 },
@@ -6367,7 +6297,7 @@
           "id": "VqV1w",
           "name": "Heading",
           "fill": "$graphite",
-          "content": "ui-kit 0.5.0 — Components · dark",
+          "content": "ui-kit 0.6.0 — Components · dark",
           "fontFamily": "$font-display",
           "fontSize": 28,
           "fontWeight": "600"
@@ -6601,12 +6531,6 @@
                   "type": "ref",
                   "ref": "vRgWM",
                   "name": "Knot"
-                },
-                {
-                  "id": "pdKoY",
-                  "type": "ref",
-                  "ref": "vuVXQ",
-                  "name": "Logo"
                 },
                 {
                   "id": "lhkjb",
@@ -7066,7 +6990,7 @@
   "variables": {
     "kit-version": {
       "type": "string",
-      "value": "0.5.0"
+      "value": "0.6.0"
     },
     "bone": {
       "type": "color",

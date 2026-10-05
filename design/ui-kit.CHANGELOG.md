@@ -8,6 +8,14 @@ Pencil cannot reference components across `.pen` files: each `flows/*.pen` **ven
 
 ---
 
+## 0.6.0 — `Logo` removed (the flows stay at 0.4.0)
+
+**Removed:** the `Logo` master («Knotty» with the knot as its «o») and its instance on the dark sheet, with `Logo` in `src/ui/system/Brand.tsx`. No screen rendered it: the header draws the `Emblem` and the word «Knotty» as text, and the loading screen the `Knot`.
+
+**To know:** a removal is a major bump by the rules above; this one is minor because no flow instances it — checked in `capture`, `studio` and `studio-lab`, where it only exists as the vendored master. Those copies go at each flow's next re-vendor. The Pencil equivalences below that speak of the logo's knot are history.
+
+---
+
 ## 0.5.0 — `IconButton` (additive; the flows stay at 0.4.0)
 
 **Added:** `IconButton/md` (36 px), `IconButton/lg` (44 px) and `IconButton/md · hover` (`kraft`), mirrored from `IconButton` in `src/ui/system/components.tsx`: a round button with no fill that holds only an icon in `graphite-2`. The masters sit in the *System — Help · Reveal…* and *Hover* sections, with an instance of each on the dark sheet.
