@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "code": "GN-CAM-02",
+  "id": "bookcase-headboard-bed",
+  "rooms": ["bedroom"],
+  "name": "Cama individual con librero de cabecera",
+  "kind": "bed",
+  "notes": "Cama individual con cabecera de compartimento y tres cajones al frente: abajo, a la altura del colchón, un frente cerrado que lo detiene, y arriba nichos abiertos. Un tope de 6 cm en las otras tres orillas mantiene el colchón en su lugar. Hace juego con el «Librero largo para cama», que va detrás, contra el muro. En cuarto de niños, redondea las esquinas de los cantos.",
+  "plan": {
+    "kind": "bed",
+    "name": "Cama individual con librero de cabecera",
+    "mattress": "individual",
+    "material": "T18",
+    "height": 400,
+    "legs": "none",
+    "drawers": { "side": "left", "count": 3, "position": "center" },
+    "headboard": { "style": "storage", "height": 1150, "depth": 300, "shelves": 1 },
+    "lip": true
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 42,
+    "findings": [],
+    "sheets": { "T18": 5, "TR6": 1 },
+    "hardware": { "brad-nail-1": 102, "drawer-slide-45": 3, "edge-banding-19": 27, "screw-8x1": 12, "screw-8x2": 188, "white-glue": 4 }
+  }
+}
