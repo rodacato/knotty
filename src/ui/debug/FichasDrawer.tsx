@@ -5,18 +5,9 @@ import { ANY_FICHA, fichasOf, listFichas, ROOMS, type FichaQuery, type FichaRow 
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Chip } from '../system/components'
+import { Field, Input } from '../system/Field'
 
 // «Fichas»: the reference furniture by room, each one a door into the Studio on a throwaway design.
-
-const TOGGLES: [keyof Pick<FichaQuery, 'onHome' | 'withFindings'>, string][] = [
-  ['onHome', 'En la portada'],
-  ['withFindings', 'Con avisos'],
-]
-
-const SOURCES: [Exclude<FichaQuery['source'], 'all'>, string][] = [
-  ['KC', 'De catálogo'],
-  ['GN', 'Genéricas'],
-]
 
 function FichaCard({ row, selected, onOpen }: { row: FichaRow; selected: boolean; onOpen: () => void }) {
   const { reference: r, verdict, notes, boxes } = row
@@ -67,22 +58,13 @@ export function FichasDrawer() {
         <p className="text-xs leading-snug text-graphite-2">Los muebles de referencia de Knotty. Ábrelos, mejóralos con el experto y exporta el plan.</p>
       </div>
       <div className="flex flex-col gap-2 px-3 pt-1 pb-3">
+        <Field label="Buscar una ficha" hiddenLabel>
+          <Input type="search" placeholder="Código o nombre: KC-LIB-03, escritorio" value={query.text} onChange={(e) => set({ text: e.target.value })} />
+        </Field>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Cuarto">
           {[['all', 'Todas'] as const, ...rooms].map(([room, label]) => (
             <Chip key={room} active={query.room === room} aria-pressed={query.room === room} onClick={() => set({ room })}>
               {label} <span className="numerals text-graphite-2">{fichasOf(rows, { ...query, room }).length}</span>
-            </Chip>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Mostrar solo">
-          {TOGGLES.map(([key, label]) => (
-            <Chip key={key} active={query[key]} aria-pressed={query[key]} onClick={() => set({ [key]: !query[key] })}>
-              {label}
-            </Chip>
-          ))}
-          {SOURCES.map(([source, label]) => (
-            <Chip key={source} active={query.source === source} aria-pressed={query.source === source} onClick={() => set({ source: query.source === source ? 'all' : source })}>
-              {label}
             </Chip>
           ))}
         </div>
@@ -94,7 +76,7 @@ export function FichasDrawer() {
           ))}
         </div>
       ) : (
-        <p className="px-4 pb-4 text-sm text-graphite-2">Ninguna ficha cumple todo eso. Quita un filtro.</p>
+        <p className="px-4 pb-4 text-sm text-graphite-2">{query.text ? `Ninguna ficha${query.room === 'all' ? '' : ' de ese cuarto'} tiene «${query.text}» en su código o su nombre.` : 'Ese cuarto no tiene fichas.'}</p>
       )}
     </div>
   )

@@ -103,16 +103,16 @@ export const roomsOf = ({ code }: Pick<Reference, 'code'>): Room[] => ROOMS_OF_C
 
 export interface FichaQuery {
   room: Room | 'all'
-  onHome: boolean
-  withFindings: boolean
-  source: 'all' | 'KC' | 'GN'
+  /** Words of its code or name, in any case, with or without accents or dashes: «lib14», «KC-LIB-14», «escritorio». */
+  text: string
 }
 
-export const ANY_FICHA: FichaQuery = { room: 'all', onHome: false, withFindings: false, source: 'all' }
+export const ANY_FICHA: FichaQuery = { room: 'all', text: '' }
+
+const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+const searchable = ({ code, name }: Pick<Reference, 'code' | 'name'>) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
 
 export function fichasOf(rows: readonly FichaRow[], q: FichaQuery): FichaRow[] {
-  return rows.filter(
-    ({ reference: r, verdict }) =>
-      (q.room === 'all' || roomsOf(r).includes(q.room)) && (!q.onHome || !!r.home) && (!q.withFindings || verdict !== 'ok') && (q.source === 'all' || r.code.startsWith(`${q.source}-`)),
-  )
+  const words = plain(q.text).split(/\s+/).filter(Boolean)
+  return rows.filter(({ reference: r }) => (q.room === 'all' || roomsOf(r).includes(q.room)) && words.every((w) => searchable(r).includes(w)))
 }
