@@ -26,7 +26,7 @@ function uvMaps(face: number): [UvMap, UvMap] {
   }
   return [find(0), find(1)]
 }
-const MAPS = [0, 1, 2, 3, 4, 5].map(uvMaps)
+export const UV_MAPS = [0, 1, 2, 3, 4, 5].map(uvMaps)
 /** The cell a face looks at: +x, −x, +y, −y, +z, −z. */
 const LOOKS: [number, number, number][] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
 
@@ -60,7 +60,7 @@ export function cutGeometry(whole: Box, cuts: Box[]) {
             const frac = unit.map((u, a) => from[a] + (u + 0.5) * (to[a] - from[a]))
             position.push(...frac.map((f) => f - 0.5))
             normal.push(refNormal.getX(at), refNormal.getY(at), refNormal.getZ(at))
-            const [mu, mv] = MAPS[face]
+            const [mu, mv] = UV_MAPS[face]
             uv.push(mu.flip ? 1 - frac[mu.axis] : frac[mu.axis], mv.flip ? 1 - frac[mv.axis] : frac[mv.axis])
           }
           for (let n = 0; n < 6; n++) index.push(base + (reference.index!.getX(face * 6 + n) - face * 4))

@@ -60,6 +60,17 @@ export type Span = z.infer<typeof Span>
 export const Cut = z.object({ x: Span, y: Span, z: Span })
 export type Cut = z.infer<typeof Cut>
 
+const SlantEnd = z.enum(['start', 'end'])
+/** How far a slant runs along an edge from its corner: so many mm, or the whole edge less what is left straight at the other end, so it follows the piece. */
+const SlantLeg = z.union([z.object({ from: SlantEnd, length: z.number().positive() }), z.object({ from: SlantEnd, leave: z.number().nonnegative() })])
+export type SlantLeg = z.infer<typeof SlantLeg>
+/**
+ * A corner of a piece's face sawn off straight: a triangle with a leg along each of the face's two axes, from the corner at those ends.
+ * Null on the thickness axis. Drawn only, like a cut: the piece is still the whole board to buy. Knotty's data, not the expert's.
+ */
+export const Slant = z.object({ x: SlantLeg.nullable(), y: SlantLeg.nullable(), z: SlantLeg.nullable() })
+export type Slant = z.infer<typeof Slant>
+
 export const Piece = z.object({
   id: PieceId,
   name: z.string().min(1),
@@ -76,6 +87,7 @@ export const Piece = z.object({
   group: z.string().nullable(),
   confidence: PieceConfidence,
   cuts: z.array(Cut).optional(),
+  slants: z.array(Slant).optional(),
 })
 export type Piece = z.infer<typeof Piece>
 

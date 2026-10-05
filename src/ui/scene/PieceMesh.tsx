@@ -8,6 +8,8 @@ import type { Box } from '../../domain/design/resolve'
 import type { BoardTone } from '../../domain/materials/grades'
 import { cutBox } from '../../domain/design/cuts'
 import { cutGeometry } from './cutGeometry'
+import { outline } from '../../domain/design/slants'
+import { slantGeometry } from './slantGeometry'
 import { FINISH_LOOK, NATURAL_PINE, type FinishId } from '../../domain/materials/finishes'
 import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
@@ -93,9 +95,12 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
   const maps = useMemo(() => faceTextures(piece, box, tone, plies), [piece, box, tone, plies])
   // A piece with cuts is drawn from what is left of its box; the profiles of its edges are not drawn on it.
   const voided = useMemo(() => (piece.cuts?.length ? cutGeometry(box, piece.cuts.map((c) => cutBox(box, c))) : null), [piece.cuts, box])
+  // So is one with slanted corners; with both, the cuts are the ones drawn.
+  const slanted = useMemo(() => (piece.slants?.length && !piece.cuts?.length ? slantGeometry(box, piece.normal, outline(box, piece.normal, piece.slants)) : null), [piece.slants, piece.cuts, piece.normal, box])
   const cut = useMemo(() => (shapes.length ? profiledGeometry({ x: size[0], y: size[1], z: size[2] }, piece.normal, shapes) : null), [shapes, piece.normal, size[0], size[1], size[2]]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => cut?.dispose(), [cut])
   useEffect(() => () => voided?.dispose(), [voided])
+  useEffect(() => () => slanted?.dispose(), [slanted])
 
   const look = FINISH_LOOK[finish]
   const tint = useMemo(() => tintFor(finish), [finish])
@@ -154,7 +159,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
       onPointerOver={(e) => (e.stopPropagation(), setOver(true), (document.body.style.cursor = 'pointer'))}
       onPointerOut={() => (setOver(false), (document.body.style.cursor = ''))}
     >
-      {voided ? <primitive object={voided} attach="geometry" /> : cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
+      {voided ? <primitive object={voided} attach="geometry" /> : slanted ? <primitive object={slanted} attach="geometry" /> : cut ? <primitive object={cut} attach="geometry" /> : <boxGeometry />}
       {maps.map((map, i) => (
         <meshStandardMaterial
           key={`${i}-${finish}`}
@@ -171,7 +176,7 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
         />
       ))}
       <Edges
-        key={voided?.uuid ?? cut?.uuid ?? "box"}
+        key={voided?.uuid ?? slanted?.uuid ?? cut?.uuid ?? "box"}
         threshold={cut ? 30 : 15}
         color={problem ? '#b4452f' : selected || ghost || marked ? '#d98a2b' : '#2b2825'}
         lineWidth={selected ? 2.5 : problem ? 2.2 : marked || sketch ? 1.8 : 1}

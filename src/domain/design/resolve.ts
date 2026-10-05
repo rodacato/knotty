@@ -28,7 +28,7 @@ class ResolveFailure extends Error {
   }
 }
 
-const faceAxes = (normal: Axis) => AXES.filter((e) => e !== normal) as [Axis, Axis]
+export const faceAxes = (normal: Axis) => AXES.filter((e) => e !== normal) as [Axis, Axis]
 
 export function parseFace(face: FaceRef) {
   const [piece, which] = face.split('.')

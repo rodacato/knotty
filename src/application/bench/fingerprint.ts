@@ -38,7 +38,7 @@ export function fingerprint(design: Design, analysis: Extract<Analysis, { valid:
   return {
     pieces: pieces.length,
     size: [extent('x0', 'x1'), extent('y0', 'y1'), extent('z0', 'z1')],
-    hash: fnv(pieces.map((p) => { const b = boxes.get(p.id); return [p.id, p.role, p.material, b ? [b.x0, b.x1, b.y0, b.y1, b.z0, b.z1].map(round).join(',') : '-', p.cuts?.length ?? 0].join('|') }).join('\n')),
+    hash: fnv(pieces.map((p) => { const b = boxes.get(p.id); return [p.id, p.role, p.material, b ? [b.x0, b.x1, b.y0, b.y1, b.z0, b.z1].map(round).join(',') : '-', p.cuts?.length ?? 0, ...(p.slants?.length ? [JSON.stringify(p.slants)] : [])].join('|') }).join('\n')),
     joints: counted(design.joints, (u) => u.type),
     sheets: counted(purchase.sheets, (s) => s.material.id, (s) => s.sheets),
     hardware: counted(purchase.hardware, (h) => h.hardware.id, (h) => h.count),
