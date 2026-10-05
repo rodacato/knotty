@@ -48,7 +48,7 @@ export interface SessionSlice {
   browse(change: Partial<CatalogQuery>): void
   adjustBase(base: Base): void
   closeAdjust(): void
-  /** Leaves the capture for the home with the bases. */
+  /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
@@ -189,7 +189,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
-  goHome: () => set({ phase: 'home', reconstructionError: null, draft: null }),
+  goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
 
   openState(state) {
     const { services } = get()

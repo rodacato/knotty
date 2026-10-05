@@ -70,12 +70,15 @@ describe('store', () => {
     expect(s.editPiece('x', { kind: 'move', axis: 'y', delta: 10 })).toEqual({ ok: false, message: 'No hay un diseño abierto.', alternatives: [] })
   })
 
-  it('adjusting a base is a step of the home screen: it saves nothing and opening the Studio ends it', () => {
+  it('adjusting a base is a step of the home screen: it saves nothing, and going home or opening the Studio ends it', () => {
     const base = testReferences.home()[0]
     useStore.getState().adjustBase(base)
     expect(useStore.getState()).toMatchObject({ adjusting: base, phase: 'home', state: null })
     useStore.getState().closeAdjust()
     expect(useStore.getState().adjusting).toBeNull()
+    useStore.getState().adjustBase(base)
+    useStore.getState().goHome()
+    expect(useStore.getState()).toMatchObject({ adjusting: null, phase: 'home' })
     useStore.getState().adjustBase(base)
     useStore.getState().fromExample(base)
     expect(useStore.getState()).toMatchObject({ adjusting: null, phase: 'studio' })
