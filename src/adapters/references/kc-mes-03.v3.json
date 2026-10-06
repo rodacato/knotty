@@ -10,8 +10,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["legs","curved-cut","splayed-legs"],
-  "adaptations": ["Solid oak or raulí is written in T18 plywood","Slats under the top read as the cleats","tapered legs drawn as four straight legs with an apron all round; the curved apron joints are plain"],
-  "gaps": ["curved-cut","splayed-legs"],
+  "adaptations": ["Solid oak or raulí is written in T18 plywood","Slats under the top read as the cleats","the curved apron joints are plain"],
+  "gaps": ["curved-cut"],
   "notes": "Mesa de comedor de 160 x 90 cm con cubierta que sobresale poco, faldones bajo la cubierta y cuatro patas cónicas.",
   "plan": {
     "kind": "table",
@@ -22,7 +22,8 @@
     "overhang": 20,
     "shelf": false,
     "pedestal": { "side": "none", "drawers": 0 },
-    "legs": "legs"
+    "legs": "legs",
+    "legStyle": "tapered"
   },
   "expect": {
     "valid": true,

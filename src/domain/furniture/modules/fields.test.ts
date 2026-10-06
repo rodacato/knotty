@@ -121,7 +121,7 @@ describe('the part of a field', () => {
   const declared = modules.flatMap((m) => valueFields(m.fields).flatMap((f) => (partOf(f) === undefined ? [] : [`${m.kind}.${f.key}=${partOf(f)}`])))
 
   it('is declared on the leg fields, and on no other yet', () => {
-    expect(declared.sort()).toEqual(['bed.legHeight=Patas', 'bed.legs=Patas', 'cabinet.legHeight=Patas', 'cabinet.legStyle=Patas', 'table.legs=Patas'])
+    expect(declared.sort()).toEqual(['bed.legHeight=Patas', 'bed.legStyle=Patas', 'bed.legs=Patas', 'cabinet.legHeight=Patas', 'cabinet.legStyle=Patas', 'table.legStyle=Patas', 'table.legs=Patas'])
   })
 
   it('is absent from a field that does not declare it', () => {

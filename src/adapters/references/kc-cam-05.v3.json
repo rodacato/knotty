@@ -9,7 +9,7 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["legs","curved-cut","splayed-legs"],
-  "adaptations": ["Original is solid lenga (hardwood): written in T18 plywood.","Five separated wide boards become the module's platform on a frame; gaps between boards are lost.","Wood joinery (loose tenons, through mortises for the boards) is replaced by the module's usual joints and screws.","splayed tapered legs drawn as four straight legs of an estimated 100 mm; rounded board corners and the curved apron transitions are not drawn","base height 300 instead of the estimated 280: the frame keeps 200 mm above 100 mm legs"],
+  "adaptations": ["Original is solid lenga (hardwood): written in T18 plywood.","Five separated wide boards become the module's platform on a frame; gaps between boards are lost.","Wood joinery (loose tenons, through mortises for the boards) is replaced by the module's usual joints and screws.","tapered legs of an estimated 100 mm that stand upright, in the piece they also lean outward; rounded board corners and the curved apron transitions are not drawn","base height 300 instead of the estimated 280: the frame keeps 200 mm above 100 mm legs"],
   "gaps": ["curved-cut","splayed-legs"],
   "notes": "Base de cama matrimonial baja, sin cabecera ni cajones: cinco tablones anchos con las esquinas redondeadas sobre un bastidor con patas ahusadas, armada con ensambles y sin herrajes.",
   "plan": {
@@ -22,7 +22,8 @@
     "headboard": { "style": "none", "height": 300, "depth": 0, "shelves": 0 },
     "legs": "legs",
     "legHeight": 100,
-    "assembly": "bolts"
+    "assembly": "bolts",
+    "legStyle": "tapered"
   },
   "expect": {
     "valid": true,

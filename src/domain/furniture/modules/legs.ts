@@ -16,14 +16,20 @@ export const LEG_STYLE_LABELS = {
 
 export const LEG_STYLE = 'Legs: straight (default) or tapered'
 
-/** A leg cut to its style. Tapered, its inner side slants from under the apron to the foot: the apron keeps a square face to meet. */
-export const styled = (layers: Piece[], style: LegStyle | undefined, inner: 'start' | 'end'): Piece[] =>
-  style === 'tapered' ? layers.map((p) => ({ ...p, slants: [{ x: null, y: { from: 'start', leave: LEG_APRON }, z: { from: inner, length: LEG_WIDTH - LEG_FOOT } }] })) : layers
+/**
+ * A leg cut to its style. Tapered, its inner side slants from the floor up to what holds the leg, which keeps a square face to meet:
+ * `straight` is how much of the top of the leg that is, an apron unless the module says.
+ */
+export const styled = (layers: Piece[], style: LegStyle | undefined, inner: 'start' | 'end', straight: number = LEG_APRON): Piece[] =>
+  style === 'tapered' ? layers.map((p) => ({ ...p, slants: [{ x: null, y: { from: 'start', leave: straight }, z: { from: inner, length: LEG_WIDTH - LEG_FOOT } }] })) : layers
+
+/** How many legs of a design are cut to a style: a leg is two layers, counted once. */
+export const styledLegs = (pieces: Piece[]) => new Set(pieces.filter((p) => p.id.startsWith('leg-') && p.slants?.length).map((p) => p.id.replace(/-\d$/, ''))).size
 
 /** How the slanted cuts are made, for the person. */
-export const legStyleNote = (style: LegStyle | undefined, legs: number): string[] =>
-  style === 'tapered'
-    ? [`Patas cónicas en ${legs} ${legs === 1 ? 'pata' : 'patas'}: cada una se adelgaza por dentro, de ${LEG_WIDTH} mm bajo el faldón a ${LEG_FOOT} mm en el piso. Se pegan las dos capas y luego se corta la diagonal, con sierra circular y guía o con plantilla en sierra de mesa. La maderería entrega el rectángulo.`]
+export const legStyleNote = (style: LegStyle | undefined, legs: number, under = 'el faldón'): string[] =>
+  style === 'tapered' && legs
+    ? [`Patas cónicas en ${legs} ${legs === 1 ? 'pata' : 'patas'}: cada una se adelgaza por dentro, de ${LEG_WIDTH} mm bajo ${under} a ${LEG_FOOT} mm en el piso. Se pegan las dos capas y luego se corta la diagonal, con sierra circular y guía o con plantilla en sierra de mesa. La maderería entrega el rectángulo.`]
     : []
 
 type WithLegStyle = { legStyle?: LegStyle }
