@@ -36,6 +36,8 @@ export interface ChoiceField<P> extends Shown<P>, Edits<P, string>, Named {
   options: readonly Option[]
   /** How each value reads inside a sentence ("sin zoclo"), when its labels say it: the chat understands a request by these words. */
   phrases?: Readonly<Record<string, string>>
+  /** What each value is, in a line, for someone who does not know the word; shown for the chosen one. */
+  hints?: Readonly<Record<string, string>>
 }
 
 /** The catalog's boards for one use, by thickness. */
@@ -107,9 +109,10 @@ const keeping =
 export const optionsOf = (labels: Record<string, { option: string } | string>): Option[] => Object.entries(labels).map(([value, label]) => [value, typeof label === 'string' ? label : label.option])
 
 /** A module's labels as a choice's buttons and the words for each inside a sentence. */
-export const fromLabels = (labels: Record<string, { option: string; phrase: string }>): Pick<ChoiceField<unknown>, 'options' | 'phrases'> => ({
+export const fromLabels = (labels: Record<string, { option: string; phrase: string; hint?: string }>): Pick<ChoiceField<unknown>, 'options' | 'phrases' | 'hints'> => ({
   options: optionsOf(labels),
   phrases: Object.fromEntries(Object.entries(labels).map(([value, label]) => [value, label.phrase])),
+  hints: Object.fromEntries(Object.entries(labels).flatMap(([value, label]) => (label.hint ? [[value, label.hint]] : []))),
 })
 
 type Spec<F, V, P> = Omit<F, 'type' | 'get' | 'set'> & { get: (plan: P) => V; set: (plan: P, value: V) => P }

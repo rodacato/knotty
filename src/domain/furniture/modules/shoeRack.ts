@@ -52,7 +52,10 @@ export type ShoeRackPlan = z.infer<typeof ShoeRackPlan>
 
 export const SHOE_RACK_LABELS = {
   front: { open: { option: 'Abierta', phrase: 'abierta' }, doors: { option: 'Con puertas', phrase: 'con puertas' } } satisfies Labels<ShoeRackPlan['front']>,
-  base: { kick: { option: 'Con zoclo', phrase: 'con zoclo' }, floor: { option: 'Directa', phrase: 'sin zoclo' } } satisfies Labels<ShoeRackPlan['base']>,
+  base: {
+    kick: { option: 'Con zoclo', phrase: 'con zoclo', hint: 'El zoclo es la tira de abajo al frente, remetida: levanta el mueble del piso y lo cuida de golpes y humedad.' },
+    floor: { option: 'Directa', phrase: 'sin zoclo', hint: 'Sin zoclo: el mueble se apoya directo en el piso.' },
+  } satisfies Labels<ShoeRackPlan['base']>,
 }
 
 /** Clear height inside the box, from its floor to its top, in mm. */

@@ -135,19 +135,27 @@ const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
-  base: { kick: { option: 'Con zoclo', phrase: 'con zoclo' }, floor: { option: 'Directa', phrase: 'sin zoclo' }, legs: { option: 'Con patas', phrase: 'con patas' } } satisfies Labels<CabinetPlan['base']>,
+  base: {
+    kick: { option: 'Con zoclo', phrase: 'con zoclo', hint: 'El zoclo es la tira de abajo al frente, remetida: levanta el mueble del piso y lo cuida de golpes y humedad.' },
+    floor: { option: 'Directa', phrase: 'sin zoclo', hint: 'Sin zoclo ni patas: el mueble se apoya en el piso, o va colgado del muro.' },
+    legs: { option: 'Con patas', phrase: 'con patas', hint: 'Sobre patas de triplay, de dos capas pegadas: deja libre el piso para limpiar por debajo.' },
+  } satisfies Labels<CabinetPlan['base']>,
   cell: { open: 'Abierto', drawer: 'Cajón', door: 'Puerta', closed: 'Tapado', void: 'Vacío' } satisfies Record<PlanCell['content'], string>,
   construction: {
     doors: { label: 'Puertas', options: { overlay: 'Sobrepuestas', inset: 'Embutidas', sliding: 'Corredizas' } },
     drawerFronts: { label: 'Frentes de cajón', options: { inset: 'Embutidos', overlay: 'Sobrepuestos' } },
     top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima', fingers: 'Cubierta con dedos' } },
     back: { label: 'Trasera', options: { nailed: 'Clavada', none: 'Sin trasera' } },
-    shelves: { label: 'Repisas', options: { movable: 'Móviles', fixed: 'Fijas' } },
+    shelves: {
+      label: 'Repisas',
+      options: { movable: 'Móviles', fixed: 'Fijas' },
+      hints: { movable: 'Descansan sobre soportes, unos pernitos metidos en agujeros de 5 mm de los laterales: se quitan y se ponen.', fixed: 'Van unidas a los laterales y ya no se mueven: le dan firmeza al mueble.' },
+    },
     fronts: { label: 'Frentes', options: { flat: 'Lisos', grooved: 'Ranurados' } },
     hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro' } },
     pulls: { label: 'Jaladeras', options: { none: 'Ninguna', notch: 'Muesca', handle: 'Jaladera' } },
     drawerCorners: { label: 'Esquinas del cajón', options: { screwed: 'Atornilladas', fingers: 'De dedos' } },
-  } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string> } },
+  } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string>; hints?: Record<CabinetConstruction[K], string> } },
 }
 
 const GAP = 2
@@ -918,6 +926,7 @@ const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof C
     key: `construction.${key}`,
     label: CABINET_LABELS.construction[key].label,
     options: optionsOf(CABINET_LABELS.construction[key].options),
+    hints: (CABINET_LABELS.construction[key] as { hints?: Record<string, string> }).hints,
     get: (p) => p.construction[key],
     set: (p, value) => ({ ...p, construction: { ...p.construction, [key]: value } }),
     // Nothing to open, nothing to choose.
@@ -939,7 +948,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     legStyleField((p) => p.base === 'legs', LEANING_LEG_STYLE_LABELS),
-    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: 'Va atornillado al muro: así no se vuelca ni se ladea.' }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),

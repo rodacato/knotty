@@ -6,8 +6,8 @@ import type { Parts } from './parts'
 
 // What Knotty knows about one kind of furniture it builds by itself: adding a kind is writing one of these and listing it in MODULES.
 
-/** The words for one choice of a plan, in the order the form shows them: `option` on its button, `phrase` inside a sentence. */
-export type Labels<V extends string> = Record<V, { option: string; phrase: string }>
+/** The words for one choice of a plan, in the order the form shows them: `option` on its button, `phrase` inside a sentence, `hint` under it for someone who does not know the word. */
+export type Labels<V extends string> = Record<V, { option: string; phrase: string; hint?: string }>
 
 type Resized<P> = { ok: true; plan: P } | { ok: false; message: string }
 
