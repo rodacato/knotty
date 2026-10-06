@@ -22,7 +22,9 @@ const DOWEL = { diameter: 8, length: 40, faceShare: 2 / 3 }
 /** A #8 screw; the length is the catalog's, this one when it does not say. */
 const SCREW = { diameter: 4, length: 38, pilot: 3 }
 /** An M6 connector bolt, in the 7 mm hole that lets it reach its barrel nut. */
-const BOLT = { diameter: 6, pilot: 7 }
+const BOLT = { diameter: 6, pilot: 7, head: 14, nut: 10, nutFromTip: 8 }
+/** A 15 mm minifix: the cam sits this far from the edge, where the head of its pin reaches it, with a loose dowel this far to each side. */
+const CAM = { diameter: 15, fromEdge: 34, pin: 7, pilot: 8, dowelAside: 32 }
 /** A 5 mm shelf pin: this much of it sticks out under the shelf. */
 const SHELF_PIN = { diameter: 5, length: 16, out: 8 }
 const AXES: Axis[] = ['x', 'y', 'z']
@@ -39,6 +41,8 @@ export type HardwarePart =
   | { kind: 'plug'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
   /** Where a dowel or a screw enters `owner`, on the face it meets the other piece with. */
   | { kind: 'hole'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
+  /** Metal that shows on a face of `owner` with the furniture put together: the head of a bolt, its barrel nut or the cam of a minifix. */
+  | { kind: 'cap'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
   /** A rod lying along `axis`, `center` at its middle. A dowel stays in the piece that takes it; a pin in the side that carries the shelf. */
   | { kind: 'dowel' | 'shelf-pin'; owner: string; center: Point; axis: Axis; length: number; diameter: number }
   /** Goes through `owner`, its head on the end that looks `outward`. */
@@ -62,7 +66,15 @@ function meeting(a: Box, b: Box) {
       point[AXES.indexOf(across.axis)] = (across.lo + across.hi) / 2
       return point
     })
-  return { face, toward, length, plane: toward === 1 ? high(a, face) : low(a, face), points }
+  return { face, toward, length, along: along.axis, across: across.axis, plane: toward === 1 ? high(a, face) : low(a, face), points }
+}
+
+/** The face of a board that looks into the furniture: under a board lying flat, toward the middle on an upright one. */
+function inward(board: Box, normal: Axis, boxes: Map<string, Box>): 1 | -1 {
+  if (normal === 'y') return -1
+  const all = [...boxes.values()]
+  const middle = (Math.min(...all.map((b) => low(b, normal))) + Math.max(...all.map((b) => high(b, normal)))) / 2
+  return (low(board, normal) + high(board, normal)) / 2 < middle ? 1 : -1
 }
 
 export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: Catalog): HardwarePart[] {
@@ -89,13 +101,20 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
       const outward = m.toward === 1 ? -1 : 1
       for (const center of m.points(dowelsAlong(m.length), outward === 1 ? high(a, m.face) : low(a, m.face))) parts.push({ kind: 'plug', owner: u.a, center, axis: m.face, outward, diameter: PLUG_DIAMETER })
     }
-    if (u.type === 'dowel' || u.type === 'butt-screw' || u.type === 'connector-bolt' || u.type === 'shelf-pin') {
+    if (u.type === 'dowel' || u.type === 'butt-screw' || u.type === 'connector-bolt' || u.type === 'cam-lock' || u.type === 'shelf-pin') {
       const m = meeting(a, b)
       if (!m) continue
       const { face, toward, plane } = m
       const back = toward === 1 ? -1 : 1
       const count = u.hardware[0]?.count ?? hardwarePerJoint(u, { boxes })
       const depth = (box: Box) => high(box, face) - low(box, face)
+      /** On the inside face of b, the board met by its edge. */
+      const out = inward(b, m.across, boxes)
+      const onFace = (points: Point[], diameter: number): HardwarePart[] =>
+        points.map((center) => {
+          center[AXES.indexOf(m.across)] = out === 1 ? high(b, m.across) : low(b, m.across)
+          return { kind: 'cap', owner: u.b, center, axis: m.across, outward: out, diameter }
+        })
       if (u.type === 'dowel') {
         const inA = Math.min(DOWEL.length / 2, depth(a) * DOWEL.faceShare)
         const inB = Math.min(DOWEL.length - inA, depth(b) * DOWEL.faceShare)
@@ -109,6 +128,22 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
         const through = depth(a) < length ? depth(a) : length / 2
         for (const center of m.points(count, plane + toward * (length / 2 - through))) parts.push({ kind: 'screw', owner: u.a, center, axis: face, length, diameter, outward: back })
         for (const center of m.points(count, plane)) parts.push({ kind: 'hole', owner: u.b, center, axis: face, outward: back, diameter: pilot })
+        if (u.type === 'connector-bolt') {
+          if (depth(a) < length) for (const center of m.points(count, toward === 1 ? low(a, face) : high(a, face))) parts.push({ kind: 'cap', owner: u.a, center, axis: face, outward: back, diameter: BOLT.head })
+          parts.push(...onFace(m.points(count, plane + toward * (length - through - BOLT.nutFromTip)), BOLT.nut))
+        }
+      }
+      if (u.type === 'cam-lock') {
+        for (const center of m.points(count, plane + (toward * CAM.fromEdge) / 2)) parts.push({ kind: 'screw', owner: u.a, center, axis: face, length: CAM.fromEdge, diameter: CAM.pin, outward: toward })
+        for (const center of m.points(count, plane)) parts.push({ kind: 'hole', owner: u.b, center, axis: face, outward: back, diameter: CAM.pilot })
+        parts.push(...onFace(m.points(count, plane + toward * CAM.fromEdge), CAM.diameter))
+        const cams = m.points(count, plane)
+        const aside = (from: Point, by: number): Point => from.map((v, i) => (i === AXES.indexOf(m.along) ? v + by : v)) as Point
+        const loose = (u.hardware[1]?.count ?? 0) >= 2 ? [aside(cams[0], cams.length > 1 ? CAM.dowelAside : -CAM.dowelAside), aside(cams[cams.length - 1], cams.length > 1 ? -CAM.dowelAside : CAM.dowelAside)] : []
+        for (const center of loose) {
+          parts.push({ kind: 'dowel', owner: u.b, center, axis: face, length: DOWEL.length, diameter: DOWEL.diameter })
+          parts.push({ kind: 'hole', owner: u.a, center, axis: face, outward: toward, diameter: DOWEL.diameter })
+        }
       }
       // The shelf rests on its pins, so they sit just under it; only on an upright, where under is down.
       if (u.type === 'shelf-pin' && face === 'x') {
