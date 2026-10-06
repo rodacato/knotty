@@ -72,6 +72,17 @@ export const ASSUMPTIONS = {
     ],
     maxWidth: 600,
   },
+  /** Sliding doors: each leaf runs in a groove of the board under its opening and another of the board over it. */
+  sliding: {
+    /** How far two leaves overlap where they meet; a single leaf covers half of its opening and half of this. */
+    overlap: 25,
+    /** The wood left in front of the first groove. */
+    lip: 10,
+    /** The gap between two leaves, so one passes the other. */
+    between: 3,
+    /** How far a leaf goes into each groove, as a share of the board; the groove above is cut twice as deep, so the leaf lifts in and out. */
+    engagement: 1 / 4,
+  },
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   /** A floor rests on a run (a kick, a rail) that is under at least this share of its length. */
@@ -135,6 +146,11 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'tipping.criticalHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'doors.hinges': cite(VALUES, '8-puertas', 'Bisagras por altura de puerta'),
   'doors.maxWidth': cite(VALUES, '8-puertas', 'Ancho máximo de una hoja'),
+  'sliding.overlap': cite(STRUCTURE, '5-puertas', 'traslape entre hojas de 20–30 mm'),
+  'sliding.lip': noReference('the wood Knotty leaves in front of the first groove so its wall does not break out; the reference gives none'),
+  'sliding.between': noReference('the same gap as between two fronts, so one leaf passes the other; the reference has no play for sliding doors'),
+  // A quarter below and so half above: the deeper groove stays at the most the reference lets a groove go.
+  'sliding.engagement': cite(VALUES, '6-uniones', 'Profundidad de ranura'),
   floorSpan: cite(STRUCTURE, '71-patas-o-zoclo', 'un piso de más de 800 mm sin apoyo intermedio necesita revisión'),
   'legs.maxSpan': cite(STRUCTURE, '71-patas-o-zoclo', 'más de ≈ 1 200 mm de ancho → patas intermedias'),
   'legs.footprint': noReference('how Knotty tells a leg from a panel on the floor: a laminated leg of 2 × 18 × 72 fits with room, a side or a kick is far longer'),

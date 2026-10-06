@@ -2,7 +2,7 @@ import { ASSUMPTIONS } from '../../assumptions'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
 import { checkBuilt } from '../quick'
-import { leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
+import { frontedCells, leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
 import { KICK_HEIGHT, thicknessOf } from './common'
 import type { QuickCountKind } from './module'
 
@@ -11,9 +11,12 @@ import type { QuickCountKind } from './module'
 
 export type QuickCounts = Record<QuickCountKind, number>
 
+/** Sliding doors in front of a split cell are doors of the furniture, though the cell is not one to add or remove here. */
+const doorsInFront = (plan: CabinetPlan) => frontedCells(plan).filter((c) => c.columns).length
+
 export const quickCounts = (plan: CabinetPlan): QuickCounts => {
   const cells = leafCells(plan.columns)
-  return { drawer: cells.filter((c) => c.content === 'drawer').length, door: cells.filter((c) => c.content === 'door').length, open: cells.filter((c) => c.content === 'open').length }
+  return { drawer: cells.filter((c) => c.content === 'drawer').length, door: cells.filter((c) => c.content === 'door').length + doorsInFront(plan), open: cells.filter((c) => c.content === 'open').length }
 }
 
 const CONTENT: Record<QuickCountKind, PlanCell['content']> = { drawer: 'drawer', door: 'door', open: 'open' }
@@ -111,7 +114,7 @@ export function countLimits(plan: CabinetPlan, catalog: Catalog): Record<QuickCo
       current = result.plan
       max = quickCounts(current)[kind]
     }
-    limits[kind] = { min: now === cellCount(plan) ? 1 : 0, max }
+    limits[kind] = { min: Math.max(now === cellCount(plan) ? 1 : 0, kind === 'door' ? doorsInFront(plan) : 0), max }
   }
   return limits
 }

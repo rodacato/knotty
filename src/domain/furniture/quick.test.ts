@@ -3,7 +3,7 @@ import { analyze } from '../checks/analysis'
 import { estimatePurchase } from '../estimate/purchase'
 import { testCatalog } from './fixtures/catalog.test-util'
 import { testReferences } from './fixtures/references.test-util'
-import { leafCells, type CabinetPlan } from './modules/cabinet'
+import { frontedCells, type CabinetPlan } from './modules/cabinet'
 import { countLimits, quickCounts, setCount } from './modules/cabinetCounts'
 import { buildPlan, MODULES } from './modules/plan'
 import { checkBuilt, fitToSpace, isQuick, measureLimits, spaceOverflow, summarizePlan } from './quick'
@@ -30,8 +30,8 @@ describe('what a module says is quick', () => {
 })
 
 describe.each(cabinets)('the counts of %s', (_, plan) => {
-  it('are read from its cells', () => {
-    const cells = leafCells(plan.columns)
+  it('are read from its cells, the doors in front of a split cell among them', () => {
+    const cells = frontedCells(plan)
     expect(quickCounts(plan)).toEqual({ drawer: cells.filter((c) => c.content === 'drawer').length, door: cells.filter((c) => c.content === 'door').length, open: cells.filter((c) => c.content === 'open').length })
   })
 

@@ -1,9 +1,11 @@
-import { bounds, drawerGroups } from '../../domain/design/boxes'
+import { ASSUMPTIONS } from '../../domain/assumptions'
+import { bounds, CONTACT_TOLERANCE, drawerGroups, overlap } from '../../domain/design/boxes'
+import { slides } from '../../domain/design/doors'
 import type { Design } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
 import type { Explosion, Offset } from './explode'
 
-// The furniture in use: drawers pulled out and doors swung open on their hinges. Nothing comes apart, and all in mm like the rest of the scene.
+// The furniture in use: drawers pulled out, doors swung open on their hinges and sliding ones run along their tracks. Nothing comes apart, and all in mm like the rest of the scene.
 
 /** How far a drawer comes out, as a share of its depth. */
 const DRAWER_OUT = 0.6
@@ -22,7 +24,7 @@ export interface Opening extends Explosion {
 
 const center = (b: Box, axis: 'x' | 'y' | 'z') => (b[`${axis}0`] + b[`${axis}1`]) / 2
 
-/** Drawers slide out through their front; doors swing about the edge their hinge is on, out of the face that shows. */
+/** Drawers slide out through their front; doors swing about the edge their hinge is on, out of the face that shows, or slide sideways when they hang from none. */
 export function opening(design: Design, boxes: Map<string, Box>): Opening {
   const offsets = new Map<string, Offset>(design.pieces.map((p) => [p.id, [0, 0, 0]]))
   const swings = new Map<string, Swing>()
@@ -56,6 +58,18 @@ export function opening(design: Design, boxes: Map<string, Box>): Opening {
     swings.set(door.id, { pivot, angle: -(onLeft ? 1 : -1) * out * DOOR_ANGLE })
     const width = box.x1 - box.x0
     reach.push({ ...box, z0: out > 0 ? box.z0 : box.z0 - width * Math.sin(DOOR_ANGLE), z1: out > 0 ? box.z1 + width * Math.sin(DOOR_ANGLE) : box.z1 })
+  }
+
+  // A sliding leaf runs along its track from the upright it closes against, over the other half of its opening. Of two that overlap only the one behind moves: both would just trade places.
+  const sliding = design.pieces.filter((p) => p.role === 'door' && boxes.has(p.id) && slides(design, p.id)).map((p) => ({ id: p.id, box: boxes.get(p.id)! }))
+  const uprights = design.pieces.filter((p) => p.normal === 'x' && p.role !== 'door' && boxes.has(p.id)).map((p) => boxes.get(p.id)!)
+  for (const { id, box } of sliding) {
+    const out = center(box, 'z') >= center(all, 'z') ? 1 : -1
+    if (sliding.some((other) => other.id !== id && overlap(other.box, box, 'x') > 0 && overlap(other.box, box, 'y') > 0 && out * (center(other.box, 'z') - center(box, 'z')) < 0)) continue
+    const beside = (edge: number, face: 'x0' | 'x1') => uprights.some((u) => Math.abs(u[face] - edge) <= CONTACT_TOLERANCE && overlap(u, box, 'y') > 0 && overlap(u, box, 'z') > 0)
+    const direction = beside(box.x0, 'x1') ? 1 : beside(box.x1, 'x0') ? -1 : 0
+    const distance = direction * (box.x1 - box.x0 - ASSUMPTIONS.sliding.overlap)
+    offsets.set(id, [distance, 0, 0])
   }
 
   return { offsets, swings, bounds: bounds(reach) }

@@ -1,6 +1,7 @@
 import { isDrawerPart, type Design, type Piece } from '../../../design/schema'
 import type { Box, Geometry } from '../../../design/resolve'
 import { ASSUMPTIONS } from '../../../assumptions'
+import { slides } from '../../../design/doors'
 
 /** What holds a piece of storage furniture up and what pulls it forward, in kg·m about the front edge of what it stands on. */
 export interface TippingBalance {
@@ -19,7 +20,7 @@ const union = (boxes: Box[]): Box => ({
 })
 
 /**
- * The criteria of the ASTM F2057-23 stability test in a simplified model: the carcass holds, its drawers (full of clothes, fully out) and doors (open at 90°) pull,
+ * The criteria of the ASTM F2057-23 stability test in a simplified model: the carcass holds, its drawers (full of clothes, fully out) and hinged doors (open at 90°) pull; a sliding door stays in its track and holds like the carcass,
  * and a child hangs from the edge of the highest drawer within reach. Null when it cannot be told where the furniture stands or which way it faces.
  */
 export function tippingBalance(design: Design, geo: Geometry, onFloor: Box[]): TippingBalance | null {
@@ -37,7 +38,8 @@ export function tippingBalance(design: Design, geo: Geometry, onFloor: Box[]): T
   const pivot = Math.max(...onFloor.map(frontEdge))
   const mass = (b: Box) => (span(b).reduce((v, s) => v * s, 1) * density) / 1e9
 
-  const holds = design.pieces.filter((p) => !isDrawerPart(p) && p.role !== 'door').reduce((sum, p) => sum + mass(box(p)!) * (pivot - ahead(middle(box(p)!))), 0)
+  const swings = (p: Piece) => p.role === 'door' && !slides(design, p.id)
+  const holds = design.pieces.filter((p) => !isDrawerPart(p) && !swings(p)).reduce((sum, p) => sum + mass(box(p)!) * (pivot - ahead(middle(box(p)!))), 0)
 
   const drawers = new Map<string, Piece[]>()
   for (const p of design.pieces) if (isDrawerPart(p) && p.group) drawers.set(p.group, [...(drawers.get(p.group) ?? []), p])
@@ -61,7 +63,7 @@ export function tippingBalance(design: Design, geo: Geometry, onFloor: Box[]): T
       childLever = frontEdge(whole) + out - pivot
     }
   }
-  for (const p of design.pieces.filter((p) => p.role === 'door')) {
+  for (const p of design.pieces.filter(swings)) {
     const b = box(p)!
     pulls += mass(b) * (frontEdge(b) + span(b)[0] / 2 - pivot)
   }

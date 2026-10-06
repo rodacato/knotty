@@ -4,7 +4,7 @@ import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
 import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
-import { quickCounts } from './cabinetCounts'
+import { countLimits, quickCounts } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
 import { FurniturePlan } from './plan'
@@ -179,7 +179,7 @@ describe('leg height', () => {
 
 describe('construction variants', () => {
   const options: { [K in keyof CabinetConstruction]: CabinetConstruction[K][] } = {
-    doors: ['overlay', 'inset'],
+    doors: ['overlay', 'inset', 'sliding'],
     drawerFronts: ['inset', 'overlay'],
     top: ['between', 'over', 'fingers'],
     back: ['nailed', 'none'],
@@ -210,7 +210,7 @@ describe('construction variants', () => {
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
     expect(a.warnings.filter((w) => w.code === 'W_CONTACT_WITHOUT_JOINT')).toEqual([])
-    expect(notes.filter((n) => !n.startsWith('Muesca') && !n.startsWith('Esquinas de dedos') && !n.startsWith('Cubierta con dedos'))).toEqual([])
+    expect(notes.filter((n) => !n.startsWith('Muesca') && !n.startsWith('Esquinas de dedos') && !n.startsWith('Cubierta con dedos') && !n.includes('corrediza'))).toEqual([])
   })
 
   it('inset doors sit inside their opening and hang on declared hinges', () => {
@@ -251,6 +251,107 @@ describe('construction variants', () => {
     }
     expect(front('overlay').x0).toBe(2)
     expect(front('inset').x0).toBeGreaterThan(18)
+  })
+})
+
+describe('sliding doors', () => {
+  const sliding: CabinetConstruction = { ...DEFAULT_CONSTRUCTION, doors: 'sliding', top: 'over' }
+  const open = (shelves = 0): PlanCell => ({ height: 1, content: 'open', shelves, doors: null })
+  const rack = (doors: number, extra: Partial<PlanCell> = {}, more: Partial<CabinetPlan> = {}) =>
+    plan({ name: 'Rack', dimensions: { width: 1200, height: 600, depth: 400 }, base: 'floor', wallMounted: false, construction: sliding, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 0, doors, ...extra }] }], ...more })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, has: (id: string) => design.pieces.some((x) => x.id === id) }
+  }
+
+  it('two leaves hang from no hinge: each runs unglued in a groove of the bottom and one of the top, a quarter of the board deep', () => {
+    const { design, a } = built(rack(2))
+    expect(design.joints.filter((u) => u.type === 'cup-hinge')).toEqual([])
+    expect(design.joints.filter((u) => u.a.includes('door')).map((u) => `${u.a} ${u.b} ${u.type} ${u.depth} ${u.glue}`)).toEqual([
+      'c1-h1-door-left bottom dado 4.5 false',
+      'c1-h1-door-left top dado 4.5 false',
+      'c1-h1-door-right bottom dado 4.5 false',
+      'c1-h1-door-right top dado 4.5 false',
+    ])
+    expect(Object.keys(estimatePurchase(design, a.geo, testCatalog).hardware.reduce((all, h) => ({ ...all, [h.hardware.role]: true }), {}))).not.toContain('hinge')
+  })
+
+  it('they overlap where they meet, the left one behind the right one, both set back from the front edge', () => {
+    const { box } = built(rack(2))
+    const [left, right] = [box('c1-h1-door-left'), box('c1-h1-door-right')]
+    expect([left.x0, right.x1]).toEqual([box('side-left').x1, box('side-right').x0])
+    expect(left.x1 - right.x0).toBe(25)
+    expect(right.z1).toBe(400 - 10)
+    expect(left.z1).toBe(right.z0 - 3)
+    expect([left.y0, left.y1]).toEqual([box('bottom').y1 - 4.5, box('top').y0 + 4.5])
+  })
+
+  it('one leaf covers half of its opening and a little more, on the side the hinges would be', () => {
+    const half = (hinges: CabinetConstruction['hinges']) => built(rack(1, {}, { construction: { ...sliding, hinges }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 0, doors: 1 }] }, { width: 1, cells: [open()] }] })).box('c1-h1-door')
+    const outside = half('outside')
+    expect(outside.x0).toBe(18)
+    expect(outside.x1 - outside.x0).toBeCloseTo((1200 - 3 * 18) / 2 / 2 + 12.5)
+    expect(half('inside').x1).toBeCloseTo(18 + (1200 - 3 * 18) / 2)
+  })
+
+  it('a shelf behind them stops short of the tracks, further in with two leaves than with one', () => {
+    const shelf = (doors: number) => built(rack(doors, { shelves: 1 })).box('c1-h1-shelf-1').z1
+    expect(shelf(1)).toBe(400 - 10 - 18 - 5)
+    expect(shelf(2)).toBe(400 - 10 - 18 - 3 - 18 - 5)
+  })
+
+  it('run in front of a cell split into columns: its divider and shelves stay behind the tracks, and the doors close the whole cell', () => {
+    const { box, has, design } = built(rack(1, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open(1)] }] }))
+    expect(design.pieces.filter((x) => x.role === 'door').map((x) => x.id)).toEqual(['c1-h1-door'])
+    const behind = 400 - 10 - 18 - 3
+    expect([box('c1-h1-div-1').z1, box('c1-h1-c2-h1-shelf-1').z1]).toEqual([behind, behind])
+    expect(box('c1-h1-door').x1).toBeGreaterThan(box('c1-h1-div-1').x1)
+    expect(has('c1-h1-c1-h1-door')).toBe(false)
+  })
+
+  it('doors in front of a split cell count as the doors of the furniture: built as asked, and summed up as one sliding door', () => {
+    const inFront = rack(1, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open(1)] }] })
+    expect(cabinetModule.quick!.builtAsAsked!(inFront, buildCabinet(inFront, testCatalog).design)).toBeNull()
+    expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(inFront, 'Barniz')).toBe('1 puerta corrediza')
+    expect(quickCounts(inFront)).toEqual({ drawer: 0, door: 1, open: 2 })
+    expect(countLimits(inFront, testCatalog).door).toEqual({ min: 1, max: 1 })
+  })
+
+  it('behind them there are only open cells: a drawer there is rejected, and built it is a split cell with no doors', () => {
+    const withDrawer = rack(2, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [{ height: 1, content: 'drawer', shelves: null, doors: null }] }] })
+    expect(FurniturePlan.safeParse(withDrawer).error?.issues.map((i) => i.message)).toEqual(['Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'])
+    expect(built(withDrawer).design.pieces.filter((x) => x.role === 'door')).toEqual([])
+    expect(FurniturePlan.safeParse({ ...withDrawer, construction: DEFAULT_CONSTRUCTION }).success).toBe(true)
+  })
+
+  it('a leaf wider than a hinged one may be is not a finding, and says how its grooves are cut', () => {
+    const { a, notes, box } = built(rack(2, {}, { dimensions: { width: 1400, height: 600, depth: 400 } }))
+    expect(box('c1-h1-door-left').x1 - box('c1-h1-door-left').x0).toBeGreaterThan(600)
+    expect(a.findings.filter((f) => f.code === 'R6_DOORS')).toEqual([])
+    expect(notes).toEqual(['2 puertas corredizas sin bisagras: cada hoja corre en una ranura del tablero de abajo, de 4.5 mm de hondo, y otra del de arriba, de 9 mm, para meterla y sacarla levantándola. Las ranuras se fresan con router antes de armar, un poco más anchas que la hoja.'])
+  })
+
+  it('does not pull the furniture forward as hinged doors do: tall and shallow, it is judged by its ratio like an open bookcase, not by its doors open', () => {
+    const tall = (doors: CabinetConstruction['doors']) => built(rack(2, {}, { dimensions: { width: 1100, height: 1500, depth: 300 }, construction: { ...sliding, doors } })).a.findings.filter((f) => f.code === 'R4_TIPPING').map((f) => f.check ?? 'ratio')
+    expect(tall('sliding')).toEqual(['ratio'])
+    expect(tall('inset')).toEqual(['tipping.storage'])
+  })
+
+  it('the notch to open each leaf is on its outer edge, where the other leaf never covers it', () => {
+    const { design } = built(rack(2, {}, { construction: { ...sliding, pulls: 'notch' } }))
+    const notchAt = (id: string) => design.pieces.find((x) => x.id === id)!.cuts![0].x.from
+    expect([notchAt('c1-h1-door-left'), notchAt('c1-h1-door-right')]).toEqual(['start', 'end'])
+  })
+
+  it('the form does not ask which side the hinges go on: there are none', () => {
+    const hinges = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'choice' && f.key === 'construction.hinges')!
+    expect([isVisible(hinges, rack(1)), isVisible(hinges, { ...rack(1), construction: DEFAULT_CONSTRUCTION })]).toEqual([false, true])
+  })
+
+  it('a plan saved before they existed reads the same', () => {
+    expect(FurniturePlan.parse(PLANS.wallCabinet)).toEqual(PLANS.wallCabinet)
   })
 })
 

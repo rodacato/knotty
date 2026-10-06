@@ -102,3 +102,36 @@ describe('a door that opens clears the furniture, hung inset or overlay', () => 
     }
   })
 })
+
+describe('sliding doors open along their tracks', () => {
+  const rack = (leaves: number): CabinetPlan => ({
+    kind: 'cabinet',
+    name: 'Rack',
+    dimensions: { width: 1000, height: 600, depth: 400 },
+    material: 'T18',
+    base: 'floor',
+    legHeight: 150,
+    wallMounted: false,
+    construction: { ...DEFAULT_CONSTRUCTION, doors: 'sliding' },
+    columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 0, doors: leaves }] }],
+  })
+  const moved = (leaves: number) => {
+    const { design } = buildCabinet(rack(leaves), testCatalog)
+    const { boxes, result } = open(design)
+    return { boxes, result, x: (id: string) => result.offsets.get(id)![0] }
+  }
+
+  it('a single leaf runs from the side it closes against over the open half, and nothing swings', () => {
+    const { boxes, result, x } = moved(1)
+    const leaf = boxes.get('c1-h1-door')!
+    expect(result.swings.size).toBe(0)
+    expect(x('c1-h1-door')).toBe(leaf.x1 - leaf.x0 - 25)
+    expect(leaf.x1 + x('c1-h1-door')).toBe(boxes.get('side-right')!.x0)
+  })
+
+  it('of two leaves only the one behind moves, until it is behind the other', () => {
+    const { boxes, x } = moved(2)
+    expect(x('c1-h1-door-right')).toBe(0)
+    expect(boxes.get('c1-h1-door-left')!.x0 + x('c1-h1-door-left')).toBe(boxes.get('c1-h1-door-right')!.x0)
+  })
+})

@@ -1,5 +1,5 @@
 ---
-id: cabinet@9
+id: cabinet@10
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -13,7 +13,7 @@ id: cabinet@9
 - `base`: "kick" if it has a kick plate at the front (bookcases, dressers, floor cabinets), "floor" if it sits directly or hangs (wall cabinets, low nightstands), "legs" if the box stands on legs (sideboards, credenzas, TV stands or nightstands on legs). With "legs" the app builds straight plywood legs under a frame and adds legs in between on a wide piece; the height in `dimensions` includes the legs. Tapered or splayed legs are built straight: say so in the explanation.
 - `wallMounted`: true if it hangs from or is anchored to the wall: wall cabinets; anything with drawers or doors from {{storageAnchorHeight}} high, whatever its depth; and open bookcases that are tall (over about {{tallFurnitureHeight}}) or shallow for their height. A tall bookcase that is not anchored can tip over: anchor it unless the person says otherwise.
 - `construction`: how a carpenter would build it. Respect what the person asks for or what the photos show; if they say nothing, use the simplest ({{defaultConstruction}}) and say so in the explanation:
-  - `doors`: "overlay" if the door covers the front of the furniture (easiest to adjust); "inset" if it sits inside the opening (looks finer and needs more precision).
+  - `doors`: "overlay" if the door covers the front of the furniture (easiest to adjust); "inset" if it sits inside the opening (looks finer and needs more precision); "sliding" only if the person asks or the photos show doors that slide sideways: no hinges, each leaf runs in grooves inside the opening. Two sliding leaves overlap and open half at a time; one covers half of the opening and leaves the other half open.
   - `drawerFronts`: "inset" (front inside the opening) or "overlay" (front covering the edge).
   - `top`: "between" (top between the sides) or "over" (top over the sides, as in nightstands and side tables).
   - `back`: "nailed" (nailed back, the usual) or "none" (no back, only if the person asks).
@@ -25,7 +25,7 @@ id: cabinet@9
 - `columns`: left to right, with their width as a fraction of the total. Each column lists its openings from bottom to top, with their height as a fraction and their content:
   - "open": an open opening; in `shelves`, how many movable shelves are inside.
   - "drawer": one drawer per opening; the opening must be at least {{minDrawerOpening}} mm high.
-  - "door": an overlay door; in `doors`, 1 or 2 leaves (2 if the opening is wider than {{maxDoorLeafWidth}} mm); in `shelves`, the shelves behind it.
+  - "door": a door; in `doors`, 1 or 2 leaves (2 if the opening is wider than {{maxDoorLeafWidth}} mm, unless they slide); in `shelves`, the shelves behind it.
   - "closed": covered, not opening.
   Between openings the app adds fixed shelves, and between columns, dividers.
 
@@ -40,5 +40,5 @@ Shelves for books: one every 250–350 mm. If there are photo readings, respect 
 measures, number or kind of openings, drawers, doors, shelves, columns, construction, base (kick, legs or directly on the floor), anchoring, assembly
 
 # rules
-- "overlay" doors cover the front; "inset" ones sit inside the opening. Drawer fronts "inset" or "overlay". Top "between" the sides or "over" them. Back "nailed" or "none". Shelves "movable" or "fixed".
-- One drawer per opening, at least {{minDrawerOpening}} mm high. Doors wider than {{maxDoorLeafWidth}} mm, with 2 leaves.
+- "overlay" doors cover the front; "inset" ones sit inside the opening; "sliding" ones run in grooves, with no hinges. Drawer fronts "inset" or "overlay". Top "between" the sides or "over" them. Back "nailed" or "none". Shelves "movable" or "fixed".
+- One drawer per opening, at least {{minDrawerOpening}} mm high. Hinged doors wider than {{maxDoorLeafWidth}} mm, with 2 leaves.
