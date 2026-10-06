@@ -3,11 +3,11 @@
 // Each value says where it comes from (docs/carpinteria). Values that vary with the thickness go in rows
 // by thickness (the first row whose `upTo` is at least the board's), so a table from the reference fits as is.
 
-export const GRADE_IDS = ['pine-plywood'] as const
+export const GRADE_IDS = ['pine-plywood', 'mdf'] as const
 export type GradeId = (typeof GRADE_IDS)[number]
 
 /** How a board looks in 3D: the colors of its face and its edge are the UI's, by this key. */
-export type BoardTone = 'pine' | 'pale-pine'
+export type BoardTone = 'pine' | 'pale-pine' | 'mdf'
 
 type ByThickness<T> = readonly ({ upTo: number } & T)[]
 
@@ -44,6 +44,16 @@ export const GRADES: Record<GradeId, Grade> = {
       { upTo: 6, tone: 'pale-pine', plies: 3 },
       { upTo: Infinity, tone: 'pine', plies: 7 },
     ],
+  },
+  mdf: {
+    name: 'MDF',
+    source: 'docs/carpinteria/triplay.md «Solo como comparación»: fibreboard, flat and smooth, for a face to work or paint on',
+    stiffness: {
+      // Half the conservative 4500 of 18 mm pine, both ways (no grain); the reference's 3590 is measured against a structural plywood, not this pine.
+      source: 'docs/carpinteria/triplay.md «a igual espesor, el triplay es cerca del doble de rígido que el MDF»',
+      rows: [{ upTo: Infinity, parallel: 2250, perpendicular: 2250 }],
+    },
+    look: [{ upTo: Infinity, tone: 'mdf', plies: 1 }],
   },
 }
 

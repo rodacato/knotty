@@ -40,8 +40,21 @@ describe('board use and grade', () => {
     expect(stiffness('pine-plywood', 3)).toEqual({ parallel: 5500, perpendicular: 700 })
   })
 
-  it('draws each shipped board as before: carcass boards with 7 plies, backs paler with 3', () => {
-    for (const m of testCatalog.materials) expect(boardLook(m.grade, m.thickness)).toEqual(m.use === 'back' ? { tone: 'pale-pine', plies: 3 } : { tone: 'pine', plies: 7 })
+  it('draws each shipped board as before: carcass boards with 7 plies, backs paler with 3, and MDF plain', () => {
+    const look = { carcass: { tone: 'pine', plies: 7 }, back: { tone: 'pale-pine', plies: 3 }, surface: { tone: 'mdf', plies: 1 } }
+    for (const m of testCatalog.materials) expect(boardLook(m.grade, m.thickness)).toEqual(look[m.use])
+  })
+
+  it('MDF is half as stiff as 18 mm pine and the same both ways, and no plan or rule picks it for the carcass', () => {
+    expect(stiffness('mdf', 18)).toEqual({ parallel: 2250, perpendicular: 2250 })
+    expect(materialById(testCatalog, 'MDF18')).toMatchObject({ use: 'surface', grade: 'mdf' })
+    expect(boardsFor(testCatalog, 'carcass').map((m) => m.id)).toEqual(['T12', 'T15', 'T18'])
+  })
+
+  it('a catalog with no surface board is still a catalog; one with no back is not', () => {
+    const without = (use: string) => ({ ...data, materials: data.materials.filter((m) => m.use !== use) })
+    expect(Catalog.safeParse(without('surface')).success).toBe(true)
+    expect(Catalog.safeParse(without('back')).success).toBe(false)
   })
 })
 
@@ -72,12 +85,12 @@ describe('what was saved before the split', () => {
   it('a catalog with the old `type` (a cached catalog.json) loads the same', () => {
     const legacy = {
       ...data,
-      materials: data.materials.map((board) => {
+      materials: data.materials.filter((board) => board.grade === 'pine-plywood').map((board) => {
         const { use, grade: _, ...m } = board
         return { ...m, type: use === 'carcass' ? 'plywood' : 'back' }
       }),
     }
-    expect(Catalog.parse(legacy)).toEqual(testCatalog)
+    expect(Catalog.parse(legacy)).toEqual({ ...testCatalog, materials: testCatalog.materials.filter((m) => m.grade === 'pine-plywood') })
   })
 
   it('prices saved by id still apply to boards and backs', () => {

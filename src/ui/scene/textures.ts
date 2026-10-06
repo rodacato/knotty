@@ -10,6 +10,7 @@ const SIZE = 512
 const TONES: Record<BoardTone, { seed: number; base: string; grain: string; lightLayer: string; darkLayer: string }> = {
   pine: { seed: 7, base: '#dcb680', grain: '#b98752', lightLayer: '#ecd6b0', darkLayer: '#c3955d' },
   'pale-pine': { seed: 13, base: '#e3c9a0', grain: '#c49a68', lightLayer: '#f0dcbc', darkLayer: '#caa272' },
+  mdf: { seed: 21, base: '#c8a877', grain: '#c2a170', lightLayer: '#b8966a', darkLayer: '#b8966a' },
 }
 
 function random(seed: number) {
