@@ -10,7 +10,7 @@ export const testReferences = createBundledReferences()
 export const testBases = basesOf(testReferences.all().filter((r) => r.home))
 
 const sideboard = testReferences.latest('KC-APA-01')
-if (sideboard?.plan.kind !== 'cabinet') throw new Error('the sideboard reference (KC-APA-01) is missing')
+if (sideboard?.plan?.kind !== 'cabinet') throw new Error('the sideboard reference (KC-APA-01) is missing')
 
 /** The first product of the reference catalog (KC-APA-01), a sideboard: what its photos show that a cabinet plan can say (step 29 of the proposal). The base is named for its legs; this one, with the plain name, is what the tests open. */
 export const sideboardPlan: CabinetPlan = { ...sideboard.plan, name: 'Aparador' }

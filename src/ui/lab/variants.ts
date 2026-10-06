@@ -1,7 +1,7 @@
 import type { Bench, ModuleCheck } from '../../application/bench/bench'
 import { analyze } from '../../domain/checks/analysis'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import { exampleDesign } from '../../domain/furniture/examples'
+import { exampleDesign, exampleOf } from '../../domain/furniture/examples'
 import type { Reference } from '../../domain/furniture/references'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
@@ -49,7 +49,7 @@ export interface FichaRow {
 /** Every ficha Knotty ships, built and checked as `probe` does: with its kind, so the use notices (R10) count too. */
 export function listFichas(references: readonly Reference[], catalog: Catalog): FichaRow[] {
   return references.map((reference) => {
-    const { design } = exampleDesign({ name: reference.name, plan: reference.plan, notes: reference.notes, kind: reference.kind, finish: reference.finish }, catalog)
+    const { design } = exampleDesign(exampleOf(reference), catalog)
     const geo = resolveGeometry(design, catalog)
     const boxes = geo.ok ? geo.value.boxes : null
     const a = analyze(design, catalog)

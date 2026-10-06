@@ -14,11 +14,11 @@ function useCases() {
 
 const ficha = testReferences.latest('KC-APA-01')!
 const { version, ...file } = ficha
-if (ficha.plan.kind !== 'cabinet') throw new Error('KC-APA-01 is a cabinet')
+if (ficha.plan?.kind !== 'cabinet') throw new Error('KC-APA-01 is a cabinet')
 const base = ficha.plan
 const opened = () => {
   const u = useCases()
-  const state = u.openExample({ name: ficha.name, plan: ficha.plan, notes: ficha.notes, ...(ficha.finish ? { finish: ficha.finish } : {}) })
+  const state = u.openExample({ name: ficha.name, plan: base, notes: ficha.notes, ...(ficha.finish ? { finish: ficha.finish } : {}) })
   return { u, state }
 }
 
@@ -60,7 +60,7 @@ describe('exporting a ficha from the bench drawer', () => {
     const { state } = opened()
     const c = candidateOf(state, { code: null })
     if (!c.ok) throw new Error(c.reason)
-    expect(c.file).toMatchObject({ id: 'aparador-con-patas', name: ficha.plan.name, plan: ficha.plan })
+    expect(c.file).toMatchObject({ id: 'aparador-con-patas', name: base.name, plan: base })
     expect(typeof c.file.notes).toBe('string')
     expect(adoptionCommands(c.filename, null)[1]).toBe('npm run probe -- --adopt GN-XXX-00 aparador-con-patas.candidate.json')
   })

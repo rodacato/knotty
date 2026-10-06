@@ -2,6 +2,7 @@ import { Cube, XCircle } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Thumbnail } from '../capture/Thumbnail'
 import { ANY, roomChips, type CatalogQuery } from '../capture/catalog'
+import { exampleOf } from '../../domain/furniture/examples'
 import { fichasOf, listFichas, type FichaRow } from '../lab/variants'
 import { useServices } from '../services'
 import { useStore } from '../store'
@@ -49,7 +50,7 @@ export function FichasDrawer() {
 
   const open = ({ reference: r }: FichaRow) => {
     setOpened(r.code)
-    sandboxExample({ name: r.name, plan: r.plan, notes: r.notes, code: r.code, version: r.version, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) }, r.code)
+    sandboxExample(exampleOf(r), r.code)
   }
 
   return (

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { exampleDesign, exampleOf } from '../../domain/furniture/examples'
+import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { createBundledReferences, createReferenceStore } from './store'
 
 const store = createBundledReferences()
@@ -22,10 +24,20 @@ describe('reference store', () => {
     expect(store.latest('KC-ZZZ-99')).toBeNull()
   })
 
-  it('puts every reference on the home screen, the ones with a place there first and in its order', () => {
+  it('puts every reference with a plan on the home screen, the ones with a place there first and in its order', () => {
     const placed = store.all().filter((r) => r.home)
     expect(placed.map((r) => r.home?.order)).toEqual(placed.map((_, i) => i + 1))
-    expect(store.home().map((b) => b.code)).toEqual([...placed, ...store.all().filter((r) => !r.home)].map((r) => r.code))
+    expect(store.home().map((b) => b.code)).toEqual([...placed, ...store.all().filter((r) => !r.home && r.plan)].map((r) => r.code))
+  })
+
+  it('a reference that is a design, not a plan, stays off the home screen and opens as its own design', () => {
+    const benchtop = store.latest('GN-TAL-02')!
+    expect(benchtop.plan).toBeUndefined()
+    expect(store.home().map((b) => b.code)).not.toContain('GN-TAL-02')
+    const { design, plan } = exampleDesign(exampleOf(benchtop), testCatalog)
+    expect(plan).toBeNull()
+    expect(design).toMatchObject({ name: 'Banco de sobremesa', kind: 'benchtop', notes: benchtop.notes })
+    expect(design.pieces.filter((p) => p.material === 'MDF18').map((p) => p.id)).toEqual(['top-left', 'top-right'])
   })
 
   it('fails on a bad file instead of shipping it', () => {

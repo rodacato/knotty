@@ -9,8 +9,8 @@ import { buildPlan, MODULES } from './modules/plan'
 import { checkBuilt, fitToSpace, isQuick, measureLimits, spaceOverflow, summarizePlan } from './quick'
 import { valueFields } from './modules/fields'
 
-const cabinets = testReferences.all().flatMap((r) => (r.plan.kind === 'cabinet' ? [[r.code, r.plan] as [string, CabinetPlan]] : []))
-const others = testReferences.all().flatMap((r) => (r.plan.kind !== 'cabinet' ? [[r.code, r.plan] as const] : []))
+const cabinets = testReferences.all().flatMap((r) => (r.plan?.kind === 'cabinet' ? [[r.code, r.plan] as [string, CabinetPlan]] : []))
+const others = testReferences.all().flatMap((r) => (r.plan && r.plan.kind !== 'cabinet' ? [[r.code, r.plan] as const] : []))
 
 describe('what a module says is quick', () => {
   it('only the cabinet declares it, and its quick fields are fields of its form', () => {
@@ -128,12 +128,12 @@ describe('fitting a base to a space', () => {
 })
 
 describe('the summary of a plan', () => {
-  it.each(testReferences.all().map((r) => [r.code, r] as const))('%s has the numbers of the purchase estimate', (_, reference) => {
-    const { design } = buildPlan(reference.plan, testCatalog)
+  it.each(testReferences.all().flatMap((r) => (r.plan ? [[r.code, r.plan] as const] : [])))('%s has the numbers of the purchase estimate', (_, plan) => {
+    const { design } = buildPlan(plan, testCatalog)
     const analysis = analyze(design, testCatalog)
     if (!analysis.valid) throw new Error('reference is not valid')
     const purchase = estimatePurchase(design, analysis.geo, testCatalog)
-    const summary = summarizePlan(reference.plan, testCatalog)
+    const summary = summarizePlan(plan, testCatalog)
     expect(summary).toEqual({
       ok: true,
       sheets: purchase.sheets.map((s) => ({ material: s.material.id, name: s.material.name, thickness: s.material.thickness, sheets: s.sheets })),

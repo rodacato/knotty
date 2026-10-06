@@ -1,6 +1,7 @@
 import type { PlanCell } from './modules/cabinet'
 import { describeExpect, type Expect } from './probe'
 import type { FurniturePlan } from './modules/plan'
+import type { Design } from '../design/schema'
 import { DEFAULT_FINGERS } from './modules/fingerJoints'
 
 // A ficha said in words, from its plan and its metadata: what a reader needs to understand the piece and to compare two readings of it. Nothing here is stored; it is derived, so it cannot go out of date.
@@ -9,7 +10,8 @@ export interface Explainable {
   code?: string
   version?: number
   kind?: string
-  plan: FurniturePlan
+  plan?: FurniturePlan
+  design?: Pick<Design, 'dimensions' | 'pieces' | 'joints'>
   support?: string
   difficulty?: number
   features?: readonly string[]
@@ -71,13 +73,19 @@ function pieceLines(plan: FurniturePlan): string[] {
   ]
 }
 
+/** A piece no module builds, by what it is made of: its size and its pieces by material. */
+function designLines({ dimensions: d, pieces, joints }: NonNullable<Explainable['design']>): string[] {
+  const byMaterial = [...new Set(pieces.map((p) => p.material))].map((m) => `${pieces.filter((p) => p.material === m).length} of ${m}`)
+  return [`Piece: designed piece by piece, ${d.width} × ${d.height} × ${d.depth} mm.`, `Pieces: ${byMaterial.join(', ')}; ${plural(joints.length, 'joint')}.`, ...pieces.map((p) => `  ${p.id}: ${p.name} (${p.role})`)]
+}
+
 /** The ficha as text, in a fixed order. */
 export function explain(f: Explainable): string {
   const title = [f.code && `${f.code}${f.version ? ` v${f.version}` : ''}`, f.kind].filter(Boolean).join(' · ')
   const list = (label: string, items?: readonly string[], separator = ', ') => (items ? [`${label}: ${items.length ? items.join(separator) : 'none'}`] : [])
   return [
     ...(title ? [title] : []),
-    ...pieceLines(f.plan),
+    ...(f.plan ? pieceLines(f.plan) : f.design ? designLines(f.design) : []),
     ...(f.support || f.difficulty ? [`Support: ${[f.support, f.difficulty && `difficulty ${f.difficulty}`].filter(Boolean).join(' · ')}`] : []),
     ...list('Features', f.features),
     ...list('Adaptations', f.adaptations, '; '),

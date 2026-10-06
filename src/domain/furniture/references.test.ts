@@ -44,6 +44,16 @@ describe('references', () => {
     expect(load(path, { ...file, rooms: ['garage'] })).toThrow(/rooms/)
   })
 
+  it('take a plan or a design, never both and never neither', () => {
+    const file = sample()
+    const { plan: _, ...bare } = file
+    const design = testReferences.latest('GN-TAL-02')!.design
+    const path = `./${file.code.toLowerCase()}.v1.json`
+    expect(load(path, { ...bare, design })).not.toThrow()
+    expect(load(path, { ...file, design })).toThrow(/a plan or a design/)
+    expect(load(path, bare)).toThrow(/a plan or a design/)
+  })
+
   it('refuse a key nobody reads, so a typo does not pass', () => {
     const file = sample()
     expect(load(`./references/${file.code.toLowerCase()}.v1.json`, { ...file, categoryy: 'storage' })).toThrow(/categoryy/)

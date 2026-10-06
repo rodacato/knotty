@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { analyze } from '../checks/analysis'
 import type { Catalog } from '../materials/catalog'
 import { estimatePurchase } from '../estimate/purchase'
-import { exampleDesign } from './examples'
+import { exampleDesign, exampleOf } from './examples'
 import type { Reference } from './references'
 
 // What a ficha comes to when the engine builds it: the few figures a carpenter would check, kept in the file as `expect` so a change in the engine shows up as a difference.
@@ -26,7 +26,7 @@ const byKey = <T>(entries: [string, T][]) => Object.fromEntries(entries.sort(([a
 
 /** What the engine makes of a reference, in the terms of `Expect`. */
 export function probe(reference: Reference, catalog: Catalog): Expect {
-  const { design } = exampleDesign({ name: reference.name, plan: reference.plan, notes: reference.notes, kind: reference.kind, finish: reference.finish }, catalog)
+  const { design } = exampleDesign(exampleOf(reference), catalog)
   const analysis = analyze(design, catalog)
   if (!analysis.valid) return { valid: false, pieces: design.pieces.length, findings: sorted(analysis.errors.map((e) => `error:${e.code}`)), sheets: {}, hardware: {} }
   const purchase = estimatePurchase(design, analysis.geo, catalog)

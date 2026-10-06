@@ -33,7 +33,7 @@ describe('explain', () => {
 
   it('gives the widths when the columns are not equal, and counts door leaves and shelves', () => {
     const cabinet = reference('GN-LIB-01').plan
-    if (cabinet.kind !== 'cabinet') throw new Error('not a cabinet')
+    if (cabinet?.kind !== 'cabinet') throw new Error('not a cabinet')
     const plan = {
       ...cabinet,
       columns: [

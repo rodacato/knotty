@@ -18,7 +18,7 @@ describe('probe', () => {
 
   it('says a ficha the engine cannot read is not valid, and why, instead of failing', () => {
     const [first] = testReferences.all()
-    if (first.plan.kind !== 'cabinet') throw new Error('the sample is not a cabinet')
+    if (first.plan?.kind !== 'cabinet') throw new Error('the sample is not a cabinet')
     const broken = { ...first, plan: { ...first.plan, dimensions: { width: 1500, height: 700, depth: 4 } } }
     const result = probe(broken, testCatalog)
     expect(result.valid).toBe(false)
