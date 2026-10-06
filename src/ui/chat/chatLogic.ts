@@ -23,6 +23,7 @@ const STARTING_IDEAS: Record<DesignKind | 'unknown', string[]> = {
   coffeeTable: TABLE,
   sideTable: TABLE,
   workbench: TABLE,
+  benchtop: ['Que mida 120 cm de largo', 'Hazlo de 60 cm de fondo', 'Agrégale una viga transversal', 'Que quede más alto'],
   bench: ['Que mida 120 cm de largo', 'Que aguante a dos adultos', 'Agrégale una repisa abajo', 'Bájale 5 cm de alto'],
   unknown: ['Que mida 10 cm más de ancho', 'Que aguante más peso', 'Refuerza la base'],
 }
