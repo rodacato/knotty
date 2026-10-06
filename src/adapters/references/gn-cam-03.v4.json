@@ -5,7 +5,7 @@
   "rooms": ["bedroom"],
   "name": "Cama de día",
   "kind": "bed",
-  "notes": "Cama individual que de día es sillón: un respaldo a lo largo y un brazo en cada extremo, a 80 cm, con su copete encima, tres cajones al frente y un tope de 4 cm que detiene el colchón. Con el colchón individual de 99 cm queda honda para sentarse: lleva cojines contra el respaldo.",
+  "notes": "Cama individual que de día es sillón: un respaldo a lo largo y un brazo en cada extremo, a 80 cm, con su copete encima y el frente de cada brazo cortado en diagonal, tres cajones al frente y un tope de 4 cm que detiene el colchón. Con el colchón individual de 99 cm queda honda para sentarse: lleva cojines contra el respaldo.",
   "plan": {
     "kind": "bed",
     "name": "Cama de día",
@@ -15,7 +15,7 @@
     "legs": "none",
     "legHeight": 150,
     "drawers": { "side": "left", "count": 3, "position": "center" },
-    "headboard": { "style": "daybed", "height": 800, "depth": 0, "shelves": 0, "cap": true },
+    "headboard": { "style": "daybed", "height": 800, "depth": 0, "shelves": 0, "cap": true, "arms": "sloped" },
     "lip": true,
     "assembly": "bolts"
   },
@@ -24,6 +24,6 @@
     "pieces": 35,
     "findings": [],
     "sheets": { "T18": 4, "TR6": 1 },
-    "hardware": { "brad-nail-1": 54, "connector-bolt-m6": 40, "drawer-slide-45": 3, "edge-banding-19": 26, "screw-8x1": 12, "screw-8x2": 101, "white-glue": 2 }
+    "hardware": { "brad-nail-1": 54, "connector-bolt-m6": 40, "drawer-slide-45": 3, "edge-banding-19": 25, "screw-8x1": 12, "screw-8x2": 99, "white-glue": 2 }
   }
 }

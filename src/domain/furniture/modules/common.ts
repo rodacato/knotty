@@ -34,6 +34,10 @@ export const LEG_INSET = 30
 /** A bed's trim: how far the lip that keeps the mattress in rises over the platform, and how far the cap over a headboard reaches toward the mattress. */
 export const MATTRESS_LIP = 40
 export const CAP_OVERHANG = 20
+/** The corner sawn off the front of a daybed's arm: how far it runs along the top and how far it comes down the front. */
+export const ARM_SLOPE = { run: 240, drop: 120 } as const
+/** What stays of the front of the arm over the mattress lip, so the cut never reaches where the lip is screwed. */
+export const ARM_FRONT = 60
 export const MODULE_SOURCES: Record<string, Source> = {
   DEFAULT_THICKNESS: cite(VALUES, '3-espesores-por-pieza', 'Laterales, piso, techo'),
   MAX_SPAN: cite(STRUCTURE, '73-camas', 'también necesita apoyos a cada ≈ 600–700 mm'),
@@ -47,6 +51,8 @@ export const MODULE_SOURCES: Record<string, Source> = {
   LEG_FOOT: noReference('the reference gives no taper for a leg; 36 leaves the foot square with the two glued layers, half the 72 under the apron'),
   LEG_INSET: noReference('the same setback as a kick, KICK_SETBACK: the legs stay out of the way of feet and still stand close to the edges'),
   MATTRESS_LIP: noReference('the reference gives no height for a mattress lip; 40 is under a sixth of the 260 mm mattress, enough to stop it sliding and low enough to sit on'),
+  ARM_SLOPE: noReference('chosen, not sourced: a cut twice as long as it is deep reads as a slope, and 120 leaves most of the arm to lean on'),
+  ARM_FRONT: noReference('Knotty’s margin over the lip for the screws that hold it to the arm'),
   CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
 }
 

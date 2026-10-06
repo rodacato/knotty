@@ -6,7 +6,7 @@ import { completeJoints } from '../../design/joints'
 import { resolveGeometry } from '../../design/resolve'
 import { backBoard, type Catalog } from '../../materials/catalog'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
-import { addDrawers, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MATTRESS_LIP, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MATTRESS_LIP, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -57,6 +57,7 @@ export const BedPlan = z.object({
     depth: z.number().nonnegative().describe('Depth of the bookcase or compartment in mm; usually 200–300. It does not count for a plain headboard or none: 0'),
     shelves: z.number().int().nonnegative().describe('Shelves in the bookcase or above the compartment'),
     cap: z.boolean().optional().describe('A cap board on top'),
+    arms: z.enum(['square', 'sloped']).optional().describe('Daybed arms: square (default), or sloped, the top front corner sawn off'),
   }),
   lip: z.boolean().optional().describe('A lip that keeps the mattress in'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
@@ -113,6 +114,10 @@ export const BED_LABELS = {
     storage: { option: 'Compartimento', phrase: 'cabecera con compartimento' },
     daybed: { option: 'De día', phrase: 'respaldo y brazos de cama de día' },
   } satisfies Labels<BedPlan['headboard']['style']>,
+  arms: {
+    square: { option: 'Rectos', phrase: 'brazos rectos' },
+    sloped: { option: 'En diagonal', phrase: 'brazos con el frente en diagonal' },
+  } satisfies Labels<NonNullable<BedPlan['headboard']['arms']>>,
   drawerMount: {
     inset: { option: 'Embutidos', phrase: 'frentes embutidos' },
     overlay: { option: 'Sobrepuestos', phrase: 'frentes sobrepuestos' },
@@ -190,6 +195,9 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
   // The cap sits over the headboard's boards and reaches over the platform: it has to clear the lips there.
   const capFits = plan.headboard.height - t >= plan.height + (lips.length ? MATTRESS_LIP : 0)
   const capped = !!plan.headboard.cap && style !== 'none' && capFits
+  // The slope of a daybed's arms comes down only as far as leaves its front whole over the lip.
+  const armRoom = plan.headboard.height - (capped ? t : 0) - plan.height - (plan.lip ? MATTRESS_LIP : 0) - ARM_FRONT
+  const slope = daybed && plan.headboard.arms === 'sloped' && armRoom > 0 ? { run: ARM_SLOPE.run, drop: Math.min(ARM_SLOPE.drop, armRoom) } : null
   return {
     plan,
     catalog,
@@ -207,6 +215,7 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
     lips,
     capped,
     capMissed: !!plan.headboard.cap && style !== 'none' && !capFits,
+    slope,
     /** Where the boards of the headboard, the arms and the backrest end: under the cap, or at the top. */
     top: ref('furniture.y1', capped ? -t : 0),
     drawers: drawerBuild(plan),
@@ -252,6 +261,20 @@ function legs(l: Layout): Piece[] {
   return pieces
 }
 
+/** A daybed's arm with its top front corner sawn off, the front being the side its backrest is not on. */
+const armSlants = (l: Layout): Pick<Piece, 'slants'> => (l.slope ? { slants: [{ x: null, y: { from: 'end', length: l.slope.drop }, z: { from: l.back === 'right' ? 'end' : 'start', length: l.slope.run } }] } : {})
+/** The cap of an arm stops where the slope starts. */
+const armCapZ = (l: Layout): Extent => {
+  const run = l.slope?.run ?? 0
+  return l.back === 'right' ? extent(ref('furniture.z0'), ref('furniture.z1', -run)) : extent(ref('furniture.z0', run), ref('furniture.z1'))
+}
+const slopeNotes = (l: Layout): string[] =>
+  l.slope
+    ? [`Brazos con el frente en diagonal: a cada brazo se le corta la esquina de arriba al frente, ${l.slope.run} mm a lo largo y ${l.slope.drop} mm hacia abajo, con sierra circular y guía. La maderería entrega el rectángulo${l.capped ? ', y el copete del brazo llega hasta donde empieza el corte' : ''}.`]
+    : l.daybed && l.plan.headboard.arms === 'sloped'
+      ? ['Los brazos son muy bajos para cortarles el frente en diagonal: quedan rectos. Sube el respaldo.']
+      : []
+
 /** The headboard: a plain board, or a shallow box open toward the mattress, with shelves and, for storage, a closed compartment at pillow height. */
 function headboard(l: Layout): { pieces: Piece[]; notes: string[] } {
   const { plan, t, hd, style } = l
@@ -260,8 +283,8 @@ function headboard(l: Layout): { pieces: Piece[]; notes: string[] } {
   const whole = { y: extent(ref('furniture.y0'), l.top) }
   const capNotes = l.capMissed ? ['La cabecera es muy baja para el copete: queda a la altura del colchón. Súbela o quítale el copete.'] : []
   const fullWidth = extent(ref('furniture.z0'), ref('furniture.z1'))
-  const cap = (reach: number): Piece[] => (l.capped ? [panel({ id: 'head-cap', name: l.daybed ? 'Copete del brazo de la cabecera' : 'Copete de la cabecera', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x0', reach + CAP_OVERHANG)), y: endAt(ref('furniture.y1')), z: fullWidth, grain: 'length', edges: ['front', 'back', 'right'] })] : [])
-  if (l.flat) return { pieces: [panel({ id: 'headboard', name: l.daybed ? 'Brazo de la cabecera' : 'Cabecera', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), ...whole, z: fullWidth, grain: 'length' }), ...cap(t)], notes: capNotes }
+  const cap = (reach: number): Piece[] => (l.capped ? [panel({ id: 'head-cap', name: l.daybed ? 'Copete del brazo de la cabecera' : 'Copete de la cabecera', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x0', reach + CAP_OVERHANG)), y: endAt(ref('furniture.y1')), z: l.daybed ? armCapZ(l) : fullWidth, grain: 'length', edges: ['front', 'back', 'right'] })] : [])
+  if (l.flat) return { pieces: [panel({ id: 'headboard', name: l.daybed ? 'Brazo de la cabecera' : 'Cabecera', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), ...whole, z: fullWidth, grain: 'length', ...armSlants(l) }), ...cap(t)], notes: [...capNotes, ...slopeNotes(l)] }
   if (!l.deep) return { pieces: [], notes: [] }
 
   const storage = style === 'storage'
@@ -306,7 +329,7 @@ function base(l: Layout): Piece[] {
   return [
     ...(l.flat ? [] : [headPanel]),
     l.daybed
-      ? panel({ id: 'foot-arm', name: 'Brazo del pie', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), l.top), z: across, grain: 'length' })
+      ? panel({ id: 'foot-arm', name: 'Brazo del pie', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), l.top), z: across, grain: 'length', ...armSlants(l) })
       : panel({ id: 'foot-panel', name: 'Piecero', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: endY, z: across }),
     ...(l.split
       ? [
@@ -339,7 +362,7 @@ function trim(l: Layout): Piece[] {
   const panel = (p: Pick<Piece, 'id' | 'name' | 'x' | 'z' | 'edges'>) => l.panel({ group: 'headboard', role: 'top', normal: 'y', y: endAt(ref('furniture.y1')), grain: 'length', ...p })
   return [
     ...lips,
-    panel({ id: 'foot-cap', name: 'Copete del brazo del pie', x: extent(ref('foot-arm.x0', -CAP_OVERHANG), ref('furniture.x1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), edges: ['front', 'back', 'left'] }),
+    panel({ id: 'foot-cap', name: 'Copete del brazo del pie', x: extent(ref('foot-arm.x0', -CAP_OVERHANG), ref('furniture.x1')), z: armCapZ(l), edges: ['front', 'back', 'left'] }),
     panel({
       id: 'back-cap',
       name: 'Copete del respaldo',
@@ -508,6 +531,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   if ((k.style === 'bookcase' || k.style === 'storage') && h.depth !== k.depth) changes.push(`cabecera de ${k.depth} mm de fondo`)
   if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
   if (k.style !== 'none' && !!h.cap !== !!k.cap) changes.push(k.cap ? 'con copete' : 'sin copete')
+  if (k.style === 'daybed' && (h.arms ?? 'square') !== (k.arms ?? 'square')) changes.push(BED_LABELS.arms[k.arms ?? 'square'].phrase)
   return [...changes, ...describeAssembly(before, after)]
 }
 
@@ -525,7 +549,7 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false }, lip: false, assembly: 'glued' },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, lip: false, assembly: 'glued' },
           ])
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
@@ -544,6 +568,8 @@ function benchBeds(): [string, BedPlan][] {
     for (const count of [2, 4]) variants.push([`queen, cabecera lisa, ${count} cajones sobrepuestos por lado ${BED_LABELS.drawerPosition[position].phrase}`, { ...drawn, mattress: 'queen', drawers: { side: 'both', count, position, mount: 'overlay' } }])
   variants.push(['matrimonial, cabecera lisa, cajones ranurados con muesca', { ...drawn, drawers: { ...drawn.drawers, style: 'grooved', pulls: 'notch' } }])
   for (const fingers of [3, 5, 9]) variants.push([`matrimonial, cabecera lisa, cajones con ${fingers} dedos por esquina`, { ...drawn, drawers: { ...drawn.drawers, corners: 'fingers', fingers } }])
+  variants.push(['individual, cama de día con los brazos en diagonal', { ...drawn, mattress: 'individual', lip: true, drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true, arms: 'sloped' } }])
+  variants.push(['individual, cama de día sin copete, con los brazos en diagonal y cajones a la derecha', { ...drawn, mattress: 'individual', drawers: { side: 'right', count: 2, position: 'center' }, headboard: { style: 'daybed', height: 750, depth: 0, shelves: 0, arms: 'sloped' } }])
   variants.push([
     'individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras',
     { ...drawn, mattress: 'individual', lip: true, drawers: { side: 'left', count: 3, position: 'center', mount: 'overlay', pulls: 'handle' }, headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0, cap: true } },
@@ -613,6 +639,8 @@ const bedFields: FieldSpec<BedPlan>[] = [
     stepper({ key: 'headboard.shelves', label: 'Repisas', ariaLabel: 'repisas de la cabecera', min: 0, max: 4, visibleWhen: deepHeadboard, get: (p) => p.headboard.shelves, set: (p, shelves) => withHeadboard(p, { shelves }) }),
     yesNo({ key: 'headboard.cap', label: 'Copete', visibleWhen: (p) => p.headboard.style !== 'none', get: (p) => !!p.headboard.cap, set: (p, cap) => withHeadboard(p, { cap }) }),
     note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap),
+    choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
+    note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
   ]),
   section('Armado', assemblyFields()),
 ]
@@ -645,10 +673,10 @@ const BED_PARTS: Parts<BedPlan> = {
       id: 'headboard',
       name: 'Cabecera',
       side: 'outside',
-      fields: ['headboard.style', 'headboard.height', 'headboard.depth', 'headboard.shelves', 'headboard.cap'],
+      fields: ['headboard.style', 'headboard.height', 'headboard.depth', 'headboard.shelves', 'headboard.cap', 'headboard.arms'],
       joints: ['back'],
       jointsTitle: 'Uniones de la cabecera',
-      summary: (p) => (p.headboard.style === 'none' ? 'Sin cabecera' : `${BED_LABELS.headboard[p.headboard.style].option}, de ${p.headboard.height} mm desde el piso${p.headboard.cap ? ', con copete' : ''}`),
+      summary: (p) => (p.headboard.style === 'none' ? 'Sin cabecera' : `${BED_LABELS.headboard[p.headboard.style].option}, de ${p.headboard.height} mm desde el piso${p.headboard.cap ? ', con copete' : ''}${isDaybed(p) && p.headboard.arms === 'sloped' ? ', brazos en diagonal' : ''}`),
     },
   ],
   ofPiece(piece) {
