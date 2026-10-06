@@ -53,8 +53,8 @@ const CONVERTED = new Set<JointType>(['butt-screw', 'pocket-screw', 'glue-nail']
 
 const thickEnough = (type: JointType, ta: number, tb: number) => ta >= (JOINTS[type].minThickness?.a ?? 0) && tb >= (JOINTS[type].minThickness?.b ?? 0)
 
-/** Nothing glued but drawers and laminated legs. An upright board going into another's edge takes the fitting; one laid over the frame, trim and a thin back are screwed in place (fabricacion-y-armado.md §8.4). */
-export function knockDown(design: Design, assembly: Assembly | undefined, catalog: Catalog): Design {
+/** Nothing glued but drawers, laminated legs and what `moduleOf` puts in the same module: a box built apart that arrives whole. An upright board going into another's edge takes the fitting; one laid over the frame, trim and a thin back are screwed in place (fabricacion-y-armado.md §8.4). */
+export function knockDown(design: Design, assembly: Assembly | undefined, catalog: Catalog, moduleOf: (piece: Piece) => string | undefined = () => undefined): Design {
   if (!assembly || assembly === 'glued') return design
   const geo = resolveGeometry(design, catalog)
   if (!geo.ok) return design
@@ -64,6 +64,7 @@ export function knockDown(design: Design, assembly: Assembly | undefined, catalo
   const apart = (u: Joint): Joint => {
     const [p, q] = [byId.get(u.a), byId.get(u.b)]
     if (!p || !q || isDrawerPart(p) || isDrawerPart(q) || !CONVERTED.has(u.type)) return u
+    if (moduleOf(p) && moduleOf(p) === moduleOf(q)) return u
     const [boxP, boxQ] = [boxes.get(p.id)!, boxes.get(q.id)!]
     const axis = contactBetween(p.id, boxP, q.id, boxQ)?.axis
     const through = [p, q].filter((x) => x.normal === axis)

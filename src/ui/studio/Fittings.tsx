@@ -34,7 +34,7 @@ export function FittingsSection({ design: applied }: { design: Design }) {
     <section className="flex flex-col gap-3">
       <Title className="text-lg">Dónde se desarma</Title>
       <p className="text-sm text-graphite-2">
-        {totals.join(' y ')} en {counted(fitted.length, 'unión', 'uniones')}. Lo demás va atornillado sin pegamento.
+        {totals.join(' y ')} en {counted(fitted.length, 'unión', 'uniones')}. Lo demás va atornillado en su lugar.
       </p>
       <button type="button" aria-pressed={isMarked(all)} onClick={() => flag(all)} className="min-h-11 self-start text-sm font-medium underline">
         {isMarked(all) ? 'Quitar la marca' : 'Ver todas en el 3D'}

@@ -20,12 +20,23 @@ const bought = (design: Design, a: ReturnType<typeof built>['a'], role: string) 
 describe('a piece knocked down', () => {
   const knockedDown = variants.filter(([, plan]) => 'assembly' in plan && plan.assembly !== 'glued')
 
-  it.each(knockedDown)('%s: valid, nothing to warn about, and glued only in its drawers and its laminated legs', (_, plan) => {
+  it.each(knockedDown)('%s: valid, nothing to warn about, and glued only in its drawers, its laminated legs and a headboard built apart', (_, plan) => {
     const { design, a } = built(plan)
     expect([...a.findings, ...a.warnings].map((f) => f.message)).toEqual([])
     const byId = new Map(design.pieces.map((p) => [p.id, p]))
     const glued = design.joints.filter((u) => u.glue && !isDrawerPart(byId.get(u.a)!) && !isDrawerPart(byId.get(u.b)!))
-    expect(glued.filter((u) => !(u.a.startsWith('leg-') && u.b.startsWith('leg-'))).map((u) => u.id)).toEqual([])
+    const builtApart = (u: (typeof glued)[number]) => byId.get(u.a)!.group === 'headboard' && byId.get(u.b)!.group === 'headboard'
+    expect(glued.filter((u) => !(u.a.startsWith('leg-') && u.b.startsWith('leg-')) && !builtApart(u)).map((u) => u.id)).toEqual([])
+  })
+
+  it('glues a headboard with shelves as a box of its own, and takes fittings only where it meets the base', () => {
+    const { design, a } = built(named('bed · queen, cabecera librero, cajones de los dos lados, desarmable con minifix'))
+    const byId = new Map(design.pieces.map((p) => [p.id, p]))
+    const inHeadboard = design.joints.filter((u) => byId.get(u.a)!.group === 'headboard' && byId.get(u.b)!.group === 'headboard')
+    expect(inHeadboard.length).toBeGreaterThan(0)
+    expect(inHeadboard.filter((u) => u.type === 'cam-lock' || !u.glue).map((u) => u.id)).toEqual([])
+    expect(joint(design, 'head-panel', 'spine')).toMatchObject({ type: 'cam-lock', glue: false })
+    expect(fittedJoints(design, a.geo).every(({ joint: u }) => byId.get(u.a)!.group !== 'headboard' || byId.get(u.b)!.group !== 'headboard')).toBe(true)
   })
 
   it('has variants of every kind that takes it', () => {

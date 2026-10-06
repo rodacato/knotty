@@ -492,7 +492,9 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...head.notes, ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
+  // A headboard with shelves is a box of its own: it is glued apart and screwed to the base from inside (fabricacion-y-armado.md §8.4).
+  const moduleOf = (p: Piece) => (l.deep && p.group === 'headboard' ? 'headboard' : undefined)
+  return { design: knockDown(done.design, plan.assembly, catalog, moduleOf), notes: [...head.notes, ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */
@@ -650,7 +652,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
     note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
   ]),
-  section('Armado', assemblyFields()),
+  section('Armado', [...assemblyFields<BedPlan>(), note('La cabecera se arma aparte, pegada, y llega como una caja: se atornilla a la base por dentro.', (p) => deepHeadboard(p) && !!p.assembly && p.assembly !== 'glued', 'assembly')]),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
