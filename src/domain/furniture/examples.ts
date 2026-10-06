@@ -3,7 +3,7 @@ import type { DesignKind } from '../design/kind'
 import type { Catalog } from '../materials/catalog'
 import type { FinishId } from '../materials/finishes'
 import { buildPlan, type FurniturePlan } from './modules/plan'
-import type { HOME_CATEGORIES, Reference } from './references'
+import type { Reference, Room } from './references'
 
 // What the person can start from: a ready design, or a plan Knotty builds (a base), so the plan sheet and the local requests work from the first click.
 
@@ -22,18 +22,14 @@ export type Example =
       version?: number
     }
 
-/** Where a base goes in the home screen's filter. */
-export type BaseCategory = (typeof HOME_CATEGORIES)[number]
-
 /** A starting point on the home screen: always a plan, so the ficha edits it without the expert. Its `code` is KC-… when it was checked against a catalog product and GN-… when it is generic (`references/`). */
-export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; category: BaseCategory; featured: boolean; code: string; version: number; inspiredBy?: string }
+export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; rooms: Room[]; code: string; version: number; inspiredBy?: string }
 
-const baseOf = (r: Reference & { home: NonNullable<Reference['home']> }): Base => ({
+const baseOf = (r: Reference): Base => ({
   id: r.id,
   code: r.code,
   version: r.version,
-  category: r.home.category,
-  featured: r.home.featured ?? false,
+  rooms: r.rooms,
   name: r.name,
   notes: r.notes,
   plan: r.plan,
@@ -42,8 +38,8 @@ const baseOf = (r: Reference & { home: NonNullable<Reference['home']> }): Base =
   ...(r.inspiredBy ? { inspiredBy: r.inspiredBy } : {}),
 })
 
-/** The references that go on the home screen, in its order; the others are not a place to start. */
-export const basesOf = (references: Reference[]): Base[] => references.flatMap((r) => (r.home ? [baseOf({ ...r, home: r.home })] : []))
+/** Every reference is a place to start, in the home screen's order. */
+export const basesOf = (references: Reference[]): Base[] => references.map(baseOf)
 
 /** The example's design, and the plan it comes from when it has one. */
 export function exampleDesign(example: Example, catalog: Catalog): { design: Design; plan: FurniturePlan | null } {

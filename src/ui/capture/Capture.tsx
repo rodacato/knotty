@@ -123,6 +123,7 @@ function Block({
 export function Capture() {
   const { images, preferences, useCases } = useServices()
   const reconstruct = useStore((s) => s.reconstruct)
+  const simulatedChosen = useStore((s) => s.simulatedChosen)
   const error = useStore((s) => s.reconstructionError)
   const failedTrace = useStore((s) => s.failedTrace)
   const openConnect = useStore((s) => s.openConnect)
@@ -144,7 +145,6 @@ export function Capture() {
   )
   const [notes, setNotes] = useState(draft?.notes ?? '')
   const [processing, setProcessing] = useState(false)
-  const [withSimulated, setWithSimulated] = useState(draft !== null)
   const picker = useRef<HTMLInputElement>(null)
   // Re-read when the settings close so the notice disappears as soon as you connect an expert.
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
@@ -152,7 +152,7 @@ export function Capture() {
   const missingKey = missing(config)
   const simulated = config.active === 'simulated'
   const connected = expertConnected(config)
-  const usable = connected || (simulated && withSimulated)
+  const usable = connected || (simulated && (simulatedChosen || draft !== null))
 
   const update = (id: string, change: Partial<TakenPhoto>) => setPhotos((all) => all.map((f) => (f.id === id ? { ...f, ...change } : f)))
 
@@ -236,11 +236,14 @@ export function Capture() {
               <p className="text-lg font-medium">Conecta tu experto para diseñar tu mueble</p>
               <p className="text-base text-graphite-2">{missingKey ?? 'Él lee tus fotos y tu descripción y arma el diseño. Las bases ya hechas no lo necesitan.'}</p>
             </div>
-            {simulated && (
-              <Button variant="ghost" className="min-h-11 self-start px-3 text-base! text-graphite-2 md:self-center" onClick={() => setWithSimulated(true)}>
-                Probar con los ejemplos simulados
+            <div className="flex flex-col gap-1 md:items-end">
+              <Button variant="primary" className="min-h-12 px-5 text-base!" onClick={() => openConnect(true)}>
+                {missingKey && <Key weight="bold" />} Conectar experto <ArrowRight weight="bold" />
               </Button>
-            )}
+              <Button variant="ghost" className="min-h-11 px-3 text-base! text-graphite-2" onClick={goHome}>
+                <ArrowLeft weight="bold" /> Ver bases
+              </Button>
+            </div>
           </div>
         )}
 

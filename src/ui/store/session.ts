@@ -13,6 +13,7 @@ import type { ChoosableJoint, JointGroupId } from '../../domain/editing/joints/c
 import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
+import { ANY, type CatalogQuery } from '../capture/catalog'
 import { debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
@@ -28,6 +29,8 @@ export interface SessionSlice {
   phase: Phase
   /** The base being adjusted before the Studio; a step of the home screen, never saved. */
   adjusting: Base | null
+  /** What the home screen is filtered by; it outlives opening a base, so coming back lands on the same list. */
+  browsing: CatalogQuery
 
   start(services: Services): void
   newDesign(): void
@@ -42,9 +45,10 @@ export interface SessionSlice {
   /** Back to the saved design, as it was. */
   leaveSandbox(): void
   startCapture(): void
+  browse(change: Partial<CatalogQuery>): void
   adjustBase(base: Base): void
   closeAdjust(): void
-  /** Leaves the capture for the home with the bases. */
+  /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
@@ -140,6 +144,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   state: null,
   phase: 'home',
   adjusting: null,
+  browsing: ANY,
 
   start(services) {
     const state = services.useCases.load()
@@ -149,7 +154,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ ...ANOTHER_DESIGN, state: null, phase: 'capture', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
   },
 
   sandboxed: false,
@@ -176,13 +181,15 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     set((s) => ({ ...ANOTHER_DESIGN, sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', mode: 'closed', draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
+  browse: (change) => set((s) => ({ browsing: { ...s.browsing, ...change } })),
+
   adjustBase: (base) => set({ adjusting: base }),
 
   closeAdjust: () => set({ adjusting: null }),
 
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
-  goHome: () => set({ phase: 'home', reconstructionError: null, draft: null }),
+  goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
 
   openState(state) {
     const { services } = get()

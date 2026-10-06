@@ -4,7 +4,9 @@ import { createBench, type ModuleCheck } from '../../application/bench/bench'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { MODULES } from '../../domain/furniture/modules/plan'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { ANY_FICHA, fichasOf, groupVariants, listFichas, type FichaQuery, type Room } from './variants'
+import type { Room } from '../../domain/furniture/references'
+import { ANY, type CatalogQuery } from '../capture/catalog'
+import { fichasOf, groupVariants, listFichas } from './variants'
 
 const bench = createBench({ llm: () => createSimulated(0), catalog: testCatalog })
 
@@ -43,13 +45,13 @@ describe('the bench drawer variant list', () => {
 
   it('finds a ficha in every room its file names', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    const sideboard = (room: Room) => fichasOf(rows, { ...ANY_FICHA, room }).some((r) => r.reference.code === 'KC-APA-01')
+    const sideboard = (room: Room) => fichasOf(rows, { ...ANY, room }).some((r) => r.reference.code === 'KC-APA-01')
     expect([sideboard('living'), sideboard('dining'), sideboard('bedroom')]).toEqual([true, true, false])
   })
 
   it('finds a ficha by its code in any form or by words of its name, within the room chosen', () => {
     const rows = listFichas(testReferences.all(), testCatalog)
-    const codes = (q: Partial<FichaQuery>) => fichasOf(rows, { ...ANY_FICHA, ...q }).map((r) => r.reference.code)
+    const codes = (q: Partial<CatalogQuery>) => fichasOf(rows, { ...ANY, ...q }).map((r) => r.reference.code)
     for (const text of ['KC-LIB-03', 'kc-lib-03', 'lib03', '  LIB-03 ']) expect(codes({ text })).toEqual(['KC-LIB-03'])
     const name = testReferences.latest('KC-APA-01')!.name
     expect(codes({ text: name.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') })).toContain('KC-APA-01')

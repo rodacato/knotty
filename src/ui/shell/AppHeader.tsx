@@ -7,11 +7,14 @@ import { useExpertStatus } from './expertStatus'
 export function AppHeader() {
   const openSettings = useStore((s) => s.openSettings)
   const openConnect = useStore((s) => s.openConnect)
+  const goHome = useStore((s) => s.goHome)
   const { connected } = useExpertStatus()
   return (
     <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-3 md:px-8 md:py-4">
-      <Emblem className="size-9 shrink-0 md:size-10" />
-      <span className="font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48]">Knotty</span>
+      <button type="button" onClick={goHome} aria-label="Knotty: ver todos los muebles" className="flex min-h-11 items-center gap-3 rounded-xl">
+        <Emblem className="size-9 shrink-0 md:size-10" />
+        <span className="font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48]">Knotty</span>
+      </button>
       <div className="flex-1" />
       <button
         type="button"

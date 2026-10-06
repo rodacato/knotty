@@ -47,7 +47,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
@@ -70,12 +70,15 @@ describe('store', () => {
     expect(s.editPiece('x', { kind: 'move', axis: 'y', delta: 10 })).toEqual({ ok: false, message: 'No hay un diseño abierto.', alternatives: [] })
   })
 
-  it('adjusting a base is a step of the home screen: it saves nothing and opening the Studio ends it', () => {
+  it('adjusting a base is a step of the home screen: it saves nothing, and going home or opening the Studio ends it', () => {
     const base = testReferences.home()[0]
     useStore.getState().adjustBase(base)
     expect(useStore.getState()).toMatchObject({ adjusting: base, phase: 'home', state: null })
     useStore.getState().closeAdjust()
     expect(useStore.getState().adjusting).toBeNull()
+    useStore.getState().adjustBase(base)
+    useStore.getState().goHome()
+    expect(useStore.getState()).toMatchObject({ adjusting: null, phase: 'home' })
     useStore.getState().adjustBase(base)
     useStore.getState().fromExample(base)
     expect(useStore.getState()).toMatchObject({ adjusting: null, phase: 'studio' })
@@ -106,7 +109,7 @@ describe('store', () => {
     expect(useStore.getState()).toMatchObject({ viewedVersion: null, preview: null, hidden: [], selection: null })
     useStore.getState().viewVersion(1)
     useStore.getState().newDesign()
-    expect(useStore.getState()).toMatchObject({ viewedVersion: null, state: null, phase: 'capture' })
+    expect(useStore.getState()).toMatchObject({ viewedVersion: null, state: null, phase: 'home' })
   })
 
   it('an expert request shows the message at once and the answer when it arrives', async () => {

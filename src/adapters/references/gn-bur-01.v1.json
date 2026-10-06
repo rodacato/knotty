@@ -2,7 +2,7 @@
   "format": 1,
   "code": "GN-BUR-01",
   "id": "nightstand",
-  "home": { "order": 13, "category": "bedroom" },
+  "home": { "order": 13 },
   "rooms": ["bedroom"],
   "name": "Buró",
   "kind": "nightstand",

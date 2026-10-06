@@ -2,9 +2,10 @@ import type { Bench, ModuleCheck } from '../../application/bench/bench'
 import { analyze } from '../../domain/checks/analysis'
 import { resolveGeometry, type Box } from '../../domain/design/resolve'
 import { exampleDesign } from '../../domain/furniture/examples'
-import type { Reference, ROOMS } from '../../domain/furniture/references'
+import type { Reference } from '../../domain/furniture/references'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Catalog } from '../../domain/materials/catalog'
+import { matches, type CatalogQuery } from '../capture/catalog'
 
 // The bench drawer's list: every variant of every module, with what Knotty finds in it.
 
@@ -58,30 +59,4 @@ export function listFichas(references: readonly Reference[], catalog: Catalog): 
   })
 }
 
-export type Room = (typeof ROOMS)[number]
-
-export const ROOM_LABELS: [Room, string][] = [
-  ['bedroom', 'Recámara'],
-  ['living', 'Sala'],
-  ['dining', 'Comedor'],
-  ['office', 'Oficina'],
-  ['kitchen', 'Cocina'],
-  ['entry', 'Entrada'],
-  ['workshop', 'Taller'],
-]
-
-export interface FichaQuery {
-  room: Room | 'all'
-  /** Words of its code or name, in any case, with or without accents or dashes: «lib14», «KC-LIB-14», «escritorio». */
-  text: string
-}
-
-export const ANY_FICHA: FichaQuery = { room: 'all', text: '' }
-
-const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-const searchable = ({ code, name }: Pick<Reference, 'code' | 'name'>) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
-
-export function fichasOf(rows: readonly FichaRow[], q: FichaQuery): FichaRow[] {
-  const words = plain(q.text).split(/\s+/).filter(Boolean)
-  return rows.filter(({ reference: r }) => (q.room === 'all' || r.rooms.includes(q.room)) && words.every((w) => searchable(r).includes(w)))
-}
+export const fichasOf = (rows: readonly FichaRow[], q: CatalogQuery): FichaRow[] => rows.filter((row) => matches(row.reference, q))

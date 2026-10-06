@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-LIB-09",
   "id": "low-bookcase-splayed-legs",
+  "home": { "order": 34 },
   "rooms": ["living","office"],
   "name": "Librero bajo de patas abiertas",
   "kind": "bookcase",

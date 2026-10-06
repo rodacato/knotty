@@ -2,7 +2,7 @@
   "format": 1,
   "code": "KC-MES-03",
   "id": "tapered-leg-dining-table",
-  "home": { "order": 3, "category": "tables", "featured": true },
+  "home": { "order": 3 },
   "rooms": ["dining"],
   "name": "Mesa de comedor de patas cónicas",
   "kind": "diningTable",

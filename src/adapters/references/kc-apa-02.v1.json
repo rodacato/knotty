@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-APA-02",
   "id": "stepped-sideboard-splayed-legs",
+  "home": { "order": 28 },
   "rooms": ["living","dining"],
   "name": "Aparador escalonado con patas abiertas",
   "kind": "sideboard",

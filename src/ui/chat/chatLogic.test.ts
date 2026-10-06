@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DesignState, Message } from '../../domain/session/state'
-import { answerGiven, applyLabel, openQuestions, recovery, suggestionsFor, SUGGESTIONS } from './chatLogic'
+import { DESIGN_KINDS } from '../../domain/design/kind'
+import { answerGiven, applyLabel, openQuestions, recovery, startingIdeas, suggestionsFor } from './chatLogic'
 
 const msg = (p: Partial<Message>): Message => ({ id: 'm', author: 'expert', text: '', date: '', questions: [], answered: false, version: null, proposal: null, error: false, failure: null, thumbnail: null, answers: [], dismissed: [], suggestions: [], solutions: [], ...p })
 const stateOf = (chat: Message[], p: Partial<DesignState> = {}) => ({ chat, tray: [], proposal: null, versions: [], ...p }) as unknown as DesignState
@@ -23,16 +24,21 @@ describe('recovery', () => {
 describe('suggestionsFor', () => {
   const reply = msg({ suggestions: ['Haz A', 'Haz B'] })
   it('offers the expert suggestions, minus what the person already asked', () => {
-    expect(suggestionsFor(stateOf([msg({ author: 'user', text: 'haz a' }), reply]), false)).toEqual(['Haz B'])
+    expect(suggestionsFor(stateOf([msg({ author: 'user', text: 'haz a' }), reply]), false, 'bed')).toEqual(['Haz B'])
   })
   it('offers none while a proposal, the tray or the expert wait', () => {
-    expect(suggestionsFor(stateOf([reply], { proposal: {} as DesignState['proposal'] }), false)).toEqual([])
-    expect(suggestionsFor(stateOf([reply], { tray: [{}] as DesignState['tray'] }), false)).toEqual([])
-    expect(suggestionsFor(stateOf([reply]), true)).toEqual([])
+    expect(suggestionsFor(stateOf([reply], { proposal: {} as DesignState['proposal'] }), false, 'bed')).toEqual([])
+    expect(suggestionsFor(stateOf([reply], { tray: [{}] as DesignState['tray'] }), false, 'bed')).toEqual([])
+    expect(suggestionsFor(stateOf([reply]), true, 'bed')).toEqual([])
   })
-  it('falls back to the starting ideas only on the first version', () => {
-    expect(suggestionsFor(stateOf([msg({})]), false)).toEqual(SUGGESTIONS)
-    expect(suggestionsFor(stateOf([msg({})], { versions: [{}, {}] as DesignState['versions'] }), false)).toEqual([])
+  it('falls back to the starting ideas of that kind of furniture, only on the first version', () => {
+    expect(suggestionsFor(stateOf([msg({})]), false, 'bed')).toEqual(startingIdeas('bed'))
+    expect(suggestionsFor(stateOf([msg({})]), false, 'bed')).not.toEqual(suggestionsFor(stateOf([msg({})]), false, 'bookcase'))
+    expect(suggestionsFor(stateOf([msg({})], { versions: [{}, {}] as DesignState['versions'] }), false, 'bed')).toEqual([])
+  })
+  it('never asks a bed or a table for shelves of books', () => {
+    const books = DESIGN_KINDS.filter((k) => startingIdeas(k).some((s) => /libros/.test(s)))
+    expect(books).toEqual(['bookcase'])
   })
 })
 

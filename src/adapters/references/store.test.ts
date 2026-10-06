@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FEATURED_MAX } from '../../domain/furniture/references'
 import { createBundledReferences, createReferenceStore } from './store'
 
 const store = createBundledReferences()
@@ -23,22 +22,10 @@ describe('reference store', () => {
     expect(store.latest('KC-ZZZ-99')).toBeNull()
   })
 
-  it('puts on the home screen only the references that have a place there, in its order', () => {
-    const home = store.home()
+  it('puts every reference on the home screen, the ones with a place there first and in its order', () => {
     const placed = store.all().filter((r) => r.home)
-    expect(home.map((b) => b.code)).toEqual(placed.map((r) => r.code))
     expect(placed.map((r) => r.home?.order)).toEqual(placed.map((_, i) => i + 1))
-  })
-
-  it('features at most one cell less than the home grid, which keeps the last for designing your own', () => {
-    const featured = store.home().filter((b) => b.featured)
-    expect(featured.length).toBeGreaterThan(0)
-    expect(featured.length).toBeLessThanOrEqual(FEATURED_MAX)
-  })
-
-  it('puts the featured ones first, so a category lists them before the others', () => {
-    const flags = store.home().map((b) => b.featured)
-    expect(flags).toEqual([...flags].sort((a, b) => Number(b) - Number(a)))
+    expect(store.home().map((b) => b.code)).toEqual([...placed, ...store.all().filter((r) => !r.home)].map((r) => r.code))
   })
 
   it('fails on a bad file instead of shipping it', () => {

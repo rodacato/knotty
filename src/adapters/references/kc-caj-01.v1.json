@@ -2,6 +2,7 @@
   "format": 1,
   "code": "KC-CAJ-01",
   "id": "two-body-dresser",
+  "home": { "order": 30 },
   "rooms": ["bedroom"],
   "name": "Cómoda de dos cuerpos",
   "kind": "drawers",

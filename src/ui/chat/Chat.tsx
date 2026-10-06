@@ -1,12 +1,14 @@
-import { ArrowClockwise, ArrowCounterClockwise, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowCounterClockwise, ArrowRight, Eye, EyeSlash, PaperPlaneRight, PencilSimple, Stop, Warning } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { named, withCandidate } from '../../application/named'
+import { kindOf } from '../../domain/furniture/kind'
 import { currentDesign, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId } from '../../domain/session/tray/tray'
 import { Button, Chip, Pencil, Stamp } from '../system/components'
 import { TextArea } from '../system/Field'
 import { useServices } from '../services'
+import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { ChangeList } from './ChangeList'
 import { useReducedMotion } from '../scene/preferences'
@@ -208,6 +210,10 @@ export function Chat({ state }: { state: DesignState }) {
   const thinking = useStore((s) => s.thinking)
   const stage = useStore((s) => s.stage)
   const cancel = useStore((s) => s.cancel)
+  const openConnect = useStore((s) => s.openConnect)
+  const simulatedChosen = useStore((s) => s.simulatedChosen)
+  const { connected } = useExpertStatus()
+  const canAsk = connected || simulatedChosen
   const [text, setText] = useState('')
   const list = useRef<HTMLDivElement>(null)
   const seconds = useSeconds(thinking)
@@ -216,7 +222,7 @@ export function Chat({ state }: { state: DesignState }) {
   const previous = state.chat.at(-2)
   const kind = recovery(last, previous)
   const recover = kind && previous ? { kind, run: kind === 'retry' ? () => void adjust(previous.text) : () => setText(previous.text) } : null
-  const suggestions = suggestionsFor(state, thinking)
+  const suggestions = suggestionsFor(state, thinking, kindOf(currentDesign(state)).kind)
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
@@ -242,7 +248,7 @@ export function Chat({ state }: { state: DesignState }) {
           </div>
         )}
       </div>
-      {suggestions.length > 0 && (
+      {canAsk && suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 px-4 pb-2" aria-label="Sugerencias">
           {suggestions.map((s) => (
             <Chip key={s} className="max-w-full py-1.5 text-left" onClick={() => void adjust(s)}>
@@ -252,37 +258,49 @@ export function Chat({ state }: { state: DesignState }) {
         </div>
       )}
       <Tray items={state.tray} typed={!!text.trim()} onSend={send} />
-      <form
-        className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
-        onSubmit={(e) => {
-          e.preventDefault()
-          send()
-        }}
-      >
-        <TextArea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              send()
-            }
+      {canAsk ? (
+        <form
+          className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
+          onSubmit={(e) => {
+            e.preventDefault()
+            send()
           }}
-          rows={1}
-          placeholder="Pide un cambio: «refuerza la base»…"
-          aria-label="Mensaje para el experto"
-          className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
-        />
-        {thinking ? (
-          <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">
-            <Stop weight="fill" />
+        >
+          <TextArea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                send()
+              }
+            }}
+            rows={1}
+            placeholder="Pide un cambio: «refuerza la base»…"
+            aria-label="Mensaje para el experto"
+            className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
+          />
+          {thinking ? (
+            <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">
+              <Stop weight="fill" />
+            </Button>
+          ) : (
+            <Button type="submit" variant="primary" className="size-11 shrink-0 rounded-full p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
+              <PaperPlaneRight weight="fill" />
+            </Button>
+          )}
+        </form>
+      ) : (
+        <div className="flex flex-col gap-3 border-t border-line bg-kraft p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" role="note">
+          <div className="flex flex-col gap-1">
+            <p className="text-base font-medium">Conecta tu experto para pedirle cambios</p>
+            <p className="text-sm text-graphite-2">Sin él, cambia las medidas y las opciones con «Editar», arriba del mueble.</p>
+          </div>
+          <Button variant="primary" className="min-h-11 self-start px-5" onClick={() => openConnect(true)}>
+            Conectar experto <ArrowRight weight="bold" />
           </Button>
-        ) : (
-          <Button type="submit" variant="primary" className="size-11 shrink-0 rounded-full p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
-            <PaperPlaneRight weight="fill" />
-          </Button>
-        )}
-      </form>
+        </div>
+      )}
     </div>
   )
 }

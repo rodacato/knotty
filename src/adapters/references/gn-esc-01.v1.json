@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-ESC-01",
   "id": "standing-desk",
+  "home": { "order": 25 },
   "rooms": ["office"],
   "name": "Escritorio de pie",
   "kind": "workbench",

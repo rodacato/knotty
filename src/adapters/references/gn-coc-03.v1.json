@@ -2,6 +2,7 @@
   "format": 1,
   "code": "GN-COC-03",
   "id": "microwave-cabinet",
+  "home": { "order": 24 },
   "rooms": ["kitchen"],
   "name": "Mueble para microondas",
   "kind": "cabinet",

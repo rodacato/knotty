@@ -6,13 +6,9 @@ import { Expect } from './probe'
 
 // The ficha of a piece of furniture of reference, as a file: <code>.v<version>.json, the version in the name as the prompts' is (kc-apa-01.v2.json replaces kc-apa-01.v1.json). The files live in adapters/references/.
 
-export const HOME_CATEGORIES = ['bedroom', 'storage', 'tables', 'seating'] as const
-
-/** The rooms a piece goes in: the lab finds fichas by them, and a piece can go in more than one (a sideboard in the living and the dining room). */
+/** The rooms a piece goes in: the home screen and the lab find it by them, and a piece can go in more than one (a sideboard in the living and the dining room). */
 export const ROOMS = ['bedroom', 'living', 'dining', 'office', 'kitchen', 'entry', 'workshop'] as const
-
-/** The home grid has twelve cells and one is the door to designing your own, so at most this many bases are featured. */
-export const FEATURED_MAX = 11
+export type Room = (typeof ROOMS)[number]
 
 /** What the piece has, from a closed list, whether or not the plan can draw it. `gaps` uses the same words for what the plan cannot draw, so counting the gaps across pieces is counting words. A new one is added here on purpose. */
 const FEATURES = [
@@ -32,8 +28,8 @@ export const ReferenceFile = z
     format: z.literal(1),
     code: z.string().regex(CODE),
     id: z.string().min(1),
-    /** Where it goes on the home screen: in its category, and in the featured ones when `featured`. A reference without it is still a reference (probe, bench) and does not start a design. */
-    home: z.object({ order: z.number().int().positive(), category: z.enum(HOME_CATEGORIES), featured: z.boolean().optional() }).optional(),
+    /** Its place among the first of the home screen, for a reference that passes what the tests ask of a base; the others come after, by code. */
+    home: z.object({ order: z.number().int().positive() }).strict().optional(),
     rooms: z.array(z.enum(ROOMS)).min(1),
     name: z.string().min(1),
     kind: DesignKind.optional(),
@@ -61,7 +57,7 @@ export type Reference = z.infer<typeof ReferenceFile> & { version: number }
 
 const FILE_NAME = /(?:^|\/)([a-z]+-[a-z]+-\d{2})\.v(\d+)\.json$/
 
-/** The references of a set of files: the ones on the home screen first, in its order, then the rest by code. Fails on the first file that is not one, so a bad ficha never reaches the screen. */
+/** The references of a set of files: the ones with a place on the home screen first, in its order, then the rest by code. Fails on the first file that is not one, so a bad ficha never reaches the screen. */
 export function loadReferences(files: Record<string, unknown>): Reference[] {
   const references = Object.entries(files).map(([path, raw]) => {
     const name = FILE_NAME.exec(path)
