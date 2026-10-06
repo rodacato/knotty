@@ -148,6 +148,15 @@ describe('store', () => {
     expect(useStore.getState().view.name).toBe('top')
   })
 
+  it('hiding the piece that opened a part keeps the part open and forgets the piece, and leaves another part\'s piece alone', () => {
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    useStore.getState().selectPart('body', 'top')
+    useStore.getState().hide('back')
+    expect(useStore.getState().part).toEqual({ id: 'body', piece: 'top' })
+    useStore.getState().hide('top')
+    expect(useStore.getState().part).toEqual({ id: 'body', piece: null })
+  })
+
   it('hides a piece without touching the design, and shows them all again', () => {
     useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
     const before = useStore.getState().state
