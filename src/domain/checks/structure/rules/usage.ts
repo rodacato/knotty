@@ -19,7 +19,7 @@ export const antiTipData = (catalog: Catalog): Record<string, string> => {
 }
 
 /** Furniture that is not for storing things: lain, sat or worked on (its drawers are low in a long or wide piece), or hung from the wall (its own check). */
-const NOT_STORAGE: readonly DesignKind[] = ['bed', 'bench', 'desk', 'workbench', 'table', 'diningTable', 'coffeeTable', 'sideTable', 'wallCabinet']
+const NOT_STORAGE: readonly DesignKind[] = ['bed', 'bench', 'desk', 'workbench', 'benchtop', 'table', 'diningTable', 'coffeeTable', 'sideTable', 'wallCabinet']
 
 /** What the furniture stands on: every piece touching the floor, and whether legs are among them (posts, not a panel or a kick). */
 export function standing(design: Design, geo: Geometry): { boxes: { id: string; box: Box }[]; onLegs: boolean } {

@@ -25,21 +25,16 @@ export type Example =
 /** A starting point on the home screen: always a plan, so the ficha edits it without the expert. Its `code` is KC-… when it was checked against a catalog product and GN-… when it is generic (`references/`). */
 export type Base = Extract<Example, { plan: FurniturePlan }> & { id: string; rooms: Room[]; code: string; version: number; inspiredBy?: string }
 
-const baseOf = (r: Reference): Base => ({
-  id: r.id,
-  code: r.code,
-  version: r.version,
-  rooms: r.rooms,
-  name: r.name,
-  notes: r.notes,
-  plan: r.plan,
-  ...(r.kind ? { kind: r.kind } : {}),
-  ...(r.finish ? { finish: r.finish } : {}),
-  ...(r.inspiredBy ? { inspiredBy: r.inspiredBy } : {}),
-})
+/** A reference as something to open: its plan with what the ficha says of it, or its own design under the ficha's name, notes, kind and finish. */
+export function exampleOf(r: Reference): Example {
+  const said = { ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}) }
+  if (r.plan) return { name: r.name, plan: r.plan, notes: r.notes, code: r.code, version: r.version, ...said }
+  return { name: r.name, design: { ...r.design!, name: r.name, notes: r.notes, ...said } }
+}
 
-/** Every reference is a place to start, in the home screen's order. */
-export const basesOf = (references: Reference[]): Base[] => references.map(baseOf)
+/** The references with a plan are the places to start, in the home screen's order; one that is a design opens from the lab only. */
+export const basesOf = (references: Reference[]): Base[] =>
+  references.flatMap((r) => (r.plan ? [{ id: r.id, code: r.code, version: r.version, rooms: r.rooms, name: r.name, notes: r.notes, plan: r.plan, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}), ...(r.inspiredBy ? { inspiredBy: r.inspiredBy } : {}) }] : []))
 
 /** The example's design, and the plan it comes from when it has one. */
 export function exampleDesign(example: Example, catalog: Catalog): { design: Design; plan: FurniturePlan | null } {

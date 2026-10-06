@@ -13,6 +13,7 @@ Vive en `src/adapters/references/<código>.v<N>.json` (por ejemplo `kc-apa-01.v1
 | `rooms` | Los cuartos donde va, uno o varios de `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` y `workshop` (`ROOMS` en `src/domain/furniture/references.ts`). Obligatorio: así el lab la encuentra por cuarto sin que nadie toque código, y una ficha sin cuarto no se adopta. La portada no los usa; ella tiene `home` |
 | `kind`, `finish` | Opcionales: qué mueble es (`DesignKind`, `src/domain/design/kind.ts`) y su acabado (`src/domain/materials/finishes.ts`). Un gabinete no dice por sí mismo si es aparador o librero |
 | `plan` | La ficha que entiende el motor (`FurniturePlan`): medidas, base, construcción, columnas y celdas |
+| `design` | En lugar de `plan`, para un mueble que ningún módulo construye: el diseño completo, pieza por pieza (`Design`). Lleva uno de los dos, nunca ambos. Se abre desde «Fichas» en el lab y `probe` la revisa igual; no sale en la pantalla de inicio ni tiene campos que editar, porque no hay plan: se cambia pieza por pieza o con el experto |
 | `home` | Opcional. Con él es una tarjeta de la pantalla de inicio: `order`, `category` y, si es `featured`, también en «Destacados» (hasta 11, para que la última celda sea «Diseña tu propio mueble»). Sin él sigue siendo referencia para las pruebas. Una base del inicio tiene el mismo nombre en la ficha y en su `plan`, y no hay dos con el mismo nombre; los destacados van primero en `order` |
 | `expect` | Lo que el motor hace del plan: válido, piezas, avisos, hojas y herrajes. Lo escribe `probe`; una candidata no lo trae |
 | `support`, `difficulty`, `features`, `adaptations`, `gaps` | Una `KC-…` los dice todos: cómo se soporta (`exact`, `adapted`, `unsupported`), la dificultad de 1 a 4, qué rasgos tiene y cuáles no puede dibujar Knotty (etiquetas de la lista cerrada `FEATURES`) y qué se adaptó (texto) |
@@ -65,7 +66,7 @@ El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `
    - Una celda puede llevar **trasera propia o ninguna**: `"back": true` o `false`, contra lo que dice `construction.back` (las traseras en damero, un nicho abierto al muro). Va solo en una celda con algo, no en un vacío ni en una dividida, y cada tramo seguido de celdas con trasera es una tabla. El experto tampoco la escribe.
    - En una base con patas, `dimensions.height` incluye las patas.
    - Un mueble alto con cajones se ancla al muro (`wallMounted: true`), y uno con puertas también cuando es ancho y poco profundo; si no, `--diff` lo marca con un aviso crítico de vuelco (`R4_TIPPING`).
-2. **Elegir el módulo** (`src/domain/furniture/modules/`: gabinete, cama, mesa, zapatera). Si ninguno cabe, ya sabes que hay soporte por agregar (sección 2).
+2. **Elegir el módulo** (`src/domain/furniture/modules/`: gabinete, cama, mesa, zapatera). Si ninguno cabe, ya sabes que hay soporte por agregar (sección 2); y si es un mueble único que no justifica un módulo (el banco de sobremesa `GN-TAL-02`), la candidata lleva `design` en lugar de `plan`.
 3. **Escribir la candidata.** Un archivo JSON con el `plan` y, para una referencia nueva, lo demás que dice una ficha. El experto de la app también puede proponer el plan a partir de fotos y una descripción; el resultado es un borrador que una persona revisa, no una ficha.
 
    ```json

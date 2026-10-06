@@ -39,7 +39,7 @@ describe('space', () => {
   it('rejects text and values out of range, in cm', () => {
     expect(spaceError('width', '19')).toBe('Entre 20 y 240 cm')
     expect(spaceError('depth', '241')).toBe('Entre 15 y 240 cm')
-    expect(spaceError('height', 'abc')).toBe('Entre 20 y 240 cm')
+    expect(spaceError('height', 'abc')).toBe('Entre 10 y 240 cm')
     expect(spaceError('width', '-5')).not.toBeNull()
     expect(spaceIsValid({ width: '90', depth: '4000', height: '' })).toBe(false)
   })

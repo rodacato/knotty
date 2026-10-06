@@ -7,10 +7,12 @@ import { cite, STRUCTURE, type Source } from '../sources'
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
 // Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
 
-/** What a board is for: the carcass (sides, shelves, tops, fronts) or the back and drawer bottoms. What it is goes in `grade`. */
-export const BOARD_USES = ['carcass', 'back'] as const
+/** What a board is for: the carcass (sides, shelves, tops, fronts), the back and drawer bottoms, or a surface, which only a piece that names it uses. What it is goes in `grade`. */
+export const BOARD_USES = ['carcass', 'back', 'surface'] as const
 export const BoardUse = z.enum(BOARD_USES)
 export type BoardUse = z.infer<typeof BoardUse>
+/** The uses the modules build with: a catalog without one of them builds nothing. */
+const NEEDED_USES: readonly BoardUse[] = ['carcass', 'back']
 
 /** A catalog cached before `type` was split in `use` and `grade`: every board then was pine plywood. */
 const LEGACY_USE: Record<string, BoardUse> = { plywood: 'carcass', back: 'back' }
@@ -87,7 +89,7 @@ export const Catalog = z
     layout: LayoutSettings,
     priceNote: z.string().nullable().default(null),
   })
-  .refine((c) => BOARD_USES.every((use) => c.materials.some((m) => m.use === use)), { message: 'The catalog needs at least one board of each use', path: ['materials'] })
+  .refine((c) => NEEDED_USES.every((use) => c.materials.some((m) => m.use === use)), { message: 'The catalog needs at least one board for the carcass and one for the back', path: ['materials'] })
 export type Catalog = z.infer<typeof Catalog>
 
 export const materialById = (catalog: Catalog, id: string) => catalog.materials.find((m) => m.id === id)

@@ -64,6 +64,19 @@
       },
       "sku": null,
       "price": 480
+    },
+    {
+      "id": "MDF18",
+      "name": "MDF 18 mm",
+      "use": "surface",
+      "grade": "mdf",
+      "thickness": 18,
+      "sheet": {
+        "length": 2440,
+        "width": 1220
+      },
+      "sku": null,
+      "price": 615
     }
   ],
   "hardware": [

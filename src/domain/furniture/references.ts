@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { DesignKind } from '../design/kind'
+import { Design } from '../design/schema'
 import { FinishId } from '../materials/finishes'
 import { FurniturePlan } from './modules/plan'
 import { Expect } from './probe'
@@ -38,7 +39,9 @@ export const ReferenceFile = z
     inspiredBy: z.string().regex(/^KC-[A-Z]+-\d{2}$/).optional(),
     /** What it is, for the person. */
     notes: z.string().min(1),
-    plan: FurniturePlan,
+    /** What the engine builds it from: the plan of a module, or, for a piece no module builds, the design itself, piece by piece. One of the two. */
+    plan: FurniturePlan.optional(),
+    design: Design.optional(),
     /** How hard it is to build, 1 to 4 (docs/carpinteria/muebles-y-medidas.md §1). */
     difficulty: z.number().int().min(1).max(4).optional(),
     support: z.enum(SUPPORT).optional(),
@@ -50,6 +53,7 @@ export const ReferenceFile = z
     expect: Expect,
   })
   .strict()
+  .refine((r) => !!r.plan !== !!r.design, { message: 'a reference has a plan or a design, one of the two' })
   .refine((r) => !r.code.startsWith('KC-') || (r.support && r.difficulty && r.features && r.adaptations && r.gaps), { message: 'a KC reference says its support, difficulty, features, adaptations and gaps' })
   .refine((r) => (r.gaps ?? []).every((g) => r.features?.includes(g)), { message: 'a gap is a feature the plan cannot draw: every gap is also in features', path: ['gaps'] })
 

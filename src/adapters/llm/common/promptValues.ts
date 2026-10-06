@@ -73,7 +73,7 @@ const DOMAIN = {
 } satisfies Record<string, PromptValue>
 
 /** The word the materials list has always shown for each use: changing it changes what the expert reads (a new prompt version). */
-const USE_WORD: Record<BoardUse, string> = { carcass: 'plywood', back: 'back' }
+const USE_WORD: Record<BoardUse, string> = { carcass: 'plywood', back: 'back', surface: 'surface' }
 
 function describeCatalog(c: Catalog) {
   return [

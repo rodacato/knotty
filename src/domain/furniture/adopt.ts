@@ -2,7 +2,7 @@ import type { Catalog } from '../materials/catalog'
 import { differences, probe, type Expect } from './probe'
 import { ReferenceFile } from './references'
 
-// Turning a candidate (a plan, or a ficha without `expect`) into the next version of a reference, or into a new one. Pure: the files are read and written by the caller.
+// Turning a candidate (a plan, or a ficha without `expect`, with its plan or its design) into the next version of a reference, or into a new one. Pure: the files are read and written by the caller.
 
 type Raw = Record<string, unknown>
 
@@ -34,11 +34,11 @@ export type Adoption =
     }
 
 /**
- * A candidate is a ficha (has `plan`) or just a plan. Over an existing reference it inherits what it does not say and becomes the next version if
+ * A candidate is a ficha (has `plan` or `design`) or just a plan. Over an existing reference it inherits what it does not say and becomes the next version if
  * anything changed; a new one has to say all a ficha says. A candidate the engine cannot build is refused: it would be a reference that shows nothing.
  */
 export function prepareAdoption(current: { file: Raw; version: number } | null, candidate: Raw, code: string, catalog: Catalog): Adoption {
-  const draft = 'plan' in candidate ? candidate : { plan: candidate }
+  const draft = 'plan' in candidate || 'design' in candidate ? candidate : { plan: candidate }
   const merged: Raw = { ...(current ? withoutExpect(current.file) : { format: 1 }), ...withoutExpect(draft), code }
   const parsed = ReferenceFile.safeParse({ ...merged, expect: NO_EXPECT })
   if (!parsed.success) return { ok: false, reasons: parsed.error.issues.map((i) => `${i.path.join('.') || '(file)'}: ${i.message}`) }

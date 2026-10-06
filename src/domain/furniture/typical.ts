@@ -3,7 +3,7 @@ import type { Dimensions } from '../design/schema'
 import { TYPICAL_TABLE_DIMENSIONS } from './modules/table'
 
 // Where a design starts when the person adds measures: the usual size of that kind of furniture.
-// From docs/carpinteria/muebles-y-medidas.md where it gives one; cabinet, shoe rack, drawers, sideboard, TV stand and bench are workshop estimates.
+// From docs/carpinteria/muebles-y-medidas.md where it gives one; cabinet, shoe rack, drawers, sideboard, TV stand, benchtop and bench are workshop estimates.
 
 export const TYPICAL_DIMENSIONS: Record<DesignKind, Dimensions> = {
   cabinet: { width: 600, height: 800, depth: 580 },
@@ -23,11 +23,12 @@ export const TYPICAL_DIMENSIONS: Record<DesignKind, Dimensions> = {
   coffeeTable: TYPICAL_TABLE_DIMENSIONS.coffee,
   sideTable: TYPICAL_TABLE_DIMENSIONS.side,
   workbench: TYPICAL_TABLE_DIMENSIONS.standing,
+  benchtop: { width: 1050, height: 136, depth: 500 },
   bench: { width: 1200, height: 450, depth: 350 },
 }
 
 /** What Capture accepts for each measure, in mm; a bed is the deepest furniture Knotty builds. */
-export const MEASURE_RANGE: Record<keyof Dimensions, readonly [number, number]> = { height: [200, 2400], width: [200, 2400], depth: [150, 2400] }
+export const MEASURE_RANGE: Record<keyof Dimensions, readonly [number, number]> = { height: [100, 2400], width: [200, 2400], depth: [150, 2400] }
 
 /** Where measures start when the kind is not chosen yet: the size Capture always started from. */
 export const DEFAULT_DIMENSIONS: Dimensions = { width: 600, height: 1800, depth: 300 }
