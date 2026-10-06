@@ -5,7 +5,7 @@ import { BedPlan, bedModule } from './bed'
 import { CabinetPlan, cabinetModule } from './cabinet'
 import type { FurnitureModule } from './module'
 import { ShoeRackPlan, shoeRackModule } from './shoeRack'
-import { TablePlan, tableModule } from './table'
+import { TablePlan, tableModule, settleTable } from './table'
 
 // The ficha of any piece of furniture Knotty builds by itself, and the module that knows each kind.
 
@@ -21,6 +21,9 @@ export const MODULES: { [K in FurnitureKind]: FurnitureModule<PlanOf<K>> } = { b
 export const FurniturePlan = PlanByKind.superRefine((plan, ctx) => {
   for (const rule of moduleOf(plan).rules ?? []) if (!rule.holds(plan)) ctx.addIssue({ code: 'custom', message: rule.message, path: rule.path })
 })
+
+/** A saved plan as what was built from it, for the ones saved before a module set rules between its fields; the same plan when nothing needs settling. */
+export const settlePlan = (plan: FurniturePlan): FurniturePlan => (plan.kind === 'table' ? settleTable(plan) : plan)
 
 /** The module that builds each kind of furniture; null when Knotty has no ficha for it and the expert designs it piece by piece. */
 export const MODULE_OF_KIND: Record<DesignKind, FurnitureKind | null> = {

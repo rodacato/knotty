@@ -6,6 +6,7 @@ import { GEOMETRY_SOURCES } from './design/validation/geometry'
 import { VIABILITY_SOURCES } from './checks/viability/viability'
 import { ASSEMBLY_SOURCES } from './furniture/modules/assembly'
 import { MODULE_SOURCES } from './furniture/modules/common'
+import { TABLE_SOURCES } from './furniture/modules/table'
 import { SLIDE_SOURCES } from './materials/catalog'
 import { DOOR_SOURCES } from './design/doors'
 import { SCREW_RULE_SOURCES } from './checks/structure/rules/screws'
@@ -18,6 +19,7 @@ const FILES: Record<string, Record<string, string>> = {
   'src/domain/design/validation/geometry.ts': GEOMETRY_SOURCES,
   'src/domain/checks/viability/viability.ts': VIABILITY_SOURCES,
   'src/domain/furniture/modules/common.ts': MODULE_SOURCES,
+  'src/domain/furniture/modules/table.ts': TABLE_SOURCES,
   'src/domain/furniture/modules/assembly.ts': ASSEMBLY_SOURCES,
   'src/domain/materials/catalog.ts': SLIDE_SOURCES,
   'src/domain/design/doors.ts': DOOR_SOURCES,

@@ -3,7 +3,7 @@ import type { Design, Dimensions } from '../../domain/design/schema'
 import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
 import { exampleDesign, type Example } from '../../domain/furniture/examples'
-import { buildPlan, MODULE_OF_KIND, moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
+import { buildPlan, MODULE_OF_KIND, moduleOf, FurniturePlan } from '../../domain/furniture/modules/plan'
 import { mergeReadings, photoKey, viewLabel, type PhotoReading } from '../../domain/furniture/reading/reading'
 import { spaceOverflow } from '../../domain/furniture/quick'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
@@ -125,7 +125,12 @@ export function createReconstruct(kit: Kit) {
       }
       onProgress('checking', n)
       const offered = input.kind ? planForKind(found, input.kind) : found
-      const furniture = input.measures ? moduleOf(offered).withMeasures(offered, input.measures) : offered
+      const parsed = FurniturePlan.safeParse(input.measures ? moduleOf(offered).withMeasures(offered, input.measures) : offered)
+      if (!parsed.success) {
+        trace.push(traceEntry('plan', answered, started, plan, 'invalid', traceErrors(parsed.error.issues.map((issue) => error('E_SCHEMA', issue.message, { path: issue.path })))))
+        return null
+      }
+      const furniture = parsed.data
       const { design: built, notes } = buildPlan(furniture, catalog)
       const { design, repairs } = repairDesign(built, catalog, plan.value.requirements)
       const analysis = analyze(design, catalog, plan.value.requirements)

@@ -114,6 +114,12 @@ const planAdjustment = <P extends z.ZodRawShape>(fields: string, plans: P) =>
     requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
     decisions: z.array(Decision),
   })
+    .superRefine((response, ctx) => {
+      const data = response as Record<string, unknown>
+      const present = Object.keys(plans).filter((kind) => data[kind] != null)
+      if (data.action === 'plan' && present.length !== 1) ctx.addIssue({ code: 'custom', path: ['action'], message: 'action "plan" requires exactly one complete plan.' })
+      if (data.action !== 'plan') for (const kind of present) ctx.addIssue({ code: 'custom', path: [kind], message: `action "${data.action}" requires a null plan.` })
+    })
 
 /** A change asked in the chat on a design that has a plan: the new plan, or why it does not fit in one. What the app reads, with every module's field. */
 export const PlanAdjustment = planAdjustment(planFieldList(), planFields(adjustedPlan))

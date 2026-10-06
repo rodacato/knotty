@@ -20,6 +20,8 @@ export interface Judging {
   /** The expert's operations tried on `design`; null when it brought none. */
   candidate: Candidate | null
   response: Pick<AdjustmentResponse, 'questions' | 'acceptedRisks'>
+  /** Requirements the person already had that the change drops or rewrites, by their text. */
+  changedRequirements?: string[]
   request: string
   catalog: Catalog
   /**
@@ -39,13 +41,13 @@ export type Verdict =
   | { kind: 'retry'; reason: 'invalid'; errors: DesignError[] }
   /** Valid, but with new critical findings: on a path with an extra round, the expert gets one more look at them before the person does. */
   | { kind: 'retry'; reason: 'criticals'; criticals: Finding[] }
-  /** Valid, but it waits for the person: `holds` (unasked removals, open questions) or `critical` findings. */
+  /** Valid, but it waits for the person: `holds` (unasked removals, open questions, a changed requirement) or `critical` findings. */
   | { kind: 'pending'; candidate: Accepted; holds: string[]; critical: Finding[] }
   /** A new version; `unresolved` are errors the design already had and still has. */
   | { kind: 'applied'; candidate: Accepted; unresolved: DesignError[] }
 
 /** What becomes of an expert's change: pure, so every way it can go is tested on its own. */
-export function judge({ design, before, candidate, response, request, catalog, extraRound, criticalsReviewed }: Judging): Verdict {
+export function judge({ design, before, candidate, response, changedRequirements = [], request, catalog, extraRound, criticalsReviewed }: Judging): Verdict {
   if (!candidate) return { kind: 'answer' }
   if (!candidate.ok) return { kind: 'retry', reason: 'invalid', errors: candidate.errors }
   const { design: next, analysis } = candidate
@@ -53,6 +55,7 @@ export function judge({ design, before, candidate, response, request, catalog, e
   const holds = [
     ...(unasked.length && !ASKS_REMOVAL.test(request) ? [holdText.removesStructure(unasked.map((c) => c.name))] : []),
     ...(response.questions.length ? [holdText.askedQuestions] : []),
+    ...(changedRequirements.length ? [holdText.changesRequirements(changedRequirements)] : []),
   ]
   if (holds.length) return { kind: 'pending', candidate, holds, critical: [] }
   const accepted = new Set(response.acceptedRisks.map((a) => a.code))

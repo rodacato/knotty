@@ -4,6 +4,7 @@ import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { buildTable, TablePlan } from './table'
+import { FurniturePlan } from './plan'
 
 const table = (p: Partial<TablePlan> = {}): TablePlan => ({
   kind: 'table',
@@ -30,6 +31,35 @@ const CASES: [string, Partial<TablePlan>][] = [
     (['left', 'right'] as const).map((side): [string, Partial<TablePlan>] => [`desk ${side} ${drawers}`, { use: 'desk', name: 'Escritorio con cajonera', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side, drawers } }]),
   ),
 ]
+
+describe('table option consistency', () => {
+  it.each(['dining', 'coffee', 'side', 'standing'] as const)('%s cannot silently keep a desk pedestal', (use) => {
+    const parsed = FurniturePlan.safeParse(table({ use, pedestal: { side: 'left', drawers: 2 } }))
+    expect(parsed.success).toBe(false)
+    expect(parsed.error?.issues).toContainEqual(expect.objectContaining({ path: ['pedestal'], message: expect.stringContaining('Solo un escritorio') }))
+  })
+
+  it.each([
+    { side: 'none', drawers: 1 },
+    { side: 'left', drawers: 0 },
+    { side: 'right', drawers: 0 },
+    { side: 'left', drawers: 5 },
+  ] as const)('rejects a pedestal with $side and $drawers drawers', (pedestal) => {
+    expect(FurniturePlan.safeParse(table({ use: 'desk', pedestal })).success).toBe(false)
+  })
+
+  it.each([1, 4])('accepts and builds a desk pedestal with %i drawers', (drawers) => {
+    const parsed = FurniturePlan.parse(table({ use: 'desk', pedestal: { side: 'left', drawers }, dimensions: { width: 1300, height: 750, depth: 600 } }))
+    expect(parsed.kind).toBe('table')
+    const { design } = buildTable(parsed as TablePlan, testCatalog)
+    expect(design.pieces.filter((p) => p.role === 'drawer-front')).toHaveLength(drawers)
+  })
+
+  it('rejects the low shelf on a desk, but accepts it on a coffee table', () => {
+    expect(FurniturePlan.safeParse(table({ use: 'desk', shelf: true })).error?.issues).toContainEqual(expect.objectContaining({ path: ['shelf'] }))
+    expect(FurniturePlan.safeParse(table({ use: 'coffee', shelf: true })).success).toBe(true)
+  })
+})
 
 describe('buildTable', () => {
   it.each(CASES)('%s: valid, with nothing to warn about', (_, p) => {

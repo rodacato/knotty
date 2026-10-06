@@ -1,5 +1,7 @@
 import { analyze } from '../domain/checks/analysis'
 import { roundTo } from '../domain/design/resolve'
+import { DIMENSION_OF_AXIS } from '../domain/design/schema'
+import { requirementChanges, type Requirement } from '../domain/checks/requirements/requirements'
 import { compactLog } from '../domain/session/history/history'
 import type { Catalog } from '../domain/materials/catalog'
 import { FINISHES, type FinishId } from '../domain/materials/finishes'
@@ -23,13 +25,23 @@ export function describeAlternatives(h: Finding) {
 const finishLine = (finish: FinishId | undefined) =>
   finish && finish !== 'none' ? [`Finish the person chose (Knotty keeps it and buys it): ${FINISHES[finish].name}.`] : []
 
-const requirementLines = (state: DesignState) => ['', "## The person's requirements", ...(state.requirements.length ? state.requirements.map((r) => `- [${r.id}] ${r.text}`) : ['None yet.'])]
+/** The limits Knotty checks a space requirement with, so the expert reads the same numbers the validation does. */
+function limits(r: Requirement): string {
+  if (r.type !== 'space' || !r.axis) return ''
+  const bounds = [r.min !== null ? `at least ${r.min} mm` : null, r.max !== null ? `at most ${r.max} mm` : null].filter(Boolean)
+  return bounds.length ? ` (space: ${DIMENSION_OF_AXIS[r.axis]} ${bounds.join(', ')})` : ''
+}
+
+const requirementLine = (r: Requirement) => `- [${r.id}] ${r.text}${limits(r)}`
+
+const requirementLines = (state: DesignState) => ['', "## The person's requirements", ...(state.requirements.length ? state.requirements.map(requirementLine) : ['None yet.'])]
 
 /** The pending proposal; a change through the plan brings no operations, it is the whole plan. `operations: false` leaves the piece operations out. */
 function proposalLines(state: DesignState, operations: boolean): string[] {
   const p = state.proposal
   if (!p) return []
   const throughPlan = p.plan && !p.operations.length
+  const brought = [...requirementChanges(state.requirements, { add: p.requirements, remove: [] }).added.map(requirementLine), ...p.decisions.map((d) => `- Decision ${d.topic}: ${d.text}`)]
   return [
     '',
     '## Pending proposal (not applied)',
@@ -40,6 +52,7 @@ function proposalLines(state: DesignState, operations: boolean): string[] {
       : operations
         ? "If the person picks an option, answer with the complete operations on the current design: the proposal's plus the fix."
         : 'It changes pieces, not the plan: if the person picks an option the plan can say, answer with the complete plan with it.',
+    ...(brought.length ? ['It also brings these, which Knotty keeps with it; do not repeat them:', ...brought] : []),
   ]
 }
 
