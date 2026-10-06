@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { Design } from '../../domain/design/schema'
@@ -138,6 +138,30 @@ function DimensionsToggle() {
     >
       <Ruler weight="bold" />
     </button>
+  )
+}
+
+const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border border-line bg-bone/90 px-4 text-sm text-graphite shadow-sm backdrop-blur transition hover:bg-kraft'
+
+/** Hiding the chosen piece, and the way back while any is hidden: over the measures switch, in sight whatever the panel shows. */
+function PieceVisibility({ design, hidden }: { design: Design; hidden: number }) {
+  const chosen = useStore((s) => s.selection ?? s.part?.piece ?? null)
+  const hide = useStore((s) => s.hide)
+  const showAll = useStore((s) => s.showAll)
+  const piece = design.pieces.find((p) => p.id === chosen)
+  return (
+    <>
+      {hidden > 0 && (
+        <button type="button" onClick={showAll} className={SCENE_TOOL}>
+          <Eye weight="bold" /> Mostrar todo <span className="numerals text-graphite-2">{hidden}</span>
+        </button>
+      )}
+      {piece && (
+        <button type="button" onClick={() => hide(piece.id)} aria-label={`Ocultar ${piece.name.toLowerCase()}`} className={SCENE_TOOL}>
+          <EyeSlash weight="bold" /> Ocultar
+        </button>
+      )}
+    </>
   )
 }
 
@@ -312,7 +336,8 @@ export function Studio({ state }: { state: DesignState }) {
       </div>
       {editingSide && <LeaveEditing />}
       {geo && (
-        <div className="pointer-events-none absolute right-3 bottom-3 z-10 md:right-4 md:bottom-4">
+        <div className="pointer-events-none absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2 md:right-4 md:bottom-4">
+          <PieceVisibility design={shown} hidden={view.hidden.length} />
           <DimensionsToggle />
         </div>
       )}

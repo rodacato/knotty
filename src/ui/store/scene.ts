@@ -126,7 +126,7 @@ export const createScene: Slice<SceneSlice> = (set, get) => ({
       return { selection, focus: selection }
     }),
   unfocus: () => set({ focus: null }),
-  hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection })),
+  hide: (id) => set((s) => ({ hidden: s.hidden.includes(id) ? s.hidden : [...s.hidden, id], selection: s.selection === id ? null : s.selection, part: s.part?.piece === id ? { ...s.part, piece: null } : s.part })),
   showAll: () => set({ hidden: [] }),
   flag: (ids) => set((s) => ({ flagged: ids.length === s.flagged.length && ids.every((id) => s.flagged.includes(id)) ? [] : ids })),
   // Apart or open, the furniture reads best from the front three-quarter view.

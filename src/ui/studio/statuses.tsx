@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowsOut, CheckCircle, ClockCounterClockwise, Crosshair, Eye, EyeSlash, Flask, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsOut, CheckCircle, ClockCounterClockwise, Crosshair, Eye, Flask, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import type { DesignState } from '../../domain/session/state'
 import { STAGES } from '../chat/Chat'
@@ -34,7 +34,7 @@ interface Around {
   onProposal: () => void
 }
 
-/** Every status over the 3D, in order: the chip shows the first. What changes what you are looking at comes first (an old version, the expert at work, a focused piece, hidden ones, a proposal or preview); then problems, pieces to confirm, what the last change resolved. */
+/** Every status over the 3D, in order: the chip shows the first. What changes what you are looking at comes first (an old version, the expert at work, a focused piece, a proposal or preview); then problems, pieces to confirm, what the last change resolved. */
 export function useStatuses(state: DesignState, view: StudioView, around: Around): Status[] {
   const backToVersion = useStore((s) => s.backToVersion)
   const viewVersion = useStore((s) => s.viewVersion)
@@ -42,11 +42,10 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
   const stage = useStore((s) => s.stage)
   const cancel = useStore((s) => s.cancel)
   const unfocus = useStore((s) => s.unfocus)
-  const showAll = useStore((s) => s.showAll)
   const select = useStore((s) => s.select)
   const sandboxed = useStore((s) => s.sandboxed)
   const leaveSandbox = useStore((s) => s.leaveSandbox)
-  const { viewedVersion, focusedPiece, hidden, proposal, preview, problems, toConfirm, board } = view
+  const { viewedVersion, focusedPiece, proposal, preview, problems, toConfirm, board } = view
   const action = (onClick: () => void, className: string, children: ReactNode) => (
     <button type="button" onClick={onClick} className={className}>
       {children}
@@ -67,8 +66,6 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
     })),
     ...when(thinking && !around.chatInSight, () => ({ key: 'thinking', icon: <Pencil className="h-3 w-8 text-amber" />, label: stage ? STAGES[stage.name] : 'Pensando…', actions: <Close label="Cancelar" onClick={cancel} /> })),
     ...when(focusedPiece, () => ({ key: 'focus', icon: <Crosshair />, label: `Enfocada: ${focusedPiece!.name}`, actions: action(unfocus, WIDE, <><ArrowsOut /> Ver todo el mueble</>) })),
-    // Hidden pieces change what you see as much as a proposal does, and the way back has to stay in sight.
-    ...when(hidden.length > 0, () => ({ key: 'hidden', icon: <EyeSlash />, label: counted(hidden.length, '1 pieza oculta', 'piezas ocultas'), actions: action(showAll, WIDE, <><Eye /> Mostrar todo</>) })),
     ...when(proposal, () => ({
       key: 'proposal',
       icon: <Eye weight="bold" />,
