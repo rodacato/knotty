@@ -13,10 +13,13 @@ export const LeaningLegStyle = z.enum([...LegStyle.options, 'splayed'])
 export type LeaningLegStyle = z.infer<typeof LeaningLegStyle>
 
 export const LEG_STYLE_LABELS = {
-  straight: { option: 'Rectas', phrase: 'patas rectas' },
-  tapered: { option: 'Cónicas', phrase: 'patas cónicas' },
+  straight: { option: 'Rectas', phrase: 'patas rectas', hint: 'Del mismo ancho de arriba abajo: no llevan cortes en diagonal.' },
+  tapered: { option: 'Cónicas', phrase: 'patas cónicas', hint: 'Se adelgazan hacia el piso por el lado de adentro: un corte en diagonal por pata.' },
 } satisfies Labels<LegStyle>
-export const LEANING_LEG_STYLE_LABELS = { ...LEG_STYLE_LABELS, splayed: { option: 'Abiertas', phrase: 'patas abiertas' } } satisfies Labels<LeaningLegStyle>
+export const LEANING_LEG_STYLE_LABELS = {
+  ...LEG_STYLE_LABELS,
+  splayed: { option: 'Abiertas', phrase: 'patas abiertas', hint: 'Se abren hacia afuera y se adelgazan hacia el piso: dos cortes en diagonal por pata.' },
+} satisfies Labels<LeaningLegStyle>
 
 export const LEG_STYLE = 'Legs: straight (default) or tapered'
 export const LEANING_LEG_STYLE = 'Legs: straight (default), tapered, or splayed: leaning outward and narrowing to the foot'

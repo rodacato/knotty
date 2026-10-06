@@ -18,9 +18,9 @@ export const Assembly = z.enum(['glued', 'bolts', 'cams'])
 export type Assembly = z.infer<typeof Assembly>
 
 export const ASSEMBLY_LABELS = {
-  glued: { option: 'Fijo', phrase: 'armado fijo, con pegamento' },
-  bolts: { option: 'Con pernos', phrase: 'desarmable con pernos' },
-  cams: { option: 'Con minifix', phrase: 'desarmable con minifix' },
+  glued: { option: 'Fijo', phrase: 'armado fijo, con pegamento', hint: 'Pegado y atornillado: queda firme, pero ya no se desarma y tiene que pasar armado por la puerta.' },
+  bolts: { option: 'Con pernos', phrase: 'desarmable con pernos', hint: 'Se desarma con una llave Allen: la cabeza del perno queda a la vista por fuera.' },
+  cams: { option: 'Con minifix', phrase: 'desarmable con minifix', hint: 'Se desarma con un desarmador y por fuera no se ve: el herraje queda escondido por dentro.' },
 } satisfies Labels<Assembly>
 
 /** The door and the ceiling a piece has to get past whole, and the length a stair turn lets through. */
@@ -91,8 +91,8 @@ type WithAssembly = { assembly?: Assembly }
 /** The plan's field, the same in every module, with what knocking down asks of the person. */
 export const assemblyFields = <P extends WithAssembly>(): FieldSpec<P>[] => [
   choice<P, Assembly>({ key: 'assembly', label: 'Armado', ...fromLabels(ASSEMBLY_LABELS), get: (p) => p.assembly ?? 'glued', set: (p, assembly) => ({ ...p, assembly }) }),
-  note<P>('Pernos M6 con tuerca de barril: la cabeza del perno queda a la vista por fuera y la tuerca por dentro. Donde el tablero tiene menos de 18 mm no cabe la tuerca y va un minifix.', (p) => p.assembly === 'bolts', 'assembly'),
-  note<P>('Minifix de 15 mm con dos tarugos sueltos en cada unión: por fuera no se ve, la excéntrica queda por dentro.', (p) => p.assembly === 'cams', 'assembly'),
+  note<P>('Pernos M6 con tuerca de barril. Donde el tablero tiene menos de 18 mm no cabe la tuerca y va un minifix.', (p) => p.assembly === 'bolts', 'assembly'),
+  note<P>('Minifix de 15 mm con dos tarugos sueltos en cada unión.', (p) => p.assembly === 'cams', 'assembly'),
   note<P>('Es una recomendación: el herraje va solo donde se unen dos partes que conviene cargar por separado, y esas uniones van sin pegamento. Si el mueble no va a moverse, al armarlo puedes pegarlas también. Los barrenos del herraje piden plantilla, o que la maderería los haga.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'),
 ]
 

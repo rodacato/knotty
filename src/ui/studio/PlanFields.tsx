@@ -5,7 +5,8 @@ import type { FurnitureModule } from '../../domain/furniture/modules/module'
 import { useServices } from '../services'
 import { Field, Input } from '../system/Field'
 import { CabinetColumns } from './CabinetColumns'
-import { LockToggle, Segmented, Stepper } from './PlanControls'
+import { OPTION_DIAGRAMS } from './OptionDiagrams'
+import { LockToggle, OptionCards, Segmented, Stepper } from './PlanControls'
 
 // Any plan as a form, drawn from the fields its module lists: no kind of furniture has a form of its own.
 
@@ -79,12 +80,29 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
           <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)))} />
         </Field>
       )
-    case 'choice':
+    case 'choice': {
+      const diagrams = OPTION_DIAGRAMS[field.key]
+      const hint = field.hints?.[field.get(plan)]
+      const control = { label: field.ariaLabel ?? field.label, value: field.get(plan), options: field.options, onChange: (v: string) => onChange(field.set(plan, v)) }
       return (
-        <Row label={field.label} lock={lock(field)}>
-          <Segmented label={field.ariaLabel ?? field.label} value={field.get(plan)} options={field.options} onChange={(v) => onChange(field.set(plan, v))} />
-        </Row>
+        <div className="flex flex-col gap-2">
+          {diagrams ? (
+            <>
+              <span className="flex items-center gap-1 text-sm">
+                {lock(field)}
+                {field.label}
+              </span>
+              <OptionCards {...control} diagrams={diagrams} />
+            </>
+          ) : (
+            <Row label={field.label} lock={lock(field)}>
+              <Segmented {...control} />
+            </Row>
+          )}
+          {hint && <p className="text-xs text-graphite">{hint}</p>}
+        </div>
       )
+    }
     case 'material':
       return (
         <Row label={field.label} lock={lock(field)}>

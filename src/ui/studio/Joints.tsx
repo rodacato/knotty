@@ -11,6 +11,7 @@ import { TOOL_LEVEL_LABELS } from '../../domain/materials/tools'
 import { TERMS } from '../glossary'
 import { useServices } from '../services'
 import { useStore } from '../store'
+import { JointDiagram } from './JointDiagram'
 import { Button, IconButton, Title } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 
@@ -96,7 +97,10 @@ function JointCard({ option, selected, onSelect }: { option: Option; selected: b
         <span className="flex-1 font-semibold">{g.name}</span>
         <FitTag fit={option.fit} />
       </span>
-      <span className="block">{g.definition}</span>
+      <span className="flex items-start gap-3">
+        <JointDiagram joint={option.joint} className="w-20 shrink-0" />
+        <span className="flex-1">{g.definition}</span>
+      </span>
       <span className="flex items-center gap-1.5 text-xs text-graphite-2">
         <Wrench className="shrink-0" /> {g.tool} · {levelsText(option.joint)}
       </span>
@@ -135,8 +139,8 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
     <table className="w-full border-collapse overflow-hidden rounded-2xl text-left text-xs">
       <thead className="bg-kraft text-graphite-2">
         <tr>
-          {HEADERS.map((h) => (
-            <th key={h} className="px-3 py-2 font-medium">
+          {HEADERS.map((h, i) => (
+            <th key={h} colSpan={i === 0 ? 2 : 1} className="px-3 py-2 font-medium">
               {h}
             </th>
           ))}
@@ -151,7 +155,10 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
               onClick={() => !o.blocked && onSelect(o.joint)}
               className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-amber-soft' : ''}`}
             >
-              <td className={`px-3 py-2 ${selected === o.joint ? 'shadow-[inset_3px_0_0_0_var(--graphite)]' : ''}`}>
+              <td className={`w-24 py-2 pl-3 ${selected === o.joint ? 'shadow-[inset_3px_0_0_0_var(--graphite)]' : ''}`}>
+                <JointDiagram joint={o.joint} className="w-20" />
+              </td>
+              <td className="px-3 py-2">
                 {o.blocked ? (
                   <span className="block text-sm font-semibold">{g.name}</span>
                 ) : (
@@ -159,6 +166,7 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
                     {g.name}
                   </RadioCard>
                 )}
+                <span className="mt-1 block text-graphite-2">{g.definition}</span>
                 <span className="mt-1 inline-block">
                   <FitTag fit={o.fit} />
                 </span>

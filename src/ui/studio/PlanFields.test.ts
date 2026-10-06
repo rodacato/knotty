@@ -2,10 +2,11 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import type { FieldSpec } from '../../domain/furniture/modules/fields'
+import { valueFields, type FieldSpec } from '../../domain/furniture/modules/fields'
 import type { FurnitureModule } from '../../domain/furniture/modules/module'
 import { MODULES, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { ServicesContext, type Services } from '../services'
+import { OPTION_DIAGRAMS } from './OptionDiagrams'
 import { outOfRange, PlanFields } from './PlanFields'
 
 describe('outOfRange', () => {
@@ -37,5 +38,16 @@ describe('PlanFields and the part of a field', () => {
       expect(onLegs.length).toBeGreaterThan(0)
       for (const plan of plans) expect(render(module, plan)).toBe(render(bare, plan))
     }
+  })
+})
+
+describe('the drawings of a choice', () => {
+  const choices = Object.values(MODULES).flatMap((module) => valueFields(module.fields as FieldSpec<FurniturePlan>[]).flatMap((f) => (f.type === 'choice' ? [f] : [])))
+
+  it('a choice shown as cards has a drawing for every option, and a hint only for options it has', () => {
+    const drawn = choices.filter((f) => f.key in OPTION_DIAGRAMS)
+    expect(new Set(drawn.map((f) => f.key))).toEqual(new Set(Object.keys(OPTION_DIAGRAMS)))
+    for (const f of drawn) expect(f.options.map(([value]) => value).filter((value) => !OPTION_DIAGRAMS[f.key][value])).toEqual([])
+    for (const f of choices) expect(Object.keys(f.hints ?? {}).filter((value) => !f.options.some(([option]) => option === value))).toEqual([])
   })
 })
