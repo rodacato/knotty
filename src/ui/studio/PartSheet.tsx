@@ -92,7 +92,7 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
         {cabinetTop && <TopChoices plan={plan as CabinetPlan} />}
         <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={(next) => editPlan(next)} />
         {part.id === 'wood' && <FinishSection state={state} />}
-        {part.id === 'assembly' && <FittingsSection design={design} />}
+        {part.id === 'assembly' && <FittingsSection design={design} apart={'assembly' in plan && !!plan.assembly && plan.assembly !== 'glued'} />}
         {plan.kind === 'cabinet' && part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
         {shared.length > 0 && <p className="-mt-2 text-xs text-graphite-2">{shared.join(' y ')} {shared.length === 1 ? 'vale' : 'valen'} para todo el mueble: {spec.id === 'doors' ? 'cambian también los cajones' : 'cambian también las puertas'}.</p>}
         {spec.joints.length > 0 && <JointsSection design={design} only={spec.joints} title={spec.jointsTitle} />}

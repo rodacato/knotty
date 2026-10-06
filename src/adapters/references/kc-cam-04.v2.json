@@ -28,6 +28,6 @@
     "pieces": 41,
     "findings": [],
     "sheets": { "T18": 6, "TR6": 1 },
-    "hardware": { "brad-nail-1": 64, "connector-bolt-m6": 36, "drawer-slide-50": 4, "edge-banding-19": 25, "screw-8x1": 16, "screw-8x2": 128, "white-glue": 2 }
+    "hardware": { "brad-nail-1": 64, "connector-bolt-m6": 14, "drawer-slide-50": 4, "edge-banding-19": 25, "screw-8x1": 16, "screw-8x2": 161, "white-glue": 3 }
   }
 }

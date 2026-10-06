@@ -53,8 +53,8 @@ const CONVERTED = new Set<JointType>(['butt-screw', 'pocket-screw', 'glue-nail']
 
 const thickEnough = (type: JointType, ta: number, tb: number) => ta >= (JOINTS[type].minThickness?.a ?? 0) && tb >= (JOINTS[type].minThickness?.b ?? 0)
 
-/** Nothing glued but drawers, laminated legs and what `moduleOf` puts in the same module: a box built apart that arrives whole. An upright board going into another's edge takes the fitting; one laid over the frame, trim and a thin back are screwed in place (fabricacion-y-armado.md §8.4). */
-export function knockDown(design: Design, assembly: Assembly | undefined, catalog: Catalog, moduleOf: (piece: Piece) => string | undefined = () => undefined): Design {
+/** Glue stays inside each block `blockOf` names, a part built apart that arrives whole, and in drawers and laminated legs; only what joins two blocks comes apart. There, an upright board going into another's edge takes the fitting; one laid over the frame, trim and a thin back are screwed in place (fabricacion-y-armado.md §8.4). */
+export function knockDown(design: Design, assembly: Assembly | undefined, catalog: Catalog, blockOf: (piece: Piece) => string | undefined = () => undefined): Design {
   if (!assembly || assembly === 'glued') return design
   const geo = resolveGeometry(design, catalog)
   if (!geo.ok) return design
@@ -64,7 +64,7 @@ export function knockDown(design: Design, assembly: Assembly | undefined, catalo
   const apart = (u: Joint): Joint => {
     const [p, q] = [byId.get(u.a), byId.get(u.b)]
     if (!p || !q || isDrawerPart(p) || isDrawerPart(q) || !CONVERTED.has(u.type)) return u
-    if (moduleOf(p) && moduleOf(p) === moduleOf(q)) return u
+    if (blockOf(p) && blockOf(p) === blockOf(q)) return u
     const [boxP, boxQ] = [boxes.get(p.id)!, boxes.get(q.id)!]
     const axis = contactBetween(p.id, boxP, q.id, boxQ)?.axis
     const through = [p, q].filter((x) => x.normal === axis)
@@ -93,8 +93,22 @@ export const assemblyFields = <P extends WithAssembly>(): FieldSpec<P>[] => [
   choice<P, Assembly>({ key: 'assembly', label: 'Armado', ...fromLabels(ASSEMBLY_LABELS), get: (p) => p.assembly ?? 'glued', set: (p, assembly) => ({ ...p, assembly }) }),
   note<P>('Pernos M6 con tuerca de barril: la cabeza del perno queda a la vista por fuera y la tuerca por dentro. Donde el tablero tiene menos de 18 mm no cabe la tuerca y va un minifix.', (p) => p.assembly === 'bolts', 'assembly'),
   note<P>('Minifix de 15 mm con dos tarugos sueltos en cada unión: por fuera no se ve, la excéntrica queda por dentro.', (p) => p.assembly === 'cams', 'assembly'),
-  note<P>('Desarmable va sin pegamento: se arma en su lugar y se vuelve a escuadrar por diagonales cada vez. Los cajones siguen pegados. Los barrenos piden plantilla, o que la maderería los haga.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'),
+  note<P>('Es una recomendación: el herraje va solo donde se unen dos partes que conviene cargar por separado, y esas uniones van sin pegamento. Si el mueble no va a moverse, al armarlo puedes pegarlas también. Los barrenos del herraje piden plantilla, o que la maderería los haga.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'),
 ]
+
+/** The parts that arrive glued whole: the pieces glue ties together, drawers aside. A board on its own is not one. */
+export function gluedBlocks(design: Design): Piece[][] {
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
+  const block = new Map(design.pieces.map((p) => [p.id, p.id]))
+  const rootOf = (id: string): string => (block.get(id) === id ? id : rootOf(block.get(id)!))
+  for (const u of design.joints) {
+    const [p, q] = [byId.get(u.a), byId.get(u.b)]
+    if (u.glue && p && q && !isDrawerPart(p) && !isDrawerPart(q)) block.set(rootOf(u.a), rootOf(u.b))
+  }
+  const blocks = new Map<string, Piece[]>()
+  for (const p of design.pieces) if (!isDrawerPart(p)) blocks.set(rootOf(p.id), [...(blocks.get(rootOf(p.id)) ?? []), p])
+  return [...blocks.values()].filter((pieces) => pieces.length > 1)
+}
 
 /** The joints that come apart with a fitting, and how many each one takes. */
 export function fittedJoints(design: Design, geo: Pick<Geometry, 'boxes'>): { joint: Joint; count: number }[] {

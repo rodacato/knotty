@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { isDrawerPart, type Design } from '../../design/schema'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { fittedJoints, needsKnockDown } from './assembly'
+import { fittedJoints, gluedBlocks, needsKnockDown } from './assembly'
 import { MODULES, buildPlan, FurniturePlan } from './plan'
 
 const variants = (['bed', 'table', 'cabinet'] as const).flatMap((kind) => (MODULES[kind].benchVariants() as [string, FurniturePlan][]).map(([name, plan]) => [`${kind} · ${name}`, plan] as const))
@@ -20,36 +20,56 @@ const bought = (design: Design, a: ReturnType<typeof built>['a'], role: string) 
 describe('a piece knocked down', () => {
   const knockedDown = variants.filter(([, plan]) => 'assembly' in plan && plan.assembly !== 'glued')
 
-  it.each(knockedDown)('%s: valid, nothing to warn about, and glued only in its drawers, its laminated legs and a headboard built apart', (_, plan) => {
-    const { design, a } = built(plan)
+  it.each(knockedDown)('%s: valid and nothing to warn about', (_, plan) => {
+    const { a } = built(plan)
     expect([...a.findings, ...a.warnings].map((f) => f.message)).toEqual([])
-    const byId = new Map(design.pieces.map((p) => [p.id, p]))
-    const glued = design.joints.filter((u) => u.glue && !isDrawerPart(byId.get(u.a)!) && !isDrawerPart(byId.get(u.b)!))
-    const builtApart = (u: (typeof glued)[number]) => byId.get(u.a)!.group === 'headboard' && byId.get(u.b)!.group === 'headboard'
-    expect(glued.filter((u) => !(u.a.startsWith('leg-') && u.b.startsWith('leg-')) && !builtApart(u)).map((u) => u.id)).toEqual([])
   })
 
-  it('glues a headboard with shelves as a box of its own, and takes fittings only where it meets the base', () => {
-    const { design, a } = built(named('bed · queen, cabecera librero, cajones de los dos lados, desarmable con minifix'))
+  it.each(knockedDown.filter(([, plan]) => plan.kind !== 'bed'))('%s: glued only in its drawers and its laminated legs', (_, plan) => {
+    const { design } = built(plan)
     const byId = new Map(design.pieces.map((p) => [p.id, p]))
-    const inHeadboard = design.joints.filter((u) => byId.get(u.a)!.group === 'headboard' && byId.get(u.b)!.group === 'headboard')
-    expect(inHeadboard.length).toBeGreaterThan(0)
-    expect(inHeadboard.filter((u) => u.type === 'cam-lock' || !u.glue).map((u) => u.id)).toEqual([])
-    expect(joint(design, 'head-panel', 'spine')).toMatchObject({ type: 'cam-lock', glue: false })
-    expect(fittedJoints(design, a.geo).every(({ joint: u }) => byId.get(u.a)!.group !== 'headboard' || byId.get(u.b)!.group !== 'headboard')).toBe(true)
+    const glued = design.joints.filter((u) => u.glue && !isDrawerPart(byId.get(u.a)!) && !isDrawerPart(byId.get(u.b)!))
+    expect(glued.filter((u) => !(u.a.startsWith('leg-') && u.b.startsWith('leg-'))).map((u) => u.id)).toEqual([])
+  })
+
+  it('glues a daybed in five parts: its base, each arm and the backrest with their caps, and the platform with its lip', () => {
+    const { design } = built(named('bed · individual, cama de día con copete y tope, desarmable con pernos'))
+    const blocks = gluedBlocks(design).map((pieces) => pieces.map((p) => p.id).sort())
+    expect(blocks).toHaveLength(5)
+    expect(blocks).toEqual(expect.arrayContaining([['head-cap', 'headboard'], ['foot-arm', 'foot-cap'], ['back-cap', 'side-right-1'], ['lip-left', 'platform']]))
+    expect(blocks.find((ids) => ids.includes('spine'))).toEqual(expect.arrayContaining(['div-left-1', 'kick-left-1', 'rail-right-1-1']))
+  })
+
+  it('glues the base of a bed on legs whole, so only the headboard takes fittings', () => {
+    const { design, a } = built(named('bed · matrimonial, cabecera lisa, patas de 150 mm, desarmable con pernos'))
+    expect(fittedJoints(design, a.geo).map(({ joint: u }) => u.a)).toEqual(Array(5).fill('headboard'))
+    expect(joint(design, 'side-left-1', 'rail-left-1-1')).toMatchObject({ type: 'butt-screw', glue: true })
+    expect(joint(design, 'foot-panel', 'spine').glue).toBe(true)
+  })
+
+  it('glues a headboard with shelves as a box of its own, with fittings only where its sides meet the base', () => {
+    const { design, a } = built(named('bed · queen, cabecera librero, cajones de los dos lados, desarmable con minifix'))
+    expect(fittedJoints(design, a.geo).map(({ joint: u }) => `${u.a}>${u.b}`)).toEqual(['head-side-left>head-panel', 'head-side-right>head-panel'])
+    expect(joint(design, 'head-side-left', 'head-top').glue).toBe(true)
+    expect(joint(design, 'head-bottom', 'head-panel')).toMatchObject({ type: 'butt-screw', glue: false })
+  })
+
+  it('is one glued part when it is not knocked down', () => {
+    const { design } = built(named('bed · individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'))
+    expect(gluedBlocks(design)).toHaveLength(1)
   })
 
   it('has variants of every kind that takes it', () => {
     expect(new Set(knockedDown.map(([, plan]) => plan.kind))).toEqual(new Set(['bed', 'table', 'cabinet']))
   })
 
-  it('bolts the frame of a daybed, and screws in place what is laid over it or rides on it', () => {
+  it('bolts a daybed where its arms and backrest meet the base, and screws in place what crosses from one part to another', () => {
     const { design, a } = built(named('bed · individual, cama de día con copete y tope, desarmable con pernos'))
-    for (const [x, y] of [['headboard', 'side-right-1'], ['foot-arm', 'side-right-1'], ['headboard', 'spine'], ['foot-arm', 'platform'], ['side-right-1', 'platform']])
+    for (const [x, y] of [['headboard', 'side-right-1'], ['foot-arm', 'side-right-1'], ['headboard', 'spine'], ['foot-arm', 'platform'], ['side-right-1', 'platform'], ['side-right-1', 'rail-right-1-1']])
       expect(joint(design, x, y)).toMatchObject({ type: 'connector-bolt', glue: false, hardware: [{ hardwareId: 'connector-bolt-m6', count: null }] })
-    for (const [x, y] of [['platform', 'spine'], ['lip-left', 'platform'], ['head-cap', 'headboard'], ['back-cap', 'side-right-1']]) expect(joint(design, x, y)).toMatchObject({ type: 'butt-screw', glue: false })
-    expect(joint(design, 'back-cap', 'side-right-1').a).toBe('back-cap')
-    expect(bought(design, a, 'connector-bolt')).toBeGreaterThanOrEqual(2 * 7)
+    for (const [x, y] of [['platform', 'spine'], ['head-cap', 'side-right-1'], ['headboard', 'lip-left']]) expect(joint(design, x, y)).toMatchObject({ type: 'butt-screw', glue: false })
+    for (const [x, y] of [['spine', 'div-left-1'], ['spine', 'rail-right-1-1'], ['lip-left', 'platform'], ['head-cap', 'headboard']]) expect(joint(design, x, y).glue).toBe(true)
+    expect(bought(design, a, 'connector-bolt')).toBe(30)
   })
 
   it('puts a minifix with two loose dowels at each corner of a bookcase, and screws its back on without glue', () => {
