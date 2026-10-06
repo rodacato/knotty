@@ -88,6 +88,38 @@ describe('hardware to draw', () => {
       expect(parts.filter((p) => p.kind === 'hole')).toHaveLength(bought('screw') + bought('dowel'))
     }
   })
+  it('shows the head of each bolt on the outside of the side it goes through, and its barrel nut under the board it holds', () => {
+    const bolted = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.a.startsWith('side-') && u.type === 'butt-screw' ? { ...u, type: 'connector-bolt' as const, glue: false, hardware: [{ hardwareId: 'connector-bolt-m6', count: null }] } : u)) }
+    const geo = analyze(bolted, testCatalog).geo!
+    const caps = hardwareParts(bolted, geo.boxes, testCatalog).flatMap((p) => (p.kind === 'cap' ? [p] : []))
+    const bolts = estimatePurchase(bolted, geo, testCatalog).hardware.find((line) => line.hardware.role === 'connector-bolt')!.count
+    const heads = caps.filter((c) => c.diameter === 14)
+    const nuts = caps.filter((c) => c.diameter === 10)
+    expect([heads.length, nuts.length]).toEqual([bolts, bolts])
+    const left = geo.boxes.get('side-left')!
+    for (const h of heads.filter((c) => c.owner === 'side-left')) expect([h.axis, h.outward, h.center[0]]).toEqual(['x', -1, left.x0])
+    for (const n of nuts) {
+      const board = geo.boxes.get(n.owner)!
+      expect([n.axis, n.outward, n.center[1]]).toEqual(['y', -1, board.y0])
+      expect(Math.min(n.center[0] - board.x0, board.x1 - n.center[0])).toBeCloseTo(24, 5)
+    }
+  })
+  it('shows the cam of each minifix inside, 34 mm from the edge, and nothing on the outside', () => {
+    const cammed = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.a.startsWith('side-') && u.type === 'butt-screw' ? { ...u, type: 'cam-lock' as const, glue: false, hardware: [{ hardwareId: 'cam-lock-15', count: null }, { hardwareId: 'dowel-8x40', count: 2 }] } : u)) }
+    const geo = analyze(cammed, testCatalog).geo!
+    const parts = hardwareParts(cammed, geo.boxes, testCatalog)
+    const cams = estimatePurchase(cammed, geo, testCatalog).hardware.find((line) => line.hardware.role === 'cam-lock')!.count
+    const caps = parts.flatMap((p) => (p.kind === 'cap' ? [p] : []))
+    expect(caps).toHaveLength(cams)
+    for (const c of caps) {
+      const board = geo.boxes.get(c.owner)!
+      expect([c.diameter, c.axis, c.outward]).toEqual([15, 'y', -1])
+      expect(Math.min(c.center[0] - board.x0, board.x1 - c.center[0])).toBeCloseTo(34, 5)
+    }
+    expect(caps.some((c) => c.owner.startsWith('side-'))).toBe(false)
+    const joints = cammed.joints.filter((u) => u.type === 'cam-lock').length
+    expect(parts.filter((p) => p.kind === 'dowel')).toHaveLength(2 * joints)
+  })
   it('draws a connector bolt as a 6 mm rod in a 7 mm hole, one for each the shopping list counts', () => {
     const bolted = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.type === 'butt-screw' ? { ...u, type: 'connector-bolt' as const, glue: false, hardware: [{ hardwareId: 'connector-bolt-m6', count: null }] } : u)) }
     const geo = analyze(bolted, testCatalog).geo!

@@ -2,6 +2,7 @@ import { ArrowRight } from '@phosphor-icons/react'
 import type { Design } from '../../domain/design/schema'
 import type { DesignState } from '../../domain/session/state'
 import { FinishSection } from './FinishSection'
+import { FittingsSection } from './Fittings'
 import { CABINET_LABELS, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { FieldSpec } from '../../domain/furniture/modules/fields'
 import { partName, type PartSpec } from '../../domain/furniture/modules/parts'
@@ -19,6 +20,7 @@ function fieldsOf<P>(fields: FieldSpec<P>[], keys: string[]): FieldSpec<P>[] {
   return fields.flatMap((f): FieldSpec<P>[] => {
     if (f.type === 'section') return fieldsOf(f.fields as FieldSpec<P>[], keys)
     if (f.type === 'numbers') return f.fields.some((n) => keys.includes(n.key)) ? [f] : []
+    if (f.type === 'note') return f.about && keys.includes(f.about) ? [f] : []
     return 'key' in f && keys.includes(f.key) ? [f] : []
   })
 }
@@ -90,6 +92,7 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
         {cabinetTop && <TopChoices plan={plan as CabinetPlan} />}
         <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={(next) => editPlan(next)} />
         {part.id === 'wood' && <FinishSection state={state} />}
+        {part.id === 'assembly' && <FittingsSection design={design} />}
         {plan.kind === 'cabinet' && part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
         {shared.length > 0 && <p className="-mt-2 text-xs text-graphite-2">{shared.join(' y ')} {shared.length === 1 ? 'vale' : 'valen'} para todo el mueble: {spec.id === 'doors' ? 'cambian también los cajones' : 'cambian también las puertas'}.</p>}
         {spec.joints.length > 0 && <JointsSection design={design} only={spec.joints} title={spec.jointsTitle} />}

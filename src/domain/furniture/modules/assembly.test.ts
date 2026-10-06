@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { isDrawerPart, type Design } from '../../design/schema'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
-import { needsKnockDown } from './assembly'
+import { fittedJoints, needsKnockDown } from './assembly'
 import { MODULES, buildPlan, FurniturePlan } from './plan'
 
 const variants = (['bed', 'table', 'cabinet'] as const).flatMap((kind) => (MODULES[kind].benchVariants() as [string, FurniturePlan][]).map(([name, plan]) => [`${kind} · ${name}`, plan] as const))
@@ -49,6 +49,16 @@ describe('a piece knocked down', () => {
     const back = design.joints.filter((u) => design.pieces.find((p) => p.id === u.a)?.role === 'back')
     expect(back.length).toBeGreaterThanOrEqual(3)
     expect(back.every((u) => u.type === 'butt-screw' && !u.glue)).toBe(true)
+  })
+
+  it('lists the joints that take a fitting, with as many as the shopping list buys, and none in a glued one', () => {
+    const { design, a } = built(named('bed · individual, cama de día con copete y tope, desarmable con pernos'))
+    const fitted = fittedJoints(design, a.geo)
+    expect(fitted.every(({ joint }) => joint.type === 'connector-bolt')).toBe(true)
+    expect(fitted.map(({ joint }) => `${joint.a}>${joint.b}`)).toContain('headboard>platform')
+    expect(fitted.reduce((n, f) => n + f.count, 0)).toBe(bought(design, a, 'connector-bolt'))
+    const glued = built(named('bed · individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'))
+    expect(fittedJoints(glued.design, glued.a.geo)).toEqual([])
   })
 
   it('takes the minifix where a board is too thin for the nut of a bolt', () => {

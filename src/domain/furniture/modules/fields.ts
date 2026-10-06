@@ -72,6 +72,8 @@ export interface NumbersField<P> extends Shown<P> {
 export interface NoteField<P> extends Shown<P> {
   type: 'note'
   text: string
+  /** The key of the field it explains: the note goes wherever that field is shown alone. */
+  about?: string
 }
 
 /** What each custom field edits: the parts of a plan no generic control can. */
@@ -131,7 +133,7 @@ export const number = <P>(spec: Omit<Spec<NumberField<P>, number, P>, 'unit'>): 
 
 export const numbers = <P>(columns: 2 | 3, fields: NumberField<P>[], visibleWhen?: (plan: P) => boolean): NumbersField<P> => ({ type: 'numbers', columns, fields, visibleWhen })
 
-export const note = <P>(text: string, visibleWhen?: (plan: P) => boolean): NoteField<P> => ({ type: 'note', text, visibleWhen })
+export const note = <P>(text: string, visibleWhen?: (plan: P) => boolean, about?: string): NoteField<P> => ({ type: 'note', text, visibleWhen, about })
 
 export const section = <P>(title: SectionField<P>['title'], fields: FieldSpec<P>[], visibleWhen?: (plan: P) => boolean): SectionField<P> => ({ type: 'section', title, fields, visibleWhen })
 

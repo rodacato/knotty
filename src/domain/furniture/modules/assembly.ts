@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { JOINTS } from '../../design/jointSpecs'
 import { hardwareFor } from '../../design/joints'
-import { resolveGeometry } from '../../design/resolve'
+import { hardwarePerJoint } from '../../design/hardwareCount'
+import { resolveGeometry, type Geometry } from '../../design/resolve'
 import { isDrawerPart, type Design, type Dimensions, type Joint, type JointType, type Piece } from '../../design/schema'
 import { contactBetween } from '../../design/validation/contact'
 import { ASSUMPTIONS } from '../../assumptions'
@@ -89,8 +90,15 @@ type WithAssembly = { assembly?: Assembly }
 /** The plan's field, the same in every module, with what knocking down asks of the person. */
 export const assemblyFields = <P extends WithAssembly>(): FieldSpec<P>[] => [
   choice<P, Assembly>({ key: 'assembly', label: 'Armado', ...fromLabels(ASSEMBLY_LABELS), get: (p) => p.assembly ?? 'glued', set: (p, assembly) => ({ ...p, assembly }) }),
-  note<P>('Desarmable va sin pegamento: se arma en su lugar y se vuelve a escuadrar por diagonales cada vez. Los cajones siguen pegados. Los barrenos piden plantilla, o que la maderería los haga.', (p) => !!p.assembly && p.assembly !== 'glued'),
+  note<P>('Pernos M6 con tuerca de barril: la cabeza del perno queda a la vista por fuera y la tuerca por dentro. Donde el tablero tiene menos de 18 mm no cabe la tuerca y va un minifix.', (p) => p.assembly === 'bolts', 'assembly'),
+  note<P>('Minifix de 15 mm con dos tarugos sueltos en cada unión: por fuera no se ve, la excéntrica queda por dentro.', (p) => p.assembly === 'cams', 'assembly'),
+  note<P>('Desarmable va sin pegamento: se arma en su lugar y se vuelve a escuadrar por diagonales cada vez. Los cajones siguen pegados. Los barrenos piden plantilla, o que la maderería los haga.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'),
 ]
+
+/** The joints that come apart with a fitting, and how many each one takes. */
+export function fittedJoints(design: Design, geo: Pick<Geometry, 'boxes'>): { joint: Joint; count: number }[] {
+  return design.joints.filter((u) => u.type === 'connector-bolt' || u.type === 'cam-lock').map((joint) => ({ joint, count: joint.hardware[0]?.count ?? hardwarePerJoint(joint, geo) }))
+}
 
 /** Its part in the list of every kind. */
 export const assemblyPart = <P extends WithAssembly>(): PartSpec<P> => ({

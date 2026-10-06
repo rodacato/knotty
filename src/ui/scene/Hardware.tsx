@@ -6,7 +6,7 @@ import type { Catalog } from '../../domain/materials/catalog'
 import type { Geometry } from '../../domain/design/resolve'
 import type { Swing } from './open'
 
-// Runners and hinges drawn in metal, so a drawer shows what it slides on and a door what it swings on.
+// Runners, hinges and what a knock-down fitting leaves in sight (a bolt's head, its nut, a minifix's cam), drawn in metal.
 // Taken apart, each piece also carries its dowels, screws and shelf pins, and shows the holes the others go into.
 
 const MM = 0.001
@@ -20,7 +20,7 @@ const HOLE = { color: '#2a211b', metalness: 0, roughness: 1 }
 const SCREW_HEAD = { diameter: 8, height: 2 }
 /** What holds two pieces together sits inside the wood: it only shows with the furniture taken apart. */
 const INSIDE = new Set<HardwarePart['kind']>(['dowel', 'screw', 'shelf-pin', 'hole'])
-const LOOK = { plug: PLUG, hole: HOLE, dowel: DOWEL, runner: METAL, hinge: METAL, screw: METAL, 'shelf-pin': METAL }
+const LOOK = { plug: PLUG, hole: HOLE, cap: METAL, dowel: DOWEL, runner: METAL, hinge: METAL, screw: METAL, 'shelf-pin': METAL }
 const AXIS = { x: 0, y: 1, z: 2 }
 const PLUG_PROUD = 0.8
 const TURN = { x: [0, 0, Math.PI / 2], y: [0, 0, 0], z: [Math.PI / 2, 0, 0] } as const
@@ -57,7 +57,7 @@ function Disc({ center, axis, outward, diameter, children }: { center: [number, 
 
 function Part({ part, geo, faded }: { part: HardwarePart; geo: Geometry; faded: boolean }) {
   const material = <meshStandardMaterial {...LOOK[part.kind]} transparent={faded} opacity={faded ? 0.15 : 1} />
-  if (part.kind === 'plug' || part.kind === 'hole') return <Disc {...part}>{material}</Disc>
+  if (part.kind === 'plug' || part.kind === 'hole' || part.kind === 'cap') return <Disc {...part}>{material}</Disc>
   if (part.kind === 'dowel' || part.kind === 'shelf-pin' || part.kind === 'screw') {
     const [x, y, z] = part.center
     const head = [...part.center] as [number, number, number]
