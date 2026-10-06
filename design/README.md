@@ -30,9 +30,9 @@ Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers i
 
 | File | Screens | Kit | Entry point |
 |---|---|---|---|
-| `capture.pen` | Start a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…), and Home with the bases to start from. 15 mobile, 11 desktop | 0.4.0 | Opening the app with no design |
-| `studio.pen` | The Studio by area — conversation, piece, notices, furniture, materials, history, settings — with their states. 47 mobile, 20 desktop | 0.4.0 | After analysis, or from an example (`src/ui/App.tsx`) |
-| `studio-lab.pen` | A variant of the Studio for evaluating furniture: the debug tools (bench, log) as drawers of a left bar over the whole app, on throwaway designs while the sandbox is on (UI-66). 7 desktop, no mobile | 0.3.0 | The debug access (Konami code, Ctrl+Shift+D, ?debug) |
+| `capture.pen` | Home as the library of bases (search, rooms, the custom door at the end) and starting a design in one screen: kind, optional measures, photos, description — plus its states (reading failed, five photos, missing key, design failed…). 20 mobile, 14 desktop | 0.4.0 | Opening the app with no design |
+| `studio.pen` | The Studio by area — conversation, piece, notices, edit (outside and inside, as captures), materials, history, settings, scene — with their states. 55 mobile, 31 desktop | 0.4.0 | After analysis, or from a base (`src/ui/App.tsx`) |
+| `studio-lab.pen` | The debug tools as drawers of a left bar over the whole app (bench, fichas, log), on throwaway designs while the sandbox is on (UI-66); captures of the app. 11 desktop, no mobile | 0.3.0 | The debug access (Konami code, Ctrl+Shift+D, ?debug) |
 
 This table is present tense; each flow's history lives in its `Log` frame.
 
