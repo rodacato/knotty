@@ -25,11 +25,31 @@ describe('a piece knocked down', () => {
     expect([...a.findings, ...a.warnings].map((f) => f.message)).toEqual([])
   })
 
-  it.each(knockedDown.filter(([, plan]) => plan.kind !== 'bed'))('%s: glued only in its drawers and its laminated legs', (_, plan) => {
-    const { design } = built(plan)
+  it.each(['librero desarmable con minifix', 'cajonera desarmable con minifix', 'aparador con patas desarmable con pernos'])('cabinet · %s: goes through a door whole, so it is glued as one part and takes no fitting', (name) => {
+    const { design, a } = built(named(`cabinet · ${name}`))
+    expect(fittedJoints(design, a.geo)).toEqual([])
+    expect(gluedBlocks(design)).toHaveLength(1)
+    expect(design.joints.filter((u) => !u.glue && u.type === 'butt-screw').map((u) => u.id)).toEqual([])
+  })
+
+  it('knocks a cabinet that does not go through whole down to its boards, glued only in its drawers', () => {
+    const { design } = built(named('cabinet · librero de 2250 mm, desarmable con minifix'))
     const byId = new Map(design.pieces.map((p) => [p.id, p]))
-    const glued = design.joints.filter((u) => u.glue && !isDrawerPart(byId.get(u.a)!) && !isDrawerPart(byId.get(u.b)!))
-    expect(glued.filter((u) => !(u.a.startsWith('leg-') && u.b.startsWith('leg-'))).map((u) => u.id)).toEqual([])
+    expect(design.joints.filter((u) => u.glue && !isDrawerPart(byId.get(u.a)!) && !isDrawerPart(byId.get(u.b)!)).map((u) => u.id)).toEqual([])
+  })
+
+  it('glues each end of a table on legs and its long aprons apart, and bolts them at the four corners and the middle legs', () => {
+    const { design, a } = built(named('table · comedor largo con patas, desarmable con pernos'))
+    const blocks = gluedBlocks(design).map((pieces) => pieces.map((p) => p.id).sort())
+    expect(blocks).toEqual(expect.arrayContaining([['apron-left', 'leg-back-left-1', 'leg-back-left-2', 'leg-front-left-1', 'leg-front-left-2'], ['apron-back', 'apron-front', 'rail-1', 'rail-2']]))
+    expect(blocks.some((ids) => ids.includes('top'))).toBe(false)
+    expect(fittedJoints(design, a.geo)).toHaveLength(8)
+  })
+
+  it('glues the pedestal of a desk to its end, and takes fittings only where the long aprons meet the ends', () => {
+    const { design, a } = built(named('table · escritorio con 3 cajones a la izquierda, desarmable con minifix'))
+    expect(gluedBlocks(design).map((pieces) => pieces.map((p) => p.id).sort())).toContainEqual(['ped-back', 'ped-bottom', 'ped-div', 'ped-kick', 'ped-sep-1', 'ped-sep-2', 'side-left'])
+    expect(fittedJoints(design, a.geo).map(({ joint: u }) => `${u.a}>${u.b}`).sort()).toEqual(['ped-div>apron-back', 'ped-div>apron-front', 'side-right>apron-back', 'side-right>apron-front'])
   })
 
   it('glues a daybed in five parts: its base, each arm and the backrest with their caps, and the platform with its lip', () => {
@@ -73,7 +93,7 @@ describe('a piece knocked down', () => {
   })
 
   it('puts a minifix with two loose dowels at each corner of a bookcase, and screws its back on without glue', () => {
-    const { design, a } = built(named('cabinet · librero desarmable con minifix'))
+    const { design, a } = built(named('cabinet · librero de 2250 mm, desarmable con minifix'))
     const corners = [['side-left', 'top'], ['side-left', 'bottom'], ['side-right', 'top'], ['side-right', 'bottom']].map(([x, y]) => joint(design, x, y))
     for (const u of corners) expect(u).toMatchObject({ type: 'cam-lock', glue: false, hardware: [{ hardwareId: 'cam-lock-15', count: null }, { hardwareId: 'dowel-8x40', count: 2 }] })
     expect([bought(design, a, 'cam-lock'), bought(design, a, 'dowel'), bought(design, a, 'glue')]).toEqual([8, 8, 0])
@@ -93,7 +113,7 @@ describe('a piece knocked down', () => {
   })
 
   it('takes the minifix where a board is too thin for the nut of a bolt', () => {
-    const { design } = built({ ...named('cabinet · librero desarmable con minifix'), material: 'T15', assembly: 'bolts' } as FurniturePlan)
+    const { design } = built({ ...named('cabinet · librero de 2250 mm, desarmable con minifix'), material: 'T15', assembly: 'bolts' } as FurniturePlan)
     expect(joint(design, 'side-left', 'top').type).toBe('cam-lock')
     expect(design.joints.some((u) => u.type === 'connector-bolt')).toBe(false)
   })

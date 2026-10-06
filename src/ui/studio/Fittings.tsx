@@ -50,7 +50,7 @@ export function FittingsSection({ design: applied, apart }: { design: Design; ap
       <Title className="text-lg">Cómo se desarma</Title>
       <p className="text-sm text-graphite-2">
         {blocks.length > 0 && `${counted(blocks.length, 'parte se pega y llega armada', 'partes se pegan y llegan armadas')}. `}
-        {fitted.length > 0 ? `${totals.join(' y ')} en ${counted(fitted.length, 'unión', 'uniones')}; lo demás va atornillado en su lugar.` : 'No hace falta herraje: lo que se quita va atornillado en su lugar.'}
+        {fitted.length > 0 ? `${totals.join(' y ')} en ${counted(fitted.length, 'unión', 'uniones')}; lo demás va atornillado en su lugar.` : 'No hace falta herraje.'}
       </p>
       {fitted.length > 0 && (
         <button type="button" aria-pressed={isMarked(all)} onClick={() => flag(all)} className="min-h-11 self-start text-sm font-medium underline">

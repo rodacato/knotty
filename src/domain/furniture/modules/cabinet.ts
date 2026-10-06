@@ -12,9 +12,9 @@ import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
-import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
+import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
-import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
@@ -780,7 +780,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
   const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices)
-  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
+  return { design: knockDown(done.design, plan.assembly, catalog, needsKnockDown(plan.dimensions) ? undefined : () => 'body'), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
 }
 
 /** With backs by cell, the first is the `back` every part of the carcass stands in front of. */
@@ -879,12 +879,13 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['cajonera con frentes sobrepuestos', { ...drawerChest, construction: { ...drawerChest.construction, drawerFronts: 'overlay' } }],
     ['buró con cajón bajito', cabinet('Buró', { width: 500, height: 450, depth: 400 }, [{ width: 1, cells: [cell('open', 0.75, 0), cell('drawer', 0.25)] }], { base: 'floor', wallMounted: false })],
   ]
-  // Knocked down: minifix in a bookcase and a chest, bolts in the sideboard on legs.
+  // Knocked down: the three that go through a door whole stay glued, and a bookcase too long to turn on a stair takes minifix at its corners.
   const bookcase = list.find(([name]) => name === 'librero')![1]
   const knockedDown: [string, CabinetPlan][] = [
     ['librero desarmable con minifix', { ...bookcase, assembly: 'cams' }],
     ['cajonera desarmable con minifix', { ...drawerChest, assembly: 'cams' }],
     ['aparador con patas desarmable con pernos', { ...sideboard, assembly: 'bolts' }],
+    ['librero de 2250 mm, desarmable con minifix', { ...bookcase, dimensions: { width: 550, height: 2250, depth: 300 }, assembly: 'cams' }],
   ]
   // Sliding doors: two leaves over one opening, and one leaf in front of a split cell, with a divider and a shelf behind its track.
   const slidingBuild: CabinetConstruction = { ...DEFAULT_CONSTRUCTION, doors: 'sliding', top: 'over', pulls: 'notch' }
@@ -943,7 +944,11 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),
   custom({ key: 'columns', component: 'cabinetColumns', label: 'Columnas y huecos', get: (p) => p.columns, set: (p, columns) => ({ ...p, columns }) }),
-  section('Armado', assemblyFields()),
+  section('Armado', [
+    ...assemblyFields<CabinetPlan>(),
+    note('Este mueble llega armado a su lugar: se pega entero y no lleva herraje.', (p) => !!p.assembly && p.assembly !== 'glued' && !needsKnockDown(p.dimensions), 'assembly'),
+    note('Este mueble no llega armado a su lugar (no pasa la puerta, no se puede parar bajo el techo o no da vuelta en una escalera): se desarma tablero por tablero.', (p) => !!p.assembly && p.assembly !== 'glued' && needsKnockDown(p.dimensions), 'assembly'),
+  ]),
 ]
 
 /** How many cells of one content choose something of their own, said after the part's summary. */
