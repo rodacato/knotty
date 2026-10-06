@@ -318,11 +318,11 @@ Flotantes: grafo de contacto (caras coincidentes a ±0.5 mm más uniones declara
 
 | Memoria | Qué guarda | Quién la escribe | Límite |
 |---|---|---|---|
-| **Requisitos** | Hechos del usuario: espacio, carga, herramientas disponibles | El LLM los propone; el usuario los ve y puede borrarlos | ~15, sin duplicados por tipo |
+| **Requisitos** | Hechos del usuario: espacio, carga, herramientas disponibles | El LLM los propone; el usuario los ve y puede borrarlos. El LLM no quita ni cambia uno que ya está: con un cambio, queda como propuesta hasta que el usuario la aplique; en una respuesta, se deja como estaba y se le dice | ~15, sin duplicados por tipo |
 | **Decisiones** | Razonamiento de diseño: "trasera de 6 mm para escuadrar" | El LLM, con clave `topic` | 15; la nueva del mismo tema reemplaza |
 | **Bitácora** | Por versión: número, resumen, motivo, operaciones abreviadas | Determinista | ver compactación |
 
-Los requisitos tienen forma estructurada cuando se puede (`{type:'space', axis:'x', max:900}`), así el dominio los verifica (`E_REQUIREMENT`) sin depender de que el LLM los recuerde. Un requisito de espacio es la medida del mueble completo, nunca de una parte.
+Los requisitos tienen forma estructurada cuando se puede (`{type:'space', axis:'x', max:900}`), así el dominio los verifica (`E_REQUIREMENT`) sin depender de que el LLM los recuerde. El contexto le manda al experto esos mismos límites junto al texto, para que lea lo que la validación revisa. Lo que una propuesta pendiente agregó (requisitos y decisiones) se conserva cuando la persona la contesta por el chat. Un requisito de espacio es la medida del mueble completo, nunca de una parte.
 
 ### Qué se envía en cada ajuste
 

@@ -1,4 +1,4 @@
-import type { FurniturePlan } from '../../domain/furniture/modules/plan'
+import { settlePlan, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Operation } from '../../domain/editing/operations/schema'
 import type { DesignState } from '../../domain/session/state'
 
@@ -6,7 +6,7 @@ import type { DesignState } from '../../domain/session/state'
 export function currentPlan(state: DesignState): { plan: FurniturePlan | null; extras: Operation[]; since: number | null; diverged: boolean } {
   const ordered = [...state.versions].sort((a, b) => b.n - a.n).filter((v) => v.n <= state.current)
   const source = ordered.find((v) => v.plan)
-  return { plan: source?.plan ?? null, extras: source?.extras ?? [], since: source?.n ?? null, diverged: !!source && source.n !== state.current }
+  return { plan: source?.plan ? settlePlan(source.plan) : null, extras: source?.extras ?? [], since: source?.n ?? null, diverged: !!source && source.n !== state.current }
 }
 
 /** The ficha a design was opened from, and whether it changed since: its plan is no longer the first version's, or pieces were changed outside it. Null for a design of its own. */

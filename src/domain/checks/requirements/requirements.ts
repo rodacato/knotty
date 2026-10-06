@@ -28,6 +28,17 @@ export function checkRequirements(design: Design, requirements: Requirement[]): 
   })
 }
 
+const sameRequirement = (a: Requirement, b: Requirement) => a.text === b.text && a.type === b.type && a.axis === b.axis && a.min === b.min && a.max === b.max
+
+/** What a change does to the requirements already there: the new ones it `added`, and the ones it drops or rewrites (`touched`, as they were). */
+export function requirementChanges(current: Requirement[], changes: { add: Requirement[]; remove: string[] }): { added: Requirement[]; touched: Requirement[] } {
+  const rewritten = (r: Requirement) => changes.add.find((a) => a.id === r.id)
+  return {
+    added: changes.add.filter((a) => !current.some((r) => r.id === a.id)),
+    touched: current.filter((r) => (rewritten(r) ? !sameRequirement(r, rewritten(r)!) : changes.remove.includes(r.id))),
+  }
+}
+
 /** Adds or replaces by id, and drops the ones named. The shape of the change is the expert's. */
 export function updateRequirements(current: Requirement[], changes: { add: Requirement[]; remove: string[] }): Requirement[] {
   const next = new Map(current.filter((r) => !changes.remove.includes(r.id)).map((r) => [r.id, r]))

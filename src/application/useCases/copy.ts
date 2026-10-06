@@ -49,7 +49,11 @@ export function adjustFailed(lastError: string) {
 export const holdText = {
   removesStructure: (names: string[]) => `Quiere quitar ${names.join(', ')}, que sostienen el mueble y no pediste quitar.`,
   askedQuestions: 'Hizo preguntas: el cambio espera tus respuestas.',
+  changesRequirements: (texts: string[]) => `Cambia o quita algo que tú dijiste: ${texts.map((t) => `«${t}»`).join(', ')}. Aplícalo solo si ya no es cierto.`,
 }
+
+/** Closes an answer that tried to change what the person said: an answer makes no proposal to hold. */
+export const requirementsKept = (texts: string[]) => `No cambié ${texts.map((t) => `«${t}»`).join(', ')}: es algo que tú dijiste. Si ya no aplica, quítalo en la pestaña Mueble.`
 
 /** What Knotty says when it changed the plan by itself, without the expert. */
 export const localText = {

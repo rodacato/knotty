@@ -5,7 +5,7 @@ import { applySettings, materialById, usableSheet } from '../../../domain/materi
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../../domain/editing/operations/drawer'
 import { ASSUMPTIONS } from '../../../domain/assumptions'
 import { MATTRESSES } from '../../../domain/design/kind'
-import { TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/table'
+import { TablePlan, TYPICAL_TABLE_DIMENSIONS } from '../../../domain/furniture/modules/table'
 import { DEFAULT_CONSTRUCTION } from '../../../domain/furniture/modules/cabinet'
 import { FURNITURE_KINDS, MODULE_OF_KIND, MODULES } from '../../../domain/furniture/modules/plan'
 import type { DesignKind } from '../../../domain/design/kind'
@@ -239,14 +239,23 @@ describe('adjusting a plan asks only about its own module', () => {
 /** The prompt and the schema of its answer, as characters ÷ 3.5: a guard against growth, not a count. The provider counts ≈ 1.7–1.9 × this (npm run compare, 2026-09-26). */
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
-/** About 5 % above what each measured when it was set (plan-adjust@13): growing past it has to be on purpose. With every module it was 4 307. */
-const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2715, bed: 2420, table: 1970, shoeRack: 1930 }
+/** About 5 % above what each measured when it was set (plan-adjust@13; the table's with table@6): growing past it has to be on purpose. With every module it was 4 307. */
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2715, bed: 2420, table: 2110, shoeRack: 1930 }
 
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6915, cabinet: 3340, bed: 2425, table: 1925, shoeRack: 1960 }
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 6985, cabinet: 3340, bed: 2425, table: 2055, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
 const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3605, adjust: 2980 }, bookcase: { skeleton: 3960, adjust: 3290 } }
+
+describe('the plan a module is edited through', () => {
+  // The prompt says a change goes through the plan when the plan can say it: a field it does not name reads as one it cannot.
+  it('adjusting a table plan names every field of the plan', () => {
+    const sent = render(planAdjustmentFor('table'), testCatalog)
+    const fields = Object.keys(TablePlan.shape).filter((key) => key !== 'kind' && key !== 'name')
+    expect(fields.filter((key) => !sent.includes(`\`${key}\``))).toEqual([])
+  })
+})
 
 describe('token budget', () => {
   it.each(Object.keys(GUIDED_BUDGET) as DesignKind[])('with the %s guide: skeleton and plan-adjust within budget', (use) => {

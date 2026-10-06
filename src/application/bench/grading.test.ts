@@ -129,15 +129,16 @@ describe('negative controls: the grader rejects what is wrong', () => {
     expect(find(stepsOf(r)[1], 'preserved:height').status).toBe('pass')
   })
 
-  it('a lost requirement: the expert states one and then drops it', async () => {
+  it('a lost requirement is caught, and an answer of the expert cannot be what drops it', async () => {
     const space = { id: 'space-width', text: 'Mi espacio mide 90 cm de ancho', type: 'space' as const, axis: 'x' as const, min: null, max: 900 }
     const c = asked({ adjust: ['Mi espacio mide 90 cm', 'Hazla más bonita'], afterRequest: { 'Mi espacio mide 90 cm': { expect: [{ kind: 'requirement', id: 'space-width' }] } } })
     const kept = await run(c, [() => response({ requirements: { add: [space], remove: [] } }), () => response()])
     expect(kept.steps!.flatMap(failed)).toEqual([])
-    const lost = await run(c, [() => response({ requirements: { add: [space], remove: [] } }), () => response({ requirements: { add: [], remove: ['space-width'] } })])
-    expect(find(stepsOf(lost)[1], 'requirement:space-width').status).toBe('pass')
-    expect(find(stepsOf(lost)[2], 'requirement:space-width')).toMatchObject({ status: 'fail', detail: 'se perdió space-width' })
-    expect(problemsOf(lost)).toEqual(['«Hazla más bonita»: se perdió space-width'])
+    const tried = await run(c, [() => response({ requirements: { add: [space], remove: [] } }), () => response({ requirements: { add: [], remove: ['space-width'] } })])
+    expect(tried.steps!.flatMap(failed)).toEqual([])
+    const [before, after] = [kept.state!, { ...kept.state!, requirements: [] }]
+    const lost = gradeStep({ catalog: testCatalog, spec: scenarioOf(c).steps[2], index: 2, before, after, outcome: outcomeOf(before, after), previous: null })
+    expect(find(lost, 'requirement:space-width')).toMatchObject({ status: 'fail', detail: 'se perdió space-width' })
   })
 
   it('an error after a correct reconstruction: step 2 breaks the session and the case is still listed as a problem', async () => {

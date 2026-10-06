@@ -144,7 +144,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     check: 'workbench.height',
     appliesTo: ['workbench'],
     metric: 'surfaceHeight',
-    // From the workshop bench (850–950) to the high counter of a standing desk (1020–1100).
+    // The reference gives the workshop bench (850–950); 950–1100 for a standing desk has no row of its own (the 1020–1100 row is a bar counter).
     limits: { min: WORKBENCH_HEIGHT[0], max: WORKBENCH_HEIGHT[1] },
     severity: 'recommendation',
     source: `${FURNITURE}#21-mesas-y-superficies «Mesa de trabajo de pie (taller)»`,
@@ -154,7 +154,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
   checked({
     check: 'desk.legroom',
     appliesTo: ['desk'],
-    // Reference: 650 mm of free height.
+    // Reference: 650 mm minimum. An 80 mm apron under an 18 mm top leaves 642 mm in the reference's own 740 mm desk, so 650 would flag every desk it recommends.
     limits: { width: 600, height: 620, depth: 450 },
     source: `${VALUES}#10-medidas-de-muebles-y-ergonomía «Hueco libre para piernas»`,
     find: ({ design, geo, surface }, knee, report) => {
@@ -169,7 +169,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     },
   }),
 
-  // Tables. Reference: coffee 380–500, dining 700–780.
+  // Tables. Reference: coffee 380–500, dining 700–780; the limits below are wider for coffee and narrower for dining, and the reason is not recorded.
   tableHeight('coffeeTable', 'de centro', 'Mesa de centro', 350, 500),
   tableHeight('sideTable', 'lateral', 'Mesa lateral', 450, 650),
   tableHeight('diningTable', 'de comedor', 'Mesa de comedor', 720, 770),

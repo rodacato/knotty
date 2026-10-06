@@ -874,6 +874,64 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     expect(new Set(currentDesign(applied).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
   })
 
+  const space = { id: 'space-width', text: 'Mi espacio mide 50 cm de ancho', type: 'space' as const, axis: 'x' as const, min: null, max: 500 }
+  const wider = { ...drawers(3), dimensions: { width: 600, height: 900, depth: 450 } }
+
+  it.each([
+    ['drops', { add: [], remove: ['space-width'] }],
+    ['loosens under the same id', { add: [{ ...space, max: 600 }], remove: [] }],
+  ])('a plan change that %s a requirement the person stated waits for them, and applying it takes both', async (_, requirements) => {
+    const { llm } = expert({ action: 'plan', cabinet: wider, summary: 'Ensanchar', requirements })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust({ ...initial, requirements: [space] }, 'Que quepan carpetas', newSignal())
+    expect(state.versions).toHaveLength(1)
+    expect(state.requirements).toEqual([space])
+    expect(state.proposal?.holds).toEqual(['Cambia o quita algo que tú dijiste: «Mi espacio mide 50 cm de ancho». Aplícalo solo si ya no es cierto.'])
+    const applied = c.applyProposal(state)
+    expect(currentDesign(applied).dimensions.width).toBe(600)
+    expect(applied.requirements.find((r) => r.id === 'space-width')?.max ?? null).not.toBe(500)
+  })
+
+  it('a requirement stated again as it was holds nothing, and a new one comes with the change', async () => {
+    const style = { id: 'style', text: 'Que se vea la veta', type: 'style' as const, axis: null, min: null, max: null }
+    const { llm } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón', requirements: { add: [space, style], remove: [] } })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust({ ...initial, requirements: [space] }, 'Ponle otro cajón igual a los de abajo', newSignal())
+    expect(state.versions).toHaveLength(2)
+    expect(state.requirements).toEqual([space, style])
+  })
+
+  it('an answer cannot drop or rewrite what the person stated: it stays, the reply says so, and what it adds is kept', async () => {
+    const tool = { id: 'tools', text: 'Solo tengo taladro', type: 'tool' as const, axis: null, min: null, max: null }
+    const { llm } = expert({ action: 'answer', explanation: 'Se arma con tornillos.', requirements: { add: [tool], remove: ['space-width'] } })
+    const { c, initial } = await start(llm)
+    const state = await c.adjust({ ...initial, requirements: [space] }, '¿Cómo se arma?', newSignal())
+    expect(state.requirements).toEqual([space, tool])
+    expect(state.chat.at(-1)?.text).toBe('Se arma con tornillos.\n\nNo cambié «Mi espacio mide 50 cm de ancho»: es algo que tú dijiste. Si ya no aplica, quítalo en la pestaña Mueble.')
+  })
+
+  it('answering a pending proposal keeps the requirement and the decision it brought, and the expert reads them', async () => {
+    const style = { id: 'style', text: 'Que se vea la veta', type: 'style' as const, axis: null, min: null, max: null }
+    const asking = { action: 'plan' as const, cabinet: drawers(4), summary: 'Agregar un cajón', questions: [{ text: '¿Confirmas?', options: ['Sí', 'No'] }], requirements: { add: [style], remove: [] }, decisions: [{ topic: 'drawers', text: 'Cuatro iguales' }] }
+    const { llm, requests } = expert([asking, { action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' }])
+    const { c, initial } = await start(llm)
+    const pending = await c.adjust(initial, 'Ponle otro cajón igual a los de abajo', newSignal())
+    expect(pending.requirements).toEqual([])
+    const resolved = await c.adjust(pending, 'Sí', newSignal())
+    expect(requests[1].context).toContain('- [style] Que se vea la veta')
+    expect(requests[1].context).toContain('- Decision drawers: Cuatro iguales')
+    expect(resolved.versions).toHaveLength(2)
+    expect(resolved.requirements).toEqual([style])
+    expect(resolved.decisions).toEqual([{ topic: 'drawers', text: 'Cuatro iguales' }])
+  })
+
+  it('the expert reads the limits a space requirement is checked with', async () => {
+    const { llm, requests } = expert({ action: 'answer' })
+    const { c, initial } = await start(llm)
+    await c.adjust({ ...initial, requirements: [space] }, '¿Cabe?', newSignal())
+    expect(requests[0].context).toContain('- [space-width] Mi espacio mide 50 cm de ancho (space: width at most 500 mm)')
+  })
+
   it('a plan change that takes away the back unasked waits for the person', async () => {
     const { llm } = expert({ action: 'plan', cabinet: { ...drawers(3), construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }, summary: 'Aligerar' })
     const { c, initial } = await start(llm)

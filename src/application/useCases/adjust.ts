@@ -7,20 +7,20 @@ import { updateDecisions, type Decision, type Origin } from '../../domain/sessio
 import type { Catalog } from '../../domain/materials/catalog'
 import { answerQuestion } from '../../domain/furniture/intent/answers'
 import { parseIntent } from '../../domain/furniture/intent/intent'
-import { describePlanChanges, type FurniturePlan } from '../../domain/furniture/modules/plan'
+import { describePlanChanges, FurniturePlan } from '../../domain/furniture/modules/plan'
 import { rebuildFromPlan } from '../../domain/furniture/modules/rebuild'
 import type { Operation } from '../../domain/editing/operations/schema'
 import type { Repair } from '../../domain/editing/repair/repair'
-import { updateRequirements, type Requirement } from '../../domain/checks/requirements/requirements'
+import { requirementChanges, updateRequirements, type Requirement } from '../../domain/checks/requirements/requirements'
 import { currentDesign, markAnswered, type DesignState, type Message } from '../../domain/session/state'
 import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { named, withCandidate } from '../named'
-import { expertPlans, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { knowledgeFor } from '../knowledge'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
-import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, stillPending } from './copy'
+import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, requirementsKept, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
 import { criticalsCorrection, listErrors, planCorrection } from './forExpert'
@@ -65,6 +65,26 @@ function proposalFrom(p: {
     holds: p.holds,
   }
 }
+
+/** What a change starts from: the session's requirements and decisions, and what a pending proposal already added, since the change completes it. */
+function standing(state: DesignState): { requirements: Requirement[]; decisions: Decision[]; proposed: Decision[] } {
+  const p = state.proposal
+  if (!p) return { requirements: state.requirements, decisions: state.decisions, proposed: [] }
+  const { added } = requirementChanges(state.requirements, { add: p.requirements, remove: [] })
+  return { requirements: [...state.requirements, ...added], decisions: updateDecisions(state.decisions, p.decisions), proposed: p.decisions }
+}
+
+/**
+ * The expert adds requirements; one the person already had is theirs to change.
+ * `kept` leaves those as they were, `asked` is the list as the expert wants it, for a change that waits for the person.
+ */
+function requirementsWith(current: Requirement[], changes: { add: Requirement[]; remove: string[] }) {
+  const { added, touched } = requirementChanges(current, changes)
+  return { kept: updateRequirements(current, { add: added, remove: [] }), asked: updateRequirements(current, changes), touched: touched.map((r) => r.text) }
+}
+
+/** An answer makes no proposal: what it tried to change of the person's requirements is left as it was, and said. */
+const answerText = (explanation: string, touched: string[]) => (touched.length ? `${explanation}\n\n${requirementsKept(touched)}` : explanation)
 
 /** If the expert offered no options for a critical finding, the rules' alternatives are offered, those Knotty can build first. */
 function questionFromAlternatives(criticals: Finding[], design: Design, catalog: Catalog): Pick<Message, 'questions' | 'solutions'> {
@@ -186,22 +206,43 @@ export function createAdjust(kit: Kit) {
       })
       if (!call.ok) return null
       const { response, started } = call
-      const r = response.value
-      const requirements = updateRequirements(withRequest.requirements, r.requirements)
-      const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
+      const parsedResponse = PlanAdjustment.safeParse(response.value)
+      if (!parsedResponse.success) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'invalid', [{ code: 'E_SCHEMA', message: parsedResponse.error.message }], [], 'Ficha'))
+        return null
+      }
+      const r = parsedResponse.data
       const suggestions = r.suggestions.slice(0, 4)
       const offered = expertPlans(r)[plan.kind]
-      const next = offered && keepPersonKind(offered, design)
-      if (r.action === 'freeform' || (r.action === 'plan' && !next)) {
+      const proposed = offered && keepPersonKind(offered, design)
+      if (r.action === 'freeform') {
         trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: no cabe, va pieza por pieza'))
         return null
       }
       if (r.action === 'answer') {
         trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: respuesta'))
-        return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
+        const { kept, touched } = requirementsWith(withRequest.requirements, r.requirements)
+        return reply(answerText(r.explanation, touched), { questions: r.questions, suggestions: suggestions }, { ...withRequest, requirements: kept, decisions: updateDecisions(withRequest.decisions, r.decisions) })
       }
+      const parsedPlan = FurniturePlan.safeParse(proposed)
+      if (!parsedPlan.success) {
+        const errors = parsedPlan.error.issues.map((issue) => ({ code: 'E_SCHEMA' as const, message: issue.message, data: { path: issue.path } }))
+        trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(errors), [], 'Ficha'))
+        correction = { previousResponse: r, errors: `The plan has inconsistent fields:\n${listErrors(errors)}\nReturn a complete plan that satisfies these constraints.` }
+        continue
+      }
+      const next = parsedPlan.data
+      const previous = FurniturePlan.safeParse(plan)
+      const unchanged = next.kind === 'table' && previous.success && describePlanChanges(previous.data, next).length === 0
+      if (unchanged && !withRequest.proposal && !r.questions.length && !r.requirements.add.length && !r.requirements.remove.length && !r.decisions.length) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], [], 'Ficha: sin cambios'))
+        return reply(localText.already, { suggestions })
+      }
+      const from = standing(withRequest)
+      const { asked: requirements, touched } = requirementsWith(from.requirements, r.requirements)
+      const base = { ...withRequest, requirements, decisions: updateDecisions(from.decisions, r.decisions) }
       onProgress('checking', attempt)
-      const rebuilt = rebuildFromPlan(next!, current.extras, catalog, requirements)
+      const rebuilt = rebuildFromPlan(next, current.extras, catalog, requirements)
       const analysis = analyze(rebuilt.design, catalog, requirements)
       if (!analysis.valid) {
         trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(analysis.errors), rebuilt.repairs, 'Ficha'))
@@ -213,11 +254,11 @@ export function createAdjust(kit: Kit) {
       const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
       const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
       // The plan carries no accepted risks: a critical the person already accepted is in `before`, and is not new.
-      const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
-      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: r, requirements, origin: response.origin, plan: { plan: next!, extras }, suggestions })
+      const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, changedRequirements: touched, request, catalog, extraRound: false, criticalsReviewed: false })
+      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: { ...r, decisions: updateDecisions(from.proposed, r.decisions) }, requirements, origin: response.origin, plan: { plan: next, extras }, suggestions })
       // A valid candidate with no extra round is either pending or applied.
       if (verdict.kind !== 'applied') return null
-      const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next!, extras })
+      const withChange = addVersion(base, rebuilt.design, { summary: r.summary, reason: request, operations: [], origin: response.origin, plan: next, extras })
       return reply([r.explanation, ...rebuilt.notes].join('\n\n'), { questions: r.questions, suggestions: suggestions, version: withChange.current }, withChange)
     }
     return null
@@ -253,8 +294,10 @@ export function createAdjust(kit: Kit) {
       }
       const { response, started } = call
       const r = { ...response.value, explanation: [response.value.explanation, ...(response.warnings ?? [])].join('\n\n') }
-      const requirements = updateRequirements(withRequest.requirements, r.requirements)
-      const base = { ...withRequest, requirements, decisions: updateDecisions(withRequest.decisions, r.decisions) }
+      const from = r.operations.length ? standing(withRequest) : { requirements: withRequest.requirements, decisions: withRequest.decisions, proposed: [] }
+      const change = requirementsWith(from.requirements, r.requirements)
+      const requirements = r.operations.length ? change.asked : change.kept
+      const base = { ...withRequest, requirements, decisions: updateDecisions(from.decisions, r.decisions) }
       const suggestions = r.suggestions.slice(0, 4)
       let candidate: Candidate | null = null
       if (r.operations.length) {
@@ -268,8 +311,8 @@ export function createAdjust(kit: Kit) {
         onProgress('structure', attempt)
       }
 
-      const verdict = judge({ design, before, candidate, response: r, request, catalog, extraRound: true, criticalsReviewed })
-      if (verdict.kind === 'answer') return reply(r.explanation, { questions: r.questions, suggestions: suggestions }, base)
+      const verdict = judge({ design, before, candidate, response: r, changedRequirements: change.touched, request, catalog, extraRound: true, criticalsReviewed })
+      if (verdict.kind === 'answer') return reply(answerText(r.explanation, change.touched), { questions: r.questions, suggestions: suggestions }, base)
       if (verdict.kind === 'retry' && verdict.reason === 'invalid') {
         correction = { previousResponse: r, errors: listErrors(verdict.errors) }
         lastError = named(withCandidate(design, candidate && !candidate.ok ? candidate.design : null), verdict.errors[0]?.message) || 'el cambio no se pudo aplicar'
@@ -285,7 +328,7 @@ export function createAdjust(kit: Kit) {
       }
       const { design: next, repairs, warnings } = verdict.candidate
       const plan = layered(current, r.operations)
-      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: r.operations, response: r, requirements, origin: response.origin, plan, suggestions })
+      if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: r.operations, response: { ...r, decisions: updateDecisions(from.proposed, r.decisions) }, requirements, origin: response.origin, plan, suggestions })
       const settings = repairs.length ? [alsoRepaired(repairs)] : []
       const remaining = verdict.unresolved.length ? [stillPending(describeProblems(traceErrors(verdict.unresolved)))] : []
       const withChange = addVersion(base, next, { summary: r.summary, reason: request, operations: r.operations, origin: response.origin, ...plan })

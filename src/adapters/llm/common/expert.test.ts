@@ -31,6 +31,28 @@ describe('strictSchema', () => {
   })
 })
 
+describe('plan adjustment actions', () => {
+  const plan = MODULES.table.benchVariants()[0][1]
+  const answer = { explanation: 'Respuesta.', summary: 'Responder', action: 'answer', table: null, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] }
+
+  it.each([
+    ['plan', null],
+    ['answer', plan],
+    ['freeform', plan],
+  ])('rejects action %s with an inconsistent plan', (action, table) => {
+    expect(planAdjustmentFor('table').safeParse({ ...answer, action, table }).success).toBe(false)
+  })
+
+  it.each(['answer', 'freeform'])('%s accepts a null plan', (action) => {
+    expect(planAdjustmentFor('table').safeParse({ ...answer, action }).success).toBe(true)
+  })
+
+  it('accepts one complete plan and rejects multiple module plans', () => {
+    expect(planAdjustmentFor('table').safeParse({ ...answer, action: 'plan', table: plan }).success).toBe(true)
+    expect(PlanAdjustment.safeParse({ ...answer, ...answerWith(plan), action: 'plan', bed: MODULES.bed.benchVariants()[0][1] }).success).toBe(false)
+  })
+})
+
 describe('prompts', () => {
   // The system prompt travels with every call: if it suddenly grows, something slipped in (a huge catalog, for instance).
   it.each([RECONSTRUCTION, ADJUSTMENT, PURCHASE_REVIEW, READING])('the system prompt of $id stays small', (task) => {
@@ -159,6 +181,12 @@ describe('createExpert', () => {
     expect(calls[0].system).not.toContain('goes in `cabinet`')
     expect(r.origin.promptId).toBe('plan-adjust@13+bed@5')
     expect(expertPlans(r.value)).toEqual({ bed: { ...bed, height: 450 }, cabinet: null, table: null, shoeRack: null })
+  })
+
+  it('the real expert adapter rejects a plan hidden inside an answer', async () => {
+    const plan = MODULES.table.benchVariants()[0][1]
+    const { expert } = fake({ explanation: 'Listo, lo cambié.', summary: 'Cambiar', action: 'answer', table: plan, questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] })
+    await expect(expert.adjustPlan!({ context: '', request: 'Revisa la distribución', plan, catalog: testCatalog, correction: null }, new AbortController().signal)).rejects.toBeInstanceOf(InvalidResponse)
   })
 
   it('a known use with a guide adds it: the skeleton and the plan adjustment say so in their id', async () => {

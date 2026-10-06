@@ -6,6 +6,7 @@ import { completeJoints } from '../../design/joints'
 import type { DesignKind } from '../../design/kind'
 import { backBoard, materialById, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
+import { cite, noReference, STRUCTURE, type Source } from '../../sources'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
@@ -76,6 +77,15 @@ const MAX_END_INSET = 50
 export const TABLE_KIND: Record<TablePlan['use'], DesignKind> = { dining: 'diningTable', coffee: 'coffeeTable', side: 'sideTable', desk: 'desk', standing: 'workbench' }
 
 const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium', standing: 'heavy' }
+
+export const TABLE_SOURCES: Record<string, Source> = {
+  MAX_PEDESTAL_DRAWERS: noReference('Module limit: the pedestal supports up to four drawers; not a hardware rating.'),
+  APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
+  MODESTY: noReference('Construction choice: a 300 mm rear panel. The reference recommends 100–150 mm; this difference still needs craft review.'),
+  SHELF_HEIGHT: noReference('Construction choice: the low shelf starts 120 mm above the floor.'),
+  PEDESTAL: noReference('Construction choice: a 420 mm pedestal; available legroom is checked separately.'),
+  MAX_END_INSET: noReference('Module limit: supports are inset at most 50 mm from the ends.'),
+}
 
 const ENDS = ['left', 'right'] as const
 type End = (typeof ENDS)[number]
@@ -366,9 +376,23 @@ const TABLE_PARTS: Parts<TablePlan> = {
   },
 }
 
+/** A plan saved before its rules, as what was built from it: a pedestal that never got drawn, or a shelf a desk does not take, is not part of the furniture. */
+export function settleTable(plan: TablePlan): TablePlan {
+  const built = plan.use === 'desk' && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0
+  const noPedestal = plan.pedestal.side === 'none' && plan.pedestal.drawers === 0
+  const noShelf = plan.use !== 'desk' || !plan.shelf
+  if ((built || noPedestal) && noShelf) return plan
+  return { ...plan, pedestal: built ? plan.pedestal : { side: 'none', drawers: 0 }, shelf: plan.use === 'desk' ? false : plan.shelf }
+}
+
 export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
+  rules: [
+    { holds: (p) => p.use === 'desk' || (p.pedestal.side === 'none' && p.pedestal.drawers === 0), message: 'Solo un escritorio lleva cajonera. Para este uso, elige sin cajonera y cero cajones.', path: ['pedestal'] },
+    { holds: (p) => (p.pedestal.side === 'none') === (p.pedestal.drawers === 0), message: 'Una cajonera necesita lado y al menos un cajón; sin cajonera, el número de cajones debe ser cero.', path: ['pedestal', 'drawers'] },
+    { holds: (p) => p.use !== 'desk' || !p.shelf, message: 'Un escritorio no lleva repisa baja: estorba las piernas.', path: ['shelf'] },
+  ],
   label: 'una mesa',
   expert: { what: 'a table or a desk' },
   build: buildTable,
