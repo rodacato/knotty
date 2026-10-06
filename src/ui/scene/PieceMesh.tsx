@@ -13,7 +13,7 @@ import { slantGeometry } from './slantGeometry'
 import { FINISH_LOOK, NATURAL_PINE, type FinishId } from '../../domain/materials/finishes'
 import { profiledGeometry, type EdgeShape } from './edgeGeometry'
 import { texture, type TextureKind } from './textures'
-import type { Swing } from './open'
+import type { Turn } from './open'
 
 const MM = 0.001
 /** (u, v) axes of each BoxGeometry face, in the order of its materials: +x, −x, +y, −y, +z, −z. */
@@ -58,8 +58,8 @@ interface PieceMeshProps {
   tone: BoardTone
   plies: number
   offset: [number, number, number]
-  /** A door open on its hinge: the piece turns about this edge, in mm. */
-  swing: Swing | null
+  /** A door open on its hinge, or a lid lifted on its own: the piece turns about this edge, in mm. */
+  swing: Turn | null
   selected: boolean
   dimmed: boolean
   ghost: boolean
@@ -115,11 +115,16 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
   })
   const { turn } = useSpring({ turn: swing?.angle ?? 0, config: { mass: 1, tension: 120, friction: 18 }, immediate: reduced })
   // Turning a piece about an edge also carries its center around it.
+  const lifted = swing?.axis === 'x'
   const pivot = swing ? [swing.pivot[0] * MM, swing.pivot[1] * MM] : [target[0], target[2]]
   const swung = to([position, turn], (p, t) => {
     const [x, y, z] = p as unknown as [number, number, number]
-    const [dx, dz] = [center[0] - pivot[0], center[2] - pivot[1]]
     const [c, s] = [Math.cos(t as number), Math.sin(t as number)]
+    if (lifted) {
+      const [dy, dz] = [center[1] - pivot[0], center[2] - pivot[1]]
+      return [x, y - center[1] + pivot[0] + dy * c - dz * s, z - center[2] + pivot[1] + dy * s + dz * c]
+    }
+    const [dx, dz] = [center[0] - pivot[0], center[2] - pivot[1]]
     return [x - center[0] + pivot[0] + dx * c + dz * s, y, z - center[2] + pivot[1] - dx * s + dz * c]
   })
   const { opacity } = useSpring({ from: { opacity: reduced ? finalOpacity : 0 }, to: { opacity: finalOpacity }, delay: reduced ? 0 : delay, immediate: reduced, config: { tension: 120, friction: 20 } })
@@ -151,7 +156,8 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
   return (
     <animated.mesh
       position={swung as never}
-      rotation-y={turn as never}
+      rotation-x={(lifted ? turn : 0) as never}
+      rotation-y={(lifted ? 0 : turn) as never}
       scale={scale as never}
       castShadow={!dimmed}
       receiveShadow

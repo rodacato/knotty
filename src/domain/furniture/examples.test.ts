@@ -10,7 +10,7 @@ import { buildPlan } from './modules/plan'
 
 describe('examples', () => {
   it.each(testBases.map((b) => [b.name, b] as const))('%s, built from its plan, is valid, as asked, and has no findings above a detail', (_, base) => {
-    expect(buildPlan(base.plan, testCatalog).notes.filter((n) => !/^(Muesca|Patas)/.test(n))).toEqual([])
+    expect(buildPlan(base.plan, testCatalog).notes.filter((n) => !/^(Muesca|Patas|\d+ tapas abatibles)/.test(n))).toEqual([])
     const { design, plan } = exampleDesign(base, testCatalog)
     expect(plan).toBe(base.plan)
     const analysis = analyze(design, testCatalog)

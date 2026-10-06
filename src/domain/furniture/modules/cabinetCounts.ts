@@ -39,8 +39,8 @@ const fresh = (kind: QuickCountKind, width: number): PlanCell =>
 
 /** The plan with one more cell of the kind, or null when no cell can give half: each half has to keep the lowest opening a drawer fits in. Open niches are split first, the tallest first. */
 function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
-  // A split cell or a void is not split again: what is inside a split cell is counted, not changed here.
-  const candidates = plan.columns.flatMap((column, i) => column.cells.flatMap((cell, j) => (cell.columns || cell.content === 'void' ? [] : [{ i, j, cell, size: openingSize(plan, catalog, column, cell.height) }])))
+  // A split cell or a void is not split again: what is inside a split cell is counted, not changed here. Nor is a chest, which would lose the open cell its lid lifts into.
+  const candidates = plan.columns.flatMap((column, i) => column.cells.flatMap((cell, j) => (cell.columns || cell.content === 'void' || cell.content === 'chest' ? [] : [{ i, j, cell, size: openingSize(plan, catalog, column, cell.height) }])))
   const ordered = [...candidates].sort((a, b) => Number(b.cell.content === 'open') - Number(a.cell.content === 'open') || b.size.height - a.size.height)
   for (const { i, j, cell, size } of ordered) {
     const half = cell.height / 2

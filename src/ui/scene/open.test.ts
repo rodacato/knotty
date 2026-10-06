@@ -9,7 +9,7 @@ import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
 import { testBases } from '../../domain/furniture/fixtures/references.test-util'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { opening } from './open'
+import { opening, turnsOf } from './open'
 
 const designs: [string, Design][] = [
   ...[exampleNightstand, exampleWallCabinet].map((d) => [d.name, d] as [string, Design]),
@@ -100,6 +100,42 @@ describe('a door that opens clears the furniture, hung inset or overlay', () => 
       const inside = swept(box, swing.pivot, swing.angle).flatMap(([x, z]) => others.filter((o) => x > o.box.x0 + 1 && x < o.box.x1 - 1 && z > o.box.z0 + 1 && z < o.box.z1 - 1).map((o) => o.id))
       expect([id, [...new Set(inside)]]).toEqual([id, []])
     }
+  })
+})
+
+describe('a lid lifts on the hinge along its back edge', () => {
+  const headboard = (shelvesAbove: number): CabinetPlan => ({
+    kind: 'cabinet',
+    name: 'Librero de cabecera',
+    dimensions: { width: 650, height: 1000, depth: 300 },
+    material: 'T18',
+    base: 'floor',
+    legHeight: 150,
+    wallMounted: true,
+    construction: { ...DEFAULT_CONSTRUCTION, top: 'over', shelves: 'fixed' },
+    columns: [{ width: 1, cells: [{ height: 0.5, content: 'chest', shelves: 1, doors: null }, { height: 0.5, content: 'open', shelves: shelvesAbove, doors: null }] }],
+  })
+  /** Where a point of the lid, as [y, z], lands when the scene turns it about x. */
+  const lifted = ([y, z]: [number, number], pivot: [number, number], angle: number) => [pivot[0] + (y - pivot[0]) * Math.cos(angle) - (z - pivot[1]) * Math.sin(angle), pivot[1] + (y - pivot[0]) * Math.sin(angle) + (z - pivot[1]) * Math.cos(angle)]
+
+  it('turns a quarter about the top of its back edge, so its front edge ends up over the hinge; it neither swings out nor slides', () => {
+    const { boxes, result } = open(buildCabinet(headboard(0), testCatalog).design)
+    const lid = boxes.get('c1-h1-lid')!
+    const lift = result.lifts.get('c1-h1-lid')!
+    expect(lift.pivot).toEqual([lid.y1, lid.z0])
+    const [y, z] = lifted([lid.y1, lid.z1], lift.pivot, lift.angle)
+    expect([y, z].map(Math.round)).toEqual([lid.y1 + (lid.z1 - lid.z0), lid.z0].map(Math.round))
+    expect([result.swings.has('c1-h1-lid'), result.offsets.get('c1-h1-lid')]).toEqual([false, [0, 0, 0]])
+    expect(result.bounds.y1).toBeGreaterThanOrEqual(y)
+    expect(turnsOf(result).get('c1-h1-lid')).toEqual({ axis: 'x', ...lift })
+  })
+
+  it('stops against a shelf over it instead of going through', () => {
+    const { boxes, result } = open(buildCabinet(headboard(3), testCatalog).design)
+    const [lid, shelf] = [boxes.get('c1-h1-lid')!, boxes.get('c1-h2-shelf-1')!]
+    const lift = result.lifts.get('c1-h1-lid')!
+    expect(Math.abs(lift.angle)).toBeLessThan(Math.PI / 2)
+    expect(lifted([lid.y1, lid.z1], lift.pivot, lift.angle)[0]).toBeCloseTo(shelf.y0)
   })
 })
 

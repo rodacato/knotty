@@ -1,5 +1,6 @@
 import { hingesFor } from '../assumptions'
 import type { Catalog } from '../materials/catalog'
+import { lidSwing } from './doors'
 import type { Axis, Design } from './schema'
 import type { Box } from './resolve'
 import { contactBetween } from './validation/contact'
@@ -27,6 +28,9 @@ const BOLT = { diameter: 6, pilot: 7, head: 14, nut: 10, nutFromTip: 8 }
 const CAM = { diameter: 15, fromEdge: 34, pin: 7, pilot: 8, dowelAside: 32 }
 /** A 5 mm shelf pin: this much of it sticks out under the shelf. */
 const SHELF_PIN = { diameter: 5, length: 16, out: 8 }
+/** A piano hinge's knuckle, and a friction stay: where its ends are screwed, from the hinge along the lid and down and out along the wall, and how far in from the lid's edge it sits. */
+const PIANO_KNUCKLE = 6
+const STAY = { alongLid: 120, lidShare: 0.6, down: 100, out: 60, inset: 10, stretch: 0.52 }
 const AXES: Axis[] = ['x', 'y', 'z']
 const low = (b: Box, axis: Axis) => b[`${axis}0` as const]
 const high = (b: Box, axis: Axis) => b[`${axis}1` as const]
@@ -43,8 +47,10 @@ export type HardwarePart =
   | { kind: 'hole'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
   /** Metal that shows on a face of `owner` with the furniture put together: the head of a bolt, its barrel nut or the cam of a minifix. */
   | { kind: 'cap'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
-  /** A rod lying along `axis`, `center` at its middle. A dowel stays in the piece that takes it; a pin in the side that carries the shelf. */
-  | { kind: 'dowel' | 'shelf-pin'; owner: string; center: Point; axis: Axis; length: number; diameter: number }
+  /** A rod lying along `axis`, `center` at its middle. A dowel stays in the piece that takes it; a pin in the side that carries the shelf; a piano hinge on the board the lid hinges on. */
+  | { kind: 'dowel' | 'shelf-pin' | 'piano-hinge'; owner: string; center: Point; axis: Axis; length: number; diameter: number }
+  /** The stay of the lid `owner`, in the plane at `x`: the lid turns about `pivot`, one arm is screwed under it at `onLid` (with the lid closed) and the other to the wall at `onWall`, all as [y, z]. */
+  | { kind: 'stay'; owner: string; x: number; pivot: [number, number]; onLid: [number, number]; onWall: [number, number]; arm: number }
   /** Goes through `owner`, its head on the end that looks `outward`. */
   | { kind: 'screw'; owner: string; center: Point; axis: Axis; length: number; diameter: number; outward: 1 | -1 }
 
@@ -152,6 +158,20 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
           parts.push({ kind: 'shelf-pin', owner: u.b, center, axis: face, length: SHELF_PIN.length, diameter: SHELF_PIN.diameter })
         }
       }
+    }
+    if (u.type === 'lid-hinge') {
+      const swing = lidSwing(design, boxes, u.a)
+      if (!swing) continue
+      const lid = a
+      const [y, z] = swing.pivot
+      parts.push({ kind: 'piano-hinge', owner: u.b, center: [(lid.x0 + lid.x1) / 2, y, z], axis: 'x', length: lid.x1 - lid.x0, diameter: PIANO_KNUCKLE })
+      const along = Math.min(STAY.alongLid, swing.reach * STAY.lidShare)
+      const onLid: [number, number] = [lid.y0, z + swing.toFree * along]
+      const onWall: [number, number] = [lid.y0 - STAY.down, z + swing.toFree * STAY.out]
+      // Open, the lid's end of the stay is as far over the hinge as it was out from it: the arms are just long enough to reach it almost straight.
+      const open: [number, number] = [y + along, z + swing.toFree * (y - lid.y0)]
+      const arm = STAY.stretch * Math.max(Math.hypot(open[0] - onWall[0], open[1] - onWall[1]), Math.hypot(onLid[0] - onWall[0], onLid[1] - onWall[1]))
+      parts.push({ kind: 'stay', owner: u.a, x: lid.x0 + STAY.inset, pivot: swing.pivot, onLid, onWall, arm })
     }
     if (u.type === 'cup-hinge') {
       const door = a

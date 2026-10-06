@@ -227,6 +227,28 @@
       "price": 95
     },
     {
+      "id": "piano-hinge-30",
+      "role": "piano-hinge",
+      "name": "Bisagra de piano 30 mm (tramo para una tapa)",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
+      "sku": null,
+      "price": 90
+    },
+    {
+      "id": "lid-stay-friction",
+      "role": "lid-stay",
+      "name": "Compás de fricción para tapa",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
+      "sku": null,
+      "price": 85
+    },
+    {
       "id": "drawer-slide-30",
       "role": "drawer-slide",
       "name": "Corredera telescópica 30 cm (par)",

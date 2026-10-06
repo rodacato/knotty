@@ -224,6 +224,8 @@ Con una cazoleta de 13 mm, una puerta de 18 mm conserva 5 mm de cara y una de 16
 
 Hojas de 15 a 127 mm de ancho; los barrenos suelen venir a ~50 mm (2"). **En triplay conviene poner los tornillos más juntos** para que no se arranquen [66] ⚠️. Útil en tapas de baúl y escritorios abatibles. Aunque es continua, al canto de 12 mm se le exige lo mismo que a cualquier tornillo al canto.
 
+**Tapa que abre hacia arriba** (baúl, o el piso de un nicho que tapa un compartimento). La bisagra de piano va de la tapa a una **tira fija** atornillada a los costados, nunca a la trasera delgada ⚠️ (el ancho de esa tira es criterio de Knotty: 80 mm, para dos tornillos por extremo). La tapa necesita arriba tanta altura libre como mide de fondo para abrir a 90°; con menos, se detiene contra lo que tenga encima. Lleva siempre un **compás** que la detenga (§6.4): una tapa que cae por su peso es el riesgo que la CPSC señala en baúles [78] ✅.
+
 ### 6.3 Correderas
 
 | Tipo | Holgura por lado | Capacidad | Largos | Fuente |
@@ -253,6 +255,8 @@ Hojas de 15 a 127 mm de ancho; los barrenos suelen venir a ~50 mm (2"). **En tri
 | **Jaladeras y botones** | entre centros suelen ser múltiplos de 32 mm (96, 128, 160 mm) | práctica | ❓ |
 | **Patas niveladoras** | Häfele MX: tornillo de ajuste con rosca M8 o M10 y base de plástico; sistemas de zoclo para cocina (Axilo 78) | [64] | ⚠️ |
 | **Pistones** (gas struts) para puertas abatibles | fuerza ≈ **F = G · b / (2 · c)** (G = peso de la puerta en N, b = medio alto de la puerta, c = distancia del anclaje a la bisagra). Regla rápida: 10 N ≈ 1 kg | [59] | ⚠️ |
+| **Compás de fricción** (*friction lid stay*) para tapa que abre hacia arriba | detiene la tapa en cualquier punto; se escoge por **par = peso de la tapa × distancia de la bisagra al centro de la tapa** (hay modelos de 1.5 y 3 N·m, ±20 %) y viene izquierdo o derecho. No se lubrica, y no es para tapas de uso continuo. Una tapa de triplay de 18 mm de 600 × 215 mm pesa ≈ 1.3 kg y pide ≈ 1.3 N·m | [77] | ⚠️ |
+| **Tapa de baúl y niños** | el soporte debe sostener la tapa **en cualquier posición** y no dejarla caer por su peso; ASTM F834 lo pide, con ventilación, en baúles de juguetes de 31 L (1.1 ft³) o más | [78] | ✅ |
 | **Rodajas** | Ø 50 mm con freno: **30–50 kg por rueda** según modelo | [63] | ⚠️ |
 | **Soporte oculto para repisa flotante** (varilla) | varilla de 19 mm (¾") en repisa de 203 mm (8"); de 10–15 kg a 85 kg según modelo y muro | [65] | ⚠️ (muy variable) |
 | **Escuadras** | la capacidad depende más del **taquete y el muro** que de la escuadra; no sirven para evitar el descuadre del casco | práctica | ⚠️ |
@@ -354,6 +358,7 @@ Distancias en mm. «Al extremo» es la distancia del primer herraje al final de 
 - ❓ Confirmat 7 × 50 según el espesor (revisado el 2026-09-28): un fabricante de tornillos lo asigna a 25–30 mm [17]; la plantilla Zentrix lo centra en 16, 19 y 22 mm, y en el foro se usa en triplay de 19 mm [16]. La práctica apunta a 16–19 mm, pero ninguna ficha de fabricante de herrajes lo confirma, y en 15 mm nadie lo reporta.
 - ❓ Confirmat en triplay de pino con huecos en el alma: no hay prueba. En triplay de 19 mm de 7 chapas, la broca escalonada abrió el alma cerca del extremo; otros no reportan rajaduras con la broca correcta [15][16]. Un piloto más ancho raja menos el canto [74]. Una prueba casera con triplay de Home Depot MX lo resolvería.
 - ❓ Distancia del confirmat al borde: [15] dice «no más de 36 mm» y [16] «no más cerca de 36 mm», las dos atribuidas a AWI. El recuerdo de las pruebas de las asociaciones de EE. UU. pide ≥ 50 mm (2") para cualquier herraje [75].
+- ❓ Compás de fricción en México: no se encontró ficha de un modelo de tienda (par, peso de tapa); el de [77] es de catálogo de EE. UU. Tampoco hay dato de cuánto dura la fricción con el uso.
 - ❓ Rosca de tornillo de bolsillo en MDF: la guía de Kreg y sus preguntas frecuentes se contradicen [1][2]. No afecta al triplay.
 - ⚠️ Minifix en tablero de 15 mm (revisado el 2026-09-28): Häfele sí tiene una caja Minifix 15 para madera desde 15 mm, con 12 mm de profundidad [76]. Falta ver si se consigue en México [19] y si los 3 mm de fondo aguantan en triplay de pino con huecos ❓.
 - ❓ Canto contra cara: en [10] el tornillo agarró **más** en el canto del triplay que en la cara (3614 N contra 2151 N en 15 mm), al revés de [8][9] (§2). Puede ser por cómo se hizo la prueba; no se pudo leer [9] para compararlo.
@@ -439,3 +444,5 @@ Distancias en mm. «Al extremo» es la distancia del primer herraje al final de 
 74. Tor, O., CERNE 25(1): 54–59 (2019) — «Effects of pilot hole diameter on screw-driving torques in medium density fiberboard» (resume un estudio de 1993 sobre rajado del canto). https://www.redalyc.org/journal/744/74460212007/74460212007.pdf
 75. Festool Owners Group — «Cabinet construction confirmat screws vs staples» (mensajes de Packard, abril de 2023). https://festoolownersgroup.com/threads/cabinet-construction-confirmat-screws-vs-staples.71531/
 76. Häfele, fichas de distribuidor de la caja Minifix 15: 262.26.042 (madera desde 15 mm, profundidad 12 mm), 262.26.535 (desde 19 mm, 14 mm; aplicación desde 12 mm), 262.25.533 (desde 16 mm, 12.5 mm) y la serie 15R/16, 15R/19, 15R/34. https://www.homedecorhardware.com/hf-262-26-042.html · https://www.homedecorhardware.com/hf-262-26-535.html · https://bkservicesonline.co.uk/products/262-25-533/ · https://www.hwt-pro.com/en/furniture-fittings/furniture-connectors/minifix-connectors/152/haefele-connector-housing-minifix-15-zinc-die-cast-with-cover-edge-for-wood-thickness-16-mm
+77. Sugatsune, compás de fricción «Free Stop Torque Lid Stay» S-52T15 y S-100T30 (ficha de distribuidor: par de 13.3 y 26.5 lb·in ±20 %, cómo calcular el par, mano izquierda y derecha, sin lubricar). https://www.cabinetparts.com/p/sugatsune-hinges-lid-and-flap-stays-SUGS52T15RRT-p112347 · https://www.cabinetparts.com/p/sugatsune-hinges-lid-and-flap-stays-SUGS100T30LRT-p112338
+78. CPSC — «CPSC Warns Consumers of the Deadly Dangers of Storage and Toy Chests» (2014; soporte de tapa que la sostenga en cualquier posición, ASTM F834). https://www.cpsc.gov/Newsroom/News-Releases/2014/CPSC-Warns-Consumers-of-the-Deadly-Dangers-of-Storage-and-Toy-Chests

@@ -43,6 +43,7 @@ export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number
     }
     case 'bracket':
       return 2
+    case 'lid-hinge':
     case 'drawer-slide':
     case 'dado':
     case 'rabbet':

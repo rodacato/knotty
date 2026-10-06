@@ -4,12 +4,13 @@ import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
 import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
-import { countLimits, quickCounts } from './cabinetCounts'
+import { countLimits, quickCounts, setCount } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
 import { FurniturePlan } from './plan'
 import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
+import { tippingBalance } from '../../checks/structure/rules/tippingBalance'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
@@ -418,6 +419,113 @@ describe('sliding doors', () => {
 
   it('a plan saved before they existed reads the same', () => {
     expect(FurniturePlan.parse(PLANS.wallCabinet)).toEqual(PLANS.wallCabinet)
+  })
+})
+
+describe('a chest opened from above', () => {
+  const chest = (shelves = 1): PlanCell => ({ height: 0.5, content: 'chest', shelves, doors: null })
+  const niche = (shelves = 0): PlanCell => ({ height: 0.5, content: 'open', shelves, doors: null })
+  const headboard = (more: Partial<CabinetPlan> = {}, cells: PlanCell[] = [chest(), niche()]) =>
+    plan({ name: 'Librero de cabecera', dimensions: { width: 650, height: 1000, depth: 300 }, base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns: [{ width: 1, cells }], ...more })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, has: (id: string) => design.pieces.some((x) => x.id === id) }
+  }
+
+  it('its lid is the floor of the open cell over it: level with the strip that stays fixed at the back, between the walls, and out to the face of the front it rests on', () => {
+    const { box, design } = built(headboard())
+    const [lid, strip, front, left, right] = ['c1-h1-lid', 'c1-sep-1', 'c1-h1-cover', 'side-left', 'side-right'].map(box)
+    expect([lid.y0, lid.y1]).toEqual([strip.y0, strip.y1])
+    expect([strip.z1 - strip.z0, lid.z0]).toEqual([80, strip.z1])
+    expect([lid.z1, front.z1, front.y1]).toEqual([300, 300, lid.y0])
+    expect([lid.x0 - left.x1, right.x0 - lid.x1]).toEqual([2, 2])
+    expect(design.pieces.find((p) => p.id === 'c1-h1-lid')).toMatchObject({ role: 'door', normal: 'y', name: 'Tapa abatible (hueco 1)' })
+  })
+
+  it('hinges on the strip with a piano hinge and is held open by a stay: one of each to buy, and no cup hinges', () => {
+    const { design, a, notes } = built(headboard())
+    expect(design.joints.filter((u) => u.a === 'c1-h1-lid').map((u) => [u.b, u.type, u.glue, u.hardware])).toEqual([['c1-sep-1', 'lid-hinge', false, [{ hardwareId: 'piano-hinge-30', count: 1 }, { hardwareId: 'lid-stay-friction', count: 1 }]]])
+    const bought = Object.fromEntries(estimatePurchase(design, a.geo, testCatalog).hardware.map((h) => [h.hardware.role, h.count]))
+    expect([bought['piano-hinge'], bought['lid-stay'], bought.hinge]).toEqual([1, 1, undefined])
+    expect(notes).toEqual(['Tapa abatible hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta. Antes de abrirla hay que quitar lo que tenga encima.'])
+  })
+
+  it('with shelves 1 its floor is fixed at mid-height and holds a light load; with 0 it reaches the bottom', () => {
+    const raised = built(headboard())
+    const floor = raised.box('c1-h1-floor')
+    const [bottom, lid] = [raised.box('bottom'), raised.box('c1-h1-lid')]
+    expect((floor.y0 + floor.y1) / 2).toBeCloseTo((bottom.y1 + lid.y0) / 2)
+    expect(raised.design.pieces.find((p) => p.id === 'c1-h1-floor')).toMatchObject({ support: 'fixed', load: 'light' })
+    expect(built(headboard({}, [chest(0), niche()])).has('c1-h1-floor')).toBe(false)
+  })
+
+  it('an inset front stays inside the carcass, with the lid over its top edge and the raised floor behind it', () => {
+    const { box } = built(headboard({ construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset', top: 'over' } }))
+    const [lid, front, floor, left] = ['c1-h1-lid', 'c1-h1-cover', 'c1-h1-floor', 'side-left'].map(box)
+    expect([front.z1, lid.z1, front.y1]).toEqual([left.z1, left.z1, lid.y0])
+    expect(floor.z1).toBe(front.z0)
+  })
+
+  it('raises no finding as built: the lid is neither a wide door nor one short of hinges, and it does not sag the cell', () => {
+    expect(built(headboard()).a.findings).toEqual([])
+  })
+
+  it('does not pull the furniture forward as a hinged door does: it lifts over the carcass, so nothing of it counts against the balance', () => {
+    const { design, a, box } = built(headboard({ wallMounted: false }))
+    const pulls = (d: typeof design) => tippingBalance(d, a.geo, [box('bottom')])!.pulls
+    expect(pulls(design)).toBe(0)
+    expect(pulls({ ...design, joints: design.joints.filter((u) => u.type !== 'lid-hinge') })).toBeGreaterThan(0)
+  })
+
+  it('a shelf too close over the lid is said: the lid stops against it before it opens enough to reach in', () => {
+    const tight = built(headboard({ construction: { ...DEFAULT_CONSTRUCTION, top: 'over', shelves: 'fixed' } }, [chest(), niche(3)]))
+    const found = tight.a.findings.filter((f) => f.check === 'lid.room')
+    expect(found.map((f) => [f.code, f.severity, f.pieces])).toEqual([['R6_DOORS', 'recommendation', ['c1-h1-lid', 'c1-h2-shelf-1']]])
+    expect(found[0].data).toMatchObject({ reach: 214, min: 60 })
+    expect(Number(found[0].data.opens)).toBeLessThan(60)
+    expect(built(headboard({}, [chest(), niche(1)])).a.findings.filter((f) => f.check === 'lid.room')).toEqual([])
+  })
+
+  it('a lid with no stay is said: it would slam shut', () => {
+    const { design } = built(headboard())
+    const bare = { ...design, joints: design.joints.map((u) => (u.type === 'lid-hinge' ? { ...u, hardware: u.hardware.filter((h) => h.hardwareId !== 'lid-stay-friction') } : u)) }
+    const a = analyze(bare, testCatalog)
+    expect(a.valid && a.findings.map((f) => [f.check, f.severity, f.pieces])).toEqual([['lid.stay', 'recommendation', ['c1-h1-lid']]])
+  })
+
+  it('with notch pulls the lid is notched through its front edge, in the middle, and not on a side as a door is', () => {
+    const { design } = built(headboard({ construction: { ...DEFAULT_CONSTRUCTION, top: 'over', pulls: 'notch' } }))
+    const [cut] = design.pieces.find((p) => p.id === 'c1-h1-lid')!.cuts!
+    expect([cut.x.from, cut.z.from, cut.y.length]).toEqual(['center', 'end', 20])
+  })
+
+  it('with nothing open over it there is nowhere for the lid to go: it is built covered, said, and the plan does not pass', () => {
+    const under = headboard({}, [chest(), { height: 0.5, content: 'drawer', shelves: null, doors: null }])
+    const { has, notes } = built(under)
+    expect([has('c1-h1-lid'), has('c1-h1-cover'), has('c1-h1-floor')]).toEqual([false, true, false])
+    expect(notes).toContain('Un baúl va debajo de un hueco abierto, que es por donde abre su tapa; sin él queda tapado.')
+    expect(FurniturePlan.safeParse(under).error?.issues.map((i) => i.message)).toEqual(['Un baúl va debajo de un hueco abierto, que es por donde abre su tapa; sin él queda tapado.'])
+    expect(FurniturePlan.safeParse(headboard({}, [niche(), chest()])).success).toBe(false)
+    expect(FurniturePlan.safeParse(headboard()).success).toBe(true)
+  })
+
+  it('is not a door of the furniture: the quick counts and the summary leave it out, and adding a cell never splits it', () => {
+    const p = headboard()
+    const { design } = built(p)
+    expect(cabinetModule.quick!.builtAsAsked!(p, design)).toBeNull()
+    expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(p, 'Barniz')).toBe('Sin puertas: agrégalas en los huecos')
+    expect(leafCells(setCount(p, 'open', 2, testCatalog).plan.columns).map((c) => c.content)).toEqual(['chest', 'open', 'open'])
+    expect(setCount(p, 'open', 0, testCatalog)).toMatchObject({ ok: false, message: 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.', counts: { open: 1 } })
+  })
+
+  it('the expert does not write it: its columns only know open, drawer, door and closed', () => {
+    expect(ExpertColumns.safeParse(headboard().columns).success).toBe(false)
+  })
+
+  it('reads in words as a chest under a lid, with its floor raised', () => {
+    expect(explain({ plan: headboard() })).toContain('chest under a lift-up lid, its floor at mid-height (0.5), open niche (0.5)')
   })
 })
 

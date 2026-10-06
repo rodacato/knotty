@@ -1,5 +1,5 @@
 import { Plus, Trash } from '@phosphor-icons/react'
-import { CABINET_LABELS, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, shelvesFor, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
 import { Button } from '../system/components'
 import { Input, Select } from '../system/Field'
 import { Segmented, Stepper } from './PlanControls'
@@ -26,7 +26,7 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
             const content = e.target.value as PlanCell['content']
             // A void builds nothing, so it has no back of its own to keep.
             const { back, ...rest } = cell
-            onChange({ ...(content === 'void' ? rest : { ...rest, back }), content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null })
+            onChange({ ...(content === 'void' ? rest : { ...rest, back }), content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null })
           }}
         >
           {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (

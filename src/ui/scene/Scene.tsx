@@ -16,7 +16,7 @@ import type { Parts } from '../../domain/furniture/modules/parts'
 import { edgeNeighbours, profilesOf } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { assembled, explode, type Explosion } from './explode'
-import { opening, type Swing } from './open'
+import { opening, turnsOf, type Opening } from './open'
 import { Hardware } from './Hardware'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
@@ -30,7 +30,6 @@ const FOV = 35
 /** A chamfer has no radius: this is the size of its cut, in mm. */
 const CHAMFER = 3
 const NO_SHAPES: EdgeShape[] = []
-const NO_SWINGS = new Map<string, Swing>()
 
 interface SceneProps {
   design: Design
@@ -159,8 +158,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
   const [quality, setQuality] = useState(!touch)
   const dark = useDark()
 
-  const explosion: Explosion & { swings?: Map<string, Swing> } = useMemo(() => (mode === 'exploded' ? explode : mode === 'open' ? opening : assembled)(design, geo.boxes), [geo, design, mode])
-  const swings = explosion.swings ?? NO_SWINGS
+  const explosion: Explosion & Partial<Pick<Opening, 'swings' | 'lifts'>> = useMemo(() => (mode === 'exploded' ? explode : mode === 'open' ? opening : assembled)(design, geo.boxes), [geo, design, mode])
+  const swings = useMemo(() => turnsOf(explosion), [explosion])
   const { width, depth } = design.dimensions
   // The furniture group is centered on the origin, so the camera frames the same box shifted with it.
   const frame = useMemo(() => {

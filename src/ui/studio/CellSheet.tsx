@@ -1,5 +1,5 @@
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, choicesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, choicesFor, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { cellAt, cellLayout, chooseInCell, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
@@ -26,7 +26,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: content === 'open' || content === 'door' ? (cell.shelves ?? 0) : null, doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
+    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return
@@ -73,6 +73,13 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-graphite-2">Repisas adentro</span>
             <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
+          </div>
+        )}
+        {cell.content === 'chest' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Fondo</span>
+            <Segmented label="Fondo del baúl" value={cell.shelves ? 'raised' : 'floor'} options={[['raised', 'A media altura'], ['floor', 'Hasta abajo']]} onChange={(v) => change({ shelves: v === 'raised' ? 1 : 0 })} />
+            <p className="text-xs text-graphite-2">Abre por arriba: su tapa es el piso del hueco abierto de encima, con bisagra de piano y compás.</p>
           </div>
         )}
         {cell.content === 'door' && (
