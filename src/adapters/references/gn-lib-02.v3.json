@@ -6,7 +6,7 @@
   "rooms": ["bedroom"],
   "name": "Librero largo para cama",
   "kind": "bookcase",
-  "notes": "Librero bajo y largo para poner detrás de una cama individual, contra el muro: abajo un tramo cerrado a la altura de la cama y arriba dos filas de nichos con una puerta al centro. Hace juego con la «Cama individual con librero de cabecera». Va anclado al muro y no se atornilla a la cama.",
+  "notes": "Librero bajo y largo para poner detrás de una cama individual, contra el muro: abajo, donde el colchón tapa el frente, tres baúles que abren por arriba con el fondo a media altura, para sábanas y fundas; arriba dos filas de nichos con una puerta al centro. La tapa de cada baúl es el piso del nicho de encima: lleva bisagra de piano y un compás de fricción que la detiene abierta. Hace juego con la «Cama individual con librero de cabecera». Va anclado al muro y no se atornilla a la cama.",
   "plan": {
     "kind": "cabinet",
     "name": "Librero largo para cama",
@@ -14,12 +14,12 @@
     "base": "floor",
     "wallMounted": true,
     "dimensions": { "width": 1900, "height": 1000, "depth": 300 },
-    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed" },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed", "pulls": "notch" },
     "columns": [
       {
         "width": 1,
         "cells": [
-          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
           { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
           { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
         ]
@@ -27,7 +27,7 @@
       {
         "width": 1,
         "cells": [
-          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
           { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
           { "height": 0.275, "content": "door", "shelves": 0, "doors": 1 }
         ]
@@ -35,7 +35,7 @@
       {
         "width": 1,
         "cells": [
-          { "height": 0.45, "content": "closed", "shelves": null, "doors": null },
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
           { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
           { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
         ]
@@ -45,9 +45,9 @@
   },
   "expect": {
     "valid": true,
-    "pieces": 17,
+    "pieces": 23,
     "findings": [],
     "sheets": { "T18": 3, "TR6": 1 },
-    "hardware": { "cam-lock-15": 28, "cup-hinge-35-inset": 2, "dowel-8x40": 28, "edge-banding-19": 22, "screw-8x1-1/4": 68, "screw-8x2": 54 }
+    "hardware": { "cam-lock-15": 34, "cup-hinge-35-inset": 2, "dowel-8x40": 40, "edge-banding-19": 25, "lid-stay-friction": 3, "piano-hinge-30": 3, "screw-8x1-1/4": 80, "screw-8x2": 54 }
   }
 }
