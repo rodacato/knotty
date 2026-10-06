@@ -9,8 +9,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-drawers","legs","open-niche","notch-pulls","splayed-legs","wall-anchor"],
-  "adaptations": ["Original in plywood as well; written in T18.","Splayed angled feet are drawn as 100 mm straight legs under an apron.","The slot pulls are drawn as finger notches.","Dividers inside each drawer for records are not drawn.","The drawer cells are given a back and the niche none: the niche shows the wall through it, the photos do not show behind the drawers.","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
-  "gaps": ["splayed-legs"],
+  "adaptations": ["Original in plywood as well; written in T18.","100 mm high","The slot pulls are drawn as finger notches.","Dividers inside each drawer for records are not drawn.","The drawer cells are given a back and the niche none: the niche shows the wall through it, the photos do not show behind the drawers.","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": [],
   "notes": "Cajonera de triplay con un nicho abierto arriba para el equipo de audio y tres cajones con jaladera de ranura para los discos, sobre patas cortas abiertas.",
   "plan": {
     "kind": "cabinet",
@@ -31,7 +31,8 @@
         ]
       }
     ],
-    "legHeight": 100
+    "legHeight": 100,
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

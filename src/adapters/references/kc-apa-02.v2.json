@@ -10,7 +10,7 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-doors","inset-drawers","legs","open-niche","no-back","asymmetric-arrangement","splayed-legs","notch-pulls"],
-  "adaptations": ["solid pine in the original is written in T18 plywood","splayed legs joined by stretchers are drawn as straight legs: the right ones go up to the raised door box, and the low aprons are the stretcher","the floating shelf below the centre is not drawn","finish is wax-oil (no id; danish-oil used) with white formica fronts: closest id used","the notch at the top corner of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "adaptations": ["solid pine in the original is written in T18 plywood","the stretchers that join the legs are the low aprons, and the right legs go up to the raised door box","the floating shelf below the centre is not drawn","finish is wax-oil (no id; danish-oil used) with white formica fronts: closest id used","the notch at the top corner of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
   "gaps": ["splayed-legs"],
   "notes": "Aparador de triplay de pino con frentes blancos: una puerta alta a la izquierda, dos cajones a media altura en el centro y una puerta más corta a la derecha, con un entrepaño blanco flotando bajo el centro. Descansa sobre patas abiertas con travesaños.",
   "plan": {
@@ -49,7 +49,8 @@
           { "height": 0.79, "content": "door", "shelves": 0, "doors": 1 }
         ]
       }
-    ]
+    ],
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

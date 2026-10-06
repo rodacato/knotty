@@ -9,8 +9,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["legs","open-niche","no-back","sliding-doors","routed-fronts","asymmetric-arrangement","splayed-legs"],
-  "adaptations": ["the sliding ribbed doors over the bottom row drawn as three hinged overlay doors with vertical router grooves, one per column; the real piece has one undivided bottom compartment","Original may be solid or veneered wood; written in T18 plywood.","Wall anchoring assumed (wallMounted) to satisfy the tipping check; not visible in photos.","Finish is a natural clear oil/wax look: danish-oil is the closest id.","tapered legs that stand upright; in the piece they also lean outward"],
-  "gaps": ["sliding-doors","asymmetric-arrangement","splayed-legs"],
+  "adaptations": ["the sliding ribbed doors over the bottom row drawn as three hinged overlay doors with vertical router grooves, one per column; the real piece has one undivided bottom compartment","Original may be solid or veneered wood; written in T18 plywood.","Wall anchoring assumed (wallMounted) to satisfy the tipping check; not visible in photos.","Finish is a natural clear oil/wax look: danish-oil is the closest id."],
+  "gaps": ["sliding-doors","asymmetric-arrangement"],
   "notes": "Librero de tres columnas y cuatro filas de nichos abiertos y sin trasera, sobre un cuerpo bajo con dos puertas corredizas acanaladas, con patas cónicas inclinadas.",
   "plan": {
     "kind": "cabinet",
@@ -52,7 +52,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

@@ -10,8 +10,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-drawers","legs","routed-fronts","notch-pulls","splayed-legs"],
-  "adaptations": ["solid jequitibá and mañío in the original; drawn in T18 plywood","tapered legs that stand upright; in the piece they also lean outward","flat drawer fronts instead of fluted (routed) ones; applied wooden bar pulls not drawn","finish looks like a clear natural oil or wax; no wax-oil id, danish-oil is the closest"],
-  "gaps": ["routed-fronts","notch-pulls","splayed-legs"],
+  "adaptations": ["solid jequitibá and mañío in the original; drawn in T18 plywood","flat drawer fronts instead of fluted (routed) ones; applied wooden bar pulls not drawn","finish looks like a clear natural oil or wax; no wax-oil id, danish-oil is the closest"],
+  "gaps": ["routed-fronts","notch-pulls"],
   "notes": "Buró de dos cajones iguales con frentes acanalados y jaladeras de barra de madera, sobre cuatro patas abiertas. Cubierta encima de los laterales.",
   "plan": {
     "kind": "cabinet",
@@ -30,7 +30,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

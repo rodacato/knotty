@@ -1,5 +1,5 @@
 ---
-id: cabinet@10
+id: cabinet@11
 ---
 # pick
 - A **cabinet**: a plywood box (two sides, bottom, top and back) divided into columns and openings. Bookcase, nightstand, chest of drawers, dresser, sideboard, wall cabinet, TV stand, kitchen cabinet or simple closet. It goes in `cabinet`.
@@ -10,7 +10,7 @@ id: cabinet@10
 - `name`: the name for the person, in Spanish ("Librero", "Buró con cajón").
 - `dimensions`: outside width, height and depth in mm. Use the given measures exactly; if there are none, the typical ones for that furniture in Mexico, and say so in the explanation. If the person gave the space they have instead, the piece must fit inside it with a little slack: take typical measures within that space and say which ones you chose.
 - `material`: {{materials}}. Usually the 18 mm one.
-- `base`: "kick" if it has a kick plate at the front (bookcases, dressers, floor cabinets), "floor" if it sits directly or hangs (wall cabinets, low nightstands), "legs" if the box stands on legs (sideboards, credenzas, TV stands or nightstands on legs). With "legs" the app builds straight plywood legs under a frame and adds legs in between on a wide piece; the height in `dimensions` includes the legs. Tapered or splayed legs are built straight: say so in the explanation.
+- `base`: "kick" if it has a kick plate at the front (bookcases, dressers, floor cabinets), "floor" if it sits directly or hangs (wall cabinets, low nightstands), "legs" if the box stands on legs (sideboards, credenzas, TV stands or nightstands on legs). With "legs" the app builds straight plywood legs under a frame and adds legs in between on a wide piece; the height in `dimensions` includes the legs. The legs are straight unless `legStyle` says "tapered" (they narrow toward the floor) or "splayed" (they lean outward, the front ones forward and the back ones backward, and narrow): use them when the person asks or the photos show them. V legs, A frames and legs that lean sideways are not built: use "splayed" and say so in the explanation.
 - `wallMounted`: true if it hangs from or is anchored to the wall: wall cabinets; anything with drawers or doors from {{storageAnchorHeight}} high, whatever its depth; and open bookcases that are tall (over about {{tallFurnitureHeight}}) or shallow for their height. A tall bookcase that is not anchored can tip over: anchor it unless the person says otherwise.
 - `construction`: how a carpenter would build it. Respect what the person asks for or what the photos show; if they say nothing, use the simplest ({{defaultConstruction}}) and say so in the explanation:
   - `doors`: "overlay" if the door covers the front of the furniture (easiest to adjust); "inset" if it sits inside the opening (looks finer and needs more precision); "sliding" only if the person asks or the photos show doors that slide sideways: no hinges, each leaf runs in grooves inside the opening. Two sliding leaves overlap and open half at a time; one covers half of the opening and leaves the other half open.
@@ -34,7 +34,7 @@ Build exactly the doors, drawers and open openings the person asked for: count t
 Shelves for books: one every 250–350 mm. If there are photo readings, respect their columns and openings, and their base: "kick", "legs" or "floor" as read; "wheels" is not built, use "floor" and say so.
 
 # plan
-- **Cabinet** (no `kind`): measures, plywood, base (`base`: "kick", "floor" or "legs"; with legs the height includes them), anchoring, how it is built (`construction`) and a grid of columns (left to right, width as a fraction) with openings (bottom to top, height as a fraction) that can be "open" (with `shelves` shelves), "drawer", "door" (with `doors` leaves and `shelves` behind) or "closed". It goes in `cabinet`.
+- **Cabinet** (no `kind`): measures, plywood, base (`base`: "kick", "floor" or "legs"; with legs the height includes them and `legStyle` is their shape), anchoring, how it is built (`construction`) and a grid of columns (left to right, width as a fraction) with openings (bottom to top, height as a fraction) that can be "open" (with `shelves` shelves), "drawer", "door" (with `doors` leaves and `shelves` behind) or "closed". It goes in `cabinet`.
 
 # changes
 measures, number or kind of openings, drawers, doors, shelves, columns, construction, base (kick, legs or directly on the floor), anchoring, assembly

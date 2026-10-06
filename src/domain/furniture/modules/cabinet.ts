@@ -11,9 +11,9 @@ import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
-import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled } from './legs'
+import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -95,7 +95,7 @@ export const CabinetPlan = z.object({
     .max(LEG_HEIGHT_RANGE.max, LEG_HEIGHT_MESSAGE)
     .default(LEG_HEIGHT)
     .describe(`Leg height in mm with base legs, ${LEG_HEIGHT_RANGE.min}–${LEG_HEIGHT_RANGE.max}; inside the total height, the box keeps ${MIN_CARCASS_HEIGHT}+`),
-  legStyle: LegStyle.optional().describe(LEG_STYLE),
+  legStyle: LeaningLegStyle.optional().describe(LEANING_LEG_STYLE),
   wallMounted: z.boolean().describe('Whether it is anchored to or hung from the wall'),
   construction: CabinetConstruction,
   drawerFingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Fingers per corner with drawerCorners fingers; absent is ${DEFAULT_FINGERS}`),
@@ -188,18 +188,21 @@ function legBase(plan: CabinetPlan, t: number, frontSetback: number, dividers: n
   const apronUnder = (face: FaceRef) => extent(null, ref(face), LEG_APRON)
   const apronY = apronUnder('bottom.y0')
   // A leg's inner side looks at the other row: the front ones toward the back, the back ones toward the front.
-  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent, inner: 'start' | 'end' | null, top: FaceRef = 'bottom.y0') => {
+  const leg = (id: string, name: string, first: Extent, towards: 'right' | 'left', z: Extent, inner: 'start' | 'end' | null, top: FaceRef = 'bottom.y0', leans = false) => {
     const layers = legLayers(plan.material, id, name, first, towards, upTo(top), z)
-    pieces.push(...(inner ? styled(layers, plan.legStyle, inner) : layers))
+    // Only the corner legs lean, out to the edges; one in between has an apron in front of it and narrows instead.
+    pieces.push(...(leans ? splayed(layers, inner!) : inner ? styled(layers, plan.legStyle === 'splayed' ? 'tapered' : plan.legStyle, inner) : layers))
   }
-  const frontZ = extent(null, ref('furniture.z1', -frontSetback - LEG_INSET), LEG_WIDTH)
-  const backZ = extent(ref('furniture.z0', LEG_INSET), null, LEG_WIDTH)
-  leg('leg-front-left', 'Pata delantera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', frontZ, 'start', ends.left)
-  leg('leg-front-right', 'Pata delantera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', frontZ, 'start', ends.right)
-  leg('leg-back-left', 'Pata trasera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', backZ, 'end', ends.left)
-  leg('leg-back-right', 'Pata trasera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', backZ, 'end', ends.right)
-  board({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x: extent(ref('leg-front-left-2.x1'), ref('leg-front-right-2.x0')), y: apronY, z: endAt(ref('leg-front-left-1.z1')) })
-  board({ id: 'apron-back', name: 'Faldón de atrás', role: 'apron', normal: 'z', x: extent(ref('leg-back-left-2.x1'), ref('leg-back-right-2.x0')), y: apronY, z: startAt(ref('leg-back-left-1.z0')) })
+  const lean = plan.legStyle === 'splayed' ? LEG_LEAN : 0
+  const [frontEdge, backEdge] = [ref('furniture.z1', -frontSetback - LEG_INSET), ref('furniture.z0', LEG_INSET)]
+  const frontZ = extent(null, shift(frontEdge, lean), LEG_WIDTH + lean)
+  const backZ = extent(shift(backEdge, -lean), null, LEG_WIDTH + lean)
+  leg('leg-front-left', 'Pata delantera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', frontZ, 'start', ends.left, lean > 0)
+  leg('leg-front-right', 'Pata delantera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', frontZ, 'start', ends.right, lean > 0)
+  leg('leg-back-left', 'Pata trasera izquierda', startAt(ref('furniture.x0', LEG_INSET)), 'right', backZ, 'end', ends.left, lean > 0)
+  leg('leg-back-right', 'Pata trasera derecha', endAt(ref('furniture.x1', -LEG_INSET)), 'left', backZ, 'end', ends.right, lean > 0)
+  board({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x: extent(ref('leg-front-left-2.x1'), ref('leg-front-right-2.x0')), y: apronY, z: endAt(frontEdge) })
+  board({ id: 'apron-back', name: 'Faldón de atrás', role: 'apron', normal: 'z', x: extent(ref('leg-back-left-2.x1'), ref('leg-back-right-2.x0')), y: apronY, z: startAt(backEdge) })
   board({ id: 'apron-left', name: 'Faldón izquierdo', role: 'apron', normal: 'x', x: startAt(ref('leg-front-left-1.x0')), y: apronUnder(ends.left), z: extent(ref('leg-back-left-1.z1'), ref('leg-front-left-1.z0')) })
   board({ id: 'apron-right', name: 'Faldón derecho', role: 'apron', normal: 'x', x: endAt(ref('leg-front-right-1.x1')), y: apronUnder(ends.right), z: extent(ref('leg-back-right-1.z1'), ref('leg-front-right-1.z0')) })
   for (const [apron, a, b] of [['apron-front', 'leg-front-left-2', 'leg-front-right-2'], ['apron-back', 'leg-back-left-2', 'leg-back-right-2'], ['apron-left', 'leg-front-left-1', 'leg-back-left-1'], ['apron-right', 'leg-front-right-1', 'leg-back-right-1']]) {
@@ -777,8 +780,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
   const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices)
-  const taperedLegs = new Set(done.design.pieces.filter((p) => p.slants?.length).map((p) => p.id.replace(/-\d$/, ''))).size
-  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...placed.notes, ...done.notes, ...legStyleNote(plan.legStyle, taperedLegs)] }
+  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
 }
 
 /** With backs by cell, the first is the `back` every part of the carcass stands in front of. */
@@ -848,6 +850,7 @@ function benchCabinets(): [string, CabinetPlan][] {
   const drawerChest = list.find(([name]) => name === 'cajonera')![1]
   const legHeights = [LEG_HEIGHT_RANGE.min, LEG_HEIGHT_RANGE.max].map((legHeight): [string, CabinetPlan] => [`aparador con patas de ${legHeight} mm`, { ...sideboard, legHeight }])
   const nightstandOnLegs = list.find(([name]) => name === 'buró con patas')![1]
+  const splayedLegs: [string, CabinetPlan][] = [['aparador con patas abiertas', { ...sideboard, legStyle: 'splayed' }], ['buró con patas abiertas', { ...nightstandOnLegs, legStyle: 'splayed' }], [`aparador con patas abiertas de ${LEG_HEIGHT_RANGE.max} mm`, { ...sideboard, legHeight: LEG_HEIGHT_RANGE.max, legStyle: 'splayed' }]]
   const tapered: [string, CabinetPlan][] = [['aparador con patas cónicas', { ...sideboard, legStyle: 'tapered' }], ['buró con patas cónicas', { ...nightstandOnLegs, legStyle: 'tapered' }], [`aparador con patas cónicas de ${LEG_HEIGHT_RANGE.min} mm`, { ...sideboard, legStyle: 'tapered', legHeight: LEG_HEIGHT_RANGE.min }]]
   const withPulls = (['notch', 'handle'] as const).map((pulls): [string, CabinetPlan] => [`aparador con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...sideboard, construction: { ...sideboard.construction, pulls } }])
   const withFingers = [3, 5, 9].map((drawerFingers): [string, CabinetPlan] => [`cajonera con ${drawerFingers} dedos`, { ...drawerChest, construction: { ...drawerChest.construction, drawerCorners: 'fingers' }, drawerFingers }])
@@ -889,7 +892,7 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['aparador con dos corredizas', cabinet('Aparador', { width: 900, height: 650, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 0, 2)] }], { base: 'legs', wallMounted: false, construction: slidingBuild })],
     ['rack con una corrediza y un divisor detrás', cabinet('Rack', { width: 800, height: 600, depth: 400 }, [{ width: 1, cells: [{ ...split(1, row([1, cell('open', 1, 0)], [1, cell('open', 1, 1)])), content: 'door', doors: 1 }] }], { base: 'legs', wallMounted: false, construction: slidingBuild })],
   ]
-  return [...list, ...withPulls, ...legHeights, ...tapered, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors]
+  return [...list, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -934,7 +937,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
-    legStyleField((p) => p.base === 'legs'),
+    legStyleField((p) => p.base === 'legs', LEANING_LEG_STYLE_LABELS),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
@@ -984,7 +987,7 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
       fields: ['base', 'legHeight', 'legStyle', 'wallMounted'],
       joints: ['base'],
       jointsTitle: 'Uniones de la base',
-      summary: (p) => `${p.base === 'legs' ? `Sobre ${LEG_STYLE_LABELS[p.legStyle ?? 'straight'].phrase} de ${p.legHeight} mm` : CABINET_LABELS.base[p.base].option}${p.wallMounted ? ', anclado al muro' : ''}`,
+      summary: (p) => `${p.base === 'legs' ? `Sobre ${LEANING_LEG_STYLE_LABELS[p.legStyle ?? 'straight'].phrase} de ${p.legHeight} mm` : CABINET_LABELS.base[p.base].option}${p.wallMounted ? ', anclado al muro' : ''}`,
     },
     {
       id: 'body',

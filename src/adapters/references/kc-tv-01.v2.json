@@ -10,8 +10,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["legs","inset-doors","routed-fronts","splayed-legs"],
-  "adaptations": ["Original en raulí macizo; la candidata va en triplay T18","Frentes ranurados (tablillas verticales) dibujados como puertas lisas","Patas inclinadas dibujadas como patas rectas del módulo","Acabado: aceite (danish-oil) como el más cercano a un acabado natural; el original parece aceite o cera","fluted doors of vertical slats drawn as doors with vertical router grooves"],
-  "gaps": ["splayed-legs"],
+  "adaptations": ["Original en raulí macizo; la candidata va en triplay T18","Frentes ranurados (tablillas verticales) dibujados como puertas lisas","Acabado: aceite (danish-oil) como el más cercano a un acabado natural; el original parece aceite o cera","fluted doors of vertical slats drawn as doors with vertical router grooves"],
+  "gaps": [],
   "notes": "Mueble bajo de TV sobre patas inclinadas, con tres compartimentos iguales, cada uno con una puerta de frente ranurado y una repisa.",
   "plan": {
     "kind": "cabinet",
@@ -40,7 +40,8 @@
           { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
         ]
       }
-    ]
+    ],
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

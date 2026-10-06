@@ -8,8 +8,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["overlay-doors","legs","wall-anchor","open-niche","no-back","notch-pulls","asymmetric-arrangement","angled-cut","splayed-legs"],
-  "adaptations": ["original may be birch plywood; written in T18","tapered legs that stand upright; in the piece they also lean outward","V notches at the top edge of the fronts drawn as finger notches","the chamfered top corner of the drawer front is not drawn","depth 330 instead of the real 290 mm: the module needs about 330 to build the drawer"],
-  "gaps": ["angled-cut","splayed-legs"],
+  "adaptations": ["original may be birch plywood; written in T18","V notches at the top edge of the fronts drawn as finger notches","the chamfered top corner of the drawer front is not drawn","depth 330 instead of the real 290 mm: the module needs about 330 to build the drawer"],
+  "gaps": ["angled-cut"],
   "notes": "Librero bajo de cuatro columnas de anchos distintos: abajo tres puertas y un cajón, arriba nichos abiertos con una repisa por columna a distintas alturas. Sin trasera, sobre patas.",
   "plan": {
     "kind": "cabinet",
@@ -53,7 +53,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

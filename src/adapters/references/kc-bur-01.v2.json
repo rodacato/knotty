@@ -8,8 +8,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["legs","inset-drawers","open-niche","no-back","splayed-legs"],
-  "adaptations": ["tapered legs that stand upright; in the piece they also lean outward","Pine plywood with wax-oil finish; written as T18 with no finish id.","Back assumed open from one photo."],
-  "gaps": ["splayed-legs"],
+  "adaptations": ["Pine plywood with wax-oil finish; written as T18 with no finish id.","Back assumed open from one photo."],
+  "gaps": [],
   "notes": "Velador de triplay de pino con un cajón embutido abajo, un nicho abierto arriba, techo encima y patas inclinadas.",
   "plan": {
     "kind": "cabinet",
@@ -28,7 +28,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

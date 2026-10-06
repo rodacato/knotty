@@ -9,7 +9,7 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-doors","legs","routed-fronts","splayed-legs"],
-  "adaptations": ["Solid pine/plywood in the original written as T18 plywood.","V-shaped legs drawn as the standard leg frame.","Height 800 includes legs; width/depth from the seller order 150 x 29 x 80.","fluted doors drawn with vertical router grooves","anchored to the wall assumed: the photos do not show it; 800 mm high on straight legs that stand on only 230 mm of depth, the engine says it can tip forward"],
+  "adaptations": ["Solid pine/plywood in the original written as T18 plywood.","V legs drawn as a leg at each corner","Height 800 includes legs; width/depth from the seller order 150 x 29 x 80.","fluted doors drawn with vertical router grooves"],
   "gaps": ["splayed-legs"],
   "notes": "Aparador bajo y angosto con tres puertas embutidas de frente acanalado, una repisa detrás de cada una y patas en V.",
   "plan": {
@@ -17,7 +17,7 @@
     "name": "Aparador de tres puertas acanaladas",
     "material": "T18",
     "base": "legs",
-    "wallMounted": true,
+    "wallMounted": false,
     "dimensions": { "width": 1500, "height": 800, "depth": 290 },
     "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed", "fronts": "grooved" },
     "columns": [
@@ -39,7 +39,8 @@
           { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
         ]
       }
-    ]
+    ],
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

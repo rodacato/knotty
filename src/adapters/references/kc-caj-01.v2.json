@@ -10,8 +10,8 @@
   "support": "adapted",
   "difficulty": 4,
   "features": ["inset-drawers","inset-doors","legs","open-niche","multi-body","asymmetric-arrangement","routed-fronts","splayed-legs"],
-  "adaptations": ["Written in T18 plywood; the ribbed fronts are drawn as flat fronts","Splayed angled legs are drawn as Knotty's legs; a raw-plywood finish is written as polyurethane (closest id)","two separate bodies with their own legs, drawn as the two columns of one cabinet that share a divider","round hole pulls are not drawn","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
-  "gaps": ["multi-body","routed-fronts","splayed-legs"],
+  "adaptations": ["Written in T18 plywood; the ribbed fronts are drawn as flat fronts","a raw-plywood finish is written as polyurethane (closest id)","two separate bodies with their own legs, drawn as the two columns of one cabinet that share a divider","round hole pulls are not drawn","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["multi-body","routed-fronts"],
   "notes": "Cómoda baja de triplay con dos cuerpos lado a lado sobre patas inclinadas: cajones con frente acanalado, un nicho abierto en cada cuerpo y una puerta acanalada.",
   "plan": {
     "kind": "cabinet",
@@ -116,7 +116,8 @@
           }
         ]
       }
-    ]
+    ],
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

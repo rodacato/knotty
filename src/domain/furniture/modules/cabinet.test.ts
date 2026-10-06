@@ -187,6 +187,39 @@ describe('leg height', () => {
     expect(buildCabinet(PLANS.sideboard, testCatalog).notes.some((n) => n.includes('cónicas'))).toBe(false)
   })
 
+  it('splayed legs lean out from where a straight leg stands: the same top, a foot 20 mm further out, cut from a board that much wider', () => {
+    const [straight, splayed] = [analyzed({ ...PLANS.sideboard, legStyle: 'straight' }), analyzed({ ...PLANS.sideboard, legStyle: 'splayed' })]
+    const box = (built: typeof splayed, id: string) => built.a.geo.boxes.get(id)!
+    expect([box(splayed, 'leg-front-left-1').z0, box(splayed, 'leg-front-left-1').z1]).toEqual([box(straight, 'leg-front-left-1').z0, box(straight, 'leg-front-left-1').z1 + 20])
+    expect([box(splayed, 'leg-back-left-1').z0, box(splayed, 'leg-back-left-1').z1]).toEqual([box(straight, 'leg-back-left-1').z0 - 20, box(straight, 'leg-back-left-1').z1])
+    // Outside, from the top down to the foot; inside, from under the apron to a 36 mm foot.
+    expect(splayed.design.pieces.find((p) => p.id === 'leg-front-left-1')!.slants).toEqual([
+      { x: null, y: { from: 'end', leave: 0 }, z: { from: 'end', length: 20 } },
+      { x: null, y: { from: 'start', leave: 80 }, z: { from: 'start', length: 72 + 20 - 36 } },
+    ])
+    expect(splayed.design.pieces.find((p) => p.id === 'leg-back-right-2')!.slants!.map((x) => x.z!.from)).toEqual(['start', 'end'])
+    const legless = (built: typeof splayed) => built.design.pieces.filter((p) => !/^leg-(front|back)-/.test(p.id))
+    expect(legless(splayed).map((p) => ({ ...p, slants: undefined }))).toEqual(legless(straight))
+    expect(splayed.design.joints).toEqual(straight.design.joints)
+    expect(splayed.a.findings.map((f) => f.code)).toEqual(straight.a.findings.map((f) => f.code))
+    expect(estimatePurchase(splayed.design, splayed.a.geo, testCatalog).hardware).toEqual(estimatePurchase(straight.design, straight.a.geo, testCatalog).hardware)
+  })
+
+  it('only the corner legs lean: a leg in between stands behind the apron and narrows instead, and the note says each', () => {
+    const wide = plan({ dimensions: { width: 2400, height: 800, depth: 450 }, base: 'legs', legStyle: 'splayed', columns: [{ width: 1, cells: [cell('open', 1, { shelves: 1 })] }, { width: 1, cells: [cell('open', 1, { shelves: 1 })] }] })
+    const { design } = analyzed(wide)
+    const cuts = (id: string) => design.pieces.find((p) => p.id === id)!.slants!.length
+    expect([cuts('leg-front-left-1'), cuts('leg-middle-1-front-1')]).toEqual([2, 1])
+    const notes = buildCabinet(wide, testCatalog).notes
+    expect(notes.map((n) => n.split(':')[0])).toEqual(['Patas abiertas en 4 patas', 'Patas cónicas en 2 patas'])
+    expect(notes[0]).toContain('cada una sale de una tabla de 92 mm de ancho')
+  })
+
+  it('stands deeper on splayed legs: the tipping rule sees the feet where they are', () => {
+    const tall = (legStyle: CabinetPlan['legStyle']) => analyzed(plan({ dimensions: { width: 800, height: 1000, depth: 300 }, base: 'legs', legStyle, wallMounted: false, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 2 })] }] })).a.findings.find((f) => f.code === 'R4_TIPPING')!.data as { depth: number }
+    expect(tall('splayed').depth - tall('straight').depth).toBe(40)
+  })
+
   it('a leg that fills the gap between the aprons stays straight: it has no inner side', () => {
     const shallow = analyzed(plan({ dimensions: { width: 2400, height: 800, depth: 230 }, base: 'legs', legStyle: 'tapered', wallMounted: false, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 1 })] }, { width: 1, cells: [cell('open', 1, { shelves: 1 })] }] }))
     const middle = shallow.design.pieces.filter((p) => p.id.startsWith('leg-middle-'))

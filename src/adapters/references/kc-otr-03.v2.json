@@ -9,8 +9,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["sliding-doors","routed-fronts","legs","splayed-legs","curved-cut","raised-sides"],
-  "adaptations": ["two hinged overlay leaves instead of two sliding panels on rails","a divider behind where the two doors meet: one shelf of 964 mm would sag with shoes, two of about 480 do not","tapered legs that stand upright; in the piece they also lean outward","sides flush with the top instead of rising above it as a rim on three sides, with square corners","1000 wide by 630 high (legs included) by 400 deep, from the proportions in the photos; the seller did not say the order"],
-  "gaps": ["sliding-doors","splayed-legs","curved-cut","raised-sides"],
+  "adaptations": ["two hinged overlay leaves instead of two sliding panels on rails","a divider behind where the two doors meet: one shelf of 964 mm would sag with shoes, two of about 480 do not","sides flush with the top instead of rising above it as a rim on three sides, with square corners","1000 wide by 630 high (legs included) by 400 deep, from the proportions in the photos; the seller did not say the order"],
+  "gaps": ["sliding-doors","curved-cut","raised-sides"],
   "notes": "Zapatera baja sobre patas, de un solo cuerpo con una repisa a media altura y dos puertas acanaladas al frente. Sirve de banca para calzarse en la entrada.",
   "plan": {
     "kind": "cabinet",
@@ -34,7 +34,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

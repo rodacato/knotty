@@ -270,7 +270,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(plan.legStyle, styledLegs(placed.design.pieces))] }
+  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces))] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {

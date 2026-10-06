@@ -239,14 +239,14 @@ describe('adjusting a plan asks only about its own module', () => {
 /** The prompt and the schema of its answer, as characters ÷ 3.5: a guard against growth, not a count. The provider counts ≈ 1.7–1.9 × this (npm run compare, 2026-09-26). */
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
-/** About 5 % above what each measured when it was set (plan-adjust@13; the table's with table@7, the cabinet's with cabinet@10 and tapered legs, the bed's with the daybed's arms and tapered legs): growing past it has to be on purpose. With every module it was 4 307. */
-const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2790, bed: 2500, table: 2110, shoeRack: 1930 }
+/** About 5 % above what each measured when it was set (plan-adjust@13; the table's with table@7, the cabinet's with cabinet@11 and its leg styles, the bed's with the daybed's arms and tapered legs): growing past it has to be on purpose. With every module it was 4 307. */
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2815, bed: 2500, table: 2110, shoeRack: 1930 }
 
 /** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7260, cabinet: 3475, bed: 2505, table: 2090, shoeRack: 1960 }
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7355, cabinet: 3570, bed: 2505, table: 2090, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
-const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3740, adjust: 3055 }, bookcase: { skeleton: 3960, adjust: 3290 } }
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3835, adjust: 3080 }, bookcase: { skeleton: 4020, adjust: 3290 } }
 
 describe('the plan a module is edited through', () => {
   // The prompt says a change goes through the plan when the plan can say it: a field it does not name reads as one it cannot.

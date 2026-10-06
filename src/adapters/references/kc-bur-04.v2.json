@@ -9,8 +9,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-drawers","legs","open-niche","no-back","angled-cut","notch-pulls","splayed-legs"],
-  "adaptations": ["Solid oak and pine become T18 plywood.","tapered legs that stand upright; in the piece they also lean outward","Mitered box corners become a plain box with the top between the sides.","Oil-wax finish mapped to danish-oil.","finger notch on the drawer front drawn as a routed notch"],
-  "gaps": ["angled-cut","splayed-legs"],
+  "adaptations": ["Solid oak and pine become T18 plywood.","Mitered box corners become a plain box with the top between the sides.","Oil-wax finish mapped to danish-oil.","finger notch on the drawer front drawn as a routed notch"],
+  "gaps": ["angled-cut"],
   "notes": "Velador de cajón grande abajo y nicho abierto arriba, sin trasera, sobre cuatro patas abiertas. Caja con esquinas a inglete; el cajón va en madera clara con una muesca para jalar.",
   "plan": {
     "kind": "cabinet",
@@ -29,7 +29,7 @@
         ]
       }
     ],
-    "legStyle": "tapered"
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

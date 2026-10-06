@@ -492,7 +492,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...head.notes, ...placed.notes, ...done.notes, ...legStyleNote(plan.legStyle, styledLegs(done.design.pieces), 'el marco')] }
+  return { design: knockDown(done.design, plan.assembly, catalog), notes: [...head.notes, ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */

@@ -9,7 +9,7 @@
   "support": "adapted",
   "difficulty": 4,
   "features": ["inset-doors","legs","wall-anchor","open-niche","routed-fronts","angled-cut","asymmetric-arrangement","multi-body","splayed-legs"],
-  "adaptations": ["solid ash uprights and frame read as T18 plywood; the upper uprights are pairs of slats, drawn as full panels","the upper body tapers toward the top (sloped uprights); built as straight square uprights of the full width","splayed V legs drawn as the straight leg base of the module","size estimated from the photos (LPs of 315 mm and a turntable as scale); 1200 wide, the real one may be up to 1300","the backs follow the front photo; the doors are given one, which the photos do not show"],
+  "adaptations": ["solid ash uprights and frame read as T18 plywood; the upper uprights are pairs of slats, drawn as full panels","the upper body tapers toward the top (sloped uprights); built as straight square uprights of the full width","V legs drawn as a leg at each corner","size estimated from the photos (LPs of 315 mm and a turntable as scale); 1200 wide, the real one may be up to 1300","the backs follow the front photo; the doors are given one, which the photos do not show"],
   "gaps": ["angled-cut","splayed-legs"],
   "notes": "Mueble de audio de tres columnas: abajo dos puertas acanaladas con un nicho abierto al centro, sobre patas en V; arriba un cuerpo abierto de repisas a distintas alturas, con algunos fondos de triplay y otros abiertos, y laterales inclinados. Pensado para discos y equipo de sonido.",
   "plan": {
@@ -50,7 +50,8 @@
           { "height": 0.21, "content": "open", "shelves": 0, "doors": null }
         ]
       }
-    ]
+    ],
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,

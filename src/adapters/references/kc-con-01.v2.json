@@ -8,7 +8,7 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-doors","legs","open-niche","no-back","splayed-legs","asymmetric-arrangement"],
-  "adaptations": ["T18 plywood instead of the unspecified original material","width 1200 mm chosen from the 90/120/150 versions","one thin angled leg under each lower box in the piece; drawn as a frame of straight legs, 100 mm under the door box (the least the module allows) and up to the raised box on the right, tied by a stretcher the piece does not have","the notch at the top corner of the door is drawn as a finger notch","anchored to the wall assumed: the photos do not show it; without it the engine says the open box can rack"],
+  "adaptations": ["T18 plywood instead of the unspecified original material","width 1200 mm chosen from the 90/120/150 versions","one thin angled leg under each lower box in the piece, drawn as a frame of legs, 100 mm under the door box (the least the module allows) and up to the raised box on the right, tied by a stretcher the piece does not have","the notch at the top corner of the door is drawn as a finger notch","anchored to the wall assumed: the photos do not show it; without it the engine says the open box can rack"],
   "gaps": ["splayed-legs"],
   "notes": "Consola baja sobre patas: arriba tres nichos abiertos, abajo una puerta embutida a la izquierda y un nicho abierto a la derecha. Sin trasera, en triplay natural.",
   "plan": {
@@ -43,7 +43,8 @@
         ]
       }
     ],
-    "legHeight": 100
+    "legHeight": 100,
+    "legStyle": "splayed"
   },
   "expect": {
     "valid": true,
