@@ -72,7 +72,7 @@ function pieceLines(plan: FurniturePlan): string[] {
   const { width, height, depth } = plan.dimensions
   const c = plan.construction
   return [
-    `Piece: cabinet, ${width} × ${height} × ${depth} mm, ${plan.material}, ${BASE[plan.base]}, ${plan.wallMounted ? '' : 'not '}wall-mounted.`,
+    `Piece: cabinet, ${width} × ${height} × ${depth} mm, ${plan.material}, ${plan.base === 'legs' && plan.legStyle && plan.legStyle !== 'straight' ? `on ${plan.legStyle} legs` : BASE[plan.base]}, ${plan.wallMounted ? '' : 'not '}wall-mounted.`,
     `Construction: ${c.doors} doors, ${c.drawerFronts} drawer fronts, top ${c.top === 'between' ? 'between' : c.top === 'over' ? 'over' : 'over, finger-jointed to'} the sides, ${c.back === 'nailed' ? 'nailed back' : 'no back'}, ${c.shelves} shelves.`,
     ...(c.drawerCorners === 'fingers' ? [`Drawer corners: fingers, ${plan.drawerFingers ?? DEFAULT_FINGERS} per corner.`] : []),
     ...gridLines(plan),

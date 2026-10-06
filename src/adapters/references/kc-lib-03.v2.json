@@ -1,0 +1,64 @@
+{
+  "format": 1,
+  "code": "KC-LIB-03",
+  "id": "cubby-bookcase-sliding-base",
+  "rooms": ["living","office"],
+  "name": "Librero de nichos con corredizas",
+  "kind": "bookcase",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","open-niche","no-back","sliding-doors","routed-fronts","asymmetric-arrangement","splayed-legs"],
+  "adaptations": ["the sliding ribbed doors over the bottom row drawn as three hinged overlay doors with vertical router grooves, one per column; the real piece has one undivided bottom compartment","Original may be solid or veneered wood; written in T18 plywood.","Wall anchoring assumed (wallMounted) to satisfy the tipping check; not visible in photos.","Finish is a natural clear oil/wax look: danish-oil is the closest id."],
+  "gaps": ["sliding-doors","asymmetric-arrangement"],
+  "notes": "Librero de tres columnas y cuatro filas de nichos abiertos y sin trasera, sobre un cuerpo bajo con dos puertas corredizas acanaladas, con patas cónicas inclinadas.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero de nichos",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1400, "height": 1640, "depth": 300 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "none", "shelves": "fixed", "fronts": "grooved" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.24, "content": "door", "shelves": null, "doors": 1 },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.24, "content": "door", "shelves": null, "doors": 1 },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.24, "content": "door", "shelves": null, "doors": 1 },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 38,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 2 },
+    "hardware": { "cup-hinge-35-full": 4, "cup-hinge-35-half": 2, "edge-banding-19": 21, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 12, "screw-8x2": 120, "white-glue": 4 }
+  }
+}

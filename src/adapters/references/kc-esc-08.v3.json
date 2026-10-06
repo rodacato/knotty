@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "code": "KC-ESC-08",
+  "id": "plywood-work-table",
+  "home": { "order": 33 },
+  "rooms": ["office"],
+  "name": "Mesa de trabajo para seis",
+  "kind": "diningTable",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["splayed-legs","open-niche"],
+  "adaptations": ["measures: the seller gave 80/240/110 with no order; from the photos 240 is the length and 110 the depth, and the chairs put the top at 750 to 800, drawn at 760","original may be solid pine or plywood with wax-oil; written in T18 plywood, finish left as danish-oil (closest to wax-oil)","splayed plywood legs drawn as straight panel ends with aprons; the open box of niches under the top and the cable grommet are not drawn"],
+  "gaps": ["splayed-legs","open-niche"],
+  "notes": "Mesa grande de trabajo o de juntas para seis personas sentadas, con la cubierta de triplay volada sobre los costados.",
+  "plan": {
+    "kind": "table",
+    "use": "dining",
+    "name": "Mesa de trabajo para seis",
+    "material": "T18",
+    "dimensions": { "width": 2400, "height": 760, "depth": 1100 },
+    "overhang": 40,
+    "shelf": false,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "panel",
+    "assembly": "bolts"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 8,
+    "findings": [],
+    "sheets": { "T18": 2 },
+    "hardware": { "connector-bolt-m6": 10, "edge-banding-19": 10, "screw-8x2": 54 }
+  }
+}

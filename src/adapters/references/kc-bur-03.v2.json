@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "code": "KC-BUR-03",
+  "id": "slatted-nightstand",
+  "home": { "order": 15 },
+  "rooms": ["bedroom"],
+  "name": "Buró de frente ranurado",
+  "kind": "nightstand",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-drawers","legs","routed-fronts","notch-pulls","splayed-legs"],
+  "adaptations": ["Original may be solid pine slats over plywood; written in T18 plywood with plain drawer fronts","Slatted fronts (grooves) not drawn; fronts are flat","Corner V-notch pull not drawn; drawers open by the standard handle","Finish is oil-wax; danish-oil is the closest id"],
+  "gaps": ["routed-fronts","notch-pulls"],
+  "notes": "Buró de triplay de pino con dos cajones de frente ranurado embutidos, cubierta encima y patas cortas inclinadas. Los cajones se abren con una muesca en la esquina.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró de frente ranurado",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 400, "height": 600, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.5, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 30,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 41, "drawer-slide-30": 2, "edge-banding-19": 8, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 8, "screw-8x2": 58, "white-glue": 3 }
+  }
+}

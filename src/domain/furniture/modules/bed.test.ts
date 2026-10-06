@@ -163,7 +163,7 @@ describe('a bed on legs', () => {
     const problems = variants.flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
-      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes, ...(a.valid ? a.findings.map((f) => f.message) : ['invalid'])].map((m) => `${name}: ${m}`)
+      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !n.startsWith('Patas cónicas')), ...(a.valid ? a.findings.map((f) => f.message) : ['invalid'])].map((m) => `${name}: ${m}`)
     })
     expect(problems).toEqual([])
   })
@@ -222,7 +222,7 @@ describe('the trim and the drawer fronts', () => {
     const problems = bedModule.benchVariants().flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
-      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Muesca|^Esquinas de dedos/.test(n)), ...(a.valid ? [...a.findings, ...a.warnings].map((f) => f.message) : [a.errors[0].message])].map((m) => `${name}: ${m}`)
+      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Muesca|^Esquinas de dedos|^Brazos con el frente|^Patas cónicas/.test(n)), ...(a.valid ? [...a.findings, ...a.warnings].map((f) => f.message) : [a.errors[0].message])].map((m) => `${name}: ${m}`)
     })
     expect(problems).toEqual([])
   })
@@ -297,5 +297,86 @@ describe('the trim and the drawer fronts', () => {
     expect(['drawers.mount', 'drawers.pulls', 'drawers.style', 'drawers.corners'].map((k) => shown(k, drawn({})))).toEqual([true, true, true, true])
     expect([shown('drawers.fingers', drawn({})), shown('drawers.fingers', drawn({ corners: 'fingers' }))]).toEqual([false, true])
     expect(shown('headboard.cap', bed())).toBe(false)
+  })
+})
+
+describe('the sloped arms of a daybed', () => {
+  const daybed = (headboard: Partial<BedPlan['headboard']> = {}, p: Partial<BedPlan> = {}) =>
+    bed({ lip: true, drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true, arms: 'sloped', ...headboard }, ...p })
+  const built = (plan: BedPlan) => {
+    const { design, notes } = buildBed(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, slants: (id: string) => design.pieces.find((p) => p.id === id)!.slants }
+  }
+  const plainly = (design: ReturnType<typeof built>['design']) => design.pieces.map((piece) => ({ ...piece, slants: undefined }))
+
+  it('saws the top front corner off each arm, on the side away from the backrest, and says how', () => {
+    const { slants, notes } = built(daybed())
+    const corner = [{ x: null, y: { from: 'end', length: 120 }, z: { from: 'end', length: 240 } }]
+    expect([slants('headboard'), slants('foot-arm')]).toEqual([corner, corner])
+    expect(notes.filter((n) => n.startsWith('Brazos'))).toEqual(['Brazos con el frente en diagonal: a cada brazo se le corta la esquina de arriba al frente, 240 mm a lo largo y 120 mm hacia abajo, con sierra circular y guía. La maderería entrega el rectángulo, y el copete del brazo llega hasta donde empieza el corte.'])
+    const mirrored = built(daybed({}, { drawers: { side: 'right', count: 3, position: 'center' } }))
+    expect(mirrored.slants('headboard')![0].z).toEqual({ from: 'start', length: 240 })
+  })
+
+  it('stops the cap of each arm where the slope starts, and nothing else moves: the same boards to buy and the same findings', () => {
+    const [sloped, square] = [built(daybed()), built(daybed({ arms: 'square' }))]
+    expect(square.box('head-cap').z1 - sloped.box('head-cap').z1).toBe(240)
+    expect(square.box('foot-cap').z1 - sloped.box('foot-cap').z1).toBe(240)
+    const others = (design: typeof sloped.design) => plainly(design).filter((p) => !['head-cap', 'foot-cap'].includes(p.id))
+    expect(others(sloped.design)).toEqual(others(square.design))
+    expect(sloped.a.findings).toEqual(square.a.findings)
+    expect(cutList(sloped.design, sloped.a.geo).filter((row) => !/Copete del brazo/.test(row.name))).toEqual(cutList(square.design, square.a.geo).filter((row) => !/Copete del brazo/.test(row.name)))
+  })
+
+  it('never comes down to the lip: on low arms the cut is shallower, and on arms too low there is none and it says so', () => {
+    expect(built(daybed({ height: 600 })).slants('headboard')![0].y).toEqual({ from: 'end', length: 600 - 18 - 400 - 40 - 60 })
+    const low = built(daybed({ height: 510 }))
+    expect(low.slants('headboard')).toBeUndefined()
+    expect(low.notes).toContain('Los brazos son muy bajos para cortarles el frente en diagonal: quedan rectos. Sube el respaldo.')
+  })
+
+  it('is asked only of a daybed, and a plan that does not say has square arms', () => {
+    const field = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'headboard.arms')!
+    const shown = (plan: BedPlan) => !field.visibleWhen || field.visibleWhen(plan)
+    expect([shown(daybed()), shown(bed({ headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }))]).toEqual([true, false])
+    expect(built(daybed({ arms: undefined })).slants('headboard')).toBeUndefined()
+    expect(bedModule.describeChanges(daybed({ arms: undefined }), daybed())).toEqual(['brazos con el frente en diagonal'])
+  })
+})
+
+describe('tapered legs on a bed', () => {
+  const onLegs = (p: Partial<BedPlan> = {}) => bed({ mattress: 'matrimonial', legs: 'legs', legHeight: 150, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 }, ...p })
+  const built = (plan: BedPlan) => {
+    const { design, notes } = buildBed(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, notes, a }
+  }
+
+  it('narrows only what shows under the frame, on the side that faces the middle of the bed', () => {
+    const { design, notes } = built(onLegs({ legStyle: 'tapered' }))
+    const legs = design.pieces.filter((p) => p.id.startsWith('leg-'))
+    expect(legs.every((p) => p.slants?.length === 1)).toBe(true)
+    const slant = (id: string) => design.pieces.find((p) => p.id === id)!.slants![0]
+    expect(slant('leg-head-left-1')).toEqual({ x: null, y: { from: 'start', leave: 400 - 18 - 150 }, z: { from: 'start', length: 36 } })
+    expect(slant('leg-head-right-1').z).toEqual({ from: 'end', length: 36 })
+    expect(notes).toEqual([expect.stringMatching(/^Patas cónicas en \d+ patas: cada una se adelgaza por dentro, de 72 mm bajo el marco a 36 mm en el piso\./)])
+  })
+
+  it('changes nothing else: the same boards, joints, cut list and findings as straight legs', () => {
+    const [tapered, straight] = [built(onLegs({ legStyle: 'tapered' })), built(onLegs())]
+    expect(tapered.design.pieces.map((p) => ({ ...p, slants: undefined }))).toEqual(straight.design.pieces.map((p) => ({ ...p, slants: undefined })))
+    expect(tapered.design.joints).toEqual(straight.design.joints)
+    expect(cutList(tapered.design, tapered.a.geo)).toEqual(cutList(straight.design, straight.a.geo))
+    expect(tapered.a.findings).toEqual(straight.a.findings)
+  })
+
+  it('is asked only with legs, and a plan that does not say has straight ones', () => {
+    const field = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'legStyle')!
+    expect([field.visibleWhen!(onLegs()), field.visibleWhen!(bed())]).toEqual([true, false])
+    expect(built(onLegs()).design.pieces.some((p) => p.slants)).toBe(false)
+    expect(bedModule.describeChanges(onLegs(), onLegs({ legStyle: 'tapered' }))).toEqual(['patas cónicas'])
   })
 })

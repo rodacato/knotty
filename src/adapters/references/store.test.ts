@@ -12,7 +12,7 @@ describe('reference store', () => {
   it('has every ficha shipped, and gives the latest of one by its code', () => {
     expect(store.all().length).toBeGreaterThan(0)
     for (const r of store.all()) expect(store.latest(r.code)).toBe(r)
-    expect(store.latest('KC-APA-01')).toMatchObject({ code: 'KC-APA-01', version: 5, plan: { kind: 'cabinet', base: 'legs' } })
+    expect(store.latest('KC-APA-01')).toMatchObject({ code: 'KC-APA-01', version: 6, plan: { kind: 'cabinet', base: 'legs' } })
   })
 
   it('holds one reference for each ficha file in its folder, so the fichas drawer lists a new one with nothing else to change', () => {

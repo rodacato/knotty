@@ -227,3 +227,38 @@ describe('a table to work at standing', () => {
     expect(findingsOf({ ...standing, dimensions: { ...standing.dimensions!, height: 760 } }).map((f) => f.check)).toEqual(['workbench.height'])
   })
 })
+
+describe('tapered legs on a table', () => {
+  const built = (plan: TablePlan) => {
+    const { design, notes } = buildTable(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, notes, a }
+  }
+  const onLegs = (p: Partial<TablePlan> = {}) => table({ legs: 'legs', ...p })
+
+  it('narrows each leg from under the apron to the foot, on the side that faces the other row, the two in the middle of a long table too', () => {
+    const { design, notes } = built(onLegs({ legStyle: 'tapered' }))
+    const slant = (id: string) => design.pieces.find((p) => p.id === id)!.slants![0]
+    expect(slant('leg-front-left-1')).toEqual({ x: null, y: { from: 'start', leave: 80 }, z: { from: 'start', length: 36 } })
+    expect(slant('leg-back-right-2').z).toEqual({ from: 'end', length: 36 })
+    expect(notes).toEqual([expect.stringMatching(/^Patas cónicas en 6 patas: cada una se adelgaza por dentro, de 72 mm bajo el faldón a 36 mm en el piso\./)])
+  })
+
+  it('changes nothing else: the same boards, joints, cut list and findings as straight legs', () => {
+    for (const p of [{}, { use: 'coffee' as const, dimensions: { width: 1000, height: 420, depth: 550 }, overhang: 0, shelf: true }, { dimensions: { width: 2400, height: 750, depth: 900 } }]) {
+      const [tapered, straight] = [built(onLegs({ ...p, legStyle: 'tapered' })), built(onLegs(p))]
+      expect(tapered.design.pieces.map((x) => ({ ...x, slants: undefined }))).toEqual(straight.design.pieces.map((x) => ({ ...x, slants: undefined })))
+      expect(tapered.design.joints).toEqual(straight.design.joints)
+      expect(cutList(tapered.design, tapered.a.geo)).toEqual(cutList(straight.design, straight.a.geo))
+      expect(tapered.a.findings).toEqual(straight.a.findings)
+    }
+  })
+
+  it('leaves straight a panel end, the pedestal side of a desk and a table that does not say', () => {
+    const slanted = (p: Partial<TablePlan>) => built(table(p)).design.pieces.filter((x) => x.slants).map((x) => x.id)
+    expect(slanted({ legStyle: 'tapered' })).toEqual([])
+    expect(slanted({ legs: 'legs' })).toEqual([])
+    expect(slanted({ use: 'desk', legs: 'legs', legStyle: 'tapered', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'left', drawers: 2 } }).every((id) => id.endsWith('-right-1') || id.endsWith('-right-2'))).toBe(true)
+  })
+})

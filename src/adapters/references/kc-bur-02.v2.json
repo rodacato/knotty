@@ -1,0 +1,41 @@
+{
+  "format": 1,
+  "code": "KC-BUR-02",
+  "id": "nightstand-grooved",
+  "rooms": ["bedroom"],
+  "name": "Buró con frente ranurado",
+  "kind": "nightstand",
+  "finish": "none",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","inset-drawers","open-niche","no-back","routed-fronts","splayed-legs"],
+  "adaptations": ["Drawer front has horizontal grooves; the plan builds a plain front","Original may be solid pine plywood of unknown thickness; written in T18","depth 330 instead of the real 300 mm: the module needs about 330 to build the drawer"],
+  "gaps": ["routed-fronts"],
+  "notes": "Buró bajo sobre cuatro patas abiertas: un nicho abierto arriba y un cajón abajo con el frente ranurado.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró con frente ranurado",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 500, "height": 450, "depth": 330 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "none", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.4, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.6, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 23,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 14, "drawer-slide-30": 1, "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 8, "screw-8x2": 48, "white-glue": 2 }
+  }
+}

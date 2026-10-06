@@ -1,0 +1,40 @@
+{
+  "format": 1,
+  "code": "KC-BUR-01",
+  "id": "splay-leg-nightstand",
+  "rooms": ["bedroom"],
+  "name": "Velador de patas abiertas",
+  "kind": "nightstand",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","inset-drawers","open-niche","no-back","splayed-legs"],
+  "adaptations": ["Pine plywood with wax-oil finish; written as T18 with no finish id.","Back assumed open from one photo."],
+  "gaps": [],
+  "notes": "Velador de triplay de pino con un cajón embutido abajo, un nicho abierto arriba, techo encima y patas inclinadas.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Velador de patas abiertas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 450, "height": 500, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "none", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.5, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 23,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 12, "drawer-slide-30": 1, "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 8, "screw-8x2": 52, "white-glue": 2 }
+  }
+}
