@@ -5,6 +5,7 @@ import type { Axis, Design } from './schema'
 import type { Box } from './resolve'
 import { contactBetween } from './validation/contact'
 import { dowelsAlong, END_MARGIN, hardwarePerJoint } from './hardwareCount'
+import { CONTACT_TOLERANCE, overlap } from './boxes'
 
 // Where the hardware sits, to draw it: runners in the gap beside each drawer, hinge cups on the inside of each door, wood plugs on the face a dowel goes through,
 // and the dowels, screws and shelf pins of the other joints with the holes they go into. Spaced as the shopping list counts them: typical places, not a drilling template.
@@ -30,7 +31,7 @@ const CAM = { diameter: 15, fromEdge: 34, pin: 7, pilot: 8, dowelAside: 32 }
 const SHELF_PIN = { diameter: 5, length: 16, out: 8 }
 /** A piano hinge's knuckle, and a friction stay: where its ends are screwed, from the hinge along the lid and down and out along the wall, and how far in from the lid's edge it sits. */
 const PIANO_KNUCKLE = 6
-const STAY = { alongLid: 120, lidShare: 0.6, down: 100, out: 60, inset: 10, stretch: 0.52 }
+const STAY = { alongLid: 120, lidShare: 0.6, down: 100, out: 60, inset: 8, stretch: 0.52 }
 const AXES: Axis[] = ['x', 'y', 'z']
 const low = (b: Box, axis: Axis) => b[`${axis}0` as const]
 const high = (b: Box, axis: Axis) => b[`${axis}1` as const]
@@ -171,7 +172,14 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
       // Open, the lid's end of the stay is as far over the hinge as it was out from it: the arms are just long enough to reach it almost straight.
       const open: [number, number] = [y + along, z + swing.toFree * (y - lid.y0)]
       const arm = STAY.stretch * Math.max(Math.hypot(open[0] - onWall[0], open[1] - onWall[1]), Math.hypot(onLid[0] - onWall[0], onLid[1] - onWall[1]))
-      parts.push({ kind: 'stay', owner: u.a, x: lid.x0 + STAY.inset, pivot: swing.pivot, onLid, onWall, arm })
+      // Each stay is screwed to a wall under the lid: the first by the left one, a second by the right. A lid that lies over its walls has them further in than its own edges.
+      const walls = design.pieces.flatMap((p) => {
+        const wall = boxes.get(p.id)
+        return wall && p.normal === 'x' && p.role !== 'door' && wall.y1 >= lid.y0 - CONTACT_TOLERANCE && wall.y0 < onWall[0] && overlap(wall, lid, 'z') > 0 ? [wall] : []
+      })
+      const inside = [Math.max(lid.x0, ...walls.filter((w) => w.x0 <= lid.x0 + CONTACT_TOLERANCE).map((w) => w.x1)) + STAY.inset, Math.min(lid.x1, ...walls.filter((w) => w.x1 >= lid.x1 - CONTACT_TOLERANCE).map((w) => w.x0)) - STAY.inset]
+      const stays = u.hardware.find((item) => catalog.hardware.find((k) => k.id === item.hardwareId)?.role === 'lid-stay')
+      for (const x of inside.slice(0, stays ? (stays.count ?? hardwarePerJoint(u, { boxes })) : 0)) parts.push({ kind: 'stay', owner: u.a, x, pivot: swing.pivot, onLid, onWall, arm })
     }
     if (u.type === 'cup-hinge') {
       const door = a

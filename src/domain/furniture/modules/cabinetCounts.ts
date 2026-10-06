@@ -53,12 +53,15 @@ function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): Cabin
   return null
 }
 
+const overChest = (plan: CabinetPlan, { i, j }: { i: number; j: number }) => plan.columns[i].cells[j - 1]?.content === 'chest'
+
 /** The plan without one cell of the kind, the smallest one, or null when it would leave no cell at all. */
 function shrunk(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
   const found = plan.columns
     .flatMap((column, i) => column.cells.map((cell, j) => ({ i, j, cell, size: openingSize(plan, catalog, column, cell.height) })))
     .filter((c) => !c.cell.columns && c.cell.content === CONTENT[kind])
-    .sort((a, b) => a.size.height - b.size.height)[0]
+    // The cell a chest's lid lifts into goes last: without it the chest could not open.
+    .sort((a, b) => Number(overChest(plan, a)) - Number(overChest(plan, b)) || a.size.height - b.size.height)[0]
   if (!found || cellCount(plan) === 1) return null
   const { i, j, cell } = found
   const column = plan.columns[i]

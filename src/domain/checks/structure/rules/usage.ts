@@ -7,7 +7,7 @@ import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } f
 import { doorMount, lidSwing, lifts, slides } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
-import { hingesFor, ASSUMPTIONS } from '../../../assumptions'
+import { hingesFor, lidTorque, ASSUMPTIONS } from '../../../assumptions'
 import { tippingBalance } from './tippingBalance'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
@@ -148,9 +148,21 @@ function hingeMount({ design, geo, catalog }: RuleContext, door: Piece): Finding
     })
 }
 
-/** R6, lid: it needs a stay, or it slams shut on whoever is reaching in, and room over it to open far enough to reach under. */
-function lidOpening({ design, geo, catalog }: RuleContext, lid: Piece): Finding[] {
+/** R6, lid: it needs a stay, or it slams shut on whoever is reaching in, no more weight than its stays hold, and room over it to open far enough to reach under. */
+function lidOpening({ design, geo, catalog }: RuleContext, lid: Piece, box: Box): Finding[] {
   const found: Finding[] = []
+  const torque = lidTorque(box.x1 - box.x0, box.z1 - box.z0, box.y1 - box.y0)
+  const { stayTorque, maxStays } = ASSUMPTIONS.lids
+  if (torque > stayTorque * maxStays)
+    found.push({
+      code: 'R6_DOORS',
+      severity: 'recommendation',
+      pieces: [lid.id],
+      check: 'lid.weight',
+      message: `${lid.name} pesa sobre su bisagra ~${roundTo(torque)} N·m y ${maxStays} compases de fricción detienen hasta ${stayTorque * maxStays}: hazla más corta o más angosta, o ponle pistones de gas.`,
+      data: { torque: roundTo(torque), holds: stayTorque * maxStays },
+      alternatives: [],
+    })
   const stays = new Set(catalog.hardware.filter((h) => h.role === 'lid-stay').map((h) => h.id))
   const held = design.joints.some((u) => u.type === 'lid-hinge' && u.a === lid.id && u.hardware.some((h) => stays.has(h.hardwareId)))
   if (!held)
@@ -189,7 +201,7 @@ export const doorRule: Rule = (ctx) => {
     .flatMap((p): Finding[] => {
       const box = geo.boxes.get(p.id)
       if (!box) return []
-      if (lifts(design, p.id)) return lidOpening(ctx, p)
+      if (lifts(design, p.id)) return lidOpening(ctx, p, box)
       const height = box.y1 - box.y0
       const width = box.x1 - box.x0
       const found: Finding[] = []

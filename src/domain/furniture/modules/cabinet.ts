@@ -134,9 +134,12 @@ const behindDoors = (columns: PlanColumn[]): boolean => columns.every((c) => c.c
 const slidingFits = (plan: CabinetPlan) => plan.construction.doors !== 'sliding' || behindDoors(plan.columns)
 /** A chest's lid lifts into the cell over it: that cell is open, and not split, or the lid has nowhere to go. */
 const lidRoom = (column: PlanColumn, j: number) => column.cells[j + 1]?.content === 'open' && !column.cells[j + 1].columns
-const chestsInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell, j) => (cell.columns ? chestsInPlace(cell.columns) : cell.content !== 'chest' || lidRoom(c, j))))
-const chestsFit = (plan: CabinetPlan) => chestsInPlace(plan.columns)
-const CHESTS_MISPLACED = 'Un baúl va debajo de un hueco abierto, que es por donde abre su tapa; sin él queda tapado.'
+/** With a chest at the top of every column the top of the furniture is their one lid; fingers at its corners would hold it shut. */
+const toppedByLid = (plan: CabinetPlan) => plan.construction.top !== 'fingers' && plan.columns.every((c) => c.cells.at(-1)?.content === 'chest' && !c.cells.at(-1)!.columns)
+const chestsInPlace = (columns: PlanColumn[], lidded: boolean): boolean =>
+  columns.every((c) => c.cells.every((cell, j) => (cell.columns ? chestsInPlace(cell.columns, false) : cell.content !== 'chest' || lidRoom(c, j) || (lidded && j === c.cells.length - 1))))
+const chestsFit = (plan: CabinetPlan) => chestsInPlace(plan.columns, toppedByLid(plan))
+const CHESTS_MISPLACED = 'Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.'
 const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
 const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
@@ -169,6 +172,7 @@ export const CABINET_LABELS = {
 }
 
 const GAP = 2
+const TOP_LID = 'top-lid'
 const SHELF_SETBACK = 5
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
@@ -325,6 +329,8 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
     boxFloor,
     over,
     fingered,
+    /** The top is a lid over the chests under it: only a strip of it stays fixed at the back. */
+    lidded: toppedByLid(plan),
     n,
     ranges,
     onFloor,
@@ -368,11 +374,25 @@ function carcass(l: Layout): Piece[] {
   const { plan, panel, n, t, depth } = l
   const kick = (first: number, last: number, k: number) =>
     makePiece({ id: nth('kick', k), name: 'Zoclo', role: 'kick', material: plan.material, normal: 'z', x: l.floorSpan(first, last), y: extent(ref('furniture.y0'), null, KICK_HEIGHT.cabinet), z: endAt(l.overlays ? ref('furniture.z1', -t - KICK_SETBACK) : ref('furniture.z1', -KICK_SETBACK)) })
+  // Under a lid the top is the strip the lid hinges on, at the back; the lid takes the rest, out to the face of the fronts.
+  const topZ = l.lidded ? extent(ref(l.backFace), null, ASSUMPTIONS.lids.strip) : depth()
+  const topName = (name: string) => (l.lidded ? { name: 'Tira fija de la tapa', edges: [] } : { name })
   const top = (first: number, last: number, k: number) =>
     l.over
       ? // Over the walls of its stretch, out to their far faces.
-        panel({ id: nth('top', k), name: 'Cubierta', role: 'top', normal: 'y', x: extent(first === 0 ? ref('furniture.x0') : ref(`div-${first}.x0`), last === n - 1 ? ref('furniture.x1') : ref(`div-${last + 1}.x1`)), y: endAt(ref('furniture.y1')), z: depth() })
-      : panel({ id: nth('top', k), name: 'Techo', role: 'top', normal: 'y', x: l.between(first, last), y: endAt(ref('furniture.y1')), z: depth() })
+        panel({ id: nth('top', k), ...topName('Cubierta'), role: 'top', normal: 'y', x: extent(first === 0 ? ref('furniture.x0') : ref(`div-${first}.x0`), last === n - 1 ? ref('furniture.x1') : ref(`div-${last + 1}.x1`)), y: endAt(ref('furniture.y1')), z: topZ })
+      : panel({ id: nth('top', k), ...topName('Techo'), role: 'top', normal: 'y', x: l.between(first, last), y: endAt(ref('furniture.y1')), z: topZ })
+  const lid = makePiece({
+    id: TOP_LID,
+    name: 'Tapa abatible',
+    role: 'door',
+    material: plan.material,
+    normal: 'y',
+    x: l.over ? extent(ref('furniture.x0'), ref('furniture.x1')) : extent(ref('side-left.x1', GAP), ref('side-right.x0', -GAP)),
+    y: endAt(ref('furniture.y1')),
+    z: extent(ref('top.z1'), l.build.doors === 'overlay' ? ref('furniture.z1') : l.front),
+    edges: ['front', 'left', 'right'],
+  })
   return [
     ...backs(l),
     panel({ id: 'side-left', name: 'Lateral izquierdo', role: 'side', normal: 'x', x: startAt(ref('furniture.x0')), y: extent(l.floorLevel(0), l.sideRoof(0)), z: depth() }),
@@ -382,11 +402,19 @@ function carcass(l: Layout): Piece[] {
       panel({ id: nth('bottom', k), name: 'Piso', role: 'bottom', normal: 'y', x: l.floorSpan(first, last), y: startAt(plan.base === 'kick' ? ref('kick.y1') : ref('furniture.y0', l.onLegs ? plan.legHeight : 0)), z: depth(), load: 'medium' }),
     ),
     ...runs(l.toTop).map(([first, last], k) => top(first, last, k)),
+    ...(l.lidded ? [lid] : []),
   ]
 }
 
-/** The two outer corners of a top with fingers: the sides go through the top, so they overlap it by its thickness. */
+/** A lid's hinge on the board that stays fixed: one piano hinge, and as many stays as its weight asks for. */
+function lidHinge(l: Layout, lid: string, fixed: string): Joint {
+  const [hinge, stay] = [pickHardware(l.catalog, 'piano-hinge'), pickHardware(l.catalog, 'lid-stay')]
+  return makeJoint(`j-${lid}`, lid, fixed, 'lid-hinge', [...(hinge ? [{ hardwareId: hinge.id, count: 1 }] : []), ...(stay ? [{ hardwareId: stay.id, count: null }] : [])])
+}
+
+/** What the top is joined with beyond its screws: the hinge of a lid, or the two outer corners of a top with fingers, where the sides go through it and overlap it by its thickness. */
 function topJoints(l: Layout): Joint[] {
+  if (l.lidded) return [lidHinge(l, TOP_LID, 'top')]
   if (!l.fingered) return []
   return runs(l.toTop).flatMap(([first, last], k) =>
     ([['side-left', first === 0], ['side-right', last === l.n - 1]] as const).flatMap(([side, reaches]) => (reaches ? [makeJoint(`j-${nth('top', k)}-${side}`, side, nth('top', k), 'finger', [], { depth: l.t })] : [])),
@@ -491,17 +519,15 @@ function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): P
 
 /** What a chest has besides its fixed front: a lid hinged on the strip left of the shelf over it, resting on the front's top edge, and a floor at mid-height when the plan raises it. */
 function chestLid(l: Layout, cell: PlanCell, o: Opening, front: Extent): Pick<Filling, 'pieces' | 'joints'> {
-  const strip = pieceOf(o.top)
-  const id = `${o.id}-lid`
-  const lid = makePiece({ id, name: `Tapa abatible${o.label}`, role: 'door', material: l.plan.material, normal: 'y', x: extent(ref(o.left, GAP), ref(o.right, -GAP)), y: startAt(ref(o.top)), z: extent(ref(`${strip}.z1`), front.to), edges: ['front', 'left', 'right'] })
   const floor = cell.shelves
     ? [l.panel({ id: `${o.id}-floor`, name: `Fondo${o.label}`, role: 'shelf', normal: 'y', x: extent(ref(o.left), ref(o.right)), y: startAt(partway(o.bottom, o.top, 0.5, -l.half)), z: extent(ref(l.backFace), l.build.doors === 'overlay' ? o.front : shift(o.front, -l.t)), load: 'light', support: 'fixed' })]
     : []
-  const hardware = (['piano-hinge', 'lid-stay'] as const).flatMap((role) => {
-    const item = pickHardware(l.catalog, role)
-    return item ? [{ hardwareId: item.id, count: 1 }] : []
-  })
-  return { pieces: [lid, ...floor], joints: [makeJoint(`j-${id}`, id, strip, 'lid-hinge', hardware)] }
+  // At the top of the furniture the lid is the carcass's, one over every column.
+  const strip = pieceOf(o.top)
+  if (strip === 'top') return { pieces: floor, joints: [] }
+  const id = `${o.id}-lid`
+  const lid = makePiece({ id, name: `Tapa abatible${o.label}`, role: 'door', material: l.plan.material, normal: 'y', x: extent(ref(o.left, GAP), ref(o.right, -GAP)), y: startAt(ref(o.top)), z: extent(ref(`${strip}.z1`), front.to), edges: ['front', 'left', 'right'] })
+  return { pieces: [lid, ...floor], joints: [lidHinge(l, id, strip)] }
 }
 
 /** What closes a cell: a fixed cover, or one or two door leaves with their hinges or their grooves. */
@@ -775,11 +801,13 @@ const openCells = (columns: PlanColumn[], which: (cell: PlanCell, path: number[]
   }))
 const opened = (plan: CabinetPlan, which: (cell: PlanCell, path: number[]) => boolean): CabinetPlan => ({ ...plan, columns: openCells(plan.columns, which) })
 
-/** A chest with no open cell over it is built covered, and said. */
-const withoutLooseChests = (columns: PlanColumn[]): PlanColumn[] =>
+/** A chest with nowhere for its lid to go is built covered, and said. */
+const withoutLooseChests = (columns: PlanColumn[], lidded: boolean): PlanColumn[] =>
   columns.map((col) => ({
     ...col,
-    cells: col.cells.map((cell, j) => (cell.columns ? { ...cell, columns: withoutLooseChests(cell.columns) } : cell.content === 'chest' && !lidRoom(col, j) ? { ...cell, content: 'closed' as const, shelves: null } : cell)),
+    cells: col.cells.map((cell, j) =>
+      cell.columns ? { ...cell, columns: withoutLooseChests(cell.columns, false) } : cell.content === 'chest' && !lidRoom(col, j) && !(lidded && j === col.cells.length - 1) ? { ...cell, content: 'closed' as const, shelves: null } : cell,
+    ),
   }))
 
 export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet {
@@ -793,7 +821,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     return { design: built.design, notes: [VOIDS_MISPLACED, ...built.notes] }
   }
   if (!chestsFit(plan)) {
-    const built = buildCabinet({ ...plan, columns: withoutLooseChests(plan.columns) }, catalog)
+    const built = buildCabinet({ ...plan, columns: withoutLooseChests(plan.columns, toppedByLid(plan)) }, catalog)
     return { design: built.design, notes: [CHESTS_MISPLACED, ...built.notes] }
   }
   const l = layoutOf(plan, catalog)
@@ -945,11 +973,12 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['aparador con dos corredizas', cabinet('Aparador', { width: 900, height: 650, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 0, 2)] }], { base: 'legs', wallMounted: false, construction: slidingBuild })],
     ['rack con una corrediza y un divisor detrás', cabinet('Rack', { width: 800, height: 600, depth: 400 }, [{ width: 1, cells: [{ ...split(1, row([1, cell('open', 1, 0)], [1, cell('open', 1, 1)])), content: 'door', doors: 1 }] }], { base: 'legs', wallMounted: false, construction: slidingBuild })],
   ]
-  // Chests under open niches, opened from above: one with its floor at mid-height, one that reaches the bottom, behind an inset front.
+  // Chests opened from above: under open niches, with the floor at mid-height or down to the bottom behind an inset front, and a trunk whose top is the lid.
   const chest = (shelves: number): PlanCell => ({ height: 0.5, content: 'chest', shelves, doors: null })
   const withChests: [string, CabinetPlan][] = [
     ['librero de cabecera con baúles', cabinet('Librero de cabecera', { width: 1900, height: 1000, depth: 300 }, [1, 1, 1].map((width) => ({ width, cells: [chest(1), cell('open', 0.5, 0)] })), { base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, top: 'over', shelves: 'fixed', pulls: 'notch' } })],
     ['gabinete con baúl embutido', cabinet('Gabinete', { width: 600, height: 900, depth: 400 }, [{ width: 1, cells: [chest(0), cell('open', 0.5, 0)] }], { base: 'kick', construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset' } })],
+    ['baúl con la cubierta de tapa', cabinet('Baúl', { width: 1200, height: 480, depth: 420 }, [{ width: 1, cells: [{ ...chest(0), height: 1 }] }], { base: 'floor', wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over', pulls: 'notch' } })],
   ]
   return [...list, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...withChests]
 }
@@ -1028,7 +1057,7 @@ const cabinetQuick: QuickSpec<CabinetPlan> = {
     const asked = count(plan, 'drawer')
     if (drawersBuilt(design) !== asked) return `Solo caben ${drawersBuilt(design)} de ${asked} cajones en esos huecos.`
     if (design.pieces.filter((p) => p.role === 'door' && !lifts(design, p.id)).length !== doorLeavesAsked(plan)) return 'Una puerta no quedó como se pidió.'
-    if (design.pieces.filter((p) => lifts(design, p.id)).length !== count(plan, 'chest')) return 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.'
+    if (design.pieces.filter((p) => lifts(design, p.id)).length !== (toppedByLid(plan) ? count(plan, 'chest') - plan.columns.length + 1 : count(plan, 'chest'))) return 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.'
     return null
   },
 }

@@ -85,4 +85,4 @@ export const slidingNote = (leaves: number, board: number) => {
 
 /** What the person reads when a chest opens from above: what holds each lid, and why it goes to a strip and not to the back. */
 export const lidNote = (lids: number) =>
-  `${lids === 1 ? 'Tapa abatible' : `${lids} tapas abatibles`} hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta. Antes de abrirla hay que quitar lo que tenga encima.`
+  `${lids === 1 ? 'Tapa abatible' : `${lids} tapas abatibles`} hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta (dos, uno por costado, en una tapa pesada). Antes de abrirla hay que quitar lo que tenga encima.`

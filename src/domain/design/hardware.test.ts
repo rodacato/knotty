@@ -36,8 +36,17 @@ describe('hardware to draw', () => {
     const [hinge, stay] = parts
     if (hinge.kind !== 'piano-hinge' || stay.kind !== 'stay') throw new Error('not a lid')
     expect([hinge.axis, hinge.length, hinge.center[1], hinge.center[2]]).toEqual(['x', lid.x1 - lid.x0, lid.y1, strip.z1])
-    expect(stay.x - lid.x0).toBe(10)
+    expect(stay.x - lid.x0).toBe(8)
     expect([stay.onLid[0], stay.onWall[0] < lid.y0, stay.onLid[1] > strip.z1]).toEqual([lid.y0, true, true])
+  })
+  it('a lid that lies over its sides has its stays inside them, one by each wall when it takes two', () => {
+    const { design } = buildCabinet(
+      { kind: 'cabinet', name: 'Baúl', dimensions: { width: 1200, height: 480, depth: 420 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns: [{ width: 1, cells: [{ height: 1, content: 'chest', shelves: 0, doors: null }] }] },
+      testCatalog,
+    )
+    const geo = analyze(design, testCatalog).geo!
+    const stays = hardwareParts(design, geo.boxes, testCatalog).flatMap((h) => (h.kind === 'stay' ? [h.x] : []))
+    expect(stays).toEqual([geo.boxes.get('side-left')!.x1 + 8, geo.boxes.get('side-right')!.x0 - 8])
   })
   it('puts two hinge cups on the inside of each door of a short cabinet, at the edge with the hinge', () => {
     const { design } = buildCabinet(

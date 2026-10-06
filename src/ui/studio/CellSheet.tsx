@@ -79,7 +79,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Fondo</span>
             <Segmented label="Fondo del baúl" value={cell.shelves ? 'raised' : 'floor'} options={[['raised', 'A media altura'], ['floor', 'Hasta abajo']]} onChange={(v) => change({ shelves: v === 'raised' ? 1 : 0 })} />
-            <p className="text-xs text-graphite-2">Abre por arriba: su tapa es el piso del hueco abierto de encima, con bisagra de piano y compás.</p>
+            <p className="text-xs text-graphite-2">Abre por arriba, con bisagra de piano y compás: su tapa es el piso del hueco abierto de encima, o la cubierta si todas las columnas terminan en baúl.</p>
           </div>
         )}
         {cell.content === 'door' && (

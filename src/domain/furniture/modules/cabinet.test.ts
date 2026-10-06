@@ -446,10 +446,10 @@ describe('a chest opened from above', () => {
 
   it('hinges on the strip with a piano hinge and is held open by a stay: one of each to buy, and no cup hinges', () => {
     const { design, a, notes } = built(headboard())
-    expect(design.joints.filter((u) => u.a === 'c1-h1-lid').map((u) => [u.b, u.type, u.glue, u.hardware])).toEqual([['c1-sep-1', 'lid-hinge', false, [{ hardwareId: 'piano-hinge-30', count: 1 }, { hardwareId: 'lid-stay-friction', count: 1 }]]])
+    expect(design.joints.filter((u) => u.a === 'c1-h1-lid').map((u) => [u.b, u.type, u.glue, u.hardware])).toEqual([['c1-sep-1', 'lid-hinge', false, [{ hardwareId: 'piano-hinge-30', count: 1 }, { hardwareId: 'lid-stay-friction', count: null }]]])
     const bought = Object.fromEntries(estimatePurchase(design, a.geo, testCatalog).hardware.map((h) => [h.hardware.role, h.count]))
     expect([bought['piano-hinge'], bought['lid-stay'], bought.hinge]).toEqual([1, 1, undefined])
-    expect(notes).toEqual(['Tapa abatible hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta. Antes de abrirla hay que quitar lo que tenga encima.'])
+    expect(notes).toEqual(['Tapa abatible hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta (dos, uno por costado, en una tapa pesada). Antes de abrirla hay que quitar lo que tenga encima.'])
   })
 
   it('with shelves 1 its floor is fixed at mid-height and holds a light load; with 0 it reaches the bottom', () => {
@@ -505,10 +505,61 @@ describe('a chest opened from above', () => {
     const under = headboard({}, [chest(), { height: 0.5, content: 'drawer', shelves: null, doors: null }])
     const { has, notes } = built(under)
     expect([has('c1-h1-lid'), has('c1-h1-cover'), has('c1-h1-floor')]).toEqual([false, true, false])
-    expect(notes).toContain('Un baúl va debajo de un hueco abierto, que es por donde abre su tapa; sin él queda tapado.')
-    expect(FurniturePlan.safeParse(under).error?.issues.map((i) => i.message)).toEqual(['Un baúl va debajo de un hueco abierto, que es por donde abre su tapa; sin él queda tapado.'])
-    expect(FurniturePlan.safeParse(headboard({}, [niche(), chest()])).success).toBe(false)
+    expect(notes).toContain('Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.')
+    expect(FurniturePlan.safeParse(under).error?.issues.map((i) => i.message)).toEqual(['Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.'])
     expect(FurniturePlan.safeParse(headboard()).success).toBe(true)
+  })
+
+  describe('at the top of every column', () => {
+    const trunk = (more: Partial<CabinetPlan> = {}, columns: PlanColumn[] = [{ width: 1, cells: [{ ...chest(0), height: 1 }] }]) =>
+      plan({ name: 'Baúl', dimensions: { width: 1200, height: 480, depth: 420 }, base: 'floor', wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns, ...more })
+
+    it('the top of the furniture is the lid: only a strip of it stays fixed at the back, and the lid lies over the sides and out to the face of the front', () => {
+      const { box, design, a } = built(trunk())
+      const [strip, lid, front, left] = ['top', 'top-lid', 'c1-h1-cover', 'side-left'].map(box)
+      expect([strip.z1 - strip.z0, lid.z0, lid.z1]).toEqual([80, strip.z1, 420])
+      expect([lid.x0, lid.x1, lid.y0, lid.y1]).toEqual([0, 1200, strip.y0, 480])
+      expect([left.y1, front.y1]).toEqual([lid.y0, lid.y0])
+      expect(design.joints.filter((u) => u.a === 'top-lid').map((u) => [u.b, u.type])).toEqual([['top', 'lid-hinge']])
+      expect(a.findings).toEqual([])
+    })
+
+    it('a top between the sides keeps the lid between them too', () => {
+      const { box } = built(trunk({ construction: DEFAULT_CONSTRUCTION }))
+      expect([box('top-lid').x0 - box('side-left').x1, box('side-right').x0 - box('top-lid').x1]).toEqual([2, 2])
+    })
+
+    it('two columns share one lid, which rests on the divider between them', () => {
+      const { design, box } = built(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))))
+      expect(design.pieces.filter((p) => p.role === 'door').map((p) => p.id)).toEqual(['top-lid'])
+      expect(box('div-1').y1).toBe(box('top-lid').y0)
+      expect(cabinetModule.quick!.builtAsAsked!(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))), design)).toBeNull()
+    })
+
+    it('takes as many stays as its weight asks for: two for a long lid, one for the lid of a niche', () => {
+      const stays = (p: CabinetPlan) => {
+        const { design, a } = built(p)
+        return estimatePurchase(design, a.geo, testCatalog).hardware.find((h) => h.hardware.role === 'lid-stay')!.count
+      }
+      expect([stays(trunk()), stays(headboard())]).toEqual([2, 1])
+    })
+
+    it('a lid heavier than two stays hold is said', () => {
+      const heavy = built(trunk({ dimensions: { width: 1500, height: 480, depth: 600 } })).a.findings
+      expect(heavy.map((f) => [f.check, f.severity, f.pieces])).toEqual([['lid.weight', 'recommendation', ['top-lid']]])
+      expect(Number(heavy[0].data.torque)).toBeGreaterThan(6)
+    })
+
+    it('only when every column ends in a chest, and not with fingers at the corners, which would hold it shut: otherwise it is built covered and said', () => {
+      const mixed = trunk({}, [{ width: 1, cells: [{ ...chest(0), height: 1 }] }, { width: 1, cells: [{ ...niche(), height: 1 }] }])
+      const fingered = trunk({ construction: { ...DEFAULT_CONSTRUCTION, top: 'fingers' } })
+      for (const p of [mixed, fingered]) {
+        expect(built(p).has('top-lid')).toBe(false)
+        expect(built(p).design.pieces.find((x) => x.id === 'top')!.name).not.toBe('Tira fija de la tapa')
+        expect(FurniturePlan.safeParse(p).success).toBe(false)
+      }
+      expect(FurniturePlan.safeParse(trunk()).success).toBe(true)
+    })
   })
 
   it('is not a door of the furniture: the quick counts and the summary leave it out, and adding a cell never splits it', () => {
@@ -517,7 +568,12 @@ describe('a chest opened from above', () => {
     expect(cabinetModule.quick!.builtAsAsked!(p, design)).toBeNull()
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(p, 'Barniz')).toBe('Sin puertas: agrégalas en los huecos')
     expect(leafCells(setCount(p, 'open', 2, testCatalog).plan.columns).map((c) => c.content)).toEqual(['chest', 'open', 'open'])
-    expect(setCount(p, 'open', 0, testCatalog)).toMatchObject({ ok: false, message: 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.', counts: { open: 1 } })
+    const alone = setCount(p, 'open', 0, testCatalog)
+    expect([alone.ok, leafCells(alone.plan.columns).map((c) => c.content), built(alone.plan).has('top-lid')]).toEqual([true, ['chest'], true])
+    const beside = { ...p, columns: [...p.columns, { width: 1, cells: [niche(), niche()] }] }
+    expect(leafCells(setCount(beside, 'open', 2, testCatalog).plan.columns).map((c) => c.content)).toEqual(['chest', 'open', 'open'])
+    const twice = { ...p, columns: [...p.columns, ...p.columns] }
+    expect(setCount(twice, 'open', 1, testCatalog)).toMatchObject({ ok: false, message: 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.' })
   })
 
   it('the expert does not write it: its columns only know open, drawer, door and closed', () => {
