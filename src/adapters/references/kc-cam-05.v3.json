@@ -30,6 +30,6 @@
     "pieces": 29,
     "findings": [],
     "sheets": { "T18": 3 },
-    "hardware": { "connector-bolt-m6": 68, "edge-banding-19": 6, "screw-8x1-1/4": 32, "screw-8x2": 116, "white-glue": 1 }
+    "hardware": { "edge-banding-19": 6, "screw-8x1-1/4": 32, "screw-8x2": 184, "white-glue": 3 }
   }
 }

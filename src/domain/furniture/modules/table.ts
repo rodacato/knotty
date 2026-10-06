@@ -11,7 +11,7 @@ import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { describeLegStyle, LEG_STYLE, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { choice, fromLabels, material, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
+import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
 
@@ -257,6 +257,18 @@ function lowShelf(l: Layout, open: Open, middleLegs: number): { pieces: Piece[];
   }
 }
 
+/** The blocks a table comes apart into: each end (its legs with their short apron, or its panel, and a desk's pedestal), the long aprons with their cross members, the low shelf on its feet, each middle leg and the top. */
+function blockOf(l: Layout): (piece: Piece) => string {
+  return ({ id }) => {
+    if (id === 'top') return 'top'
+    if (id.startsWith('ped-')) return `end-${l.pedestal}`
+    if (id === 'low-shelf' || id.startsWith('shelf-leg-')) return 'shelf'
+    if (id.startsWith('leg-middle-')) return id.replace(/-\d+$/, '')
+    const end = /-(left|right)(-|$)/.exec(id)
+    return end ? `end-${end[1]}` : 'frame'
+  }
+}
+
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
   const l = layoutOf(plan, catalog)
   const top = l.panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] })
@@ -270,7 +282,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces))] }
+  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces))] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -352,7 +364,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     stepper({ key: 'pedestal.drawers', label: 'Cajones', ariaLabel: 'cajones de la cajonera', min: 1, max: MAX_PEDESTAL_DRAWERS, visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: (p) => p.pedestal.drawers, set: (p, drawers) => ({ ...p, pedestal: { ...p.pedestal, drawers } }) }),
     yesNo({ key: 'shelf', label: 'Repisa baja', visibleWhen: (p) => !isDesk(p), get: (p) => p.shelf, set: (p, shelf) => ({ ...p, shelf }) }),
   ]),
-  section('Armado', assemblyFields()),
+  section('Armado', [...assemblyFields<TablePlan>(), note('Cada extremo de la mesa se pega aparte, y los faldones largos con sus travesaños. La cubierta se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly')]),
 ]
 
 const TABLE_PARTS: Parts<TablePlan> = {
