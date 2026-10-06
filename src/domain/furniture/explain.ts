@@ -23,11 +23,17 @@ export interface Explainable {
 const BASE = { kick: 'on a kick plate', floor: 'directly on the floor', legs: 'on legs' } as const
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-function cellText(cell: PlanCell): string {
-  if (cell.columns) return `split into ${plural(cell.columns.length, 'column')} [${cell.columns.map((c) => c.cells.map(cellText).join(', ')).join(' | ')}] (${cell.height})`
+const doorText = (cell: PlanCell) => (cell.doors && cell.doors > 1 ? `${cell.doors}-leaf door` : 'door')
+
+/** `sliding`: the plan's doors slide, so a split `door` cell has them in front of its columns; otherwise a split cell builds only its columns. */
+function cellText(cell: PlanCell, sliding: boolean): string {
+  if (cell.columns) {
+    const inside = `${plural(cell.columns.length, 'column')} [${cell.columns.map((c) => c.cells.map((inner) => cellText(inner, sliding)).join(', ')).join(' | ')}] (${cell.height})`
+    return sliding && cell.content === 'door' ? `${doorText(cell)} in front of ${inside}` : `split into ${inside}`
+  }
   const shelves = cell.shelves ? ` with ${plural(cell.shelves, 'shelf').replace('shelfs', 'shelves')}` : ''
   const body = {
-    door: cell.doors && cell.doors > 1 ? `${cell.doors}-leaf door` : 'door',
+    door: doorText(cell),
     drawer: 'drawer',
     open: 'open niche',
     closed: 'closed panel',
@@ -48,7 +54,7 @@ function gridLines(plan: Cabinet): string[] {
   const head = same ? `${plural(plan.columns.length, 'column')} of equal width` : `${plural(plan.columns.length, 'column')}, widths ${widths.map((w) => Math.round((w / total) * 1000) / 1000).join(' : ')}`
   const runs: { from: number; to: number; text: string }[] = []
   plan.columns.forEach((column, i) => {
-    const text = `${same ? '' : `width ${column.width}, `}${column.cells.map(cellText).join(', ')}`
+    const text = `${same ? '' : `width ${column.width}, `}${column.cells.map((cell) => cellText(cell, plan.construction.doors === 'sliding')).join(', ')}`
     const last = runs.at(-1)
     if (last && last.text === text) last.to = i + 1
     else runs.push({ from: i + 1, to: i + 1, text })

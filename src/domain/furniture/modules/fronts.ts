@@ -1,5 +1,7 @@
 import type { Box } from '../../design/resolve'
 import type { Cut, Design, Piece, Span } from '../../design/schema'
+import { ASSUMPTIONS } from '../../assumptions'
+import { slides } from '../../design/doors'
 
 // What is taken out of a door or a drawer front: a finger notch to open it, or grooves that make it ribbed. Only drawn: they change neither the cut list nor the purchase.
 
@@ -40,13 +42,13 @@ function notch(piece: Piece, box: Box, hingeOnLeft: boolean): Cut {
   return { x: hingeOnLeft ? span('end', -OUT, NOTCH_HEIGHT + OUT) : span('start', -OUT, NOTCH_HEIGHT + OUT), y: along, z: depth }
 }
 
-/** Which side each door hangs on, read from its hinge joint. */
+/** Which side each door hangs on, read from its hinge joint. A sliding leaf has none: it counts as hung on the middle of its track, so its notch is on its outer edge, where the other leaf never covers it. */
 function hingeSides(design: Design, boxes: Map<string, Box>): Map<string, boolean> {
   const sides = new Map<string, boolean>()
   for (const u of design.joints) {
     const door = boxes.get(u.a)
-    const upright = boxes.get(u.b)
-    if (u.type === 'cup-hinge' && door && upright) sides.set(u.a, (upright.x0 + upright.x1) / 2 < (door.x0 + door.x1) / 2)
+    const held = boxes.get(u.b)
+    if ((u.type === 'cup-hinge' || slides(design, u.a)) && door && held) sides.set(u.a, (held.x0 + held.x1) / 2 < (door.x0 + door.x1) / 2)
   }
   return sides
 }
@@ -68,3 +70,10 @@ export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (f
 
 /** What the person reads when some fronts are opened by a notch: nothing to buy, a router cut. */
 export const notchNote = (fronts: number) => `Muesca para abrir en el canto de ${fronts} ${fronts === 1 ? 'frente' : 'frentes'}: se fresa con router, no se compra nada.`
+
+const mm = (n: number) => String(Math.round(n * 10) / 10)
+/** What the person reads when doors slide: nothing to buy, two grooves per leaf, and why the one above is deeper. */
+export const slidingNote = (leaves: number, board: number) => {
+  const into = board * ASSUMPTIONS.sliding.engagement
+  return `${leaves === 1 ? 'Puerta corrediza' : `${leaves} puertas corredizas`} sin bisagras: cada hoja corre en una ranura del tablero de abajo, de ${mm(into)} mm de hondo, y otra del de arriba, de ${mm(2 * into)} mm, para meterla y sacarla levantándola. Las ranuras se fresan con router antes de armar, un poco más anchas que la hoja.`
+}

@@ -4,7 +4,7 @@ import type { DesignKind } from '../../../design/kind'
 import type { Design, Piece } from '../../../design/schema'
 import type { Box, Geometry } from '../../../design/resolve'
 import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } from '../../../materials/catalog'
-import { doorMount } from '../../../design/doors'
+import { doorMount, slides } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
 import { hingesFor, ASSUMPTIONS } from '../../../assumptions'
@@ -148,7 +148,7 @@ function hingeMount({ design, geo, catalog }: RuleContext, door: Piece): Finding
     })
 }
 
-/** R6: hinges by the height of the door and for how it sits, and doors too wide for a single leaf. */
+/** R6: hinges by the height of the door and for how it sits, and doors too wide for a single leaf. A sliding leaf hangs from nothing, so neither applies to it. */
 export const doorRule: Rule = (ctx) => {
   const { design, geo } = ctx
   return design.pieces
@@ -172,7 +172,7 @@ export const doorRule: Rule = (ctx) => {
           data: { height: Math.round(height), fitted: fitted, needed: needed },
           alternatives: [{ key: 'more-hinges', description: `Poner ${needed} bisagras`, data: { count: needed } }],
         })
-      if (width > ASSUMPTIONS.doors.maxWidth)
+      if (width > ASSUMPTIONS.doors.maxWidth && !slides(design, p.id))
         found.push({
           code: 'R6_DOORS',
           severity: 'recommendation',

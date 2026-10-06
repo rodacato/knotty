@@ -1,4 +1,5 @@
 import type { Box } from './resolve'
+import type { Design } from './schema'
 import { CONTACT_TOLERANCE, overlap } from './boxes'
 import type { DoorMount } from '../materials/catalog'
 import { cite, JOINTS_DOC, type Source } from '../sources'
@@ -22,3 +23,6 @@ export function doorMount(door: Box, upright: Box): DoorMount | null {
   }
   return covered <= CONTACT_TOLERANCE && overlap(door, upright, 'z') > 0 ? 'inset' : null
 }
+
+/** A door that slides instead of swinging: it hangs from no hinge and runs, unglued, in grooves of the boards under and over it. */
+export const slides = (design: Pick<Design, 'joints'>, doorId: string) => design.joints.some((u) => u.a === doorId && u.type === 'dado' && !u.glue)
