@@ -170,6 +170,39 @@ describe('leg height', () => {
     expect(codes(LEG_HEIGHT_RANGE.max)).toEqual(codes(LEG_HEIGHT_RANGE.min))
   })
 
+  it('tapered legs are the same boards, joints and purchase as straight ones: only their inner side is cut, from under the apron to the foot', () => {
+    const straight = analyzed({ ...PLANS.sideboard, legStyle: 'straight' })
+    const tapered = buildCabinet({ ...PLANS.sideboard, legStyle: 'tapered' }, testCatalog)
+    const { design, a } = analyzed({ ...PLANS.sideboard, legStyle: 'tapered' })
+    expect(design.pieces.map((p) => ({ ...p, slants: undefined }))).toEqual(straight.design.pieces)
+    expect(design.joints).toEqual(straight.design.joints)
+    expect(cutList(design, a.geo)).toEqual(cutList(straight.design, straight.a.geo))
+    expect(a.findings.map((f) => f.code)).toEqual(straight.a.findings.map((f) => f.code))
+    const slanted = design.pieces.filter((p) => p.slants?.length)
+    expect(slanted.every((p) => p.id.startsWith('leg-'))).toBe(true)
+    // The front legs are cut on the side that looks back, the back ones on the side that looks forward; the apron keeps its 80 mm of square face.
+    expect(design.pieces.find((p) => p.id === 'leg-front-left-1')!.slants).toEqual([{ x: null, y: { from: 'start', leave: 80 }, z: { from: 'start', length: 36 } }])
+    expect(design.pieces.find((p) => p.id === 'leg-back-right-2')!.slants).toEqual([{ x: null, y: { from: 'start', leave: 80 }, z: { from: 'end', length: 36 } }])
+    expect(tapered.notes.filter((n) => n.startsWith('Patas cónicas'))).toHaveLength(1)
+    expect(buildCabinet(PLANS.sideboard, testCatalog).notes.some((n) => n.includes('cónicas'))).toBe(false)
+  })
+
+  it('a leg that fills the gap between the aprons stays straight: it has no inner side', () => {
+    const shallow = analyzed(plan({ dimensions: { width: 2400, height: 800, depth: 230 }, base: 'legs', legStyle: 'tapered', wallMounted: false, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 1 })] }, { width: 1, cells: [cell('open', 1, { shelves: 1 })] }] }))
+    const middle = shallow.design.pieces.filter((p) => p.id.startsWith('leg-middle-'))
+    expect(middle.length).toBeGreaterThan(0)
+    expect(middle.some((p) => p.slants)).toBe(false)
+    expect(shallow.design.pieces.filter((p) => p.slants?.length).length).toBe(8)
+  })
+
+  it('the shape of the legs is on the form only with legs, and a plan saved without it reads as straight', () => {
+    const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'legStyle')!
+    expect(isVisible(field, PLANS.sideboard)).toBe(true)
+    expect(isVisible(field, PLANS.bookcase)).toBe(false)
+    expect(CabinetPlan.parse(PLANS.sideboard).legStyle).toBeUndefined()
+    expect(buildCabinet(PLANS.sideboard, testCatalog).design.pieces.some((p) => p.slants)).toBe(false)
+  })
+
   it('is on the form only with legs, and every bench variant of the module holds', () => {
     const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).flatMap((f) => (f.type === 'numbers' ? f.fields : [])).find((f) => f.key === 'legHeight')!
     expect(field).toMatchObject({ min: 100, max: 300 })
