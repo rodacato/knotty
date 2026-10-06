@@ -1,0 +1,45 @@
+{
+  "format": 1,
+  "code": "KC-APA-03",
+  "id": "small-sideboard-v-legs",
+  "rooms": ["living","dining"],
+  "name": "Aparador chico con patas en V",
+  "kind": "sideboard",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","legs","routed-fronts","notch-pulls","splayed-legs"],
+  "adaptations": ["T18 plywood in place of the pine plywood (no change in the plan)","finish danish-oil used for the wax-oil (no wax-oil id)","straight two-layer legs under an apron instead of V legs","door fronts drawn with vertical router grooves in place of the micro-grooves; top-edge notch drawn as a finger notch","anchored to the wall assumed: the photos do not show it; 800 mm high on straight legs that stand on only 230 mm of depth, the engine says it can tip forward"],
+  "gaps": ["splayed-legs"],
+  "notes": "Aparador chico de dos puertas embutidas con frente microranurado, una repisa detrás de cada puerta y patas en V. Sirve de arrimo, estante o bar.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Aparador chico",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 700, "height": 800, "depth": 290 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "grooved", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 22,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 25, "cup-hinge-35-inset": 4, "edge-banding-19": 9, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 40, "shelf-pin-5": 8, "white-glue": 2 }
+  }
+}

@@ -15,7 +15,7 @@ describe('explain', () => {
     const r = reference('KC-APA-01')
     expect(explain({ ...r, expect: probe(r, testCatalog) })).toBe(
       [
-        'KC-APA-01 v5 · sideboard',
+        'KC-APA-01 v6 · sideboard',
         'Piece: cabinet, 1600 × 940 × 400 mm, T18, on legs, wall-mounted.',
         'Construction: inset doors, inset drawer fronts, top between the sides, nailed back, movable shelves.',
         'Grid: 4 columns of equal width. Cells from the bottom up:',
@@ -23,9 +23,9 @@ describe('explain', () => {
         '  Columns 2–3: door with 1 shelf (0.75), open niche (0.25)',
         '  Column 4:    drawer (0.375), drawer (0.375), open niche (0.25)',
         'Support: adapted · difficulty 3',
-        'Features: inset-doors, inset-drawers, legs, wall-anchor, open-niche, no-back, routed-fronts, notch-pulls, angled-cut, asymmetric-arrangement',
+        'Features: inset-doors, inset-drawers, legs, wall-anchor, open-niche, no-back, routed-fronts, notch-pulls, splayed-legs, asymmetric-arrangement',
         'Adaptations: straight legs of two glued layers under a set-back apron, instead of splayed legs',
-        'Gaps: angled-cut, no-back, asymmetric-arrangement',
+        'Gaps: splayed-legs, no-back, asymmetric-arrangement',
         'Engine: valid, 55 pieces, findings: none',
       ].join('\n'),
     )

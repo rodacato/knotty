@@ -1,0 +1,52 @@
+{
+  "format": 1,
+  "code": "KC-TV-01",
+  "id": "fluted-tv-stand",
+  "home": { "order": 1 },
+  "rooms": ["living"],
+  "name": "Mueble de TV ranurado",
+  "kind": "tvStand",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","inset-doors","routed-fronts","splayed-legs"],
+  "adaptations": ["Original en raulí macizo; la candidata va en triplay T18","Frentes ranurados (tablillas verticales) dibujados como puertas lisas","Patas inclinadas dibujadas como patas rectas del módulo","Acabado: aceite (danish-oil) como el más cercano a un acabado natural; el original parece aceite o cera","fluted doors of vertical slats drawn as doors with vertical router grooves"],
+  "gaps": ["splayed-legs"],
+  "notes": "Mueble bajo de TV sobre patas inclinadas, con tres compartimentos iguales, cada uno con una puerta de frente ranurado y una repisa.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Mueble de TV ranurado",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 1800, "height": 600, "depth": 400 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "fronts": "grooved" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 30,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 42, "cup-hinge-35-inset": 6, "edge-banding-19": 15, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 12, "screw-8x2": 85, "shelf-pin-5": 12, "white-glue": 3 }
+  }
+}

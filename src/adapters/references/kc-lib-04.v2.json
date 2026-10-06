@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "code": "KC-LIB-04",
+  "id": "slatted-drawer-bookcase",
+  "rooms": ["living","office"],
+  "name": "Librero con cajones acanalados",
+  "kind": "bookcase",
+  "finish": "hardwax-oil",
+  "support": "adapted",
+  "difficulty": 4,
+  "features": ["inset-drawers","legs","wall-anchor","open-niche","routed-fronts","asymmetric-arrangement","splayed-legs"],
+  "adaptations": ["Solid coihue in the photos, written in T18 plywood.","The fronts are grooved across in the piece and only some of them; drawn with the module's vertical grooves on every front.","The drawer cells are given a back: the photos do not show behind them.","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["routed-fronts"],
+  "notes": "Librero de tres columnas: abajo dos cajones por columna con frente acanalado o liso, arriba cuatro nichos abiertos, sobre patas cónicas. Anclado al muro.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero con cajones",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1200, "height": 1800, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed", "fronts": "grooved" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.15, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.08, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.15, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.08, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.15, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.08, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null, "back": false },
+          { "height": 0.19, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "tapered"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 77,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "brad-nail-1": 166, "drawer-slide-30": 6, "edge-banding-19": 32, "pocket-screw-1-1/4": 16, "screw-8x1": 24, "screw-8x1-1/4": 8, "screw-8x2": 200, "white-glue": 8 }
+  }
+}

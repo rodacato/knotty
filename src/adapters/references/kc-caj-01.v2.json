@@ -1,0 +1,128 @@
+{
+  "format": 1,
+  "code": "KC-CAJ-01",
+  "id": "two-body-dresser",
+  "home": { "order": 30 },
+  "rooms": ["bedroom"],
+  "name": "Cómoda de dos cuerpos",
+  "kind": "drawers",
+  "finish": "polyurethane",
+  "support": "adapted",
+  "difficulty": 4,
+  "features": ["inset-drawers","inset-doors","legs","open-niche","multi-body","asymmetric-arrangement","routed-fronts","splayed-legs"],
+  "adaptations": ["Written in T18 plywood; the ribbed fronts are drawn as flat fronts","Splayed angled legs are drawn as Knotty's legs; a raw-plywood finish is written as polyurethane (closest id)","two separate bodies with their own legs, drawn as the two columns of one cabinet that share a divider","round hole pulls are not drawn","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["multi-body","routed-fronts","splayed-legs"],
+  "notes": "Cómoda baja de triplay con dos cuerpos lado a lado sobre patas inclinadas: cajones con frente acanalado, un nicho abierto en cada cuerpo y una puerta acanalada.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Cómoda de dos cuerpos",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1800, "height": 900, "depth": 400 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          {
+            "height": 0.26,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.45,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              },
+              {
+                "width": 0.55,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          },
+          { "height": 0.36, "content": "drawer", "shelves": null, "doors": null },
+          {
+            "height": 0.38,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.3,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 1, "doors": null }
+                ]
+              },
+              {
+                "width": 0.7,
+                "cells": [
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.25, "content": "drawer", "shelves": null, "doors": null },
+          {
+            "height": 0.5,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.65,
+                "cells": [
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+                  { "height": 0.5, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              },
+              {
+                "width": 0.35,
+                "cells": [
+                  { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.25,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.55,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              },
+              {
+                "width": 0.45,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 90,
+    "findings": [],
+    "sheets": { "T18": 4, "TR6": 2 },
+    "hardware": { "brad-nail-1": 222, "cup-hinge-35-inset": 2, "drawer-slide-35": 9, "edge-banding-19": 47, "pocket-screw-1-1/4": 16, "screw-8x1": 36, "screw-8x1-1/4": 12, "screw-8x2": 218, "shelf-pin-5": 4, "white-glue": 9 }
+  }
+}

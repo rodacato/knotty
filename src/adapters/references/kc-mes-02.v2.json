@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "code": "KC-MES-02",
+  "id": "trestle-dining-table",
+  "home": { "order": 8 },
+  "rooms": ["dining"],
+  "name": "Mesa de comedor de caballete",
+  "kind": "diningTable",
+  "finish": "danish-oil",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","splayed-legs"],
+  "adaptations": ["Solid mañío/oak becomes T18 plywood","Splayed square legs joined by an end stretcher and a long central stretcher with diagonal braces become two plywood panel ends tied by aprons and cleats","Solid-wood top of glued strips becomes one plywood top"],
+  "gaps": ["splayed-legs"],
+  "notes": "Mesa de comedor de 180 x 90 cm con cubierta de tablones y patas en A unidas por travesaños y un larguero central.",
+  "plan": {
+    "kind": "table",
+    "use": "dining",
+    "name": "Mesa de comedor de caballete",
+    "material": "T18",
+    "dimensions": { "width": 1800, "height": 750, "depth": 900 },
+    "overhang": 150,
+    "shelf": false,
+    "pedestal": { "side": "none", "drawers": 0 }
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 7,
+    "findings": [],
+    "sheets": { "T18": 2 },
+    "hardware": { "edge-banding-19": 8, "pocket-screw-1-1/4": 8, "screw-8x2": 44, "white-glue": 1 }
+  }
+}
