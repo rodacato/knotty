@@ -1,4 +1,4 @@
-import { ASSUMPTIONS, hingesFor } from '../assumptions'
+import { ASSUMPTIONS, hingesFor, lidTorque, staysFor } from '../assumptions'
 import type { Joint } from './schema'
 import type { Geometry } from './resolve'
 import { jointLength } from './validation/contact'
@@ -43,6 +43,9 @@ export function hardwarePerJoint(u: Joint, geo: Pick<Geometry, 'boxes'>): number
     }
     case 'bracket':
       return 2
+    // The piano hinge is one, and said; what is left to count are the stays, by the weight of the lid.
+    case 'lid-hinge':
+      return a ? staysFor(lidTorque(a.x1 - a.x0, a.z1 - a.z0, a.y1 - a.y0)) : 1
     case 'drawer-slide':
     case 'dado':
     case 'rabbet':

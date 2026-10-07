@@ -4,10 +4,10 @@ import type { DesignKind } from '../../../design/kind'
 import type { Design, Piece } from '../../../design/schema'
 import type { Box, Geometry } from '../../../design/resolve'
 import { hingeFor, pickHardware, type Catalog, type DoorMount, type Hardware } from '../../../materials/catalog'
-import { doorMount, slides } from '../../../design/doors'
+import { doorMount, lidSwing, lifts, slides } from '../../../design/doors'
 import { useOf } from '../../typology/typology'
 import type { Finding, Rule, RuleContext } from '../finding'
-import { hingesFor, ASSUMPTIONS } from '../../../assumptions'
+import { hingesFor, lidTorque, ASSUMPTIONS } from '../../../assumptions'
 import { tippingBalance } from './tippingBalance'
 
 // How the piece of furniture is used: it must not tip over, its doors must hang, its floor must hold and its grain should run along.
@@ -148,7 +148,52 @@ function hingeMount({ design, geo, catalog }: RuleContext, door: Piece): Finding
     })
 }
 
-/** R6: hinges by the height of the door and for how it sits, and doors too wide for a single leaf. A sliding leaf hangs from nothing, so neither applies to it. */
+/** R6, lid: it needs a stay, or it slams shut on whoever is reaching in, no more weight than its stays hold, and room over it to open far enough to reach under. */
+function lidOpening({ design, geo, catalog }: RuleContext, lid: Piece, box: Box): Finding[] {
+  const found: Finding[] = []
+  const torque = lidTorque(box.x1 - box.x0, box.z1 - box.z0, box.y1 - box.y0)
+  const { stayTorque, maxStays } = ASSUMPTIONS.lids
+  if (torque > stayTorque * maxStays)
+    found.push({
+      code: 'R6_DOORS',
+      severity: 'recommendation',
+      pieces: [lid.id],
+      check: 'lid.weight',
+      message: `${lid.name} pesa sobre su bisagra ~${roundTo(torque)} N·m y ${maxStays} compases de fricción detienen hasta ${stayTorque * maxStays}: hazla más corta o más angosta, o ponle pistones de gas.`,
+      data: { torque: roundTo(torque), holds: stayTorque * maxStays },
+      alternatives: [],
+    })
+  const stays = new Set(catalog.hardware.filter((h) => h.role === 'lid-stay').map((h) => h.id))
+  const held = design.joints.some((u) => u.type === 'lid-hinge' && u.a === lid.id && u.hardware.some((h) => stays.has(h.hardwareId)))
+  if (!held)
+    found.push({
+      code: 'R6_DOORS',
+      severity: 'recommendation',
+      pieces: [lid.id],
+      check: 'lid.stay',
+      message: `${lid.name} abre hacia arriba y no lleva compás: sin él se azota al soltarla.`,
+      data: {},
+      alternatives: [],
+    })
+  // The lid turns about its hinged edge, so it needs as much room over it as it is deep; with less it stops against what is there.
+  const swing = lidSwing(design, geo.boxes, lid.id)
+  if (!swing?.over || swing.over.room >= swing.reach) return found
+  const { over, reach } = swing
+  const opens = Math.round((swing.angle * 180) / Math.PI)
+  if (opens < ASSUMPTIONS.lids.minOpening)
+    found.push({
+      code: 'R6_DOORS',
+      severity: 'recommendation',
+      pieces: [lid.id, over.piece.id],
+      check: 'lid.room',
+      message: `${lid.name} mide ${Math.round(reach)} mm de fondo y tiene ${Math.round(over.room)} mm libres arriba: abre unos ${opens}° antes de pegar con ${over.piece.name}, y así cuesta meter la mano.`,
+      data: { reach: Math.round(reach), room: Math.round(over.room), opens, min: ASSUMPTIONS.lids.minOpening },
+      alternatives: [],
+    })
+  return found
+}
+
+/** R6: hinges by the height of the door and for how it sits, and doors too wide for a single leaf. A sliding leaf hangs from nothing, so neither applies to it; a lid has its own checks. */
 export const doorRule: Rule = (ctx) => {
   const { design, geo } = ctx
   return design.pieces
@@ -156,6 +201,7 @@ export const doorRule: Rule = (ctx) => {
     .flatMap((p): Finding[] => {
       const box = geo.boxes.get(p.id)
       if (!box) return []
+      if (lifts(design, p.id)) return lidOpening(ctx, p, box)
       const height = box.y1 - box.y0
       const width = box.x1 - box.x0
       const found: Finding[] = []

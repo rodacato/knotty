@@ -83,6 +83,16 @@ export const ASSUMPTIONS = {
     /** How far a leaf goes into each groove, as a share of the board; the groove above is cut twice as deep, so the leaf lifts in and out. */
     engagement: 1 / 4,
   },
+  /** A lid that lifts: the floor of an open cell, hinged at the back, over a chest. */
+  lids: {
+    /** The strip that stays fixed at the back, which the hinge is screwed to: wide enough for two screws at each end. */
+    strip: 80,
+    /** The least a lid has to open, in degrees, before what is above it gets in the way of reaching in. */
+    minOpening: 60,
+    /** What one friction stay holds, in N·m, and how many a lid takes at most: one by each wall. */
+    stayTorque: 3,
+    maxStays: 2,
+  },
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   /** A floor rests on a run (a kick, a rail) that is under at least this share of its length. */
@@ -151,6 +161,10 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'sliding.between': noReference('the same gap as between two fronts, so one leaf passes the other; the reference has no play for sliding doors'),
   // A quarter below and so half above: the deeper groove stays at the most the reference lets a groove go.
   'sliding.engagement': cite(VALUES, '6-uniones', 'Profundidad de ranura'),
+  'lids.strip': noReference('the same width as the rail a wall cabinet hangs from, which takes two screws at each end; the reference gives no width for the fixed part of a lid'),
+  'lids.stayTorque': cite(JOINTS_DOC, '64-otros-herrajes', 'Compás de fricción'),
+  'lids.maxStays': noReference('one stay by each wall of the chest is all there is room for; the reference gives no count'),
+  'lids.minOpening': noReference('where Knotty calls a lid hard to reach under; the reference gives no opening angle'),
   floorSpan: cite(STRUCTURE, '71-patas-o-zoclo', 'un piso de más de 800 mm sin apoyo intermedio necesita revisión'),
   'legs.maxSpan': cite(STRUCTURE, '71-patas-o-zoclo', 'más de ≈ 1 200 mm de ancho → patas intermedias'),
   'legs.footprint': noReference('how Knotty tells a leg from a panel on the floor: a laminated leg of 2 × 18 × 72 fits with room, a side or a kick is far longer'),
@@ -173,3 +187,8 @@ export type LoadDuration = keyof typeof ASSUMPTIONS.creep
 
 /** How many hinges a door this tall takes; taller than the table, as many as its last row. */
 export const hingesFor = (height: number) => (ASSUMPTIONS.doors.hinges.find((b) => height <= b.upTo) ?? ASSUMPTIONS.doors.hinges.at(-1)!).n
+
+/** The weight of a lid about its hinge, in N·m: its mass at half its reach. */
+export const lidTorque = (width: number, reach: number, thickness: number) => ((width * reach * thickness * ASSUMPTIONS.tipping.density) / 1e9) * (ASSUMPTIONS.gravity / 1000) * (reach / 2)
+/** How many friction stays hold a lid: by its weight about the hinge, never more than there is room for. */
+export const staysFor = (torque: number) => Math.min(ASSUMPTIONS.lids.maxStays, Math.max(1, Math.ceil(torque / ASSUMPTIONS.lids.stayTorque)))

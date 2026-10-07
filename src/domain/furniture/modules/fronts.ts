@@ -1,7 +1,7 @@
 import type { Box } from '../../design/resolve'
 import type { Cut, Design, Piece, Span } from '../../design/schema'
 import { ASSUMPTIONS } from '../../assumptions'
-import { slides } from '../../design/doors'
+import { lifts, slides } from '../../design/doors'
 
 // What is taken out of a door or a drawer front: a finger notch to open it, or grooves that make it ribbed. Only drawn: they change neither the cut list nor the purchase.
 
@@ -31,6 +31,9 @@ function grooves(box: Box): Cut[] {
   const first = (width - (count * GROOVE_PITCH - (GROOVE_PITCH - GROOVE_WIDTH))) / 2
   return Array.from({ length: count }, (_, i) => ({ x: span('start', first + i * GROOVE_PITCH, GROOVE_WIDTH), y: span('start', -OUT, box.y1 - box.y0 + 2 * OUT), z: deep(thickness * GROOVE_DEPTH_SHARE) }))
 }
+
+/** A lid's notch goes through its front edge, in the middle: a finger gets under it there. */
+const lidNotch = (box: Box): Cut => ({ x: span('center', 0, Math.min(NOTCH_LENGTH, box.x1 - box.x0 - 2 * GROOVE_BORDER)), y: span('start', -OUT, box.y1 - box.y0 + 2 * OUT), z: span('end', -OUT, NOTCH_HEIGHT + OUT) })
 
 /** The notch of a drawer front sits on its top edge, in the middle; a door's, on the edge away from its hinge, halfway up. */
 function notch(piece: Piece, box: Box, hingeOnLeft: boolean): Cut {
@@ -62,7 +65,9 @@ export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (f
       const box = boxes.get(p.id)
       if (!box || !isFront(p)) return p
       const ask = askOf(p)
-      const cuts = [...(ask.grooved ? grooves(box) : []), ...(ask.notch ? [notch(p, box, sides.get(p.id) ?? false)] : [])]
+      // A lid lies flat: its face is not a front to rib, and its notch is its own.
+      const lid = lifts(design, p.id)
+      const cuts = [...(ask.grooved && !lid ? grooves(box) : []), ...(ask.notch ? [lid ? lidNotch(box) : notch(p, box, sides.get(p.id) ?? false)] : [])]
       return cuts.length ? { ...p, cuts } : p
     }),
   }
@@ -77,3 +82,7 @@ export const slidingNote = (leaves: number, board: number) => {
   const into = board * ASSUMPTIONS.sliding.engagement
   return `${leaves === 1 ? 'Puerta corrediza' : `${leaves} puertas corredizas`} sin bisagras: cada hoja corre en una ranura del tablero de abajo, de ${mm(into)} mm de hondo, y otra del de arriba, de ${mm(2 * into)} mm, para meterla y sacarla levantándola. Las ranuras se fresan con router antes de armar, un poco más anchas que la hoja.`
 }
+
+/** What the person reads when a chest opens from above: what holds each lid, and why it goes to a strip and not to the back. */
+export const lidNote = (lids: number) =>
+  `${lids === 1 ? 'Tapa abatible' : `${lids} tapas abatibles`} hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta (dos, uno por costado, en una tapa pesada). Antes de abrirla hay que quitar lo que tenga encima.`

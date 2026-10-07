@@ -197,6 +197,7 @@ El contrafrente y la trasera del cajón a veces se cortan iguales, pero no son c
 | **Soportes de repisa** | Pernitos en agujeros de 5 mm sobre los que apoya la repisa móvil [28][29]. | soportes, pijas de repisa / soportes de balda / soportes de estante | shelf pins | ✅ [28][29] |
 | **Bisagras de cazoleta** | Bisagra oculta con cazoleta de 35 mm; se ajusta en tres direcciones [30]. Tres tipos: recta, codo y súper codo (§6). | bisagra de cazoleta, bisagra de 35, bisagra europea / bisagra de cazoleta / bisagra cazoleta | concealed (cup / Euro) hinge | ✅ [30][28] |
 | **Bisagra de piano** | Bisagra corrida a todo lo largo de una tapa o puerta. | bisagra de piano, bisagra corrida / bisagra de piano / bisagra piano | piano hinge / continuous hinge | ⚠️ |
+| **Compás** | Brazo articulado que detiene abierta una tapa o una puerta abatible; el de fricción la deja donde se suelta. No confundir con el pistón de gas, que además la levanta. | compás, brazo, soporte de tapa / compás / compás | lid stay / flap stay | ⚠️ |
 | **Correderas** | Rieles metálicos para cajón, de montaje lateral (en los costados) o bajo cajón (ocultas). Las de balines de montaje lateral piden 12.7 mm por lado, con +0.8 / −0 de tolerancia: la caja del cajón se diseña 26 mm más angosta que el hueco (13 mm por lado) [5][29]. Algunas fuentes dan 12.5–13 mm, pero 12.5 queda por debajo del mínimo del fabricante (ver [uniones y herrajes](uniones-y-herrajes.md)). | correderas, rieles / guías / guías telescópicas | drawer slides (side-mount / undermount) | ✅ [5][29] |
 
 ---

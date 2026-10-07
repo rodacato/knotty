@@ -1,7 +1,7 @@
 import { isDrawerPart, type Design, type Piece } from '../../../design/schema'
 import type { Box, Geometry } from '../../../design/resolve'
 import { ASSUMPTIONS } from '../../../assumptions'
-import { slides } from '../../../design/doors'
+import { lifts, slides } from '../../../design/doors'
 
 /** What holds a piece of storage furniture up and what pulls it forward, in kg·m about the front edge of what it stands on. */
 export interface TippingBalance {
@@ -20,7 +20,7 @@ const union = (boxes: Box[]): Box => ({
 })
 
 /**
- * The criteria of the ASTM F2057-23 stability test in a simplified model: the carcass holds, its drawers (full of clothes, fully out) and hinged doors (open at 90°) pull; a sliding door stays in its track and holds like the carcass,
+ * The criteria of the ASTM F2057-23 stability test in a simplified model: the carcass holds, its drawers (full of clothes, fully out) and hinged doors (open at 90°) pull; a sliding door stays in its track and a lid lifts over the carcass, so both hold like it,
  * and a child hangs from the edge of the highest drawer within reach. Null when it cannot be told where the furniture stands or which way it faces.
  */
 export function tippingBalance(design: Design, geo: Geometry, onFloor: Box[]): TippingBalance | null {
@@ -38,7 +38,7 @@ export function tippingBalance(design: Design, geo: Geometry, onFloor: Box[]): T
   const pivot = Math.max(...onFloor.map(frontEdge))
   const mass = (b: Box) => (span(b).reduce((v, s) => v * s, 1) * density) / 1e9
 
-  const swings = (p: Piece) => p.role === 'door' && !slides(design, p.id)
+  const swings = (p: Piece) => p.role === 'door' && !slides(design, p.id) && !lifts(design, p.id)
   const holds = design.pieces.filter((p) => !isDrawerPart(p) && !swings(p)).reduce((sum, p) => sum + mass(box(p)!) * (pivot - ahead(middle(box(p)!))), 0)
 
   const drawers = new Map<string, Piece[]>()

@@ -123,6 +123,14 @@ const SPECS = {
     glue: false,
     hardware: 'hinge',
   },
+  'lid-hinge': {
+    label: { singular: 'bisagra de piano con compás', plural: 'bisagras de piano con compás' },
+    minThickness: { a: 15, b: 15 },
+    rigid: false,
+    holdsThinBoard: false,
+    glue: false,
+    hardware: 'piano-hinge',
+  },
   'drawer-slide': {
     label: { singular: 'corredera', plural: 'corredera' },
     minThickness: null,

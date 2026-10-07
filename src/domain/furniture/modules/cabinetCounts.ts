@@ -39,8 +39,8 @@ const fresh = (kind: QuickCountKind, width: number): PlanCell =>
 
 /** The plan with one more cell of the kind, or null when no cell can give half: each half has to keep the lowest opening a drawer fits in. Open niches are split first, the tallest first. */
 function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
-  // A split cell or a void is not split again: what is inside a split cell is counted, not changed here.
-  const candidates = plan.columns.flatMap((column, i) => column.cells.flatMap((cell, j) => (cell.columns || cell.content === 'void' ? [] : [{ i, j, cell, size: openingSize(plan, catalog, column, cell.height) }])))
+  // A split cell or a void is not split again: what is inside a split cell is counted, not changed here. Nor is a chest, which would lose the open cell its lid lifts into.
+  const candidates = plan.columns.flatMap((column, i) => column.cells.flatMap((cell, j) => (cell.columns || cell.content === 'void' || cell.content === 'chest' ? [] : [{ i, j, cell, size: openingSize(plan, catalog, column, cell.height) }])))
   const ordered = [...candidates].sort((a, b) => Number(b.cell.content === 'open') - Number(a.cell.content === 'open') || b.size.height - a.size.height)
   for (const { i, j, cell, size } of ordered) {
     const half = cell.height / 2
@@ -53,12 +53,15 @@ function grown(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): Cabin
   return null
 }
 
+const overChest = (plan: CabinetPlan, { i, j }: { i: number; j: number }) => plan.columns[i].cells[j - 1]?.content === 'chest'
+
 /** The plan without one cell of the kind, the smallest one, or null when it would leave no cell at all. */
 function shrunk(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): CabinetPlan | null {
   const found = plan.columns
     .flatMap((column, i) => column.cells.map((cell, j) => ({ i, j, cell, size: openingSize(plan, catalog, column, cell.height) })))
     .filter((c) => !c.cell.columns && c.cell.content === CONTENT[kind])
-    .sort((a, b) => a.size.height - b.size.height)[0]
+    // The cell a chest's lid lifts into goes last: without it the chest could not open.
+    .sort((a, b) => Number(overChest(plan, a)) - Number(overChest(plan, b)) || a.size.height - b.size.height)[0]
   if (!found || cellCount(plan) === 1) return null
   const { i, j, cell } = found
   const column = plan.columns[i]

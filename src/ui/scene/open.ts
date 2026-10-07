@@ -1,6 +1,6 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import { bounds, CONTACT_TOLERANCE, drawerGroups, overlap } from '../../domain/design/boxes'
-import { slides } from '../../domain/design/doors'
+import { lidSwing, slides } from '../../domain/design/doors'
 import type { Design } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
 import type { Explosion, Offset } from './explode'
@@ -18,8 +18,26 @@ export interface Swing {
   angle: number
 }
 
+/** A lid lifting: a turn about the axis along x through (y, z). */
+export interface Lift {
+  pivot: [number, number]
+  angle: number
+}
+
+/** How a piece turns to open, whichever way: about the vertical through (x, z), or about the axis along x through (y, z). */
+export interface Turn {
+  axis: 'x' | 'y'
+  pivot: [number, number]
+  angle: number
+}
+
+/** Every piece that turns when the furniture opens. */
+export const turnsOf = (opening: Partial<Pick<Opening, 'swings' | 'lifts'>>): Map<string, Turn> =>
+  new Map([...[...(opening.swings ?? [])].map(([id, s]): [string, Turn] => [id, { axis: 'y', ...s }]), ...[...(opening.lifts ?? [])].map(([id, l]): [string, Turn] => [id, { axis: 'x', ...l }])])
+
 export interface Opening extends Explosion {
   swings: Map<string, Swing>
+  lifts: Map<string, Lift>
 }
 
 const center = (b: Box, axis: 'x' | 'y' | 'z') => (b[`${axis}0`] + b[`${axis}1`]) / 2
@@ -72,5 +90,15 @@ export function opening(design: Design, boxes: Map<string, Box>): Opening {
     offsets.set(id, [distance, 0, 0])
   }
 
-  return { offsets, swings, bounds: bounds(reach) }
+  // A lid lifts about its hinged edge, as far as its stay or what is over it lets it. About x a positive turn carries +z toward −y, so the free edge goes up with the opposite sign of where it lies.
+  const lifts = new Map<string, Lift>()
+  for (const lid of design.pieces.filter((p) => p.role === 'door' && boxes.has(p.id))) {
+    const swing = lidSwing(design, boxes, lid.id)
+    if (!swing) continue
+    lifts.set(lid.id, { pivot: swing.pivot, angle: -swing.toFree * swing.angle })
+    const box = boxes.get(lid.id)!
+    reach.push({ ...box, y1: box.y1 + swing.reach * Math.sin(swing.angle) })
+  }
+
+  return { offsets, swings, lifts, bounds: bounds(reach) }
 }

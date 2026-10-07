@@ -37,11 +37,12 @@ function cellText(cell: PlanCell, sliding: boolean): string {
     drawer: 'drawer',
     open: 'open niche',
     closed: 'closed panel',
+    chest: `chest under a lift-up lid${cell.shelves ? ', its floor at mid-height' : ''}`,
     void: 'nothing built',
   }[cell.content]
   const back = cell.back === undefined ? '' : cell.back ? ', with a back' : ', no back'
   const own = Object.entries(cell.own ?? {}).map(([key, value]) => `, ${key} ${value}`).join('')
-  return `${body}${cell.content === 'drawer' ? '' : shelves}${back}${own} (${cell.height})`
+  return `${body}${cell.content === 'drawer' || cell.content === 'chest' ? '' : shelves}${back}${own} (${cell.height})`
 }
 
 type Cabinet = Extract<FurniturePlan, { kind: 'cabinet' }>
