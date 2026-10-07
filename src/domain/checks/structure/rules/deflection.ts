@@ -5,7 +5,7 @@ import { boardsFor, materialById, type BoardMaterial, type Catalog } from '../..
 import { stiffness } from '../../../materials/grades'
 import type { Alternative, Finding, Rule, Severity } from '../finding'
 import { ASSUMPTIONS, type LoadDuration } from '../../../assumptions'
-import { personSurface } from '../../typology/constraint'
+import { personSurface, slatsOf } from '../../typology/constraint'
 import { useOf } from '../../typology/typology'
 
 // R1: how much a horizontal piece sags between its supports under its load.
@@ -83,7 +83,10 @@ export const deflectionRule: Rule = (ctx) => {
   // A person on a bed or a bench gets off: that load does not creep. What a shelf holds stays.
   const use = useOf(ctx.design)
   const person = personSurface(ctx, use)
+  // A bed's slats are judged as slats, by their span, width and gap (bed.span, bed.slats): the sag that shows on a shelf does not show under a mattress.
+  const slats = new Set(slatsOf(ctx.design, ctx.geo, person))
   return ctx.design.pieces.flatMap((p): Finding[] => {
+    if (slats.has(p.id)) return []
     const load = loadOf(p, use)
     const box = ctx.geo.boxes.get(p.id)
     const thickness = ctx.geo.thicknesses.get(p.id)

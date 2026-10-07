@@ -7,7 +7,7 @@ import { resolveGeometry } from '../../design/resolve'
 import { backBoard, type Catalog } from '../../materials/catalog'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MATTRESS_LIP, MAX_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_RAIL, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -61,6 +61,7 @@ export const BedPlan = z.object({
     cap: z.boolean().optional().describe('A cap board on top'),
     arms: z.enum(['square', 'sloped']).optional().describe('Daybed arms: square (default), or sloped, the top front corner sawn off'),
   }),
+  platform: z.enum(['panel', 'slats']).optional().describe('Under the mattress: panel (default), a plywood board; slats, boards across the bed, screwed down'),
   lip: z.boolean().optional().describe('A lip that keeps the mattress in'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
@@ -116,6 +117,10 @@ export const BED_LABELS = {
     storage: { option: 'Compartimento', phrase: 'cabecera con compartimento' },
     daybed: { option: 'De día', phrase: 'respaldo y brazos de cama de día' },
   } satisfies Labels<BedPlan['headboard']['style']>,
+  platform: {
+    panel: { option: 'Tablero', phrase: 'base de tablero' },
+    slats: { option: 'Tablillas', phrase: 'base de tablillas' },
+  } satisfies Labels<NonNullable<BedPlan['platform']>>,
   arms: {
     square: { option: 'Rectos', phrase: 'brazos rectos' },
     sloped: { option: 'En diagonal', phrase: 'brazos con el frente en diagonal' },
@@ -189,7 +194,9 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
   const style = plan.headboard.style
   const deep = style === 'bookcase' || style === 'storage'
   const lift = plan.legs === 'legs' && !hasDrawers(plan) ? plan.legHeight : 0
-  const split = size.length > ONE_SHEET
+  const slatted = plan.platform === 'slats'
+  // A slat runs the whole width in one piece, along the sheet: only a panel has to be split.
+  const split = !slatted && size.length > ONE_SHEET
   const flat = style === 'plain' || style === 'daybed'
   const headEnd: FaceRef = flat ? 'headboard.x1' : 'head-panel.x1'
   const daybed = style === 'daybed'
@@ -226,11 +233,14 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
     frameY0: ref('furniture.y0', lift),
     /** Where the base starts, past the headboard. */
     headEnd,
+    slatted,
+    /** A slat that would run further than it can between the spine and a side gets a rail halfway. */
+    runners: slatted && (size.length - 3 * t) / 2 > SLAT_SPAN,
     /** Past one sheet across, the platform goes in two halves over the spine. */
     split,
     middle: size.length / 2,
     /** The face of the platform a piece of that side stands under. */
-    under: (side: Side): FaceRef => (split ? `platform-${side}.y0` : 'platform.y0'),
+    under: (side: Side): FaceRef => (slatted ? 'slat-1.y0' : split ? `platform-${side}.y0` : 'platform.y0'),
     /** The length inside the base, between its head and foot ends. */
     inner: size.width - hd - t - (flat ? 0 : deep ? 0 : t),
   }
@@ -320,6 +330,25 @@ function headboard(l: Layout): { pieces: Piece[]; notes: string[] } {
   }
 }
 
+/** Where each slat starts along the bed, from its head: one at each end of where the mattress rests, and as many between as keep every gap within the widest. */
+function slatsAt(l: Layout): number[] {
+  const { size, style, flat, hd, t, daybed } = l
+  const from = style === 'none' ? 0 : flat ? t : hd
+  const run = (daybed ? size.width - t : size.width) - from - SLAT.width
+  const steps = Math.ceil(run / (SLAT.width + SLAT.gap))
+  return Array.from({ length: steps + 1 }, (_, k) => from + (run * k) / steps)
+}
+
+/** What a base of slats says to whoever builds it: how many, how far apart, and that they are screwed down. */
+function slatNotes(l: Layout): string[] {
+  if (!l.slatted) return []
+  const at = slatsAt(l)
+  const gap = Math.round(at[1] - at[0] - SLAT.width)
+  return [
+    `Base de ${at.length} tablillas de ${SLAT.width} mm de ancho, con ${gap} mm de hueco entre una y otra: van atornilladas a los costados y a la espina, nunca sueltas, y se cortan con la veta a lo largo de la tablilla.${l.runners ? ' Como la cama es ancha, llevan un larguero a media distancia de cada lado.' : ''}${hasDrawers(l.plan) ? ' Sobre los cajones descansan en un larguero, y entre ellas cae polvo a los cajones.' : ''}`,
+  ]
+}
+
 /** The base: head and foot ends, the platform on top and a spine down the middle. */
 function base(l: Layout): Piece[] {
   const { plan, panel, t, hd, style, deep, frameY0, headEnd, middle, foot } = l
@@ -335,12 +364,14 @@ function base(l: Layout): Piece[] {
     l.daybed
       ? panel({ id: 'foot-arm', name: 'Brazo del pie', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), l.top), z: across, grain: 'length', ...armSlants(l) })
       : panel({ id: 'foot-panel', name: 'Piecero', role: 'side', normal: 'x', x: endAt(ref('furniture.x1')), y: endY, z: across }),
-    ...(l.split
-      ? [
-          panel({ id: 'platform-left', name: 'Plataforma izquierda', ...platform, z: extent(ref('furniture.z0', middle), zTo) }),
-          panel({ id: 'platform-right', name: 'Plataforma derecha', ...platform, z: extent(zFrom, ref('furniture.z0', middle)) }),
-        ]
-      : [panel({ id: 'platform', name: 'Plataforma', ...platform, z: extent(zFrom, zTo) })]),
+    ...(l.slatted
+      ? slatsAt(l).map((at, k) => panel({ id: `slat-${k + 1}`, name: `Tablilla ${k + 1}`, ...platform, x: extent(ref('furniture.x0', at), null, SLAT.width), z: extent(zFrom, zTo), edges: [] }))
+      : l.split
+        ? [
+            panel({ id: 'platform-left', name: 'Plataforma izquierda', ...platform, z: extent(ref('furniture.z0', middle), zTo) }),
+            panel({ id: 'platform-right', name: 'Plataforma derecha', ...platform, z: extent(zFrom, ref('furniture.z0', middle)) }),
+          ]
+        : [panel({ id: 'platform', name: 'Plataforma', ...platform, z: extent(zFrom, zTo) })]),
     panel({ id: 'spine', name: 'Espina central', role: 'divider', normal: 'z', x: extent(ref(headEnd), ref(`${foot}.x0`)), y: extent(frameY0, ref(l.under('left'))), z: startAt(ref('furniture.z0', middle - t / 2)), grain: 'length' }),
   ]
 }
@@ -377,14 +408,28 @@ function trim(l: Layout): Piece[] {
   ]
 }
 
-/** Cross members over a closed stretch of a side, so the platform never spans more than it can. */
-function crossMembers(l: Layout, side: Side, [from, to]: [number, number], span: number): Piece[] {
+/** A rail under the slats of one bay, between the boards that close it at each end. */
+const slatRail = (l: Layout, side: Side, id: string, name: string, from: FaceRef, to: FaceRef, z: Extent): Piece =>
+  l.panel({ id, name, role: 'brace', normal: 'z', x: extent(ref(from), ref(to)), y: extent(null, ref(l.under(side)), SLAT_RAIL), z, grain: 'length', edges: [] })
+
+/** The rail halfway between the spine and the outer board of a side, in a bay of a wide bed. */
+const slatRunner = (l: Layout, side: Side, bay: string, from: FaceRef, to: FaceRef, outer: FaceRef): Piece[] =>
+  l.runners ? [slatRail(l, side, `slat-runner-${bay}`, `Larguero intermedio ${SIDE_WORD[side]} ${bay.replace(/^(left|right)-/, '')}`, from, to, startAt(partway(side === 'left' ? 'spine.z1' : 'spine.z0', outer, 0.5, -l.t / 2)))] : []
+
+/** Cross members over a closed stretch of a side, so the platform never spans more than it can; under slats on a wide bed, the runners between them too. */
+function crossMembers(l: Layout, side: Side, [from, to]: [number, number], span: number, ends: [FaceRef, FaceRef]): Piece[] {
   const { t } = l
   const count = supportsAcross(to - from, t)
-  const z = side === 'left' ? extent(ref('spine.z1'), ref(`side-${side}-${span}.z0`)) : extent(ref(`side-${side}-${span}.z1`), ref('spine.z0'))
-  return Array.from({ length: count }, (_, i) => i + 1).map((k) =>
-    l.panel({ id: `rail-${side}-${span}-${k}`, name: `Travesaño ${SIDE_WORD[side]} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(l.headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(l.frameY0, ref(l.under(side))), z }),
-  )
+  const outer: FaceRef = side === 'left' ? `side-${side}-${span}.z0` : `side-${side}-${span}.z1`
+  const z = side === 'left' ? extent(ref('spine.z1'), ref(outer)) : extent(ref(outer), ref('spine.z0'))
+  const id = (k: number) => `rail-${side}-${span}-${k}`
+  const faces: FaceRef[] = [ends[0], ...Array.from({ length: count }, (_, i) => [`${id(i + 1)}.x0`, `${id(i + 1)}.x1`] as FaceRef[]).flat(), ends[1]]
+  return [
+    ...Array.from({ length: count }, (_, i) => i + 1).map((k) =>
+      l.panel({ id: id(k), name: `Travesaño ${SIDE_WORD[side]} ${span}.${k}`, role: 'divider', normal: 'x', x: startAt(ref(l.headEnd, from + ((to - from) * k) / (count + 1) - t / 2)), y: extent(l.frameY0, ref(l.under(side))), z }),
+    ),
+    ...Array.from({ length: count + 1 }, (_, i) => slatRunner(l, side, `${side}-${span}-${i + 1}`, faces[2 * i], faces[2 * i + 1], outer)).flat(),
+  ]
 }
 
 const faceOf = (side: Side) => (side === 'left' ? endAt(ref('furniture.z1')) : startAt(ref('furniture.z0')))
@@ -396,7 +441,7 @@ function closedSide(l: Layout, side: Side): Piece[] {
   const rail = backrest
     ? l.panel({ id: `side-${side}-1`, name: 'Respaldo', role: 'back', normal: 'z', z: faceOf(side), x: extent(ref(l.headEnd), ref(`${l.foot}.x0`)), y: extent(ref('furniture.y0'), l.top), grain: 'length' })
     : l.panel({ id: `side-${side}-1`, name: `Costado ${SIDE_WORD[side]}`, role: 'side', normal: 'z', z: faceOf(side), x: extent(ref(l.headEnd), ref(`${l.foot}.x0`)), y: extent(l.frameY0, ref(l.under(side))), grain: 'length' })
-  return [rail, ...crossMembers(l, side, [0, l.inner], 1)]
+  return [rail, ...crossMembers(l, side, [0, l.inner], 1, [l.headEnd, `${l.foot}.x0`])]
 }
 
 /** A side with drawers: each one between dividers over its own kick, and a closed rail over whatever length they leave free. */
@@ -445,6 +490,7 @@ function drawerSide(l: Layout, side: Side): { pieces: Piece[]; drawers: AddDrawe
     dividers++
     const bay = `${side}-${k}`
     pieces.push(panel({ id: `kick-${bay}`, name: `Zoclo ${label} ${k}`, role: 'kick', normal: 'z', z: setBack, x: extent(ref(left), ref(right)), y: extent(ref('furniture.y0'), null, KICK_HEIGHT.bed), grain: 'length' }))
+    if (l.slatted) pieces.push(slatRail(l, side, `slat-rail-${bay}`, `Larguero ${label} ${k}`, left, right, setBack), ...slatRunner(l, side, bay, left, right, side === 'left' ? `slat-rail-${bay}.z0` : `slat-rail-${bay}.z1`))
     drawers.push({
       op: 'addDrawer',
       group: `drawer-${side}-${k}`,
@@ -452,7 +498,8 @@ function drawerSide(l: Layout, side: Side): { pieces: Piece[]; drawers: AddDrawe
       left,
       right,
       bottom: `kick-${bay}.y1`,
-      top: l.under(side),
+      // Slats need a board under their ends where a panel would span from divider to divider: the drawer opens under that rail.
+      top: l.slatted ? `slat-rail-${bay}.y0` : l.under(side),
       front: side === 'left' ? 'furniture.z1' : 'furniture.z0',
       back: side === 'left' ? 'spine.z1' : 'spine.z0',
       material: plan.material,
@@ -466,7 +513,9 @@ function drawerSide(l: Layout, side: Side): { pieces: Piece[]; drawers: AddDrawe
   }
   closedSpans.forEach(([from, to, start, end], i) => {
     pieces.push(panel({ id: `side-${side}-${i + 1}`, name: `Costado ${label} ${i + 1}`, role: 'side', normal: 'z', z: faceZ, x: extent(ref(from), ref(to)), y: extent(ref('furniture.y0'), ref(l.under(side))), grain: 'length' }))
-    pieces.push(...crossMembers(l, side, [start, end], i + 1))
+    // An overlay rail runs over the divider next to it; what goes under the platform stops at the divider's near face.
+    const inside = (face: FaceRef, near: 'x0' | 'x1'): FaceRef => (face.startsWith('div-') ? `${face.split('.')[0]}.${near}` : face)
+    pieces.push(...crossMembers(l, side, [start, end], i + 1, [inside(from, 'x1'), inside(to, 'x0')]))
   })
   return { pieces, drawers, fronts }
 }
@@ -492,7 +541,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: knockDown(done.design, plan.assembly, catalog, blockOf(l)), notes: [...head.notes, ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
+  return { design: knockDown(done.design, plan.assembly, catalog, blockOf(l)), notes: [...head.notes, ...slatNotes(l), ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */
@@ -503,7 +552,7 @@ function blockOf(l: Layout): (piece: Piece) => string {
     if (id === 'foot-arm' || id === 'foot-cap') return 'foot'
     if (id === backrest || id === 'back-cap') return 'backrest'
     if (group === 'headboard') return 'headboard'
-    if (id.startsWith('platform') || id.startsWith('lip-')) return 'platform'
+    if (id.startsWith('platform') || /^slat-\d+$/.test(id) || id.startsWith('lip-')) return 'platform'
     return 'base'
   }
 }
@@ -541,6 +590,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
     if (was.corners !== now.corners) changes.push(BED_LABELS.drawerCorners[now.corners].phrase)
     if (now.corners === 'fingers' && was.fingers !== now.fingers) changes.push(`${now.fingers} dedos por esquina`)
   }
+  if ((before.platform ?? 'panel') !== (after.platform ?? 'panel')) changes.push(BED_LABELS.platform[after.platform ?? 'panel'].phrase)
   if (!!before.lip !== !!after.lip) changes.push(after.lip ? 'con tope del colchón' : 'sin tope del colchón')
   const [h, k] = [before.headboard, after.headboard]
   if (h.style !== k.style) changes.push(BED_LABELS.headboard[k.style].phrase)
@@ -566,7 +616,7 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, lip: false, assembly: 'glued' },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, platform: 'panel', lip: false, assembly: 'glued' },
           ])
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
@@ -598,6 +648,14 @@ function benchBeds(): [string, BedPlan][] {
   variants.push(['individual, cama de día con copete y tope, desarmable con pernos', { ...named('individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'), assembly: 'bolts' }])
   variants.push([`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm, desarmable con pernos`, { ...named(`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm`), assembly: 'bolts' }])
   variants.push(['queen, cabecera librero, cajones de los dos lados, desarmable con minifix', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), assembly: 'cams' }])
+  // Slats under the mattress: over closed sides, on legs, over drawers (inset and overlay) and inside a daybed; from the queen up they take a rail halfway across.
+  for (const mattress of MattressSize.options) {
+    variants.push([`${mattress}, cabecera lisa, sin cajones, de tablillas`, { ...drawn, mattress, drawers: base.drawers, platform: 'slats' }])
+    variants.push([`${mattress}, sin cabecera, patas, de tablillas`, { ...base, mattress, platform: 'slats', headboard: { ...base.headboard, style: 'none' } }])
+    variants.push([`${mattress}, cabecera librero, cajones de los dos lados, de tablillas`, { ...drawn, mattress, platform: 'slats', drawers: { side: 'both', count: 3, position: 'center' }, headboard: { ...drawn.headboard, style: 'bookcase' } }])
+  }
+  variants.push(['queen, cabecera lisa, 2 cajones sobrepuestos a la izquierda hacia la cabecera, de tablillas', { ...drawn, mattress: 'queen', platform: 'slats', drawers: { side: 'left', count: 2, position: 'head', mount: 'overlay' } }])
+  variants.push(['individual, cama de día de tablillas, con tope y copete', { ...drawn, mattress: 'individual', platform: 'slats', lip: true, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true } }])
   return variants
 }
 
@@ -618,6 +676,8 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p) && !isDaybed(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
     legStyleField((p) => p.legs === 'legs'),
+    choice({ key: 'platform', label: 'Bajo el colchón', ...fromLabels(BED_LABELS.platform), get: (p) => p.platform ?? 'panel', set: (p, platform) => ({ ...p, platform }) }),
+    note(`Tablillas de ${SLAT.width / 10} cm atornilladas a lo ancho, con ${SLAT.gap / 10} cm o menos entre una y otra: el colchón respira y la base pesa menos. Con cajones, entre ellas cae polvo.`, (p) => p.platform === 'slats'),
     yesNo({ key: 'lip', label: 'Tope del colchón', get: (p) => !!p.lip, set: (p, lip) => ({ ...p, lip }) }),
     note(`Un listón de ${MATTRESS_LIP / 10} cm sobre la plataforma en cada orilla que la cabecera, los brazos o el respaldo dejan abierta, para que el colchón no se salga. La cama crece lo que mide el triplay por cada uno, y la holgura queda igual.`, (p) => !!p.lip),
   ]),
@@ -668,7 +728,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
 const BED_PARTS: Parts<BedPlan> = {
   list: [
-    { id: 'mattress', name: 'Colchón', side: 'outside', fields: ['mattress', 'height', 'lip'], joints: [], summary: (p) => `${BED_LABELS.mattress[p.mattress].option}, base de ${p.height} mm de alto${p.lip ? ', con tope' : ''}` },
+    { id: 'mattress', name: 'Colchón', side: 'outside', fields: ['mattress', 'height', 'platform', 'lip'], joints: [], summary: (p) => `${BED_LABELS.mattress[p.mattress].option}, base de ${p.height} mm de alto${p.platform === 'slats' ? ', de tablillas' : ''}${p.lip ? ', con tope' : ''}` },
     woodPart(),
     assemblyPart(),
     {
@@ -703,7 +763,7 @@ const BED_PARTS: Parts<BedPlan> = {
     if (piece.id.startsWith('head') || piece.id === 'foot-arm' || piece.id.endsWith('-cap') || piece.role === 'back') return 'headboard'
     if (piece.id.startsWith('lip-')) return 'mattress'
     if (piece.role.startsWith('drawer-') || /^(div|kick)-(left|right)/.test(piece.id)) return 'drawers'
-    if (piece.id.startsWith('platform')) return 'mattress'
+    if (piece.id.startsWith('platform') || /^slat-\d+$/.test(piece.id)) return 'mattress'
     return 'base'
   },
 }

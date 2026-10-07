@@ -28,21 +28,26 @@ interface SpanContext {
   contacts: readonly { a: string; b: string }[]
 }
 
-/** The longest free span of a horizontal piece between upright supports: those touching its ends or holding it from below. */
-export function freeSpan(id: string, box: Box, ctx: SpanContext) {
+/** From this many times longer front to back than side to side, a horizontal board is a strip: a slat, which spans its own length. */
+const STRIP_RATIO = 3
+export const isStrip = (box: Box) => box.z1 - box.z0 >= STRIP_RATIO * (box.x1 - box.x0)
+
+/** The longest free span of a horizontal piece between upright supports: those touching its ends or holding it from below. Along the furniture's width, or front to back for a slat. */
+export function freeSpan(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z' = 'x') {
+  const [lo, hi] = [`${axis}0`, `${axis}1`] as const
   const supports = ctx.contacts
     .filter((c) => c.a === id || c.b === id)
     .map((c) => (c.a === id ? c.b : c.a))
     .filter((other) => {
       const piece = ctx.design.pieces.find((p) => p.id === other)
       const o = ctx.geo.boxes.get(other)
-      if (!piece || !o || piece.normal !== 'x' || piece.role === 'door') return false
-      return Math.abs(o.x1 - box.x0) <= CONTACT_TOLERANCE || Math.abs(o.x0 - box.x1) <= CONTACT_TOLERANCE || Math.abs(o.y1 - box.y0) <= CONTACT_TOLERANCE
+      if (!piece || !o || piece.normal !== axis || piece.role === 'door') return false
+      return Math.abs(o[hi] - box[lo]) <= CONTACT_TOLERANCE || Math.abs(o[lo] - box[hi]) <= CONTACT_TOLERANCE || Math.abs(o.y1 - box.y0) <= CONTACT_TOLERANCE
     })
     .map((other) => ctx.geo.boxes.get(other)!)
-    .sort((a, b) => a.x0 - b.x0)
+    .sort((a, b) => a[lo] - b[lo])
   if (supports.length < 2) return null
   let span = 0
-  for (let i = 1; i < supports.length; i++) span = Math.max(span, supports[i].x0 - Math.max(...supports.slice(0, i).map((a) => a.x1)))
+  for (let i = 1; i < supports.length; i++) span = Math.max(span, supports[i][lo] - Math.max(...supports.slice(0, i).map((a) => a[hi])))
   return span > 0 ? span : null
 }

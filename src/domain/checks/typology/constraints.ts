@@ -3,7 +3,7 @@ import { CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
 import type { Design } from '../../design/schema'
 import type { Geometry } from '../../design/resolve'
 import { MATTRESSES } from '../../design/kind'
-import { checked, measured, type CategoryConstraint, type Surface, type UseInput } from './constraint'
+import { checked, measured, slatsOf, type CategoryConstraint, type Surface, type UseInput } from './constraint'
 
 // What each kind of furniture needs to be usable and safe, one entry per check and grouped by kind. Structure and use, not style.
 // A limit that differs from docs/carpinteria keeps the code's value; the difference is noted next to it and corrected on its own.
@@ -35,7 +35,9 @@ function mattressOf(design: Design, width: number) {
 
 /** The pieces of a bed's platform that cross more than the span without support, with how far. */
 const unsupported = (input: UseInput, id: string) => {
-  const span = freeSpan(id, input.geo.boxes.get(id)!, input)
+  // A slat spans its own length, across the bed; a panel is judged along the bed, between its cross members.
+  const slat = slatsOf(input.design, input.geo, input.surface?.ids ?? []).includes(id)
+  const span = freeSpan(id, input.geo.boxes.get(id)!, input, slat ? 'z' : 'x')
   return span && span > BED_SPAN ? span : null
 }
 
@@ -114,6 +116,25 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
           ]),
         ]
       }),
+  }),
+  checked({
+    check: 'bed.slats',
+    appliesTo: ['bed'],
+    // Reference: slats of 18 × 100 or more, no more than 75 mm apart (most mattress warranties ask for it).
+    limits: { width: 100, thickness: 18, gap: 75 },
+    source: `${VALUES}#11-colchones-de-méxico-y-bases-de-cama «Separación entre tablillas»`,
+    find: ({ design, geo, surface }, { width, thickness, gap }, report) => {
+      const slats = slatsOf(design, geo, surface?.ids ?? [])
+        .map((id) => ({ id, box: geo.boxes.get(id)! }))
+        .sort((a, b) => a.box.x0 - b.box.x0)
+      const thin = slats.filter(({ id, box }) => box.x1 - box.x0 < width - CONTACT_TOLERANCE || (geo.thicknesses.get(id) ?? thickness) < thickness)
+      const apart = slats.slice(1).flatMap((slat, i) => (slat.box.x0 - slats[i].box.x1 > gap + CONTACT_TOLERANCE ? [{ pair: [slats[i].id, slat.id], gap: slat.box.x0 - slats[i].box.x1 }] : []))
+      const widest = [...apart].sort((a, b) => b.gap - a.gap)[0]
+      return [
+        ...(thin.length ? [report('recommendation', thin.map((s) => s.id), `Las tablillas de la base van de ${thickness} × ${width} mm o más: más angostas o más delgadas, una rodilla encima puede romper una.`, { width, thickness, slats: thin.length })] : []),
+        ...(widest ? [report('recommendation', widest.pair, `Entre dos tablillas quedan ${roundTo(widest.gap, 0)} mm: con más de ${gap} el colchón se hunde entre ellas y muchas garantías ya no lo cubren.`, { gap: roundTo(widest.gap, 0), max: gap, places: apart.length })] : []),
+      ]
+    },
   }),
   checked({
     check: 'bed.load',

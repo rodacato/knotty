@@ -36,6 +36,12 @@ export const LEG_LEAN = 20
 /** A bed's trim: how far the lip that keeps the mattress in rises over the platform, and how far the cap over a headboard reaches toward the mattress. */
 export const MATTRESS_LIP = 40
 export const CAP_OVERHANG = 20
+/** A bed's slats: how wide each one is and the widest gap between two. */
+export const SLAT = { width: 100, gap: 75 } as const
+/** The longest a slat runs between two supports. */
+export const SLAT_SPAN = 700
+/** How tall the rail is that carries the slats where no side board does: over a drawer, and halfway across a wide bed. */
+export const SLAT_RAIL = 80
 /** The corner sawn off the front of a daybed's arm: how far it runs along the top and how far it comes down the front. */
 export const ARM_SLOPE = { run: 240, drop: 120 } as const
 /** What stays of the front of the arm over the mattress lip, so the cut never reaches where the lip is screwed. */
@@ -54,6 +60,9 @@ export const MODULE_SOURCES: Record<string, Source> = {
   LEG_LEAN: noReference('the reference gives no splay for a leg; 20 of the 30 the legs are set back, so the foot stays under the furniture and clear of what is nailed to its edge'),
   LEG_INSET: noReference('the same setback as a kick, KICK_SETBACK: the legs stay out of the way of feet and still stand close to the edges'),
   MATTRESS_LIP: noReference('the reference gives no height for a mattress lip; 40 is under a sixth of the 260 mm mattress, enough to stop it sliding and low enough to sit on'),
+  SLAT: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Separación entre tablillas'),
+  SLAT_SPAN: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Claro de tablilla de 18 × 100'),
+  SLAT_RAIL: noReference('the same 80 mm as the apron under a table, which carries more; the reference gives no section for the rail under a bed\'s slats'),
   ARM_SLOPE: noReference('chosen, not sourced: a cut twice as long as it is deep reads as a slope, and 120 leaves most of the arm to lean on'),
   ARM_FRONT: noReference('Knotty’s margin over the lip for the screws that hold it to the arm'),
   CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
