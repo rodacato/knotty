@@ -3,6 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { cutList } from '../../estimate/cutList'
 import { LEG_HEIGHT_RANGE } from './common'
+import { estimatePurchase } from '../../estimate/purchase'
 import { bedModule, BedPlan, buildBed } from './bed'
 import { FurniturePlan } from './plan'
 
@@ -163,7 +164,7 @@ describe('a bed on legs', () => {
     const problems = variants.flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
-      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !n.startsWith('Patas cónicas')), ...(a.valid ? a.findings.map((f) => f.message) : ['invalid'])].map((m) => `${name}: ${m}`)
+      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Patas cónicas|^Base de \d+ tablillas/.test(n)), ...(a.valid ? a.findings.map((f) => f.message) : ['invalid'])].map((m) => `${name}: ${m}`)
     })
     expect(problems).toEqual([])
   })
@@ -222,7 +223,7 @@ describe('the trim and the drawer fronts', () => {
     const problems = bedModule.benchVariants().flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
-      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Muesca|^Esquinas de dedos|^Brazos con el frente|^Patas cónicas/.test(n)), ...(a.valid ? [...a.findings, ...a.warnings].map((f) => f.message) : [a.errors[0].message])].map((m) => `${name}: ${m}`)
+      return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Muesca|^Esquinas de dedos|^Brazos con el frente|^Patas cónicas|^Base de \d+ tablillas/.test(n)), ...(a.valid ? [...a.findings, ...a.warnings].map((f) => f.message) : [a.errors[0].message])].map((m) => `${name}: ${m}`)
     })
     expect(problems).toEqual([])
   })
@@ -378,5 +379,138 @@ describe('tapered legs on a bed', () => {
     expect([field.visibleWhen!(onLegs()), field.visibleWhen!(bed())]).toEqual([true, false])
     expect(built(onLegs()).design.pieces.some((p) => p.slants)).toBe(false)
     expect(bedModule.describeChanges(onLegs(), onLegs({ legStyle: 'tapered' }))).toEqual(['patas cónicas'])
+  })
+})
+
+describe('a base of slats', () => {
+  const slatted = (p: Partial<BedPlan> = {}) => bed({ platform: 'slats', headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 }, ...p })
+  const built = (p: BedPlan) => {
+    const { design, notes } = buildBed(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    const slats = design.pieces.filter((x) => /^slat-\d+$/.test(x.id)).map((x) => a.geo.boxes.get(x.id)!)
+    return { design, notes, a, slats, box: (id: string) => a.geo.boxes.get(id)!, has: (id: string) => design.pieces.some((x) => x.id === id) }
+  }
+  const SIZES = MATTRESSES.flatMap((mattress) => SIDES.map((side) => [mattress, side] as const))
+
+  it.each(SIZES)('%s, drawers %s: valid, with nothing to warn about, and the drawers it was asked for', (mattress, side) => {
+    const { a, design } = built(slatted({ mattress, drawers: { side, count: 3, position: 'center' } }))
+    expect(a.findings.map((f) => f.message)).toEqual([])
+    expect(design.pieces.filter((x) => x.role === 'drawer-front')).toHaveLength(side === 'none' ? 0 : side === 'both' ? 6 : 3)
+  })
+
+  it('takes the place of the panel: boards of 100 across the bed from its head to its foot, never more than 75 apart, at the height the mattress rests', () => {
+    const { slats, has, box } = built(slatted())
+    expect([has('platform'), has('platform-left')]).toEqual([false, false])
+    expect(slats.every((s) => Math.round(s.x1 - s.x0) === 100 && s.y1 === 400)).toBe(true)
+    const gaps = slats.slice(1).map((s, i) => s.x0 - slats[i].x1)
+    expect(Math.max(...gaps)).toBeLessThanOrEqual(75)
+    expect(Math.min(...gaps)).toBeGreaterThan(50)
+    expect([slats[0].x0, slats.at(-1)!.x1]).toEqual([box('headboard').x1, box('foot-panel').x1])
+    expect([slats[0].z0, slats[0].z1]).toEqual([0, 990 + 20])
+  })
+
+  it('each slat is screwed down where it rests: on both sides and on the spine', () => {
+    const { design } = built(slatted())
+    const held = design.joints.filter((u) => u.a === 'slat-3' || u.b === 'slat-3').map((u) => [u.a === 'slat-3' ? u.b : u.a, u.type])
+    expect(held.sort()).toEqual([['side-left-1', 'butt-screw'], ['side-right-1', 'butt-screw'], ['spine', 'butt-screw']])
+  })
+
+  it('a king is not split in two as its panel is: a slat runs the whole width in one piece, along the sheet', () => {
+    const { slats, design } = built(slatted({ mattress: 'king' }))
+    expect(slats[0].z1 - slats[0].z0).toBe(1930 + 20)
+    expect(design.pieces.find((x) => x.id === 'slat-1')!.grain).toBe('length')
+  })
+
+  it('up to the matrimonial the spine is enough; from the queen up a rail halfway keeps every slat within 700 between supports', () => {
+    const runners = (mattress: BedPlan['mattress']) => built(slatted({ mattress })).design.pieces.filter((x) => x.id.startsWith('slat-runner-')).length
+    expect(MATTRESSES.map((m) => runners(m) > 0)).toEqual([false, false, true, true])
+    const { box } = built(slatted({ mattress: 'king' }))
+    const [spine, runner, side] = ['spine', 'slat-runner-left-1-1', 'side-left-1'].map(box)
+    expect(Math.max(runner.z0 - spine.z1, side.z0 - runner.z1)).toBeLessThanOrEqual(700)
+    expect(runner.y1).toBe(box('slat-1').y0)
+  })
+
+  it('over a drawer the slats rest on a rail, and the drawer opens under it', () => {
+    const { box, has } = built(slatted({ drawers: { side: 'left', count: 3, position: 'head' } }))
+    const [rail, front, slat] = ['slat-rail-left-1', 'drawer-left-1-front', 'slat-1'].map(box)
+    expect([rail.y1, rail.y1 - rail.y0]).toEqual([slat.y0, 80])
+    expect(front.y1).toBeLessThan(rail.y0)
+    expect(has('slat-rail-right-1')).toBe(false)
+    const panel = buildBed(bed({ drawers: { side: 'left', count: 3, position: 'head' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }), testCatalog)
+    expect(panel.design.pieces.some((x) => x.id.startsWith('slat-'))).toBe(false)
+  })
+
+  it('a daybed keeps them inside its backrest and its arms, under the lip', () => {
+    const { slats, box } = built(slatted({ lip: true, drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true } }))
+    expect([slats[0].x0, slats.at(-1)!.x1]).toEqual([box('headboard').x1, box('foot-arm').x0])
+    expect(slats[0].z0).toBe(box('side-right-1').z1)
+    expect(box('lip-left').y0).toBe(slats[0].y1)
+  })
+
+  it('says how they go: how many, how far apart, screwed down and cut along the grain; and what drawers under them mean', () => {
+    const plain = built(slatted()).notes
+    expect(plain).toEqual(['Base de 12 tablillas de 100 mm de ancho, con 67 mm de hueco entre una y otra: van atornilladas a los costados y a la espina, nunca sueltas, y se cortan con la veta a lo largo de la tablilla.'])
+    const wide = built(slatted({ mattress: 'queen', drawers: { side: 'both', count: 3, position: 'center' } })).notes[0]
+    expect(wide).toContain('llevan un larguero a media distancia de cada lado')
+    expect(wide).toContain('entre ellas cae polvo a los cajones')
+  })
+
+  it('uses no more plywood than the panel, and a sheet less under a king', () => {
+    const sheets = (p: BedPlan) => {
+      const { design, a } = built(p)
+      return estimatePurchase(design, a.geo, testCatalog).sheets.find((s) => s.material.id === 'T18')!.sheets
+    }
+    for (const mattress of MATTRESSES) expect([mattress, sheets(slatted({ mattress })) <= sheets(slatted({ mattress, platform: 'panel' }))]).toEqual([mattress, true])
+    expect(sheets(slatted({ mattress: 'king', platform: 'panel' })) - sheets(slatted({ mattress: 'king' }))).toBe(1)
+  })
+
+  describe('are checked as slats', () => {
+    const without = (design: ReturnType<typeof built>['design'], ids: (id: string) => boolean) => ({ ...design, pieces: design.pieces.filter((x) => !ids(x.id)), joints: design.joints.filter((u) => !ids(u.a) && !ids(u.b)) })
+    const found = (design: ReturnType<typeof built>['design']) => {
+      const a = analyze(design, testCatalog)
+      if (!a.valid) throw new Error(a.errors[0].message)
+      return a.findings.map((f) => [f.check, f.severity, f.pieces.length])
+    }
+
+    it('one that runs more than 700 between supports is critical: a wide bed without its rails halfway', () => {
+      const { design } = built(slatted({ mattress: 'king' }))
+      const bare = found(without(design, (id) => id.startsWith('slat-runner-')))
+      expect(new Set(bare.map(([check, severity]) => `${check} ${severity}`))).toEqual(new Set(['bed.span critical']))
+      expect(bare).toHaveLength(13)
+    })
+
+    it('two more than 75 apart are said once, with the widest gap', () => {
+      const { design } = built(slatted())
+      expect(found(without(design, (id) => id === 'slat-4' || id === 'slat-8'))).toEqual([['bed.slats', 'recommendation', 2]])
+    })
+
+    it('narrower than 100 they are said, since one may break under a knee', () => {
+      const { design } = built(slatted())
+      // Narrowed from one edge, a slat no longer reaches a cross member it lay over: that joint goes with it.
+      const narrow = { ...design, pieces: design.pieces.map((x) => (/^slat-([2-9]|1[01])$/.test(x.id) ? { ...x, x: { ...x.x, length: 60 } } : x)), joints: design.joints.filter((u) => !(u.a.startsWith('slat-') && u.b.startsWith('rail-')) && !(u.b.startsWith('slat-') && u.a.startsWith('rail-'))) }
+      expect(found(narrow).map(([check]) => check).sort()).toEqual(['bed.slats', 'bed.slats'])
+    })
+
+    it('their sag is not judged as a shelf\'s: under a mattress it does not show, and the span already limits it', () => {
+      expect(built(slatted({ mattress: 'matrimonial' })).a.findings.filter((f) => f.code === 'R1_SAG')).toEqual([])
+    })
+
+    it('a panel is still judged along the bed, as before', () => {
+      const { design } = built(slatted({ platform: 'panel' }))
+      expect(found(without(design, (id) => id.startsWith('rail-'))).map(([check, severity]) => `${check} ${severity}`)).toContain('bed.span critical')
+    })
+  })
+
+  it('is a choice of the plan: a plan without it is a panel, the form offers it for every bed and its change is said', () => {
+    const saved = bed()
+    expect(FurniturePlan.parse(saved)).toEqual(saved)
+    expect(buildBed(saved, testCatalog).design.pieces.some((x) => x.id === 'platform')).toBe(true)
+    const field = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'choice' && f.key === 'platform')!
+    expect(field.type === 'choice' && field.options.map(([, text]) => text)).toEqual(['Tablero', 'Tablillas'])
+    expect(bedModule.describeChanges(saved, { ...saved, platform: 'slats' })).toEqual(['base de tablillas'])
+    expect(bedModule.describeChanges({ ...saved, platform: 'slats' }, saved)).toEqual(['base de tablero'])
+    expect(bedModule.parts.list.find((x) => x.id === 'mattress')!.fields).toContain('platform')
+    expect(bedModule.parts.ofPiece(buildBed({ ...saved, platform: 'slats' }, testCatalog).design.pieces.find((x) => x.id === 'slat-2')!)).toBe('mattress')
   })
 })

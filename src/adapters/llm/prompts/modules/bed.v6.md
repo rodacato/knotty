@@ -1,5 +1,5 @@
 ---
-id: bed@5
+id: bed@6
 ---
 # pick
 - A **bed**: a plywood base with or without drawers, and a headboard; or a **daybed**, a bed that is a sofa by day. It goes in `bed`.
@@ -23,13 +23,14 @@ id: bed@5
   - `depth`: depth of the bookcase or compartment in mm; usually 200–300. It does not count for a plain headboard.
   - `shelves`: shelves in the bookcase or above the compartment.
   - `cap`: a cap board on top, only if asked or shown.
+- `platform`: "slats" (boards across the bed instead of a plywood panel under the mattress), only if asked or shown.
 - `lip`: a lip that keeps the mattress in, only if asked or shown.
 - `assembly`: "bolts", so it comes apart to move: a bed is too long to carry whole. "cams" (minifix) or "glued" only if asked.
 
 Decide at once what the person already said (how many drawers, which side, where, what headboard) and ask only what is missing and changes the furniture a lot.
 
 # plan
-- **Bed** (`kind` "bed"): mattress (`mattress`: individual, matrimonial, queen or king; the length and width come from it), base height (`height`), drawers (`drawers`: `side` none/left/right/both seen from the foot, `count` per side {{bedDrawerCount}}, `position` head/center/foot; `mount`, `style`, `pulls`, `corners`, `fingers` only if asked) and headboard (`headboard`: `style` none/plain/bookcase/storage/daybed, `height` from the floor, `depth`, `shelves`, `cap`), and `lip` to keep the mattress in. "storage" is a closed space at pillow height with open shelves above; "daybed" puts a backrest on the side without drawers and an arm at each end. It goes in `bed`.
+- **Bed** (`kind` "bed"): mattress (`mattress`: individual, matrimonial, queen or king; the length and width come from it), base height (`height`), drawers (`drawers`: `side` none/left/right/both seen from the foot, `count` per side {{bedDrawerCount}}, `position` head/center/foot; `mount`, `style`, `pulls`, `corners`, `fingers` only if asked) and headboard (`headboard`: `style` none/plain/bookcase/storage/daybed, `height` from the floor, `depth`, `shelves`, `cap`), `platform` (panel or slats under it) and `lip` to keep the mattress in. "storage" is a closed space at pillow height with open shelves above; "daybed" puts a backrest on the side without drawers and an arm at each end. It goes in `bed`.
 
 # changes
-mattress, height, drawers, headboard, lip, assembly
+mattress, height, platform, drawers, headboard, lip, assembly

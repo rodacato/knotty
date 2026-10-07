@@ -2,6 +2,7 @@ import type { Design } from '../../design/schema'
 import type { Box, Geometry } from '../../design/resolve'
 import type { DesignKind } from '../../design/kind'
 import type { Finding, RuleContext, Severity } from '../structure/finding'
+import { isStrip } from '../../design/boxes'
 
 // A check by kind of furniture as data: a measure with a minimum or a maximum is read by the evaluator; anything else brings its own function.
 
@@ -87,6 +88,12 @@ const PERSON_KINDS: readonly DesignKind[] = ['bed', 'bench']
 export function personSurface(ctx: RuleContext, use: DesignKind | null): ReadonlySet<string> {
   const minArea = use && PERSON_KINDS.includes(use) ? SURFACE_AREA[use] : undefined
   return new Set(minArea === undefined ? [] : (topSurface(ctx.design, ctx.geo, minArea)?.ids ?? []))
+}
+
+/** The slats of a surface a person lies on: its pieces, when it is made of three or more and every one is a strip. */
+export function slatsOf(design: Design, geo: Geometry, surface: Iterable<string>): string[] {
+  const ids = [...surface]
+  return ids.length >= 3 && ids.every((id) => design.pieces.some((p) => p.id === id) && isStrip(geo.boxes.get(id)!)) ? ids : []
 }
 
 function measure(metric: Metric, { design, surface }: UseInput): { value: number; pieces: string[] } | null {

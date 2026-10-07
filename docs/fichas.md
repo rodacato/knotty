@@ -24,7 +24,7 @@ Cuatro etiquetas que conviene no confundir:
 - `splayed-legs`: patas que se abren o se estrechan, sueltas o en A. `angled-cut` queda para costados, tableros y remates cortados en ángulo: unas patas nunca van ahí. Las que solo se estrechan ya se dibujan en el gabinete, la mesa y la cama (`legStyle: "tapered"`), y las que se abren, en el gabinete (`legStyle: "splayed"`: hacia el frente y hacia atrás, y se adelgazan al pie); entonces la etiqueta va en `features` y no en `gaps`. Sigue en `gaps` cuando la pieza tiene patas en V o en A, travesaños entre patas o una pata por cuerpo, y en mesas y camas con patas abiertas.
 - `raised-sides`: los costados suben por encima de la cubierta. Son cajas; no es un corte en ángulo.
 - `slatted-fronts`: frentes hechos de tiras pegadas. `routed-fronts` es una ranura de router sobre una cara lisa.
-- `slatted-base`: la base de una cama hecha de tablillas sueltas en lugar de un tablero corrido.
+- `slatted-base`: la base de una cama hecha de tablillas en lugar de un tablero corrido. Ya se dibuja en la cama (`platform: "slats"`), así que va en `features` y no en `gaps`.
 
 - `finger-joints`: el mueble tiene esquinas de dedos (*box joint*) a la vista. En un gabinete se dibuja con `construction.drawerCorners: "fingers"` y, si no son los 5 de siempre, `drawerFingers` (de 3 a 21 por esquina): vale para todos los cajones del mueble y se ve de atrás o con el cajón fuera, porque el frente lo tapa. Las esquinas de la cubierta con los costados, como en el KC-BUR-05, se dibujan con `construction.top: "fingers"` (el mismo `drawerFingers`): los costados suben hasta la cara de arriba y quedan a la vista de frente.
 
