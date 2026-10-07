@@ -42,6 +42,11 @@ export const SLAT = { width: 100, gap: 75 } as const
 export const SLAT_SPAN = 700
 /** How tall the rail is that carries the slats where no side board does: over a drawer, and halfway across a wide bed. */
 export const SLAT_RAIL = 80
+/** How far under the top edge of the sides the slats rest, and how much shorter than the room between the sides each one is, at each end. */
+export const SLAT_RECESS = 20
+export const SLAT_PLAY = 2
+/** The ledger the ends of the slats rest on, glued and screwed to the inside of each side: how tall, and how many boards face to face. */
+export const LEDGER = { height: 40, layers: 2 } as const
 /** The corner sawn off the front of a daybed's arm: how far it runs along the top and how far it comes down the front. */
 export const ARM_SLOPE = { run: 240, drop: 120 } as const
 /** What stays of the front of the arm over the mattress lip, so the cut never reaches where the lip is screwed. */
@@ -62,6 +67,9 @@ export const MODULE_SOURCES: Record<string, Source> = {
   MATTRESS_LIP: noReference('the reference gives no height for a mattress lip; 40 is under a sixth of the 260 mm mattress, enough to stop it sliding and low enough to sit on'),
   SLAT: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Separación entre tablillas'),
   SLAT_SPAN: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Claro de tablilla de 18 × 100'),
+  SLAT_RECESS: noReference('an 18 mm slat and 2 mm over it, so the mattress rests on the edges of the sides and the slats do not rub them; the reference gives no recess'),
+  SLAT_PLAY: noReference('the same 2 mm as between two fronts, so a slat cut a hair long still drops in; the reference gives none'),
+  LEDGER: noReference('two boards face to face seat a slat on about 34 mm, where one would leave 16; the reference gives no section for a ledger, nor how it is fastened'),
   SLAT_RAIL: noReference('the same 80 mm as the apron under a table, which carries more; the reference gives no section for the rail under a bed\'s slats'),
   ARM_SLOPE: noReference('chosen, not sourced: a cut twice as long as it is deep reads as a slope, and 120 leaves most of the arm to lean on'),
   ARM_FRONT: noReference('Knotty’s margin over the lip for the screws that hold it to the arm'),

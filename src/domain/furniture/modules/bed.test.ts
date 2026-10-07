@@ -399,26 +399,61 @@ describe('a base of slats', () => {
     expect(design.pieces.filter((x) => x.role === 'drawer-front')).toHaveLength(side === 'none' ? 0 : side === 'both' ? 6 : 3)
   })
 
-  it('takes the place of the panel: boards of 100 across the bed from its head to its foot, never more than 75 apart, at the height the mattress rests', () => {
+  it('takes the place of the panel: boards of 100 across the bed between its ends, never more than 75 apart', () => {
     const { slats, has, box } = built(slatted())
     expect([has('platform'), has('platform-left')]).toEqual([false, false])
-    expect(slats.every((s) => Math.round(s.x1 - s.x0) === 100 && s.y1 === 400)).toBe(true)
+    expect(slats.every((s) => Math.round(s.x1 - s.x0) === 100)).toBe(true)
     const gaps = slats.slice(1).map((s, i) => s.x0 - slats[i].x1)
     expect(Math.max(...gaps)).toBeLessThanOrEqual(75)
     expect(Math.min(...gaps)).toBeGreaterThan(50)
-    expect([slats[0].x0, slats.at(-1)!.x1]).toEqual([box('headboard').x1, box('foot-panel').x1])
-    expect([slats[0].z0, slats[0].z1]).toEqual([0, 990 + 20])
+    expect([slats[0].x0, slats.at(-1)!.x1]).toEqual([box('headboard').x1, box('foot-panel').x0])
   })
 
-  it('each slat is screwed down where it rests: on both sides and on the spine', () => {
+  it('sit between the sides, not over them: 20 under their edge, where the mattress still rests on it, and 2 short of each', () => {
+    const { slats, box } = built(slatted())
+    const [left, right, foot] = ['side-left-1', 'side-right-1', 'foot-panel'].map(box)
+    expect([left.y1, right.y1, foot.y1]).toEqual([400, 400, 400])
+    expect([slats[0].y0, slats[0].y1]).toEqual([400 - 20, 400 - 2])
+    expect([slats[0].z0 - right.z1, left.z0 - slats[0].z1]).toEqual([2, 2])
+    expect(box('spine').y1).toBe(slats[0].y0)
+  })
+
+  it('rest on a ledger of two boards glued and screwed to the inside of each side, between its cross members', () => {
+    const { design, box, a } = built(slatted())
+    const [first, second, side, slat] = ['ledger-left-1-1-1', 'ledger-left-1-1-2', 'side-left-1', 'slat-1'].map(box)
+    expect([first.z1, second.z1, first.y1, first.y1 - first.y0]).toEqual([side.z0, first.z0, slat.y0, 40])
+    expect(slat.z1 - second.z0).toBe(2 * 18 - 2)
+    expect(first.x1).toBe(box('rail-left-1-1').x0)
+    const joined = (x: string, y: string) => design.joints.filter((u) => (u.a === x && u.b === y) || (u.a === y && u.b === x)).map((u) => [u.type, u.glue])
+    expect([joined('ledger-left-1-1-1', 'side-left-1'), joined('ledger-left-1-1-2', 'ledger-left-1-1-1')]).toEqual([[['butt-screw', true]], [['butt-screw', true]]])
+    expect(a.findings).toEqual([])
+  })
+
+  it('takes one screw at each end, into the ledger board it covers whole, 25 or more from its end; on the board next to the side it only rests', () => {
+    const { design, box } = built(slatted())
+    const seat = (board: string) => design.joints.find((u) => u.a === 'slat-3' && u.b === board)!
+    expect([seat('ledger-left-1-1-1'), seat('ledger-left-1-1-2')].map((u) => [u.type, u.glue, u.hardware.map((h) => h.count)])).toEqual([['butt-screw', false, [0]], ['butt-screw', false, [1]]])
+    const inner = box('ledger-left-1-1-2')
+    expect(box('slat-3').z1 - (inner.z0 + inner.z1) / 2).toBeGreaterThanOrEqual(25)
+  })
+
+  it('a daybed that comes apart keeps the backrest\'s ledger glued and screwed to it, not nailed as a back is', () => {
+    const { design } = built(slatted({ assembly: 'bolts', drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true } }))
+    const held = design.joints.filter((u) => u.b === 'side-right-1' && u.a.startsWith('ledger-right-')).map((u) => [u.type, u.glue])
+    expect(new Set(held.map((h) => h.join(' ')))).toEqual(new Set(['butt-screw true']))
+    expect(held.length).toBeGreaterThan(1)
+  })
+
+  it('each slat is screwed down where it rests: on the ledgers and on the spine, and to no side', () => {
     const { design } = built(slatted())
-    const held = design.joints.filter((u) => u.a === 'slat-3' || u.b === 'slat-3').map((u) => [u.a === 'slat-3' ? u.b : u.a, u.type])
-    expect(held.sort()).toEqual([['side-left-1', 'butt-screw'], ['side-right-1', 'butt-screw'], ['spine', 'butt-screw']])
+    const held = design.joints.filter((u) => u.a === 'slat-3' || u.b === 'slat-3').map((u) => (u.a === 'slat-3' ? u.b : u.a))
+    expect(held.filter((id) => id === 'spine' || id.startsWith('side-'))).toEqual(['spine'])
+    expect(held.filter((id) => id.startsWith('ledger-')).map((id) => id.replace(/-\d-\d-\d$/, '')).sort()).toEqual(['ledger-left', 'ledger-left', 'ledger-right', 'ledger-right'])
   })
 
-  it('a king is not split in two as its panel is: a slat runs the whole width in one piece, along the sheet', () => {
+  it('a king is not split in two as its panel is: a slat runs the room between the sides in one piece, along the sheet', () => {
     const { slats, design } = built(slatted({ mattress: 'king' }))
-    expect(slats[0].z1 - slats[0].z0).toBe(1930 + 20)
+    expect(slats[0].z1 - slats[0].z0).toBe(1930 + 20 - 2 * 18 - 2 * 2)
     expect(design.pieces.find((x) => x.id === 'slat-1')!.grain).toBe('length')
   })
 
@@ -431,29 +466,58 @@ describe('a base of slats', () => {
     expect(runner.y1).toBe(box('slat-1').y0)
   })
 
-  it('over a drawer the slats rest on a rail, and the drawer opens under it', () => {
-    const { box, has } = built(slatted({ drawers: { side: 'left', count: 3, position: 'head' } }))
-    const [rail, front, slat] = ['slat-rail-left-1', 'drawer-left-1-front', 'slat-1'].map(box)
-    expect([rail.y1, rail.y1 - rail.y0]).toEqual([slat.y0, 80])
-    expect(front.y1).toBeLessThan(rail.y0)
-    expect(has('slat-rail-right-1')).toBe(false)
+  it('over the drawers one rail runs from end to end, level with the sides, with its ledger; the drawers open under it and the dividers between them are screwed up into it', () => {
+    const { box, has, design } = built(slatted({ drawers: { side: 'left', count: 3, position: 'head' } }))
+    const [rail, front, slat, divider, side] = ['slat-rail-left', 'drawer-left-1-front', 'slat-1', 'div-left-1', 'side-right-1'].map(box)
+    expect([rail.y1, rail.y0]).toEqual([side.y1, slat.y0 - 80])
+    expect([rail.x0, rail.x1]).toEqual([box('headboard').x1, box('foot-panel').x0])
+    expect([front.y1 < rail.y0, divider.y1]).toEqual([true, rail.y0])
+    expect(box('ledger-left-1').z1).toBe(rail.z0)
+    expect(design.joints.filter((u) => u.b === 'slat-rail-left' && u.a.startsWith('div-')).map((u) => [u.a, u.type])).toEqual([['div-left-1', 'pocket-screw'], ['div-left-2', 'pocket-screw']])
+    expect(has('slat-rail-right')).toBe(false)
     const panel = buildBed(bed({ drawers: { side: 'left', count: 3, position: 'head' }, headboard: { style: 'plain', height: 1000, depth: 0, shelves: 0 } }), testCatalog)
-    expect(panel.design.pieces.some((x) => x.id.startsWith('slat-'))).toBe(false)
+    expect(panel.design.pieces.some((x) => /^(slat|ledger)-/.test(x.id))).toBe(false)
   })
 
-  it('a daybed keeps them inside its backrest and its arms, under the lip', () => {
-    const { slats, box } = built(slatted({ lip: true, drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true } }))
+  it('a closed stretch beside overlay drawers stands a board further out than their rail: its ledger takes one board more to reach the slats', () => {
+    const { design, box } = built(slatted({ mattress: 'queen', drawers: { side: 'left', count: 2, position: 'head', mount: 'overlay' } }))
+    const layers = design.pieces.filter((x) => x.id.startsWith('ledger-left-1-1-')).length
+    expect(layers).toBe(3)
+    expect(box('ledger-left-1-1-3').z0).toBe(box('ledger-left-2').z0)
+  })
+
+  it('on legs the ledger starts past each leg, which keeps the face of the side it is screwed to', () => {
+    const { box, a } = built(slatted({ legs: 'legs', headboard: { style: 'none', height: 1000, depth: 0, shelves: 0 } }))
+    expect(box('ledger-left-1-1-1').x0).toBe(box('leg-head-left-2').x1)
+    expect(box('leg-head-left-1').y1).toBe(box('slat-1').y0)
+    expect([a.findings, a.warnings]).toEqual([[], []])
+  })
+
+  it('the lip is the base itself: with slats there is no platform for a strip to stand on, so the boards around them rise 40 more and the bed still grows by each', () => {
+    const { has, box, design, a } = built(slatted({ lip: true, drawers: { side: 'left', count: 3, position: 'head' } }))
+    expect(['lip-left', 'lip-right', 'lip-foot'].map(has)).toEqual([false, false, false])
+    expect(['slat-rail-left', 'side-right-1', 'foot-panel'].map((id) => box(id).y1)).toEqual([440, 440, 440])
+    expect(design.dimensions).toMatchObject({ depth: 990 + 20 + 2 * 18, height: 1000 })
+    expect([a.findings, a.warnings]).toEqual([[], []])
+  })
+
+  it('a daybed keeps them inside its backrest and its arms, on a ledger along the backrest too', () => {
+    const { slats, box, has } = built(slatted({ lip: true, drawers: { side: 'left', count: 3, position: 'center' }, headboard: { style: 'daybed', height: 800, depth: 0, shelves: 0, cap: true } }))
     expect([slats[0].x0, slats.at(-1)!.x1]).toEqual([box('headboard').x1, box('foot-arm').x0])
-    expect(slats[0].z0).toBe(box('side-right-1').z1)
-    expect(box('lip-left').y0).toBe(slats[0].y1)
+    expect(slats[0].z0 - box('side-right-1').z1).toBe(2)
+    expect(box('ledger-right-1-1-1').z0).toBe(box('side-right-1').z1)
+    expect([has('lip-left'), box('slat-rail-left').y1]).toEqual([false, 440])
   })
 
-  it('says how they go: how many, how far apart, screwed down and cut along the grain; and what drawers under them mean', () => {
+  it('says how they go: how many, how far apart, what they rest on and where they are screwed; and what drawers and a lip mean', () => {
     const plain = built(slatted()).notes
-    expect(plain).toEqual(['Base de 12 tablillas de 100 mm de ancho, con 67 mm de hueco entre una y otra: van atornilladas a los costados y a la espina, nunca sueltas, y se cortan con la veta a lo largo de la tablilla.'])
-    const wide = built(slatted({ mattress: 'queen', drawers: { side: 'both', count: 3, position: 'center' } })).notes[0]
+    expect(plain).toEqual([
+      'Base de 12 tablillas de 100 mm de ancho, con 65 mm de hueco entre una y otra. Van embutidas entre los costados, 20 mm abajo de su canto, sobre un listón de 2 capas pegado y atornillado por dentro; cada una es 4 mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla.',
+    ])
+    const wide = built(slatted({ mattress: 'queen', lip: true, drawers: { side: 'both', count: 3, position: 'center' } })).notes[0]
     expect(wide).toContain('llevan un larguero a media distancia de cada lado')
-    expect(wide).toContain('entre ellas cae polvo a los cajones')
+    expect(wide).toContain('Sobre los cajones el listón va en un larguero corrido, y entre las tablillas cae polvo a los cajones.')
+    expect(wide).toContain('El tope del colchón son las mismas tablas de la base, que suben 40 mm más.')
   })
 
   it('uses no more plywood than the panel, and a sheet less under a king', () => {
@@ -477,7 +541,12 @@ describe('a base of slats', () => {
       const { design } = built(slatted({ mattress: 'king' }))
       const bare = found(without(design, (id) => id.startsWith('slat-runner-')))
       expect(new Set(bare.map(([check, severity]) => `${check} ${severity}`))).toEqual(new Set(['bed.span critical']))
-      expect(bare).toHaveLength(13)
+      expect(bare).toHaveLength(12)
+    })
+
+    it('the mattress rests on the edges of the sides too: the base is as wide as with a panel, and the mattress fits', () => {
+      for (const mattress of MATTRESSES) expect([mattress, built(slatted({ mattress, drawers: { side: 'left', count: 2, position: 'head', mount: 'overlay' } })).a.findings.map((f) => f.check)]).toEqual([mattress, []])
+      expect(built(slatted({ mattress: 'king', headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 2 } })).a.findings.map((f) => f.check)).toEqual([])
     })
 
     it('two more than 75 apart are said once, with the widest gap', () => {
