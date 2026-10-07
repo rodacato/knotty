@@ -1,5 +1,5 @@
 import { roundTo, type Box } from '../../design/resolve'
-import { CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
+import { bounds, CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
 import type { Design } from '../../design/schema'
 import type { Geometry } from '../../design/resolve'
 import { MATTRESSES } from '../../design/kind'
@@ -18,6 +18,9 @@ export const BOOKCASE_DEPTH: [number, number] = [230, 300]
 export const WARDROBE_DEPTH: [number, number] = [550, 600]
 /** Longest span of a bed's platform without support, in mm: the top of the reference's 600–700 (the bed module builds to the bottom, MAX_SPAN). */
 const BED_SPAN = 700
+
+/** A board whose edge stands no more than this over the slats is where the mattress rests, not a lip around it. */
+const RIM_OVER_SLATS = 5
 
 const VALUES = 'docs/carpinteria/valores-de-referencia.md'
 const FURNITURE = 'docs/carpinteria/muebles-y-medidas.md'
@@ -84,9 +87,16 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     // Reference: 10–30 mm of clearance per side, and the base never smaller than the mattress.
     limits: { tight: 20, loose: 80 },
     source: `${VALUES}#11-colchones-de-méxico-y-bases-de-cama «Holgura del colchón en la base»`,
-    find: ({ design, surface }, { tight, loose }, report) => {
+    find: ({ design, geo, surface }, { tight, loose }, report) => {
       if (!surface) return []
-      const [width, length] = platformSize(surface)
+      // Slats sit between the boards of the base, a hair under their edges: the mattress rests on those edges too.
+      const rim = !slatsOf(design, geo, surface.ids).length
+        ? []
+        : design.pieces.flatMap((p) => {
+            const b = geo.boxes.get(p.id)
+            return b && p.normal !== 'y' && b.y0 < surface.box.y1 && b.y1 >= surface.box.y1 && b.y1 - surface.box.y1 <= RIM_OVER_SLATS ? [b] : []
+          })
+      const [width, length] = platformSize({ ...surface, box: bounds([surface.box, ...rim]) })
       const size = mattressOf(design, width)
       const [mw, ml] = MATTRESSES[size]
       if (width < mw - tight || length < ml - tight)
