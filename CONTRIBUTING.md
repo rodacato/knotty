@@ -150,6 +150,7 @@ npm run compare:resume -- --last  # y las reanuda
 | Algo que se guarda (sesión, preferencias, llaves, ajustes del catálogo) | Ver «Cambios que tocan lo guardado» |
 | El catálogo | Banco sin experto (3) y la pestaña Materiales (2) |
 | Una ficha de referencia, o el motor que la construye | `npm run probe -- --all`: cada ficha debe seguir como dice su `expect`. Si una diferencia es la esperada, `npm run probe -- --update <código>` reescribe el `expect` y el diff del PR la muestra; si no, es un error |
+| Lo que el chat entiende sin experto (`src/domain/furniture/intent/`) | `npm run autonomy`: ningún pedido `misread`, y los que leía siguen leídos. Ver [la guía](docs/autonomy.md) |
 
 ## Cambios que piden cuidado
 

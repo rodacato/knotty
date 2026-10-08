@@ -18,7 +18,8 @@
     "compare:promote": "node scripts/compare/cli.mjs promote",
     "compare:concurrency": "node scripts/compare/cli.mjs concurrency",
     "compare:hard": "node scripts/compare/cli.mjs hard",
-    "probe": "node scripts/probe/run.mjs"
+    "probe": "node scripts/probe/run.mjs",
+    "autonomy": "node scripts/autonomy/run.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
