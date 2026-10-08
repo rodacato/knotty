@@ -1,0 +1,49 @@
+{
+  "format": 1,
+  "code": "GN-COC-05",
+  "id": "cubby-wall-cabinet",
+  "home": { "order": 40 },
+  "rooms": ["kitchen"],
+  "name": "Alacena de nichos",
+  "kind": "wallCabinet",
+  "notes": "Alacena para colgar de tres columnas en tablero de ajedrez: en cada una un nicho abierto para lo de diario y otro con puerta embutida, que deja ver los cantos del triplay.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Alacena de nichos",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 900, "height": 700, "depth": 330 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "door", "shelves": 0, "doors": 1 },
+          { "height": 0.5, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.5, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "door", "shelves": 0, "doors": 1 },
+          { "height": 0.5, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 16,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 52, "cup-hinge-35-inset": 6, "edge-banding-19": 10, "screw-8x2": 60, "white-glue": 2 }
+  }
+}
