@@ -14,6 +14,8 @@ import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
 import { tippingBalance } from '../../checks/structure/rules/tippingBalance'
 import { rodRuns } from '../../design/rods'
+import { cutBox } from '../../design/cuts'
+import { afterCut, afterCutText } from '../../estimate/cutList'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
@@ -1219,5 +1221,70 @@ describe('a rod to hang clothes from', () => {
 
   it('a plan without rods builds a design that does not mention them', () => {
     expect('rods' in buildCabinet(PLANS.bookcase, testCatalog).design).toBe(false)
+  })
+})
+
+describe('a cable pass', () => {
+  const wired = (content: 'open' | 'door', height = 1, more: Partial<PlanCell> = {}): PlanCell => ({ height, content, shelves: 0, doors: content === 'door' ? 1 : null, cable: true, ...more })
+  const tv = (columns: PlanColumn[], more: Partial<CabinetPlan> = {}) => plan({ name: 'Mueble de TV', dimensions: { width: 1200, height: 500, depth: 400 }, columns, ...more })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    const holed = design.pieces.filter((x) => x.role === 'back' && x.cuts?.length)
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, holed, strips: holed.flatMap((x) => x.cuts!.map((cut) => cutBox(a.geo.boxes.get(x.id)!, cut))) }
+  }
+  const NOTE = 'Pasacables: un barreno de 60 mm en la trasera, al centro del hueco y a 60 mm de su piso. Se hace con broca sierra antes de clavar la trasera.'
+
+  it('is a 60 mm hole through the back, in the middle of its cell and 60 mm above its floor', () => {
+    const one = built(tv([{ width: 1, cells: [wired('open')] }, { width: 1, cells: [cell('open', 1, { shelves: 0 })] }]))
+    const [left, divider, bottom, back] = ['side-left', 'div-1', 'bottom', 'back'].map(one.box)
+    const middle = (left.x1 + divider.x0) / 2
+    expect(one.holed.map((x) => x.id)).toEqual(['back'])
+    expect([Math.min(...one.strips.map((s) => s.x0)), Math.max(...one.strips.map((s) => s.x1))]).toEqual([middle - 30, middle + 30])
+    expect([Math.min(...one.strips.map((s) => s.y0)), Math.max(...one.strips.map((s) => s.y1))].map(Math.round)).toEqual([bottom.y1 + 30, bottom.y1 + 90])
+    expect(one.strips.every((s) => s.z0 === back.z0 && s.z1 === back.z1)).toBe(true)
+    expect(one.notes).toEqual([NOTE])
+  })
+
+  it('changes nothing to buy or to cut: the back is the same board, and the cut list says it still takes work', () => {
+    const cells = (cable: boolean): PlanColumn[] => [{ width: 1, cells: [cable ? wired('door') : cell('door', 1, { shelves: 0, doors: 1 })] }]
+    const [plain, holed] = [built(tv(cells(false))), built(tv(cells(true)))]
+    expect(holed.design.pieces.map((x) => ({ ...x, cuts: undefined }))).toEqual(plain.design.pieces.map((x) => ({ ...x, cuts: undefined })))
+    expect(holed.design.joints).toEqual(plain.design.joints)
+    expect(cutList(holed.design, holed.a.geo)).toEqual(cutList(plain.design, plain.a.geo))
+    expect(estimatePurchase(holed.design, holed.a.geo, testCatalog)).toEqual(estimatePurchase(plain.design, plain.a.geo, testCatalog))
+    expect(holed.a.findings).toEqual(plain.a.findings)
+    const line = cutList(holed.design, holed.a.geo).find((l) => l.ids.includes('back'))!
+    expect(afterCutText(afterCut(holed.design, line), line.count)).toBe('Después de cortarla: saques o ranuras')
+  })
+
+  it('two cells behind one back are two holes in it, each behind its own cell', () => {
+    const two = built(tv([{ width: 1, cells: [wired('open', 0.5), wired('door', 0.5)] }]))
+    expect(two.holed.map((x) => x.id)).toEqual(['back'])
+    expect(new Set(two.strips.map((s) => Math.round((s.y0 + s.y1) / 2))).size).toBe(2)
+    expect(two.notes.at(-1)).toMatch(/^2 pasacables: barrenos de 60 mm en la trasera/)
+  })
+
+  it('a cell with no back behind it needs no hole, and says so', () => {
+    const open = built(tv([{ width: 1, cells: [wired('open', 1, { back: false })] }, { width: 1, cells: [wired('open')] }]))
+    expect(open.holed).toHaveLength(1)
+    expect(open.notes.at(-1)).toBe(`${NOTE} Donde no hay trasera no hace falta.`)
+    const none = built(tv([{ width: 1, cells: [wired('open')] }], { construction: { ...DEFAULT_CONSTRUCTION, back: 'none' } }))
+    expect(none.holed).toEqual([])
+    expect(none.notes).toEqual(['Pasacables: donde no hay trasera no hace falta, los cables salen por atrás.'])
+  })
+
+  it('goes where things stand: not in a drawer, a chest or a covered cell, and a cell that does not ask has none', () => {
+    const drawer = tv([{ width: 1, cells: [{ ...cell('drawer'), cable: true }] }])
+    expect(FurniturePlan.safeParse(drawer).error?.issues.map((i) => i.message)).toEqual(['Un pasacables va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'])
+    expect(FurniturePlan.safeParse(tv([{ width: 1, cells: [wired('open')] }])).success).toBe(true)
+    const plain = built(tv([{ width: 1, cells: [cell('open', 1, { shelves: 0 })] }]))
+    expect([plain.holed, plain.notes]).toEqual([[], []])
+  })
+
+  it('is said to the expert with the cell, and is not something the expert writes', () => {
+    expect(explain({ plan: tv([{ width: 1, cells: [wired('open')] }]) })).toContain('with a cable hole in the back')
+    expect(ExpertColumns.safeParse([{ width: 1, cells: [wired('open')] }]).data?.[0].cells[0]).not.toHaveProperty('cable')
   })
 })

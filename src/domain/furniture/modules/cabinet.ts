@@ -7,6 +7,7 @@ import { completeJoints, hingeOn } from '../../design/joints'
 import { lifts, slides } from '../../design/doors'
 import { resolveGeometry } from '../../design/resolve'
 import { lidNote, notchNote, rodNote, slidingNote, withFrontCuts } from './fronts'
+import { cableNote, withCablePasses, type CablePass } from './cablePass'
 import { backBoard, hingeFor, pickHardware, usableSheet, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
@@ -88,6 +89,7 @@ export const PlanCell = Cell.extend({
   },
   back: z.boolean().optional().describe('Whether this opening has a back; absent, as construction.back says'),
   rod: z.boolean().optional().describe('A closet rod under the top of this opening, from wall to wall, in an open opening or behind doors; it takes the place of the shelves'),
+  cable: z.boolean().optional().describe('A hole in the back behind this opening for cables, in an open opening or behind doors'),
   own: CellChoices.optional(),
 })
 export type PlanCell = z.infer<typeof PlanCell>
@@ -167,6 +169,10 @@ const leafOrSplit = (columns: PlanColumn[]): PlanCell[] => columns.flatMap((c) =
 export const hangs = (cell: PlanCell) => !!cell.rod && !cell.columns && (cell.content === 'open' || cell.content === 'door')
 const rodsInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => (!cell.rod || hangs(cell)) && (!cell.columns || rodsInPlace(cell.columns))))
 const rodsFit = (plan: CabinetPlan) => rodsInPlace(plan.columns)
+/** Cables come out of a cell things stand in: an open one or one behind doors, not split. */
+export const passesCables = (cell: PlanCell) => !!cell.cable && !cell.columns && (cell.content === 'open' || cell.content === 'door')
+const cablesInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => (!cell.cable || passesCables(cell)) && (!cell.columns || cablesInPlace(cell.columns))))
+const cablesFit = (plan: CabinetPlan) => cablesInPlace(plan.columns)
 /** A chest's lid lifts into the cell over it: that cell is open, and not split, or the lid has nowhere to go. */
 const lidRoom = (column: PlanColumn, j: number) => column.cells[j + 1]?.content === 'open' && !column.cells[j + 1].columns
 /** With a chest at the top of every column the top of the furniture is their one lid; fingers at its corners would hold it shut. */
@@ -177,6 +183,7 @@ const chestsFit = (plan: CabinetPlan) => chestsInPlace(plan.columns, toppedByLid
 /** Chests in place only with the top as their lid, and fingers that would hold that top shut. */
 const lidOpens = (plan: CabinetPlan) => plan.construction.top !== 'fingers' || chestsFit(plan) || !chestsFit({ ...plan, construction: { ...plan.construction, top: 'between' } })
 const CHESTS_MISPLACED = 'Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.'
+const CABLES_MISPLACED = 'Un pasacables va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'
 const RODS_MISPLACED = 'Un tubo para colgar va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'
 const DOORS_MIXED = 'Sobrepuestas o embutidas se elige para todo el mueble: un hueco solo cambia entre abatibles y corredizas.'
 const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
@@ -502,6 +509,7 @@ interface Filling {
   /** Overlay doors are found by contact, which picks the nearest upright: the hinge side has to be said once the pieces exist. */
   hung: { door: string; upright: string }[]
   rods: Rod[]
+  cables: CablePass[]
   drawers: AskedDrawer[]
   /** What each door's cell chose on its own, by the door's id. */
   choices: [string, CellChoices][]
@@ -688,7 +696,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     return l.panel({ id: `${id}-sep-${j + 1}`, normal: 'y', x: extent(ref(spec.left), ref(spec.right)), y: startAt(partway(spec.bottom, spec.top, share, -half)), z: chest ? extent(ref(l.backFace), null, ASSUMPTIONS.lids.strip) : extent(ref(l.backFace), spec.front), ...board })
   })
 
-  const filling: Filling = { pieces: separators, joints: [], hung: [], rods: [], drawers: [], choices: [] }
+  const filling: Filling = { pieces: separators, joints: [], hung: [], rods: [], cables: [], drawers: [], choices: [] }
   cells.forEach((cell, j) => {
     if (cell.content === 'void') return
     const bottom: FaceRef = j === 0 ? spec.bottom : `${id}-sep-${j}.y1`
@@ -751,6 +759,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
         filling.joints.push(...inner.joints)
         filling.hung.push(...inner.hung)
         filling.rods.push(...inner.rods)
+        filling.cables.push(...inner.cables)
         filling.drawers.push(...inner.drawers)
         filling.choices.push(...inner.choices)
       })
@@ -762,6 +771,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     filling.joints.push(...fronts.joints)
     filling.hung.push(...fronts.hung)
     if (hangs(cell)) filling.rods.push({ id: `${cellId}-rod`, under: pieceOf(top), from: pieceOf(spec.left) })
+    if (passesCables(cell)) filling.cables.push({ left: spec.left, right: spec.right, bottom })
     filling.choices.push(...fronts.pieces.filter((p) => p.role === 'door').map((p): [string, CellChoices] => [p.id, choices]))
     if (cell.content === 'drawer') filling.drawers.push({ cell: [...spec.path, j], choices, bounds: { left: spec.left, right: spec.right, bottom, top }, overlay: opening.overlay })
   })
@@ -824,7 +834,7 @@ function withExtras(l: Layout, design: Design): Design {
 }
 
 /** The last of the build, which needs the pieces in place: the hinges of overlay doors, and what is cut into drawer boxes and fronts. */
-function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<string, CellChoices>): BuiltCabinet {
+function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<string, CellChoices>, cables: CablePass[]): BuiltCabinet {
   const { plan, catalog } = l
   const chosen = <K extends CellChoice>(id: string, key: K) => choiceIn(plan.construction, choices.get(id), key)
   const pullsOf = (id: string) => chosen(id, 'pulls')
@@ -844,7 +854,8 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').map((p) => p.id)
   const cutBoxes = geometry.ok && design.joints.some((u) => u.type === 'finger') ? withFingerCuts(design, geometry.value.boxes, fingers) : design
   const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, (p) => ({ notch: pullsOf(p.id) === 'notch', grooved: chosen(p.id, 'fronts') === 'grooved' })) : cutBoxes
-  const withPulls: Design = { ...cutFronts, ...pullsField(plan.construction.pulls, fronts, pullsOf) }
+  const passed = geometry.ok && cables.length ? withCablePasses(cutFronts, geometry.value, cables) : { design: cutFronts, holes: 0 }
+  const withPulls: Design = { ...passed.design, ...pullsField(plan.construction.pulls, fronts, pullsOf) }
   const notched = fronts.filter((id) => pullsOf(id) === 'notch').length
   if (notched) notes.push(notchNote(notched))
   const sliding = design.pieces.filter((p) => p.role === 'door' && slides(design, p.id)).length
@@ -855,6 +866,7 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   if (lids) notes.push(lidNote(lids))
   const hanging = design.rods?.length
   if (hanging) notes.push(rodNote(hanging))
+  if (cables.length) notes.push(cableNote(cables.length, passed.holes))
   const fingeredTops = design.joints.filter((u) => u.type === 'finger' && u.b.startsWith('top')).length
   if (fingeredTops) notes.push(`Cubierta con dedos en ${fingeredTops} ${fingeredTops === 1 ? 'esquina' : 'esquinas'}, ${fingers} por esquina: los costados suben hasta la cara de arriba. Se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   const withFingers = fingerDrawers(design)
@@ -938,7 +950,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
-  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices)
+  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices, columns.flatMap((c) => c.cables))
   return { design: knockDown(done.design, plan.assembly, catalog, needsKnockDown(plan.dimensions) ? undefined : () => 'body'), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
 }
 
@@ -1080,7 +1092,13 @@ function benchCabinets(): [string, CabinetPlan][] {
     ],
     ['perchero de doble tubo', cabinet('Perchero', { width: 900, height: 2100, depth: 560 }, [{ width: 1, cells: [hang('open', 0.5), hang('open', 0.5)] }], { base: 'floor' })],
   ]
-  return [...list, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...mixedDoors, ...kitchenBases, ...withChests, ...withRods]
+  // Cable passes: behind an open cell and behind doors of a TV unit with a nailed back, and one asked where the cell has no back.
+  const wired = (content: 'open' | 'door', height: number, extra: Partial<PlanCell> = {}): PlanCell => ({ ...cell(content, height, 0, content === 'door' ? 1 : undefined), cable: true, ...extra })
+  const withCables: [string, CabinetPlan][] = [
+    ['mueble de TV con pasacables', cabinet('Mueble de TV', { width: 1500, height: 500, depth: 400 }, [{ width: 1, cells: [wired('door', 1)] }, { width: 1, cells: [wired('open', 0.5), cell('open', 0.5, 0)] }, { width: 1, cells: [cell('door', 1, 1, 1)] }])],
+    ['mueble de TV con pasacables donde no hay trasera', cabinet('Mueble de TV', { width: 1200, height: 500, depth: 400 }, [{ width: 1, cells: [wired('open', 1, { back: false })] }, { width: 1, cells: [wired('door', 1)] }])],
+  ]
+  return [...list, ...withCables, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...mixedDoors, ...kitchenBases, ...withChests, ...withRods]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -1247,6 +1265,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
     { holds: lidOpens, message: LID_HELD_SHUT, path: ['construction', 'top'] },
     { holds: chestsFit, message: CHESTS_MISPLACED, path: ['columns'] },
     { holds: rodsFit, message: RODS_MISPLACED, path: ['columns'] },
+    { holds: cablesFit, message: CABLES_MISPLACED, path: ['columns'] },
   ],
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },

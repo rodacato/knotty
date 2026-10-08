@@ -32,7 +32,7 @@ function cellText(cell: PlanCell, doors: Cabinet['construction']['doors']): stri
     const inside = `${plural(cell.columns.length, 'column')} [${cell.columns.map((c) => c.cells.map((inner) => cellText(inner, doors)).join(', ')).join(' | ')}] (${cell.height})`
     return sliding && cell.content === 'door' ? `${doorText(cell)} in front of ${inside}` : `split into ${inside}`
   }
-  const rod = cell.rod ? ', with a closet rod' : ''
+  const rod = `${cell.rod ? ', with a closet rod' : ''}${cell.cable ? ', with a cable hole in the back' : ''}`
   const shelves = cell.shelves ? ` with ${plural(cell.shelves, 'shelf').replace('shelfs', 'shelves')}` : ''
   const body = {
     door: doorText(cell),
