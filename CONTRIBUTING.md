@@ -33,7 +33,7 @@ Arquitectura hexagonal; el mapa completo está en la sección 2 de la propuesta.
 - **En inglés:** el código (nombres, archivos, carpetas, comentarios), los datos que se guardan, los ids y los prompts.
 - **En español de México:** todo lo que lee la persona: la interfaz, los mensajes, los nombres de piezas y muebles, y lo que escribe el experto (los prompts se lo piden así). Palabras de taller: «triplay», «entrepaño», «zoclo», «jaladera».
 - **Medidas en milímetros**; a la persona se le muestran también en centímetros cuando ayuda.
-- Commits, PRs y documentación, en español.
+- Commits y PRs, en inglés; la documentación, en español.
 
 ## Cómo verificar un cambio
 
