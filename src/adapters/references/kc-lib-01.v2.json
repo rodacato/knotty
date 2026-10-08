@@ -135,6 +135,6 @@
     "pieces": 15,
     "findings": ["recommendation:R5_RACKING"],
     "sheets": { "T18": 2 },
-    "hardware": { "cam-lock-15": 32, "dowel-8x40": 32, "edge-banding-19": 13, "screw-8x2": 20 }
+    "hardware": { "anti-tip-kit": 1, "cam-lock-15": 32, "dowel-8x40": 32, "edge-banding-19": 13, "screw-8x2": 20 }
   }
 }

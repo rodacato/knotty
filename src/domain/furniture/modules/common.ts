@@ -41,6 +41,8 @@ export const MATTRESS_THICKNESS = 260
 export const BACKREST_RISE = 300
 /** The tallest base the reference finds comfortable to sit on and get up from. */
 export const TALLEST_BASE = 450
+/** From this height a hinged door may bow if one face takes more moisture than the other. */
+export const TALL_DOOR = 1800
 /** A bed's slats: how wide each one is and the widest gap between two. */
 export const SLAT = { width: 100, gap: 75 } as const
 /** The longest a slat runs between two supports. */
@@ -81,6 +83,7 @@ export const MODULE_SOURCES: Record<string, Source> = {
   MATTRESS_THICKNESS: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Grosor de colchón'),
   BACKREST_RISE: noReference('the reference gives no height for a backrest over a seat; 300 is workshop judgment for where a back starts to hold someone leaning, to be replaced by a sourced row'),
   TALLEST_BASE: cite('muebles-y-medidas.md', '27-burós-y-camas', 'Así que la base (del piso a donde apoya el colchón)'),
+  TALL_DOOR: cite(STRUCTURE, '5-puertas', 'una puerta de más de ≈ 1 800 mm puede arquearse'),
   CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
 }
 

@@ -45,9 +45,9 @@
   },
   "expect": {
     "valid": true,
-    "pieces": 23,
+    "pieces": 26,
     "findings": [],
     "sheets": { "T18": 3, "TR6": 1 },
-    "hardware": { "cam-lock-15": 34, "cup-hinge-35-inset": 2, "dowel-8x40": 40, "edge-banding-19": 25, "lid-stay-friction": 3, "piano-hinge-30": 3, "screw-8x1-1/4": 80, "screw-8x2": 54 }
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 15, "cam-lock-15": 34, "cup-hinge-35-inset": 2, "dowel-8x40": 40, "edge-banding-19": 25, "lid-stay-friction": 3, "piano-hinge-30": 3, "screw-8x1-1/4": 80, "screw-8x2": 78 }
   }
 }

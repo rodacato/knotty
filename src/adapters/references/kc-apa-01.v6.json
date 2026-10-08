@@ -59,6 +59,6 @@
     "pieces": 55,
     "findings": [],
     "sheets": { "T18": 3, "TR6": 1 },
-    "hardware": { "brad-nail-1": 103, "cup-hinge-35-inset": 6, "drawer-slide-35": 3, "edge-banding-19": 26, "pocket-screw-1-1/4": 16, "screw-8x1": 12, "screw-8x1-1/4": 12, "screw-8x2": 150, "shelf-pin-5": 12, "white-glue": 5 }
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 103, "cup-hinge-35-inset": 6, "drawer-slide-35": 3, "edge-banding-19": 26, "pocket-screw-1-1/4": 16, "screw-8x1": 12, "screw-8x1-1/4": 12, "screw-8x2": 150, "shelf-pin-5": 12, "white-glue": 5 }
   }
 }

@@ -31,6 +31,6 @@
     "pieces": 15,
     "findings": [],
     "sheets": { "T18": 2, "TR6": 1 },
-    "hardware": { "cam-lock-15": 12, "cup-hinge-35-full": 10, "dowel-8x40": 12, "edge-banding-19": 20, "screw-8x1-1/4": 32, "screw-8x2": 8, "shelf-pin-5": 16 }
+    "hardware": { "anti-tip-kit": 1, "cam-lock-15": 12, "cup-hinge-35-full": 10, "dowel-8x40": 12, "edge-banding-19": 20, "screw-8x1-1/4": 32, "screw-8x2": 8, "shelf-pin-5": 16 }
   }
 }

@@ -98,6 +98,13 @@ describe('hardware and purchase', () => {
     expect(r.cost.total).toBe(r.sheets.reduce((s, h) => s + h.cost!, 0) + r.hardware.reduce((s, h) => s + h.cost!, 0))
   })
 
+  it('lists the anti-tip kit for furniture that stands anchored, not for one that hangs or stands free', () => {
+    const kits = (d: Design) => estimatePurchase(d, geo(d), testCatalog).hardware.find((h) => h.hardware.role === 'anti-tip')?.count ?? 0
+    expect(kits(exampleBookcase)).toBe(1)
+    expect(kits(exampleNightstand)).toBe(0)
+    expect(kits(exampleWallCabinet)).toBe(0)
+  })
+
   it('says which prices are missing', () => {
     const unpriced = { ...testCatalog, materials: testCatalog.materials.map((m) => ({ ...m, price: null })) }
     const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), unpriced)
