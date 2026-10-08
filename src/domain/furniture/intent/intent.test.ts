@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { analyze } from '../../checks/analysis'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { MODULES, buildPlan, type FurniturePlan } from '../modules/plan'
@@ -314,6 +315,39 @@ describe('parseIntent', () => {
     const { dimensions, ...rest } = plans.bookcase as Extract<FurniturePlan, { kind: 'cabinet' }>
     expect(intent).toMatchObject({ kind: 'several', plan: { ...rest, dimensions: { ...dimensions, height: 2000, depth: 400 } } })
   })
+
+  const openings: [string, PlanName, string, (cells: string[][]) => void][] = [
+    ['ponle puertas', 'bookcase', 'doors on the whole front', (cells) => expect(cells).toEqual([['door 1']])],
+    ['ponle puertas a los huecos abiertos', 'tv', 'doors on the open niches', (cells) => expect(cells).toEqual([['door 1'], ['door 1'], ['door 1']])],
+    ['con puertas', 'nightstand', 'doors on the open niches', (cells) => expect(cells).toEqual([['door 1', 'drawer null']])],
+    ['quítale las puertas', 'tv', 'remove the doors', (cells) => expect(cells).toEqual([['open null'], ['open null'], ['open null']])],
+    ['sin puertas', 'wallCabinet', 'remove the doors', (cells) => expect(cells).toEqual([['open null']])],
+    ['divídela en dos columnas', 'drawers', 'split into two columns', (cells) => expect(cells).toEqual([['drawer null', 'drawer null', 'drawer null'], ['drawer null', 'drawer null', 'drawer null']])],
+    ['ponle una división vertical en medio', 'wallCabinet', 'split into two columns', (cells) => expect(cells).toEqual([['door 1'], ['door 1']])],
+  ]
+  it.each(openings)('«%s» on the %s changes its openings without saying where, and still builds', (request, name, value, check) => {
+    const intent = parseIntent(request, plans[name], buildPlan(plans[name], testCatalog).design, testCatalog)
+    if (intent?.kind !== 'edit' || intent.plan.kind !== 'cabinet') throw new Error(`not read: ${JSON.stringify(intent)}`)
+    expect([intent.field, intent.value]).toEqual(['columns', value])
+    check(intent.plan.columns.map((c) => c.cells.map((cell) => `${cell.content} ${cell.doors}`)))
+    expect(analyze(buildPlan(intent.plan, testCatalog).design, testCatalog).valid).toBe(true)
+  })
+
+  it('a door over an opening wider than 600 mm goes in two leaves', () => {
+    const wide = { ...plans.bookcase, dimensions: { ...(plans.bookcase as Extract<FurniturePlan, { kind: 'cabinet' }>).dimensions, width: 900 } } as FurniturePlan
+    const intent = parseIntent('ponle puertas', wide, buildPlan(wide, testCatalog).design, testCatalog)
+    expect(intent?.kind === 'edit' && intent.plan.kind === 'cabinet' && intent.plan.columns[0].cells[0].doors).toBe(2)
+  })
+
+  it.each([
+    // It has doors already: the words do not say where the new ones go.
+    ['ponle puertas', 'tv'],
+    // Nothing open to close, more than one column to split, or a place said.
+    ['ponle puertas', 'drawers'],
+    ['divídelo en dos columnas', 'tv'],
+    ['ponle puerta al hueco de abajo', 'nightstand'],
+    ['quita la puerta de la izquierda', 'tv'],
+  ] as [string, PlanName][])('«%s» on the %s does not say enough about its openings: it goes to the expert', (request, name) => expect(read(request, name)).toBeNull())
 
   it('a change said twice is one change', () => {
     expect(read('mejor con zoclo, sin patas', 'sideboard')).toEqual(edit('base', 'kick'))

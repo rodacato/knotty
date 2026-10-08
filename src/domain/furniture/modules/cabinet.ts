@@ -974,7 +974,7 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
   if (before.columns.length !== after.columns.length) changes.push(`${after.columns.length} ${after.columns.length === 1 ? 'columna' : 'columnas'}`)
   for (const content of Object.keys(CABINET_LABELS.cell) as PlanCell['content'][]) {
     const [was, is] = [count(before, content), count(after, content)]
-    if (was !== is) changes.push(`${is} ${COUNTED[content][is === 1 ? 0 : 1]}`)
+    if (was !== is) changes.push(is ? `${is} ${COUNTED[content][is === 1 ? 0 : 1]}` : `sin ${COUNTED[content][1]}`)
   }
   if (!changes.length && layout(before) !== layout(after)) changes.push('distribución de los huecos')
   return [...changes, ...describeAssembly(before, after)]

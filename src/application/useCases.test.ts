@@ -1032,6 +1032,17 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(state.chat.at(-1)).toMatchObject({ text: 'Listo, lo cambié en la ficha: con puertas, sin zoclo.', version: 2 })
   })
 
+  it('«Quítale las puertas» opens every door of a sideboard with no expert call, and the reply says what it has now', async () => {
+    const { llm, calls } = counting()
+    const c = setup(llm)
+    const initial = c.openExample(exampleSideboard)
+    expect(currentDesign(initial).pieces.some((p) => p.role === 'door')).toBe(true)
+    const state = await c.adjust(initial, 'Quítale las puertas', newSignal())
+    expect(calls).toEqual([])
+    expect(currentDesign(state).pieces.some((p) => p.role === 'door')).toBe(false)
+    expect(state.chat.at(-1)?.text).toMatch(/\d huecos abiertos, sin puertas/)
+  })
+
   it('«¿Cuántas hojas?» and «¿Cuánto cuesta?» are answered from the purchase estimate, with no version', async () => {
     const { c, calls, initial } = await shoeRack()
     const sheets = await c.adjust(initial, '¿Cuántas hojas?', newSignal())

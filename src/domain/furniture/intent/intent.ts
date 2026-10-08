@@ -415,6 +415,38 @@ function choicePhrases(field: ChoiceField<Plan>): [value: string, phrase: string
   return [...own, ...complements]
 }
 
+/** A door wider than this goes in two leaves (uniones-y-herrajes.md, "Ancho máximo de una hoja"). */
+const WIDEST_LEAF = 600
+
+const PUT_DOORS = new RegExp(`^${OPENING}(?:ponle|pon|agregale|agrega|cierralo con|cierrala con|que tenga|que lleve|con) puertas( (?:a|en) (?:todos )?los huecos(?: abiertos)?)?$`)
+const NO_DOORS = new RegExp(`^${OPENING}(?:(?:quitale|quita|sacale|saca) las puertas|sin puertas)$`)
+const IN_TWO = new RegExp(`^${OPENING}(?:(?:dividel[oa]|partel[oa]|separal[oa]) en (?:dos|2)(?: columnas| partes)?(?: con una (?:tabla|division) vertical)?|(?:ponle|pon|agregale|agrega|con) (?:una |un )?(?:division|divisor|tabla) vertical|(?:de|en|con) (?:dos|2) columnas)(?: (?:en|al) (?:medio|centro)| a la mitad)?$`)
+
+/** What a cabinet's openings take without saying where: doors on every open one, no doors, or two columns out of its one. A split cell, a chest or a void says more than these words do. */
+function openingsIntent(text: string, plan: Plan): Intent | null | undefined {
+  const field = shownFields(plan).find((f): f is CustomField<Plan> => f.type === 'custom' && f.component === 'cabinetColumns')
+  if (!field || !('dimensions' in plan)) return undefined
+  const [doors, none, two] = [PUT_DOORS.exec(text), NO_DOORS.test(text), IN_TWO.test(text)]
+  if (!doors && !none && !two) return undefined
+  const columns = field.get(plan)
+  const cells = columns.flatMap((c) => c.cells)
+  if (cells.some((c) => c.columns || c.content === 'chest' || c.content === 'void')) return null
+  const has = (content: PlanCell['content']) => cells.some((c) => c.content === content)
+  const leaves = (among: PlanColumn[], column: PlanColumn) => ((plan.dimensions.width * column.width) / among.reduce((n, c) => n + c.width, 0) > WIDEST_LEAF ? 2 : 1)
+  const withCells = (among: PlanColumn[], change: (cell: PlanCell, column: PlanColumn) => PlanCell) => among.map((column) => ({ ...column, cells: column.cells.map((cell) => change(cell, column)) }))
+  const to = (value: string, next: PlanColumn[]) => edit(plan, field.key, value, field.set(plan, next))
+  if (none) return has('door') ? to('remove the doors', withCells(columns, (cell) => (cell.content === 'door' ? { ...cell, content: 'open', doors: null } : cell))) : undefined
+  if (doors) {
+    // "Ponle puertas" on a piece that has some does not say where the new ones go; "a los huecos abiertos" does.
+    if (!has('open') || (has('door') && !doors[1])) return null
+    const whole = cells.every((c) => c.content === 'open')
+    return to(whole ? 'doors on the whole front' : 'doors on the open niches', withCells(columns, (cell, column) => (cell.content === 'open' ? { ...cell, content: 'door', doors: leaves(columns, column) } : cell)))
+  }
+  if (columns.length !== 1) return null
+  const halves = [columns[0], columns[0]].map((c) => ({ ...c, width: 1 }))
+  return to('split into two columns', withCells(halves, (cell, column) => (cell.content === 'door' ? { ...cell, doors: leaves(halves, column) } : { ...cell })))
+}
+
 function choiceIntent(text: string, plan: Plan): Intent | null | undefined {
   const byPhrase = new Map<string, { field: ChoiceField<Plan>; value: string }[]>()
   for (const field of shownFields(plan))
@@ -464,7 +496,7 @@ function oneChange(text: string, plan: Plan, catalog: Catalog): Intent | null {
   const toward = towardIntent(text, plan)
   if (toward !== undefined) return toward
   if (DOUBT.test(text)) return null
-  for (const read of [measureIntent, materialIntent, countIntent, choiceIntent]) {
+  for (const read of [measureIntent, materialIntent, countIntent, openingsIntent, choiceIntent]) {
     const intent = read(text, plan, catalog)
     if (intent !== undefined) return intent
   }
