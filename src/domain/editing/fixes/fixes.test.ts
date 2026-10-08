@@ -7,7 +7,8 @@ import { exampleNightstand } from '../../furniture/fixtures/nightstand'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
 import { buildPlan, MODULES } from '../../furniture/modules/plan'
-import { fixesFor, fixesForNotice } from './fixes'
+import { applyOperations } from '../operations/apply'
+import { fixForAlternative, fixesFor, fixesForNotice } from './fixes'
 
 const findings = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -89,5 +90,62 @@ describe('fixesFor', () => {
     const loose = { ...exampleBookcase, wallAnchored: false }
     const [fix] = fixesFor(loose, testCatalog, finding(loose, 'R4_TIPPING'))
     expect(fix.design.wallAnchored).toBe(true)
+  })
+})
+
+describe('fixes for hardware and drawers', () => {
+  const variants = new Map(MODULES.cabinet.benchVariants())
+  const built = (name: string) => buildPlan(variants.get(name)!, testCatalog).design
+  const roleOf = (hardwareId: string) => testCatalog.hardware.find((h) => h.id === hardwareId)?.role
+  /** The design with one piece of hardware of a role swapped for another, in the first joint that carries one. */
+  const withHardware = (d: Design, role: string, hardwareId: string): Design => {
+    const joint = d.joints.find((u) => u.hardware.some((h) => roleOf(h.hardwareId) === role))!
+    return { ...d, joints: d.joints.map((u) => (u !== joint ? u : { ...u, hardware: u.hardware.map((h) => (roleOf(h.hardwareId) === role ? { ...h, hardwareId } : h)) })) }
+  }
+  const hardwareOf = (d: Design, role: string) => d.joints.flatMap((u) => u.hardware).filter((h) => roleOf(h.hardwareId) === role)
+
+  it('a door with the hinge of another mount gets the one for its own, as many as it had', () => {
+    const cabinet = built('alacena')
+    const wrong = withHardware(cabinet, 'hinge', 'cup-hinge-35-inset')
+    const mismatch = findings(wrong).find((h) => h.check === 'door.hinge-mount')!
+    const [fix] = fixesFor(wrong, testCatalog, mismatch)
+    expect(fix.key).toBe('matching-hinge')
+    expect(hardwareOf(fix.design, 'hinge')).toEqual(hardwareOf(cabinet, 'hinge'))
+    expect(findings(fix.design).some((h) => h.check === 'door.hinge-mount')).toBe(false)
+  })
+
+  it('a drawer with a slide of the wrong length gets the one its box takes', () => {
+    const drawers = built('cajonera')
+    const wrong = withHardware(drawers, 'drawer-slide', 'drawer-slide-30')
+    const mismatch = findings(wrong).find((h) => h.alternatives.some((a) => a.key === 'matching-slide'))!
+    const fix = fixesFor(wrong, testCatalog, mismatch).find((f) => f.key === 'matching-slide')!
+    expect(hardwareOf(fix.design, 'drawer-slide')).toEqual(hardwareOf(drawers, 'drawer-slide'))
+    expect(findings(fix.design).some((h) => h.alternatives.some((a) => a.key === 'matching-slide'))).toBe(false)
+  })
+
+  it.each([
+    ['left', 'Apoyo de corredera izquierdo'],
+    ['right', 'Apoyo de corredera derecho'],
+  ])('a drawer with nothing on its %s gets a piece to screw the slide to, one drawer at a time', (which, name) => {
+    const drawers = built('cajonera')
+    const sides = drawers.pieces.filter((p) => p.role === 'side')
+    const side = which === 'left' ? sides[0] : sides[sides.length - 1]
+    const removed = applyOperations(drawers, [{ op: 'removePiece', id: side.id }], testCatalog)
+    if (!removed.ok) throw new Error(removed.errors[0].message)
+    const open = removed.value.design
+    const unsupported = findings(open).filter((h) => h.check === 'drawer.no-slide-support')
+    expect(unsupported.length).toBeGreaterThan(1)
+    const [fix] = fixesFor(open, testCatalog, unsupported[0])
+    expect(fix.operations.map((o) => o.op)).toEqual(['addPiece', 'addJoint'])
+    expect(fix.design.pieces.some((p) => p.name === name)).toBe(true)
+    expect(findings(fix.design).filter((h) => h.check === 'drawer.no-slide-support')).toHaveLength(unsupported.length - 1)
+    // One click for the whole notice would support only the first drawer: it is left to the expert.
+    expect(fixForAlternative(open, testCatalog, unsupported, 'slide-support')).toBeNull()
+  })
+
+  it('offers nothing for a fix that is already in place', () => {
+    const anchored = { ...exampleBookcase, wallAnchored: false }
+    const tipping = finding(anchored, 'R4_TIPPING')
+    expect(fixesFor({ ...anchored, wallAnchored: true }, testCatalog, tipping)).toEqual([])
   })
 })
