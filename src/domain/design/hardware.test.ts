@@ -39,6 +39,17 @@ describe('hardware to draw', () => {
     expect(stay.x - lid.x0).toBe(8)
     expect([stay.onLid[0], stay.onWall[0] < lid.y0, stay.onLid[1] > strip.z1]).toEqual([lid.y0, true, true])
   })
+  it('draws a closet rod from wall to wall under the board over its cell, and it moves with that board', () => {
+    const { design } = buildCabinet(
+      { kind: 'cabinet', name: 'Clóset', dimensions: { width: 900, height: 2000, depth: 580 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 0, doors: null, rod: true }] }] },
+      testCatalog,
+    )
+    const geo = analyze(design, testCatalog).geo!
+    const [left, right, top] = ['side-left', 'side-right', 'top'].map((id) => geo.boxes.get(id)!)
+    const rods = hardwareParts(design, geo.boxes, testCatalog).filter((h) => h.kind === 'closet-rod')
+    expect(rods).toEqual([{ kind: 'closet-rod', owner: 'top', axis: 'x', length: right.x0 - left.x1, diameter: 25, center: [(left.x1 + right.x0) / 2, top.y0 - 50, (top.z0 + top.z1) / 2] }])
+    expect(hardwareParts({ ...design, rods: [{ id: 'gone', under: 'top', from: 'side-right' }] }, geo.boxes, testCatalog).filter((h) => h.kind === 'closet-rod')).toEqual([])
+  })
   it('a lid that lies over its sides has its stays inside them, one by each wall when it takes two', () => {
     const { design } = buildCabinet(
       { kind: 'cabinet', name: 'Baúl', dimensions: { width: 1200, height: 480, depth: 420 }, material: 'T18', base: 'floor', legHeight: 150, wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, top: 'over' }, columns: [{ width: 1, cells: [{ height: 1, content: 'chest', shelves: 0, doors: null }] }] },

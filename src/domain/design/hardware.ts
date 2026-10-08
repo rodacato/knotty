@@ -1,6 +1,7 @@
 import { hingesFor } from '../assumptions'
 import type { Catalog } from '../materials/catalog'
 import { lidSwing } from './doors'
+import { rodRuns } from './rods'
 import type { Axis, Design } from './schema'
 import type { Box } from './resolve'
 import { contactBetween } from './validation/contact'
@@ -31,6 +32,8 @@ const CAM = { diameter: 15, fromEdge: 34, pin: 7, pilot: 8, dowelAside: 32 }
 const SHELF_PIN = { diameter: 5, length: 16, out: 8 }
 /** A piano hinge's knuckle, and a friction stay: where its ends are screwed, from the hinge along the lid and down and out along the wall, and how far in from the lid's edge it sits. */
 const PIANO_KNUCKLE = 6
+/** A closet rod as the hardware stores sell it: about an inch across. */
+const ROD_DIAMETER = 25
 const STAY = { alongLid: 120, lidShare: 0.6, down: 100, out: 60, inset: 8, stretch: 0.52 }
 const AXES: Axis[] = ['x', 'y', 'z']
 const low = (b: Box, axis: Axis) => b[`${axis}0` as const]
@@ -48,8 +51,8 @@ export type HardwarePart =
   | { kind: 'hole'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
   /** Metal that shows on a face of `owner` with the furniture put together: the head of a bolt, its barrel nut or the cam of a minifix. */
   | { kind: 'cap'; owner: string; center: Point; axis: Axis; outward: 1 | -1; diameter: number }
-  /** A rod lying along `axis`, `center` at its middle. A dowel stays in the piece that takes it; a pin in the side that carries the shelf; a piano hinge on the board the lid hinges on. */
-  | { kind: 'dowel' | 'shelf-pin' | 'piano-hinge'; owner: string; center: Point; axis: Axis; length: number; diameter: number }
+  /** A rod lying along `axis`, `center` at its middle. A dowel stays in the piece that takes it; a pin in the side that carries the shelf; a piano hinge on the board the lid hinges on; a closet rod under the board over it. */
+  | { kind: 'dowel' | 'shelf-pin' | 'piano-hinge' | 'closet-rod'; owner: string; center: Point; axis: Axis; length: number; diameter: number }
   /** The stay of the lid `owner`, in the plane at `x`: the lid turns about `pivot`, one arm is screwed under it at `onLid` (with the lid closed) and the other to the wall at `onWall`, all as [y, z]. */
   | { kind: 'stay'; owner: string; x: number; pivot: [number, number]; onLid: [number, number]; onWall: [number, number]; arm: number }
   /** Goes through `owner`, its head on the end that looks `outward`. */
@@ -192,5 +195,6 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
         parts.push({ kind: 'hinge', owner: u.a, center: [x, door.y0 + HINGE_FROM_END + (n > 1 ? (span * i) / (n - 1) : span / 2), door.z0], diameter: CUP_DIAMETER, depth: CUP_DEPTH })
     }
   }
+  for (const run of rodRuns(design, boxes)) parts.push({ kind: 'closet-rod', owner: run.ceiling, center: [(run.x0 + run.x1) / 2, run.y, run.z], axis: 'x', length: run.x1 - run.x0, diameter: ROD_DIAMETER })
   return parts
 }

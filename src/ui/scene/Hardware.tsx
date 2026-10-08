@@ -21,7 +21,7 @@ const HOLE = { color: '#2a211b', metalness: 0, roughness: 1 }
 const SCREW_HEAD = { diameter: 8, height: 2 }
 /** What holds two pieces together sits inside the wood: it only shows with the furniture taken apart. */
 const INSIDE = new Set<HardwarePart['kind']>(['dowel', 'screw', 'shelf-pin', 'hole'])
-const LOOK = { plug: PLUG, hole: HOLE, cap: METAL, dowel: DOWEL, runner: METAL, hinge: METAL, screw: METAL, 'shelf-pin': METAL, 'piano-hinge': METAL }
+const LOOK = { plug: PLUG, hole: HOLE, cap: METAL, dowel: DOWEL, runner: METAL, hinge: METAL, screw: METAL, 'shelf-pin': METAL, 'piano-hinge': METAL, 'closet-rod': METAL }
 const AXIS = { x: 0, y: 1, z: 2 }
 const PLUG_PROUD = 0.8
 const TURN = { x: [0, 0, Math.PI / 2], y: [0, 0, 0], z: [Math.PI / 2, 0, 0] } as const
@@ -88,7 +88,7 @@ function Disc({ center, axis, outward, diameter, children }: { center: [number, 
 function Part({ part, geo, faded }: { part: Exclude<HardwarePart, Stay>; geo: Geometry; faded: boolean }) {
   const material = <meshStandardMaterial {...LOOK[part.kind]} transparent={faded} opacity={faded ? 0.15 : 1} />
   if (part.kind === 'plug' || part.kind === 'hole' || part.kind === 'cap') return <Disc {...part}>{material}</Disc>
-  if (part.kind === 'dowel' || part.kind === 'shelf-pin' || part.kind === 'piano-hinge' || part.kind === 'screw') {
+  if (part.kind === 'dowel' || part.kind === 'shelf-pin' || part.kind === 'piano-hinge' || part.kind === 'closet-rod' || part.kind === 'screw') {
     const [x, y, z] = part.center
     const head = [...part.center] as [number, number, number]
     if (part.kind === 'screw') head[AXIS[part.axis]] += (part.outward * part.length) / 2

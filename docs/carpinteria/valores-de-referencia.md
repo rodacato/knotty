@@ -151,6 +151,8 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Cocina: fondo de alacena | **330** | — | mm | | ✅ [35] | [muebles-y-medidas.md](muebles-y-medidas.md) |
 | Clóset: fondo | **580–600** | 650 con puertas corredizas | mm | | ✅ [36] | [muebles-y-medidas.md](muebles-y-medidas.md) |
 | Clóset: altura de barra | **1680–1730** sencilla | doble barra: 1020 y 2030 | mm | | ✅ [36] | [muebles-y-medidas.md](muebles-y-medidas.md) |
+| Clóset: claro del tubo sin soporte al centro | **1000** | 915–1220 | mm | Regla de taller; sin carga por metro confiable | ⚠️ | [uniones-y-herrajes.md](uniones-y-herrajes.md) §6.4 |
+| Clóset: hueco para colgado corto | **1000** | 900–1100 | mm | Camisas y sacos | ✅ | [muebles-y-medidas.md](muebles-y-medidas.md) |
 | Librero: fondo | **280** libros comunes | 200 bolsillo · 330 grandes o carpetas · 350 discos LP | mm | | ⚠️ [37] † | [muebles-y-medidas.md](muebles-y-medidas.md) |
 | Alcance cómodo | — | 380–1220 del piso | mm | Repisas y cajones de uso diario | ✅ [38] † | [muebles-y-medidas.md](muebles-y-medidas.md) |
 | Zoclo | **80–100** alto × **50** remetido en cocina | **50–70** alto en recámara | mm | | ⚠️ | [muebles-y-medidas.md](muebles-y-medidas.md) |

@@ -31,6 +31,7 @@ function cellText(cell: PlanCell, sliding: boolean): string {
     const inside = `${plural(cell.columns.length, 'column')} [${cell.columns.map((c) => c.cells.map((inner) => cellText(inner, sliding)).join(', ')).join(' | ')}] (${cell.height})`
     return sliding && cell.content === 'door' ? `${doorText(cell)} in front of ${inside}` : `split into ${inside}`
   }
+  const rod = cell.rod ? ', with a closet rod' : ''
   const shelves = cell.shelves ? ` with ${plural(cell.shelves, 'shelf').replace('shelfs', 'shelves')}` : ''
   const body = {
     door: doorText(cell),
@@ -42,7 +43,7 @@ function cellText(cell: PlanCell, sliding: boolean): string {
   }[cell.content]
   const back = cell.back === undefined ? '' : cell.back ? ', with a back' : ', no back'
   const own = Object.entries(cell.own ?? {}).map(([key, value]) => `, ${key} ${value}`).join('')
-  return `${body}${cell.content === 'drawer' || cell.content === 'chest' ? '' : shelves}${back}${own} (${cell.height})`
+  return `${body}${cell.content === 'drawer' || cell.content === 'chest' ? '' : shelves}${rod}${back}${own} (${cell.height})`
 }
 
 type Cabinet = Extract<FurniturePlan, { kind: 'cabinet' }>

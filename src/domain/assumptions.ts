@@ -93,6 +93,15 @@ export const ASSUMPTIONS = {
     stayTorque: 3,
     maxStays: 2,
   },
+  /** A closet rod: a tube between two uprights, under the top of its opening. */
+  rods: {
+    /** From the board over it down to the middle of the rod: room to get a hanger's hook over it. */
+    drop: 50,
+    /** The longest a rod runs with no support in the middle. */
+    maxSpan: 1000,
+    /** The least clear height under it: what a shirt or a jacket takes hanging. */
+    shortHang: 900,
+  },
   /** The longest span of a floor with no support in between, when it does not rest on the ground. */
   floorSpan: 800,
   /** A floor rests on a run (a kick, a rail) that is under at least this share of its length. */
@@ -165,6 +174,9 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'lids.stayTorque': cite(JOINTS_DOC, '64-otros-herrajes', 'Compás de fricción'),
   'lids.maxStays': noReference('one stay by each wall of the chest is all there is room for; the reference gives no count'),
   'lids.minOpening': noReference('where Knotty calls a lid hard to reach under; the reference gives no opening angle'),
+  'rods.drop': noReference('room for the hook of a hanger between the rod and the board over it; the reference places the rod from the back and from the floor, not under its shelf'),
+  'rods.maxSpan': cite(VALUES, '10-medidas-de-muebles-y-ergonomía', 'Clóset: claro del tubo sin soporte al centro'),
+  'rods.shortHang': cite(VALUES, '10-medidas-de-muebles-y-ergonomía', 'Clóset: hueco para colgado corto'),
   floorSpan: cite(STRUCTURE, '71-patas-o-zoclo', 'un piso de más de 800 mm sin apoyo intermedio necesita revisión'),
   'legs.maxSpan': cite(STRUCTURE, '71-patas-o-zoclo', 'más de ≈ 1 200 mm de ancho → patas intermedias'),
   'legs.footprint': noReference('how Knotty tells a leg from a panel on the floor: a laminated leg of 2 × 18 × 72 fits with room, a side or a kick is far longer'),

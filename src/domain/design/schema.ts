@@ -118,6 +118,10 @@ export type Joint = z.infer<typeof Joint>
 export const EdgeProfileChoice = z.object({ piece: PieceId, edge: Edge, profile: EdgeProfileId })
 export type EdgeProfileChoice = z.infer<typeof EdgeProfileChoice>
 
+/** A closet rod, under the board `under`, from the right face of the upright `from` to the next upright. It joins nothing, so it is not a joint. Knotty's data, not the expert's. */
+export const Rod = z.object({ id: z.string().min(1), under: PieceId, from: PieceId })
+export type Rod = z.infer<typeof Rod>
+
 export const Dimensions = z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() })
 export type Dimensions = z.infer<typeof Dimensions>
 
@@ -143,6 +147,8 @@ export const Design = z.object({
   finish: FinishId.optional(),
   /** Edge profiles the person chose in the piece sheet; absent is none. The person's, like the finish. */
   edgeProfiles: z.array(EdgeProfileChoice).optional(),
+  /** Rods to hang clothes from, from the plan; absent is none. */
+  rods: z.array(Rod).optional(),
 })
 export type Design = z.infer<typeof Design>
 
