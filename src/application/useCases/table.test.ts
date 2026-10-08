@@ -136,6 +136,12 @@ describe('table adjustments through the real use cases', () => {
     expect(fits.ok || fits.message).not.toContain('hoja')
   })
 
+  it('a measure out of what a plan takes is refused with its range, before anything is built', () => {
+    const { useCases, initial } = setup([])
+    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, depth: 7 } })).toEqual({ ok: false, message: 'El fondo va de 100 a 2400 mm.' })
+    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, width: 3000 } })).toEqual({ ok: false, message: 'El largo va de 100 a 2400 mm.' })
+  })
+
   it('with two measures changed at once it says the board and how much it is over, and names no measure', () => {
     const { useCases, initial } = setup([])
     const r = useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, width: 1500, depth: 1200 } })

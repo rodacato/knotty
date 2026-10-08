@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { BED_LABELS, BedPlan } from './bed'
 import { CABINET_LABELS, CabinetConstruction, CabinetPlan, PlanCell } from './cabinet'
+import { PLAN_MEASURE } from './common'
+import { valueFields, type FieldSpec } from './fields'
 import { buildPlan, describePlanChanges, FurniturePlan, MODULE_OF_KIND, MODULES, moduleOf } from './plan'
 import { TABLE_LABELS, TablePlan } from './table'
 
@@ -28,6 +30,18 @@ describe('the furniture registry', () => {
         expect(FurniturePlan.parse(plan).kind).toBe(module.kind)
         expect(moduleOf(plan)).toBe(module)
         expect(buildPlan(plan, testCatalog).design.pieces.length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('refuses a measure under or over what a plan takes, by the name the form gives it', () => {
+    for (const module of Object.values(MODULES)) {
+      const [, plan] = module.benchVariants()[0] as [string, FurniturePlan]
+      const measures = valueFields(module.fields as FieldSpec<FurniturePlan>[]).flatMap((f) => (f.type === 'number' && f.max === PLAN_MEASURE.max ? [f] : []))
+      expect(measures.length).toBeGreaterThan(0)
+      for (const field of measures) {
+        expect(field.min).toBe(PLAN_MEASURE.min)
+        for (const value of [PLAN_MEASURE.min - 1, PLAN_MEASURE.max + 1]) expect(FurniturePlan.safeParse(field.set(plan, value)).error?.issues.map((i) => i.message)).toContainEqual(expect.stringMatching(/ va de 100 a 2400 mm\.$/))
       }
     }
   })

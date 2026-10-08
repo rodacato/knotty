@@ -63,7 +63,7 @@ export function createEdits(kit: Kit) {
   /** The design a plan would give, with the changes made on top of it: what «Aplicar» keeps, and what the 3D shows before it. */
   function previewPlan(state: DesignState, plan: FurniturePlan): { ok: true; plan: FurniturePlan; design: Design; notes: string[]; dropped: Operation[] } | { ok: false; message: string } {
     const parsed = FurniturePlan.safeParse(plan)
-    if (!parsed.success) return { ok: false, message: parsed.error.issues.find((i) => i.code === 'custom' || i.path[0] === 'legHeight')?.message ?? 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
+    if (!parsed.success) return { ok: false, message: parsed.error.issues.find((i) => i.code === 'custom' || ((i.code === 'too_small' || i.code === 'too_big') && !i.message.startsWith('Too ')))?.message ?? 'Hay un valor que no tiene sentido en la ficha: revisa que las medidas y los altos sean mayores que cero.' }
     const current = currentPlan(state)
     const rebuilt = rebuildFromPlan(parsed.data, current.diverged ? [] : current.extras, catalog, state.requirements)
     const design = byPerson(currentDesign(state), rebuilt.design)

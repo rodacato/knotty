@@ -9,7 +9,7 @@ import { stiffness } from '../../materials/grades'
 import { cite, noReference, STRUCTURE, type Source } from '../../sources'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { describeLegStyle, LEG_STYLE, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
@@ -342,9 +342,9 @@ const tableFields: FieldSpec<TablePlan>[] = [
   ]),
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
-      number({ key: 'dimensions.width', label: 'Largo', get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
-      number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
+      number({ key: 'dimensions.height', label: 'Alto', ...PLAN_MEASURE, lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Largo', ...PLAN_MEASURE, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
     numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
@@ -418,6 +418,7 @@ export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
   rules: [
+    ...outsideRules<TablePlan>('El largo'),
     { holds: (p) => p.use === 'desk' || (p.pedestal.side === 'none' && p.pedestal.drawers === 0), message: 'Solo un escritorio lleva cajonera. Para este uso, elige sin cajonera y cero cajones.', path: ['pedestal'] },
     { holds: (p) => (p.pedestal.side === 'none') === (p.pedestal.drawers === 0), message: 'Una cajonera necesita lado y al menos un cajón; sin cajonera, el número de cajones debe ser cero.', path: ['pedestal', 'drawers'] },
     { holds: (p) => p.use !== 'desk' || !p.shelf, message: 'Un escritorio no lleva repisa baja: estorba las piernas.', path: ['shelf'] },

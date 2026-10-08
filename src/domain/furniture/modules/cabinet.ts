@@ -13,7 +13,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -1045,9 +1045,9 @@ const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof C
 const cabinetFields: FieldSpec<CabinetPlan>[] = [
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
-      number({ key: 'dimensions.width', label: 'Ancho', lockedByDefault: true, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
-      number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
+      number({ key: 'dimensions.height', label: 'Alto', ...PLAN_MEASURE, lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Ancho', ...PLAN_MEASURE, lockedByDefault: true, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
   ]),
   section('Cómo se arma', [
@@ -1160,6 +1160,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
   rules: [
+    ...outsideRules<CabinetPlan>(),
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
     { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },

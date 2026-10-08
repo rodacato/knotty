@@ -4,6 +4,7 @@ import { materialById, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { cite, noReference, STRUCTURE, VALUES, type Source } from '../../sources'
+import type { PlanRule } from './module'
 
 // What every module builds the same way: panels, drawers that may not fit, supports every so often and the numbers they share.
 
@@ -17,6 +18,21 @@ export const thicknessOf = (catalog: Catalog, material: string) => materialById(
  * The bed check (BED_SPAN) is critical past the top, 700; a cabinet floor on legs is another case, reviewed past 800 (ASSUMPTIONS.floorSpan).
  */
 export const MAX_SPAN = 600
+
+/** The least and the most a measure of a plan takes, in mm: under it nothing is a piece of furniture, and past it no board of a sheet reaches. */
+export const PLAN_MEASURE = { min: 100, max: 2400 } as const
+
+/** A rule per measure that keeps it inside PLAN_MEASURE and says so by the name the form gives it ("El largo"). */
+export const measureRules = <P>(measures: { path: string[]; noun: string; get: (plan: P) => number }[]): PlanRule<P>[] =>
+  measures.map(({ path, noun, get }) => ({ holds: (plan) => get(plan) >= PLAN_MEASURE.min && get(plan) <= PLAN_MEASURE.max, message: `${noun} va de ${PLAN_MEASURE.min} a ${PLAN_MEASURE.max} mm.`, path }))
+
+/** The three outside measures of a plan that has them; `width` is what the form calls it. */
+export const outsideRules = <P extends { dimensions: Dimensions }>(width = 'El ancho'): PlanRule<P>[] =>
+  measureRules<P>([
+    { path: ['dimensions', 'height'], noun: 'El alto', get: (p) => p.dimensions.height },
+    { path: ['dimensions', 'width'], noun: width, get: (p) => p.dimensions.width },
+    { path: ['dimensions', 'depth'], noun: 'El fondo', get: (p) => p.dimensions.depth },
+  ])
 
 /** Kick plate heights: bedroom and living-room furniture stands on 50–70, and so does a bed's row of drawers (kitchens take 80–100, not built here). */
 export const KICK_HEIGHT = { cabinet: 70, pedestal: 70, bed: 70 } as const
@@ -64,6 +80,7 @@ export const MODULE_SOURCES: Record<string, Source> = {
   KICK_HEIGHT: cite(VALUES, '10-medidas-de-muebles-y-ergonomía', '**50–70** alto en recámara'),
   KICK_SETBACK: noReference('the reference sets a kick back 50 mm only in kitchens; 30 is Knotty’s for bedroom and living-room furniture'),
   LEG_HEIGHT: noReference('the reference gives no height for legs under a box; about 150 is what the reference sideboard KC-APA-01 (940 × 1600 × 400 on four splayed legs) shows'),
+  PLAN_MEASURE: noReference('the reference gives typical measures, not hard limits: 100 is the least the chat already reads as a measure and the least height Capture takes, and 2400 is the most Capture takes, just under the usable sheet'),
   LEG_HEIGHT_RANGE: noReference('the reference gives no range for legs: under 100 the 80 mm apron nearly touches the floor, over 300 they need a thicker section and bracing'),
   MIN_CARCASS_HEIGHT: noReference('the reference gives no least box height; under 200 a bottom, a top and a drawer or a shelf no longer fit between them'),
   LEG_APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
