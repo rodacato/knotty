@@ -192,8 +192,10 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
       if (!surface) return []
       const free = kneeSpace(design, geo, surface.box, knee)
       if (free >= knee.width) return []
+      // With no gap at all something crosses the whole width: what is short is the height or the depth, not the width.
+      const found = free > 0 ? `el más ancho mide ${roundTo(free, 0)} mm` : 'algo cruza todo el ancho dentro de ese hueco (un faldón o una repisa)'
       return [
-        report('critical', surface.ids, `Debajo de la cubierta no queda espacio para las piernas: hace falta un hueco libre de ${knee.width} mm de ancho, ${knee.height} de alto y ${knee.depth} de fondo, y el más ancho mide ${roundTo(free, 0)} mm.`, { free: roundTo(free, 0) }, [
+        report('critical', surface.ids, `Debajo de la cubierta no queda espacio para las piernas: hace falta un hueco libre de ${knee.width} mm de ancho, ${knee.height} de alto y ${knee.depth} de fondo, y ${found}.`, { free: roundTo(free, 0) }, [
           { key: 'legroom', description: `Dejar un hueco libre de al menos ${knee.width} mm de ancho debajo de la cubierta`, data: { width: knee.width } },
         ]),
       ]

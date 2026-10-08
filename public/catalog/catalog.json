@@ -125,6 +125,17 @@
       "price": 85
     },
     {
+      "id": "screw-8x3/4",
+      "role": "screw",
+      "name": "Tornillo para madera #8 × ¾\"",
+      "unit": "piece",
+      "perPack": 50,
+      "length": 19.05,
+      "sideClearance": null,
+      "sku": null,
+      "price": null
+    },
+    {
       "id": "pocket-screw-1",
       "role": "pocket-screw",
       "name": "Tornillo de bolsillo 1\" rosca gruesa",

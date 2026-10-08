@@ -9,8 +9,8 @@ import { noReference, type Source } from '../../../sources'
 const INCH = 25.4
 export const SCREW_RULE_SOURCES: Record<string, Source> = { INCH: noReference('a unit: millimetres in an inch, how screws are sold') }
 /** Millimetres as a hardware store says them: 1¼", ⅝". */
-const inches = (mm: number) => {
-  const eighths = Math.round((mm / INCH) * 8)
+const inches = (mm: number, toEighth: (x: number) => number = Math.round) => {
+  const eighths = toEighth((mm / INCH) * 8)
   const whole = Math.floor(eighths / 8)
   const rest = eighths % 8
   const fraction = rest ? { 2: '¼', 4: '½', 6: '¾' }[rest] ?? `${rest}/8` : ''
@@ -46,7 +46,7 @@ export const screwRule: Rule = ({ design, geo, catalog }) =>
           check: 'screw.pokes-through',
           message: `El ${t!.name.toLowerCase()} atraviesa ${a.name} (${ta} mm) y entra ${roundTo(bite)} mm en la cara de ${b.name}, que mide ${tb} mm: se asoma del otro lado.`,
           data: { joint: u.id, length: length, bite: roundTo(bite), thickness: tb },
-          alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(longest)} o menos`, data: { length: longest } }],
+          alternatives: [{ key: 'shorter-screw', description: `Un tornillo de ${inches(longest, Math.floor)} o menos`, data: { length: longest } }],
         })
       } else if (u.type === 'butt-screw') {
         const bite = length - ta

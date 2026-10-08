@@ -145,6 +145,18 @@ describe('a bed on legs', () => {
     expect(BedPlan.safeParse(raised(301)).success).toBe(false)
   })
 
+  it('rejects a bookcase or storage headboard too low for what it holds over the base, and builds the lowest it takes', () => {
+    const deep = (style: 'bookcase' | 'storage', height: number, shelves: number, cap = false) => bed({ headboard: { style, height, depth: 250, shelves, cap } })
+    expect(FurniturePlan.safeParse(deep('storage', 550, 2)).error?.issues[0]).toMatchObject({ path: ['headboard', 'height'], message: expect.stringMatching(/^No cupo/) })
+    for (const [style, shelves, cap] of [['storage', 0, false], ['storage', 4, false], ['storage', 2, true], ['bookcase', 0, false], ['bookcase', 4, true]] as const) {
+      const least = 400 + (style === 'storage' ? 280 : 0) + (2 + (cap ? 1 : 0) + 2 * shelves) * 18
+      expect(FurniturePlan.safeParse(deep(style, least - 1, shelves, cap)).success).toBe(false)
+      expect(FurniturePlan.safeParse(deep(style, least, shelves, cap)).success).toBe(true)
+      expect(analyze(buildBed(deep(style, least, shelves, cap), testCatalog).design, testCatalog).valid).toBe(true)
+    }
+    expect(FurniturePlan.safeParse(bed({ headboard: { style: 'plain', height: 300, depth: 0, shelves: 0 } })).success).toBe(true)
+  })
+
   it('shows the legs on the form only without drawers, says why otherwise, and drops them when drawers are chosen', () => {
     const fields = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f]))
     const shown = (key: string, plan: BedPlan) => fields.filter((f) => f.type === 'numbers' ? f.fields.some((n) => n.key === key) : 'key' in f && f.key === key).every((f) => !f.visibleWhen || f.visibleWhen(plan))

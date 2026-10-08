@@ -9,7 +9,7 @@ import { backBoard, type Catalog } from '../../materials/catalog'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -72,6 +72,10 @@ export type BedPlan = z.infer<typeof BedPlan>
 const hasDrawers = (plan: BedPlan) => plan.drawers.side !== 'none' && plan.drawers.count > 0
 /** The legs take height from the frame above them: what is left must still hold the platform and its rails. */
 const frameFits = (plan: BedPlan) => plan.legs !== 'legs' || plan.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+/** Over the base, a bookcase or storage headboard holds its floor and top, the compartment, the cap, and each shelf with a gap no thinner than it. */
+const headboardRoom = (plan: BedPlan) => (plan.headboard.style === 'storage' ? COMPARTMENT : 0) + (2 + (plan.headboard.cap ? 1 : 0) + 2 * plan.headboard.shelves) * DEFAULT_THICKNESS
+const headboardFits = (plan: BedPlan) => (plan.headboard.style !== 'bookcase' && plan.headboard.style !== 'storage') || plan.headboard.height - plan.height >= headboardRoom(plan)
+const HEADBOARD_TOO_LOW = 'No cupo: la cabecera queda muy baja para lo que lleva arriba de la base; súbela, quítale repisas o hazla lisa.'
 const FRAME_TOO_LOW = `No cupo: con esas patas el marco de la cama queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto de la base.`
 const LEGS_WITH_DRAWERS = 'No cupo: una cama con cajones no lleva patas, el zoclo sostiene el banco de cajones.'
 const DAYBED_DRAWERS = 'No cupo: una cama de día lleva el respaldo del lado sin cajones; pon los cajones de un solo lado.'
@@ -845,6 +849,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
   schema: BedPlan,
   rules: [
     { holds: frameFits, message: FRAME_TOO_LOW, path: ['legHeight'] },
+    { holds: headboardFits, message: HEADBOARD_TOO_LOW, path: ['headboard', 'height'] },
     { holds: (plan) => plan.legs !== 'legs' || !hasDrawers(plan), message: LEGS_WITH_DRAWERS, path: ['legs'] },
     { holds: (plan) => !isDaybed(plan) || !(plan.drawers.side === 'both' && plan.drawers.count > 0), message: DAYBED_DRAWERS, path: ['drawers', 'side'] },
     { holds: (plan) => !isDaybed(plan) || plan.legs !== 'legs', message: DAYBED_LEGS, path: ['legs'] },

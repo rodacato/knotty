@@ -7,6 +7,7 @@ import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertC
 import { countLimits, quickCounts, setCount } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
+import { ASSUMPTIONS } from '../../assumptions'
 import { FurniturePlan } from './plan'
 import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
@@ -116,6 +117,32 @@ describe('on legs', () => {
   })
 })
 
+describe('overlay drawer fronts on a box that sits on the floor', () => {
+  it('stop short of the ground, so the lowest drawer does not drag', () => {
+    const { design } = buildCabinet({ ...PLANS.drawerChest, base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, drawerFronts: 'overlay' } }, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    expect(a.findings.map((f) => f.check)).not.toContain('drawer.floor')
+    expect(a.geo.boxes.get('drawer-1-front')!.y0).toBe(ASSUMPTIONS.drawers.floorClearance)
+  })
+})
+
+describe('in 12 mm board', () => {
+  const screws = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { front: design.joints.find((j) => j.id === 'j-drawer-1-subfront-front')!.hardware.map((h) => h.hardwareId), layers: design.joints.filter((j) => j.a === 'leg-front-left-1' && j.b === 'leg-front-left-2').flatMap((j) => j.hardware.map((h) => h.hardwareId)), checks: a.findings.map((f) => f.check) }
+  }
+
+  it('the drawer fronts and the leg layers take the screw that does not come out the other side, and thicker board keeps its own', () => {
+    const thin = screws({ ...PLANS.drawerChest, base: 'legs', material: 'T12' })
+    expect(thin).toMatchObject({ front: ['screw-8x3/4'], layers: ['screw-8x3/4'] })
+    expect(thin.checks).not.toContain('screw.pokes-through')
+    expect(screws({ ...PLANS.drawerChest, base: 'legs' })).toMatchObject({ front: ['screw-8x1'], layers: ['screw-8x1-1/4'] })
+  })
+})
+
 describe('leg height', () => {
   const onLegs = (legHeight: number | undefined, extra: Partial<CabinetPlan> = {}) => ({ ...PLANS.sideboard, ...(legHeight === undefined ? {} : { legHeight }), ...extra })
   const { legHeight: _omitted, ...saved } = PLANS.sideboard
@@ -136,6 +163,17 @@ describe('leg height', () => {
     expect(tooLow.error?.issues[0]).toMatchObject({ path: ['legHeight'], message: expect.stringMatching(/^No cupo/) })
     expect(FurniturePlan.safeParse(onLegs(300, { dimensions: { width: 1600, height: 300 + MIN_CARCASS_HEIGHT, depth: 400 } })).success).toBe(true)
     expect(FurniturePlan.safeParse({ ...PLANS.nightstand, legHeight: 300 }).success).toBe(true)
+  })
+
+  it('rejects legs on a box too shallow for a front and a back leg, a board deeper with overlay fronts, and builds the shallowest it takes', () => {
+    const overlay = { ...DEFAULT_CONSTRUCTION, drawerFronts: 'overlay' as const }
+    const shallow = (depth: number, extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ ...PLANS.nightstand, base: 'legs', dimensions: { ...PLANS.nightstand.dimensions, depth }, ...extra })
+    for (const p of [shallow(204), shallow(222, { construction: overlay })]) expect(FurniturePlan.safeParse(p).error?.issues[0]).toMatchObject({ path: ['dimensions', 'depth'], message: expect.stringMatching(/^No cupo/) })
+    for (const p of [shallow(205), shallow(223, { construction: overlay })]) {
+      expect(FurniturePlan.safeParse(p).success).toBe(true)
+      analyzed(p)
+    }
+    expect(FurniturePlan.safeParse(shallow(204, { base: 'kick' })).success).toBe(true)
   })
 
   it('a plan saved without it gets 150 and builds exactly as one that says so', () => {
@@ -559,6 +597,8 @@ describe('a chest opened from above', () => {
         expect(FurniturePlan.safeParse(p).success).toBe(false)
       }
       expect(FurniturePlan.safeParse(trunk()).success).toBe(true)
+      expect(FurniturePlan.safeParse(fingered).error?.issues[0]).toMatchObject({ path: ['construction', 'top'], message: expect.stringContaining('dedos') })
+      expect(FurniturePlan.safeParse(mixed).error?.issues[0]).toMatchObject({ path: ['columns'] })
     })
   })
 
