@@ -62,6 +62,6 @@
     "pieces": 12,
     "findings": ["recommendation:R5_RACKING"],
     "sheets": { "T18": 1 },
-    "hardware": { "edge-banding-19": 5, "screw-8x2": 32, "white-glue": 1 }
+    "hardware": { "anti-tip-kit": 1, "edge-banding-19": 5, "screw-8x2": 32, "white-glue": 1 }
   }
 }

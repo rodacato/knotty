@@ -51,6 +51,6 @@
     "pieces": 24,
     "findings": ["recommendation:R5_RACKING"],
     "sheets": { "T18": 1 },
-    "hardware": { "cup-hinge-35-inset": 2, "edge-banding-19": 8, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 58, "white-glue": 2 }
+    "hardware": { "anti-tip-kit": 1, "cup-hinge-35-inset": 2, "edge-banding-19": 8, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 58, "white-glue": 2 }
   }
 }

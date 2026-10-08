@@ -1007,4 +1007,19 @@ describe('a back by cell', () => {
     expect('back' in ExpertColumns.parse(checkers.columns)[0].cells[1]).toBe(false)
     expect(explain({ plan: checkers })).toContain('open niche, with a back (0.25)')
   })
+
+  it('hangs a wall cabinet of several columns from a rail in each one', () => {
+    const doors = cell('door', 1, { doors: 2, shelves: 1 })
+    const { design } = buildCabinet(plan({ name: 'Alacena', dimensions: { width: 1200, height: 720, depth: 350 }, base: 'floor', columns: [{ width: 1, cells: [doors] }, { width: 1, cells: [doors] }] }), testCatalog)
+    expect(design.pieces.filter((p) => p.role === 'brace').map((p) => p.id)).toEqual(['hanging-rail-1', 'hanging-rail-2'])
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    expect(a.findings.map((f) => f.check)).not.toContain('wall-cabinet.hanging-rail')
+  })
+
+  it('says a hinged door over 1.8 m may bow, and nothing for a shorter one', () => {
+    const closet = (height: number) => buildCabinet(plan({ name: 'Clóset', dimensions: { width: 600, height, depth: 600 }, columns: [{ width: 1, cells: [cell('door', 1, { doors: 1, shelves: 3 })] }] }), testCatalog).notes
+    expect(closet(2200)).toEqual(['Una puerta de más de 180 cm de alto se puede arquear: dale el mismo acabado y las mismas manos por las dos caras y los cantos.'])
+    expect(closet(1700)).toEqual([])
+  })
 })

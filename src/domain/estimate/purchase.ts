@@ -70,6 +70,9 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   const handle = pickHardware(catalog, 'handle')
   const handles = design.pieces.filter((p) => (p.role === 'door' || p.role === 'drawer-front') && (design.pullsOf?.[p.id] ?? design.pulls) === 'handle').length
   if (handle && handles) add(handle.id, handles)
+  // Anchored is what keeps it from tipping, so the kit that anchors it is bought; a wall cabinet hangs from its rail instead.
+  const antiTip = pickHardware(catalog, 'anti-tip')
+  if (antiTip && design.wallAnchored && design.kind !== 'wallCabinet') add(antiTip.id, 1)
   const glued = design.joints.filter((u) => u.glue).length
   const glue = pickHardware(catalog, 'glue')
   if (glued && glue) add(glue.id, Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))

@@ -13,7 +13,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -186,6 +186,7 @@ const TOP_LID = 'top-lid'
 const SHELF_SETBACK = 5
 /** The rail a wall cabinet hangs from: the screws into the wall go through it, not through the thin back. */
 const HANGING_RAIL = 80
+const TALL_DOOR_NOTE = `Una puerta de más de ${TALL_DOOR / 10} cm de alto se puede arquear: dale el mismo acabado y las mismas manos por las dos caras y los cantos.`
 
 /** The runs of consecutive columns or cells that are flagged, as [first, last]. */
 const runs = (flags: boolean[]) => flags.reduce<[number, number][]>((list, on, i) => (!on ? list : i > 0 && flags[i - 1] ? [...list.slice(0, -1), [list[list.length - 1][0], i]] : [...list, [i, i]]), [])
@@ -755,7 +756,10 @@ function withExtras(l: Layout, design: Design): Design {
       (_, i) => onFloor[i] && onFloor[i + 1] && extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
     )
   if (plan.wallMounted && plan.base === 'floor' && !l.voids)
-    extras.push({ op: 'addPiece', piece: panel({ id: 'hanging-rail', name: 'Listón de colgar', role: 'brace', normal: 'z', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
+    plan.columns.forEach((_, i, columns) => {
+      const [id, name] = columns.length === 1 ? ['hanging-rail', 'Listón de colgar'] : [`hanging-rail-${i + 1}`, `Listón de colgar ${i + 1}`]
+      extras.push({ op: 'addPiece', piece: panel({ id, name, role: 'brace', normal: 'z', x: l.between(i, i), y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
+    })
   return extras.reduce((kept, extra) => {
     const result = applyOperations(kept, [extra], catalog)
     return result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid ? result.value.design : kept
@@ -788,6 +792,8 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   if (notched) notes.push(notchNote(notched))
   const sliding = design.pieces.filter((p) => p.role === 'door' && slides(design, p.id)).length
   if (sliding) notes.push(slidingNote(sliding, l.t))
+  const tallDoors = geometry.ok && design.pieces.some((p) => p.role === 'door' && !slides(design, p.id) && !lifts(design, p.id) && (geometry.value.boxes.get(p.id)?.y1 ?? 0) - (geometry.value.boxes.get(p.id)?.y0 ?? 0) > TALL_DOOR)
+  if (tallDoors) notes.push(TALL_DOOR_NOTE)
   const lids = design.pieces.filter((p) => lifts(design, p.id)).length
   if (lids) notes.push(lidNote(lids))
   const fingeredTops = design.joints.filter((u) => u.type === 'finger' && u.b.startsWith('top')).length
@@ -1138,7 +1144,7 @@ export const CABINET_PARTS: Parts<CabinetPlan> = {
     if (piece.role === 'door') return 'doors'
     if (piece.role.startsWith('drawer-')) return 'drawers'
     if (piece.role === 'kick' || piece.role === 'apron' || piece.id.startsWith('leg') || piece.id.startsWith('bottom-support')) return 'base'
-    if (piece.role === 'side' || piece.role === 'back' || piece.id === 'hanging-rail' || /^(top|bottom)(-\d+)?$/.test(piece.id)) return 'body'
+    if (piece.role === 'side' || piece.role === 'back' || /^(top|bottom|hanging-rail)(-\d+)?$/.test(piece.id)) return 'body'
     return null
   },
 }
