@@ -32,7 +32,7 @@ export const normalize = (text: string) =>
 const DOUBT = /\b(no|ni|nunca|tampoco|jamas|pero|aunque|tambien|ademas|luego|despues|mientras|excepto|salvo|si|o|y|e)\b|[,;:()"«»]/
 
 /** What comes before the change and says nothing of its own: "hazlo", "que tenga", "mejor". */
-const LEAD = String.raw`(?:(?:oye|ok|bueno|ahora|entonces|mejor) )?(?:(?:hazlo|hazla|hazme|dejalo|dejala|ponlo|ponla|que sea|que sean|que tenga|que lleve|que mida|lo quiero|la quiero|quiero que sea|quiero que tenga|quiero|cambialo a|cambiala a|cambialo|cambiala|cambia|cambiale) )?`
+const LEAD = String.raw`(?:(?:oye|ok|bueno|ahora|entonces|mejor) )?(?:(?:hazlo|hazla|hazme|dejalo|dejala|ponlo|ponla|que sea|que sean|que tenga|que lleve|que mida|que quede|lo quiero|la quiero|quiero que sea|quiero que tenga|quiero|cambialo a|cambiala a|cambialo|cambiala|cambia|cambiale) )?`
 
 const QUESTIONS: [Topic, RegExp][] = [
   ['sheets', /^cuantas hojas(?: de triplay)?(?: (?:necesito|ocupo|lleva|son|se necesitan|se ocupan|voy a necesitar|hay que comprar|tengo que comprar|compro|necesita|ocupa))?(?: en total)?$/],
@@ -68,6 +68,9 @@ const ADJECTIVES: Record<string, [string, 1 | -1]> = {
   largo: ['largo', 1], larga: ['largo', 1], corto: ['largo', -1], corta: ['largo', -1],
 }
 const ADJECTIVE_WORDS = Object.keys(ADJECTIVES).join('|')
+/** Verbs that move one measure up (+1) or down (-1), without their pronoun: "súbela", "bájalo", "alárgale". */
+const MOVES: Record<string, [string, 1 | -1]> = { sube: ['alto', 1], baja: ['alto', -1], alarga: ['largo', 1], acorta: ['largo', -1], ensancha: ['ancho', 1] }
+const MOVE_WORDS = Object.keys(MOVES).join('|')
 
 const shownFields = (plan: Plan) => valueFields(moduleOf(plan).fields, plan) as ValueField<Plan>[]
 
@@ -89,6 +92,13 @@ function byAdjective(plan: Plan, adjective: string, mm: number | null): Intent |
   return setMeasure(plan, word, mm === null ? null : sign * mm, true)
 }
 
+/** "Súbela 3 cm" moves a measure by that much; "súbela a 78", to it, and only the way the verb says. */
+function byMove(plan: Plan, [word, sign]: [string, 1 | -1], to: boolean, mm: number | null): Intent | null {
+  if (!to) return setMeasure(plan, word, mm === null ? null : sign * mm, true)
+  const current = measureFields(plan).get(word)?.get(plan)
+  return current !== undefined && mm !== null && Math.sign(mm - current) === sign ? setMeasure(plan, word, mm) : null
+}
+
 function measureIntent(text: string, plan: Plan): Intent | null | undefined {
   let m = new RegExp(`^${LEAD}(?:de )?${AMOUNT} de (${MEASURE_WORDS})$`).exec(text)
   if (m) return setMeasure(plan, m[3], toMm(m[1], m[2], false))
@@ -98,6 +108,8 @@ function measureIntent(text: string, plan: Plan): Intent | null | undefined {
   if (m) return byAdjective(plan, m[1], toMm(m[2], m[3], true))
   m = new RegExp(`^${LEAD}${AMOUNT} mas (${ADJECTIVE_WORDS})$`).exec(text)
   if (m) return byAdjective(plan, m[3], toMm(m[1], m[2], true))
+  m = new RegExp(`^(${MOVE_WORDS})(?:la|lo|le)?( a)? ${AMOUNT}$`).exec(text)
+  if (m) return byMove(plan, MOVES[m[1]], !!m[2], toMm(m[3], m[4], !m[2]))
   m = new RegExp(`^(quitale|quita|reducele|reduce|recortale|recorta|agregale|agrega|aumentale|aumenta|dale|sumale|anadele|anade) ${AMOUNT}(?: mas)? (?:de|al|a lo) (${MEASURE_WORDS})$`).exec(text)
   if (!m) return undefined
   const mm = toMm(m[2], m[3], true)
