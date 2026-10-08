@@ -5,7 +5,9 @@ import { MATTRESSES, MattressSize } from '../../design/kind'
 import { completeJoints, hardwareFor } from '../../design/joints'
 import { resolveGeometry, type Geometry } from '../../design/resolve'
 import { CONTACT_TOLERANCE, overlap } from '../../design/boxes'
-import { backBoard, type Catalog } from '../../materials/catalog'
+import { backBoard, materialById, type Catalog } from '../../materials/catalog'
+import { stiffness } from '../../materials/grades'
+import { maxSpan } from '../../checks/structure/rules/deflection'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
@@ -160,6 +162,7 @@ const WIDEST_DRAWER = 640
 const COMPARTMENT = 280
 /** Past this, the platform does not fit one sheet across and goes in two halves over the spine. */
 const ONE_SHEET = 1200
+const HEAD_SHELF_LOAD = 'medium'
 
 interface BedSize {
   width: number
@@ -183,6 +186,14 @@ function bedSize(plan: BedPlan, t: number): BedSize {
     length: mw + MATTRESS_PLAY + alongSides * t,
     height: Math.max(plan.height + (lips.length ? MATTRESS_LIP : 0), plan.headboard.style === 'none' ? 0 : plan.headboard.height),
   }
+}
+
+/** The bays a deep headboard's shelves go in: as few as keep each one within the span the sag check allows for what a shelf there holds. */
+function headBays(inner: number, depth: number, t: number, board: ReturnType<typeof materialById>) {
+  const longest = board ? maxSpan(depth, t, HEAD_SHELF_LOAD, stiffness(board.grade, t).parallel) : MAX_SPAN
+  let bays = 1
+  while ((inner - (bays - 1) * t) / bays > longest) bays++
+  return bays
 }
 
 interface BuiltBed {
@@ -248,6 +259,7 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
     runners: slatted && (size.length - 3 * t) / 2 > SLAT_SPAN,
     /** Past one sheet across, the platform goes in two halves over the spine. */
     split,
+    headBays: deep && plan.headboard.shelves > 0 ? headBays(size.length - 2 * t, hd - t, t, materialById(catalog, plan.material)) : 1,
     middle: size.length / 2,
     /** The face of the platform a piece of that side stands under. */
     under: (side: Side): FaceRef => (slatted ? 'slat-1.y0' : split ? `platform-${side}.y0` : 'platform.y0'),
@@ -324,6 +336,11 @@ function headboard(l: Layout): { pieces: Piece[]; notes: string[] } {
   // The compartment is closed by a board in front, so its floor and lid stop behind it.
   const inner = storage ? extent(ref('head-back.x1'), ref('head-cover.x0')) : inside
   const n = plan.headboard.shelves
+  const bays = l.headBays
+  // A divider stands between two bays, from the shelves' floor to the top and behind the compartment's front; each bay's shelves go from one upright to the next.
+  const dividerAt = (b: number) => partway('head-side-right.z1', 'head-side-left.z0', b / bays, -t / 2)
+  const bay = (b: number) => extent(b === 1 ? ref('head-side-right.z1') : ref(`head-div-${b - 1}.z1`), b === bays ? ref('head-side-left.z0') : ref(`head-div-${b}.z0`))
+  const named = (name: string, b: number) => (bays === 1 ? name : `${name}, tramo ${b}`)
   const compartment = [
     panel({ id: 'head-sep', name: 'Tapa del compartimento', role: 'shelf', normal: 'y', x: inner, y: startAt(ref('head-bottom.y1', COMPARTMENT)), z: between, load: 'medium' }),
     panel({ id: 'head-cover', name: 'Frente del compartimento', role: 'other', normal: 'x', x: endAt(ref('furniture.x0', hd)), y: extent(ref('head-bottom.y0'), ref('head-sep.y1')), z: between, grain: 'length' }),
@@ -336,8 +353,13 @@ function headboard(l: Layout): { pieces: Piece[]; notes: string[] } {
       panel({ id: 'head-top', name: 'Techo de la cabecera', role: 'top', normal: 'y', x: inside, y: endAt(l.top), z: between }),
       panel({ id: 'head-bottom', name: 'Piso de la cabecera', role: 'bottom', normal: 'y', x: inner, y: endAt(ref('furniture.y0', plan.height)), z: between, load: 'medium' }),
       ...(storage ? compartment : []),
-      ...Array.from({ length: n }, (_, i) => i + 1).map((k) =>
-        panel({ id: `head-shelf-${k}`, name: `Repisa ${k} de la cabecera`, role: 'shelf', normal: 'y', x: inside, y: startAt(partway(shelfFloor, 'head-top.y0', k / (n + 1), -t / 2)), z: between, load: 'medium', support: 'fixed' }),
+      ...Array.from({ length: bays - 1 }, (_, i) => i + 1).map((b) =>
+        panel({ id: `head-div-${b}`, name: bays === 2 ? 'Divisor de la cabecera' : `Divisor ${b} de la cabecera`, role: 'divider', normal: 'z', x: inner, y: extent(ref(shelfFloor), ref('head-top.y0')), z: startAt(dividerAt(b)) }),
+      ),
+      ...Array.from({ length: n }, (_, i) => i + 1).flatMap((k) =>
+        Array.from({ length: bays }, (_, i) => i + 1).map((b) =>
+          panel({ id: bays === 1 ? `head-shelf-${k}` : `head-shelf-${k}-${b}`, name: named(`Repisa ${k} de la cabecera`, b), role: 'shelf', normal: 'y', x: inside, y: startAt(partway(shelfFloor, 'head-top.y0', k / (n + 1), -t / 2)), z: bay(b), load: HEAD_SHELF_LOAD, support: 'fixed' }),
+        ),
       ),
       ...cap(hd),
     ],

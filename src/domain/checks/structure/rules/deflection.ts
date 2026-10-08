@@ -37,11 +37,13 @@ export function deflectionSeverity(delta: number, span: number): Severity | null
 
 type GrainToSpan = 'parallel' | 'perpendicular'
 
-/** The span runs along x: the face grain goes with it or across it. */
-function grainToSpan(p: Piece, box: Box): GrainToSpan {
+type SpanAxis = 'x' | 'z'
+
+/** The face grain goes with the span or across it; a board whose grain may go either way is taken across. */
+function grainToSpan(p: Piece, box: Box, axis: SpanAxis): GrainToSpan {
   const longSideIsX = box.x1 - box.x0 >= box.z1 - box.z0
-  const grainAlongX = p.grain === 'length' ? longSideIsX : p.grain === 'width' ? !longSideIsX : false
-  return grainAlongX ? 'parallel' : 'perpendicular'
+  const grainAxis: SpanAxis | null = p.grain === 'length' ? (longSideIsX ? 'x' : 'z') : p.grain === 'width' ? (longSideIsX ? 'z' : 'x') : null
+  return grainAxis === axis ? 'parallel' : 'perpendicular'
 }
 
 /** The board's stiffness in MPa, from its grade and thickness. */
@@ -56,7 +58,7 @@ interface Beam {
   duration: LoadDuration
 }
 
-function alternatives(p: Piece, { span, depth, thickness, load, modulus, duration }: Beam, grain: GrainToSpan, catalog: Catalog): Alternative[] {
+function alternatives(p: Piece, { span, depth, thickness, load, modulus, duration }: Beam, grain: GrainToSpan, axis: SpanAxis, catalog: Catalog): Alternative[] {
   const list: Alternative[] = []
   const thicker = boardsFor(catalog, 'carcass')
     .filter((m) => m.thickness > thickness)
@@ -67,6 +69,8 @@ function alternatives(p: Piece, { span, depth, thickness, load, modulus, duratio
       description: `Subir a ${thicker.name}`,
       data: { material: thicker.id, sag: roundTo(deflection(span, depth, thicker.thickness, load, modulusOf(thicker, grain), duration)) },
     })
+  // The divider that fix adds stands across the width: it shortens a span along it, not one from front to back.
+  if (axis === 'z') return list
   const half = (span - thickness) / 2
   list.push({
     key: 'center-divider',
@@ -94,10 +98,13 @@ export const deflectionRule: Rule = (ctx) => {
     if (!box || !thickness || !board || p.normal !== 'y' || load === 'none') return []
     // A piece lying on the floor has the floor under all of it: there is no span to sag.
     if (box.y0 <= CONTACT_TOLERANCE) return []
-    const span = freeSpan(p.id, box, ctx)
+    // Between uprights along the width; a board with none there (a headboard's shelf, held by the bed's sides) spans from front to back.
+    const alongWidth = freeSpan(p.id, box, ctx)
+    const span = alongWidth ?? freeSpan(p.id, box, ctx, 'z')
     if (!span) return []
-    const depth = box.z1 - box.z0
-    const grain = grainToSpan(p, box)
+    const axis: SpanAxis = alongWidth ? 'x' : 'z'
+    const depth = axis === 'x' ? box.z1 - box.z0 : box.x1 - box.x0
+    const grain = grainToSpan(p, box, axis)
     const modulus = modulusOf(board, grain)
     const duration: LoadDuration = person.has(p.id) ? 'passing' : 'permanent'
     const delta = deflection(span, depth, thickness, load, modulus, duration)
@@ -114,7 +121,7 @@ export const deflectionRule: Rule = (ctx) => {
         message: `${p.name} se pandearía ~${roundTo(delta)} mm con ${loadName} en un claro de ${roundTo(span, 0)} mm (lo aceptable es hasta ${roundTo(limit)} mm).`,
         // The longest span this board takes: a fact for the expert, not a way out.
         data: { span: roundTo(span, 0), depth: roundTo(depth, 0), thickness: thickness, load, sag: roundTo(delta), limit: roundTo(limit), modulus: modulus, maxSpan: roundTo(maxSpan(depth, thickness, load, modulus, duration), 0) },
-        alternatives: alternatives(p, beam, grain, ctx.catalog),
+        alternatives: alternatives(p, beam, grain, axis, ctx.catalog),
       },
     ]
   })

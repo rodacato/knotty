@@ -21,9 +21,9 @@
   },
   "expect": {
     "valid": true,
-    "pieces": 42,
+    "pieces": 44,
     "findings": [],
     "sheets": { "T18": 5, "TR6": 1 },
-    "hardware": { "brad-nail-1": 102, "connector-bolt-m6": 4, "drawer-slide-45": 3, "edge-banding-19": 27, "screw-8x1": 12, "screw-8x2": 185, "white-glue": 4 }
+    "hardware": { "brad-nail-1": 106, "connector-bolt-m6": 4, "drawer-slide-45": 3, "edge-banding-19": 27, "screw-8x1": 12, "screw-8x2": 193, "white-glue": 4 }
   }
 }

@@ -9,6 +9,7 @@ import { newCriticals } from './review'
 import { maxSpan, deflection, sagThickness, deflectionSeverity } from './rules/deflection'
 import { stiffness } from '../../materials/grades'
 import { buildPlan, MODULES } from '../../furniture/modules/plan'
+import { extent, ref } from '../../design/builders'
 
 const findings = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -69,6 +70,22 @@ describe('R1 shelf sag', () => {
     const shelves = sag({ ...bed, kind: undefined, mattress: undefined, name: 'Mueble' })
     expect(shelves.map((h) => h.pieces[0]).sort()).toEqual(['platform-left', 'platform-right'])
     expect(shelves.every((h) => h.message.includes('con libros'))).toBe(true)
+  })
+
+  it('a shelf held by the sides of a bed and not along the width is measured from one to the other, and offers no divider across the width', () => {
+    const { design } = buildPlan({ kind: 'bed', name: 'Cama', mattress: 'individual', material: 'T18', height: 400, legs: 'none', legHeight: 150, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 1 } }, testCatalog)
+    const sag = (d: Design) => findings(d).filter((h) => h.code === 'R1_SAG')
+    expect(sag(design)).toEqual([])
+    const whole = design.pieces.find((p) => p.id === 'head-shelf-1-1')!
+    const undivided: Design = {
+      ...design,
+      pieces: design.pieces.filter((p) => p.id !== 'head-div-1' && p.id !== 'head-shelf-1-2').map((p) => (p === whole ? { ...p, z: extent(ref('head-side-right.z1'), ref('head-side-left.z0')) } : p)),
+      joints: design.joints.filter((u) => ![u.a, u.b].some((id) => id === 'head-div-1' || id === 'head-shelf-1-2')),
+    }
+    const [found, ...others] = sag(undivided)
+    expect(others).toEqual([])
+    expect(found).toMatchObject({ severity: 'critical', pieces: ['head-shelf-1-1'], data: { span: 984, depth: 232 } })
+    expect(found.alternatives.map((a) => a.key)).toEqual([])
   })
 
   it('the bookcase widened to 90 cm is critical and proposes a center divider', () => {

@@ -56,8 +56,29 @@ describe('buildBed', () => {
     const floor = geo.boxes.get('head-bottom')!
     expect(floor.y1).toBe(400)
     expect(geo.boxes.get('head-sep')!.y0).toBe(400 + 280)
-    expect(design.pieces.filter((p) => p.id.startsWith('head-shelf-'))).toHaveLength(2)
+    expect(design.pieces.filter((p) => p.id.startsWith('head-shelf-')).map((p) => p.name)).toEqual(['Repisa 1 de la cabecera, tramo 1', 'Repisa 1 de la cabecera, tramo 2', 'Repisa 2 de la cabecera, tramo 1', 'Repisa 2 de la cabecera, tramo 2'])
     expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1200, depth: 1000 + 20 })
+  })
+
+  it('splits a deep headboard’s shelves into bays no shelf sags in, with a divider between them that leaves the compartment whole', () => {
+    const shelved = (mattress: BedPlan['mattress'], style: 'bookcase' | 'storage', shelves = 1) => {
+      const { design } = buildBed(bed({ mattress, headboard: { style, height: 1100, depth: 250, shelves } }), testCatalog)
+      const a = analyze(design, testCatalog)
+      if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+      return { a, dividers: design.pieces.filter((p) => p.id.startsWith('head-div-')), shelves: design.pieces.filter((p) => p.id.startsWith('head-shelf-')), box: (id: string) => a.geo.boxes.get(id)! }
+    }
+    expect((['individual', 'matrimonial', 'queen', 'king'] as const).map((m) => shelved(m, 'bookcase').dividers.length)).toEqual([1, 2, 2, 3])
+    for (const mattress of ['individual', 'king'] as const)
+      for (const style of ['bookcase', 'storage'] as const) {
+        const { a, shelves, box } = shelved(mattress, style, 2)
+        expect(a.findings).toEqual([])
+        expect(a.warnings).toEqual([])
+        for (const shelf of shelves) expect(box(shelf.id).z1 - box(shelf.id).z0).toBeLessThan(620)
+      }
+    const storage = shelved('king', 'storage')
+    expect(storage.box('head-div-1').y0).toBe(storage.box('head-sep').y1)
+    expect(storage.box('head-sep').z1 - storage.box('head-sep').z0).toBe(2020 - 36)
+    expect(shelved('king', 'bookcase', 0).dividers).toEqual([])
   })
   it('takes the ficha a real expert sends for a plain bed: no drawers as count 0, no depth for a plain headboard', () => {
     // Sent by Claude through SheLLM on 2026-09-25 for "Cama individual con cabecera"; it was rejected before and the bed went piece by piece.
