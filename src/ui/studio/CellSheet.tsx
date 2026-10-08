@@ -47,7 +47,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
   }
   const inherited = plan.construction.back === 'nailed' ? 'con trasera' : 'sin trasera'
   const build = (patch: Partial<CabinetPlan['construction']>) => editPlan({ ...plan, construction: { ...plan.construction, ...patch } })
-  const { doors, drawerFronts } = CABINET_LABELS.construction
+  const { drawerFronts } = CABINET_LABELS.construction
   const sides = joinSides(plan, path)
 
   return (
@@ -90,13 +90,6 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
             <p className="text-xs text-graphite-2">Abre por arriba, con bisagra de piano y compás: su tapa es el piso del hueco abierto de encima, o la cubierta si todas las columnas terminan en baúl.</p>
           </div>
         )}
-        {cell.content === 'door' && (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-graphite-2">Cómo cierran</span>
-            <Segmented label="Cómo cierran las puertas" value={plan.construction.doors} options={Object.entries(doors.options)} onChange={(v) => build({ doors: v as CabinetPlan['construction']['doors'] })} />
-            <p className="text-xs text-graphite-2">Cambia todas las puertas del mueble.</p>
-          </div>
-        )}
         {cell.content === 'drawer' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Frente del cajón</span>
@@ -110,7 +103,8 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>
-              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key).includes(id))]} onChange={(v) => own(key, v)} />
+              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key, plan.construction).includes(id))]} onChange={(v) => own(key, v)} />
+              {key === 'doors' && <p className="text-xs text-graphite-2">Sobrepuestas o embutidas se elige para todo el mueble, en «Puertas».</p>}
             </div>
           )
         })}
