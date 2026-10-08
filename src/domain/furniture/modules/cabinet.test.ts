@@ -78,6 +78,27 @@ describe('buildCabinet', () => {
   })
 })
 
+describe('the rail a wall cabinet hangs from', () => {
+  const hung = (columns: CabinetPlan['columns'], construction: Partial<CabinetConstruction> = {}) => {
+    const { design } = buildCabinet(plan({ name: 'Alacena', dimensions: { width: 800, height: 700, depth: 370 }, base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, ...construction }, columns }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { rails: design.pieces.filter((p) => p.role === 'brace').map((p) => p.id), box: (id: string) => a.geo.boxes.get(id)!, checks: a.findings.map((f) => f.check) }
+  }
+  const niche = { width: 1, cells: [cell('open', 1, { shelves: 1 })] }
+
+  it('goes in each stretch under the top when the top cell is split, between its dividers', () => {
+    const { rails, box, checks } = hung([{ width: 1, cells: [{ ...cell('door', 1, { doors: 2, shelves: 0 }), columns: [niche, niche] }] }], { doors: 'sliding' })
+    expect(rails).toEqual(['hanging-rail-1', 'hanging-rail-2'])
+    expect([box('hanging-rail-1').x1, box('hanging-rail-2').x0]).toEqual([box('c1-h1-div-1').x0, box('c1-h1-div-1').x1])
+    expect(checks).not.toContain('wall-cabinet.hanging-rail')
+  })
+
+  it('stays one board, with its name, in a cabinet of one column that is not split', () => {
+    expect(hung([{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }]).rails).toEqual(['hanging-rail'])
+  })
+})
+
 describe('a kitchen kick', () => {
   const boxes = (p: Partial<CabinetPlan>) => {
     const a = analyze(buildCabinet(plan({ dimensions: { width: 600, height: 870, depth: 580 }, columns: [{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }], ...p }), testCatalog).design, testCatalog)

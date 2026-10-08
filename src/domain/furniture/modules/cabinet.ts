@@ -793,6 +793,15 @@ function cellBacksOf(l: Layout, spec: ColumnSpec): Piece[] {
   )
 }
 
+/** The stretches under the top of a column, wall to wall: one, or one per column of its top cell when that cell is split, since its dividers reach the top. */
+function topBays(column: PlanColumn, id: string, x: Extent): Extent[] {
+  const j = column.cells.length - 1
+  const inner = column.cells[j].columns
+  if (!inner) return [x]
+  const cellId = `${id}-h${j + 1}`
+  return inner.flatMap((nested, c) => topBays(nested, `${cellId}-c${c + 1}`, extent(c === 0 ? x.from : ref(`${cellId}-div-${c}.x1`), c === inner.length - 1 ? x.to : ref(`${cellId}-div-${c + 1}.x0`))))
+}
+
 /** What a carpenter adds without being asked, each kept only if the design still holds: a support under each divider on a kick, a rail for the wall screws when hung. */
 function withExtras(l: Layout, design: Design): Design {
   const { plan, panel, catalog, onFloor, backFace } = l
@@ -801,11 +810,13 @@ function withExtras(l: Layout, design: Design): Design {
     l.columnEdges.slice(0, -1).forEach(
       (_, i) => onFloor[i] && onFloor[i + 1] && extras.push({ op: 'addPiece', piece: panel({ id: `bottom-support-${i + 1}`, name: `Apoyo del piso ${i + 1}`, role: 'divider', normal: 'x', x: startAt(ref(`div-${i + 1}.x0`)), y: extent(ref('furniture.y0'), ref('bottom.y0')), z: extent(ref(backFace), ref('kick.z0')) }) }),
     )
-  if (plan.wallMounted && plan.base === 'floor' && !l.voids)
-    plan.columns.forEach((_, i, columns) => {
-      const [id, name] = columns.length === 1 ? ['hanging-rail', 'Listón de colgar'] : [`hanging-rail-${i + 1}`, `Listón de colgar ${i + 1}`]
-      extras.push({ op: 'addPiece', piece: panel({ id, name, role: 'brace', normal: 'z', x: l.between(i, i), y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
+  if (plan.wallMounted && plan.base === 'floor' && !l.voids) {
+    const bays = plan.columns.flatMap((column, i) => topBays(column, `c${i + 1}`, l.between(i, i)))
+    bays.forEach((x, k) => {
+      const [id, name] = bays.length === 1 ? ['hanging-rail', 'Listón de colgar'] : [`hanging-rail-${k + 1}`, `Listón de colgar ${k + 1}`]
+      extras.push({ op: 'addPiece', piece: panel({ id, name, role: 'brace', normal: 'z', x, y: extent(null, ref('top.y0'), HANGING_RAIL), z: startAt(ref(backFace)) }) })
     })
+  }
   return extras.reduce((kept, extra) => {
     const result = applyOperations(kept, [extra], catalog)
     return result.ok && analyze(completeJoints(result.value.design, catalog), catalog).valid ? result.value.design : kept
