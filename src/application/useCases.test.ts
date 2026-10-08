@@ -708,7 +708,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const c = setup(llm)
     const initial = await c.reconstruct(request('Una cajonera'), newSignal())
     const r = c.applyPlan(initial, { ...(currentPlan(initial).plan as CabinetPlan), dimensions: { width: 500, height: 3000, depth: 450 } })
-    expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/más grandes? que la hoja\. «Trasera» mide 3000/) })
+    expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/^«\S+» mediría 3000 × \d+ mm y de una hoja salen tablas de hasta 2410 × 1188: le sobran 590 mm\. Otras \d tablas tampoco caben\.$/) })
   })
 
   it('a bench skips the skeleton: it has no plan yet', async () => {

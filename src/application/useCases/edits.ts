@@ -1,6 +1,8 @@
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { byPerson, kindChange, planForKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
+import type { DesignError } from '../../domain/design/validation/errors'
+import { valueFields, type FieldSpec } from '../../domain/furniture/modules/fields'
 import { DIMENSION_OF_AXIS, DIMENSION_LABEL, type Axis, type Design, type Position } from '../../domain/design/schema'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import { materialById } from '../../domain/materials/catalog'
@@ -21,6 +23,26 @@ export type PieceEditResult ={ ok: true; state: DesignState } | { ok: false; mes
 
 /** A position tied to an outer face of the piece of furniture. */
 const toOutside = (position: Position | null) => position?.type === 'ref' && position.ref.startsWith('furniture.')
+
+/** Boards larger than the sheet, said by the one that is most over and, when one measure of the plan was just changed, by the most that measure can be. */
+function sheetRefusal(design: Design, errors: DesignError[], before: FurniturePlan | null, after: FurniturePlan): string | null {
+  const boards = errors.flatMap(({ data = {} }) => {
+    const { piece, length, width, sheet } = data
+    return typeof piece === 'string' && typeof length === 'number' && typeof width === 'number' && isSheet(sheet) ? [{ piece, length, width, sheet, over: Math.ceil(Math.max(length - sheet.length, width - sheet.width)) }] : []
+  })
+  if (!boards.length || boards.length < errors.length) return null
+  const { piece, length, width, sheet, over } = boards.reduce((worst, b) => (b.over > worst.over ? b : worst))
+  const name = design.pieces.find((p) => p.id === piece)?.name ?? piece
+  const others = boards.length === 2 ? ' Otra tabla tampoco cabe.' : boards.length > 2 ? ` Otras ${boards.length - 1} tablas tampoco caben.` : ''
+  const said = `«${name}» mediría ${length} × ${width} mm y de una hoja salen tablas de hasta ${sheet.length} × ${sheet.width}: le sobran ${over} mm.${others}`
+  if (!before || before.kind !== after.kind) return said
+  const changed = valueFields(moduleOf(after).fields as FieldSpec<FurniturePlan>[], after).filter((f) => !Object.is(f.get(before), f.get(after)))
+  const [measure] = changed
+  if (changed.length !== 1 || measure.type !== 'number') return said
+  return `${said} «${measure.label}» puede ser de hasta ${Math.floor(measure.get(after) - over)} mm.`
+}
+
+const isSheet = (value: unknown): value is { length: number; width: number } => typeof value === 'object' && value !== null && typeof (value as { length?: unknown }).length === 'number' && typeof (value as { width?: unknown }).width === 'number'
 
 /** Changes the person makes by hand, with no expert: each one a version if the design holds. */
 export function createEdits(kit: Kit) {
@@ -47,6 +69,8 @@ export function createEdits(kit: Kit) {
     const design = byPerson(currentDesign(state), rebuilt.design)
     const analysis = analyze(design, catalog, state.requirements)
     if (!analysis.valid) {
+      const tooBig = analysis.errors.every((e) => e.code === 'E_TOO_BIG_FOR_SHEET') ? sheetRefusal(design, analysis.errors, current.plan, parsed.data) : null
+      if (tooBig) return { ok: false, message: tooBig }
       const first = named(design, analysis.errors[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errors))}. ${first}` }
     }
