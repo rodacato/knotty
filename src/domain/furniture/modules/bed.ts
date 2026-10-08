@@ -259,6 +259,8 @@ function layoutOf(plan: BedPlan, catalog: Catalog) {
     runners: slatted && (size.length - 3 * t) / 2 > SLAT_SPAN,
     /** Past one sheet across, the platform goes in two halves over the spine. */
     split,
+    /** On legs, a bed wider than an individual stands on a third row of them, under its spine. */
+    spineLegs: lift > 0 && plan.mattress !== 'individual',
     headBays: deep && plan.headboard.shelves > 0 ? headBays(size.length - 2 * t, hd - t, t, materialById(catalog, plan.material)) : 1,
     middle: size.length / 2,
     /** The face of the platform a piece of that side stands under. */
@@ -299,6 +301,14 @@ function legs(l: Layout): Piece[] {
     leg(`leg-foot-${side}`, `Pata del pie ${words}`, endAt(ref(`${l.foot}.x0`)), 'left')
     middle.forEach((rail, i) => leg(`leg-middle-${side}-${i + 1}`, `Pata intermedia ${words} ${middle.length > 1 ? `${i + 1} ` : ''}`.trim(), startAt(ref(`rail-${side}-1-${rail}.x1`)), 'right'))
   }
+  if (!l.spineLegs) return pieces
+  // A third row under the spine, a leg beside each one of a side: the spine rests on them instead of hanging from the boards at its ends.
+  const y = extent(ref('furniture.y0'), ref(l.under('left')))
+  const z = extent(ref('spine.z1'), null, LEG_WIDTH)
+  const central = (id: string, name: string, first: Extent, towards: 'right' | 'left') => pieces.push(...styled(legLayers(plan.material, id, name, first, towards, y, z), plan.legStyle, 'end', inFrame))
+  central('leg-head-spine', 'Pata central de la cabecera', startAt(ref(headEnd)), 'right')
+  central('leg-foot-spine', 'Pata central del pie', endAt(ref(`${l.foot}.x0`)), 'left')
+  middle.forEach((rail, i) => central(`leg-middle-spine-${i + 1}`, `Pata central intermedia ${middle.length > 1 ? `${i + 1} ` : ''}`.trim(), startAt(ref(`rail-left-1-${rail}.x1`)), 'right'))
   return pieces
 }
 
@@ -776,6 +786,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     numbers(2, [number({ key: 'height', label: 'Alto de la base', ...PLAN_MEASURE, get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
+    note('De la matrimonial en adelante lleva una fila de patas al centro, bajo la espina, que cargan como las de los lados: en un piso desnivelado, calza la que no asiente.', (p) => p.legs === 'legs' && p.mattress !== 'individual' && !hasDrawers(p) && !isDaybed(p), 'legs'),
     choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p) && !isDaybed(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
     legStyleField((p) => p.legs === 'legs'),

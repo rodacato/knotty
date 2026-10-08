@@ -28,8 +28,8 @@ describe('rule registry', () => {
     expect([appliesTo(bedsOnly, 'bed'), appliesTo(bedsOnly, 'desk'), appliesTo(bedsOnly, null)]).toEqual([true, false, false])
   })
 
-  it('every rule starts at version 1 and goes up when what it judges changes: sag last, since it measures from front to back a board with no span along the width', () => {
-    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 5], ['R4_TIPPING', 6], ['R5_RACKING', 3], ['R6_DOORS', 3], ['R7_BASE', 3]])
+  it('every rule starts at version 1 and goes up when what it judges changes: sag and the base last, since both measure from front to back what they only measured along the width', () => {
+    expect(RULES.filter((r) => r.version !== 1).map((r) => [r.code, r.version])).toEqual([['R1_SAG', 5], ['R4_TIPPING', 6], ['R5_RACKING', 3], ['R6_DOORS', 3], ['R7_BASE', 4]])
     expect(defineRule({ code: 'TEST', title: 'Prueba', check: () => [] }).version).toBe(1)
   })
 

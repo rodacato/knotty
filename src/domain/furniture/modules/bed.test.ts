@@ -97,6 +97,27 @@ describe('a bed on legs', () => {
     return { design, a: analyze(design, testCatalog) }
   }
 
+  it('stands on a third row of legs under its spine from the matrimonial up, one beside each leg of a side', () => {
+    const legsOf = (mattress: BedPlan['mattress'], p: Partial<BedPlan> = {}) => {
+      const { design, a } = analyzed(raised(150, { mattress, ...p }))
+      if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+      const row = (where: string) => new Set(design.pieces.filter((x) => x.id.startsWith('leg-') && x.id.includes(where)).map((x) => x.id.replace(/-\d$/, ''))).size
+      return { a, spine: row('-spine'), left: row('-left'), box: (id: string) => a.geo.boxes.get(id)! }
+    }
+    expect(legsOf('individual').spine).toBe(0)
+    for (const mattress of ['matrimonial', 'queen', 'king'] as const) {
+      const { a, spine, left, box } = legsOf(mattress)
+      expect(spine).toBe(left)
+      expect(spine).toBeGreaterThanOrEqual(3)
+      expect(a.findings).toEqual([])
+      expect(a.warnings).toEqual([])
+      expect(box('leg-foot-spine-1').z0).toBe(box('spine').z1)
+      expect([box('leg-foot-spine-1').y0, box('leg-foot-spine-1').y1]).toEqual([box('leg-foot-left-1').y0, box('leg-foot-left-1').y1])
+    }
+    expect(legsOf('king', { platform: 'slats' }).a.findings).toEqual([])
+    expect(legsOf('queen', { legStyle: 'tapered' }).a.findings).toEqual([])
+  })
+
   it.each([LEG_HEIGHT_RANGE.min, 220, LEG_HEIGHT_RANGE.max])('raises the frame by %i mm and keeps the mattress where it was', (legHeight) => {
     const { design, a } = analyzed(raised(legHeight))
     const box = (id: string) => a.geo!.boxes.get(id)!
