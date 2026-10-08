@@ -114,7 +114,8 @@ export const Joint = z.object({
   type: JointType,
   glue: z.boolean(),
   depth: z.number().nonnegative().nullable().describe('Dado or rabbet: how many mm a goes into b'),
-  hardware: z.array(z.object({ hardwareId: z.string(), count: z.number().int().positive().nullable() })),
+  // A count of 0 is a piece that only rests there: said outright, or the joint would be inferred from the contact with its usual screws.
+  hardware: z.array(z.object({ hardwareId: z.string(), count: z.number().int().nonnegative().nullable() })),
 })
 export type Joint = z.infer<typeof Joint>
 

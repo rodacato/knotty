@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { analyze } from '../../domain/checks/analysis'
+import { Design } from '../../domain/design/schema'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildPlan } from '../../domain/furniture/modules/plan'
 import { createBench } from './bench'
@@ -44,5 +45,10 @@ describe('the fingerprints of the variants', () => {
 
   it('has one entry for every variant of every module', () => {
     expect(Object.keys(current()).length).toBe(bench.variants().length)
+  })
+
+  it('builds designs that pass their own schema: one that does not is saved and never loads back', () => {
+    const refused = bench.variants().filter(({ plan }) => !Design.safeParse(buildPlan(plan, testCatalog).design).success)
+    expect(refused.map(({ module, variant }) => `${module} · ${variant}`)).toEqual([])
   })
 })
