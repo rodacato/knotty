@@ -70,7 +70,7 @@ export function reportAsked(kind: FurnitureKind, spec: string, asked: Asked[]): 
 }
 
 export async function askExpert(kinds: FurnitureKind[], catalog: Catalog): Promise<number> {
-  const { modelsFromEnv, preflight, provider } = await import('../compare/live')
+  const { modelsFromEnv, preflight, provider } = await import('../compare/shared/live')
   const [spec] = modelsFromEnv()
   preflight(spec ? [spec] : [])
   console.log(`asking ${spec}: every unread request is one call to it`)

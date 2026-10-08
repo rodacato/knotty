@@ -142,7 +142,7 @@ knotty/
 ├─ docs/                     PROPUESTA.md (este documento) · carpinteria/ (referencia del dominio)
 ├─ public/catalog/           catalog.json: triplay, herrajes y acomodo; se edita sin tocar código
 ├─ scripts/brand/            SVG de la marca y generate.sh (íconos, favicon, imagen para compartir)
-├─ scripts/compare/          models.compare.ts: el banco contra expertos reales (npm run compare) · results/
+├─ scripts/compare/          targets/models.compare.ts: el banco contra expertos reales (npm run compare) · results/
 └─ src/
    ├─ domain/                TypeScript puro: sin React, sin LLM, sin navegador; siete grupos por intención y sin ciclos entre ellos
    │  ├─ materials/          el catálogo: catalog · finishes · grades · edgeProfiles · tools
