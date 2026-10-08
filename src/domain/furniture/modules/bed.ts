@@ -78,6 +78,9 @@ const frameFits = (plan: BedPlan) => plan.legs !== 'legs' || plan.height - plan.
 const headboardRoom = (plan: BedPlan) => (plan.headboard.style === 'storage' ? COMPARTMENT : 0) + (2 + (plan.headboard.cap ? 1 : 0) + 2 * plan.headboard.shelves) * DEFAULT_THICKNESS
 const headboardFits = (plan: BedPlan) => (plan.headboard.style !== 'bookcase' && plan.headboard.style !== 'storage') || plan.headboard.height - plan.height >= headboardRoom(plan)
 const HEADBOARD_TOO_LOW = 'No cupo: la cabecera queda muy baja para lo que lleva arriba de la base; súbela, quítale repisas o hazla lisa.'
+/** A flat headboard, or a daybed's arms and backrest, no higher than the base would be built level with the platform: nothing to lean on. */
+const headboardRises = (plan: BedPlan) => (plan.headboard.style !== 'plain' && plan.headboard.style !== 'daybed') || plan.headboard.height > plan.height
+const HEADBOARD_UNDER_BASE = 'No cupo: la cabecera no sube de la base; súbela o quítala.'
 const FRAME_TOO_LOW = `No cupo: con esas patas el marco de la cama queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto de la base.`
 const LEGS_WITH_DRAWERS = 'No cupo: una cama con cajones no lleva patas, el zoclo sostiene el banco de cajones.'
 const DAYBED_DRAWERS = 'No cupo: una cama de día lleva el respaldo del lado sin cajones; pon los cajones de un solo lado.'
@@ -837,7 +840,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
       2,
       [
         number({ key: 'headboard.height', label: 'Alto desde el piso', get: (p) => p.headboard.height, set: (p, height) => withHeadboard(p, { height }) }),
-        number({ key: 'headboard.depth', label: 'Fondo', visibleWhen: deepHeadboard, get: (p) => p.headboard.depth, set: (p, depth) => withHeadboard(p, { depth }) }),
+        number({ key: 'headboard.depth', label: 'Fondo', visibleWhen: deepHeadboard, get: (p) => p.headboard.depth || HEADBOARD_DEPTH, set: (p, depth) => withHeadboard(p, { depth }) }),
       ],
       (p) => p.headboard.style !== 'none',
     ),
@@ -900,6 +903,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
     ...measureRules<BedPlan>([{ path: ['height'], noun: 'El alto de la base', get: (p) => p.height }]),
     { holds: frameFits, message: FRAME_TOO_LOW, path: ['legHeight'] },
     { holds: headboardFits, message: HEADBOARD_TOO_LOW, path: ['headboard', 'height'] },
+    { holds: headboardRises, message: HEADBOARD_UNDER_BASE, path: ['headboard', 'height'] },
     { holds: (plan) => plan.legs !== 'legs' || !hasDrawers(plan), message: LEGS_WITH_DRAWERS, path: ['legs'] },
     { holds: (plan) => !isDaybed(plan) || !(plan.drawers.side === 'both' && plan.drawers.count > 0), message: DAYBED_DRAWERS, path: ['drawers', 'side'] },
     { holds: (plan) => !isDaybed(plan) || plan.legs !== 'legs', message: DAYBED_LEGS, path: ['legs'] },
