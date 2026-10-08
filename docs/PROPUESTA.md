@@ -363,7 +363,7 @@ Los supuestos viven en `domain/assumptions.ts` como datos y cada regla en `domai
 ### R1 — Flecha de entrepaños
 
 - Viga simplemente apoyada con carga uniforme: `δ = 5·q·b·L⁴ / (384·E·I) × k_fluencia`, con `I = b·t³/12`.
-- L = claro libre entre apoyos (del grafo de uniones); b = fondo; t = espesor.
+- L = claro libre entre apoyos (del grafo de uniones); b = fondo; t = espesor. El claro se busca a lo ancho del mueble; una tabla sin apoyos en ese eje (la repisa de una cabecera, que detienen los costados de la cama) se mide de frente a fondo, con b y la veta leídos respecto a ese eje. Ahí no se ofrece «divisor al centro»: ese arreglo pone el divisor a lo ancho (v5, 2026-10-08).
 - Supuestos (los de [valores-de-referencia.md](carpinteria/valores-de-referencia.md) §1 y §4):
   - Apoyo simple siempre (conservador).
   - Triplay de pino radiata, conservador y por espesor (`materials/grades.ts`): E∥ 4 500 MPa en 18 mm, 5 000 en 15, 5 500 en 12 y 9; E⊥ 2 000 / 1 500 / 1 000 / 800 / 700 en 18 / 15 / 12 / 9 / 6 mm.
