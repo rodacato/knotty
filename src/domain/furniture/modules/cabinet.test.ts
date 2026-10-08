@@ -127,6 +127,22 @@ describe('overlay drawer fronts on a box that sits on the floor', () => {
   })
 })
 
+describe('in 12 mm board', () => {
+  const screws = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { front: design.joints.find((j) => j.id === 'j-drawer-1-subfront-front')!.hardware.map((h) => h.hardwareId), layers: design.joints.filter((j) => j.a === 'leg-front-left-1' && j.b === 'leg-front-left-2').flatMap((j) => j.hardware.map((h) => h.hardwareId)), checks: a.findings.map((f) => f.check) }
+  }
+
+  it('the drawer fronts and the leg layers take the screw that does not come out the other side, and thicker board keeps its own', () => {
+    const thin = screws({ ...PLANS.drawerChest, base: 'legs', material: 'T12' })
+    expect(thin).toMatchObject({ front: ['screw-8x3/4'], layers: ['screw-8x3/4'] })
+    expect(thin.checks).not.toContain('screw.pokes-through')
+    expect(screws({ ...PLANS.drawerChest, base: 'legs' })).toMatchObject({ front: ['screw-8x1'], layers: ['screw-8x1-1/4'] })
+  })
+})
+
 describe('leg height', () => {
   const onLegs = (legHeight: number | undefined, extra: Partial<CabinetPlan> = {}) => ({ ...PLANS.sideboard, ...(legHeight === undefined ? {} : { legHeight }), ...extra })
   const { legHeight: _omitted, ...saved } = PLANS.sideboard

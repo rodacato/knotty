@@ -17,7 +17,7 @@ describe('hardware roles', () => {
   })
 
   it('picks the first of its role in catalog order, or the first that meets the condition', () => {
-    expect(hardwareByRole(testCatalog, 'screw').map((h) => h.id)).toEqual(['screw-8x1', 'screw-8x1-1/4', 'screw-8x1-1/2', 'screw-8x2'])
+    expect(hardwareByRole(testCatalog, 'screw').map((h) => h.id)).toEqual(['screw-8x1', 'screw-8x1-1/4', 'screw-8x1-1/2', 'screw-8x2', 'screw-8x3/4'])
     expect(pickHardware(testCatalog, 'screw')?.id).toBe('screw-8x1')
     expect(pickHardware(testCatalog, 'screw', (h) => h.length === 50.8)?.id).toBe('screw-8x2')
     expect(pickHardware(testCatalog, 'screw', () => false)).toBeUndefined()
