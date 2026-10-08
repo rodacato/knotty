@@ -83,6 +83,7 @@ export function PieceSheet({ design, geo, catalog, editable, closable = true }: 
             {joints.map((u) => {
               const other = u.a === p.id ? u.b : u.a
               const count = u.hardware.reduce((n, h) => n + (h.count ?? 0), 0)
+              const rests = u.hardware.length > 0 && u.hardware.every((h) => h.count === 0)
               return (
                 <li key={u.id} className="flex items-start gap-2">
                   <ArrowRight className="mt-1 shrink-0 text-graphite-2" />
@@ -90,9 +91,8 @@ export function PieceSheet({ design, geo, catalog, editable, closable = true }: 
                     <button type="button" className="font-medium underline decoration-line underline-offset-2 hover:decoration-graphite" onClick={() => select(other)}>
                       {name(other)}
                     </button>
-                    : {count && u.type !== 'drawer-slide' ? `${count} ` : ''}
-                    {JOINTS[u.type].label.plural}
-                    {u.glue && u.type !== 'glue-nail' ? ' con pegamento' : ''}
+                    : {rests ? 'solo descansa, sin tornillos' : `${count && u.type !== 'drawer-slide' ? `${count} ` : ''}${JOINTS[u.type].label.plural}`}
+                    {u.glue && u.type !== 'glue-nail' ? (rests ? ', con pegamento' : ' con pegamento') : ''}
                   </span>
                 </li>
               )

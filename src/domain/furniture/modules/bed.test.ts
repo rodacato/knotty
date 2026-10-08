@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
+import type { Design } from '../../design/schema'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { cutList } from '../../estimate/cutList'
 import { LEG_HEIGHT_RANGE } from './common'
@@ -116,6 +117,28 @@ describe('a bed on legs', () => {
     }
     expect(legsOf('king', { platform: 'slats' }).a.findings).toEqual([])
     expect(legsOf('queen', { legStyle: 'tapered' }).a.findings).toEqual([])
+  })
+
+  it('a platform in two halves rests glued on the spine with no screw into that edge, and is screwed to what crosses under it', () => {
+    const screwsOf = (design: Design, half: string) => new Map(design.joints.filter((u) => u.a === half).map((u) => [u.b, { glue: u.glue, screws: u.hardware.map((h) => h.count) }]))
+    for (const drawers of [{ side: 'none', count: 0, position: 'head' }, { side: 'both', count: 3, position: 'center' }] as const)
+      for (const half of ['platform-left', 'platform-right']) {
+        const held = screwsOf(buildBed(bed({ mattress: 'queen', drawers }), testCatalog).design, half)
+        expect(held.get('spine')).toEqual({ glue: true, screws: [0] })
+        const across = [...held].filter(([id]) => /^(rail|div)-/.test(id))
+        expect(across.length).toBeGreaterThanOrEqual(2)
+        expect(across.every(([, u]) => u.screws.every((n) => n !== 0))).toBe(true)
+      }
+    expect(screwsOf(buildBed(bed({ mattress: 'individual' }), testCatalog).design, 'platform').get('spine')).toEqual({ glue: true, screws: [null] })
+  })
+
+  it('a bed that comes apart keeps what it said of its screws: the halves still only rest on the spine, and a slat on the ledger board next to the side', () => {
+    const wide = buildBed(bed({ mattress: 'queen', assembly: 'bolts' }), testCatalog).design
+    expect(wide.joints.find((u) => u.a === 'platform-left' && u.b === 'spine')).toMatchObject({ type: 'butt-screw', glue: false, hardware: [{ count: 0 }] })
+    const slats = buildBed(bed({ platform: 'slats', assembly: 'bolts' }), testCatalog).design
+    const seats = slats.joints.filter((u) => u.a === 'slat-3' && u.b.startsWith('ledger-'))
+    expect(seats.map((u) => u.hardware[0].count).sort()).toEqual([0, 0, 1, 1])
+    expect(seats.every((u) => !u.glue)).toBe(true)
   })
 
   it.each([LEG_HEIGHT_RANGE.min, 220, LEG_HEIGHT_RANGE.max])('raises the frame by %i mm and keeps the mattress where it was', (legHeight) => {

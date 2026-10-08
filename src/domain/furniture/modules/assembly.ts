@@ -81,7 +81,8 @@ export function knockDown(design: Design, assembly: Assembly | undefined, catalo
     if (fitting) return { ...joined, type: fitting, depth: null, hardware: hardwareFor(catalog, fitting, a, b, boxes, thicknesses) }
     // A back too thin for a screw stays nailed.
     if (ta <= ASSUMPTIONS.nailOnlyThickness) return { ...u, glue: false }
-    return { ...joined, type: 'butt-screw', hardware: hardwareFor(catalog, 'butt-screw', a, b, boxes, thicknesses) }
+    // A joint that was already screwed keeps what it said of its screws: how many, or that the board only rests there.
+    return { ...joined, type: 'butt-screw', hardware: u.type === 'butt-screw' ? u.hardware : hardwareFor(catalog, 'butt-screw', a, b, boxes, thicknesses) }
   }
   return { ...design, joints: design.joints.map(apart) }
 }

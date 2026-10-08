@@ -664,6 +664,14 @@ function slatSeats(l: Layout, design: Design, { boxes, thicknesses }: Geometry):
   return [...carried, ...seats]
 }
 
+/** A platform in two halves only rests on the spine, glued: each half covers half of that edge, where a screw would go in on the seam. Its screws go into the side, the ends and what crosses under it. */
+function spineSeats(l: Layout, design: Design, { boxes, thicknesses }: Geometry): Joint[] {
+  const spine = design.pieces.find((p) => p.id === 'spine')
+  const halves = design.pieces.filter((p) => p.id === 'platform-left' || p.id === 'platform-right')
+  if (!spine) return []
+  return halves.map((half) => makeJoint(`j-${half.id}-spine`, half.id, spine.id, 'butt-screw', hardwareFor(l.catalog, 'butt-screw', half, spine, boxes, thicknesses).map((h) => ({ ...h, count: 0 }))))
+}
+
 function finished(l: Layout, built: Design): { design: Design; notes: string[] } {
   const { pulls, style, fingers } = l.drawers
   const geometry = resolveGeometry(built, l.catalog)
@@ -674,7 +682,7 @@ function finished(l: Layout, built: Design): { design: Design; notes: string[] }
   const fronts = built.pieces.filter((p) => p.role === 'drawer-front').length
   const withFingers = fingerDrawers(built)
   const notes = [...(pulls === 'notch' && fronts ? [notchNote(fronts)] : []), ...(withFingers ? [fingerDrawersNote(withFingers, fingers)] : [])]
-  return { design: completeJoints({ ...cut, joints: [...cut.joints, ...slatSeats(l, cut, geometry.value)], ...(pulls === 'none' || !fronts ? {} : { pulls }) }, l.catalog), notes }
+  return { design: completeJoints({ ...cut, joints: [...cut.joints, ...slatSeats(l, cut, geometry.value), ...spineSeats(l, cut, geometry.value)], ...(pulls === 'none' || !fronts ? {} : { pulls }) }, l.catalog), notes }
 }
 
 function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
