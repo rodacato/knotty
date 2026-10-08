@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../../design/builders'
-import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Piece, type Joint } from '../../design/schema'
+import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Piece, type Joint, type Round } from '../../design/schema'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { completeJoints } from '../../design/joints'
 import type { DesignKind } from '../../design/kind'
@@ -34,6 +34,7 @@ export const TablePlan = z.object({
   }),
   legs: z.enum(['panel', 'legs']).default('panel').describe('panel: two panel ends; legs: four straight legs from floor to top with an apron all round (the pedestal side keeps its panel); the height of the table is the length of the legs'),
   legStyle: LegStyle.optional().describe(LEG_STYLE),
+  corners: z.enum(['square', 'rounded']).optional().describe('Corners of the top; rounded only where it overhangs'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
 export type TablePlan = z.infer<typeof TablePlan>
@@ -56,6 +57,10 @@ export const TABLE_LABELS = {
     panel: { option: 'Costados de panel', phrase: 'con costados de panel' },
     legs: { option: 'Cuatro patas', phrase: 'con cuatro patas' },
   } satisfies Labels<TablePlan['legs']>,
+  corners: {
+    square: { option: 'Rectas', phrase: 'cubierta de esquinas rectas' },
+    rounded: { option: 'Redondeadas', phrase: 'cubierta de esquinas redondeadas' },
+  } satisfies Labels<NonNullable<TablePlan['corners']>>,
 }
 
 /** Typical outside measures for each use, in mm, when the person gives none. */
@@ -74,6 +79,8 @@ const SHELF_HEIGHT = 120
 const PEDESTAL = 420
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
+/** The radius a corner of the top is rounded to. */
+const TOP_ROUND = 40
 
 /** What each use is, for the checks by kind of furniture: the design says it, so renaming it does not change them. */
 export const TABLE_KIND: Record<TablePlan['use'], DesignKind> = { dining: 'diningTable', coffee: 'coffeeTable', side: 'sideTable', desk: 'desk', standing: 'workbench' }
@@ -87,6 +94,7 @@ export const TABLE_SOURCES: Record<string, Source> = {
   SHELF_HEIGHT: noReference('Construction choice: the low shelf starts 120 mm above the floor.'),
   PEDESTAL: noReference('Construction choice: a 420 mm pedestal; available legroom is checked separately.'),
   MAX_END_INSET: noReference('Module limit: supports are inset at most 50 mm from the ends.'),
+  TOP_ROUND: noReference('Construction choice: a radius the size of a jar lid, easy to mark and to saw; the reference only asks 3 mm or more on corners a child can reach.'),
 }
 
 const ENDS = ['left', 'right'] as const
@@ -269,9 +277,27 @@ function blockOf(l: Layout): (piece: Piece) => string {
   }
 }
 
+/** What stands under a corner of the top has its own corner this far in from both edges; the round covers it while it stays inside the arc. */
+const roundCovers = (inset: number) => inset >= TOP_ROUND * (1 - Math.SQRT1_2)
+
+/** The corners of the top that can be rounded without showing what is under them: none where an end reaches the edge, as the back of a desk does. */
+function topRounds(l: Layout): Round[] {
+  if (l.plan.corners !== 'rounded') return []
+  const rows = [['start', l.backInset], ['end', l.inset]] as const
+  return rows.flatMap(([z, inset]) => (roundCovers(Math.min(l.plan.overhang, inset)) ? (['start', 'end'] as const).map((x): Round => ({ x, y: null, z, radius: TOP_ROUND })) : []))
+}
+
+const roundsNote = (plan: TablePlan, rounds: number): string[] =>
+  plan.corners !== 'rounded'
+    ? []
+    : rounds === 0
+      ? ['Con la cubierta al ras no se redondean las esquinas: asomaría lo que va debajo. Dale vuelo a la cubierta.']
+      : [`Cubierta con ${rounds} esquinas redondeadas a ${TOP_ROUND} mm de radio: se marcan con un compás o una tapa, se cortan con caladora y se emparejan con lija.${rounds < 4 ? ' Atrás quedan rectas, donde los costados llegan a la orilla.' : ''}`]
+
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
   const l = layoutOf(plan, catalog)
-  const top = l.panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'] })
+  const rounds = topRounds(l)
+  const top = l.panel({ id: 'top', name: 'Cubierta', role: 'top', normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: endAt(ref('furniture.y1')), z: extent(ref('furniture.z0'), ref('furniture.z1')), load: LOAD[plan.use], edges: ['front', 'back', 'left', 'right'], ...(rounds.length ? { rounds } : {}) })
   const box = l.pedestal ? pedestalBox(l, l.pedestal) : null
   // The open part between the ends, or between the pedestal and the far end.
   const open: Open = [l.pedestal === 'left' && box ? box.bound : endBound(l, 'left'), l.pedestal === 'right' && box ? box.bound : endBound(l, 'right')]
@@ -282,7 +308,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces))] }
+  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...roundsNote(plan, rounds.length)] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -293,6 +319,7 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   if (a.height !== b.height || a.width !== b.width || a.depth !== b.depth) changes.push(`medidas ${b.height} × ${b.width} × ${b.depth} mm`)
   if (before.material !== after.material) changes.push(`material ${after.material}`)
   if (before.overhang !== after.overhang) changes.push(after.overhang ? `cubierta que sobresale ${after.overhang} mm` : 'costados a la orilla')
+  if ((before.corners ?? 'square') !== (after.corners ?? 'square')) changes.push(TABLE_LABELS.corners[after.corners ?? 'square'].phrase)
   if (before.shelf !== after.shelf) changes.push(after.shelf ? 'con repisa baja' : 'sin repisa baja')
   if (before.legs !== after.legs) changes.push(TABLE_LABELS.legs[after.legs].phrase)
   if (after.legs === 'legs') changes.push(...describeLegStyle(before, after))
@@ -302,7 +329,7 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
 }
 
 function benchTables(): [string, TablePlan][] {
-  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', legStyle: 'straight', assembly: 'glued', ...extra })
+  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', legStyle: 'straight', corners: 'square', assembly: 'glued', ...extra })
   const variants: [string, TablePlan][] = [
     ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
     ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
@@ -321,7 +348,10 @@ function benchTables(): [string, TablePlan][] {
   // Knocked down: bolts where the aprons meet the legs or the panel ends, and minifix in a desk with its pedestal.
   const knockedDown = (['comedor largo', 'comedor largo con patas', 'mesa de trabajo con patas'] as const).map((name): [string, TablePlan] => [`${name}, desarmable con pernos`, { ...all.find(([n]) => n === name)![1], assembly: 'bolts' }])
   const desk = all.find(([n]) => n === 'escritorio con 3 cajones a la izquierda')![1]
-  return [...all, ...knockedDown, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
+  // Rounded corners: all four where the top overhangs all round, and only the front two on a desk, whose ends reach the back edge.
+  const rounded = (['comedor con patas', 'mesa de trabajo'] as const).map((name): [string, TablePlan] => [`${name}, de esquinas redondeadas`, { ...all.find(([n]) => n === name)![1], corners: 'rounded' }])
+  const roundedDesk: [string, TablePlan] = ['escritorio de esquinas redondeadas', { ...all.find(([n]) => n === 'escritorio')![1], overhang: 30, corners: 'rounded' }]
+  return [...all, ...knockedDown, ...rounded, roundedDesk, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
 }
 
 const isDesk = (plan: TablePlan) => plan.use === 'desk'
@@ -347,6 +377,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
       number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
     numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
+    choice({ key: 'corners', label: 'Esquinas de la cubierta', ...fromLabels(TABLE_LABELS.corners), get: (p) => p.corners ?? 'square', set: (p, corners) => ({ ...p, corners }) }),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
   ]),
   section('Patas', [choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }), legStyleField((p) => p.legs === 'legs')]),
@@ -379,7 +410,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
     },
     woodPart(),
     assemblyPart(),
-    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
+    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
     { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs', 'legStyle'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => (p.legs === 'legs' && p.legStyle === 'tapered' ? 'Con patas cónicas' : TABLE_LABELS.legs[p.legs].option) },
     {
       id: 'under',

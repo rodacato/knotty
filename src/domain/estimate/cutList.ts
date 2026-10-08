@@ -29,21 +29,22 @@ export function cutList(design: Design, geo: Geometry): CutLine[] {
   return [...lines.values()].sort((a, b) => b.thickness - a.thickness || b.length * b.width - a.length * a.width)
 }
 
-/** How many boards of a line still get work the rectangle does not say: a corner sawn off on a slant, or wood taken out (a notch, grooves, fingers). */
+/** How many boards of a line still get work the rectangle does not say: a corner sawn off on a slant, a corner rounded, or wood taken out (a notch, grooves, fingers). */
 export interface AfterCut {
   diagonal: number
+  curved: number
   routed: number
 }
 
 export function afterCut(design: Design, line: CutLine): AfterCut {
   const pieces = design.pieces.filter((p) => line.ids.includes(p.id))
-  return { diagonal: pieces.filter((p) => p.slants?.length).length, routed: pieces.filter((p) => p.cuts?.length).length }
+  return { diagonal: pieces.filter((p) => p.slants?.length).length, curved: pieces.filter((p) => p.rounds?.length).length, routed: pieces.filter((p) => p.cuts?.length).length }
 }
 
 /** For the person, under the measures of a line; null when its boards are done once cut to size. */
-export function afterCutText({ diagonal, routed }: AfterCut, count: number): string | null {
+export function afterCutText({ diagonal, curved, routed }: AfterCut, count: number): string | null {
   const part = (n: number, what: string) => (n === 0 ? [] : [n === count ? what : `${n} de ${count} con ${what}`])
-  const parts = [...part(diagonal, 'corte diagonal'), ...part(routed, 'saques o ranuras')]
+  const parts = [...part(diagonal, 'corte diagonal'), ...part(curved, 'esquinas redondeadas'), ...part(routed, 'saques o ranuras')]
   return parts.length ? `Después de ${count === 1 ? 'cortarla' : 'cortarlas'}: ${parts.join(' · ')}` : null
 }
 

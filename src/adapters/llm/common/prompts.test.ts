@@ -242,8 +242,8 @@ const approxTokens = (text: string) => Math.round(text.length / 3.5)
 /** About 5 % above what each measured when it was set (plan-adjust@13; the table's with table@7, the cabinet's with cabinet@11, its leg styles, its kitchen kick and its hinge sides, the bed's with bed@6 and its slats): growing past it has to be on purpose. With every module it was 4 307. */
 const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2885, bed: 2565, table: 2110, shoeRack: 1930 }
 
-/** Skeleton prompt and schema, measured the same way (skeleton@15); with every module it is the same as skeleton@14 was, plus the cabinet's kitchen kick. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7510, cabinet: 3640, bed: 2590, table: 2090, shoeRack: 1960 }
+/** Skeleton prompt and schema, measured the same way (skeleton@15); the cabinet grew by its kitchen kick, and the table by what `corners` costs in table@8, with no margin added. */
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7580, cabinet: 3640, bed: 2590, table: 2130, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
 const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3905, adjust: 3150 }, bookcase: { skeleton: 4090, adjust: 3360 } }

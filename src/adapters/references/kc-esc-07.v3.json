@@ -9,7 +9,7 @@
   "support": "adapted",
   "difficulty": 4,
   "features": ["inset-drawers","legs","notch-pulls","routed-fronts","splayed-legs","asymmetric-arrangement","curved-cut"],
-  "adaptations": ["Solid oak is written in T18 plywood.","Finish: matte oil or wax look, closest id danish-oil.","Rounded top corners and rounded edge become square.","Fluted drawer fronts (two lower) become flat; recessed slot pulls become notch pulls not drawn.","Pedestal hangs from the top and rests on a rail in the original; here it is a standard pedestal.","Depth 650 estimated from the photos; height 750 assumed (no measure given).","splayed A-frame legs and stretchers drawn as straight legs with an apron on the side that has no pedestal"],
+  "adaptations": ["Solid oak is written in T18 plywood.","Finish: matte oil or wax look, closest id danish-oil.","Only the front corners of the top are rounded: the back ones stay square, where the legs and the pedestal reach the edge. The rounded edge becomes square.","Fluted drawer fronts (two lower) become flat; recessed slot pulls become notch pulls not drawn.","Pedestal hangs from the top and rests on a rail in the original; here it is a standard pedestal.","Depth 650 estimated from the photos; height 750 assumed (no measure given).","splayed A-frame legs and stretchers drawn as straight legs with an apron on the side that has no pedestal"],
   "gaps": ["splayed-legs","routed-fronts","notch-pulls","curved-cut"],
   "notes": "Escritorio de 150 x 65 cm con cajonera de tres cajones a la derecha, colgada bajo la cubierta. Patas abiertas en ángulo con travesaños; en el original todo es encino macizo.",
   "plan": {
@@ -21,7 +21,8 @@
     "overhang": 40,
     "shelf": false,
     "pedestal": { "side": "right", "drawers": 3 },
-    "legs": "legs"
+    "legs": "legs",
+    "corners": "rounded"
   },
   "expect": {
     "valid": true,

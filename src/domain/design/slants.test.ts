@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { outline, outlineArea } from './slants'
-import type { Slant } from './schema'
+import type { Round, Slant } from './schema'
 
 const leg = { x0: 0, x1: 18, y0: 0, y1: 200, z0: 0, z1: 100 }
 const corner = (y: 'start' | 'end', z: 'start' | 'end', along: number, across: number): Slant => ({ x: null, y: { from: y, length: along }, z: { from: z, length: across } })
@@ -40,5 +40,43 @@ describe('slants', () => {
     const shelf = { x0: 0, x1: 300, y0: 0, y1: 18, z0: 0, z1: 100 }
     const slant: Slant = { x: { from: 'end', length: 50 }, y: null, z: { from: 'end', length: 30 } }
     expect(outline(shelf, 'y', [slant])).toEqual([[0, 0], [300, 0], [300, 70], [250, 100], [0, 100]])
+  })
+})
+
+describe('rounded corners', () => {
+  const top = { x0: 0, x1: 1200, y0: 732, y1: 750, z0: 0, z1: 800 }
+  const round = (x: 'start' | 'end', z: 'start' | 'end', radius: number): Round => ({ x, y: null, z, radius })
+  const everyCorner = (radius: number) => [round('start', 'start', radius), round('end', 'start', radius), round('end', 'end', radius), round('start', 'end', radius)]
+
+  it('a round takes its corner off along an arc that starts and ends a radius away, and every point of it is a radius from its center', () => {
+    const rounded = outline(top, 'y', [], [round('end', 'end', 40)])
+    expect(rounded.slice(0, 4)).toEqual([[0, 0], [1200, 0], [1200, 760], expect.anything()])
+    expect(rounded.at(-2)).toEqual([1160, 800])
+    expect(rounded.at(-1)).toEqual([0, 800])
+    const arc = rounded.slice(2, -1)
+    expect(arc.length).toBeGreaterThan(4)
+    for (const [x, z] of arc) expect(Math.hypot(x - 1160, z - 760)).toBeCloseTo(40)
+  })
+
+  it('takes less than the square corner did: what a 40 mm round removes is the corner square less a quarter circle', () => {
+    const area = outlineArea(outline(top, 'y', [], [round('start', 'start', 40)]))
+    expect(1200 * 800 - area).toBeGreaterThan(0)
+    expect((1200 * 800 - area) / (40 * 40 * (1 - Math.PI / 4))).toBeCloseTo(1, 1)
+  })
+
+  it('four rounds as long as the face leave an ellipse inside it, and a circle on a square', () => {
+    const ellipse = outline(top, 'y', [], everyCorner(600))
+    for (const [x, z] of ellipse) expect(((x - 600) / 600) ** 2 + ((z - 400) / 400) ** 2).toBeCloseTo(1)
+    const circle = outline({ ...top, x1: 800 }, 'y', [], everyCorner(400))
+    for (const [x, z] of circle) expect(Math.hypot(x - 400, z - 400)).toBeCloseTo(400)
+  })
+
+  it('stays convex, so the mesh that fans it out from one corner covers it', () => {
+    const points = outline(top, 'y', [], everyCorner(40))
+    const turns = points.map((p, i) => {
+      const [q, r] = [points[(i + 1) % points.length], points[(i + 2) % points.length]]
+      return (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0])
+    })
+    expect(turns.every((t) => t > 0)).toBe(true)
   })
 })

@@ -70,6 +70,9 @@ export type SlantLeg = z.infer<typeof SlantLeg>
  */
 export const Slant = z.object({ x: SlantLeg.nullable(), y: SlantLeg.nullable(), z: SlantLeg.nullable() })
 export type Slant = z.infer<typeof Slant>
+/** A corner of a piece's face rounded to a radius, at those ends of the face's two axes; null on the thickness axis. Drawn only, like a slant. Knotty's data, not the expert's. */
+export const Round = z.object({ x: SlantEnd.nullable(), y: SlantEnd.nullable(), z: SlantEnd.nullable(), radius: z.number().positive() })
+export type Round = z.infer<typeof Round>
 
 export const Piece = z.object({
   id: PieceId,
@@ -88,6 +91,7 @@ export const Piece = z.object({
   confidence: PieceConfidence,
   cuts: z.array(Cut).optional(),
   slants: z.array(Slant).optional(),
+  rounds: z.array(Round).optional(),
 })
 export type Piece = z.infer<typeof Piece>
 
