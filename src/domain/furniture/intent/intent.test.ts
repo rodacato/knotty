@@ -156,6 +156,9 @@ describe('parseIntent', () => {
     ['tapa superior con dedos', 'drawers', edit('construction.top', 'fingers')],
     ['la cubierta con unión de dedos', 'nightstand', edit('construction.top', 'fingers')],
     ['bisagras por fuera', 'tv', edit('construction.hinges', 'outside')],
+    ['pon las bisagras a la derecha', 'tv', edit('construction.hinges', 'right')],
+    ['las bisagras del lado izquierdo', 'tv', edit('construction.hinges', 'left')],
+    ['ponle zoclo de cocina', 'bookcase', edit('kick', 'kitchen')],
     ['las bisagras adentro porfa', 'sideboard', edit('construction.hinges', 'inside')],
     ['que se vean las bisagras', 'sideboard', edit('construction.hinges', 'outside')],
     ['las esquinas del cajón con dedos', 'nightstand', edit('construction.drawerCorners', 'fingers')],
@@ -277,6 +280,7 @@ describe('parseIntent', () => {
     ['una sola repisa', 'tv'],
     ['sin manijas', 'bookcase'],
     ['bisagras por fuera', 'drawers'],
+    ['bisagras a la derecha', 'drawers'],
     ['cajones embutidos', 'bookcase'],
     ['con uñero', 'bookcase'],
     // Other words that still do not say one thing.
