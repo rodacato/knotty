@@ -22,7 +22,8 @@ export interface Result {
   outcome: Outcome
 }
 
-const gotOf = (intent: Intent | null) => (!intent ? null : intent.kind === 'question' ? `question ${intent.topic}` : intent.kind === 'unclear' ? `asks: ${intent.options.join(' / ')}` : `${intent.field} = ${intent.value}`)
+const editsOf = (intent: Extract<Intent, { kind: 'edit' | 'several' }>) => (intent.kind === 'several' ? intent.edits : [{ field: intent.field, value: intent.value }])
+const gotOf = (intent: Intent | null) => (!intent ? null : intent.kind === 'question' ? `question ${intent.topic}` : intent.kind === 'unclear' ? `asks: ${intent.options.join(' / ')}` : editsOf(intent).map((e) => `${e.field} = ${e.value}`).join(', '))
 
 export function classify(expected: Expected, intent: Intent | null): Outcome {
   if (expected === 'expert') return intent ? 'misread' : 'left'
@@ -31,8 +32,10 @@ export function classify(expected: Expected, intent: Intent | null): Outcome {
   // Asking about what reads one way changes nothing wrong: it is not read yet.
   if (intent.kind === 'unclear') return 'unread'
   if ('question' in expected) return intent.kind === 'question' && intent.topic === expected.question ? 'read' : 'misread'
-  const [only, ...more] = expected.edits
-  return intent.kind === 'edit' && !more.length && intent.field === only.field && intent.value === only.value ? 'read' : 'misread'
+  if (intent.kind === 'question') return 'misread'
+  // Every change asked for and no other, in any order.
+  const got = editsOf(intent)
+  return got.length === expected.edits.length && expected.edits.every((e) => got.some((g) => g.field === e.field && g.value === e.value)) ? 'read' : 'misread'
 }
 
 export function variantOf(kind: FurnitureKind, name: string): FurniturePlan {

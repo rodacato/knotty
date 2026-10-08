@@ -28,6 +28,15 @@ describe('classify', () => {
     expect(classify(two, null)).toBe('unread')
   })
 
+  it('reads two changes when both are there and nothing else, in any order', () => {
+    const two = both(['dimensions.width', 1800], ['legs', 'legs'])
+    const several = (...edits: [string, string | number][]): Intent => ({ kind: 'several', edits: edits.map(([field, value]) => ({ field, value })), plan: {} as never })
+    expect(classify(two, several(['legs', 'legs'], ['dimensions.width', 1800]))).toBe('read')
+    expect(classify(two, several(['legs', 'legs'], ['dimensions.width', 1700]))).toBe('misread')
+    expect(classify(two, several(['legs', 'legs'], ['dimensions.width', 1800], ['base', 'kick']))).toBe('misread')
+    expect(classify(set('legs', 'legs'), several(['legs', 'legs'], ['base', 'kick']))).toBe('misread')
+  })
+
   it('tells one question from another', () => {
     expect(classify(asks('cost'), { kind: 'question', topic: 'cost' })).toBe('read')
     expect(classify(asks('cost'), { kind: 'question', topic: 'sheets' })).toBe('misread')

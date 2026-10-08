@@ -4,7 +4,7 @@ import { valueFields, type ChoiceField, type CustomField, type MaterialField, ty
 import { FurniturePlan, moduleOf } from '../modules/plan'
 import type { PlanCell, PlanColumn } from '../modules/cabinet'
 
-// The chat requests Knotty understands by itself, without the expert: one clear change to the plan, or a question its own numbers answer.
+// The chat requests Knotty understands by itself, without the expert: one clear change to the plan or a few joined ones, or a question its own numbers answer.
 // Anything else is null and goes to the expert: a wrong guess costs more than a call, so only whole requests that read one way are taken.
 
 export type Topic = 'sheets' | 'cost' | 'measures'
@@ -14,6 +14,8 @@ export type Intent =
   | { kind: 'question'; topic: Topic }
   /** One field of the plan set to one value; `plan` is the plan with it, the same plan when it already had that value. */
   | { kind: 'edit'; field: string; value: string | number; plan: FurniturePlan }
+  /** Several changes in one request, each to a field of its own; `plan` is the plan with all of them. */
+  | { kind: 'several'; edits: { field: string; value: string | number }[]; plan: FurniturePlan }
   /** A request that reads two ways; `options` are requests, in Spanish, that each read one way. */
   | { kind: 'unclear'; options: string[] }
 
@@ -453,13 +455,12 @@ function hasNone(plan: Plan, field: ChoiceField<Plan>, said: string): boolean {
 /** The builder and the checks judge the result; here it only has to still be a plan. */
 const edit = (plan: Plan, field: string, value: string | number, next: Plan): Intent | null => (next === plan || FurniturePlan.safeParse(next).success ? { kind: 'edit', field, value, plan: next } : null)
 
-/** One request Knotty reads alone: a question its numbers answer, or one change to a live plan; null for anything else, several things or a doubt. */
-export function parseIntent(request: string, plan: FurniturePlan | null, design: Design | null, catalog: Catalog): Intent | null {
-  const text = same(spelledMetres(normalize(request)))
-  if (!design || !text || text.length > 80) return null
-  const question = QUESTIONS.find(([, pattern]) => pattern.test(text.replace(/^(?:oye )?(?:y )?/, '')))
-  if (question) return { kind: 'question', topic: question[0] }
-  if (!plan || request.includes('?')) return null
+/** What joins two changes in one request: "y", a comma, or both. */
+const JOINED = /\s*,\s*(?:[ye]\s+)?|\s+[ye]\s+/
+const MOST_CHANGES = 3
+
+/** One change, read whole: null for a doubt or for more than one thing. */
+function oneChange(text: string, plan: Plan, catalog: Catalog): Intent | null {
   const toward = towardIntent(text, plan)
   if (toward !== undefined) return toward
   if (DOUBT.test(text)) return null
@@ -468,4 +469,32 @@ export function parseIntent(request: string, plan: FurniturePlan | null, design:
     if (intent !== undefined) return intent
   }
   return null
+}
+
+/** Changes joined by "y" or a comma, each read against the plan the one before leaves: taken only if every one reads one way and none touches the field of another. */
+function severalChanges(text: string, plan: Plan, catalog: Catalog): Intent | null {
+  const parts = text.split(JOINED)
+  if (parts.length > MOST_CHANGES) return null
+  const edits: Extract<Intent, { kind: 'several' }>['edits'] = []
+  let next = plan
+  for (const part of parts) {
+    const intent = oneChange(part, next, catalog)
+    if (intent?.kind !== 'edit') return null
+    const said = edits.find((e) => e.field === intent.field)
+    if (said && said.value !== intent.value) return null
+    // The same change said twice ("armado fijo, pegado") is one.
+    if (!said) edits.push({ field: intent.field, value: intent.value })
+    next = intent.plan
+  }
+  return edits.length === 1 ? { kind: 'edit', ...edits[0], plan: next } : { kind: 'several', edits, plan: next }
+}
+
+/** One request Knotty reads alone: a question its numbers answer, or a change or a few to a live plan; null for anything else or a doubt. */
+export function parseIntent(request: string, plan: FurniturePlan | null, design: Design | null, catalog: Catalog): Intent | null {
+  const text = same(spelledMetres(normalize(request)))
+  if (!design || !text || text.length > 80) return null
+  const question = QUESTIONS.find(([, pattern]) => pattern.test(text.replace(/^(?:oye )?(?:y )?/, '')))
+  if (question) return { kind: 'question', topic: question[0] }
+  if (!plan || request.includes('?')) return null
+  return towardIntent(text, plan) === undefined && JOINED.test(text) ? severalChanges(text, plan, catalog) : oneChange(text, plan, catalog)
 }

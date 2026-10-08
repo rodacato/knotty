@@ -216,11 +216,15 @@ describe('parseIntent', () => {
   })
 
   const forTheExpert: [string, PlanName | null][] = [
-    // Doubt, negation or more than one thing.
+    // Doubt or negation; several things where one of them does not read one way, or two of them change the same thing.
     ['no le pongas cajones', 'drawers'],
     ['No, sin zoclo', 'bookcase'],
-    ['90 de ancho y con puertas', 'shoeRack'],
     ['sin zoclo, y más alto', 'bookcase'],
+    ['sin zoclo y que se vea bonito', 'bookcase'],
+    ['quítale las patas y ponle zoclo', 'sideboard'],
+    ['de 90 de ancho y de 80 de ancho', 'bookcase'],
+    ['sin zoclo, sin trasera, anclado al muro y de 90 de ancho', 'bookcase'],
+    ['sin zoclo pero con trasera', 'bookcase'],
     ['¿sin zoclo?', 'bookcase'],
     ['hazlo de 90 o 100 de ancho', 'bookcase'],
     // Words it does not know, or a request that does not say enough.
@@ -294,6 +298,26 @@ describe('parseIntent', () => {
     ['Hazlo de 90 cm de ancho', null],
   ]
   it.each(forTheExpert)('«%s» on the %s goes to the expert', (request, name) => expect(read(request, name)).toBeNull())
+
+  const several: [string, PlanName, [string, string | number][]][] = [
+    ['90 de ancho y con puertas', 'shoeRack', [['dimensions.width', 900], ['front', 'doors']]],
+    ['hazlo de 2 m de alto y 40 de fondo', 'bookcase', [['dimensions.height', 2000], ['dimensions.depth', 400]]],
+    ['sin zoclo, sin trasera y anclado al muro', 'bookcase', [['base', 'floor'], ['construction.back', 'none'], ['wallMounted', 'yes']]],
+    ['Sin trasera, de 90 de ancho', 'bookcase', [['construction.back', 'none'], ['dimensions.width', 900]]],
+  ]
+  it.each(several)('«%s» on the %s is every one of its changes', (request, name, edits) => {
+    expect(read(request, name)).toMatchObject({ kind: 'several', edits: edits.map(([field, value]) => ({ field, value })) })
+  })
+
+  it('several changes land in one plan, with nothing else moved', () => {
+    const intent = read('hazlo de 2 m de alto y 40 de fondo', 'bookcase')
+    const { dimensions, ...rest } = plans.bookcase as Extract<FurniturePlan, { kind: 'cabinet' }>
+    expect(intent).toMatchObject({ kind: 'several', plan: { ...rest, dimensions: { ...dimensions, height: 2000, depth: 400 } } })
+  })
+
+  it('a change said twice is one change', () => {
+    expect(read('mejor con zoclo, sin patas', 'sideboard')).toEqual(edit('base', 'kick'))
+  })
 
   it('asking for what the plan already has gives the same plan back', () => {
     const intent = parseIntent('con zoclo', plans.bookcase, buildPlan(plans.bookcase, testCatalog).design, testCatalog)
