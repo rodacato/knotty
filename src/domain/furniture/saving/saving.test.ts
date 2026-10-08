@@ -21,6 +21,8 @@ function materials(plan: FurniturePlan) {
 
 const variant = <K extends keyof typeof MODULES>(kind: K, name: string) => MODULES[kind].benchVariants().find(([n]) => n === name)![1]
 const allFree = (plan: FurniturePlan): LockOverrides => Object.fromEntries(lockableFields(plan).map((f) => [f.key, false]))
+/** A fixed number of a module's variants, evenly spread: the bed's grow with every option it gains, and a search per variant would grow with them. */
+const spread = <T>(all: T[], count: number) => (all.length <= count ? all : Array.from({ length: count }, (_, i) => all[Math.floor((i * all.length) / count)]))
 
 describe('«Ahorrar material»', () => {
   const bed = variant('bed', 'queen, cabecera lisa, cajones de los dos lados hacia el pie') as BedPlan
@@ -43,7 +45,7 @@ describe('«Ahorrar material»', () => {
 
   it('never changes a locked field, nor a value a free field would move along with it', () => {
     const locked: LockOverrides = { 'drawers.count': true, height: true, 'drawers.side': false }
-    for (const [, plan] of MODULES.bed.benchVariants().filter((_, i) => i % 6 === 0)) {
+    for (const [, plan] of spread(MODULES.bed.benchVariants(), 16)) {
       for (const option of search(plan, locked).options) {
         const p = option.plan as BedPlan
         expect([p.mattress, p.drawers.count, p.height]).toEqual([plan.mattress, plan.drawers.count, plan.height])
@@ -91,7 +93,7 @@ describe('«Ahorrar material»', () => {
   })
 
   it('every option on the modules’ variants, all free, builds with no critical finding and fewer sheets', () => {
-    const sample = Object.values(MODULES).flatMap((m) => m.benchVariants().filter((_, i) => m.kind !== 'bed' || i % 8 === 0)) as [string, FurniturePlan][]
+    const sample = Object.values(MODULES).flatMap((m) => (m.kind === 'bed' ? spread<[string, FurniturePlan]>(m.benchVariants(), 16) : m.benchVariants())) as [string, FurniturePlan][]
     for (const [, plan] of sample) {
       const today = materials(plan).total
       for (const option of search(plan, allFree(plan)).options) {
@@ -100,6 +102,6 @@ describe('«Ahorrar material»', () => {
         expect(after.total).toBe(today - option.saved)
       }
     }
-    // 45 searches plus a rebuild per option: ~2.5 s here, ~7 s on the CI runner.
-  }, 30_000)
+    // A search per variant plus a rebuild per option: the CI runner takes about three times as long as a laptop.
+  }, 60_000)
 })
