@@ -944,6 +944,33 @@ describe('a cell split into columns', () => {
   })
 })
 
+describe('a back that does not fit a sheet', () => {
+  const backsOf = (p: CabinetPlan) => {
+    const { design } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    return { a, backs: design.pieces.filter((x) => x.role === 'back'), box: (id: string) => (a.valid ? a.geo.boxes.get(id)! : undefined) }
+  }
+  const tall = { ...PLANS.sideboard, dimensions: { width: 1600, height: 1800, depth: 400 } }
+
+  it('goes in one board per column, meeting at the middle of each divider, with nothing to find', () => {
+    const { a, backs, box } = backsOf(tall)
+    expect(backs.map((b) => b.name)).toEqual(['Trasera de la columna 1', 'Trasera de la columna 2', 'Trasera de la columna 3', 'Trasera de la columna 4'])
+    expect(a.valid && a.findings).toEqual([])
+    expect(box('back')!.x1).toBe(box('back-2')!.x0)
+    expect(box('back')!.x1).toBe((box('div-1')!.x0 + box('div-1')!.x1) / 2)
+  })
+
+  it('stays one board while it fits, lying or standing', () => {
+    expect(backsOf(PLANS.sideboard).backs.map((b) => b.name)).toEqual(['Trasera'])
+    expect(backsOf(PLANS.bookcase).backs.map((b) => b.name)).toEqual(['Trasera'])
+  })
+
+  it('is still refused in a single column wider and taller than the sheet: there is no divider to join two boards on', () => {
+    const { a } = backsOf(plan({ dimensions: { width: 1200, height: 2000, depth: 300 } }))
+    expect(!a.valid && a.errors.map((e) => [e.code, e.data?.piece])).toEqual([['E_TOO_BIG_FOR_SHEET', 'back']])
+  })
+})
+
 describe('a back by cell', () => {
   const open = (height = 1, back?: boolean): PlanCell => ({ height, content: 'open', shelves: 0, doors: null, ...(back === undefined ? {} : { back }) })
   const drawer = (height = 1, back?: boolean): PlanCell => ({ height, content: 'drawer', shelves: null, doors: null, ...(back === undefined ? {} : { back }) })

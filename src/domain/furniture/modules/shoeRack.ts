@@ -6,7 +6,7 @@ import type { Cell } from '../reading/reading'
 import { ASSUMPTIONS } from '../../assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
-import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf } from './common'
+import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
@@ -156,9 +156,9 @@ const withSize = (plan: ShoeRackPlan, size: Partial<ShoeRackPlan['dimensions']>)
 const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
-      number({ key: 'dimensions.width', label: 'Ancho', get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
-      number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
+      number({ key: 'dimensions.height', label: 'Alto', ...PLAN_MEASURE, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Ancho', ...PLAN_MEASURE, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
   ]),
   section('Zapatos', [
@@ -196,6 +196,7 @@ const SHOE_RACK_PARTS: Parts<ShoeRackPlan> = {
 export const shoeRackModule: FurnitureModule<ShoeRackPlan> = {
   kind: 'shoeRack',
   schema: ShoeRackPlan,
+  rules: outsideRules<ShoeRackPlan>(),
   label: 'una zapatera',
   expert: { what: 'a shoe rack (a shallow box of flat shoe levels, open or with doors, optionally with a seat on top)' },
   build: buildShoeRack,

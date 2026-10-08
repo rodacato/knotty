@@ -40,7 +40,7 @@ describe('prepareAdoption', () => {
   })
 
   it('refuses a plan the engine cannot build, and says why', () => {
-    const plan = withPlan((p) => ({ ...p, dimensions: { width: 1500, height: 3000, depth: 400 } }))
+    const plan = withPlan((p) => ({ ...p, dimensions: { width: 1500, height: 940, depth: 1200 } }))
     const r = prepareAdoption(current, plan, 'KC-APA-01', testCatalog)
     expect(r.ok).toBe(false)
     expect(!r.ok && r.reasons[0]).toMatch(/cannot build/)

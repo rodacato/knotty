@@ -30,7 +30,7 @@ type PlanName = keyof typeof plans
 /** The intent without the resulting plan, to read in a table. */
 const read = (request: string, name: PlanName | null): Omit<Extract<Intent, { kind: 'edit' }>, 'plan'> | Intent | null => {
   const plan = name ? plans[name] : null
-  const intent = parseIntent(request, plan, plan ? buildPlan(plan, testCatalog).design : exampleBookcase)
+  const intent = parseIntent(request, plan, plan ? buildPlan(plan, testCatalog).design : exampleBookcase, testCatalog)
   if (intent?.kind !== 'edit') return intent
   const { plan: _, ...rest } = intent
   return rest
@@ -104,6 +104,91 @@ describe('parseIntent', () => {
     ['cajonera a la derecha', 'desk', edit('pedestal.side', 'right')],
     ['sin cajonera', 'desk', edit('pedestal.side', 'none')],
     ['con repisa baja', 'dining', edit('shelf', 'yes')],
+    // Metres in words, and other words for a measure.
+    ['hazlo de dos metros de alto', 'bookcase', edit('dimensions.height', 2000)],
+    ['2 metros diez de alto', 'bookcase', edit('dimensions.height', 2100)],
+    ['un metro y medio de ancho', 'sideboard', edit('dimensions.width', 1500)],
+    ['que tenga medio metro de fondo', 'sideboard', edit('dimensions.depth', 500)],
+    ['de hondo 45', 'tv', edit('dimensions.depth', 450)],
+    ['ponlo a 65 de alto', 'nightstand', edit('dimensions.height', 650)],
+    ['ponle 50 cm de profundidad', 'tv', edit('dimensions.depth', 500)],
+    ['ancho de 60 cm porfa', 'drawers', edit('dimensions.width', 600)],
+    ['achícalo 5 cm de ancho', 'bookcase', edit('dimensions.width', 500)],
+    ['angóstalo 20 cm', 'sideboard', edit('dimensions.width', 1400)],
+    // «Largo» on a form without it is the width of a piece wider than tall.
+    ['oye hazlo de dos metros de largo', 'tv', edit('dimensions.width', 2000)],
+    // A measure and the way it moves, joined by a comma.
+    ['más chaparro, 1.50', 'bookcase', edit('dimensions.height', 1500)],
+    ['hazlo más hondo, 35 de fondo', 'bookcase', edit('dimensions.depth', 350)],
+    ['más angostito, de 40', 'nightstand', edit('dimensions.width', 400)],
+    ['Hazla más larga, de 180', 'dining', edit('dimensions.width', 1800)],
+    // The measure of a part, from the field that says its range.
+    ['patas de 20 cm', 'sideboard', edit('legHeight', 200)],
+    ['patitas de 18 cm', 'sideboard', edit('legHeight', 180)],
+    ['bájale las patas a 10 cm', 'sideboard', edit('legHeight', 100)],
+    // The board, by its thickness or its id.
+    ['hazlo de triplay de 12', 'bookcase', edit('material', 'T12')],
+    ['ponle triplay de quince', 'sideboard', edit('material', 'T15')],
+    ['triplay de 12 mm', 'wallCabinet', edit('material', 'T12')],
+    ['material T15', 'nightstand', edit('material', 'T15')],
+    ['cámbialo a T12', 'tv', edit('material', 'T12')],
+    ['Usa triplay de 15 mm', 'dining', edit('material', 'T15')],
+    // Counts said as the only ones, and with another word for the part.
+    ['solo dos repisas', 'bookcase', edit('columns.shelves', 2)],
+    ['una sola puerta', 'wallCabinet', edit('columns.doors', 1)],
+    ['dos cajones nada más', 'drawers', edit('columns.drawers', 2)],
+    ['que tenga 6 entrepaños', 'bookcase', edit('columns.shelves', 6)],
+    ['ponle 2 repisas adentro', 'wallCabinet', edit('columns.shelves', 2)],
+    // Choices, by other words than the form's.
+    ['sin anclar a la pared', 'bookcase', edit('wallMounted', 'no')],
+    ['ánclalo a la pared', 'nightstand', edit('wallMounted', 'yes')],
+    ['fíjalo al muro', 'nightstand', edit('wallMounted', 'yes')],
+    ['que quede fijo a la pared', 'nightstand', edit('wallMounted', 'yes')],
+    ['desánclalo del muro', 'wallCabinet', edit('wallMounted', 'no')],
+    ['sin manijas', 'wallCabinet', edit('construction.pulls', 'none')],
+    ['con manijas', 'wallCabinet', edit('construction.pulls', 'handle')],
+    ['ponle jaladeras', 'drawers', edit('construction.pulls', 'handle')],
+    ['con uñero', 'drawers', edit('construction.pulls', 'notch')],
+    ['ponle una muesca para abrir', 'wallCabinet', edit('construction.pulls', 'notch')],
+    ['muesca en lugar de manija', 'sideboard', edit('construction.pulls', 'notch')],
+    ['techo entre los laterales', 'bookcase', edit('construction.top', 'between')],
+    ['cubierta encima', 'drawers', edit('construction.top', 'over')],
+    ['tapa superior con dedos', 'drawers', edit('construction.top', 'fingers')],
+    ['la cubierta con unión de dedos', 'nightstand', edit('construction.top', 'fingers')],
+    ['bisagras por fuera', 'tv', edit('construction.hinges', 'outside')],
+    ['las bisagras adentro porfa', 'sideboard', edit('construction.hinges', 'inside')],
+    ['que se vean las bisagras', 'sideboard', edit('construction.hinges', 'outside')],
+    ['las esquinas del cajón con dedos', 'nightstand', edit('construction.drawerCorners', 'fingers')],
+    ['cajones con uniones de dedos', 'drawers', edit('construction.drawerCorners', 'fingers')],
+    ['esquinas de los cajones atornilladas', 'sideboard', edit('construction.drawerCorners', 'screwed')],
+    ['cajones atornillados en las esquinas', 'drawers', edit('construction.drawerCorners', 'screwed')],
+    ['mejor las esquinas del cajón con tornillo', 'drawers', edit('construction.drawerCorners', 'screwed')],
+    ['cajones embutidos', 'nightstand', edit('construction.drawerFronts', 'inset')],
+    ['cajones sobrepuestos', 'drawers', edit('construction.drawerFronts', 'overlay')],
+    ['los frentes de los cajones embutidos', 'drawers', edit('construction.drawerFronts', 'inset')],
+    ['que los cajones queden metidos al ras', 'sideboard', edit('construction.drawerFronts', 'inset')],
+    ['las puertas al ras', 'tv', edit('construction.doors', 'inset')],
+    ['que las puertas queden sobrepuestas', 'tv', edit('construction.doors', 'overlay')],
+    ['que las puertas sean de correr', 'tv', edit('construction.doors', 'sliding')],
+    ['ponle las puertas sobrepuestas', 'sideboard', edit('construction.doors', 'overlay')],
+    ['con puertas corredizas mejor', 'sideboard', edit('construction.doors', 'sliding')],
+    ['frentes planos', 'sideboard', edit('construction.fronts', 'flat')],
+    ['ponle ranuras a los frentes', 'tv', edit('construction.fronts', 'grooved')],
+    ['con respaldo', 'wallCabinet', edit('construction.back', 'nailed')],
+    ['que lleve tapa trasera', 'tv', edit('construction.back', 'nailed')],
+    ['repisas ajustables', 'bookcase', edit('construction.shelves', 'movable')],
+    ['quiero poder mover las repisas', 'tv', edit('construction.shelves', 'movable')],
+    ['ensamble con minifix', 'tv', edit('assembly', 'cams')],
+    ['que se arme con pernos', 'tv', edit('assembly', 'bolts')],
+    ['con tornillos minifix para desarmarlo', 'drawers', edit('assembly', 'cams')],
+    ['ensamble fijo con cola', 'nightstand', edit('assembly', 'glued')],
+    ['quiero que quede todo pegado', 'tv', edit('assembly', 'glued')],
+    ['con patitas', 'bookcase', edit('base', 'legs')],
+    ['que tenga patas', 'tv', edit('base', 'legs')],
+    ['quiero que tenga zoclo abajo', 'nightstand', edit('base', 'kick')],
+    ['cámbiale el zoclo por patas', 'drawers', edit('base', 'legs')],
+    ['que quede a ras de piso', 'tv', edit('base', 'floor')],
+    ['déjale las patas derechas', 'sideboard', edit('legStyle', 'straight')],
   ]
   it.each(understood)('«%s» on the %s', (request, name, expected) => expect(read(request, name)).toEqual(expected))
 
@@ -114,6 +199,13 @@ describe('parseIntent', () => {
     ['¿Y cuánto me va a costar?', 'cost'],
     ['¿Cuánto mide?', 'measures'],
     ['¿qué medidas tiene?', 'measures'],
+    ['cuántas láminas se ocupan', 'sheets'],
+    ['cuántos triplays necesito', 'sheets'],
+    ['¿Cuánto triplay lleva?', 'sheets'],
+    ['¿En cuánto me sale?', 'cost'],
+    ['oye ¿y qué precio tiene?', 'cost'],
+    ['cuánto sale así como está', 'cost'],
+    ['de qué medida es', 'measures'],
   ]
   it.each(questions)('«%s» is a question about %s, with or without a plan', (request, topic) => {
     expect(read(request, 'bookcase')).toEqual({ kind: 'question', topic })
@@ -162,6 +254,37 @@ describe('parseIntent', () => {
     ['20 cajones', 'drawers'],
     ['5 cm de ancho', 'bookcase'],
     ['hazlo de 4 m de alto', 'bookcase'],
+    // Metres in words without the measure they are, and «largo» on a piece taller than wide.
+    ['hazlo de dos metros', 'bookcase'],
+    ['hazla de metro veinte de largo', 'wallCabinet'],
+    // A measure that moves the other way than its words, names two measures, or may be how much more.
+    ['más alto, de 1.50', 'bookcase'],
+    ['más bajo, de 60 cm de ancho', 'bookcase'],
+    ['más bonito, de 90', 'bookcase'],
+    ['ponle 10 cm de alto', 'bookcase'],
+    // A part's measure the piece does not have, out of its range, or against its verb.
+    ['patas de 20 cm', 'bookcase'],
+    ['patas de 50 cm', 'sideboard'],
+    ['súbele las patas a 10 cm', 'sideboard'],
+    ['patas cónicas de 20 cm', 'sideboard'],
+    // A board the form does not offer.
+    ['de MDF', 'bookcase'],
+    ['hazlo en mdf de 18', 'nightstand'],
+    ['triplay de 9', 'bookcase'],
+    ['cámbialo a T99', 'bookcase'],
+    // Counts that contradict themselves, and other words about a part the piece does not have.
+    ['otra puerta nada más', 'wallCabinet'],
+    ['una sola repisa', 'tv'],
+    ['sin manijas', 'bookcase'],
+    ['bisagras por fuera', 'drawers'],
+    ['cajones embutidos', 'bookcase'],
+    ['con uñero', 'bookcase'],
+    // Other words that still do not say one thing.
+    ['que quede fijo', 'nightstand'],
+    ['las puertas lisas', 'tv'],
+    ['al ras', 'tv'],
+    ['sin tiradores ni nada', 'nightstand'],
+    ['no lo ancles al muro', 'sideboard'],
     // Out of the form's range, or without a plan.
     ['sin zoclo', null],
     ['Hazlo de 90 cm de ancho', null],
@@ -169,17 +292,22 @@ describe('parseIntent', () => {
   it.each(forTheExpert)('«%s» on the %s goes to the expert', (request, name) => expect(read(request, name)).toBeNull())
 
   it('asking for what the plan already has gives the same plan back', () => {
-    const intent = parseIntent('con zoclo', plans.bookcase, buildPlan(plans.bookcase, testCatalog).design)
+    const intent = parseIntent('con zoclo', plans.bookcase, buildPlan(plans.bookcase, testCatalog).design, testCatalog)
     expect(intent).toMatchObject({ kind: 'edit', field: 'base', value: 'kick' })
     expect(intent?.kind === 'edit' && intent.plan).toBe(plans.bookcase)
   })
 
   it('«sin zoclo» on a piece that stands on legs takes nothing away, and neither does «quita las patas» on one with a kick', () => {
     for (const [request, name] of [['Sin zoclo', 'sideboard'], ['Quítale las patas', 'bookcase']] as const) {
-      const intent = parseIntent(request, plans[name], buildPlan(plans[name], testCatalog).design)
+      const intent = parseIntent(request, plans[name], buildPlan(plans[name], testCatalog).design, testCatalog)
       expect(intent?.kind === 'edit' && intent.plan).toBe(plans[name])
     }
     expect(read('Quítale las patas', 'sideboard')).toEqual(edit('base', 'floor'))
+  })
+
+  it('«a ras de piso» on a piece that stands on legs takes them away', () => {
+    const intent = parseIntent('que quede a ras de piso', plans.sideboard, buildPlan(plans.sideboard, testCatalog).design, testCatalog)
+    expect(intent).toMatchObject({ kind: 'edit', field: 'base', value: 'floor', plan: { base: 'floor' } })
   })
 
   const twoWays: [string, PlanName, string[]][] = [
@@ -209,7 +337,7 @@ describe('parseIntent', () => {
 
   it('the phrases come from each module\'s labels: every variant with a base understands «sin zoclo» and «con zoclo», and the others do not', () => {
     const read = Object.values(MODULES).flatMap((module) =>
-      (module.benchVariants() as [string, FurniturePlan][]).flatMap(([, plan]) => ['sin zoclo', 'con zoclo'].map((phrase) => ({ base: 'base' in plan, field: fieldOf(parseIntent(phrase, plan, buildPlan(plan, testCatalog).design)) }))),
+      (module.benchVariants() as [string, FurniturePlan][]).flatMap(([, plan]) => ['sin zoclo', 'con zoclo'].map((phrase) => ({ base: 'base' in plan, field: fieldOf(parseIntent(phrase, plan, buildPlan(plan, testCatalog).design, testCatalog)) }))),
     )
     expect(read.filter((r) => r.base !== (r.field === 'base'))).toEqual([])
     expect(read.some((r) => !r.base)).toBe(true)

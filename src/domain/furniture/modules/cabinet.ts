@@ -7,13 +7,13 @@ import { completeJoints, hingeOn } from '../../design/joints'
 import { lifts, slides } from '../../design/doors'
 import { resolveGeometry } from '../../design/resolve'
 import { lidNote, notchNote, slidingNote, withFrontCuts } from './fronts'
-import { backBoard, hingeFor, pickHardware, type Catalog } from '../../materials/catalog'
+import { backBoard, hingeFor, pickHardware, usableSheet, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -363,12 +363,19 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
 }
 type Layout = ReturnType<typeof layoutOf>
 
-/** The back: one board, or one per column when a column stops short, as tall as what it builds and meeting at the middle of each divider; with backs by cell, none here. */
+/** Whether the back of the whole box comes out of one sheet, lying or standing. */
+function backFitsSheet({ plan, catalog, onLegs }: Layout) {
+  const sheet = usableSheet(catalog, backBoard(catalog))
+  const [long, short] = [plan.dimensions.width, plan.dimensions.height - (onLegs ? plan.legHeight : 0)].sort((a, b) => b - a)
+  return long <= sheet.length && short <= sheet.width
+}
+
+/** The back: one board, or one per column when a column stops short or the one board is larger than a sheet, as tall as what it builds and meeting at the middle of each divider; with backs by cell, none here. */
 function backs(l: Layout): Piece[] {
   const { plan, n, half } = l
   if (l.build.back !== 'nailed' || l.cellBacks) return []
   const board = { role: 'back' as const, material: backBoard(l.catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
-  if (!l.voids) return [makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(l.boxFloor, ref('furniture.y1')) })]
+  if (!l.voids && (n === 1 || backFitsSheet(l))) return [makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(l.boxFloor, ref('furniture.y1')) })]
   return plan.columns.map((_, i) =>
     makePiece({
       ...board,
@@ -1038,9 +1045,9 @@ const constructionFields = (Object.keys(CABINET_LABELS.construction) as (keyof C
 const cabinetFields: FieldSpec<CabinetPlan>[] = [
   section('Medidas', [
     numbers(3, [
-      number({ key: 'dimensions.height', label: 'Alto', lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
-      number({ key: 'dimensions.width', label: 'Ancho', lockedByDefault: true, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
-      number({ key: 'dimensions.depth', label: 'Fondo', get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
+      number({ key: 'dimensions.height', label: 'Alto', ...PLAN_MEASURE, lockedByDefault: true, get: (p) => p.dimensions.height, set: (p, height) => withSize(p, { height }) }),
+      number({ key: 'dimensions.width', label: 'Ancho', ...PLAN_MEASURE, lockedByDefault: true, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
+      number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
   ]),
   section('Cómo se arma', [
@@ -1153,6 +1160,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   kind: 'cabinet',
   schema: CabinetPlan,
   rules: [
+    ...outsideRules<CabinetPlan>(),
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
     { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },

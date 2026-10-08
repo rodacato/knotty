@@ -144,7 +144,7 @@ export function createAdjust(kit: Kit) {
   function locally(round: Round, answering: string | null): DesignState | null {
     const { withRequest, request, design, before, plan: current, trace, reply } = round
     const live = current.plan && !current.diverged ? current.plan : null
-    const intent = parseIntent(request, live, design)
+    const intent = parseIntent(request, live, design, catalog)
     if (!intent) return null
     const started = Date.now()
     const note = (outcome: TraceEntry['outcome'], errors: TraceEntry['errors'] = [], repairs: Repair[] = []) => trace.push(traceEntry('adjust', 0, started, null, outcome, errors, repairs, BY_KNOTTY))

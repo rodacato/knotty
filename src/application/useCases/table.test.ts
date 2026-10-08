@@ -128,6 +128,26 @@ describe('table adjustments through the real use cases', () => {
     expect(currentPlan(initial).plan).toEqual(desk)
   })
 
+  it('a top deeper than the sheet is refused by how much it is over and by the most its measure can be', () => {
+    const { useCases, initial } = setup([])
+    const deeper = useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, depth: 1200 } })
+    expect(deeper).toEqual({ ok: false, message: '«Cubierta» mediría 1370 × 1200 mm y de una hoja salen tablas de hasta 2410 × 1188: le sobran 12 mm. «Fondo» puede ser de hasta 1188 mm.' })
+    const fits = useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, depth: 1188 } })
+    expect(fits.ok || fits.message).not.toContain('hoja')
+  })
+
+  it('a measure out of what a plan takes is refused with its range, before anything is built', () => {
+    const { useCases, initial } = setup([])
+    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, depth: 7 } })).toEqual({ ok: false, message: 'El fondo va de 100 a 2400 mm.' })
+    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, width: 3000 } })).toEqual({ ok: false, message: 'El largo va de 100 a 2400 mm.' })
+  })
+
+  it('with two measures changed at once it says the board and how much it is over, and names no measure', () => {
+    const { useCases, initial } = setup([])
+    const r = useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, width: 1500, depth: 1200 } })
+    expect(r).toEqual({ ok: false, message: '«Cubierta» mediría 1500 × 1200 mm y de una hoja salen tablas de hasta 2410 × 1188: le sobran 12 mm.' })
+  })
+
   it('a question answered with no plan changes neither version nor geometry', async () => {
     const { useCases, initial } = setup([response(null, { action: 'answer', explanation: 'La cajonera necesita un lado y un número de cajones.' })])
     const state = await useCases.adjust(initial, '¿Qué datos necesitas para una cajonera?', signal())

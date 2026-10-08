@@ -707,8 +707,8 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     const { llm } = withPlan(cabinetPlan)
     const c = setup(llm)
     const initial = await c.reconstruct(request('Una cajonera'), newSignal())
-    const r = c.applyPlan(initial, { ...(currentPlan(initial).plan as CabinetPlan), dimensions: { width: 500, height: 3000, depth: 450 } })
-    expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/más grandes? que la hoja\. «Trasera» mide 3000/) })
+    const r = c.applyPlan(initial, { ...(currentPlan(initial).plan as CabinetPlan), dimensions: { width: 1300, height: 1300, depth: 450 } })
+    expect(r).toMatchObject({ ok: false, message: expect.stringMatching(/^«Trasera» mediría 1300 × 1300 mm y de una hoja salen tablas de hasta 2410 × 1188: le sobran 112 mm\./) })
   })
 
   it('a bench skips the skeleton: it has no plan yet', async () => {
@@ -820,7 +820,7 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     expect(currentPlan(r.state).extras).toEqual([])
   })
 
-  const tooTall = { action: 'plan' as const, cabinet: { ...drawers(3), dimensions: { width: 500, height: 3000, depth: 450 } } }
+  const tooDeep = { action: 'plan' as const, cabinet: { ...drawers(3), dimensions: { width: 500, height: 2400, depth: 1300 } } }
 
   it('the expert edits the plan with a lean context: the plan, requirements and findings, no pieces or geometry', async () => {
     const { llm, requests } = expert({ action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' })
@@ -836,12 +836,12 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
   })
 
   it('a plan that cannot be built goes back once with its errors, and the corrected one applies with no pieces asked', async () => {
-    const { llm, calls, requests } = expert([tooTall, { action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' }])
+    const { llm, calls, requests } = expert([tooDeep, { action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' }])
     const { c, initial } = await start(llm)
     const stages: string[] = []
     const state = await c.adjust(initial, 'Ponle otro cajón igual a los de abajo', newSignal(), (stage, attempt) => stages.push(`${stage}@${attempt}`))
     expect(calls).toEqual(['plan', 'plan'])
-    expect(requests[1].correction).toMatchObject({ previousResponse: { cabinet: { dimensions: { height: 3000 } } }, errors: expect.stringContaining('Knotty built the design from your plan and it is not valid') })
+    expect(requests[1].correction).toMatchObject({ previousResponse: { cabinet: { dimensions: { depth: 1300 } } }, errors: expect.stringContaining('Knotty built the design from your plan and it is not valid') })
     expect(stages).toContain('correcting@1')
     expect(state.versions).toHaveLength(2)
     expect(new Set(currentDesign(state).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
@@ -852,8 +852,18 @@ describe('the plan stays alive: chat edits it, and free changes ride on top', ()
     ])
   })
 
+  it('a plan with a measure out of range goes back once with the range, as any other inconsistent field', async () => {
+    const tooTall = { action: 'plan' as const, cabinet: { ...drawers(3), dimensions: { width: 500, height: 3000, depth: 450 } } }
+    const { llm, calls, requests } = expert([tooTall, { action: 'plan', cabinet: drawers(4), summary: 'Agregar un cajón' }])
+    const { c, initial } = await start(llm)
+    const state = await c.adjust(initial, 'Hazla de 3 metros', newSignal())
+    expect(calls).toEqual(['plan', 'plan'])
+    expect(requests[1].correction?.errors).toContain('El alto va de 100 a 2400 mm.')
+    expect(state.versions).toHaveLength(2)
+  })
+
   it('a plan that still cannot be built after its correction falls back to pieces', async () => {
-    const { llm, calls } = expert(tooTall, [{ op: 'addPiece', piece: hanger }])
+    const { llm, calls } = expert(tooDeep, [{ op: 'addPiece', piece: hanger }])
     const { c, initial } = await start(llm)
     await c.adjust(initial, 'Hazla de 3 metros', newSignal())
     expect(calls).toEqual(['plan', 'plan', 'pieces'])

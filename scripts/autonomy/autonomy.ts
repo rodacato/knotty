@@ -46,7 +46,7 @@ export function measure(kind: FurnitureKind, groups: Group[], catalog: Catalog):
     const plan = variantOf(kind, on)
     const { design } = buildPlan(plan, catalog)
     return cases.map(([say, expected]): Result => {
-      const intent = parseIntent(say, plan, design)
+      const intent = parseIntent(say, plan, design, catalog)
       return { say, on, expected, got: gotOf(intent), outcome: classify(expected, intent) }
     })
   })
