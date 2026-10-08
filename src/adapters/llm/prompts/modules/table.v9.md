@@ -1,5 +1,5 @@
 ---
-id: table@8
+id: table@9
 ---
 # pick
 - A **table or desk**, or a **workbench or standing desk**: a top on two plywood sides, with aprons. It goes in `table`.
@@ -16,7 +16,7 @@ id: table@8
 - `shelf`: a low shelf between the sides, on coffee and side tables and workbenches. A desk does not have one.
 - `pedestal`: desks only, a drawer unit on one side: `side` "none", "left" or "right" (seen from the front) and `drawers` {{pedestalDrawerCount}}; without one, "none" and 0.
 - `legs`: "panel" (two plywood ends, the usual) or "legs" (four legs with an apron all round) when the person asks for legs.
-- `legStyle`: with "legs", "straight" (the usual) or "tapered" (each leg narrows toward the floor) when the person asks for it or the photos show it. Legs that lean outward are not built: taper them if they also narrow, and say so.
+- `legStyle`: with "legs", "straight" (the usual), "tapered" (each leg narrows toward the floor) or "splayed" (it also leans outward; it needs an `overhang` of 20 or more) when the person asks for it or the photos show it.
 - `corners`: "square", or "rounded" when asked for or seen in the photos; it needs an `overhang` of 15 or more.
 - `assembly`: "glued", unless the table is over 1800 mm long or the person wants it to come apart: then "bolts", or "cams" (minifix) if asked.
 
