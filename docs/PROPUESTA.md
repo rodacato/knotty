@@ -416,7 +416,7 @@ Bisagras por alto, como la tabla de Blum de [valores-de-referencia.md](carpinter
 
 ### R7 — Base
 
-Piso con claro > 800 mm sin apoyo intermedio → recomendación. Patas a más de 1 200 mm entre sí → recomendación de patas intermedias.
+Piso con claro > 800 mm sin apoyo intermedio → recomendación. Patas a más de 1 200 mm entre sí → recomendación de patas intermedias. Las patas se miden a lo ancho y, desde la v4 (2026-10-08), también de frente a fondo (`check: 'base.legs-across'`): en cada lugar a lo ancho donde algo llega al piso, qué tan lejos queda lo que ahí se apoya. Se mide por lugar y no en el mueble entero porque una cabecera lisa llega al piso a todo lo ancho y tapaba el hueco de media cama. El umbral es el mismo; de frente a fondo no se ofrece «apoyo al centro», que ese arreglo pone a lo ancho.
 
 Una caja de un extremo que cuelga (`check: 'base.hanging'`): su costado de afuera y el piso al pie de ese costado no llegan al suelo ni descansan en nada, así que solo la sostiene la cubierta → **crítico**, con «anclar al muro» como salida. Anclado al muro no avisa: lo sostiene el muro (las repisas de pared). Una columna que no llega al piso entre dos que sí llegan no cuenta: la cargan sus vecinas, como los cajones colgados de un aparador.
 

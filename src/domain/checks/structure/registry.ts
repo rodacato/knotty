@@ -31,7 +31,7 @@ export const RULES = [
   defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', version: 6, check: tippingRule }),
   defineRule({ code: 'R5_RACKING', title: 'Escuadrado', version: 3, check: rackingRule }),
   defineRule({ code: 'R6_DOORS', title: 'Puertas', version: 3, check: doorRule }),
-  defineRule({ code: 'R7_BASE', title: 'Base', version: 3, check: baseRule }),
+  defineRule({ code: 'R7_BASE', title: 'Base', version: 4, check: baseRule }),
   defineRule({ code: 'R8_GRAIN', title: 'Veta', check: grainRule }),
   defineRule({ code: 'R9_DRAWERS', title: 'Cajones', check: drawerRule }),
   defineRule({ code: 'R10_USE', title: 'Uso del mueble', check: typologyRule }),

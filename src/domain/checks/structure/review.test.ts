@@ -136,6 +136,18 @@ describe('a box on legs', () => {
     expect(base[0].alternatives.map((x) => x.key)).toEqual(['center-support'])
   })
 
+  it('legs only by the two sides of a wide bed are too far apart from front to back (R7), though a headboard reaches the floor across it', () => {
+    const bed = (mattress: 'matrimonial' | 'king') => buildPlan({ kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 450, legs: 'legs', legHeight: 150, drawers: { side: 'none', count: 0, position: 'center' }, headboard: { style: 'plain', height: 1100, depth: 0, shelves: 0 } }, testCatalog).design
+    const base = (d: Design) => findings(d).filter((h) => h.code === 'R7_BASE')
+    const sidesOnly = (d: Design) => without(d, (id) => /^leg-.*-spine-/.test(id))
+    expect(base(bed('king'))).toEqual([])
+    const [found, ...others] = base(sidesOnly(bed('king')))
+    expect(others).toEqual([])
+    expect(found).toMatchObject({ check: 'base.legs-across', severity: 'recommendation', data: { max: 1200 }, alternatives: [] })
+    expect(found.data.span).toBeGreaterThan(1800)
+    expect(base(sidesOnly(bed('matrimonial')))).toEqual([])
+  })
+
   it('tips over by how deep its legs stand, not the box (R4)', () => {
     const open = { ...sideboard, name: 'Librero bajo', wallMounted: false, dimensions: { width: 600, height: 850, depth: 300 }, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 2, doors: null }] }] }
     expect(findings(buildPlan({ ...open, base: 'floor' }, testCatalog).design).filter((h) => h.code === 'R4_TIPPING')).toEqual([])

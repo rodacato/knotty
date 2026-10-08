@@ -232,22 +232,54 @@ export const doorRule: Rule = (ctx) => {
     })
 }
 
+/** Stretches that touch or overlap, as one: two layers of a leg, or a front leg and its back one. */
+const merged = (stretches: [number, number][]) =>
+  stretches
+    .sort((a, b) => a[0] - b[0])
+    .reduce<[number, number][]>((all, [from, to]) => {
+      const last = all.at(-1)
+      if (last && from <= last[1] + CONTACT_TOLERANCE) last[1] = Math.max(last[1], to)
+      else all.push([from, to])
+      return all
+    }, [])
+
+/** R7, legs from front to back: at each place along the width where something stands, how far apart what stands there is. A wide bed with legs only by its sides has nothing under its middle. */
+function legSpanAcross(ctx: RuleContext, boxes: Box[], rows: [number, number][]): Finding[] {
+  const { maxSpan } = ASSUMPTIONS.legs
+  const widest = rows
+    .flatMap(([x0, x1]) => {
+      const here = merged(boxes.filter((box) => box.x0 <= x1 && box.x1 >= x0).map((box) => [box.z0, box.z1]))
+      return here.slice(1).map(([z0], i) => ({ x0, x1, from: here[i][1], to: z0 }))
+    })
+    .sort((a, b) => b.to - b.from - (a.to - a.from))[0]
+  if (!widest || widest.to - widest.from <= maxSpan) return []
+  const gap = widest.to - widest.from
+  const over = ctx.design.pieces
+    .filter((p) => p.normal === 'y')
+    .map((p) => ({ p, box: ctx.geo.boxes.get(p.id) }))
+    .filter((x): x is { p: Piece; box: Box } => !!x.box && x.box.z0 <= widest.from && x.box.z1 >= widest.to && x.box.x0 <= widest.x1 && x.box.x1 >= widest.x0)
+    .sort((a, b) => a.box.y0 - b.box.y0)[0]
+  return [
+    {
+      code: 'R7_BASE',
+      severity: 'recommendation',
+      check: 'base.legs-across',
+      pieces: over ? [over.p.id] : [],
+      message: `De frente a fondo quedan ${roundTo(gap, 0)} mm entre dos patas: el mueble carga en medio y la base se vence. Pasando de ${maxSpan} mm, lleva patas intermedias.`,
+      data: { span: roundTo(gap, 0), max: maxSpan },
+      alternatives: [],
+    },
+  ]
+}
+
 /** R7, legs: two legs too far apart along the width leave the frame and the bottom carrying the middle; past the reference's width, legs go in between. */
 function legSpan(ctx: RuleContext): Finding[] {
   const { boxes, onLegs } = standing(ctx.design, ctx.geo)
   if (!onLegs) return []
-  // What stands on the floor, as runs along the width: two layers of a leg, or a front leg and its back one, are one.
-  const runs = boxes
-    .map(({ box }) => [box.x0, box.x1] as [number, number])
-    .sort((a, b) => a[0] - b[0])
-    .reduce<[number, number][]>((all, [x0, x1]) => {
-      const last = all.at(-1)
-      if (last && x0 <= last[1] + CONTACT_TOLERANCE) last[1] = Math.max(last[1], x1)
-      else all.push([x0, x1])
-      return all
-    }, [])
+  // What stands on the floor, as runs along the width.
+  const runs = merged(boxes.map(({ box }) => [box.x0, box.x1]))
   const { maxSpan } = ASSUMPTIONS.legs
-  return runs.slice(1).flatMap(([x0], i): Finding[] => {
+  const along = runs.slice(1).flatMap(([x0], i): Finding[] => {
     const from = runs[i][1]
     const gap = x0 - from
     if (gap <= maxSpan) return []
@@ -269,6 +301,7 @@ function legSpan(ctx: RuleContext): Finding[] {
       },
     ]
   })
+  return [...along, ...legSpanAcross(ctx, boxes.map(({ box }) => box), runs)]
 }
 
 /** R7, floor: one that rests neither on the ground nor on a full kick needs support in between over a long span. */
