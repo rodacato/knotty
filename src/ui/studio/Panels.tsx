@@ -1,6 +1,6 @@
 import type { Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
-import { cutList } from '../../domain/estimate/cutList'
+import { afterCut, afterCutText, cutList, type CutLine } from '../../domain/estimate/cutList'
 import { cm } from '../system/components'
 import { useStore } from '../store'
 
@@ -9,6 +9,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
   const selection = useStore((s) => s.selection)
   const list = cutList(design, geo)
   const total = list.reduce((n, r) => n + r.count, 0)
+  const after = (r: CutLine) => afterCutText(afterCut(design, r), r.count)
   return (
     <div className="flex flex-col gap-3 p-4">
       <p className="text-sm text-graphite">
@@ -28,6 +29,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
                 <span className="numerals block text-xs text-graphite-2">
                   {r.length} × {r.width} mm · {cm(r.length)} × {cm(r.width)}
                 </span>
+                {after(r) && <span className="block text-xs text-graphite-2">{after(r)}</span>}
               </span>
               <span className="numerals shrink-0 rounded-full border border-line px-2 py-0.5 text-xs">{r.thickness} mm</span>
             </button>
