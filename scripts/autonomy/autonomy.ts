@@ -3,12 +3,13 @@ import { parseIntent, type Intent } from '../../src/domain/furniture/intent/inte
 import { MODULES, buildPlan, type FurnitureKind, type FurniturePlan } from '../../src/domain/furniture/modules/plan'
 import { Catalog } from '../../src/domain/materials/catalog'
 import type { Expected, Group } from './corpus'
+import { cabinet } from './corpus/cabinet'
 import { table } from './corpus/table'
 
 // How much of what a person asks Knotty reads without the expert. Usage: npm run autonomy -- [module]; a misread request exits 1.
 // With --ask it sends the unread ones to the expert of KNOTTY_MODELS: that calls a provider and costs tokens.
 
-export const CORPUS: Partial<Record<FurnitureKind, Group[]>> = { table }
+export const CORPUS: Partial<Record<FurnitureKind, Group[]>> = { cabinet, table }
 
 /** `unread`: left to the expert though Knotty could. `misread`: read as something else. `left`: the expert's, and left to it. */
 export type Outcome = 'read' | 'unread' | 'misread' | 'left'
