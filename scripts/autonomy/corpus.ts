@@ -9,7 +9,7 @@ export interface Edit {
 }
 
 export type Expected =
-  /** Every change the request asks for; Knotty reads one at a time today, so two stay with the expert until it reads both. */
+  /** Every change the request asks for: reading only some of them is a misreading. */
   | { edits: Edit[] }
   | { question: Topic }
   /** It reads two ways on that piece: Knotty asks which, and choosing one for the person is the mistake. */
