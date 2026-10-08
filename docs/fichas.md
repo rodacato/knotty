@@ -51,7 +51,7 @@ npm run probe -- --explain kc-apa-01 candidate.json # the same for a candidate, 
 
 ## Improve a ficha in the lab
 
-The bench (a drawer of the debug bar: Konami, `Ctrl+Shift+D`, settings or `?debug`) lists all the fichas: open one, ask the expert for changes or move its fields, and with «Exportar ficha» it downloads a candidate file. The lab does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
+The bench (a drawer of the debug bar: Konami, `Ctrl+Shift+D`, settings or `?debug`) lists all the fichas, and the address opens one by its code (`?debug&ficha=kc-mes-01`): open one, ask the expert for changes or move its fields, and with «Exportar ficha» it downloads a candidate file. The lab does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
 
 ## 1. From an idea or some photos to a ficha
 

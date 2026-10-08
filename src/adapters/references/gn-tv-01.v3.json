@@ -5,7 +5,7 @@
   "rooms": ["living"],
   "name": "Rack con puerta corrediza",
   "kind": "tvStand",
-  "notes": "Rack bajo sobre patas con una puerta corrediza que tapa la mitad: de un lado queda cerrado y del otro un nicho con repisa. La puerta corre en ranuras, sin bisagras.",
+  "notes": "Rack bajo sobre patas con una puerta corrediza que tapa la mitad: de un lado queda cerrado y del otro un nicho con repisa. La puerta corre en ranuras, sin bisagras. El nicho lleva un pasacables en la trasera.",
   "plan": {
     "kind": "cabinet",
     "name": "Rack con puerta corrediza",
@@ -34,7 +34,7 @@
               {
                 "width": 1,
                 "cells": [
-                  { "height": 1, "content": "open", "shelves": 1, "doors": null }
+                  { "height": 1, "content": "open", "shelves": 1, "doors": null, "cable": true }
                 ]
               }
             ]

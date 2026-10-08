@@ -2,7 +2,7 @@ import type { PieceEdit, PieceEditResult, WorkshopResult } from '../../applicati
 import type { Notice } from '../../application/notices'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
-import type { Base, Example } from '../../domain/furniture/examples'
+import { exampleOf, type Base, type Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { SavingSearch } from '../../domain/furniture/saving/saving'
 import { applySettings } from '../../domain/materials/catalog'
@@ -14,7 +14,7 @@ import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import { ANY, type CatalogQuery } from '../capture/catalog'
-import { debugAccess } from '../debug/access'
+import { askedFicha, debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
 import type { Get, Set, Slice, Store } from './types'
@@ -149,6 +149,10 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   start(services) {
     const state = services.useCases.load()
     set({ services, state, phase: state ? 'studio' : 'home', debugVisible: debugAccess(services.debug), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
+    // A ficha asked for in the address opens as from the «Fichas» drawer: in the sandbox, so only with the debug access.
+    const code = askedFicha()?.toLowerCase()
+    const reference = code ? services.references.all().find((r) => r.code.toLowerCase() === code) : undefined
+    if (reference) get().sandboxExample(exampleOf(reference), reference.code)
   },
 
   newDesign() {
