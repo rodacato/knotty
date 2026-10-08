@@ -16,6 +16,7 @@ const STARTING_IDEAS: Record<DesignKind | 'unknown', string[]> = {
   nightstand: WITH_DRAWERS,
   sideboard: WITH_DRAWERS,
   tvStand: WITH_DRAWERS,
+  kitchenBase: STORAGE,
   bed: ['Que sea para colchón queen', 'Agrégale cajones abajo', 'Súbele 15 cm a la cabecera', 'Refuerza el centro de la base'],
   table: TABLE,
   desk: TABLE,

@@ -15,6 +15,7 @@ export const TYPICAL_DIMENSIONS: Record<DesignKind, Dimensions> = {
   nightstand: { width: 450, height: 660, depth: 400 },
   sideboard: { width: 1600, height: 900, depth: 450 },
   tvStand: { width: 1600, height: 500, depth: 400 },
+  kitchenBase: { width: 600, height: 900, depth: 600 },
   // A matrimonial mattress (1350 × 1900) with its play, on a base of 350.
   bed: { width: 1960, height: 350, depth: 1390 },
   table: TYPICAL_TABLE_DIMENSIONS.dining,

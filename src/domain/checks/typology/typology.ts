@@ -14,6 +14,7 @@ const WORDS: [DesignKind, RegExp][] = [
   ['workbench', /banco de trabajo|mesa de trabajo|mes[oó]n|escritorio (alto|de pie)/],
   ['desk', /escritorio/],
   ['wallCabinet', /alacena|gabinete de pared/],
+  ['kitchenBase', /gabinete (bajo|de cocina)|isla de cocina|mueble de fregadero/],
   ['drawers', /cajonera|c[oó]moda/],
   ['nightstand', /bur[oó]|mesa de noche/],
   ['sideboard', /aparador|trinchador|credenza|bufetera/],

@@ -28,6 +28,9 @@ describe('detectKind', () => {
     ['Cómoda de tres cajones', 'drawers'],
     ['Aparador para el comedor', 'sideboard'],
     ['Alacena de pared', 'wallCabinet'],
+    ['Gabinete bajo de dos puertas', 'kitchenBase'],
+    ['Isla de cocina', 'kitchenBase'],
+    ['Mueble de fregadero', 'kitchenBase'],
     ['Librero 5 repisas', 'bookcase'],
     ['Zapatera', 'shoeRack'],
     ['Mueble de TV', 'tvStand'],
@@ -60,6 +63,15 @@ describe('the kind is data, not the name', () => {
     // Anchoring it is R4's, by its doors and drawers and its height, whatever it is (structure/rules.test.ts).
     expect(usage(wardrobe)).toEqual([['recommendation', expect.stringContaining('los ganchos de ropa no caben')]])
     expect(usage({ ...wardrobe, kind: undefined })).toEqual([])
+  })
+
+  it('a kitchen base is judged by the counter it makes: too low or too shallow says so, and a deep island does not', () => {
+    const base = (dimensions: { width: number; height: number; depth: number }) => ({ ...cabinet({ name: 'Mueble', dimensions }), kind: 'kitchenBase' as const })
+    expect(usage(base({ width: 600, height: 870, depth: 580 }))).toEqual([])
+    expect(usage(base({ width: 1200, height: 900, depth: 900 }))).toEqual([])
+    expect(usage(base({ width: 600, height: 700, depth: 580 }))).toEqual([['recommendation', expect.stringContaining('la cubierta de una cocina queda a 850–920')]])
+    expect(usage(base({ width: 600, height: 870, depth: 400 }))).toEqual([['recommendation', expect.stringContaining('no cabe una tarja')]])
+    expect(usage({ ...base({ width: 600, height: 700, depth: 400 }), kind: undefined })).toEqual([])
   })
 
   it('a table says which table it is: a coffee table named "comedor" is judged as a coffee table', () => {
