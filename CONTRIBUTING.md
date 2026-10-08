@@ -152,19 +152,7 @@ npm run compare:resume -- --last  # y las reanuda
 | Una ficha de referencia, o el motor que la construye | `npm run probe -- --all`: cada ficha debe seguir como dice su `expect`. Si una diferencia es la esperada, `npm run probe -- --update <código>` reescribe el `expect` y el diff del PR la muestra; si no, es un error |
 | Lo que el chat entiende sin experto (`src/domain/furniture/intent/`) | `npm run autonomy`: ningún pedido `misread`, y los que leía siguen leídos. Ver [la guía](docs/autonomy.md) |
 
-### Dónde va un caso nuevo
-
-Cada nivel juzga otra cosa y recibe otra entrada; un caso va en el más barato que pueda fallar por lo que quieres cuidar.
-
-| Quieres cuidar que… | El caso es… | Va en | Lo corre |
-|---|---|---|---|
-| Un plan dé el mueble esperado | Una ficha, o una variante del módulo | `src/adapters/references/` ([guía](docs/fichas.md)); `benchVariants` del módulo | `npm run probe -- --all`; banco sin experto (3) |
-| Un pedido del chat se lea sin experto | Una frase y lo que significa | `scripts/autonomy/corpus/` ([guía](docs/autonomy.md)); al enseñárselo al intérprete, también en `intent.test.ts` | `npm run autonomy`; `npm test` |
-| Knotty reaccione bien a una respuesta del experto, buena o mala | Un pedido, una respuesta fija y lo que puede cambiar | `src/application/useCases/reactions.test-util.ts` | `npm test` |
-| El experto real haga lo pedido | Un pedido y lo que debe salir | `src/application/bench/cases.ts` | Banco con experto (4) |
-| Un consejo sea correcto y seguro | Una pregunta difícil con su revisión | La carpeta privada | `compare:hard` (5) |
-
-Un mueble nuevo recorre la tabla de arriba hacia abajo: su ficha, las variantes de su módulo, las frases con que se le pide un cambio, y al final un caso del banco. Las frases y las respuestas fijas se dicen sobre una variante del banco, no sobre un mueble inventado aparte.
+Qué hacer y dónde va cada cosa según lo que quieras lograr (que el chat entienda un pedido, una opción o un mueble nuevo, una ficha armada con el experto, un caso nuevo) está en [Flujos de trabajo](docs/flujos.md).
 
 ## Cambios que piden cuidado
 
