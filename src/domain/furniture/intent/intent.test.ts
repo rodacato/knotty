@@ -15,6 +15,7 @@ const variant = (kind: keyof typeof MODULES, name: string) => {
 const plans = {
   bookcase: variant('cabinet', 'librero'),
   drawers: variant('cabinet', 'cajonera'),
+  nightstand: variant('cabinet', 'buró'),
   wallCabinet: variant('cabinet', 'alacena'),
   tv: variant('cabinet', 'mueble de TV'),
   sideboard: variant('cabinet', 'aparador con patas'),
@@ -59,6 +60,8 @@ describe('parseIntent', () => {
     ['acórtala a 1.40', 'dining', edit('dimensions.width', 1400)],
     ['Ensánchalo 10 cm', 'bookcase', edit('dimensions.width', 650)],
     ['Que quede de 76 de alto', 'dining', edit('dimensions.height', 760)],
+    ['Hazlo de 180 de alto', 'bookcase', edit('dimensions.height', 1800)],
+    ['Hazlo de 300 mm de alto', 'nightstand', edit('dimensions.height', 300)],
     // Counts, from the steppers and the cabinet's grid.
     ['agrega un cajón', 'drawers', edit('columns.drawers', 4)],
     ['Ponle un cajón más', 'drawers', edit('columns.drawers', 4)],
@@ -128,6 +131,11 @@ describe('parseIntent', () => {
     // Words it does not know, or a request that does not say enough.
     ['hazlo más bonito', 'bookcase'],
     // A verb that moves a measure the other way than its amount, or without one, or a measure the form does not have.
+    ['Bájale 5 cm', 'bookcase'],
+    ['Súbela 10 cm', 'wallCabinet'],
+    // A whole number without a unit that would leave the measure far from what it is: centimetres or millimetres, the expert asks.
+    ['Hazlo de 18 de alto', 'bookcase'],
+    ['Hazlo de 300 de alto', 'nightstand'],
     ['Súbela a 70 cm', 'dining'],
     ['Bájala a 80', 'dining'],
     ['Súbela', 'dining'],
@@ -164,6 +172,34 @@ describe('parseIntent', () => {
     const intent = parseIntent('con zoclo', plans.bookcase, buildPlan(plans.bookcase, testCatalog).design)
     expect(intent).toMatchObject({ kind: 'edit', field: 'base', value: 'kick' })
     expect(intent?.kind === 'edit' && intent.plan).toBe(plans.bookcase)
+  })
+
+  it('«sin zoclo» on a piece that stands on legs takes nothing away, and neither does «quita las patas» on one with a kick', () => {
+    for (const [request, name] of [['Sin zoclo', 'sideboard'], ['Quítale las patas', 'bookcase']] as const) {
+      const intent = parseIntent(request, plans[name], buildPlan(plans[name], testCatalog).design)
+      expect(intent?.kind === 'edit' && intent.plan).toBe(plans[name])
+    }
+    expect(read('Quítale las patas', 'sideboard')).toEqual(edit('base', 'floor'))
+  })
+
+  const twoWays: [string, PlanName, string[]][] = [
+    ['Una repisa', 'bookcase', ['Que tenga 1 repisa', 'Agrégale 1 repisa']],
+    ['Un cajón', 'drawers', ['Que tenga 1 cajón', 'Agrégale 1 cajón']],
+    ['Ponle 2 cajones', 'drawers', ['Que tenga 2 cajones', 'Agrégale 2 cajones']],
+    ['Ponle 2 repisas', 'bed', ['Que tenga 2 repisas', 'Agrégale 2 repisas']],
+  ]
+  it.each(twoWays)('«%s» on the %s reads two ways: it asks, and each option reads one way', (request, name, options) => {
+    expect(read(request, name)).toEqual({ kind: 'unclear', options })
+    const values = options.map((option) => read(option, name)).map((intent) => (intent?.kind === 'edit' ? intent.value : null))
+    expect(values).not.toContain(null)
+    expect(new Set(values).size).toBe(2)
+  })
+
+  it('a choice about a part the piece does not have is not read: no doors to slide, no shelves to fix', () => {
+    expect(read('Puertas corredizas', 'bookcase')).toBeNull()
+    expect(read('Repisas fijas', 'drawers')).toBeNull()
+    expect(read('Puertas embutidas', 'drawers')).toBeNull()
+    expect(read('Repisas fijas', 'wallCabinet')).toEqual(edit('construction.shelves', 'fixed'))
   })
 
   it('reads accents, capitals, "por favor" and a closing period the same', () => {

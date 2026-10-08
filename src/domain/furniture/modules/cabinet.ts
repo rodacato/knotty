@@ -993,6 +993,9 @@ export const frontedCells = (plan: CabinetPlan): PlanCell[] => {
 const hasCell = (p: CabinetPlan, test: (cell: PlanCell) => boolean) => frontedCells(p).some(test)
 /** A choice with nothing to decide stays out of the form. */
 const VISIBLE_WHEN: Partial<Record<keyof CabinetConstruction, (p: CabinetPlan) => boolean>> = {
+  doors: (p) => hasCell(p, (x) => x.content === 'door'),
+  drawerFronts: (p) => hasCell(p, (x) => x.content === 'drawer'),
+  shelves: (p) => hasCell(p, (x) => x.content === 'open' || x.content === 'door'),
   fronts: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
   hinges: (p) => p.construction.doors !== 'sliding' && hasCell(p, (x) => x.content === 'door' && (x.doors ?? 1) < 2),
   pulls: (p) => hasCell(p, (x) => x.content === 'door' || x.content === 'drawer'),
