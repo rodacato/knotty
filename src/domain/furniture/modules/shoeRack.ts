@@ -22,6 +22,8 @@ export const PAIR_WIDTH = 230
 export const LEVEL_HEIGHT = { min: 150, usual: 170, max: 200 } as const
 /** Clear height of a level for boots, in mm. */
 export const BOOT_LEVEL_HEIGHT = 450
+/** How high a seat is comfortable to sit on, in mm: the same band the bench check uses. */
+export const SEAT_HEIGHT = { min: 420, max: 480 } as const
 /** A level of shoes, a few pairs of about a kilo each. */
 const SHELF_LOAD: Load = 'light'
 /** The most levels the form offers. */
@@ -45,7 +47,7 @@ export const ShoeRackPlan = z.object({
   bootLevel: z.boolean().describe(`Whether the bottom level is tall for boots (${BOOT_LEVEL_HEIGHT} mm clear); false if every level is for low shoes`),
   front: z.enum(['open', 'doors']).describe('open: open levels; doors: hinged overlay doors in front of the levels'),
   base: z.enum(['kick', 'floor']).describe('kick: kick plate at the front; floor: the bottom sits directly on the floor'),
-  seat: z.boolean().describe('Whether the top is a seat to sit on while putting shoes on (a low shoe bench, 420–480 mm high)'),
+  seat: z.boolean().describe(`Whether the top is a seat to sit on while putting shoes on (a low shoe bench, ${SEAT_HEIGHT.min}–${SEAT_HEIGHT.max} mm high)`),
   wallMounted: z.boolean().describe(`Whether it is anchored to the wall: true when it has doors or is ${ASSUMPTIONS.tipping.criticalHeight} mm or taller, since it is shallow and tips over easily`),
 })
 export type ShoeRackPlan = z.infer<typeof ShoeRackPlan>
@@ -111,6 +113,8 @@ export function buildShoeRack(plan: ShoeRackPlan, catalog: Catalog): { design: D
   if (layout.low && layout.level < LEVEL_HEIGHT.min) notes.push(`Cada nivel queda de ${Math.round(layout.level)} mm de alto libre y un zapato bajo necesita ${LEVEL_HEIGHT.min}: quita un nivel o hazla más alta.`)
   if (plan.bootLevel && layout.bootHeight < BOOT_LEVEL_HEIGHT)
     notes.push(layout.bootHeight ? `El nivel para botas queda de ${Math.round(layout.bootHeight)} mm de alto libre; unas botas altas piden ${BOOT_LEVEL_HEIGHT}.` : 'No cupo el nivel para botas: los niveles de zapato bajo ocupan todo el alto.')
+  const { height } = plan.dimensions
+  if (plan.seat && (height < SEAT_HEIGHT.min || height > SEAT_HEIGHT.max)) notes.push(`El asiento queda a ${height} mm del piso; para sentarse a calzarse va de ${SEAT_HEIGHT.min} a ${SEAT_HEIGHT.max}.`)
   if (!layout.pairs) notes.push(`Por dentro mide menos de ${PAIR_WIDTH} mm de ancho: no cabe un par.`)
   // Shoes are a light load; a seat carries a person.
   const pieces = built.design.pieces.map((p) =>
