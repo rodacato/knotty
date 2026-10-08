@@ -2,8 +2,8 @@ import { ASSUMPTIONS } from '../../assumptions'
 import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
 import { checkBuilt } from '../quick'
-import { frontedCells, leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
-import { KICK_HEIGHT, thicknessOf } from './common'
+import { frontedCells, kickOf, leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
+import { thicknessOf } from './common'
 import type { QuickCountKind } from './module'
 
 // The quick counts of a cabinet: drawers, doors and open niches, read from the cells of its columns and changed by adding or removing one cell at a time.
@@ -23,7 +23,7 @@ const CONTENT: Record<QuickCountKind, PlanCell['content']> = { drawer: 'drawer',
 const cellCount = (plan: CabinetPlan) => plan.columns.reduce((n, c) => n + c.cells.length, 0)
 
 /** The height under the box: what the base lifts it, which is not opening. */
-const baseHeight = (plan: CabinetPlan) => (plan.base === 'kick' ? KICK_HEIGHT.cabinet : plan.base === 'legs' ? plan.legHeight : 0)
+const baseHeight = (plan: CabinetPlan) => (plan.base === 'kick' ? kickOf(plan).height : plan.base === 'legs' ? plan.legHeight : 0)
 
 /** An opening's size in mm, from the plan alone: the room inside the box is shared by the column's cells by their heights, less the board between them. */
 function openingSize(plan: CabinetPlan, catalog: Catalog, column: PlanColumn, height: number): { width: number; height: number } {

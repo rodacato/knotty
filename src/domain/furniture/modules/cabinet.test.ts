@@ -77,6 +77,27 @@ describe('buildCabinet', () => {
   })
 })
 
+describe('a kitchen kick', () => {
+  const boxes = (p: Partial<CabinetPlan>) => {
+    const a = analyze(buildCabinet(plan({ dimensions: { width: 600, height: 870, depth: 580 }, columns: [{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }], ...p }), testCatalog).design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return (id: string) => a.geo.boxes.get(id)!
+  }
+
+  it('stands 100 mm high and 50 behind the doors, and the floor of the box sits on it', () => {
+    const box = boxes({ kick: 'kitchen' })
+    expect([box('kick').y1, box('bottom').y0]).toEqual([100, 100])
+    expect(box('c1-h1-door-left').z0 - box('kick').z1).toBe(50)
+  })
+
+  it('is asked for: a plan that does not say it, or says it on another base, builds as before', () => {
+    const low = boxes({})
+    expect([low('kick').y1, low('c1-h1-door-left').z0 - low('kick').z1]).toEqual([70, 30])
+    const onFloor = boxes({ base: 'floor', kick: 'kitchen' })
+    expect([onFloor('kick'), onFloor('bottom').y0]).toEqual([undefined, 0])
+  })
+})
+
 describe('on legs', () => {
   const built = (p: CabinetPlan) => {
     const { design } = buildCabinet(p, testCatalog)

@@ -5,7 +5,7 @@
   "home": { "order": 42 },
   "rooms": ["kitchen"],
   "name": "Especiero angosto",
-  "kind": "cabinet",
+  "kind": "kitchenBase",
   "notes": "Mueble abierto de 20 cm de ancho, a la altura de los gabinetes bajos, para aprovechar el hueco que queda junto a la estufa o al muro. Va atornillado al muro o al mueble de junto.",
   "plan": {
     "kind": "cabinet",
@@ -22,7 +22,8 @@
           { "height": 1, "content": "open", "shelves": 4, "doors": null }
         ]
       }
-    ]
+    ],
+    "kick": "kitchen"
   },
   "expect": {
     "valid": true,

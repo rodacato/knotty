@@ -34,9 +34,11 @@ export const outsideRules = <P extends { dimensions: Dimensions }>(width = 'El a
     { path: ['dimensions', 'depth'], noun: 'El fondo', get: (p) => p.dimensions.depth },
   ])
 
-/** Kick plate heights: bedroom and living-room furniture stands on 50–70, and so does a bed's row of drawers (kitchens take 80–100, not built here). */
+/** Kick plate heights: bedroom and living-room furniture stands on 50–70, and so does a bed's row of drawers (kitchens take 80–100: KITCHEN_KICK). */
 export const KICK_HEIGHT = { cabinet: 70, pedestal: 70, bed: 70 } as const
 export const KICK_SETBACK = 30
+/** A kitchen kick: taller and further back, so feet fit under the counter. */
+export const KITCHEN_KICK = { height: 100, setback: 50 } as const
 /** On legs: from the floor to the underside of the box, the height of the frame under it, the depth of a leg of two glued layers, and how far legs and frame sit back from the edges. */
 export const LEG_HEIGHT = 150
 /** What a person may choose for the legs' height, and the least that must stay for the box above them (the total height includes the legs). */
@@ -78,6 +80,7 @@ export const MODULE_SOURCES: Record<string, Source> = {
   DEFAULT_THICKNESS: cite(VALUES, '3-espesores-por-pieza', 'Laterales, piso, techo'),
   MAX_SPAN: cite(STRUCTURE, '73-camas', 'también necesita apoyos a cada ≈ 600–700 mm'),
   KICK_HEIGHT: cite(VALUES, '10-medidas-de-muebles-y-ergonomía', '**50–70** alto en recámara'),
+  KITCHEN_KICK: cite(VALUES, '10-medidas-de-muebles-y-ergonomía', '**80–100** alto × **50** remetido en cocina'),
   KICK_SETBACK: noReference('the reference sets a kick back 50 mm only in kitchens; 30 is Knotty’s for bedroom and living-room furniture'),
   LEG_HEIGHT: noReference('the reference gives no height for legs under a box; about 150 is what the reference sideboard KC-APA-01 (940 × 1600 × 400 on four splayed legs) shows'),
   PLAN_MEASURE: noReference('the reference gives typical measures, not hard limits: 100 is the least the chat already reads as a measure and the least height Capture takes, and 2400 is the most Capture takes, just under the usable sheet'),
