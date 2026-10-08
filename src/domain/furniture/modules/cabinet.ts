@@ -6,7 +6,7 @@ import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { completeJoints, hingeOn } from '../../design/joints'
 import { lifts, slides } from '../../design/doors'
 import { resolveGeometry } from '../../design/resolve'
-import { lidNote, notchNote, rodNote, slidingNote, withFrontCuts } from './fronts'
+import { lidNote, notchNote, rodNote, slidingNote, withFrontCuts, withTrackGrooves, type Track } from './fronts'
 import { cableNote, withCablePasses, type CablePass } from './cablePass'
 import { backBoard, hingeFor, pickHardware, usableSheet, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
@@ -194,6 +194,9 @@ const LEGS_TOO_SHALLOW = `No cupo: con patas el mueble pide más de ${LEGS_DEPTH
 const LID_HELD_SHUT = 'Con un baúl hasta arriba la cubierta es su tapa, y unida con dedos no abre: elige otra unión para la cubierta.'
 const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
+/** What sliding doors ask of whoever builds them, said wherever they are chosen. */
+export const SLIDING_HINT = 'Sin bisagras: corren en ranuras del tablero de abajo y del de arriba. Las ranuras se fresan con router y guía, que es herramienta de taller; sin él, pídelas en la maderería.'
+
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
 export const CABINET_LABELS = {
   base: {
@@ -207,7 +210,15 @@ export const CABINET_LABELS = {
   } satisfies Labels<NonNullable<CabinetPlan['kick']>>,
   cell: { open: 'Abierto', drawer: 'Cajón', door: 'Puerta', closed: 'Tapado', chest: 'Baúl', void: 'Vacío' } satisfies Record<PlanCell['content'], string>,
   construction: {
-    doors: { label: 'Puertas', options: { overlay: 'Sobrepuestas', inset: 'Embutidas', sliding: 'Corredizas' } },
+    doors: {
+      label: 'Puertas',
+      options: { overlay: 'Sobrepuestas', inset: 'Embutidas', sliding: 'Corredizas' },
+      hints: {
+        overlay: 'Cubren el frente del mueble y giran en bisagras de cazoleta.',
+        inset: 'Quedan dentro del hueco, al ras del frente, y dejan ver los cantos del mueble.',
+        sliding: SLIDING_HINT,
+      },
+    },
     drawerFronts: { label: 'Frentes de cajón', options: { inset: 'Embutidos', overlay: 'Sobrepuestos' } },
     top: { label: 'Techo', options: { between: 'Entre laterales', over: 'Cubierta encima', fingers: 'Cubierta con dedos' } },
     back: { label: 'Trasera', options: { nailed: 'Clavada', none: 'Sin trasera' } },
@@ -513,7 +524,9 @@ interface Filling {
   drawers: AskedDrawer[]
   /** What each door's cell chose on its own, by the door's id. */
   choices: [string, CellChoices][]
+  tracks: Track[]
 }
+type Fronts = Pick<Filling, 'pieces' | 'joints' | 'hung'> & { tracks?: Track[] }
 
 /** One opening of a column: the faces around it, and the box a front takes over it or inside it. */
 interface Opening {
@@ -558,7 +571,7 @@ const trackDepth = (l: Layout, k: number) => ASSUMPTIONS.sliding.lip + k * (l.t 
 const doorRoom = (l: Layout, cell: PlanCell) => (doorsIn(l.build, cell) === 'inset' ? l.t : doorsIn(l.build, cell) === 'sliding' ? trackDepth(l, leavesOf(cell) - 1) : 0)
 
 /** Sliding leaves, with the grooves they run in: two overlap where they meet, the left one behind; one covers half of the opening and slides over the other half. */
-function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): Pick<Filling, 'pieces' | 'joints' | 'hung'> {
+function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): Fronts {
   const { overlap, engagement } = ASSUMPTIONS.sliding
   const into = l.t * engagement
   const toMiddle = extent(ref(o.left), partway(o.left, o.right, 0.5, overlap / 2))
@@ -576,6 +589,7 @@ function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): P
     ),
     joints: doors.flatMap((d) => ([['bottom', o.bottom], ['top', o.top]] as const).map(([end, face]) => makeJoint(`j-${d.id}-${end}`, d.id, pieceOf(face), 'dado', [], { depth: into, glue: false }))),
     hung: [],
+    tracks: doors.map((d) => ({ door: d.id, left: o.left, right: o.right })),
   }
 }
 
@@ -593,7 +607,7 @@ function chestLid(l: Layout, cell: PlanCell, o: Opening, front: Extent): Pick<Fi
 }
 
 /** What closes a cell: a fixed cover, or one or two door leaves with their hinges or their grooves. */
-function frontsOf(l: Layout, cell: PlanCell, o: Opening): Pick<Filling, 'pieces' | 'joints' | 'hung'> {
+function frontsOf(l: Layout, cell: PlanCell, o: Opening): Fronts {
   const { plan, build } = l
   const overlaid = build.doors === 'overlay'
   // Overlay leaves close the front of the piece; inset ones sit flush with the carcass, wherever overlay drawer fronts put it.
@@ -696,7 +710,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     return l.panel({ id: `${id}-sep-${j + 1}`, normal: 'y', x: extent(ref(spec.left), ref(spec.right)), y: startAt(partway(spec.bottom, spec.top, share, -half)), z: chest ? extent(ref(l.backFace), null, ASSUMPTIONS.lids.strip) : extent(ref(l.backFace), spec.front), ...board })
   })
 
-  const filling: Filling = { pieces: separators, joints: [], hung: [], rods: [], cables: [], drawers: [], choices: [] }
+  const filling: Filling = { pieces: separators, joints: [], hung: [], rods: [], cables: [], drawers: [], choices: [], tracks: [] }
   cells.forEach((cell, j) => {
     if (cell.content === 'void') return
     const bottom: FaceRef = j === 0 ? spec.bottom : `${id}-sep-${j}.y1`
@@ -728,6 +742,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
         const doors = slidingDoors(l, opening, leavesOf(cell), spec.front)
         filling.pieces.push(...doors.pieces)
         filling.joints.push(...doors.joints)
+        filling.tracks.push(...(doors.tracks ?? []))
         filling.choices.push(...doors.pieces.map((p): [string, CellChoices] => [p.id, choices]))
       }
       const edges = shares(cell.columns.map((c) => c.width))
@@ -762,6 +777,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
         filling.cables.push(...inner.cables)
         filling.drawers.push(...inner.drawers)
         filling.choices.push(...inner.choices)
+        filling.tracks.push(...inner.tracks)
       })
       return
     }
@@ -770,6 +786,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     filling.pieces.push(...shelvesOf(l, cell, opening), ...fronts.pieces)
     filling.joints.push(...fronts.joints)
     filling.hung.push(...fronts.hung)
+    filling.tracks.push(...(fronts.tracks ?? []))
     if (hangs(cell)) filling.rods.push({ id: `${cellId}-rod`, under: pieceOf(top), from: pieceOf(spec.left) })
     if (passesCables(cell)) filling.cables.push({ left: spec.left, right: spec.right, bottom })
     filling.choices.push(...fronts.pieces.filter((p) => p.role === 'door').map((p): [string, CellChoices] => [p.id, choices]))
@@ -834,7 +851,7 @@ function withExtras(l: Layout, design: Design): Design {
 }
 
 /** The last of the build, which needs the pieces in place: the hinges of overlay doors, and what is cut into drawer boxes and fronts. */
-function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<string, CellChoices>, cables: CablePass[]): BuiltCabinet {
+function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<string, CellChoices>, cables: CablePass[], tracks: Track[]): BuiltCabinet {
   const { plan, catalog } = l
   const chosen = <K extends CellChoice>(id: string, key: K) => choiceIn(plan.construction, choices.get(id), key)
   const pullsOf = (id: string) => chosen(id, 'pulls')
@@ -853,7 +870,8 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   }
   const fronts = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front').map((p) => p.id)
   const cutBoxes = geometry.ok && design.joints.some((u) => u.type === 'finger') ? withFingerCuts(design, geometry.value.boxes, fingers) : design
-  const cutFronts = geometry.ok ? withFrontCuts(cutBoxes, geometry.value.boxes, (p) => ({ notch: pullsOf(p.id) === 'notch', grooved: chosen(p.id, 'fronts') === 'grooved' })) : cutBoxes
+  const grooved = geometry.ok ? withTrackGrooves(cutBoxes, geometry.value.boxes, tracks) : cutBoxes
+  const cutFronts = geometry.ok ? withFrontCuts(grooved, geometry.value.boxes, (p) => ({ notch: pullsOf(p.id) === 'notch', grooved: chosen(p.id, 'fronts') === 'grooved' })) : cutBoxes
   const passed = geometry.ok && cables.length ? withCablePasses(cutFronts, geometry.value, cables) : { design: cutFronts, holes: 0 }
   const withPulls: Design = { ...passed.design, ...pullsField(plan.construction.pulls, fronts, pullsOf) }
   const notched = fronts.filter((id) => pullsOf(id) === 'notch').length
@@ -950,7 +968,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
-  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices, columns.flatMap((c) => c.cables))
+  const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices, columns.flatMap((c) => c.cables), columns.flatMap((c) => c.tracks))
   return { design: knockDown(done.design, plan.assembly, catalog, needsKnockDown(plan.dimensions) ? undefined : () => 'body'), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
 }
 

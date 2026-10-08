@@ -1,9 +1,9 @@
 import type { Box } from '../../design/resolve'
-import type { Cut, Design, Piece, Span } from '../../design/schema'
+import type { Cut, Design, FaceRef, Piece, Span } from '../../design/schema'
 import { ASSUMPTIONS } from '../../assumptions'
 import { lifts, slides } from '../../design/doors'
 
-// What is taken out of a door or a drawer front: a finger notch to open it, or grooves that make it ribbed. Only drawn: they change neither the cut list nor the purchase.
+// What is taken out of a board: a finger notch to open a front, grooves that make it ribbed, or the grooves sliding leaves run in. Only drawn: they change neither the size of a board nor the purchase.
 
 /** A groove is at most a third of the board deep and never more than half of it (valores-de-referencia.md, «Profundidad de ranura»). */
 const GROOVE_DEPTH_SHARE = 1 / 3
@@ -17,6 +17,8 @@ const NOTCH_LENGTH = 100
 const NOTCH_HEIGHT = 22
 /** A cut starts this far out of the board so it opens the edge instead of stopping a hair short of it. */
 const OUT = 1
+/** How much wider than its leaf a groove is cut, on each side, so the leaf runs free. */
+const GROOVE_PLAY = 1
 
 const isFront = (p: Piece) => p.role === 'door' || p.role === 'drawer-front'
 const span = (from: Span['from'], offset: number, length: number): Span => ({ from, offset, length })
@@ -71,6 +73,39 @@ export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (f
       return cuts.length ? { ...p, cuts } : p
     }),
   }
+}
+
+/** The opening a sliding leaf runs across, by the faces at its two ends. */
+export interface Track {
+  door: string
+  left: FaceRef
+  right: FaceRef
+}
+
+const faceAt = (boxes: Map<string, Box>, face: FaceRef) => {
+  const [id, side] = face.split('.') as [string, keyof Box]
+  return boxes.get(id)?.[side]
+}
+
+/**
+ * The grooves sliding leaves run in, taken out of the board under each opening and the one over it, all along the opening.
+ * The one above is twice as deep, so the leaf lifts in and out; both are a little wider than the leaf.
+ */
+export function withTrackGrooves(design: Design, boxes: Map<string, Box>, tracks: Track[]): Design {
+  const cuts = new Map<string, Cut[]>()
+  for (const track of tracks) {
+    const leaf = boxes.get(track.door)
+    const [left, right] = [faceAt(boxes, track.left), faceAt(boxes, track.right)]
+    if (!leaf || left === undefined || right === undefined) continue
+    for (const joint of design.joints.filter((u) => u.a === track.door && u.type === 'dado' && !u.glue)) {
+      const board = boxes.get(joint.b)
+      if (!board) continue
+      const under = (board.y0 + board.y1) / 2 < (leaf.y0 + leaf.y1) / 2
+      const y = under ? span('end', -OUT, board.y1 - leaf.y0 + OUT) : span('start', -OUT, 2 * (leaf.y1 - board.y0) + OUT)
+      cuts.set(joint.b, [...(cuts.get(joint.b) ?? []), { x: span('start', left - board.x0, right - left), y, z: span('start', leaf.z0 - board.z0 - GROOVE_PLAY, leaf.z1 - leaf.z0 + 2 * GROOVE_PLAY) }])
+    }
+  }
+  return cuts.size ? { ...design, pieces: design.pieces.map((p) => (cuts.has(p.id) ? { ...p, cuts: [...(p.cuts ?? []), ...cuts.get(p.id)!] } : p)) } : design
 }
 
 /** What the person reads when some fronts are opened by a notch: nothing to buy, a router cut. */

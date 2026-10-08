@@ -1,6 +1,6 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { cellAt, cellLayout, chooseInCell, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
@@ -114,6 +114,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
               <span className="text-sm text-graphite-2">{label}</span>
               <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key, plan.construction).includes(id))]} onChange={(v) => own(key, v)} />
               {key === 'doors' && <p className="text-xs text-graphite-2">Sobrepuestas o embutidas se elige para todo el mueble, en «Puertas».</p>}
+              {key === 'doors' && doorsIn(plan.construction, cell) === 'sliding' && <p className="text-xs text-graphite-2">{SLIDING_HINT}</p>}
               {key === 'doors' && narrowToSlide && <p className="text-xs text-graphite-2">En un hueco de menos de {ASSUMPTIONS.sliding.narrowOpening / 10} cm, una corrediza deja poco paso: conviene una puerta abatible.</p>}
             </div>
           )
