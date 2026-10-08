@@ -1,110 +1,110 @@
-# Guía del compare
+# The compare guide
 
-Cómo medir si un cambio mejoró o empeoró lo que el experto hace. El detalle de cada comando y de los archivos que deja una corrida está en [CONTRIBUTING.md](../CONTRIBUTING.md) (§4 y §5); esta guía explica para qué sirve cada modo, cómo leer el resultado, cuánto cuesta y qué errores evitar.
+How to measure whether a change made what the expert does better or worse. The detail of each command and of the files a run leaves behind is in [CONTRIBUTING.md](../CONTRIBUTING.md) (§4 and §5); this guide explains what each mode is for, how to read the result, what it costs and which mistakes to avoid.
 
-## Qué es, en una frase
+## What it is, in one sentence
 
-Un conjunto de trabajos (un caso por intento) que se corre contra un experto real, se califica con reglas deterministas, se guarda con su identidad y se compara contra otra corrida. **No hay juez LLM**: lo que el calificador no puede decidir lo dice (`unknown`) y lo manda a una persona.
+A set of jobs (one case per attempt) that is run against a real expert, graded with deterministic rules, stored with its identity and compared against another run. **There is no LLM judge**: what the grader cannot decide, it says (`unknown`) and sends to a person.
 
-## Qué mide y qué no
+## What it measures and what it does not
 
-| Mide | No mide |
+| Measures | Does not measure |
 |---|---|
-| Que el diseño sea válido, razonable y viable | Que un consejo sea correcto, honesto o seguro (eso es la suite difícil, y aun así lo revisa una persona) |
-| Que la estructura salga como se pidió (puertas, cajones, repisas) | La calidad de la redacción o el tono |
-| Que cada paso de un escenario deje el estado esperado | Que el montaje real aguante: una geometría válida no prueba resistencia ni fabricabilidad |
-| Tokens y tiempo por trabajo | Qué experto es «mejor» en general: cada corrida mide un experto, un commit y unos prompts |
+| That the design is valid, reasonable and viable | That advice is correct, honest or safe (that is the hard suite, and even then a person reviews it) |
+| That the structure comes out as requested (doors, drawers, shelves) | The quality of the wording or the tone |
+| That each step of a scenario leaves the expected state | That the real assembly holds up: a valid geometry does not prove strength or buildability |
+| Tokens and time per job | Which expert is «better» in general: each run measures one expert, one commit and some prompts |
 
-La corrida en vivo **no es determinista**. El adaptador de Claude de SheLLM ignora la temperatura, así que el mismo caso da resultados distintos. Lo determinista son las entradas, la calificación y el replay.
+The live run **is not deterministic**. SheLLM's Claude adapter ignores temperature, so the same case gives different results. What is deterministic is the inputs, the grading and the replay.
 
-## Los modos
+## The modes
 
-| Quiero… | Comando | ¿Cuesta tokens? |
+| I want to… | Command | Does it cost tokens? |
 |---|---|---|
-| Ver que los módulos de Knotty no tengan variantes inválidas | Banco en la app (`?debug` → Banco → Revisar) | No |
-| Probar el cableado del compare, sin experto | `KNOTTY_MODELS=simulated:x npm run compare` | No |
-| Medir un cambio contra el experto real | `npm run compare` | Sí |
-| Repetir una corrida guardada y ver si el calificador reproduce los veredictos | `npm run compare:replay -- --last` | No |
-| Ver qué cambia con un calificador nuevo, sin volver a llamar al experto | `npm run compare:replay -- <corrida> --regrade` | No |
-| Terminar una corrida cortada o reintentar lo que falló por el proveedor | `npm run compare:resume -- --last [--retry-infra]` | Solo lo pendiente |
-| Preguntas difíciles de carpintería, con revisión humana | `npm run compare:hard` | Sí |
-| Saber cuántos trabajos aguanta tu servidor a la vez | `npm run compare:concurrency -- 2,4` | Sí, doble |
-| Fijar una corrida como base de comparación | `npm run compare:promote -- --last [--accept]` | No |
+| Check that Knotty's modules have no invalid variants | Bench in the app (`?debug` → Banco → Revisar) | No |
+| Test the compare wiring, without an expert | `KNOTTY_MODELS=simulated:x npm run compare` | No |
+| Measure a change against the real expert | `npm run compare` | Yes |
+| Repeat a stored run and see whether the grader reproduces the verdicts | `npm run compare:replay -- --last` | No |
+| See what changes with a new grader, without calling the expert again | `npm run compare:replay -- <corrida> --regrade` | No |
+| Finish a cut-off run or retry what failed because of the provider | `npm run compare:resume -- --last [--retry-infra]` | Only what is pending |
+| Hard carpentry questions, with human review | `npm run compare:hard` | Yes |
+| Find out how many jobs your server can handle at once | `npm run compare:concurrency -- 2,4` | Yes, double |
+| Pin a run as the baseline | `npm run compare:promote -- --last [--accept]` | No |
 
-`--list` en `compare:hard` imprime ids, riesgo y conteos sin conexión y sin una palabra de las preguntas.
+`--list` in `compare:hard` prints ids, risk and counts offline and without a word of the questions.
 
-### El banco (`npm run compare`)
+### The bench (`npm run compare`)
 
-16 casos fijos en `src/application/bench/cases.ts` (el librero y tres variantes —libros pesados, solo taladro y caladora, ensancharlo—, cama, cama con cajones, buró, gabinete de pared, escritorio, zapatera, mueble de TV, trinchador, mesa de centro y maceta; la lista vive en el archivo). Cada caso es un escenario: un pedido y, a veces, ajustes en turnos siguientes, calificado paso a paso sobre el estado real que dejó. `KNOTTY_REPEAT` fija los intentos por caso; el trabajo es caso × intento.
+16 fixed cases in `src/application/bench/cases.ts` (the bookcase and three variants —heavy books, only drill and jigsaw, widening it—, bed, bed with drawers, nightstand, wall cabinet, desk, shoe rack, TV stand, sideboard, coffee table and planter; the list lives in the file). Each case is a scenario: a request and, sometimes, adjustments in later turns, graded step by step on the real state it left behind. `KNOTTY_REPEAT` sets the attempts per case; the job is case × attempt.
 
-### La suite difícil (`npm run compare:hard`)
+### The hard suite (`npm run compare:hard`)
 
-16 preguntas con una sesión nueva cada una; las 11 críticas llevan un segundo turno donde la persona presiona para que se apruebe. Sus datos son privados y se leen de `private/hard-suite/` (o de `KNOTTY_HARD_DIR`). Un fallo bloqueante (consejo peligroso, capacidad o fuente inventada, un cambio no representable presentado como aplicado, un crítico ignorado) **bloquea** la corrida: ningún promedio lo compensa. Lo crítico, lo de soporte parcial y lo que no se pudo decidir va a `review-queue.md`, y mientras algo esté en la cola la corrida sale con `2`.
+16 questions, each with a fresh session; the 11 critical ones have a second turn where the person pushes for approval. Its data is private and is read from `private/hard-suite/` (or from `KNOTTY_HARD_DIR`). A blocking failure (dangerous advice, an invented capability or source, a change that can't be represented presented as applied, an ignored critic) **blocks** the run: no average makes up for it. What is critical, what has partial support and what could not be decided goes to `review-queue.md`, and while anything is in the queue the run exits with `2`.
 
-## Cómo leer un resultado
+## How to read a result
 
-Cada trabajo se clasifica en una de cuatro cosas:
+Each job is classified as one of four things:
 
-| Clase | Significa |
+| Class | Means |
 |---|---|
-| `pass` | Todo salió como se pidió |
-| `known-failure` | Falla que se declaró a propósito en `knownFailures.ts`, con causa y evidencia. Sigue apareciendo como «sigue fallando» |
-| `infrastructure` | El proveedor falló (tiempo límite, 429, red). Queda fuera de las tasas |
-| `regression` | Cualquier otro fallo |
+| `pass` | Everything came out as requested |
+| `known-failure` | A failure declared on purpose in `knownFailures.ts`, with cause and evidence. It keeps showing up as «sigue fallando» |
+| `infrastructure` | The provider failed (timeout, 429, network). It stays out of the rates |
+| `regression` | Any other failure |
 
-### Contra la base
+### Against the baseline
 
-Con una base compatible, la comparación es por caso y por requisito. Dos corridas se comparan solo si coinciden en calificador, catálogo, corpus y experto; que los **prompts** cambien no lo impide, porque es justo lo que se mide, y el reporte lo lista en «lo que varía».
+With a compatible baseline, the comparison is per case and per requirement. Two runs are compared only if they match in grader, catalog, corpus and expert; the **prompts** changing does not prevent it, because that is exactly what is being measured, and the report lists it under «lo que varía».
 
-Para no confundir ruido con efecto, el reporte hace dos cosas:
+To avoid confusing noise with effect, the report does two things:
 
-1. **Casos de control.** Un caso cuyos prompts son idénticos en las dos corridas no pudo ser afectado por el cambio. Cuántos de ellos cambiaron es el ruido real de esa comparación; una diferencia en un caso afectado que no lo supere es variación.
-2. **Regla estadística.** Una regresión solo se declara si la prueba exacta de Fisher da p < 0.05. Con 3 intentos por lado, 0/3 contra 3/3 da p = 0.1 y **no** alcanza; hacen falta al menos 4 por lado. Los casos que cambiaron de tasa sin llegar ahí salen como «sin poder distinguirlos de la variación».
+1. **Control cases.** A case whose prompts are identical in both runs could not have been affected by the change. How many of them changed is the real noise of that comparison; a difference in an affected case that does not exceed it is variation.
+2. **Statistical rule.** A regression is declared only if Fisher's exact test gives p < 0.05. With 3 attempts per side, 0/3 against 3/3 gives p = 0.1 and is **not** enough; you need at least 4 per side. Cases whose rate changed without getting there come out as «sin poder distinguirlos de la variación».
 
-Consecuencia práctica: con pocas repeticiones el compare casi nunca dice «regresión» por sí solo. No quiere decir que no haya diferencia, sino que la muestra no alcanza. Para un caso dudoso, repítelo (`KNOTTY_CASES=<caso> KNOTTY_REPEAT=6`) en vez de repetir todo.
+Practical consequence: with few repetitions the compare almost never says «regression» on its own. That does not mean there is no difference, but that the sample is not enough. For a doubtful case, repeat it (`KNOTTY_CASES=<caso> KNOTTY_REPEAT=6`) instead of repeating everything.
 
-Promover una base es más estricto que comparar: cualquier fallo de más la rechaza.
+Promoting a baseline is stricter than comparing: any extra failure rejects it.
 
-### Códigos de salida
+### Exit codes
 
-`0` pasa, o solo hay fallas conocidas · `1` regresión, o un fallo bloqueante en la suite difícil · `2` corrida incompleta, errores de infraestructura o elementos en la cola de revisión · `3` argumentos inválidos.
+`0` passes, or there are only known failures · `1` regression, or a blocking failure in the hard suite · `2` incomplete run, infrastructure errors or items in the review queue · `3` invalid arguments.
 
-## Cuánto cuesta
+## What it costs
 
-Lo único que se cobra son los tokens del experto, y las llamadas **no** se hacen contra el simulado ni en el replay. Cifras medidas con `shellm:claude` el 2026-10-02 y 03:
+The only thing charged is the expert's tokens, and the calls are **not** made against the simulated expert or in the replay. Figures measured with `shellm:claude` on 2026-10-02 and 03:
 
-| Corrida | Trabajos | A la vez | Tiempo total | Por trabajo |
+| Run | Jobs | At once | Total time | Per job |
 |---|---|---|---|---|
-| Banco, 13 casos × 3 | 39 | 2 | 11 min | 29–32 s, ~11–12.5 mil tokens de entrada, ~3 mil de salida (medias de otra corrida de 26 trabajos) |
-| Banco, 13 casos × 3 | 39 | 4 | 7 min | igual |
-| Banco, 16 casos × 3 | 48 | 4 | 12.5 min | 57 s, 18.3 mil de entrada, 5.3 mil de salida |
-| Seis repeticiones de 4 casos de librero | 24 | 4 | 18 min | los casos largos dominan |
-| Suite difícil, 16 preguntas (11 críticas × 3, 5 × 1) | 34 | 4 | 6–7 min | 39–42 s por trabajo, 65 llamadas de ~20–22 s. La suite **no registra tokens**: solo tiempos |
+| Bench, 13 cases × 3 | 39 | 2 | 11 min | 29–32 s, ~11–12.5 thousand input tokens, ~3 thousand output (averages from another run of 26 jobs) |
+| Bench, 13 cases × 3 | 39 | 4 | 7 min | same |
+| Bench, 16 cases × 3 | 48 | 4 | 12.5 min | 57 s, 18.3 thousand input, 5.3 thousand output |
+| Six repetitions of 4 bookcase cases | 24 | 4 | 18 min | the long cases dominate |
+| Hard suite, 16 questions (11 critical × 3, 5 × 1) | 34 | 4 | 6–7 min | 39–42 s per job, 65 calls of ~20–22 s. The suite **does not record tokens**: only times |
 
-Para estimar el gasto de una corrida con un proveedor que cobra por token: **trabajos × tokens por trabajo**. Una corrida del banco de 48 trabajos son unos 880 mil tokens de entrada y 250 mil de salida. Multiplícalos por el precio vigente de tu proveedor, que cambia y no se copia aquí. Con SheLLM no se paga por token sino que se gasta la cuota de tu plan.
+To estimate the spend of a run with a provider that charges per token: **jobs × tokens per job**. A bench run of 48 jobs is about 880 thousand input tokens and 250 thousand output tokens. Multiply them by your provider's current price, which changes and is not copied here. With SheLLM you do not pay per token but spend your plan's quota.
 
-Reglas para gastar menos:
+Rules to spend less:
 
-- `KNOTTY_CASES` corre solo lo que tocaste. El banco completo no es la comparación por omisión.
-- El replay y el `--regrade` son gratis: cambiar el calificador no obliga a volver a llamar al experto.
-- Una comparación antes/después duplica el costo. Si la base ya existe y es compatible, no la corras otra vez.
-- No subas las repeticiones a ciegas. Aumentan costo y tiempo sin separar el efecto del ruido si la regla de arriba no los distingue.
+- `KNOTTY_CASES` runs only what you touched. The full bench is not the default comparison.
+- The replay and `--regrade` are free: changing the grader does not force you to call the expert again.
+- A before/after comparison doubles the cost. If the baseline already exists and is compatible, do not run it again.
+- Do not raise the repetitions blindly. They increase cost and time without separating the effect from the noise if the rule above does not tell them apart.
 
-## Cómo medir un cambio de prompts, paso a paso
+## How to measure a prompt change, step by step
 
-1. Fija la **base**: un commit de `main` (o una corrida guardada y compatible). Córrela desde un worktree si estás en tu rama.
-2. Corre el **candidato** con la misma configuración (experto, casos, repeticiones).
-3. Mantén el árbol **limpio** mientras corre. Un árbol sucio sin hash no se puede reproducir ni promover.
-4. Lee primero «Contra la base»: qué varía, cuántos casos de control cambiaron, qué regresiones pasan la regla estadística y cuáles quedaron como dudosas.
-5. Si hay dudosas, repite solo esas.
-6. Mira la `review-queue.md` si corriste la suite difícil: el banco no juzga si un consejo es correcto.
-7. Si el cambio queda, `compare:promote` (simulacro) y luego `--accept`; esa base se sube en el mismo PR.
+1. Set the **baseline**: a commit of `main` (or a stored, compatible run). Run it from a worktree if you are on your branch.
+2. Run the **candidate** with the same configuration (expert, cases, repetitions).
+3. Keep the tree **clean** while it runs. A dirty tree without a hash cannot be reproduced or promoted.
+4. Read «Contra la base» first: what varies, how many control cases changed, which regressions pass the statistical rule and which were left as doubtful.
+5. If there are doubtful ones, repeat only those.
+6. Look at `review-queue.md` if you ran the hard suite: the bench does not judge whether advice is correct.
+7. If the change stays, `compare:promote` (dry run) and then `--accept`; that baseline is pushed in the same PR.
 
-## Trampas conocidas
+## Known traps
 
-- **La carga de la máquina cuenta.** Una corrida con la máquina saturada (carga de 42 en 12 núcleos) hizo fallar pruebas por tiempo límite. Mide con la máquina en calma.
-- **El banco no lee el consejo.** Una guía puede mejorar el consejo y dejar todos los números del banco iguales. Medirla pide la suite difícil.
-- **Los casos de otra versión no se comparan.** Si cambias un caso, queda «incompatible» hasta tener una base nueva.
-- **Un caso intermitente no es una regresión.** Reténtalo con más repeticiones antes de declarar nada.
-- **Las llaves nunca van en la corrida.** El manifiesto rechaza lo que parezca una credencial, y no se leen ni se copian.
-- **Los datos privados no se suben.** La carpeta de la suite difícil y sus respuestas están fuera de git; `review-queue.md`, las respuestas y las grabaciones son lo único que lleva texto.
+- **The machine's load counts.** A run with the machine saturated (load of 42 on 12 cores) made tests fail by timeout. Measure with the machine calm.
+- **The bench does not read the advice.** A guide can improve the advice and leave all the bench's numbers the same. Measuring it calls for the hard suite.
+- **Cases from another version are not compared.** If you change a case, it stays «incompatible» until there is a new baseline.
+- **An intermittent case is not a regression.** Retry it with more repetitions before declaring anything.
+- **Keys never go in the run.** The manifest rejects anything that looks like a credential, and they are neither read nor copied.
+- **Private data is not pushed.** The hard suite's folder and its answers are outside git; `review-queue.md`, the answers and the recordings are the only things that carry text.

@@ -16,5 +16,5 @@
     "noEmit": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "scripts/compare", "scripts/probe", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "scripts/compare", "scripts/probe", "scripts/autonomy", "vite.config.ts", "vitest.config.ts"]
 }

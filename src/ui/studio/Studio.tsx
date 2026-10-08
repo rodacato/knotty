@@ -206,7 +206,6 @@ type Overlay = 'notices' | 'history'
 
 function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
   const debugVisible = useStore((s) => s.debugVisible)
-  const sandboxed = useStore((s) => s.sandboxed)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
   const settingsOpen = useStore((s) => s.settingsOpen)
@@ -234,7 +233,7 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
       </Button>
       {debugVisible ? (
         <>
-          {sandboxed && <ExportFicha />}
+          <ExportFicha />
           <ModelSwitch />
         </>
       ) : (

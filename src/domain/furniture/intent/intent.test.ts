@@ -52,6 +52,13 @@ describe('parseIntent', () => {
     ['quítale 10 cm de alto', 'bookcase', edit('dimensions.height', 1700)],
     ['Hazla de 1.60 m de largo', 'dining', edit('dimensions.width', 1600)],
     ['más larga 20 cm', 'dining', edit('dimensions.width', 1700)],
+    // Verbs that move one measure, by an amount or to one.
+    ['Súbela 3 cm', 'dining', edit('dimensions.height', 780)],
+    ['Bájala a 72 cm', 'dining', edit('dimensions.height', 720)],
+    ['Alárgala 20 cm', 'dining', edit('dimensions.width', 1700)],
+    ['acórtala a 1.40', 'dining', edit('dimensions.width', 1400)],
+    ['Ensánchalo 10 cm', 'bookcase', edit('dimensions.width', 650)],
+    ['Que quede de 76 de alto', 'dining', edit('dimensions.height', 760)],
     // Counts, from the steppers and the cabinet's grid.
     ['agrega un cajón', 'drawers', edit('columns.drawers', 4)],
     ['Ponle un cajón más', 'drawers', edit('columns.drawers', 4)],
@@ -120,6 +127,11 @@ describe('parseIntent', () => {
     ['hazlo de 90 o 100 de ancho', 'bookcase'],
     // Words it does not know, or a request that does not say enough.
     ['hazlo más bonito', 'bookcase'],
+    // A verb that moves a measure the other way than its amount, or without one, or a measure the form does not have.
+    ['Súbela a 70 cm', 'dining'],
+    ['Bájala a 80', 'dining'],
+    ['Súbela', 'dining'],
+    ['Alárgalo 20 cm', 'bookcase'],
     ['Hazla de 120 cm', 'drawers'],
     ['hazlo más angosto', 'bookcase'],
     ['Hazla de 3 metros', 'drawers'],
