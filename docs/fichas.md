@@ -1,77 +1,77 @@
-# Fichas de referencia
+# Reference fichas
 
-Una ficha de referencia es un mueble que Knotty sabe construir, escrito como archivo y comprobado por el motor. Sirve de punto de partida en la pantalla de inicio, de caso para el banco y de regresión: si el motor cambia y una ficha ya no sale igual, se ve.
+A reference ficha is a piece of furniture that Knotty knows how to build, written as a file and checked by the engine. It serves as a starting point on the home screen, as a case for the bench and as a regression: if the engine changes and a ficha no longer comes out the same, you see it.
 
-## Qué es un archivo de ficha
+## What a ficha file is
 
-Vive en `src/adapters/references/<código>.v<N>.json` (por ejemplo `kc-apa-01.v1.json`). El número va en el nombre, como en los prompts: solo existe la versión vigente y el resto está en git.
+It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v1.json`). The number goes in the name, as with the prompts: only the current version exists and the rest is in git.
 
-| Campo | Para qué |
+| Field | What it is for |
 |---|---|
-| `code` | Lo da el argumento de `--adopt`/`--diff`, no el archivo candidato. `KC-…`: un producto de referencia comprobado contra sus fotos. `GN-…`: un punto de partida genérico, sin producto detrás |
-| `id`, `name`, `notes` | Para la persona: el id en inglés, el nombre y las notas en español. Obligatorios en una referencia nueva |
-| `rooms` | Los cuartos donde va, uno o varios de `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` y `workshop` (`ROOMS` en `src/domain/furniture/references.ts`). Obligatorio: así el lab la encuentra por cuarto sin que nadie toque código, y una ficha sin cuarto no se adopta. La portada no los usa; ella tiene `home` |
-| `kind`, `finish` | Opcionales: qué mueble es (`DesignKind`, `src/domain/design/kind.ts`) y su acabado (`src/domain/materials/finishes.ts`). Un gabinete no dice por sí mismo si es aparador o librero |
-| `plan` | La ficha que entiende el motor (`FurniturePlan`): medidas, base, construcción, columnas y celdas |
-| `design` | En lugar de `plan`, para un mueble que ningún módulo construye: el diseño completo, pieza por pieza (`Design`). Lleva uno de los dos, nunca ambos. Se abre desde «Fichas» en el lab y `probe` la revisa igual; no sale en la pantalla de inicio ni tiene campos que editar, porque no hay plan: se cambia pieza por pieza o con el experto |
-| `home` | Opcional. Con él es una tarjeta de la pantalla de inicio: `order`, `category` y, si es `featured`, también en «Destacados» (hasta 11, para que la última celda sea «Diseña tu propio mueble»). Sin él sigue siendo referencia para las pruebas. Una base del inicio tiene el mismo nombre en la ficha y en su `plan`, y no hay dos con el mismo nombre; los destacados van primero en `order` |
-| `expect` | Lo que el motor hace del plan: válido, piezas, avisos, hojas y herrajes. Lo escribe `probe`; una candidata no lo trae |
-| `support`, `difficulty`, `features`, `adaptations`, `gaps` | Una `KC-…` los dice todos: cómo se soporta (`exact`, `adapted`, `unsupported`), la dificultad de 1 a 4, qué rasgos tiene y cuáles no puede dibujar Knotty (etiquetas de la lista cerrada `FEATURES`) y qué se adaptó (texto) |
+| `code` | Given by the `--adopt`/`--diff` argument, not by the candidate file. `KC-…`: a reference product checked against its photos. `GN-…`: a generic starting point, with no product behind it |
+| `id`, `name`, `notes` | For the person: the id in English, the name and the notes in Spanish. Required in a new reference |
+| `rooms` | The rooms where it goes, one or several of `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` and `workshop` (`ROOMS` in `src/domain/furniture/references.ts`). Required: this way the lab finds it by room without anyone touching code, and a ficha with no room is not adopted. The home screen does not use them; it has `home` |
+| `kind`, `finish` | Optional: which piece of furniture it is (`DesignKind`, `src/domain/design/kind.ts`) and its finish (`src/domain/materials/finishes.ts`). A cabinet does not say by itself whether it is a sideboard or a bookcase |
+| `plan` | The ficha the engine understands (`FurniturePlan`): dimensions, base, construction, columns and cells |
+| `design` | Instead of `plan`, for a piece of furniture that no module builds: the complete design, piece by piece (`Design`). It carries one of the two, never both. It opens from «Fichas» in the lab and `probe` checks it the same way; it does not appear on the home screen and has no fields to edit, because there is no plan: it is changed piece by piece or with the expert |
+| `home` | Optional. With it, it is a card on the home screen: `order`, `category` and, if it is `featured`, also in «Destacados» (up to 11, so that the last cell is «Diseña tu propio mueble»). Without it, it is still a reference for the tests. A home base has the same name in the ficha and in its `plan`, and no two share a name; the featured ones go first in `order` |
+| `expect` | What the engine makes of the plan: valid, pieces, findings, sheets and hardware. `probe` writes it; a candidate does not carry it |
+| `support`, `difficulty`, `features`, `adaptations`, `gaps` | A `KC-…` states all of them: how it is supported (`exact`, `adapted`, `unsupported`), the difficulty from 1 to 4, which features it has and which ones Knotty cannot draw (labels from the closed list `FEATURES`) and what was adapted (text) |
 
-`format` (siempre 1) lo agrega `probe`. **`features`** dice lo que el mueble tiene, de la lista cerrada `FEATURES` (`src/domain/furniture/references.ts`), lo dibuje Knotty o no; **`gaps`** dice, con las mismas etiquetas, lo que Knotty no puede dibujar de él: siempre es un subconjunto de `features` (una etiqueta en `gaps` que no está en `features` se rechaza). Contar huecos entre muebles es contar etiquetas. Si lo que ves no cabe en ninguna, no se inventa una: se anota en la respuesta como etiqueta propuesta y se agrega a `FEATURES` a propósito. `no-back` vale para cualquier parte sin trasera, no solo para el mueble entero. Las `adaptations` sí son texto libre. `support` es `exact` solo si no hay adaptaciones ni huecos; en cuanto hay uno, `adapted`.
+`format` (always 1) is added by `probe`. **`features`** says what the piece of furniture has, from the closed list `FEATURES` (`src/domain/furniture/references.ts`), whether Knotty draws it or not; **`gaps`** says, with the same labels, what Knotty cannot draw of it: it is always a subset of `features` (a label in `gaps` that is not in `features` is rejected). Counting gaps across furniture is counting labels. If what you see fits none of them, you do not invent one: you note it in the answer as a proposed label and add it to `FEATURES` on purpose. `no-back` applies to any part without a back panel, not only to the whole piece of furniture. The `adaptations` are free text. `support` is `exact` only if there are no adaptations or gaps; as soon as there is one, `adapted`.
 
-Cuatro etiquetas que conviene no confundir:
-- `splayed-legs`: patas que se abren o se estrechan, sueltas o en A. `angled-cut` queda para costados, tableros y remates cortados en ángulo: unas patas nunca van ahí. Las que solo se estrechan ya se dibujan en el gabinete, la mesa y la cama (`legStyle: "tapered"`), y las que se abren, en el gabinete (`legStyle: "splayed"`: hacia el frente y hacia atrás, y se adelgazan al pie); entonces la etiqueta va en `features` y no en `gaps`. Sigue en `gaps` cuando la pieza tiene patas en V o en A, travesaños entre patas o una pata por cuerpo, y en mesas y camas con patas abiertas.
-- `raised-sides`: los costados suben por encima de la cubierta. Son cajas; no es un corte en ángulo.
-- `slatted-fronts`: frentes hechos de tiras pegadas. `routed-fronts` es una ranura de router sobre una cara lisa.
-- `slatted-base`: la base de una cama hecha de tablillas en lugar de un tablero corrido. Ya se dibuja en la cama (`platform: "slats"`), así que va en `features` y no en `gaps`.
+Four labels that are worth not confusing:
+- `splayed-legs`: legs that spread out or narrow, loose or in an A shape. `angled-cut` is kept for sides, panels and ends cut at an angle: legs never go there. Those that only narrow are already drawn in the cabinet, the table and the bed (`legStyle: "tapered"`), and those that spread out, in the cabinet (`legStyle: "splayed"`: toward the front and toward the back, and they thin out at the foot); then the label goes in `features` and not in `gaps`. It stays in `gaps` when the piece has V- or A-shaped legs, stretchers between legs or one leg per body, and in tables and beds with spread legs.
+- `raised-sides`: the sides rise above the top. They are boxes; it is not an angled cut.
+- `slatted-fronts`: fronts made of glued strips. `routed-fronts` is a router groove on a smooth face.
+- `slatted-base`: the base of a bed made of slats instead of a continuous board. It is already drawn in the bed (`platform: "slats"`), so it goes in `features` and not in `gaps`.
 
-- `finger-joints`: el mueble tiene esquinas de dedos (*box joint*) a la vista. En un gabinete se dibuja con `construction.drawerCorners: "fingers"` y, si no son los 5 de siempre, `drawerFingers` (de 3 a 21 por esquina): vale para todos los cajones del mueble y se ve de atrás o con el cajón fuera, porque el frente lo tapa. Las esquinas de la cubierta con los costados, como en el KC-BUR-05, se dibujan con `construction.top: "fingers"` (el mismo `drawerFingers`): los costados suben hasta la cara de arriba y quedan a la vista de frente.
+- `finger-joints`: the piece of furniture has visible finger corners (*box joint*). In a cabinet it is drawn with `construction.drawerCorners: "fingers"` and, if they are not the usual 5, `drawerFingers` (from 3 to 21 per corner): it applies to all the drawers of the piece and is seen from behind or with the drawer out, because the front covers it. The corners of the top with the sides, as in KC-BUR-05, are drawn with `construction.top: "fingers"` (the same `drawerFingers`): the sides rise to the upper face and are visible from the front.
 
-`sliding-doors` ya se dibuja en el gabinete (`construction.doors: "sliding"`, para todas sus puertas): las hojas corren en ranuras, sin bisagras. Sigue siendo un hueco si el mueble mezcla corredizas y abatibles, o si corren en un riel comprado.
+`sliding-doors` is already drawn in the cabinet (`construction.doors: "sliding"`, for all its doors): the leaves run in grooves, without hinges. It is still a gap if the piece of furniture mixes sliding and hinged doors, or if they run on a purchased rail.
 
-`routed-fronts` también se dibuja en el gabinete (`construction.fronts: "grooved"`), con ranuras verticales; si el frente es de tiras pegadas y no de router, sigue siendo un hueco. `notch-pulls` ya se dibuja en el gabinete (`construction.pulls: "notch"`), así que una ficha que lo usa lo pone en `features` y no en `gaps`; con herrajes es `"handle"`, que suma una jaladera por hoja de puerta y frente de cajón a la compra.
+`routed-fronts` is also drawn in the cabinet (`construction.fronts: "grooved"`), with vertical grooves; if the front is made of glued strips and not routed, it is still a gap. `notch-pulls` is already drawn in the cabinet (`construction.pulls: "notch"`), so a ficha that uses it puts it in `features` and not in `gaps`; with hardware it is `"handle"`, which adds one handle per door leaf and drawer front to the shopping list.
 
-El archivo se escribe siempre igual (`probe` lo hace), para que un cambio mueva pocas líneas. **Las fotos de referencia no se guardan en el repo.**
+The file is always written the same way (`probe` does it), so that a change moves few lines. **The reference photos are not stored in the repo.**
 
-## Comandos
+## Commands
 
 ```bash
-npm run probe -- kc-apa-01                          # una ficha, en detalle
-npm run probe -- --all                              # todas, una línea cada una
-npm run probe -- --diff kc-apa-01 candidata.json    # qué cambiaría una candidata; no escribe nada
-npm run probe -- --adopt kc-apa-01 candidata.json   # la vuelve la versión siguiente (o la versión 1 de una nueva)
-npm run probe -- --update kc-apa-01                 # reescribe solo su `expect`
-npm run probe -- --explain kc-apa-01                # la ficha en palabras, generada de su plan y sus metadatos
-npm run probe -- --explain kc-apa-01 candidata.json # lo mismo para una candidata, como quedaría adoptada
+npm run probe -- kc-apa-01                          # one ficha, in detail
+npm run probe -- --all                              # all of them, one line each
+npm run probe -- --diff kc-apa-01 candidate.json    # what a candidate would change; writes nothing
+npm run probe -- --adopt kc-apa-01 candidate.json   # makes it the next version (or version 1 of a new one)
+npm run probe -- --update kc-apa-01                 # rewrites only its `expect`
+npm run probe -- --explain kc-apa-01                # the ficha in words, generated from its plan and its metadata
+npm run probe -- --explain kc-apa-01 candidate.json # the same for a candidate, as it would be once adopted
 ```
 
-`npm test` corre la misma comparación de `--all`: un cambio del motor que mueve una compra o agrega un aviso falla con la línea exacta.
+`npm test` runs the same comparison as `--all`: an engine change that moves a purchase or adds a finding fails with the exact line.
 
-## Mejorar una ficha en el taller
+## Improve a ficha in the lab
 
-El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `?debug`) lista todas las fichas: ábrela, pídele cambios al experto o muévele los campos, y con «Exportar ficha» baja un archivo candidato. El taller no escribe en el repositorio: el archivo se revisa con `--diff` y se adopta con `--adopt`, como cualquier candidata. Solo exporta lo que cabe en un plan; si se cambiaron piezas sueltas después del plan, lo dice y no exporta (esos cambios se vuelven a pedir en los campos de la ficha).
+The bench (a drawer of the debug bar: Konami, `Ctrl+Shift+D`, settings or `?debug`) lists all the fichas: open one, ask the expert for changes or move its fields, and with «Exportar ficha» it downloads a candidate file. The lab does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
 
-## 1. De una idea o unas fotos a una ficha
+## 1. From an idea or some photos to a ficha
 
-1. **Mirar el mueble entero.** Para cada foto, no solo la general: bisagras, repisas detrás de las puertas, cómo abren los cajones, la base, las jaladeras. Escribir, de abajo hacia arriba:
-   - filas y columnas, y qué hay en cada hueco (puerta, cajón, abierto, cerrado);
-   - puertas y cajones embutidos o sobrepuestos, cuántas hojas, repisas detrás;
-   - cubierta entre los costados o encima; trasera sí o no;
-   - base: zoclo, directa, patas o ruedas;
-   - lo que Knotty todavía no modela (cortes en ángulo, curvas, vidrio, un hueco sin trasera…).
+1. **Look at the whole piece of furniture.** For each photo, not only the general one: hinges, shelves behind the doors, how the drawers open, the base, the handles. Write down, from bottom to top:
+   - rows and columns, and what is in each opening (door, drawer, open, closed);
+   - inset or overlay doors and drawers, how many leaves, shelves behind;
+   - top between the sides or on top; back panel yes or no;
+   - base: kick, direct, legs or wheels;
+   - what Knotty does not model yet (angled cuts, curves, glass, an opening without a back panel…).
 
-   Tres cosas que el plan hace de cierta manera y conviene saber antes de escribirlo:
-   - Cada columna de la cuadrícula tiene un solo ancho de arriba abajo, y reparte por su cuenta la altura de sus celdas, como fracciones de esa columna. Si los niveles ponen sus divisores en lugares distintos, se dice con celdas divididas (abajo), no con `gaps`.
-   - Una columna puede **no llegar al piso o al techo**: su primera o su última celda es `content: "void"` y ahí no se construye nada (cajas que cuelgan a distinta altura bajo una tapa, tapas escalonadas). Va solo en un extremo de la columna, y al menos una columna llega al piso y otra al techo. El experto no la escribe: solo una ficha o el editor.
-   - Una celda puede **dividirse en columnas**: en vez de contenido trae `columns`, cada una con su `width` y sus `cells`. Así se dicen los divisores distintos por nivel (una sola columna cuyas celdas son niveles divididos) y el cajón que cruza columnas (una celda sin dividir debajo de una dividida). Lleva al menos dos columnas y ningún vacío dentro. El experto tampoco la escribe.
-   - Con puertas corredizas, una celda `door` puede ir **dividida en columnas**: sus hojas (`doors`, 1 o 2) cierran todo el hueco y las columnas quedan detrás, remetidas, solo con huecos abiertos y sus repisas. Es el divisor a media luz detrás de dos corredizas, o el nicho con repisa junto a una sola. El experto tampoco la escribe.
-   - Una celda puede ser un **baúl** (`content: "chest"`): tapada al frente y abierta por arriba, con la tapa abatible como piso del hueco de encima, que tiene que ser un hueco abierto sin dividir; o, si es el último hueco de **todas** las columnas, con la cubierta del mueble como tapa (el GN-BAU-01). `shelves: 1` le pone el fondo a media altura; `0` lo deja hasta abajo. Suma una bisagra de piano por tapa y uno o dos compases, según lo que pese. El experto tampoco la escribe.
-   - Una celda puede llevar **trasera propia o ninguna**: `"back": true` o `false`, contra lo que dice `construction.back` (las traseras en damero, un nicho abierto al muro). Va solo en una celda con algo, no en un vacío ni en una dividida, y cada tramo seguido de celdas con trasera es una tabla. El experto tampoco la escribe.
-   - En una base con patas, `dimensions.height` incluye las patas.
-   - Un mueble alto con cajones se ancla al muro (`wallMounted: true`), y uno con puertas también cuando es ancho y poco profundo; si no, `--diff` lo marca con un aviso crítico de vuelco (`R4_TIPPING`).
-2. **Elegir el módulo** (`src/domain/furniture/modules/`: gabinete, cama, mesa, zapatera). Si ninguno cabe, ya sabes que hay soporte por agregar (sección 2); y si es un mueble único que no justifica un módulo (el banco de sobremesa `GN-TAL-02`), la candidata lleva `design` en lugar de `plan`.
-3. **Escribir la candidata.** Un archivo JSON con el `plan` y, para una referencia nueva, lo demás que dice una ficha. El experto de la app también puede proponer el plan a partir de fotos y una descripción: con el acceso de depuración, «Exportar ficha» lo baja como candidata desde el Studio. El resultado es un borrador que una persona revisa, no una ficha.
+   Three things the plan does in a certain way and that are worth knowing before writing it:
+   - Each column of the grid has a single width from top to bottom, and distributes the height of its cells on its own, as fractions of that column. If the levels put their dividers in different places, it is expressed with split cells (below), not with `gaps`.
+   - A column can **not reach the floor or the ceiling**: its first or last cell is `content: "void"` and nothing is built there (boxes that hang at different heights under a top, staggered tops). It goes only at one end of the column, and at least one column reaches the floor and another the ceiling. The expert does not write it: only a ficha or the editor.
+   - A cell can be **split into columns**: instead of content it carries `columns`, each with its `width` and its `cells`. This is how different dividers per level are expressed (a single column whose cells are split levels) and the drawer that crosses columns (an unsplit cell below a split one). It carries at least two columns and no void inside. The expert does not write it either.
+   - With sliding doors, a `door` cell can be **split into columns**: its leaves (`doors`, 1 or 2) close the whole opening and the columns stay behind, set back, with only open openings and their shelves. It is the half-depth divider behind two sliding doors, or the niche with a shelf next to a single one. The expert does not write it either.
+   - A cell can be a **chest** (`content: "chest"`): closed at the front and open at the top, with the hinged lid as the floor of the opening above, which has to be an unsplit open opening; or, if it is the last opening of **all** the columns, with the top of the piece of furniture as the lid (GN-BAU-01). `shelves: 1` puts the bottom at half height; `0` leaves it all the way down. It adds one piano hinge per lid and one or two lid stays, depending on how much it weighs. The expert does not write it either.
+   - A cell can carry **its own back panel or none**: `"back": true` or `false`, against what `construction.back` says (checkerboard back panels, a niche open to the wall). It goes only on a cell with something in it, not on a void or a split one, and each consecutive run of cells with a back panel is one board. The expert does not write it either.
+   - In a base with legs, `dimensions.height` includes the legs.
+   - A tall piece of furniture with drawers is anchored to the wall (`wallMounted: true`), and one with doors too when it is wide and shallow; otherwise `--diff` flags it with a critical finding of tipping (`R4_TIPPING`).
+2. **Choose the module** (`src/domain/furniture/modules/`: cabinet, bed, table, shoe rack). If none fits, you already know there is support to add (section 2); and if it is a one-off piece of furniture that does not justify a module (the tabletop bench `GN-TAL-02`), the candidate carries `design` instead of `plan`.
+3. **Write the candidate.** A JSON file with the `plan` and, for a new reference, the rest of what a ficha states. The app's expert can also propose the plan from photos and a description: with debug access, «Exportar ficha» downloads it as a candidate from the Studio. The result is a draft that a person reviews, not a ficha.
 
    ```json
    {
@@ -90,25 +90,25 @@ El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `
      }
    }
    ```
-4. **Ver qué haría** con `--diff <código> candidata.json`. Dice qué cambia y, siempre, el veredicto del motor (válido o no, piezas y avisos), también para una referencia nueva; un aviso crítico sale marcado. Si el motor no puede construirlo, dice por qué y no se adopta. Para leerla antes de adoptar, `--explain <código> candidata.json` la dice en palabras, y `--diff` marca las líneas que cambian respecto a la versión vigente. Todavía no hay una vista previa en 3D de una candidata: se ve en la app después de adoptarla, con `home`.
-5. **Adoptarla** con `--adopt`. Una `KC-…` nueva tiene que traer también su soporte, dificultad, rasgos, adaptaciones y huecos. La dificultad parte de la del tipo de mueble en `docs/carpinteria/muebles-y-medidas.md` (§1); cuando ese rango es de dos niveles (por ejemplo 2–3), se toma el más alto si el diseño tiene frentes embutidos, patas o muchos cajones. Es un criterio provisional.
-6. **Comprobar** con `probe -- <código>` y abrirla en la app (`home` la pone en la pantalla de inicio).
+4. **See what it would do** with `--diff <code> candidate.json`. It says what changes and, always, the engine's verdict (valid or not, pieces and findings), also for a new reference; a critical finding comes out marked. If the engine cannot build it, it says why and it is not adopted. To read it before adopting, `--explain <code> candidate.json` says it in words, and `--diff` marks the lines that change with respect to the current version. There is not yet a 3D preview of a candidate: it is seen in the app after adopting it, with `home`.
+5. **Adopt it** with `--adopt`. A new `KC-…` must also carry its support, difficulty, features, adaptations and gaps. The difficulty starts from that of the type of furniture in `docs/carpinteria/muebles-y-medidas.md` (§1); when that range spans two levels (for example 2–3), the higher one is taken if the design has inset fronts, legs or many drawers. It is a provisional criterion.
+6. **Check it** with `probe -- <code>` and open it in the app (`home` puts it on the home screen).
 
-Sobre una referencia que ya existe, la candidata puede ser solo el `plan`: lo demás se hereda, y si algo cambió sube la versión.
+On an existing reference, the candidate can be just the `plan`: the rest is inherited, and if something changed the version goes up.
 
-## 2. Cuando Knotty no puede construirlo: agregar soporte
+## 2. When Knotty cannot build it: add support
 
-Una ficha que sale inválida, o que se tiene que adaptar, señala un hueco. Antes de tocar código, **cuenta** en cuántos muebles de referencia aparece: un rasgo de un solo mueble se anota en `gaps` y no se construye. Se construye lo que cambia la **compra** o la **seguridad**, o lo que se repite en varios; lo que es solo apariencia se junta después.
+A ficha that comes out invalid, or that has to be adapted, points to a gap. Before touching code, **count** in how many reference pieces of furniture it appears: a feature of a single piece of furniture is noted in `gaps` and not built. What gets built is what changes the **shopping list** or **safety**, or what repeats across several; what is only appearance is gathered later.
 
-Como se agregaron las patas al gabinete es el recorrido típico:
+How the legs were added to the cabinet is the typical walkthrough:
 
-1. **El plan** (`modules/<módulo>.ts`): la opción nueva en el esquema, con su `.describe` (es lo que lee el experto), y sus etiquetas para la hoja de la ficha.
-2. **El constructor** (mismo archivo, y `modules/common.ts` para lo que comparten): las piezas y uniones que la opción agrega. Knotty construye cada pieza, así que no se pueden traslapar.
-3. **Los supuestos numéricos** (`domain/assumptions.ts`): cada cifra con su fuente.
-4. **Las revisiones** (`domain/checks/structure/`): si una regla existente lee lo que cambió, se sube su versión; si hace falta una nueva, va en el registro.
-5. **La guía del experto** (`adapters/llm/prompts/modules/<módulo>.vN.md`, escrita a mano para gabinete, cama y mesa): se sube su versión y su presupuesto en `prompts.test.ts`. Como cambia lo que ve el experto, hay que correr `npm run compare` a mano (cuesta tokens) y comparar con el último reporte.
-6. **Pruebas** del módulo (`<módulo>.test.ts`): la opción, sus piezas y lo que no debe pasar.
-7. **Las fichas.** `probe -- --all` dice cuáles se movieron. Las diferencias esperadas se aceptan con `--update`; una inesperada es un error. Después, adoptar la candidata que antes se adaptó, ya sin la adaptación, y quitarla de `gaps`.
-8. **Una decisión o un invariante en `docs/PROPUESTA.md`**, solo si hay un porqué que el código no dice; el diario de la entrega va en el cuerpo del PR.
+1. **The plan** (`modules/<module>.ts`): the new option in the schema, with its `.describe` (it is what the expert reads), and its labels for the ficha sheet.
+2. **The builder** (same file, and `modules/common.ts` for what they share): the pieces and joints that the option adds. Knotty builds every piece, so they cannot overlap.
+3. **The numeric assumptions** (`domain/assumptions.ts`): each figure with its source.
+4. **The checks** (`domain/checks/structure/`): if an existing rule reads what changed, its version goes up; if a new one is needed, it goes in the registry.
+5. **The expert's guide** (`adapters/llm/prompts/modules/<module>.vN.md`, written by hand for cabinet, bed and table): its version and its budget in `prompts.test.ts` go up. Since it changes what the expert sees, you have to run `npm run compare` by hand (it costs tokens) and compare with the last report.
+6. **Tests** for the module (`<module>.test.ts`): the option, its pieces and what must not happen.
+7. **The fichas.** `probe -- --all` says which ones moved. The expected differences are accepted with `--update`; an unexpected one is a bug. Then, adopt the candidate that was adapted before, now without the adaptation, and remove it from `gaps`.
+8. **A decision or an invariant in `docs/PROPUESTA.md`**, only if there is a why that the code does not say; the delivery diary goes in the PR body.
 
-El detalle de qué correr según lo que tocaste está en [CONTRIBUTING.md](../CONTRIBUTING.md).
+The detail of what to run depending on what you touched is in [CONTRIBUTING.md](../CONTRIBUTING.md).

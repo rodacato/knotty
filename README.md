@@ -2,45 +2,45 @@
 
 <h1 align="center">Knotty</h1>
 
-<p align="center"><em>Naughty knots.</em> De unas fotos a un mueble de triplay que ajustas platicando con un carpintero experto (un LLM): diseño 3D, cómo se arma y cuántas hojas comprar.</p>
+<p align="center"><em>Naughty knots.</em> From a few photos to a piece of plywood furniture you adjust by talking with an expert carpenter (an LLM): 3D design, how it goes together and how many sheets to buy.</p>
 
-<p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Abrir la app</strong></a></p>
+<p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Open the app</strong></a></p>
 
 ![Knotty](public/share.png)
 
-La propuesta, las decisiones y el estado viven en [docs/PROPUESTA.md](docs/PROPUESTA.md).
+The proposal, the decisions and the state live in [docs/PROPUESTA.md](docs/PROPUESTA.md) (in Spanish). The app itself is in Mexican Spanish.
 
-## Desarrollo
+## Development
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # dominio, casos de uso y adapters
+npm test           # domain, use cases and adapters
 npm run typecheck
-npm run build      # dist/, listo para GitHub Pages
-npm run compare    # el banco contra expertos reales; cuesta tokens, solo a mano
+npm run build      # dist/, ready for GitHub Pages
+npm run compare    # the bench against real experts; costs tokens, by hand only
 ```
 
-Antes de abrir un PR, [CONTRIBUTING.md](CONTRIBUTING.md) dice cómo comprobar que un cambio funciona.
+Before opening a PR, [CONTRIBUTING.md](CONTRIBUTING.md) says how to check that a change works, and [docs/workflows.md](docs/workflows.md) what to do and where each thing goes.
 
-Se puede instalar como app desde el navegador (PWA) y abre sin conexión; el experto sí necesita red.
+It installs as an app from the browser (PWA) and opens offline; the expert does need the network.
 
-Sin API key funciona en modo **Simulado**, que entiende unos cuantos pedidos ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). Para usar Claude, OpenAI o [SheLLM](https://rodacato.github.io/SheLLM/), abre el engrane en la app y pon tu llave: se queda en el dispositivo, en memoria, en la pestaña o cifrada con una frase.
+Without an API key it works in **Simulado** mode, which understands a few requests ("hazlo de 90 cm de ancho", "que aguante libros", "baja una repisa 10 cm", "refuerza la base", "agrega un divisor al centro"). To use Claude, OpenAI or [SheLLM](https://rodacato.github.io/SheLLM/), open the gear in the app and enter your key: it stays on the device, in memory, in the tab or encrypted with a passphrase.
 
-## Arquitectura
+## Architecture
 
-- `src/domain/`: modelo del mueble, operaciones, validación, reglas estructurales. TypeScript puro, en seis grupos: `materials/`, `design/`, `checks/`, `furniture/`, `editing/` y `session/`.
-- `src/application/`: casos de uso, construcción del contexto para el LLM y el banco de pruebas.
-- `src/ports/`: interfaces hacia afuera.
-- `src/adapters/`: Anthropic, OpenAI y SheLLM, el experto simulado, localStorage, catálogo, imágenes y bitácora. Los prompts están en `src/adapters/llm/prompts/`.
-- `src/ui/`: React y la escena 3D.
-- `public/catalog/catalog.json`: materiales, herrajes y parámetros de acomodo; se edita sin tocar código.
+- `src/domain/`: the furniture model, operations, validation, structural rules. Pure TypeScript, in groups by intent (`materials/`, `design/`, `estimate/`, `checks/`, `editing/`, `furniture/`, `session/`).
+- `src/application/`: use cases, building the context for the LLM, and the bench.
+- `src/ports/`: interfaces to the outside.
+- `src/adapters/`: Anthropic, OpenAI and SheLLM, the simulated expert, localStorage, catalog, images and log. The prompts are in `src/adapters/llm/prompts/`.
+- `src/ui/`: React and the 3D scene.
+- `public/catalog/catalog.json`: materials, hardware and layout parameters; it is edited without touching code.
 
-`src/architecture.test.ts` verifica que ninguna capa importe lo que no debe.
+`src/architecture.test.ts` checks that no layer imports what it must not.
 
-## Marca
+## Brand
 
-Los SVG de la marca viven en `scripts/brand/`. Para regenerar el favicon, los íconos de la PWA y la imagen para compartir (`public/share.png`) hace falta `rsvg-convert` (`brew install librsvg`) y Google Chrome:
+The brand's SVGs live in `scripts/brand/`. Regenerating the favicon, the PWA icons and the share image (`public/share.png`) needs `rsvg-convert` (`brew install librsvg`) and Google Chrome:
 
 ```bash
 ./scripts/brand/generate.sh
