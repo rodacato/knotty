@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
-import { cutList } from '../../estimate/cutList'
+import { afterCut, afterCutText, cutList } from '../../estimate/cutList'
+import { outline } from '../../design/slants'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { buildTable, TablePlan } from './table'
@@ -280,5 +281,62 @@ describe('tapered legs on a table', () => {
     expect(slanted({ legStyle: 'tapered' })).toEqual([])
     expect(slanted({ legs: 'legs' })).toEqual([])
     expect(slanted({ use: 'desk', legs: 'legs', legStyle: 'tapered', dimensions: { width: 1300, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'left', drawers: 2 } }).every((id) => id.endsWith('-right-1') || id.endsWith('-right-2'))).toBe(true)
+  })
+})
+
+describe('a top with rounded corners', () => {
+  const built = (p: Partial<TablePlan>) => {
+    const { design, notes } = buildTable(table({ corners: 'rounded', ...p }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    const top = design.pieces.find((x) => x.id === 'top')!
+    return { design, notes, a, top, corners: (top.rounds ?? []).map((r) => `${r.z}-${r.x}`) }
+  }
+
+  it('rounds the four corners of a top that overhangs all round, to 40 mm, and says how they are made', () => {
+    const { top, corners, notes } = built({})
+    expect(corners).toEqual(['start-start', 'start-end', 'end-start', 'end-end'])
+    expect(top.rounds!.every((r) => r.radius === 40 && r.y === null)).toBe(true)
+    expect(notes).toEqual(['Cubierta con 4 esquinas redondeadas a 40 mm de radio: se marcan con un compás o una tapa, se cortan con caladora y se emparejan con lija.'])
+  })
+
+  it('never shows what stands under the top: every corner of every end and leg is inside the rounded outline', () => {
+    for (const p of [{}, { legs: 'legs' as const }, { overhang: 15 }, { use: 'desk' as const, overhang: 30, dimensions: { width: 1300, height: 750, depth: 600 }, pedestal: { side: 'left' as const, drawers: 2 } }]) {
+      const { design, a, top } = built(p)
+      const shape = outline(a.geo.boxes.get('top')!, 'y', [], top.rounds)
+      const inside = (x: number, z: number) => shape.every(([px, pz], i) => {
+        const [qx, qz] = shape[(i + 1) % shape.length]
+        return (qx - px) * (z - pz) - (qz - pz) * (x - px) >= -1e-6
+      })
+      const under = design.pieces.filter((x) => x.id !== 'top' && x.normal !== 'y').map((x) => a.geo.boxes.get(x.id)!)
+      expect(under.length).toBeGreaterThan(1)
+      for (const b of under) for (const x of [b.x0, b.x1]) for (const z of [b.z0, b.z1]) expect(inside(x, z)).toBe(true)
+    }
+  })
+
+  it('on a desk rounds only the front corners: its ends reach the back edge, which goes against the wall', () => {
+    const { corners, notes } = built({ use: 'desk', name: 'Escritorio', overhang: 30, dimensions: { width: 1200, height: 750, depth: 600 } })
+    expect(corners).toEqual(['end-start', 'end-end'])
+    expect(built({ use: 'desk', legs: 'legs', overhang: 40, dimensions: { width: 1500, height: 750, depth: 650 }, pedestal: { side: 'right', drawers: 3 } }).corners).toEqual(['end-start', 'end-end'])
+    expect(notes).toEqual(['Cubierta con 2 esquinas redondeadas a 40 mm de radio: se marcan con un compás o una tapa, se cortan con caladora y se emparejan con lija. Atrás quedan rectas, donde los costados llegan a la orilla.'])
+  })
+
+  it('with the top flush it is built square, and says why', () => {
+    const { top, notes } = built({ overhang: 0 })
+    expect(top.rounds).toBeUndefined()
+    expect(notes).toEqual(['Con la cubierta al ras no se redondean las esquinas: asomaría lo que va debajo. Dale vuelo a la cubierta.'])
+  })
+
+  it('changes neither the board to buy nor its line in the cut list, which says what is left to do to it', () => {
+    const [square, rounded] = [buildTable(table({}), testCatalog).design, built({}).design]
+    const lines = (design: typeof square) => cutList(design, analyze(design, testCatalog).geo!)
+    expect(lines(rounded)).toEqual(lines(square))
+    const top = lines(rounded).find((line) => line.ids.includes('top'))!
+    expect(afterCutText(afterCut(rounded, top), top.count)).toBe('Después de cortarla: esquinas redondeadas')
+    expect(afterCutText(afterCut(square, top), top.count)).toBeNull()
+  })
+
+  it('a plan that does not ask builds a top that does not mention them', () => {
+    expect('rounds' in buildTable(table({}), testCatalog).design.pieces.find((x) => x.id === 'top')!).toBe(false)
   })
 })
