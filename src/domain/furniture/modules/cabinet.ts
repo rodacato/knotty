@@ -14,7 +14,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { addDrawers, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -1149,7 +1149,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     choice<CabinetPlan, NonNullable<CabinetPlan['kick']>>({ key: 'kick', label: 'Zoclo', ...fromLabels(CABINET_LABELS.kick), visibleWhen: (p) => p.base === 'kick', get: (p) => p.kick ?? 'low', set: (p, kick) => ({ ...p, kick }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     legStyleField((p) => p.base === 'legs', LEANING_LEG_STYLE_LABELS),
-    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: 'Va atornillado al muro: así no se vuelca ni se ladea.' }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: `Va atornillado al muro: así no se vuelca ni se ladea. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
     ...constructionFields,
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),
