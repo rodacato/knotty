@@ -6,6 +6,7 @@ import { cutList } from '../../estimate/cutList'
 import { LEG_HEIGHT_RANGE } from './common'
 import { estimatePurchase } from '../../estimate/purchase'
 import { bedModule, BedPlan, buildBed } from './bed'
+import { valueFields } from './fields'
 import { FurniturePlan } from './plan'
 
 const bed = (p: Partial<BedPlan> = {}): BedPlan => ({
@@ -219,7 +220,21 @@ describe('a bed on legs', () => {
       expect(FurniturePlan.safeParse(deep(style, least, shelves, cap)).success).toBe(true)
       expect(analyze(buildBed(deep(style, least, shelves, cap), testCatalog).design, testCatalog).valid).toBe(true)
     }
-    expect(FurniturePlan.safeParse(bed({ headboard: { style: 'plain', height: 300, depth: 0, shelves: 0 } })).success).toBe(true)
+  })
+
+  it.each(['plain', 'daybed'] as const)('rejects a %s headboard that does not rise over the base, which would be built level with the platform', (style) => {
+    const at = (height: number) => FurniturePlan.safeParse(bed({ height: 400, headboard: { style, height, depth: 0, shelves: 0 } }))
+    expect(at(400).error?.issues[0]).toMatchObject({ message: 'No cupo: la cabecera no sube de la base; súbela o quítala.', path: ['headboard', 'height'] })
+    expect(at(300).success).toBe(false)
+    expect(at(401).success).toBe(true)
+    expect(FurniturePlan.safeParse(bed({ height: 400, headboard: { style: 'none', height: 300, depth: 0, shelves: 0 } })).success).toBe(true)
+  })
+
+  it('the form shows the depth a deep headboard is built with when the plan says 0', () => {
+    const deep = bed({ headboard: { style: 'bookcase', height: 1100, depth: 0, shelves: 2 } })
+    const depth = valueFields(bedModule.fields, deep).find((f) => f.key === 'headboard.depth')
+    expect(depth?.type === 'number' && depth.get(deep)).toBe(250)
+    expect(analyze(buildBed(deep, testCatalog).design, testCatalog).geo!.boxes.get('head-side-left')!.x1).toBe(250)
   })
 
   it('shows the legs on the form only without drawers, says why otherwise, and drops them when drawers are chosen', () => {
