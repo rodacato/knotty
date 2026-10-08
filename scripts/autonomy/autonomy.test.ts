@@ -33,6 +33,15 @@ describe('classify', () => {
     expect(classify(asks('cost'), { kind: 'question', topic: 'sheets' })).toBe('misread')
   })
 
+  it('wants a question where the request reads two ways, and counts the question as unread where it reads one', () => {
+    const unclear: Intent = { kind: 'unclear', options: [] }
+    expect(classify('ask', unclear)).toBe('read')
+    expect(classify('ask', edit('columns.shelves', 1))).toBe('misread')
+    expect(classify('ask', null)).toBe('unread')
+    expect(classify(set('columns.shelves', 1), unclear)).toBe('unread')
+    expect(classify('expert', unclear)).toBe('misread')
+  })
+
   it('leaves the expert its own, and reading anything into it is a mistake', () => {
     expect(classify('expert', null)).toBe('left')
     expect(classify('expert', edit('dimensions.height', 700))).toBe('misread')

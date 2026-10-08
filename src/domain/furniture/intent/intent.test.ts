@@ -174,6 +174,34 @@ describe('parseIntent', () => {
     expect(intent?.kind === 'edit' && intent.plan).toBe(plans.bookcase)
   })
 
+  it('«sin zoclo» on a piece that stands on legs takes nothing away, and neither does «quita las patas» on one with a kick', () => {
+    for (const [request, name] of [['Sin zoclo', 'sideboard'], ['Quítale las patas', 'bookcase']] as const) {
+      const intent = parseIntent(request, plans[name], buildPlan(plans[name], testCatalog).design)
+      expect(intent?.kind === 'edit' && intent.plan).toBe(plans[name])
+    }
+    expect(read('Quítale las patas', 'sideboard')).toEqual(edit('base', 'floor'))
+  })
+
+  const twoWays: [string, PlanName, string[]][] = [
+    ['Una repisa', 'bookcase', ['Que tenga 1 repisa', 'Agrégale 1 repisa']],
+    ['Un cajón', 'drawers', ['Que tenga 1 cajón', 'Agrégale 1 cajón']],
+    ['Ponle 2 cajones', 'drawers', ['Que tenga 2 cajones', 'Agrégale 2 cajones']],
+    ['Ponle 2 repisas', 'bed', ['Que tenga 2 repisas', 'Agrégale 2 repisas']],
+  ]
+  it.each(twoWays)('«%s» on the %s reads two ways: it asks, and each option reads one way', (request, name, options) => {
+    expect(read(request, name)).toEqual({ kind: 'unclear', options })
+    const values = options.map((option) => read(option, name)).map((intent) => (intent?.kind === 'edit' ? intent.value : null))
+    expect(values).not.toContain(null)
+    expect(new Set(values).size).toBe(2)
+  })
+
+  it('a choice about a part the piece does not have is not read: no doors to slide, no shelves to fix', () => {
+    expect(read('Puertas corredizas', 'bookcase')).toBeNull()
+    expect(read('Repisas fijas', 'drawers')).toBeNull()
+    expect(read('Puertas embutidas', 'drawers')).toBeNull()
+    expect(read('Repisas fijas', 'wallCabinet')).toEqual(edit('construction.shelves', 'fixed'))
+  })
+
   it('reads accents, capitals, "por favor" and a closing period the same', () => {
     expect(normalize('¡Hazlo de 90 CM de ancho, por favor!')).toBe('hazlo de 90 cm de ancho')
     expect(read('Sin zoclo, por favor.', 'bookcase')).toEqual(edit('base', 'floor'))

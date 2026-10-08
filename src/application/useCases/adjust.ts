@@ -155,6 +155,10 @@ export function createAdjust(kit: Kit) {
     }
     // An answer to the expert or to a pending proposal only makes sense with what the expert said: it reads it.
     if (!live || answering || withRequest.proposal) return null
+    if (intent.kind === 'unclear') {
+      note('ok')
+      return reply(localText.unclear, { suggestions: intent.options })
+    }
     if (intent.plan === live) {
       note('ok')
       return reply(localText.already)

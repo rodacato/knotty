@@ -59,6 +59,7 @@ export const requirementsKept = (texts: string[]) => `No cambié ${texts.map((t)
 export const localText = {
   applied: (changes: string[]) => `Listo, lo cambié en la ficha: ${changes.join(', ')}.`,
   already: 'Ya está así en la ficha; no cambié nada.',
+  unclear: 'Eso lo puedo leer de dos formas. ¿Cuál es?',
   pending: (changes: string[], criticals: string[], holds: boolean) =>
     `Preparé el cambio en la ficha (${changes.join(', ')}), pero ${holds ? 'quita piezas que sostienen el mueble' : criticals.length === 1 ? `deja un punto crítico: ${criticals[0]}` : `deja ${criticals.length} puntos críticos`}. Queda como propuesta para que lo decidas.`,
 }

@@ -1,7 +1,7 @@
 import { asks, both, set, type Group } from '../corpus'
 
 // The plain requests were written without reading the interpreter, from the form's fields and Mexican furniture vocabulary;
-// the 'expert' ones at the end of each group were written against it, to catch what it reads and should not.
+// the 'expert' and 'ask' ones were written against it, to catch what it reads and should not. A value the piece already has means: nothing to change.
 export const cabinet: Group[] = [
   {
     on: 'librero',
@@ -47,6 +47,9 @@ export const cabinet: Group[] = [
       ['cuánto mide', asks('measures')],
       ['hazlo de 2 m de alto y 40 de fondo', both(['dimensions.height', 2000], ['dimensions.depth', 400])],
       ['con trasera y de triplay de 18', both(['construction.back', 'nailed'], ['material', 'T18'])],
+      ['Una repisa', 'ask'],
+      ['Puertas corredizas', set('columns', 'sliding doors on the whole front')],
+      ['Quítale las patas', set('base', 'kick')],
       ['Hazlo de 18 de alto', 'expert'],
       ['Hazlo de 90', 'expert'],
       ['Hazlo de 1.80', 'expert'],
@@ -176,6 +179,10 @@ export const cabinet: Group[] = [
       ['cuántas hojas de triplay lleva', asks('sheets')],
       ['sin zoclo y con jaladeras', both(['base', 'floor'], ['construction.pulls', 'handle'])],
       ['5 cajones y 1 metro de alto', both(['columns.drawers', 5], ['dimensions.height', 1000])],
+      ['Un cajón', 'ask'],
+      ['Ponle 2 cajones', 'ask'],
+      ['Repisas fijas', 'expert'],
+      ['Puertas embutidas', 'expert'],
       ['Hazla más chica', 'expert'],
     ],
   },
@@ -273,6 +280,8 @@ export const cabinet: Group[] = [
       ['cuánto sale así como está', asks('cost')],
       ['qué medidas tiene?', asks('measures')],
       ['patas cónicas de 20 cm', both(['legStyle', 'tapered'], ['legHeight', 200])],
+      ['Sin zoclo', set('base', 'legs')],
+      ['Quítale las patas', set('base', 'floor')],
       ['Desarmable', 'expert'],
       ['Patas más altas', 'expert'],
     ],

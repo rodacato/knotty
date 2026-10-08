@@ -12,6 +12,8 @@ export type Expected =
   /** Every change the request asks for; Knotty reads one at a time today, so two stay with the expert until it reads both. */
   | { edits: Edit[] }
   | { question: Topic }
+  /** It reads two ways on that piece: Knotty asks which, and choosing one for the person is the mistake. */
+  | 'ask'
   /** Vague, open, or beyond what a plan says: reading anything into it is the mistake. */
   | 'expert'
 

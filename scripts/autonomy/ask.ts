@@ -44,7 +44,7 @@ async function askOne(llm: LLMProvider, catalog: Catalog, plan: FurniturePlan, s
 export async function ask(kind: FurnitureKind, groups: Group[], catalog: Catalog, llm: LLMProvider): Promise<Asked[]> {
   const asked: Asked[] = []
   for (const { say, on, expected, outcome } of measure(kind, groups, catalog)) {
-    if (outcome !== 'unread' || expected === 'expert' || 'question' in expected) continue
+    if (outcome !== 'unread' || expected === 'expert' || expected === 'ask' || 'question' in expected) continue
     const plan = variantOf(kind, on)
     const meant = meantPlan(plan, expected.edits)
     if (!meant) continue

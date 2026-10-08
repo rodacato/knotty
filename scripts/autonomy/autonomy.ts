@@ -22,11 +22,14 @@ export interface Result {
   outcome: Outcome
 }
 
-const gotOf = (intent: Intent | null) => (!intent ? null : intent.kind === 'question' ? `question ${intent.topic}` : `${intent.field} = ${intent.value}`)
+const gotOf = (intent: Intent | null) => (!intent ? null : intent.kind === 'question' ? `question ${intent.topic}` : intent.kind === 'unclear' ? `asks: ${intent.options.join(' / ')}` : `${intent.field} = ${intent.value}`)
 
 export function classify(expected: Expected, intent: Intent | null): Outcome {
   if (expected === 'expert') return intent ? 'misread' : 'left'
   if (!intent) return 'unread'
+  if (expected === 'ask') return intent.kind === 'unclear' ? 'read' : 'misread'
+  // Asking about what reads one way changes nothing wrong: it is not read yet.
+  if (intent.kind === 'unclear') return 'unread'
   if ('question' in expected) return intent.kind === 'question' && intent.topic === expected.question ? 'read' : 'misread'
   const [only, ...more] = expected.edits
   return intent.kind === 'edit' && !more.length && intent.field === only.field && intent.value === only.value ? 'read' : 'misread'
@@ -52,7 +55,7 @@ export function measure(kind: FurnitureKind, groups: Group[], catalog: Catalog):
 const count = (results: Result[], outcome: Outcome) => results.filter((r) => r.outcome === outcome).length
 
 /** What a request is counted under: its field, `question`, or `several` when it asks for more than one change. */
-const rowOf = (expected: Expected) => (expected === 'expert' ? 'expert' : 'question' in expected ? 'question' : expected.edits.length > 1 ? 'several' : expected.edits[0].field)
+const rowOf = (expected: Expected) => (expected === 'expert' ? 'expert' : expected === 'ask' ? 'ask' : 'question' in expected ? 'question' : expected.edits.length > 1 ? 'several' : expected.edits[0].field)
 
 function report(kind: FurnitureKind, results: Result[]): string[] {
   const meant = results.filter((r) => r.expected !== 'expert')

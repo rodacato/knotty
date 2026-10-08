@@ -13,6 +13,8 @@ export type Intent =
   | { kind: 'question'; topic: Topic }
   /** One field of the plan set to one value; `plan` is the plan with it, the same plan when it already had that value. */
   | { kind: 'edit'; field: string; value: string | number; plan: FurniturePlan }
+  /** A request that reads two ways; `options` are requests, in Spanish, that each read one way. */
+  | { kind: 'unclear'; options: string[] }
 
 type Plan = FurniturePlan
 
@@ -140,6 +142,8 @@ interface Counter {
   key: string
   /** Normalized, singular and plural: "cajon", "cajones". */
   nouns: [string, string]
+  /** The same two as a person reads them: "cajón", "cajones". */
+  shown: [string, string]
   /** What the form says after the noun ("por lado"); one that multiplies ("por …") must be said. */
   qualifier: string | null
   get: () => number
@@ -148,11 +152,12 @@ interface Counter {
   max: number
 }
 
-const singular = (plural: string) => (/[^aeiou]es$/.test(plural) ? plural.slice(0, -2) : plural.replace(/s$/, ''))
+const singular = (plural: string) => (plural.endsWith('ones') ? `${plural.slice(0, -4)}ón` : /[^aeiou]es$/.test(plural) ? plural.slice(0, -2) : plural.replace(/s$/, ''))
+const nounsOf = (plural: string): Pick<Counter, 'nouns' | 'shown'> => ({ nouns: [normalize(singular(plural)), normalize(plural)], shown: [singular(plural), plural] })
 
 function stepperCounter(plan: Plan, field: StepperField<Plan>): Counter {
-  const [noun, ...rest] = normalize(field.ariaLabel ?? field.label).split(' ')
-  return { key: field.key, nouns: [singular(noun), noun], qualifier: rest.join(' ') || null, get: () => field.get(plan), set: (n) => field.set(plan, n), min: field.min, max: field.max }
+  const [noun, ...rest] = (field.ariaLabel ?? field.label).toLowerCase().split(' ')
+  return { key: field.key, ...nounsOf(noun), qualifier: normalize(rest.join(' ')) || null, get: () => field.get(plan), set: (n) => field.set(plan, n), min: field.min, max: field.max }
 }
 
 /** The most shelves, drawers and leaves an opening takes from the chat; more goes to the expert. */
@@ -168,18 +173,18 @@ function gridCounters(plan: Plan, field: CustomField<Plan>): Counter[] {
   const shelved = cells.filter(({ cell }) => cell.content === 'open' || cell.content === 'door')
   if (shelved.length === 1) {
     const { cell, i, j } = shelved[0]
-    counters.push({ key: 'columns.shelves', nouns: ['repisa', 'repisas'], qualifier: null, get: () => cell.shelves ?? 0, set: (n) => field.set(plan, withCell(i, j, { ...cell, shelves: n })), min: 0, max: MAX_IN_OPENING.shelves })
+    counters.push({ key: 'columns.shelves', ...nounsOf('repisas'), qualifier: null, get: () => cell.shelves ?? 0, set: (n) => field.set(plan, withCell(i, j, { ...cell, shelves: n })), min: 0, max: MAX_IN_OPENING.shelves })
   }
   const doors = cells.filter(({ cell }) => cell.content === 'door')
   if (doors.length === 1) {
     const { cell, i, j } = doors[0]
-    counters.push({ key: 'columns.doors', nouns: ['puerta', 'puertas'], qualifier: null, get: () => cell.doors ?? 1, set: (n) => field.set(plan, withCell(i, j, { ...cell, doors: n })), min: 1, max: MAX_IN_OPENING.doors })
+    counters.push({ key: 'columns.doors', ...nounsOf('puertas'), qualifier: null, get: () => cell.doors ?? 1, set: (n) => field.set(plan, withCell(i, j, { ...cell, doors: n })), min: 1, max: MAX_IN_OPENING.doors })
   }
   const only = columns.length === 1 ? columns[0].cells : []
   if (only.length && only.every((c) => c.content === 'drawer' && c.height === only[0].height))
     counters.push({
       key: 'columns.drawers',
-      nouns: ['cajon', 'cajones'],
+      ...nounsOf('cajones'),
       qualifier: null,
       get: () => only.length,
       set: (n) => field.set(plan, [{ ...columns[0], cells: Array.from({ length: n }, () => ({ ...only[0] })) }]),
@@ -201,29 +206,39 @@ function countIntent(text: string, plan: Plan): Intent | null | undefined {
   const qualifier = qualifiers.length ? `(?: (${qualifiers.join('|')}))?` : '()'
   const add = new RegExp(`^(?:(?:oye|ok|bueno|ahora|mejor) )?(agregale|agrega|anadele|anade|ponle|pon|metele|mete) (otro|otra|${COUNT}) ${noun}${qualifier}( mas)?$`).exec(text)
   const remove = new RegExp(`^(?:quitale|quita|sacale|saca) (${COUNT}) ${noun}${qualifier}$`).exec(text)
-  const said = new RegExp(`^${LEAD}(?:con )?(otro|otra|${COUNT}) ${noun}${qualifier}( mas| menos)?$`).exec(text)
-  let found: { noun: string; qualifier: string | undefined; target: (current: number) => number }
+  const said = new RegExp(`^(${LEAD}(?:con )?)(otro|otra|${COUNT}) ${noun}${qualifier}( mas| menos)?$`).exec(text)
+  /** What the count becomes: `set` to that many, `add` that many, `put` (to that many, unless it has them: then the words do not say), or `either`. */
+  let found: { noun: string; qualifier: string | undefined; k: number; how: 'set' | 'add' | 'put' | 'either' }
   if (add) {
     const [, verb, amount, n, q, more] = add
     const k = isOther(amount) ? 1 : countOf(amount)
-    // "Pon 2 puertas" says how many; "ponle un cajón" and "agrega dos cajones", how many more.
-    const absolute = verb.startsWith('pon') && k > 1 && !more
-    found = { noun: n, qualifier: q, target: (current) => (absolute ? k : current + k) }
+    // "Ponle un cajón" and "agrega dos cajones" say how many more; "pon 2 cajones", how many.
+    found = { noun: n, qualifier: q, k, how: verb.startsWith('pon') && k > 1 && !more ? 'put' : 'add' }
   } else if (remove) {
     const [, amount, n, q] = remove
-    found = { noun: n, qualifier: q, target: (current) => current - countOf(amount) }
+    found = { noun: n, qualifier: q, k: -countOf(amount), how: 'add' }
   } else if (said) {
-    const [, amount, n, q, more] = said
+    const [, lead, amount, n, q, more] = said
     if (isOther(amount) && more === ' menos') return null
     const k = isOther(amount) ? 1 : countOf(amount)
-    found = { noun: n, qualifier: q, target: (current) => (isOther(amount) || more === ' mas' ? current + k : more === ' menos' ? current - k : k) }
+    // "Con una repisa" says how many; "una repisa" alone, one or one more.
+    const how = isOther(amount) || more ? 'add' : k === 1 && !lead ? 'either' : 'set'
+    found = { noun: n, qualifier: q, k: more === ' menos' ? -k : k, how }
   } else return undefined
   const matching = counters.filter((c) => c.nouns.includes(found.noun) && (found.qualifier ? c.qualifier === found.qualifier : !c.qualifier?.startsWith('por ')))
   if (matching.length !== 1) return null
   const [counter] = matching
-  const value = found.target(counter.get())
-  if (value < counter.min || value > counter.max) return null
-  return edit(plan, counter.key, value, counter.set(value))
+  const inRange = (value: number) => value >= counter.min && value <= counter.max
+  const total = found.k
+  const added = counter.get() + found.k
+  const how = found.how === 'put' ? (total > counter.get() ? 'set' : 'either') : found.how
+  const readings = how === 'set' ? [total] : how === 'add' ? [added] : [...new Set([total, added])].filter(inRange)
+  if (readings.length === 2) {
+    const named = `${found.k} ${counter.shown[found.k === 1 ? 0 : 1]}${found.qualifier ? ` ${found.qualifier}` : ''}`
+    return { kind: 'unclear', options: [`Que tenga ${named}`, `Agrégale ${named}`] }
+  }
+  const [value] = readings
+  return value !== undefined && inRange(value) ? edit(plan, counter.key, value, counter.set(value)) : null
 }
 
 /** "anclado" and "anclada", "embutidos" and "embutidas" read the same. */
@@ -265,14 +280,14 @@ function choicePhrases(field: ChoiceField<Plan>): [value: string, phrase: string
 }
 
 function choiceIntent(text: string, plan: Plan): Intent | null | undefined {
-  const byPhrase = new Map<string, { field: ChoiceField<Plan>; value: string }[]>()
+  const byPhrase = new Map<string, { field: ChoiceField<Plan>; value: string; phrase: string }[]>()
   for (const field of shownFields(plan))
     if (field.type === 'choice')
       for (const [value, phrase] of choicePhrases(field)) {
         // One word ("abierta") says too little on its own.
         if (phrase.split(' ').length < 2) continue
         const key = genderless(phrase)
-        byPhrase.set(key, [...(byPhrase.get(key) ?? []), { field, value }])
+        byPhrase.set(key, [...(byPhrase.get(key) ?? []), { field, value, phrase }])
       }
   const stripped = text.replace(new RegExp(`^${LEAD}`), '')
   // "Quita el zoclo" is "sin zoclo"; "ponle puertas", "con puertas".
@@ -280,8 +295,15 @@ function choiceIntent(text: string, plan: Plan): Intent | null | undefined {
   const found = forms.map((f) => byPhrase.get(genderless(f))).find(Boolean)
   if (!found) return undefined
   if (new Set(found.map((f) => `${f.field.key}=${f.value}`)).size !== 1) return null
-  const { field, value } = found[0]
-  return edit(plan, field.key, value, field.set(plan, value))
+  const { field, value, phrase } = found[0]
+  return hasNone(plan, field, phrase) ? edit(plan, field.key, field.get(plan), plan) : edit(plan, field.key, value, field.set(plan, value))
+}
+
+/** "Sin zoclo" on a piece that stands on legs takes nothing away: it never had one. */
+function hasNone(plan: Plan, field: ChoiceField<Plan>, phrase: string): boolean {
+  const m = /^sin (.+)$/.exec(phrase)
+  const withIt = m && choicePhrases(field).find(([, p]) => genderless(p) === genderless(`con ${m[1]}`))
+  return !!withIt && field.get(plan) !== withIt[0]
 }
 
 /** The builder and the checks judge the result; here it only has to still be a plan. */

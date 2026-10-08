@@ -1077,6 +1077,17 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(state.chat.at(-1)?.text).toBe('Ya está así en la ficha; no cambié nada.')
   })
 
+  it('a request that reads two ways asks which, with one request for each, and changes nothing', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const asked = await c.adjust(initial, 'un nivel', newSignal())
+    expect(calls).toEqual([])
+    expect(asked.versions).toHaveLength(1)
+    expect(asked.chat.at(-1)).toMatchObject({ text: 'Eso lo puedo leer de dos formas. ¿Cuál es?', suggestions: ['Que tenga 1 nivel', 'Agrégale 1 nivel'] })
+    const chosen = await c.adjust(asked, asked.chat.at(-1)!.suggestions![1], newSignal())
+    expect(calls).toEqual([])
+    expect(chosen.versions).toHaveLength(2)
+  })
+
   it('a change with a new critical finding waits for the person with the rules options, as through the expert\'s plan', async () => {
     const { llm, calls } = counting({ ...createSimulated(0), planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: { name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
     const c = setup(llm)

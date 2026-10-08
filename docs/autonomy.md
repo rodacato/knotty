@@ -11,11 +11,13 @@ How much of what a person asks in the chat Knotty understands alone, without the
 | `misread` | It read something else | A mistake: it would apply a change nobody asked for. The command exits `1` and `npm test` fails |
 | `left` | It was the expert's and it left it | The right thing for a request that is vague, open, or beyond what the plan can say |
 
+An `'ask'` request is `read` when Knotty asks, and `misread` when it chooses for the person. Asking about a request that reads one way is `unread`: nothing wrong was applied, but it is not solved.
+
 A request with two changes counts in the `several` row: reading only one is `misread`, because the other is lost.
 
 ## The corpus
 
-It lives in `scripts/autonomy/corpus/`, one file per module. Each request is said about a bench variant of the module (`on`) and carries what it means: `set(field, value)`, `both(...)` for two changes, `asks(topic)` for a question the design's own numbers answer, or `'expert'`.
+It lives in `scripts/autonomy/corpus/`, one file per module. Each request is said about a bench variant of the module (`on`) and carries what it means: `set(field, value)`, `both(...)` for two changes, `asks(topic)` for a question the design's own numbers answer, `'ask'` when it reads two ways on that piece and Knotty must ask which, or `'expert'`. A request for what the piece already has is written with the value it has: nothing changes.
 
 It is written from what the person meant, not from what the interpreter reads today. A request it does not understand yet goes in the corpus all the same: taking it out so the number goes up is fooling yourself. A phrase is not changed to make it pass either.
 
