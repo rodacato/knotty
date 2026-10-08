@@ -6,7 +6,7 @@ import type { Cell } from '../reading/reading'
 import { ASSUMPTIONS } from '../../assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
-import { DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf, outsideRules, PLAN_MEASURE } from './common'
+import { DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
@@ -171,7 +171,7 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     choice({ key: 'base', label: 'Base', ...fromLabels(SHOE_RACK_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
-    yesNo({ key: 'wallMounted', label: 'Anclada al muro', lockedByDefault: true, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    yesNo({ key: 'wallMounted', label: 'Anclada al muro', lockedByDefault: true, hints: { yes: `Va atornillada al muro: así no se vuelca. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
   ]),
 ]
 

@@ -19,6 +19,9 @@ export const thicknessOf = (catalog: Catalog, material: string) => materialById(
  */
 export const MAX_SPAN = 600
 
+/** Where the anchor to the wall goes, for one that stands and for one that hangs (estructura.md §6.3). */
+export const HOW_TO_ANCHOR = 'Se fija por la cubierta o por un travesaño de arriba, nunca por la trasera, con al menos dos anclajes a un poste o a muro sólido.'
+
 /** The least and the most a measure of a plan takes, in mm: under it nothing is a piece of furniture, and past it no board of a sheet reaches. */
 export const PLAN_MEASURE = { min: 100, max: 2400 } as const
 
