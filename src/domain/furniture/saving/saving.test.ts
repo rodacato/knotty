@@ -38,7 +38,7 @@ describe('«Ahorrar material»', () => {
       expect(materials(option.plan).total).toBe(today.total - option.saved)
       expect(option.saved).toBeGreaterThan(0)
     }
-    expect(r.options[0]).toMatchObject({ title: 'Menos cajones por lado', changes: ['Cajones por lado de 3 a 2'], saved: 1 })
+    expect(r.options[0]).toMatchObject({ title: 'Menos alto de la base', changes: ['Alto de la base de 400 a 361 mm'], saved: 1 })
   })
 
   it('never changes a locked field, nor a value a free field would move along with it', () => {
@@ -52,10 +52,10 @@ describe('«Ahorrar material»', () => {
   })
 
   it('with nothing to save, says which lock would open a saving', () => {
-    const plain = variant('bed', 'queen, cabecera lisa, sin cajones') as BedPlan
+    const plain = variant('bed', 'king, respaldo y brazos de cama de día, sin cajones') as BedPlan
     const r = search(plain, { height: true, 'headboard.style': true, 'headboard.height': true, material: true })
     expect(r.options).toEqual([])
-    expect(r.releases).toEqual([{ key: 'mattress', label: 'Colchón', change: 'Colchón de Queen a Individual', saved: 1 }])
+    expect(r.releases).toEqual([{ key: 'mattress', label: 'Colchón', change: 'Colchón de King a Individual', saved: 2 }])
   })
 
   it('offers nothing for a bookcase that already fits its sheets', () => {

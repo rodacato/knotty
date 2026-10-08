@@ -734,7 +734,7 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     expect(currentPlan(state).plan).toMatchObject({ kind: 'bed', mattress: 'individual' })
     const design = currentDesign(state)
     expect(design.pieces.filter((p) => p.role === 'drawer-front')).toHaveLength(3)
-    expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1100, depth: 1010 })
+    expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1100, depth: 1020 })
   })
 })
 

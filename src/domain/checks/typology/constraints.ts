@@ -26,8 +26,9 @@ const VALUES = 'docs/carpinteria/valores-de-referencia.md'
 const FURNITURE = 'docs/carpinteria/muebles-y-medidas.md'
 const STRUCTURE = 'docs/carpinteria/estructura.md'
 
-/** A bed lies either way in the room: the short side takes the mattress width. */
-const platformSize = ({ box }: Surface) => [box.x1 - box.x0, box.z1 - box.z0].sort((a, b) => a - b)
+/** A bed lies either way in the room, and a king is wider than it is long: the platform and the mattress are compared short side to short side. */
+const shortFirst = (a: number, b: number) => (a <= b ? [a, b] : [b, a])
+const platformSize = ({ box }: Surface) => shortFirst(box.x1 - box.x0, box.z1 - box.z0)
 
 /** The mattress its plan says; else one named in its name; else the one closest in width. */
 function mattressOf(design: Design, width: number) {
@@ -98,7 +99,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
           })
       const [width, length] = platformSize({ ...surface, box: bounds([surface.box, ...rim]) })
       const size = mattressOf(design, width)
-      const [mw, ml] = MATTRESSES[size]
+      const [mw, ml] = shortFirst(MATTRESSES[size][0], MATTRESSES[size][1])
       if (width < mw - tight || length < ml - tight)
         return [
           report('critical', surface.ids, `El colchón ${size} (${mw} × ${ml} mm) no cabe: la base mide ${roundTo(width, 0)} × ${roundTo(length, 0)} mm.`, { width: roundTo(width, 0), length: roundTo(length, 0), mattress: size }, [
@@ -143,6 +144,22 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
       return [
         ...(thin.length ? [report('recommendation', thin.map((s) => s.id), `Las tablillas de la base van de ${thickness} × ${width} mm o más: más angostas o más delgadas, una rodilla encima puede romper una.`, { width, thickness, slats: thin.length })] : []),
         ...(widest ? [report('recommendation', widest.pair, `Entre dos tablillas quedan ${roundTo(widest.gap, 0)} mm: con más de ${gap} el colchón se hunde entre ellas y muchas garantías ya no lo cubren.`, { gap: roundTo(widest.gap, 0), max: gap, places: apart.length })] : []),
+      ]
+    },
+  }),
+  checked({
+    check: 'bed.board',
+    appliesTo: ['bed'],
+    // Reference: a continuous platform is of 18 mm; 15 is the least for any board of a carcass (valores-de-referencia.md §3). Slats answer to bed.slats.
+    limits: { thickness: 18, min: 15 },
+    source: `${STRUCTURE}#73-camas «Apoyo central»`,
+    find: ({ design, geo, surface }, { thickness, min }, report) => {
+      const ids = surface?.ids ?? []
+      const thin = slatsOf(design, geo, ids).length ? [] : ids.filter((id) => (geo.thicknesses.get(id) ?? thickness) < thickness)
+      if (!thin.length) return []
+      const thinnest = Math.min(...thin.map((id) => geo.thicknesses.get(id)!))
+      return [
+        report(thinnest < min ? 'critical' : 'recommendation', thin, `La plataforma es de ${thinnest} mm: lo que carga a una persona va en triplay de ${thickness} mm${thinnest < min ? `, y con menos de ${min} los tornillos no agarran en el canto` : ''}.`, { thickness: thinnest, min: thickness }),
       ]
     },
   }),

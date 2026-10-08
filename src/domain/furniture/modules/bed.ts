@@ -7,7 +7,7 @@ import { resolveGeometry, type Geometry } from '../../design/resolve'
 import { CONTACT_TOLERANCE, overlap } from '../../design/boxes'
 import { backBoard, type Catalog } from '../../materials/catalog'
 import { pocketScrewId } from '../../assumptions'
-import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
+import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
 import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
@@ -360,7 +360,7 @@ function slatNotes(l: Layout): string[] {
   const at = slatsAt(l)
   const gap = Math.round(at[1] - at[0] - SLAT.width)
   return [
-    `Base de ${at.length} tablillas de ${SLAT.width} mm de ancho, con ${gap} mm de hueco entre una y otra. Van embutidas entre los costados, ${SLAT_RECESS} mm abajo de su canto, sobre un listón de ${LEDGER.layers} capas pegado y atornillado por dentro; cada una es ${2 * SLAT_PLAY} mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla.${l.runners ? ' Como la cama es ancha, llevan un larguero a media distancia de cada lado.' : ''}${hasDrawers(l.plan) ? ' Sobre los cajones el listón va en un larguero corrido, y entre las tablillas cae polvo a los cajones.' : ''}${l.lips.length ? ` El tope del colchón son las mismas tablas de la base, que suben ${MATTRESS_LIP} mm más.` : ''}`,
+    `Base de ${at.length} tablillas de ${SLAT.width} mm de ancho, con ${gap} mm de hueco entre una y otra. Van embutidas entre los costados, ${SLAT_RECESS} mm abajo de su canto, sobre un listón de ${LEDGER.layers} capas pegado y atornillado por dentro; cada una es ${2 * SLAT_PLAY} mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla. Sin el colchón encima no te pares ni te hinques en una sola: el colchón es el que reparte el peso.${l.runners ? ' Como la cama es ancha, llevan un larguero a media distancia de cada lado.' : ''}${hasDrawers(l.plan) ? ' Sobre los cajones el listón va en un larguero corrido, y entre las tablillas cae polvo a los cajones.' : ''}${l.lips.length ? ` El tope del colchón son las mismas tablas de la base, que suben ${MATTRESS_LIP} mm más.` : ''}`,
   ]
 }
 
@@ -734,6 +734,8 @@ function benchBeds(): [string, BedPlan][] {
   return variants
 }
 
+/** A base too wide to turn on a stair whichever way it is carried: its length always is. */
+const wideBase = (plan: BedPlan) => MATTRESSES[plan.mattress][0] + MATTRESS_PLAY > LONGEST_WHOLE
 const deepHeadboard = (plan: BedPlan) => plan.headboard.style === 'bookcase' || plan.headboard.style === 'storage'
 const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPlan => ({ ...plan, drawers: { ...plan.drawers, ...drawers } })
 /** A daybed stands on its arms and backrest, with drawers on one side only: choosing it settles both. */
@@ -745,6 +747,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
     choice({ key: 'mattress', label: 'Colchón', lockedByDefault: true, ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
     note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
+    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
@@ -759,6 +762,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
   ]),
   section('Cajones', [
     note('Los lados se ven desde el pie de la cama.'),
+    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot'),
     choice({
       key: 'drawers.side',
       label: 'Lado',
@@ -798,7 +802,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
     note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
   ]),
-  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly')]),
+  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase)]),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
