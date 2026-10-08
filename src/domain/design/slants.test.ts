@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { outline, outlineArea } from './slants'
+import { holeOutline, outline, outlineArea } from './slants'
 import type { Round, Slant } from './schema'
 
 const leg = { x0: 0, x1: 18, y0: 0, y1: 200, z0: 0, z1: 100 }
@@ -78,5 +78,21 @@ describe('rounded corners', () => {
       return (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0])
     })
     expect(turns.every((t) => t > 0)).toBe(true)
+  })
+})
+
+describe('a round hole', () => {
+  const back = { x0: 100, x1: 700, y0: 50, y1: 450, z0: 0, z1: 3 }
+
+  it('is a rim a radius from its center, which is measured from the start of the piece on the two axes of its face', () => {
+    const rim = holeOutline(back, 'z', { x: 300, y: 100, z: null, diameter: 60 })
+    expect(rim.length).toBeGreaterThan(12)
+    for (const [x, y] of rim) expect(Math.hypot(x - 400, y - 150)).toBeCloseTo(30)
+    expect(outlineArea(rim) / (Math.PI * 30 * 30)).toBeCloseTo(1, 1)
+  })
+
+  it('goes round counterclockwise, as the outline of the piece does', () => {
+    const rim = holeOutline(back, 'z', { x: 300, y: 100, z: null, diameter: 60 })
+    expect(rim.reduce((sum, [u, v], i) => sum + u * rim[(i + 1) % rim.length][1] - rim[(i + 1) % rim.length][0] * v, 0)).toBeGreaterThan(0)
   })
 })

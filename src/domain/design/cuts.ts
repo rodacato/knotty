@@ -1,5 +1,5 @@
-import { faceAxes, type Box } from './resolve'
-import type { Axis, Cut, Span } from './schema'
+import type { Box } from './resolve'
+import type { Cut, Span } from './schema'
 
 // Voids in a piece: boxes taken out of it. They are only drawn: the piece is still the whole board for the cut list, the purchase and the checks.
 
@@ -11,22 +11,6 @@ function place(span: Span, lo: number, hi: number): [number, number] {
   if (span.from === 'end') return [hi - span.offset - span.length, hi - span.offset]
   const middle = (lo + hi) / 2 + span.offset
   return [middle - span.length / 2, middle + span.length / 2]
-}
-
-/** How many strips draw a round hole: a cut is a box, so a circle is a stack of them. */
-const HOLE_STRIPS = 8
-
-/** A round hole through a piece that sits in `box`, centered at `at` on the two axes of its face (in x, y, z order), in mm. */
-export function holeCuts(box: Box, normal: Axis, at: [number, number], diameter: number): Cut[] {
-  const [a, b] = faceAxes(normal)
-  const [r, width] = [diameter / 2, diameter / HOLE_STRIPS]
-  const through: Span = { from: 'start', offset: 0, length: box[`${normal}1`] - box[`${normal}0`] }
-  return Array.from({ length: HOLE_STRIPS }, (_, i) => {
-    const middle = -r + (i + 0.5) * width
-    const half = Math.sqrt(r * r - middle * middle)
-    const strip = { [a]: { from: 'start', offset: at[0] - r + i * width - box[`${a}0`], length: width }, [b]: { from: 'start', offset: at[1] - half - box[`${b}0`], length: 2 * half }, [normal]: through }
-    return strip as unknown as Cut
-  })
 }
 
 /** The box a cut takes out of a piece that sits in `box`. */

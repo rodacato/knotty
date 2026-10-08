@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { outline } from '../../domain/design/slants'
+import { holeOutline, outline, outlineArea } from '../../domain/design/slants'
 import type { Slant } from '../../domain/design/schema'
 import { slantGeometry } from './slantGeometry'
 
@@ -42,5 +42,27 @@ describe('slantGeometry', () => {
     // 120 along the height for 40 across: it faces the front (+z) more than the floor.
     const front = g.groups[4]
     expect(front.count).toBe(2 * 3 * 2)
+  })
+})
+
+describe('a piece with a hole through it', () => {
+  const top = { x0: 0, x1: 1200, y0: 732, y1: 750, z0: 0, z1: 600 }
+  const hole = holeOutline(top, 'y', { x: 600, y: null, z: 80, diameter: 60 })
+  const rounded = outline(top, 'y', [], [{ x: 'end', y: null, z: 'end', radius: 40 }])
+  const all = triangles(slantGeometry(top, 'y', rounded, [hole]))
+  const area = ({ points }: (typeof all)[number]) => Math.hypot(...cross(minus(points[1], points[0]), minus(points[2], points[0]))) / 2
+
+  it('keeps its rounded corner and loses the hole on both faces', () => {
+    const faces = all.filter((t) => Math.abs(t.normal[1]) > 0.99)
+    const left = (outlineArea(rounded) - outlineArea(hole)) / (1200 * 600)
+    for (const side of [1, -1]) expect(faces.filter((t) => t.normal[1] * side > 0).reduce((sum, t) => sum + area(t), 0)).toBeCloseTo(left, 5)
+  })
+
+  it('walls the hole all round, each wall looking into it, and every triangle is drawn the right way out', () => {
+    const center = [600 / 1200 - 0.5, 0, 80 / 600 - 0.5]
+    const walls = all.filter((t) => Math.abs(t.normal[1]) < 0.01 && t.points.every((p) => Math.hypot((p[0] - center[0]) * 1200, (p[2] - center[2]) * 600) < 31))
+    expect(walls).toHaveLength(hole.length * 2)
+    for (const { points, normal } of walls) expect(dot(minus(center, [points[0][0], 0, points[0][2]]), [normal[0] / 1200, 0, normal[2] / 600])).toBeGreaterThan(0)
+    for (const { points, normal } of all) expect(dot(cross(minus(points[1], points[0]), minus(points[2], points[0])), normal)).toBeGreaterThan(0)
   })
 })

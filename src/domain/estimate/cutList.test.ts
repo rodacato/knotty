@@ -49,7 +49,7 @@ describe('what a line still needs once cut to size', () => {
   })
 
   it('puts both on a single board that has both', () => {
-    expect(afterCutText({ diagonal: 1, curved: 0, routed: 1 }, 1)).toBe('Después de cortarla: corte diagonal · saques o ranuras')
-    expect(afterCutText({ diagonal: 0, curved: 1, routed: 0 }, 1)).toBe('Después de cortarla: esquinas redondeadas')
+    expect(afterCutText({ diagonal: 1, curved: 0, drilled: 0, routed: 1 }, 1)).toBe('Después de cortarla: corte diagonal · saques o ranuras')
+    expect(afterCutText({ diagonal: 0, curved: 1, drilled: 1, routed: 0 }, 1)).toBe('Después de cortarla: esquinas redondeadas · barreno')
   })
 })

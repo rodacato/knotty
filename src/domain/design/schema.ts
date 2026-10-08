@@ -73,6 +73,9 @@ export type Slant = z.infer<typeof Slant>
 /** A corner of a piece's face rounded to a radius, at those ends of the face's two axes; null on the thickness axis. Drawn only, like a slant. Knotty's data, not the expert's. */
 export const Round = z.object({ x: SlantEnd.nullable(), y: SlantEnd.nullable(), z: SlantEnd.nullable(), radius: z.number().positive() })
 export type Round = z.infer<typeof Round>
+/** A round hole through a piece: its center on the face's two axes, in mm from the start of each; null on the thickness axis. Drawn only, like a cut. Knotty's data, not the expert's. */
+export const Hole = z.object({ x: z.number().nullable(), y: z.number().nullable(), z: z.number().nullable(), diameter: z.number().positive() })
+export type Hole = z.infer<typeof Hole>
 
 export const Piece = z.object({
   id: PieceId,
@@ -92,6 +95,7 @@ export const Piece = z.object({
   cuts: z.array(Cut).optional(),
   slants: z.array(Slant).optional(),
   rounds: z.array(Round).optional(),
+  holes: z.array(Hole).optional(),
 })
 export type Piece = z.infer<typeof Piece>
 
