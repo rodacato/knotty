@@ -7,9 +7,9 @@ import { resolveGeometry, type Geometry } from '../../design/resolve'
 import { CONTACT_TOLERANCE, overlap } from '../../design/boxes'
 import { backBoard, type Catalog } from '../../materials/catalog'
 import { pocketScrewId } from '../../assumptions'
-import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
+import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -360,7 +360,7 @@ function slatNotes(l: Layout): string[] {
   const at = slatsAt(l)
   const gap = Math.round(at[1] - at[0] - SLAT.width)
   return [
-    `Base de ${at.length} tablillas de ${SLAT.width} mm de ancho, con ${gap} mm de hueco entre una y otra. Van embutidas entre los costados, ${SLAT_RECESS} mm abajo de su canto, sobre un listón de ${LEDGER.layers} capas pegado y atornillado por dentro; cada una es ${2 * SLAT_PLAY} mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla.${l.runners ? ' Como la cama es ancha, llevan un larguero a media distancia de cada lado.' : ''}${hasDrawers(l.plan) ? ' Sobre los cajones el listón va en un larguero corrido, y entre las tablillas cae polvo a los cajones.' : ''}${l.lips.length ? ` El tope del colchón son las mismas tablas de la base, que suben ${MATTRESS_LIP} mm más.` : ''}`,
+    `Base de ${at.length} tablillas de ${SLAT.width} mm de ancho, con ${gap} mm de hueco entre una y otra. Van embutidas entre los costados, ${SLAT_RECESS} mm abajo de su canto, sobre un listón de ${LEDGER.layers} capas pegado y atornillado por dentro; cada una es ${2 * SLAT_PLAY} mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla. Sin el colchón encima no te pares ni te hinques en una sola: el colchón es el que reparte el peso.${l.runners ? ' Como la cama es ancha, llevan un larguero a media distancia de cada lado.' : ''}${hasDrawers(l.plan) ? ' Sobre los cajones el listón va en un larguero corrido, y entre las tablillas cae polvo a los cajones.' : ''}${l.lips.length ? ` El tope del colchón son las mismas tablas de la base, que suben ${MATTRESS_LIP} mm más.` : ''}`,
   ]
 }
 
@@ -696,8 +696,9 @@ function benchBeds(): [string, BedPlan][] {
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
   for (const mattress of MattressSize.options)
-    for (const legHeight of [LEG_HEIGHT_RANGE.min, LEG_HEIGHT, LEG_HEIGHT_RANGE.max])
-      variants.push([`${mattress}, cabecera lisa, patas de ${legHeight} mm`, { ...base, mattress, legHeight, height: legHeight + 250 }])
+    // Up to the tallest legs that leave the frame its height under a base still comfortable to sit on: taller ones get bed.height.
+    for (const legHeight of [LEG_HEIGHT_RANGE.min, LEG_HEIGHT, TALLEST_BASE - MIN_CARCASS_HEIGHT])
+      variants.push([`${mattress}, cabecera lisa, patas de ${legHeight} mm`, { ...base, mattress, legHeight, height: legHeight + MIN_CARCASS_HEIGHT }])
   for (const style of BedPlan.shape.headboard.shape.style.options.filter((s) => s !== 'plain' && s !== 'daybed'))
     variants.push([`matrimonial, ${BED_LABELS.headboard[style].phrase}, patas de ${LEG_HEIGHT} mm`, { ...base, headboard: { ...base.headboard, style } }])
   // The trim: a lip on every open edge and a cap on every headboard, with drawers on one side, and the lip on a bed with no headboard, raised on legs.
@@ -734,6 +735,10 @@ function benchBeds(): [string, BedPlan][] {
   return variants
 }
 
+/** A base too wide to turn on a stair whichever way it is carried: its length always is. */
+const wideBase = (plan: BedPlan) => MATTRESSES[plan.mattress][0] + MATTRESS_PLAY > LONGEST_WHOLE
+/** A daybed whose backrest rises too little over the mattress to lean on. */
+const lowBackrest = (plan: BedPlan) => isDaybed(plan) && plan.headboard.height - plan.height - MATTRESS_THICKNESS < BACKREST_RISE
 const deepHeadboard = (plan: BedPlan) => plan.headboard.style === 'bookcase' || plan.headboard.style === 'storage'
 const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPlan => ({ ...plan, drawers: { ...plan.drawers, ...drawers } })
 /** A daybed stands on its arms and backrest, with drawers on one side only: choosing it settles both. */
@@ -745,6 +750,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
     choice({ key: 'mattress', label: 'Colchón', lockedByDefault: true, ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
     note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
+    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
     note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
@@ -759,6 +765,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
   ]),
   section('Cajones', [
     note('Los lados se ven desde el pie de la cama.'),
+    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot'),
     choice({
       key: 'drawers.side',
       label: 'Lado',
@@ -784,6 +791,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => (style === 'daybed' ? asDaybed(withHeadboard(p, { style })) : withHeadboard(p, { style })) }),
     note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
     note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed),
+    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest),
     numbers(
       2,
       [
@@ -798,7 +806,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
     note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
   ]),
-  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly')]),
+  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase)]),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */

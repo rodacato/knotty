@@ -242,7 +242,7 @@ describe('negative controls: the grader rejects what is wrong', () => {
     const r = await run(asked({ adjust: [], expect: [{ kind: 'pieces', roles: ['shelf'], count: 9 }] }))
     expect(problemsOf(r)).toEqual(['diseño inicial: shelf 4 (pidió 9)'])
     const bed = await run({ ...original('bed-drawers'), expected: { ...original('bed-drawers').expected, depth: [1900, 2000] } })
-    expect(problemsOf(bed)).toEqual(['diseño inicial: medidas 1100 × 2188 × 1010 fuera de lo esperado'])
+    expect(problemsOf(bed)).toEqual(['diseño inicial: medidas 1100 × 2188 × 1020 fuera de lo esperado'])
   })
 })
 

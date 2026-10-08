@@ -182,12 +182,12 @@ function structure(r: Review): Check {
   if (recommended.length)
     return check({
       id: 'structure',
-      title: 'Estructura firme, con recomendaciones',
+      title: 'Estructura revisada, con recomendaciones',
       status: 'warning',
       pieces: [...new Set(recommended.flatMap((h) => h.pieces))],
-      detail: `Aguanta, pero hay ${recommended.length === 1 ? 'una mejora recomendada' : `${recommended.length} mejoras recomendadas`}: ${recommended[0].message}`,
+      detail: `Pasa la revisión, pero hay ${recommended.length === 1 ? 'una mejora recomendada' : `${recommended.length} mejoras recomendadas`}: ${recommended[0].message}`,
     })
-  return check({ id: 'structure', title: 'Estructura firme', status: 'ok', detail: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
+  return check({ id: 'structure', title: 'Estructura revisada', status: 'ok', detail: 'Repisas, uniones, estabilidad y base pasan la revisión estructural.' })
 }
 
 function confirmed({ design }: Review): Check {

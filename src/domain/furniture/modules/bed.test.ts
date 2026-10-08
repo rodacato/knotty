@@ -57,7 +57,7 @@ describe('buildBed', () => {
     expect(floor.y1).toBe(400)
     expect(geo.boxes.get('head-sep')!.y0).toBe(400 + 280)
     expect(design.pieces.filter((p) => p.id.startsWith('head-shelf-'))).toHaveLength(2)
-    expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1200, depth: 990 + 20 })
+    expect(design.dimensions).toEqual({ width: 250 + 1900 + 20 + 18, height: 1200, depth: 1000 + 20 })
   })
   it('takes the ficha a real expert sends for a plain bed: no drawers as count 0, no depth for a plain headboard', () => {
     // Sent by Claude through SheLLM on 2026-09-25 for "Cama individual con cabecera"; it was rejected before and the bed went piece by piece.
@@ -170,15 +170,46 @@ describe('a bed on legs', () => {
     expect(side && side.type === 'choice' && side.set(raised(150), 'left')).toMatchObject({ legs: 'none', drawers: { side: 'left' } })
   })
 
-  it('has bench variants on legs at 100 and 300, all clean', () => {
+  it('has bench variants on legs from 100 to 250, the tallest that keep the base at 450, all clean', () => {
     const variants = bedModule.benchVariants().filter(([, p]) => p.legs === 'legs')
-    expect(variants.map(([, p]) => p.legHeight)).toEqual(expect.arrayContaining([100, 150, 300]))
+    expect(variants.map(([, p]) => p.legHeight)).toEqual(expect.arrayContaining([100, 150, 250]))
     const problems = variants.flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
       return [...(FurniturePlan.safeParse(plan).success ? [] : ['rejected']), ...notes.filter((n) => !/^Patas cónicas|^Base de \d+ tablillas/.test(n)), ...(a.valid ? a.findings.map((f) => f.message) : ['invalid'])].map((m) => `${name}: ${m}`)
     })
     expect(problems).toEqual([])
+  })
+})
+
+describe('what a bed is checked for, besides its spans', () => {
+  const checks = (plan: BedPlan) => {
+    const a = analyze(buildBed(plan, testCatalog).design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return a.findings.filter((f) => f.code === 'R10_USE').map((f) => `${f.check} ${f.severity}`)
+  }
+
+  it('a king is wider than it is long, and still fits its base: both are compared short side to short side', () => {
+    const { design } = buildBed(bed({ mattress: 'king', lip: true }), testCatalog)
+    expect([design.dimensions.depth > design.dimensions.width, checks(bed({ mattress: 'king', lip: true }))]).toEqual([true, []])
+  })
+
+  it('a platform thinner than 18 is said, and under 15 it is critical; slats answer to their own check', () => {
+    expect(checks(bed({ material: 'T15' }))).toEqual(['bed.board recommendation'])
+    expect(checks(bed({ material: 'T12' }))).toContain('bed.board critical')
+    expect(checks(bed({ material: 'T15', platform: 'slats' }))).toEqual(['bed.slats recommendation'])
+  })
+
+  it('a base outside 250–450 is said, panel or slats: the mattress ends up too high or too low to sit on and get up from', () => {
+    for (const platform of ['panel', 'slats'] as const) expect([250, 450, 240, 500].map((height) => checks(bed({ height, platform })))).toEqual([[], [], ['bed.height recommendation'], ['bed.height recommendation']])
+    expect(checks(bed({ height: 500, legs: 'legs', legHeight: 300 }))).toEqual(['bed.height recommendation'])
+  })
+
+  it('a daybed whose backrest rises under 30 cm over a 26 cm mattress says so in its form', () => {
+    const daybed = (height: number) => bed({ headboard: { style: 'daybed', height, depth: 0, shelves: 0 } })
+    const note = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'note' && f.text.includes('no alcanza para recargarse'))!
+    expect([800, 959, 960].map((height) => note.visibleWhen!(daybed(height)))).toEqual([true, true, false])
+    expect(note.visibleWhen!(bed({ headboard: { style: 'plain', height: 800, depth: 0, shelves: 0 } }))).toBe(false)
   })
 })
 
@@ -203,7 +234,7 @@ describe('a daybed', () => {
     for (const id of [backrest, 'headboard', 'foot-arm']) expect([box(id).y0, box(id).y1]).toEqual([0, 830])
     expect(box('platform').x1).toBe(box('foot-arm').x0)
     expect(backrest === 'side-right-1' ? box('platform').z0 === box(backrest).z1 : box('platform').z1 === box(backrest).z0).toBe(true)
-    expect(box('platform').z1 - box('platform').z0).toBe(990 + 20)
+    expect(box('platform').z1 - box('platform').z0).toBe(1000 + 20)
   })
 
   it('takes neither legs nor drawers on both sides, and choosing it in the form settles both', () => {
@@ -242,9 +273,9 @@ describe('the trim and the drawer fronts', () => {
 
   it('keeps the mattress its room inside the lips: the bed grows by each lip, and the lips stand on the platform', () => {
     const { design, box } = built(bed({ lip: true, headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } }))
-    expect(design.dimensions).toEqual({ width: 1900 + 20 + 3 * 18, depth: 990 + 20 + 2 * 18, height: 400 + 40 })
+    expect(design.dimensions).toEqual({ width: 1900 + 20 + 3 * 18, depth: 1000 + 20 + 2 * 18, height: 400 + 40 })
     expect(box('lip-right').z1 > box('lip-left').z0).toBe(false)
-    expect(box('lip-left').z0 - box('lip-right').z1).toBe(990 + 20)
+    expect(box('lip-left').z0 - box('lip-right').z1).toBe(1000 + 20)
     const without = built(bed({ headboard: { style: 'none', height: 1100, depth: 0, shelves: 0 } })).box('platform')
     expect(box('lip-foot').x0 - box('lip-head').x1).toBe(without.x1 - without.x0)
     for (const id of ['lip-left', 'lip-right', 'lip-head', 'lip-foot']) expect([box(id).y0, box(id).y1]).toEqual([400, 440])
@@ -254,7 +285,7 @@ describe('the trim and the drawer fronts', () => {
   it('puts a lip only on the open front of a daybed, and gives its backrest back the room it took', () => {
     const { design, box } = built(drawn({}, { lip: true, headboard: { style: 'daybed', height: 830, depth: 0, shelves: 0 } }))
     expect(design.pieces.filter((p) => p.id.startsWith('lip-')).map((p) => p.id)).toEqual(['lip-left'])
-    expect(box('lip-left').z0 - box('side-right-1').z1).toBe(990 + 20)
+    expect(box('lip-left').z0 - box('side-right-1').z1).toBe(1000 + 20)
     expect([box('lip-left').x0, box('lip-left').x1]).toEqual([box('headboard').x1, box('foot-arm').x0])
   })
 
@@ -465,7 +496,7 @@ describe('a base of slats', () => {
 
   it('a king is not split in two as its panel is: a slat runs the room between the sides in one piece, along the sheet', () => {
     const { slats, design } = built(slatted({ mattress: 'king' }))
-    expect(slats[0].z1 - slats[0].z0).toBe(1930 + 20 - 2 * 18 - 2 * 2)
+    expect(slats[0].z1 - slats[0].z0).toBe(2000 + 20 - 2 * 18 - 2 * 2)
     expect(design.pieces.find((x) => x.id === 'slat-1')!.grain).toBe('length')
   })
 
@@ -509,7 +540,7 @@ describe('a base of slats', () => {
     const { has, box, design, a } = built(slatted({ lip: true, drawers: { side: 'left', count: 3, position: 'head' } }))
     expect(['lip-left', 'lip-right', 'lip-foot'].map(has)).toEqual([false, false, false])
     expect(['slat-rail-left', 'side-right-1', 'foot-panel'].map((id) => box(id).y1)).toEqual([440, 440, 440])
-    expect(design.dimensions).toMatchObject({ depth: 990 + 20 + 2 * 18, height: 1000 })
+    expect(design.dimensions).toMatchObject({ depth: 1000 + 20 + 2 * 18, height: 1000 })
     expect([a.findings, a.warnings]).toEqual([[], []])
   })
 
@@ -524,7 +555,7 @@ describe('a base of slats', () => {
   it('says how they go: how many, how far apart, what they rest on and where they are screwed; and what drawers and a lip mean', () => {
     const plain = built(slatted()).notes
     expect(plain).toEqual([
-      'Base de 12 tablillas de 100 mm de ancho, con 65 mm de hueco entre una y otra. Van embutidas entre los costados, 20 mm abajo de su canto, sobre un listón de 2 capas pegado y atornillado por dentro; cada una es 4 mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla.',
+      'Base de 12 tablillas de 100 mm de ancho, con 65 mm de hueco entre una y otra. Van embutidas entre los costados, 20 mm abajo de su canto, sobre un listón de 2 capas pegado y atornillado por dentro; cada una es 4 mm más corta que el hueco, que se mide con la base ya armada, y se atornilla a la espina, nunca va suelta. Se cortan con la veta a lo largo de la tablilla. Sin el colchón encima no te pares ni te hinques en una sola: el colchón es el que reparte el peso.',
     ])
     const wide = built(slatted({ mattress: 'queen', lip: true, drawers: { side: 'both', count: 3, position: 'center' } })).notes[0]
     expect(wide).toContain('llevan un larguero a media distancia de cada lado')

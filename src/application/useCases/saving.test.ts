@@ -21,7 +21,7 @@ describe('«Ahorrar material» in a session', () => {
     const c = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository })
     const built = c.applyPlan(c.fromExample(exampleBookcase), bed)
     if (!built.ok) throw new Error(built.message)
-    expect(c.findSavings(built.state, bed).options[0].changes).toEqual(['Cajones por lado de 3 a 2'])
+    expect(c.findSavings(built.state, bed).options[0].changes).toEqual(['Alto de la base de 400 a 361 mm'])
 
     const locked = c.lockField(built.state, 'drawers.count', true)
     expect(repository.saved()?.locks).toEqual({ 'drawers.count': true })

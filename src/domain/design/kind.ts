@@ -41,4 +41,4 @@ export const MattressSize = z.enum(MATTRESS_SIZES)
 export type MattressSize = z.infer<typeof MattressSize>
 
 /** Their width × length in mm. */
-export const MATTRESSES = { individual: [990, 1900], matrimonial: [1350, 1900], queen: [1520, 2000], king: [1930, 2000] } as const satisfies Record<MattressSize, readonly [number, number]>
+export const MATTRESSES = { individual: [1000, 1900], matrimonial: [1350, 1900], queen: [1500, 1900], king: [2000, 1900] } as const satisfies Record<MattressSize, readonly [number, number]>
