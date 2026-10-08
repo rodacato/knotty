@@ -68,7 +68,7 @@ const ADJECTIVES: Record<string, [string, 1 | -1]> = {
   largo: ['largo', 1], larga: ['largo', 1], corto: ['largo', -1], corta: ['largo', -1],
 }
 const ADJECTIVE_WORDS = Object.keys(ADJECTIVES).join('|')
-/** Verbs that move one measure up (+1) or down (-1), without their pronoun: "súbela", "bájalo", "alárgale". */
+/** Verbs that move one measure up (+1) or down (-1), without their pronoun: "súbela", "bájalo". With "le" ("bájale") they do not say which. */
 const MOVES: Record<string, [string, 1 | -1]> = { sube: ['alto', 1], baja: ['alto', -1], alarga: ['largo', 1], acorta: ['largo', -1], ensancha: ['ancho', 1] }
 const MOVE_WORDS = Object.keys(MOVES).join('|')
 
@@ -79,6 +79,17 @@ const measureFields = (plan: Plan) => new Map(shownFields(plan).flatMap((f) => (
 
 /** Outside this, a measure is more likely misread than meant: the expert asks. */
 const MEASURE_RANGE = { min: 100, max: 3000 }
+
+/** A whole number without a unit is centimetres only near what the measure is now: "de 300 de alto" on a 55 cm nightstand is not 3 m. */
+const NEAR = { least: 0.4, most: 2.5 }
+
+function toMeasure(plan: Plan, word: string, number: string, unit: string | undefined): Intent | null {
+  const mm = toMm(number, unit, false)
+  const current = measureFields(plan).get(MEASURE_SYNONYMS[word] ?? word)?.get(plan)
+  const guessed = !unit && !/[.,]/.test(number)
+  if (guessed && mm !== null && current !== undefined && (mm < current * NEAR.least || mm > current * NEAR.most)) return null
+  return setMeasure(plan, word, mm)
+}
 
 function setMeasure(plan: Plan, word: string, mm: number | null, delta = false): Intent | null {
   const field: NumberField<Plan> | undefined = measureFields(plan).get(MEASURE_SYNONYMS[word] ?? word)
@@ -92,24 +103,32 @@ function byAdjective(plan: Plan, adjective: string, mm: number | null): Intent |
   return setMeasure(plan, word, mm === null ? null : sign * mm, true)
 }
 
+/** A cabinet hung on the wall: "súbela 10 cm" there is where it hangs, not how tall it is. */
+const hangs = (plan: Plan) => 'wallMounted' in plan && plan.wallMounted && 'base' in plan && plan.base === 'floor'
+
 /** "Súbela 3 cm" moves a measure by that much; "súbela a 78", to it, and only the way the verb says. */
-function byMove(plan: Plan, [word, sign]: [string, 1 | -1], to: boolean, mm: number | null): Intent | null {
-  if (!to) return setMeasure(plan, word, mm === null ? null : sign * mm, true)
+function byMove(plan: Plan, [word, sign]: [string, 1 | -1], to: boolean, number: string, unit: string | undefined): Intent | null {
+  if (word === 'alto' && hangs(plan)) return null
+  if (!to) {
+    const mm = toMm(number, unit, true)
+    return setMeasure(plan, word, mm === null ? null : sign * mm, true)
+  }
+  const intent = toMeasure(plan, word, number, unit)
   const current = measureFields(plan).get(word)?.get(plan)
-  return current !== undefined && mm !== null && Math.sign(mm - current) === sign ? setMeasure(plan, word, mm) : null
+  return intent?.kind === 'edit' && current !== undefined && Math.sign(Number(intent.value) - current) === sign ? intent : null
 }
 
 function measureIntent(text: string, plan: Plan): Intent | null | undefined {
   let m = new RegExp(`^${LEAD}(?:de )?${AMOUNT} de (${MEASURE_WORDS})$`).exec(text)
-  if (m) return setMeasure(plan, m[3], toMm(m[1], m[2], false))
+  if (m) return toMeasure(plan, m[3], m[1], m[2])
   m = new RegExp(`^${LEAD}(?:el |la )?(${MEASURE_WORDS}) (?:sea )?(?:de |a |en )?${AMOUNT}$`).exec(text)
-  if (m) return setMeasure(plan, m[1], toMm(m[2], m[3], false))
+  if (m) return toMeasure(plan, m[1], m[2], m[3])
   m = new RegExp(`^${LEAD}(?:un poco )?mas (${ADJECTIVE_WORDS}) (?:por )?${AMOUNT}$`).exec(text)
   if (m) return byAdjective(plan, m[1], toMm(m[2], m[3], true))
   m = new RegExp(`^${LEAD}${AMOUNT} mas (${ADJECTIVE_WORDS})$`).exec(text)
   if (m) return byAdjective(plan, m[3], toMm(m[1], m[2], true))
-  m = new RegExp(`^(${MOVE_WORDS})(?:la|lo|le)?( a)? ${AMOUNT}$`).exec(text)
-  if (m) return byMove(plan, MOVES[m[1]], !!m[2], toMm(m[3], m[4], !m[2]))
+  m = new RegExp(`^(${MOVE_WORDS})(?:la|lo)?( a)? ${AMOUNT}$`).exec(text)
+  if (m) return byMove(plan, MOVES[m[1]], !!m[2], m[3], m[4])
   m = new RegExp(`^(quitale|quita|reducele|reduce|recortale|recorta|agregale|agrega|aumentale|aumenta|dale|sumale|anadele|anade) ${AMOUNT}(?: mas)? (?:de|al|a lo) (${MEASURE_WORDS})$`).exec(text)
   if (!m) return undefined
   const mm = toMm(m[2], m[3], true)

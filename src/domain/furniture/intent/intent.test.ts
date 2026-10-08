@@ -15,6 +15,7 @@ const variant = (kind: keyof typeof MODULES, name: string) => {
 const plans = {
   bookcase: variant('cabinet', 'librero'),
   drawers: variant('cabinet', 'cajonera'),
+  nightstand: variant('cabinet', 'buró'),
   wallCabinet: variant('cabinet', 'alacena'),
   tv: variant('cabinet', 'mueble de TV'),
   sideboard: variant('cabinet', 'aparador con patas'),
@@ -59,6 +60,8 @@ describe('parseIntent', () => {
     ['acórtala a 1.40', 'dining', edit('dimensions.width', 1400)],
     ['Ensánchalo 10 cm', 'bookcase', edit('dimensions.width', 650)],
     ['Que quede de 76 de alto', 'dining', edit('dimensions.height', 760)],
+    ['Hazlo de 180 de alto', 'bookcase', edit('dimensions.height', 1800)],
+    ['Hazlo de 300 mm de alto', 'nightstand', edit('dimensions.height', 300)],
     // Counts, from the steppers and the cabinet's grid.
     ['agrega un cajón', 'drawers', edit('columns.drawers', 4)],
     ['Ponle un cajón más', 'drawers', edit('columns.drawers', 4)],
@@ -128,6 +131,11 @@ describe('parseIntent', () => {
     // Words it does not know, or a request that does not say enough.
     ['hazlo más bonito', 'bookcase'],
     // A verb that moves a measure the other way than its amount, or without one, or a measure the form does not have.
+    ['Bájale 5 cm', 'bookcase'],
+    ['Súbela 10 cm', 'wallCabinet'],
+    // A whole number without a unit that would leave the measure far from what it is: centimetres or millimetres, the expert asks.
+    ['Hazlo de 18 de alto', 'bookcase'],
+    ['Hazlo de 300 de alto', 'nightstand'],
     ['Súbela a 70 cm', 'dining'],
     ['Bájala a 80', 'dining'],
     ['Súbela', 'dining'],
