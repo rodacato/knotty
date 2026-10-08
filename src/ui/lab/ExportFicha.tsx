@@ -1,6 +1,7 @@
 import { Copy, DownloadSimple } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useState } from 'react'
+import { fichaOrigin } from '../../application/useCases'
 import { useStore } from '../store'
 import { Button, IconButton } from '../system/components'
 import { adoptionCommands, candidateOf } from './candidate'
@@ -29,7 +30,8 @@ function Command({ text }: { text: string }) {
 
 export function ExportFicha() {
   const state = useStore((s) => s.state)
-  const origin = { code: useStore((s) => s.sandboxOrigin) }
+  const opened = useStore((s) => s.sandboxOrigin)
+  const origin = { code: opened ?? (state ? (fichaOrigin(state)?.code ?? null) : null) }
   const [open, setOpen] = useState(false)
   const candidate = state ? candidateOf(state, origin) : null
 

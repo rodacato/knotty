@@ -71,7 +71,7 @@ El banco (cajón de la barra de depuración: Konami, `Ctrl+Shift+D`, ajustes o `
    - En una base con patas, `dimensions.height` incluye las patas.
    - Un mueble alto con cajones se ancla al muro (`wallMounted: true`), y uno con puertas también cuando es ancho y poco profundo; si no, `--diff` lo marca con un aviso crítico de vuelco (`R4_TIPPING`).
 2. **Elegir el módulo** (`src/domain/furniture/modules/`: gabinete, cama, mesa, zapatera). Si ninguno cabe, ya sabes que hay soporte por agregar (sección 2); y si es un mueble único que no justifica un módulo (el banco de sobremesa `GN-TAL-02`), la candidata lleva `design` en lugar de `plan`.
-3. **Escribir la candidata.** Un archivo JSON con el `plan` y, para una referencia nueva, lo demás que dice una ficha. El experto de la app también puede proponer el plan a partir de fotos y una descripción; el resultado es un borrador que una persona revisa, no una ficha.
+3. **Escribir la candidata.** Un archivo JSON con el `plan` y, para una referencia nueva, lo demás que dice una ficha. El experto de la app también puede proponer el plan a partir de fotos y una descripción: con el acceso de depuración, «Exportar ficha» lo baja como candidata desde el Studio. El resultado es un borrador que una persona revisa, no una ficha.
 
    ```json
    {
