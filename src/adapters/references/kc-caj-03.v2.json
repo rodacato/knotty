@@ -10,8 +10,8 @@
   "support": "adapted",
   "difficulty": 3,
   "features": ["inset-drawers","legs","open-niche","routed-fronts","notch-pulls","asymmetric-arrangement","multi-body"],
-  "adaptations": ["solid mañío with jequitibá fronts written as T18 plywood","round posts at the corners drawn as straight legs of two glued layers under a set-back apron","finish is a wax or oil: closest id danish-oil","fluted fronts drawn flat","the desk of the pair is not drawn","the notch cut in the edge of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
-  "gaps": ["routed-fronts","multi-body"],
+  "adaptations": ["solid mañío with jequitibá fronts written as T18 plywood","round posts at the corners drawn as straight legs of two glued layers under a set-back apron","finish is a wax or oil: closest id danish-oil","fluted fronts drawn with vertical router grooves","the desk of the pair is not drawn","the notch cut in the edge of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["multi-body"],
   "notes": "Cómoda baja sobre patas redondas: abajo y en medio cajones embutidos con frente acanalado, y arriba un cajón junto a un nicho abierto. Va con un escritorio a juego que no se dibuja aquí.",
   "plan": {
     "kind": "cabinet",
@@ -20,7 +20,7 @@
     "material": "T18",
     "base": "legs",
     "wallMounted": true,
-    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch", "fronts": "grooved" },
     "columns": [
       {
         "width": 1,
