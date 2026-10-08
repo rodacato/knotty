@@ -1,5 +1,5 @@
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, choicesFor, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, cellOptions, choicesFor, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { cellAt, cellLayout, chooseInCell, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
@@ -26,7 +26,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined }), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
+    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined }), ...(choicesFor({ ...cell, content }, plan.construction).length ? {} : { own: undefined }) })
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return
@@ -104,13 +104,13 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
             <p className="text-xs text-graphite-2">Cambia los frentes de todos los cajones del mueble.</p>
           </div>
         )}
-        {choicesFor(cell).map((key) => {
+        {choicesFor(cell, plan.construction).map((key) => {
           const { label, options } = CABINET_LABELS.construction[key]
           const furniture = (options as Record<string, string>)[plan.construction[key]]
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>
-              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options)]} onChange={(v) => own(key, v)} />
+              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key).includes(id))]} onChange={(v) => own(key, v)} />
             </div>
           )
         })}

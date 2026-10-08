@@ -22,6 +22,7 @@ import { counted, sizePart, woodPart, type Parts } from './parts'
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
 const FrontStyle = z.enum(['flat', 'grooved'])
+const HingeSide = z.enum(['left', 'right'])
 
 /** How a carpenter would build it: each option is a different way of joining the same box. */
 export const CabinetConstruction = z.object({
@@ -31,7 +32,7 @@ export const CabinetConstruction = z.object({
   back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
   shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
   fronts: FrontStyle.default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
-  hinges: z.enum(['outside', 'inside']).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle'),
+  hinges: z.enum(['outside', 'inside', ...HingeSide.options]).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle; left or right, all on that side'),
   pulls: Pulls.default('none').describe('none: no pull; notch: finger notch routed in each front; handle: one handle per door leaf and drawer front'),
   drawerCorners: z.enum(['screwed', 'fingers']).default('screwed').describe('screwed, or fingers: the four corners of each drawer box cut as interlocking fingers'),
 })
@@ -42,14 +43,22 @@ export const CellChoices = z
   .object({
     pulls: Pulls.optional().describe('How the fronts of this opening are opened'),
     fronts: FrontStyle.optional().describe('The style of the fronts of this opening'),
+    hinges: HingeSide.optional().describe('The side the one-leaf door of this opening hangs on'),
   } satisfies { [K in keyof CabinetConstruction]?: z.ZodOptional<z.ZodType<CabinetConstruction[K]>> })
   .describe('What this opening chooses against construction; a choice absent is the furniture\'s')
 export type CellChoice = keyof z.infer<typeof CellChoices>
 export type CellChoices = Partial<Pick<CabinetConstruction, CellChoice>>
 export const CELL_CHOICES = Object.keys(CellChoices.shape) as CellChoice[]
 
-/** The choices a cell can make on its own: those of its fronts, so only a cell with doors or a drawer. */
-export const choicesFor = (cell: PlanCell): CellChoice[] => (cell.content === 'door' || cell.content === 'drawer' ? CELL_CHOICES : [])
+/** The choices a cell can make on its own: those of its fronts, so only a cell with doors or a drawer, and the hinge side only where one leaf swings. */
+export const choicesFor = (cell: PlanCell, construction: CabinetConstruction): CellChoice[] => {
+  if (cell.content !== 'door' && cell.content !== 'drawer') return []
+  const swingsAlone = cell.content === 'door' && (cell.doors ?? 1) < 2 && construction.doors !== 'sliding'
+  return CELL_CHOICES.filter((key) => key !== 'hinges' || swingsAlone)
+}
+
+/** The values a cell may choose for a key: a cell says a side for its hinges, since nearest a side or toward the middle only reads across the whole furniture. */
+export const cellOptions = (key: CellChoice): readonly string[] => CellChoices.shape[key].unwrap().options
 
 /** What `shelves` says once a cell holds something else: the shelves it had behind a door or in the open, a chest's floor raised to mid-height, nothing otherwise. */
 export const shelvesFor = (cell: PlanCell, content: PlanCell['content']): PlanCell['shelves'] => (content === 'open' || content === 'door' ? (cell.content === 'chest' ? 0 : (cell.shelves ?? 0)) : content === 'chest' ? 1 : null)
@@ -189,7 +198,7 @@ export const CABINET_LABELS = {
       hints: { movable: 'Descansan sobre soportes, unos pernitos metidos en agujeros de 5 mm de los laterales: se quitan y se ponen.', fixed: 'Van unidas a los laterales y ya no se mueven: le dan firmeza al mueble.' },
     },
     fronts: { label: 'Frentes', options: { flat: 'Lisos', grooved: 'Ranurados' } },
-    hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro' } },
+    hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro', left: 'Izquierda', right: 'Derecha' } },
     pulls: { label: 'Jaladeras', options: { none: 'Ninguna', notch: 'Muesca', handle: 'Jaladera' } },
     drawerCorners: { label: 'Esquinas del cajón', options: { screwed: 'Atornilladas', fingers: 'De dedos' } },
   } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string>; hints?: Record<CabinetConstruction[K], string> } },
@@ -650,7 +659,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
   const m = cells.length
   const nested = spec.path.length > 1
   const middle = (spec.span[0] + spec.span[1]) / 2
-  const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
+  const hangsLeft = (hinges: CabinetConstruction['hinges']) => (hinges === 'left' || hinges === 'right' ? hinges === 'left' : Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (hinges === 'outside'))
 
   const separators = shares(cells.map((c) => c.height)).slice(0, -1).map((share, j) => {
     // Next to a void the fixed shelf is the column's own floor or roof.
@@ -685,7 +694,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
       top,
       overlay: { x: spec.overX, y: extent(dragging ? ref('bottom.y0', ASSUMPTIONS.drawers.floorClearance) : overBottom, overTop) },
       inset: { x: extent(ref(spec.left, GAP), ref(spec.right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
-      hangsLeft,
+      hangsLeft: hangsLeft(choiceIn(build, cell.own, 'hinges')),
       front: spec.front,
     }
     const choices = cell.own ?? {}
@@ -1108,7 +1117,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
 
 /** How many cells of one content choose something of their own, said after the part's summary. */
 function ownWay(plan: CabinetPlan, content: PlanCell['content']): string {
-  const n = leafCells(plan.columns).filter((c) => c.content === content && c.own).length
+  const n = leafCells(plan.columns).filter((c) => c.content === content && choicesFor(c, plan.construction).some((key) => c.own?.[key] !== undefined)).length
   return n ? ` · ${n === 1 ? '1 hueco va distinto' : `${n} huecos van distinto`}` : ''
 }
 

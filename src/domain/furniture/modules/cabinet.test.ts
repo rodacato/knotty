@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
-import { buildCabinet, cabinetModule, CabinetPlan, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
+import { buildCabinet, cabinetModule, CabinetPlan, choicesFor, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
 import { countLimits, quickCounts, setCount } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
@@ -717,6 +717,25 @@ describe('a cell choosing on its own', () => {
     const grooved = (p: CabinetPlan) => build(p).design.pieces.filter((x) => x.cuts?.length).length
     expect(grooved(withOwn({ fronts: 'flat' }, { '0.0': { fronts: 'grooved' } }))).toBe(1)
     expect(grooved(withOwn({ fronts: 'grooved' }, { '0.0': { fronts: 'flat' } }))).toBe(5)
+  })
+
+  it('hangs the one-leaf door of the cell that says a side on that side, and the others where the furniture says', () => {
+    const hungOn = (p: CabinetPlan) => Object.fromEntries(build(p).design.joints.filter((u) => u.type === 'cup-hinge').map((u) => [u.a, u.b]))
+    const asBuilt = hungOn(withOwn({ doors: 'inset' }, {}))
+    const door = 'c1-h1-door'
+    const [left, right] = ['left', 'right'].map((hinges) => hungOn(withOwn({ doors: 'inset' }, { '0.0': { hinges: hinges as 'left' | 'right' } })))
+    expect(left[door]).not.toBe(right[door])
+    expect([left[door], right[door]]).toContain(asBuilt[door])
+    expect(Object.entries(right).filter(([id]) => id !== door)).toEqual(Object.entries(asBuilt).filter(([id]) => id !== door))
+  })
+
+  it('offers the hinge side only where one leaf swings: not on two leaves, a sliding door or a drawer', () => {
+    const one = { height: 1, content: 'door' as const, shelves: 0, doors: 1 }
+    expect(choicesFor(one, DEFAULT_CONSTRUCTION)).toEqual(['pulls', 'fronts', 'hinges'])
+    expect(choicesFor({ ...one, doors: 2 }, DEFAULT_CONSTRUCTION)).toEqual(['pulls', 'fronts'])
+    expect(choicesFor(one, { ...DEFAULT_CONSTRUCTION, doors: 'sliding' })).toEqual(['pulls', 'fronts'])
+    expect(choicesFor({ ...one, content: 'drawer', doors: null, shelves: null }, DEFAULT_CONSTRUCTION)).toEqual(['pulls', 'fronts'])
+    expect(CabinetPlan.safeParse(withOwn({}, { '0.0': { hinges: 'outside' as never } })).success).toBe(false)
   })
 
   it('reads back from a ficha with only what the cell chose, never the furniture’s defaults', () => {
