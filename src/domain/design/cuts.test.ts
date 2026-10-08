@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cutBox, cutGrid, woodLeft } from './cuts'
+import { cutBox, cutGrid, holeCuts, woodLeft } from './cuts'
 
 const board = { x0: 0, x1: 100, y0: 0, y1: 60, z0: 0, z1: 18 }
 const volume = (b: typeof board) => (b.x1 - b.x0) * (b.y1 - b.y0) * (b.z1 - b.z0)
@@ -34,5 +34,22 @@ describe('cuts', () => {
     expect(grid.solid(1, 1, 1)).toBe(false)
     expect(grid.solid(1, 1, 0)).toBe(true)
     expect(grid.solid(-1, 0, 0)).toBe(false)
+  })
+})
+
+describe('a round hole', () => {
+  const back = { x0: 100, x1: 700, y0: 50, y1: 450, z0: 0, z1: 3 }
+  const strips = holeCuts(back, 'z', [400, 150], 60).map((cut) => cutBox(back, cut))
+
+  it('goes through the whole thickness and stays inside the square its diameter draws around its center', () => {
+    expect(strips.every((s) => s.z0 === 0 && s.z1 === 3)).toBe(true)
+    expect([Math.min(...strips.map((s) => s.x0)), Math.max(...strips.map((s) => s.x1))]).toEqual([370, 430])
+    expect(strips.every((s) => s.y0 >= 120 && s.y1 <= 180 && (s.y0 + s.y1) / 2 === 150)).toBe(true)
+  })
+
+  it('takes out about what a circle would, with nothing left over where two strips meet', () => {
+    const gone = volume(back) - woodLeft(back, strips)
+    expect(gone / (Math.PI * 30 * 30 * 3)).toBeCloseTo(1, 1)
+    expect(gone).toBeCloseTo(strips.reduce((sum, s) => sum + volume(s), 0))
   })
 })

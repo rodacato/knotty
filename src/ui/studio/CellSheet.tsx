@@ -22,11 +22,11 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     const next = structuredClone(plan)
     const target = cellAt(next, path)!
     Object.assign(target, patch)
-    for (const key of ['back', 'own', 'rod'] as const) if (key in patch && patch[key] === undefined) delete target[key]
+    for (const key of ['back', 'own', 'rod', 'cable'] as const) if (key in patch && patch[key] === undefined) delete target[key]
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined }), ...(choicesFor({ ...cell, content }, plan.construction).length ? {} : { own: undefined }) })
+    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined, cable: undefined }), ...(choicesFor({ ...cell, content }, plan.construction).length ? {} : { own: undefined }) })
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return
@@ -81,6 +81,13 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
                 <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
               </div>
             )}
+          </div>
+        )}
+        {(cell.content === 'open' || cell.content === 'door') && (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Pasacables</span>
+            <Segmented label="Pasacables" value={cell.cable ? 'yes' : 'no'} options={[['no', 'Sin pasacables'], ['yes', 'Con pasacables']]} onChange={(v) => change({ cable: v === 'yes' ? true : undefined })} />
+            {cell.cable && <p className="text-xs text-graphite-2">Un barreno en la trasera, al fondo del hueco, para sacar los cables de lo que va adentro. Donde no hay trasera no hace falta.</p>}
           </div>
         )}
         {cell.content === 'chest' && (
