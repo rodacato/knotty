@@ -43,6 +43,6 @@ describe('the corpus', () => {
   const catalog = Catalog.parse(JSON.parse(readFileSync('public/catalog/catalog.json', 'utf8')))
 
   it.each(Object.keys(CORPUS) as FurnitureKind[])('has no request Knotty misreads: %s', (kind) => {
-    expect(measure(kind, catalog).filter((r) => r.outcome === 'misread')).toEqual([])
+    expect(measure(kind, CORPUS[kind]!, catalog).filter((r) => r.outcome === 'misread')).toEqual([])
   })
 })

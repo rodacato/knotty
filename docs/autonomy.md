@@ -1,6 +1,6 @@
 # Autonomía
 
-Cuánto de lo que una persona pide en el chat entiende Knotty sola, sin experto. `npm run autonomy` pasa un corpus de pedidos por el intérprete (`parseIntent`, en `src/domain/furniture/intent/`) y dice cuáles leyó. No llama a nadie y no cuesta tokens.
+Cuánto de lo que una persona pide en el chat entiende Knotty sola, sin experto. `npm run autonomy` pasa un corpus de pedidos por el intérprete (`parseIntent`, en `src/domain/furniture/intent/`) y dice cuáles leyó. Sin `--ask` no llama a nadie y no cuesta tokens.
 
 ## Qué dice de cada pedido
 
@@ -27,8 +27,14 @@ Se escribe desde lo que la persona quiso decir, no desde lo que el intérprete l
 
 Si una regla nueva lee de más, el corpus lo dice: un pedido `'expert'` que deja de quedar `left` es `misread`. Por eso los pedidos del experto importan tanto como los otros.
 
+## Preguntarle al experto por lo que falta
+
+`KNOTTY_MODELS=<proveedor:modelo> npm run autonomy -- --ask [módulo]` manda cada pedido `unread` al experto y dice si el plan que dejó es el que el pedido significa (`as meant`), otro (`otherwise`, con las diferencias) o ninguno (`no change`). Sin `KNOTTY_MODELS` en la línea toma el del `.env`, como el compare. Es una llamada por pedido y cuesta tokens: solo a mano.
+
+Los `as meant` son los candidatos a regla: el experto los resolvió con un cambio que el formulario ya sabe hacer. No pregunta por preguntas, por pedidos del experto ni por cambios que el formulario no pone por su llave.
+
 ## Qué no mide
 
-- El experto: ni lo llama ni califica lo que contesta. Eso es [el compare](compare.md).
+- Al experto en general: `--ask` solo mira si resolvió un pedido como se quería. Calificarlo es [el compare](compare.md).
 - Que el cambio leído deje un mueble válido: eso lo juzgan el constructor y las comprobaciones cuando el pedido se aplica.
 - Cómo habla la gente de verdad. El corpus es chico y está escrito a mano; el número dice qué tanto cubre estas frases, no una proporción del uso real.

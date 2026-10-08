@@ -5,8 +5,8 @@ import { Catalog } from '../../src/domain/materials/catalog'
 import type { Expected, Group } from './corpus'
 import { table } from './corpus/table'
 
-// How much of what a person asks Knotty reads without the expert; it calls nobody. Usage: npm run autonomy -- [module]
-// A misread request exits 1; an unread one is only what is left to do.
+// How much of what a person asks Knotty reads without the expert. Usage: npm run autonomy -- [module]; a misread request exits 1.
+// With --ask it sends the unread ones to the expert of KNOTTY_MODELS: that calls a provider and costs tokens.
 
 export const CORPUS: Partial<Record<FurnitureKind, Group[]>> = { table }
 
@@ -31,11 +31,15 @@ export function classify(expected: Expected, intent: Intent | null): Outcome {
   return intent.kind === 'edit' && !more.length && intent.field === only.field && intent.value === only.value ? 'read' : 'misread'
 }
 
-export function measure(kind: FurnitureKind, catalog: Catalog): Result[] {
-  const variants = new Map(MODULES[kind].benchVariants() as [string, FurniturePlan][])
-  return (CORPUS[kind] ?? []).flatMap(({ on, cases }) => {
-    const plan = variants.get(on)
-    if (!plan) throw new Error(`${kind}: no bench variant «${on}»`)
+export function variantOf(kind: FurnitureKind, name: string): FurniturePlan {
+  const plan = new Map(MODULES[kind].benchVariants() as [string, FurniturePlan][]).get(name)
+  if (!plan) throw new Error(`${kind}: no bench variant «${name}»`)
+  return plan
+}
+
+export function measure(kind: FurnitureKind, groups: Group[], catalog: Catalog): Result[] {
+  return groups.flatMap(({ on, cases }) => {
+    const plan = variantOf(kind, on)
     const { design } = buildPlan(plan, catalog)
     return cases.map(([say, expected]): Result => {
       const intent = parseIntent(say, plan, design)
@@ -64,17 +68,23 @@ function report(kind: FurnitureKind, results: Result[]): string[] {
   ]
 }
 
-export function main(args: string[]): number {
+export async function main(args: string[]): Promise<number> {
   const catalog = Catalog.parse(JSON.parse(readFileSync('public/catalog/catalog.json', 'utf8')))
-  const kinds = (args.length ? args : Object.keys(CORPUS)) as FurnitureKind[]
+  const asking = args.includes('--ask')
+  const named = args.filter((a) => a !== '--ask')
+  const kinds = (named.length ? named : Object.keys(CORPUS)) as FurnitureKind[]
   const unknown = kinds.filter((k) => !CORPUS[k])
   if (unknown.length) {
     console.error(`no corpus for ${unknown.join(', ')}; there is one for ${Object.keys(CORPUS).join(', ')}`)
     return 2
   }
+  if (asking) {
+    const { askExpert } = await import('./ask')
+    return askExpert(kinds, catalog)
+  }
   let misread = 0
   for (const kind of kinds) {
-    const results = measure(kind, catalog)
+    const results = measure(kind, CORPUS[kind]!, catalog)
     misread += count(results, 'misread')
     console.log(report(kind, results).join('\n'))
   }

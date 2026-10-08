@@ -22,10 +22,11 @@ Solo sirve para lo que el plan ya sabe decir. Si el pedido necesita un campo que
 
 ## 2. Usar al experto para saber qué enseñarle al chat
 
-1. Usa la app con el experto conectado y exporta la bitácora (barra de depuración → «Exportar»): trae cada pedido que llegó al experto y lo que contestó.
-2. Un pedido cuya respuesta cambió un solo campo del plan lo pudo leer Knotty sola: va al corpus y sigue el flujo 1.
+1. `KNOTTY_MODELS=<proveedor:modelo> npm run autonomy -- --ask <módulo>` le manda al experto cada pedido `unread` del corpus, sobre su variante, y compara el plan que deja con el que el pedido significa. Es una llamada por pedido y cuesta tokens: solo a mano.
+2. Los que salen `as meant` los resolvió con un cambio que el formulario ya sabe hacer: son los que el intérprete puede aprender, con el flujo 1.
+3. Los `otherwise` dicen en qué se apartó el experto. Si cambió algo que nadie pidió, es un caso para `reactions.test-util.ts`; si la frase del corpus significaba otra cosa, se corrige la frase.
 
-Todavía no hay un comando que mande los pedidos `unread` del corpus al experto y compare las respuestas (`src/application/bench/preservation.ts` ya sabe decir qué campos cambió una). Hoy ese paso es a mano.
+Con uso real, la bitácora exportada (barra de depuración → «Exportar») trae lo mismo sin gastar de más: cada pedido que llegó al experto y lo que contestó.
 
 ## 3. Una acción, un material o un corte nuevo
 
@@ -52,14 +53,11 @@ Viable quiere decir que el motor lo construye y las comprobaciones no encuentran
 
 Lo que escribe el experto es un borrador: quien decide si es una ficha es `--diff`, y después una persona.
 
-**Armar una desde una descripción.** En la barra de depuración abre la ficha o la variante del banco más parecida (entra al sandbox), pídele al experto en el chat lo que la hace distinta y baja el archivo con «Exportar ficha». Sigue en el paso 2 del flujo 4.
+**Armar una desde fotos o una descripción.** Con el acceso de depuración, diseña el mueble en el Studio como cualquier otro (fotos, medidas, descripción) y afínalo en el chat; «Exportar ficha» baja el archivo candidato. Sigue en el paso 2 del flujo 4.
 
-**Mejorar una cuando Knotty gana soporte.** Las fichas que se adaptaron por ese rasgo lo tienen en `gaps` (`grep -l '"<etiqueta>"' src/adapters/references/*.json`). Abre cada una en el sandbox, pide el cambio con la opción nueva, exporta y revisa con `--diff`; al adoptarla, quita la etiqueta de `gaps` y la adaptación.
+**Mejorar una cuando Knotty gana soporte.** Las fichas que se adaptaron por ese rasgo lo tienen en `gaps` (`grep -l '"<etiqueta>"' src/adapters/references/*.json`). Abre cada una desde la barra de depuración (entra al sandbox), pide el cambio con la opción nueva, exporta y revisa con `--diff`; al adoptarla, quita la etiqueta de `gaps` y la adaptación.
 
-Dos límites de hoy:
-
-- «Exportar ficha» solo sale en el sandbox. Un diseño hecho en el Studio desde fotos no se puede bajar como candidata: hay que pedir lo mismo sobre una ficha abierta desde la barra.
-- Solo se exporta lo que cabe en un plan. Si el experto resolvió algo pieza por pieza, el archivo no sale y lo dice.
+Solo se exporta lo que cabe en un plan. Si el experto resolvió algo pieza por pieza, el archivo no sale y lo dice: ese rasgo es un hueco (flujo 3), no una ficha.
 
 ## Dónde va un caso nuevo
 

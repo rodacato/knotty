@@ -1,4 +1,4 @@
-// Runs autonomy.ts through Vite, so it reads the same files the app does. Usage: npm run autonomy -- [module]
+// Runs autonomy.ts through Vite, so it reads the same files the app does. Usage: npm run autonomy -- [--ask] [module]
 import { createServer } from 'vite'
 
 const server = await createServer({
@@ -10,7 +10,7 @@ const server = await createServer({
 })
 try {
   const { main } = await server.ssrLoadModule('/scripts/autonomy/autonomy.ts')
-  process.exitCode = main(process.argv.slice(2))
+  process.exitCode = await main(process.argv.slice(2))
 } finally {
   await server.close()
 }
