@@ -352,8 +352,11 @@ Momento que la voltea:   4 cajones × 9.5 kg × (0.40 − 0.20) m          = 7.5
 
 ### 7.2 Bancas y asientos (cargas de personas)
 
-- **Carga de diseño:** una persona de 110 kg (la misma de la norma europea de camas EN 1725 [21]); dos personas en una banca de 1 200. Carga **dinámica**: sentarse de golpe ≈ × 2. Sin fluencia. ❓
-- **Cálculo** (asiento de 350 de fondo, 180 kg repartidos, E = 4 500, MOR ≈ 40 MPa [7]):
+- **Usuario de diseño: 110 kg.** Es el de la norma europea de camas EN 1725 [21] ✅ y, según los resúmenes de laboratorio, el de las de asientos EN 12520 (doméstico) y EN 16139 (uso público) [30][31] ⚠️. Dos personas en una banca de 1 200. Sin fluencia: la persona se quita.
+- **Lo que prueban las normas de asientos** (EN 12520:2024, doméstico, leído en un informe de ensayo [30] ⚠️): 1 300 N al centro del asiento y **los mismos 1 300 N en la orilla del frente**, 10 veces cada uno; 1 000 N por 25 000 ciclos al centro y 800 N por 20 000 en la orilla; y un impacto desde 180 mm, 10 veces. 1 300 N son 1.2 veces el peso del usuario. Las normas no usan un «factor dinámico»: aplican la carga despacio y prueban el golpe aparte.
+- **Sentarse de golpe ≈ × 2 el peso:** es lo que midió un grupo de investigación (213 % del peso al sentarse fuerte; al sentarse normal, 38–95 %) [32] ⚠️. Es un pico de una fracción de segundo.
+- **σ ≤ MOR / 3** viene de la ingeniería de muebles (Eckelman, 1978 [33] ⚠️) y es un límite de **fatiga** para la carga de uso, que el propio autor da sin margen por duración de carga. **No se apila con el × 2.** Juntos dan un factor de 6 sobre el MOR, y la madera aguanta más, no menos, una carga breve: NDS y APA suben el esfuerzo admisible × 1.6 para diez minutos, y el Eurocódigo 5 da k_mod 1.10 instantáneo contra 0.60 permanente [6][8][9]. Se revisa una de dos: el peso del usuario contra MOR / 3, o la carga de prueba de la norma (1 300 N) contra un admisible de corta duración. Cuál de las dos, y con qué admisible, sigue sin decidir. ❓
+- **Cálculo** (asiento de 350 de fondo, **180 kg** repartidos, E = 4 500, MOR ≈ 40 MPa [7]). Ojo: son 180 kg, no los 220 de dos personas de 110; con 220 todo sube 22 %. La aritmética se rehízo el 2026-10-08 y cuadra. La fila de los faldones supone que van **pegados** al asiento y trabajan con él como una sola pieza; solo atornillados, la flecha a 1 000 es de ≈ 3 mm, no 0.8.
 
 | Asiento | Claro 800 | Claro 1 000 | Claro 1 200 |
 |---|---|---|---|
@@ -361,17 +364,20 @@ Momento que la voltea:   4 cajones × 9.5 kg × (0.40 − 0.20) m          = 7.5
 | 2 × 18 laminado | 1.9 mm (L/416) | 3.8 mm (L/266) | 6.5 mm (L/185) |
 | 18 + 2 faldones de 18 × 80 (frente y atrás) | — | 0.8 mm (L/1 263) | 1.4 mm (L/877) |
 
-**Recomendación:** un asiento se calcula con la carga de personas (× 2 dinámico) y debe cumplir las dos cosas: esfuerzo `σ ≤ MOR/3` y pandeo ≤ L/200. Un asiento de triplay de 18 mm solo no sirve para bancas de más de ≈ 800 mm de claro; con **dos faldones de 18 × 80** (frente y atrás) o laminado 2 × 18 sí. ❓
+**Recomendación:** un asiento de triplay de 18 mm solo no sirve para bancas de más de ≈ 800 mm de claro; con **dos faldones de 18 × 80 pegados** (frente y atrás) o laminado 2 × 18, sí. ❓ El límite de pandeo L/200 es una elección de comodidad: ninguna norma de muebles da un L/n (piden que no se rompa ni se afloje), y la única referencia parecida es la de gradas, L/200 a L/180 [34]. ❓
+
+**Lo que falta para volverlo una revisión.** Un asiento corto pasa con cualquiera de los dos criterios. El caso que decide es una tabla ancha bajo un colchón (la plataforma de una cama, §7.3), y ahí el resultado depende de **cuánto ancho de tabla trabaja bajo una persona**, que ninguna fuente da: con 400 mm, un claro de 628 queda en L/158; repartido en más ancho, pasa. Sin ese dato no hay número que defender. ❓
 
 ### 7.3 Camas
 
 - **Separación entre tablillas** (slats): **≤ 75 mm (3")** para colchones de espuma, látex o híbridos; hasta 100 mm (4") para resortes. Varias garantías de colchón piden ≤ 75 mm. ✅ [22] y otras fuentes coincidentes.
-- **Carga de diseño:** EN 1725:2023 supone un usuario de hasta 110 kg [21]. Una cama matrimonial para dos: ≈ 220 kg de personas + 30 kg de colchón. ❓
+- **Carga de diseño:** EN 1725:2023 supone un usuario de hasta 110 kg [21] ✅. Una cama matrimonial para dos: ≈ 220 kg de personas + 30 kg de colchón. Los 220 kg/m² bajo una persona que usa el cálculo de abajo no tienen fuente. ❓
+- **Sentarse en la orilla:** EN 1725:1998 prueba 1 200 N en vertical sobre la orilla de la cama y un impacto desde 180 mm (informe de ensayo [35] ⚠️). Las fuerzas de la edición 2023 no son públicas.
 - **Tablilla de triplay de 18 × 100 a cada 175 mm** (75 de hueco), 220 kg/m² bajo una persona, sin fluencia:
   - Claro de 660 (matrimonial de 1 350 con **apoyo central**): δ 4.3 mm, σ 3.8 MPa. Bien.
   - Claro de 1 335 (sin apoyo central): δ 71 mm, σ 15.6 MPa. **No sirve.**
   - Una rodilla (110 kg × 1.5) sobre **una** tablilla de 660: σ 49.5 MPa > MOR ≈ 44 [7] → se rompe si no reparte. El colchón reparte entre 3 o más tablillas (≈ 16 MPa). Por eso las tablillas de triplay deben ser de 18 × 100 o más. ❓
-- **Apoyo central:** con tablillas de 18 × 100, el claro no debería pasar de **≈ 700 mm**; desde la matrimonial va un apoyo central, y en la king (2 000 mm de ancho la mexicana, 1 930 la de EE.UU.) dos apoyos intermedios. La cama con plataforma de triplay de 18 continua también necesita apoyos a cada ≈ 600–700 mm (revísala como un asiento, §7.2). ❓
+- **Apoyo central:** con tablillas de 18 × 100, el claro no debería pasar de **≈ 700 mm**; desde la matrimonial va un apoyo central, y en la king (2 000 mm de ancho la mexicana, 1 930 la de EE.UU.) dos apoyos intermedios. La cama con plataforma de triplay de 18 continua también necesita apoyos a cada ≈ 600–700 mm (revísala como un asiento, §7.2). ❓ La práctica sí tiene fuentes: la base de referencia de ISO 19833 pide apoyo al centro pasados 1 000 mm de claro (con tablilla maciza de 20 × 95, más rígida), y Tempur-Pedic y Sealy lo piden desde la queen [36] ⚠️; los 700 mm para triplay de 18 × 100 son el cálculo de arriba.
 
 ---
 
@@ -499,3 +505,10 @@ Tablillas de triplay de 18 × 100 con un hueco de 75 mm o menos entre ellas, y u
 27. *Full Orthotropic Mechanical Characterization of Pinus radiata Plywood…*, Forests 16(11):1676 (2025). https://doi.org/10.3390/f16111676
 28. WoodCalcs, *Shelf Building Guide: Span, Sag, and Load Calculations*. https://woodcalcs.com/guides/shelf-building-structural-guide/
 29. Blum, *Catalogue and technical manual 2022/2023*, p. 70 (CLIP top BLUMOTION, espesores de puerta). https://publications.blum.com/2022/catalogue/en/70/
+30. TÜV SÜD, informe de ensayo 70.404.25.11641.01 (2025) de una silla a EN 12520:2024 y EN 1022:2023: fuerzas y ciclos de cada prueba. https://moebelix.a.bigcontent.io/v1/static/PIvwlMwxAv2A8-RMPd3VCkDg/ai-09090007-01-02-03.pdf
+31. Kinnarps, informe de ensayo de un sillón a EN 16139:2013 (2023), con el alcance de la norma. https://www.kinnarps.se/contentassets/6460b2659f8a4f1daa5465396d87c389/23-ta29114-easy-chair-yarn.pdf (no se abrió; lo cita la búsqueda del 2026-10-08)
+32. Hu, Tackett, Tor y Zhang, *Ergonomics* 59(4):556–567 (2016), fuerzas al sentarse. https://doi.org/10.1080/00140139.2015.1080311 (solo el resumen)
+33. *Bending strengths of hardwood used in upholstered furniture frame construction*, Forest Products Journal 28(8):34–37 (1978). https://forestprod.org/knowledge-base/bending-strengths-of-hardwood-used-in-upholstered-furniture-frame-construction/ (el resumen)
+34. ICC 300, *Bleachers, Folding and Telescopic Seating, and Grandstands*, borrador de comentarios públicos de 2017, §303.6. https://www.iccsafe.org/wp-content/uploads/ICC-300-ANSI-Public-Comment-Draft-pdf.pdf (no se abrió)
+35. SATRA, informe FUR0250207/1638 (2016) de una cama a BS EN 1725:1998 con cargas aumentadas; da los valores de la norma que sustituye. https://us.pineapplecontracts.com/wp-content/uploads/2020/05/Sovie-Bed-S-S-Oct-2016.pdf
+36. Tempur Sealy, *Approved Support Systems for Tempur-Pedic Mattresses*. https://service.tempursealy.com/hc/en-us/articles/41783446550551-Approved-Support-Systems-for-Tempur-Pedic-Mattresses (no se abrió); ISO 19833:2018, muestra pública, §5.7. https://cdn.standards.iteh.ai/samples/66310/db5b2e97c2354483aaeb9a6185375871/ISO-19833-2018.pdf (no se abrió)
