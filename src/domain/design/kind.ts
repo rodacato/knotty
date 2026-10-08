@@ -4,7 +4,7 @@ import { z } from 'zod'
 // A module kind is the general word; a use is more precise and says which checks apply. 'cabinet' and 'table' alone mean "a box" or "a table" whose use is not known.
 
 export const DESIGN_KINDS = [
-  'cabinet', 'bookcase', 'wardrobe', 'wallCabinet', 'shoeRack', 'drawers', 'nightstand', 'sideboard', 'tvStand',
+  'cabinet', 'bookcase', 'wardrobe', 'wallCabinet', 'shoeRack', 'drawers', 'nightstand', 'sideboard', 'tvStand', 'kitchenBase',
   'bed',
   'table', 'desk', 'diningTable', 'coffeeTable', 'sideTable', 'workbench', 'benchtop',
   'bench',
@@ -15,7 +15,7 @@ export type DesignKind = z.infer<typeof DesignKind>
 /** Each kind as the person says it, with its article: «un librero», «una cama». */
 export const KIND_NOUN: Record<DesignKind, string> = {
   cabinet: 'un gabinete', bookcase: 'un librero', wardrobe: 'un clóset', wallCabinet: 'una alacena', shoeRack: 'una zapatera', drawers: 'una cajonera',
-  nightstand: 'un buró', sideboard: 'un aparador', tvStand: 'un mueble de TV',
+  nightstand: 'un buró', sideboard: 'un aparador', tvStand: 'un mueble de TV', kitchenBase: 'un gabinete de cocina',
   bed: 'una cama',
   table: 'una mesa', desk: 'un escritorio', diningTable: 'una mesa de comedor', coffeeTable: 'una mesa de centro', sideTable: 'una mesa lateral', workbench: 'una mesa de trabajo', benchtop: 'un banco de sobremesa',
   bench: 'una banca',

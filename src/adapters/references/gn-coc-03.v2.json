@@ -24,7 +24,8 @@
           { "height": 0.4, "content": "open", "shelves": 0, "doors": null }
         ]
       }
-    ]
+    ],
+    "kick": "kitchen"
   },
   "expect": {
     "valid": true,

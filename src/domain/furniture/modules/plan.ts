@@ -27,7 +27,7 @@ export const settlePlan = (plan: FurniturePlan): FurniturePlan => (plan.kind ===
 
 /** The module that builds each kind of furniture; null when Knotty has no ficha for it and the expert designs it piece by piece. */
 export const MODULE_OF_KIND: Record<DesignKind, FurnitureKind | null> = {
-  cabinet: 'cabinet', bookcase: 'cabinet', wardrobe: 'cabinet', wallCabinet: 'cabinet', drawers: 'cabinet', nightstand: 'cabinet', sideboard: 'cabinet', tvStand: 'cabinet',
+  cabinet: 'cabinet', bookcase: 'cabinet', wardrobe: 'cabinet', wallCabinet: 'cabinet', drawers: 'cabinet', nightstand: 'cabinet', sideboard: 'cabinet', tvStand: 'cabinet', kitchenBase: 'cabinet',
   bed: 'bed',
   shoeRack: 'shoeRack',
   table: 'table', desk: 'table', diningTable: 'table', coffeeTable: 'table', sideTable: 'table', workbench: 'table',

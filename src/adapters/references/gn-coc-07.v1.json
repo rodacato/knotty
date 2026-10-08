@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "code": "GN-COC-07",
+  "id": "spice-filler",
+  "home": { "order": 42 },
+  "rooms": ["kitchen"],
+  "name": "Especiero angosto",
+  "kind": "kitchenBase",
+  "notes": "Mueble abierto de 20 cm de ancho, a la altura de los gabinetes bajos, para aprovechar el hueco que queda junto a la estufa o al muro. Va atornillado al muro o al mueble de junto.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Especiero angosto",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "dimensions": { "width": 200, "height": 870, "depth": 580 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "open", "shelves": 4, "doors": null }
+        ]
+      }
+    ],
+    "kick": "kitchen"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 10,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 26, "edge-banding-19": 3, "screw-8x2": 54, "white-glue": 2 }
+  }
+}

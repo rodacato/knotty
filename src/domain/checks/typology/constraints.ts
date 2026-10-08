@@ -16,6 +16,10 @@ export const WORKBENCH_HEIGHT: [number, number] = [850, 1100]
 export const BOOKCASE_DEPTH: [number, number] = [230, 300]
 /** Depth a closet takes so hangers fit facing front, in mm; below the first, a warning. */
 export const WARDROBE_DEPTH: [number, number] = [550, 600]
+/** Height of a kitchen base, in mm: from the lowest carcass that still takes a countertop of its own to the highest finished counter. */
+export const KITCHEN_BASE_HEIGHT: [number, number] = [800, 920]
+/** Depth of a kitchen base, in mm; below the first, a warning. */
+export const KITCHEN_BASE_DEPTH: [number, number] = [520, 600]
 /** Longest span of a bed's platform without support, in mm: the top of the reference's 600–700 (the bed module builds to the bottom, MAX_SPAN). */
 const BED_SPAN = 700
 
@@ -259,6 +263,28 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
       design.pieces.some((p) => p.role === 'brace')
         ? []
         : [report('recommendation', [], 'Para colgarla, conviene un listón de triplay arriba y atrás, por dentro: ahí van los tornillos al muro y no en la trasera delgada.', {}, [{ key: 'hanging-rail', description: 'Agregar un listón de colgar arriba, atrás', data: {} }])],
+  }),
+
+  // Kitchen base. The height takes in a base that gets a countertop of its own (carcass 800–840) and one whose top is the counter (850–920); an island may be deeper than a base against a wall, so the depth has no most.
+  measured({
+    check: 'kitchen-base.height',
+    appliesTo: ['kitchenBase'],
+    metric: 'height',
+    limits: { min: KITCHEN_BASE_HEIGHT[0], max: KITCHEN_BASE_HEIGHT[1] },
+    severity: 'recommendation',
+    source: `${FURNITURE}#23-cocina «Altura de cubierta terminada»`,
+    message: (height, l) => `Mide ${height} mm de alto; la cubierta de una cocina queda a 850–${l.max} mm ya terminada, y el mueble sin ella no baja de ${l.min}.`,
+    data: (height) => ({ height }),
+  }),
+  measured({
+    check: 'kitchen-base.depth',
+    appliesTo: ['kitchenBase'],
+    metric: 'depth',
+    limits: { min: KITCHEN_BASE_DEPTH[0], usual: KITCHEN_BASE_DEPTH },
+    severity: 'recommendation',
+    source: `${FURNITURE}#23-cocina «Fondo del gabinete bajo»`,
+    message: (depth, { usual }) => `Con ${depth} mm de fondo no cabe una tarja ni una parrilla; un gabinete bajo de cocina lleva ${usual[0]}–${usual[1]} mm.`,
+    data: (depth, { min }) => ({ depth, min }),
   }),
 
   // Bookcase. Reference: 280 for common books, 330 for large ones.

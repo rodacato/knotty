@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../domain/checks/analysis'
 import { bounds, drawerGroups } from '../../domain/design/boxes'
+import { slides as runsOnTracks } from '../../domain/design/doors'
 import type { Box } from '../../domain/design/resolve'
 import type { Design } from '../../domain/design/schema'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
@@ -23,10 +24,10 @@ function open(design: Design) {
 }
 
 describe('the furniture open', () => {
-  it.each(designs)('%s: only drawers slide and only doors swing, and everything else stays', (_, design) => {
+  it.each(designs)('%s: only drawers and sliding leaves move along, only doors swing, and everything else stays', (_, design) => {
     const { result } = open(design)
     const drawers = new Set(drawerGroups(design))
-    for (const p of design.pieces) {
+    for (const p of design.pieces.filter((piece) => !runsOnTracks(design, piece.id))) {
       const slides = !!p.group && drawers.has(p.group)
       const offset = result.offsets.get(p.id)!
       expect([p.id, offset.some((d) => d !== 0)]).toEqual([p.id, slides])

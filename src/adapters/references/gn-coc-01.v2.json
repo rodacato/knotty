@@ -5,7 +5,7 @@
   "home": { "order": 22 },
   "rooms": ["kitchen"],
   "name": "Isla de cocina",
-  "kind": "cabinet",
+  "kind": "kitchenBase",
   "notes": "Isla a la altura de la cubierta de cocina, de dos cuerpos con dos puertas y una repisa cada uno, sobre zoclo. Lleva puertas y no cajones: una isla no se ancla al muro, y con un cajón abierto se puede ir de frente.",
   "plan": {
     "kind": "cabinet",
@@ -28,7 +28,8 @@
           { "height": 1, "content": "door", "shelves": 1, "doors": 2 }
         ]
       }
-    ]
+    ],
+    "kick": "kitchen"
   },
   "expect": {
     "valid": true,
