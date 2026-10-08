@@ -39,6 +39,8 @@ export function chooseInCell<K extends CellChoice>(plan: CabinetPlan, path: Cell
   if (value === undefined) delete own[key]
   if (Object.keys(own).length) cell.own = own
   else delete cell.own
+  // One sliding leaf covers half its opening and leaves the rest open: a cell that goes sliding closes with two, as its door did.
+  if (key === 'doors' && value === 'sliding' && cell.content === 'door') cell.doors = 2
   return next
 }
 
