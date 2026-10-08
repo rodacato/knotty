@@ -12,6 +12,7 @@ import { FurniturePlan } from './plan'
 import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
 import { tippingBalance } from '../../checks/structure/rules/tippingBalance'
+import { rodRuns } from '../../design/rods'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
 const plan = (p: Partial<CabinetPlan>): CabinetPlan => ({ kind: 'cabinet', name: 'Mueble', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell('open', 1, { shelves: 4 })] }], ...p })
@@ -1048,5 +1049,77 @@ describe('a back by cell', () => {
     const closet = (height: number) => buildCabinet(plan({ name: 'Clóset', dimensions: { width: 600, height, depth: 600 }, columns: [{ width: 1, cells: [cell('door', 1, { doors: 1, shelves: 3 })] }] }), testCatalog).notes
     expect(closet(2200)).toEqual(['Una puerta de más de 180 cm de alto se puede arquear: dale el mismo acabado y las mismas manos por las dos caras y los cantos.'])
     expect(closet(1700)).toEqual([])
+  })
+})
+
+describe('a rod to hang clothes from', () => {
+  const hang = (content: 'open' | 'door', height = 1, more: Partial<PlanCell> = {}): PlanCell => ({ height, content, shelves: 0, doors: content === 'door' ? 1 : null, rod: true, ...more })
+  const closet = (columns: PlanColumn[], more: Partial<CabinetPlan> = {}) => plan({ name: 'Clóset', dimensions: { width: 900, height: 2000, depth: 580 }, columns, ...more })
+  const built = (p: CabinetPlan) => {
+    const { design, notes } = buildCabinet(p, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, rods: rodRuns(design, a.geo.boxes), checks: a.findings.flatMap((f) => (f.check?.startsWith('rod.') ? [f.check] : [])) }
+  }
+  const bought = ({ design, a }: ReturnType<typeof built>) => Object.fromEntries(estimatePurchase(design, a.geo, testCatalog).hardware.map((h) => [h.hardware.id, h.count]))
+  const size = (width: number, height: number, depth: number) => ({ dimensions: { width, height, depth } })
+
+  it('runs from wall to wall under the top of its cell, in the middle of the depth, and is no board to cut', () => {
+    const one = built(closet([{ width: 1, cells: [hang('open')] }]))
+    const [left, right, top] = ['side-left', 'side-right', 'top'].map(one.box)
+    expect(one.rods).toEqual([expect.objectContaining({ ceiling: 'top', walls: ['side-left', 'side-right'], x0: left.x1, x1: right.x0, y: top.y0 - ASSUMPTIONS.rods.drop })])
+    expect(one.rods[0].z).toBeCloseTo((top.z0 + top.z1) / 2)
+    expect(cutList(one.design, one.a.geo).some((line) => /tubo/i.test(line.name))).toBe(false)
+    expect(one.notes).toEqual(['Tubo para colgar: se corta con segueta al ancho del hueco y va con una brida atornillada a cada costado, al centro del fondo.'])
+  })
+
+  it('buys the shortest tube that reaches across and two flanges for each rod', () => {
+    const one = built(closet([{ width: 1, cells: [hang('open')] }]))
+    expect([bought(one)['closet-rod-120'], bought(one)['rod-flange']]).toEqual([1, 2])
+    const double = built(closet([{ width: 1, cells: [hang('open', 0.5), hang('open', 0.5)] }]))
+    expect([bought(double)['closet-rod-120'], bought(double)['rod-flange']]).toEqual([2, 4])
+    const wide = built(closet([{ width: 1, cells: [hang('open')] }], size(1400, 1150, 580)))
+    expect([bought(wide)['closet-rod-120'], bought(wide)['closet-rod-240']]).toEqual([undefined, 1])
+  })
+
+  it('takes the place of the shelves, and leaves the top its screws into the walls', () => {
+    const one = built(closet([{ width: 1, cells: [hang('door', 1, { shelves: 3 })] }]))
+    expect(one.design.pieces.filter((p) => p.role === 'shelf')).toEqual([])
+    expect(one.design.joints.filter((u) => (u.a === 'top' && u.b === 'side-left') || (u.a === 'side-left' && u.b === 'top')).map((u) => u.type)).toEqual(['butt-screw'])
+  })
+
+  it('two in one column hang one over the other, each under its own board, between the same walls', () => {
+    const { rods, box } = built(closet([{ width: 1, cells: [hang('open', 0.5), hang('open', 0.5)] }]))
+    expect(rods.map((r) => [r.ceiling, r.walls])).toEqual([['c1-sep-1', ['side-left', 'side-right']], ['top', ['side-left', 'side-right']]])
+    expect(rods[1].below).toBeCloseTo(rods[1].y - box('c1-sep-1').y1)
+  })
+
+  it('in a column between dividers it stops at them', () => {
+    const shelved = cell('open', 1, { shelves: 3 })
+    const { rods } = built(closet([{ width: 1, cells: [shelved] }, { width: 1, cells: [hang('open')] }, { width: 1, cells: [shelved] }], size(1800, 2000, 580)))
+    expect(rods.map((r) => r.walls)).toEqual([['div-1', 'div-2']])
+  })
+
+  it('a closet of the usual measures has nothing to say about its rod', () => {
+    expect(built(closet([{ width: 1, cells: [hang('door', 0.85), cell('open', 0.15, { shelves: 0 })] }])).checks).toEqual([])
+  })
+
+  it('past the longest span it recommends a support in the middle; a shallow one has no room for hangers; a low one, none for a shirt', () => {
+    expect(built(closet([{ width: 1, cells: [hang('open')] }], size(1400, 1150, 580))).checks).toEqual(['rod.span'])
+    expect(built(closet([{ width: 1, cells: [hang('open')] }], size(900, 2000, 400))).checks).toEqual(['rod.depth'])
+    const low = built(closet([{ width: 1, cells: [hang('open')] }], size(900, 900, 580)))
+    expect(low.checks).toEqual(['rod.height'])
+    expect(low.a.findings.find((f) => f.check === 'rod.height')).toMatchObject({ code: 'R10_USE', severity: 'recommendation', pieces: ['top', 'side-left', 'side-right'] })
+  })
+
+  it('goes only where clothes can be reached: a plan with one in a drawer is refused, and built without it', () => {
+    const inDrawer = closet([{ width: 1, cells: [{ ...cell('drawer', 0.3), rod: true }, hang('open', 0.7)] }])
+    expect(FurniturePlan.safeParse(inDrawer).error?.issues.map((i) => i.message)).toEqual(['Un tubo para colgar va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'])
+    expect(built(inDrawer).rods).toHaveLength(1)
+    expect(FurniturePlan.safeParse(closet([{ width: 1, cells: [hang('door')] }])).success).toBe(true)
+  })
+
+  it('a plan without rods builds a design that does not mention them', () => {
+    expect('rods' in buildCabinet(PLANS.bookcase, testCatalog).design).toBe(false)
   })
 })

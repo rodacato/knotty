@@ -1,6 +1,7 @@
 import type { Design } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { hardwarePerJoint } from '../design/hardwareCount'
+import { rodHardware } from '../design/rods'
 import { layOut, type MaterialLayout } from './layout'
 import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from '../materials/catalog'
 import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'
@@ -70,6 +71,7 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   const handle = pickHardware(catalog, 'handle')
   const handles = design.pieces.filter((p) => (p.role === 'door' || p.role === 'drawer-front') && (design.pullsOf?.[p.id] ?? design.pulls) === 'handle').length
   if (handle && handles) add(handle.id, handles)
+  for (const h of rodHardware(design, geo.boxes, catalog)) add(h.hardwareId, h.count)
   // Anchored is what keeps it from tipping, so the kit that anchors it is bought; a wall cabinet hangs from its rail instead.
   const antiTip = pickHardware(catalog, 'anti-tip')
   if (antiTip && design.wallAnchored && design.kind !== 'wallCabinet') add(antiTip.id, 1)

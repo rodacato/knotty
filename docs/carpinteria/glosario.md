@@ -182,6 +182,7 @@ El contrafrente y la trasera del cajón a veces se cortan iguales, pero no son c
 |---|---|---|---|---|
 | **A tope con tornillo** | El tornillo atraviesa la cara de una pieza y entra por el canto de la otra; con pegamento. | tornillo al canto, atornillado a tope / unión a tope / unión a tope | butt joint (screwed) | ⚠️ [4] |
 | **Tornillo de bolsillo** | Tornillo en un agujero inclinado hecho con plantilla; no se ve por fuera. | unión Kreg / tornillo oculto / unión Kreg | pocket-hole joint | ✅ [27][33] |
+| **Tubo de clóset** | Tubo metálico, redondo u ovalado, del que se cuelgan los ganchos de ropa. Va de costado a costado sobre dos **bridas** (los soportes atornillados a cada lado). | tubo, barra, cortinero de clóset | barra de armario | barral | tubo, barra | closet rod / hanging rail | «Barra» también es el desayunador; «riel» es el de las puertas corredizas. | ⚠️ |
 | **Tarugos** | Cilindros de madera pegados en agujeros alineados de las dos piezas. | tarugo, espiga / espiga, clavija / espiga, tarugo de madera | dowel joint | ⚠️ [4][1] |
 | **Galleta** | Pastilla ovalada de madera comprimida que entra, con pegamento, en ranuras de media luna hechas con galletera en las dos piezas; alinea y refuerza. | galleta / galleta / galleta | biscuit joint | ⚠️ |
 | **Confirmat** | Tornillo grueso de rosca gruesa, hecho para tableros, que entra por la cara de una pieza al canto de la otra en un agujero escalonado. | confirmat, tornillo para melamina / tornillo confirmat / confirmat | confirmat screw / Euro screw | ⚠️ |

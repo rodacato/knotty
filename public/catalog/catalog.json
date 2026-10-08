@@ -260,6 +260,39 @@
       "price": 85
     },
     {
+      "id": "closet-rod-120",
+      "role": "closet-rod",
+      "name": "Tubo de clóset cromado 1.20 m",
+      "unit": "piece",
+      "perPack": null,
+      "length": 1200,
+      "sideClearance": null,
+      "sku": null,
+      "price": 150
+    },
+    {
+      "id": "closet-rod-240",
+      "role": "closet-rod",
+      "name": "Tubo de clóset cromado 2.40 m",
+      "unit": "piece",
+      "perPack": null,
+      "length": 2400,
+      "sideClearance": null,
+      "sku": null,
+      "price": 280
+    },
+    {
+      "id": "rod-flange",
+      "role": "rod-flange",
+      "name": "Brida para tubo de clóset",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
+      "sku": null,
+      "price": 20
+    },
+    {
       "id": "drawer-slide-30",
       "role": "drawer-slide",
       "name": "Corredera telescópica 30 cm (par)",

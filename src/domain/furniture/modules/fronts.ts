@@ -83,6 +83,10 @@ export const slidingNote = (leaves: number, board: number) => {
   return `${leaves === 1 ? 'Puerta corrediza' : `${leaves} puertas corredizas`} sin bisagras: cada hoja corre en una ranura del tablero de abajo, de ${mm(into)} mm de hondo, y otra del de arriba, de ${mm(2 * into)} mm, para meterla y sacarla levantándola. Las ranuras se fresan con router antes de armar, un poco más anchas que la hoja.`
 }
 
+/** What the person reads when there is a rod to hang clothes from: what it is cut from and where its flanges go. */
+export const rodNote = (rods: number) =>
+  `${rods === 1 ? 'Tubo para colgar' : `${rods} tubos para colgar`}: se ${rods === 1 ? 'corta' : 'cortan'} con segueta al ancho del hueco y ${rods === 1 ? 'va' : 'van'} con una brida atornillada a cada costado, al centro del fondo.`
+
 /** What the person reads when a chest opens from above: what holds each lid, and why it goes to a strip and not to the back. */
 export const lidNote = (lids: number) =>
   `${lids === 1 ? 'Tapa abatible' : `${lids} tapas abatibles`} hacia arriba: cada una va con bisagra de piano a la tira fija de atrás, no a la trasera, y un compás de fricción atornillado al costado la detiene abierta (dos, uno por costado, en una tapa pesada). Antes de abrirla hay que quitar lo que tenga encima.`

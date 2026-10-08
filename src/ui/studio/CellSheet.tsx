@@ -22,11 +22,11 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     const next = structuredClone(plan)
     const target = cellAt(next, path)!
     Object.assign(target, patch)
-    for (const key of ['back', 'own'] as const) if (key in patch && patch[key] === undefined) delete target[key]
+    for (const key of ['back', 'own', 'rod'] as const) if (key in patch && patch[key] === undefined) delete target[key]
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
+    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined }), ...(choicesFor({ ...cell, content }).length ? {} : { own: undefined }) })
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return
@@ -70,9 +70,17 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           {!voidable && cell.content !== 'void' && <p className="text-xs text-graphite-2">«Vacío» va en el hueco de arriba o de abajo de una columna, para que esa columna no llegue al piso o al techo.</p>}
         </div>
         {(cell.content === 'open' || cell.content === 'door') && (
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-graphite-2">Repisas adentro</span>
-            <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-graphite-2">Adentro</span>
+            <Segmented label="Qué lleva adentro" value={cell.rod ? 'rod' : 'shelves'} options={[['shelves', 'Repisas'], ['rod', 'Tubo para colgar']]} onChange={(v) => change(v === 'rod' ? { rod: true, shelves: 0 } : { rod: undefined })} />
+            {cell.rod ? (
+              <p className="text-xs text-graphite-2">Un tubo de costado a costado, bajo el techo del hueco, con una brida en cada lado. Se compra y se corta al ancho; no sale del triplay.</p>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-graphite-2">Repisas adentro</span>
+                <Stepper label="repisas" value={cell.shelves ?? 0} min={0} max={8} onChange={(shelves) => change({ shelves })} />
+              </div>
+            )}
           </div>
         )}
         {cell.content === 'chest' && (
