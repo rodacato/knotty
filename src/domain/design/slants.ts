@@ -1,7 +1,7 @@
 import { faceAxes, type Box } from './resolve'
-import type { Axis, Round, Slant, SlantLeg } from './schema'
+import type { Axis, Hole, Round, Slant, SlantLeg } from './schema'
 
-// Corners sawn off a piece on a slant, or rounded. They are only drawn: the piece is still the whole board for the cut list, the purchase and the checks.
+// Corners sawn off a piece on a slant, or rounded, and round holes through it. They are only drawn: the piece is still the whole board for the cut list, the purchase and the checks.
 
 export type Point = [number, number]
 
@@ -54,6 +54,16 @@ export function outline(box: Box, normal: Axis, slants: Slant[], rounds: Round[]
     const [nu, nv] = points[(i + 1) % points.length]
     return Math.abs(u - nu) > 1e-9 || Math.abs(v - nv) > 1e-9
   })
+}
+
+/** How many straight stretches draw a hole. */
+const HOLE_STEPS = 24
+
+/** The rim of a hole on the two axes of its piece's face, in mm, counterclockwise. */
+export function holeOutline(box: Box, normal: Axis, hole: Hole): Point[] {
+  const [a, b] = faceAxes(normal)
+  const [u, v, r] = [box[`${a}0`] + (hole[a] ?? 0), box[`${b}0`] + (hole[b] ?? 0), hole.diameter / 2]
+  return Array.from({ length: HOLE_STEPS }, (_, i): Point => [u + r * Math.cos((2 * Math.PI * i) / HOLE_STEPS), v + r * Math.sin((2 * Math.PI * i) / HOLE_STEPS)])
 }
 
 /** The area of an outline, in mm². */

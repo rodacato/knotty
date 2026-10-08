@@ -398,3 +398,55 @@ describe('splayed legs on a table', () => {
     expect(built({ legs: 'panel', legStyle: 'splayed' }).notes).toEqual([])
   })
 })
+
+describe('a cable pass through a desk top', () => {
+  const built = (p: Partial<TablePlan>) => {
+    const { design, notes } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, cable: true, ...p }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    const top = design.pieces.find((x) => x.id === 'top')!
+    return { design, notes, a, top, hole: top.holes?.[0] }
+  }
+  /** Whatever stands under the hole, the low shelf aside. */
+  const covered = ({ design, a, hole }: ReturnType<typeof built>) =>
+    design.pieces.filter((x) => {
+      const b = a.geo.boxes.get(x.id)!
+      return x.id !== 'top' && x.id !== 'low-shelf' && b.x0 < hole!.x! + 30 && b.x1 > hole!.x! - 30 && b.z0 < hole!.z! + 30 && b.z1 > hole!.z! - 30
+    })
+
+  it('is a 60 mm hole a diameter in front of the back apron, as near the middle of the length as the cleat under it allows, and the top is the only board it touches', () => {
+    const desk = built({})
+    expect(desk.top.holes).toEqual([{ x: 560, y: null, z: desk.a.geo.boxes.get('apron-back')!.z1 + 60, diameter: 60 }])
+    expect(desk.design.pieces.filter((x) => x.holes).map((x) => x.id)).toEqual(['top'])
+    expect(covered(desk)).toEqual([])
+    expect(desk.notes).toEqual(['Pasacables: un barreno de 60 mm en la cubierta, a 78 mm de la orilla de atrás y a 560 mm de la izquierda. Se hace con broca sierra.'])
+  })
+
+  it('moves off what stands under the middle of the top: a pedestal, a cleat or a leg', () => {
+    for (const p of [{ pedestal: { side: 'left' as const, drawers: 3 }, dimensions: { width: 900, height: 750, depth: 600 } }, { dimensions: { width: 1800, height: 750, depth: 700 } }, { legs: 'legs' as const, dimensions: { width: 2400, height: 750, depth: 700 } }]) {
+      const desk = built(p)
+      expect(desk.hole).toBeDefined()
+      expect(covered(desk)).toEqual([])
+    }
+    expect(built({ pedestal: { side: 'left', drawers: 3 }, dimensions: { width: 900, height: 750, depth: 600 } }).hole!.x).toBeGreaterThan(450)
+  })
+
+  it('changes nothing to buy or to cut, and the cut list says the top takes a hole, with its rounded corners when it has them', () => {
+    const [plain, holed] = [built({ cable: false }), built({})]
+    expect(holed.design.pieces.map((x) => ({ ...x, holes: undefined }))).toEqual(plain.design.pieces.map((x) => ({ ...x, holes: undefined })))
+    expect(holed.design.joints).toEqual(plain.design.joints)
+    expect(cutList(holed.design, holed.a.geo)).toEqual(cutList(plain.design, plain.a.geo))
+    expect(holed.a.findings).toEqual(plain.a.findings)
+    const both = built({ overhang: 30, corners: 'rounded' })
+    const line = cutList(both.design, both.a.geo).find((l) => l.ids.includes('top'))!
+    expect([both.top.rounds?.length, both.top.holes?.length, both.top.cuts]).toEqual([2, 1, undefined])
+    expect(afterCutText(afterCut(both.design, line), line.count)).toBe('Después de cortarla: esquinas redondeadas · barreno')
+  })
+
+  it('is for a desk or a standing desk: a dining table that asks gets none, and a desk that does not ask neither', () => {
+    expect(built({ use: 'standing', dimensions: { width: 1200, height: 1050, depth: 600 } }).hole).toBeDefined()
+    const dining = built({ use: 'dining' })
+    expect([dining.hole, dining.notes]).toEqual([undefined, []])
+    expect('holes' in built({ cable: false }).top).toBe(false)
+  })
+})

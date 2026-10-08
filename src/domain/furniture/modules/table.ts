@@ -1,15 +1,16 @@
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../../design/builders'
-import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Piece, type Joint, type Round } from '../../design/schema'
+import { DIMENSION_OF_AXIS, type Extent, type FaceRef, type Design, type Hole, type Piece, type Joint, type Round } from '../../design/schema'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
 import { completeJoints } from '../../design/joints'
+import { resolveGeometry } from '../../design/resolve'
 import type { DesignKind } from '../../design/kind'
 import { backBoard, materialById, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import { cite, noReference, STRUCTURE, type Source } from '../../sources'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { addDrawers, CABLE_HOLE, CABLE_RISE, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
@@ -35,6 +36,7 @@ export const TablePlan = z.object({
   legs: z.enum(['panel', 'legs']).default('panel').describe('panel: two panel ends; legs: four straight legs from floor to top with an apron all round (the pedestal side keeps its panel); the height of the table is the length of the legs'),
   legStyle: LeaningLegStyle.optional().describe(LEANING_LEG_STYLE),
   corners: z.enum(['square', 'rounded']).optional().describe('Corners of the top; rounded only where it overhangs'),
+  cable: z.boolean().optional().describe('A cable hole through the top of a desk'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
 export type TablePlan = z.infer<typeof TablePlan>
@@ -311,6 +313,32 @@ const roundsNote = (plan: TablePlan, rounds: number): string[] =>
       ? ['Con la cubierta al ras no se redondean las esquinas: asomaría lo que va debajo. Dale vuelo a la cubierta.']
       : [`Cubierta con ${rounds} esquinas redondeadas a ${TOP_ROUND} mm de radio: se marcan con un compás o una tapa, se cortan con caladora y se emparejan con lija.${rounds < 4 ? ' Atrás quedan rectas, donde los costados llegan a la orilla.' : ''}`]
 
+/** Cables come up through the top of what is worked at. */
+const passesCables = (plan: TablePlan) => !!plan.cable && (plan.use === 'desk' || plan.use === 'standing')
+
+/**
+ * The hole of a cable pass in the top: a diameter in front of the back apron, as near the middle of the length as it finds nothing under it.
+ * The low shelf does not count, a leg, a cleat or a drawer does; none when the whole length is taken.
+ */
+function topHole(design: Design, catalog: Catalog): Hole | null {
+  const geo = resolveGeometry(design, catalog)
+  const [top, apron] = geo.ok ? [geo.value.boxes.get('top'), geo.value.boxes.get('apron-back')] : []
+  if (!geo.ok || !top || !apron) return null
+  const r = CABLE_HOLE / 2
+  const z = apron.z1 + CABLE_RISE
+  const under = design.pieces.filter((p) => p.id !== 'top' && p.id !== 'low-shelf' && !p.id.startsWith('shelf-leg-')).flatMap((p) => geo.value.boxes.get(p.id) ?? [])
+  const clear = (x: number) => under.every((b) => b.x1 <= x - r || b.x0 >= x + r || b.z1 <= z - r || b.z0 >= z + r)
+  const middle = (top.x0 + top.x1) / 2
+  const reach = (top.x1 - top.x0) / 2 - TOP_ROUND - r
+  for (let off = 0; off <= reach; off += 10) for (const x of off ? [middle - off, middle + off] : [middle]) if (clear(x)) return { x: x - top.x0, y: null, z: z - top.z0, diameter: CABLE_HOLE }
+  return null
+}
+
+const cableNote = (hole: Hole | null): string =>
+  hole
+    ? `Pasacables: un barreno de ${CABLE_HOLE} mm en la cubierta, a ${Math.round(hole.z!)} mm de la orilla de atrás y a ${Math.round(hole.x!)} mm de la izquierda. Se hace con broca sierra.`
+    : 'No cupo un pasacables en la cubierta: lo que va debajo ocupa todo el largo.'
+
 export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design; notes: string[] } {
   const l = layoutOf(plan, catalog)
   const rounds = topRounds(l)
@@ -325,7 +353,10 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...leanNote(l), ...roundsNote(plan, rounds.length)] }
+  const hole = passesCables(plan) ? topHole(placed.design, catalog) : null
+  const holed = hole ? { ...placed.design, pieces: placed.design.pieces.map((p) => (p.id === 'top' ? { ...p, holes: [hole] } : p)) } : placed.design
+  const notes = [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...leanNote(l), ...roundsNote(plan, rounds.length), ...(passesCables(plan) ? [cableNote(hole)] : [])]
+  return { design: knockDown(completeJoints(holed, catalog), plan.assembly, catalog, blockOf(l)), notes }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -337,6 +368,7 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   if (before.material !== after.material) changes.push(`material ${after.material}`)
   if (before.overhang !== after.overhang) changes.push(after.overhang ? `cubierta que sobresale ${after.overhang} mm` : 'costados a la orilla')
   if ((before.corners ?? 'square') !== (after.corners ?? 'square')) changes.push(TABLE_LABELS.corners[after.corners ?? 'square'].phrase)
+  if (passesCables(before) !== passesCables(after)) changes.push(passesCables(after) ? 'con pasacables' : 'sin pasacables')
   if (before.shelf !== after.shelf) changes.push(after.shelf ? 'con repisa baja' : 'sin repisa baja')
   if (before.legs !== after.legs) changes.push(TABLE_LABELS.legs[after.legs].phrase)
   if (after.legs === 'legs') changes.push(...describeLegStyle(before, after))
@@ -346,7 +378,7 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
 }
 
 function benchTables(): [string, TablePlan][] {
-  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', legStyle: 'straight', corners: 'square', assembly: 'glued', ...extra })
+  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel', legStyle: 'straight', corners: 'square', cable: false, assembly: 'glued', ...extra })
   const variants: [string, TablePlan][] = [
     ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
     ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
@@ -370,8 +402,11 @@ function benchTables(): [string, TablePlan][] {
   const desk = all.find(([n]) => n === 'escritorio con 3 cajones a la izquierda')![1]
   // Rounded corners: all four where the top overhangs all round, and only the front two on a desk, whose ends reach the back edge.
   const rounded = (['comedor con patas', 'mesa de trabajo'] as const).map((name): [string, TablePlan] => [`${name}, de esquinas redondeadas`, { ...all.find(([n]) => n === name)![1], corners: 'rounded' }])
+  // Cable passes: in the middle of a plain desk, moved off a cleat or a pedestal, and through a top that also has rounded corners.
+  const wired = all.filter(([n]) => /^(escritorio|escritorio con 3 cajones a la izquierda|escritorio con patas)$/.test(n)).map(([name, plan]): [string, TablePlan] => [`${name}, con pasacables`, { ...plan, cable: true }])
+  const wiredRounded: [string, TablePlan] = ['escritorio de esquinas redondeadas con pasacables', { ...all.find(([n]) => n === 'escritorio')![1], overhang: 30, corners: 'rounded', cable: true }]
   const roundedDesk: [string, TablePlan] = ['escritorio de esquinas redondeadas', { ...all.find(([n]) => n === 'escritorio')![1], overhang: 30, corners: 'rounded' }]
-  return [...all, ...knockedDown, ...rounded, roundedDesk, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
+  return [...all, ...knockedDown, ...rounded, roundedDesk, ...wired, wiredRounded, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
 }
 
 const isDesk = (plan: TablePlan) => plan.use === 'desk'
@@ -398,6 +433,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     ]),
     numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
     choice({ key: 'corners', label: 'Esquinas de la cubierta', ...fromLabels(TABLE_LABELS.corners), get: (p) => p.corners ?? 'square', set: (p, corners) => ({ ...p, corners }) }),
+    yesNo({ key: 'cable', label: 'Pasacables en la cubierta', visibleWhen: (p) => p.use === 'desk' || p.use === 'standing', get: (p) => !!p.cable, set: (p, cable) => ({ ...p, cable }) }),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
   ]),
   section('Patas', [choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }), legStyleField((p) => p.legs === 'legs', LEANING_LEG_STYLE_LABELS)]),
@@ -430,7 +466,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
     },
     woodPart(),
     assemblyPart(),
-    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
+    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners', 'cable'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
     { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs', 'legStyle'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => (p.legs === 'legs' && (p.legStyle ?? 'straight') !== 'straight' ? `Con ${LEANING_LEG_STYLE_LABELS[p.legStyle!].phrase}` : TABLE_LABELS.legs[p.legs].option) },
     {
       id: 'under',

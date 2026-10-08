@@ -14,7 +14,6 @@ import { cutList } from '../../estimate/cutList'
 import { estimatePurchase } from '../../estimate/purchase'
 import { tippingBalance } from '../../checks/structure/rules/tippingBalance'
 import { rodRuns } from '../../design/rods'
-import { cutBox } from '../../design/cuts'
 import { afterCut, afterCutText } from '../../estimate/cutList'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
@@ -1231,38 +1230,37 @@ describe('a cable pass', () => {
     const { design, notes } = buildCabinet(p, testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
-    const holed = design.pieces.filter((x) => x.role === 'back' && x.cuts?.length)
-    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, holed, strips: holed.flatMap((x) => x.cuts!.map((cut) => cutBox(a.geo.boxes.get(x.id)!, cut))) }
+    const holed = design.pieces.filter((x) => x.holes?.length)
+    const centers = holed.flatMap((x) => x.holes!.map((h) => ({ x: a.geo.boxes.get(x.id)!.x0 + h.x!, y: a.geo.boxes.get(x.id)!.y0 + h.y!, z: h.z, diameter: h.diameter })))
+    return { design, notes, a, box: (id: string) => a.geo.boxes.get(id)!, holed, centers }
   }
   const NOTE = 'Pasacables: un barreno de 60 mm en la trasera, al centro del hueco y a 60 mm de su piso. Se hace con broca sierra antes de clavar la trasera.'
 
   it('is a 60 mm hole through the back, in the middle of its cell and 60 mm above its floor', () => {
     const one = built(tv([{ width: 1, cells: [wired('open')] }, { width: 1, cells: [cell('open', 1, { shelves: 0 })] }]))
-    const [left, divider, bottom, back] = ['side-left', 'div-1', 'bottom', 'back'].map(one.box)
-    const middle = (left.x1 + divider.x0) / 2
-    expect(one.holed.map((x) => x.id)).toEqual(['back'])
-    expect([Math.min(...one.strips.map((s) => s.x0)), Math.max(...one.strips.map((s) => s.x1))]).toEqual([middle - 30, middle + 30])
-    expect([Math.min(...one.strips.map((s) => s.y0)), Math.max(...one.strips.map((s) => s.y1))].map(Math.round)).toEqual([bottom.y1 + 30, bottom.y1 + 90])
-    expect(one.strips.every((s) => s.z0 === back.z0 && s.z1 === back.z1)).toBe(true)
+    const [left, divider, bottom] = ['side-left', 'div-1', 'bottom'].map(one.box)
+    expect(one.holed.map((x) => [x.id, x.role, x.normal])).toEqual([['back', 'back', 'z']])
+    expect(one.centers).toEqual([{ x: (left.x1 + divider.x0) / 2, y: bottom.y1 + 60, z: null, diameter: 60 }])
     expect(one.notes).toEqual([NOTE])
   })
 
   it('changes nothing to buy or to cut: the back is the same board, and the cut list says it still takes work', () => {
     const cells = (cable: boolean): PlanColumn[] => [{ width: 1, cells: [cable ? wired('door') : cell('door', 1, { shelves: 0, doors: 1 })] }]
     const [plain, holed] = [built(tv(cells(false))), built(tv(cells(true)))]
-    expect(holed.design.pieces.map((x) => ({ ...x, cuts: undefined }))).toEqual(plain.design.pieces.map((x) => ({ ...x, cuts: undefined })))
+    expect(holed.design.pieces.map((x) => ({ ...x, holes: undefined }))).toEqual(plain.design.pieces.map((x) => ({ ...x, holes: undefined })))
     expect(holed.design.joints).toEqual(plain.design.joints)
     expect(cutList(holed.design, holed.a.geo)).toEqual(cutList(plain.design, plain.a.geo))
     expect(estimatePurchase(holed.design, holed.a.geo, testCatalog)).toEqual(estimatePurchase(plain.design, plain.a.geo, testCatalog))
     expect(holed.a.findings).toEqual(plain.a.findings)
     const line = cutList(holed.design, holed.a.geo).find((l) => l.ids.includes('back'))!
-    expect(afterCutText(afterCut(holed.design, line), line.count)).toBe('Después de cortarla: saques o ranuras')
+    expect(afterCutText(afterCut(holed.design, line), line.count)).toBe('Después de cortarla: barreno')
   })
 
   it('two cells behind one back are two holes in it, each behind its own cell', () => {
     const two = built(tv([{ width: 1, cells: [wired('open', 0.5), wired('door', 0.5)] }]))
     expect(two.holed.map((x) => x.id)).toEqual(['back'])
-    expect(new Set(two.strips.map((s) => Math.round((s.y0 + s.y1) / 2))).size).toBe(2)
+    expect(two.centers).toHaveLength(2)
+    expect(two.centers[1].y - two.centers[0].y).toBeGreaterThan(60)
     expect(two.notes.at(-1)).toMatch(/^2 pasacables: barrenos de 60 mm en la trasera/)
   })
 
