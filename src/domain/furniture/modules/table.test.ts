@@ -59,6 +59,26 @@ describe('table option consistency', () => {
     expect(FurniturePlan.safeParse(table({ use: 'desk', shelf: true })).error?.issues).toContainEqual(expect.objectContaining({ path: ['shelf'] }))
     expect(FurniturePlan.safeParse(table({ use: 'coffee', shelf: true })).success).toBe(true)
   })
+
+  it('rejects legs on a table too shallow for a front and a back leg, and builds the shallowest it takes', () => {
+    const console = (depth: number, overhang: number, legs: TablePlan['legs'] = 'legs') => table({ legs, overhang, dimensions: { width: 1200, height: 750, depth } })
+    for (const p of [console(244, 50), console(204, 30), console(144, 0)]) expect(FurniturePlan.safeParse(p).error?.issues).toContainEqual(expect.objectContaining({ path: ['dimensions', 'depth'], message: expect.stringMatching(/^No cupo/) }))
+    for (const p of [console(245, 50), console(205, 30), console(145, 0)]) {
+      expect(FurniturePlan.safeParse(p).success).toBe(true)
+      expect(analyze(buildTable(p, testCatalog).design, testCatalog).valid).toBe(true)
+    }
+    expect(FurniturePlan.safeParse(console(144, 0, 'panel')).success).toBe(true)
+  })
+
+  it('says what is short under a desk: a width when there is a gap, and what crosses it when there is none', () => {
+    const legroom = (dimensions: TablePlan['dimensions']) => {
+      const a = analyze(buildTable(table({ use: 'desk', name: 'Escritorio', overhang: 0, dimensions }), testCatalog).design, testCatalog)
+      return a.valid ? a.findings.filter((f) => f.check === 'desk.legroom').map((f) => f.message) : []
+    }
+    expect(legroom({ width: 1200, height: 750, depth: 600 })).toEqual([])
+    expect(legroom({ width: 620, height: 750, depth: 600 })).toEqual([expect.stringMatching(/el más ancho mide \d+ mm/)])
+    for (const low of [{ width: 1200, height: 700, depth: 600 }, { width: 1200, height: 750, depth: 450 }]) expect(legroom(low)).toEqual([expect.stringContaining('algo cruza todo el ancho')])
+  })
 })
 
 describe('buildTable', () => {

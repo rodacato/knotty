@@ -409,6 +409,11 @@ export function settleTable(plan: TablePlan): TablePlan {
   return { ...plan, pedestal: built ? plan.pedestal : { side: 'none', drawers: 0 }, shelf: plan.use === 'desk' ? false : plan.shelf }
 }
 
+/** The front and back legs of an end, each as far in as the top sticks out, with an apron between them. */
+const legsDepth = (plan: TablePlan) => 2 * LEG_WIDTH + Math.min(plan.overhang, MAX_END_INSET) * (plan.use === 'desk' ? 1 : 2)
+const legsFit = (plan: TablePlan) => plan.legs !== 'legs' || plan.dimensions.depth > legsDepth(plan)
+const LEGS_TOO_SHALLOW = 'No cupo: las patas del frente y las de atrás no caben en ese fondo; hazla más honda, quítale vuelo a la cubierta o cámbiala a costados.'
+
 export const tableModule: FurnitureModule<TablePlan> = {
   kind: 'table',
   schema: TablePlan,
@@ -416,6 +421,7 @@ export const tableModule: FurnitureModule<TablePlan> = {
     { holds: (p) => p.use === 'desk' || (p.pedestal.side === 'none' && p.pedestal.drawers === 0), message: 'Solo un escritorio lleva cajonera. Para este uso, elige sin cajonera y cero cajones.', path: ['pedestal'] },
     { holds: (p) => (p.pedestal.side === 'none') === (p.pedestal.drawers === 0), message: 'Una cajonera necesita lado y al menos un cajón; sin cajonera, el número de cajones debe ser cero.', path: ['pedestal', 'drawers'] },
     { holds: (p) => p.use !== 'desk' || !p.shelf, message: 'Un escritorio no lleva repisa baja: estorba las piernas.', path: ['shelf'] },
+    { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
   ],
   label: 'una mesa',
   expert: { what: 'a table or a desk' },

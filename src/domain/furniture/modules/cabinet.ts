@@ -13,7 +13,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, DEFAULT_THICKNESS, KICK_HEIGHT, KICK_SETBACK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -111,6 +111,12 @@ export type CabinetPlan = z.infer<typeof CabinetPlan>
 
 /** The legs take height from the box above them: what is left must still hold a bottom, a top and an opening. */
 const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
+/** Overlay fronts sit in front of the carcass, which stops one thickness short of the front to make room for them. */
+const hasOverlays = (plan: CabinetPlan) =>
+  leafCells(plan.columns).some((c) => ((c.content === 'door' || c.content === 'closed' || c.content === 'chest') && plan.construction.doors === 'overlay') || (c.content === 'drawer' && plan.construction.drawerFronts === 'overlay'))
+/** The front and back legs of a corner, each set in from its edge, with a side apron between them. */
+const LEGS_DEPTH = 2 * (LEG_INSET + LEG_WIDTH)
+const legsFit = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.depth - (hasOverlays(plan) ? DEFAULT_THICKNESS : 0) > LEGS_DEPTH
 /** The cells of a column that are built: from the first to the last that is not void. */
 const builtRange = (column: PlanColumn) => {
   const built = column.cells.flatMap((c, j) => (c.content === 'void' ? [] : [j]))
@@ -139,11 +145,15 @@ const toppedByLid = (plan: CabinetPlan) => plan.construction.top !== 'fingers' &
 const chestsInPlace = (columns: PlanColumn[], lidded: boolean): boolean =>
   columns.every((c) => c.cells.every((cell, j) => (cell.columns ? chestsInPlace(cell.columns, false) : cell.content !== 'chest' || lidRoom(c, j) || (lidded && j === c.cells.length - 1))))
 const chestsFit = (plan: CabinetPlan) => chestsInPlace(plan.columns, toppedByLid(plan))
+/** Chests in place only with the top as their lid, and fingers that would hold that top shut. */
+const lidOpens = (plan: CabinetPlan) => plan.construction.top !== 'fingers' || chestsFit(plan) || !chestsFit({ ...plan, construction: { ...plan.construction, top: 'between' } })
 const CHESTS_MISPLACED = 'Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.'
 const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
 const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
+const LEGS_TOO_SHALLOW = `No cupo: con patas el mueble pide más de ${LEGS_DEPTH} mm de fondo, o de ${LEGS_DEPTH + DEFAULT_THICKNESS} con frentes sobrepuestos; hazlo más hondo o cambia la base.`
+const LID_HELD_SHUT = 'Con un baúl hasta arriba la cubierta es su tapa, y unida con dedos no abre: elige otra unión para la cubierta.'
 const CARCASS_TOO_LOW = `No cupo: con esas patas la caja queda de menos de ${MIN_CARCASS_HEIGHT} mm; baja las patas o sube el alto del mueble.`
 
 /** The words for each choice of a cabinet's plan, capitalized as on the form; inside a sentence they go in lowercase. */
@@ -287,7 +297,7 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
   const build = plan.construction
   const t = thicknessOf(catalog, plan.material)
   const cells = leafCells(plan.columns)
-  const overlays = cells.some((c) => ((c.content === 'door' || c.content === 'closed' || c.content === 'chest') && build.doors === 'overlay') || (c.content === 'drawer' && build.drawerFronts === 'overlay'))
+  const overlays = hasOverlays(plan)
   // Overlay fronts sit in front of the carcass, so the carcass stops one thickness short of the front.
   const front: Position = overlays ? ref('furniture.z1', -t) : ref('furniture.z1')
   const hasBack = (cell: PlanCell) => cell.back ?? build.back === 'nailed'
@@ -640,6 +650,8 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     const top: FaceRef = j === m - 1 ? spec.top : `${id}-sep-${j + 1}.y0`
     const overBottom = j === 0 ? spec.overBottom : ref(`${id}-sep-${j}.y0`, half + GAP / 2)
     const overTop = j === m - 1 ? spec.overTop : ref(`${id}-sep-${j + 1}.y0`, half - GAP / 2)
+    // With the box on the ground the floor board's lower edge is the ground: a drawer front that covered it would drag.
+    const dragging = cell.content === 'drawer' && l.plan.base === 'floor' && overBottom.type === 'ref' && overBottom.ref === 'bottom.y0'
     const cellId = `${id}-h${j + 1}`
     const opening: Opening = {
       id: cellId,
@@ -648,7 +660,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
       right: spec.right,
       bottom,
       top,
-      overlay: { x: spec.overX, y: extent(overBottom, overTop) },
+      overlay: { x: spec.overX, y: extent(dragging ? ref('bottom.y0', ASSUMPTIONS.drawers.floorClearance) : overBottom, overTop) },
       inset: { x: extent(ref(spec.left, GAP), ref(spec.right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
       hangsLeft,
       front: spec.front,
@@ -1133,10 +1145,12 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   schema: CabinetPlan,
   rules: [
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
+    { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
     { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
     { holds: backsFit, message: BACKS_MISPLACED, path: ['columns'] },
     { holds: slidingFits, message: SLIDING_MISPLACED, path: ['columns'] },
+    { holds: lidOpens, message: LID_HELD_SHUT, path: ['construction', 'top'] },
     { holds: chestsFit, message: CHESTS_MISPLACED, path: ['columns'] },
   ],
   label: 'un gabinete',
