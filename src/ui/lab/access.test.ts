@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSandboxedRepository } from '../../adapters/persistence/sandbox'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { createUseCases } from '../../application/useCases'
@@ -86,5 +86,31 @@ describe('the sandbox', () => {
     useStore.getState().sandboxExample(variant, 'KC-APA-01')
     useStore.getState().leaveSandbox()
     expect(useStore.getState().sandboxOrigin).toBeNull()
+  })
+})
+
+describe('a ficha asked for in the address', () => {
+  const asking = (search: string) => vi.stubGlobal('location', { search })
+  afterEach(() => vi.unstubAllGlobals())
+  const [first] = testReferences.all()
+
+  it('opens in the sandbox when the app starts, whatever the case of its code, and leaves the saved design as it was', () => {
+    const s = services(true)
+    useStore.getState().start(s)
+    useStore.getState().fromExample(mine)
+    asking(`?debug&ficha=${first.code.toLowerCase()}`)
+    useStore.getState().start(s)
+    expect([useStore.getState().sandboxed, useStore.getState().sandboxOrigin, useStore.getState().phase, name()]).toEqual([true, first.code, 'studio', first.name])
+    useStore.getState().leaveSandbox()
+    expect(name()).toBe('Mi librero')
+  })
+
+  it('does nothing without the debug access, or for a code no ficha has', () => {
+    asking(`?ficha=${first.code}`)
+    useStore.getState().start(services(false))
+    expect([useStore.getState().sandboxed, useStore.getState().phase]).toEqual([false, 'home'])
+    asking('?debug&ficha=no-such-ficha')
+    useStore.getState().start(services(true))
+    expect([useStore.getState().sandboxed, useStore.getState().phase]).toEqual([false, 'home'])
   })
 })
