@@ -80,7 +80,7 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Carga pesada (libros) | 150 | — | kg/m² | Libros de uso doméstico | ✅ [7] | [estructura.md](estructura.md) |
 | Biblioteca o archivo | 244 | — | kg/m² | Libreros y archiveros llenos a tope | ✅ [7] | [estructura.md](estructura.md) |
 | Ropa en cajones | 136 | — | kg/m³ | Volumen interior del cajón | ✅ [13] | [estructura.md](estructura.md) |
-| Persona | 110 kg × factor dinámico 2, sin fluencia | — | kg | Bancas, asientos, camas | ❓ | [estructura.md](estructura.md) |
+| Persona | 110 kg, sin fluencia | 1 300 N de prueba en un asiento, al centro y en la orilla (EN 12520) | kg | Bancas, asientos, camas | ✅ el usuario en camas, ⚠️ en asientos; ❓ el criterio: el × 2 por sentarse de golpe y el σ ≤ MOR / 3 no se apilan | [estructura.md](estructura.md) §7.2 |
 
 ## 6. Uniones
 
