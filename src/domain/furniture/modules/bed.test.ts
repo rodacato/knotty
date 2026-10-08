@@ -170,9 +170,9 @@ describe('a bed on legs', () => {
     expect(side && side.type === 'choice' && side.set(raised(150), 'left')).toMatchObject({ legs: 'none', drawers: { side: 'left' } })
   })
 
-  it('has bench variants on legs at 100 and 300, all clean', () => {
+  it('has bench variants on legs from 100 to 250, the tallest that keep the base at 450, all clean', () => {
     const variants = bedModule.benchVariants().filter(([, p]) => p.legs === 'legs')
-    expect(variants.map(([, p]) => p.legHeight)).toEqual(expect.arrayContaining([100, 150, 300]))
+    expect(variants.map(([, p]) => p.legHeight)).toEqual(expect.arrayContaining([100, 150, 250]))
     const problems = variants.flatMap(([name, plan]) => {
       const { design, notes } = buildBed(plan, testCatalog)
       const a = analyze(design, testCatalog)
@@ -198,6 +198,18 @@ describe('what a bed is checked for, besides its spans', () => {
     expect(checks(bed({ material: 'T15' }))).toEqual(['bed.board recommendation'])
     expect(checks(bed({ material: 'T12' }))).toContain('bed.board critical')
     expect(checks(bed({ material: 'T15', platform: 'slats' }))).toEqual(['bed.slats recommendation'])
+  })
+
+  it('a base outside 250–450 is said, panel or slats: the mattress ends up too high or too low to sit on and get up from', () => {
+    for (const platform of ['panel', 'slats'] as const) expect([250, 450, 240, 500].map((height) => checks(bed({ height, platform })))).toEqual([[], [], ['bed.height recommendation'], ['bed.height recommendation']])
+    expect(checks(bed({ height: 500, legs: 'legs', legHeight: 300 }))).toEqual(['bed.height recommendation'])
+  })
+
+  it('a daybed whose backrest rises under 30 cm over a 26 cm mattress says so in its form', () => {
+    const daybed = (height: number) => bed({ headboard: { style: 'daybed', height, depth: 0, shelves: 0 } })
+    const note = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'note' && f.text.includes('no alcanza para recargarse'))!
+    expect([800, 959, 960].map((height) => note.visibleWhen!(daybed(height)))).toEqual([true, true, false])
+    expect(note.visibleWhen!(bed({ headboard: { style: 'plain', height: 800, depth: 0, shelves: 0 } }))).toBe(false)
   })
 })
 

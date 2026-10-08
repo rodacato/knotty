@@ -9,7 +9,7 @@ import { backBoard, type Catalog } from '../../materials/catalog'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
+import { addDrawers, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -696,8 +696,9 @@ function benchBeds(): [string, BedPlan][] {
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
   for (const mattress of MattressSize.options)
-    for (const legHeight of [LEG_HEIGHT_RANGE.min, LEG_HEIGHT, LEG_HEIGHT_RANGE.max])
-      variants.push([`${mattress}, cabecera lisa, patas de ${legHeight} mm`, { ...base, mattress, legHeight, height: legHeight + 250 }])
+    // Up to the tallest legs that leave the frame its height under a base still comfortable to sit on: taller ones get bed.height.
+    for (const legHeight of [LEG_HEIGHT_RANGE.min, LEG_HEIGHT, TALLEST_BASE - MIN_CARCASS_HEIGHT])
+      variants.push([`${mattress}, cabecera lisa, patas de ${legHeight} mm`, { ...base, mattress, legHeight, height: legHeight + MIN_CARCASS_HEIGHT }])
   for (const style of BedPlan.shape.headboard.shape.style.options.filter((s) => s !== 'plain' && s !== 'daybed'))
     variants.push([`matrimonial, ${BED_LABELS.headboard[style].phrase}, patas de ${LEG_HEIGHT} mm`, { ...base, headboard: { ...base.headboard, style } }])
   // The trim: a lip on every open edge and a cap on every headboard, with drawers on one side, and the lip on a bed with no headboard, raised on legs.
@@ -736,6 +737,8 @@ function benchBeds(): [string, BedPlan][] {
 
 /** A base too wide to turn on a stair whichever way it is carried: its length always is. */
 const wideBase = (plan: BedPlan) => MATTRESSES[plan.mattress][0] + MATTRESS_PLAY > LONGEST_WHOLE
+/** A daybed whose backrest rises too little over the mattress to lean on. */
+const lowBackrest = (plan: BedPlan) => isDaybed(plan) && plan.headboard.height - plan.height - MATTRESS_THICKNESS < BACKREST_RISE
 const deepHeadboard = (plan: BedPlan) => plan.headboard.style === 'bookcase' || plan.headboard.style === 'storage'
 const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPlan => ({ ...plan, drawers: { ...plan.drawers, ...drawers } })
 /** A daybed stands on its arms and backrest, with drawers on one side only: choosing it settles both. */
@@ -788,6 +791,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => (style === 'daybed' ? asDaybed(withHeadboard(p, { style })) : withHeadboard(p, { style })) }),
     note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
     note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed),
+    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest),
     numbers(
       2,
       [

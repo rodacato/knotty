@@ -36,6 +36,11 @@ export const LEG_LEAN = 20
 /** A bed's trim: how far the lip that keeps the mattress in rises over the platform, and how far the cap over a headboard reaches toward the mattress. */
 export const MATTRESS_LIP = 40
 export const CAP_OVERHANG = 20
+/** How thick a mattress is taken to be, and how far over it a daybed's backrest has to rise to lean on. */
+export const MATTRESS_THICKNESS = 260
+export const BACKREST_RISE = 300
+/** The tallest base the reference finds comfortable to sit on and get up from. */
+export const TALLEST_BASE = 450
 /** A bed's slats: how wide each one is and the widest gap between two. */
 export const SLAT = { width: 100, gap: 75 } as const
 /** The longest a slat runs between two supports. */
@@ -73,6 +78,9 @@ export const MODULE_SOURCES: Record<string, Source> = {
   SLAT_RAIL: noReference('the same 80 mm as the apron under a table, which carries more; the reference gives no section for the rail under a bed\'s slats'),
   ARM_SLOPE: noReference('chosen, not sourced: a cut twice as long as it is deep reads as a slope, and 120 leaves most of the arm to lean on'),
   ARM_FRONT: noReference('Knotty’s margin over the lip for the screws that hold it to the arm'),
+  MATTRESS_THICKNESS: cite(VALUES, '11-colchones-de-méxico-y-bases-de-cama', 'Grosor de colchón'),
+  BACKREST_RISE: noReference('the reference gives no height for a backrest over a seat; 300 is workshop judgment for where a back starts to hold someone leaning, to be replaced by a sourced row'),
+  TALLEST_BASE: cite('muebles-y-medidas.md', '27-burós-y-camas', 'Así que la base (del piso a donde apoya el colchón)'),
   CAP_OVERHANG: noReference('the reference describes a cap (copete) in plywood as a straight strip and gives no overhang; 20 shows its edge as a shadow line without a ledge to catch on'),
 }
 

@@ -148,6 +148,21 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     },
   }),
   checked({
+    check: 'bed.height',
+    appliesTo: ['bed'],
+    // Reference: the top of the mattress at 510–690 from the floor; less a 260 mm mattress, a base of 250–450. Slats rest a hair under the edge the mattress sits on.
+    limits: { min: 250, max: 450, mattress: 260 },
+    source: `${FURNITURE}#27-burós-y-camas «Así que la base (del piso a donde apoya el colchón)»`,
+    find: ({ surface }, { min, max, mattress }, report) => {
+      if (!surface) return []
+      const height = surface.box.y1
+      if (height >= min - RIM_OVER_SLATS && height <= max) return []
+      return [
+        report('recommendation', surface.ids, `La base queda a ${roundTo(height, 0)} mm: con un colchón de ${mattress / 10} cm se duerme a ${roundTo(height + mattress, 0)} mm del piso, ${height > max ? 'alto' : 'bajo'} para sentarse y pararse. Lo cómodo es una base de ${min} a ${max} mm.`, { height: roundTo(height, 0), min, max }),
+      ]
+    },
+  }),
+  checked({
     check: 'bed.board',
     appliesTo: ['bed'],
     // Reference: a continuous platform is of 18 mm; 15 is the least for any board of a carcass (valores-de-referencia.md §3). Slats answer to bed.slats.
