@@ -340,3 +340,61 @@ describe('a top with rounded corners', () => {
     expect('rounds' in buildTable(table({}), testCatalog).design.pieces.find((x) => x.id === 'top')!).toBe(false)
   })
 })
+
+describe('splayed legs on a table', () => {
+  const built = (p: Partial<TablePlan>) => {
+    const { design, notes } = buildTable(table({ legs: 'legs', overhang: 50, dimensions: { width: 1200, height: 750, depth: 800 }, ...p }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return { design, notes, a, slants: (id: string) => design.pieces.find((x) => x.id === id)!.slants?.length ?? 0 }
+  }
+  const z = (b: ReturnType<typeof built>, id: string) => [b.a.geo.boxes.get(id)!.z0, b.a.geo.boxes.get(id)!.z1]
+
+  it('each corner leg leans out from where a straight one stands: the same top, a foot 20 mm nearer the edge, from a board that much wider', () => {
+    const [straight, splayed] = [built({}), built({ legStyle: 'splayed' })]
+    expect(z(splayed, 'leg-front-left-1')).toEqual([z(straight, 'leg-front-left-1')[0], z(straight, 'leg-front-left-1')[1] + 20])
+    expect(z(splayed, 'leg-back-right-2')).toEqual([z(straight, 'leg-back-right-2')[0] - 20, z(straight, 'leg-back-right-2')[1]])
+    expect(splayed.design.pieces.find((p) => p.id === 'leg-front-left-1')!.slants).toEqual([
+      { x: null, y: { from: 'end', leave: 0 }, z: { from: 'end', length: 20 } },
+      { x: null, y: { from: 'start', leave: 80 }, z: { from: 'start', length: 56 } },
+    ])
+    expect(splayed.notes).toEqual([expect.stringMatching(/^Patas abiertas en 4 patas: cada una sale de una tabla de 92 mm de ancho\./)])
+  })
+
+  it('moves nothing else: the aprons, the top, the joints and the hardware are those of the straight legs, and the feet stay under the top', () => {
+    const [straight, splayed] = [built({}), built({ legStyle: 'splayed' })]
+    const rest = (b: typeof splayed) => b.design.pieces.filter((p) => !/^leg-(front|back)-/.test(p.id))
+    expect(rest(splayed)).toEqual(rest(straight))
+    expect(splayed.design.joints).toEqual(straight.design.joints)
+    expect(splayed.a.findings).toEqual(straight.a.findings)
+    const top = splayed.a.geo.boxes.get('top')!
+    expect([...splayed.a.geo.boxes].filter(([id, b]) => id.startsWith('leg-') && (b.z0 < top.z0 || b.z1 > top.z1))).toEqual([])
+  })
+
+  it('a leg in the middle of a long table has an apron in front of it: it narrows and does not lean', () => {
+    const long = built({ legStyle: 'splayed', dimensions: { width: 2400, height: 750, depth: 900 } })
+    expect(long.slants('leg-front-left-1')).toBe(2)
+    expect(long.slants('leg-middle-1-front-1')).toBe(1)
+    expect(long.notes).toEqual([expect.stringMatching(/^Patas abiertas en 4 patas/), expect.stringMatching(/^Patas cónicas en 2 patas/)])
+  })
+
+  it('on a desk the back legs stand at the wall: only the front ones lean, and it says so', () => {
+    const desk = built({ use: 'desk', legStyle: 'splayed', dimensions: { width: 1200, height: 750, depth: 600 } })
+    expect([desk.slants('leg-front-left-1'), desk.slants('leg-back-left-1')]).toEqual([2, 1])
+    expect(z(desk, 'leg-back-left-1')[0]).toBe(0)
+    expect(desk.notes.at(-1)).toBe('Las patas de atrás no se abren: van a la orilla, contra el muro. Solo se adelgazan.')
+  })
+
+  it('with less overhang than the lean no leg leans, so no foot stands out from under the top, and it says why', () => {
+    for (const overhang of [0, 19]) {
+      const { notes, slants } = built({ legStyle: 'splayed', overhang })
+      expect([slants('leg-front-left-1'), slants('leg-back-left-1')]).toEqual([1, 1])
+      expect(notes.at(-1)).toBe('Las patas no se abren con la cubierta a menos de 20 mm de vuelo: el pie saldría de la cubierta. Solo se adelgazan; dale más vuelo para abrirlas.')
+    }
+    expect(built({ legStyle: 'splayed', overhang: 20 }).slants('leg-front-left-1')).toBe(2)
+  })
+
+  it('on panel ends the style asks for nothing', () => {
+    expect(built({ legs: 'panel', legStyle: 'splayed' }).notes).toEqual([])
+  })
+})

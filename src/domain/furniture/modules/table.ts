@@ -9,8 +9,8 @@ import { stiffness } from '../../materials/grades'
 import { cite, noReference, STRUCTURE, type Source } from '../../sources'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
-import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
-import { describeLegStyle, LEG_STYLE, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
+import { addDrawers, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
@@ -33,7 +33,7 @@ export const TablePlan = z.object({
     drawers: z.number().int().min(0).max(MAX_PEDESTAL_DRAWERS).describe('How many drawers the pedestal has; 0 if there is none'),
   }),
   legs: z.enum(['panel', 'legs']).default('panel').describe('panel: two panel ends; legs: four straight legs from floor to top with an apron all round (the pedestal side keeps its panel); the height of the table is the length of the legs'),
-  legStyle: LegStyle.optional().describe(LEG_STYLE),
+  legStyle: LeaningLegStyle.optional().describe(LEANING_LEG_STYLE),
   corners: z.enum(['square', 'rounded']).optional().describe('Corners of the top; rounded only where it overhangs'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
 })
@@ -142,17 +142,27 @@ function endBound(l: Layout, end: End): Bound {
 /** The side of a leg that faces the other row: the one a tapered leg is cut on. */
 const INNER = { front: 'start', back: 'end' } as const
 
-/** The outer piece of the right end in a row, which sets where the aprons stand in depth. */
-const rightEnd = (l: Layout, row: Row) => (l.legs.right ? `leg-${row}-right-1` : 'side-right')
+/** How far the supports of a row stand in from its edge of the top. */
+const rowInset = (l: Layout, row: Row) => (row === 'front' ? l.inset : l.backInset)
+
+/** A corner leg leans out to its edge of the top only while its foot stays under it; without that room it narrows instead. */
+const leans = (l: Layout, row: Row) => l.plan.legStyle === 'splayed' && rowInset(l, row) >= LEG_LEAN
+
+/** A leg that does not lean is cut as the plan says, and one asked to lean, narrowed. */
+const upright = (plan: TablePlan) => (plan.legStyle === 'splayed' ? 'tapered' : plan.legStyle)
 
 function ends(l: Layout): Piece[] {
   const { plan, inset, backInset, endY } = l
-  const legZ = { front: extent(null, ref('furniture.z1', -inset), LEG_WIDTH), back: extent(ref('furniture.z0', backInset), null, LEG_WIDTH) }
+  const lean = { front: leans(l, 'front') ? LEG_LEAN : 0, back: leans(l, 'back') ? LEG_LEAN : 0 }
+  const legZ = { front: extent(null, ref('furniture.z1', lean.front - inset), LEG_WIDTH + lean.front), back: extent(ref('furniture.z0', backInset - lean.back), null, LEG_WIDTH + lean.back) }
   return ENDS.flatMap((end) => {
     const [side, name, towards] = end === 'left' ? ['izquierdo', 'izquierda', 'right' as const] : ['derecho', 'derecha', 'left' as const]
     const x = end === 'left' ? startAt(ref('furniture.x0', plan.overhang)) : endAt(ref('furniture.x1', -plan.overhang))
     if (!l.legs[end]) return [l.panel({ id: `side-${end}`, name: `Costado ${side}`, role: 'side', normal: 'x', x, y: endY, z: l.endsZ })]
-    return (['front', 'back'] as const).flatMap((row) => styled(legLayers(plan.material, `leg-${row}-${end}`, `Pata ${row === 'front' ? 'delantera' : 'trasera'} ${name}`, x, towards, endY, legZ[row]), plan.legStyle, INNER[row]))
+    return (['front', 'back'] as const).flatMap((row) => {
+      const layers = legLayers(plan.material, `leg-${row}-${end}`, `Pata ${row === 'front' ? 'delantera' : 'trasera'} ${name}`, x, towards, endY, legZ[row])
+      return lean[row] ? splayed(layers, INNER[row]) : styled(layers, upright(plan), INNER[row])
+    })
   })
 }
 
@@ -195,8 +205,8 @@ function aprons(l: Layout, open: Open): { pieces: Piece[]; joints: Joint[] } {
   const screws = [{ hardwareId: pocketScrewId(t), count: 2 }]
   const x = extent(ref(open[0].face), ref(open[1].face))
   const pieces = [
-    panel({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), APRON), z: endAt(ref(`${rightEnd(l, 'front')}.z1`)) }),
-    panel({ id: 'apron-back', name: desk ? 'Faldón trasero' : 'Faldón de atrás', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), desk ? MODESTY : APRON), z: startAt(ref(`${rightEnd(l, 'back')}.z0`)) }),
+    panel({ id: 'apron-front', name: 'Faldón del frente', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), APRON), z: endAt(ref('furniture.z1', -l.inset)) }),
+    panel({ id: 'apron-back', name: desk ? 'Faldón trasero' : 'Faldón de atrás', role: 'apron', normal: 'z', x, y: extent(null, ref('top.y0'), desk ? MODESTY : APRON), z: startAt(ref('furniture.z0', l.backInset)) }),
   ]
   const joints = (['front', 'back'] as const).flatMap((row) => open.map((bound) => makeJoint(`j-apron-${row}-${bound[row]}`, `apron-${row}`, bound[row], 'pocket-screw', screws)))
   for (const end of ENDS) {
@@ -230,7 +240,7 @@ function supports(l: Layout, open: Open): { pieces: Piece[]; middleLegs: number 
     for (const [row, words, z] of rows) {
       const layers = legLayers(plan.material, `leg-middle-${k}${row ? `-${row}` : ''}`, `Pata intermedia ${middle > 1 ? `${k} ` : ''}${words}`.trim(), first, 'right', endY, z)
       // A leg that fills the depth between the aprons has no inner side: it stays straight.
-      pieces.push(...(row ? styled(layers, plan.legStyle, INNER[row]) : layers))
+      pieces.push(...(row ? styled(layers, upright(plan), INNER[row]) : layers))
     }
   }
   // A cleat that falls on a middle leg runs between its front and back posts, or is the leg itself.
@@ -287,6 +297,13 @@ function topRounds(l: Layout): Round[] {
   return rows.flatMap(([z, inset]) => (roundCovers(Math.min(l.plan.overhang, inset)) ? (['start', 'end'] as const).map((x): Round => ({ x, y: null, z, radius: TOP_ROUND })) : []))
 }
 
+/** Why legs asked to lean do not, where they stand at the edge of the top. */
+function leanNote(l: Layout): string[] {
+  if (l.plan.legStyle !== 'splayed' || !ENDS.some((end) => l.legs[end])) return []
+  if (!leans(l, 'front')) return [`Las patas no se abren con la cubierta a menos de ${LEG_LEAN} mm de vuelo: el pie saldría de la cubierta. Solo se adelgazan; dale más vuelo para abrirlas.`]
+  return leans(l, 'back') ? [] : ['Las patas de atrás no se abren: van a la orilla, contra el muro. Solo se adelgazan.']
+}
+
 const roundsNote = (plan: TablePlan, rounds: number): string[] =>
   plan.corners !== 'rounded'
     ? []
@@ -308,7 +325,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces]
   const design: Design = { schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...roundsNote(plan, rounds.length)] }
+  return { design: knockDown(completeJoints(placed.design, catalog), plan.assembly, catalog, blockOf(l)), notes: [...shelf.notes, ...placed.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...leanNote(l), ...roundsNote(plan, rounds.length)] }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -344,7 +361,10 @@ function benchTables(): [string, TablePlan][] {
   ]
   const onLegs = variants.map(([name, plan]): [string, TablePlan] => [`${name} con patas`, { ...plan, legs: 'legs' }])
   const tapered = onLegs.filter(([name]) => /^(comedor|comedor largo|centro|escritorio con 2 cajones a la izquierda) con patas$/.test(name)).map(([name, plan]): [string, TablePlan] => [`${name} cónicas`, { ...plan, legStyle: 'tapered' }])
-  const all = [...variants, ...onLegs, ...tapered]
+  // Splayed: a top that overhangs all round, the same on a long table with legs in between, a desk whose back legs stay at the wall, and a flush top, where none can lean.
+  const splayedLegs = onLegs.filter(([name]) => /^(comedor|comedor largo|centro|escritorio) con patas$/.test(name)).map(([name, plan]): [string, TablePlan] => [`${name} abiertas`, { ...plan, overhang: Math.max(plan.overhang, 40), legStyle: 'splayed' }])
+  const flushSplayed: [string, TablePlan] = ['comedor al ras con patas abiertas', { ...onLegs.find(([name]) => name === 'comedor con patas')![1], overhang: 0, legStyle: 'splayed' }]
+  const all = [...variants, ...onLegs, ...tapered, ...splayedLegs, flushSplayed]
   // Knocked down: bolts where the aprons meet the legs or the panel ends, and minifix in a desk with its pedestal.
   const knockedDown = (['comedor largo', 'comedor largo con patas', 'mesa de trabajo con patas'] as const).map((name): [string, TablePlan] => [`${name}, desarmable con pernos`, { ...all.find(([n]) => n === name)![1], assembly: 'bolts' }])
   const desk = all.find(([n]) => n === 'escritorio con 3 cajones a la izquierda')![1]
@@ -380,7 +400,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     choice({ key: 'corners', label: 'Esquinas de la cubierta', ...fromLabels(TABLE_LABELS.corners), get: (p) => p.corners ?? 'square', set: (p, corners) => ({ ...p, corners }) }),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
   ]),
-  section('Patas', [choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }), legStyleField((p) => p.legs === 'legs')]),
+  section('Patas', [choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }), legStyleField((p) => p.legs === 'legs', LEANING_LEG_STYLE_LABELS)]),
   section((p) => (isDesk(p) ? 'Cajonera' : 'Abajo'), [
     choice({
       key: 'pedestal.side',
@@ -411,7 +431,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
     woodPart(),
     assemblyPart(),
     { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
-    { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs', 'legStyle'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => (p.legs === 'legs' && p.legStyle === 'tapered' ? 'Con patas cónicas' : TABLE_LABELS.legs[p.legs].option) },
+    { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs', 'legStyle'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => (p.legs === 'legs' && (p.legStyle ?? 'straight') !== 'straight' ? `Con ${LEANING_LEG_STYLE_LABELS[p.legStyle!].phrase}` : TABLE_LABELS.legs[p.legs].option) },
     {
       id: 'under',
       name: 'Abajo',
