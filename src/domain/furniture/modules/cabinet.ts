@@ -22,6 +22,7 @@ import { counted, sizePart, woodPart, type Parts } from './parts'
 // A cabinet from a plan: measures, how it is built, and a grid of columns and cells. Knotty builds every piece, so pieces cannot overlap by construction.
 
 const FrontStyle = z.enum(['flat', 'grooved'])
+const HingeSide = z.enum(['left', 'right'])
 
 /** How a carpenter would build it: each option is a different way of joining the same box. */
 export const CabinetConstruction = z.object({
@@ -31,7 +32,7 @@ export const CabinetConstruction = z.object({
   back: z.enum(['nailed', 'none']).describe('nailed: 6 mm back nailed on; none: no back'),
   shelves: z.enum(['movable', 'fixed']).describe('movable: shelves on pins; fixed: screwed'),
   fronts: FrontStyle.default('flat').describe('flat: smooth doors and drawer fronts; grooved: ribbed with vertical router grooves'),
-  hinges: z.enum(['outside', 'inside']).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle'),
+  hinges: z.enum(['outside', 'inside', ...HingeSide.options]).default('outside').describe('One-leaf doors: outside hang on the edge nearest a side, inside toward the middle; left or right, all on that side'),
   pulls: Pulls.default('none').describe('none: no pull; notch: finger notch routed in each front; handle: one handle per door leaf and drawer front'),
   drawerCorners: z.enum(['screwed', 'fingers']).default('screwed').describe('screwed, or fingers: the four corners of each drawer box cut as interlocking fingers'),
 })
@@ -42,17 +43,32 @@ export const CellChoices = z
   .object({
     pulls: Pulls.optional().describe('How the fronts of this opening are opened'),
     fronts: FrontStyle.optional().describe('The style of the fronts of this opening'),
+    hinges: HingeSide.optional().describe('The side the one-leaf door of this opening hangs on'),
+    doors: z.enum(['inset', 'sliding']).optional().describe('The doors of this opening against the furniture\'s: sliding where the furniture\'s swing, inset where the furniture\'s slide'),
   } satisfies { [K in keyof CabinetConstruction]?: z.ZodOptional<z.ZodType<CabinetConstruction[K]>> })
   .describe('What this opening chooses against construction; a choice absent is the furniture\'s')
 export type CellChoice = keyof z.infer<typeof CellChoices>
 export type CellChoices = Partial<Pick<CabinetConstruction, CellChoice>>
 export const CELL_CHOICES = Object.keys(CellChoices.shape) as CellChoice[]
 
-/** The choices a cell can make on its own: those of its fronts, so only a cell with doors or a drawer. */
-export const choicesFor = (cell: PlanCell): CellChoice[] => (cell.content === 'door' || cell.content === 'drawer' ? CELL_CHOICES : [])
+/** How the doors of a cell close: as the cell says, or else as the furniture's do. */
+export const doorsIn = (construction: CabinetConstruction, cell: PlanCell) => choiceIn(construction, cell.own, 'doors')
+
+/** The choices a cell can make on its own: those of its fronts, so only a cell with doors or a drawer; how they close only for doors, and the hinge side only where one leaf swings. */
+export const choicesFor = (cell: PlanCell, construction: CabinetConstruction): CellChoice[] => {
+  if (cell.content !== 'door' && cell.content !== 'drawer') return []
+  const swingsAlone = cell.content === 'door' && (cell.doors ?? 1) < 2 && doorsIn(construction, cell) !== 'sliding'
+  return CELL_CHOICES.filter((key) => (key === 'hinges' ? swingsAlone : key !== 'doors' || cell.content === 'door'))
+}
+
+/** The values a cell may choose for a key: a cell says a side for its hinges, since nearest a side or toward the middle only reads across the whole furniture. */
+export const cellOptions = (key: CellChoice, construction: CabinetConstruction): readonly string[] => (key === 'doors' ? [mixesWith(construction)] : CellChoices.shape[key].unwrap().options)
 
 /** What `shelves` says once a cell holds something else: the shelves it had behind a door or in the open, a chest's floor raised to mid-height, nothing otherwise. */
 export const shelvesFor = (cell: PlanCell, content: PlanCell['content']): PlanCell['shelves'] => (content === 'open' || content === 'door' ? (cell.content === 'chest' ? 0 : (cell.shelves ?? 0)) : content === 'chest' ? 1 : null)
+
+/** The one other way a cell's doors may close: a carcass is cut for overlay fronts or for inset ones, so a cell only trades swinging for sliding. Sliding leaves run inside the opening, as inset ones sit. */
+const mixesWith = (construction: CabinetConstruction) => (construction.doors === 'sliding' ? 'inset' : 'sliding')
 
 /** Two levels: what the cell chose, or else the furniture's. */
 export const choiceIn = <K extends CellChoice>(construction: CabinetConstruction, own: CellChoices | undefined, key: K): CabinetConstruction[K] => own?.[key] ?? construction[key]
@@ -140,9 +156,13 @@ const nestingFits = (plan: CabinetPlan) => nestedFit(plan.columns, true)
 const backsInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => (cell.back === undefined || (!cell.columns && cell.content !== 'void')) && (!cell.columns || backsInPlace(cell.columns))))
 const backsFit = (plan: CabinetPlan) => backsInPlace(plan.columns)
 /** Sliding doors can run in front of a cell split into columns: a `door` cell with columns, all of them open behind the leaves. */
-const slidBehind = (l: { build: CabinetConstruction }, cell: PlanCell) => l.build.doors === 'sliding' && cell.content === 'door' && !!cell.columns && leafCells(cell.columns).every((c) => c.content === 'open')
-const behindDoors = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => !cell.columns || ((cell.content !== 'door' || leafCells(cell.columns).every((inner) => inner.content === 'open')) && behindDoors(cell.columns))))
-const slidingFits = (plan: CabinetPlan) => plan.construction.doors !== 'sliding' || behindDoors(plan.columns)
+const slidBehind = (l: { build: CabinetConstruction }, cell: PlanCell) => doorsIn(l.build, cell) === 'sliding' && cell.content === 'door' && !!cell.columns && leafCells(cell.columns).every((c) => c.content === 'open')
+const behindDoors = (build: CabinetConstruction, columns: PlanColumn[]): boolean =>
+  columns.every((c) => c.cells.every((cell) => !cell.columns || ((cell.content !== 'door' || doorsIn(build, cell) !== 'sliding' || leafCells(cell.columns).every((inner) => inner.content === 'open')) && behindDoors(build, cell.columns))))
+const slidingFits = (plan: CabinetPlan) => behindDoors(plan.construction, plan.columns)
+/** A cell's doors go their own way only as `mixesWith` allows. */
+const doorsMix = (plan: CabinetPlan) => leafOrSplit(plan.columns).every((cell) => cell.own?.doors === undefined || cell.own.doors === plan.construction.doors || cell.own.doors === mixesWith(plan.construction))
+const leafOrSplit = (columns: PlanColumn[]): PlanCell[] => columns.flatMap((c) => c.cells.flatMap((cell) => [cell, ...(cell.columns ? leafOrSplit(cell.columns) : [])]))
 /** A rod hangs where clothes can be reached and have room under them: an open cell or one behind doors, not split. */
 export const hangs = (cell: PlanCell) => !!cell.rod && !cell.columns && (cell.content === 'open' || cell.content === 'door')
 const rodsInPlace = (columns: PlanColumn[]): boolean => columns.every((c) => c.cells.every((cell) => (!cell.rod || hangs(cell)) && (!cell.columns || rodsInPlace(cell.columns))))
@@ -158,7 +178,8 @@ const chestsFit = (plan: CabinetPlan) => chestsInPlace(plan.columns, toppedByLid
 const lidOpens = (plan: CabinetPlan) => plan.construction.top !== 'fingers' || chestsFit(plan) || !chestsFit({ ...plan, construction: { ...plan.construction, top: 'between' } })
 const CHESTS_MISPLACED = 'Un baúl va debajo de un hueco abierto, por donde abre su tapa, o hasta arriba en todas las columnas, con la cubierta como tapa; si no, queda tapado.'
 const RODS_MISPLACED = 'Un tubo para colgar va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'
-const SLIDING_MISPLACED ='Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
+const DOORS_MIXED = 'Sobrepuestas o embutidas se elige para todo el mueble: un hueco solo cambia entre abatibles y corredizas.'
+const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
 const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
@@ -189,7 +210,7 @@ export const CABINET_LABELS = {
       hints: { movable: 'Descansan sobre soportes, unos pernitos metidos en agujeros de 5 mm de los laterales: se quitan y se ponen.', fixed: 'Van unidas a los laterales y ya no se mueven: le dan firmeza al mueble.' },
     },
     fronts: { label: 'Frentes', options: { flat: 'Lisos', grooved: 'Ranurados' } },
-    hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro' } },
+    hinges: { label: 'Bisagras', options: { outside: 'Afuera', inside: 'Adentro', left: 'Izquierda', right: 'Derecha' } },
     pulls: { label: 'Jaladeras', options: { none: 'Ninguna', notch: 'Muesca', handle: 'Jaladera' } },
     drawerCorners: { label: 'Esquinas del cajón', options: { screwed: 'Atornilladas', fingers: 'De dedos' } },
   } satisfies { [K in keyof CabinetConstruction]: { label: string; options: Record<CabinetConstruction[K], string>; hints?: Record<CabinetConstruction[K], string> } },
@@ -526,7 +547,7 @@ const leavesOf = (cell: PlanCell) => Math.min(cell.doors ?? 1, 2)
 /** Where the back face of the k-th sliding leaf is, counted from the front: each leaf on its own track. */
 const trackDepth = (l: Layout, k: number) => ASSUMPTIONS.sliding.lip + k * (l.t + ASSUMPTIONS.sliding.between) + l.t
 /** How much of the depth of a cell its doors take, from the front of the carcass in. */
-const doorRoom = (l: Layout, cell: PlanCell) => (l.build.doors === 'inset' ? l.t : l.build.doors === 'sliding' ? trackDepth(l, leavesOf(cell) - 1) : 0)
+const doorRoom = (l: Layout, cell: PlanCell) => (doorsIn(l.build, cell) === 'inset' ? l.t : doorsIn(l.build, cell) === 'sliding' ? trackDepth(l, leavesOf(cell) - 1) : 0)
 
 /** Sliding leaves, with the grooves they run in: two overlap where they meet, the left one behind; one covers half of the opening and slides over the other half. */
 function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): Pick<Filling, 'pieces' | 'joints' | 'hung'> {
@@ -578,7 +599,8 @@ function frontsOf(l: Layout, cell: PlanCell, o: Opening): Pick<Filling, 'pieces'
     return { pieces: [cover, ...lid.pieces], joints: lid.joints, hung: [] }
   }
   if (cell.content !== 'door') return { pieces: [], joints: [], hung: [] }
-  if (build.doors === 'sliding') return slidingDoors(l, o, leavesOf(cell), o.front)
+  const closes = doorsIn(build, cell)
+  if (closes === 'sliding') return slidingDoors(l, o, leavesOf(cell), o.front)
 
   const box = overlaid ? o.overlay : o.inset
   const [x0, x1] = [box.x.from!, box.x.to!]
@@ -650,7 +672,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
   const m = cells.length
   const nested = spec.path.length > 1
   const middle = (spec.span[0] + spec.span[1]) / 2
-  const hangsLeft = Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (build.hinges === 'outside')
+  const hangsLeft = (hinges: CabinetConstruction['hinges']) => (hinges === 'left' || hinges === 'right' ? hinges === 'left' : Math.abs(middle - 0.5) < 1e-6 || (middle < 0.5) === (hinges === 'outside'))
 
   const separators = shares(cells.map((c) => c.height)).slice(0, -1).map((share, j) => {
     // Next to a void the fixed shelf is the column's own floor or roof.
@@ -685,7 +707,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
       top,
       overlay: { x: spec.overX, y: extent(dragging ? ref('bottom.y0', ASSUMPTIONS.drawers.floorClearance) : overBottom, overTop) },
       inset: { x: extent(ref(spec.left, GAP), ref(spec.right, -GAP)), y: extent(ref(bottom, GAP), ref(top, -GAP)) },
-      hangsLeft,
+      hangsLeft: hangsLeft(choiceIn(build, cell.own, 'hinges')),
       front: spec.front,
     }
     const choices = cell.own ?? {}
@@ -1022,6 +1044,10 @@ function benchCabinets(): [string, CabinetPlan][] {
   ]
   // Chests opened from above: under open niches, with the floor at mid-height or down to the bottom behind an inset front, and a trunk whose top is the lid.
   const chest = (shelves: number): PlanCell => ({ height: 0.5, content: 'chest', shelves, doors: null })
+  const mixedDoors: [string, CabinetPlan][] = [
+    ['aparador con una corrediza entre abatibles', cabinet('Aparador', { width: 1200, height: 800, depth: 400 }, [{ width: 1, cells: [cell('door', 1, 1, 1)] }, { width: 1, cells: [{ ...cell('door', 1, 1, 1), own: { doors: 'sliding' } }] }, { width: 1, cells: [cell('door', 1, 1, 1)] }])],
+    ['aparador de corredizas con una puerta embutida', cabinet('Aparador', { width: 900, height: 800, depth: 400 }, [{ width: 2, cells: [cell('door', 1, 0, 2)] }, { width: 1, cells: [{ ...cell('door', 1, 1, 1), own: { doors: 'inset', hinges: 'right' } }] }], { construction: slidingBuild })],
+  ]
   const kitchenBases: [string, CabinetPlan][] = [
     ['gabinete de cocina con zoclo de cocina', cabinet('Gabinete de cocina', { width: 600, height: 870, depth: 580 }, [{ width: 1, cells: [cell('door', 0.8, 1, 2), cell('drawer', 0.2)] }], { kick: 'kitchen', construction: { ...DEFAULT_CONSTRUCTION, drawerFronts: 'overlay' } })],
     ['isla con zoclo de cocina y puertas embutidas', cabinet('Isla', { width: 1200, height: 900, depth: 600 }, [{ width: 1, cells: [cell('door', 1, 1, 2)] }, { width: 1, cells: [cell('door', 1, 1, 2)] }], { kick: 'kitchen', wallMounted: false, construction: { ...DEFAULT_CONSTRUCTION, doors: 'inset', top: 'over' } })],
@@ -1043,7 +1069,7 @@ function benchCabinets(): [string, CabinetPlan][] {
     ],
     ['perchero de doble tubo', cabinet('Perchero', { width: 900, height: 2100, depth: 560 }, [{ width: 1, cells: [hang('open', 0.5), hang('open', 0.5)] }], { base: 'floor' })],
   ]
-  return [...list, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...kitchenBases, ...withChests, ...withRods]
+  return [...list, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...mixedDoors, ...kitchenBases, ...withChests, ...withRods]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -1108,7 +1134,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
 
 /** How many cells of one content choose something of their own, said after the part's summary. */
 function ownWay(plan: CabinetPlan, content: PlanCell['content']): string {
-  const n = leafCells(plan.columns).filter((c) => c.content === content && c.own).length
+  const n = leafCells(plan.columns).filter((c) => c.content === content && choicesFor(c, plan.construction).some((key) => c.own?.[key] !== undefined)).length
   return n ? ` · ${n === 1 ? '1 hueco va distinto' : `${n} huecos van distinto`}` : ''
 }
 
@@ -1206,6 +1232,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
     { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
     { holds: backsFit, message: BACKS_MISPLACED, path: ['columns'] },
     { holds: slidingFits, message: SLIDING_MISPLACED, path: ['columns'] },
+    { holds: doorsMix, message: DOORS_MIXED, path: ['columns'] },
     { holds: lidOpens, message: LID_HELD_SHUT, path: ['construction', 'top'] },
     { holds: chestsFit, message: CHESTS_MISPLACED, path: ['columns'] },
     { holds: rodsFit, message: RODS_MISPLACED, path: ['columns'] },
