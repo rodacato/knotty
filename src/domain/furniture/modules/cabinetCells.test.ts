@@ -89,6 +89,15 @@ describe('a choice of a cell', () => {
     expect(cellAt(p, [0, 0])!.own).toBeUndefined()
   })
 
+  it('a door that goes sliding closes with two leaves, since one would cover half its opening; going back keeps them', () => {
+    const p = sideboard
+    expect(cellAt(p, [0, 0])).toMatchObject({ content: 'door', doors: 1 })
+    const sliding = chooseInCell(p, [0, 0], 'doors', 'sliding')!
+    expect(cellAt(sliding, [0, 0])).toMatchObject({ doors: 2, own: { doors: 'sliding' } })
+    expect(cellAt(chooseInCell(sliding, [0, 0], 'doors', undefined)!, [0, 0])!.doors).toBe(2)
+    expect(cellAt(chooseInCell(p, [0, 0], 'pulls', 'handle')!, [0, 0])!.doors).toBe(1)
+  })
+
   it('refuses a path that reaches no cell', () => {
     expect(chooseInCell(sideboard, [9, 9], 'pulls', 'handle')).toBeNull()
   })

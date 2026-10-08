@@ -82,6 +82,8 @@ export const ASSUMPTIONS = {
     between: 3,
     /** How far a leaf goes into each groove, as a share of the board; the groove above is cut twice as deep, so the leaf lifts in and out. */
     engagement: 1 / 4,
+    /** Under this width of opening, sliding leaves leave little room to reach in: with two, less than half of it. */
+    narrowOpening: 500,
   },
   /** A lid that lifts: the floor of an open cell, hinged at the back, over a chest. */
   lids: {
@@ -169,6 +171,7 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'sliding.lip': noReference('the wood Knotty leaves in front of the first groove so its wall does not break out; the reference gives none'),
   'sliding.between': noReference('the same gap as between two fronts, so one leaf passes the other; the reference has no play for sliding doors'),
   // A quarter below and so half above: the deeper groove stays at the most the reference lets a groove go.
+  'sliding.narrowOpening': noReference('Knotty’s own: two leaves open half an opening less their overlap, and under about 230 mm a hand with a plate does not pass; the reference gives no least width for sliding doors'),
   'sliding.engagement': cite(VALUES, '6-uniones', 'Profundidad de ranura'),
   'lids.strip': noReference('the same width as the rail a wall cabinet hangs from, which takes two screws at each end; the reference gives no width for the fixed part of a lid'),
   'lids.stayTorque': cite(JOINTS_DOC, '64-otros-herrajes', 'Compás de fricción'),
