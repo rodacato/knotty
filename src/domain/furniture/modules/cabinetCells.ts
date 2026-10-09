@@ -1,5 +1,5 @@
 import type { Box } from '../../design/resolve'
-import type { CabinetConstruction, CabinetPlan, CellChoice, PlanCell, PlanColumn } from './cabinet'
+import { cabinetModule, type CabinetConstruction, type CabinetPlan, type CellChoice, type PlanCell, type PlanColumn } from './cabinet'
 import { wholeNear } from './common'
 
 // Editing the inside of a cabinet by cutting and joining (UI-68): every operation returns a new plan, and each line it adds or removes is a board.
@@ -105,6 +105,36 @@ export function joinCells(plan: CabinetPlan, path: CellPath, side: JoinSide): { 
   const total = inner.reduce((s, c) => s + c.height, 0) || 1
   outer.cells.splice(holder[holder.length - 1], 1, ...inner.map((c) => ({ ...c, height: (split.height * c.height) / total })))
   return { plan: next, path: holder }
+}
+
+const round3 = (value: number) => Math.round(value * 1000) / 1000
+/** The first cell that holds something in one of the furniture's own columns, from its bottom left. */
+const firstCell = (plan: CabinetPlan, i: number): CellPath => {
+  const path = [i, 0]
+  while (rowAt(plan, path).length) path.push(0, 0)
+  return path
+}
+
+/** A whole column of the furniture, one open cell, beside the one the cell at `path` sits in, however deep inside a split cell. Widths are weights: it takes the average of the others and theirs stay as written. */
+export function addColumn(plan: CabinetPlan, path: CellPath, side: 'left' | 'right'): { plan: CabinetPlan; path: CellPath } | null {
+  if (!cellAt(plan, path)) return null
+  const next = copy(plan)
+  const at = side === 'left' ? path[0] : path[0] + 1
+  const width = round3(plan.columns.reduce((s, c) => s + c.width, 0) / plan.columns.length)
+  next.columns.splice(at, 0, { width, cells: [{ height: 1, content: 'open', shelves: 0, doors: null }] })
+  return { plan: next, path: [at, 0] }
+}
+
+export const ONLY_COLUMN = 'Es la única columna del mueble.'
+
+/** The furniture without the whole column the cell at `path` sits in, and the first cell of a neighbour; `refused` when it is the only column or what is left breaks a rule of the cabinet. */
+export function removeColumn(plan: CabinetPlan, path: CellPath): { plan: CabinetPlan; path: CellPath } | { refused: string } | null {
+  if (!cellAt(plan, path)) return null
+  if (plan.columns.length === 1) return { refused: ONLY_COLUMN }
+  const next = copy(plan)
+  next.columns.splice(path[0], 1)
+  const broken = cabinetModule.rules?.find((rule) => !rule.holds(next))
+  return broken ? { refused: broken.message } : { plan: next, path: firstCell(next, Math.max(0, path[0] - 1)) }
 }
 
 const sizesOf = (plan: CabinetPlan, line: Line) => (line.axis === 'columns' ? rowAt(plan, line.at).map((c) => c.width) : (rowAt(plan, line.at.slice(0, -1))[line.at[line.at.length - 1]]?.cells.map((c) => c.height) ?? []))

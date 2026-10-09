@@ -4,7 +4,8 @@ import { cutBox, woodLeft } from '../../design/cuts'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
-import { withFrontCuts } from './fronts'
+import { withFrontCuts } from '../../design/frontCuts'
+import { pullFor } from './fronts'
 import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })
@@ -32,9 +33,16 @@ const built = (construction: Partial<CabinetConstruction>) => {
 }
 const fronts = (design: ReturnType<typeof built>['design']) => design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front')
 
+describe('the pull of a front whose plan does not say', () => {
+  it('is a notch only when it sits inside its opening, and what the plan says always wins', () => {
+    expect((['inset', 'overlay', 'sliding', 'lid'] as const).map((mount) => pullFor(undefined, mount))).toEqual(['notch', 'none', 'none', 'none'])
+    expect((['none', 'notch', 'handle'] as const).map((said) => [pullFor(said, 'inset'), pullFor(said, 'overlay')])).toEqual([['none', 'none'], ['notch', 'notch'], ['handle', 'handle']])
+  })
+})
+
 describe('front cuts', () => {
   it('smooth fronts with no notch have no cuts at all', () => {
-    expect(built({}).design.pieces.filter((p) => p.cuts)).toEqual([])
+    expect(built({ pulls: 'none' }).design.pieces.filter((p) => p.cuts)).toEqual([])
   })
 
   it('grooved fronts get ribs on every door and drawer front, and nothing else does', () => {

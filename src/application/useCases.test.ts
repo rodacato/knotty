@@ -715,8 +715,8 @@ describe('skeleton first: a cabinet is built by Knotty from its plan', () => {
     if (!r.ok) throw new Error(r.message)
     expect(calls).toEqual(['plan'])
     expect(new Set(currentDesign(r.state).pieces.map((p) => p.group).filter(Boolean)).size).toBe(4)
-    expect(r.state.chat.at(-1)?.text).toBe('Cambié desde la ficha: frentes de cajón sobrepuestos, 4 cajones.')
-    expect(r.state.versions.at(-1)).toMatchObject({ n: 2, summary: 'Ficha: frentes de cajón sobrepuestos, 4 cajones' })
+    expect(r.state.chat.at(-1)?.text).toBe('Cambié desde la ficha: frentes de cajón sobrepuestos, jaladeras ninguna, 4 cajones.')
+    expect(r.state.versions.at(-1)).toMatchObject({ n: 2, summary: 'Ficha: frentes de cajón sobrepuestos, jaladeras ninguna, 4 cajones' })
     expect(currentPlan(r.state)).toMatchObject({ since: 2, diverged: false })
   })
 

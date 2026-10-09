@@ -10,11 +10,13 @@ import { stiffness } from '../../materials/grades'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
+import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withEdges } from './edgeBanding'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE } from './common'
+import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
-import { notchNote, withFrontCuts } from './fronts'
+import { withFrontCuts } from '../../design/frontCuts'
+import { notchNote, pullFor } from './fronts'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
 import { FRONT_GAP } from '../../editing/operations/drawer'
@@ -53,7 +55,7 @@ export const BedPlan = z.object({
     position: z.enum(['head', 'center', 'foot']).describe('If they do not fill the whole length, where they gather: head, center or foot'),
     mount: z.enum(['inset', 'overlay']).optional().describe('overlay: fronts cover the dividers'),
     style: z.enum(['flat', 'grooved']).optional(),
-    pulls: Pulls.optional(),
+    pulls: Pulls.optional().describe('absent: notch if inset'),
     corners: z.enum(['screwed', 'fingers']).optional().describe('Of the drawer boxes'),
     fingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Per corner; default ${DEFAULT_FINGERS}`),
   }),
@@ -68,6 +70,7 @@ export const BedPlan = z.object({
   platform: z.enum(['panel', 'slats']).optional().describe('Under the mattress: panel (default), a plywood board; slats, boards across the bed, screwed down'),
   lip: z.boolean().optional().describe('A lip that keeps the mattress in'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
+  edges: EdgeBanding.optional().describe(EDGE_BANDING),
 })
 export type BedPlan = z.infer<typeof BedPlan>
 
@@ -97,7 +100,7 @@ function lipEdges(plan: BedPlan): Edge[] {
   return plan.headboard.style === 'none' ? ['left', 'right', 'head', 'foot'] : ['left', 'right', 'foot']
 }
 /** How the drawers are built, with what an absent choice means. */
-const drawerBuild = ({ drawers: d }: BedPlan) => ({ mount: d.mount ?? 'inset', style: d.style ?? 'flat', pulls: d.pulls ?? 'none', corners: d.corners ?? 'screwed', fingers: d.fingers ?? DEFAULT_FINGERS })
+const drawerBuild = ({ drawers: d }: BedPlan) => ({ mount: d.mount ?? 'inset', style: d.style ?? 'flat', pulls: pullFor(d.pulls, d.mount ?? 'inset'), corners: d.corners ?? 'screwed', fingers: d.fingers ?? DEFAULT_FINGERS })
 
 export const BED_LABELS = {
   mattress: {
@@ -626,7 +629,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: knockDown(done.design, plan.assembly, catalog, blockOf(l)), notes: [...head.notes, ...slatNotes(l), ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
+  return { design: withEdges(knockDown(done.design, plan.assembly, catalog, blockOf(l)), plan.edges), notes: [...head.notes, ...slatNotes(l), ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */
@@ -720,11 +723,11 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
   if (k.style !== 'none' && !!h.cap !== !!k.cap) changes.push(k.cap ? 'con copete' : 'sin copete')
   if (k.style === 'daybed' && (h.arms ?? 'square') !== (k.arms ?? 'square')) changes.push(BED_LABELS.arms[k.arms ?? 'square'].phrase)
-  return [...changes, ...describeAssembly(before, after)]
+  return [...changes, ...describeAssembly(before, after), ...describeEdgeBanding(before, after)]
 }
 
 /** What an absent choice of the drawers means, said out loud: the bench's plans carry every key of the schema. */
-const PLAIN_DRAWERS = { mount: 'inset', style: 'flat', pulls: 'none', corners: 'screwed', fingers: DEFAULT_FINGERS } as const
+const PLAIN_DRAWERS = { mount: 'inset', style: 'flat', pulls: 'notch', corners: 'screwed', fingers: DEFAULT_FINGERS } as const
 
 function benchBeds(): [string, BedPlan][] {
   const variants: [string, BedPlan][] = []
@@ -737,7 +740,7 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, platform: 'panel', lip: false, assembly: 'glued' },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, platform: 'panel', lip: false, assembly: 'glued', edges: 'banded' },
           ])
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
@@ -770,6 +773,7 @@ function benchBeds(): [string, BedPlan][] {
   variants.push(['individual, cama de día con copete y tope, desarmable con pernos', { ...named('individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'), assembly: 'bolts' }])
   variants.push([`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm, desarmable con pernos`, { ...named(`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm`), assembly: 'bolts' }])
   variants.push(['queen, cabecera librero, cajones de los dos lados, desarmable con minifix', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), assembly: 'cams' }])
+  variants.push(['queen, cabecera librero, cajones de los dos lados, cantos a la vista', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), edges: 'exposed' }])
   // Slats under the mattress: over closed sides, on legs, over drawers (inset and overlay) and inside a daybed; from the queen up they take a rail halfway across.
   for (const mattress of MattressSize.options) {
     variants.push([`${mattress}, cabecera lisa, sin cajones, de tablillas`, { ...drawn, mattress, drawers: base.drawers, platform: 'slats' }])
@@ -790,29 +794,38 @@ const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPl
 /** A daybed stands on its arms and backrest, with drawers on one side only: choosing it settles both. */
 const asDaybed = (plan: BedPlan): BedPlan => ({ ...plan, legs: 'none', drawers: plan.drawers.side === 'both' ? { ...plan.drawers, side: 'left' } : plan.drawers })
 const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>): BedPlan => ({ ...plan, headboard: { ...plan.headboard, ...headboard } })
+/** The reference gives no height for a headboard: over the base, the mattress and what a back needs to lean on (valores-de-referencia.md §11, BACKREST_RISE), and never less than what it carries. */
+const usualHeadboard = (plan: BedPlan) => plan.height + Math.max(MATTRESS_THICKNESS + BACKREST_RISE, headboardRoom(plan))
+/** A bed without a headboard stores a height that means nothing: the chosen type keeps a height only if it holds its rules. */
+function withHeadboardStyle(plan: BedPlan, style: BedPlan['headboard']['style']): BedPlan {
+  const chosen = withHeadboard(plan, { style })
+  const standing = headboardFits(chosen) && headboardRises(chosen) ? chosen : withHeadboard(chosen, { height: usualHeadboard(chosen) })
+  return style === 'daybed' ? asDaybed(standing) : standing
+}
 
 /** A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices. */
 const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
     choice({ key: 'mattress', label: 'Colchón', lockedByDefault: true, ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
-    note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
-    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`),
+    note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.', undefined, 'mattress'),
+    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`, undefined, 'mattress'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', ...PLAN_MEASURE, get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
-    note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
+    edgeBandingField<BedPlan>(),
+    note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers, 'legs'),
     note('De la matrimonial en adelante lleva una fila de patas al centro, bajo la espina, que cargan como las de los lados: en un piso desnivelado, calza la que no asiente.', (p) => p.legs === 'legs' && p.mattress !== 'individual' && !hasDrawers(p) && !isDaybed(p), 'legs'),
     choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p) && !isDaybed(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
     legStyleField((p) => p.legs === 'legs'),
     choice({ key: 'platform', label: 'Bajo el colchón', ...fromLabels(BED_LABELS.platform), get: (p) => p.platform ?? 'panel', set: (p, platform) => ({ ...p, platform }) }),
-    note(`Tablillas de ${SLAT.width / 10} cm a lo ancho, con ${SLAT.gap / 10} cm o menos entre una y otra, embutidas entre los costados sobre un listón y atornilladas: el colchón respira y la base pesa menos. Con cajones, entre ellas cae polvo.`, (p) => p.platform === 'slats'),
+    note(`Tablillas de ${SLAT.width / 10} cm a lo ancho, con ${SLAT.gap / 10} cm o menos entre una y otra, embutidas entre los costados sobre un listón y atornilladas: el colchón respira y la base pesa menos. Con cajones, entre ellas cae polvo.`, (p) => p.platform === 'slats', 'platform'),
     yesNo({ key: 'lip', label: 'Tope del colchón', get: (p) => !!p.lip, set: (p, lip) => ({ ...p, lip }) }),
-    note(`Un listón de ${MATTRESS_LIP / 10} cm sobre la plataforma en cada orilla que la cabecera, los brazos o el respaldo dejan abierta, para que el colchón no se salga. La cama crece lo que mide el triplay por cada uno, y la holgura queda igual.`, (p) => !!p.lip && p.platform !== 'slats'),
-    note(`Con tablillas, las tablas de la base suben ${MATTRESS_LIP / 10} cm más en cada orilla abierta y detienen el colchón. La cama crece lo que mide el triplay por cada una.`, (p) => !!p.lip && p.platform === 'slats'),
+    note(`Un listón de ${MATTRESS_LIP / 10} cm sobre la plataforma en cada orilla que la cabecera, los brazos o el respaldo dejan abierta, para que el colchón no se salga. La cama crece lo que mide el triplay por cada uno, y la holgura queda igual.`, (p) => !!p.lip && p.platform !== 'slats', 'lip'),
+    note(`Con tablillas, las tablas de la base suben ${MATTRESS_LIP / 10} cm más en cada orilla abierta y detienen el colchón. La cama crece lo que mide el triplay por cada una.`, (p) => !!p.lip && p.platform === 'slats', 'lip'),
   ]),
   section('Cajones', [
-    note('Los lados se ven desde el pie de la cama.'),
-    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot'),
+    note('Los lados se ven desde el pie de la cama.', undefined, 'drawers.side'),
+    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot', 'drawers.position'),
     choice({
       key: 'drawers.side',
       label: 'Lado',
@@ -828,17 +841,17 @@ const bedFields: FieldSpec<BedPlan>[] = [
     stepper({ key: 'drawers.count', label: 'Por lado', ariaLabel: 'cajones por lado', min: 1, max: MAX_DRAWERS_PER_SIDE, visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.count, set: (p, count) => withDrawers(p, { count }) }),
     choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', ...fromLabels(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),
     choice({ key: 'drawers.mount', label: 'Frentes', ariaLabel: 'Cómo van los frentes', ...fromLabels(BED_LABELS.drawerMount), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).mount, set: (p, mount) => withDrawers(p, { mount }) }),
-    note('Sobrepuestos tapan los divisores de canto a canto, y el zoclo queda metido el grueso del triplay.', (p) => hasDrawers(p) && drawerBuild(p).mount === 'overlay'),
+    note('Sobrepuestos tapan los divisores de canto a canto, y el zoclo queda metido el grueso del triplay.', (p) => hasDrawers(p) && drawerBuild(p).mount === 'overlay', 'drawers.mount'),
     choice({ key: 'drawers.style', label: 'Acabado de los frentes', ...fromLabels(BED_LABELS.drawerStyle), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).style, set: (p, style) => withDrawers(p, { style }) }),
     choice({ key: 'drawers.pulls', label: 'Jaladeras', ...fromLabels(BED_LABELS.pulls), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).pulls, set: (p, pulls) => withDrawers(p, { pulls }) }),
     choice({ key: 'drawers.corners', label: 'Esquinas del cajón', ...fromLabels(BED_LABELS.drawerCorners), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).corners, set: (p, corners) => withDrawers(p, { corners }) }),
     stepper({ key: 'drawers.fingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => hasDrawers(p) && drawerBuild(p).corners === 'fingers', get: (p) => drawerBuild(p).fingers, set: (p, fingers) => withDrawers(p, { fingers }) }),
   ]),
   section('Cabecera', [
-    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => (style === 'daybed' ? asDaybed(withHeadboard(p, { style })) : withHeadboard(p, { style })) }),
-    note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
-    note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed),
-    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest),
+    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: withHeadboardStyle }),
+    note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage', 'headboard.style'),
+    note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed, 'headboard.style'),
+    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest, 'headboard.height'),
     numbers(
       2,
       [
@@ -849,11 +862,11 @@ const bedFields: FieldSpec<BedPlan>[] = [
     ),
     stepper({ key: 'headboard.shelves', label: 'Repisas', ariaLabel: 'repisas de la cabecera', min: 0, max: 4, visibleWhen: deepHeadboard, get: (p) => p.headboard.shelves, set: (p, shelves) => withHeadboard(p, { shelves }) }),
     yesNo({ key: 'headboard.cap', label: 'Copete', visibleWhen: (p) => p.headboard.style !== 'none', get: (p) => !!p.headboard.cap, set: (p, cap) => withHeadboard(p, { cap }) }),
-    note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap),
+    note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap, 'headboard.cap'),
     choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
-    note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
+    note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped', 'headboard.arms'),
   ]),
-  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase)]),
+  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase, 'assembly')]),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
@@ -914,6 +927,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
   label: 'una cama',
   expert: { what: 'a bed (a base with or without drawers, and a headboard)' },
   build: buildBed,
+  builtAsAsked: (plan, design) => drawersShort(design, plan.drawers.side === 'none' ? 0 : plan.drawers.count * (plan.drawers.side === 'both' ? 2 : 1), 'bajo esa cama'),
   describeChanges: describeBedChanges,
   // Its length and width come from the mattress; its height is the headboard's, or the base's without one.
   resize: (plan, axis, value) =>

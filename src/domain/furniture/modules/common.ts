@@ -135,6 +135,13 @@ export const supportsAcross = (length: number, t: number, span = MAX_SPAN) => Ma
 
 export type AddDrawer = Extract<Operation, { op: 'addDrawer' }>
 
+/** The operation notches the front it adds; a module decides how its fronts open once they are all in place, so it takes the front bare. */
+function unpulled(design: Design, front: string): Design {
+  const { pullsOf: { [front]: _, ...others } = {}, ...rest } = design
+  const bare = ({ cuts: _cuts, ...piece }: Piece): Piece => piece
+  return { ...rest, ...(Object.keys(others).length ? { pullsOf: others } : {}), pieces: design.pieces.map((p) => (p.id === front ? bare(p) : p)) }
+}
+
 /** Drawers go one by one: one that does not fit is left out and said instead of failing the whole piece. `placed` finishes one that went in. */
 export function addDrawers(design: Design, drawers: AddDrawer[], catalog: Catalog, placed: (design: Design, drawer: AddDrawer) => Design = (d) => d): { design: Design; notes: string[] } {
   const notes: string[] = []
@@ -144,9 +151,15 @@ export function addDrawers(design: Design, drawers: AddDrawer[], catalog: Catalo
       notes.push(`${drawer.name}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
       continue
     }
-    design = placed(result.value.design, drawer)
+    design = placed(unpulled(result.value.design, `${drawer.group}-front`), drawer)
   }
   return { design, notes }
+}
+
+/** The drawers the plan asks for against the ones `addDrawers` placed; `where` is what they did not fit in: "en esos huecos". */
+export function drawersShort(design: Design, asked: number, where: string): string | null {
+  const built = design.pieces.filter((p) => p.role === 'drawer-front').length
+  return built === asked ? null : `Solo caben ${built} de ${asked} cajones ${where}.`
 }
 
 export const cm = (mm: number) => `${(mm / 10).toLocaleString('es-MX', { maximumFractionDigits: 1 })} cm`

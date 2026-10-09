@@ -6,7 +6,7 @@ import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/pla
 import { partName } from '../../domain/furniture/modules/parts'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button, IconButton } from '../system/components'
-import { useStore, type EditSide } from '../store'
+import { draftOf, useStore, type EditSide } from '../store'
 import { CellSheet } from './CellSheet'
 import { DraftBar } from './DraftBar'
 import { OutsideList } from './OutsideList'
@@ -45,6 +45,7 @@ function Breadcrumbs({ steps }: { steps: { label: string; up?: () => void }[] })
 export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { state: DesignState; side: EditSide; plan: FurniturePlan | null; applied: FurniturePlan | null; geo: Geometry | null; pieceSheet: ReactNode }) {
   const edit = useStore((s) => s.edit)
   const apply = useStore((s) => s.applyPlanDraft)
+  const draft = useStore(draftOf)
   const discard = useStore((s) => s.discardPlanDraft)
   const cell = useStore((s) => s.cell)
   const part = useStore((s) => s.part)
@@ -100,6 +101,11 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
         <div className="flex flex-col gap-3 border-t border-line bg-paper p-4" role="alertdialog" aria-label="Cambios sin aplicar">
           <p className="text-sm font-medium">Tienes cambios sin aplicar</p>
           {error && <p className="text-xs text-rust">{error}</p>}
+          {draft?.notes.map((note) => (
+            <p key={note} className="text-xs text-graphite-2">
+              {note}
+            </p>
+          ))}
           <div className="flex flex-wrap gap-2">
             <Button
               variant="primary"

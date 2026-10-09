@@ -96,6 +96,10 @@ export const ASSUMPTIONS = {
     maxStays: 2,
   },
   /** A closet rod: a tube between two uprights, under the top of its opening. */
+  pulls: {
+    /** Less room than this beside an edge of a front and a finger does not get behind it. */
+    fingerRoom: 20,
+  },
   rods: {
     /** From the board over it down to the middle of the rod: room to get a hanger's hook over it. */
     drop: 50,
@@ -179,6 +183,7 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'lids.stayTorque': cite(JOINTS_DOC, '64-otros-herrajes', 'Compás de fricción'),
   'lids.maxStays': noReference('one stay by each wall of the chest is all there is room for; the reference gives no count'),
   'lids.minOpening': noReference('where Knotty calls a lid hard to reach under; the reference gives no opening angle'),
+  'pulls.fingerRoom': noReference('about the thickness of a finger; the reference names the pull and the inset front and gives no room to grip an edge'),
   'rods.drop': noReference('room for the hook of a hanger between the rod and the board over it; the reference places the rod from the back and from the floor, not under its shelf'),
   'rods.maxSpan': cite(VALUES, '10-medidas-de-muebles-y-ergonomía', 'Clóset: claro del tubo sin soporte al centro'),
   'rods.shortHang': cite(VALUES, '10-medidas-de-muebles-y-ergonomía', 'Clóset: hueco para colgado corto'),

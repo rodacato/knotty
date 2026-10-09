@@ -1,7 +1,7 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
-import { cellAt, cellLayout, chooseInCell, joinCells, joinSides, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
 import { Segmented, Stepper } from './PlanControls'
@@ -39,6 +39,18 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     if (!r) return
     editPlan(r.plan)
     selectCell(r.path)
+  }
+  const widen = (side: 'left' | 'right') => {
+    const r = addColumn(plan, path, side)
+    if (!r) return
+    editPlan(r.plan)
+    selectCell(r.path)
+  }
+  const removal = removeColumn(plan, path)
+  const narrow = () => {
+    if (!removal || 'refused' in removal) return
+    editPlan(removal.plan)
+    selectCell(removal.path)
   }
   const voidable = canBeVoid(plan, path)
   const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
@@ -108,7 +120,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         )}
         {choicesFor(cell, plan.construction).map((key) => {
           const { label, options } = CABINET_LABELS.construction[key]
-          const furniture = (options as Record<string, string>)[plan.construction[key]]
+          const furniture = (options as Record<string, string>)[key === 'pulls' ? pullsIn(plan.construction, cell) : plan.construction[key]]
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>
@@ -160,6 +172,18 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           ) : (
             <p className="text-xs text-graphite-2">Nada que juntar: este hueco no salió de dividir uno junto a él.</p>
           )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-graphite-2">Columna entera del mueble</span>
+          <div className="flex flex-wrap gap-2">
+            <Chip onClick={() => widen('left')}>Agregar a la izquierda</Chip>
+            <Chip onClick={() => widen('right')}>Agregar a la derecha</Chip>
+            <Chip onClick={narrow} disabled={!removal || 'refused' in removal}>
+              Quitar esta columna
+            </Chip>
+          </div>
+          {path.length > 2 && <p className="text-xs text-graphite-2">Este hueco está dentro de uno dividido: aquí se agrega o se quita la columna del mueble que lo contiene, de abajo hasta arriba.</p>}
+          {removal && 'refused' in removal && <p className="text-xs text-graphite-2">No se puede quitar: {removal.refused}</p>}
         </div>
       </div>
     </section>

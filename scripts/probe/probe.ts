@@ -13,7 +13,7 @@ import { loadReferences, ReferenceFile, type Reference } from '../../src/domain/
 //   npm run probe -- --update kc-apa-01   rewrite its `expect` (and only that) to what the engine makes
 //   npm run probe -- --explain kc-apa-01  a ficha in words (or, with a candidate.json after it, the candidate as it would be adopted)
 //   npm run probe -- --diff kc-apa-01 candidate.json    what a candidate would change, writing nothing
-//   npm run probe -- --adopt kc-apa-01 candidate.json   make it the next version (or version 1 of a new reference)
+//   npm run probe -- --adopt kc-apa-01 candidate.json   write it: the next version when the piece changed, the same file when only what is said about it did
 // A candidate is a plan, or a ficha without `expect`; over an existing reference it inherits what it does not say.
 
 const DIR = 'src/adapters/references'
@@ -47,7 +47,8 @@ function plan(code: string, candidateFile: string) {
 const explainOf = (ficha: Record<string, unknown>, code: string, version: number) => explain({ ...ReferenceFile.parse(ficha), code, version })
 
 const report = ({ upper, existing, adoption }: NonNullable<ReturnType<typeof plan>>) => {
-  console.log(existing ? `${upper}: version ${existing.version}${adoption.changes.length ? ` → ${adoption.version}` : ', nothing new'}` : `${upper}: new reference, version 1`)
+  const moved = !adoption.changes.length ? ', nothing new' : adoption.version === existing?.version ? ', same version: the piece is the same' : ` → ${adoption.version}`
+  console.log(existing ? `${upper}: version ${existing.version}${moved}` : `${upper}: new reference, version 1`)
   for (const path of adoption.changes) console.log(`  changed ${path}`)
   for (const line of adoption.expectChanges) console.log(`  expect ${line}`)
   // Always the verdict, also for a new reference: «accepted» alone says nothing about whether the engine likes it.
@@ -104,11 +105,11 @@ export async function main(args: string[]): Promise<number> {
       if (!p) return 1
       report(p)
       if (args[0] === '--diff' || !p.adoption.changes.length) return 0
-      // A new version replaces the old file: the name carries the version, so git sees a rename with the changes.
+      // The name carries the version: a new one renames the file, so git sees a rename with the changes; the same one is rewritten where it is.
       const target = `${DIR}/${p.upper.toLowerCase()}.v${p.adoption.version}.json`
       const others = Object.fromEntries(store.all().filter((r) => r.code !== p.upper).map((r) => [fileOf(r), JSON.parse(readFileSync(fileOf(r), 'utf8'))]))
       loadReferences({ ...others, [target]: p.adoption.ficha })
-      if (p.existing) renameSync(fileOf(p.existing), target)
+      if (p.existing && fileOf(p.existing) !== target) renameSync(fileOf(p.existing), target)
       writeFileSync(target, formatFicha(p.adoption.ficha))
       console.log(`${target}: written`)
       return 0

@@ -24,13 +24,14 @@
     "shelf": false,
     "pedestal": { "side": "none", "drawers": 0 },
     "legs": "panel",
-    "assembly": "bolts"
+    "assembly": "bolts",
+    "edges": "exposed"
   },
   "expect": {
     "valid": true,
     "pieces": 8,
     "findings": [],
     "sheets": { "T18": 2 },
-    "hardware": { "connector-bolt-m6": 4, "edge-banding-19": 10, "screw-8x2": 66, "white-glue": 1 }
+    "hardware": { "connector-bolt-m6": 4, "screw-8x2": 66, "white-glue": 1 }
   }
 }

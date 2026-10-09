@@ -37,7 +37,9 @@ function KindPicker({ state }: { state: DesignState }) {
   const id = useId()
   const design = currentDesign(state)
   const known = kindOf(design)
-  const said = known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'
+  const source = known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'
+  // Only a bookcase's shelves are judged with a heavy load: the kind is how the person says what they carry.
+  const said = [source, known.kind === 'bookcase' ? 'Sus repisas se revisan con el peso de libros.' : null].filter(Boolean).join(' ')
   const current = known.kind === 'unknown' ? null : known.kind
   const choose = (kind: DesignKind | null) => {
     setError(null)

@@ -2,7 +2,7 @@ import type { Design } from '../design/schema'
 import type { DesignKind, KindSource } from '../design/kind'
 import { kindFromWords } from '../checks/typology/typology'
 import { MODULE_OF_KIND, type FurniturePlan } from './modules/plan'
-import { TABLE_KIND, type TablePlan } from './modules/table'
+import { TABLE_KIND, tableForUse, type TablePlan } from './modules/table'
 
 // What the furniture is and who said so. Everything that depends on the kind (the prompts, the checks by use) reads it from here, not from how the design came to be.
 
@@ -56,7 +56,8 @@ export function startingKind(sources: { person: DesignKind | null; built: KnownK
 export function kindChange(design: Design, plan: FurniturePlan | null, kind: DesignKind): 'same' | 'in-place' | 'redo' {
   if (design.kind === kind && design.kindSource === 'person') return 'same'
   if (!plan) return 'in-place'
-  return MODULE_OF_KIND[kind] === plan.kind ? 'in-place' : 'redo'
+  // A bench has no module of its own, and a table's plan can still say it: its use for sitting.
+  return MODULE_OF_KIND[kind] === plan.kind || (plan.kind === 'table' && !!TABLE_USE[kind]) ? 'in-place' : 'redo'
 }
 
 /** A plan the person changed by hand that changes the kind (a table's use) is their choice. */
@@ -67,8 +68,8 @@ export const keepPersonKind = (plan: FurniturePlan, design: Design): FurniturePl
 
 const TABLE_USE = Object.fromEntries(Object.entries(TABLE_KIND).map(([use, kind]) => [kind, use])) as Partial<Record<DesignKind, TablePlan['use']>>
 
-/** The plan saying the same as the kind: a table's use is its kind, so choosing «escritorio» makes it a desk. Other plans do not say their use. */
+/** The plan saying the same as the kind: a table's use is its kind, so choosing «escritorio» makes it a desk, as its «Uso» does. Other plans do not say their use. */
 export function planForKind(plan: FurniturePlan, kind: DesignKind): FurniturePlan {
   const use = TABLE_USE[kind]
-  return plan.kind === 'table' && use ? { ...plan, use } : plan
+  return plan.kind === 'table' && use ? tableForUse(plan, use) : plan
 }

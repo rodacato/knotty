@@ -136,7 +136,7 @@ function evaluate(plan: Plan, { catalog, extras, requirements }: Context): Built
   if (!parsed.success) return null
   const rebuilt = rebuildFromPlan(parsed.data, extras, catalog, requirements)
   const analysis = analyze(rebuilt.design, catalog, requirements)
-  if (!analysis.valid) return null
+  if (!analysis.valid || rebuilt.missing) return null
   const sheets = layOut(rebuilt.design, analysis.geo, catalog).map((l) => ({ material: l.material, thickness: materialById(catalog, l.material)?.thickness ?? 0, sheets: l.sheets.length + l.unplaced.length }))
   sheets.sort((a, b) => b.thickness - a.thickness)
   return {

@@ -1,6 +1,6 @@
 # Probe
 
-Checks a reference ficha (`src/adapters/references/*.json`) against what the engine makes of it today, and turns a candidate into the next version of a ficha. It never calls a provider.
+Checks a reference ficha (`src/adapters/references/*.json`) against what the engine makes of it today, and writes a candidate over a ficha. It never calls a provider.
 
 What a ficha file is and the whole path from an idea to an adopted ficha: [docs/fichas.md](../../docs/fichas.md).
 
@@ -13,10 +13,10 @@ npm run probe -- --explain kc-apa-01                # the ficha in words
 npm run probe -- --explain kc-apa-01 candidate.json # a candidate, as it would be once adopted
 npm run probe -- --diff kc-apa-01 candidate.json    # what a candidate would change
 npm run probe -- --update kc-apa-01                 # rewrites its `expect` to what the engine makes
-npm run probe -- --adopt kc-apa-01 candidate.json   # makes the candidate the next version
+npm run probe -- --adopt kc-apa-01 candidate.json   # writes the candidate: the next version, or the same file
 ```
 
-Only `--update` and `--adopt` write. `--update` touches the `expect` of one file and nothing else; `--adopt` writes the new version and renames the old file to it, so git shows a rename with the changes.
+Only `--update` and `--adopt` write. `--update` touches the `expect` of one file and nothing else; `--adopt` writes the candidate over the ficha: when what an opened design takes changed it is the next version and the old file is renamed to it, so git shows a rename with the changes; otherwise the file is rewritten under the same version.
 
 Exit codes: `0` as expected, `1` a ficha differs from its `expect` or a candidate was not adopted, `2` wrong usage or an error.
 

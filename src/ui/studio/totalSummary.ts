@@ -2,9 +2,10 @@
 export const finishCounted = (containerPrices: (number | null)[]) => containerPrices.length > 0 && containerPrices.every((p) => p !== null)
 
 /** What the total adds up, in words. */
-export function totalCovers({ sheets, onlyPlywood, withFinish }: { sheets: number; onlyPlywood: boolean; withFinish: boolean }): string {
+export function totalCovers({ sheets, onlyPlywood, withBanding, withFinish }: { sheets: number; onlyPlywood: boolean; withBanding: boolean; withFinish: boolean }): string {
   const boards = onlyPlywood ? `${sheets === 1 ? 'hoja' : 'hojas'} de triplay` : sheets === 1 ? 'tablero' : 'tableros'
-  return `${sheets} ${boards}, herrajes${withFinish ? ', cubrecanto y acabado' : ' y cubrecanto'}.`
+  const parts = [`${sheets} ${boards}`, 'herrajes', ...(withBanding ? ['cubrecanto'] : []), ...(withFinish ? ['acabado'] : [])]
+  return `${parts.slice(0, -1).join(', ')} y ${parts.at(-1)}.`
 }
 
 export const sheetsHeading = (onlyPlywood: boolean) => (onlyPlywood ? 'Hojas de triplay' : 'Tableros')

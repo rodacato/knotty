@@ -17,17 +17,22 @@ describe('finishCounted', () => {
 
 describe('totalCovers', () => {
   it('names the finish only when it is in the total', () => {
-    expect(totalCovers({ sheets: 3, onlyPlywood: true, withFinish: true })).toBe('3 hojas de triplay, herrajes, cubrecanto y acabado.')
-    expect(totalCovers({ sheets: 3, onlyPlywood: true, withFinish: false })).toBe('3 hojas de triplay, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 3, onlyPlywood: true, withBanding: true, withFinish: true })).toBe('3 hojas de triplay, herrajes, cubrecanto y acabado.')
+    expect(totalCovers({ sheets: 3, onlyPlywood: true, withBanding: true, withFinish: false })).toBe('3 hojas de triplay, herrajes y cubrecanto.')
+  })
+
+  it('leaves the edge banding out when the piece buys none', () => {
+    expect(totalCovers({ sheets: 2, onlyPlywood: true, withBanding: false, withFinish: false })).toBe('2 hojas de triplay y herrajes.')
+    expect(totalCovers({ sheets: 2, onlyPlywood: true, withBanding: false, withFinish: true })).toBe('2 hojas de triplay, herrajes y acabado.')
   })
 
   it('says one sheet in the singular', () => {
-    expect(totalCovers({ sheets: 1, onlyPlywood: true, withFinish: false })).toBe('1 hoja de triplay, herrajes y cubrecanto.')
-    expect(totalCovers({ sheets: 1, onlyPlywood: false, withFinish: false })).toBe('1 tablero, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 1, onlyPlywood: true, withBanding: true, withFinish: false })).toBe('1 hoja de triplay, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 1, onlyPlywood: false, withBanding: true, withFinish: false })).toBe('1 tablero, herrajes y cubrecanto.')
   })
 
   it('does not call the sheets plywood when some are not', () => {
-    expect(totalCovers({ sheets: 4, onlyPlywood: false, withFinish: false })).toBe('4 tableros, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 4, onlyPlywood: false, withBanding: true, withFinish: false })).toBe('4 tableros, herrajes y cubrecanto.')
   })
 })
 

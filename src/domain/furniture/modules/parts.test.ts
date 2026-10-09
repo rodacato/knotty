@@ -8,6 +8,9 @@ import { FURNITURE_KINDS, MODULES, type FurniturePlan } from './plan'
 const keys = (fields: FieldSpec<FurniturePlan>[]): string[] =>
   fields.flatMap((f) => (f.type === 'section' || f.type === 'numbers' ? keys(f.fields as FieldSpec<FurniturePlan>[]) : 'key' in f ? [f.key] : []))
 
+const notes = (fields: FieldSpec<FurniturePlan>[]): { text: string; about?: string }[] =>
+  fields.flatMap((f) => (f.type === 'section' ? notes(f.fields) : f.type === 'note' ? [f] : []))
+
 describe.each(FURNITURE_KINDS)('the parts of %s', (kind) => {
   const module = MODULES[kind] as unknown as FurnitureModule<FurniturePlan>
   const variants = module.benchVariants()
@@ -20,6 +23,11 @@ describe.each(FURNITURE_KINDS)('the parts of %s', (kind) => {
     expect(new Set(gathered).size).toBe(gathered.length)
     expect(module.parts.list.flatMap((p) => p.alsoShows ?? []).filter((k) => !gathered.includes(k))).toEqual([])
     expect(module.parts.list.filter((p) => p.joints.length && !p.jointsTitle).map((p) => p.id)).toEqual([])
+  })
+
+  it('show every note of its form in the part of the field it is about', () => {
+    const gathered = module.parts.list.flatMap((p) => p.fields)
+    expect(notes(module.fields).filter((n) => !n.about || !gathered.includes(n.about)).map((n) => n.text)).toEqual([])
   })
 
   it('give every piece a part it opens, but a cabinet’s boards inside, which the interior view edits', () => {

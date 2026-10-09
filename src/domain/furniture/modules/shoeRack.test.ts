@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { resolveGeometry } from '../../design/resolve'
+import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
+import { testReferences } from '../fixtures/references.test-util'
+import { isVisible } from './fields'
 import { detectKind } from '../../checks/typology/typology'
 import { MODULE_OF_KIND } from './plan'
 import { BOOT_LEVEL_HEIGHT, buildShoeRack, SHOE_RACK_LABELS, shoeRackModule, type ShoeRackPlan } from './shoeRack'
@@ -52,6 +55,12 @@ describe('the shoe rack', () => {
     expect(built(rack({ front: 'doors', dimensions: { width: 500, height: 900, depth: 330 } })).design.pieces.filter((p) => p.role === 'door')).toHaveLength(1)
   })
 
+  it('its doors go over the front, so a plan that says no pull leaves them plain: no notch, no note and nothing said in the design', () => {
+    const { design, notes } = built(rack({ front: 'doors' }))
+    expect(design.pieces.filter((p) => p.cuts?.length)).toEqual([])
+    expect([design.pulls, design.pullsOf, notes]).toEqual([undefined, undefined, []])
+  })
+
   it('splits the door by the width of the leaf, not of the opening: a 630 mm rack takes two', () => {
     const { design } = built(rack({ front: 'doors', wallMounted: true, dimensions: { width: 630, height: 1000, depth: 380 } }))
     expect(design.pieces.filter((p) => p.role === 'door')).toHaveLength(2)
@@ -90,5 +99,61 @@ describe('the shoe rack', () => {
     const base = rack()
     expect(shoeRackModule.describeChanges(base, { ...base, front: 'doors', levels: 5, seat: true })).toEqual(['5 niveles', 'con puertas', 'con asiento arriba'])
     expect(Object.keys(SHOE_RACK_LABELS.front)).toEqual(['open', 'doors'])
+    const doors = rack({ front: 'doors' })
+    expect(shoeRackModule.describeChanges(doors, { ...doors, pulls: 'notch' })).toEqual(['muesca para abrir'])
+    expect(shoeRackModule.describeChanges({ ...doors, pulls: 'handle' }, doors)).toEqual(['puertas sin jaladeras'])
+    // Without doors there is nothing to pull: the field says nothing, and saying none is no change.
+    expect(shoeRackModule.describeChanges(base, { ...base, pulls: 'handle' })).toEqual([])
+    expect(shoeRackModule.describeChanges(doors, { ...doors, pulls: 'none' })).toEqual([])
+  })
+})
+
+describe('how the doors of a shoe rack open', () => {
+  const shipped = testReferences.latest('GN-OTR-01')?.plan
+  if (shipped?.kind !== 'shoeRack') throw new Error('the shoe rack reference (GN-OTR-01) is missing')
+  const doorsOf = (plan: ShoeRackPlan) => built(plan).design.pieces.filter((p) => p.role === 'door')
+  const handles = (plan: ShoeRackPlan) => {
+    const { design } = built(plan)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return estimatePurchase(design, a.geo, testCatalog).hardware.find((h) => h.hardware.role === 'handle')?.count ?? 0
+  }
+
+  it('GN-OTR-01 says nothing and builds as it did: no notch, no handle, and the same as saying none', () => {
+    expect(shipped.pulls).toBeUndefined()
+    expect(doorsOf(shipped)).toHaveLength(2)
+    expect(doorsOf(shipped).filter((p) => p.cuts?.length)).toEqual([])
+    expect(handles(shipped)).toBe(0)
+    expect(built(shipped).design.pulls).toBeUndefined()
+    expect(built({ ...shipped, pulls: 'none' })).toEqual(built(shipped))
+  })
+
+  it('with notch, each door has its notch and nothing is bought for it', () => {
+    const plan: ShoeRackPlan = { ...shipped, pulls: 'notch' }
+    expect(doorsOf(plan).map((p) => p.cuts?.length)).toEqual([1, 1])
+    expect(built(plan).notes).toContainEqual(expect.stringMatching(/^Muesca para abrir en el canto de 2 frentes/))
+    expect(handles(plan)).toBe(0)
+    expect(findingsOf(built(plan).design)).toEqual(findingsOf(built(shipped).design))
+  })
+
+  it('with handle, the purchase lists one per door and nothing is cut', () => {
+    const plan: ShoeRackPlan = { ...shipped, pulls: 'handle' }
+    expect(handles(plan)).toBe(2)
+    expect(doorsOf(plan).filter((p) => p.cuts?.length)).toEqual([])
+  })
+
+  it('an open rack has no fronts to pull, whatever its plan says', () => {
+    const open = rack({ pulls: 'handle' })
+    expect(built(open)).toEqual(built(rack()))
+    expect(handles(open)).toBe(0)
+  })
+
+  it('its doors are overlay, so the check on fronts with no way to open says nothing with or without a pull', () => {
+    for (const pulls of [undefined, 'none', 'notch', 'handle'] as const) expect(findingsOf(built({ ...shipped, pulls }).design).filter((f) => f.check === 'front.pull')).toEqual([])
+  })
+
+  it('the form offers the pulls only with doors', () => {
+    const field = shoeRackModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'pulls')!
+    expect([isVisible(field, rack()), isVisible(field, rack({ front: 'doors' }))]).toEqual([false, true])
   })
 })

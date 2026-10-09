@@ -3,7 +3,7 @@ import type { Design, Dimensions } from '../../domain/design/schema'
 import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
 import { exampleDesign, type Example } from '../../domain/furniture/examples'
-import { buildPlan, MODULE_OF_KIND, moduleOf, FurniturePlan } from '../../domain/furniture/modules/plan'
+import { buildPlan, builtAsAsked, MODULE_OF_KIND, moduleOf, FurniturePlan } from '../../domain/furniture/modules/plan'
 import { mergeReadings, photoKey, viewLabel, type PhotoReading } from '../../domain/furniture/reading/reading'
 import { spaceOverflow } from '../../domain/furniture/quick'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
@@ -136,6 +136,11 @@ export function createReconstruct(kit: Kit) {
       const analysis = analyze(design, catalog, plan.value.requirements)
       if (!analysis.valid) {
         trace.push(traceEntry('plan', answered, started, plan, 'invalid', traceErrors(analysis.errors), repairs))
+        return null
+      }
+      const missing = builtAsAsked(furniture, built)
+      if (missing) {
+        trace.push(traceEntry('plan', answered, started, plan, 'invalid', traceErrors([error('E_PARTS', missing)]), repairs))
         return null
       }
       // Only a cabinet: its grid is where a count gets misread (two door openings of two leaves are four doors).

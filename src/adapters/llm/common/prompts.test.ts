@@ -136,7 +136,6 @@ describe('rendered prompts carry the values the code enforces', () => {
       `shelves "${DEFAULT_CONSTRUCTION.shelves}"`,
       `fronts "${DEFAULT_CONSTRUCTION.fronts}"`,
       `hinges "${DEFAULT_CONSTRUCTION.hinges}"`,
-      `pulls "${DEFAULT_CONSTRUCTION.pulls}"`,
       `drawer corners "${DEFAULT_CONSTRUCTION.drawerCorners}"`,
     ])
   })
@@ -239,14 +238,14 @@ describe('adjusting a plan asks only about its own module', () => {
 /** The prompt and the schema of its answer, as characters ÷ 3.5: a guard against growth, not a count. The provider counts ≈ 1.7–1.9 × this (npm run compare, 2026-09-26). */
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
-/** About 5 % above what each measured when it was set (plan-adjust@13; the table's with table@10, the cabinet's with cabinet@11, its leg styles, its kitchen kick and its hinge sides, the bed's with bed@6 and its slats): growing past it has to be on purpose. With every module it was 4 307. */
-const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2885, bed: 2565, table: 2160, shoeRack: 1930 }
+/** About 5 % above what each measured when it was set (plan-adjust@13; the cabinet's with cabinet@11, its leg styles, its kitchen kick and its hinge sides, the bed's with bed@6 and its slats): growing past it has to be on purpose. With every module it was 4 307. The table's is what table@13 measures with its seat, its low stretcher and its pedestal pulls, with no margin added. Each then grew by what `edges` costs it (cabinet@12, bed@7, table@14): 47, 47, 54 and 44. Saying what absent `pulls` build then cost the bed 8 and the table 2, and the shoe rack's own `pulls` 25. */
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2932, bed: 2620, table: 2374, shoeRack: 1999 }
 
-/** Skeleton prompt and schema, measured the same way (skeleton@15); the cabinet grew by its kitchen kick, and the table by what `corners`, splayed legs and `cable` cost in table@10, with no margin added. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7634, cabinet: 3640, bed: 2590, table: 2184, shoeRack: 1960 }
+/** Skeleton prompt and schema, measured the same way (skeleton@15); the cabinet grew by its kitchen kick, and the table by what `corners`, splayed legs, `cable`, the seat, the low stretcher and the pedestal pulls cost in table@13, with no margin added. `edges` added 67, 67, 66 and 65, and 265 with every module. Saying what absent `pulls` build cost 20 in cabinet@13, 7 in the bed and 2 in the table, 37 with every module; the shoe rack's own `pulls` cost 91 more with every module and fit in its own. */
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 8303, cabinet: 3727, bed: 2664, table: 2529, shoeRack: 2025 }
 
-/** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
-const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3905, adjust: 3150 }, bookcase: { skeleton: 4090, adjust: 3360 } }
+/** With the guide of its use, measured the same way (sideboard@3, bookcase@1), plus what `edges` costs the cabinet: 67 and about 47; each skeleton then grew by the 19 or 20 of cabinet@13. */
+const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3991, adjust: 3196 }, bookcase: { skeleton: 4177, adjust: 3407 } }
 
 describe('the plan a module is edited through', () => {
   // The prompt says a change goes through the plan when the plan can say it: a field it does not name reads as one it cannot.

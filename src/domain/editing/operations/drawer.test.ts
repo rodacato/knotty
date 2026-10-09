@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { startAt, ref } from '../../design/builders'
 import type { Design } from '../../design/schema'
+import { withFrontCuts } from '../../design/frontCuts'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
 import { estimatePurchase } from '../../estimate/purchase'
@@ -49,6 +50,25 @@ describe('addDrawer', () => {
     expect(front.x0).toBe(20)
     const side = a.geo.boxes.get('drawer-1-side-left')!
     expect(side.x0).toBe(18 + 13)
+  })
+
+  it('its front, set inside the opening, takes a finger notch in the middle of its top edge, and the design says so', () => {
+    const d = withDrawer(deep)
+    const front = d.pieces.find((p) => p.id === 'drawer-1-front')!
+    expect(front.cuts).toEqual([expect.objectContaining({ x: { from: 'center', offset: 0, length: 100 }, y: expect.objectContaining({ from: 'end' }) })])
+    expect(d.pieces.filter((p) => p.cuts?.length).map((p) => p.id)).toEqual(['drawer-1-front'])
+    expect([d.pulls, d.pullsOf]).toEqual([undefined, { 'drawer-1-front': 'notch' }])
+    // The same notch a module cuts in an inset drawer front.
+    const bare = { ...d, pieces: d.pieces.map((p) => (p.id === front.id ? { ...p, cuts: undefined } : p)) }
+    expect(withFrontCuts(bare, analysis(d).geo.boxes, () => ({ notch: true, grooved: false })).pieces.find((p) => p.id === front.id)!.cuts).toEqual(front.cuts)
+  })
+
+  it('the notch buys nothing, and a second drawer keeps the first one\'s', () => {
+    const one = withDrawer(deep)
+    const bought = (d: Design) => estimatePurchase(d, analysis(d).geo, testCatalog).hardware.some((h) => h.hardware.role === 'handle')
+    expect(bought(one)).toBe(false)
+    const two = withDrawer(deep, [drawer(), drawer({ group: 'drawer-2', name: 'Cajón 2', bottom: 'shelf-1.y1', top: 'shelf-2.y0' })])
+    expect(two.pullsOf).toEqual({ 'drawer-1-front': 'notch', 'drawer-2-front': 'notch' })
   })
 
   it('follows by itself when the furniture gets wider', () => {

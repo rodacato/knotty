@@ -80,6 +80,13 @@ export const expertPlans = (r: ExpertPlans): { [K in FurnitureKind]: PlanOf<K> |
 /** The plan fields of an answer with this plan in its own field and the others null; with none, all null. */
 export const answerWith = (plan: FurniturePlan | null): ExpertPlans => Object.fromEntries(FURNITURE_KINDS.map((kind) => [kind, plan?.kind === kind ? plan : null])) as ExpertPlans
 
+/** Whether the expert can write this plan back as it is: what its schema does not carry (a void, a chest, a split cell, a cell's own back, rod, cable or choices) would come back gone. */
+export function expertCanWrite(plan: FurniturePlan): boolean {
+  const whole = MODULES[plan.kind].schema.safeParse(plan)
+  const written = z.object(planFields((what) => what)).safeParse(answerWith(plan))
+  return whole.success && written.success && JSON.stringify(expertPlans(written.data)[plan.kind]) === JSON.stringify(whole.data)
+}
+
 /** The skeleton: when the piece of furniture has a module, its plan is enough and Knotty builds every piece. */
 const planResponse = <P extends z.ZodRawShape>(plans: P) =>
   z.object({

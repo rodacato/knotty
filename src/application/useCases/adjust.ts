@@ -2,6 +2,7 @@ import { kindOf } from '../../domain/furniture/kind'
 import { byPerson, keepPersonKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
+import { error } from '../../domain/design/validation/errors'
 import { fixForAlternative } from '../../domain/editing/fixes/fixes'
 import { updateDecisions, type Decision, type Origin } from '../../domain/session/history/history'
 import type { Catalog } from '../../domain/materials/catalog'
@@ -16,14 +17,14 @@ import { currentDesign, markAnswered, type DesignState, type Message } from '../
 import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { named, withCandidate } from '../named'
-import { expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { expertCanWrite, expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { knowledgeFor } from '../knowledge'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, requirementsKept, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
-import { criticalsCorrection, listErrors, planCorrection } from './forExpert'
+import { criticalsCorrection, listErrors, notBuiltCorrection, planCorrection } from './forExpert'
 import { judge, type Verdict } from './judge'
 import { ATTEMPTS, type Kit, type OnProgress, type Stage } from './kit'
 
@@ -167,8 +168,9 @@ export function createAdjust(kit: Kit) {
     const rebuilt = rebuildFromPlan(intent.plan, current.extras, catalog, withRequest.requirements)
     rebuilt.design = byPerson(design, rebuilt.design)
     const analysis = analyze(rebuilt.design, catalog, withRequest.requirements)
-    note(analysis.valid ? 'ok' : 'invalid', analysis.valid ? [] : traceErrors(analysis.errors), rebuilt.repairs)
-    if (!analysis.valid) return null
+    const refused = analysis.valid ? (rebuilt.missing ? [error('E_PARTS', rebuilt.missing)] : []) : analysis.errors
+    note(refused.length ? 'invalid' : 'ok', traceErrors(refused), rebuilt.repairs)
+    if (refused.length) return null
     const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
     const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
     // The plan path's policy: no extra round, so new criticals wait for the person with the rules' options.
@@ -188,12 +190,12 @@ export function createAdjust(kit: Kit) {
 
   /**
    * With a live plan the expert edits the plan, judged like any change but with no extra round for criticals.
-   * A plan that does not build goes back once with its errors; null means: go piece by piece.
+   * A plan that does not build goes back once with its errors; null means: go piece by piece, as a plan the expert could not write back whole does from the start.
    */
   async function throughPlan(round: Round): Promise<DesignState | null> {
     const { withRequest, request, signal, onProgress, llm, design, before, plan: current, trace, reply } = round
     const plan = current.plan
-    if (!plan || current.diverged || !llm.adjustPlan) return null
+    if (!plan || current.diverged || !llm.adjustPlan || !expertCanWrite(plan)) return null
     const context = buildPlanContext(withRequest, catalog, current.extras)
     const known = kindOf(design).kind
     const use = known === 'unknown' ? null : known
@@ -252,6 +254,11 @@ export function createAdjust(kit: Kit) {
       if (!analysis.valid) {
         trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(analysis.errors), rebuilt.repairs, 'Ficha'))
         correction = { previousResponse: r, errors: planCorrection(analysis.errors) }
+        continue
+      }
+      if (rebuilt.missing) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors([error('E_PARTS', rebuilt.missing)]), rebuilt.repairs, 'Ficha'))
+        correction = { previousResponse: r, errors: notBuiltCorrection(rebuilt.missing, rebuilt.notes) }
         continue
       }
       trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))

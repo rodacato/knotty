@@ -96,6 +96,12 @@ describe('the rail a wall cabinet hangs from', () => {
     expect(checks).not.toContain('wall-cabinet.hanging-rail')
   })
 
+  it('is announced beside «Anclado al muro» exactly where it is drawn', () => {
+    const said = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'note' && f.about === 'wallMounted')!
+    const wrong = cabinetModule.benchVariants().flatMap(([name, variant]) => ['floor', 'kick', 'legs'].flatMap((base) => [true, false].map((wallMounted) => ({ ...variant, base, wallMounted }) as CabinetPlan)).filter((p) => FurniturePlan.safeParse(p).success).filter((p) => isVisible(said, p) !== buildCabinet(p, testCatalog).design.pieces.some((piece) => piece.id.startsWith('hanging-rail'))).map((p) => `${name}: ${p.base}, ${p.wallMounted}`))
+    expect(wrong).toEqual([])
+  })
+
   it('stays one board, with its name, in a cabinet of one column that is not split', () => {
     expect(hung([{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }]).rails).toEqual(['hanging-rail'])
   })
@@ -124,8 +130,8 @@ describe('the grooves sliding doors run in', () => {
   })
 
   it('are only where leaves slide: none in a furniture of hinged doors, and they come with the cell that chose to slide', () => {
-    expect(grooved({ doors: 'inset' }).cut).toEqual([])
-    expect(grooved({ doors: 'inset' }, { doors: 'sliding' }).cut).toEqual(['bottom', 'top'])
+    expect(grooved({ doors: 'inset', pulls: 'none' }).cut).toEqual([])
+    expect(grooved({ doors: 'inset', pulls: 'none' }, { doors: 'sliding' }).cut).toEqual(['bottom', 'top'])
   })
 })
 
@@ -493,7 +499,7 @@ describe('sliding doors', () => {
 
   it('doors in front of a split cell count as the doors of the furniture: built as asked, and summed up as one sliding door', () => {
     const inFront = rack(1, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open(1)] }] })
-    expect(cabinetModule.quick!.builtAsAsked!(inFront, buildCabinet(inFront, testCatalog).design)).toBeNull()
+    expect(cabinetModule.builtAsAsked!(inFront, buildCabinet(inFront, testCatalog).design)).toBeNull()
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(inFront, 'Barniz')).toBe('1 puerta corrediza')
     expect(quickCounts(inFront)).toEqual({ drawer: 0, door: 1, open: 2 })
     expect(countLimits(inFront, testCatalog).door).toEqual({ min: 1, max: 1 })
@@ -646,7 +652,7 @@ describe('a chest opened from above', () => {
       const { design, box } = built(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))))
       expect(design.pieces.filter((p) => p.role === 'door').map((p) => p.id)).toEqual(['top-lid'])
       expect(box('div-1').y1).toBe(box('top-lid').y0)
-      expect(cabinetModule.quick!.builtAsAsked!(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))), design)).toBeNull()
+      expect(cabinetModule.builtAsAsked!(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))), design)).toBeNull()
     })
 
     it('takes as many stays as its weight asks for: two for a long lid, one for the lid of a niche', () => {
@@ -680,7 +686,7 @@ describe('a chest opened from above', () => {
   it('is not a door of the furniture: the quick counts and the summary leave it out, and adding a cell never splits it', () => {
     const p = headboard()
     const { design } = built(p)
-    expect(cabinetModule.quick!.builtAsAsked!(p, design)).toBeNull()
+    expect(cabinetModule.builtAsAsked!(p, design)).toBeNull()
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(p, 'Barniz')).toBe('Sin puertas: agrégalas en los huecos')
     expect(leafCells(setCount(p, 'open', 2, testCatalog).plan.columns).map((c) => c.content)).toEqual(['chest', 'open', 'open'])
     const alone = setCount(p, 'open', 0, testCatalog)
@@ -728,9 +734,68 @@ describe('pulls', () => {
     expect(handles(estimatePurchase(design, analyze(design, testCatalog).geo!, testCatalog))).toBeUndefined()
   })
 
-  it('a plan saved before pulls existed still reads, as no pull', () => {
-    const { pulls: _, ...old } = DEFAULT_CONSTRUCTION
-    expect(CabinetPlan.parse({ ...PLANS.bookcase, construction: old }).construction.pulls).toBe('none')
+  it('a plan that does not say its pulls reads as it is: the build decides, front by front', () => {
+    expect(DEFAULT_CONSTRUCTION.pulls).toBeUndefined()
+    expect(CabinetPlan.parse(PLANS.bookcase).construction.pulls).toBeUndefined()
+  })
+
+  describe('when the plan does not say', () => {
+    const fronts = (construction: Partial<CabinetConstruction>, cells: PlanCell[] = [cell('door', 0.6, { doors: 2, shelves: 0 }), cell('drawer', 0.4)]) => {
+      const { design, notes } = buildCabinet(plan({ name: 'Mueble', dimensions: { width: 600, height: 800, depth: 400 }, construction: { ...DEFAULT_CONSTRUCTION, ...construction }, columns: [{ width: 1, cells }] }), testCatalog)
+      const a = analyze(design, testCatalog)
+      if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+      const pull = (id: string) => design.pullsOf?.[id] ?? design.pulls ?? 'none'
+      const all = design.pieces.filter((p) => p.role === 'door' || p.role === 'drawer-front')
+      return { notched: all.filter((p) => p.cuts?.length).map((p) => p.role), pulls: all.map((p) => pull(p.id)), notes: notes.filter((n) => n.startsWith('Muesca')), handles: estimatePurchase(design, a.geo, testCatalog).hardware.some((h) => h.hardware.role === 'handle') }
+    }
+
+    it('inset doors and inset drawer fronts each take a notch, said in the notes, and nothing is bought', () => {
+      expect(fronts({ doors: 'inset', drawerFronts: 'inset' })).toEqual({ notched: ['door', 'door', 'drawer-front'], pulls: ['notch', 'notch', 'notch'], notes: [expect.stringMatching(/Muesca.*3 frentes/)], handles: false })
+    })
+
+    it('overlay fronts take none: an edge of theirs can be pulled', () => {
+      expect(fronts({ doors: 'overlay', drawerFronts: 'overlay' })).toEqual({ notched: [], pulls: ['none', 'none', 'none'], notes: [], handles: false })
+    })
+
+    it('in a mix only the inset ones take it: inset doors over overlay drawers, and the reverse', () => {
+      expect(fronts({ doors: 'inset', drawerFronts: 'overlay' })).toMatchObject({ notched: ['door', 'door'], pulls: ['notch', 'notch', 'none'], notes: [expect.stringMatching(/Muesca.*2 frentes/)] })
+      expect(fronts({ doors: 'overlay', drawerFronts: 'inset' })).toMatchObject({ notched: ['drawer-front'], pulls: ['none', 'none', 'notch'], notes: [expect.stringMatching(/Muesca.*1 frente:/)] })
+    })
+
+    it('saying none leaves every front without a pull, inset or not', () => {
+      expect(fronts({ doors: 'inset', drawerFronts: 'inset', pulls: 'none' })).toEqual({ notched: [], pulls: ['none', 'none', 'none'], notes: [], handles: false })
+    })
+
+    it('saying notch or handle is for every front, as before', () => {
+      expect(fronts({ doors: 'overlay', drawerFronts: 'inset', pulls: 'notch' }).pulls).toEqual(['notch', 'notch', 'notch'])
+      expect(fronts({ doors: 'inset', drawerFronts: 'inset', pulls: 'handle' })).toMatchObject({ notched: [], pulls: ['handle', 'handle', 'handle'], handles: true })
+    })
+
+    it('a sliding leaf and a lid take none, and a cell that slides or goes inset on its own is resolved by how it sits', () => {
+      expect(fronts({ doors: 'sliding', top: 'over', drawerFronts: 'overlay' }).pulls).toEqual(['none', 'none', 'none'])
+      expect(fronts({ doors: 'inset' }, [{ height: 0.5, content: 'chest', shelves: 0, doors: null }, cell('open', 0.5, { shelves: 0 })]).pulls).toEqual(['none'])
+      expect(fronts({ doors: 'inset', drawerFronts: 'overlay' }, [{ ...cell('door', 0.6, { doors: 2, shelves: 0 }), own: { doors: 'sliding' } }, cell('drawer', 0.4)]).pulls).toEqual(['none', 'none', 'none'])
+      expect(fronts({ doors: 'sliding', top: 'over', drawerFronts: 'overlay' }, [{ ...cell('door', 0.6, { doors: 1, shelves: 0 }), own: { doors: 'inset' } }, cell('drawer', 0.4)]).pulls).toEqual(['notch', 'none'])
+    })
+
+    it('a cell that says its own pulls keeps them over what its fronts would take', () => {
+      expect(fronts({ doors: 'inset', drawerFronts: 'inset' }, [{ ...cell('door', 0.6, { doors: 2, shelves: 0 }), own: { pulls: 'none' } }, cell('drawer', 0.4)]).pulls).toEqual(['none', 'none', 'notch'])
+    })
+
+    it('the form shows what gets built and names it when it changes; choosing none writes it', () => {
+      const field = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'construction.pulls')!
+      if (field.type !== 'choice') throw new Error('the pulls are a choice')
+      const unsaid = plan({ name: 'Mueble', columns: [{ width: 1, cells: [cell('door', 0.6, { doors: 2, shelves: 0 }), cell('drawer', 0.4)] }] })
+      const overlaid: CabinetPlan = { ...unsaid, construction: { ...unsaid.construction, drawerFronts: 'overlay' } }
+      expect([field.get(unsaid), field.get(overlaid)]).toEqual(['notch', 'none'])
+      expect(field.set(unsaid, 'none').construction.pulls).toBe('none')
+      expect(cabinetModule.describeChanges(unsaid, field.set(unsaid, 'none'))).toEqual(['jaladeras ninguna'])
+      // Choosing what is already shown leaves the plan as it was, still unsaid.
+      expect(field.set(unsaid, 'notch')).toBe(unsaid)
+      expect(cabinetModule.describeChanges(unsaid, overlaid)).toEqual(['frentes de cajón sobrepuestos', 'jaladeras ninguna'])
+      const note = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'note' && f.about === 'construction.pulls')!
+      expect([unsaid, overlaid, field.set(unsaid, 'none')].map((p) => isVisible(note, p))).toEqual([true, false, false])
+    })
   })
 })
 
@@ -768,8 +833,8 @@ describe('a cell choosing on its own', () => {
 
   it('grooves only the fronts of the cell that chose it, and a cell without a choice keeps the furniture’s', () => {
     const grooved = (p: CabinetPlan) => build(p).design.pieces.filter((x) => x.cuts?.length).length
-    expect(grooved(withOwn({ fronts: 'flat' }, { '0.0': { fronts: 'grooved' } }))).toBe(1)
-    expect(grooved(withOwn({ fronts: 'grooved' }, { '0.0': { fronts: 'flat' } }))).toBe(5)
+    expect(grooved(withOwn({ fronts: 'flat', pulls: 'none' }, { '0.0': { fronts: 'grooved' } }))).toBe(1)
+    expect(grooved(withOwn({ fronts: 'grooved', pulls: 'none' }, { '0.0': { fronts: 'flat' } }))).toBe(5)
   })
 
   it('hangs the one-leaf door of the cell that says a side on that side, and the others where the furniture says', () => {
@@ -794,7 +859,7 @@ describe('a cell choosing on its own', () => {
   })
 
   it('slides the doors of the cell that says so in a furniture of hinged doors, behind its track, and the others keep their hinges', () => {
-    const { design, notes } = build(withOwn({ doors: 'overlay' }, { '0.0': { doors: 'sliding' } }))
+    const { design, notes } = build(withOwn({ doors: 'overlay', pulls: 'none' }, { '0.0': { doors: 'sliding' } }))
     const a = analyze(design, testCatalog)
     expect(a.valid ? [] : a.errors.map((e) => e.message)).toEqual([])
     const hinged = design.joints.filter((u) => u.type === 'cup-hinge').map((u) => u.a)
@@ -852,7 +917,7 @@ describe('overlay drawer fronts on a shallow piece', () => {
     for (const fronts of ['inset', 'overlay'] as const) {
       const { design, notes } = nightstand(350, fronts)
       expect(analyze(design, testCatalog).valid).toBe(true)
-      expect({ fronts, drawer: drawerParts(design) > 0, notes }).toEqual({ fronts, drawer: true, notes: [] })
+      expect({ fronts, drawer: drawerParts(design) > 0, notes: notes.map((n) => n.slice(0, 17)) }).toEqual({ fronts, drawer: true, notes: fronts === 'inset' ? ['Muesca para abrir'] : [] })
     }
   })
 

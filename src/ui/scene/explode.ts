@@ -107,6 +107,9 @@ function openAssembly(a: Assembly, gap: number, boxOf: (p: Piece) => Box): Map<s
   const backs = a.units.filter((u) => !isDrawer(u) && only(u).role === 'back')
   /** A divider slides out of a carcass only when it stands against a back: a desk's legs and rails stay with their frame, beside its pedestal. */
   const againstBack = (u: Unit, across: Axis) => backs.some((b) => AXES.filter((axis) => axis !== across).every((axis) => u.box[low(axis)] <= b.box[high(axis)] + TOLERANCE && u.box[high(axis)] >= b.box[low(axis)] - TOLERANCE))
+  /** Whether a board lies against that face of the unit: a rail screwed to the inner face of two legs cannot leave through them. */
+  const backedBy = (u: Unit, axis: Axis, sign: 1 | -1) =>
+    a.units.some((v) => v !== u && Math.abs(sign > 0 ? v.box[low(axis)] - u.box[high(axis)] : u.box[low(axis)] - v.box[high(axis)]) <= TOLERANCE && AXES.filter((other) => other !== axis).every((other) => Math.min(u.box[high(other)], v.box[high(other)]) - Math.max(u.box[low(other)], v.box[low(other)]) > TOLERANCE))
   const forward = (share: number): Offset => (front ? along(front.axis, front.sign * size(box, front.axis) * share) : [0, 0, 0])
   const moveOf = (u: Unit): Offset => {
     if (isDrawer(u)) {
@@ -127,7 +130,7 @@ function openAssembly(a: Assembly, gap: number, boxOf: (p: Piece) => Box): Map<s
       case 'divider':
         return front && againstBack(u, front.axis) ? forward(0.25) : [0, 0, 0]
       case 'apron':
-        return along(n, (away(u, n) * gap) / 2)
+        return backedBy(u, n, away(u, n)) ? [0, 0, 0] : along(n, (away(u, n) * gap) / 2)
       default:
         return along(n, away(u, n) * gap)
     }

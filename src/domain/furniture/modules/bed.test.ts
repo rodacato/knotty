@@ -8,6 +8,7 @@ import { estimatePurchase } from '../../estimate/purchase'
 import { bedModule, BedPlan, buildBed } from './bed'
 import { valueFields } from './fields'
 import { FurniturePlan } from './plan'
+import { testReferences } from '../fixtures/references.test-util'
 
 const bed = (p: Partial<BedPlan> = {}): BedPlan => ({
   kind: 'bed',
@@ -31,7 +32,7 @@ describe('buildBed', () => {
     const { design, notes } = buildBed(bed({ mattress, drawers: { side, count: 3, position: 'head' }, headboard: { style, height: 1100, depth: 250, shelves: 2 } }), testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(JSON.stringify(a.errors.slice(0, 3)))
-    expect(notes).toEqual([])
+    expect(notes.map((n) => n.slice(0, 17))).toEqual(side === 'none' ? [] : ['Muesca para abrir'])
     expect(a.findings.map((h) => h.message)).toEqual([])
   })
   it('puts the drawers of the right side (seen from the foot) opening backward, and the left ones forward', () => {
@@ -381,7 +382,7 @@ describe('the trim and the drawer fronts', () => {
   })
 
   it('leaves the cap out, and says so, when the headboard is too low to clear the lips', () => {
-    const { design, notes } = buildBed(drawn({}, { lip: true, height: 400, headboard: { style: 'plain', height: 450, depth: 0, shelves: 0, cap: true } }), testCatalog)
+    const { design, notes } = buildBed(drawn({ pulls: 'none' }, { lip: true, height: 400, headboard: { style: 'plain', height: 450, depth: 0, shelves: 0, cap: true } }), testCatalog)
     expect(design.pieces.some((p) => p.id === 'head-cap')).toBe(false)
     expect(notes).toEqual([expect.stringMatching(/muy baja para el copete/)])
   })
@@ -403,15 +404,37 @@ describe('the trim and the drawer fronts', () => {
     expect(fronts.every((p) => (p.cuts ?? []).length > 1)).toBe(true)
     expect(notched.notes).toEqual([expect.stringMatching(/^Muesca para abrir en el canto de 3 frentes/)])
     expect(built(drawn({ pulls: 'handle' })).design.pulls).toBe('handle')
-    expect(built(drawn({})).design.pulls).toBeUndefined()
   })
 
-  it('joins the drawer boxes with finger corners when asked, and an old plan builds as before', () => {
-    const fingered = built(drawn({ corners: 'fingers', fingers: 7 }))
+  it('a plan that does not say its pulls notches inset fronts and leaves overlay ones; saying none leaves them all', () => {
+    const opened = (drawers: Partial<BedPlan['drawers']>) => {
+      const { design, notes } = built(drawn(drawers))
+      return { pulls: design.pulls, notched: design.pieces.filter((p) => p.role === 'drawer-front' && p.cuts?.length).length, notes: notes.filter((n) => n.startsWith('Muesca')).length }
+    }
+    expect(opened({})).toEqual({ pulls: 'notch', notched: 3, notes: 1 })
+    expect(opened({ mount: 'inset' })).toEqual({ pulls: 'notch', notched: 3, notes: 1 })
+    expect(opened({ mount: 'overlay' })).toEqual({ pulls: undefined, notched: 0, notes: 0 })
+    expect(opened({ pulls: 'none' })).toEqual({ pulls: undefined, notched: 0, notes: 0 })
+    expect(opened({ mount: 'overlay', pulls: 'notch' })).toEqual({ pulls: 'notch', notched: 3, notes: 1 })
+    expect(built(drawn({})).design).toEqual(built(drawn({ pulls: 'notch' })).design)
+  })
+
+  it('the form shows the pull that gets built, names it when the mount changes it, and choosing none writes it', () => {
+    const field = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'drawers.pulls')!
+    if (field.type !== 'choice') throw new Error('the pulls are a choice')
+    expect([field.get(drawn({})), field.get(drawn({ mount: 'overlay' })), field.get(drawn({ pulls: 'none' }))]).toEqual(['notch', 'none', 'none'])
+    expect(field.set(drawn({}), 'none').drawers.pulls).toBe('none')
+    expect(bedModule.describeChanges(drawn({}), drawn({ pulls: 'none' }))).toEqual(['sin jaladeras'])
+    expect(bedModule.describeChanges(drawn({}), drawn({ pulls: 'notch' }))).toEqual([])
+    expect(bedModule.describeChanges(drawn({}), drawn({ mount: 'overlay' }))).toEqual(['frentes sobrepuestos', 'sin jaladeras'])
+  })
+
+  it('joins the drawer boxes with finger corners when asked, and a plan that says nothing builds as one that says each choice', () => {
+    const fingered = built(drawn({ corners: 'fingers', fingers: 7, pulls: 'none' }))
     expect(fingered.design.joints.filter((u) => u.type === 'finger')).toHaveLength(3 * 4)
     expect(fingered.notes).toEqual([expect.stringMatching(/^Esquinas de dedos en 3 cajones, 7 por esquina/)])
     const old = BedPlan.parse({ ...drawn({}), lip: undefined })
-    expect(buildBed(old, testCatalog).design).toEqual(buildBed(drawn({ mount: 'inset', style: 'flat', pulls: 'none', corners: 'screwed' }), testCatalog).design)
+    expect(buildBed(old, testCatalog).design).toEqual(buildBed(drawn({ mount: 'inset', style: 'flat', pulls: 'notch', corners: 'screwed' }), testCatalog).design)
   })
 
   it('shows the front choices only with drawers, and the fingers only with finger corners', () => {
@@ -704,5 +727,43 @@ describe('a base of slats', () => {
     expect(bedModule.describeChanges({ ...saved, platform: 'slats' }, saved)).toEqual(['base de tablero'])
     expect(bedModule.parts.list.find((x) => x.id === 'mattress')!.fields).toContain('platform')
     expect(bedModule.parts.ofPiece(buildBed({ ...saved, platform: 'slats' }, testCatalog).design.pieces.find((x) => x.id === 'slat-2')!)).toBe('mattress')
+  })
+})
+
+describe('choosing a headboard in the form', () => {
+  const style = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'headboard.style')
+  if (!style || style.type !== 'choice') throw new Error('no headboard style field')
+  const shipped = (code: string) => {
+    const plan = testReferences.latest(code)?.plan
+    if (plan?.kind !== 'bed') throw new Error(`the bed reference (${code}) is missing`)
+    return plan
+  }
+  const TYPES = ['plain', 'bookcase', 'storage', 'daybed'] as const
+
+  it.each(TYPES)('gives a bed without one (KC-CAM-05) a %s headboard the module accepts and builds', (type) => {
+    const bare = shipped('KC-CAM-05')
+    expect(bare.headboard).toMatchObject({ style: 'none', height: bare.height })
+    const chosen = style.set(bare, type) as BedPlan
+    expect(FurniturePlan.safeParse(chosen).error?.issues).toBeUndefined()
+    expect(chosen.headboard.height).toBeGreaterThan(bare.height)
+    const { design, notes } = buildBed(chosen, testCatalog)
+    expect(analyze(design, testCatalog).valid).toBe(true)
+    expect(design.dimensions.height).toBe(chosen.headboard.height)
+    expect(notes.filter((n) => /cabecera|respaldo/i.test(n))).toEqual([])
+  })
+
+  it('leaves room for every shelf a bookcase or a compartment already had', () => {
+    const bare = shipped('KC-CAM-05')
+    const loaded: BedPlan = { ...bare, headboard: { ...bare.headboard, shelves: 12, cap: true } }
+    for (const type of ['bookcase', 'storage'] as const) expect(FurniturePlan.safeParse(style.set(loaded, type)).success).toBe(true)
+  })
+
+  it.each(TYPES)('keeps a height that holds: KC-CAM-01 stays at 700 as %s, and at none', (type) => {
+    const low = shipped('KC-CAM-01')
+    expect(low.headboard).toMatchObject({ style: 'plain', height: 700 })
+    const chosen = style.set(low, type) as BedPlan
+    expect(chosen.headboard.height).toBe(700)
+    expect(FurniturePlan.safeParse(chosen).success).toBe(true)
+    expect((style.set(low, 'none') as BedPlan).headboard.height).toBe(700)
   })
 })

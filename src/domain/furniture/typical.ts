@@ -25,7 +25,7 @@ export const TYPICAL_DIMENSIONS: Record<DesignKind, Dimensions> = {
   sideTable: TYPICAL_TABLE_DIMENSIONS.side,
   workbench: TYPICAL_TABLE_DIMENSIONS.standing,
   benchtop: { width: 1050, height: 136, depth: 500 },
-  bench: { width: 1200, height: 450, depth: 350 },
+  bench: TYPICAL_TABLE_DIMENSIONS.seat,
 }
 
 /** What Capture accepts for each measure, in mm; a bed is the deepest furniture Knotty builds. */

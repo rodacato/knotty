@@ -251,7 +251,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
       {finish && (
         <ul className="flex flex-col divide-y divide-line border-b border-line">
           <li className="py-3 text-xs leading-relaxed text-graphite">
-            <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no) y los cantos con cubrecanto. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
+            <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no){design.pieces.some((p) => p.edges.length) ? ' y los cantos con cubrecanto' : ''}. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
           </li>
           {finish.lines.map((l) => {
             const product = FINISH_PRODUCTS[l.product]
@@ -326,7 +326,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>
-      {verdict && <p className="text-sm text-graphite-2">{totalCovers({ sheets: totalSheets, onlyPlywood, withFinish })}</p>}
+      {verdict && <p className="text-sm text-graphite-2">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
       {unpriced && <p className="text-sm text-graphite">{unpriced}</p>}
       <p className="text-sm text-graphite">Precios de referencia, no una cotización.</p>
     </section>

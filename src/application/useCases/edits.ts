@@ -74,6 +74,7 @@ export function createEdits(kit: Kit) {
       const first = named(design, analysis.errors[0]?.message ?? '')
       return { ok: false, message: `Así no se puede armar: quedarían ${describeProblems(traceErrors(analysis.errors))}. ${first}` }
     }
+    if (rebuilt.missing) return { ok: false, message: rebuilt.missing }
     return { ok: true, plan: parsed.data, design, notes: rebuilt.notes, dropped: rebuilt.dropped }
   }
 
