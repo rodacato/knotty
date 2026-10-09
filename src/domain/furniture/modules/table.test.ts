@@ -113,13 +113,15 @@ describe('buildTable', () => {
     expect(a.valid && a.findings.filter((h) => h.code === 'R3_SCREWS')).toEqual([])
   })
 
-  it('a 1¼" pocket screw in 15 mm is flagged, and the fix names the 1" one', () => {
+  it('a 32 mm (1¼") pocket screw in 15 mm is flagged, and the fix names the 25 mm (1") one, millimetres first', () => {
     const { design } = buildTable(table({ material: 'T15' }), testCatalog)
     const long = { ...design, joints: design.joints.map((u) => (u.type === 'pocket-screw' ? { ...u, hardware: [{ hardwareId: 'pocket-screw-1-1/4', count: 2 }] } : u)) }
     const a = analyze(long, testCatalog)
     const r3 = a.valid ? a.findings.filter((h) => h.code === 'R3_SCREWS') : []
     expect(r3.length).toBeGreaterThan(0)
     expect(r3.map((h) => h.alternatives[0].data.hardwareId)).toEqual(r3.map(() => 'pocket-screw-1'))
+    expect(r3[0].message).toContain('un tornillo de bolsillo de 32 mm (1¼") puede asomarse; para ese espesor va de 25 mm (1").')
+    expect(r3[0].alternatives[0].description).toBe('Tornillo de bolsillo de 25 mm (1")')
   })
 
   it('a desk with a pedestal keeps room for the legs and its drawers open to the front', () => {

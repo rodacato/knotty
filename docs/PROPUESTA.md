@@ -455,7 +455,7 @@ Las fallas geométricas (traslape, flotante, medida total, pieza mayor que la ho
   - Área útil = hoja − 2 × refilado (15 mm, D29). Corte de sierra 4 mm, holgura 2 mm por pieza. Todo configurable. Contra la orilla del área útil la holgura sale del refilado: una pieza que cabe en el área útil (lo que acepta la validación) siempre se acomoda.
   - Piezas con veta fija no rotan; la veta va sobre el lado de 2 440.
   - Varias heurísticas (mejor área, lado más corto, con y sin rotación); gana la de menos hojas y luego menos desperdicio. Determinista.
-- **Herrajes comunes en México**: tornillo para madera #8 × 1¼", 1½" y 2"; tornillo de bolsillo 1¼" rosca gruesa; tarugo 8 × 40; soporte de repisa 5 mm; bisagra de cazoleta 35 mm (recta, codo, súper codo); corredera telescópica 30–50 cm; escuadra; clavo sin cabeza; pegamento blanco; cubrecanto por metro; pata niveladora; kit antivuelco.
+- **Herrajes comunes en México**: tornillo para madera de 32, 38 y 51 mm (#8 × 1¼", 1½" y 2"); tornillo de bolsillo de 32 mm (1¼") rosca gruesa; tarugo 8 × 40; soporte de repisa 5 mm; bisagra de cazoleta 35 mm (recta, codo, súper codo); corredera telescópica 30–50 cm; escuadra; clavo sin cabeza; pegamento blanco; cubrecanto por metro; pata niveladora; kit antivuelco.
 
 ---
 

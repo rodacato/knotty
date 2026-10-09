@@ -169,7 +169,7 @@ describe('hardware and purchase', () => {
     const d = { ...exampleBookcase, joints: exampleBookcase.joints.map((u) => (u.type === 'pocket-screw' ? { ...u, hardware: [{ hardwareId: 'pocket-screw-1', count: 2 }] } : u)) }
     const r = estimatePurchase(d, geo(d), testCatalog)
     expect(r.hardware.find((h) => h.hardware.id === 'pocket-screw-1')).toMatchObject({ count: 4, packs: 1, cost: null })
-    expect(r.cost.missingPrices).toContain('Tornillo de bolsillo 1" rosca gruesa')
+    expect(r.cost.missingPrices).toContain('Tornillo de bolsillo de 25 mm (1") rosca gruesa')
   })
 
   it('builds the list with packs and total cost', () => {

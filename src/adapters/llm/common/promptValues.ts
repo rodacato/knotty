@@ -33,11 +33,13 @@ const inches = (mm: number) => {
   const quarters = Math.round((mm / 25.4) * 4)
   return `${Math.floor(quarters / 4)}${FRACTIONS[quarters % 4]}"`
 }
+/** 31.75 → 32 mm (1¼"): millimetres first, as the person is to read it. */
+const tradeLength = (mm: number) => `${Math.round(mm)} mm (${inches(mm)})`
 
 /** Each screw with the thickest piece it goes in: consecutive rows of the same screw become one. */
 function pocketScrews() {
   const rows = ASSUMPTIONS.screws.pocketScrews.filter((row, i, all) => all[i + 1]?.hardwareId !== row.hardwareId)
-  return rows.map((row) => `${inches(row.length)} up to ${row.upTo} mm`).join(' and ')
+  return rows.map((row) => `${tradeLength(row.length)} up to ${row.upTo} mm`).join(' and ')
 }
 
 const CONSTRUCTION_LABEL: Record<keyof CabinetConstruction, string> = { doors: 'doors', drawerFronts: 'drawers', top: 'top', back: 'back', shelves: 'shelves', fronts: 'fronts', hinges: 'hinges', pulls: 'pulls', drawerCorners: 'drawer corners' }

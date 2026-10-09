@@ -109,7 +109,7 @@ describe('rendered prompts carry the values the code enforces', () => {
   it('screws: the butt-screw bite and the pocket screw by thickness', () => {
     const system = systemFor(RECONSTRUCTION, testCatalog)
     expect(system).toContain(`bite ${ASSUMPTIONS.screws.minPenetration} mm`)
-    expect(system).toContain('is 1" up to 16 mm and 1¼" up to 19 mm.')
+    expect(system).toContain('is 25 mm (1") up to 16 mm and 32 mm (1¼") up to 19 mm.')
   })
 
   it('mattresses and typical measures come from the domain', () => {

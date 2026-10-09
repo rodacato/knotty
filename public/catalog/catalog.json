@@ -83,7 +83,7 @@
     {
       "id": "screw-8x1",
       "role": "screw",
-      "name": "Tornillo para madera #8 × 1\"",
+      "name": "Tornillo para madera de 25 mm (#8 × 1\")",
       "unit": "piece",
       "perPack": 50,
       "length": 25.4,
@@ -94,7 +94,7 @@
     {
       "id": "screw-8x1-1/4",
       "role": "screw",
-      "name": "Tornillo para madera #8 × 1¼\"",
+      "name": "Tornillo para madera de 32 mm (#8 × 1¼\")",
       "unit": "piece",
       "perPack": 50,
       "length": 31.75,
@@ -105,7 +105,7 @@
     {
       "id": "screw-8x1-1/2",
       "role": "screw",
-      "name": "Tornillo para madera #8 × 1½\"",
+      "name": "Tornillo para madera de 38 mm (#8 × 1½\")",
       "unit": "piece",
       "perPack": 50,
       "length": 38.1,
@@ -116,7 +116,7 @@
     {
       "id": "screw-8x2",
       "role": "screw",
-      "name": "Tornillo para madera #8 × 2\"",
+      "name": "Tornillo para madera de 51 mm (#8 × 2\")",
       "unit": "piece",
       "perPack": 50,
       "length": 50.8,
@@ -127,7 +127,7 @@
     {
       "id": "screw-8x3/4",
       "role": "screw",
-      "name": "Tornillo para madera #8 × ¾\"",
+      "name": "Tornillo para madera de 19 mm (#8 × ¾\")",
       "unit": "piece",
       "perPack": 50,
       "length": 19.05,
@@ -138,7 +138,7 @@
     {
       "id": "pocket-screw-1",
       "role": "pocket-screw",
-      "name": "Tornillo de bolsillo 1\" rosca gruesa",
+      "name": "Tornillo de bolsillo de 25 mm (1\") rosca gruesa",
       "unit": "piece",
       "perPack": 100,
       "length": 25.4,
@@ -149,7 +149,7 @@
     {
       "id": "pocket-screw-1-1/4",
       "role": "pocket-screw",
-      "name": "Tornillo de bolsillo 1¼\" rosca gruesa",
+      "name": "Tornillo de bolsillo de 32 mm (1¼\") rosca gruesa",
       "unit": "piece",
       "perPack": 100,
       "length": 31.75,
@@ -350,7 +350,7 @@
     {
       "id": "bracket-1-1/2",
       "role": "bracket",
-      "name": "Escuadra metálica 1½\"",
+      "name": "Escuadra metálica de 38 mm (1½\")",
       "unit": "piece",
       "perPack": null,
       "length": null,
@@ -361,7 +361,7 @@
     {
       "id": "brad-nail-1",
       "role": "nail",
-      "name": "Clavo sin cabeza 1\"",
+      "name": "Clavo sin cabeza de 25 mm (1\")",
       "unit": "piece",
       "perPack": 100,
       "length": null,
