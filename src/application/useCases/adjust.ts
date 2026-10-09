@@ -142,7 +142,8 @@ export function createAdjust(kit: Kit) {
 
   /** A request Knotty reads alone: answered from its numbers, or a plan edit judged like the expert's; null sends it to the expert. */
   function locally(round: Round, answering: string | null): DesignState | null {
-    const { withRequest, request, design, before, plan: current, trace, reply } = round
+    const { withRequest, request, design, before, plan: current, trace } = round
+    const reply: Round['reply'] = (text, extra = {}, base) => round.reply(text, { ...extra, alone: true }, base)
     const live = current.plan && !current.diverged ? current.plan : null
     const intent = parseIntent(request, live, design, catalog)
     if (!intent) return null
@@ -178,7 +179,7 @@ export function createAdjust(kit: Kit) {
     const plan = { plan: intent.plan, extras }
     if (verdict.kind === 'pending') {
       const explanation = localText.pending(said, verdict.critical.map((c) => c.message), verdict.holds.length > 0)
-      return waitFor(round, verdict, { operations: [], response: { explanation, summary, decisions: [], questions: [] }, requirements: withRequest.requirements, origin: null, plan, suggestions: [] })
+      return waitFor({ ...round, reply }, verdict, { operations: [], response: { explanation, summary, decisions: [], questions: [] }, requirements: withRequest.requirements, origin: null, plan, suggestions: [] })
     }
     if (verdict.kind !== 'applied') return null
     const withChange = addVersion(withRequest, rebuilt.design, { summary, reason: request, operations: [], origin: null, ...plan })

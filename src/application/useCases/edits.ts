@@ -57,7 +57,7 @@ export function createEdits(kit: Kit) {
     const r = applyOperations(design, operations, catalog)
     if (!r.ok) return state
     const withChange = addVersion(state, r.value.design, { summary: `Confirmar ${piece.name.toLowerCase()}`, reason: 'Confirmada a mano', operations: operations, origin: null, ...layered(currentPlan(state), operations) })
-    return save(noted(withChange, 'expert', `Anoté ${piece.name.toLowerCase()} como confirmada.`))
+    return save(noted(withChange, 'expert', `Anoté ${piece.name.toLowerCase()} como confirmada.`, { alone: true }))
   }
 
   /** The design a plan would give, with the changes made on top of it: what «Aplicar» keeps, and what the 3D shows before it. */

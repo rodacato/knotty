@@ -26,7 +26,7 @@ export function createProposals(kit: Kit) {
       : addVersion(base, p.design, { summary: p.summary, reason: p.reason, operations: p.operations, origin: p.origin, plan: p.plan, extras: p.extras })
     return {
       ...withChange,
-      chat: [...state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'applied' as const, answered: true } : m)), message('expert', `Listo, apliqué "${p.summary}"${ending}`, { version: withChange.current })],
+      chat: [...state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'applied' as const, answered: true } : m)), message('expert', `Listo, apliqué "${p.summary}"${ending}`, { version: withChange.current, alone: state.chat.some((m) => m.proposal === 'pending' && m.alone) })],
     }
   }
 
