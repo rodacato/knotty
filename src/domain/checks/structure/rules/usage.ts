@@ -114,6 +114,12 @@ export const tippingRule: Rule = (ctx) => {
   return storage ?? ratioTipping(ctx)
 }
 
+/** What the wall anchor is there for: the tipping R4 would call critical without it; null when the piece is not anchored or stands on its own. Said beside the anti-tip kit, never as a finding. */
+export function heldByAnchor(design: Design, geo: Geometry, catalog: Catalog): Finding | null {
+  if (!design.wallAnchored) return null
+  return tippingRule({ design: { ...design, wallAnchored: false }, geo, catalog, contacts: [] }).find((f) => f.severity === 'critical') ?? null
+}
+
 /** How a door sits, as the person reads it next to the hinge it takes. */
 const MOUNT_TEXT: Record<DoorMount, string> = {
   overlay: 'sobrepuesta, tapando todo el canto',
