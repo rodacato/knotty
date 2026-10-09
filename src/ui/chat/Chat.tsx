@@ -2,6 +2,7 @@ import { ArrowClockwise, ArrowCounterClockwise, ArrowRight, Eye, EyeSlash, Paper
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Stage } from '../../application/useCases'
 import { named, withCandidate } from '../../application/named'
+import { quickActions } from '../../application/quickActions'
 import { kindOf } from '../../domain/furniture/kind'
 import { currentDesign, questionAnswerKey, type DesignState, type Message } from '../../domain/session/state'
 import { answerItem, answerItemId } from '../../domain/session/tray/tray'
@@ -223,6 +224,8 @@ export function Chat({ state }: { state: DesignState }) {
   const kind = recovery(last, previous)
   const recover = kind && previous ? { kind, run: kind === 'retry' ? () => void adjust(previous.text) : () => setText(previous.text) } : null
   const suggestions = suggestionsFor(state, thinking, kindOf(currentDesign(state)).kind)
+  const { catalog } = useServices()
+  const alone = useMemo(() => (canAsk || thinking ? [] : quickActions(state, catalog)), [canAsk, thinking, state, catalog])
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
@@ -292,11 +295,23 @@ export function Chat({ state }: { state: DesignState }) {
         </form>
       ) : (
         <div className="flex flex-col gap-3 border-t border-line bg-kraft p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" role="note">
+          {alone.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-base font-medium">Knotty puede hacer esto solo</p>
+              <div className="flex flex-wrap gap-2" aria-label="Cambios sin experto">
+                {alone.map((request) => (
+                  <Chip key={request} className="max-w-full py-1.5 text-left" onClick={() => void adjust(request)}>
+                    {request}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex flex-col gap-1">
-            <p className="text-base font-medium">Conecta tu experto para pedirle cambios</p>
+            <p className={alone.length ? 'text-sm font-medium' : 'text-base font-medium'}>{alone.length ? 'Para pedir otra cosa, conecta tu experto' : 'Conecta tu experto para pedirle cambios'}</p>
             <p className="text-sm text-graphite-2">Sin él, cambia las medidas y las opciones con «Editar», arriba del mueble.</p>
           </div>
-          <Button variant="primary" className="min-h-11 self-start px-5" onClick={() => openConnect(true)}>
+          <Button variant={alone.length ? 'secondary' : 'primary'} className="min-h-11 self-start px-5" onClick={() => openConnect(true)}>
             Conectar experto <ArrowRight weight="bold" />
           </Button>
         </div>
