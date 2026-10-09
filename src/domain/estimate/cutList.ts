@@ -37,7 +37,7 @@ export interface AfterCut {
   routed: number
 }
 
-export function afterCut(design: Design, line: CutLine): AfterCut {
+export function afterCut(design: Design, line: Pick<CutLine, 'ids'>): AfterCut {
   const pieces = design.pieces.filter((p) => line.ids.includes(p.id))
   return { diagonal: pieces.filter((p) => p.slants?.length).length, curved: pieces.filter((p) => p.rounds?.length).length, drilled: pieces.filter((p) => p.holes?.length).length, routed: pieces.filter((p) => p.cuts?.length).length }
 }
