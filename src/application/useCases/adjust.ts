@@ -17,7 +17,7 @@ import { currentDesign, markAnswered, type DesignState, type Message } from '../
 import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { named, withCandidate } from '../named'
-import { expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { expertCanWrite, expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { knowledgeFor } from '../knowledge'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
@@ -190,12 +190,12 @@ export function createAdjust(kit: Kit) {
 
   /**
    * With a live plan the expert edits the plan, judged like any change but with no extra round for criticals.
-   * A plan that does not build goes back once with its errors; null means: go piece by piece.
+   * A plan that does not build goes back once with its errors; null means: go piece by piece, as a plan the expert could not write back whole does from the start.
    */
   async function throughPlan(round: Round): Promise<DesignState | null> {
     const { withRequest, request, signal, onProgress, llm, design, before, plan: current, trace, reply } = round
     const plan = current.plan
-    if (!plan || current.diverged || !llm.adjustPlan) return null
+    if (!plan || current.diverged || !llm.adjustPlan || !expertCanWrite(plan)) return null
     const context = buildPlanContext(withRequest, catalog, current.extras)
     const known = kindOf(design).kind
     const use = known === 'unknown' ? null : known
