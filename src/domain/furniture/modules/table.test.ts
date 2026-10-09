@@ -4,6 +4,8 @@ import { afterCut, afterCutText, cutList } from '../../estimate/cutList'
 import { outline } from '../../design/slants'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
+import { testReferences } from '../fixtures/references.test-util'
+import { gluedBlocks } from './assembly'
 import { buildTable, TablePlan } from './table'
 import { FurniturePlan } from './plan'
 
@@ -424,6 +426,88 @@ describe('splayed legs on a table', () => {
 
   it('on panel ends the style asks for nothing', () => {
     expect(built({ legs: 'panel', legStyle: 'splayed' }).notes).toEqual([])
+  })
+})
+
+describe('a low stretcher between the legs', () => {
+  const sixLegs = testReferences.latest('KC-MES-01')!.plan as TablePlan
+  const built = (plan: TablePlan) => {
+    const { design, notes } = buildTable(plan, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    const low = design.pieces.filter((p) => p.id.startsWith('stretcher-'))
+    return { design, notes, a, low, box: (id: string) => a.geo!.boxes.get(id)!, joined: (id: string) => design.joints.filter((u) => u.a === id || u.b === id).map((u) => [u.a === id ? u.b : u.a, u.type]) }
+  }
+  const refused = (plan: TablePlan) => FurniturePlan.safeParse(plan).error?.issues.filter((i) => i.path[0] === 'stretcher').map((i) => i.message) ?? []
+
+  it('a plan that does not ask builds none, and one that says none builds the same', () => {
+    expect(sixLegs.stretcher).toBeUndefined()
+    expect(built(sixLegs).low).toEqual([])
+    expect(buildTable({ ...sixLegs, stretcher: 'none' }, testCatalog)).toEqual(buildTable(sixLegs, testCatalog))
+  })
+
+  it('at the ends adds one board per end, 80 mm tall and 150 off the floor, screwed to the inner face of its two legs and to nothing else', () => {
+    const plain = built(sixLegs)
+    const tied = built({ ...sixLegs, stretcher: 'ends' })
+    expect(tied.low.map((p) => p.id)).toEqual(['stretcher-left', 'stretcher-right'])
+    expect(tied.design.pieces.filter((p) => !p.id.startsWith('stretcher-'))).toEqual(plain.design.pieces)
+    const [left, leg] = [tied.box('stretcher-left'), tied.box('leg-front-left-2')]
+    expect([left.y0, left.y1, left.x0, left.x1 - left.x0]).toEqual([150, 230, leg.x1, 18])
+    expect(tied.joined('stretcher-left')).toEqual([['leg-front-left-2', 'butt-screw'], ['leg-back-left-2', 'butt-screw']])
+    expect(tied.a.findings).toEqual(plain.a.findings)
+  })
+
+  it('under a leg that leans it stops where a straight leg would stand, so it never shows past the foot', () => {
+    const { box } = built({ ...sixLegs, stretcher: 'ends' })
+    const [low, front, back] = [box('stretcher-left'), box('leg-front-left-2'), box('leg-back-left-2')]
+    expect([low.z0 - back.z0, front.z1 - low.z1]).toEqual([20, 20])
+    const straight = built({ ...sixLegs, legStyle: 'straight', stretcher: 'ends' })
+    expect([straight.box('stretcher-left').z0, straight.box('stretcher-left').z1]).toEqual([straight.box('leg-back-left-2').z0, straight.box('leg-front-left-2').z1])
+  })
+
+  it('in an H adds a long one between the two, along the middle and clear of the legs in between', () => {
+    const tied = built({ ...sixLegs, stretcher: 'h' })
+    expect(tied.low.map((p) => p.id)).toEqual(['stretcher-left', 'stretcher-right', 'stretcher-long'])
+    const [long, left, right] = [tied.box('stretcher-long'), tied.box('stretcher-left'), tied.box('stretcher-right')]
+    expect([long.x0, long.x1, (long.z0 + long.z1) / 2]).toEqual([left.x1, right.x0, (left.z0 + left.z1) / 2])
+    expect(tied.joined('stretcher-long').map(([id]) => id)).toEqual(['stretcher-left', 'stretcher-right'])
+    expect(tied.notes.some((n) => n.startsWith('Travesaño bajo en cada extremo, a 150 mm del piso') && n.includes('larguero'))).toBe(true)
+  })
+
+  it('knocked down, each end keeps its stretcher glued and the long one comes off with the long aprons', () => {
+    const { design } = built({ ...sixLegs, stretcher: 'h', assembly: 'bolts' })
+    const blockOf = (id: string) => gluedBlocks(design).find((block) => block.some((p) => p.id === id))?.map((p) => p.id) ?? []
+    expect(blockOf('stretcher-left')).toContain('leg-front-left-1')
+    expect(blockOf('stretcher-long')).not.toContain('stretcher-left')
+    expect(design.joints.filter((u) => u.b === 'stretcher-long').map((u) => u.type)).toEqual(['connector-bolt', 'connector-bolt'])
+  })
+
+  it('on a desk with a pedestal ties only the end that stands on legs', () => {
+    const desk = testReferences.latest('KC-ESC-07')!.plan as TablePlan
+    expect(built({ ...desk, stretcher: 'ends' }).low.map((p) => p.id)).toEqual(['stretcher-left'])
+  })
+
+  it('is refused with a low shelf, as an H on a desk, and on a table too low to keep it clear of the apron', () => {
+    const side = table({ use: 'side', dimensions: { width: 500, height: 550, depth: 400 }, legs: 'legs', stretcher: 'ends' })
+    expect(refused(side)).toEqual([])
+    expect(refused({ ...side, shelf: true })).toEqual([expect.stringContaining('repisa baja')])
+    expect(refused({ ...side, dimensions: { ...side.dimensions, height: 400 } })).toEqual([expect.stringContaining('no cabe bajo el faldón')])
+    const desk = table({ use: 'desk', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0, legs: 'legs', stretcher: 'h' })
+    expect(refused(desk)).toEqual([expect.stringContaining('estorba los pies')])
+    expect(refused({ ...desk, stretcher: 'ends' })).toEqual([])
+    expect(built(desk).low.map((p) => p.id)).toEqual(['stretcher-left', 'stretcher-right'])
+  })
+
+  it('on panel ends asks for nothing, as a leg style does', () => {
+    const panels = table({ stretcher: 'h' })
+    expect(refused(panels)).toEqual([])
+    expect(buildTable(panels, testCatalog)).toEqual(buildTable(table(), testCatalog))
+  })
+
+  it('is in the cut list as two short boards and a long one, of the apron\'s section', () => {
+    const { design, a } = built({ ...sixLegs, stretcher: 'h' })
+    const lines = cutList(design, a.geo!).filter((c) => /bajo/.test(c.name))
+    expect(lines.map((c) => [c.count, c.thickness, c.width, c.length])).toEqual([[1, 18, 80, 1232], [2, 18, 80, 800]])
   })
 })
 
