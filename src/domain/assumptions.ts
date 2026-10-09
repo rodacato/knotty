@@ -119,6 +119,8 @@ export const ASSUMPTIONS = {
   drawers: {
     /** How much wider than the maker asks the runner gap may be, and how much narrower: a slide takes a little more, never less. */
     runnerTolerance: { over: 0.8, under: 0 },
+    /** The gap the box is built with on each side: the middle of what a ball-bearing slide takes, so a cut half a millimetre off still goes in. */
+    boxClearance: 13,
     minBottom: 6,
     /** Past this width, a drawer bottom thinner than the minimum sags. */
     thinBottomWidth: 300,
@@ -186,6 +188,7 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   floorRunShare: noReference('how Knotty reads «zoclo corrido»: a run under most of the floor, not a block at one end'),
   grainRatio: noReference('where a piece starts to read as long, so grain across it shows; the reference only says the grain runs along the span'),
   'drawers.runnerTolerance': cite(VALUES, '9-cajones', 'Holgura de corredera de balines'),
+  'drawers.boxClearance': cite(VALUES, '9-cajones', 'Ancho de la caja del cajón'),
   'drawers.minBottom': cite(VALUES, '9-cajones', 'Fondo de cajón'),
   'drawers.thinBottomWidth': cite(STRUCTURE, '43-fondo-de-cajón-3-contra-6-mm', '3 mm solo en cajones de menos de 300 mm de ancho'),
   'drawers.floorClearance': noReference('Knotty’s least gap under a drawer so it clears an uneven floor; the reference gives none'),

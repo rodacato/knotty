@@ -48,7 +48,7 @@ describe('addDrawer', () => {
     expect(front.z1).toBe(500)
     expect(front.x0).toBe(20)
     const side = a.geo.boxes.get('drawer-1-side-left')!
-    expect(side.x0).toBeCloseTo(18 + 12.7, 5)
+    expect(side.x0).toBe(18 + 13)
   })
 
   it('follows by itself when the furniture gets wider', () => {
@@ -96,8 +96,8 @@ describe('R9 drawers and screws into a face', () => {
     }
     expect(r9(12.7)).toEqual([])
     expect(r9(13.5)).toEqual([])
-    expect(r9(12.5)).toEqual([expect.stringContaining('no entra')])
-    expect(r9(13.7)).toEqual([expect.stringContaining('flojo')])
+    expect(r9(12.6)).toEqual([expect.stringContaining('no entra')])
+    expect(r9(13.6)).toEqual([expect.stringContaining('flojo')])
   })
 
   it('a front with no gap to the side rubs', () => {

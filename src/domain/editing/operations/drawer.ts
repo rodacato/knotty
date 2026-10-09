@@ -62,12 +62,12 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   }
   const width = geo.measure({ type: 'ref', ref: c.right, offset: 0 }, 'x') - geo.measure({ type: 'ref', ref: c.left, offset: 0 }, 'x')
   const height = geo.measure({ type: 'ref', ref: c.top, offset: 0 }, 'y') - geo.measure({ type: 'ref', ref: c.bottom, offset: 0 }, 'y')
-  if (width < 2 * runner.sideClearance + 150 || height < MIN_DRAWER_OPENING_HEIGHT)
+  const gap = Math.max(ASSUMPTIONS.drawers.boxClearance, runner.sideClearance)
+  if (width < 2 * gap + 150 || height < MIN_DRAWER_OPENING_HEIGHT)
     return error('E_INVALID_OPERATION', `El hueco de ${Math.round(width)} × ${Math.round(height)} mm es muy chico para un cajón.`, { width: Math.round(width), height: Math.round(height) })
 
   const g = c.group
   const id = (part: string) => `${g}-${part}`
-  const gap = runner.sideClearance
   const shared = { material: c.material, group: g, confidence: 'high' as const }
   /** The box runs from behind the front, as long as the runner. */
   const box = () => (backward ? extent(ref(`${id('front')}.z1`), null, runner.length) : extent(null, ref(`${id('front')}.z0`), runner.length))

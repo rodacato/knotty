@@ -436,6 +436,8 @@ Entrepaño o lateral con veta perpendicular a su largo → detalle (R1 ya usa el
 
 Holgura de la corredera a cada lado (12.7 mm, hasta 0.8 de más y nada de menos), fondo del cajón suficiente para su ancho (6 mm desde 300 de ancho), una pieza a la que atornillar cada corredera, la corredera del largo de la caja (`drawer.slide-too-long`, crítico; `drawer.slide-too-short`, recomendación cuando le queda una más larga) y holgura del frente con lo que lo rodea. Aplica a los cajones del módulo y a los que arma el experto.
 
+Lo que la corredera pide es el piso de esa banda, no la medida de diseño: la caja que arma Knotty (`expandDrawer`) deja `ASSUMPTIONS.drawers.boxClearance` por lado, al centro de la banda (`valores-de-referencia.md` §9), para que un corte medio milímetro largo todavía entre. La regla no cambió: sigue aceptando desde lo que pide la corredera.
+
 ### R10 — Uso
 
 Revisiones por tipo de mueble (`domain/checks/typology`): alto de una mesa o un escritorio, espacio para las piernas, medidas de la cama contra el colchón, fondo de un librero, anclaje de lo que cuelga. Un tubo para colgar se revisa donde lo haya, sin importar el tipo (`typology/rods.ts`, D64). Cada revisión es una entrada de `domain/checks/typology/constraints.ts` con sus límites y su fuente en `docs/carpinteria`.
