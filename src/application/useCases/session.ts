@@ -17,11 +17,6 @@ export function createSession(kit: Kit, adjust: Adjust) {
     repository.clear()
   }
 
-  /** A session made elsewhere (a bench run) becomes the one the person works on. */
-  function adopt(state: DesignState): DesignState {
-    return save(state)
-  }
-
   function addRequirement(state: DesignState, text: string): DesignState {
     const clean = text.trim()
     if (!clean) return state
@@ -68,5 +63,5 @@ export function createSession(kit: Kit, adjust: Adjust) {
 
   const pendingQuestions = (state: DesignState): Question[] => state.chat.filter((m) => !m.answered).flatMap((m) => m.questions)
 
-  return { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions }
+  return { load, newDesign, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions }
 }

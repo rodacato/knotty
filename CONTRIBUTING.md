@@ -58,7 +58,7 @@ If you touched the interface, also try it on a phone (the browser's responsive m
 
 ### 3. The bench without an expert (free, seconds)
 
-Open the app with `?debug` at the end of the address (or the Konami code, or `Ctrl+Shift+D`) and go into **Banco**; in «Sin experto: los módulos de Knotty», **Revisar**. It builds every variant of each module (bed, table, shoe rack, cabinet; about 180) and checks them with the rules: a variant that is invalid or has findings is a Knotty error.
+`npx vitest run src/application/bench/bench.test.ts` builds every variant of each module (bed, table, shoe rack, cabinet; about 180) and checks them with the rules: a variant that is invalid or has findings is a Knotty error. To look at a ficha, open it from the spotlight (`Ctrl+K`); with the debug access (`?debug`, the Konami code or `Ctrl+Shift+D`) it marks the ones with findings and the Studio lists them in «Hallazgos».
 
 ### 4. The bench with a real expert (costs tokens)
 
@@ -181,9 +181,7 @@ In Mexican Spanish, clear and brief, as in a workshop. Identifiers that appear i
 
 ## When something fails
 
-- **Debug log** («Entrañas de la madera»): with `?debug`, the Konami code or `Ctrl+Shift+D`. It records every call to the expert, every error and every action; «Exportar» downloads a JSON with the commit, the expert (without keys), the design and the events. Attach it to an issue.
 - **«Ver qué pasó»** on a design that failed shows each attempt by the expert, its errors and what Knotty repaired.
-- **Bench:** «Abrir en el estudio» takes the result of a case to the studio to review it.
 
 ## Commits and PRs
 

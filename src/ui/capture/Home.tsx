@@ -1,31 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
-import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import { exampleDesign, type Base } from '../../domain/furniture/examples'
-import type { Catalog } from '../../domain/materials/catalog'
+import type { Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { AppFooter } from '../shell/AppFooter'
 import { AppHeader } from '../shell/AppHeader'
 import { useExpertStatus } from '../shell/expertStatus'
-import { matches, noMatchNote, roomChips, sizeLine } from './catalog'
+import { cardsOf, type Card } from './cards'
+import { matches, noMatchNote, roomChips } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
-
-interface Card {
-  base: Base
-  size: ReturnType<typeof sizeLine>
-  /** What the thumbnail draws; null when the plan does not resolve. */
-  boxes: Map<string, Box> | null
-}
-
-const cardsOf = (bases: Base[], catalog: Catalog): Card[] =>
-  bases.map((base) => {
-    const { design } = exampleDesign(base, catalog)
-    const geo = resolveGeometry(design, catalog)
-    return { base, size: sizeLine(design.dimensions), boxes: geo.ok ? geo.value.boxes : null }
-  })
 
 function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
   return (
@@ -111,7 +96,7 @@ export function Home() {
           <div ref={mark} />
           <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors duration-150 ease-out md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
             <Field label="Buscar una base" hiddenLabel>
-              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre: librero, escritorio, buró" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
+              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto o modelo" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
             </Field>
             <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0" role="group" aria-label="Cuarto">
               {chips.map(({ room, label, count }) => (

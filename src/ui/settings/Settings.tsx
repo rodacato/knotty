@@ -227,8 +227,8 @@ export function Settings() {
               onChange={(e) => setDebugVisible(e.target.checked)}
             />
             <span>
-              Mostrar las entrañas de la madera
-              <span className="block text-xs text-graphite">La bitácora para mandar reportes de lo que pasó.</span>
+              Mostrar las herramientas de taller
+              <span className="block text-xs text-graphite">En el estudio: los hallazgos de Knotty, el cambio de modelo y «Exportar ficha».</span>
             </span>
           </label>
           </section>

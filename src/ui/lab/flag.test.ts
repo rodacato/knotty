@@ -46,8 +46,6 @@ function services(): Services {
     images: {} as Services['images'],
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
-    bench: {} as Services['bench'],
-    sandbox: { enter: () => {}, leave: () => {}, active: () => false },
   }
 }
 

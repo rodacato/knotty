@@ -6,7 +6,6 @@ const server = await createServer({
   appType: 'custom',
   logLevel: 'error',
   server: { middlewareMode: true, hmr: false, watch: null },
-  define: { __APP_COMMIT__: JSON.stringify('probe') },
 })
 try {
   const { main } = await server.ssrLoadModule('/scripts/probe/probe.ts')

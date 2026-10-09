@@ -1,9 +1,7 @@
 import { createContext, useContext } from 'react'
-import type { Bench } from '../application/bench/bench'
 import type { UseCases } from '../application/useCases'
 import type { Catalog } from '../domain/materials/catalog'
-import type { DebugLog } from '../ports/DebugLog'
-import type { Sandbox } from '../ports/DesignRepository'
+import type { DebugAccess } from '../ports/DebugAccess'
 import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'
 import type { ReferenceStore } from '../ports/ReferenceStore'
@@ -17,11 +15,7 @@ export interface Services {
   /** The furniture of reference: the home screen's starting points come from here. */
   references: ReferenceStore
   preferences: Preferences
-  debug: DebugLog
-  /** The hidden test bench: fixed cases against the connected expert, and every module variant. */
-  bench: Bench
-  /** The debug tools' throwaway designs: while it is on, the saved design stays untouched. */
-  sandbox: Sandbox
+  debug: DebugAccess
 }
 
 export const ServicesContext = createContext<Services | null>(null)

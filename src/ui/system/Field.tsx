@@ -1,6 +1,6 @@
 import { CaretDown } from '@phosphor-icons/react'
 import { createContext, useContext, useId } from 'react'
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 
 // Every control is 16 px: below that, iOS Safari zooms the page when the control takes focus.
 
@@ -43,7 +43,7 @@ function useControlAria(invalid?: boolean) {
   return { id: field.id, 'aria-invalid': invalid || field.invalid || undefined, 'aria-describedby': field.describedBy }
 }
 
-type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & { size?: Size; invalid?: boolean; unit?: string; end?: ReactNode }
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & { size?: Size; invalid?: boolean; unit?: string; end?: ReactNode; ref?: Ref<HTMLInputElement> }
 
 /** A text or number input; `unit` and `end` sit inside the box, after the value. */
 export function Input({ size = 'md', invalid, unit, end, className = '', ...props }: InputProps) {
