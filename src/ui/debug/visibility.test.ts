@@ -22,8 +22,6 @@ function services(saved: boolean) {
     images: {} as Services['images'],
     references: testReferences,
     debug: { visible: () => visible, setVisible: (v: boolean) => void ((visible = v), calls.push(v)) } as unknown as Services['debug'],
-    bench: {} as Services['bench'],
-    sandbox: { enter: () => {}, leave: () => {}, active: () => false },
   }
   return { built, calls }
 }

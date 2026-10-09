@@ -11,7 +11,7 @@ const UI = join(__dirname, '..')
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const path = join(dir, e.name)
-    if (e.isDirectory()) return e.name === 'debug' ? [] : sources(path)
+    if (e.isDirectory()) return sources(path)
     return e.name.endsWith('.tsx') ? [path] : []
   })
 }

@@ -59,7 +59,7 @@ export function KonamiTrail({ onComplete }: { onComplete: () => void }) {
             {GLYPH[k]}
           </span>
         ))}
-        {complete && <span className="ml-2 font-sans text-xs font-medium">Entrañas de la madera</span>}
+        {complete && <span className="ml-2 font-sans text-xs font-medium">Herramientas de taller</span>}
       </div>
     </div>
   )

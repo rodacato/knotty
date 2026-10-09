@@ -1,31 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
-import { resolveGeometry, type Box } from '../../domain/design/resolve'
-import { exampleDesign, type Base } from '../../domain/furniture/examples'
-import type { Catalog } from '../../domain/materials/catalog'
+import type { Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { AppFooter } from '../shell/AppFooter'
 import { AppHeader } from '../shell/AppHeader'
 import { useExpertStatus } from '../shell/expertStatus'
-import { matches, noMatchNote, roomChips, sizeLine } from './catalog'
+import { cardsOf, type Card } from './cards'
+import { matches, noMatchNote, roomChips } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
-
-interface Card {
-  base: Base
-  size: ReturnType<typeof sizeLine>
-  /** What the thumbnail draws; null when the plan does not resolve. */
-  boxes: Map<string, Box> | null
-}
-
-const cardsOf = (bases: Base[], catalog: Catalog): Card[] =>
-  bases.map((base) => {
-    const { design } = exampleDesign(base, catalog)
-    const geo = resolveGeometry(design, catalog)
-    return { base, size: sizeLine(design.dimensions), boxes: geo.ok ? geo.value.boxes : null }
-  })
 
 function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
   return (

@@ -21,7 +21,7 @@ The live run **is not deterministic**. SheLLM's Claude adapter ignores temperatu
 
 | I want to… | Command | Does it cost tokens? |
 |---|---|---|
-| Check that Knotty's modules have no invalid variants | Bench in the app (`?debug` → Banco → Revisar) | No |
+| Check that Knotty's modules have no invalid variants | `npx vitest run src/application/bench/bench.test.ts` | No |
 | Test the compare wiring, without an expert | `KNOTTY_MODELS=simulated:x npm run compare` | No |
 | Measure a change against the real expert | `npm run compare` | Yes |
 | Repeat a stored run and see whether the grader reproduces the verdicts | `npm run compare:replay -- --last` | No |

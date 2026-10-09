@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -28,20 +27,11 @@ function contentSecurityPolicy(): Plugin {
   }
 }
 
-/** Which code a debug export came from. */
-function commit() {
-  try {
-    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
-  } catch {
-    return 'unknown'
-  }
-}
-
 const { version } = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
-  define: { __APP_COMMIT__: JSON.stringify(commit()), __APP_VERSION__: JSON.stringify(version) },
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react(), tailwindcss(), contentSecurityPolicy()],
   server: { port: Number(process.env.PORT) || 5173 },
 }))

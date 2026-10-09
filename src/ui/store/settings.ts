@@ -15,11 +15,14 @@ export interface SettingsSlice {
   gateClosed: boolean
   /** The person's prices and cutting settings over the catalog. */
   catalogSettings: CatalogSettings
+  /** The furniture finder that opens over any screen. */
+  spotlightOpen: boolean
   /** The debug tools are shown: the Konami code, Ctrl+Shift+D, the settings switch or `?debug`. */
   debugVisible: boolean
 
   setDebugVisible(visible: boolean): void
   openSettings(open: boolean): void
+  openSpotlight(open: boolean): void
   openConnect(open: boolean): void
   unlock(passphrase: string): Promise<void>
   forgetKeys(): void
@@ -37,6 +40,7 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   vault: 'none',
   gateClosed: false,
   catalogSettings: NO_SETTINGS,
+  spotlightOpen: false,
   debugVisible: false,
 
   setDebugVisible: (debugVisible) => {
@@ -44,6 +48,7 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
     set({ debugVisible })
   },
   openSettings: (settingsOpen) => set({ settingsOpen }),
+  openSpotlight: (spotlightOpen) => set({ spotlightOpen }),
   openConnect: (connectOpen) => set({ connectOpen }),
 
   async unlock(passphrase) {

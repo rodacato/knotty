@@ -28,7 +28,7 @@ export function createUseCases(deps: Dependencies) {
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
   const { lockField, findSavings } = createSaving(kit)
-  const { load, newDesign, adopt, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
+  const { load, newDesign, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
   const { chooseJoint, chooseEdgeProfiles } = createWorkshop(kit)
 
   return {
@@ -63,7 +63,6 @@ export function createUseCases(deps: Dependencies) {
     applyFix,
     applyFixes,
     toggleTray,
-    adopt,
     sendTray,
     editPiece,
     resizeFurniture,

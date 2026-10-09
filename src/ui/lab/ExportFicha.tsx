@@ -30,8 +30,7 @@ function Command({ text }: { text: string }) {
 
 export function ExportFicha() {
   const state = useStore((s) => s.state)
-  const opened = useStore((s) => s.sandboxOrigin)
-  const origin = { code: opened ?? (state ? (fichaOrigin(state)?.code ?? null) : null) }
+  const origin = { code: state ? (fichaOrigin(state)?.code ?? null) : null }
   const [open, setOpen] = useState(false)
   const candidate = state ? candidateOf(state, origin) : null
 
@@ -82,7 +81,7 @@ export function ExportFicha() {
           ) : (
             <>
               <p role="status" className="rounded-lg bg-kraft/60 p-3 text-sm leading-relaxed">
-                {candidate ? candidate.reason : 'Abre una variante o una ficha primero.'}
+                {candidate ? candidate.reason : 'Abre un mueble primero.'}
               </p>
               <div className="flex justify-end">
                 <Dialog.Close asChild>

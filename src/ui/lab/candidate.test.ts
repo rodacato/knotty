@@ -22,7 +22,7 @@ const opened = () => {
   return { u, state }
 }
 
-describe('exporting a ficha from the bench drawer', () => {
+describe('exporting a ficha from the Studio', () => {
   it('hands back an unchanged ficha as nothing new, and an edited plan as the next version', () => {
     const { u, state } = opened()
     const same = candidateOf(state, { code: ficha.code })

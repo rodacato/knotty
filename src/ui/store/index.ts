@@ -19,4 +19,5 @@ export const useStore = create<Store>()((...a) => ({
 export { hiddenIn, visibleDesign, type EditSide, type SceneMode, type View } from './scene'
 export type { CaptureInput } from './expert'
 export { draftOf, type PlanDraft } from './planDraft'
+export type { Phase } from './session'
 export type { Store } from './types'

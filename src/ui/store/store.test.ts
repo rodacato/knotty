@@ -6,8 +6,6 @@ import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { NO_SETTINGS } from '../../domain/materials/catalog'
-import type { DebugEvent, DebugLog } from '../../ports/DebugLog'
-import { instrumentStore } from '../debug/instrument'
 import type { Services } from '../services'
 import { draftOf, hiddenIn, useStore } from '.'
 import { currentPlan } from '../../application/useCases'
@@ -30,8 +28,6 @@ function services(): Services {
     images: {} as Services['images'],
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
-    bench: {} as Services['bench'],
-    sandbox: { enter: () => {}, leave: () => {}, active: () => false },
   }
 }
 
@@ -47,7 +43,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'sandboxExample', 'sandboxState', 'leaveSandbox', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'adjustBase', 'closeAdjust', 'fromExample', 'openState', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'adjustBase', 'closeAdjust', 'fromExample', 'swapTo', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
@@ -180,15 +176,6 @@ describe('store', () => {
   it('a hidden piece a change removed no longer counts', () => {
     const withoutShelf = { ...exampleBookcase, pieces: exampleBookcase.pieces.filter((p) => p.id !== 'shelf-4') }
     expect(hiddenIn(['shelf-4', 'top'], withoutShelf)).toEqual(['top'])
-  })
-
-  it('the debug log wraps actions by name without changing what they do', () => {
-    const events: Omit<DebugEvent, 'at'>[] = []
-    const stop = instrumentStore({ record: (e: Omit<DebugEvent, 'at'>) => events.push(e) } as unknown as DebugLog)
-    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
-    stop()
-    expect(events.map((e) => e.summary)).toEqual([`Abrir el ejemplo ${exampleBookcase.name}`])
-    expect(useStore.getState().phase).toBe('studio')
   })
 })
 

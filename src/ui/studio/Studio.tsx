@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { Design } from '../../domain/design/schema'
@@ -30,6 +30,7 @@ import { NoticePanel } from './NoticePanel'
 import { ExportFicha } from '../lab/ExportFicha'
 import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
+import { shortcutLabel } from '../spotlight/shortcut'
 
 const VIEWS: { id: View; name: string }[] = [
   { id: 'front', name: 'Frente' },
@@ -208,6 +209,7 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
   const debugVisible = useStore((s) => s.debugVisible)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
+  const openSpotlight = useStore((s) => s.openSpotlight)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const { plan, diverged } = currentPlan(state)
   // The plan describes the current version; an older one or a proposal in view only has its measures.
@@ -224,6 +226,9 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
           <FichaOrigin state={state} />
         </p>
       </div>
+      <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
+        <MagnifyingGlass />
+      </Button>
       <Button variant="ghost" className={`gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
         <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
       </Button>

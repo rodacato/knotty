@@ -26,7 +26,6 @@ It only works for what the plan can already say. If the request needs a field th
 2. The ones that come out `as meant` it solved with a change the form already knows how to make: those are the ones the interpreter can learn, with workflow 1.
 3. The `otherwise` ones say where the expert went another way. If it changed something nobody asked for, it is a case for `reactions.test-util.ts`; if the phrase in the corpus meant something else, the phrase is corrected.
 
-With real use, the exported log (debug bar → «Exportar») brings the same without spending more: each request that reached the expert and what it answered.
 
 ## 3. A new action, material or cut
 
@@ -55,7 +54,7 @@ What the expert writes is a draft: `--diff` decides whether it is a ficha, and t
 
 **Drafting one from photos or a description.** With the debug access, design the piece of furniture in the Studio like any other (photos, measures, description) and refine it in the chat; «Exportar ficha» downloads the candidate file. Continue at step 2 of workflow 4.
 
-**Improving one when Knotty gains support.** The fichas that were adapted because of that feature have it in `gaps` (`grep -l '"<tag>"' src/adapters/references/*.json`). Open each one from the debug bar (it enters the sandbox), ask for the change with the new option, export and check with `--diff`; when adopting it, remove the tag from `gaps` and the adaptation.
+**Improving one when Knotty gains support.** The fichas that were adapted because of that feature have it in `gaps` (`grep -l '"<tag>"' src/adapters/references/*.json`). Open each one from the spotlight (`Ctrl+K`) with the debug access on, ask for the change with the new option, export and check with `--diff`; when adopting it, remove the tag from `gaps` and the adaptation.
 
 Only what fits in a plan is exported. If the expert solved something piece by piece, the file does not come out and it says so: that feature is a gap (workflow 3), not a ficha.
 

@@ -2,7 +2,7 @@ import type { PieceEdit, PieceEditResult, WorkshopResult } from '../../applicati
 import type { Notice } from '../../application/notices'
 import type { Fix } from '../../domain/editing/fixes/fixes'
 import type { TrayItem } from '../../domain/session/tray/tray'
-import { exampleOf, type Base, type Example } from '../../domain/furniture/examples'
+import type { Base, Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { SavingSearch } from '../../domain/furniture/saving/saving'
 import { applySettings } from '../../domain/materials/catalog'
@@ -14,14 +14,14 @@ import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import { ANY, type CatalogQuery } from '../capture/catalog'
-import { askedFicha, debugAccess } from '../debug/access'
+import { debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
 import type { Get, Set, Slice, Store } from './types'
 
 // The open design and the commands that change it without asking the expert.
 
-type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
+export type Phase = 'home' | 'capture' | 'analyzing' | 'studio'
 
 export interface SessionSlice {
   services: Services | null
@@ -34,16 +34,6 @@ export interface SessionSlice {
 
   start(services: Services): void
   newDesign(): void
-  /** The debug tools' throwaway designs: while on, nothing reaches the saved design. It is a state of the app, not a screen. */
-  sandboxed: boolean
-  /** The ficha the sandbox's design was opened from, for exporting it back; null for anything else. */
-  sandboxOrigin: string | null
-  /** Opens a variant or a ficha on a throwaway design; only with the debug access. */
-  sandboxExample(example: Example, origin?: string | null): void
-  /** Opens a design a bench case made, on a throwaway design. */
-  sandboxState(state: DesignState): void
-  /** Back to the saved design, as it was. */
-  leaveSandbox(): void
   startCapture(): void
   browse(change: Partial<CatalogQuery>): void
   adjustBase(base: Base): void
@@ -52,8 +42,8 @@ export interface SessionSlice {
   goHome(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
-  /** A whole session from elsewhere (the bench) becomes the current design. */
-  openState(state: DesignState): void
+  /** Another piece of furniture takes the place of whatever is open, which is lost: the spotlight asks first when that costs something. */
+  swapTo(example: Example): void
   applyProposal(): void
   /** The proposal with the solution Knotty builds for its critical findings, as one version; nothing when there is none. */
   applyProposalWithFix(): void
@@ -128,17 +118,6 @@ const ANOTHER_DESIGN = { adjusting: null, viewedVersion: null, selection: null, 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
 
-/** The sandbox starts the first time something from the bench opens; only with the debug access. */
-function enterSandbox(get: Get, set: Set): boolean {
-  const { services, sandboxed } = get()
-  if (!services || !debugAccess(services.debug)) return false
-  if (sandboxed) return true
-  get().controller?.abort()
-  services.sandbox.enter()
-  set({ sandboxed: true })
-  return true
-}
-
 export const createSession: Slice<SessionSlice> = (set, get) => ({
   services: null,
   state: null,
@@ -149,40 +128,12 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   start(services) {
     const state = services.useCases.load()
     set({ services, state, phase: state ? 'studio' : 'home', debugVisible: debugAccess(services.debug), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
-    // A ficha asked for in the address opens as from the «Fichas» drawer: in the sandbox, so only with the debug access.
-    const code = askedFicha()?.toLowerCase()
-    const reference = code ? services.references.all().find((r) => r.code.toLowerCase() === code) : undefined
-    if (reference) get().sandboxExample(exampleOf(reference), reference.code)
   },
 
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
     set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
-  },
-
-  sandboxed: false,
-  sandboxOrigin: null,
-
-  sandboxExample(example, origin = null) {
-    if (!enterSandbox(get, set)) return
-    set({ sandboxOrigin: origin })
-    get().fromExample(example)
-  },
-
-  sandboxState(state) {
-    if (!enterSandbox(get, set)) return
-    set({ sandboxOrigin: null })
-    get().openState(state)
-  },
-
-  leaveSandbox() {
-    const { services } = get()
-    if (!services || !get().sandboxed) return
-    get().controller?.abort()
-    services.sandbox.leave()
-    const state = services.useCases.load()
-    set((s) => ({ ...ANOTHER_DESIGN, sandboxed: false, sandboxOrigin: null, state, phase: state ? 'studio' : 'home', mode: 'closed', draft: null, thinking: false, stage: null, reveal: s.reveal + 1 }))
   },
 
   browse: (change) => set((s) => ({ browsing: { ...s.browsing, ...change } })),
@@ -195,10 +146,10 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
 
-  openState(state) {
-    const { services } = get()
-    if (!services) return
-    set((s) => opened(s, services.useCases.adopt(state)))
+  swapTo(example) {
+    get().controller?.abort()
+    set({ mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
+    get().fromExample(example)
   },
 
   fromExample(example) {

@@ -8,7 +8,8 @@ import { Home } from './capture/Home'
 import { ServicesContext, type Services } from './services'
 import { Pencil } from './system/components'
 import { Knot } from './system/Brand'
-import { DebugShell } from './debug/DebugShell'
+import { DebugKeys } from './debug/DebugKeys'
+import { Spotlight } from './spotlight/Spotlight'
 import { useStore } from './store'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
@@ -63,9 +64,9 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
   if (!services) return <Loading />
   return (
     <ServicesContext.Provider value={services}>
-      <DebugShell>
-        <Screen />
-      </DebugShell>
+      <Screen />
+      <DebugKeys />
+      <Spotlight />
       <Settings />
       <ConnectExpert />
       <KeysGate />

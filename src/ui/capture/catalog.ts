@@ -20,7 +20,7 @@ export const ANY: CatalogQuery = { room: 'all', text: '' }
 
 type Listed = { code: string; name: string; rooms: readonly Room[] }
 
-const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+export const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const searchable = ({ code, name }: Listed) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
 
 export function matches(item: Listed, q: CatalogQuery): boolean {

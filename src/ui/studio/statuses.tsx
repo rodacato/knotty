@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowsOut, CheckCircle, ClockCounterClockwise, Crosshair, Eye, Flask, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowsOut, CheckCircle, ClockCounterClockwise, Crosshair, Eye, PencilSimpleLine, Warning, X } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import type { DesignState } from '../../domain/session/state'
 import { STAGES } from '../chat/Chat'
@@ -43,8 +43,6 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
   const cancel = useStore((s) => s.cancel)
   const unfocus = useStore((s) => s.unfocus)
   const select = useStore((s) => s.select)
-  const sandboxed = useStore((s) => s.sandboxed)
-  const leaveSandbox = useStore((s) => s.leaveSandbox)
   const { viewedVersion, focusedPiece, proposal, preview, problems, toConfirm, board } = view
   const action = (onClick: () => void, className: string, children: ReactNode) => (
     <button type="button" onClick={onClick} className={className}>
@@ -80,7 +78,5 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
       label: resolvedChipLabel(board.resolved[0]),
       actions: <Close label="Cerrar" onClick={around.onDismissResolved} />,
     })),
-    // Last, because the chip shows only the first status: what changes what you see must not hide behind the sandbox's reminder.
-    ...when(sandboxed, () => ({ key: 'sandbox', icon: <Flask />, label: 'Taller: nada de esto se guarda', actions: action(leaveSandbox, `${SMALL} px-3`, 'Salir') })),
   ]
 }
