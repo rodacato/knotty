@@ -2,6 +2,7 @@ import { kindOf } from '../../domain/furniture/kind'
 import { byPerson, keepPersonKind } from '../../domain/furniture/kind'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
+import { error } from '../../domain/design/validation/errors'
 import { fixForAlternative } from '../../domain/editing/fixes/fixes'
 import { updateDecisions, type Decision, type Origin } from '../../domain/session/history/history'
 import type { Catalog } from '../../domain/materials/catalog'
@@ -23,7 +24,7 @@ import { knownErrors, tryCandidate, type Accepted, type Candidate } from './cand
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, requirementsKept, stillPending } from './copy'
 import { currentPlan, layered } from './currentPlan'
 import { expertCall, traceEntry } from './expertCall'
-import { criticalsCorrection, listErrors, planCorrection } from './forExpert'
+import { criticalsCorrection, listErrors, notBuiltCorrection, planCorrection } from './forExpert'
 import { judge, type Verdict } from './judge'
 import { ATTEMPTS, type Kit, type OnProgress, type Stage } from './kit'
 
@@ -167,8 +168,9 @@ export function createAdjust(kit: Kit) {
     const rebuilt = rebuildFromPlan(intent.plan, current.extras, catalog, withRequest.requirements)
     rebuilt.design = byPerson(design, rebuilt.design)
     const analysis = analyze(rebuilt.design, catalog, withRequest.requirements)
-    note(analysis.valid ? 'ok' : 'invalid', analysis.valid ? [] : traceErrors(analysis.errors), rebuilt.repairs)
-    if (!analysis.valid) return null
+    const refused = analysis.valid ? (rebuilt.missing ? [error('E_PARTS', rebuilt.missing)] : []) : analysis.errors
+    note(refused.length ? 'invalid' : 'ok', traceErrors(refused), rebuilt.repairs)
+    if (refused.length) return null
     const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
     const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
     // The plan path's policy: no extra round, so new criticals wait for the person with the rules' options.
@@ -252,6 +254,11 @@ export function createAdjust(kit: Kit) {
       if (!analysis.valid) {
         trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors(analysis.errors), rebuilt.repairs, 'Ficha'))
         correction = { previousResponse: r, errors: planCorrection(analysis.errors) }
+        continue
+      }
+      if (rebuilt.missing) {
+        trace.push(traceEntry('adjust', attempt, started, response, 'invalid', traceErrors([error('E_PARTS', rebuilt.missing)]), rebuilt.repairs, 'Ficha'))
+        correction = { previousResponse: r, errors: notBuiltCorrection(rebuilt.missing, rebuilt.notes) }
         continue
       }
       trace.push(traceEntry('adjust', attempt, started, response, 'ok', [], rebuilt.repairs, 'Ficha'))

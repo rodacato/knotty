@@ -15,15 +15,13 @@ type Resized<P> = { ok: true; plan: P } | { ok: false; message: string }
 export type QuickCountKind = 'drawer' | 'door' | 'open'
 
 /** A module declares what is quick; one with no `quick` has nothing the quick adjust can ask. */
-export interface QuickSpec<P> {
+export interface QuickSpec {
   /** Whether the outside measures can be fitted to a space. */
   measures: boolean
   /** The counts the person can change, from the cells of the plan. */
   counts: readonly QuickCountKind[]
   /** Keys of `fields` that are quick: the quick adjust shows those and no others. */
   fields: readonly string[]
-  /** What the plan asked for and the built design does not have, in words for the person; null when it came out as asked. */
-  builtAsAsked(plan: P, design: Design): string | null
 }
 
 /** What has to hold between the fields of a plan, beyond what its schema says of each one. */
@@ -48,6 +46,8 @@ export interface FurnitureModule<P extends { kind: string }> {
     what: string
   }
   build(plan: P, catalog: Catalog): { design: Design; notes: string[] }
+  /** What the plan asked for and the built design does not have, in words for the person; null when it came out as asked. Absent when its builder leaves nothing out. */
+  builtAsAsked?(plan: P, design: Design): string | null
   /** What changed, in words for the person and for the expert's context. */
   describeChanges(before: P, after: P): string[]
   /** The whole piece grows or shrinks along one axis, through its plan. */
@@ -65,7 +65,7 @@ export interface FurnitureModule<P extends { kind: string }> {
   /** Its plan's form, section by section: the studio draws it, so a new kind needs no form of its own. */
   fields: FieldSpec<P>[]
   /** What is quick about it; absent for the kinds whose base has nothing to ask quickly. */
-  quick?: QuickSpec<P>
+  quick?: QuickSpec
   /** Its parts: every field of its form belongs to one, and touching a piece opens its part. */
   parts: Parts<P>
 }

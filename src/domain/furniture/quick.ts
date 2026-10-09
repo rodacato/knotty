@@ -3,7 +3,7 @@ import { analyze } from '../checks/analysis'
 import type { Catalog } from '../materials/catalog'
 import { estimatePurchase } from '../estimate/purchase'
 import { MEASURE_RANGE } from './typical'
-import { buildPlan, moduleOf, type FurniturePlan } from './modules/plan'
+import { buildPlan, builtAsAsked, moduleOf, type FurniturePlan } from './modules/plan'
 
 // The quick adjust of a base: fit it to a space and sum up what it costs. Only a module that declares `quick` has something to ask.
 
@@ -28,7 +28,7 @@ export function checkBuilt(plan: FurniturePlan, catalog: Catalog): BuiltCheck {
   const { design } = buildPlan(plan, catalog)
   const analysis = analyze(design, catalog)
   if (!analysis.valid) return { design, problems: analysis.errors.map((e) => e.message), critical: [] }
-  const missing = moduleOf(plan).quick?.builtAsAsked(plan, design)
+  const missing = builtAsAsked(plan, design)
   return { design, problems: missing ? [missing] : [], critical: analysis.findings.filter((f) => f.severity === 'critical').map((f) => f.message) }
 }
 

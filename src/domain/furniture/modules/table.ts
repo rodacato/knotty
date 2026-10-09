@@ -10,7 +10,7 @@ import { stiffness } from '../../materials/grades'
 import { cite, noReference, STRUCTURE, type Source } from '../../sources'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
-import { addDrawers, wholeMillimetres, CABLE_HOLE, CABLE_RISE, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { addDrawers, wholeMillimetres, CABLE_HOLE, CABLE_RISE, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
@@ -514,6 +514,7 @@ export const tableModule: FurnitureModule<TablePlan> = {
   label: 'una mesa',
   expert: { what: 'a table or a desk' },
   build: buildTable,
+  builtAsAsked: (plan, design) => drawersShort(design, plan.use === 'desk' && plan.pedestal.side !== 'none' ? plan.pedestal.drawers : 0, 'en esa cajonera'),
   describeChanges: describeTableChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),
   withMeasures: (plan, { width, height, depth }) => ({ ...plan, dimensions: { width, height, depth } }),

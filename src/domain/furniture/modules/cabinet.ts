@@ -14,7 +14,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -1193,21 +1193,21 @@ function ownWay(plan: CabinetPlan, content: PlanCell['content']): string {
   return n ? ` · ${n === 1 ? '1 hueco va distinto' : `${n} huecos van distinto`}` : ''
 }
 
-const drawersBuilt = (design: Design) => design.pieces.filter((p) => p.role === 'drawer-front').length
 const doorLeavesAsked = (plan: CabinetPlan) => frontedCells(plan).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
 
 /** What is quick in a cabinet: its measures, the counts of drawers, doors and open niches, and the few choices that move the cost or the look most. */
-const cabinetQuick: QuickSpec<CabinetPlan> = {
+const cabinetQuick: QuickSpec = {
   measures: true,
   counts: ['drawer', 'door', 'open'],
   fields: ['base', 'construction.pulls', 'material'],
-  builtAsAsked: (plan, design) => {
-    const asked = count(plan, 'drawer')
-    if (drawersBuilt(design) !== asked) return `Solo caben ${drawersBuilt(design)} de ${asked} cajones en esos huecos.`
-    if (design.pieces.filter((p) => p.role === 'door' && !lifts(design, p.id)).length !== doorLeavesAsked(plan)) return 'Una puerta no quedó como se pidió.'
-    if (design.pieces.filter((p) => lifts(design, p.id)).length !== (toppedByLid(plan) ? count(plan, 'chest') - plan.columns.length + 1 : count(plan, 'chest'))) return 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.'
-    return null
-  },
+}
+
+function cabinetBuiltAsAsked(plan: CabinetPlan, design: Design): string | null {
+  const drawers = drawersShort(design, count(plan, 'drawer'), 'en esos huecos')
+  if (drawers) return drawers
+  if (design.pieces.filter((p) => p.role === 'door' && !lifts(design, p.id)).length !== doorLeavesAsked(plan)) return 'Una puerta no quedó como se pidió.'
+  if (design.pieces.filter((p) => lifts(design, p.id)).length !== (toppedByLid(plan) ? count(plan, 'chest') - plan.columns.length + 1 : count(plan, 'chest'))) return 'Un baúl se quedó sin el hueco abierto de encima, por donde abre su tapa.'
+  return null
 }
 
 const doorsOf = (plan: CabinetPlan) => frontedCells(plan).filter((c) => c.content === 'door').length
@@ -1296,6 +1296,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   label: 'un gabinete',
   expert: { what: 'a cabinet (a box with columns and openings)' },
   build: buildCabinet,
+  builtAsAsked: cabinetBuiltAsAsked,
   describeChanges: describeCabinetChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),
   withMeasures: (plan, { width, height, depth }) => ({ ...plan, dimensions: { width, height, depth } }),

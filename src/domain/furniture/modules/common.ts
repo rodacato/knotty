@@ -149,6 +149,12 @@ export function addDrawers(design: Design, drawers: AddDrawer[], catalog: Catalo
   return { design, notes }
 }
 
+/** The drawers the plan asks for against the ones `addDrawers` placed; `where` is what they did not fit in: "en esos huecos". */
+export function drawersShort(design: Design, asked: number, where: string): string | null {
+  const built = design.pieces.filter((p) => p.role === 'drawer-front').length
+  return built === asked ? null : `Solo caben ${built} de ${asked} cajones ${where}.`
+}
+
 export const cm = (mm: number) => `${(mm / 10).toLocaleString('es-MX', { maximumFractionDigits: 1 })} cm`
 
 /** The header line of a piece of furniture known by its outside measures. */

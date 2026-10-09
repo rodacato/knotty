@@ -11,7 +11,7 @@ import { maxSpan } from '../../checks/structure/rules/deflection'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
-import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE } from './common'
+import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import { notchNote, withFrontCuts } from './fronts'
@@ -922,6 +922,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
   label: 'una cama',
   expert: { what: 'a bed (a base with or without drawers, and a headboard)' },
   build: buildBed,
+  builtAsAsked: (plan, design) => drawersShort(design, plan.drawers.side === 'none' ? 0 : plan.drawers.count * (plan.drawers.side === 'both' ? 2 : 1), 'bajo esa cama'),
   describeChanges: describeBedChanges,
   // Its length and width come from the mattress; its height is the headboard's, or the base's without one.
   resize: (plan, axis, value) =>

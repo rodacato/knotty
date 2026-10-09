@@ -24,6 +24,14 @@ export const planCorrection = (errors: DesignError[]) =>
     'Fix the plan so it builds, keeping the change the person asked for, and return the complete plan.',
   ].join('\n')
 
+/** For the plan's correction round: the plan builds, but without something it asks for; the builder's notes say which and why. */
+export const notBuiltCorrection = (missing: string, notes: string[]) =>
+  [
+    'Knotty built the design from your plan and had to leave out something the plan asks for:',
+    ...[missing, ...notes].map((line) => `- ${line}`),
+    'Fix the plan so everything it asks for fits (fewer or taller drawers, another content for that opening), keeping the change the person asked for, and return the complete plan.',
+  ].join('\n')
+
 const CHECK_STATE = { ok: 'ok', warning: 'warning', fail: 'FAIL' }
 export function reviewText(cut: CutLine[], checks: Check[]) {
   return [

@@ -499,7 +499,7 @@ describe('sliding doors', () => {
 
   it('doors in front of a split cell count as the doors of the furniture: built as asked, and summed up as one sliding door', () => {
     const inFront = rack(1, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open(1)] }] })
-    expect(cabinetModule.quick!.builtAsAsked!(inFront, buildCabinet(inFront, testCatalog).design)).toBeNull()
+    expect(cabinetModule.builtAsAsked!(inFront, buildCabinet(inFront, testCatalog).design)).toBeNull()
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(inFront, 'Barniz')).toBe('1 puerta corrediza')
     expect(quickCounts(inFront)).toEqual({ drawer: 0, door: 1, open: 2 })
     expect(countLimits(inFront, testCatalog).door).toEqual({ min: 1, max: 1 })
@@ -652,7 +652,7 @@ describe('a chest opened from above', () => {
       const { design, box } = built(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))))
       expect(design.pieces.filter((p) => p.role === 'door').map((p) => p.id)).toEqual(['top-lid'])
       expect(box('div-1').y1).toBe(box('top-lid').y0)
-      expect(cabinetModule.quick!.builtAsAsked!(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))), design)).toBeNull()
+      expect(cabinetModule.builtAsAsked!(trunk({}, [1, 1].map((width) => ({ width, cells: [{ ...chest(0), height: 1 }] }))), design)).toBeNull()
     })
 
     it('takes as many stays as its weight asks for: two for a long lid, one for the lid of a niche', () => {
@@ -686,7 +686,7 @@ describe('a chest opened from above', () => {
   it('is not a door of the furniture: the quick counts and the summary leave it out, and adding a cell never splits it', () => {
     const p = headboard()
     const { design } = built(p)
-    expect(cabinetModule.quick!.builtAsAsked!(p, design)).toBeNull()
+    expect(cabinetModule.builtAsAsked!(p, design)).toBeNull()
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(p, 'Barniz')).toBe('Sin puertas: agrégalas en los huecos')
     expect(leafCells(setCount(p, 'open', 2, testCatalog).plan.columns).map((c) => c.content)).toEqual(['chest', 'open', 'open'])
     const alone = setCount(p, 'open', 0, testCatalog)

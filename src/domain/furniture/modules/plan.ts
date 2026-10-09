@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { DesignKind } from '../../design/kind'
+import type { Design } from '../../design/schema'
 import type { Catalog } from '../../materials/catalog'
 import { BedPlan, bedModule } from './bed'
 import { CabinetPlan, cabinetModule } from './cabinet'
@@ -42,6 +43,9 @@ export const FURNITURE_KINDS = Object.keys(MODULES) as FurnitureKind[]
 export const moduleOf = <P extends FurniturePlan>(plan: P) => MODULES[plan.kind] as unknown as FurnitureModule<P>
 
 export const buildPlan = (plan: FurniturePlan, catalog: Catalog) => moduleOf(plan).build(plan, catalog)
+
+/** What the plan asked for and `built`, the design its module gave, does not have; null when it came out as asked. */
+export const builtAsAsked = (plan: FurniturePlan, built: Design) => moduleOf(plan).builtAsAsked?.(plan, built) ?? null
 
 /** A module's name without its article, for lists: "zapatera". */
 export const moduleName = (kind: FurnitureKind) => MODULES[kind].label.replace(/^una? /, '')
