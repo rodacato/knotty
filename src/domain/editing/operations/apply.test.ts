@@ -147,7 +147,7 @@ describe('cutList', () => {
     const r = resolveGeometry(exampleBookcase, testCatalog)
     if (!r.ok) throw new Error()
     const list = cutList(exampleBookcase, r.value)
-    expect(list.find((l) => l.ids.includes('shelf-1'))).toMatchObject({ name: 'Entrepaño', count: 4, length: 514, width: 294, thickness: 18 })
+    expect(list.find((l) => l.ids.includes('shelf-1'))).toMatchObject({ name: 'Entrepaño 1 a 4', count: 4, length: 514, width: 294, thickness: 18 })
     expect(list.find((l) => l.ids.includes('side-left'))).toMatchObject({ count: 2, length: 1800, width: 294 })
   })
 })
