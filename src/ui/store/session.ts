@@ -40,6 +40,8 @@ export interface SessionSlice {
   closeAdjust(): void
   /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
+  /** The home with every piece of furniture, whatever it was filtered by. */
+  browseAll(): void
   /** One of the home screen's examples, a ready design or a plan. */
   fromExample(example: Example): void
   /** Another piece of furniture takes the place of whatever is open, which is lost: the spotlight asks first when that costs something. */
@@ -145,6 +147,11 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
   goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
+
+  browseAll() {
+    get().goHome()
+    set({ browsing: ANY })
+  },
 
   swapTo(example) {
     get().controller?.abort()
