@@ -1,6 +1,7 @@
-import { analyze } from '../../checks/analysis'
+import { analyze, type Analysis } from '../../checks/analysis'
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
 import type { Design, Piece } from '../../design/schema'
+import { freeStretch } from '../../design/boxes'
 import { drawerSides } from '../../design/drawers'
 import { completeJoints } from '../../design/joints'
 import { normalize } from '../../design/normalize'
@@ -24,20 +25,27 @@ export interface Fix {
 const RAIL_HEIGHT = 80
 /** A support shallower than this holds nothing up. */
 const MIN_SUPPORT_DEPTH = 100
+/** The most supports one solution puts under one piece. */
+const MAX_SUPPORTS = 4
 const uniqueId = (design: Design, base: string) => {
   let id = base
   for (let n = 2; design.pieces.some((p) => p.id === id); n++) id = `${base}-${n}`
   return id
 }
 
-/** A vertical support under the middle of a horizontal piece, down to what is below it, dodging what is in its way. */
+const sagOf = (analysis: Analysis, id: string) => (analysis.valid ? analysis.findings.find((h) => h.code === 'R1_SAG' && h.pieces.includes(id))?.severity : undefined)
+
+/** A vertical support under a horizontal piece, down to what is below it, dodging what is in its way: at the middle of the span that sags, or of the piece when none does. */
 function centerSupport(design: Design, catalog: Catalog, target: Piece): Operation[] {
   const analysis = analyze(design, catalog)
   const geo = analysis.geo
   const box = geo?.boxes.get(target.id)
   if (!geo || !box || target.normal !== 'y') return []
   const thickness = geo.thicknesses.get(target.id) ?? 18
-  const x0 = Math.round((box.x0 + box.x1) / 2 - thickness / 2)
+  // A floor on a kick is already held under its divider: the span that sags is one of its halves, and the piece's own middle is taken.
+  const sagging = analysis.valid && sagOf(analysis, target.id) ? freeStretch(target.id, box, { design, geo, contacts: analysis.contacts }) : null
+  const [from, to] = sagging ?? [box.x0, box.x1]
+  const x0 = Math.round((from + to) / 2 - thickness / 2)
   const x1 = x0 + thickness
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => id !== target.id && b.x0 < x1 && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
   // What it stands on: the highest piece clearly below; pieces touching the target (a kick under the floor) are obstacles, not a base.
@@ -60,6 +68,22 @@ function centerSupport(design: Design, catalog: Catalog, target: Piece): Operati
     edges: ['front'],
   })
   return [{ op: 'addPiece', piece: support }]
+}
+
+/** Supports under a piece until it sags less than it did: one under a floor that sags the same in both halves would leave the other half as it was. */
+function centerSupports(design: Design, catalog: Catalog, target: Piece): Operation[] {
+  const before = sagOf(analyze(design, catalog), target.id)
+  const operations: Operation[] = []
+  let current = design
+  for (let n = 0; n < MAX_SUPPORTS; n++) {
+    const support = centerSupport(current, catalog, target)
+    const result = support.length ? applyOperations(current, support, catalog) : null
+    if (!result?.ok) break
+    operations.push(...support)
+    current = completeJoints(normalize(result.value.design, catalog), catalog, design)
+    if (!before || sagOf(analyze(current, catalog), target.id) !== before) break
+  }
+  return operations
 }
 
 /** A rail across the back, just under the top: to hang the piece from the wall or to keep it square. */
@@ -167,7 +191,7 @@ function operationsFor(design: Design, catalog: Catalog, finding: Finding, alter
     }
     case 'center-divider':
     case 'center-support':
-      return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupport(design, catalog, p))
+      return pieces.filter((p) => p.normal === 'y').flatMap((p) => centerSupports(design, catalog, p))
     case 'anchor-to-wall':
       return design.wallAnchored ? [] : [{ op: 'setWallAnchored', value: true }]
     case 'hanging-rail':

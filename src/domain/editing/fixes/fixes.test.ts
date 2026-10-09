@@ -6,7 +6,7 @@ import { exampleWallCabinet } from '../../furniture/fixtures/wallCabinet'
 import { exampleNightstand } from '../../furniture/fixtures/nightstand'
 import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { buildPlan, MODULES } from '../../furniture/modules/plan'
+import { buildPlan, FurniturePlan, MODULES } from '../../furniture/modules/plan'
 import { applyOperations } from '../operations/apply'
 import { fixForAlternative, fixesFor, fixesForNotice } from './fixes'
 
@@ -90,6 +90,43 @@ describe('fixesFor', () => {
     const loose = { ...exampleBookcase, wallAnchored: false }
     const [fix] = fixesFor(loose, testCatalog, finding(loose, 'R4_TIPPING'))
     expect(fix.design.wallAnchored).toBe(true)
+  })
+})
+
+describe('a support under a floor on a kick', () => {
+  /** The open bookcase (GN-LIB-01) at another width: two columns of two openings with two shelves each, on a kick. */
+  const bookcase = (width: number, columns: number[]) => {
+    const cells = [0.55, 0.45].map((height) => ({ height, content: 'open', shelves: 2, doors: null }))
+    const plan = FurniturePlan.parse({ kind: 'cabinet', name: 'Librero abierto', dimensions: { width, height: 1950, depth: 290 }, material: 'T18', base: 'kick', wallMounted: true, construction: { doors: 'overlay', drawerFronts: 'inset', top: 'between', back: 'nailed', shelves: 'movable', fronts: 'flat', hinges: 'outside', pulls: 'none' }, columns: columns.map((share) => ({ width: share, cells })), assembly: 'cams' })
+    return buildPlan(plan, testCatalog).design
+  }
+  const sags = (d: Design) => findings(d).filter((h) => h.code === 'R1_SAG')
+  const supportsOf = (d: Design, id: string) => d.pieces.filter((p) => p.id.startsWith(`support-${id}`))
+
+  it('every piece of the notice stops being critical, the floor too: it sags on both sides of the support under its divider', () => {
+    const wide = bookcase(2300, [1, 1])
+    const critical = sags(wide).filter((h) => h.severity === 'critical')
+    expect(critical.map((h) => h.pieces[0])).toEqual(['bottom', ...[1, 2].flatMap((c) => [1, 2].flatMap((h) => [1, 2].map((n) => `c${c}-h${h}-shelf-${n}`)))])
+    expect(critical[0].data).toMatchObject({ span: 1123, sag: 20.2 })
+    const fix = fixesForNotice(wide, testCatalog, critical).find((f) => f.key === 'center-divider')!
+    expect(sags(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
+    expect(sags(fix.design).some((h) => h.pieces.includes('bottom'))).toBe(false)
+    expect(supportsOf(fix.design, 'bottom')).toHaveLength(2)
+    expect(fixForAlternative(wide, testCatalog, critical, 'center-divider')).not.toBeNull()
+  })
+
+  it('only the half that sags gets one, and a shelf gets one alone', () => {
+    const uneven = bookcase(1740, [2, 1])
+    const critical = sags(uneven).filter((h) => h.severity === 'critical')
+    expect(critical.map((h) => h.pieces[0])).toContain('bottom')
+    const fix = fixesForNotice(uneven, testCatalog, critical).find((f) => f.key === 'center-divider')!
+    const divider = analyze(fix.design, testCatalog).geo!.boxes.get('div-1')!
+    const [support, ...more] = supportsOf(fix.design, 'bottom')
+    expect(more).toEqual([])
+    expect(sags(fix.design).some((h) => h.pieces.includes('bottom'))).toBe(false)
+    expect(analyze(fix.design, testCatalog).geo!.boxes.get(support.id)!.x1).toBeLessThan(divider.x0)
+    for (const h of critical.filter((h) => h.pieces[0] !== 'bottom')) expect(supportsOf(fix.design, h.pieces[0])).toHaveLength(1)
+    expect(sags(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
   })
 })
 
