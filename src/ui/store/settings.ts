@@ -19,7 +19,7 @@ export interface SettingsSlice {
   spotlightOpen: boolean
   /** The code of the furniture the spotlight opens asking about: a link to a ficha that would cost something to open. */
   spotlightAsk: string | null
-  /** The debug tools are shown: the Konami code, Ctrl+Shift+D, the settings switch or `?debug`. */
+  /** The debug tools are shown: the Konami code, Ctrl+Shift+D or the settings switch. */
   debugVisible: boolean
 
   setDebugVisible(visible: boolean): void

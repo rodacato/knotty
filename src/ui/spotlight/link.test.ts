@@ -9,12 +9,12 @@ describe('the link to a ficha', () => {
   })
 
   it('reads the code in any case and keeps the rest of the address', () => {
-    expect(linkedFicha('?debug&ficha=kc-mes-03')).toEqual({ code: 'KC-MES-03', rest: '?debug' })
+    expect(linkedFicha('?utm_source=x&ficha=kc-mes-03')).toEqual({ code: 'KC-MES-03', rest: '?utm_source=x' })
   })
 
   it('asks for nothing when the address names no ficha', () => {
     expect(linkedFicha('')).toBeNull()
-    expect(linkedFicha('?debug')).toBeNull()
+    expect(linkedFicha('?utm_source=x')).toBeNull()
     expect(linkedFicha('?ficha=')).toBeNull()
   })
 })

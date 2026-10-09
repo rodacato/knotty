@@ -11,6 +11,6 @@ export function linkedFicha(search: string): { code: string; rest: string } | nu
   const code = params.get(PARAM)?.trim().toUpperCase()
   if (!code) return null
   params.delete(PARAM)
-  const rest = params.toString().replace(/=(?=&|$)/g, '')
+  const rest = params.toString()
   return { code, rest: rest ? `?${rest}` : '' }
 }

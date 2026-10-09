@@ -58,7 +58,7 @@ If you touched the interface, also try it on a phone (the browser's responsive m
 
 ### 3. The bench without an expert (free, seconds)
 
-`npx vitest run src/application/bench/bench.test.ts` builds every variant of each module (bed, table, shoe rack, cabinet; about 180) and checks them with the rules: a variant that is invalid or has findings is a Knotty error. To look at a ficha, open it from the spotlight (`Ctrl+K`); with the debug access (`?debug`, the Konami code or `Ctrl+Shift+D`) it marks the ones with findings and the Studio lists them in «Hallazgos».
+`npx vitest run src/application/bench/bench.test.ts` builds every variant of each module (bed, table, shoe rack, cabinet; about 180) and checks them with the rules: a variant that is invalid or has findings is a Knotty error. To look at a ficha, open it from the spotlight (`Ctrl+K`); with the debug access (the Konami code, `Ctrl+Shift+D` or the switch in settings) it marks the ones with findings and the Studio lists them in «Hallazgos».
 
 ### 4. The bench with a real expert (costs tokens)
 
