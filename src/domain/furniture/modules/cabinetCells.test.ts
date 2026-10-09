@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
+import { testReferences } from '../fixtures/references.test-util'
 import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, type CabinetPlan, type PlanCell } from './cabinet'
-import { cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, splitCell } from './cabinetCells'
+import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, splitCell } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
 const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
@@ -134,6 +135,107 @@ describe('joining cells', () => {
     // The door shares its column with the drawer: joining it sideways would leave a cell across two columns of different cuts.
     expect(joinSides(sideboard, [0, 0])).toEqual(['up'])
     expect(joinCells(sideboard, [0, 0], 'right')).toBeNull()
+  })
+})
+
+/** The plan a shipped cabinet ficha builds from. */
+const shipped = (code: string) => {
+  const plan = testReferences.latest(code)?.plan
+  if (plan?.kind !== 'cabinet') throw new Error(`${code} is not a shipped cabinet`)
+  return plan
+}
+const widths = (plan: CabinetPlan) => plan.columns.map((c) => c.width)
+const share = (plan: CabinetPlan, i: number) => plan.columns[i].width / widths(plan).reduce((s, v) => s + v, 0)
+
+describe('a whole column of the furniture', () => {
+  const sideboardFicha = shipped('KC-APA-01')
+
+  it.each([['left', 1], ['right', 2]] as const)('is added to the %s of a column with several cells, open and from the bottom to the top', (side, at) => {
+    expect(sideboardFicha.columns[1].cells.length).toBeGreaterThan(1)
+    const added = addColumn(sideboardFicha, [1, 1], side)!
+    expect(added.path).toEqual([at, 0])
+    expect(added.plan.columns).toHaveLength(sideboardFicha.columns.length + 1)
+    expect(added.plan.columns[at]).toEqual({ width: 1, cells: [{ height: 1, content: 'open', shelves: 0, doors: null }] })
+    expect(added.plan.columns.filter((_, i) => i !== at)).toEqual(sideboardFicha.columns)
+    const { box, boxes } = built(added.plan)
+    const layout = cellLayout(added.plan, boxes)!
+    const row = added.plan.columns.map((_, i) => layout.cells.find((c) => c.path[0] === i && c.y0 === box('bottom').y1)!)
+    expect(row[0].x0).toBe(box('side-left').x1)
+    expect(row.at(-1)!.x1).toBe(box('side-right').x0)
+    const board = box('side-left').x1 - box('side-left').x0
+    row.slice(1).forEach((c, i) => expect(c.x0 - row[i].x1).toBeCloseTo(board))
+    expect(row[at].y1).toBe(box('top').y0)
+  })
+
+  it('takes the average width, and the others shrink in proportion', () => {
+    const bookcase = shipped('KC-LIB-02')
+    expect(new Set(widths(bookcase)).size).toBeGreaterThan(1)
+    const { plan } = addColumn(bookcase, [0, 0], 'right')!
+    const n = bookcase.columns.length
+    expect(share(plan, 1)).toBeCloseTo(1 / (n + 1))
+    bookcase.columns.forEach((_, i) => expect(share(plan, i < 1 ? i : i + 1)).toBeCloseTo((share(bookcase, i) * n) / (n + 1)))
+    const uneven = addColumn(shipped('KC-OTR-02'), [0, 0], 'left')!.plan
+    expect(uneven.columns[0].width).toBe(0.333)
+    built(plan)
+  })
+
+  it('is removed, and the others keep their proportions', () => {
+    const bookcase = shipped('KC-LIB-02')
+    const removed = removeColumn(bookcase, [1, 2])
+    if (!removed || 'refused' in removed) throw new Error('refused')
+    expect(removed.plan.columns).toEqual(bookcase.columns.filter((_, i) => i !== 1))
+    expect(share(removed.plan, 0) / share(removed.plan, 2)).toBeCloseTo(share(bookcase, 0) / share(bookcase, 3))
+    expect(removed.path).toEqual([0, 0])
+    expect(removeColumn(bookcase, [0, 0])).toMatchObject({ path: [0, 0] })
+    built(removed.plan)
+  })
+
+  it('added and then removed leaves the plan as it was, number by number: the other widths are never rewritten', () => {
+    for (const side of ['left', 'right'] as const) {
+      const added = addColumn(sideboardFicha, [2, 0], side)!
+      expect(removeColumn(added.plan, added.path)).toMatchObject({ plan: sideboardFicha })
+    }
+  })
+
+  it('is the one that holds the cell, when the cell sits inside a split cell', () => {
+    const tower = shipped('KC-OTR-04')
+    const inner = cellPaths(tower).find((p) => p.length > 2 && p[0] === 0)!
+    const added = addColumn(tower, inner, 'right')!
+    expect(added.path).toEqual([1, 0])
+    expect([added.plan.columns[0], added.plan.columns[2]]).toEqual(tower.columns)
+    const removed = removeColumn(tower, inner)
+    expect(removed).toMatchObject({ plan: { columns: [tower.columns[1]] }, path: [0, 0] })
+    const left = removeColumn(tower, [1, 0])
+    expect(left && 'path' in left && cellAt(left.plan, left.path)).toBeTruthy()
+    expect(left && 'path' in left && left.path.length).toBeGreaterThan(2)
+  })
+
+  it('is not removed when it is the only one, or when what is left breaks a rule of the cabinet', () => {
+    expect(removeColumn(shipped('KC-BUR-01'), [0, 0])).toEqual({ refused: ONLY_COLUMN })
+    const raised = shipped('KC-LIB-09')
+    expect(raised.columns[1].cells[0].content).toBe('void')
+    expect(removeColumn(raised, [0, 0])).toEqual({ refused: expect.stringMatching(/al menos una columna llega al piso/) })
+    expect(removeColumn(raised, [1, 1])).toMatchObject({ plan: { columns: [raised.columns[0]] } })
+    expect(removeColumn(raised, [1, 0, 0])).toBeNull()
+    expect(addColumn(raised, [7, 0], 'left')).toBeNull()
+  })
+
+  it('can be added beside every column of every shipped cabinet, but one whose top is the lid of its chest', () => {
+    const refused: string[] = []
+    for (const code of new Set(testReferences.all().map((r) => r.code))) {
+      const plan = testReferences.latest(code)!.plan
+      if (plan?.kind !== 'cabinet') continue
+      plan.columns.forEach((_, i) => {
+        for (const side of ['left', 'right'] as const) {
+          try {
+            built(addColumn(plan, cellPaths(plan).find((p) => p[0] === i)!, side)!.plan)
+          } catch (e) {
+            refused.push(`${code} ${i} ${side}: ${(e as Error).message}`)
+          }
+        }
+      })
+    }
+    expect(refused).toEqual(['left', 'right'].map((side) => expect.stringMatching(new RegExp(`^GN-BAU-01 0 ${side}: Un baúl va debajo de un hueco abierto`))))
   })
 })
 
