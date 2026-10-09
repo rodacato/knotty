@@ -1,5 +1,13 @@
+import type { Example } from '../../domain/furniture/examples'
 import type { DesignState } from '../../domain/session/state'
 import type { Phase } from '../store'
+
+/** A piece of furniture the spotlight asks about before opening it. */
+export interface Asking {
+  name: string
+  code: string | null
+  example: Example
+}
 
 /** What swapping the furniture throws away, so the spotlight asks first; null when nothing of the person's is lost. */
 export type SwapLoss = 'design' | 'capture' | 'analyzing'

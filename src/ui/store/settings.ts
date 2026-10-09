@@ -1,5 +1,6 @@
 import type { VaultState } from '../../ports/Preferences'
 import { NO_SETTINGS, type CatalogSettings } from '../../domain/materials/catalog'
+import type { Asking } from '../spotlight/swap'
 import type { Slice } from './types'
 
 // The settings panel, the key vault and the person's catalog settings.
@@ -17,14 +18,14 @@ export interface SettingsSlice {
   catalogSettings: CatalogSettings
   /** The furniture finder that opens over any screen. */
   spotlightOpen: boolean
-  /** The code of the furniture the spotlight opens asking about: a link to a ficha that would cost something to open. */
-  spotlightAsk: string | null
+  /** What the spotlight opens asking about: a link that would cost something to open. */
+  spotlightAsk: Asking | null
   /** The debug tools are shown: the Konami code, Ctrl+Shift+D or the settings switch. */
   debugVisible: boolean
 
   setDebugVisible(visible: boolean): void
   openSettings(open: boolean): void
-  openSpotlight(open: boolean, ask?: string): void
+  openSpotlight(open: boolean, ask?: Asking): void
   openConnect(open: boolean): void
   unlock(passphrase: string): Promise<void>
   forgetKeys(): void

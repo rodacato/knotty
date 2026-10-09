@@ -2,6 +2,8 @@ import { Cube, WarningCircle, XCircle } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/materials/catalog'
+import { analyze } from '../../domain/checks/analysis'
+import { exampleDesign, type Example } from '../../domain/furniture/examples'
 import type { ReferenceStore } from '../../ports/ReferenceStore'
 import { cardsOf, type Card } from '../capture/cards'
 import { found, notFoundNote, roomsLine } from '../capture/catalog'
@@ -12,7 +14,7 @@ import { Button } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { verdictsOf, type Verdict } from '../lab/verdicts'
 import { linkedFicha } from './link'
-import { LOSS_NOTE, swapLoss } from './swap'
+import { LOSS_NOTE, swapLoss, type Asking } from './swap'
 
 /** The thumbnails are built once: they only change with the app. */
 let built: { references: ReferenceStore; catalog: Catalog; cards: Card[] } | null = null
@@ -64,7 +66,7 @@ function Finder({ onDone }: { onDone: () => void }) {
   const [active, setActive] = useState(0)
   const input = useRef<HTMLInputElement>(null)
   const cards = cardsOnce(references, catalog)
-  const [asking, setAsking] = useState<Card | null>(() => cards.find((c) => c.base.code === ask) ?? null)
+  const [asking, setAsking] = useState<Asking | null>(ask)
   const verdicts = useMemo(() => (debugVisible ? verdictsOf(references.home(), catalog) : null), [debugVisible, references, catalog])
   const shown = cards.filter((c) => found(c.base, text))
   const current = shown[active]
@@ -75,14 +77,14 @@ function Finder({ onDone }: { onDone: () => void }) {
     if (current) document.getElementById(optionId(current.base.id))?.scrollIntoView({ block: 'nearest' })
   }, [current])
 
-  const swap = (card: Card) => {
-    swapTo(card.base)
+  const swap = (example: Example) => {
+    swapTo(example)
     onDone()
   }
-  const choose = (card: Card) => {
-    if (loss) setAsking(card)
-    else if (card.base.code === openCode) onDone()
-    else swap(card)
+  const choose = ({ base }: Card) => {
+    if (loss) setAsking({ name: base.name, code: base.code, example: base })
+    else if (base.code === openCode) onDone()
+    else swap(base)
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -200,27 +202,27 @@ function Finder({ onDone }: { onDone: () => void }) {
         setAsking(null)
       }}
     >
-      {question ? <Question name={asking.base.name} again={asking.base.code === openCode} note={LOSS_NOTE[loss]} onKeep={() => setAsking(null)} onSwap={() => swap(asking)} /> : list()}
+      {question ? <Question name={asking.name} again={asking.code === openCode} note={LOSS_NOTE[loss]} onKeep={() => setAsking(null)} onSwap={() => swap(asking.example)} /> : list()}
     </Dialog.Content>
   )
 }
 
 /** The furniture finder over any screen: Ctrl+K or ⌘K opens it, and what is chosen takes the Studio. */
 export function Spotlight() {
-  const { references } = useServices()
+  const { references, catalog } = useServices()
   const open = useStore((s) => s.spotlightOpen)
   const setOpen = useStore((s) => s.openSpotlight)
 
   useEffect(() => {
-    const linked = linkedFicha(location.search)
+    const linked = linkedFicha(location, references.home(), (example) => analyze(exampleDesign(example, catalog).design, catalog).valid)
     if (!linked) return
-    history.replaceState(null, '', `${location.pathname}${linked.rest}${location.hash}`)
-    const base = references.home().find((b) => b.code === linked.code)
-    if (!base) return
+    history.replaceState(null, '', `${location.pathname}${linked.search}${linked.hash}`)
+    const { example } = linked
+    if (!example) return
     const { phase, state, swapTo } = useStore.getState()
-    if (swapLoss(phase, state)) setOpen(true, linked.code)
-    else swapTo(base)
-  }, [references, setOpen])
+    if (swapLoss(phase, state)) setOpen(true, { name: example.name, code: example.code ?? null, example })
+    else swapTo(example)
+  }, [references, catalog, setOpen])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
