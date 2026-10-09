@@ -106,8 +106,32 @@ describe('what Knotty builds toward a slide aims at the middle of what the slide
     ['with its runner joints', declared],
     ['freeform', freeform(declared)],
   ])('the band the rule takes is the slide’s, %s: a tenth under what it asks or a tenth over its tolerance is still refused', (_, base) => {
-    expect(r9(boxAt(base, 12.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('La corredera necesita 12.7 mm')))
-    expect(r9(boxAt(base, 13.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('la corredera ocupa 12.7')))
+    expect(r9(boxAt(base, 12.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('solo hay 12.6 mm')))
+    expect(r9(boxAt(base, 13.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('hay 13.6 mm')))
+  })
+
+  it.each([
+    ['too tight, with its runner joints', 12.6, declared],
+    ['too loose, with its runner joints', 13.6, declared],
+    ['too tight, freeform', 12.6, freeform(declared)],
+    ['too loose, freeform', 13.6, freeform(declared)],
+  ])('a box %s reads what the slide takes and why its repair says another number, in the same notice', (_, gap, base) => {
+    for (const { message, alternatives } of r9(boxAt(base, gap))) {
+      expect(message).toMatch(/ La corredera toma de 12\.7 a 13\.5 mm por lado y Knotty deja 13, para que medio milímetro de error al cortar no deje el cajón fuera\.$/)
+      expect(alternatives[0].description).toBe('Dejar 13 mm por lado entre la caja y el mueble')
+      expect(message).not.toMatch(/(necesita|ocupa) 12\.7/)
+    }
+  })
+
+  it('a slide that asks for as much as Knotty builds is told by its band alone', () => {
+    const wide = { ...testCatalog, hardware: testCatalog.hardware.map((h) => (h.sideClearance === null ? h : { ...h, sideClearance: 13 })) }
+    const found = analyze(boxAt(declared, 12.6), wide)
+    const messages = found.valid ? found.findings.filter((h) => h.check === 'drawer.slide-clearance').map((h) => h.message) : []
+    expect(messages).toHaveLength(2)
+    for (const message of messages) {
+      expect(message).toMatch(/ La corredera toma de 13 a 13\.8 mm por lado\.$/)
+      expect(message).not.toContain('Knotty deja')
+    }
   })
 })
 
@@ -140,6 +164,8 @@ describe('R9 for freeform drawers', () => {
     )
     const [finding] = r9(d)
     expect(finding).toMatchObject({ severity: 'critical', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
+    expect(finding.message).toMatch(/hace falta una pieza junto a la caja\. La corredera toma de 12\.7 a 13\.5 mm por lado y Knotty deja 13, para que/)
+    expect(finding.message).not.toContain('a 12.7 mm de la caja')
     const [fix] = fixesFor(d, testCatalog, finding)
     expect(fix.key).toBe('slide-support')
     expect(finding.alternatives[0].description).toBe('Una pieza junto al cajón, a 13 mm, para la corredera')

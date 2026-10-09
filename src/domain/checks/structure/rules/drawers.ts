@@ -14,6 +14,13 @@ const runnerFits = (gap: number, needs: number) => {
   return off >= -ASSUMPTIONS.drawers.runnerTolerance.under && off <= ASSUMPTIONS.drawers.runnerTolerance.over
 }
 
+/** What a slide takes on each side and where Knotty builds beside it: a notice gives the first number and its repair the second. */
+const slideTakes = (asks: number) => {
+  const band = `La corredera toma de ${asks} a ${roundTo(asks + ASSUMPTIONS.drawers.runnerTolerance.over)} mm por lado`
+  const built = builtSideClearance(asks)
+  return built > asks ? `${band} y Knotty deja ${built}, para que medio milímetro de error al cortar no deje el cajón fuera.` : `${band}.`
+}
+
 /** Resizing the box aims where a new one is built, not at the least the slide takes. */
 const fitBox = (asks: number): Alternative => {
   const clearance = builtSideClearance(asks)
@@ -41,8 +48,8 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
       pieces: [u.a, u.b],
       message:
         off < 0
-          ? `La corredera necesita ${runner.sideClearance} mm junto a ${name} y solo hay ${roundTo(gap.distance)}: el cajón no entra.`
-          : `Junto a ${name} hay ${roundTo(gap.distance)} mm y la corredera ocupa ${runner.sideClearance}: el cajón quedaría flojo.`,
+          ? `Junto a ${name} solo hay ${roundTo(gap.distance)} mm: el cajón no entra. ${slideTakes(runner.sideClearance)}`
+          : `Junto a ${name} hay ${roundTo(gap.distance)} mm: el cajón quedaría flojo. ${slideTakes(runner.sideClearance)}`,
       data: { joint: u.id, gap: roundTo(gap.distance), needs: runner.sideClearance },
       alternatives: [fitBox(runner.sideClearance)],
     })
@@ -170,7 +177,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding
           check: 'drawer.no-slide-support',
           severity: 'critical',
           pieces: [side.id],
-          message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza a ${gap} mm de la caja.`,
+          message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza junto a la caja. ${slideTakes(gap)}`,
           data: { side: direction, group },
           alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${builtSideClearance(gap)} mm, para la corredera`, data: { side: direction, group } }],
         },
@@ -184,8 +191,8 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding
         pieces: [side.id, support.piece.id],
         message:
           support.distance < gap
-            ? `La corredera necesita ${gap} mm junto a ${support.piece.name} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
-            : `Junto a ${support.piece.name} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
+            ? `Junto a ${support.piece.name} solo hay ${roundTo(support.distance)} mm: ${drawerName(design, group)} no entra. ${slideTakes(gap)}`
+            : `Junto a ${support.piece.name} hay ${roundTo(support.distance)} mm: ${drawerName(design, group)} quedaría flojo. ${slideTakes(gap)}`,
         data: { gap: roundTo(support.distance), needs: gap, group: group },
         alternatives: [fitBox(gap)],
       },

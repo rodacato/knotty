@@ -72,9 +72,11 @@ function pack(pieces: LayoutPiece[], usable: { length: number; width: number }, 
   const sheets: { free: Free[]; placed: Placed[] }[] = []
   const unplaced: LayoutPiece[] = []
 
+  // Against the edge of the usable sheet the play comes out of the trim: a piece that fits the usable sheet is never left out for its play.
+  const withPlay = (size: number, most: number) => Math.max(size, Math.min(size + play, most))
   const options = (p: LayoutPiece) => {
-    const straight = { w: p.length + play, h: p.width + play, rotated: false }
-    const turned = { w: p.width + play, h: p.length + play, rotated: true }
+    const straight = { w: withPlay(p.length, usable.length), h: withPlay(p.width, usable.width), rotated: false }
+    const turned = { w: withPlay(p.width, usable.length), h: withPlay(p.length, usable.width), rotated: true }
     return p.orientation === 'fixed' ? [straight] : p.orientation === 'turned' ? [turned] : [straight, turned]
   }
   const fits = (l: Free, o: { w: number; h: number }) => o.w <= l.w && o.h <= l.h
@@ -104,7 +106,7 @@ function pack(pieces: LayoutPiece[], usable: { length: number; width: number }, 
     const { sheet: s, free: i, shape } = best as { sheet: number; free: number; shape: (typeof shapes)[number] }
     const sheet = sheets[s]
     const l = sheet.free[i]
-    sheet.placed.push({ id: p.id, name: p.name, x: l.x, y: l.y, w: shape.w - play, h: shape.h - play, rotated: shape.rotated })
+    sheet.placed.push({ id: p.id, name: p.name, x: l.x, y: l.y, w: shape.rotated ? p.width : p.length, h: shape.rotated ? p.length : p.width, rotated: shape.rotated })
     const restW = l.w - shape.w - kerf
     const restH = l.h - shape.h - kerf
     // Guillotine cut: what is left splits into two rectangles; the split decides which one takes the full side.

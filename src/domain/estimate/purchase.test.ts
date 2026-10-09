@@ -8,6 +8,11 @@ import { exampleBookcase } from '../furniture/fixtures/bookcase'
 import { layOut } from './layout'
 import { estimatePurchase, edgeBandingMeters } from './purchase'
 import { hardwarePerJoint } from '../design/hardwareCount'
+import { extent, makePiece, mm, startAt } from '../design/builders'
+import { resolveGeometry } from '../design/resolve'
+import { buildPlan } from '../furniture/modules/plan'
+import type { TablePlan } from '../furniture/modules/table'
+import { materialById, usableSheet } from '../materials/catalog'
 
 const geo = (d: Design) => {
   const a = analyze(d, testCatalog)
@@ -59,6 +64,84 @@ describe('sheet layout', () => {
     const hugeSheet = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
     const tr6 = layOut(exampleBookcase, g, hugeSheet).find((m) => m.material === 'TR6')!
     expect(tr6.unplaced.map((p) => p.id)).toEqual(['back'])
+  })
+})
+
+describe('a board at the edge of the usable sheet: the validation and the layout tell the same story', () => {
+  const usable = usableSheet(testCatalog, materialById(testCatalog, 'T18')!)
+  const { clearance } = testCatalog.layout
+  /** What the validation refuses for its size, what the layout leaves out, and the sheets the purchase charges against the ones laid out. */
+  const story = (d: Design) => {
+    const a = analyze(d, testCatalog)
+    if (!a.geo) throw new Error(JSON.stringify(a))
+    const layout = layOut(d, a.geo, testCatalog)
+    return {
+      valid: a.valid,
+      tooBig: a.valid ? [] : a.errors.filter((e) => e.code === 'E_TOO_BIG_FOR_SHEET').map((e) => e.data?.piece).sort(),
+      unplaced: layout.flatMap((m) => m.unplaced.map((p) => p.id)).sort(),
+      placed: layout.flatMap((m) => m.sheets.flatMap((h) => h.placed)),
+      charged: estimatePurchase(d, a.geo, testCatalog).sheets.reduce((n, h) => n + h.sheets, 0),
+      laidOut: layout.reduce((n, m) => n + m.sheets.length, 0),
+    }
+  }
+  const desk: TablePlan = { kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1370, height: 760, depth: 630 }, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'panel' }
+  const deskOf = (depth: number) => buildPlan({ ...desk, dimensions: { ...desk.dimensions, depth } }, testCatalog).design
+  const bookcaseOf = (height: number): Design => ({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, height } })
+
+  it.each([
+    ['exactly the usable width', 0],
+    ['1 mm under', 1],
+    ['the play under', clearance],
+    ['past the play', clearance + 1],
+  ])('a top across the sheet, %s, is valid and placed whole, and no sheet is charged for it apart', (_, under) => {
+    const depth = usable.width - under
+    const told = story(deskOf(depth))
+    expect(told).toMatchObject({ valid: true, tooBig: [], unplaced: [] })
+    expect(told.charged).toBe(told.laidOut)
+    const top = told.placed.find((c) => c.id === 'top')!
+    expect([top.w, top.h]).toEqual([desk.dimensions.width, depth])
+    expect(top.y + top.h).toBeLessThanOrEqual(usable.width)
+  })
+
+  it.each([
+    ['exactly the usable length', 0],
+    ['1 mm under', 1],
+    ['the play under', clearance],
+  ])('a side along the sheet, %s, is placed whole', (_, under) => {
+    const height = usable.length - under
+    const told = story(bookcaseOf(height))
+    expect(told.tooBig).not.toContain('side-left')
+    expect(told.unplaced).toEqual(told.tooBig)
+    const side = told.placed.find((c) => c.id === 'side-left')!
+    expect(side.w).toBe(height)
+    expect(side.x + side.w).toBeLessThanOrEqual(usable.length)
+  })
+
+  it('1 mm over the usable sheet is refused and not placed, either way of the sheet: never valid and left out', () => {
+    const deep = story(deskOf(usable.width + 1))
+    expect(deep.valid).toBe(false)
+    expect(deep.tooBig).toContain('top')
+    expect(deep.unplaced).toEqual(deep.tooBig)
+    const tall = story(bookcaseOf(usable.length + 1))
+    expect(tall.valid).toBe(false)
+    expect(tall.tooBig).toEqual(expect.arrayContaining(['side-left', 'side-right']))
+    expect(tall.unplaced).toEqual(tall.tooBig)
+  })
+
+  it('inside the sheet the play is still taken: two boards that only fill the width without it go on two sheets', () => {
+    const half = (usable.width - testCatalog.layout.kerf) / 2
+    const boards = (width: number): Design => ({
+      ...exampleBookcase,
+      joints: [],
+      pieces: [0, 1].map((i) => makePiece({ id: `board-${i}`, name: `Tabla ${i}`, role: 'shelf', material: 'T18', normal: 'y', grain: 'length', x: extent(mm(0), mm(1300)), y: startAt(mm(100 * i)), z: extent(mm(0), mm(width)) })),
+    })
+    const sheetsOf = (d: Design) => {
+      const r = resolveGeometry(d, testCatalog)
+      if (!r.ok) throw new Error(JSON.stringify(r.errors))
+      return layOut(d, r.value, testCatalog).map((m) => [m.sheets.length, m.unplaced.length])
+    }
+    expect(sheetsOf(boards(half))).toEqual([[2, 0]])
+    expect(sheetsOf(boards(half - clearance))).toEqual([[1, 0]])
   })
 })
 
