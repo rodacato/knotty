@@ -45,6 +45,13 @@
   --scene-bg: #efe7da;
   --paper: #f4ede1;
   color-scheme: light;
+
+  /* The kraft of a base's card, leaning toward its style line; they follow the theme through the tokens they mix. */
+  --style-basic: var(--kraft);
+  --style-mid-century: color-mix(in srgb, var(--kraft) 90%, var(--rust));
+  --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
+  --style-low: color-mix(in srgb, var(--kraft) 86%, var(--slate));
+  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--amber));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -63,6 +70,7 @@
     --scene-bg: #221e1a;
     --paper: #2a2622;
     color-scheme: dark;
+    --style-low: color-mix(in srgb, var(--kraft) 92%, var(--slate));
   }
 }
 

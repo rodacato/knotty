@@ -1,4 +1,4 @@
-import type { Room } from '../../domain/furniture/references'
+import type { Room, Style } from '../../domain/furniture/references'
 
 export const ROOM_LABELS: [Room, string][] = [
   ['bedroom', 'Recámara'],
@@ -9,6 +9,17 @@ export const ROOM_LABELS: [Room, string][] = [
   ['entry', 'Entrada'],
   ['workshop', 'Taller'],
 ]
+
+export const STYLE_LABELS: Record<Style, string> = { 'mid-century': 'Patas abiertas', fluted: 'Ranurada', low: 'Baja', workshop: 'Triplay visto', basic: 'Básica' }
+
+/** The class that leans a sketch's kraft toward its style line: it sets `--tint`, which the sketch's frame paints with `bg-(--tint)`. */
+export const STYLE_TINT: Record<Style, string> = {
+  basic: '[--tint:var(--style-basic)]',
+  'mid-century': '[--tint:var(--style-mid-century)]',
+  fluted: '[--tint:var(--style-fluted)]',
+  low: '[--tint:var(--style-low)]',
+  workshop: '[--tint:var(--style-workshop)]',
+}
 
 export interface CatalogQuery {
   room: Room | 'all'
