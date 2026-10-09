@@ -1175,6 +1175,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     legStyleField((p) => p.base === 'legs', LEANING_LEG_STYLE_LABELS),
     yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: `Va atornillado al muro: así no se vuelca ni se ladea. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    note('Con la base al piso lleva un listón de colgar bajo el techo: es el travesaño por donde se atornilla.', (p) => p.wallMounted && p.base === 'floor' && !leafCells(p.columns).some((c) => c.content === 'void'), 'wallMounted'),
     ...constructionFields,
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),
   ]),

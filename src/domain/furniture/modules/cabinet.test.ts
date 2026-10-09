@@ -96,6 +96,12 @@ describe('the rail a wall cabinet hangs from', () => {
     expect(checks).not.toContain('wall-cabinet.hanging-rail')
   })
 
+  it('is announced beside «Anclado al muro» exactly where it is drawn', () => {
+    const said = cabinetModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => f.type === 'note' && f.about === 'wallMounted')!
+    const wrong = cabinetModule.benchVariants().flatMap(([name, variant]) => ['floor', 'kick', 'legs'].flatMap((base) => [true, false].map((wallMounted) => ({ ...variant, base, wallMounted }) as CabinetPlan)).filter((p) => FurniturePlan.safeParse(p).success).filter((p) => isVisible(said, p) !== buildCabinet(p, testCatalog).design.pieces.some((piece) => piece.id.startsWith('hanging-rail'))).map((p) => `${name}: ${p.base}, ${p.wallMounted}`))
+    expect(wrong).toEqual([])
+  })
+
   it('stays one board, with its name, in a cabinet of one column that is not split', () => {
     expect(hung([{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }]).rails).toEqual(['hanging-rail'])
   })
