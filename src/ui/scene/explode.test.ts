@@ -9,6 +9,7 @@ import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildBed, type BedPlan } from '../../domain/furniture/modules/bed'
+import { buildTable, tableModule, type TablePlan } from '../../domain/furniture/modules/table'
 import { explode, type Explosion } from './explode'
 
 // The exploded view of the furniture the person starts from, of two desks on legs with a pedestal, and of a bed with drawers under it and a bookcase headboard.
@@ -30,11 +31,15 @@ const bed: BedPlan = {
   drawers: { side: 'both', count: 3, position: 'head' },
   headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 2 },
 }
+/** The tall stool as it takes its low stretcher: a short frame, where a rail pushed half a gap would cross the legs. */
+const stool: TablePlan = { kind: 'table', use: 'seat', name: 'Taburete alto', material: 'T18', dimensions: { width: 340, height: 650, depth: 290 }, overhang: 20, shelf: false, pedestal: { side: 'none', drawers: 0 }, legs: 'legs', legStyle: 'splayed', stretcher: 'h' }
+const tied: [string, Design][] = [...tableModule.benchVariants().filter(([, plan]) => plan.legs === 'legs' && (plan.stretcher ?? 'none') !== 'none'), ['taburete alto con travesaños en H', stool] as [string, TablePlan], ['taburete alto con travesaños', { ...stool, stretcher: 'ends' }] as [string, TablePlan]].map(([name, plan]) => [name, buildTable(plan, testCatalog).design])
 const desksWithPedestal = basesOf(['KC-ESC-03', 'KC-ESC-07'].map((code) => testReferences.latest(code)!))
 const designs: [string, Design][] = [
   ...[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => [d.name, d] as [string, Design]),
   ...[...testBases, ...desksWithPedestal].map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
   ['Cama', buildBed(bed, testCatalog).design],
+  ...tied,
 ]
 
 const moved = (box: Box, [dx, dy, dz]: [number, number, number]): Box => ({ x0: box.x0 + dx, x1: box.x1 + dx, y0: box.y0 + dy, y1: box.y1 + dy, z0: box.z0 + dz, z1: box.z1 + dz })
@@ -119,6 +124,18 @@ describe('explode', () => {
     expect(forward('ped-div')).toBeGreaterThan(0)
     const sideboard = exampleDesign(exampleSideboard, testCatalog).design
     expect(exploded(sideboard).e.offsets.get('div-1')![2]).toBeGreaterThan(0)
+  })
+
+  it('keeps a low stretcher on the legs it is screwed to, and slides the long one of an H out from between them', () => {
+    expect(tied.map(([name]) => name)).toEqual(expect.arrayContaining(['comedor con patas, con travesaños en H', 'comedor con patas cónicas, con travesaños en H', 'comedor con patas abiertas, con travesaños en H', 'escritorio con 2 cajones a la izquierda con patas cónicas, con travesaño', 'escritorio con patas abiertas, con travesaños']))
+    const wrong = tied.flatMap(([name, design]) => {
+      const { e } = exploded(design)
+      const same = (a: string, b: string) => JSON.stringify(e.offsets.get(a)) === JSON.stringify(e.offsets.get(b))
+      const ends = design.pieces.filter((p) => /^stretcher-(left|right)$/.test(p.id)).filter((p) => !same(p.id, `leg-front-${p.id.split('-')[1]}-2`))
+      const [dx, , dz] = e.offsets.get('stretcher-long') ?? [0, 0, 1]
+      return [...ends.map((p) => `${name}: ${p.id}`), ...(dx !== 0 || dz === 0 ? [`${name}: stretcher-long`] : [])]
+    })
+    expect(wrong).toEqual([])
   })
 
   it('separates a bed into its parts first: the headboard back from the base, the platform up off the drawer bank', () => {
