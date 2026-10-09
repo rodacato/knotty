@@ -10,6 +10,7 @@ export interface Explainable {
   code?: string
   version?: number
   kind?: string
+  style?: string
   plan?: FurniturePlan
   design?: Pick<Design, 'dimensions' | 'pieces' | 'joints'>
   support?: string
@@ -90,7 +91,7 @@ function designLines({ dimensions: d, pieces, joints }: NonNullable<Explainable[
 
 /** The ficha as text, in a fixed order. */
 export function explain(f: Explainable): string {
-  const title = [f.code && `${f.code}${f.version ? ` v${f.version}` : ''}`, f.kind].filter(Boolean).join(' · ')
+  const title = [f.code && `${f.code}${f.version ? ` v${f.version}` : ''}`, f.kind, f.style && `style ${f.style}`].filter(Boolean).join(' · ')
   const list = (label: string, items?: readonly string[], separator = ', ') => (items ? [`${label}: ${items.length ? items.join(separator) : 'none'}`] : [])
   return [
     ...(title ? [title] : []),

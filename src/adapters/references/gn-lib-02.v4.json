@@ -1,0 +1,62 @@
+{
+  "format": 1,
+  "code": "GN-LIB-02",
+  "id": "bed-back-bookcase",
+  "home": { "order": 26 },
+  "rooms": ["bedroom"],
+  "name": "Librero largo para cama",
+  "kind": "bookcase",
+  "style": "basic",
+  "notes": "Librero bajo y largo para poner detrás de una cama individual, contra el muro: abajo, donde el colchón tapa el frente, cuatro baúles que abren por arriba con el fondo a media altura, para sábanas y fundas; arriba dos filas de nichos con dos puertas al centro. Los nichos miden unos 25 cm de alto: son para libros de bolsillo y cosas chicas, no para libros grandes. La tapa de cada baúl es el piso del nicho de encima: lleva bisagra de piano y un compás de fricción que la detiene abierta. Hace juego con la «Cama individual con librero de cabecera». Va anclado al muro y no se atornilla a la cama.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero largo para cama",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 1900, "height": 1000, "depth": 300 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "fixed", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.45, "content": "chest", "shelves": 1, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.275, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "assembly": "cams"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 34,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 16, "cam-lock-15": 44, "cup-hinge-35-inset": 4, "dowel-8x40": 52, "edge-banding-19": 29, "lid-stay-friction": 4, "piano-hinge-30": 4, "screw-8x1-1/4": 86, "screw-8x2": 92 }
+  }
+}

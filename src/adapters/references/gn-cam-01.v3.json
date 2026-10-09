@@ -1,0 +1,28 @@
+{
+  "format": 1,
+  "code": "GN-CAM-01",
+  "id": "bed-with-drawers",
+  "home": { "order": 7 },
+  "rooms": ["bedroom"],
+  "name": "Cama con cajones",
+  "style": "basic",
+  "inspiredBy": "KC-CAM-04",
+  "notes": "Cama matrimonial con dos cajones de cada lado, hacia el pie para que el buró no los tape, y cabecera lisa.",
+  "plan": {
+    "kind": "bed",
+    "name": "Cama con cajones",
+    "mattress": "matrimonial",
+    "material": "T18",
+    "height": 400,
+    "drawers": { "side": "both", "count": 2, "position": "foot" },
+    "headboard": { "style": "plain", "height": 1100, "depth": 0, "shelves": 0 },
+    "assembly": "bolts"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 41,
+    "findings": [],
+    "sheets": { "T18": 5, "TR6": 1 },
+    "hardware": { "brad-nail-1": 64, "connector-bolt-m6": 12, "drawer-slide-50": 4, "edge-banding-19": 26, "screw-8x1": 16, "screw-8x2": 121, "white-glue": 3 }
+  }
+}

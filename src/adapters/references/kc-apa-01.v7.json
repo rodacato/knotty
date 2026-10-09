@@ -1,0 +1,65 @@
+{
+  "format": 1,
+  "code": "KC-APA-01",
+  "id": "sideboard-on-legs",
+  "home": { "order": 11 },
+  "rooms": ["living","dining"],
+  "name": "Aparador con patas",
+  "kind": "sideboard",
+  "finish": "polyurethane",
+  "style": "mid-century",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","inset-drawers","legs","wall-anchor","open-niche","no-back","routed-fronts","notch-pulls","splayed-legs","asymmetric-arrangement"],
+  "adaptations": ["the open niches have no back panel in the original: the plan nails one back behind the whole piece"],
+  "gaps": ["no-back","asymmetric-arrangement"],
+  "notes": "Aparador de comedor de cuatro columnas: abajo tres puertas embutidas con un entrepaño cada una y dos cajones a la derecha; arriba un cajoncito y tres nichos abiertos. Terminado natural con barniz de poliuretano.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Aparador con patas",
+    "dimensions": { "width": 1600, "height": 940, "depth": 400 },
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "grooved", "hinges": "outside", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.75, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.375, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.375, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 55,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 103, "cup-hinge-35-inset": 6, "drawer-slide-35": 3, "edge-banding-19": 26, "pocket-screw-1-1/4": 16, "screw-8x1": 12, "screw-8x1-1/4": 12, "screw-8x2": 150, "shelf-pin-5": 12, "white-glue": 5 }
+  }
+}

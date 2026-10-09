@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "code": "KC-ESC-03",
+  "id": "desk-splayed-legs",
+  "rooms": ["office"],
+  "name": "Escritorio con patas abiertas y dos cajones",
+  "kind": "desk",
+  "finish": "danish-oil",
+  "style": "mid-century",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-drawers","legs","splayed-legs","open-niche"],
+  "adaptations": ["splayed legs with side stretchers drawn as tapered legs under an apron, with no stretchers; the pedestal side keeps its panel","two drawers, one at each end of the top box, drawn as a two-drawer pedestal on the left; the open niche in the middle is not drawn","750 high by 1500 wide by 550 deep, read from the photos (the seller did not say the order)"],
+  "gaps": ["splayed-legs","open-niche"],
+  "notes": "En Knotty queda como un escritorio de 150 × 55 cm con patas cónicas y faldón de un lado y, del otro, una cajonera de dos cajones. El original lleva un cajón en cada extremo, un nicho abierto al centro y las patas abiertas con travesaños.",
+  "plan": {
+    "kind": "table",
+    "use": "desk",
+    "name": "Escritorio",
+    "material": "T18",
+    "dimensions": { "width": 1500, "height": 750, "depth": 550 },
+    "overhang": 0,
+    "shelf": false,
+    "pedestal": { "side": "left", "drawers": 2 },
+    "legs": "legs",
+    "legStyle": "tapered"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 27,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 49, "drawer-slide-50": 2, "edge-banding-19": 14, "pocket-screw-1-1/4": 12, "screw-8x1": 8, "screw-8x1-1/4": 10, "screw-8x2": 78, "white-glue": 3 }
+  }
+}

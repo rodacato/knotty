@@ -1,0 +1,101 @@
+{
+  "format": 1,
+  "code": "KC-CAJ-03",
+  "id": "dresser-fluted-fronts",
+  "home": { "order": 31 },
+  "rooms": ["bedroom"],
+  "name": "Cómoda con frentes ranurados",
+  "kind": "drawers",
+  "finish": "danish-oil",
+  "style": "fluted",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-drawers","legs","open-niche","routed-fronts","notch-pulls","asymmetric-arrangement","multi-body"],
+  "adaptations": ["solid mañío with jequitibá fronts written as T18 plywood","round posts at the corners drawn as tapered legs, the closest the plan has, under a set-back apron","finish is a wax or oil: closest id danish-oil","fluted fronts drawn with vertical router grooves","the desk of the pair is not drawn","the notch cut in the edge of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["multi-body"],
+  "notes": "Cómoda baja sobre patas que se adelgazan hacia el piso: abajo y en medio cajones embutidos con frente ranurado, y arriba un cajón junto a un nicho abierto. Va con un escritorio a juego que no se dibuja aquí.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Cómoda con frentes ranurados",
+    "dimensions": { "width": 1150, "height": 780, "depth": 550 },
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch", "fronts": "grooved" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          {
+            "height": 0.37,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.66,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              },
+              {
+                "width": 0.34,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.37,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.33,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              },
+              {
+                "width": 0.67,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              }
+            ]
+          },
+          {
+            "height": 0.26,
+            "content": "open",
+            "shelves": null,
+            "doors": null,
+            "columns": [
+              {
+                "width": 0.67,
+                "cells": [
+                  { "height": 1, "content": "drawer", "shelves": null, "doors": null }
+                ]
+              },
+              {
+                "width": 0.33,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "legStyle": "tapered"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 53,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 130, "drawer-slide-50": 5, "edge-banding-19": 27, "pocket-screw-1-1/4": 16, "screw-8x1": 20, "screw-8x1-1/4": 8, "screw-8x2": 137, "white-glue": 5 }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "format": 1,
+  "code": "KC-TV-01",
+  "id": "fluted-tv-stand",
+  "home": { "order": 1 },
+  "rooms": ["living"],
+  "name": "Mueble de TV ranurado",
+  "kind": "tvStand",
+  "finish": "danish-oil",
+  "style": "fluted",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["legs","inset-doors","routed-fronts","splayed-legs","notch-pulls"],
+  "adaptations": ["Solid raulí is written in T18 plywood.","Finish: the original looks oiled or waxed; danish-oil is the closest id.","Fluted doors of vertical slats are drawn as doors with vertical router grooves.","A finger notch on each door and a cable hole in the back behind each one are added so the inset doors open and the cables pass; they were not checked against the photos."],
+  "gaps": [],
+  "notes": "Mueble bajo de TV sobre patas inclinadas, con tres compartimentos iguales, cada uno con una puerta de frente ranurado que abre con una muesca, una repisa y un pasacables en la trasera.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Mueble de TV ranurado",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 1800, "height": 600, "depth": 400 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "fronts": "grooved", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1, "cable": true }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1, "cable": true }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1, "cable": true }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 30,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 42, "cup-hinge-35-inset": 6, "edge-banding-19": 15, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 12, "screw-8x2": 85, "shelf-pin-5": 12, "white-glue": 3 }
+  }
+}

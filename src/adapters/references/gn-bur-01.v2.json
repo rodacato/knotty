@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "code": "GN-BUR-01",
+  "id": "nightstand",
+  "home": { "order": 13 },
+  "rooms": ["bedroom"],
+  "name": "Buró",
+  "kind": "nightstand",
+  "style": "basic",
+  "inspiredBy": "KC-BUR-01",
+  "notes": "Buró sobre zoclo con un cajón arriba y un hueco abierto abajo. El cajón se abre con una muesca para el dedo, sin jaladera.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró",
+    "dimensions": { "width": 450, "height": 600, "depth": 350 },
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": false,
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "flat", "hinges": "outside", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.6, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.4, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 13,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 34, "drawer-slide-30": 1, "edge-banding-19": 6, "screw-8x1": 4, "screw-8x2": 33, "white-glue": 2 }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "format": 1,
+  "code": "KC-APA-05",
+  "id": "grooved-cabinet-on-legs",
+  "home": { "order": 6 },
+  "rooms": ["living","dining"],
+  "name": "Estante de puertas ranuradas con patas",
+  "kind": "sideboard",
+  "finish": "polyurethane",
+  "style": "fluted",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","legs","wall-anchor","routed-fronts","splayed-legs","notch-pulls"],
+  "adaptations": ["legs drawn 170 mm tall: at the 1350 mm height that keeps the back panel in one board (with shorter legs it is longer than the usable sheet and comes in two)","V legs drawn as a leg at each corner","material assumed T18 pine plywood; facing is the same ply","doors read as inset from the thin reveals; overlay would be the other reading","vertical microgrooves on the doors drawn as vertical router grooves","the doors show no pull in the photos: a finger notch is drawn so the inset doors can be opened"],
+  "gaps": ["splayed-legs"],
+  "notes": "Estante de triplay de pino con tres columnas y dos niveles de puertas ranuradas, una hoja por hueco; detrás de cada puerta hay un entrepaño, y descansa sobre dos patas en V.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Estante de puertas ranuradas con patas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1200, "height": 1350, "depth": 390 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "grooved", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 },
+          { "height": 0.5, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      }
+    ],
+    "legStyle": "splayed",
+    "legHeight": 170
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 35,
+    "findings": [],
+    "sheets": { "T18": 3, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 61, "cup-hinge-35-inset": 12, "edge-banding-19": 24, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 80, "shelf-pin-5": 24, "white-glue": 3 }
+  }
+}

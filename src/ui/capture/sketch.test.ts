@@ -26,7 +26,12 @@ describe('the sketch of a base', () => {
     const order = paintOrder(boxes)
     const at = (id: string) => order.indexOf(id)
     const ids = (role: string) => design.pieces.filter((p) => p.role === role).map((p) => p.id)
-    for (const door of ids('door')) for (const behind of [...ids('shelf'), 'back', 'side-left']) expect(at(door)).toBeGreaterThan(at(behind))
+    const covers = (door: string, shelf: string) => boxes.get(door)!.x0 < boxes.get(shelf)!.x1 && boxes.get(shelf)!.x0 < boxes.get(door)!.x1
+    for (const door of ids('door')) {
+      const shelves = ids('shelf').filter((shelf) => covers(door, shelf))
+      expect(shelves.length).toBeGreaterThan(0)
+      for (const behind of [...shelves, 'back', 'side-left']) expect(at(door)).toBeGreaterThan(at(behind))
+    }
     expect(at('top')).toBeGreaterThan(at('side-left'))
   })
 

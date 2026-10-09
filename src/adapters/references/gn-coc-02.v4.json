@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "code": "GN-COC-02",
+  "id": "tall-pantry",
+  "home": { "order": 23 },
+  "rooms": ["kitchen"],
+  "name": "Despensa alta",
+  "kind": "cabinet",
+  "style": "workshop",
+  "notes": "Despensa de 2.15 m, a la altura de una fila de alacenas, de dos cuerpos de puertas: el de abajo alto con tres repisas y el de arriba con una, anclada al muro. Las puertas se abren con muesca, sin jaladeras.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Despensa alta",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "dimensions": { "width": 600, "height": 2150, "depth": 400 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.66, "content": "door", "shelves": 3, "doors": 2 },
+          { "height": 0.34, "content": "door", "shelves": 1, "doors": 2 }
+        ]
+      }
+    ],
+    "assembly": "cams",
+    "kick": "kitchen"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 15,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "cam-lock-15": 12, "cup-hinge-35-full": 10, "dowel-8x40": 12, "edge-banding-19": 21, "screw-8x1-1/4": 36, "screw-8x2": 8, "shelf-pin-5": 16 }
+  }
+}

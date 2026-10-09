@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "code": "KC-BUR-05",
+  "id": "fluted-nightstand-on-legs",
+  "home": { "order": 5 },
+  "rooms": ["bedroom"],
+  "name": "Buró con dos cajones y patas",
+  "kind": "nightstand",
+  "finish": "danish-oil",
+  "style": "fluted",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-drawers","legs","routed-fronts","splayed-legs"],
+  "adaptations": ["solid jequitibá and mañío in the original; drawn in T18 plywood","fluted drawer fronts drawn with vertical router grooves; the applied wooden bar pulls are drawn as the standard handle","finish looks like a clear natural oil or wax; no wax-oil id, danish-oil is the closest"],
+  "gaps": [],
+  "notes": "Buró de dos cajones iguales con frentes ranurados y una jaladera en cada uno, sobre cuatro patas abiertas. Cubierta encima de los laterales.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró con dos cajones y patas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 500, "height": 600, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "fronts": "grooved", "pulls": "handle" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.5, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.5, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 30,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 48, "drawer-slide-30": 2, "edge-banding-19": 9, "handle": 2, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 8, "screw-8x2": 60, "white-glue": 3 }
+  }
+}
