@@ -7,8 +7,9 @@ import { Field, Input } from '../system/Field'
 import { AppFooter } from '../shell/AppFooter'
 import { AppHeader } from '../shell/AppHeader'
 import { useExpertStatus } from '../shell/expertStatus'
+import { searchWith } from './address'
 import { cardsOf, type Card } from './cards'
-import { matches, noMatchNote, roomChips } from './catalog'
+import { ANY, matches, noMatchNote, roomChips, type CatalogQuery } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
 
@@ -68,6 +69,15 @@ function useInView() {
   return { target, inView }
 }
 
+/** The filter shows in the address while the home is on screen, so it can be saved or sent. */
+function useAddress(query: CatalogQuery) {
+  useEffect(() => {
+    const write = (q: CatalogQuery) => history.replaceState(null, '', `${location.pathname}${searchWith(location.search, q)}${location.hash}`)
+    write(query)
+    return () => write(ANY)
+  }, [query])
+}
+
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const adjustBase = useStore((s) => s.adjustBase)
@@ -79,6 +89,7 @@ export function Home() {
   const chips = useMemo(() => roomChips(cards.map((c) => c.base), query), [cards, query])
   const shown = cards.filter((c) => matches(c.base, query))
   const { mark, pinned } = usePinned()
+  useAddress(query)
   const { target: door, inView: doorInView } = useInView()
   return (
     <div className="flex min-h-full flex-col">
