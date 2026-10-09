@@ -79,16 +79,16 @@ export function PieceSheet({ design, geo, catalog, editable, closable = true }: 
         {joints.length > 0 && (
           <section className="flex flex-col gap-2 border-t border-line pt-3">
           <Title className="text-lg">Uniones</Title>
-          <ul className="flex flex-col gap-1.5 text-sm">
+          <ul className="flex flex-col text-sm">
             {joints.map((u) => {
               const other = u.a === p.id ? u.b : u.a
               const count = u.hardware.reduce((n, h) => n + (h.count ?? 0), 0)
               const rests = u.hardware.length > 0 && u.hardware.every((h) => h.count === 0)
               return (
-                <li key={u.id} className="flex items-start gap-2">
+                <li key={u.id} className="relative flex min-h-11 items-start gap-2 py-3">
                   <ArrowRight className="mt-1 shrink-0 text-graphite-2" />
                   <span>
-                    <button type="button" className="font-medium underline decoration-line underline-offset-2 hover:decoration-graphite" onClick={() => select(other)}>
+                    <button type="button" className="font-medium underline decoration-line underline-offset-2 before:absolute before:inset-0 before:content-[''] hover:decoration-graphite" onClick={() => select(other)}>
                       {name(other)}
                     </button>
                     : {rests ? 'solo descansa, sin tornillos' : `${count && u.type !== 'drawer-slide' ? `${count} ` : ''}${JOINTS[u.type].label.plural}`}
