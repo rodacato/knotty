@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import type { Box } from '../../domain/design/resolve'
-import { exampleDesign } from '../../domain/furniture/examples'
-import { exampleSideboard, testBases } from '../../domain/furniture/fixtures/references.test-util'
+import { basesOf, exampleDesign } from '../../domain/furniture/examples'
+import { exampleSideboard, testBases, testReferences } from '../../domain/furniture/fixtures/references.test-util'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { exampleNightstand } from '../../domain/furniture/fixtures/nightstand'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
@@ -11,7 +11,7 @@ import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { buildBed, type BedPlan } from '../../domain/furniture/modules/bed'
 import { explode, type Explosion } from './explode'
 
-// The exploded view of the furniture the person starts from, and of a bed with drawers under it and a bookcase headboard.
+// The exploded view of the furniture the person starts from, of two desks on legs with a pedestal, and of a bed with drawers under it and a bookcase headboard.
 
 function boxesOf(design: Design) {
   const a = analyze(design, testCatalog)
@@ -30,9 +30,10 @@ const bed: BedPlan = {
   drawers: { side: 'both', count: 3, position: 'head' },
   headboard: { style: 'bookcase', height: 1100, depth: 250, shelves: 2 },
 }
+const desksWithPedestal = basesOf(['KC-ESC-03', 'KC-ESC-07'].map((code) => testReferences.latest(code)!))
 const designs: [string, Design][] = [
   ...[exampleBookcase, exampleNightstand, exampleWallCabinet].map((d) => [d.name, d] as [string, Design]),
-  ...testBases.map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
+  ...[...testBases, ...desksWithPedestal].map((b) => [b.name, exampleDesign(b, testCatalog).design] as [string, Design]),
   ['Cama', buildBed(bed, testCatalog).design],
 ]
 
@@ -106,6 +107,18 @@ describe('explode', () => {
     // The kick stays on the floor and the carcass lifts off it.
     expect(e.offsets.get('kick')).toEqual([0, 0, 0])
     expect(lift).toBeGreaterThan(0)
+  })
+
+  it('keeps the legs and rails of a desk with their frame, while the dividers of a carcass slide forward', () => {
+    const desk = exampleDesign(desksWithPedestal[1], testCatalog).design
+    const { e } = exploded(desk)
+    const forward = (id: string) => e.offsets.get(id)![2]
+    expect(forward('rail-1')).toBe(0)
+    expect(forward('leg-front-left-1')).toBe(0)
+    expect(forward('apron-front')).toBeGreaterThan(0)
+    expect(forward('ped-div')).toBeGreaterThan(0)
+    const sideboard = exampleDesign(exampleSideboard, testCatalog).design
+    expect(exploded(sideboard).e.offsets.get('div-1')![2]).toBeGreaterThan(0)
   })
 
   it('separates a bed into its parts first: the headboard back from the base, the platform up off the drawer bank', () => {
