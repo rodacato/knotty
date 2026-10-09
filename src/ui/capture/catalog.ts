@@ -12,7 +12,7 @@ export const ROOM_LABELS: [Room, string][] = [
 
 export interface CatalogQuery {
   room: Room | 'all'
-  /** Words of its code or name, in any case, with or without accents or dashes: «lib14», «KC-LIB-14», «escritorio». */
+  /** Words of its name, of a room it goes in or of its model, in any case, with or without accents or dashes: «escritorio», «recamara», «KC-LIB-14», «lib14». */
   text: string
 }
 
@@ -20,13 +20,19 @@ export const ANY: CatalogQuery = { room: 'all', text: '' }
 
 type Listed = { code: string; name: string; rooms: readonly Room[] }
 
-export const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-const searchable = ({ code, name }: Listed) => `${plain(code)} ${plain(code).replace(/-/g, '')} ${plain(name)}`
+const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const LABEL = new Map(ROOM_LABELS)
 
-export function matches(item: Listed, q: CatalogQuery): boolean {
-  const words = plain(q.text).split(/\s+/).filter(Boolean)
-  return (q.room === 'all' || item.rooms.includes(q.room)) && words.every((w) => searchable(item).includes(w))
+export const roomsLine = ({ rooms }: Pick<Listed, 'rooms'>) => rooms.map((r) => LABEL.get(r)).join(', ')
+
+/** Every word typed is in its name, in a room it goes in or in its model. */
+export function found(item: Listed, text: string): boolean {
+  const code = plain(item.code)
+  const searchable = `${plain(item.name)} ${plain(roomsLine(item))} ${code} ${code.replace(/-/g, '')}`
+  return plain(text).split(/\s+/).filter(Boolean).every((w) => searchable.includes(w))
 }
+
+export const matches = (item: Listed, q: CatalogQuery) => (q.room === 'all' || item.rooms.includes(q.room)) && found(item, q.text)
 
 /** «Todas» and the rooms that have something, each with how many match the words typed. */
 export function roomChips(items: readonly Listed[], q: CatalogQuery): { room: Room | 'all'; label: string; count: number }[] {
@@ -42,4 +48,6 @@ export const sizeLine = ({ width, depth, height }: { width: number; depth: numbe
   spoken: `${cm(width)} de ancho, ${cm(depth)} de fondo, ${cm(height)} de alto, en centímetros`,
 })
 
-export const noMatchNote = (q: CatalogQuery) => `Ninguna base${q.room === 'all' ? '' : ' de ese cuarto'} tiene «${q.text.trim()}» en su nombre.`
+export const noMatchNote = (q: CatalogQuery) => `Ninguna base${q.room === 'all' ? '' : ' de ese cuarto'} tiene «${q.text.trim()}» en su nombre, su cuarto o su modelo.`
+
+export const notFoundNote = (text: string) => `Ningún mueble tiene «${text.trim()}» en su nombre, su cuarto o su modelo.`

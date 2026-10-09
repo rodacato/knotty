@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/materials/catalog'
 import type { ReferenceStore } from '../../ports/ReferenceStore'
 import { cardsOf, type Card } from '../capture/cards'
+import { found, notFoundNote, roomsLine } from '../capture/catalog'
 import { Thumbnail } from '../capture/Thumbnail'
 import { useServices } from '../services'
 import { useStore } from '../store'
@@ -11,7 +12,6 @@ import { Button } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { verdictsOf, type Verdict } from '../lab/verdicts'
 import { linkedFicha } from './link'
-import { found, notFoundNote, roomsLine } from './search'
 import { LOSS_NOTE, swapLoss } from './swap'
 
 /** The thumbnails are built once: they only change with the app. */
@@ -40,11 +40,11 @@ function Question({ name, again, note, onKeep, onSwap }: { name: string; again: 
       <Dialog.Title className="font-display text-xl font-semibold">{again ? `¿Empezar ${name} de nuevo?` : `¿Cambiar a ${name}?`}</Dialog.Title>
       <Dialog.Description className="text-sm text-graphite">{note}</Dialog.Description>
       <div className="mt-2 flex justify-end gap-2">
-        <Button variant="ghost" onClick={onKeep}>
+        {/* A held Enter must not answer the question it just opened. */}
+        <Button variant="ghost" autoFocus onKeyDown={(e) => e.repeat && e.preventDefault()} onClick={onKeep}>
           Conservar
         </Button>
-        {/* A held Enter must not answer the question it just opened. */}
-        <Button variant="danger" autoFocus onKeyDown={(e) => e.repeat && e.preventDefault()} onClick={onSwap}>
+        <Button variant="danger" onClick={onSwap}>
           {again ? 'Empezar de nuevo' : 'Cambiar'}
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { found, notFoundNote, roomsLine } from './search'
+import { found, notFoundNote, roomsLine } from './catalog'
 
 const bases = testReferences.home()
 const codes = (text: string) => bases.filter((b) => found(b, text)).map((b) => b.code)

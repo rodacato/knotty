@@ -40,7 +40,7 @@ describe('sizeLine', () => {
 
 describe('noMatchNote', () => {
   it('says what was typed, and the room only when one is chosen', () => {
-    expect(noMatchNote({ room: 'all', text: ' banca ' })).toBe('Ninguna base tiene «banca» en su nombre.')
-    expect(noMatchNote({ room: 'office', text: 'banca' })).toBe('Ninguna base de ese cuarto tiene «banca» en su nombre.')
+    expect(noMatchNote({ room: 'all', text: ' banca ' })).toBe('Ninguna base tiene «banca» en su nombre, su cuarto o su modelo.')
+    expect(noMatchNote({ room: 'office', text: 'banca' })).toBe('Ninguna base de ese cuarto tiene «banca» en su nombre, su cuarto o su modelo.')
   })
 })

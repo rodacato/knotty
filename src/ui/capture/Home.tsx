@@ -96,7 +96,7 @@ export function Home() {
           <div ref={mark} />
           <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors duration-150 ease-out md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
             <Field label="Buscar una base" hiddenLabel>
-              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre: librero, escritorio, buró" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
+              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto o modelo" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
             </Field>
             <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0" role="group" aria-label="Cuarto">
               {chips.map(({ room, label, count }) => (
