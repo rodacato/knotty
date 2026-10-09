@@ -31,6 +31,8 @@ export interface SessionSlice {
   adjusting: Base | null
   /** What the home screen is filtered by; it outlives opening a base, so coming back lands on the same list. */
   browsing: CatalogQuery
+  /** The sheet to take away is shown in place of the Studio. */
+  takeAway: boolean
 
   start(services: Services): void
   newDesign(): void
@@ -38,6 +40,7 @@ export interface SessionSlice {
   browse(change: Partial<CatalogQuery>): void
   adjustBase(base: Base): void
   closeAdjust(): void
+  openTakeAway(open: boolean): void
   /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
   /** The home with every piece of furniture, whatever it was filtered by. */
@@ -115,7 +118,7 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
 }
 
 /** What the scene keeps about one design and must not carry into another. */
-const ANOTHER_DESIGN = { adjusting: null, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null } satisfies Partial<Store>
+const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
@@ -126,6 +129,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   phase: 'home',
   adjusting: null,
   browsing: ANY,
+  takeAway: false,
 
   start(services) {
     const state = services.useCases.load()
@@ -143,6 +147,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   adjustBase: (base) => set({ adjusting: base }),
 
   closeAdjust: () => set({ adjusting: null }),
+
+  openTakeAway: (takeAway) => set({ takeAway }),
 
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 

@@ -15,6 +15,7 @@ import { useStore } from './store'
 // The 3D is heavy: it loads once there is a piece of furniture to show.
 const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
+const TakeAway = lazy(() => import('./takeaway/TakeAway').then((m) => ({ default: m.TakeAway })))
 
 const Loading = () => (
   <div className="grid h-full place-items-center">
@@ -29,6 +30,13 @@ function Screen() {
   const phase = useStore((s) => s.phase)
   const state = useStore((s) => s.state)
   const adjusting = useStore((s) => s.adjusting)
+  const takeAway = useStore((s) => s.takeAway)
+  if (phase === 'studio' && state && takeAway)
+    return (
+      <Suspense fallback={<Loading />}>
+        <TakeAway state={state} />
+      </Suspense>
+    )
   if (phase === 'studio' && state)
     return (
       <Suspense fallback={<Loading />}>
