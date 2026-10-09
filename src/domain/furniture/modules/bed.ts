@@ -790,6 +790,14 @@ const withDrawers = (plan: BedPlan, drawers: Partial<BedPlan['drawers']>): BedPl
 /** A daybed stands on its arms and backrest, with drawers on one side only: choosing it settles both. */
 const asDaybed = (plan: BedPlan): BedPlan => ({ ...plan, legs: 'none', drawers: plan.drawers.side === 'both' ? { ...plan.drawers, side: 'left' } : plan.drawers })
 const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>): BedPlan => ({ ...plan, headboard: { ...plan.headboard, ...headboard } })
+/** The reference gives no height for a headboard: over the base, the mattress and what a back needs to lean on (valores-de-referencia.md §11, BACKREST_RISE), and never less than what it carries. */
+const usualHeadboard = (plan: BedPlan) => plan.height + Math.max(MATTRESS_THICKNESS + BACKREST_RISE, headboardRoom(plan))
+/** A bed without a headboard stores a height that means nothing: the chosen type keeps a height only if it holds its rules. */
+function withHeadboardStyle(plan: BedPlan, style: BedPlan['headboard']['style']): BedPlan {
+  const chosen = withHeadboard(plan, { style })
+  const standing = headboardFits(chosen) && headboardRises(chosen) ? chosen : withHeadboard(chosen, { height: usualHeadboard(chosen) })
+  return style === 'daybed' ? asDaybed(standing) : standing
+}
 
 /** A bed's plan: the mattress sets its size; the base, its drawers and the headboard are choices. */
 const bedFields: FieldSpec<BedPlan>[] = [
@@ -835,7 +843,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     stepper({ key: 'drawers.fingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => hasDrawers(p) && drawerBuild(p).corners === 'fingers', get: (p) => drawerBuild(p).fingers, set: (p, fingers) => withDrawers(p, { fingers }) }),
   ]),
   section('Cabecera', [
-    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => (style === 'daybed' ? asDaybed(withHeadboard(p, { style })) : withHeadboard(p, { style })) }),
+    choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: withHeadboardStyle }),
     note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage', 'headboard.style'),
     note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed, 'headboard.style'),
     note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest, 'headboard.height'),

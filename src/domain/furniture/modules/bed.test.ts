@@ -8,6 +8,7 @@ import { estimatePurchase } from '../../estimate/purchase'
 import { bedModule, BedPlan, buildBed } from './bed'
 import { valueFields } from './fields'
 import { FurniturePlan } from './plan'
+import { testReferences } from '../fixtures/references.test-util'
 
 const bed = (p: Partial<BedPlan> = {}): BedPlan => ({
   kind: 'bed',
@@ -704,5 +705,43 @@ describe('a base of slats', () => {
     expect(bedModule.describeChanges({ ...saved, platform: 'slats' }, saved)).toEqual(['base de tablero'])
     expect(bedModule.parts.list.find((x) => x.id === 'mattress')!.fields).toContain('platform')
     expect(bedModule.parts.ofPiece(buildBed({ ...saved, platform: 'slats' }, testCatalog).design.pieces.find((x) => x.id === 'slat-2')!)).toBe('mattress')
+  })
+})
+
+describe('choosing a headboard in the form', () => {
+  const style = bedModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'headboard.style')
+  if (!style || style.type !== 'choice') throw new Error('no headboard style field')
+  const shipped = (code: string) => {
+    const plan = testReferences.latest(code)?.plan
+    if (plan?.kind !== 'bed') throw new Error(`the bed reference (${code}) is missing`)
+    return plan
+  }
+  const TYPES = ['plain', 'bookcase', 'storage', 'daybed'] as const
+
+  it.each(TYPES)('gives a bed without one (KC-CAM-05) a %s headboard the module accepts and builds', (type) => {
+    const bare = shipped('KC-CAM-05')
+    expect(bare.headboard).toMatchObject({ style: 'none', height: bare.height })
+    const chosen = style.set(bare, type) as BedPlan
+    expect(FurniturePlan.safeParse(chosen).error?.issues).toBeUndefined()
+    expect(chosen.headboard.height).toBeGreaterThan(bare.height)
+    const { design, notes } = buildBed(chosen, testCatalog)
+    expect(analyze(design, testCatalog).valid).toBe(true)
+    expect(design.dimensions.height).toBe(chosen.headboard.height)
+    expect(notes.filter((n) => /cabecera|respaldo/i.test(n))).toEqual([])
+  })
+
+  it('leaves room for every shelf a bookcase or a compartment already had', () => {
+    const bare = shipped('KC-CAM-05')
+    const loaded: BedPlan = { ...bare, headboard: { ...bare.headboard, shelves: 12, cap: true } }
+    for (const type of ['bookcase', 'storage'] as const) expect(FurniturePlan.safeParse(style.set(loaded, type)).success).toBe(true)
+  })
+
+  it.each(TYPES)('keeps a height that holds: KC-CAM-01 stays at 700 as %s, and at none', (type) => {
+    const low = shipped('KC-CAM-01')
+    expect(low.headboard).toMatchObject({ style: 'plain', height: 700 })
+    const chosen = style.set(low, type) as BedPlan
+    expect(chosen.headboard.height).toBe(700)
+    expect(FurniturePlan.safeParse(chosen).success).toBe(true)
+    expect((style.set(low, 'none') as BedPlan).headboard.height).toBe(700)
   })
 })
