@@ -7,6 +7,7 @@ import { testReferences } from '../../domain/furniture/fixtures/references.test-
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { Services } from '../services'
+import { ANY } from '../capture/catalog'
 import { draftOf, hiddenIn, useStore } from '.'
 import { currentPlan } from '../../application/useCases'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
@@ -43,7 +44,7 @@ describe('store', () => {
     const s = useStore.getState()
     const actions = [
       // session
-      'start', 'newDesign', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'adjustBase', 'closeAdjust', 'fromExample', 'swapTo', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
+      'start', 'newDesign', 'setDebugVisible', 'flag', 'startCapture', 'browse', 'browseAll', 'adjustBase', 'closeAdjust', 'fromExample', 'swapTo', 'applyProposal', 'chooseOption', 'discardProposal', 'backToVersion', 'confirmPiece', 'addNote', 'removeNote', 'removeDecision', 'applyPlan', 'applyFix', 'toggleTray', 'acceptNotice', 'reopenNotice', 'dismissQuestion', 'reopenQuestion', 'restoreFromVersion', 'undoChange', 'editPiece', 'resizeFurniture', 'lockField', 'findSavings',
       // expert
       'reconstruct', 'adjust', 'sendTray', 'cancel', 'retryReconstruction', 'review', 'cancelReview',
       // scene
@@ -56,6 +57,26 @@ describe('store', () => {
     expect(actions.filter((name) => typeof s[name] !== 'function')).toEqual([])
     expect(s.phase).toBe('home')
     expect(s.vault).toBe('none')
+  })
+
+  it('the logo shows every piece of furniture, and only the logo: leaving a base or the form keeps the filter', () => {
+    const filtered = { text: 'mesa', room: 'dining' } as const
+    const base = testReferences.home()[0]
+    useStore.getState().browse(filtered)
+    useStore.getState().adjustBase(base)
+    useStore.getState().closeAdjust()
+    expect(useStore.getState().browsing).toEqual(filtered)
+    useStore.getState().startCapture()
+    useStore.getState().goHome()
+    expect(useStore.getState()).toMatchObject({ phase: 'home', browsing: filtered })
+
+    useStore.getState().browseAll()
+    expect(useStore.getState()).toMatchObject({ phase: 'home', browsing: ANY })
+
+    useStore.getState().browse(filtered)
+    useStore.getState().adjustBase(base)
+    useStore.getState().browseAll()
+    expect(useStore.getState()).toMatchObject({ phase: 'home', adjusting: null, browsing: ANY })
   })
 
   it('without an open design, session commands do nothing or say why', () => {
