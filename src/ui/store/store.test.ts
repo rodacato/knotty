@@ -228,6 +228,52 @@ describe('the plan draft', () => {
     expect(draftOf(useStore.getState())).toBeNull()
   })
 
+  const sized = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
+  const draftSize = () => (draftOf(useStore.getState())?.plan as CabinetPlan | undefined)?.dimensions
+  /** Each character of a measure as the form sends it: the plan so far, with the key of its field. */
+  const type = (from: CabinetPlan, side: 'width' | 'height', text: string) =>
+    [...text].reduce((plan, _, i) => {
+      const next = sized(plan, { [side]: Number(text.slice(0, i + 1)) })
+      useStore.getState().editPlan(next, `dimensions.${side}`)
+      return next
+    }, from)
+
+  it('undoes a typed measure whole, never back to one half typed', () => {
+    const { plan } = openCabinet()
+    type(plan, 'width', '1200')
+    expect(draftSize()?.width).toBe(1200)
+    expect(draftOf(useStore.getState())!.steps).toEqual([plan])
+    useStore.getState().undoPlanEdit()
+    expect(draftOf(useStore.getState())).toBeNull()
+  })
+
+  it('undoes two measures typed in a row one at a time', () => {
+    const { plan } = openCabinet()
+    type(type(plan, 'width', '1200'), 'height', '1500')
+    expect(draftSize()).toMatchObject({ width: 1200, height: 1500 })
+    useStore.getState().undoPlanEdit()
+    expect(draftSize()).toMatchObject({ width: 1200, height: plan.dimensions.height })
+    useStore.getState().undoPlanEdit()
+    expect(draftOf(useStore.getState())).toBeNull()
+  })
+
+  it('typing in a field again after another change or an undo is a step of its own', () => {
+    const { plan } = openCabinet()
+    const typed = type(plan, 'width', '1200')
+    const deeper = sized(typed, { depth: plan.dimensions.depth + 50 })
+    useStore.getState().editPlan(deeper)
+    type(deeper, 'width', '1300')
+    useStore.getState().undoPlanEdit()
+    expect(draftSize()).toMatchObject({ width: 1200, depth: plan.dimensions.depth + 50 })
+    type(deeper, 'width', '1400')
+    useStore.getState().undoPlanEdit()
+    expect(draftSize()).toMatchObject({ width: 1200, depth: plan.dimensions.depth + 50 })
+    useStore.getState().undoPlanEdit()
+    expect(draftSize()).toMatchObject({ width: 1200, depth: plan.dimensions.depth })
+    useStore.getState().undoPlanEdit()
+    expect(draftOf(useStore.getState())).toBeNull()
+  })
+
   it('keeps a plan that cannot be built, with why and nothing to show', () => {
     const { plan } = openCabinet()
     useStore.getState().editPlan({ ...plan, base: 'legs', legHeight: 150, dimensions: { ...plan.dimensions, height: 300 } })

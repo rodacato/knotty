@@ -64,9 +64,9 @@ export function PlanSheet({ state }: { state: DesignState }) {
     )
 
   const changes = describePlanChanges(source.plan, draft)
-  const set = (plan: FurniturePlan) => {
+  const set = (plan: FurniturePlan, typed?: string) => {
     setMessage(null)
-    editPlan(plan)
+    editPlan(plan, typed)
   }
 
   const locks: Locks = { locked: (field) => isLocked(field, state.locks), toggle: lockField }

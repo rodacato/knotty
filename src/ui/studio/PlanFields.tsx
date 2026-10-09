@@ -30,6 +30,9 @@ export interface Locks {
   toggle: (key: string, locked: boolean) => void
 }
 
+/** A change to the plan; `typed` is the key of the field when it was typed into, one character at a time. */
+export type PlanChange<P> = (plan: P, typed?: string) => void
+
 function Row({ label, lock, children }: { label: string; lock: ReactNode; children: ReactNode }) {
   return (
     <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm">
@@ -42,7 +45,7 @@ function Row({ label, lock, children }: { label: string; lock: ReactNode; childr
   )
 }
 
-function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; plan: P; onChange: (plan: P) => void; locks?: Locks }) {
+function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; plan: P; onChange: PlanChange<P>; locks?: Locks }) {
   const { catalog } = useServices()
   if (!isVisible(field, plan)) return null
   const lock = (f: { key: string; label: string; ariaLabel?: string; lockedByDefault?: boolean }) => {
@@ -77,7 +80,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
             </span>
           }
         >
-          <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)))} />
+          <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)), field.key)} />
         </Field>
       )
     case 'choice': {
@@ -124,12 +127,12 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
   }
 }
 
-function Fields<P>({ fields, plan, onChange, locks }: { fields: FieldSpec<P>[]; plan: P; onChange: (plan: P) => void; locks?: Locks }) {
+function Fields<P>({ fields, plan, onChange, locks }: { fields: FieldSpec<P>[]; plan: P; onChange: PlanChange<P>; locks?: Locks }) {
   return fields.map((field, i) => <Control key={i} field={field} plan={plan} onChange={onChange} locks={locks} />)
 }
 
 /** A plan's form, from its module's fields. */
-export function PlanFields<P extends { kind: string }>({ module, plan, onChange, locks, afterMeasures }: { module: FurnitureModule<P>; plan: P; onChange: (plan: P) => void; locks?: Locks; afterMeasures?: ReactNode }) {
+export function PlanFields<P extends { kind: string }>({ module, plan, onChange, locks, afterMeasures }: { module: FurnitureModule<P>; plan: P; onChange: PlanChange<P>; locks?: Locks; afterMeasures?: ReactNode }) {
   // Something that is not part of the plan goes right after the measures (or after the first section, when the module has none).
   const at = Math.max(0, module.fields.findIndex((f) => f.type === 'section' && f.title === 'Medidas')) + 1
   return (

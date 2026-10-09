@@ -90,7 +90,7 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
           )}
         </div>
         {cabinetTop && <TopChoices plan={plan as CabinetPlan} />}
-        <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={(next) => editPlan(next)} />
+        <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={editPlan} />
         {part.id === 'wood' && <FinishSection state={state} />}
         {part.id === 'assembly' && <FittingsSection design={design} apart={'assembly' in plan && !!plan.assembly && plan.assembly !== 'glued'} />}
         {plan.kind === 'cabinet' && part.id === 'cells' && <p className="text-sm text-graphite-2">Toca un hueco del mueble para cambiar lo que lleva, dividirlo o juntarlo; arrastra los puntos de las líneas para moverlas.</p>}
