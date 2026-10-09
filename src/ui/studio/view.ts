@@ -19,6 +19,11 @@ export function shownOf(state: DesignState, { viewedVersion, showProposal, previ
   return { design, proposal }
 }
 
+export type Overlay = 'notices' | 'history'
+
+/** What a header button leaves open: it closes its overlay only while that one is in sight; one covered by the piece sheet is shown, never closed unseen. */
+export const overlayAfter = (open: Overlay | null, asked: Overlay, covered: boolean): Overlay | null => (open === asked && !covered ? null : asked)
+
 /** What is on screen in place of the current design, as the person is told; null while it is the current one. */
 export function shownInstead(state: DesignState, looking: Looking): string | null {
   const { design, proposal } = shownOf(state, looking)

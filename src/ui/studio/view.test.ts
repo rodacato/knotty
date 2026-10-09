@@ -5,7 +5,7 @@ import { analyze, type Analysis } from '../../domain/checks/analysis'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { markedPieces, proposalChanges, shownInstead, shownOf } from './view'
+import { markedPieces, overlayAfter, proposalChanges, shownInstead, shownOf } from './view'
 
 const useCases = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository: { load: () => null, save: () => {}, clear: () => {} } })
 
@@ -70,5 +70,21 @@ describe('what the Studio shows', () => {
     const errors = [{ code: 'E_X', message: '', data: { piece: 'shelf-1', other: 'gone', gap: 3 } }] as unknown as Extract<Analysis, { valid: false }>['errors']
     expect(markedPieces(design, { valid: false, errors }, ['shelf-1', 'top', 'removed'])).toEqual(['shelf-1', 'top'])
     expect(markedPieces(design, analyze(design, testCatalog), [])).toEqual([])
+  })
+})
+
+describe('what a header button does to notices and history', () => {
+  it('opens the one asked for, also in place of the other', () => {
+    expect(overlayAfter(null, 'notices', false)).toBe('notices')
+    expect(overlayAfter('history', 'notices', false)).toBe('notices')
+  })
+
+  it('closes the one in sight when it is asked for again', () => {
+    expect(overlayAfter('notices', 'notices', false)).toBeNull()
+  })
+
+  it('never closes one the person cannot see: under the piece sheet it is shown', () => {
+    expect(overlayAfter('notices', 'notices', true)).toBe('notices')
+    expect(overlayAfter(null, 'history', true)).toBe('history')
   })
 })
