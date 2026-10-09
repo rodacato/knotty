@@ -286,7 +286,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   )
 }
 
-export function Materials({ state, design, geo, catalog, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; onRequest: (text: string) => void }) {
+export function Materials({ state, design, geo, catalog, instead, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; instead: string | null; onRequest: (text: string) => void }) {
   const settings = useStore((s) => s.catalogSettings)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
@@ -295,6 +295,12 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
   const own = Object.keys(settings.prices).length
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
+
+  const whose = instead && (
+    <p role="note" className="rounded-xl border border-line bg-amber-soft p-3 text-[13px] leading-snug">
+      En el 3D estás viendo {instead}. El costo, la revisión y la lista de aquí son de tu diseño actual.
+    </p>
+  )
 
   const cost = (
     <section className="flex flex-col gap-1 border-b border-line pb-4">
@@ -316,6 +322,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   if (!verdict)
     return (
       <div className="flex flex-col gap-4 p-4">
+        {whose}
         {cost}
         <ReviewGate stale={state.review !== null} />
         <CutSettings base={catalog.layout} />
@@ -324,6 +331,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   if (verdict.verdict === 'not-viable' && anyway !== verdict.signature)
     return (
       <div className="flex flex-col gap-4 p-4">
+        {whose}
         {cost}
         <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-graphite">
@@ -338,6 +346,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
 
   return (
     <div className="flex flex-col gap-6 p-4">
+      {whose}
       {cost}
       <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
 

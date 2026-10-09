@@ -5,7 +5,7 @@ import { analyze, type Analysis } from '../../domain/checks/analysis'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { markedPieces, proposalChanges, shownOf } from './view'
+import { markedPieces, proposalChanges, shownInstead, shownOf } from './view'
 
 const useCases = createUseCases({ llm: () => createSimulated(0), catalog: testCatalog, repository: { load: () => null, save: () => {}, clear: () => {} } })
 
@@ -39,6 +39,17 @@ describe('what the Studio shows', () => {
   it('a previewed fix comes before everything else and counts as the proposal', () => {
     const fix = { ...currentDesign(state), name: 'Con la solución' }
     expect(shownOf(proposed, { ...looking, viewedVersion: 1, preview: { design: fix } })).toEqual({ design: fix, proposal: fix })
+  })
+
+  it('says what is on screen in place of the current design, and nothing while it is the current one', () => {
+    const fix = { ...currentDesign(state), name: 'Con la solución' }
+    expect(shownInstead(proposed, looking)).toBe('la propuesta sin aplicar')
+    expect(shownInstead(proposed, { ...looking, viewedVersion: 1 })).toBe('la v1')
+    expect(shownInstead(state, { ...looking, preview: { design: fix } })).toBe('una solución sin aplicar')
+    expect(shownInstead(state, { ...looking, preview: { design: fix, draft: true } })).toBe('los cambios de la ficha sin aplicar')
+    expect(shownInstead(state, looking)).toBeNull()
+    expect(shownInstead(proposed, { ...looking, showProposal: false })).toBeNull()
+    expect(shownInstead(state, { ...looking, viewedVersion: state.current })).toBeNull()
   })
 
   it('a proposal marks what it changes, and nothing without one', () => {
