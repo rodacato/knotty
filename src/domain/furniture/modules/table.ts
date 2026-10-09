@@ -421,8 +421,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
       lockedByDefault: true,
       options: optionsOf(TABLE_LABELS.use),
       get: (p) => p.use,
-      // Its name follows; only a desk keeps a pedestal, and a desk has no low shelf.
-      set: (p, use) => ({ ...p, use, name: TABLE_LABELS.use[use].name, shelf: use === 'desk' ? false : p.shelf, pedestal: use === 'desk' ? p.pedestal : { side: 'none', drawers: 0 } }),
+      set: tableForUse,
     }),
   ]),
   section('Medidas', [
@@ -494,6 +493,13 @@ export function settleTable(plan: TablePlan): TablePlan {
   const noShelf = plan.use !== 'desk' || !plan.shelf
   if ((built || noPedestal) && noShelf) return plan
   return { ...plan, pedestal: built ? plan.pedestal : { side: 'none', drawers: 0 }, shelf: plan.use === 'desk' ? false : plan.shelf }
+}
+
+/** The same table for another use, without what that use does not take; its name follows only while it is the plain name of its use, so a name of its own stays. */
+export function tableForUse(plan: TablePlan, use: TablePlan['use']): TablePlan {
+  if (use === plan.use) return plan
+  const name = plan.name === TABLE_LABELS.use[plan.use].name ? TABLE_LABELS.use[use].name : plan.name
+  return settleTable({ ...plan, use, name })
 }
 
 /** The front and back legs of an end, each as far in as the top sticks out, with an apron between them. */

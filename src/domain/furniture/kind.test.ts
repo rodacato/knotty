@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from './fixtures/bookcase'
-import { sideboardPlan } from './fixtures/references.test-util'
-import { MODULES } from './modules/plan'
+import { sideboardPlan, testReferences } from './fixtures/references.test-util'
+import { valueFields } from './modules/fields'
+import { FurniturePlan, MODULES } from './modules/plan'
+import { tableModule, type TablePlan } from './modules/table'
 import { kindChange, kindOf, planForKind, settleKind, startingKind, type KnownKind } from './kind'
 
 const k = (kind: KnownKind['kind'], source: KnownKind['source']): KnownKind => ({ kind, source })
@@ -56,5 +58,40 @@ describe('changing the kind', () => {
     expect(planForKind(table, 'desk')).toMatchObject({ use: 'desk' })
     expect(planForKind(table, 'bookcase')).toBe(table)
     expect(planForKind(sideboardPlan, 'tvStand')).toBe(sideboardPlan)
+  })
+})
+
+describe('changing what a table is for', () => {
+  const useField = valueFields(tableModule.fields).find((f) => f.key === 'use')!
+  const byUso = (plan: TablePlan, use: TablePlan['use']) => useField.set(plan, use as never)
+  const byKind = (plan: TablePlan, kind: Parameters<typeof planForKind>[1]) => planForKind(plan, kind) as TablePlan
+  const oakDesk = testReferences.latest('KC-ESC-07')!.plan as TablePlan
+
+  it('«Uso» and «Tipo de mueble» give the same plan: a desk made a dining table loses its pedestal either way, and the plan holds', () => {
+    const desk = MODULES.table.benchVariants().find(([name]) => name === 'escritorio con 3 cajones a la izquierda')![1]
+    const dining = byKind(desk, 'diningTable')
+    expect(dining).toEqual(byUso(desk, 'dining'))
+    expect(dining).toMatchObject({ use: 'dining', name: 'Escritorio con cajonera', pedestal: { side: 'none', drawers: 0 } })
+    expect(FurniturePlan.safeParse(dining).success).toBe(true)
+  })
+
+  it('a coffee table made a desk loses its low shelf either way', () => {
+    const coffee = MODULES.table.benchVariants().find(([name]) => name === 'centro')![1]
+    expect(coffee.shelf).toBe(true)
+    expect(byKind(coffee, 'desk')).toEqual(byUso(coffee, 'desk'))
+    expect(byKind(coffee, 'desk').shelf).toBe(false)
+  })
+
+  it('a ficha keeps its own name through a change of use and back', () => {
+    expect(oakDesk.name).not.toBe('Escritorio')
+    const there = byUso(oakDesk, 'dining')
+    expect(there.name).toBe(oakDesk.name)
+    expect(byKind(there, 'desk').name).toBe(oakDesk.name)
+  })
+
+  it('a table still called by the plain name of its use takes the name of the new one', () => {
+    expect(table).toMatchObject({ use: 'dining', name: 'Mesa de comedor' })
+    expect(byUso(table, 'desk').name).toBe('Escritorio')
+    expect(byKind(table, 'coffeeTable').name).toBe('Mesa de centro')
   })
 })
