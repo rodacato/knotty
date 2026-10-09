@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import type { Design } from '../../domain/design/schema'
@@ -30,6 +30,7 @@ import { NoticePanel } from './NoticePanel'
 import { ExportFicha } from '../lab/ExportFicha'
 import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
+import { fichaLink } from '../spotlight/link'
 import { shortcutLabel } from '../spotlight/shortcut'
 
 const VIEWS: { id: View; name: string }[] = [
@@ -203,6 +204,20 @@ function FichaOrigin({ state }: { state: DesignState }) {
   )
 }
 
+function CopyFichaLink({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () =>
+    void navigator.clipboard.writeText(fichaLink(code)).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  return (
+    <IconButton className="max-sm:hidden" onClick={copy} aria-label={copied ? 'Enlace copiado' : `Copiar el enlace a la ficha ${code}`} title={`Copiar el enlace a la ficha ${code}`}>
+      {copied ? <Check className="text-slate" /> : <LinkSimple />}
+    </IconButton>
+  )
+}
+
 type Overlay = 'notices' | 'history'
 
 function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
@@ -226,6 +241,7 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
           <FichaOrigin state={state} />
         </p>
       </div>
+      {state.ficha && <CopyFichaLink code={state.ficha.code} />}
       <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
         <MagnifyingGlass />
       </Button>
