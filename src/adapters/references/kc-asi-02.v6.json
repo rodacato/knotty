@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "code": "KC-ASI-02",
+  "id": "counter-stool",
+  "home": { "order": 19 },
+  "rooms": ["dining","kitchen"],
+  "name": "Taburete alto",
+  "kind": "sideTable",
+  "finish": "danish-oil",
+  "style": "workshop",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["splayed-legs","curved-cut","legs"],
+  "adaptations": ["Solid jequitiba (hardwood) drawn in T18 plywood","Foot rail not drawn: the low H stretcher ties the legs 150 mm from the floor, too low to rest the feet on; no check judges how a frame on legs takes a sideways push","Rounded seat edge not drawn","Width 340 and depth 290 estimated from photo proportions against the 650 height","four splayed round-edged legs drawn as four square legs that lean outward and narrow to the foot, with an apron all round","Its top is the seat: the plan says the seat use, which gives the top the heavy load of a person.","no stool kind: it stays a sideTable and not a bench, whose seat height (420 to 480 mm) is a dining seat's and would flag the 650 mm of a counter stool; so the seat's sag is judged as a load that stays, not as a person's"],
+  "gaps": ["splayed-legs","curved-cut"],
+  "notes": "Taburete alto para barra o mesa de trabajo. En Knotty queda como un taburete de triplay con asiento rectangular de esquinas rectas, cuatro patas abiertas que se adelgazan hacia el piso, un faldón bajo el asiento y un travesaño bajo en H que amarra las patas. No tiene descansapiés: el travesaño queda a 15 cm del piso, muy abajo para apoyar los pies a 65 cm de alto.",
+  "plan": {
+    "kind": "table",
+    "use": "seat",
+    "name": "Taburete alto",
+    "material": "T18",
+    "dimensions": { "width": 340, "height": 650, "depth": 290 },
+    "overhang": 20,
+    "shelf": false,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "legs",
+    "legStyle": "splayed",
+    "stretcher": "h",
+    "edges": "exposed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 16,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 24, "screw-8x2": 28, "white-glue": 2 }
+  }
+}
