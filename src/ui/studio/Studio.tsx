@@ -3,6 +3,8 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
+import { exampleDesign } from '../../domain/furniture/examples'
+import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { Design } from '../../domain/design/schema'
 import { activeLabel } from '../../ports/Preferences'
 import { Chat } from '../chat/Chat'
@@ -30,7 +32,7 @@ import { NoticePanel } from './NoticePanel'
 import { ExportFicha } from '../lab/ExportFicha'
 import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
-import { fichaLink } from '../spotlight/link'
+import { fichaLink, optionsOf } from '../spotlight/link'
 import { shortcutLabel } from '../spotlight/shortcut'
 
 const VIEWS: { id: View; name: string }[] = [
@@ -204,15 +206,22 @@ function FichaOrigin({ state }: { state: DesignState }) {
   )
 }
 
-function CopyFichaLink({ code }: { code: string }) {
+/** The link to the ficha the design comes from, with the options of the whole piece (finish, assembly, board) as the design has them. */
+function CopyFichaLink({ state, code }: { state: DesignState; code: string }) {
+  const { references, catalog } = useServices()
   const [copied, setCopied] = useState(false)
+  const base = references.home().find((b) => b.code === code)
+  const { plan } = currentPlan(state)
+  if (!base || !plan) return null
+  const options = optionsOf(plan, currentDesign(state), exampleDesign(base, catalog) as { plan: FurniturePlan; design: Design })
+  const said = Object.keys(options).length ? ', con su acabado, armado y material' : ''
   const copy = () =>
-    void navigator.clipboard.writeText(fichaLink(code)).then(() => {
+    void navigator.clipboard.writeText(fichaLink(code, options)).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     })
   return (
-    <IconButton className="max-sm:hidden" onClick={copy} aria-label={copied ? 'Enlace copiado' : `Copiar el enlace a la ficha ${code}`} title={`Copiar el enlace a la ficha ${code}`}>
+    <IconButton className="max-sm:hidden" onClick={copy} aria-label={copied ? 'Enlace copiado' : `Copiar el enlace a la ficha ${code}${said}`} title={`Copiar el enlace a la ficha ${code}${said}`}>
       {copied ? <Check className="text-slate" /> : <LinkSimple />}
     </IconButton>
   )
@@ -241,7 +250,7 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
           <FichaOrigin state={state} />
         </p>
       </div>
-      {state.ficha && <CopyFichaLink code={state.ficha.code} />}
+      {state.ficha && <CopyFichaLink state={state} code={state.ficha.code} />}
       <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
         <MagnifyingGlass />
       </Button>

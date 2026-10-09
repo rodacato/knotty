@@ -13,8 +13,8 @@ import type { ChoosableJoint, JointGroupId } from '../../domain/editing/joints/c
 import type { Edge } from '../../domain/design/schema'
 import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
+import { browsingFrom } from '../capture/address'
 import { ANY, type CatalogQuery } from '../capture/catalog'
-import { debugAccess } from '../debug/access'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
 import type { Get, Set, Slice, Store } from './types'
@@ -127,7 +127,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   start(services) {
     const state = services.useCases.load()
-    set({ services, state, phase: state ? 'studio' : 'home', debugVisible: debugAccess(services.debug), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
+    set({ services, state, phase: state ? 'studio' : 'home', browsing: typeof location === 'undefined' ? ANY : browsingFrom(location.search), debugVisible: services.debug.visible(), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
   },
 
   newDesign() {

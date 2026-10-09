@@ -20,7 +20,7 @@ export const ANY: CatalogQuery = { room: 'all', text: '' }
 
 type Listed = { code: string; name: string; rooms: readonly Room[] }
 
-const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+export const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const LABEL = new Map(ROOM_LABELS)
 
 export const roomsLine = ({ rooms }: Pick<Listed, 'rooms'>) => rooms.map((r) => LABEL.get(r)).join(', ')
