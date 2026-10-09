@@ -182,6 +182,7 @@ export function applyOperations(original: Design, operations: Operation[], catal
         for (const p of drawer.pieces) assertFreeId(p.id)
         design.pieces.push(...drawer.pieces)
         design.joints.push(...drawer.joints)
+        design.pullsOf = { ...design.pullsOf, [`${op.group}-front`]: 'notch' }
         return
       }
     }

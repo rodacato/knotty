@@ -4,7 +4,8 @@ import { cutBox, woodLeft } from '../../design/cuts'
 import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
-import { pullFor, withFrontCuts } from './fronts'
+import { withFrontCuts } from '../../design/frontCuts'
+import { pullFor } from './fronts'
 import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION, type CabinetConstruction } from './cabinet'
 
 const cell = (content: Cell['content'], height = 1, extra: Partial<Cell> = {}): Cell => ({ height, content, shelves: null, doors: null, ...extra })

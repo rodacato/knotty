@@ -1,11 +1,13 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
 import type { FaceRef, Piece, Joint } from '../../design/schema'
+import { drawerNotch } from '../../design/frontCuts'
 import { parseFace, type Geometry } from '../../design/resolve'
 import { hardwareByRole, materialById, pickHardware, slideFor, slidesOf, SLIDE_BACK_CLEARANCE, type Catalog } from '../../materials/catalog'
 import { ASSUMPTIONS } from '../../assumptions'
 import { error, type DesignError } from '../../design/validation/errors'
 
-// A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front.
+// A DIY drawer with an inset front and telescopic runners: a four-sided box screwed together, a bottom nailed underneath and a flush front,
+// which takes a finger notch: set inside its opening, it has no edge to pull by.
 // A request's fields are the expert's `addDrawer` operation.
 
 export const FRONT_GAP = 2
@@ -82,6 +84,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
       y: extent(ref(c.bottom, FRONT_GAP), ref(c.top, -FRONT_GAP)),
       z: backward ? startAt(ref(c.front)) : endAt(ref(c.front)),
       edges: ['front', 'left', 'right', 'top', 'bottom'],
+      cuts: [drawerNotch(width - 2 * FRONT_GAP, frontThickness)],
     }),
     makePiece({ ...shared, material: c.bottomMaterial, id: id('bottom'), name: `Fondo de ${c.name.toLowerCase()}`, role: 'drawer-bottom', normal: 'y', x: extent(ref(c.left, gap), ref(c.right, -gap)), y: startAt(ref(c.bottom, BOTTOM_GAP)), z: box(), grain: 'any' }),
     makePiece({ ...shared, id: id('side-left'), name: `Costado izquierdo de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: startAt(ref(c.left, gap)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),
