@@ -239,11 +239,11 @@ describe('adjusting a plan asks only about its own module', () => {
 /** The prompt and the schema of its answer, as characters ÷ 3.5: a guard against growth, not a count. The provider counts ≈ 1.7–1.9 × this (npm run compare, 2026-09-26). */
 const approxTokens = (text: string) => Math.round(text.length / 3.5)
 
-/** About 5 % above what each measured when it was set (plan-adjust@13; the cabinet's with cabinet@11, its leg styles, its kitchen kick and its hinge sides, the bed's with bed@6 and its slats): growing past it has to be on purpose. With every module it was 4 307. The table's is what table@12 measures with its seat and its low stretcher, with no margin added. */
-const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2885, bed: 2565, table: 2267, shoeRack: 1930 }
+/** About 5 % above what each measured when it was set (plan-adjust@13; the cabinet's with cabinet@11, its leg styles, its kitchen kick and its hinge sides, the bed's with bed@6 and its slats): growing past it has to be on purpose. With every module it was 4 307. The table's is what table@13 measures with its seat, its low stretcher and its pedestal pulls, with no margin added. */
+const PLAN_ADJUST_BUDGET: Record<(typeof FURNITURE_KINDS)[number], number> = { cabinet: 2885, bed: 2565, table: 2318, shoeRack: 1930 }
 
-/** Skeleton prompt and schema, measured the same way (skeleton@15); the cabinet grew by its kitchen kick, and the table by what `corners`, splayed legs, `cable`, the seat and the low stretcher cost in table@12, with no margin added. */
-const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7825, cabinet: 3640, bed: 2590, table: 2376, shoeRack: 1960 }
+/** Skeleton prompt and schema, measured the same way (skeleton@15); the cabinet grew by its kitchen kick, and the table by what `corners`, splayed legs, `cable`, the seat, the low stretcher and the pedestal pulls cost in table@13, with no margin added. */
+const SKELETON_BUDGET: Record<(typeof FURNITURE_KINDS)[number] | 'all', number> = { all: 7910, cabinet: 3640, bed: 2590, table: 2461, shoeRack: 1960 }
 
 /** With the guide of its use, measured the same way (sideboard@3, bookcase@1). */
 const GUIDED_BUDGET: Partial<Record<DesignKind, { skeleton: number; adjust: number }>> = { sideboard: { skeleton: 3905, adjust: 3150 }, bookcase: { skeleton: 4090, adjust: 3360 } }

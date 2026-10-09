@@ -511,6 +511,45 @@ describe('a low stretcher between the legs', () => {
   })
 })
 
+describe('how the drawers of a desk pedestal are opened', () => {
+  const oakDesk = testReferences.latest('KC-ESC-07')!.plan as TablePlan
+  const withPulls = (pulls?: 'none' | 'notch' | 'handle') => {
+    const { design, notes } = buildTable({ ...oakDesk, pedestal: { ...oakDesk.pedestal, ...(pulls ? { pulls } : {}) } }, testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    const bought = Object.fromEntries(estimatePurchase(design, a.geo!, testCatalog).hardware.map((h) => [h.hardware.id, h.count]))
+    return { design, notes, a, bought, fronts: design.pieces.filter((p) => p.role === 'drawer-front') }
+  }
+
+  it('a plan that does not say builds as it always did: no pull, no cut and nothing more to buy, the same as saying none', () => {
+    const plain = withPulls()
+    expect(oakDesk.pedestal.pulls).toBeUndefined()
+    expect([plain.design.pulls, plain.fronts.length, plain.fronts.some((p) => p.cuts), 'handle' in plain.bought]).toEqual([undefined, 3, false, false])
+    expect(withPulls('none').design).toEqual(plain.design)
+  })
+
+  it('with a notch every drawer front takes one in its top edge, the design says so, and nothing is bought for it', () => {
+    const [plain, notched] = [withPulls(), withPulls('notch')]
+    expect(notched.fronts.map((p) => p.cuts?.length)).toEqual([1, 1, 1])
+    expect(notched.fronts[0].cuts![0]).toMatchObject({ x: { from: 'center', length: 100 }, y: { from: 'end' } })
+    expect(notched.design.pieces.filter((p) => p.cuts).map((p) => p.role)).toEqual(['drawer-front', 'drawer-front', 'drawer-front'])
+    expect([notched.design.pulls, notched.bought]).toEqual(['notch', plain.bought])
+    expect(notched.notes).toContain('Muesca para abrir en el canto de 3 frentes: se fresa con router, no se compra nada.')
+    expect(notched.a.findings).toEqual(plain.a.findings)
+  })
+
+  it('with handles the purchase lists one per drawer, and no front is cut', () => {
+    const [plain, handled] = [withPulls(), withPulls('handle')]
+    expect(handled.bought).toEqual({ ...plain.bought, handle: 3 })
+    expect([handled.design.pulls, handled.fronts.some((p) => p.cuts)]).toEqual(['handle', false])
+  })
+
+  it('a desk without a pedestal has no front to open: the plan keeps the choice and the design says nothing', () => {
+    const { design } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, overhang: 0, pedestal: { side: 'none', drawers: 0, pulls: 'handle' } }), testCatalog)
+    expect('pulls' in design).toBe(false)
+  })
+})
+
 describe('a cable pass through a desk top', () => {
   const built = (p: Partial<TablePlan>) => {
     const { design, notes } = buildTable(table({ use: 'desk', name: 'Escritorio', dimensions: { width: 1200, height: 750, depth: 600 }, cable: true, ...p }), testCatalog)
