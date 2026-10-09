@@ -32,8 +32,8 @@ interface SpanContext {
 const STRIP_RATIO = 3
 export const isStrip = (box: Box) => box.z1 - box.z0 >= STRIP_RATIO * (box.x1 - box.x0)
 
-/** The longest free span of a horizontal piece between upright supports: those touching its ends or holding it from below. Along the furniture's width, or front to back for a slat. */
-export function freeSpan(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z' = 'x') {
+/** Where the longest free span of a horizontal piece lies, between upright supports: those touching its ends or holding it from below. Along the furniture's width, or front to back for a slat. */
+export function freeStretch(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z' = 'x'): [number, number] | null {
   const [lo, hi] = [`${axis}0`, `${axis}1`] as const
   const supports = ctx.contacts
     .filter((c) => c.a === id || c.b === id)
@@ -46,8 +46,16 @@ export function freeSpan(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z'
     })
     .map((other) => ctx.geo.boxes.get(other)!)
     .sort((a, b) => a[lo] - b[lo])
-  if (supports.length < 2) return null
-  let span = 0
-  for (let i = 1; i < supports.length; i++) span = Math.max(span, supports[i][lo] - Math.max(...supports.slice(0, i).map((a) => a[hi])))
-  return span > 0 ? span : null
+  let longest: [number, number] | null = null
+  for (let i = 1; i < supports.length; i++) {
+    const from = Math.max(...supports.slice(0, i).map((a) => a[hi]))
+    if (supports[i][lo] - from > (longest ? longest[1] - longest[0] : 0)) longest = [from, supports[i][lo]]
+  }
+  return longest
+}
+
+/** The length of that span; null when the piece has no two supports with room between them. */
+export function freeSpan(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z' = 'x') {
+  const stretch = freeStretch(id, box, ctx, axis)
+  return stretch ? stretch[1] - stretch[0] : null
 }

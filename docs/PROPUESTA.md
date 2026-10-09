@@ -374,6 +374,7 @@ Los supuestos viven en `domain/assumptions.ts` como datos y cada regla en `domai
   - k_fluencia = 2.0 con la carga que se queda (libros, trastes, ropa); 1.0 con la que pasa: la plataforma de una cama y el asiento de una banca cargan a una persona.
   - q: ligera 50, media 100, pesada (libros) 150 kg/m².
 - Umbrales sobre la flecha final: ≤ L/360 OK; L/360 – L/100 recomendación; > L/100 crítico.
+- El «apoyo al centro» que Knotty construye va al centro del claro que se pandea, no de la tabla, y pone otro mientras la pieza siga igual de grave (`centerSupports`): el piso sobre zoclo ya lleva un apoyo bajo cada divisor, así que se pandea en el tramo de cada lado y el centro de la tabla está ocupado.
 
 | 18 mm, fondo 300, libros | Flecha | Resultado |
 |---|---|---|
