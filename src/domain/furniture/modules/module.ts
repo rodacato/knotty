@@ -20,8 +20,6 @@ export interface QuickSpec {
   measures: boolean
   /** The counts the person can change, from the cells of the plan. */
   counts: readonly QuickCountKind[]
-  /** Keys of `fields` that are quick: the quick adjust shows those and no others. */
-  fields: readonly string[]
 }
 
 /** What has to hold between the fields of a plan, beyond what its schema says of each one. */

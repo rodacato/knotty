@@ -32,7 +32,7 @@ export function exampleOf(r: Reference): Example {
   return { name: r.name, design: { ...r.design!, name: r.name, notes: r.notes, ...said } }
 }
 
-/** The references with a plan are the places to start, in the home screen's order; one that is a design opens from the lab only. */
+/** The references with a plan are the places to start, in the home screen's order; one that is a design has no screen that opens it. */
 export const basesOf = (references: Reference[]): Base[] =>
   references.flatMap((r) => (r.plan ? [{ id: r.id, code: r.code, version: r.version, rooms: r.rooms, style: r.style, name: r.name, notes: r.notes, plan: r.plan, ...(r.kind ? { kind: r.kind } : {}), ...(r.finish ? { finish: r.finish } : {}), ...(r.inspiredBy ? { inspiredBy: r.inspiredBy } : {}) }] : []))
 

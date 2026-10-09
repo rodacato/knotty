@@ -5,6 +5,7 @@ import { FinishSection } from './FinishSection'
 import { FittingsSection } from './Fittings'
 import { CABINET_LABELS, type CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { FieldSpec } from '../../domain/furniture/modules/fields'
+import { DEFAULT_FINGERS, FINGERS_RANGE } from '../../domain/furniture/modules/fingerJoints'
 import { partName, type PartSpec } from '../../domain/furniture/modules/parts'
 import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { Button } from '../system/components'
@@ -47,7 +48,7 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
           <>
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm text-graphite-2">Dedos por esquina</span>
-              <Stepper label="dedos por esquina" value={plan.drawerFingers ?? 5} min={3} max={9} onChange={(drawerFingers) => editPlan({ ...plan, drawerFingers })} />
+              <Stepper label="dedos por esquina" value={plan.drawerFingers ?? DEFAULT_FINGERS} min={FINGERS_RANGE.min} max={FINGERS_RANGE.max} onChange={(drawerFingers) => editPlan({ ...plan, drawerFingers })} />
             </div>
             <p className="text-xs text-graphite-2">Con dedos, las dos tablas llegan a la esquina y el techo va encima de los costados. Los cajones de dedos usan el mismo número.</p>
           </>
