@@ -1,11 +1,12 @@
 import { z } from 'zod'
-import { DIMENSION_OF_AXIS, type Design, type Load } from '../../design/schema'
+import { DIMENSION_OF_AXIS, Pulls, type Design, type Load } from '../../design/schema'
 import { materialById, type Catalog } from '../../materials/catalog'
 import { stiffness } from '../../materials/grades'
 import type { Cell } from '../reading/reading'
 import { ASSUMPTIONS } from '../../assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
+import { pullFor } from './fronts'
 import { DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf, outsideRules, PLAN_MEASURE } from './common'
 import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField } from './edgeBanding'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
@@ -47,6 +48,7 @@ export const ShoeRackPlan = z.object({
     .describe(`How many levels for shoes, from bottom to top, the boot level included; a level for low shoes takes ${LEVEL_HEIGHT.min}–${LEVEL_HEIGHT.max} mm of clear height, usually ${LEVEL_HEIGHT.usual}`),
   bootLevel: z.boolean().describe(`Whether the bottom level is tall for boots (${BOOT_LEVEL_HEIGHT} mm clear); false if every level is for low shoes`),
   front: z.enum(['open', 'doors']).describe('open: open levels; doors: hinged overlay doors in front of the levels'),
+  pulls: Pulls.optional().describe('How the doors open: none, notch (routed in each leaf) or handle (bought, one per leaf); only if asked or shown'),
   base: z.enum(['kick', 'floor']).describe('kick: kick plate at the front; floor: the bottom sits directly on the floor'),
   seat: z.boolean().describe(`Whether the top is a seat to sit on while putting shoes on (a low shoe bench, ${SEAT_HEIGHT.min}–${SEAT_HEIGHT.max} mm high)`),
   wallMounted: z.boolean().describe(`Whether it is anchored to the wall: true when it has doors or is ${ASSUMPTIONS.tipping.criticalHeight} mm or taller, since it is shallow and tips over easily`),
@@ -56,6 +58,11 @@ export type ShoeRackPlan = z.infer<typeof ShoeRackPlan>
 
 export const SHOE_RACK_LABELS = {
   front: { open: { option: 'Abierta', phrase: 'abierta' }, doors: { option: 'Con puertas', phrase: 'con puertas' } } satisfies Labels<ShoeRackPlan['front']>,
+  pulls: {
+    none: { option: 'Ninguna', phrase: 'puertas sin jaladeras', hint: 'Las puertas van sobrepuestas: se abren jalándolas del canto.' },
+    notch: { option: 'Muesca', phrase: 'muesca para abrir', hint: 'Una muesca fresada en el canto de cada puerta, para meter el dedo; no se compra nada.' },
+    handle: { option: 'Jaladera', phrase: 'con jaladeras', hint: 'Una jaladera comprada por puerta.' },
+  } satisfies Labels<Pulls>,
   base: {
     kick: { option: 'Con zoclo', phrase: 'con zoclo', hint: 'El zoclo es la tira de abajo al frente, remetida: levanta el mueble del piso y lo cuida de golpes y humedad.' },
     floor: { option: 'Directa', phrase: 'sin zoclo', hint: 'Sin zoclo: el mueble se apoya directo en el piso.' },
@@ -64,6 +71,9 @@ export const SHOE_RACK_LABELS = {
 
 /** Clear height inside the box, from its floor to its top, in mm. */
 const innerHeight = (plan: ShoeRackPlan, t: number) => plan.dimensions.height - (plan.base === 'kick' ? KICK_HEIGHT.cabinet : 0) - 2 * t
+
+/** How its doors open: what the plan says, or what doors over the front take when it does not; nothing without doors. */
+const pullsOf = (plan: ShoeRackPlan): Pulls => (plan.front === 'doors' ? pullFor(plan.pulls, 'overlay') : 'none')
 
 const lowLevels = (plan: ShoeRackPlan) => plan.levels - (plan.bootLevel ? 1 : 0)
 
@@ -103,7 +113,7 @@ function asCabinet(plan: ShoeRackPlan, layout: ReturnType<typeof layoutOf>): Cab
     base: plan.base,
     legHeight: LEG_HEIGHT,
     wallMounted: plan.wallMounted,
-    construction: { ...DEFAULT_CONSTRUCTION, top: plan.seat ? 'over' : 'between', shelves: 'fixed' },
+    construction: { ...DEFAULT_CONSTRUCTION, top: plan.seat ? 'over' : 'between', shelves: 'fixed', pulls: plan.front === 'doors' ? plan.pulls : undefined },
     columns: Array.from({ length: layout.columns }, () => ({ width: 1, cells })),
     edges: plan.edges,
   }
@@ -134,6 +144,7 @@ function describeShoeRackChanges(before: ShoeRackPlan, after: ShoeRackPlan): str
   if (before.levels !== after.levels) changes.push(`${after.levels} ${after.levels === 1 ? 'nivel' : 'niveles'}`)
   if (before.bootLevel !== after.bootLevel) changes.push(after.bootLevel ? 'nivel para botas abajo' : 'sin nivel para botas')
   if (before.front !== after.front) changes.push(SHOE_RACK_LABELS.front[after.front].phrase)
+  if (pullsOf(before) !== pullsOf(after)) changes.push(SHOE_RACK_LABELS.pulls[pullsOf(after)].phrase)
   if (before.base !== after.base) changes.push(SHOE_RACK_LABELS.base[after.base].phrase)
   if (before.seat !== after.seat) changes.push(after.seat ? 'con asiento arriba' : 'sin asiento')
   if (before.wallMounted !== after.wallMounted) changes.push(after.wallMounted ? 'anclada al muro' : 'sin anclar')
@@ -141,12 +152,14 @@ function describeShoeRackChanges(before: ShoeRackPlan, after: ShoeRackPlan): str
 }
 
 function benchShoeRacks(): [string, ShoeRackPlan][] {
-  const rack = (name: string, dimensions: ShoeRackPlan['dimensions'], extra: Partial<ShoeRackPlan> = {}): ShoeRackPlan => ({ kind: 'shoeRack', name, dimensions, material: 'T18', levels: 4, bootLevel: false, front: 'open', base: 'kick', seat: false, wallMounted: false, edges: 'banded', ...extra })
+  const rack = (name: string, dimensions: ShoeRackPlan['dimensions'], extra: Partial<ShoeRackPlan> = {}): ShoeRackPlan => ({ kind: 'shoeRack', name, dimensions, material: 'T18', levels: 4, bootLevel: false, front: 'open', pulls: 'none', base: 'kick', seat: false, wallMounted: false, edges: 'banded', ...extra })
   return [
     ['abierta', rack('Zapatera', { width: 800, height: 900, depth: 330 })],
     ['con puertas', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', wallMounted: true })],
     ['con puertas, cantos a la vista', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', wallMounted: true, edges: 'exposed' })],
     ['angosta con una puerta', rack('Zapatera', { width: 500, height: 900, depth: 300 }, { front: 'doors', base: 'floor', wallMounted: true })],
+    ['con puertas de muesca', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', pulls: 'notch', wallMounted: true })],
+    ['con puertas de jaladera', rack('Zapatera con puertas', { width: 500, height: 900, depth: 300 }, { front: 'doors', pulls: 'handle', wallMounted: true })],
     ['alta con nivel para botas', rack('Zapatera alta', { width: 800, height: 1500, depth: 380 }, { levels: 6, bootLevel: true, front: 'doors', wallMounted: true })],
     ['banca zapatera', rack('Banca zapatera', { width: 900, height: 450, depth: 330 }, { levels: 2, seat: true })],
   ]
@@ -170,6 +183,7 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
     yesNo({ key: 'bootLevel', label: 'Nivel para botas abajo', get: (p) => p.bootLevel, set: (p, bootLevel) => ({ ...p, bootLevel }) }),
     // The plain name follows the front; a name of its own stays.
     choice({ key: 'front', label: 'Frente', ...fromLabels(SHOE_RACK_LABELS.front), get: (p) => p.front, set: (p, front) => ({ ...p, front, name: p.name === NAME[p.front] ? NAME[front] : p.name }) }),
+    choice({ key: 'pulls', label: 'Jaladeras', ...fromLabels(SHOE_RACK_LABELS.pulls), visibleWhen: (p) => p.front === 'doors', get: pullsOf, set: (p, pulls) => ({ ...p, pulls }) }),
     yesNo({ key: 'seat', label: 'Asiento arriba', get: (p) => p.seat, set: (p, seat) => ({ ...p, seat }) }),
   ]),
   section('Cómo se arma', [
@@ -189,7 +203,7 @@ const SHOE_RACK_PARTS: Parts<ShoeRackPlan> = {
       id: 'shoes',
       name: 'Zapatos',
       side: 'inside',
-      fields: ['levels', 'bootLevel', 'front', 'seat'],
+      fields: ['levels', 'bootLevel', 'front', 'pulls', 'seat'],
       joints: ['body', 'back'],
       jointsTitle: 'Uniones del cuerpo y la trasera',
       summary: (p) => `${counted(p.levels, 'nivel', 'niveles')}${p.bootLevel ? ', uno para botas' : ''}, ${lower(SHOE_RACK_LABELS.front[p.front].option)}${p.seat ? ', con asiento' : ''}`,
