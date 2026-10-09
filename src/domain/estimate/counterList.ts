@@ -159,15 +159,20 @@ function lineText(line: CounterLine): string[] {
   return [`${line.number}. ${parts.join(' · ')}`, ...(line.after ? [`   ${line.after}`] : [])]
 }
 
+/** What the measures are and what the sheets were counted with, so the counter neither takes the blade off a piece nor trusts a count made for another saw. */
+function readingNote({ trim, kerf }: LayoutSettings): string {
+  const trimmed = trim > 0 ? `${trim} mm de refilado por orilla` : 'sin refilar'
+  return `Medidas finales de cada pieza: el disco va aparte. Las piezas del mismo renglón, con el mismo tope. Calculé las hojas con disco de ${kerf} mm y ${trimmed}; si el suyo es distinto, avísenme.`
+}
+
 /** The cut list as a message for the lumberyard's counter: the lines of `counterLines`, in plain text. */
 export function counterList(design: Design, geo: Geometry, purchase: Purchase, cut: LayoutSettings): string {
-  const text = [`Lista de corte: ${design.name}`, 'Medidas en mm. El largo va con la veta.']
+  const text = [`Lista de corte: ${design.name}`, readingNote(cut), 'Medidas en mm. El largo va con la veta.']
   for (const { material, sheets, unplaced, lines } of counterLines(design, geo, purchase)) {
     const named = material.name.includes(`${material.thickness} mm`) ? material.name : `${material.name} ${material.thickness} mm`
     text.push(
       '',
       `${named} · ${sheets} ${sheets === 1 ? 'hoja' : 'hojas'} de ${material.sheet.width} × ${material.sheet.length}`,
-      `${cut.trim > 0 ? `Refilado ${cut.trim} mm por lado` : 'Sin refilar'} · corte ${cut.kerf} mm`,
       ...(unplaced.length ? [`No caben en una hoja: ${unplaced.join(', ')}. Cuentan como hoja aparte.`] : []),
       '',
       ...lines.flatMap(lineText),

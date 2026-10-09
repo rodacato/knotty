@@ -50,17 +50,23 @@ describe('the cut list for the lumberyard: the open bookcase (GN-LIB-01)', () =>
   const text = said(design)
   const purchase = estimatePurchase(design, geoOf(design, testCatalog), testCatalog)
 
-  it('opens with the furniture and how to read the measures', () => {
-    expect(text.split('\n').slice(0, 3)).toEqual(['Lista de corte: Librero abierto', 'Medidas en mm. El largo va con la veta.', ''])
+  it('opens with the furniture, what the measures are and what the sheets were counted with, said once', () => {
+    expect(text.split('\n').slice(0, 4)).toEqual([
+      'Lista de corte: Librero abierto',
+      'Medidas finales de cada pieza: el disco va aparte. Las piezas del mismo renglón, con el mismo tope. Calculé las hojas con disco de 4 mm y 15 mm de refilado por orilla; si el suyo es distinto, avísenme.',
+      'Medidas en mm. El largo va con la veta.',
+      '',
+    ])
+    expect(text.match(/Medidas finales|disco de|refila/gi)).toEqual(['Medidas finales', 'disco de', 'refila'])
   })
 
-  it('heads each material with its sheets as the store sells them, the trim and the saw cut', () => {
+  it('heads each material with its sheets as the store sells them, and never with a bare saw cut a counter could take off each piece', () => {
     const [thick, back] = purchase.sheets
     expect([thick.material.id, back.material.id]).toEqual(['T18', 'TR6'])
     const plural = (n: number) => `${n} ${n === 1 ? 'hoja' : 'hojas'}`
-    expect(text).toContain(`\n\nTriplay de pino 18 mm · ${plural(thick.sheets)} de 1218 × 2440\nRefilado 15 mm por lado · corte 4 mm\n\n1. `)
-    expect(text).toContain(`\n\nTriplay de pino 6 mm (trasera) · ${plural(back.sheets)} de 1218 × 2440\nRefilado 15 mm por lado · corte 4 mm\n\n`)
-    expect(text.match(/Refilado/g)).toHaveLength(2)
+    expect(text).toContain(`\n\nTriplay de pino 18 mm · ${plural(thick.sheets)} de 1218 × 2440\n\n1. `)
+    expect(text).toContain(`\n\nTriplay de pino 6 mm (trasera) · ${plural(back.sheets)} de 1218 × 2440\n\n`)
+    expect(text).not.toMatch(/corte \d+ mm|Refilado|por lado/)
   })
 
   it('numbers the lines from 1 without gaps, and goes on counting in the second material', () => {
@@ -189,16 +195,17 @@ describe('the cut list for the lumberyard: measures and settings', () => {
 
   it("prints the person's trim and saw cut, and says when the sheet is not trimmed", () => {
     const mine = (trim: number) => applySettings(testCatalog, { prices: { T18: 999 }, layout: { trim, kerf: 3, clearance: 2 } })
-    expect(said(exampleBookcase, mine(10))).toContain('\nRefilado 10 mm por lado · corte 3 mm\n')
+    expect(said(exampleBookcase, mine(10))).toContain(' Calculé las hojas con disco de 3 mm y 10 mm de refilado por orilla; si el suyo es distinto, avísenme.\n')
     const untrimmed = said(exampleBookcase, mine(0))
-    expect(untrimmed).toContain('\nSin refilar · corte 3 mm\n')
-    expect(untrimmed).not.toMatch(/Refilado|999/)
+    expect(untrimmed).toContain(' Calculé las hojas con disco de 3 mm y sin refilar; si el suyo es distinto, avísenme.\n')
+    expect(untrimmed).not.toMatch(/por orilla|999/)
+    expect(said(exampleBookcase)).not.toMatch(/disco de 3 mm|sin refilar/)
   })
 
   it('names the boards that do not fit a sheet under the material they are cut from', () => {
     const shortSheets = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
     const text = said(exampleBookcase, shortSheets)
-    expect(text).toContain('\nTriplay de pino 6 mm (trasera) · 1 hoja de 1220 × 1500\nRefilado 15 mm por lado · corte 4 mm\nNo caben en una hoja: Trasera. Cuentan como hoja aparte.\n\n4. Trasera · 1800 × 550 · 1 pieza')
+    expect(text).toContain('\nTriplay de pino 6 mm (trasera) · 1 hoja de 1220 × 1500\nNo caben en una hoja: Trasera. Cuentan como hoja aparte.\n\n4. Trasera · 1800 × 550 · 1 pieza')
     expect(said(exampleBookcase)).not.toContain('No caben')
   })
 })
