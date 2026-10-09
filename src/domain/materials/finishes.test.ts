@@ -8,7 +8,8 @@ import saved from '../session/state-v1.fixture.json'
 import { migrateState } from '../session/migrate'
 import { currentDesign, DesignState } from '../session/state'
 import { applySettings, Catalog, finishSkus, type FinishSku } from './catalog'
-import { FINISH_IDS, FINISH_LOOK, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishOf, NATURAL_PINE } from './finishes'
+import { FINISH_IDS, FINISH_LOOK, FINISH_PRODUCT_IDS, FINISH_PRODUCTS, FINISHES, finishCare, finishOf, NATURAL_PINE, NO_CARE_IN_REFERENCE, SANDING_DUST, type FinishId } from './finishes'
+import { sourceProblem } from '../sources.test-util'
 import { containersFor, estimateFinish, finishArea, finishLitres } from '../estimate/finishPurchase'
 import { estimatePurchase } from '../estimate/purchase'
 
@@ -57,6 +58,54 @@ describe('finish knowledge', () => {
       expect(skus.length).toBeGreaterThan(0)
       for (const s of skus) expect(s.price).toBeNull()
     }
+  })
+})
+
+describe('the care a finish asks for', () => {
+  const finished = FINISH_IDS.filter((id) => id !== 'none')
+  const lines = [...finished.flatMap((id) => (FINISHES[id].care ? [FINISHES[id].care] : [])), SANDING_DUST]
+
+  it('every finish has its line or is named among those the reference says nothing of, never both', () => {
+    expect(finished.filter((id) => Boolean(FINISHES[id].care) === id in NO_CARE_IN_REFERENCE)).toEqual([])
+    expect(Object.keys(NO_CARE_IN_REFERENCE)).toEqual(['hardwax-oil'])
+    for (const why of Object.values(NO_CARE_IN_REFERENCE)) expect(why).toMatch(/acabados\.md §/)
+  })
+
+  it('no finish gets nothing, and the dust is said wherever there is sanding', () => {
+    expect(finishCare('none')).toEqual([])
+    for (const id of finished) expect(finishCare(id).at(-1)).toBe(SANDING_DUST)
+    expect(finishCare('hardwax-oil')).toEqual([SANDING_DUST])
+    expect(finishCare('polyurethane')).toEqual([FINISHES.polyurethane.care, SANDING_DUST])
+  })
+
+  it('the finishes with solvent ask for ventilation and a cartridge mask, and say a cloth one is not it', () => {
+    const solvent: FinishId[] = ['polyurethane', 'marine-varnish', 'lacquer']
+    for (const id of solvent) {
+      const text = FINISHES[id].care?.text ?? ''
+      expect(text).toMatch(/ventilado/)
+      expect(text).toMatch(/mascarilla de cartucho/)
+      expect(text).toMatch(/cubrebocas de tela/)
+    }
+  })
+
+  it('oily rags are said only for the oil the reference names', () => {
+    expect(finished.filter((id) => /trapos/.test(FINISHES[id].care?.text ?? ''))).toEqual(['danish-oil'])
+  })
+
+  it('each line is one sentence, promises nothing and is said once: not in the advice too', () => {
+    for (const { text } of lines) {
+      expect(text).toMatch(/^[^.]+\.$/)
+      expect(text).not.toMatch(/segur[oa]|no tóxic|certificad|sin riesgo|inofensiv/i)
+    }
+    for (const id of FINISH_IDS) expect(FINISHES[id].advice).not.toMatch(/mascarilla|ventila|prenderse/)
+  })
+
+  it.each(lines.flatMap((line) => line.sources.map((source) => [source])))('%s is in docs/carpinteria', (source) => {
+    expect(sourceProblem(source)).toBeNull()
+  })
+
+  it('every line has a source', () => {
+    for (const line of lines) expect(line.sources.length).toBeGreaterThan(0)
   })
 })
 

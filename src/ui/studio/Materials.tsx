@@ -10,7 +10,7 @@ import { counterLines, counterList } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { HOW_TO_ANCHOR } from '../../domain/furniture/modules/common'
 import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/estimate/finishPurchase'
-import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } from '../../domain/materials/finishes'
+import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishCare, finishOf, type FinishLayer } from '../../domain/materials/finishes'
 import type { DesignState } from '../../domain/session/state'
 import { EDGE_LABEL, profiledEdges } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
@@ -236,6 +236,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   const choose = useStore((s) => s.chooseFinish)
   const settings = useStore((s) => s.catalogSettings)
   const chosen = FINISHES[finishOf(design)]
+  const care = finishCare(finishOf(design))
   return (
     <section className="flex flex-col gap-3">
       <Title className="text-lg">Acabado</Title>
@@ -247,6 +248,13 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
         ))}
       </RadioGroup>
       <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
+      {care.length > 0 && (
+        <div role="note" aria-label="Cuidados" className="flex flex-col gap-1.5 rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
+          {care.map((line) => (
+            <p key={line.text}>{line.text}</p>
+          ))}
+        </div>
+      )}
       <ProfiledEdges design={design} geo={geo} />
       {finish && (
         <ul className="flex flex-col divide-y divide-line border-b border-line">

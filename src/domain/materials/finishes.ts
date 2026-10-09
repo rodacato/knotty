@@ -1,7 +1,9 @@
 import { z } from 'zod'
+import { cite, type Source } from '../sources'
 
 // What a finish is: its products, coats and coverage, each from docs/carpinteria/acabados.md (`source`).
 // Where the reference gives no value it stays null and `missing` says so; drying times are the reference's words for the person.
+// The care a finish asks for says only what the reference says of it, each line with its rows (`FinishCare.sources`).
 
 /** The products a finish is made of; the catalog sells each one in containers (`FinishSku.product`). */
 export const FINISH_PRODUCT_IDS = [
@@ -128,9 +130,37 @@ export interface Finish {
   indoorsOnly: boolean | null
   /** What a beginner must know, in Spanish. */
   advice: string
+  /** What to take care of with this finish; null when the reference says nothing of it (NO_CARE_IN_REFERENCE says why). */
+  care: FinishCare | null
   /** What the reference lacks for this finish, for whoever fills it in. */
   missing: string[]
   source: string
+}
+
+/** One line of care for the person, in Spanish, and the rows of the reference that say it. */
+export interface FinishCare {
+  text: string
+  sources: Source[]
+}
+
+const FINISHES_DOC = 'acabados.md'
+const SHOP_DOC = 'fabricacion-y-armado.md'
+const PANEL_DOC = 'expertos.md'
+const SAFETY = '18-seguridad'
+const PROTECTION = '71-equipo-de-protección-personal'
+const BY_USE = '13-durabilidad-según-el-uso'
+const CLOTH_MASK = cite(PANEL_DOC, '4-doña-lupita--guadalupe-canché', 'con cubrebocas de tela en vez de cartucho para vapores orgánicos')
+
+/** The varnishes whose data sheets ask for it (acabados.md §18 [9][11]). */
+const SOLVENT_VARNISH: FinishCare = {
+  text: 'Aplícalo en un lugar bien ventilado y lejos de flamas, con mascarilla de cartucho de carbón activado: la de polvo y el cubrebocas de tela no detienen los vapores.',
+  sources: [cite(FINISHES_DOC, SAFETY, 'perfectamente ventiladas'), cite(SHOP_DOC, PROTECTION, 'la de polvo no detiene los vapores'), CLOTH_MASK],
+}
+
+/** Every finish starts by sanding the faces. */
+export const SANDING_DUST: FinishCare = {
+  text: 'Para lijar usa mascarilla para polvo, no cubrebocas de tela, y aspira el polvo.',
+  sources: [cite(FINISHES_DOC, SAFETY, 'lijar con mascarilla para polvo y aspiración'), cite(SHOP_DOC, PROTECTION, 'no cubrebocas de tela')],
 }
 
 /** Faces go 120 → 180 → 220 before sealing (acabados.md §2.1, valores-de-referencia.md §13). */
@@ -143,6 +173,7 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: null,
     indoorsOnly: null,
     advice: 'El triplay queda como sale de la tienda. Si luego lo barnizas, lija las caras 120 → 180 → 220.',
+    care: null,
     missing: [],
     source: 'docs/carpinteria/acabados.md §2.1',
   },
@@ -156,6 +187,7 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: { faces: FACES, betweenCoats: [320] },
     indoorsOnly: true,
     advice: 'Sella con el mismo barniz diluido al 50 %, nunca con sellador de nitro. Solo para interiores: al sol amarillea. Deja 8 h entre manos; se usa normal a los 7 días.',
+    care: SOLVENT_VARNISH,
     missing: [],
     source: 'docs/carpinteria/acabados.md §3, §5, §14.1 and §15 [9]',
   },
@@ -169,6 +201,7 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: { faces: FACES, betweenCoats: [240, 320] },
     indoorsOnly: false,
     advice: 'Aguanta interior y exterior bajo techo; en exterior dura poco y se revisa cada año. Sella con el mismo barniz diluido; 4 h entre manos.',
+    care: SOLVENT_VARNISH,
     missing: [],
     source: 'docs/carpinteria/acabados.md §3, §5, §13, §14.1 and §15 [11]',
   },
@@ -179,6 +212,10 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: { faces: FACES, betweenCoats: [240] },
     indoorsOnly: true,
     advice: 'Tiñe y protege en un paso. Levanta la fibra: moja con un trapo, deja secar y lija ligero con 220 antes. Da 3 manos si el pino es muy poroso. No es para exterior.',
+    care: {
+      text: 'Si el mueble es para niños, deja curar el barniz al menos 7 días antes de meterlo a su cuarto.',
+      sources: [cite(FINISHES_DOC, BY_USE, 'Base agua ya curado (≥ 7 días)'), cite(PANEL_DOC, '8-tomy--tomás-arriaga', 'Acabado base agua curado al menos 7 días')],
+    },
     missing: ['time between coats'],
     source: 'docs/carpinteria/acabados.md §2.2, §5, §14.1 and §15 [12]',
   },
@@ -190,7 +227,15 @@ export const FINISHES: Record<FinishId, Finish> = {
     ],
     sanding: { faces: FACES, betweenCoats: [240, 320] },
     indoorsOnly: null,
-    advice: 'Seca en minutos y se repara fácil, pero se aplica con pistola y el solvente es inflamable: ventila y usa mascarilla. El sellador de nitro no va debajo de poliuretano.',
+    advice: 'Seca en minutos y se repara fácil, pero se aplica con pistola. El sellador de nitro no va debajo de poliuretano.',
+    care: {
+      text: 'Su solvente es inflamable y tóxico: aplícala en un lugar bien ventilado, con mascarilla de cartucho para vapores orgánicos, no con cubrebocas de tela.',
+      sources: [
+        cite(FINISHES_DOC, SAFETY, 'Las lacas de nitrocelulosa usan solventes inflamables y tóxicos'),
+        cite(SHOP_DOC, PROTECTION, 'mascarilla con cartucho para vapores orgánicos'),
+        CLOTH_MASK,
+      ],
+    },
     missing: ['coverage of the sealer and the lacquer in m²/L', 'number of lacquer coats', 'drying times of the lacquer'],
     source: 'docs/carpinteria/acabados.md §3, §4 and §18 [8][13][14]',
   },
@@ -203,6 +248,10 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: { faces: FACES, betweenCoats: null },
     indoorsOnly: null,
     advice: 'En el pino pon primario bloqueador sobre los nudos o la resina se transparenta. El esmalte base agua levanta la fibra: lija después del primario. La pintura esconde la veta.',
+    care: {
+      text: 'Si el mueble es para niños, que la pintura sea sin plomo; no uses una vieja o sin etiqueta.',
+      sources: [cite(FINISHES_DOC, BY_USE, 'pinturas sin plomo'), cite(PANEL_DOC, '8-tomy--tomás-arriaga', 'Pintura vieja o sin etiqueta para un mueble infantil')],
+    },
     missing: ['grit between coats of paint', 'drying times of the enamel'],
     source: 'docs/carpinteria/acabados.md §9, §14.1 and §15 [1][16][29]',
   },
@@ -211,7 +260,11 @@ export const FINISHES: Record<FinishId, Finish> = {
     layers: [{ role: 'finish', product: 'danish-oil', coats: 3 }],
     sanding: { faces: FACES, betweenCoats: null },
     indoorsOnly: null,
-    advice: 'Tres manos retirando el exceso con trapo; oscurece la madera. Los trapos con aceite pueden prenderse solos: tiéndelos extendidos o remójalos antes de tirarlos.',
+    advice: 'Tres manos retirando el exceso con trapo; oscurece la madera.',
+    care: {
+      text: 'Los trapos con aceite pueden prenderse solos: tiéndelos extendidos o remójalos en agua antes de tirarlos.',
+      sources: [cite(FINISHES_DOC, SAFETY, 'Tender los trapos extendidos o remojarlos en agua')],
+    },
     missing: ['grit between coats'],
     source: 'docs/carpinteria/acabados.md §6, §14.1 and §18 [6]',
   },
@@ -221,9 +274,21 @@ export const FINISHES: Record<FinishId, Finish> = {
     sanding: { faces: FACES, betweenCoats: null },
     indoorsOnly: null,
     advice: 'Aceite y cera en un solo producto: penetra y deja un tacto mate a satinado, casi natural. Se aplica en capas muy finas y se retira el exceso; una zona rayada se repara sin lijar todo. Pregunta en la tienda cuánto rinde y cuánto tarda en secar.',
+    care: null,
     missing: ['coverage in m²/L', 'drying times', 'grit between coats', 'the product sold in Mexico and its price'],
     source: 'docs/carpinteria/acabados.md §6, §7 and §20',
   },
+}
+
+/** The finishes with no line of their own, and what the reference lacks: a finish is here or has its `care`, so none goes without by oversight. */
+export const NO_CARE_IN_REFERENCE: Partial<Record<FinishId, string>> = {
+  'hardwax-oil': 'no data sheet in the reference (acabados.md §6 and §20): §18 names linseed, tung and danish oil for the rags, not this one, and gives nothing on its vapours',
+}
+
+/** What to take care of with a finish, a line each: its own and, when it is sanded, the dust. */
+export const finishCare = (id: FinishId): FinishCare[] => {
+  const { care, sanding } = FINISHES[id]
+  return [...(care ? [care] : []), ...(sanding ? [SANDING_DUST] : [])]
 }
 
 /** How a finish looks on the pine plywood: the colour it settles on and how much light it scatters (acabados.md §16.1 and §16.2). */
