@@ -21,6 +21,7 @@ import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
 import { sheetLabels } from './sheetLabels'
+import { finishCounted, leftOut, totalCovers } from './totalSummary'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
@@ -294,6 +295,8 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
   const own = Object.keys(settings.prices).length
+  const withFinish = finishCounted(purchase.finish?.lines.flatMap((l) => l.containers.map((c) => c.sku.price)) ?? [])
+  const unpriced = leftOut(purchase.cost.missingPrices)
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
   const cost = (
@@ -303,11 +306,8 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>
-      {verdict && (
-        <p className="text-sm text-graphite-2">
-          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
-        </p>
-      )}
+      {verdict && <p className="text-sm text-graphite-2">{totalCovers(totalSheets, withFinish)}</p>}
+      {unpriced && <p className="text-sm text-graphite">{unpriced}</p>}
       <p className="text-sm text-graphite">Precios de referencia, no una cotización.</p>
     </section>
   )
@@ -371,9 +371,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
         </div>
         <p className="text-xs leading-relaxed text-graphite">
           {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
-          {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.
-          {purchase.cost.missingPrices.length > 0 && ` Sin precio: ${purchase.cost.missingPrices.join(', ')}.`}
-        </p>
+          {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.        </p>
         <CutSettings base={catalog.layout} />
       </section>
 
