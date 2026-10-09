@@ -457,11 +457,12 @@ describe('sliding doors', () => {
     expect(Object.keys(estimatePurchase(design, a.geo, testCatalog).hardware.reduce((all, h) => ({ ...all, [h.hardware.role]: true }), {}))).not.toContain('hinge')
   })
 
-  it('they overlap where they meet, the left one behind the right one, both set back from the front edge', () => {
+  it('they overlap where they meet by the 25 mm less what keeps both leaves whole, the left one behind the right one, both set back from the front edge', () => {
     const { box } = built(rack(2))
     const [left, right] = [box('c1-h1-door-left'), box('c1-h1-door-right')]
     expect([left.x0, right.x1]).toEqual([box('side-left').x1, box('side-right').x0])
-    expect(left.x1 - right.x0).toBe(25)
+    expect([left.x1 - left.x0, right.x1 - right.x0]).toEqual([594, 594])
+    expect(left.x1 - right.x0).toBe(24)
     expect(right.z1).toBe(400 - 10)
     expect(left.z1).toBe(right.z0 - 3)
     expect([left.y0, left.y1]).toEqual([box('bottom').y1 - 4.5, box('top').y0 + 4.5])
@@ -568,7 +569,7 @@ describe('a chest opened from above', () => {
     const raised = built(headboard())
     const floor = raised.box('c1-h1-floor')
     const [bottom, lid] = [raised.box('bottom'), raised.box('c1-h1-lid')]
-    expect((floor.y0 + floor.y1) / 2).toBeCloseTo((bottom.y1 + lid.y0) / 2)
+    expect(Math.abs((floor.y0 + floor.y1) / 2 - (bottom.y1 + lid.y0) / 2)).toBeLessThanOrEqual(0.5)
     expect(raised.design.pieces.find((p) => p.id === 'c1-h1-floor')).toMatchObject({ support: 'fixed', load: 'light' })
     expect(built(headboard({}, [chest(0), niche()])).has('c1-h1-floor')).toBe(false)
   })
@@ -1313,5 +1314,56 @@ describe('a cable pass', () => {
   it('is said to the expert with the cell, and is not something the expert writes', () => {
     expect(explain({ plan: tv([{ width: 1, cells: [wired('open')] }]) })).toContain('with a cable hole in the back')
     expect(ExpertColumns.safeParse([{ width: 1, cells: [wired('open')] }]).data?.[0].cells[0]).not.toHaveProperty('cable')
+  })
+})
+
+describe('whole millimetres', () => {
+  const boxesOf = (p: CabinetPlan) => {
+    const a = analyze(buildCabinet(p, testCatalog).design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    return (id: string) => a.geo.boxes.get(id)!
+  }
+  const open = cell('open', 1, { shelves: 0 })
+  const columns = (widths: number[], content: Cell = open) => widths.map((width) => ({ width, cells: [content] }))
+  const openings = (p: CabinetPlan) => {
+    const box = boxesOf(p)
+    const walls = ['side-left', ...p.columns.slice(1).map((_, i) => `div-${i + 1}`), 'side-right'].map(box)
+    return walls.slice(1).map((wall, i) => wall.x0 - walls[i].x1)
+  }
+  const sized = (width: number, widths: number[]) => plan({ dimensions: { width, height: 900, depth: 300 }, columns: columns(widths) })
+
+  it('columns that do not divide evenly come out whole, and with their boards they fill the room between the sides exactly', () => {
+    const widths = openings(sized(1000, [1, 1, 1]))
+    expect(widths).toEqual([312, 304, 312])
+    expect(widths.reduce((sum, w) => sum + w, 0) + 2 * 18).toBe(1000 - 2 * 18)
+  })
+
+  it('a board that falls on a half goes toward the start, so the odd millimetre lands in the last opening', () => {
+    expect(openings(sized(999, [1, 1]))).toEqual([472, 473])
+    const box = boxesOf(plan({ dimensions: { width: 600, height: 899, depth: 300 }, base: 'floor', columns: [{ width: 1, cells: [open, open] }] }))
+    expect([box('c1-sep-1').y0 - box('bottom').y1, box('top').y0 - box('c1-sep-1').y1]).toEqual([422, 423])
+  })
+
+  it('the same shares give the same openings, however they are written and however often it is built', () => {
+    expect(openings(sized(1000, [0.1, 0.1, 0.1]))).toEqual([312, 304, 312])
+    expect(openings(sized(1000, [1 / 3, 1 / 3, 1 / 3]))).toEqual([312, 304, 312])
+    expect(openings(sized(999, [0.7, 0.7]))).toEqual([472, 473])
+    expect(buildCabinet(sized(1000, [0.3, 0.3, 0.4]), testCatalog)).toEqual(buildCabinet(sized(1000, [0.3, 0.3, 0.4]), testCatalog))
+  })
+
+  it('a share inside a share is whole too: the columns of a split cell, and the shelves of each', () => {
+    const split = { ...cell('open', 0.63), columns: columns([1, 1, 1], cell('open', 1, { shelves: 2 })) }
+    const box = boxesOf(plan({ dimensions: { width: 1001, height: 1000, depth: 300 }, base: 'floor', columns: [{ width: 1, cells: [cell('open', 0.37, { shelves: 0 }), split] }, { width: 1.7, cells: [cell('open', 1, { shelves: 3 })] }] }))
+    const boards = ['div-1', 'c1-sep-1', 'c1-h2-div-1', 'c1-h2-div-2', 'c1-h2-c2-h1-shelf-1', 'c1-h2-c2-h1-shelf-2', 'c2-h1-shelf-2'].map(box)
+    expect(boards.flatMap((b) => [b.x0, b.x1, b.y0, b.y1]).filter((mm) => Math.abs(mm - Math.round(mm)) > 1e-6)).toEqual([])
+  })
+
+  it.each(['inset', 'overlay'] as const)('two %s leaves are whole, and the gap between them takes the odd millimetre: never under the gap between fronts', (doors) => {
+    for (const width of [600, 601, 602, 603]) {
+      const box = boxesOf(plan({ dimensions: { width, height: 720, depth: 320 }, base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, doors }, columns: columns([1], cell('door', 1, { doors: 2, shelves: 0 })) }))
+      const [left, right] = [box('c1-h1-door-left'), box('c1-h1-door-right')]
+      expect([left.x1 - left.x0, right.x1 - right.x0]).toEqual(Array(2).fill(Math.floor((width - (doors === 'inset' ? 2 * 18 : 0) - 3 * ASSUMPTIONS.drawers.frontClearance) / 2)))
+      expect(right.x0 - left.x1).toBe(ASSUMPTIONS.drawers.frontClearance + (width % 2))
+    }
   })
 })

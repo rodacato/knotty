@@ -158,17 +158,17 @@ describe('sliding doors open along their tracks', () => {
     return { boxes, result, x: (id: string) => result.offsets.get(id)![0] }
   }
 
-  it('a single leaf runs from the side it closes against over the open half, and nothing swings', () => {
+  it('a single leaf runs from the side it closes against over the open half, to the millimetre its whole width leaves, and nothing swings', () => {
     const { boxes, result, x } = moved(1)
     const leaf = boxes.get('c1-h1-door')!
     expect(result.swings.size).toBe(0)
     expect(x('c1-h1-door')).toBe(leaf.x1 - leaf.x0 - 25)
-    expect(leaf.x1 + x('c1-h1-door')).toBe(boxes.get('side-right')!.x0)
+    expect(boxes.get('side-right')!.x0 - (leaf.x1 + x('c1-h1-door'))).toBe(1)
   })
 
-  it('of two leaves only the one behind moves, until it is behind the other', () => {
+  it('of two leaves only the one behind moves, until it is behind the other, to the millimetre their whole widths leave', () => {
     const { boxes, x } = moved(2)
     expect(x('c1-h1-door-right')).toBe(0)
-    expect(boxes.get('c1-h1-door-left')!.x0 + x('c1-h1-door-left')).toBe(boxes.get('c1-h1-door-right')!.x0)
+    expect(boxes.get('c1-h1-door-right')!.x0 - (boxes.get('c1-h1-door-left')!.x0 + x('c1-h1-door-left'))).toBe(1)
   })
 })

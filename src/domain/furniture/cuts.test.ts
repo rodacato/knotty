@@ -3,12 +3,13 @@ import { analyze } from '../checks/analysis'
 import { ASSUMPTIONS } from '../assumptions'
 import { drawerSides } from '../design/drawers'
 import type { Design } from '../design/schema'
-import type { Box } from '../design/resolve'
+import { faceSize, roundTo, type Box } from '../design/resolve'
 import { cutList } from '../estimate/cutList'
 import { slidesOf } from '../materials/catalog'
 import { testCatalog } from './fixtures/catalog.test-util'
 import { exampleDesign, exampleOf } from './examples'
 import { testReferences } from './fixtures/references.test-util'
+import { buildPlan, MODULES, type FurniturePlan } from './modules/plan'
 
 // What a person cuts is what the list prints, not the exact geometry: a ficha has to work as printed.
 
@@ -33,7 +34,19 @@ function printedDrawerGaps(design: Design, boxes: Map<string, Box>, printed: (id
   })
 }
 
+/** The pieces whose face is not cut to a whole millimetre, with the measure that is not. */
+const notWhole = (design: Design, boxes: Map<string, Box>) =>
+  design.pieces.flatMap((p) => {
+    const off = faceSize(boxes.get(p.id)!, p.normal).filter((mm) => Math.abs(mm - Math.round(mm)) > 1e-6)
+    return off.length ? [`${p.id} ${off.map((mm) => roundTo(mm, 3)).join(' × ')}`] : []
+  })
+
 describe('the cuts of the fichas', () => {
+  it('every piece of every ficha with a plan is cut to whole millimetres', () => {
+    expect(built.reduce((n, { design }) => n + design.pieces.length, 0)).toBeGreaterThan(1500)
+    expect(built.flatMap(({ code, design, geo }) => notWhole(design, geo.boxes).map((piece) => `${code} ${piece}`))).toEqual([])
+  })
+
   it('every drawer box, cut as printed, leaves each slide the gap it takes: what it asks or up to its tolerance more', () => {
     const asks = Math.max(...slidesOf(testCatalog).map((s) => s.sideClearance))
     const { over, under } = ASSUMPTIONS.drawers.runnerTolerance
@@ -47,5 +60,19 @@ describe('the cuts of the fichas', () => {
     })
     expect(drawers.length).toBeGreaterThan(60)
     expect(drawers.filter((d) => d.gap < asks - under - 1e-9 || d.gap > asks + over + 1e-9).map((d) => `${d.code} ${d.group}: ${Math.round(d.gap * 100) / 100} mm`)).toEqual([])
+  })
+})
+
+describe('the cuts of the module variants', () => {
+  const boards = testCatalog.materials.filter((m) => m.use === 'carcass').map((m) => m.id)
+  const variants = Object.values(MODULES).flatMap((module) => (module.benchVariants() as [string, FurniturePlan][]).map(([name, plan]) => [`${module.kind} · ${name}`, plan] as const))
+
+  it.each(boards)('every piece of every variant is cut to whole millimetres in %s', (material) => {
+    const off = variants.flatMap(([name, plan]) => {
+      const { design } = buildPlan({ ...plan, material }, testCatalog)
+      const analysis = analyze(design, testCatalog)
+      return analysis.valid ? notWhole(design, analysis.geo.boxes).map((piece) => `${name} ${piece}`) : [`${name} is not valid`]
+    })
+    expect(off).toEqual([])
   })
 })
