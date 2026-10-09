@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, Check, PencilSimple, Sliders } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Check, PencilSimple, Printer, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { isDrawerPart, type Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
@@ -15,7 +15,7 @@ import type { DesignState } from '../../domain/session/state'
 import { EDGE_LABEL, profiledEdges } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { hasRouter } from '../../domain/materials/tools'
-import { Title } from '../system/components'
+import { Button, Title } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
@@ -298,6 +298,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
 
 export function Materials({ state, design, geo, catalog, instead, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; instead: string | null; onRequest: (text: string) => void }) {
   const settings = useStore((s) => s.catalogSettings)
+  const openTakeAway = useStore((s) => s.openTakeAway)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
   const blocks = useMemo(() => counterLines(design, geo, purchase), [design, geo, purchase])
@@ -366,6 +367,13 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <CopyList text={message} variant="primary" />
         <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
       </VerdictCard>
+
+      <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3">
+        <p className="text-sm">Antes de cortar, revisa la lista de corte con cada pieza por nombre y un diagrama numerado. Se imprime o se guarda como PDF, para ti o para enseñársela a un carpintero.</p>
+        <Button variant="secondary" className="min-h-11 self-start px-4" onClick={() => openTakeAway(true)}>
+          <Printer weight="bold" /> Hoja para llevar
+        </Button>
+      </section>
 
       <section className="flex flex-col gap-3">
         <Title className="text-lg">{sheetsHeading(onlyPlywood)}</Title>
