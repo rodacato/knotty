@@ -79,6 +79,8 @@ export function knockDown(design: Design, assembly: Assembly | undefined, catalo
     const fitting = inPlace ? undefined : FITTING[assembly].find((type) => thickEnough(type, ta, tb))
     const joined = { ...u, a: a.id, b: b.id, glue: false }
     if (fitting) return { ...joined, type: fitting, depth: null, hardware: hardwareFor(catalog, fitting, a, b, boxes, thicknesses) }
+    // A pocket screw already comes apart: where no fitting fits the board, it stays.
+    if (!inPlace && u.type === 'pocket-screw') return { ...u, glue: false }
     // A back too thin for a screw stays nailed.
     if (ta <= ASSUMPTIONS.nailOnlyThickness) return { ...u, glue: false }
     // A joint that was already screwed keeps what it said of its screws: how many, or that the board only rests there.
