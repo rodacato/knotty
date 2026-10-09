@@ -8,6 +8,7 @@ import { countLimits, quickCounts, setCount } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
 import { ASSUMPTIONS } from '../../assumptions'
+import { cutBox } from '../../design/cuts'
 import { doorMount, slides } from '../../design/doors'
 import { FurniturePlan } from './plan'
 import { cutList } from '../../estimate/cutList'
@@ -97,6 +98,34 @@ describe('the rail a wall cabinet hangs from', () => {
 
   it('stays one board, with its name, in a cabinet of one column that is not split', () => {
     expect(hung([{ width: 1, cells: [cell('door', 1, { doors: 2, shelves: 1 })] }]).rails).toEqual(['hanging-rail'])
+  })
+})
+
+describe('the grooves sliding doors run in', () => {
+  const grooved = (construction: Partial<CabinetConstruction>, own?: PlanCell['own']) => {
+    const { design } = buildCabinet(plan({ name: 'Alacena', dimensions: { width: 600, height: 700, depth: 370 }, base: 'floor', construction: { ...DEFAULT_CONSTRUCTION, ...construction }, columns: [{ width: 1, cells: [{ ...cell('door', 1, { doors: 2, shelves: 1 }), own }] }] }), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors.map((e) => e.message).join('\n'))
+    const cutsOf = (id: string) => (design.pieces.find((p) => p.id === id)!.cuts ?? []).map((cut) => cutBox(a.geo.boxes.get(id)!, cut))
+    return { cutsOf, box: (id: string) => a.geo.boxes.get(id)!, cut: design.pieces.filter((p) => p.cuts?.length).map((p) => p.id) }
+  }
+
+  it('are cut in the board under the opening and the one over it, one per leaf, wall to wall, and twice as deep above', () => {
+    const { cutsOf, box, cut } = grooved({ doors: 'sliding' })
+    expect(cut).toEqual(['bottom', 'top'])
+    const [under, over] = [cutsOf('bottom'), cutsOf('top')]
+    expect([under.length, over.length]).toEqual([2, 2])
+    for (const groove of [...under, ...over]) expect([groove.x0, groove.x1]).toEqual([box('side-left').x1, box('side-right').x0])
+    const into = 18 * ASSUMPTIONS.sliding.engagement
+    expect(box('bottom').y1 - under[0].y0).toBeCloseTo(into)
+    expect(over[0].y1 - box('top').y0).toBeCloseTo(2 * into)
+    const leaf = box('c1-h1-door-left')
+    expect(under.some((groove) => groove.z0 < leaf.z0 && groove.z1 > leaf.z1 && groove.z1 - groove.z0 < leaf.z1 - leaf.z0 + 3)).toBe(true)
+  })
+
+  it('are only where leaves slide: none in a furniture of hinged doors, and they come with the cell that chose to slide', () => {
+    expect(grooved({ doors: 'inset' }).cut).toEqual([])
+    expect(grooved({ doors: 'inset' }, { doors: 'sliding' }).cut).toEqual(['bottom', 'top'])
   })
 })
 
