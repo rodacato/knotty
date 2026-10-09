@@ -21,6 +21,7 @@ import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
 import { PieceList } from './Panels'
 import { sheetLabels } from './sheetLabels'
+import { finishCounted, leftOut, sheetsHeading, totalCovers } from './totalSummary'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
@@ -294,6 +295,9 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
   const own = Object.keys(settings.prices).length
+  const onlyPlywood = purchase.sheets.every((h) => h.material.grade === 'pine-plywood')
+  const withFinish = finishCounted(purchase.finish?.lines.flatMap((l) => l.containers.map((c) => c.sku.price)) ?? [])
+  const unpriced = leftOut(purchase.cost.missingPrices)
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
   const whose = instead && (
@@ -309,11 +313,8 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>
-      {verdict && (
-        <p className="text-sm text-graphite-2">
-          {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'} de triplay, herrajes{purchase.finish ? ', cubrecanto y acabado' : ' y cubrecanto'}.
-        </p>
-      )}
+      {verdict && <p className="text-sm text-graphite-2">{totalCovers({ sheets: totalSheets, onlyPlywood, withFinish })}</p>}
+      {unpriced && <p className="text-sm text-graphite">{unpriced}</p>}
       <p className="text-sm text-graphite">Precios de referencia, no una cotización.</p>
     </section>
   )
@@ -351,7 +352,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
 
       <section className="flex flex-col gap-3">
-        <Title className="text-lg">Hojas de triplay</Title>
+        <Title className="text-lg">{sheetsHeading(onlyPlywood)}</Title>
         <div className="flex flex-col divide-y divide-line border-b border-line">
         {purchase.sheets.map((h) => {
           const a = purchase.layout.find((x) => x.material === h.material.id)!
@@ -380,9 +381,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         </div>
         <p className="text-xs leading-relaxed text-graphite">
           {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
-          {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.
-          {purchase.cost.missingPrices.length > 0 && ` Sin precio: ${purchase.cost.missingPrices.join(', ')}.`}
-        </p>
+          {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.        </p>
         <CutSettings base={catalog.layout} />
       </section>
 
