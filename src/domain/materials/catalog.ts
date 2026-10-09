@@ -3,6 +3,7 @@ import { FinishProductId } from './finishes'
 import { GRADE_IDS } from './grades'
 import { DEFAULT_TOOL_LEVEL, type ToolLevel } from './tools'
 import { cite, STRUCTURE, type Source } from '../sources'
+import { ASSUMPTIONS } from '../assumptions'
 
 // The catalog is data, not code: it loads from public/catalog/*.json and the person can override prices.
 // Its field names are the JSON's; the person's saved prices refer to material and hardware ids.
@@ -117,6 +118,8 @@ export const hingeFor = (catalog: Catalog, mount: DoorMount) => pickHardware(cat
 export type Slide = Hardware & { length: number; sideClearance: number }
 /** The catalog's drawer slides that say their length and side gap, in catalog order. */
 export const slidesOf = (catalog: Catalog) => hardwareByRole(catalog, 'drawer-slide').filter((h): h is Slide => h.length !== null && h.sideClearance !== null)
+/** The gap Knotty leaves beside a slide in what it builds or repairs: the middle of what the slide takes, never less than it asks. */
+export const builtSideClearance = (asks: number) => Math.max(ASSUMPTIONS.drawers.boxClearance, asks)
 /** What a slide leaves free behind it, past the end of the box. */
 export const SLIDE_BACK_CLEARANCE = 10
 export const SLIDE_SOURCES: Record<string, Source> = {

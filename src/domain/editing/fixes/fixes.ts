@@ -5,9 +5,10 @@ import { freeStretch } from '../../design/boxes'
 import { drawerSides } from '../../design/drawers'
 import { completeJoints } from '../../design/joints'
 import { normalize } from '../../design/normalize'
+import { roundTo } from '../../design/resolve'
 import { findingKey, type Alternative, type Finding } from '../../checks/structure/finding'
 import { isBuildKey, type AlternativeKey } from '../../checks/structure/alternatives'
-import { materialById, slideForBox, type Catalog, type HardwareRole } from '../../materials/catalog'
+import { builtSideClearance, materialById, slideForBox, type Catalog, type HardwareRole } from '../../materials/catalog'
 import { pocketScrewId } from '../../assumptions'
 import { applyOperations } from '../operations/apply'
 import type { Operation } from '../operations/schema'
@@ -144,7 +145,8 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
   const thickness = catalog.materials.find((m) => m.id === material)?.thickness ?? 18
   const drawer = design.pieces.filter((p) => p.group === group && geo.boxes.has(p.id)).map((p) => geo.boxes.get(p.id)!)
   const [bottom, top] = [Math.min(...drawer.map((b) => b.y0)), Math.max(...drawer.map((b) => b.y1))]
-  const x0 = side === 'left' ? box.x0 - runner.sideClearance - thickness : box.x1 + runner.sideClearance
+  const gap = builtSideClearance(runner.sideClearance)
+  const x0 = roundTo(side === 'left' ? box.x0 - gap - thickness : box.x1 + gap, 3)
   const inColumn = [...geo.boxes.entries()].filter(([id, b]) => !drawer.includes(b) && id !== found.side.id && b.x0 < x0 + thickness && b.x1 > x0 && Math.min(b.z1, box.z1) - Math.max(b.z0, box.z0) > 0)
   const below = inColumn.filter(([, b]) => b.y1 <= bottom + 0.5).sort(([, a], [, b]) => b.y1 - a.y1)[0]
   const above = inColumn.filter(([, b]) => b.y0 >= top - 0.5).sort(([, a], [, b]) => a.y0 - b.y0)[0]
@@ -155,7 +157,7 @@ function runnerSupportPiece(design: Design, catalog: Catalog, group: string, sid
     role: 'divider',
     material,
     normal: 'x',
-    x: startAt({ type: 'mm', mm: Math.round(x0 * 10) / 10 }),
+    x: startAt({ type: 'mm', mm: x0 }),
     y: extent(below ? ref(`${below[0]}.y1`) : ref('furniture.y0'), above ? ref(`${above[0]}.y0`) : { type: 'mm', mm: Math.round(top) }),
     z: extent({ type: 'mm', mm: Math.round(box.z0) }, { type: 'mm', mm: Math.round(box.z1) }),
     edges: ['front'],

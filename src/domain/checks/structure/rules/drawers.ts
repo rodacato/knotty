@@ -3,15 +3,21 @@ import { gapBetween } from '../../../design/validation/contact'
 import type { Design } from '../../../design/schema'
 import { drawerSides } from '../../../design/drawers'
 import { CONTACT_TOLERANCE, drawerGroups } from '../../../design/boxes'
-import { slideFor, slideForBox, SLIDE_BACK_CLEARANCE, thinnestBoard, type Catalog } from '../../../materials/catalog'
+import { builtSideClearance, slideFor, slideForBox, SLIDE_BACK_CLEARANCE, thinnestBoard, type Catalog } from '../../../materials/catalog'
 import type { Geometry } from '../../../design/resolve'
-import type { Finding, Rule } from '../finding'
+import type { Alternative, Finding, Rule } from '../finding'
 import { ASSUMPTIONS } from '../../../assumptions'
 
 /** Whether a gap is within what the slide takes, to a tenth of a millimetre: up to 0.8 more than it asks, nothing less. */
 const runnerFits = (gap: number, needs: number) => {
   const off = roundTo(gap - needs)
   return off >= -ASSUMPTIONS.drawers.runnerTolerance.under && off <= ASSUMPTIONS.drawers.runnerTolerance.over
+}
+
+/** Resizing the box aims where a new one is built, not at the least the slide takes. */
+const fitBox = (asks: number): Alternative => {
+  const clearance = builtSideClearance(asks)
+  return { key: 'fit-box', description: `Dejar ${clearance} mm por lado entre la caja y el mueble`, data: { clearance } }
 }
 
 /** R9: the runner fits exactly, the bottom holds, and neither the front nor the box rubs. */
@@ -38,7 +44,7 @@ export const drawerRule: Rule = ({ design, geo, catalog, contacts }) => {
           ? `La corredera necesita ${runner.sideClearance} mm junto a ${name} y solo hay ${roundTo(gap.distance)}: el cajón no entra.`
           : `Junto a ${name} hay ${roundTo(gap.distance)} mm y la corredera ocupa ${runner.sideClearance}: el cajón quedaría flojo.`,
       data: { joint: u.id, gap: roundTo(gap.distance), needs: runner.sideClearance },
-      alternatives: [{ key: 'fit-box', description: `Dejar ${runner.sideClearance} mm por lado entre la caja y el mueble`, data: { clearance: runner.sideClearance } }],
+      alternatives: [fitBox(runner.sideClearance)],
     })
   }
 
@@ -166,7 +172,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding
           pieces: [side.id],
           message: `El lado ${towards < 0 ? 'izquierdo' : 'derecho'} de ${drawerName(design, group)} no tiene dónde atornillar la corredera: hace falta una pieza a ${gap} mm de la caja.`,
           data: { side: direction, group },
-          alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${gap} mm, para la corredera`, data: { side: direction, group } }],
+          alternatives: [{ key: 'slide-support', description: `Una pieza junto al cajón, a ${builtSideClearance(gap)} mm, para la corredera`, data: { side: direction, group } }],
         },
       ]
     if (runnerFits(support.distance, gap)) return []
@@ -181,7 +187,7 @@ function runnerSupport(design: Design, geo: Geometry, catalog: Catalog): Finding
             ? `La corredera necesita ${gap} mm junto a ${support.piece.name} y solo hay ${roundTo(support.distance)}: ${drawerName(design, group)} no entra.`
             : `Junto a ${support.piece.name} hay ${roundTo(support.distance)} mm y la corredera ocupa ${gap}: ${drawerName(design, group)} quedaría flojo.`,
         data: { gap: roundTo(support.distance), needs: gap, group: group },
-        alternatives: [{ key: 'fit-box', description: `Dejar ${gap} mm por lado entre la caja y el mueble`, data: { clearance: gap } }],
+        alternatives: [fitBox(gap)],
       },
     ]
   })
