@@ -22,6 +22,8 @@ export interface Explainable {
 }
 
 const BASE = { kick: 'on a kick plate', floor: 'directly on the floor', legs: 'on legs' } as const
+const TOP = { between: 'between', over: 'over', fingers: 'over, finger-jointed to' } as const
+const BACK = { nailed: 'nailed back', none: 'no back' } as const
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 const doorText = (cell: PlanCell) => (cell.doors && cell.doors > 1 ? `${cell.doors}-leaf door` : 'door')
@@ -73,13 +75,23 @@ function pieceLines(plan: FurniturePlan): string[] {
     const { kind, name: _name, ...rest } = plan
     return [`Piece: ${kind}.`, `Plan: ${JSON.stringify(rest)}`]
   }
-  const { width, height, depth } = plan.dimensions
-  const c = plan.construction
+  // A key leaves `unsaid` only where a line below says it: whatever the lines do not know is printed as it is.
+  const { kind: _kind, name: _name, dimensions, material, base, wallMounted, columns: _columns, legStyle, drawerFingers, construction, ...unsaid } = plan
+  const { doors, drawerFronts, top, back, shelves, drawerCorners, ...unsaidConstruction } = construction
+  const leaning = base === 'legs' && legStyle && legStyle !== 'straight'
+  const fingers = drawerCorners === 'fingers'
+  const rest = {
+    ...(leaning ? {} : { legStyle }),
+    ...(fingers ? {} : { drawerFingers }),
+    ...unsaid,
+    construction: { ...(fingers ? {} : { drawerCorners }), ...unsaidConstruction },
+  }
   return [
-    `Piece: cabinet, ${width} × ${height} × ${depth} mm, ${plan.material}, ${plan.base === 'legs' && plan.legStyle && plan.legStyle !== 'straight' ? `on ${plan.legStyle} legs` : BASE[plan.base]}, ${plan.wallMounted ? '' : 'not '}wall-mounted.`,
-    `Construction: ${c.doors} doors, ${c.drawerFronts} drawer fronts, top ${c.top === 'between' ? 'between' : c.top === 'over' ? 'over' : 'over, finger-jointed to'} the sides, ${c.back === 'nailed' ? 'nailed back' : 'no back'}, ${c.shelves} shelves.`,
-    ...(c.drawerCorners === 'fingers' ? [`Drawer corners: fingers, ${plan.drawerFingers ?? DEFAULT_FINGERS} per corner.`] : []),
+    `Piece: cabinet, ${dimensions.width} × ${dimensions.height} × ${dimensions.depth} mm, ${material}, ${leaning ? `on ${legStyle} legs` : BASE[base]}, ${wallMounted ? '' : 'not '}wall-mounted.`,
+    `Construction: ${doors} doors, ${drawerFronts} drawer fronts, top ${TOP[top]} the sides, ${BACK[back]}, ${shelves} shelves.`,
+    ...(fingers ? [`Drawer corners: fingers, ${drawerFingers ?? DEFAULT_FINGERS} per corner.`] : []),
     ...gridLines(plan),
+    `Rest of the plan: ${JSON.stringify(rest)}`,
   ]
 }
 

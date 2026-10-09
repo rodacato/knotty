@@ -22,6 +22,7 @@ describe('explain', () => {
         '  Column 1:    door with 1 shelf (0.75), drawer (0.25)',
         '  Columns 2–3: door with 1 shelf (0.75), open niche (0.25)',
         '  Column 4:    drawer (0.375), drawer (0.375), open niche (0.25)',
+        'Rest of the plan: {"legHeight":150,"construction":{"drawerCorners":"screwed","fronts":"grooved","hinges":"outside","pulls":"notch"}}',
         'Support: adapted · difficulty 3',
         'Features: inset-doors, inset-drawers, legs, wall-anchor, open-niche, no-back, routed-fronts, notch-pulls, splayed-legs, asymmetric-arrangement',
         'Adaptations: the open niches have no back panel in the original: the plan nails one back behind the whole piece',
@@ -41,11 +42,44 @@ describe('explain', () => {
         { width: 2, cells: [{ height: 0.5, content: 'open' as const, shelves: 3, doors: null }, { height: 0.5, content: 'closed' as const, shelves: null, doors: null }] },
       ],
     }
-    expect(explain({ plan }).split('\n').slice(2)).toEqual([
+    expect(explain({ plan }).split('\n').slice(2, 5)).toEqual([
       'Grid: 2 columns, widths 0.333 : 0.667. Cells from the bottom up:',
       '  Column 1: width 1, 2-leaf door with 2 shelves (1)',
       '  Column 2: width 2, open niche with 3 shelves (0.5), closed panel (0.5)',
     ])
+  })
+
+  const cabinets = testReferences.all().flatMap((r) => (r.plan?.kind === 'cabinet' ? [{ code: r.code, plan: r.plan }] : []))
+  const other = (value: unknown) => (typeof value === 'number' ? value + 1 : typeof value === 'boolean' ? !value : typeof value === 'string' ? `${value}~` : Array.isArray(value) ? [] : {})
+
+  it('says every field of a cabinet plan but its name: changing any one changes the text', () => {
+    expect(cabinets.length).toBeGreaterThan(40)
+    const blind = cabinets.flatMap(({ code, plan }) => {
+      const said = explain({ plan })
+      const top = Object.keys(plan).filter((key) => key !== 'name' && key !== 'construction').map((key) => ({ key, changed: { ...plan, [key]: other(plan[key as keyof typeof plan]) } }))
+      const inner = Object.entries(plan.construction).map(([key, value]) => ({ key: `construction.${key}`, changed: { ...plan, construction: { ...plan.construction, [key]: other(value) } } }))
+      return [...top, ...inner].filter(({ changed }) => explain({ plan: changed as typeof plan }) === said).map(({ key }) => `${code} ${key}`)
+    })
+    expect(blind).toEqual([])
+  })
+
+  it('says a field the lines know nothing of as it is, in the plan and in its construction', () => {
+    const { plan } = cabinets[0]
+    const text = explain({ plan: { ...plan, kick: 'kitchen', soft: 'close', construction: { ...plan.construction, lip: 3 } } as typeof plan })
+    expect(text).toMatch(/^Rest of the plan: \{.*"kick":"kitchen","soft":"close","construction":\{.*"lip":3\}\}$/m)
+    expect(explain({ plan })).not.toMatch(/kick"|soft|lip/)
+  })
+
+  it('takes out of the rest what a line already says: the leg style on legs, the fingers of the drawer corners', () => {
+    const sideboard = reference('KC-APA-01').plan
+    if (sideboard?.kind !== 'cabinet') throw new Error('not a cabinet')
+    const rest = (plan: typeof sideboard) => explain({ plan }).split('\n').at(-1)
+    expect(rest(sideboard)).not.toMatch(/legStyle/)
+    expect(rest({ ...sideboard, base: 'floor' })).toMatch(/"legStyle":"splayed"/)
+    expect(rest({ ...sideboard, drawerFingers: 5 })).toMatch(/"drawerFingers":5.*"drawerCorners":"screwed"/)
+    const fingered = { ...sideboard, drawerFingers: 5, construction: { ...sideboard.construction, drawerCorners: 'fingers' as const } }
+    expect(explain({ plan: fingered })).toContain('Drawer corners: fingers, 5 per corner.')
+    expect(rest(fingered)).not.toMatch(/drawer/)
   })
 
   it('does not pretend to know a module that has no grid: kind and plan only', () => {
