@@ -112,7 +112,7 @@ function Finder({ onDone }: { onDone: () => void }) {
           autoComplete="off"
           autoFocus
           className="md:min-h-12 md:text-lg"
-          placeholder="Nombre, cuarto o modelo"
+          placeholder="Nombre, cuarto, estilo o modelo"
           value={text}
           onChange={(e) => {
             setText(e.target.value)

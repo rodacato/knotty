@@ -23,23 +23,23 @@ export const STYLE_TINT: Record<Style, string> = {
 
 export interface CatalogQuery {
   room: Room | 'all'
-  /** Words of its name, of a room it goes in or of its model, in any case, with or without accents or dashes: «escritorio», «recamara», «KC-LIB-14», «lib14». */
+  /** Words of its name, of a room it goes in, of its style or of its model, in any case, with or without accents or dashes: «escritorio», «recamara», «ranurada», «KC-LIB-14», «lib14». */
   text: string
 }
 
 export const ANY: CatalogQuery = { room: 'all', text: '' }
 
-type Listed = { code: string; name: string; rooms: readonly Room[] }
+type Listed = { code: string; name: string; rooms: readonly Room[]; style: Style }
 
 export const plain = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const LABEL = new Map(ROOM_LABELS)
 
 export const roomsLine = ({ rooms }: Pick<Listed, 'rooms'>) => rooms.map((r) => LABEL.get(r)).join(', ')
 
-/** Every word typed is in its name, in a room it goes in or in its model. */
+/** Every word typed is in its name, in a room it goes in, in its style or in its model. */
 export function found(item: Listed, text: string): boolean {
   const code = plain(item.code)
-  const searchable = `${plain(item.name)} ${plain(roomsLine(item))} ${code} ${code.replace(/-/g, '')}`
+  const searchable = `${plain(item.name)} ${plain(roomsLine(item))} ${plain(STYLE_LABELS[item.style])} ${code} ${code.replace(/-/g, '')}`
   return plain(text).split(/\s+/).filter(Boolean).every((w) => searchable.includes(w))
 }
 
@@ -59,6 +59,6 @@ export const sizeLine = ({ width, depth, height }: { width: number; depth: numbe
   spoken: `${cm(width)} de ancho, ${cm(depth)} de fondo, ${cm(height)} de alto, en centímetros`,
 })
 
-export const noMatchNote = (q: CatalogQuery) => `Ninguna base${q.room === 'all' ? '' : ' de ese cuarto'} tiene «${q.text.trim()}» en su nombre, su cuarto o su modelo.`
+export const noMatchNote = (q: CatalogQuery) => `Ninguna base${q.room === 'all' ? '' : ' de ese cuarto'} tiene «${q.text.trim()}» en su nombre, su cuarto, su estilo o su modelo.`
 
-export const notFoundNote = (text: string) => `Ningún mueble tiene «${text.trim()}» en su nombre, su cuarto o su modelo.`
+export const notFoundNote = (text: string) => `Ningún mueble tiene «${text.trim()}» en su nombre, su cuarto, su estilo o su modelo.`
