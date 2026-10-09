@@ -7,7 +7,7 @@ import { Expect } from './probe'
 
 // The ficha of a piece of furniture of reference, as a file: <code>.v<version>.json, the version in the name as the prompts' is (kc-apa-01.v2.json replaces kc-apa-01.v1.json). The files live in adapters/references/.
 
-/** The rooms a piece goes in: the home screen and the lab find it by them, and a piece can go in more than one (a sideboard in the living and the dining room). */
+/** The rooms a piece goes in: the home screen and the spotlight find it by them, and a piece can go in more than one (a sideboard in the living and the dining room). */
 export const ROOMS = ['bedroom', 'living', 'dining', 'office', 'kitchen', 'entry', 'workshop'] as const
 export type Room = (typeof ROOMS)[number]
 

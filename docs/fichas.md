@@ -10,11 +10,11 @@ It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v
 |---|---|
 | `code` | Given by the `--adopt`/`--diff` argument, not by the candidate file. `KC-…`: a reference product checked against its photos. `GN-…`: a generic starting point, with no product behind it |
 | `id`, `name`, `notes` | For the person: the id in English, the name and the notes in Spanish. Required in a new reference |
-| `rooms` | The rooms where it goes, one or several of `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` and `workshop` (`ROOMS` in `src/domain/furniture/references.ts`). Required: this way the lab finds it by room without anyone touching code, and a ficha with no room is not adopted. The home screen does not use them; it has `home` |
+| `rooms` | The rooms where it goes, one or several of `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` and `workshop` (`ROOMS` in `src/domain/furniture/references.ts`). Required: the home screen filters by them (its room chips, `?cuarto=` in the address) and the spotlight searches them, and a ficha with no room is not adopted |
 | `kind`, `finish` | Optional: which piece of furniture it is (`DesignKind`, `src/domain/design/kind.ts`) and its finish (`src/domain/materials/finishes.ts`). A cabinet does not say by itself whether it is a sideboard or a bookcase |
 | `style` | The line the piece belongs to, one of the closed list `STYLES` (`src/domain/furniture/references.ts`): it says how the piece is built when it is adjusted (see «Styles»). Required |
 | `plan` | The ficha the engine understands (`FurniturePlan`): dimensions, base, construction, columns and cells |
-| `design` | Instead of `plan`, for a piece of furniture that no module builds: the complete design, piece by piece (`Design`). It carries one of the two, never both. It opens from «Fichas» in the lab and `probe` checks it the same way; it does not appear on the home screen and has no fields to edit, because there is no plan: it is changed piece by piece or with the expert |
+| `design` | Instead of `plan`, for a piece of furniture that no module builds: the complete design, piece by piece (`Design`). It carries one of the two, never both. `probe` checks it the same way; no screen opens it today (the home screen and the spotlight list only fichas with a plan), and it would have no fields to edit, because there is no plan |
 | `home` | Optional: `{ order }`, its place among the first cards of the home screen, and no two fichas share one. Every ficha with a `plan` is a card there; the ones without `home` come after, by code. The tests hold a ficha with `home` to what a base has to pass (`testBases`) |
 | `expect` | What the engine makes of the plan: valid, pieces, findings, sheets and hardware. `probe` writes it; a candidate does not carry it |
 | `support`, `difficulty`, `features`, `adaptations`, `gaps` | A `KC-…` states all of them: how it is supported (`exact`, `adapted`, `unsupported`), the difficulty from 1 to 4, which features it has and which ones Knotty cannot draw (labels from the closed list `FEATURES`) and what was adapted (text) |
@@ -62,9 +62,9 @@ npm run probe -- --explain kc-apa-01 candidate.json # the same for a candidate, 
 
 `npm test` runs the same comparison as `--all`: an engine change that moves a purchase or adds a finding fails with the exact line.
 
-## Improve a ficha in the lab
+## Improve a ficha from the app
 
-The spotlight (`Ctrl+K`) lists all the fichas, and the address opens one by its code (`?ficha=kc-mes-01`, with `acabado`, `armado` and `material` when they are not the ficha's own; the Studio's header copies it): open one, ask the expert for changes or move its fields, and with the debug access (Konami, `Ctrl+Shift+D` or settings) «Exportar ficha» downloads a candidate file. The lab does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
+The spotlight (`Ctrl+K`) lists every ficha with a plan, and the address opens one by its code (`?ficha=kc-mes-01`, with `acabado`, `armado` and `material` when they are not the ficha's own; the Studio's header copies it): open one, ask the expert for changes or move its fields, and with the debug access (Konami, `Ctrl+Shift+D` or settings) «Exportar ficha» downloads a candidate file. The app does not write to the repository: the file is reviewed with `--diff` and adopted with `--adopt`, like any candidate. It only exports what fits in a plan; if loose pieces were changed after the plan, it says so and does not export (those changes are asked for again in the ficha's fields).
 
 ## 1. From an idea or some photos to a ficha
 
