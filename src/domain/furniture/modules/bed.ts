@@ -795,24 +795,24 @@ const withHeadboard = (plan: BedPlan, headboard: Partial<BedPlan['headboard']>):
 const bedFields: FieldSpec<BedPlan>[] = [
   section('Colchón y base', [
     choice({ key: 'mattress', label: 'Colchón', lockedByDefault: true, ...fromLabels(BED_LABELS.mattress), get: (p) => p.mattress, set: (p, mattress) => ({ ...p, mattress }) }),
-    note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.'),
-    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`),
+    note('El largo y el ancho de la cama salen del colchón, con 2 cm de holgura para meterlo y sacarlo.', undefined, 'mattress'),
+    note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`, undefined, 'mattress'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', ...PLAN_MEASURE, get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
-    note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers),
+    note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers, 'legs'),
     note('De la matrimonial en adelante lleva una fila de patas al centro, bajo la espina, que cargan como las de los lados: en un piso desnivelado, calza la que no asiente.', (p) => p.legs === 'legs' && p.mattress !== 'individual' && !hasDrawers(p) && !isDaybed(p), 'legs'),
     choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p) && !isDaybed(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.legs === 'legs' && !hasDrawers(p)),
     legStyleField((p) => p.legs === 'legs'),
     choice({ key: 'platform', label: 'Bajo el colchón', ...fromLabels(BED_LABELS.platform), get: (p) => p.platform ?? 'panel', set: (p, platform) => ({ ...p, platform }) }),
-    note(`Tablillas de ${SLAT.width / 10} cm a lo ancho, con ${SLAT.gap / 10} cm o menos entre una y otra, embutidas entre los costados sobre un listón y atornilladas: el colchón respira y la base pesa menos. Con cajones, entre ellas cae polvo.`, (p) => p.platform === 'slats'),
+    note(`Tablillas de ${SLAT.width / 10} cm a lo ancho, con ${SLAT.gap / 10} cm o menos entre una y otra, embutidas entre los costados sobre un listón y atornilladas: el colchón respira y la base pesa menos. Con cajones, entre ellas cae polvo.`, (p) => p.platform === 'slats', 'platform'),
     yesNo({ key: 'lip', label: 'Tope del colchón', get: (p) => !!p.lip, set: (p, lip) => ({ ...p, lip }) }),
-    note(`Un listón de ${MATTRESS_LIP / 10} cm sobre la plataforma en cada orilla que la cabecera, los brazos o el respaldo dejan abierta, para que el colchón no se salga. La cama crece lo que mide el triplay por cada uno, y la holgura queda igual.`, (p) => !!p.lip && p.platform !== 'slats'),
-    note(`Con tablillas, las tablas de la base suben ${MATTRESS_LIP / 10} cm más en cada orilla abierta y detienen el colchón. La cama crece lo que mide el triplay por cada una.`, (p) => !!p.lip && p.platform === 'slats'),
+    note(`Un listón de ${MATTRESS_LIP / 10} cm sobre la plataforma en cada orilla que la cabecera, los brazos o el respaldo dejan abierta, para que el colchón no se salga. La cama crece lo que mide el triplay por cada uno, y la holgura queda igual.`, (p) => !!p.lip && p.platform !== 'slats', 'lip'),
+    note(`Con tablillas, las tablas de la base suben ${MATTRESS_LIP / 10} cm más en cada orilla abierta y detienen el colchón. La cama crece lo que mide el triplay por cada una.`, (p) => !!p.lip && p.platform === 'slats', 'lip'),
   ]),
   section('Cajones', [
-    note('Los lados se ven desde el pie de la cama.'),
-    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot'),
+    note('Los lados se ven desde el pie de la cama.', undefined, 'drawers.side'),
+    note('Junto a la cabecera suele ir el buró, y tapa el cajón que quede detrás: si llevas buró, junta los cajones hacia el pie.', (p) => hasDrawers(p) && !isDaybed(p) && p.drawers.position !== 'foot', 'drawers.position'),
     choice({
       key: 'drawers.side',
       label: 'Lado',
@@ -828,7 +828,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     stepper({ key: 'drawers.count', label: 'Por lado', ariaLabel: 'cajones por lado', min: 1, max: MAX_DRAWERS_PER_SIDE, visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.count, set: (p, count) => withDrawers(p, { count }) }),
     choice({ key: 'drawers.position', label: 'Se juntan hacia', ariaLabel: 'Hacia dónde se juntan', ...fromLabels(BED_LABELS.drawerPosition), visibleWhen: (p) => p.drawers.side !== 'none', get: (p) => p.drawers.position, set: (p, position) => withDrawers(p, { position }) }),
     choice({ key: 'drawers.mount', label: 'Frentes', ariaLabel: 'Cómo van los frentes', ...fromLabels(BED_LABELS.drawerMount), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).mount, set: (p, mount) => withDrawers(p, { mount }) }),
-    note('Sobrepuestos tapan los divisores de canto a canto, y el zoclo queda metido el grueso del triplay.', (p) => hasDrawers(p) && drawerBuild(p).mount === 'overlay'),
+    note('Sobrepuestos tapan los divisores de canto a canto, y el zoclo queda metido el grueso del triplay.', (p) => hasDrawers(p) && drawerBuild(p).mount === 'overlay', 'drawers.mount'),
     choice({ key: 'drawers.style', label: 'Acabado de los frentes', ...fromLabels(BED_LABELS.drawerStyle), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).style, set: (p, style) => withDrawers(p, { style }) }),
     choice({ key: 'drawers.pulls', label: 'Jaladeras', ...fromLabels(BED_LABELS.pulls), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).pulls, set: (p, pulls) => withDrawers(p, { pulls }) }),
     choice({ key: 'drawers.corners', label: 'Esquinas del cajón', ...fromLabels(BED_LABELS.drawerCorners), visibleWhen: hasDrawers, get: (p) => drawerBuild(p).corners, set: (p, corners) => withDrawers(p, { corners }) }),
@@ -836,9 +836,9 @@ const bedFields: FieldSpec<BedPlan>[] = [
   ]),
   section('Cabecera', [
     choice({ key: 'headboard.style', label: 'Tipo', ariaLabel: 'Tipo de cabecera', ...fromLabels(BED_LABELS.headboard), get: (p) => p.headboard.style, set: (p, style) => (style === 'daybed' ? asDaybed(withHeadboard(p, { style })) : withHeadboard(p, { style })) }),
-    note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage'),
-    note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed),
-    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest),
+    note('Un espacio cerrado a la altura de la almohada y repisas arriba.', (p) => p.headboard.style === 'storage', 'headboard.style'),
+    note('Un respaldo del lado sin cajones y un brazo en cada extremo, a esta altura. Va sin patas.', isDaybed, 'headboard.style'),
+    note(`Con un colchón de ${MATTRESS_THICKNESS / 10} cm, el respaldo queda a menos de ${BACKREST_RISE / 10} cm sobre él y no alcanza para recargarse: súbelo, o piensa en un colchón más delgado.`, lowBackrest, 'headboard.height'),
     numbers(
       2,
       [
@@ -849,11 +849,11 @@ const bedFields: FieldSpec<BedPlan>[] = [
     ),
     stepper({ key: 'headboard.shelves', label: 'Repisas', ariaLabel: 'repisas de la cabecera', min: 0, max: 4, visibleWhen: deepHeadboard, get: (p) => p.headboard.shelves, set: (p, shelves) => withHeadboard(p, { shelves }) }),
     yesNo({ key: 'headboard.cap', label: 'Copete', visibleWhen: (p) => p.headboard.style !== 'none', get: (p) => !!p.headboard.cap, set: (p, cap) => withHeadboard(p, { cap }) }),
-    note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap),
+    note(`Una tapa de triplay que remata la orilla de arriba y vuela ${CAP_OVERHANG / 10} cm hacia el colchón; por fuera queda al ras.`, (p) => p.headboard.style !== 'none' && !!p.headboard.cap, 'headboard.cap'),
     choice({ key: 'headboard.arms', label: 'Brazos', ...fromLabels(BED_LABELS.arms), visibleWhen: isDaybed, get: (p) => p.headboard.arms ?? 'square', set: (p, arms) => withHeadboard(p, { arms }) }),
-    note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped'),
+    note('A cada brazo se le corta la esquina de arriba al frente. Es de vista: se compra y se arma igual.', (p) => isDaybed(p) && p.headboard.arms === 'sloped', 'headboard.arms'),
   ]),
-  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase)]),
+  section('Armado', [...assemblyFields<BedPlan>(), note('La base de la cama se pega entera y se carga de canto, como el colchón. La cabecera, los brazos y el respaldo van aparte, y la plataforma se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly'), note('Esta base mide más de 1.8 m por lado y no se dobla como el colchón: antes de pegarla, revisa que pase por la escalera o el elevador, o ármala en el cuarto.', wideBase, 'assembly')]),
 ]
 
 /** A bed has no outside measures of its own: they come from the mattress, which is its first part. Its drawers are edited from inside, where their boxes show (UI-77). */
