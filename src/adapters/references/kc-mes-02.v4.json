@@ -23,13 +23,14 @@
     "overhang": 150,
     "shelf": false,
     "pedestal": { "side": "none", "drawers": 0 },
-    "assembly": "bolts"
+    "assembly": "bolts",
+    "edges": "exposed"
   },
   "expect": {
     "valid": true,
     "pieces": 7,
     "findings": [],
     "sheets": { "T18": 2 },
-    "hardware": { "connector-bolt-m6": 4, "edge-banding-19": 8, "screw-8x2": 44, "white-glue": 1 }
+    "hardware": { "connector-bolt-m6": 4, "screw-8x2": 44, "white-glue": 1 }
   }
 }

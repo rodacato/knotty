@@ -62,12 +62,12 @@ describe.each(Object.keys(IN_SIGHT) as (keyof typeof IN_SIGHT)[])('the edges of 
 })
 
 describe('what edges in sight take off the purchase', () => {
-  // The sideboard of the catalog, and a table of the «Triplay visto» line.
+  // The sideboard of the catalog, banded, and a table of the «Triplay visto» line, which ships with its edges in sight.
   it.each(['KC-APA-01', 'KC-MES-02'])('%s: no edge banding, and the cost drops by exactly its line', (code) => {
     const reference = testReferences.latest(code)!
     const plan = reference.plan!
-    const [banded, exposed] = [purchaseOf(plan), purchaseOf(FurniturePlan.parse({ ...plan, edges: 'exposed' }))]
-    expect(banded.tape!.count).toBe(reference.expect.hardware['edge-banding-19'])
+    const [banded, exposed] = (['banded', 'exposed'] as const).map((edges) => purchaseOf(FurniturePlan.parse({ ...plan, edges })))
+    expect((plan.edges === 'exposed' ? exposed : banded).tape?.count).toBe(reference.expect.hardware['edge-banding-19'])
     expect(banded.purchase.edgeBanding).toBeGreaterThan(0)
     expect(exposed.purchase.edgeBanding).toBe(0)
     expect(exposed.tape).toBeUndefined()

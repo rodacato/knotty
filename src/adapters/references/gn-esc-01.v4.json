@@ -18,13 +18,14 @@
     "shelf": true,
     "pedestal": { "side": "none", "drawers": 0 },
     "legs": "legs",
-    "cable": true
+    "cable": true,
+    "edges": "exposed"
   },
   "expect": {
     "valid": true,
     "pieces": 16,
     "findings": [],
     "sheets": { "T18": 1 },
-    "hardware": { "edge-banding-19": 6, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 24, "screw-8x2": 54, "white-glue": 2 }
+    "hardware": { "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 24, "screw-8x2": 54, "white-glue": 2 }
   }
 }
