@@ -430,7 +430,7 @@ export function Studio({ state }: { state: DesignState }) {
           </Tabs.Content>
           <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
             {currentAnalysis.valid ? (
-              <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} onRequest={request} />
+              <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} instead={view.instead} onRequest={request} />
             ) : (
               <div className="flex flex-col items-start gap-3 p-4">
                 <p className="text-sm text-graphite">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>

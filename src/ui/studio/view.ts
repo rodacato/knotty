@@ -10,13 +10,21 @@ import { draftOf, hiddenIn, useStore, visibleDesign } from '../store'
 
 // What the Studio shows of a session, worked out from the session and from what the person is looking at.
 
-type Looking = { viewedVersion: number | null; showProposal: boolean; preview: { design: Design } | null }
+type Looking = { viewedVersion: number | null; showProposal: boolean; preview: { design: Design; draft?: boolean } | null }
 
 /** The design on screen, and the one it is compared with the current design as a proposal: a previewed fix first, then the expert's proposal, never an old version. */
 export function shownOf(state: DesignState, { viewedVersion, showProposal, preview }: Looking): { design: Design; proposal: Design | null } {
   const design = preview?.design ?? visibleDesign({ state, viewedVersion, showProposal }) ?? currentDesign(state)
   const proposal = preview?.design ?? (viewedVersion === null && state.proposal && showProposal ? state.proposal.design : null)
   return { design, proposal }
+}
+
+/** What is on screen in place of the current design, as the person is told; null while it is the current one. */
+export function shownInstead(state: DesignState, looking: Looking): string | null {
+  const { design, proposal } = shownOf(state, looking)
+  if (design === currentDesign(state)) return null
+  if (looking.preview) return looking.preview.draft ? 'los cambios de la ficha sin aplicar' : 'una solución sin aplicar'
+  return proposal ? 'la propuesta sin aplicar' : `la v${looking.viewedVersion}`
 }
 
 /** What a proposal adds and changes; nothing while either design is not a piece of furniture yet. */
@@ -60,6 +68,7 @@ export function useStudioView(state: DesignState) {
     /** Its geometry; null when it could not even be resolved, and the 3D has nothing to draw. */
     geo,
     proposal,
+    instead: shownInstead(state, { viewedVersion, showProposal, preview }),
     preview,
     board,
     changes,
