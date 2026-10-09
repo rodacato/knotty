@@ -52,6 +52,7 @@ export function createKit(deps: Dependencies) {
     dismissed: [],
     suggestions: [],
     solutions: [],
+    alone: false,
     ...extra,
   })
 
@@ -82,7 +83,7 @@ export function createKit(deps: Dependencies) {
   }
 
   /** A chat note on the version just made, which it points to. */
-  const noted = (state: DesignState, author: Message['author'], text: string): DesignState => ({ ...state, chat: [...state.chat, message(author, text, { version: state.current })] })
+  const noted = (state: DesignState, author: Message['author'], text: string, extra: Partial<Message> = {}): DesignState => ({ ...state, chat: [...state.chat, message(author, text, { version: state.current, ...extra })] })
 
   const findingsOf = (design: Design, requirements: Requirement[]): Finding[] => {
     const a = analyze(design, catalog, requirements)

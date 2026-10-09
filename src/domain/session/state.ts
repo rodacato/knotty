@@ -40,6 +40,8 @@ export const Message = z.object({
   suggestions: z.array(z.string()).default([]),
   /** Options from the rules' alternatives that Knotty builds itself when chosen; the expert never sees this. */
   solutions: z.array(z.object({ question: z.number().int(), option: z.string(), alternative: z.string() })).default([]),
+  /** Knotty wrote it by itself: no expert was asked. False in older saves, which do not say. */
+  alone: z.boolean().default(false),
 })
 
 /** The key of what gets answered inside one of the expert's messages. */

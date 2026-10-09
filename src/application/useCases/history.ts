@@ -24,7 +24,7 @@ export function createHistory(kit: Kit) {
     const target = state.versions.find((v) => v.n === n)
     if (!target || n === state.current) return state
     const withChange = addVersion({ ...state, decisions: target.decisions }, target.design, { summary: `Volver a v${n}`, reason: `Volver a v${n}: ${target.summary}`, operations: [], origin: null, plan: target.plan, extras: target.extras })
-    return save(noted(withChange, 'expert', `Regresé al diseño de la v${n} (${target.summary}).`))
+    return save(noted(withChange, 'expert', `Regresé al diseño de la v${n} (${target.summary}).`, { alone: true }))
   }
 
   /** Brings pieces back to how they were before version `n`, keeping everything that came after. */

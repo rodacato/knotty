@@ -3,7 +3,7 @@ import type { DesignState, Message } from '../../domain/session/state'
 import { DESIGN_KINDS } from '../../domain/design/kind'
 import { answerGiven, applyLabel, openQuestions, recovery, startingIdeas, suggestionsFor } from './chatLogic'
 
-const msg = (p: Partial<Message>): Message => ({ id: 'm', author: 'expert', text: '', date: '', questions: [], answered: false, version: null, proposal: null, error: false, failure: null, thumbnail: null, answers: [], dismissed: [], suggestions: [], solutions: [], ...p })
+const msg = (p: Partial<Message>): Message => ({ id: 'm', author: 'expert', text: '', date: '', questions: [], answered: false, version: null, proposal: null, error: false, failure: null, thumbnail: null, answers: [], dismissed: [], suggestions: [], solutions: [], alone: false, ...p })
 const stateOf = (chat: Message[], p: Partial<DesignState> = {}) => ({ chat, tray: [], proposal: null, versions: [], ...p }) as unknown as DesignState
 
 describe('recovery', () => {
