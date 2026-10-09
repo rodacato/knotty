@@ -118,6 +118,13 @@ describe('a piece knocked down', () => {
     expect(design.joints.some((u) => u.type === 'connector-bolt')).toBe(false)
   })
 
+  it('keeps the pocket screws of a table whose board is too thin for any fitting, so its aprons still square it', () => {
+    const { design, a } = built({ ...named('table · comedor largo, desarmable con pernos'), material: 'T12' } as FurniturePlan)
+    expect(joint(design, 'apron-front', 'side-left')).toMatchObject({ type: 'pocket-screw', glue: false })
+    expect(a.findings.filter((f) => f.code === 'R5_RACKING')).toEqual([])
+    expect(joint(built(named('table · comedor largo, desarmable con pernos')).design, 'apron-front', 'side-left').type).toBe('connector-bolt')
+  })
+
   it('bolts the aprons of a table to its legs and screws the top down', () => {
     const { design } = built(named('table · comedor largo con patas, desarmable con pernos'))
     expect(joint(design, 'leg-front-left-2', 'apron-front')).toMatchObject({ type: 'connector-bolt', a: 'leg-front-left-2', glue: false })
