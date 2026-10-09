@@ -1,0 +1,53 @@
+{
+  "format": 1,
+  "code": "KC-OTR-02",
+  "id": "bar-cabinet-fluted",
+  "rooms": ["kitchen","living"],
+  "name": "Mueble bar con puertas ranuradas",
+  "kind": "sideboard",
+  "style": "fluted",
+  "support": "adapted",
+  "difficulty": 4,
+  "features": ["inset-doors","inset-drawers","legs","asymmetric-arrangement","routed-fronts"],
+  "adaptations": ["Solid hardwood (manio, rauli, aromo) drawn in T18 plywood","applied wooden strip pulls drawn as one purchased handle per door and drawer front","Bottle rack under the top of the right compartment not modelled","fluted door fronts drawn with vertical router grooves","anchored to the wall assumed: the photos do not show it, and the engine asks for it from 686 mm","left compartment drawn as two columns of one door each: a divider hidden behind the meeting doors keeps each shelf near 420 mm, where one 838 mm shelf would sag","380 mm deep instead of 400: the 20 mm take it from three sheets of T18 to two"],
+  "gaps": [],
+  "notes": "Mueble bar sobre patas: a la izquierda dos puertas embutidas con un entrepaño, a la derecha una puerta arriba y dos cajones abajo. Frentes ranurados, con una jaladera en cada puerta y cajón.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Mueble bar",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1300, "height": 1000, "depth": 380 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "fronts": "grooved", "pulls": "handle" },
+    "columns": [
+      {
+        "width": 0.335,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 0.335,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 1 }
+        ]
+      },
+      {
+        "width": 0.33,
+        "cells": [
+          { "height": 0.185, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.185, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.63, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 39,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 74, "cup-hinge-35-inset": 6, "drawer-slide-30": 2, "edge-banding-19": 21, "handle": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 8, "screw-8x2": 92, "shelf-pin-5": 8, "white-glue": 4 }
+  }
+}

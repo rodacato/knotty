@@ -54,7 +54,7 @@ describe('the summary lines', () => {
 })
 
 describe('the fit and the example the Studio opens', () => {
-  const base = { ...exampleSideboard, id: 'sideboard', rooms: ['living'], code: 'GN-X', version: 1 } satisfies Base
+  const base = { ...exampleSideboard, id: 'sideboard', rooms: ['living'], style: 'basic', code: 'GN-X', version: 1 } satisfies Base
   it('blocks opening only when the plan does not build as asked', () => {
     expect(blocking(fitToSpace(base.plan, { width: 1500 }, testCatalog))).toBeNull()
   })

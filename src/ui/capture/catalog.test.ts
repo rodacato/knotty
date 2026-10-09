@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Room } from '../../domain/furniture/references'
 import { ANY, matches, noMatchNote, roomChips, sizeLine } from './catalog'
 
-const item = (code: string, name: string, ...rooms: Room[]) => ({ code, name, rooms })
+const item = (code: string, name: string, ...rooms: Room[]) => ({ code, name, rooms, style: 'basic' as const })
 
 const items = [item('KC-LIB-03', 'Librero de nichos', 'living', 'office'), item('KC-BUR-05', 'Buró con cajón', 'bedroom'), item('GN-ESC-01', 'Escritorio de pie', 'office')]
 
@@ -40,7 +40,7 @@ describe('sizeLine', () => {
 
 describe('noMatchNote', () => {
   it('says what was typed, and the room only when one is chosen', () => {
-    expect(noMatchNote({ room: 'all', text: ' banca ' })).toBe('Ninguna base tiene «banca» en su nombre, su cuarto o su modelo.')
-    expect(noMatchNote({ room: 'office', text: 'banca' })).toBe('Ninguna base de ese cuarto tiene «banca» en su nombre, su cuarto o su modelo.')
+    expect(noMatchNote({ room: 'all', text: ' banca ' })).toBe('Ninguna base tiene «banca» en su nombre, su cuarto, su estilo o su modelo.')
+    expect(noMatchNote({ room: 'office', text: 'banca' })).toBe('Ninguna base de ese cuarto tiene «banca» en su nombre, su cuarto, su estilo o su modelo.')
   })
 })

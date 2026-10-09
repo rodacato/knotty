@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "code": "GN-MCE-01",
+  "id": "coffee-table",
+  "home": { "order": 14 },
+  "rooms": ["living"],
+  "name": "Mesa de centro",
+  "style": "mid-century",
+  "notes": "Mesa de centro sobre cuatro patas abiertas, con la cubierta de esquinas redondeadas y una repisa baja.",
+  "plan": {
+    "kind": "table",
+    "use": "coffee",
+    "name": "Mesa de centro",
+    "material": "T18",
+    "dimensions": { "width": 1000, "height": 430, "depth": 550 },
+    "overhang": 30,
+    "shelf": true,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "corners": "rounded",
+    "legs": "legs",
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 16,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 12, "screw-8x2": 50, "white-glue": 2 }
+  }
+}

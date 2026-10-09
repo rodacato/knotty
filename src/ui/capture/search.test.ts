@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { found, notFoundNote, roomsLine } from './catalog'
+import { STYLES } from '../../domain/furniture/references'
+import { STYLE_LABELS, found, notFoundNote, roomsLine } from './catalog'
 
 const bases = testReferences.home()
 const codes = (text: string) => bases.filter((b) => found(b, text)).map((b) => b.code)
@@ -20,6 +21,16 @@ describe('searching the furniture in the spotlight', () => {
     expect(codes('KC-LIB-999')).toEqual([])
   })
 
+  it('finds by the style line a piece belongs to, as the person reads it', () => {
+    for (const style of STYLES) {
+      const ofStyle = bases.filter((b) => b.style === style).map((b) => b.code)
+      expect(ofStyle.length).toBeGreaterThan(0)
+      expect(codes(STYLE_LABELS[style])).toEqual(expect.arrayContaining(ofStyle))
+    }
+    expect(codes('TRIPLAY visto')).not.toContain('GN-LIB-01')
+    expect(codes('basica')).toContain('GN-LIB-01')
+  })
+
   it('asks for every word, each in the name, a room or the model', () => {
     const both = codes(`${sideboard.name.split(' ')[0]} comedor`)
     expect(both).toContain('KC-APA-01')
@@ -30,6 +41,6 @@ describe('searching the furniture in the spotlight', () => {
 
   it('names the rooms of a piece as the person reads them', () => {
     expect(roomsLine(sideboard)).toBe('Sala, Comedor')
-    expect(notFoundNote(' xyz ')).toBe('Ningún mueble tiene «xyz» en su nombre, su cuarto o su modelo.')
+    expect(notFoundNote(' xyz ')).toBe('Ningún mueble tiene «xyz» en su nombre, su cuarto, su estilo o su modelo.')
   })
 })

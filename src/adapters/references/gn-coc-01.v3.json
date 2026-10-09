@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "code": "GN-COC-01",
+  "id": "kitchen-island",
+  "home": { "order": 22 },
+  "rooms": ["kitchen"],
+  "name": "Isla de cocina",
+  "kind": "kitchenBase",
+  "style": "workshop",
+  "notes": "Isla a la altura de la cubierta de cocina, de dos cuerpos con dos puertas y una repisa cada uno, sobre zoclo. Las puertas se abren con muesca, sin jaladeras. Lleva puertas y no cajones: una isla no se ancla al muro, y con un cajón abierto se puede ir de frente.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Isla de cocina",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": false,
+    "dimensions": { "width": 1200, "height": 900, "depth": 600 },
+    "construction": { "doors": "overlay", "drawerFronts": "overlay", "top": "over", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 2 }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 1, "doors": 2 }
+        ]
+      }
+    ],
+    "kick": "kitchen"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 14,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "brad-nail-1": 40, "cup-hinge-35-full": 4, "cup-hinge-35-half": 4, "edge-banding-19": 17, "screw-8x2": 41, "shelf-pin-5": 8, "white-glue": 1 }
+  }
+}

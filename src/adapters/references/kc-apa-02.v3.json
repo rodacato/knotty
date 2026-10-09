@@ -1,0 +1,63 @@
+{
+  "format": 1,
+  "code": "KC-APA-02",
+  "id": "stepped-sideboard-splayed-legs",
+  "home": { "order": 28 },
+  "rooms": ["living","dining"],
+  "name": "Aparador escalonado con patas abiertas",
+  "kind": "sideboard",
+  "finish": "danish-oil",
+  "style": "mid-century",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-doors","inset-drawers","legs","open-niche","no-back","asymmetric-arrangement","splayed-legs","notch-pulls"],
+  "adaptations": ["solid pine in the original is written in T18 plywood","the stretchers that join the legs are the low aprons, and the right legs go up to the raised door box","the floating shelf below the centre is not drawn, nor the open niche without a back that it makes: the plan leaves that space empty","finish is wax-oil (no id; danish-oil used) with white formica fronts: closest id used","the notch at the top corner of each front is drawn as a finger notch","anchored to the wall assumed: the photos do not show it, and the engine asks for it with drawers at this height"],
+  "gaps": ["splayed-legs","open-niche","no-back"],
+  "notes": "Aparador de triplay de pino con frentes blancos: una puerta alta a la izquierda, dos cajones a media altura en el centro y una puerta más corta a la derecha, con un entrepaño blanco flotando bajo el centro. Descansa sobre patas abiertas con travesaños.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Aparador escalonado con patas abiertas",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": true,
+    "dimensions": { "width": 1500, "height": 700, "depth": 390 },
+    "construction": { "doors": "inset", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 0.3,
+        "cells": [
+          { "height": 1, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      },
+      {
+        "width": 0.18,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.43 },
+          { "height": 0.57, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      },
+      {
+        "width": 0.3,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.6 },
+          { "height": 0.4, "content": "drawer", "shelves": null, "doors": null }
+        ]
+      },
+      {
+        "width": 0.22,
+        "cells": [
+          { "content": "void", "shelves": null, "doors": null, "height": 0.21 },
+          { "height": 0.79, "content": "door", "shelves": 0, "doors": 1 }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 46,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 75, "cup-hinge-35-inset": 4, "drawer-slide-35": 2, "edge-banding-19": 15, "pocket-screw-1-1/4": 16, "screw-8x1": 8, "screw-8x1-1/4": 12, "screw-8x2": 99, "white-glue": 5 }
+  }
+}

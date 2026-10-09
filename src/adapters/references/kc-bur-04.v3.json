@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "code": "KC-BUR-04",
+  "id": "splayed-leg-nightstand",
+  "rooms": ["bedroom"],
+  "name": "Buró de patas abiertas y cajón grande",
+  "kind": "nightstand",
+  "finish": "danish-oil",
+  "style": "workshop",
+  "support": "adapted",
+  "difficulty": 3,
+  "features": ["inset-drawers","legs","open-niche","no-back","angled-cut","notch-pulls","splayed-legs"],
+  "adaptations": ["Solid oak and pine become T18 plywood.","Mitered box corners cannot be cut: the top meets the sides in finger corners, a visible worked corner standing in for the mitre.","Oil-wax finish mapped to danish-oil.","finger notch on the drawer front drawn as a routed notch"],
+  "gaps": ["angled-cut"],
+  "notes": "Buró con un cajón grande abajo y un nicho abierto arriba, sin trasera, sobre cuatro patas abiertas. En Knotty la cubierta se une a los laterales con esquinas de dedos a la vista y el cajón se abre con una muesca.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Buró de patas abiertas y cajón grande",
+    "material": "T18",
+    "base": "legs",
+    "wallMounted": false,
+    "dimensions": { "width": 450, "height": 500, "depth": 350 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "fingers", "back": "none", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.6, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.4, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 23,
+    "findings": ["recommendation:R5_RACKING"],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 12, "drawer-slide-30": 1, "edge-banding-19": 5, "pocket-screw-1-1/4": 16, "screw-8x1": 4, "screw-8x1-1/4": 8, "screw-8x2": 46, "white-glue": 2 }
+  }
+}

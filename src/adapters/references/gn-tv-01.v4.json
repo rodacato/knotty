@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "code": "GN-TV-01",
+  "id": "sliding-rack",
+  "rooms": ["living"],
+  "name": "Rack con puerta corrediza",
+  "kind": "tvStand",
+  "style": "mid-century",
+  "notes": "Rack bajo sobre patas con una puerta corrediza que tapa la mitad: de un lado queda cerrado y del otro un nicho con repisa. La puerta corre en ranuras, sin bisagras. Los dos lados llevan un pasacables en la trasera.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Rack con puerta corrediza",
+    "material": "T18",
+    "base": "legs",
+    "legHeight": 160,
+    "wallMounted": false,
+    "dimensions": { "width": 1200, "height": 560, "depth": 380 },
+    "construction": { "doors": "sliding", "drawerFronts": "inset", "top": "over", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          {
+            "height": 1,
+            "content": "door",
+            "shelves": null,
+            "doors": 1,
+            "columns": [
+              {
+                "width": 1,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 0, "doors": null, "cable": true }
+                ]
+              },
+              {
+                "width": 1,
+                "cells": [
+                  { "height": 1, "content": "open", "shelves": 1, "doors": null, "cable": true }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "legStyle": "splayed"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 21,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 27, "edge-banding-19": 7, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 8, "screw-8x2": 56, "shelf-pin-5": 4, "white-glue": 2 }
+  }
+}

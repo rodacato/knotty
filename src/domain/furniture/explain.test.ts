@@ -15,7 +15,7 @@ describe('explain', () => {
     const r = reference('KC-APA-01')
     expect(explain({ ...r, expect: probe(r, testCatalog) })).toBe(
       [
-        'KC-APA-01 v6 · sideboard',
+        'KC-APA-01 v7 · sideboard · style mid-century',
         'Piece: cabinet, 1600 × 940 × 400 mm, T18, on splayed legs, wall-mounted.',
         'Construction: inset doors, inset drawer fronts, top between the sides, nailed back, movable shelves.',
         'Grid: 4 columns of equal width. Cells from the bottom up:',
@@ -24,7 +24,7 @@ describe('explain', () => {
         '  Column 4:    drawer (0.375), drawer (0.375), open niche (0.25)',
         'Support: adapted · difficulty 3',
         'Features: inset-doors, inset-drawers, legs, wall-anchor, open-niche, no-back, routed-fronts, notch-pulls, splayed-legs, asymmetric-arrangement',
-        'Adaptations: none',
+        'Adaptations: the open niches have no back panel in the original: the plan nails one back behind the whole piece',
         'Gaps: no-back, asymmetric-arrangement',
         'Engine: valid, 55 pieces, findings: none',
       ].join('\n'),
@@ -53,6 +53,13 @@ describe('explain', () => {
     const text = explain(bed)
     expect(text.split('\n')[1]).toBe('Piece: bed.')
     expect(text).toMatch(/^Plan: \{"mattress":"matrimonial"/m)
+  })
+
+  it('says the style after the kind, and nothing in its place when the ficha has none', () => {
+    const { style: _style, ...nightstand } = { ...reference('GN-BUR-01'), version: 1 }
+    expect(explain({ ...nightstand, style: 'basic' }).split('\n')[0]).toBe('GN-BUR-01 v1 · nightstand · style basic')
+    expect(explain(nightstand).split('\n')[0]).toBe('GN-BUR-01 v1 · nightstand')
+    expect(explain({ ...nightstand, style: 'basic' }).split('\n').slice(1)).toEqual(explain(nightstand).split('\n').slice(1))
   })
 
   it('leaves out what the ficha does not say', () => {

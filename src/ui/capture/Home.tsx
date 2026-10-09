@@ -9,19 +9,25 @@ import { AppHeader } from '../shell/AppHeader'
 import { useExpertStatus } from '../shell/expertStatus'
 import { searchWith } from './address'
 import { cardsOf, type Card } from './cards'
-import { ANY, matches, noMatchNote, roomChips, type CatalogQuery } from './catalog'
+import { ANY, STYLE_LABELS, STYLE_TINT, matches, noMatchNote, roomChips, type CatalogQuery } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
 
 function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
   return (
     <button type="button" onClick={() => onOpen(base)} className="group flex flex-col gap-1.5 rounded-2xl text-left">
-      <span className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-kraft p-4 transition group-hover:bg-kraft-2 group-active:scale-[0.98] md:p-6">
+      <span className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line bg-(--tint) p-4 transition group-hover:bg-[color-mix(in_srgb,var(--tint)_93%,var(--graphite))] group-active:scale-[0.98] md:p-6 ${STYLE_TINT[base.style]}`}>
         {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6 text-graphite-2" />}
       </span>
       <span className="text-base font-medium text-graphite md:text-lg">{base.name}</span>
-      <span className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
-        {size.text}
+      <span className="flex flex-col text-sm text-graphite-2 md:flex-row md:flex-wrap md:gap-x-1.5">
+        <span>{STYLE_LABELS[base.style]}</span>
+        <span className="hidden md:inline" aria-hidden>
+          ·
+        </span>
+        <span className="numerals whitespace-nowrap" aria-label={size.spoken}>
+          {size.text}
+        </span>
       </span>
     </button>
   )
@@ -107,7 +113,7 @@ export function Home() {
           <div ref={mark} />
           <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors duration-150 ease-out md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
             <Field label="Buscar una base" hiddenLabel>
-              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto o modelo" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
+              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto, estilo o modelo" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
             </Field>
             <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0" role="group" aria-label="Cuarto">
               {chips.map(({ room, label, count }) => (

@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "code": "GN-COC-06",
+  "id": "open-dish-shelf",
+  "home": { "order": 41 },
+  "rooms": ["kitchen"],
+  "name": "Repisero para platos",
+  "kind": "wallCabinet",
+  "style": "workshop",
+  "notes": "Alacena abierta para colgar sobre la cubierta, con tres huecos de distinta altura: el de abajo para platos, el de en medio para tazones y el de arriba para vasos.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Repisero para platos",
+    "material": "T18",
+    "base": "floor",
+    "wallMounted": true,
+    "dimensions": { "width": 600, "height": 700, "depth": 330 },
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "fixed" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.25, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.35, "content": "open", "shelves": 0, "doors": null },
+          { "height": 0.4, "content": "open", "shelves": 0, "doors": null }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 8,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "brad-nail-1": 35, "edge-banding-19": 4, "screw-8x2": 32, "white-glue": 1 }
+  }
+}

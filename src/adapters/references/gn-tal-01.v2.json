@@ -1,0 +1,30 @@
+{
+  "format": 1,
+  "code": "GN-TAL-01",
+  "id": "workbench",
+  "home": { "order": 27 },
+  "rooms": ["workshop"],
+  "name": "Banco de trabajo",
+  "kind": "workbench",
+  "style": "workshop",
+  "notes": "Banco de taller para trabajar de pie, con la cubierta volada 50 mm para prensar piezas en el canto, travesaños bajo la cubierta y una repisa baja para herramienta. Va armado con pernos, para desarmarlo y moverlo. Una cubierta doble lo haría más firme para golpear.",
+  "plan": {
+    "kind": "table",
+    "use": "standing",
+    "name": "Banco de trabajo",
+    "material": "T18",
+    "dimensions": { "width": 1500, "height": 900, "depth": 700 },
+    "overhang": 50,
+    "shelf": true,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "panel",
+    "assembly": "bolts"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 10,
+    "findings": [],
+    "sheets": { "T18": 2 },
+    "hardware": { "connector-bolt-m6": 10, "edge-banding-19": 9, "screw-8x2": 48, "white-glue": 1 }
+  }
+}

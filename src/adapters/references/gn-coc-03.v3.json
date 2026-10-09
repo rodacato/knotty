@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "code": "GN-COC-03",
+  "id": "microwave-cabinet",
+  "home": { "order": 24 },
+  "rooms": ["kitchen"],
+  "name": "Mueble para microondas",
+  "kind": "cabinet",
+  "style": "workshop",
+  "notes": "Mueble a la altura de la cubierta: un hueco abierto arriba para el microondas o la cafetera, con pasacables en la trasera, un cajón y dos puertas abajo, anclado al muro. Puertas y cajón se abren con muesca.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Mueble para microondas",
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "dimensions": { "width": 600, "height": 900, "depth": 450 },
+    "construction": { "doors": "overlay", "drawerFronts": "overlay", "top": "over", "back": "nailed", "shelves": "movable", "pulls": "notch" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.33, "content": "door", "shelves": 1, "doors": 2 },
+          { "height": 0.15, "content": "drawer", "shelves": null, "doors": null },
+          { "height": 0.52, "content": "open", "shelves": 0, "doors": null, "cable": true }
+        ]
+      }
+    ],
+    "kick": "kitchen"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 17,
+    "findings": [],
+    "sheets": { "T18": 1, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "brad-nail-1": 48, "cup-hinge-35-full": 4, "drawer-slide-40": 1, "edge-banding-19": 12, "screw-8x1": 4, "screw-8x2": 36, "shelf-pin-5": 4, "white-glue": 2 }
+  }
+}

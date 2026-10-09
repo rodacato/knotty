@@ -12,6 +12,7 @@ It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v
 | `id`, `name`, `notes` | For the person: the id in English, the name and the notes in Spanish. Required in a new reference |
 | `rooms` | The rooms where it goes, one or several of `bedroom`, `living`, `dining`, `office`, `kitchen`, `entry` and `workshop` (`ROOMS` in `src/domain/furniture/references.ts`). Required: this way the lab finds it by room without anyone touching code, and a ficha with no room is not adopted. The home screen does not use them; it has `home` |
 | `kind`, `finish` | Optional: which piece of furniture it is (`DesignKind`, `src/domain/design/kind.ts`) and its finish (`src/domain/materials/finishes.ts`). A cabinet does not say by itself whether it is a sideboard or a bookcase |
+| `style` | The line the piece belongs to, one of the closed list `STYLES` (`src/domain/furniture/references.ts`): it says how the piece is built when it is adjusted (see «Styles»). Required |
 | `plan` | The ficha the engine understands (`FurniturePlan`): dimensions, base, construction, columns and cells |
 | `design` | Instead of `plan`, for a piece of furniture that no module builds: the complete design, piece by piece (`Design`). It carries one of the two, never both. It opens from «Fichas» in the lab and `probe` checks it the same way; it does not appear on the home screen and has no fields to edit, because there is no plan: it is changed piece by piece or with the expert |
 | `home` | Optional. With it, it is a card on the home screen: `order`, `category` and, if it is `featured`, also in «Destacados» (up to 11, so that the last cell is «Diseña tu propio mueble»). Without it, it is still a reference for the tests. A home base has the same name in the ficha and in its `plan`, and no two share a name; the featured ones go first in `order` |
@@ -27,13 +28,25 @@ Five labels that are worth not confusing:
 - `slatted-fronts`: fronts made of glued strips. `routed-fronts` is a router groove on a smooth face.
 - `slatted-base`: the base of a bed made of slats instead of a continuous board. It is already drawn in the bed (`platform: "slats"`), so it goes in `features` and not in `gaps`.
 
-- `finger-joints`: the piece of furniture has visible finger corners (*box joint*). In a cabinet it is drawn with `construction.drawerCorners: "fingers"` and, if they are not the usual 5, `drawerFingers` (from 3 to 21 per corner): it applies to all the drawers of the piece and is seen from behind or with the drawer out, because the front covers it. The corners of the top with the sides, as in KC-BUR-05, are drawn with `construction.top: "fingers"` (the same `drawerFingers`): the sides rise to the upper face and are visible from the front.
+- `finger-joints`: the piece of furniture has visible finger corners (*box joint*). In a cabinet it is drawn with `construction.drawerCorners: "fingers"` and, if they are not the usual 5, `drawerFingers` (from 3 to 21 per corner): it applies to all the drawers of the piece and is seen from behind or with the drawer out, because the front covers it. The corners of the top with the sides, as KC-BUR-04 draws its mitred ones, are drawn with `construction.top: "fingers"` (the same `drawerFingers`): the sides rise to the upper face and are visible from the front.
 
 `sliding-doors` is already drawn in the cabinet (`construction.doors: "sliding"`, for all its doors): the leaves run in grooves, without hinges. A piece that mixes sliding and hinged doors is drawn too: the cell that goes the other way says it in `own.doors` (`"sliding"` where the furniture's doors swing, `"inset"` where they slide). It is still a gap if the hinged doors beside sliding ones are overlay, or if they run on a purchased rail. A one-leaf door that hangs on a side of its own says it in `own.hinges` (`"left"` or `"right"`).
 
 `routed-fronts` is also drawn in the cabinet (`construction.fronts: "grooved"`), with vertical grooves; if the front is made of glued strips and not routed, it is still a gap. `notch-pulls` is already drawn in the cabinet (`construction.pulls: "notch"`), so a ficha that uses it puts it in `features` and not in `gaps`; with hardware it is `"handle"`, which adds one handle per door leaf and drawer front to the shopping list.
 
 The file is always written the same way (`probe` does it), so that a change moves few lines. **The reference photos are not stored in the repo.**
+
+## Styles
+
+A style is a convention over options the plan already has; it adds no option. A `KC-…` keeps the traits of its product and takes from its style only what the original supports; a `GN-…` follows its style freely. The sizes of one product (small, long, tall) share top, shelves, pulls and anchoring: only the size changes.
+
+| `style` | For the person | What it is built like |
+|---|---|---|
+| `mid-century` | Patas abiertas | On legs that spread or taper (`base: legs`, `legStyle: splayed`, `tapered` where the plan cannot spread them). Top over the sides (`top: over`). Flat fronts, opened by a finger notch (`pulls: notch`). Columns of unequal width, drawers graduated with the tall one at the bottom. Tables: spread legs, rounded corners where the top overhangs |
+| `fluted` | Ranurada | Fronts with vertical grooves (`fronts: grooved`) on doors and drawers; the grooves are the ornament, so everything else is quiet. Inset fronts, on legs. Opened by a notch, or by a handle where the original has a bar. A door wider than tall slides (`doors: sliding`) |
+| `low` | Baja | Close to the floor and horizontal: short legs (`legHeight: 100`) or a kick, beds on slats (`platform: slats`), boxes at different heights (void cells, stepped tops), rounded corners on tops. Flat fronts with a notch, no hardware in sight |
+| `workshop` | Triplay visto | The plywood shows: edges left in sight, finger corners (`top: fingers`, `drawerCorners: fingers`), panel sides or straight legs, bolts where it comes apart (`assembly: bolts`), a notch instead of hardware. Workbenches, standing desks, the kitchen set |
+| `basic` | Básica | A beginner's first piece: on a kick, overlay doors, flat fronts, screwed, a finger notch. One trait of its own per piece (a drawer over a niche, unequal columns, a low row of doors), so it is not just the module's defaults |
 
 ## Commands
 
@@ -73,12 +86,13 @@ The spotlight (`Ctrl+K`) lists all the fichas, and the address opens one by its 
    - In a base with legs, `dimensions.height` includes the legs.
    - A tall piece of furniture with drawers is anchored to the wall (`wallMounted: true`), and one with doors too when it is wide and shallow; otherwise `--diff` flags it with a critical finding of tipping (`R4_TIPPING`).
 2. **Choose the module** (`src/domain/furniture/modules/`: cabinet, bed, table, shoe rack). If none fits, you already know there is support to add (section 2); and if it is a one-off piece of furniture that does not justify a module (the tabletop bench `GN-TAL-02`), the candidate carries `design` instead of `plan`.
-3. **Write the candidate.** A JSON file with the `plan` and, for a new reference, the rest of what a ficha states. The app's expert can also propose the plan from photos and a description: with debug access, «Exportar ficha» downloads it as a candidate from the Studio. The result is a draft that a person reviews, not a ficha.
+3. **Write the candidate.** A JSON file with the `plan` and, for a new reference, the rest of what a ficha states, its `style` included. The app's expert can also propose the plan from photos and a description: with debug access, «Exportar ficha» downloads it as a candidate from the Studio. The result is a draft that a person reviews, not a ficha.
 
    ```json
    {
      "id": "night-table",
      "rooms": ["bedroom"],
+     "style": "basic",
      "name": "Buró",
      "notes": "Buró con un cajón arriba y un hueco abierto abajo.",
      "plan": {

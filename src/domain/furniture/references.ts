@@ -18,6 +18,10 @@ const FEATURES = [
   'splayed-legs', 'raised-sides', 'slatted-fronts', 'slatted-base', 'finger-joints',
 ] as const
 
+/** The line a piece belongs to, which says how it is built when it is adjusted (docs/fichas.md, «Styles»). */
+export const STYLES = ['mid-century', 'fluted', 'low', 'workshop', 'basic'] as const
+export type Style = (typeof STYLES)[number]
+
 /** exact: the plan says all that matters of the piece; adapted: it builds something close, and `adaptations` says what changed; unsupported: it cannot be built. */
 const SUPPORT = ['exact', 'adapted', 'unsupported'] as const
 
@@ -35,6 +39,7 @@ export const ReferenceFile = z
     name: z.string().min(1),
     kind: DesignKind.optional(),
     finish: FinishId.optional(),
+    style: z.enum(STYLES),
     /** The catalog product a generic piece resembles; nobody has checked it against the product. */
     inspiredBy: z.string().regex(/^KC-[A-Z]+-\d{2}$/).optional(),
     /** What it is, for the person. */

@@ -1,0 +1,45 @@
+{
+  "format": 1,
+  "code": "GN-LIB-01",
+  "id": "open-bookcase",
+  "home": { "order": 4 },
+  "rooms": ["living","office"],
+  "name": "Librero abierto",
+  "kind": "bookcase",
+  "style": "basic",
+  "inspiredBy": "KC-LIB-01",
+  "notes": "Librero abierto de dos columnas, anclado al muro: un entrepaño fijo a media altura amarra los costados, y las repisas de arriba y de abajo son móviles. Los huecos de abajo quedan más altos, para lo grande y lo pesado. Trasera clavada.",
+  "plan": {
+    "kind": "cabinet",
+    "name": "Librero abierto",
+    "dimensions": { "width": 900, "height": 1950, "depth": 290 },
+    "material": "T18",
+    "base": "kick",
+    "wallMounted": true,
+    "construction": { "doors": "overlay", "drawerFronts": "inset", "top": "between", "back": "nailed", "shelves": "movable", "fronts": "flat", "hinges": "outside", "pulls": "none" },
+    "columns": [
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.55, "content": "open", "shelves": 2, "doors": null },
+          { "height": 0.45, "content": "open", "shelves": 2, "doors": null }
+        ]
+      },
+      {
+        "width": 1,
+        "cells": [
+          { "height": 0.55, "content": "open", "shelves": 2, "doors": null },
+          { "height": 0.45, "content": "open", "shelves": 2, "doors": null }
+        ]
+      }
+    ],
+    "assembly": "cams"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 18,
+    "findings": [],
+    "sheets": { "T18": 2, "TR6": 1 },
+    "hardware": { "anti-tip-kit": 1, "cam-lock-15": 16, "dowel-8x40": 16, "edge-banding-19": 13, "screw-8x1-1/4": 50, "screw-8x2": 17, "shelf-pin-5": 32 }
+  }
+}

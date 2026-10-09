@@ -6,7 +6,7 @@ import { analyze } from '../../domain/checks/analysis'
 import { exampleDesign, type Example } from '../../domain/furniture/examples'
 import type { ReferenceStore } from '../../ports/ReferenceStore'
 import { cardsOf, type Card } from '../capture/cards'
-import { found, notFoundNote, roomsLine } from '../capture/catalog'
+import { STYLE_LABELS, STYLE_TINT, found, notFoundNote, roomsLine } from '../capture/catalog'
 import { Thumbnail } from '../capture/Thumbnail'
 import { useServices } from '../services'
 import { useStore } from '../store'
@@ -112,7 +112,7 @@ function Finder({ onDone }: { onDone: () => void }) {
           autoComplete="off"
           autoFocus
           className="md:min-h-12 md:text-lg"
-          placeholder="Nombre, cuarto o modelo"
+          placeholder="Nombre, cuarto, estilo o modelo"
           value={text}
           onChange={(e) => {
             setText(e.target.value)
@@ -136,7 +136,7 @@ function Finder({ onDone }: { onDone: () => void }) {
                 onClick={() => choose(card)}
                 className={`flex cursor-pointer items-center gap-3 rounded-xl border p-2 md:gap-4 ${i === active ? 'border-amber bg-amber-soft' : 'border-transparent'}`}
               >
-                <span className="flex aspect-[4/3] w-24 shrink-0 items-center justify-center rounded-xl border border-line bg-kraft p-2 md:w-32">{boxes ? <Thumbnail boxes={boxes} /> : <Cube className="text-graphite-2" />}</span>
+                <span className={`flex aspect-[4/3] w-24 shrink-0 items-center justify-center rounded-xl border border-line bg-(--tint) p-2 md:w-32 ${STYLE_TINT[base.style]}`}>{boxes ? <Thumbnail boxes={boxes} /> : <Cube className="text-graphite-2" />}</span>
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-base leading-snug font-medium text-graphite">{base.name}</span>
                   <span className="truncate text-xs text-graphite-2">
@@ -144,7 +144,7 @@ function Finder({ onDone }: { onDone: () => void }) {
                       {base.code}
                       {debugVisible && ` v${base.version}`}
                     </span>{' '}
-                    · {roomsLine(base)}
+                    · {STYLE_LABELS[base.style]} · {roomsLine(base)}
                   </span>
                   <span className="numerals truncate text-xs text-graphite-2" aria-label={size.spoken}>
                     {size.text}
