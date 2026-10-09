@@ -13,6 +13,7 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button, IconButton } from '../system/components'
 import { Emblem } from '../system/Brand'
+import { useExpertStatus } from '../shell/expertStatus'
 import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { Parts } from '../../domain/furniture/modules/parts'
@@ -239,7 +240,8 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
   // The plan describes the current version; an older one or a proposal in view only has its measures.
   const summary = plan && !diverged && shown === currentDesign(state) ? moduleOf(plan).summary(plan, shown.dimensions) : measuresSummary(shown.dimensions)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
-  const label = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
+  const active = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
+  const label = useExpertStatus().available ? active : 'Sin experto'
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
       <Emblem className="size-7 shrink-0 sm:size-8" />

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { analyze } from '../domain/checks/analysis'
+import { createAbsent, NO_EXPERT_MESSAGE } from '../adapters/llm/absent/absent'
 import { createSimulated } from '../adapters/llm/simulated/simulated'
 import { createLocalRepository } from '../adapters/persistence/localStorage'
 import { startAt, makePiece, ref, extent } from '../domain/design/builders'
@@ -412,6 +413,30 @@ describe('reviewPurchase', () => {
     const c = setup(llm)
     const verdict = await c.reviewPurchase(await initialBookcase(c), testCatalog, newSignal())
     expect(verdict).toMatchObject({ verdict: 'viable', carpenter: null, error: 'No se pudo conectar con SheLLM.' })
+  })
+})
+
+describe('with nobody to ask', () => {
+  it('the review is the arithmetic alone: no carpenter, and no failure to report', async () => {
+    const c = setup(createAbsent())
+    const verdict = await c.reviewPurchase(c.fromExample(exampleBookcase), testCatalog, newSignal())
+    expect(verdict).toMatchObject({ verdict: 'viable', carpenter: null, error: null })
+    expect(verdict.checks.length).toBeGreaterThan(0)
+  })
+
+  it('a request Knotty cannot read says it needs the expert and changes nothing', async () => {
+    const c = setup(createAbsent())
+    const initial = c.fromExample(exampleBookcase)
+    const state = await c.adjust(initial, 'Hazlo más elegante', newSignal())
+    expect(state.chat.at(-1)).toMatchObject({ error: true, text: NO_EXPERT_MESSAGE })
+    expect(state.versions).toHaveLength(1)
+    expect(state.proposal).toBeNull()
+  })
+
+  it('a question Knotty answers from its numbers is still answered', async () => {
+    const c = setup(createAbsent())
+    const state = await c.adjust(c.fromExample(exampleBookcase), '¿cuánto mide?', newSignal())
+    expect(state.chat.at(-1)).toMatchObject({ error: false, alone: true })
   })
 })
 

@@ -89,7 +89,7 @@ export const PurchaseReview = z.object({
   verdict: Verdict,
   checks: z.array(Check),
   carpenter: CarpenterOpinion.extend({ origin: Origin }).nullable(),
-  /** Why the carpenter did not answer, if it did not; the arithmetic checks hold anyway. */
+  /** Why the carpenter did not answer, if it did not; null with no carpenter means nobody was asked. The arithmetic checks hold anyway. */
   error: z.string().nullable(),
   date: z.string(),
 })

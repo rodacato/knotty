@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowRight, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { isOptional, noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
@@ -9,6 +9,7 @@ import { answerItem, answerItemId, noticeItemId, type TrayItem } from '../../dom
 import { useServices } from '../services'
 import { Button, Chip, Stamp } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
+import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { ProposalFixButton } from '../chat/ProposalFix'
 
@@ -67,6 +68,8 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
   const showProposal = useStore((s) => s.showProposal)
   const dismissQuestion = useStore((s) => s.dismissQuestion)
   const thinking = useStore((s) => s.thinking)
+  const openConnect = useStore((s) => s.openConnect)
+  const { available } = useExpertStatus()
   const design = currentDesign(state)
   const fixes = useMemo(() => noticeFixes(notice, design, catalog), [notice, design, catalog])
   const built = new Set(fixes.map((f) => f.key))
@@ -105,13 +108,28 @@ function NoticeCard({ notice, state, way, onWay, onAnswer }: { notice: Notice; s
           {fixes.map((f) => (
             <WayOption key={f.label} chosen={way?.kind === 'fix' && way.fix.label === f.label} caption="Al instante" icon={<Lightning weight="fill" />} label={f.label} onChoose={() => onWay({ kind: 'fix', fix: f })} preview={<PreviewButton fix={f} />} />
           ))}
-          {forExpert.map((a) => {
-            const item = noticeItem(notice, a.description)
-            return <WayOption key={a.description} chosen={isExpert(item)} caption="A la bandeja, para el experto" icon={<Wrench />} label={a.description} onChoose={() => onWay({ kind: 'expert', item })} />
-          })}
-          {!optional && <WayOption chosen={isExpert(noticeItem(notice, null))} caption="A la bandeja, para el experto" icon={<Tray />} label="Que el experto decida" onChoose={() => onWay({ kind: 'expert', item: noticeItem(notice, null) })} />}
+          {available &&
+            forExpert.map((a) => {
+              const item = noticeItem(notice, a.description)
+              return <WayOption key={a.description} chosen={isExpert(item)} caption="A la bandeja, para el experto" icon={<Wrench />} label={a.description} onChoose={() => onWay({ kind: 'expert', item })} />
+            })}
+          {available && !optional && <WayOption chosen={isExpert(noticeItem(notice, null))} caption="A la bandeja, para el experto" icon={<Tray />} label="Que el experto decida" onChoose={() => onWay({ kind: 'expert', item: noticeItem(notice, null) })} />}
           {notice.kind === 'finding' && <WayOption chosen={way?.kind === 'accept'} caption={optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'} onChoose={() => onWay({ kind: 'accept' })} />}
         </RadioGroup>
+      )}
+      {decides && !available && forExpert.length > 0 && (
+        <div className="flex flex-col gap-1.5 rounded-xl bg-kraft px-3 py-2 text-sm">
+          <p className="font-medium">Otras formas de resolverlo</p>
+          <ul className="flex list-disc flex-col gap-1 pl-5">
+            {forExpert.map((a) => (
+              <li key={a.description}>{a.description}</li>
+            ))}
+          </ul>
+          <p className="text-graphite-2">Knotty no las aplica sola: para eso, conecta tu experto.</p>
+          <Button variant="ghost" className="self-start px-2" onClick={() => openConnect(true)}>
+            Conectar experto <ArrowRight weight="bold" />
+          </Button>
+        </div>
       )}
 
       {notice.kind === 'proposal' && (
