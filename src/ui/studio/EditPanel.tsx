@@ -101,7 +101,11 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
         <div className="flex flex-col gap-3 border-t border-line bg-paper p-4" role="alertdialog" aria-label="Cambios sin aplicar">
           <p className="text-sm font-medium">Tienes cambios sin aplicar</p>
           {error && <p className="text-xs text-rust">{error}</p>}
-          {!!draft?.notes.length && <p className="text-xs text-graphite">{draft.notes.join(' ')}</p>}
+          {draft?.notes.map((note) => (
+            <p key={note} className="text-xs text-graphite-2">
+              {note}
+            </p>
+          ))}
           <div className="flex flex-wrap gap-2">
             <Button
               variant="primary"

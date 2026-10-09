@@ -13,6 +13,7 @@ export interface PlanDraft {
   /** What the plan builds, with the changes made on top of it; null when it cannot be built, and `message` says why. */
   design: Design | null
   message: string | null
+  /** What the builder says of this plan that it did not already say of the applied one. */
   notes: string[]
   /** The plans before each change, to undo one step at a time. */
   steps: FurniturePlan[]
@@ -47,7 +48,9 @@ export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
     const applied = currentPlan(state).plan
     if (applied && same(applied, plan)) return null
     const r = services.useCases.previewPlan(state, plan)
-    return { version: state.current, plan, steps, typed, design: r.ok ? r.design : null, message: r.ok ? null : r.message, notes: r.ok ? r.notes : [] }
+    const before = applied ? services.useCases.previewPlan(state, applied) : null
+    const said = new Set(before?.ok ? before.notes : [])
+    return { version: state.current, plan, steps, typed, design: r.ok ? r.design : null, message: r.ok ? null : r.message, notes: r.ok ? r.notes.filter((n) => !said.has(n)) : [] }
   }
   return {
     planDraft: null,

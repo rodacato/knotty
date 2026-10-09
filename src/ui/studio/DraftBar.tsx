@@ -20,7 +20,11 @@ export function DraftBar({ applied }: { applied: FurniturePlan }) {
     <div className="pointer-events-auto flex w-full max-w-xl flex-col gap-2 rounded-2xl border border-line bg-paper/95 p-3 shadow-lg backdrop-blur" role="region" aria-label="Cambios sin aplicar">
       <p className="text-xs text-graphite">{changes.length ? `Sin aplicar: ${changes.join(', ')}.` : 'Sin aplicar.'}</p>
       {message && <ErrorText>{message}</ErrorText>}
-      {draft.notes.length > 0 && <p className="text-xs text-graphite">{draft.notes.join(' ')}</p>}
+      {draft.notes.map((note) => (
+        <p key={note} className="text-xs text-graphite-2">
+          {note}
+        </p>
+      ))}
       <div className="flex flex-wrap gap-2">
         <Button
           variant="primary"

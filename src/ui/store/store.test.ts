@@ -228,6 +228,18 @@ describe('the plan draft', () => {
     expect(draftOf(useStore.getState())).toBeNull()
   })
 
+  it('says of a change only what the builder did not already say of the applied plan', () => {
+    const notched = testReferences.home().find((b) => b.plan?.kind === 'cabinet' && b.plan.construction.pulls === 'notch')!
+    const plan = notched.plan as CabinetPlan
+    useStore.getState().fromExample(notched)
+    useStore.getState().editPlan(wider(plan, 100))
+    expect(draftOf(useStore.getState())!.notes.filter((n) => n.startsWith('Muesca'))).toEqual([])
+
+    useStore.getState().fromExample({ ...notched, plan: { ...plan, construction: { ...plan.construction, pulls: 'none' } } })
+    useStore.getState().editPlan(plan)
+    expect(draftOf(useStore.getState())!.notes.filter((n) => n.startsWith('Muesca'))).toHaveLength(1)
+  })
+
   const sized = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
   const draftSize = () => (draftOf(useStore.getState())?.plan as CabinetPlan | undefined)?.dimensions
   /** Each character of a measure as the form sends it: the plan so far, with the key of its field. */
