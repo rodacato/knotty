@@ -1,4 +1,5 @@
 import type { Catalog } from '../materials/catalog'
+import { exampleOf } from './examples'
 import { differences, probe, type Expect } from './probe'
 import { ReferenceFile } from './references'
 
@@ -26,16 +27,18 @@ export type Adoption =
       ok: true
       /** The file to write: the candidate over the current version, with `expect` as the engine makes it. */
       ficha: Raw
+      /** The current version, or the next one when what an opened design takes from the ficha changed. */
       version: number
-      /** Where the candidate differs from the current version, without `expect`; empty when there is nothing new. */
+      /** Where the candidate differs from the current file, without `expect`; empty when there is nothing new. */
       changes: string[]
       /** Where the engine's figures differ from the current version's `expect`. */
       expectChanges: string[]
     }
 
 /**
- * A candidate is a ficha (has `plan` or `design`) or just a plan. Over an existing reference it inherits what it does not say and becomes the next version if
- * anything changed; a new one has to say all a ficha says. A candidate the engine cannot build is refused: it would be a reference that shows nothing.
+ * A candidate is a ficha (has `plan` or `design`) or just a plan. Over an existing reference it inherits what it does not say; a new one has to say all a ficha
+ * says. The version is where a design comes from, so it rises only with what an opened design takes (`exampleOf`); any other change keeps it. A candidate the
+ * engine cannot build is refused: it would be a reference that shows nothing.
  */
 export function prepareAdoption(current: { file: Raw; version: number } | null, candidate: Raw, code: string, catalog: Catalog): Adoption {
   const draft = 'plan' in candidate || 'design' in candidate ? candidate : { plan: candidate }
@@ -43,7 +46,11 @@ export function prepareAdoption(current: { file: Raw; version: number } | null, 
   const parsed = ReferenceFile.safeParse({ ...merged, expect: NO_EXPECT })
   if (!parsed.success) return { ok: false, reasons: parsed.error.issues.map((i) => `${i.path.join('.') || '(file)'}: ${i.message}`) }
   const changes = current ? changedPaths(withoutExpect(current.file), merged) : ['(new reference)']
-  const version = current ? current.version + (changes.length ? 1 : 0) : 1
+  const opened = (file: unknown) => {
+    const ficha = ReferenceFile.safeParse(file)
+    return ficha.success ? JSON.stringify(exampleOf({ ...ficha.data, version: 0 })) : null
+  }
+  const version = current ? current.version + (opened(current.file) === opened(parsed.data) ? 0 : 1) : 1
   const actual = probe({ ...parsed.data, version }, catalog)
   if (!actual.valid) return { ok: false, reasons: ['the engine cannot build this plan:', ...actual.findings] }
   const expectChanges = current ? differences(current.file.expect as Expect, actual) : []

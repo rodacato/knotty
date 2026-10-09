@@ -4,7 +4,7 @@ A reference ficha is a piece of furniture that Knotty knows how to build, writte
 
 ## What a ficha file is
 
-It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v1.json`). The number goes in the name, as with the prompts: only the current version exists and the rest is in git.
+It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v1.json`). The number goes in the name, as with the prompts: only the current version exists and the rest is in git. The version says where an opened design comes from, so it rises only when what a design takes from its ficha changes (`plan`, `design`, `name`, `notes`, `kind`, `finish`: `exampleOf` in `src/domain/furniture/examples.ts`); a change of anything else rewrites the file under the same version.
 
 | Field | What it is for |
 |---|---|
@@ -15,7 +15,7 @@ It lives in `src/adapters/references/<code>.v<N>.json` (for example `kc-apa-01.v
 | `style` | The line the piece belongs to, one of the closed list `STYLES` (`src/domain/furniture/references.ts`): it says how the piece is built when it is adjusted (see «Styles»). Required |
 | `plan` | The ficha the engine understands (`FurniturePlan`): dimensions, base, construction, columns and cells |
 | `design` | Instead of `plan`, for a piece of furniture that no module builds: the complete design, piece by piece (`Design`). It carries one of the two, never both. It opens from «Fichas» in the lab and `probe` checks it the same way; it does not appear on the home screen and has no fields to edit, because there is no plan: it is changed piece by piece or with the expert |
-| `home` | Optional. With it, it is a card on the home screen: `order`, `category` and, if it is `featured`, also in «Destacados» (up to 11, so that the last cell is «Diseña tu propio mueble»). Without it, it is still a reference for the tests. A home base has the same name in the ficha and in its `plan`, and no two share a name; the featured ones go first in `order` |
+| `home` | Optional: `{ order }`, its place among the first cards of the home screen, and no two fichas share one. Every ficha with a `plan` is a card there; the ones without `home` come after, by code. The tests hold a ficha with `home` to what a base has to pass (`testBases`) |
 | `expect` | What the engine makes of the plan: valid, pieces, findings, sheets and hardware. `probe` writes it; a candidate does not carry it |
 | `support`, `difficulty`, `features`, `adaptations`, `gaps` | A `KC-…` states all of them: how it is supported (`exact`, `adapted`, `unsupported`), the difficulty from 1 to 4, which features it has and which ones Knotty cannot draw (labels from the closed list `FEATURES`) and what was adapted (text) |
 
@@ -54,7 +54,7 @@ A style is a convention over options the plan already has; it adds no option. A 
 npm run probe -- kc-apa-01                          # one ficha, in detail
 npm run probe -- --all                              # all of them, one line each
 npm run probe -- --diff kc-apa-01 candidate.json    # what a candidate would change; writes nothing
-npm run probe -- --adopt kc-apa-01 candidate.json   # makes it the next version (or version 1 of a new one)
+npm run probe -- --adopt kc-apa-01 candidate.json   # writes it: the next version, the same one if the piece did not change, or version 1 of a new one
 npm run probe -- --update kc-apa-01                 # rewrites only its `expect`
 npm run probe -- --explain kc-apa-01                # the ficha in words, generated from its plan and its metadata
 npm run probe -- --explain kc-apa-01 candidate.json # the same for a candidate, as it would be once adopted
@@ -106,11 +106,11 @@ The spotlight (`Ctrl+K`) lists all the fichas, and the address opens one by its 
      }
    }
    ```
-4. **See what it would do** with `--diff <code> candidate.json`. It says what changes and, always, the engine's verdict (valid or not, pieces and findings), also for a new reference; a critical finding comes out marked. If the engine cannot build it, it says why and it is not adopted. To read it before adopting, `--explain <code> candidate.json` says it in words, and `--diff` marks the lines that change with respect to the current version. There is not yet a 3D preview of a candidate: it is seen in the app after adopting it, with `home`.
+4. **See what it would do** with `--diff <code> candidate.json`. It says what changes and, always, the engine's verdict (valid or not, pieces and findings), also for a new reference; a critical finding comes out marked. If the engine cannot build it, it says why and it is not adopted. To read it before adopting, `--explain <code> candidate.json` says it in words, and `--diff` marks the lines that change with respect to the current version. There is not yet a 3D preview of a candidate: it is seen in the app after adopting it.
 5. **Adopt it** with `--adopt`. A new `KC-…` must also carry its support, difficulty, features, adaptations and gaps. The difficulty starts from that of the type of furniture in `docs/carpinteria/muebles-y-medidas.md` (§1); when that range spans two levels (for example 2–3), the higher one is taken if the design has inset fronts, legs or many drawers. It is a provisional criterion.
-6. **Check it** with `probe -- <code>` and open it in the app (`home` puts it on the home screen).
+6. **Check it** with `probe -- <code>` and open it in the app (it is a card on the home screen; `home` puts it among the first).
 
-On an existing reference, the candidate can be just the `plan`: the rest is inherited, and if something changed the version goes up.
+On an existing reference, the candidate can be just the `plan`: the rest is inherited. The version goes up if what an opened design takes changed; if only the rest did (`style`, `rooms`, `features`, `gaps`, `home`…), `--adopt` rewrites the file where it is and still says what changed.
 
 ## 2. When Knotty cannot build it: add support
 

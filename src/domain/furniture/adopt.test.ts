@@ -36,7 +36,43 @@ describe('prepareAdoption', () => {
 
   it('takes what a candidate ficha says over the current one', () => {
     const r = prepareAdoption(current, { plan: file.plan, difficulty: 4 }, 'KC-APA-01', testCatalog)
-    expect(r).toMatchObject({ ok: true, version: version + 1, changes: ['difficulty'], ficha: { difficulty: 4 } })
+    expect(r).toMatchObject({ ok: true, changes: ['difficulty'], ficha: { difficulty: 4 } })
+  })
+
+  it('keeps the version when only what is said about the piece changed, and still lists the change', () => {
+    const r = prepareAdoption(current, { plan: file.plan, style: 'basic', rooms: ['office'], home: { order: 99 } }, 'KC-APA-01', testCatalog)
+    if (!r.ok) throw new Error(r.reasons.join())
+    expect(r.version).toBe(version)
+    expect(r.changes).toEqual(['home.order', 'rooms.0', 'rooms.1', 'style'])
+    expect(r.ficha).toMatchObject({ style: 'basic', rooms: ['office'] })
+    expect(r.expectChanges).toEqual([])
+  })
+
+  it.each([
+    ['kind', { kind: 'bookcase' }],
+    ['finish', { finish: 'paint' }],
+    ['name', { name: 'Otro aparador' }],
+    ['notes', { notes: 'Otra nota.' }],
+  ])('raises the version when the %s an opened design takes changed', (field, said) => {
+    const r = prepareAdoption(current, { plan: file.plan, ...said }, 'KC-APA-01', testCatalog)
+    expect(r).toMatchObject({ ok: true, version: version + 1, changes: [field] })
+  })
+
+  it('keeps the version when the plan only spells out what it already meant', () => {
+    const { legHeight, ...unsaid } = file.plan as Record<string, unknown>
+    const silent = { file: { ...current.file, plan: unsaid }, version }
+    expect(prepareAdoption(silent, { ...unsaid, legHeight }, 'KC-APA-01', testCatalog)).toMatchObject({ ok: true, version, changes: ['plan.legHeight'], expectChanges: [] })
+  })
+
+  it('writes the expect the engine makes whether or not the version rises', () => {
+    const stale = { file: { ...current.file, expect: { ...(file.expect as object), pieces: 1 } }, version }
+    const same = prepareAdoption(stale, { plan: file.plan, style: 'basic' }, 'KC-APA-01', testCatalog)
+    const next = prepareAdoption(stale, withPlan((p) => ({ ...p, wallMounted: false })), 'KC-APA-01', testCatalog)
+    if (!same.ok || !next.ok) throw new Error('not adopted')
+    expect([same.version, next.version]).toEqual([version, version + 1])
+    expect(same.ficha.expect).toEqual(file.expect)
+    expect(same.expectChanges.join()).toMatch(/pieces/)
+    expect((next.ficha.expect as { pieces: number }).pieces).not.toBe(1)
   })
 
   it('refuses a plan the engine cannot build, and says why', () => {
