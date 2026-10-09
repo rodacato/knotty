@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../checks/analysis'
+import { ref, startAt } from '../design/builders'
 import type { Design, Piece } from '../design/schema'
 import { applyOperations } from '../editing/operations/apply'
 import { exampleDesign, exampleOf } from '../furniture/examples'
@@ -183,8 +184,12 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
 })
 
 describe('the cut list for the lumberyard: measures and settings', () => {
-  it('takes a measure that is not whole down to the millimetre and says so on that line only', () => {
-    const design = ficha('KC-BUR-01')
+  it('takes a measure moved by hand off the whole millimetre down to it and says so on that line only', () => {
+    const design = structuredClone(ficha('KC-BUR-01'))
+    const side = design.pieces.find((p) => p.name === 'Costado izquierdo de cajón 1')!
+    const from = side.x.from!
+    if (from.type !== 'ref') throw new Error('the drawer side is not tied to its opening')
+    side.x = startAt(ref(from.ref, from.offset + 0.4))
     const box = geoOf(design, testCatalog).boxes.get(design.pieces.find((p) => p.name === 'Contrafrente de cajón 1')!.id)!
     const length = box.x1 - box.x0
     expect(length % 1).toBeGreaterThan(0.5)

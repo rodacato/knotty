@@ -1,5 +1,6 @@
 import { endAt, makePiece, ref, startAt } from '../../design/builders'
-import type { Design, Dimensions, Extent, Piece } from '../../design/schema'
+import { resolveGeometry, roundTo } from '../../design/resolve'
+import { AXES, type Axis, type Design, type Dimensions, type Extent, type Piece } from '../../design/schema'
 import { materialById, type Catalog } from '../../materials/catalog'
 import { applyOperations } from '../../editing/operations/apply'
 import type { Operation } from '../../editing/operations/schema'
@@ -155,3 +156,36 @@ export const measuresSummary = ({ width, height, depth }: Dimensions) => `${heig
 
 /** A label as it reads inside a sentence: "Frentes de cajón" → "frentes de cajón". */
 export const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
+
+/** The whole millimetre nearest a place along an axis; a half goes toward where the axis starts, whatever the order it was added up in. */
+export const wholeNear = (mm: number) => Math.ceil(roundTo(mm, 3) - 0.5)
+
+const samePlace = (a: number, b: number) => Math.abs(a - b) < 1e-9
+
+/** Every place a module gave as a share, moved to a whole millimetre once the faces around it resolve: a module knows an opening only by them. A board that stands at a share forms openings and goes to the nearest (`wholeNear`), so the odd millimetre lands in the last one; a board that ends at a share goes into an opening and only gets shorter, so no fit comes out tighter than designed. */
+export function wholeMillimetres(design: Design, catalog: Catalog): Design {
+  let placed = design
+  // A share inside a share settles after the one around it: one pass per level.
+  for (let level = 0; level < design.pieces.length; level++) {
+    const geometry = resolveGeometry(placed, catalog)
+    if (!geometry.ok) return design
+    let moved = false
+    const whole = (asked: Piece, now: Piece, axis: Axis, end: 'from' | 'to') => {
+      const [share, last] = [asked[axis][end], now[axis][end]]
+      if (share?.type !== 'between' || last?.type !== 'between') return last
+      const exact = geometry.value.measure(share, axis)
+      const to = axis === asked.normal ? wholeNear(exact) : end === 'from' ? Math.ceil(roundTo(exact, 3)) : Math.floor(roundTo(exact, 3))
+      const offset = samePlace(to, exact) ? share.offset : share.offset + to - exact
+      moved ||= !samePlace(offset, last.offset)
+      return { ...share, offset }
+    }
+    const pieces = design.pieces.map((asked, i) => {
+      const now = placed.pieces[i]
+      const [x, y, z] = AXES.map((axis) => ({ ...asked[axis], from: whole(asked, now, axis, 'from'), to: whole(asked, now, axis, 'to') }))
+      return { ...asked, x, y, z }
+    })
+    if (!moved) return placed
+    placed = { ...design, pieces }
+  }
+  return placed
+}

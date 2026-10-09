@@ -1,5 +1,6 @@
 import type { Box } from '../../design/resolve'
 import type { CabinetConstruction, CabinetPlan, CellChoice, PlanCell, PlanColumn } from './cabinet'
+import { wholeNear } from './common'
 
 // Editing the inside of a cabinet by cutting and joining (UI-68): every operation returns a new plan, and each line it adds or removes is a board.
 
@@ -148,11 +149,13 @@ export interface LineRect extends Line {
   end: number
 }
 
-/** Each cell and line of a built cabinet seen from the front, in mm: the shares `buildCabinet` places its boards by, inside its sides, bottom and top. */
+/** Each cell and line of a built cabinet seen from the front, in mm: the shares `buildCabinet` places its boards by, inside its sides, bottom and top; a line runs along the middle of its board. */
 export function cellLayout(plan: CabinetPlan, boxes: Map<string, Box>): { cells: CellRect[]; lines: LineRect[] } | null {
   const [left, right, bottom, top] = ['side-left', 'side-right', 'bottom', 'top'].map((id) => boxes.get(id))
   if (!left || !right || !bottom || !top) return null
   const half = (left.x1 - left.x0) / 2
+  /** Where the board at a share of a span starts: on the whole millimetre `buildCabinet` puts it. */
+  const board = (from: number, to: number, share: number) => wholeNear(from + share * (to - from) - half)
   const cells: CellRect[] = []
   const lines: LineRect[] = []
   const edges = (sizes: number[]) => {
@@ -163,16 +166,16 @@ export function cellLayout(plan: CabinetPlan, boxes: Map<string, Box>): { cells:
   const row = (columns: PlanColumn[], at: number[], x0: number, x1: number, y0: number, y1: number) => {
     const e = edges(columns.map((c) => c.width))
     columns.forEach((column, i) => {
-      if (i < columns.length - 1) lines.push({ axis: 'columns', at, index: i, position: x0 + e[i] * (x1 - x0), from: y0, to: y1, start: x0, end: x1 })
-      stack(column.cells, [...at, i], i === 0 ? x0 : x0 + e[i - 1] * (x1 - x0) + half, i === columns.length - 1 ? x1 : x0 + e[i] * (x1 - x0) - half, y0, y1)
+      if (i < columns.length - 1) lines.push({ axis: 'columns', at, index: i, position: board(x0, x1, e[i]) + half, from: y0, to: y1, start: x0, end: x1 })
+      stack(column.cells, [...at, i], i === 0 ? x0 : board(x0, x1, e[i - 1]) + 2 * half, i === columns.length - 1 ? x1 : board(x0, x1, e[i]), y0, y1)
     })
   }
   const stack = (stackCells: PlanCell[], at: number[], x0: number, x1: number, y0: number, y1: number) => {
     const e = edges(stackCells.map((c) => c.height))
     stackCells.forEach((cell, j) => {
-      if (j < stackCells.length - 1) lines.push({ axis: 'cells', at, index: j, position: y0 + e[j] * (y1 - y0), from: x0, to: x1, start: y0, end: y1 })
-      const cy0 = j === 0 ? y0 : y0 + e[j - 1] * (y1 - y0) + half
-      const cy1 = j === stackCells.length - 1 ? y1 : y0 + e[j] * (y1 - y0) - half
+      if (j < stackCells.length - 1) lines.push({ axis: 'cells', at, index: j, position: board(y0, y1, e[j]) + half, from: x0, to: x1, start: y0, end: y1 })
+      const cy0 = j === 0 ? y0 : board(y0, y1, e[j - 1]) + 2 * half
+      const cy1 = j === stackCells.length - 1 ? y1 : board(y0, y1, e[j])
       if (cell.columns) row(cell.columns, [...at, j], x0, x1, cy0, cy1)
       else cells.push({ path: [...at, j], x0, x1, y0: cy0, y1: cy1 })
     })

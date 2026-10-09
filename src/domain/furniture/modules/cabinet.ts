@@ -14,7 +14,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
-import { addDrawers, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
+import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -382,6 +382,10 @@ function layoutOf(plan: CabinetPlan, catalog: Catalog) {
     build,
     t,
     half: t / 2,
+    /** On a board two fronts share, from its first face: where the front before it ends and where the one after it starts, each on a whole millimetre and never closer than the gap. */
+    seam: { before: Math.floor(t / 2 - GAP / 2), after: Math.ceil(t / 2 + GAP / 2) },
+    /** Where two backs meet on a board they share, from its first face. */
+    meet: Math.floor(t / 2),
     overlays,
     front,
     hasBack,
@@ -425,7 +429,7 @@ function backFitsSheet({ plan, catalog, onLegs }: Layout) {
 
 /** The back: one board, or one per column when a column stops short or the one board is larger than a sheet, as tall as what it builds and meeting at the middle of each divider; with backs by cell, none here. */
 function backs(l: Layout): Piece[] {
-  const { plan, n, half } = l
+  const { plan, n, meet } = l
   if (l.build.back !== 'nailed' || l.cellBacks) return []
   const board = { role: 'back' as const, material: backBoard(l.catalog).id, normal: 'z' as const, z: startAt(ref('furniture.z0')) }
   if (!l.voids && (n === 1 || backFitsSheet(l))) return [makePiece({ ...board, id: 'back', name: 'Trasera', x: extent(ref('furniture.x0'), ref('furniture.x1')), y: extent(l.boxFloor, ref('furniture.y1')) })]
@@ -434,7 +438,7 @@ function backs(l: Layout): Piece[] {
       ...board,
       id: nth('back', i),
       name: `Trasera de la columna ${i + 1}`,
-      x: extent(i === 0 ? ref('furniture.x0') : ref(`div-${i}.x0`, half), i === n - 1 ? ref('furniture.x1') : ref(`div-${i + 1}.x0`, half)),
+      x: extent(i === 0 ? ref('furniture.x0') : ref(`div-${i}.x0`, meet), i === n - 1 ? ref('furniture.x1') : ref(`div-${i + 1}.x0`, meet)),
       y: extent(l.floorLevel(i), l.toTop[i] ? ref('furniture.y1') : ref(`${l.roofBoard(i)}.y1`)),
     }),
   )
@@ -574,6 +578,8 @@ const doorRoom = (l: Layout, cell: PlanCell) => (doorsIn(l.build, cell) === 'ins
 function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): Fronts {
   const { overlap, engagement } = ASSUMPTIONS.sliding
   const into = l.t * engagement
+  // A leaf rests on the bottom of the lower groove and stays whole: what is left of a millimetre stays out of the upper one.
+  const up = Math.floor(2 * into) - into
   const toMiddle = extent(ref(o.left), partway(o.left, o.right, 0.5, overlap / 2))
   const fromMiddle = extent(partway(o.left, o.right, 0.5, -overlap / 2), ref(o.right))
   const doors =
@@ -585,7 +591,7 @@ function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): F
         ]
   return {
     pieces: doors.map((d) =>
-      makePiece({ id: d.id, name: d.name, role: 'door', material: l.plan.material, normal: 'z', x: d.x, y: extent(ref(o.bottom, -into), ref(o.top, into)), z: endAt(shift(front, l.t - trackDepth(l, d.track))), edges: ['front', 'back', 'left', 'right', 'top', 'bottom'] }),
+      makePiece({ id: d.id, name: d.name, role: 'door', material: l.plan.material, normal: 'z', x: d.x, y: extent(ref(o.bottom, -into), ref(o.top, up)), z: endAt(shift(front, l.t - trackDepth(l, d.track))), edges: ['front', 'back', 'left', 'right', 'top', 'bottom'] }),
     ),
     joints: doors.flatMap((d) => ([['bottom', o.bottom], ['top', o.top]] as const).map(([end, face]) => makeJoint(`j-${d.id}-${end}`, d.id, pieceOf(face), 'dado', [], { depth: into, glue: false }))),
     hung: [],
@@ -667,7 +673,7 @@ interface ColumnSpec {
 
 /** A column of the grid, as `fill` takes it. */
 function gridColumn(l: Layout, i: number): ColumnSpec {
-  const { plan, n, half } = l
+  const { plan, n, seam } = l
   return {
     cells: plan.columns[i].cells,
     path: [i],
@@ -678,7 +684,7 @@ function gridColumn(l: Layout, i: number): ColumnSpec {
     bottom: 'bottom.y1',
     top: 'top.y0',
     // Overlay edges: over the outer sides almost to the edge, over a divider up to its middle.
-    overX: extent(i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, half + GAP / 2), i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, half - GAP / 2)),
+    overX: extent(i === 0 ? ref('furniture.x0', GAP) : ref(`div-${i}.x0`, seam.after), i === n - 1 ? ref('furniture.x1', -GAP) : ref(`div-${i + 1}.x0`, seam.before)),
     overBottom: ref('bottom.y0', GAP),
     overTop: l.over ? ref('top.y0', -GAP) : ref('furniture.y1', -GAP),
     span: [i === 0 ? 0 : l.columnEdges[i - 1], l.columnEdges[i]],
@@ -689,7 +695,7 @@ function gridColumn(l: Layout, i: number): ColumnSpec {
 
 /** One column: its fixed shelves between cells, and what each cell holds; a split cell gets its dividers and fills its own columns the same way. */
 function fill(l: Layout, spec: ColumnSpec): Filling {
-  const { half, build } = l
+  const { half, seam, build } = l
   const { cells, id, range } = spec
   const m = cells.length
   const nested = spec.path.length > 1
@@ -715,8 +721,8 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
     if (cell.content === 'void') return
     const bottom: FaceRef = j === 0 ? spec.bottom : `${id}-sep-${j}.y1`
     const top: FaceRef = j === m - 1 ? spec.top : `${id}-sep-${j + 1}.y0`
-    const overBottom = j === 0 ? spec.overBottom : ref(`${id}-sep-${j}.y0`, half + GAP / 2)
-    const overTop = j === m - 1 ? spec.overTop : ref(`${id}-sep-${j + 1}.y0`, half - GAP / 2)
+    const overBottom = j === 0 ? spec.overBottom : ref(`${id}-sep-${j}.y0`, seam.after)
+    const overTop = j === m - 1 ? spec.overTop : ref(`${id}-sep-${j + 1}.y0`, seam.before)
     // With the box on the ground the floor board's lower edge is the ground: a drawer front that covered it would drag.
     const dragging = cell.content === 'drawer' && l.plan.base === 'floor' && overBottom.type === 'ref' && overBottom.ref === 'bottom.y0'
     const cellId = `${id}-h${j + 1}`
@@ -763,7 +769,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
           right: c === k - 1 ? spec.right : `${cellId}-div-${c + 1}.x0`,
           bottom,
           top,
-          overX: extent(c === 0 ? spec.overX.from! : ref(`${cellId}-div-${c}.x0`, half + GAP / 2), c === k - 1 ? spec.overX.to! : ref(`${cellId}-div-${c + 1}.x0`, half - GAP / 2)),
+          overX: extent(c === 0 ? spec.overX.from! : ref(`${cellId}-div-${c}.x0`, seam.after), c === k - 1 ? spec.overX.to! : ref(`${cellId}-div-${c + 1}.x0`, seam.before)),
           overBottom,
           overTop,
           span: [s0 + (c === 0 ? 0 : edges[c - 1]) * (s1 - s0), s0 + edges[c] * (s1 - s0)],
@@ -798,14 +804,14 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
 
 /** With backs by cell, one board for each run of cells of a column that have one: over the outer boards whole, up to the middle of a divider or a shelf it shares. */
 function cellBacksOf(l: Layout, spec: ColumnSpec): Piece[] {
-  const { half } = l
+  const { t, meet } = l
   const { cells, id, range } = spec
   const m = cells.length
   const backed = cells.map((cell) => !cell.columns && cell.content !== 'void' && l.hasBack(cell))
-  const x = extent(spec.left === 'side-left.x1' ? ref('furniture.x0') : ref(spec.left, -half), spec.right === 'side-right.x0' ? ref('furniture.x1') : ref(spec.right, half))
+  const x = extent(spec.left === 'side-left.x1' ? ref('furniture.x0') : ref(spec.left, meet - t), spec.right === 'side-right.x0' ? ref('furniture.x1') : ref(spec.right, meet))
   // A column's own floor or roof, next to a void, is covered whole like the outer bottom and top.
-  const from = (j: number): Position => (j === 0 ? (spec.bottom === 'bottom.y1' ? l.boxFloor : ref(spec.bottom, -half)) : range && j === range.lo ? ref(`${id}-sep-${j}.y0`) : ref(`${id}-sep-${j}.y1`, -half))
-  const to = (j: number): Position => (j === m - 1 ? (spec.top === 'top.y0' ? ref('furniture.y1') : ref(spec.top, half)) : range && j === range.hi ? ref(`${id}-sep-${j + 1}.y1`) : ref(`${id}-sep-${j + 1}.y0`, half))
+  const from = (j: number): Position => (j === 0 ? (spec.bottom === 'bottom.y1' ? l.boxFloor : ref(spec.bottom, meet - t)) : range && j === range.lo ? ref(`${id}-sep-${j}.y0`) : ref(`${id}-sep-${j}.y1`, meet - t))
+  const to = (j: number): Position => (j === m - 1 ? (spec.top === 'top.y0' ? ref('furniture.y1') : ref(spec.top, meet)) : range && j === range.hi ? ref(`${id}-sep-${j + 1}.y1`) : ref(`${id}-sep-${j + 1}.y0`, meet))
   return runs(backed).map(([a, b], k) =>
     makePiece({
       id: `${id}-back-${k + 1}`,
@@ -943,7 +949,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const drawers = asked.map(({ bounds }, k): AddDrawer => ({ op: 'addDrawer', group: `drawer-${k + 1}`, name: `Cajón ${k + 1}`, ...bounds, front: build.drawerFronts === 'overlay' ? 'furniture.z1' : 'side-left.z1', back: l.backFace, material: plan.material, bottomMaterial: backBoard(catalog).id }))
 
   // A cabinet's plan does not say whether it is a bookcase or a wardrobe: its design has no `kind` and the checks by use read its name.
-  const design: Design = {
+  const shared: Design = {
     schema: 1,
     name: plan.name,
     dimensions: { width: plan.dimensions.width, height: plan.dimensions.height, depth: plan.dimensions.depth },
@@ -953,6 +959,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
     joints: [...stand.joints, ...topJoints(l), ...columns.flatMap((c) => c.joints)],
     ...(rods.length ? { rods } : {}),
   }
+  const design = wholeMillimetres(shared, catalog)
   const overlayOf = new Map(drawers.map((d, k) => [d.group, asked[k].overlay]))
   // An overlay front is the inset one grown over the edges and brought forward; the box follows it.
   const withFronts = (built: Design, drawer: AddDrawer): Design => {
