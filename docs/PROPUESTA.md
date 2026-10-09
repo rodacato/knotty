@@ -414,6 +414,8 @@ Los supuestos viven en `domain/assumptions.ts` como datos y cada regla en `domai
 
 El casco necesita al menos uno de: trasera ≥ 6 mm fijada en todo el perímetro; trasera de 3 mm pegada en rebaje; o marco rígido (al menos dos travesaños rígidos, uno de ellos zoclo, faja o un entrepaño fijo pegado en ranura). La regla y sus soluciones suponen una caja: un mueble abierto de varios marcos (un exhibidor escalonado) sale siempre crítico y sin solución que Knotty pueda construir; está en Preguntas abiertas. Si no: crítico con alto > 600 mm, recomendación si es menor. Con `wallAnchored` y una cubierta (o faja) fija unida a los dos costados, el anclaje escuadra el casco en el plano del muro: es solo recomendación (`check: 'racking.anchored'`) y dice por dónde va el anclaje, nunca por la trasera. Sin anclar y con dónde anclar, ofrece «anclar al muro»; sin pieza donde anclar sigue crítico.
 
+R5 no juzga una mesa sobre patas, y así se queda (2026-10-09): la regla busca dos costados y las patas no lo son. El módulo de mesa siempre pone faldón todo alrededor, atornillado a cada pata, así que una mesa de ficha no nace sin marco; una regla para ella no dispararía en ningún mueble que Knotty arma. Se reabre con un diseño real de mesa sin faldones (del experto pieza por pieza, o de una edición a mano).
+
 ### R6 — Puertas
 
 Bisagras por alto, como la tabla de Blum de [valores-de-referencia.md](carpinteria/valores-de-referencia.md) §8: ≤ 900 mm → 2; ≤ 1 600 → 3; ≤ 2 000 → 4; ≤ 2 400 → 5. La bisagra es la del montaje de la puerta (`door.hinge-mount`): recta si tapa todo el canto, codo si lo comparte con otra puerta, súper codo si va embutida; embutida contra sobrepuesta es crítico y recta contra codo, recomendación. Ancho > 600 mm → recomendación de dividir en dos hojas. Una hoja corrediza (D59) no cuelga de nada: ni bisagras ni ancho máximo. Una tapa de baúl (D62) tampoco lleva cazoletas ni ancho máximo; tiene tres revisiones propias, las tres recomendación: sin compás se azota (`lid.stay`); si pesa sobre su bisagra más de lo que detienen dos compases, 6 N·m, pide pistones o una tapa más chica (`lid.weight`); y si lo que tiene encima no la deja abrir 60° cuesta meter la mano (`lid.room`; el ángulo es de Knotty).
@@ -542,7 +544,6 @@ El código, los datos guardados y los prompts están en inglés; la interfaz y t
 - R5 en un mueble abierto que no es caja: se juzga por caja (ver «Invariantes») y tiene solución construible (fajas). Queda: ¿aplicarla sola en el primer diseño, como una reparación por reglas? Y la regla todavía ignora los `brace` diagonales que ponga el experto.
 - R5 y el anclaje al muro: resuelto con condiciones en D50. Queda abierto que el modelo no sabe dónde va el anclaje (`wallAnchored` es un booleano) y que el argumento es de estática, sin ensayo.
 - Patas de la cama: las patas bajo la esquina de lateral y cabecera dan unos 18 × 36 mm de contacto. ¿Alcanza esa unión, o hace falta otra?
-- Mesa con patas: faltan los faldones de los extremos, las patas de en medio pasando de 1200 mm y qué pasa con el entrepaño bajo en una mesa larga con patas.
 
 - Precios y SKU reales de triplay de pino 12/15/18 mm y trasera 3/6 mm en Home Depot MX.
 - Calibrar E del triplay de pino con una prueba casera (entrepaño cargado, medir flecha) cuando haya app.
