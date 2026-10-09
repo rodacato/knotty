@@ -1,5 +1,5 @@
 import type { Box } from '../../design/resolve'
-import { cabinetModule, type CabinetConstruction, type CabinetPlan, type CellChoice, type PlanCell, type PlanColumn } from './cabinet'
+import { cabinetModule, pullsIn, type CabinetConstruction, type CabinetPlan, type CellChoice, type PlanCell, type PlanColumn } from './cabinet'
 import { wholeNear } from './common'
 
 // Editing the inside of a cabinet by cutting and joining (UI-68): every operation returns a new plan, and each line it adds or removes is a board.
@@ -31,13 +31,14 @@ export function cellAt(plan: CabinetPlan, path: CellPath): PlanCell | null {
   return cell && !cell.columns ? cell : null
 }
 
-/** The cell at `path` choosing `key` on its own, or with `undefined` going back to the furniture's; null when the path does not reach a cell. */
+/** The cell at `path` choosing `key` on its own, or going back to the furniture's with `undefined` or with the value it would have anyway; null when the path does not reach a cell. */
 export function chooseInCell<K extends CellChoice>(plan: CabinetPlan, path: CellPath, key: K, value: CabinetConstruction[K] | undefined): CabinetPlan | null {
   const next = copy(plan)
   const cell = cellAt(next, path)
   if (!cell) return null
+  const inherited = key === 'pulls' ? pullsIn(next.construction, cell) : next.construction[key]
   const own = { ...cell.own, [key]: value }
-  if (value === undefined) delete own[key]
+  if (value === undefined || value === inherited) delete own[key]
   if (Object.keys(own).length) cell.own = own
   else delete cell.own
   // One sliding leaf covers half its opening and leaves the rest open: a cell that goes sliding closes with two, as its door did.

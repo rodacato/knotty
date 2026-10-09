@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { testReferences } from '../fixtures/references.test-util'
-import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, type CabinetPlan, type PlanCell } from './cabinet'
+import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, pullsIn, type CabinetPlan, type PlanCell } from './cabinet'
 import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, splitCell } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
@@ -88,6 +88,34 @@ describe('a choice of a cell', () => {
     expect(cellAt(chooseInCell(both, [0, 0], 'pulls', undefined)!, [0, 0])!.own).toEqual({ fronts: 'grooved' })
     expect(cellAt(chooseInCell(chosen, [0, 0], 'pulls', undefined)!, [0, 0])).not.toHaveProperty('own')
     expect(cellAt(p, [0, 0])!.own).toBeUndefined()
+  })
+
+  it('choosing what the furniture already has leaves the cell following it, so a later change to the whole piece reaches it', () => {
+    const p = sideboard
+    expect(p.construction.fronts).toBe('flat')
+    const same = chooseInCell(p, [0, 0], 'fronts', 'flat')!
+    expect(cellAt(same, [0, 0])).not.toHaveProperty('own')
+    const back = chooseInCell(chooseInCell(p, [0, 0], 'fronts', 'grooved')!, [0, 0], 'fronts', 'flat')!
+    expect(cellAt(back, [0, 0])).not.toHaveProperty('own')
+    const grooved = { ...same, construction: { ...same.construction, fronts: 'grooved' as const } }
+    expect(JSON.stringify(built(grooved).design)).toBe(JSON.stringify(built({ ...p, construction: grooved.construction }).design))
+    expect(JSON.stringify(built(grooved).design)).not.toBe(JSON.stringify(built(p).design))
+    expect(cellAt(chooseInCell(p, [0, 0], 'fronts', 'grooved')!, [0, 0])!.own).toEqual({ fronts: 'grooved' })
+  })
+
+  it('a pull the furniture does not say is the one the cell’s front takes: choosing that one pins nothing, another one does', () => {
+    const p = sideboard
+    expect(p.construction.pulls).toBeUndefined()
+    expect([pullsIn(p.construction, cellAt(p, [0, 0])!), pullsIn(p.construction, cellAt(p, [0, 1])!)]).toEqual(['none', 'notch'])
+    expect(cellAt(chooseInCell(p, [0, 0], 'pulls', 'none')!, [0, 0])).not.toHaveProperty('own')
+    const drawerNotch = chooseInCell(p, [0, 1], 'pulls', 'notch')!
+    expect(cellAt(drawerNotch, [0, 1])).not.toHaveProperty('own')
+    expect(cellAt(chooseInCell(p, [0, 0], 'pulls', 'notch')!, [0, 0])!.own).toEqual({ pulls: 'notch' })
+    expect(cellAt(chooseInCell(p, [0, 1], 'pulls', 'none')!, [0, 1])!.own).toEqual({ pulls: 'none' })
+    const handles = { ...drawerNotch, construction: { ...drawerNotch.construction, pulls: 'handle' as const } }
+    expect(pullsIn(handles.construction, cellAt(handles, [0, 1])!)).toBe('handle')
+    expect(JSON.stringify(built(handles).design)).toBe(JSON.stringify(built({ ...p, construction: handles.construction }).design))
+    expect(JSON.stringify(built(handles).design)).not.toBe(JSON.stringify(built(p).design))
   })
 
   it('a door that goes sliding closes with two leaves, since one would cover half its opening; going back keeps them', () => {
