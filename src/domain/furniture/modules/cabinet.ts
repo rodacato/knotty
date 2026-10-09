@@ -1217,11 +1217,10 @@ function ownWay(plan: CabinetPlan, content: PlanCell['content']): string {
 
 const doorLeavesAsked = (plan: CabinetPlan) => frontedCells(plan).reduce((n, c) => n + (c.content === 'door' ? Math.min(c.doors ?? 1, 2) : 0), 0)
 
-/** What is quick in a cabinet: its measures, the counts of drawers, doors and open niches, and the few choices that move the cost or the look most. */
+/** What is quick in a cabinet: its measures and the counts of drawers, doors and open niches. */
 const cabinetQuick: QuickSpec = {
   measures: true,
   counts: ['drawer', 'door', 'open'],
-  fields: ['base', 'construction.pulls', 'material'],
 }
 
 function cabinetBuiltAsAsked(plan: CabinetPlan, design: Design): string | null {

@@ -7,16 +7,13 @@ import { frontedCells, type CabinetPlan } from './modules/cabinet'
 import { countLimits, quickCounts, setCount } from './modules/cabinetCounts'
 import { buildPlan, MODULES } from './modules/plan'
 import { checkBuilt, fitToSpace, isQuick, measureLimits, spaceOverflow, summarizePlan } from './quick'
-import { valueFields } from './modules/fields'
 
 const cabinets = testReferences.all().flatMap((r) => (r.plan?.kind === 'cabinet' ? [[r.code, r.plan] as [string, CabinetPlan]] : []))
 const others = testReferences.all().flatMap((r) => (r.plan && r.plan.kind !== 'cabinet' ? [[r.code, r.plan] as const] : []))
 
 describe('what a module says is quick', () => {
-  it('only the cabinet declares it, and its quick fields are fields of its form', () => {
+  it('only the cabinet declares it', () => {
     expect(Object.values(MODULES).filter((m) => m.quick).map((m) => m.kind)).toEqual(['cabinet'])
-    const keys = valueFields(MODULES.cabinet.fields).map((f) => f.key)
-    for (const key of MODULES.cabinet.quick!.fields) expect(keys).toContain(key)
   })
 
   it('the shipped bases of other modules stay as they are', () => {
