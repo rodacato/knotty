@@ -1,5 +1,5 @@
 import { ArrowClockwise, ArrowLeft, ArrowRight, Camera, Image, Key, NotePencil, PlugsConnected, Plus, Trash, Warning } from '@phosphor-icons/react'
-import { useMemo, useRef, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { DesignKind } from '../../domain/design/kind'
 import { VIEWS, viewLabel, type View } from '../../domain/furniture/reading/reading'
 import { missing } from '../../ports/Preferences'
@@ -130,6 +130,9 @@ export function Capture() {
   const goHome = useStore((s) => s.goHome)
   const settingsOpen = useStore((s) => s.settingsOpen)
   const draft = useStore((s) => s.draft)
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
   const [kind, setKind] = useState<DesignKind | null>(draft?.kind ?? null)
   const [space, setSpace] = useState(() => spaceFromMm(draft?.space))
   const [photos, setPhotos] = useState<TakenPhoto[]>(
