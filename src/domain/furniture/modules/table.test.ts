@@ -6,7 +6,7 @@ import { estimatePurchase } from '../../estimate/purchase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { testReferences } from '../fixtures/references.test-util'
 import { gluedBlocks } from './assembly'
-import { buildTable, TablePlan } from './table'
+import { buildTable, tableModule, TablePlan } from './table'
 import { FurniturePlan } from './plan'
 
 const table = (p: Partial<TablePlan> = {}): TablePlan => ({
@@ -89,7 +89,8 @@ describe('buildTable', () => {
     const { design, notes } = buildTable(table(p), testCatalog)
     const a = analyze(design, testCatalog)
     if (!a.valid) throw new Error(JSON.stringify(a.errors.slice(0, 3)))
-    expect(notes).toEqual([])
+    // The drawers of a pedestal that does not say its pulls take a notch, and the notes say it.
+    expect(notes.map((n) => n.slice(0, 17))).toEqual(design.pieces.some((x) => x.role === 'drawer-front') ? ['Muesca para abrir'] : [])
     expect(a.findings.map((h) => h.message)).toEqual([])
   })
   it('carries a long top on cleats between the aprons, never more than 60 cm apart', () => {
@@ -145,7 +146,7 @@ describe('buildTable', () => {
       const { design, notes } = buildTable(table(p), testCatalog)
       const a = analyze(design, testCatalog)
       if (!a.valid) throw new Error(JSON.stringify(a.errors.slice(0, 3)))
-      expect(notes).toEqual([])
+      expect(notes.map((n) => n.slice(0, 17))).toEqual(design.pieces.some((x) => x.role === 'drawer-front') ? ['Muesca para abrir'] : [])
       expect(a.findings.map((h) => h.message)).toEqual([])
     })
 
@@ -521,25 +522,40 @@ describe('how the drawers of a desk pedestal are opened', () => {
     return { design, notes, a, bought, fronts: design.pieces.filter((p) => p.role === 'drawer-front') }
   }
 
-  it('a plan that does not say builds as it always did: no pull, no cut and nothing more to buy, the same as saying none', () => {
+  it('a plan that does not say takes a notch in each front, which sits inside its opening: the same as saying notch, and nothing more to buy', () => {
     const plain = withPulls()
     expect(oakDesk.pedestal.pulls).toBeUndefined()
-    expect([plain.design.pulls, plain.fronts.length, plain.fronts.some((p) => p.cuts), 'handle' in plain.bought]).toEqual([undefined, 3, false, false])
-    expect(withPulls('none').design).toEqual(plain.design)
+    expect([plain.design.pulls, plain.fronts.map((p) => p.cuts?.length), 'handle' in plain.bought]).toEqual(['notch', [1, 1, 1], false])
+    expect(plain.design).toEqual(withPulls('notch').design)
+  })
+
+  it('saying none leaves every front without a pull: no cut, and the design says nothing', () => {
+    const none = withPulls('none')
+    expect([none.design.pulls, none.fronts.some((p) => p.cuts), none.notes.some((n) => n.startsWith('Muesca')), 'handle' in none.bought]).toEqual([undefined, false, false, false])
+  })
+
+  it('the form shows the notch when nothing is said, and choosing none writes it and is named', () => {
+    const field = tableModule.fields.flatMap((f) => (f.type === 'section' ? f.fields : [f])).find((f) => 'key' in f && f.key === 'pedestal.pulls')!
+    if (field.type !== 'choice') throw new Error('the pulls are a choice')
+    expect(field.get(oakDesk)).toBe('notch')
+    const none = field.set(oakDesk, 'none')
+    expect(none.pedestal.pulls).toBe('none')
+    expect(tableModule.describeChanges(oakDesk, none)).toEqual(['cajones sin jaladeras'])
+    expect(tableModule.describeChanges(oakDesk, { ...oakDesk, pedestal: { ...oakDesk.pedestal, pulls: 'notch' } })).toEqual([])
   })
 
   it('with a notch every drawer front takes one in its top edge, the design says so, and nothing is bought for it', () => {
-    const [plain, notched] = [withPulls(), withPulls('notch')]
+    const [plain, notched] = [withPulls('none'), withPulls('notch')]
     expect(notched.fronts.map((p) => p.cuts?.length)).toEqual([1, 1, 1])
     expect(notched.fronts[0].cuts![0]).toMatchObject({ x: { from: 'center', length: 100 }, y: { from: 'end' } })
     expect(notched.design.pieces.filter((p) => p.cuts).map((p) => p.role)).toEqual(['drawer-front', 'drawer-front', 'drawer-front'])
     expect([notched.design.pulls, notched.bought]).toEqual(['notch', plain.bought])
     expect(notched.notes).toContain('Muesca para abrir en el canto de 3 frentes: se fresa con router, no se compra nada.')
-    expect(notched.a.findings).toEqual(plain.a.findings)
+    expect(notched.a.findings).toEqual(withPulls('handle').a.findings)
   })
 
   it('with handles the purchase lists one per drawer, and no front is cut', () => {
-    const [plain, handled] = [withPulls(), withPulls('handle')]
+    const [plain, handled] = [withPulls('none'), withPulls('handle')]
     expect(handled.bought).toEqual({ ...plain.bought, handle: 3 })
     expect([handled.design.pulls, handled.fronts.some((p) => p.cuts)]).toEqual(['handle', false])
   })

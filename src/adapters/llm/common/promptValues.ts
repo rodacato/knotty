@@ -57,7 +57,7 @@ const DOMAIN = {
   backJoins: phrased(ASSUMPTIONS.racking.backJoins, `${ASSUMPTIONS.racking.backJoins} perimeter`, 'three perimeter'),
   pocketScrews: value(pocketScrews(), ...new Set(ASSUMPTIONS.screws.pocketScrews.map((row) => inches(row.length)).filter((size) => !/^\d+"$/.test(size)))),
   defaultConstruction: value(
-    (Object.keys(CONSTRUCTION_LABEL) as (keyof CabinetConstruction)[]).map((k) => `${CONSTRUCTION_LABEL[k]} "${DEFAULT_CONSTRUCTION[k]}"`).join(', '),
+    (Object.keys(CONSTRUCTION_LABEL) as (keyof CabinetConstruction)[]).filter((k) => DEFAULT_CONSTRUCTION[k] !== undefined).map((k) => `${CONSTRUCTION_LABEL[k]} "${DEFAULT_CONSTRUCTION[k]}"`).join(', '),
   ),
   bedDrawerCount: value(`from 1 to ${MAX_DRAWERS_PER_SIDE}`),
   pedestalDrawerCount: value(`from 1 to ${MAX_PEDESTAL_DRAWERS}`),

@@ -52,6 +52,12 @@ describe('the shoe rack', () => {
     expect(built(rack({ front: 'doors', dimensions: { width: 500, height: 900, depth: 330 } })).design.pieces.filter((p) => p.role === 'door')).toHaveLength(1)
   })
 
+  it('its doors go over the front, so a plan that says no pull leaves them plain: no notch, no note and nothing said in the design', () => {
+    const { design, notes } = built(rack({ front: 'doors' }))
+    expect(design.pieces.filter((p) => p.cuts?.length)).toEqual([])
+    expect([design.pulls, design.pullsOf, notes]).toEqual([undefined, undefined, []])
+  })
+
   it('splits the door by the width of the leaf, not of the opening: a 630 mm rack takes two', () => {
     const { design } = built(rack({ front: 'doors', wallMounted: true, dimensions: { width: 630, height: 1000, depth: 380 } }))
     expect(design.pieces.filter((p) => p.role === 'door')).toHaveLength(2)

@@ -15,7 +15,7 @@ import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField,
 import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
-import { notchNote, withFrontCuts } from './fronts'
+import { notchNote, pullFor, withFrontCuts } from './fronts'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
 import { FRONT_GAP } from '../../editing/operations/drawer'
@@ -54,7 +54,7 @@ export const BedPlan = z.object({
     position: z.enum(['head', 'center', 'foot']).describe('If they do not fill the whole length, where they gather: head, center or foot'),
     mount: z.enum(['inset', 'overlay']).optional().describe('overlay: fronts cover the dividers'),
     style: z.enum(['flat', 'grooved']).optional(),
-    pulls: Pulls.optional(),
+    pulls: Pulls.optional().describe('absent: notch if inset'),
     corners: z.enum(['screwed', 'fingers']).optional().describe('Of the drawer boxes'),
     fingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Per corner; default ${DEFAULT_FINGERS}`),
   }),
@@ -99,7 +99,7 @@ function lipEdges(plan: BedPlan): Edge[] {
   return plan.headboard.style === 'none' ? ['left', 'right', 'head', 'foot'] : ['left', 'right', 'foot']
 }
 /** How the drawers are built, with what an absent choice means. */
-const drawerBuild = ({ drawers: d }: BedPlan) => ({ mount: d.mount ?? 'inset', style: d.style ?? 'flat', pulls: d.pulls ?? 'none', corners: d.corners ?? 'screwed', fingers: d.fingers ?? DEFAULT_FINGERS })
+const drawerBuild = ({ drawers: d }: BedPlan) => ({ mount: d.mount ?? 'inset', style: d.style ?? 'flat', pulls: pullFor(d.pulls, d.mount ?? 'inset'), corners: d.corners ?? 'screwed', fingers: d.fingers ?? DEFAULT_FINGERS })
 
 export const BED_LABELS = {
   mattress: {
@@ -726,7 +726,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
 }
 
 /** What an absent choice of the drawers means, said out loud: the bench's plans carry every key of the schema. */
-const PLAIN_DRAWERS = { mount: 'inset', style: 'flat', pulls: 'none', corners: 'screwed', fingers: DEFAULT_FINGERS } as const
+const PLAIN_DRAWERS = { mount: 'inset', style: 'flat', pulls: 'notch', corners: 'screwed', fingers: DEFAULT_FINGERS } as const
 
 function benchBeds(): [string, BedPlan][] {
   const variants: [string, BedPlan][] = []

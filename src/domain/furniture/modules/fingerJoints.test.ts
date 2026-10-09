@@ -99,7 +99,7 @@ describe('drawer boxes with fingers', () => {
   })
 
   it('leaves a cabinet with screwed drawers as it was', () => {
-    const { design, notes } = build(chest)
+    const { design, notes } = build({ ...chest, construction: { ...DEFAULT_CONSTRUCTION, pulls: 'none' } })
     expect(design.joints.some((u) => u.type === 'finger')).toBe(false)
     expect(design.pieces.every((p) => !p.cuts)).toBe(true)
     expect(notes).toEqual([])

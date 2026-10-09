@@ -1,6 +1,6 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
@@ -120,7 +120,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         )}
         {choicesFor(cell, plan.construction).map((key) => {
           const { label, options } = CABINET_LABELS.construction[key]
-          const furniture = (options as Record<string, string>)[plan.construction[key]]
+          const furniture = (options as Record<string, string>)[key === 'pulls' ? pullsIn(plan.construction, cell) : plan.construction[key]]
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>

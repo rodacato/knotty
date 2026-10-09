@@ -1,5 +1,5 @@
 import type { Box } from '../../design/resolve'
-import type { Cut, Design, FaceRef, Piece, Span } from '../../design/schema'
+import type { Cut, Design, FaceRef, Piece, Pulls, Span } from '../../design/schema'
 import { ASSUMPTIONS } from '../../assumptions'
 import { lifts, slides } from '../../design/doors'
 
@@ -19,6 +19,12 @@ const NOTCH_HEIGHT = 22
 const OUT = 1
 /** How much wider than its leaf a groove is cut, on each side, so the leaf runs free. */
 const GROOVE_PLAY = 1
+
+/** How a front sits: inside its opening, over the edges around it, sliding in its grooves, or lying as a lid. */
+export type FrontMount = 'inset' | 'overlay' | 'sliding' | 'lid'
+
+/** How a front is opened: as its plan says. When it says nothing, an inset front takes a notch, since it has no edge to pull by; any other is left as it is. */
+export const pullFor = (said: Pulls | undefined, mount: FrontMount): Pulls => said ?? (mount === 'inset' ? 'notch' : 'none')
 
 const isFront = (p: Piece) => p.role === 'door' || p.role === 'drawer-front'
 const span = (from: Span['from'], offset: number, length: number): Span => ({ from, offset, length })

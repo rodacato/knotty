@@ -13,7 +13,7 @@ import { maxSpan } from '../../checks/structure/rules/deflection'
 import { ASSUMPTIONS, pocketScrewId } from '../../assumptions'
 import { addDrawers, wholeMillimetres, CABLE_HOLE, CABLE_RISE, KICK_HEIGHT, KICK_SETBACK, LEG_LEAN, LEG_WIDTH, legLayers, lower, MAX_SPAN, measuresSummary, panelOf, supportsAcross, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort, DEFAULT_THICKNESS } from './common'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
-import { notchNote, withFrontCuts } from './fronts'
+import { notchNote, pullFor, withFrontCuts } from './fronts'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
@@ -34,7 +34,7 @@ export const TablePlan = z.object({
   pedestal: z.object({
     side: z.enum(['none', 'left', 'right']).describe('Which side the pedestal goes on, seen from the front of the desk'),
     drawers: z.number().int().min(0).max(MAX_PEDESTAL_DRAWERS).describe('How many drawers the pedestal has; 0 if there is none'),
-    pulls: Pulls.optional().describe('How its drawer fronts are opened: none (default), notch or handle'),
+    pulls: Pulls.optional().describe('How its drawer fronts are opened: none, notch or handle; absent: notch'),
   }),
   legs: z.enum(['panel', 'legs']).default('panel').describe('panel: two panel ends; legs: four straight legs from floor to top with an apron all round (the pedestal side keeps its panel); the height of the table is the length of the legs'),
   legStyle: LeaningLegStyle.optional().describe(LEANING_LEG_STYLE),
@@ -222,6 +222,9 @@ function pedestalBox(l: Layout, side: End): { pieces: Piece[]; drawers: AddDrawe
   }))
   return { pieces, drawers, bound: { face: side === 'left' ? 'ped-div.x1' : 'ped-div.x0', front: 'ped-div', back: 'ped-div' } }
 }
+
+/** How the plan opens the drawers of its pedestal, whose fronts sit inside their openings. */
+const pedestalPulls = (plan: TablePlan): Pulls => pullFor(plan.pedestal.pulls, 'inset')
 
 /** How the drawers of the pedestal are opened, once they are in place: a notch routed in each front, or a handle the purchase counts from the design. */
 function withPulls(design: Design, pulls: Pulls, catalog: Catalog): { design: Design; notes: string[] } {
@@ -411,7 +414,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const pieces = [top, ...ends(l), ...(box?.pieces ?? []), ...tied.pieces, ...held.pieces, ...shelf.pieces, ...low.pieces]
   const design = wholeMillimetres({ schema: 1, name: plan.name, dimensions: { ...plan.dimensions }, wallAnchored: false, notes: '', pieces, joints: tied.joints, kind: TABLE_KIND[plan.use] }, catalog)
   const placed = addDrawers(design, box?.drawers ?? [], catalog)
-  const opened = withPulls(placed.design, plan.pedestal.pulls ?? 'none', catalog)
+  const opened = withPulls(placed.design, pedestalPulls(plan), catalog)
   const hole = passesCables(plan) ? topHole(opened.design, catalog) : null
   const holed = hole ? { ...opened.design, pieces: opened.design.pieces.map((p) => (p.id === 'top' ? { ...p, holes: [hole] } : p)) } : opened.design
   const notes = [...shelf.notes, ...low.notes, ...placed.notes, ...opened.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...leanNote(l), ...roundsNote(plan, rounds.length), ...(passesCables(plan) ? [cableNote(hole)] : [])]
@@ -434,7 +437,7 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   if (stretcherOf(before) !== stretcherOf(after)) changes.push(TABLE_LABELS.stretcher[stretcherOf(after)].phrase)
   if (before.pedestal.side !== after.pedestal.side) changes.push(TABLE_LABELS.pedestal[after.pedestal.side].phrase)
   if (after.pedestal.side !== 'none' && before.pedestal.drawers !== after.pedestal.drawers) changes.push(`${after.pedestal.drawers} ${after.pedestal.drawers === 1 ? 'cajón' : 'cajones'} en la cajonera`)
-  if (after.pedestal.side !== 'none' && (before.pedestal.pulls ?? 'none') !== (after.pedestal.pulls ?? 'none')) changes.push(TABLE_LABELS.pulls[after.pedestal.pulls ?? 'none'].phrase)
+  if (after.pedestal.side !== 'none' && pedestalPulls(before) !== pedestalPulls(after)) changes.push(TABLE_LABELS.pulls[pedestalPulls(after)].phrase)
   return [...changes, ...describeAssembly(before, after), ...describeEdgeBanding(before, after)]
 }
 
@@ -451,7 +454,7 @@ function benchTables(): [string, TablePlan][] {
     ['banco', table('seat', 'Banco', { width: 1200, height: 450, depth: 350 }, { shelf: true })],
     ['banco para uno', table('seat', 'Banco', { width: 400, height: 450, depth: 350 }, { overhang: 30 })],
     ...([1, 2, 3, 4] as const).flatMap((drawers) =>
-      (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers, pulls: 'none' } })]),
+      (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
     ),
   ]
   const onLegs = variants.map(([name, plan]): [string, TablePlan] => [`${name} con patas`, { ...plan, legs: 'legs' }])
@@ -526,7 +529,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
       set: (p, side) => ({ ...p, pedestal: { ...p.pedestal, side, drawers: side === 'none' ? 0 : Math.max(1, p.pedestal.drawers) } }),
     }),
     stepper({ key: 'pedestal.drawers', label: 'Cajones', ariaLabel: 'cajones de la cajonera', min: 1, max: MAX_PEDESTAL_DRAWERS, visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: (p) => p.pedestal.drawers, set: (p, drawers) => ({ ...p, pedestal: { ...p.pedestal, drawers } }) }),
-    choice({ key: 'pedestal.pulls', label: 'Jaladeras', ...fromLabels(TABLE_LABELS.pulls), visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: (p) => p.pedestal.pulls ?? 'none', set: (p, pulls) => ({ ...p, pedestal: { ...p.pedestal, pulls } }) }),
+    choice({ key: 'pedestal.pulls', label: 'Jaladeras', ...fromLabels(TABLE_LABELS.pulls), visibleWhen: (p) => isDesk(p) && p.pedestal.side !== 'none', get: pedestalPulls, set: (p, pulls) => ({ ...p, pedestal: { ...p.pedestal, pulls } }) }),
     yesNo({ key: 'shelf', label: 'Repisa baja', visibleWhen: (p) => !isDesk(p), get: (p) => p.shelf, set: (p, shelf) => ({ ...p, shelf }) }),
   ]),
   section('Armado', [...assemblyFields<TablePlan>(), note('Cada extremo de la mesa se pega aparte, y los faldones largos con sus travesaños. La cubierta se atornilla encima al final.', (p) => !!p.assembly && p.assembly !== 'glued', 'assembly')]),
