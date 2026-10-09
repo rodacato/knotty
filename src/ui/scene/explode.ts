@@ -104,6 +104,9 @@ function openAssembly(a: Assembly, gap: number, boxOf: (p: Piece) => Box): Map<s
   }
   /** Out through the face it closes, past what slides out of the carcass. */
   const outward = (axis: Axis, sign: number) => along(axis, sign * (size(box, axis) / 2 + gap))
+  const backs = a.units.filter((u) => !isDrawer(u) && only(u).role === 'back')
+  /** A divider slides out of a carcass only when it stands against a back: a desk's legs and rails stay with their frame, beside its pedestal. */
+  const againstBack = (u: Unit, across: Axis) => backs.some((b) => AXES.filter((axis) => axis !== across).every((axis) => u.box[low(axis)] <= b.box[high(axis)] + TOLERANCE && u.box[high(axis)] >= b.box[low(axis)] - TOLERANCE))
   const forward = (share: number): Offset => (front ? along(front.axis, front.sign * size(box, front.axis) * share) : [0, 0, 0])
   const moveOf = (u: Unit): Offset => {
     if (isDrawer(u)) {
@@ -122,7 +125,7 @@ function openAssembly(a: Assembly, gap: number, boxOf: (p: Piece) => Box): Map<s
       case 'shelf':
         return forward(0.5)
       case 'divider':
-        return forward(0.25)
+        return front && againstBack(u, front.axis) ? forward(0.25) : [0, 0, 0]
       case 'apron':
         return along(n, (away(u, n) * gap) / 2)
       default:
