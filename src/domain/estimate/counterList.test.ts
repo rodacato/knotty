@@ -164,7 +164,7 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
       columns: [{ width: 1, cells: [{ ...cell, own: { pulls: 'notch' } }] }, { width: 1, cells: [cell] }],
     }
     const { design } = buildCabinet(plan, testCatalog)
-    expect(cutList(design, geoOf(design, testCatalog)).find((l) => l.name === 'Puerta de la columna')?.count).toBe(2)
+    expect(cutList(design, geoOf(design, testCatalog)).find((l) => l.name === 'Puerta de la columna 1 y 2')?.count).toBe(2)
     const doors = said(design).split('\n').flatMap((line, i, all) => (/\. Puerta de la columna \d/.test(line) ? [[line.replace(/^\d+/, '#'), all[i + 1]]] : []))
     expect(doors).toHaveLength(2)
     const [notched, plain] = doors

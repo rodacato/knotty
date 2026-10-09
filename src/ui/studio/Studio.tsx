@@ -24,7 +24,7 @@ import { InvalidCanvas } from './InvalidCanvas'
 import { PieceSheet } from './PieceSheet'
 import { StatusChip } from './StatusChip'
 import { useStatuses } from './statuses'
-import { useStudioView } from './view'
+import { overlayAfter, useStudioView, type Overlay } from './view'
 import { named } from '../../application/named'
 import { currentPlan, fichaOrigin } from '../../application/useCases'
 import { measuresSummary } from '../../domain/furniture/modules/common'
@@ -228,9 +228,8 @@ function CopyFichaLink({ state, code }: { state: DesignState; code: string }) {
   )
 }
 
-type Overlay = 'notices' | 'history'
-
-function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; onOpen: (o: Overlay) => void }) {
+/** `editing`: notices and history give way to the edit panel, so their buttons wait for it to end. */
+function Header({ state, shown, pending, overlay, editing, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; editing: boolean; onOpen: (o: Overlay) => void }) {
   const debugVisible = useStore((s) => s.debugVisible)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
@@ -256,10 +255,10 @@ function Header({ state, shown, pending, overlay, onOpen }: { state: DesignState
       <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
         <MagnifyingGlass />
       </Button>
-      <Button variant="ghost" className={`gap-1 px-2 text-xs ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title="Historial">
+      <Button variant="ghost" className={`gap-1 px-2 text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
         <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
       </Button>
-      <Button variant="ghost" className={`relative px-2 ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title="Avisos">
+      <Button variant="ghost" className={`relative px-2 disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
         <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
         {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
       </Button>
@@ -312,7 +311,11 @@ export function Studio({ state }: { state: DesignState }) {
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
   // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
   const [overlay, setOverlay] = useState<Overlay | null>(null)
-  const toggleOverlay = (o: Overlay) => setOverlay((v) => (v === o ? null : o))
+  const showOverlay = (o: Overlay | null) => {
+    if (o && view.showsPiece) selectPiece(null)
+    setOverlay(o)
+  }
+  const toggleOverlay = (o: Overlay) => showOverlay(overlayAfter(overlay, o, view.showsPiece))
   const toChat = () => {
     setOverlay(null)
     setTab('chat')
@@ -338,7 +341,7 @@ export function Studio({ state }: { state: DesignState }) {
     noticesOpen: overlay === 'notices',
     dismissedResolved,
     onDismissResolved: () => setDismissedResolved(state.current),
-    onNotices: () => setOverlay('notices'),
+    onNotices: () => showOverlay('notices'),
     onProposal: toChat,
   })
 
@@ -355,7 +358,7 @@ export function Studio({ state }: { state: DesignState }) {
           detail={named(shown, view.problems[0]?.message)}
           previous={view.previousVersion}
           onBack={() => view.previousVersion !== null && backToVersion(view.previousVersion)}
-          onNotices={() => setOverlay('notices')}
+          onNotices={() => showOverlay('notices')}
         />
       )}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start justify-between gap-2 md:inset-x-4 md:top-4">
@@ -454,7 +457,7 @@ export function Studio({ state }: { state: DesignState }) {
 
   return (
     <div className="flex h-dvh flex-col">
-      <Header state={state} shown={shown} pending={board.pending.length} overlay={overlay} onOpen={toggleOverlay} />
+      <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} />
       {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {scene}

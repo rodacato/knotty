@@ -7,13 +7,21 @@ import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../furnitu
 import { afterCut, afterCutText, cutList } from './cutList'
 
 describe('cut list names', () => {
-  it('names a row after what its pieces share, or after both when they only share the end', () => {
+  it('names every piece of a row, a run of numbers said once', () => {
     const r = applyOperations({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, depth: 500 } }, [
       { op: 'addDrawer', group: 'drawer-1', name: 'Cajón 1', left: 'side-left.x1', right: 'side-right.x0', bottom: 'bottom.y1', top: 'shelf-1.y0', front: 'furniture.z1', back: 'back.z1', material: 'T15', bottomMaterial: 'TR6' },
     ], testCatalog)
     if (!r.ok) throw new Error('no drawer')
     const names = cutList(r.value.design, analyze(r.value.design, testCatalog).geo!).map((row) => row.name)
-    expect(names).toEqual(expect.arrayContaining(['Entrepaño', 'Lateral', 'Costado de cajón 1', 'Contrafrente y trasera de cajón 1']))
+    expect(names).toEqual(expect.arrayContaining(['Entrepaño 1 a 4', 'Lateral izquierdo, Lateral derecho', 'Costado izquierdo de cajón 1, Costado derecho de cajón 1', 'Contrafrente de cajón 1, Trasera de cajón 1']))
+  })
+
+  it('never drops the column of a piece when a row holds the shelves of two columns', () => {
+    const cell = { height: 1, content: 'open', shelves: 5, doors: null } as const
+    const { design } = buildCabinet({ kind: 'cabinet', name: 'Librero', dimensions: { width: 1200, height: 1800, depth: 300 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [cell] }, { width: 1, cells: [cell] }] }, testCatalog)
+    const rows = cutList(design, analyze(design, testCatalog).geo!)
+    expect(rows.find((row) => row.count === 10)?.name).toBe('Repisa 1 a 5 de la columna 1 y 2')
+    expect(new Set(rows.map((row) => row.name)).size).toBe(rows.length)
   })
 })
 
@@ -42,10 +50,10 @@ describe('what a line still needs once cut to size', () => {
   })
 
   it('names the notch on the fronts that have one, and counts them when only some of a line do', () => {
-    expect(said(sideboard({ construction: { ...DEFAULT_CONSTRUCTION, pulls: 'notch' } }))).toEqual({ 'Puerta de la columna': 'Después de cortarlas: saques o ranuras' })
+    expect(said(sideboard({ construction: { ...DEFAULT_CONSTRUCTION, pulls: 'notch' } }))).toEqual({ 'Puerta de la columna 1 y 2': 'Después de cortarlas: saques o ranuras' })
     const [first, second] = sideboard({}).columns
     const oneNotched = sideboard({ columns: [{ ...first, cells: [{ ...first.cells[0], own: { pulls: 'notch' } }] }, second] })
-    expect(said(oneNotched)).toEqual({ 'Puerta de la columna': 'Después de cortarlas: 1 de 2 con saques o ranuras' })
+    expect(said(oneNotched)).toEqual({ 'Puerta de la columna 1 y 2': 'Después de cortarlas: 1 de 2 con saques o ranuras' })
   })
 
   it('puts both on a single board that has both', () => {
