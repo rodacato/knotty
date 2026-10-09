@@ -39,6 +39,8 @@ export interface CounterLine {
 
 export interface CounterBlock {
   material: BoardMaterial
+  /** The material with its thickness, said once. */
+  name: string
   sheets: number
   unplaced: string[]
   lines: CounterLine[]
@@ -149,7 +151,8 @@ export function counterLines(design: Design, geo: Geometry, purchase: Purchase):
     const groups = groupsOf(design, geo, material.id)
     if (!groups.length) return []
     const unplaced = purchase.layout.find((l) => l.material === material.id)?.unplaced.map((p) => p.name) ?? []
-    return [{ material, sheets, unplaced, lines: groups.map((group) => lineOf(design, group, ++number)) }]
+    const name = material.name.includes(`${material.thickness} mm`) ? material.name : `${material.name} ${material.thickness} mm`
+    return [{ material, name, sheets, unplaced, lines: groups.map((group) => lineOf(design, group, ++number)) }]
   })
 }
 
@@ -168,11 +171,10 @@ function readingNote({ trim, kerf }: LayoutSettings): string {
 /** The cut list as a message for the lumberyard's counter: the lines of `counterLines`, in plain text. */
 export function counterList(design: Design, geo: Geometry, purchase: Purchase, cut: LayoutSettings): string {
   const text = [`Lista de corte: ${design.name}`, readingNote(cut), 'Medidas en mm. El largo va con la veta.']
-  for (const { material, sheets, unplaced, lines } of counterLines(design, geo, purchase)) {
-    const named = material.name.includes(`${material.thickness} mm`) ? material.name : `${material.name} ${material.thickness} mm`
+  for (const { material, name, sheets, unplaced, lines } of counterLines(design, geo, purchase)) {
     text.push(
       '',
-      `${named} · ${sheets} ${sheets === 1 ? 'hoja' : 'hojas'} de ${material.sheet.width} × ${material.sheet.length}`,
+      `${name} · ${sheets} ${sheets === 1 ? 'hoja' : 'hojas'} de ${material.sheet.width} × ${material.sheet.length}`,
       ...(unplaced.length ? [`No caben en una hoja: ${unplaced.join(', ')}. Cuentan como hoja aparte.`] : []),
       '',
       ...lines.flatMap(lineText),

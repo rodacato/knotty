@@ -178,7 +178,7 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
     const turned = lined(changed(exampleBookcase, 'shelf-1', { grain: 'width' })).flatMap((block) => block.lines).find((l) => l.names === 'Entrepaño 1')!
     expect(turned).toMatchObject({ length: 294, width: 514, count: 1, rounded: false, grain: 'veta a lo largo (294)', banding: 'cubrecanto: un ancho', after: null, ids: ['shelf-1'] })
     const shortSheets = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
-    expect(lined(exampleBookcase, shortSheets).map((block) => [block.material.id, block.unplaced])).toEqual([['T18', []], ['TR6', ['Trasera']]])
+    expect(lined(exampleBookcase, shortSheets).map((block) => [block.name, block.unplaced])).toEqual([['Triplay de pino 18 mm', []], ['Triplay de pino 6 mm (trasera)', ['Trasera']]])
   })
 })
 

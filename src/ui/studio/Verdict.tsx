@@ -95,7 +95,8 @@ function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onReques
   )
 }
 
-export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void }) {
+/** `children` sits under the verdict and what it asks to fix, before the checks: what the person does with a reviewed design. */
+export function VerdictCard({ verdict, design, onRequest, children }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void; children?: React.ReactNode }) {
   const review = useStore((s) => s.review)
   const reviewing = useStore((s) => s.reviewing)
   const thinking = useStore((s) => s.thinking)
@@ -130,6 +131,8 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
           ))}
         </ul>
       )}
+
+      {children}
 
       <div>
         <p className="text-sm font-medium">Las cuentas</p>

@@ -15,8 +15,10 @@ export function CutList({ blocks }: { blocks: CounterBlock[] }) {
       {blocks.map((b) => (
         <div key={b.material.id} className="flex flex-col gap-1.5">
           <p className="flex items-baseline justify-between gap-3 text-sm font-medium">
-            {b.material.name}
-            <span className="numerals shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-normal">{b.material.thickness} mm</span>
+            {b.name}
+            <span className="numerals shrink-0 rounded-full border border-line px-2 py-0.5 text-xs font-normal">
+              {b.sheets} {b.sheets === 1 ? 'hoja' : 'hojas'}
+            </span>
           </p>
           <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-2xl border border-line bg-bone">
             {b.lines.map((r) => (
