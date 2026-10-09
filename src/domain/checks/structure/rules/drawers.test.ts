@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { analyze } from '../../analysis'
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../../design/builders'
 import type { Design } from '../../../design/schema'
+import { gapBetween } from '../../../design/validation/contact'
+import { cutList } from '../../../estimate/cutList'
+import { ASSUMPTIONS } from '../../../assumptions'
 import { testCatalog } from '../../../furniture/fixtures/catalog.test-util'
 import { exampleBookcase } from '../../../furniture/fixtures/bookcase'
 import { completeJoints } from '../../../design/joints'
@@ -37,6 +40,77 @@ const r9 = (d: Design) => {
   return a.findings.filter((h) => h.code === 'R9_DRAWERS')
 }
 
+const geometry = (d: Design) => {
+  const a = analyze(d, testCatalog)
+  if (!a.valid) throw new Error(JSON.stringify(a.errors))
+  return a.geo
+}
+/** The pieces that do not start and end at a whole millimetre across the furniture, where a slide's gap is: the fixture's heights are not whole. */
+const fractional = (d: Design) => {
+  const { boxes } = geometry(d)
+  return d.pieces.filter((p) => [boxes.get(p.id)!.x0, boxes.get(p.id)!.x1].some((mm) => Math.abs(mm - Math.round(mm)) > 1e-6)).map((p) => p.id)
+}
+/** The drawer of `build(deep, [drawer()])` with its box this far from each side of the carcass. */
+const boxAt = (d: Design, gap: number): Design => ({
+  ...d,
+  pieces: d.pieces.map((p) =>
+    p.id === 'drawer-1-side-left'
+      ? { ...p, x: startAt(ref('side-left.x1', gap)) }
+      : p.id === 'drawer-1-side-right'
+        ? { ...p, x: endAt(ref('side-right.x0', -gap)) }
+        : p.id === 'drawer-1-bottom'
+          ? { ...p, x: extent(ref('side-left.x1', gap), ref('side-right.x0', -gap)) }
+          : p,
+  ),
+})
+/** The gap the box leaves on each side once it is cut to the measures the cut list prints. */
+const printedGap = (d: Design) => {
+  const { boxes } = geometry(d)
+  const opening = boxes.get('side-right')!.x0 - boxes.get('side-left')!.x1
+  const side = (id: string) => boxes.get(id)!.x1 - boxes.get(id)!.x0
+  const across = cutList(d, geometry(d)).find((l) => l.ids.includes('drawer-1-subfront'))!.length
+  return (opening - across - side('drawer-1-side-left') - side('drawer-1-side-right')) / 2
+}
+
+describe('what Knotty builds toward a slide aims at the middle of what the slide takes', () => {
+  const declared = build(deep, [drawer()])
+
+  it.each([
+    ['too tight, with its runner joints', 8, declared, 'drawer.slide-clearance'],
+    ['too loose, with its runner joints', 16, declared, 'drawer.slide-clearance'],
+    ['too tight, freeform', 8, freeform(declared), 'drawer.slide-gap'],
+    ['too loose, freeform', 16, freeform(declared), 'drawer.slide-gap'],
+  ])('a box %s is told to leave the gap a new drawer gets, and comes out whole', (_, gap, base, check) => {
+    const wrong = boxAt(base, gap)
+    const found = r9(wrong)
+    expect(found.map((h) => [h.check, h.severity, h.data.needs])).toEqual(Array(2).fill([check, 'critical', 12.7]))
+    const alternatives = found.flatMap((h) => h.alternatives)
+    expect(alternatives).toEqual(Array(2).fill({ key: 'fit-box', description: 'Dejar 13 mm por lado entre la caja y el mueble', data: { clearance: ASSUMPTIONS.drawers.boxClearance } }))
+    const fitted = boxAt(wrong, alternatives[0].data.clearance as number)
+    expect(r9(fitted)).toEqual([])
+    expect(printedGap(fitted)).toBe(13)
+    expect(fractional(fitted)).toEqual([])
+  })
+
+  it.each([
+    ['with its runner joints', declared],
+    ['freeform', freeform(declared)],
+  ])('a box at exactly what the slide asks, %s, is left as it is: nothing to report and nothing to repair', (_, base) => {
+    const saved = boxAt(base, 12.7)
+    expect(analyze(saved, testCatalog)).toMatchObject({ valid: true, findings: [] })
+    expect(printedGap(boxAt(base, 13.5))).toBe(13.5)
+    expect(r9(boxAt(base, 13.5))).toEqual([])
+  })
+
+  it.each([
+    ['with its runner joints', declared],
+    ['freeform', freeform(declared)],
+  ])('the band the rule takes is the slide’s, %s: a tenth under what it asks or a tenth over its tolerance is still refused', (_, base) => {
+    expect(r9(boxAt(base, 12.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('La corredera necesita 12.7 mm')))
+    expect(r9(boxAt(base, 13.6)).map((h) => h.message)).toEqual(Array(2).fill(expect.stringContaining('la corredera ocupa 12.7')))
+  })
+})
+
 describe('R9 for freeform drawers', () => {
   it('reads the carcass sides as runner supports when they sit at the runner gap', () => {
     expect(r9(freeform(build(deep, [drawer()])))).toEqual([])
@@ -68,7 +142,12 @@ describe('R9 for freeform drawers', () => {
     expect(finding).toMatchObject({ severity: 'critical', message: expect.stringContaining('no tiene dónde atornillar la corredera') })
     const [fix] = fixesFor(d, testCatalog, finding)
     expect(fix.key).toBe('slide-support')
+    expect(finding.alternatives[0].description).toBe('Una pieza junto al cajón, a 13 mm, para la corredera')
     expect(r9(fix.design).filter((h) => h.severity === 'critical')).toEqual([])
+    const { boxes } = geometry(fix.design)
+    expect(gapBetween(boxes.get('support-drawer-1-left')!, boxes.get('drawer-1-side-left')!)?.distance).toBe(ASSUMPTIONS.drawers.boxClearance)
+    expect(boxes.get('support-drawer-1-left')!.x0).toBe(120 - 13 - 18)
+    expect(fractional(fix.design)).toEqual([])
     expect(fix.design.joints.some((u) => u.type === 'drawer-slide' && u.a === 'drawer-1-side-left')).toBe(true)
   })
 

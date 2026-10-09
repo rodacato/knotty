@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import type { Design } from '../../design/schema'
+import { faceSize } from '../../design/resolve'
+import { gapBetween } from '../../design/validation/contact'
+import { ASSUMPTIONS } from '../../assumptions'
 import type { RuleCode } from '../../checks/structure/finding'
 import { exampleWallCabinet } from '../../furniture/fixtures/wallCabinet'
 import { exampleNightstand } from '../../furniture/fixtures/nightstand'
@@ -174,7 +177,14 @@ describe('fixes for hardware and drawers', () => {
     expect(unsupported.length).toBeGreaterThan(1)
     const [fix] = fixesFor(open, testCatalog, unsupported[0])
     expect(fix.operations.map((o) => o.op)).toEqual(['addPiece', 'addJoint'])
-    expect(fix.design.pieces.some((p) => p.name === name)).toBe(true)
+    const support = fix.design.pieces.find((p) => p.name === name)!
+    const runner = fix.design.joints.find((u) => u.type === 'drawer-slide' && u.b === support.id)!
+    const after = analyze(fix.design, testCatalog)
+    if (!after.valid) throw new Error(after.errors[0].message)
+    const [beside, box] = [after.geo.boxes.get(support.id)!, after.geo.boxes.get(runner.a)!]
+    expect(gapBetween(beside, box)?.distance).toBe(ASSUMPTIONS.drawers.boxClearance)
+    expect([beside.x0, ...faceSize(beside, support.normal)].filter((mm) => !Number.isInteger(mm))).toEqual([])
+    expect(unsupported[0].alternatives.map((a) => a.description)).toEqual(['Una pieza junto al cajón, a 13 mm, para la corredera'])
     expect(findings(fix.design).filter((h) => h.check === 'drawer.no-slide-support')).toHaveLength(unsupported.length - 1)
     // One click for the whole notice would support only the first drawer: it is left to the expert.
     expect(fixForAlternative(open, testCatalog, unsupported, 'slide-support')).toBeNull()

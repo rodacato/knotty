@@ -1,7 +1,7 @@
 import { startAt, endAt, makePiece, ref, extent, makeJoint } from '../../design/builders'
 import type { FaceRef, Piece, Joint } from '../../design/schema'
 import { parseFace, type Geometry } from '../../design/resolve'
-import { hardwareByRole, materialById, pickHardware, slideFor, slidesOf, SLIDE_BACK_CLEARANCE, type Catalog } from '../../materials/catalog'
+import { builtSideClearance, hardwareByRole, materialById, pickHardware, slideFor, slidesOf, SLIDE_BACK_CLEARANCE, type Catalog } from '../../materials/catalog'
 import { ASSUMPTIONS } from '../../assumptions'
 import { error, type DesignError } from '../../design/validation/errors'
 
@@ -62,7 +62,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
   }
   const width = geo.measure({ type: 'ref', ref: c.right, offset: 0 }, 'x') - geo.measure({ type: 'ref', ref: c.left, offset: 0 }, 'x')
   const height = geo.measure({ type: 'ref', ref: c.top, offset: 0 }, 'y') - geo.measure({ type: 'ref', ref: c.bottom, offset: 0 }, 'y')
-  const gap = Math.max(ASSUMPTIONS.drawers.boxClearance, runner.sideClearance)
+  const gap = builtSideClearance(runner.sideClearance)
   if (width < 2 * gap + 150 || height < MIN_DRAWER_OPENING_HEIGHT)
     return error('E_INVALID_OPERATION', `El hueco de ${Math.round(width)} × ${Math.round(height)} mm es muy chico para un cajón.`, { width: Math.round(width), height: Math.round(height) })
 
