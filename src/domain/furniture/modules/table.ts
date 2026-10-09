@@ -23,7 +23,7 @@ export const MAX_PEDESTAL_DRAWERS = 4
 
 export const TablePlan = z.object({
   kind: z.literal('table'),
-  use: z.enum(['dining', 'coffee', 'side', 'desk', 'standing']).describe('dining: dining table; coffee: coffee table; side: side table or nightstand; desk: desk to sit at; standing: work surface to stand at, a workbench or a standing desk'),
+  use: z.enum(['dining', 'coffee', 'side', 'desk', 'standing', 'seat']).describe('dining: dining table; coffee: coffee table; side: side table or nightstand; desk: desk to sit at; standing: work surface to stand at, a workbench or a standing desk; seat: a stool or a bench with no back, its top is sat on'),
   name: z.string().describe('Name of the furniture for the person, in Spanish: "Escritorio con cajonera", "Mesa de centro"'),
   material: z.string().describe('Plywood id, usually "T18"'),
   dimensions: z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() }).describe('Outside length (width), height and depth in mm'),
@@ -49,6 +49,7 @@ export const TABLE_LABELS = {
     side: { option: 'Lateral', name: 'Mesa lateral' },
     desk: { option: 'Escritorio', name: 'Escritorio' },
     standing: { option: 'De pie', name: 'Mesa de trabajo' },
+    seat: { option: 'Asiento', name: 'Banco' },
   } satisfies Record<TablePlan['use'], { option: string; name: string }>,
   pedestal: {
     none: { option: 'Sin cajonera', phrase: 'sin cajonera' },
@@ -72,6 +73,8 @@ export const TYPICAL_TABLE_DIMENSIONS: Record<TablePlan['use'], TablePlan['dimen
   side: { width: 500, height: 550, depth: 400 },
   desk: { width: 1200, height: 750, depth: 600 },
   standing: { width: 1500, height: 900, depth: 700 },
+  // The reference's bench: a seat 450 high and 350 deep (muebles-y-medidas.md §2.2), 1 200 long for two people (estructura.md §7.2).
+  seat: { width: 1200, height: 450, depth: 350 },
 }
 
 const APRON = 80
@@ -85,9 +88,9 @@ const MAX_END_INSET = 50
 const TOP_ROUND = 40
 
 /** What each use is, for the checks by kind of furniture: the design says it, so renaming it does not change them. */
-export const TABLE_KIND: Record<TablePlan['use'], DesignKind> = { dining: 'diningTable', coffee: 'coffeeTable', side: 'sideTable', desk: 'desk', standing: 'workbench' }
+export const TABLE_KIND: Record<TablePlan['use'], DesignKind> = { dining: 'diningTable', coffee: 'coffeeTable', side: 'sideTable', desk: 'desk', standing: 'workbench', seat: 'bench' }
 
-const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium', standing: 'heavy' }
+const LOAD: Record<TablePlan['use'], Piece['load']> = { dining: 'medium', coffee: 'light', side: 'light', desk: 'medium', standing: 'heavy', seat: 'heavy' }
 
 export const TABLE_SOURCES: Record<string, Source> = {
   MAX_PEDESTAL_DRAWERS: noReference('Module limit: the pedestal supports up to four drawers; not a hardware rating.'),
@@ -257,7 +260,7 @@ function supports(l: Layout, open: Open): { pieces: Piece[]; middleLegs: number 
   return { pieces, middleLegs: middle }
 }
 
-/** The low shelf of a coffee or side table or a workbench, on short feet; a desk and a long table on legs take none, and say why. */
+/** The low shelf of a coffee or side table, a workbench or a bench, on short feet; a desk and a long table on legs take none, and say why. */
 function lowShelf(l: Layout, open: Open, middleLegs: number): { pieces: Piece[]; notes: string[] } {
   const { plan, panel, t, desk } = l
   if (!plan.shelf) return { pieces: [], notes: [] }
@@ -387,6 +390,8 @@ function benchTables(): [string, TablePlan][] {
     ['escritorio', table('desk', 'Escritorio', { width: 1200, height: 750, depth: 600 })],
     ['mesa de trabajo', table('standing', 'Mesa de trabajo', { width: 1500, height: 900, depth: 700 }, { overhang: 30, shelf: true })],
     ['escritorio de pie', table('standing', 'Escritorio de pie', { width: 1200, height: 1050, depth: 700 }, { overhang: 30 })],
+    ['banco', table('seat', 'Banco', { width: 1200, height: 450, depth: 350 }, { shelf: true })],
+    ['banco para uno', table('seat', 'Banco', { width: 400, height: 450, depth: 350 }, { overhang: 30 })],
     ...([1, 2, 3, 4] as const).flatMap((drawers) =>
       (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),
     ),

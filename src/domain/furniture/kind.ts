@@ -56,7 +56,8 @@ export function startingKind(sources: { person: DesignKind | null; built: KnownK
 export function kindChange(design: Design, plan: FurniturePlan | null, kind: DesignKind): 'same' | 'in-place' | 'redo' {
   if (design.kind === kind && design.kindSource === 'person') return 'same'
   if (!plan) return 'in-place'
-  return MODULE_OF_KIND[kind] === plan.kind ? 'in-place' : 'redo'
+  // A bench has no module of its own, and a table's plan can still say it: its use for sitting.
+  return MODULE_OF_KIND[kind] === plan.kind || (plan.kind === 'table' && !!TABLE_USE[kind]) ? 'in-place' : 'redo'
 }
 
 /** A plan the person changed by hand that changes the kind (a table's use) is their choice. */

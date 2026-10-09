@@ -34,7 +34,7 @@ const CASES: [string, Partial<TablePlan>][] = [
 ]
 
 describe('table option consistency', () => {
-  it.each(['dining', 'coffee', 'side', 'standing'] as const)('%s cannot silently keep a desk pedestal', (use) => {
+  it.each(['dining', 'coffee', 'side', 'standing', 'seat'] as const)('%s cannot silently keep a desk pedestal', (use) => {
     const parsed = FurniturePlan.safeParse(table({ use, pedestal: { side: 'left', drawers: 2 } }))
     expect(parsed.success).toBe(false)
     expect(parsed.error?.issues).toContainEqual(expect.objectContaining({ path: ['pedestal'], message: expect.stringContaining('Solo un escritorio') }))
@@ -246,6 +246,34 @@ describe('a table to work at standing', () => {
   it('is judged from 850 to 1100 mm, and a seated height is too low for it', () => {
     expect(findingsOf({ ...standing, dimensions: { ...standing.dimensions!, height: 900 } })).toEqual([])
     expect(findingsOf({ ...standing, dimensions: { ...standing.dimensions!, height: 760 } }).map((f) => f.check)).toEqual(['workbench.height'])
+  })
+})
+
+describe('a table to sit on', () => {
+  const seat: Partial<TablePlan> = { use: 'seat', name: 'Banco', dimensions: { width: 1200, height: 450, depth: 350 }, overhang: 0 }
+  const built = (p: Partial<TablePlan>) => {
+    const { design, notes } = buildTable(table(p), testCatalog)
+    const a = analyze(design, testCatalog)
+    if (!a.valid) throw new Error(a.errors[0].message)
+    return { design, notes, checks: a.findings.map((f) => f.check) }
+  }
+
+  it('is a bench whose top carries a person: a heavy load, and more cleats under it than the same top as a coffee table', () => {
+    const cleats = (p: Partial<TablePlan>) => built(p).design.pieces.filter((x) => /Travesaño/.test(x.name)).length
+    const bench = built(seat)
+    expect([bench.design.kind, bench.design.pieces.find((p) => p.id === 'top')!.load, bench.checks]).toEqual(['bench', 'heavy', []])
+    expect(cleats(seat)).toBeGreaterThan(cleats({ ...seat, use: 'coffee' }))
+  })
+
+  it('is judged as a seat: a stool at counter height is told so, and the same stool at 450 is not', () => {
+    const stool = (height: number) => built({ ...seat, dimensions: { width: 340, height, depth: 290 } }).checks
+    expect([stool(650), stool(450)]).toEqual([['bench.height'], []])
+  })
+
+  it('takes a low shelf, and neither a pedestal nor a cable pass', () => {
+    expect(built({ ...seat, shelf: true }).design.pieces.some((p) => p.id === 'low-shelf')).toBe(true)
+    const wired = built({ ...seat, cable: true })
+    expect(['holes' in wired.design.pieces.find((p) => p.id === 'top')!, wired.notes]).toEqual([false, []])
   })
 })
 
