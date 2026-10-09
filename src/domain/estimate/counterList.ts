@@ -1,7 +1,7 @@
 import { EDGE_SIDE } from '../design/edges'
 import { faceAxes, roundTo, type Box, type Geometry } from '../design/resolve'
 import type { Axis, Design, Piece } from '../design/schema'
-import type { LayoutSettings } from '../materials/catalog'
+import type { BoardMaterial, LayoutSettings } from '../materials/catalog'
 import { afterCut, afterCutText } from './cutList'
 import type { Purchase } from './purchase'
 
@@ -17,9 +17,33 @@ interface Cut {
   after: string | null
 }
 
-interface CounterLine extends Cut {
+interface Group extends Cut {
   names: string[]
   ids: string[]
+}
+
+/** One numbered line of the cut list: the boards the counter cuts and bands alike, as the message and the screen both say them. */
+export interface CounterLine {
+  number: number
+  ids: string[]
+  /** Every piece of the line, a run of numbers said once. */
+  names: string
+  length: number
+  width: number
+  count: number
+  rounded: boolean
+  grain: string | null
+  banding: string | null
+  after: string | null
+}
+
+export interface CounterBlock {
+  material: BoardMaterial
+  /** The material with its thickness, said once. */
+  name: string
+  sheets: number
+  unplaced: string[]
+  lines: CounterLine[]
 }
 
 const size = (box: Box, axis: Axis) => box[`${axis}1`] - box[`${axis}0`]
@@ -44,8 +68,8 @@ const sameCut = (a: Cut, b: Cut) =>
   a.length === b.length && a.width === b.width && a.rounded === b.rounded && a.freeGrain === b.freeGrain && a.banded.long === b.banded.long && a.banded.short === b.banded.short && a.after === b.after
 
 /** The lines of one material, largest first; pieces share a line only when the counter would cut and band them alike. */
-function linesOf(design: Design, geo: Geometry, material: string): CounterLine[] {
-  const lines: CounterLine[] = []
+function groupsOf(design: Design, geo: Geometry, material: string): Group[] {
+  const lines: Group[] = []
   for (const p of design.pieces) {
     const box = geo.boxes.get(p.id)
     if (p.material !== material || !box) continue
@@ -104,31 +128,56 @@ function bandingText({ long, short }: Cut['banded']): string | null {
   return sides.length ? `cubrecanto: ${sides.join(' y ')}` : null
 }
 
-function lineText(design: Design, line: CounterLine, number: number): string[] {
-  const count = line.ids.length
-  const grain = line.freeGrain ? 'veta libre' : line.length < line.width ? `veta a lo largo (${line.length})` : null
-  const measures = `${line.length} × ${line.width}${line.rounded ? ' (redondeado)' : ''}`
-  const parts = [namesText(line.names), measures, `${count} ${count === 1 ? 'pieza' : 'piezas'}`, grain, bandingText(line.banded)].filter((s) => s !== null)
-  const after = afterCutText(afterCut(design, line), count)
-  return [`${number}. ${parts.join(' · ')}`, ...(after ? [`   ${after}`] : [])]
+function lineOf(design: Design, group: Group, number: number): CounterLine {
+  const count = group.ids.length
+  return {
+    number,
+    ids: group.ids,
+    names: namesText(group.names),
+    length: group.length,
+    width: group.width,
+    count,
+    rounded: group.rounded,
+    grain: group.freeGrain ? 'veta libre' : group.length < group.width ? `veta a lo largo (${group.length})` : null,
+    banding: bandingText(group.banded),
+    after: afterCutText(afterCut(design, group), count),
+  }
 }
 
-/** The cut list as a message for the lumberyard's counter: a block per material, its pieces numbered across the whole message, the measure along the grain first. */
-export function counterList(design: Design, geo: Geometry, purchase: Purchase, cut: LayoutSettings): string {
-  const text = [`Lista de corte: ${design.name}`, 'Medidas en mm. El largo va con la veta.']
+/** The cut list by what the saw does: a block per material bought, its lines numbered across the whole list, the measure along the grain first. */
+export function counterLines(design: Design, geo: Geometry, purchase: Purchase): CounterBlock[] {
   let number = 0
-  for (const { material, sheets } of purchase.sheets) {
-    const lines = linesOf(design, geo, material.id)
-    if (!lines.length) continue
-    const unplaced = purchase.layout.find((l) => l.material === material.id)?.unplaced ?? []
-    const named = material.name.includes(`${material.thickness} mm`) ? material.name : `${material.name} ${material.thickness} mm`
+  return purchase.sheets.flatMap(({ material, sheets }) => {
+    const groups = groupsOf(design, geo, material.id)
+    if (!groups.length) return []
+    const unplaced = purchase.layout.find((l) => l.material === material.id)?.unplaced.map((p) => p.name) ?? []
+    const name = material.name.includes(`${material.thickness} mm`) ? material.name : `${material.name} ${material.thickness} mm`
+    return [{ material, name, sheets, unplaced, lines: groups.map((group) => lineOf(design, group, ++number)) }]
+  })
+}
+
+function lineText(line: CounterLine): string[] {
+  const measures = `${line.length} × ${line.width}${line.rounded ? ' (redondeado)' : ''}`
+  const parts = [line.names, measures, `${line.count} ${line.count === 1 ? 'pieza' : 'piezas'}`, line.grain, line.banding].filter((s) => s !== null)
+  return [`${line.number}. ${parts.join(' · ')}`, ...(line.after ? [`   ${line.after}`] : [])]
+}
+
+/** What the measures are and what the sheets were counted with, so the counter neither takes the blade off a piece nor trusts a count made for another saw. */
+function readingNote({ trim, kerf }: LayoutSettings): string {
+  const trimmed = trim > 0 ? `${trim} mm de refilado por orilla` : 'sin refilar'
+  return `Medidas finales de cada pieza: el disco va aparte. Las piezas del mismo renglón, con el mismo tope. Calculé las hojas con disco de ${kerf} mm y ${trimmed}; si el suyo es distinto, avísenme.`
+}
+
+/** The cut list as a message for the lumberyard's counter: the lines of `counterLines`, in plain text. */
+export function counterList(design: Design, geo: Geometry, purchase: Purchase, cut: LayoutSettings): string {
+  const text = [`Lista de corte: ${design.name}`, readingNote(cut), 'Medidas en mm. El largo va con la veta.']
+  for (const { material, name, sheets, unplaced, lines } of counterLines(design, geo, purchase)) {
     text.push(
       '',
-      `${named} · ${sheets} ${sheets === 1 ? 'hoja' : 'hojas'} de ${material.sheet.width} × ${material.sheet.length}`,
-      `${cut.trim > 0 ? `Refilado ${cut.trim} mm por lado` : 'Sin refilar'} · corte ${cut.kerf} mm`,
-      ...(unplaced.length ? [`No caben en una hoja: ${unplaced.map((p) => p.name).join(', ')}. Cuentan como hoja aparte.`] : []),
+      `${name} · ${sheets} ${sheets === 1 ? 'hoja' : 'hojas'} de ${material.sheet.width} × ${material.sheet.length}`,
+      ...(unplaced.length ? [`No caben en una hoja: ${unplaced.join(', ')}. Cuentan como hoja aparte.`] : []),
       '',
-      ...lines.flatMap((line) => lineText(design, line, ++number)),
+      ...lines.flatMap(lineText),
     )
   }
   return text.join('\n')

@@ -1,11 +1,12 @@
 import { ArrowCounterClockwise, Check, PencilSimple, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import type { Design } from '../../domain/design/schema'
+import { isDrawerPart, type Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
 import type { MaterialLayout } from '../../domain/estimate/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materials/catalog'
 import { reviewSignature } from '../../application/useCases'
 import { heldByAnchor } from '../../domain/checks/structure/rules/usage'
+import { counterLines, counterList } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { HOW_TO_ANCHOR } from '../../domain/furniture/modules/common'
 import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/estimate/finishPurchase'
@@ -21,7 +22,9 @@ import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
-import { PieceList } from './Panels'
+import { BeforeLeaving, CopyList } from './CopyList'
+import { lineNumbers } from './copyListLabels'
+import { CutList } from './CutList'
 import { sheetLabels } from './sheetLabels'
 import { finishCounted, leftOut, sheetsHeading, totalCovers } from './totalSummary'
 
@@ -97,7 +100,7 @@ function Price({ id, value, base, unit }: { id: string; value: number | null; ba
 }
 
 /** A sheet's layout as in a drawing: hatched trim, pieces in wood, offcut in white. */
-function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; total: number }) {
+function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: number; total: number; numbers: Map<string, number> }) {
   const selection = useStore((s) => s.selection)
   const select = useStore((s) => s.select)
   const sheet = a.sheets[index]
@@ -122,17 +125,21 @@ function SheetDiagram({ a, index, total }: { a: MaterialLayout; index: number; t
         {sheet.placed.map((c) => {
           const active = selection === c.id
           const size = `${Math.round(c.rotated ? c.h : c.w)} × ${Math.round(c.rotated ? c.w : c.h)}`
-          const labels = sheetLabels(c.w, c.h, c.name, size)
+          const number = numbers.get(c.id)
+          const named = number ? `${number}. ${c.name}` : c.name
+          const full = sheetLabels(c.w, c.h, named, size)
+          const short = number && !full.name ? sheetLabels(c.w, c.h, `${number}.`, size).name : null
+          const labels = { name: full.name ?? short, size: full.size }
           const cx = trim + c.x + c.w / 2
           return (
             <g key={c.id} onClick={() => select(c.id)} className="cursor-pointer">
-              <title>{`${c.name} · ${size}`}</title>
+              <title>{`${named} · ${size}`}</title>
               <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity="0.6" strokeWidth="5" />
               {(labels.name || labels.size) && (
                 <text x={cx} y={trim + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fill="#2b2825">
                   {labels.name && (
                     <tspan fontSize={labels.name} style={{ fontFamily: 'var(--font-sans)' }}>
-                      {c.name}
+                      {full.name ? named : `${number}.`}
                     </tspan>
                   )}
                   {labels.size && (
@@ -293,6 +300,9 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const settings = useStore((s) => s.catalogSettings)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
+  const blocks = useMemo(() => counterLines(design, geo, purchase), [design, geo, purchase])
+  const numbers = useMemo(() => lineNumbers(blocks), [blocks])
+  const message = useMemo(() => counterList(design, geo, purchase, effective.layout), [design, geo, purchase, effective])
   const anchor = useMemo(() => heldByAnchor(design, geo, catalog), [design, geo, catalog])
   const [anyway, setAnyway] = useState<string | null>(null)
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
@@ -352,7 +362,10 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     <div className="flex flex-col gap-6 p-4">
       {whose}
       {cost}
-      <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
+      <VerdictCard verdict={verdict} design={design} onRequest={onRequest}>
+        <CopyList text={message} variant="primary" />
+        <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
+      </VerdictCard>
 
       <section className="flex flex-col gap-3">
         <Title className="text-lg">{sheetsHeading(onlyPlywood)}</Title>
@@ -376,7 +389,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
               </div>
               {a.unplaced.length > 0 && <p className="text-xs text-rust">No caben en una hoja: {a.unplaced.map((p) => p.name).join(', ')}. Cuentan como hoja aparte.</p>}
               {a.sheets.map((_, i) => (
-                <SheetDiagram key={i} a={a} index={i} total={a.sheets.length} />
+                <SheetDiagram key={i} a={a} index={i} total={a.sheets.length} numbers={numbers} />
               ))}
             </div>
           )
@@ -422,8 +435,11 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <FinishSection design={design} geo={geo} finish={purchase.finish} base={base} />
 
       <section className="-mx-4 flex flex-col">
-        <Title className="px-4 text-lg">Lista de corte</Title>
-        <PieceList design={design} geo={geo} />
+        <div className="flex flex-col gap-3 px-4">
+          <Title className="text-lg">Lista de corte</Title>
+          <CopyList text={message} />
+        </div>
+        <CutList blocks={blocks} />
       </section>
     </div>
   )
