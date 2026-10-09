@@ -7,6 +7,7 @@ import { ASSUMPTIONS } from '../../assumptions'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from './cabinet'
 import { DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, LEG_HEIGHT, lower, MAX_SPAN, measuresSummary, thicknessOf, outsideRules, PLAN_MEASURE } from './common'
+import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField } from './edgeBanding'
 import { choice, fromLabels, material, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
@@ -49,6 +50,7 @@ export const ShoeRackPlan = z.object({
   base: z.enum(['kick', 'floor']).describe('kick: kick plate at the front; floor: the bottom sits directly on the floor'),
   seat: z.boolean().describe(`Whether the top is a seat to sit on while putting shoes on (a low shoe bench, ${SEAT_HEIGHT.min}–${SEAT_HEIGHT.max} mm high)`),
   wallMounted: z.boolean().describe(`Whether it is anchored to the wall: true when it has doors or is ${ASSUMPTIONS.tipping.criticalHeight} mm or taller, since it is shallow and tips over easily`),
+  edges: EdgeBanding.optional().describe(EDGE_BANDING),
 })
 export type ShoeRackPlan = z.infer<typeof ShoeRackPlan>
 
@@ -103,6 +105,7 @@ function asCabinet(plan: ShoeRackPlan, layout: ReturnType<typeof layoutOf>): Cab
     wallMounted: plan.wallMounted,
     construction: { ...DEFAULT_CONSTRUCTION, top: plan.seat ? 'over' : 'between', shelves: 'fixed' },
     columns: Array.from({ length: layout.columns }, () => ({ width: 1, cells })),
+    edges: plan.edges,
   }
 }
 
@@ -134,14 +137,15 @@ function describeShoeRackChanges(before: ShoeRackPlan, after: ShoeRackPlan): str
   if (before.base !== after.base) changes.push(SHOE_RACK_LABELS.base[after.base].phrase)
   if (before.seat !== after.seat) changes.push(after.seat ? 'con asiento arriba' : 'sin asiento')
   if (before.wallMounted !== after.wallMounted) changes.push(after.wallMounted ? 'anclada al muro' : 'sin anclar')
-  return changes
+  return [...changes, ...describeEdgeBanding(before, after)]
 }
 
 function benchShoeRacks(): [string, ShoeRackPlan][] {
-  const rack = (name: string, dimensions: ShoeRackPlan['dimensions'], extra: Partial<ShoeRackPlan> = {}): ShoeRackPlan => ({ kind: 'shoeRack', name, dimensions, material: 'T18', levels: 4, bootLevel: false, front: 'open', base: 'kick', seat: false, wallMounted: false, ...extra })
+  const rack = (name: string, dimensions: ShoeRackPlan['dimensions'], extra: Partial<ShoeRackPlan> = {}): ShoeRackPlan => ({ kind: 'shoeRack', name, dimensions, material: 'T18', levels: 4, bootLevel: false, front: 'open', base: 'kick', seat: false, wallMounted: false, edges: 'banded', ...extra })
   return [
     ['abierta', rack('Zapatera', { width: 800, height: 900, depth: 330 })],
     ['con puertas', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', wallMounted: true })],
+    ['con puertas, cantos a la vista', rack('Zapatera con puertas', { width: 800, height: 900, depth: 330 }, { front: 'doors', wallMounted: true, edges: 'exposed' })],
     ['angosta con una puerta', rack('Zapatera', { width: 500, height: 900, depth: 300 }, { front: 'doors', base: 'floor', wallMounted: true })],
     ['alta con nivel para botas', rack('Zapatera alta', { width: 800, height: 1500, depth: 380 }, { levels: 6, bootLevel: true, front: 'doors', wallMounted: true })],
     ['banca zapatera', rack('Banca zapatera', { width: 900, height: 450, depth: 330 }, { levels: 2, seat: true })],
@@ -170,6 +174,7 @@ const shoeRackFields: FieldSpec<ShoeRackPlan>[] = [
   ]),
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+    edgeBandingField<ShoeRackPlan>(),
     choice({ key: 'base', label: 'Base', ...fromLabels(SHOE_RACK_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     yesNo({ key: 'wallMounted', label: 'Anclada al muro', lockedByDefault: true, hints: { yes: `Va atornillada al muro: así no se vuelca. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
   ]),

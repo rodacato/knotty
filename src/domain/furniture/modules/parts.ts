@@ -32,13 +32,13 @@ export const partName = <P>(part: PartSpec<P>, plan: P) => part.nameOf?.(plan) ?
 const thickness = (material: string) => material.replace(/\D/g, '')
 
 /** The board and its finish: every kind has them, and no piece to touch. */
-export const woodPart = <P extends { material: string }>(): PartSpec<P> => ({
+export const woodPart = <P extends { material: string; edges?: string }>(): PartSpec<P> => ({
   id: 'wood',
   name: 'Madera y acabado',
   side: 'outside',
-  fields: ['material'],
+  fields: ['material', 'edges'],
   joints: [],
-  summary: (plan, finish) => `Triplay de ${thickness(plan.material)} mm · ${finish}`,
+  summary: (plan, finish) => `Triplay de ${thickness(plan.material)} mm · ${finish}${plan.edges === 'exposed' ? ' · cantos a la vista' : ''}`,
 })
 
 /** The outside measures, for the kinds whose plan says them. */

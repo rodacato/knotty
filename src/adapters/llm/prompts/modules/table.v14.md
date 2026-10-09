@@ -1,5 +1,5 @@
 ---
-id: table@13
+id: table@14
 ---
 # pick
 - A **table or desk**, a **workbench or standing desk**, or a **stool or bench with no back**: a top on two plywood sides, with aprons. It goes in `table`.
@@ -21,11 +21,12 @@ id: table@13
 - `corners`: "square", or "rounded" when asked for or seen in the photos; it needs an `overhang` of 15 or more.
 - `cable`: true for a cable hole in a desk top, when asked.
 - `assembly`: "glued", unless the table is over 1800 mm long or the person wants it to come apart: then "bolts", or "cams" (minifix) if asked.
+- `edges`: "exposed" only if asked or shown: no edge banding, the plywood layers show.
 
 The app adds the aprons and the rails under the top, and keeps the leg space clear.
 
 # plan
-- **Table or desk** (`kind` "table"): use (`use`: dining, coffee, side, desk, standing or seat), measures (`dimensions`: length, height and depth), how far the top overhangs (`overhang`) its corners (`corners`: square or rounded) and a desk top cable hole (`cable`), low shelf (`shelf`, not on a desk), pedestal (`pedestal`: `side` none/left/right seen from the front, `drawers` {{pedestalDrawerCount}}, `pulls` none/notch/handle; desks only), what it stands on (`legs`: panel ends or four legs; `legStyle`: straight, tapered or splayed legs; `stretcher`: none, ends or h, low between the legs), its plywood (`material`) and how it is put together (`assembly`: glued, bolts or cams). It goes in `table`.
+- **Table or desk** (`kind` "table"): use (`use`: dining, coffee, side, desk, standing or seat), measures (`dimensions`: length, height and depth), how far the top overhangs (`overhang`) its corners (`corners`: square or rounded) and a desk top cable hole (`cable`), low shelf (`shelf`, not on a desk), pedestal (`pedestal`: `side` none/left/right seen from the front, `drawers` {{pedestalDrawerCount}}, `pulls` none/notch/handle; desks only), what it stands on (`legs`: panel ends or four legs; `legStyle`: straight, tapered or splayed legs; `stretcher`: none, ends or h, low between the legs), its plywood (`material`) how it is put together (`assembly`: glued, bolts or cams) and its edges (`edges`: banded or exposed). It goes in `table`.
 
 # changes
-use, measures, top, shelf, pedestal, legs, plywood, assembly
+use, measures, top, shelf, pedestal, legs, plywood, assembly, edges

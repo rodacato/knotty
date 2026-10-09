@@ -10,6 +10,7 @@ import { stiffness } from '../../materials/grades'
 import { maxSpan } from '../../checks/structure/rules/deflection'
 import { pocketScrewId } from '../../assumptions'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, LONGEST_WHOLE } from './assembly'
+import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withEdges } from './edgeBanding'
 import { describeLegStyle, LEG_STYLE, LEG_STYLE_LABELS, LegStyle, legStyleField, legStyleNote, styled, styledLegs } from './legs'
 import { addDrawers, wholeMillimetres, wholeNear, ARM_FRONT, ARM_SLOPE, CAP_OVERHANG, cm, DEFAULT_THICKNESS, KICK_HEIGHT, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_WIDTH, legLayers, LEDGER, MATTRESS_LIP, MATTRESS_THICKNESS, BACKREST_RISE, TALLEST_BASE, MAX_SPAN, SLAT, SLAT_PLAY, SLAT_RAIL, SLAT_RECESS, SLAT_SPAN, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, thicknessOf, type AddDrawer, measureRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, material, note, number, numbers, section, stepper, yesNo, type FieldSpec } from './fields'
@@ -68,6 +69,7 @@ export const BedPlan = z.object({
   platform: z.enum(['panel', 'slats']).optional().describe('Under the mattress: panel (default), a plywood board; slats, boards across the bed, screwed down'),
   lip: z.boolean().optional().describe('A lip that keeps the mattress in'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
+  edges: EdgeBanding.optional().describe(EDGE_BANDING),
 })
 export type BedPlan = z.infer<typeof BedPlan>
 
@@ -626,7 +628,7 @@ export function buildBed(plan: BedPlan, catalog: Catalog): BuiltBed {
   const withFront = (built: Design): Design => ({ ...built, pieces: built.pieces.map((p) => (overlay.has(p.id) ? { ...p, x: overlay.get(p.id)! } : p)) })
   const placed = addDrawers(design, sides.flatMap((s) => s.drawers), catalog, withFront)
   const done = finished(l, l.drawers.corners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design)
-  return { design: knockDown(done.design, plan.assembly, catalog, blockOf(l)), notes: [...head.notes, ...slatNotes(l), ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
+  return { design: withEdges(knockDown(done.design, plan.assembly, catalog, blockOf(l)), plan.edges), notes: [...head.notes, ...slatNotes(l), ...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces), 'el marco')] }
 }
 
 /** What is cut into the drawers once they are in place: finger corners, notches and grooves; and the pulls the fronts take. */
@@ -720,7 +722,7 @@ function describeBedChanges(before: BedPlan, after: BedPlan): string[] {
   if ((k.style === 'bookcase' || k.style === 'storage') && h.shelves !== k.shelves) changes.push(`${k.shelves} ${k.shelves === 1 ? 'repisa' : 'repisas'} en la cabecera`)
   if (k.style !== 'none' && !!h.cap !== !!k.cap) changes.push(k.cap ? 'con copete' : 'sin copete')
   if (k.style === 'daybed' && (h.arms ?? 'square') !== (k.arms ?? 'square')) changes.push(BED_LABELS.arms[k.arms ?? 'square'].phrase)
-  return [...changes, ...describeAssembly(before, after)]
+  return [...changes, ...describeAssembly(before, after), ...describeEdgeBanding(before, after)]
 }
 
 /** What an absent choice of the drawers means, said out loud: the bench's plans carry every key of the schema. */
@@ -737,7 +739,7 @@ function benchBeds(): [string, BedPlan][] {
           const drawers = side === 'none' ? BED_LABELS.drawerSide.none.phrase : `${BED_LABELS.drawerSide[side].phrase} ${BED_LABELS.drawerPosition[position].phrase}`
           variants.push([
             `${mattress}, ${BED_LABELS.headboard[style].phrase}, ${drawers}`,
-            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, platform: 'panel', lip: false, assembly: 'glued' },
+            { kind: 'bed', name: 'Cama', mattress, material: 'T18', height: 400, legs: 'none', legHeight: LEG_HEIGHT, legStyle: 'straight', drawers: { side, count: side === 'none' ? 0 : 3, position, ...PLAIN_DRAWERS }, headboard: { style, height: 1100, depth: 250, shelves: 2, cap: false, arms: 'square' }, platform: 'panel', lip: false, assembly: 'glued', edges: 'banded' },
           ])
         }
   const base: BedPlan = { kind: 'bed', name: 'Cama', mattress: 'matrimonial', material: 'T18', height: 400, legs: 'legs', legHeight: LEG_HEIGHT, drawers: { side: 'none', count: 0, position: 'head' }, headboard: { style: 'plain', height: 1100, depth: 250, shelves: 2 } }
@@ -770,6 +772,7 @@ function benchBeds(): [string, BedPlan][] {
   variants.push(['individual, cama de día con copete y tope, desarmable con pernos', { ...named('individual, cama de día con copete, tope y cajones sobrepuestos con jaladeras'), assembly: 'bolts' }])
   variants.push([`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm, desarmable con pernos`, { ...named(`matrimonial, cabecera lisa, patas de ${LEG_HEIGHT} mm`), assembly: 'bolts' }])
   variants.push(['queen, cabecera librero, cajones de los dos lados, desarmable con minifix', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), assembly: 'cams' }])
+  variants.push(['queen, cabecera librero, cajones de los dos lados, cantos a la vista', { ...named('queen, cabecera librero, cajones de los dos lados hacia la cabecera'), edges: 'exposed' }])
   // Slats under the mattress: over closed sides, on legs, over drawers (inset and overlay) and inside a daybed; from the queen up they take a rail halfway across.
   for (const mattress of MattressSize.options) {
     variants.push([`${mattress}, cabecera lisa, sin cajones, de tablillas`, { ...drawn, mattress, drawers: base.drawers, platform: 'slats' }])
@@ -807,6 +810,7 @@ const bedFields: FieldSpec<BedPlan>[] = [
     note(`Son las medidas de México (${MATTRESS_SIZES} cm). Mide tu colchón antes de cortar: los importados suelen medir 203 de largo, y el king de Estados Unidos es más angosto.`, undefined, 'mattress'),
     numbers(2, [number({ key: 'height', label: 'Alto de la base', ...PLAN_MEASURE, get: (p) => p.height, set: (p, height) => ({ ...p, height }) })]),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+    edgeBandingField<BedPlan>(),
     note('Con cajones la cama no lleva patas: el zoclo sostiene el banco de cajones.', hasDrawers, 'legs'),
     note('De la matrimonial en adelante lleva una fila de patas al centro, bajo la espina, que cargan como las de los lados: en un piso desnivelado, calza la que no asiente.', (p) => p.legs === 'legs' && p.mattress !== 'individual' && !hasDrawers(p) && !isDaybed(p), 'legs'),
     choice({ key: 'legs', label: 'Patas', part: 'Patas', ...fromLabels(BED_LABELS.legs), visibleWhen: (p) => !hasDrawers(p) && !isDaybed(p), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),

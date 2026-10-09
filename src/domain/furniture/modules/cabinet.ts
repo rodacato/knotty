@@ -14,6 +14,7 @@ import type { Operation } from '../../editing/operations/schema'
 import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
+import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withEdges } from './edgeBanding'
 import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
@@ -126,6 +127,7 @@ export const CabinetPlan = z.object({
   drawerFingers: z.number().int().min(FINGERS_RANGE.min).max(FINGERS_RANGE.max).optional().describe(`Fingers per corner with drawerCorners fingers; absent is ${DEFAULT_FINGERS}`),
   columns: z.array(PlanColumn).min(1).describe(COLUMNS),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
+  edges: EdgeBanding.optional().describe(EDGE_BANDING),
 })
 export type CabinetPlan = z.infer<typeof CabinetPlan>
 
@@ -976,7 +978,7 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
   const done = finished(l, withExtras(l, boxed), columns.flatMap((c) => c.hung), choices, columns.flatMap((c) => c.cables), columns.flatMap((c) => c.tracks))
-  return { design: knockDown(done.design, plan.assembly, catalog, needsKnockDown(plan.dimensions) ? undefined : () => 'body'), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
+  return { design: withEdges(knockDown(done.design, plan.assembly, catalog, needsKnockDown(plan.dimensions) ? undefined : () => 'body'), plan.edges), notes: [...placed.notes, ...done.notes, ...legStyleNote(styledLegs(done.design.pieces))] }
 }
 
 /** With backs by cell, the first is the `back` every part of the carcass stands in front of. */
@@ -1014,12 +1016,12 @@ function describeCabinetChanges(before: CabinetPlan, after: CabinetPlan): string
     if (was !== is) changes.push(is ? `${is} ${COUNTED[content][is === 1 ? 0 : 1]}` : `sin ${COUNTED[content][1]}`)
   }
   if (!changes.length && layout(before) !== layout(after)) changes.push('distribución de los huecos')
-  return [...changes, ...describeAssembly(before, after)]
+  return [...changes, ...describeAssembly(before, after), ...describeEdgeBanding(before, after)]
 }
 
 function benchCabinets(): [string, CabinetPlan][] {
   const cell = (content: Cell['content'], height = 1, shelves: number | null = null, doors: number | null = null): Cell => ({ height, content, shelves, doors })
-  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', kick: 'low', legHeight: LEG_HEIGHT, legStyle: 'straight', wallMounted: true, construction: DEFAULT_CONSTRUCTION, drawerFingers: DEFAULT_FINGERS, columns, assembly: 'glued', ...extra })
+  const cabinet = (name: string, dimensions: CabinetPlan['dimensions'], columns: CabinetPlan['columns'], extra: Partial<CabinetPlan> = {}): CabinetPlan => ({ kind: 'cabinet', name, dimensions, material: 'T18', base: 'kick', kick: 'low', legHeight: LEG_HEIGHT, legStyle: 'straight', wallMounted: true, construction: DEFAULT_CONSTRUCTION, drawerFingers: DEFAULT_FINGERS, columns, assembly: 'glued', edges: 'banded', ...extra })
   const list: [string, CabinetPlan][] = [
     ['librero', cabinet('Librero', { width: 550, height: 1800, depth: 300 }, [{ width: 1, cells: [cell('open', 1, 4)] }])],
     ['buró', cabinet('Buró', { width: 450, height: 550, depth: 400 }, [{ width: 1, cells: [cell('open', 0.6, 0), cell('drawer', 0.4)] }], { base: 'floor', wallMounted: false })],
@@ -1084,6 +1086,7 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['aparador con patas desarmable con pernos', { ...sideboard, assembly: 'bolts' }],
     ['librero de 2250 mm, desarmable con minifix', { ...bookcase, dimensions: { width: 550, height: 2250, depth: 300 }, assembly: 'cams' }],
   ]
+  const inSight: [string, CabinetPlan][] = [['aparador con patas, cantos a la vista', { ...sideboard, edges: 'exposed' }]]
   // Sliding doors: two leaves over one opening, and one leaf in front of a split cell, with a divider and a shelf behind its track.
   const slidingBuild: CabinetConstruction = { ...DEFAULT_CONSTRUCTION, doors: 'sliding', top: 'over', pulls: 'notch' }
   const withSlidingDoors: [string, CabinetPlan][] = [
@@ -1123,7 +1126,7 @@ function benchCabinets(): [string, CabinetPlan][] {
     ['mueble de TV con pasacables', cabinet('Mueble de TV', { width: 1500, height: 500, depth: 400 }, [{ width: 1, cells: [wired('door', 1)] }, { width: 1, cells: [wired('open', 0.5), cell('open', 0.5, 0)] }, { width: 1, cells: [cell('door', 1, 1, 1)] }])],
     ['mueble de TV con pasacables donde no hay trasera', cabinet('Mueble de TV', { width: 1200, height: 500, depth: 400 }, [{ width: 1, cells: [wired('open', 1, { back: false })] }, { width: 1, cells: [wired('door', 1)] }])],
   ]
-  return [...list, ...withCables, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...withSlidingDoors, ...mixedDoors, ...kitchenBases, ...withChests, ...withRods]
+  return [...list, ...withCables, ...withPulls, ...legHeights, ...tapered, ...splayedLegs, ...withFingers, ...withTopFingers, ...withVoids, ...withSplitCells, ...withDrawerEdges, ...withCellBacks, ...knockedDown, ...inSight, ...withSlidingDoors, ...mixedDoors, ...kitchenBases, ...withChests, ...withRods]
 }
 
 const withSize = (plan: CabinetPlan, size: Partial<CabinetPlan['dimensions']>): CabinetPlan => ({ ...plan, dimensions: { ...plan.dimensions, ...size } })
@@ -1170,6 +1173,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
   ]),
   section('Cómo se arma', [
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+    edgeBandingField<CabinetPlan>(),
     choice({ key: 'base', label: 'Base', ...fromLabels(CABINET_LABELS.base), get: (p) => p.base, set: (p, base) => ({ ...p, base }) }),
     choice<CabinetPlan, NonNullable<CabinetPlan['kick']>>({ key: 'kick', label: 'Zoclo', ...fromLabels(CABINET_LABELS.kick), visibleWhen: (p) => p.base === 'kick', get: (p) => p.kick ?? 'low', set: (p, kick) => ({ ...p, kick }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),

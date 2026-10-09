@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../../design/builders'
 import { DIMENSION_OF_AXIS, Pulls, type Extent, type FaceRef, type Design, type Hole, type Piece, type Joint, type Round } from '../../design/schema'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown } from './assembly'
+import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withEdges } from './edgeBanding'
 import { completeJoints } from '../../design/joints'
 import { resolveGeometry } from '../../design/resolve'
 import type { DesignKind } from '../../design/kind'
@@ -41,6 +42,7 @@ export const TablePlan = z.object({
   corners: z.enum(['square', 'rounded']).optional().describe('Corners of the top; rounded only where it overhangs'),
   cable: z.boolean().optional().describe('A cable hole through the top of a desk'),
   assembly: Assembly.optional().describe('glued (default); bolts or cams: no glue, comes apart to move'),
+  edges: EdgeBanding.optional().describe(EDGE_BANDING),
 })
 export type TablePlan = z.infer<typeof TablePlan>
 
@@ -413,7 +415,7 @@ export function buildTable(plan: TablePlan, catalog: Catalog): { design: Design;
   const hole = passesCables(plan) ? topHole(opened.design, catalog) : null
   const holed = hole ? { ...opened.design, pieces: opened.design.pieces.map((p) => (p.id === 'top' ? { ...p, holes: [hole] } : p)) } : opened.design
   const notes = [...shelf.notes, ...low.notes, ...placed.notes, ...opened.notes, ...legStyleNote(styledLegs(placed.design.pieces)), ...leanNote(l), ...roundsNote(plan, rounds.length), ...(passesCables(plan) ? [cableNote(hole)] : [])]
-  return { design: knockDown(completeJoints(holed, catalog), plan.assembly, catalog, blockOf(l)), notes }
+  return { design: withEdges(knockDown(completeJoints(holed, catalog), plan.assembly, catalog, blockOf(l)), plan.edges), notes }
 }
 
 function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
@@ -433,11 +435,11 @@ function describeTableChanges(before: TablePlan, after: TablePlan): string[] {
   if (before.pedestal.side !== after.pedestal.side) changes.push(TABLE_LABELS.pedestal[after.pedestal.side].phrase)
   if (after.pedestal.side !== 'none' && before.pedestal.drawers !== after.pedestal.drawers) changes.push(`${after.pedestal.drawers} ${after.pedestal.drawers === 1 ? 'cajón' : 'cajones'} en la cajonera`)
   if (after.pedestal.side !== 'none' && (before.pedestal.pulls ?? 'none') !== (after.pedestal.pulls ?? 'none')) changes.push(TABLE_LABELS.pulls[after.pedestal.pulls ?? 'none'].phrase)
-  return [...changes, ...describeAssembly(before, after)]
+  return [...changes, ...describeAssembly(before, after), ...describeEdgeBanding(before, after)]
 }
 
 function benchTables(): [string, TablePlan][] {
-  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0, pulls: 'none' }, legs: 'panel', legStyle: 'straight', stretcher: 'none', corners: 'square', cable: false, assembly: 'glued', ...extra })
+  const table = (use: TablePlan['use'], name: string, dimensions: TablePlan['dimensions'], extra: Partial<TablePlan> = {}): TablePlan => ({ kind: 'table', use, name, material: 'T18', dimensions, overhang: 0, shelf: false, pedestal: { side: 'none', drawers: 0, pulls: 'none' }, legs: 'panel', legStyle: 'straight', stretcher: 'none', corners: 'square', cable: false, assembly: 'glued', edges: 'banded', ...extra })
   const variants: [string, TablePlan][] = [
     ['comedor', table('dining', 'Mesa de comedor', { width: 1500, height: 750, depth: 900 }, { overhang: 50 })],
     ['comedor largo', table('dining', 'Mesa de comedor', { width: 1800, height: 750, depth: 900 }, { overhang: 50 })],
@@ -477,7 +479,7 @@ function benchTables(): [string, TablePlan][] {
     ['banco para uno con patas, con travesaños en H', { ...of('banco para uno con patas'), stretcher: 'h' }],
   ]
   const pulled = (['notch', 'handle'] as const).map((pulls): [string, TablePlan] => [`escritorio con 3 cajones a la izquierda, con ${pulls === 'notch' ? 'muesca' : 'jaladeras'}`, { ...desk, pedestal: { ...desk.pedestal, pulls } }])
-  return [...all, ...tiedLow, ...pulled, ...knockedDown, ...rounded, roundedDesk, ...wired, wiredRounded, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }]]
+  return [...all, ...tiedLow, ...pulled, ...knockedDown, ...rounded, roundedDesk, ...wired, wiredRounded, ['escritorio con 3 cajones a la izquierda, desarmable con minifix', { ...desk, assembly: 'cams' }], ['escritorio con 3 cajones a la izquierda, cantos a la vista', { ...desk, edges: 'exposed' }]]
 }
 
 const isDesk = (plan: TablePlan) => plan.use === 'desk'
@@ -505,6 +507,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
     choice({ key: 'corners', label: 'Esquinas de la cubierta', ...fromLabels(TABLE_LABELS.corners), get: (p) => p.corners ?? 'square', set: (p, corners) => ({ ...p, corners }) }),
     yesNo({ key: 'cable', label: 'Pasacables en la cubierta', visibleWhen: (p) => p.use === 'desk' || p.use === 'standing', get: (p) => !!p.cable, set: (p, cable) => ({ ...p, cable }) }),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
+    edgeBandingField<TablePlan>(),
   ]),
   section('Patas', [
     choice({ key: 'legs', label: 'Patas', part: 'Patas', lockedByDefault: true, ...fromLabels(TABLE_LABELS.legs), get: (p) => p.legs, set: (p, legs) => ({ ...p, legs }) }),
