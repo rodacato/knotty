@@ -208,6 +208,9 @@ export interface ExpertResponse<T> {
   warnings?: string[]
 }
 
+/** The id of the provider that stands for no expert at all: what needs one says so instead of asking. */
+export const NO_EXPERT = 'none'
+
 export interface LLMProvider {
   id: string
   label: string

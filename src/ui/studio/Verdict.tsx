@@ -111,7 +111,7 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
         <p className="text-[15px] leading-relaxed">{c.summary}</p>
       ) : (
         <p className="text-sm text-graphite">
-          El carpintero no contestó{verdict.error ? `: ${verdict.error}` : '.'} Lo de abajo son las cuentas, que valen igual.
+          {verdict.error ? `El carpintero no contestó: ${verdict.error} Lo de abajo son las cuentas, que valen igual.` : 'Esta revisión es de Knotty: las cuentas de tu diseño. Con tu experto conectado, además opina un carpintero.'}
         </p>
       )}
 

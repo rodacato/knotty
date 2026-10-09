@@ -9,6 +9,7 @@ import { heldAcceptance, isAccepted } from '../../domain/checks/structure/accept
 import { reviewViability, worst } from '../../domain/checks/viability/viability'
 import { buildContext } from '../context'
 import { knowledgeFor } from '../knowledge'
+import { NO_EXPERT } from '../../ports/LLMProvider'
 import { ExpertError } from './expertCall'
 import { reviewText } from './forExpert'
 import type { Kit } from './kit'
@@ -56,6 +57,7 @@ export function createReview(kit: Kit) {
       accepted: analysis.findings.filter((h) => h.severity === 'critical').flatMap((h) => heldAcceptance(h, state.accepted)?.title ?? []),
     })
     const base = { signature: reviewSignature(state, effectiveCatalog), checks: viability.checks, date: now() }
+    if (kit.llm().id === NO_EXPERT) return { ...base, verdict: viability.verdict, carpenter: null, error: null }
     try {
       const r = await kit.llm().reviewPurchase(
         {

@@ -1,3 +1,4 @@
+import { ArrowRight } from '@phosphor-icons/react'
 import { viewLabel } from '../../domain/furniture/reading/reading'
 import { useId, useMemo, useState } from 'react'
 import { currentPlan } from '../../application/useCases'
@@ -7,6 +8,7 @@ import { Button } from '../system/components'
 import { KindSelect } from '../system/KindSelect'
 import { KIND_NOUN, type DesignKind, type KindSource } from '../../domain/design/kind'
 import { kindOf } from '../../domain/furniture/kind'
+import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
@@ -27,6 +29,8 @@ const SOURCE: Record<KindSource, string | null> = {
 function KindPicker({ state }: { state: DesignState }) {
   const chooseKind = useStore((s) => s.chooseKind)
   const redoAs = useStore((s) => s.redoAs)
+  const openConnect = useStore((s) => s.openConnect)
+  const { available } = useExpertStatus()
   const thinking = useStore((s) => s.thinking)
   const [redo, setRedo] = useState<DesignKind | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,15 +63,21 @@ function KindPicker({ state }: { state: DesignState }) {
             de ahora se queda en el historial.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant="primary"
-              onClick={() => {
-                setRedo(null)
-                void redoAs(redo)
-              }}
-            >
-              Rehacer como {KIND_NOUN[redo].replace(/^una? /, '')}
-            </Button>
+            {available ? (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setRedo(null)
+                  void redoAs(redo)
+                }}
+              >
+                Rehacer como {KIND_NOUN[redo].replace(/^una? /, '')}
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={() => openConnect(true)}>
+                Conectar experto <ArrowRight weight="bold" />
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => setRedo(null)}>
               Cancelar
             </Button>
