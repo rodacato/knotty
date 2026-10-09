@@ -10,7 +10,7 @@ import { findingKey } from './finding'
 import { hingesFor } from '../../assumptions'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../furniture/modules/cabinet'
 import { buildBed } from '../../furniture/modules/bed'
-import { standing } from './rules/usage'
+import { heldByAnchor, standing } from './rules/usage'
 import { tippingBalance } from './rules/tippingBalance'
 import { buildTable } from '../../furniture/modules/table'
 import type { Cell } from '../../furniture/reading/reading'
@@ -148,6 +148,20 @@ describe('R4 tipping', () => {
   it('what is not for storing keeps out of the balance, whatever its drawers', () => {
     const chest = cabinet(900, [cell('drawer'), cell('drawer')])
     for (const kind of ['desk', 'table', 'bed', 'bench', 'wallCabinet'] as const) expect(storage({ ...chest, kind })).toEqual([])
+  })
+
+  it('says what the anchor of an anchored piece is there for, and nothing when it stands on its own or is not anchored', () => {
+    const held = (d: Design) => {
+      const a = analyze(d, testCatalog)
+      if (!a.valid) throw new Error(JSON.stringify(a.errors))
+      return heldByAnchor(d, a.geo, testCatalog)
+    }
+    const drawers = [cell('drawer'), cell('drawer')]
+    expect(held(cabinet(900, drawers, { wallMounted: true }))).toMatchObject({ code: 'R4_TIPPING', check: 'tipping.storage' })
+    expect(held(exampleBookcase)?.data).toHaveProperty('ratio')
+    expect(held(cabinet(680, drawers, { wallMounted: true }))).toBeNull()
+    expect(held(cabinet(900, drawers))).toBeNull()
+    expect(findings(cabinet(900, drawers, { wallMounted: true }), 'R4_TIPPING')).toEqual([])
   })
 
   it('below 686 mm, anchored, or open, the anchoring for storage does not apply', () => {

@@ -5,7 +5,9 @@ import type { Geometry } from '../../domain/design/resolve'
 import type { MaterialLayout } from '../../domain/estimate/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materials/catalog'
 import { reviewSignature } from '../../application/useCases'
+import { heldByAnchor } from '../../domain/checks/structure/rules/usage'
 import { estimatePurchase } from '../../domain/estimate/purchase'
+import { HOW_TO_ANCHOR } from '../../domain/furniture/modules/common'
 import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/estimate/finishPurchase'
 import { FINISH_IDS, FINISH_PRODUCTS, FINISHES, finishOf, type FinishLayer } from '../../domain/materials/finishes'
 import type { DesignState } from '../../domain/session/state'
@@ -290,6 +292,7 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
   const settings = useStore((s) => s.catalogSettings)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
+  const anchor = useMemo(() => heldByAnchor(design, geo, catalog), [design, geo, catalog])
   const [anyway, setAnyway] = useState<string | null>(null)
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
   const totalSheets = purchase.sheets.reduce((s, h) => s + h.sheets, 0)
@@ -388,6 +391,11 @@ export function Materials({ state, design, geo, catalog, onRequest }: { state: D
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm">{r.hardware.name}</span>
+                {r.hardware.role === 'anti-tip' && anchor && (
+                  <span role="note" className="mt-1 block text-[13px] leading-snug text-graphite">
+                    El ancla no es opcional en este mueble. {anchor.message} {HOW_TO_ANCHOR}
+                  </span>
+                )}
                 {r.packs !== null && (
                   <span className="block text-xs text-graphite-2">
                     {r.packs} {r.packs === 1 ? 'paquete' : 'paquetes'} de {r.hardware.perPack}
