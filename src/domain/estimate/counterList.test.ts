@@ -8,7 +8,7 @@ import { testCatalog } from '../furniture/fixtures/catalog.test-util'
 import { testReferences } from '../furniture/fixtures/references.test-util'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../furniture/modules/cabinet'
 import { applySettings, type Catalog } from '../materials/catalog'
-import { counterList } from './counterList'
+import { counterLines, counterList } from './counterList'
 import { cutList } from './cutList'
 import { estimatePurchase } from './purchase'
 
@@ -21,6 +21,11 @@ const geoOf = (design: Design, catalog: Catalog) => {
 const said = (design: Design, catalog: Catalog = testCatalog) => {
   const geo = geoOf(design, catalog)
   return counterList(design, geo, estimatePurchase(design, geo, catalog), catalog.layout)
+}
+
+const lined = (design: Design, catalog: Catalog = testCatalog) => {
+  const geo = geoOf(design, catalog)
+  return counterLines(design, geo, estimatePurchase(design, geo, catalog))
 }
 
 const ficha = (code: string) => exampleDesign(exampleOf(testReferences.latest(code)!), testCatalog).design
@@ -92,6 +97,15 @@ describe('the cut list for the lumberyard: every ficha', () => {
     expect(text).not.toMatch(/\p{Extended_Pictographic}/u)
     expect(said(design)).toBe(text)
   })
+
+  it.each(designs)('$code: the lines the screen shows are the lines of the message, under the same numbers', ({ design }) => {
+    const lines = lined(design).flatMap((block) => block.lines)
+    const text = numbered(said(design))
+    expect(lines.map((l) => ({ number: l.number, count: l.count }))).toEqual(text.map((l) => ({ number: l.number, count: l.count })))
+    for (const [i, l] of lines.entries()) expect(text[i].line.startsWith(`${l.number}. ${l.names} · ${l.length} × ${l.width}${l.rounded ? ' (redondeado)' : ''} · `)).toBe(true)
+    expect(lines.flatMap((l) => l.ids).sort()).toEqual(design.pieces.map((p) => p.id).sort())
+    expect(lines.every((l) => l.count === l.ids.length)).toBe(true)
+  })
 })
 
 describe('the cut list for the lumberyard: length goes with the grain', () => {
@@ -136,7 +150,7 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
     expect(lineOf(said(changed(exampleBookcase, 'shelf-1', { edges: [] })), 'Entrepaño 1')).toMatch(/· 514 × 294 · 1 pieza$/)
   })
 
-  it('keeps apart two doors of the same size when only one gets a notch, where the screen shows one row', () => {
+  it('keeps apart two doors of the same size when only one gets a notch, where the list by role makes one row', () => {
     const cell = { height: 1, content: 'door', shelves: 1, doors: 1 } as const
     const plan: CabinetPlan = {
       kind: 'cabinet', name: 'Aparador', dimensions: { width: 1200, height: 800, depth: 400 }, material: 'T18', base: 'legs', legHeight: 150, wallMounted: false, construction: DEFAULT_CONSTRUCTION,
@@ -150,6 +164,15 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
     expect(notched[0].replace('columna 1', 'columna 2')).toBe(plain[0])
     expect(notched[1]).toBe('   Después de cortarla: saques o ranuras')
     expect(plain[1]).not.toContain('Después')
+    const onScreen = lined(design).flatMap((block) => block.lines).filter((l) => /^Puerta de la columna \d$/.test(l.names))
+    expect(onScreen.map((l) => l.after)).toEqual(['Después de cortarla: saques o ranuras', null])
+  })
+
+  it('carries on each line what the message says of it: the grain, the banded edges and the boards that do not fit', () => {
+    const turned = lined(changed(exampleBookcase, 'shelf-1', { grain: 'width' })).flatMap((block) => block.lines).find((l) => l.names === 'Entrepaño 1')!
+    expect(turned).toMatchObject({ length: 294, width: 514, count: 1, rounded: false, grain: 'veta a lo largo (294)', banding: 'cubrecanto: un ancho', after: null, ids: ['shelf-1'] })
+    const shortSheets = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
+    expect(lined(exampleBookcase, shortSheets).map((block) => [block.material.id, block.unplaced])).toEqual([['T18', []], ['TR6', ['Trasera']]])
   })
 })
 

@@ -6,6 +6,7 @@ import type { MaterialLayout } from '../../domain/estimate/layout'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materials/catalog'
 import { reviewSignature } from '../../application/useCases'
 import { heldByAnchor } from '../../domain/checks/structure/rules/usage'
+import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { HOW_TO_ANCHOR } from '../../domain/furniture/modules/common'
 import { COVERAGE_EFFICIENCY, type FinishPurchase } from '../../domain/estimate/finishPurchase'
@@ -21,7 +22,7 @@ import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
 import { ReviewGate, VerdictCard } from './Verdict'
-import { PieceList } from './Panels'
+import { CutList } from './CutList'
 import { sheetLabels } from './sheetLabels'
 import { finishCounted, leftOut, sheetsHeading, totalCovers } from './totalSummary'
 
@@ -293,6 +294,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const settings = useStore((s) => s.catalogSettings)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
+  const blocks = useMemo(() => counterLines(design, geo, purchase), [design, geo, purchase])
   const anchor = useMemo(() => heldByAnchor(design, geo, catalog), [design, geo, catalog])
   const [anyway, setAnyway] = useState<string | null>(null)
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
@@ -423,7 +425,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
 
       <section className="-mx-4 flex flex-col">
         <Title className="px-4 text-lg">Lista de corte</Title>
-        <PieceList design={design} geo={geo} />
+        <CutList blocks={blocks} />
       </section>
     </div>
   )
