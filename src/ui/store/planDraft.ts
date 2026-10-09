@@ -16,6 +16,8 @@ export interface PlanDraft {
   notes: string[]
   /** The plans before each change, to undo one step at a time. */
   steps: FurniturePlan[]
+  /** The field the last step was typed in, if it was typed: more typing there is the same step. */
+  typed: string | null
 }
 
 export interface PlanDraftSlice {
@@ -24,8 +26,8 @@ export interface PlanDraftSlice {
   cell: CellPath | null
   /** The part of the cabinet opened by touching the closed furniture, and the piece that was touched. */
   part: { id: string; piece: string | null } | null
-  /** One change to the draft, built at once; back to the applied plan, there is no draft. `merge` folds it into the last step, as a drag does. */
-  editPlan(plan: FurniturePlan, merge?: boolean): void
+  /** One change to the draft, built at once; back to the applied plan, there is no draft. `merge` folds it into the last step, as a drag does; the key of a typed field folds it only while the last step was typed in that field. */
+  editPlan(plan: FurniturePlan, merge?: boolean | string): void
   undoPlanEdit(): void
   discardPlanDraft(): void
   applyPlanDraft(): { ok: true; notes: string[] } | { ok: false; message: string }
@@ -39,13 +41,13 @@ const same = (a: FurniturePlan, b: FurniturePlan) => JSON.stringify(a) === JSON.
 export const draftOf = (s: { planDraft: PlanDraft | null; state: { current: number } | null }) => (s.planDraft && s.state && s.planDraft.version === s.state.current ? s.planDraft : null)
 
 export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
-  const built = (plan: FurniturePlan, steps: FurniturePlan[]): PlanDraft | null => {
+  const built = (plan: FurniturePlan, steps: FurniturePlan[], typed: string | null = null): PlanDraft | null => {
     const { services, state } = get()
     if (!services || !state) return null
     const applied = currentPlan(state).plan
     if (applied && same(applied, plan)) return null
     const r = services.useCases.previewPlan(state, plan)
-    return { version: state.current, plan, steps, design: r.ok ? r.design : null, message: r.ok ? null : r.message, notes: r.ok ? r.notes : [] }
+    return { version: state.current, plan, steps, typed, design: r.ok ? r.design : null, message: r.ok ? null : r.message, notes: r.ok ? r.notes : [] }
   }
   return {
     planDraft: null,
@@ -57,7 +59,9 @@ export const createPlanDraft: Slice<PlanDraftSlice> = (set, get) => {
       const draft = draftOf(s)
       const before = draft?.plan ?? (s.state ? currentPlan(s.state).plan : null)
       if (!before || same(before, plan)) return
-      set({ planDraft: built(plan, merge && draft ? draft.steps : [...(draft?.steps ?? []), before]) })
+      const typed = typeof merge === 'string' ? merge : null
+      const sameStep = draft && (merge === true || (typed !== null && typed === draft.typed))
+      set({ planDraft: built(plan, sameStep ? draft.steps : [...(draft?.steps ?? []), before], typed) })
     },
     undoPlanEdit() {
       const draft = draftOf(get())
