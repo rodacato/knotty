@@ -35,6 +35,18 @@ describe('hardware roles', () => {
     expect(pickHardware(testCatalog, 'drawer-slide', (h) => h.sideClearance !== null)?.id).toBe('drawer-slide-30')
   })
 
+  it('a name with inches says the millimetres first, the ones of its length, and keeps the inches as the trade size in parentheses', () => {
+    const INCHES: Record<string, number> = { '¾': 0.75, '1': 1, '1¼': 1.25, '1½': 1.5, '2': 2 }
+    const named = testCatalog.hardware.filter((h) => h.name.includes('"'))
+    expect(named.map((h) => h.id)).toEqual(expect.arrayContaining([...hardwareByRole(testCatalog, 'screw'), ...hardwareByRole(testCatalog, 'pocket-screw')].map((h) => h.id)))
+    const wrong = named.filter((h) => {
+      const said = h.name.match(/ de (\d+) mm \((?:#\d+ × )?([^)"]+)"\)/)
+      const mm = Number(said?.[1])
+      return !said || mm !== Math.round(INCHES[said[2]] * 25.4) || (h.length !== null && mm !== Math.round(h.length))
+    })
+    expect(wrong.map((h) => h.name)).toEqual([])
+  })
+
   it('the pocket screws of the table are catalog pocket screws of that length', () => {
     for (const row of ASSUMPTIONS.screws.pocketScrews) expect(pickHardware(testCatalog, 'pocket-screw', (h) => h.id === row.hardwareId)?.length).toBe(row.length)
   })

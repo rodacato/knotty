@@ -38,8 +38,8 @@ describe('totalCovers', () => {
 
 describe('leftOut', () => {
   it('names what has no price', () => {
-    expect(leftOut(['Barniz de poliuretano Polyform 3000 1 L', 'Tornillo para madera #8 × ¾"'])).toBe(
-      'Sin contar lo que no tiene precio: Barniz de poliuretano Polyform 3000 1 L, Tornillo para madera #8 × ¾".',
+    expect(leftOut(['Barniz de poliuretano Polyform 3000 1 L', 'Tornillo para madera de 19 mm (#8 × ¾")'])).toBe(
+      'Sin contar lo que no tiene precio: Barniz de poliuretano Polyform 3000 1 L, Tornillo para madera de 19 mm (#8 × ¾").',
     )
   })
 
