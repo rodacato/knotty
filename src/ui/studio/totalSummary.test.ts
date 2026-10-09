@@ -17,12 +17,17 @@ describe('finishCounted', () => {
 
 describe('totalCovers', () => {
   it('names the finish only when it is in the total', () => {
-    expect(totalCovers(3, true)).toBe('3 hojas de triplay, herrajes, cubrecanto y acabado.')
-    expect(totalCovers(3, false)).toBe('3 hojas de triplay, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 3, onlyPlywood: true, withFinish: true })).toBe('3 hojas de triplay, herrajes, cubrecanto y acabado.')
+    expect(totalCovers({ sheets: 3, onlyPlywood: true, withFinish: false })).toBe('3 hojas de triplay, herrajes y cubrecanto.')
   })
 
   it('says one sheet in the singular', () => {
-    expect(totalCovers(1, false)).toBe('1 hoja de triplay, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 1, onlyPlywood: true, withFinish: false })).toBe('1 hoja de triplay, herrajes y cubrecanto.')
+    expect(totalCovers({ sheets: 1, onlyPlywood: false, withFinish: false })).toBe('1 tablero, herrajes y cubrecanto.')
+  })
+
+  it('does not call the sheets plywood when some are not', () => {
+    expect(totalCovers({ sheets: 4, onlyPlywood: false, withFinish: false })).toBe('4 tableros, herrajes y cubrecanto.')
   })
 })
 
