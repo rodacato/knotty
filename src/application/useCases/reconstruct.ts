@@ -285,7 +285,7 @@ export function createReconstruct(kit: Kit) {
       current: 1,
       requirements: [],
       decisions: [],
-      chat: [message('expert', plan ? `Aquí tienes una base de ${design.name.toLowerCase()}. ${design.notes} Cambia sus medidas y opciones con «Editar», arriba del mueble, o pídeme cambios: la carga, reforzarlo, otro acabado…` : `Aquí tienes un ${design.name.toLowerCase()} de ejemplo. ${design.notes} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
+      chat: [message('expert', plan ? `Aquí tienes una base de ${design.name.toLowerCase()}. ${design.notes} Cambia sus medidas y opciones con «Editar», arriba del mueble.` : `Aquí tienes un ${design.name.toLowerCase()} de ejemplo. ${design.notes} Pídeme cambios: el ancho, la carga, mover una repisa, reforzarlo…`, { version: 1 })],
       thumbnails: [],
       proposal: null,
       review: null,
