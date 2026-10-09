@@ -441,7 +441,7 @@ Lo que la corredera pide es el piso de esa banda, no la medida de diseño: la ca
 
 ### R10 — Uso
 
-Revisiones por tipo de mueble (`domain/checks/typology`): alto de una mesa o un escritorio, espacio para las piernas, medidas de la cama contra el colchón, fondo de un librero, anclaje de lo que cuelga. Un tubo para colgar se revisa donde lo haya, sin importar el tipo (`typology/rods.ts`, D64). Cada revisión es una entrada de `domain/checks/typology/constraints.ts` con sus límites y su fuente en `docs/carpinteria`.
+Revisiones por tipo de mueble (`domain/checks/typology`): alto de una mesa o un escritorio, espacio para las piernas, medidas de la cama contra el colchón, fondo de un librero, anclaje de lo que cuelga. Un tubo para colgar se revisa donde lo haya, sin importar el tipo (`typology/rods.ts`, D64). Igual un frente sin cómo abrirse (`typology/pulls.ts`, `check: 'front.pull'`, recomendación): una puerta abatible o un frente de cajón embutido, sin muesca ni jaladera (`Design.pulls`, `pullsOf`). Embutido se lee de la geometría, no del plan: sus cuatro cantos tienen algo al ras a menos de un dedo (`ASSUMPTIONS.pulls.fingerRoom`); a un frente sobrepuesto le queda un canto libre y no se avisa. Quedan fuera la tapa de un baúl y la hoja corrediza (la referencia no dice cómo se jala). No trae solución que Knotty arme: la muesca es una opción del plan, no un cambio de piezas. Cada revisión es una entrada de `domain/checks/typology/constraints.ts` con sus límites y su fuente en `docs/carpinteria`.
 
 Las fallas geométricas (traslape, flotante, medida total, pieza mayor que la hoja útil) son errores bloqueantes, no severidades.
 

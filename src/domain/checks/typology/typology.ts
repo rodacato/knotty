@@ -3,6 +3,7 @@ import type { Rule } from '../structure/finding'
 import type { DesignKind } from '../../design/kind'
 import { evaluateConstraints } from './constraint'
 import { CATEGORY_CONSTRAINTS } from './constraints'
+import { pullFindings } from './pulls'
 import { rodFindings } from './rods'
 
 // Which kind of furniture a design is, and R10: the checks its kind needs (in constraints.ts).
@@ -46,4 +47,4 @@ export function useOf(design: Pick<Design, 'name'> & Partial<Pick<Design, 'kind'
 }
 
 /** R10: what this kind of furniture needs to be used safely. */
-export const typologyRule: Rule = (ctx) => [...evaluateConstraints(CATEGORY_CONSTRAINTS, ctx, useOf(ctx.design)), ...rodFindings(ctx)]
+export const typologyRule: Rule = (ctx) => [...evaluateConstraints(CATEGORY_CONSTRAINTS, ctx, useOf(ctx.design)), ...rodFindings(ctx), ...pullFindings(ctx)]
