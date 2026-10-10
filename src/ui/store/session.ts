@@ -139,7 +139,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   newDesign() {
     get().controller?.abort()
     get().services?.useCases.newDesign()
-    set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
   },
 
   browse: (change) => set((s) => ({ browsing: { ...s.browsing, ...change } })),
@@ -161,7 +161,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   swapTo(example) {
     get().controller?.abort()
-    set({ mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null })
+    set({ mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
     get().fromExample(example)
   },
 

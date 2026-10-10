@@ -61,7 +61,10 @@ async function askExpert(set: Set, get: Get, text: string, replyTo: string | nul
   const pending: Message = { id: 'pending', author: 'user', text, date: new Date().toISOString(), questions: [], answered: false, version: null, proposal: null, error: false, failure: null, thumbnail: null, answers: [], dismissed: [], suggestions: [], solutions: [], alone: false }
   const optimistic = { ...state, tray: [], chat: [...markAnswered(state.chat, replyTo), pending] }
   set({ thinking: true, controller, stage: { name: 'proposing', attempt: 0 }, state: optimistic })
-  const fresh = await call(controller.signal, (name, attempt) => set({ stage: { name, attempt } }))
+  const isCurrent = () => get().controller === controller
+  const fresh = await call(controller.signal, (name, attempt) => isCurrent() && set({ stage: { name, attempt } }))
+  // Another design took the Studio meanwhile: the answer is for one that is gone, and it saved over the one that is open.
+  if (!isCurrent()) return services.useCases.keep(get().state)
   moveTo(set, services, state, fresh, { thinking: false, stage: null, controller: null, showProposal: true, viewedVersion: null })
 }
 
@@ -88,7 +91,7 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     const isCurrent = () => get().controller === controller
     try {
       const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set((s) => ({ stage: { name, attempt, progress }, stageLog: recordStage(s.stageLog, { name, attempt, progress }, Date.now()) })))
-      if (!isCurrent()) return
+      if (!isCurrent()) return services.useCases.keep(get().state)
       set((s) => ({ state, phase: 'studio', stage: null, controller: null, draft: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
     } catch (e) {
       if (!isCurrent()) return
