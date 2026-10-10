@@ -1,5 +1,6 @@
 import { Plus, Trash } from '@phosphor-icons/react'
 import { CABINET_LABELS, shelvesFor, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
+import { weightForShare } from '../../domain/furniture/modules/cabinetCells'
 import { Button } from '../system/components'
 import { Input, Select } from '../system/Field'
 import { Segmented, Stepper } from './PlanControls'
@@ -44,7 +45,7 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
           min={1}
           max={100}
           value={percent(cell.height, heights)}
-          onChange={(e) => onChange({ ...cell, height: Math.max(1, Number(e.target.value)) / 100 })}
+          onChange={(e) => onChange({ ...cell, height: weightForShare(Number(e.target.value), heights.filter((_, k) => k !== index)) })}
           aria-label={`Alto del hueco ${index + 1} en porcentaje`}
           className="w-16 text-right"
         />
@@ -95,7 +96,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                   min={1}
                   max={100}
                   value={percent(column.width, widths)}
-                  onChange={(e) => setColumn(i, { ...column, width: Math.max(1, Number(e.target.value)) / 100 })}
+                  onChange={(e) => setColumn(i, { ...column, width: weightForShare(Number(e.target.value), widths.filter((_, k) => k !== i)) })}
                   aria-label={`Ancho de la columna ${i + 1} en porcentaje`}
                   className="w-16 text-right"
                 />

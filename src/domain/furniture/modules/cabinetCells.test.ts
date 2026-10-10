@@ -4,7 +4,7 @@ import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { testReferences } from '../fixtures/references.test-util'
 import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, pullsIn, type CabinetPlan, type PlanCell } from './cabinet'
-import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, splitCell } from './cabinetCells'
+import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, splitCell, weightForShare } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
 const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
@@ -266,6 +266,20 @@ describe('a whole column of the furniture', () => {
     const narrow = refused.filter((r) => /: No cupo: una columna quedaría con menos de 100 mm libres/.test(r))
     expect(new Set(narrow.map((r) => r.split(' ')[0]))).toEqual(new Set(['GN-COC-07', 'KC-REP-03']))
     expect(refused.filter((r) => !narrow.includes(r))).toEqual(['left', 'right'].map((side) => expect.stringMatching(new RegExp(`^GN-BAU-01 0 ${side}: Un baúl va debajo de un hueco abierto`))))
+  })
+})
+
+describe('a share typed as a percentage', () => {
+  const shareOf = (weight: number, others: number[]) => Math.round((weight / (weight + others.reduce((s, v) => s + v, 0))) * 100)
+
+  it.each([[35, [1]], [35, [1, 1]], [60, [0.3, 0.2]], [10, [2, 1, 1]]])('%i %% beside %j reads back as typed', (percent, others) => {
+    expect(shareOf(weightForShare(percent, others), others)).toBe(percent)
+  })
+
+  it('never takes it all nor nothing, and alone it is the whole', () => {
+    expect(shareOf(weightForShare(100, [1]), [1])).toBe(99)
+    expect(shareOf(weightForShare(0, [1]), [1])).toBe(1)
+    expect(weightForShare(40, [])).toBe(1)
   })
 })
 
