@@ -13,7 +13,7 @@ const tradeLength = (mm: number, toEighth: (x: number) => number = Math.round) =
   const eighths = toEighth((mm / INCH) * 8)
   const whole = Math.floor(eighths / 8)
   const rest = eighths % 8
-  const fraction = rest ? { 2: '¼', 4: '½', 6: '¾' }[rest] ?? `${rest}/8` : ''
+  const fraction = ['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞'][rest]
   return `${Math.round((eighths / 8) * INCH)} mm (${whole || ''}${fraction}")`
 }
 

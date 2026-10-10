@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../analysis'
-import { mm, ref, extent } from '../../design/builders'
+import { mm, ref, extent, makeJoint, makePiece, startAt } from '../../design/builders'
 import type { Design } from '../../design/schema'
 import { exampleWallCabinet } from '../../furniture/fixtures/wallCabinet'
 import { exampleNightstand } from '../../furniture/fixtures/nightstand'
@@ -70,6 +70,23 @@ describe('R3 screws', () => {
     kick.y = extent(ref('furniture.y0'), null, 50)
     d.joints = d.joints.map((u) => (u.id === 'j-kick-left' ? { ...u, a: 'side-left', b: 'kick', type: 'butt-screw', hardware: [{ hardwareId: 'screw-8x2', count: 2 }] } : u))
     expect(findings(d, 'R3_SCREWS').some((h) => h.data.jointLength === 50)).toBe(true)
+  })
+
+  it('says the longest screw that does not come out of a face as a trade size a store sells', () => {
+    const board = (id: string, material: string, y: Design['pieces'][number]['y']) => makePiece({ id, name: id, role: 'other', material, normal: 'y', x: extent(ref('furniture.x0'), ref('furniture.x1')), y, z: extent(ref('furniture.z0'), ref('furniture.z1')) })
+    const stacked = (under: string, over: string, height: number): Design => ({
+      schema: 1,
+      name: 'Dos tablas',
+      dimensions: { width: 400, height, depth: 300 },
+      wallAnchored: false,
+      pieces: [board('under', under, startAt(ref('furniture.y0'))), board('over', over, startAt(ref('under.y1')))],
+      joints: [makeJoint('j-over-under', 'over', 'under', 'butt-screw', [{ hardwareId: 'screw-8x2', count: 4 }])],
+      notes: '',
+    })
+    const shorter = (d: Design) => findings(d, 'R3_SCREWS').find((h) => h.check === 'screw.pokes-through')!.alternatives[0].description
+    expect(shorter(stacked('T18', 'T18', 36))).toBe('Un tornillo de 32 mm (1¼") o menos')
+    expect(shorter(stacked('T15', 'T18', 33))).toBe('Un tornillo de 29 mm (1⅛") o menos')
+    expect(shorter(stacked('T12', 'T15', 27))).toBe('Un tornillo de 22 mm (⅞") o menos')
   })
 })
 

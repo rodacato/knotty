@@ -1215,6 +1215,18 @@ describe('editing a piece by hand, without the expert', () => {
     expect(box(wider.state, 'shelf-1').x1 - box(wider.state, 'shelf-1').x0).toBe(700)
   })
 
+  it('resizing a design without a plan is named by its measure as the person reads it', () => {
+    const { c, initial } = start()
+    const said = (axis: 'x' | 'y' | 'z', value: number) => {
+      const r = c.resizeFurniture(initial, axis, value)
+      if (!r.ok) throw new Error(r.message)
+      return [r.state.versions.at(-1)!.summary, r.state.chat.at(-1)!.text]
+    }
+    expect(said('x', 736)).toEqual(['Ancho del mueble a 736 mm', 'Cambié a mano: Ancho del mueble a 736 mm.'])
+    expect(said('y', 1700)[0]).toBe('Alto del mueble a 1700 mm')
+    expect(said('z', 320)[0]).toBe('Fondo del mueble a 320 mm')
+  })
+
   it('on a design with a plan, the hand edit rides on top as an extra, and widening goes through the plan', async () => {
     const plan = { name: 'Librero', dimensions: { width: 600, height: 1800, depth: 300 }, material: 'T18', base: 'kick' as const, legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [{ height: 1, content: 'open' as const, shelves: 3, doors: null }] }] }
     const simulated = createSimulated(0)

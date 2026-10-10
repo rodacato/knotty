@@ -164,7 +164,7 @@ export function createEdits(kit: Kit) {
     const operations: Operation[] = [{ op: 'resizeFurniture', axis: axis, value: value, rule: 'stretch' }]
     const candidate = tryCandidate(currentDesign(state), operations, catalog, state.requirements)
     if (!candidate.ok || !candidate.analysis.valid) return { ok: false, message: 'Tampoco se puede cambiar la medida del mueble así.', alternatives: [] }
-    const dimension = DIMENSION_OF_AXIS[axis]
+    const dimension = DIMENSION_LABEL[DIMENSION_OF_AXIS[axis]]
     const summary = `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)} del mueble a ${value} mm`
     const withVersion = addVersion(state, candidate.design, { summary: summary, reason: `A mano: ${summary}`, operations: operations, origin: null })
     return { ok: true, state: save({ ...noted(withVersion, 'user', `Cambié a mano: ${summary}.`), measures: candidate.design.dimensions }) }

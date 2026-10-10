@@ -143,6 +143,38 @@ describe('store', () => {
     expect(currentDesign(s.state!).name).toBe(exampleBookcase.name)
   })
 
+  it('an answer that arrives after another piece of furniture took the Studio is dropped, with what it saved', async () => {
+    const other = testReferences.home()[0]
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    const asking = useStore.getState().adjust('Hazlo de 90 cm de ancho')
+    useStore.getState().swapTo(other)
+    const swapped = useStore.getState().state
+    await asking
+    const s = useStore.getState()
+    expect(currentDesign(s.state!).name).toBe(other.name)
+    expect(s.state).toBe(swapped)
+    expect(s.thinking).toBe(false)
+    expect(currentDesign(s.services!.useCases.load()!).name).toBe(other.name)
+  })
+
+  it('an answer that arrives after the design was thrown away does not bring it back', async () => {
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    const asking = useStore.getState().adjust('Hazlo de 90 cm de ancho')
+    useStore.getState().newDesign()
+    await asking
+    expect(useStore.getState()).toMatchObject({ state: null, phase: 'home' })
+    expect(useStore.getState().services!.useCases.load()).toBeNull()
+  })
+
+  it('a design attempt cancelled by opening another piece of furniture leaves the Studio on it', async () => {
+    const other = testReferences.home()[0]
+    const designing = useStore.getState().reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Un librero con repisas para libros', kind: null })
+    useStore.getState().swapTo(other)
+    await designing
+    expect(useStore.getState().phase).toBe('studio')
+    expect(currentDesign(useStore.getState().state!).name).toBe(other.name)
+  })
+
   it('coming apart or opening turns the camera to the front three-quarter view; closing again leaves the view', () => {
     const s = useStore.getState()
     for (const mode of ['exploded', 'open'] as const) {

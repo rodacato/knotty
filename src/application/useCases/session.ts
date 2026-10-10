@@ -17,6 +17,9 @@ export function createSession(kit: Kit, adjust: Adjust) {
     repository.clear()
   }
 
+  /** Saves the session that is open, or none, over what an answer for a design that is gone left saved. */
+  const keep = (state: DesignState | null) => (state ? repository.save(state) : repository.clear())
+
   function addRequirement(state: DesignState, text: string): DesignState {
     const clean = text.trim()
     if (!clean) return state
@@ -63,5 +66,5 @@ export function createSession(kit: Kit, adjust: Adjust) {
 
   const pendingQuestions = (state: DesignState): Question[] => state.chat.filter((m) => !m.answered).flatMap((m) => m.questions)
 
-  return { load, newDesign, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions }
+  return { load, newDesign, keep, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions }
 }
