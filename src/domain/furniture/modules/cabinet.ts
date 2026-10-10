@@ -158,7 +158,7 @@ export const kickOf = (plan: Pick<CabinetPlan, 'kick'>) => (plan.kick === 'kitch
 const carcassFits = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.height - plan.legHeight >= MIN_CARCASS_HEIGHT
 /** Overlay fronts sit in front of the carcass, which stops one thickness short of the front to make room for them. */
 const hasOverlays = (plan: CabinetPlan) =>
-  leafCells(plan.columns).some((c) => ((c.content === 'door' || c.content === 'closed' || c.content === 'chest') && plan.construction.doors === 'overlay') || (c.content === 'drawer' && plan.construction.drawerFronts === 'overlay'))
+  leafCells(plan.columns).some((c) => ((c.content === 'door' || c.content === 'closed' || c.content === 'chest') && doorsIn(plan.construction, c) === 'overlay') || (c.content === 'drawer' && plan.construction.drawerFronts === 'overlay'))
 /** The front and back legs of a corner, each set in from its edge, with a side apron between them. */
 const LEGS_DEPTH = 2 * (LEG_INSET + LEG_WIDTH)
 const legsFit = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.depth - (hasOverlays(plan) ? DEFAULT_THICKNESS : 0) > LEGS_DEPTH

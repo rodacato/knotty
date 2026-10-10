@@ -371,3 +371,17 @@ describe('the contents a cell cannot take', () => {
     expect(Math.min(refusedChests, allowedChests)).toBeGreaterThan(0)
   })
 })
+
+describe('sliding doors chosen in one cell of a cabinet with overlay fronts', () => {
+  it('leave the furniture as deep as its plan says, in every door cell of every variant: with no front left outside, the carcass reaches the front', () => {
+    const short: string[] = []
+    for (const [name, plan] of cabinetModule.benchVariants() as [string, CabinetPlan][])
+      for (const path of cellPaths(plan).filter((at) => cellAt(plan, at)!.content === 'door')) {
+        const next = chooseInCell(plan, path, 'doors', 'sliding')
+        if (!next || !FurniturePlan.safeParse(next).success) continue
+        const analysis = analyze(buildCabinet(next, testCatalog).design, testCatalog)
+        if (!analysis.valid) short.push(`${name} ${path.join('.')}: ${analysis.errors[0].message}`)
+      }
+    expect(short).toEqual([])
+  })
+})
