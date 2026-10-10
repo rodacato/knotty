@@ -171,6 +171,13 @@ const slidBehind = (l: { build: CabinetConstruction }, cell: PlanCell) => doorsI
 const behindDoors = (build: CabinetConstruction, columns: PlanColumn[]): boolean =>
   columns.every((c) => c.cells.every((cell) => !cell.columns || ((cell.content !== 'door' || doorsIn(build, cell) !== 'sliding' || leafCells(cell.columns).every((inner) => inner.content === 'open')) && behindDoors(build, cell.columns))))
 const slidingFits = (plan: CabinetPlan) => behindDoors(plan.construction, plan.columns)
+/** Whether leaves slide along that end of the cell: its own, or those of a cell at that end of one of its columns. */
+const slidesAt = (build: CabinetConstruction, cell: PlanCell, end: 0 | -1): boolean =>
+  (cell.content === 'door' && doorsIn(build, cell) === 'sliding') || !!cell.columns?.some((c) => !!c.cells.at(end) && slidesAt(build, c.cells.at(end)!, end))
+/** Sliding leaves over sliding leaves would groove the board between them from both faces, on the same lines: under a quarter of it would be left. */
+const tracksApart = (build: CabinetConstruction, columns: PlanColumn[]): boolean =>
+  columns.every((c) => c.cells.every((cell, i) => !(i + 1 < c.cells.length && slidesAt(build, cell, -1) && slidesAt(build, c.cells[i + 1], 0)) && (!cell.columns || tracksApart(build, cell.columns))))
+const slidingApart = (plan: CabinetPlan) => tracksApart(plan.construction, plan.columns)
 /** A cell's doors go their own way only as `mixesWith` allows. */
 const doorsMix = (plan: CabinetPlan) => leafOrSplit(plan.columns).every((cell) => cell.own?.doors === undefined || cell.own.doors === plan.construction.doors || cell.own.doors === mixesWith(plan.construction))
 const leafOrSplit = (columns: PlanColumn[]): PlanCell[] => columns.flatMap((c) => c.cells.flatMap((cell) => [cell, ...(cell.columns ? leafOrSplit(cell.columns) : [])]))
@@ -196,6 +203,7 @@ const CABLES_MISPLACED = 'Un pasacables va en un hueco abierto o detrás de puer
 const RODS_MISPLACED = 'Un tubo para colgar va en un hueco abierto o detrás de puertas, sin dividir: no en un cajón, un baúl ni un hueco tapado.'
 const DOORS_MIXED = 'Sobrepuestas o embutidas se elige para todo el mueble: un hueco solo cambia entre abatibles y corredizas.'
 const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
+const SLIDING_STACKED = 'Dos huecos con puertas corredizas no van uno sobre otro: las ranuras de arriba y de abajo caen en el mismo tablero y casi lo atraviesan. Deja un hueco abierto entre los dos o cambia las puertas de uno.'
 const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
@@ -1308,6 +1316,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
     { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
     { holds: backsFit, message: BACKS_MISPLACED, path: ['columns'] },
     { holds: slidingFits, message: SLIDING_MISPLACED, path: ['columns'] },
+    { holds: slidingApart, message: SLIDING_STACKED, path: ['columns'] },
     { holds: doorsMix, message: DOORS_MIXED, path: ['columns'] },
     { holds: lidOpens, message: LID_HELD_SHUT, path: ['construction', 'top'] },
     { holds: chestsFit, message: CHESTS_MISPLACED, path: ['columns'] },
