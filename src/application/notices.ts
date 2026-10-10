@@ -37,7 +37,7 @@ export interface NoticeBoard {
   accepted: Notice[]
   /** The expert's questions the person set aside without answering. */
   dismissed: Notice[]
-  /** What the last change fixed ("Entrepaños que se pandean: Piso"), to show it went away on purpose. */
+  /** What the last change fixed ("Repisas que se pandean: Piso"), to show it went away on purpose. */
   resolved: string[]
 }
 

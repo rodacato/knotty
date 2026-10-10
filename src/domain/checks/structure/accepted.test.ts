@@ -26,7 +26,7 @@ describe('accepted findings', () => {
 
   it('an acceptance under an older version of its rule does not hold', () => {
     const sag = finding('recommendation', 'R1_SAG')
-    const current = acceptFinding(sag, 'Entrepaños que se pandean', at)
+    const current = acceptFinding(sag, 'Repisas que se pandean', at)
     expect(current.version).toBe(5)
     expect(isAccepted(sag, [current])).toBe(true)
     expect(isAccepted(sag, [{ ...current, version: 1 }])).toBe(false)

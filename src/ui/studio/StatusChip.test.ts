@@ -12,7 +12,7 @@ const chip = (label: string) =>
 
 describe("StatusChip", () => {
   it("keeps the icon from shrinking and truncates the text on one line", () => {
-    const html = chip("Resuelto: Entrepaños que se pandean");
+    const html = chip("Resuelto: Repisas que se pandean");
     expect(html).toMatch(/<span class="[^"]*shrink-0[^"]*"><svg/);
     expect(html).toMatch(/<span class="[^"]*truncate[^"]*">Resuelto/);
     expect(html).toContain('role="status"');

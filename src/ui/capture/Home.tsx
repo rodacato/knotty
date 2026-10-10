@@ -105,7 +105,7 @@ export function Home() {
           <h1 id="home-title" className="font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance md:text-6xl md:leading-[1.05]">
             Elige un mueble. Ajústalo. Ármalo tú mismo.
           </h1>
-          <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Cada uno ya tiene ficha: cambias medidas y opciones al instante, sin el experto. Al final sabes cómo se arma y cuántas hojas comprar.</p>
+          <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Cada uno ya tiene ficha: cambias medidas y opciones al instante. Al final sabes cómo se arma y cuántas hojas comprar.</p>
         </div>
       </div>
       <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 py-4 md:px-8 md:py-6">

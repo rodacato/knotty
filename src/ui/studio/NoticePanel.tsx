@@ -255,7 +255,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite">
           <Wrench size={28} weight="duotone" className="text-graphite" />
           <p className="font-medium text-graphite">Nada pendiente</p>
-          <p className="text-sm">Revisé flecha de entrepaños, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>
+          <p className="text-sm">Revisé flecha de repisas, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>
         </div>
       )}
       {board.pending.length === 0 && board.recommendations.length > 0 && (

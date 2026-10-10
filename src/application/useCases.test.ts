@@ -449,14 +449,14 @@ describe('never throw away a paid design', () => {
       {
         ...d.pieces.find((p) => p.id === 'shelf-1')!,
         id: 'shelf-extra',
-        name: 'Entrepaño extra',
+        name: 'Repisa extra',
         x: { from: ref('side-left.x1', 60), to: ref('side-right.x0', -60), length: null },
         y: { from: ref('shelf-1.y1', 100), to: null, length: null },
         z: { from: ref('back.z1', 60), to: ref('furniture.z1', -60), length: null },
       },
     ],
   })
-  const withOverlap = (d: Design): Design => ({ ...d, pieces: [...d.pieces, { ...d.pieces.find((p) => p.id === 'shelf-1')!, id: 'shelf-copy', name: 'Entrepaño copia' }] })
+  const withOverlap = (d: Design): Design => ({ ...d, pieces: [...d.pieces, { ...d.pieces.find((p) => p.id === 'shelf-1')!, id: 'shelf-copy', name: 'Repisa copia' }] })
   const changing = (change: (d: Design) => Design): LLMProvider => {
     const simulated = createSimulated(0)
     return { ...simulated, reconstruct: async (s, signal) => { const r = await simulated.reconstruct(s, signal); return { ...r, value: { ...r.value, design: change(r.value.design) } } } }
@@ -467,7 +467,7 @@ describe('never throw away a paid design', () => {
     const state = await initialBookcase(setup(changing(withOverlap)))
     expect(currentDesign(state).pieces.some((p) => p.id === 'shelf-copy')).toBe(false)
     expect(state.trace.map((t) => t.step)).toEqual(['read', 'plan', 'reconstruct'])
-    expect(state.trace[2]).toMatchObject({ outcome: 'ok', repairs: ['Quité Entrepaño copia: estaba completa dentro de Entrepaño 1.'] })
+    expect(state.trace[2]).toMatchObject({ outcome: 'ok', repairs: ['Quité Repisa copia: estaba completa dentro de Repisa 1.'] })
     expect(state.chat[1].text).toContain('Ajusté por mi cuenta un detalle')
   })
 
@@ -1197,7 +1197,7 @@ describe('editing a piece by hand, without the expert', () => {
     const moved = c.editPiece(initial, 'shelf-1', { kind: 'move', axis: 'y', delta: 50 })
     if (!moved.ok) throw new Error(moved.message)
     expect(box(moved.state, 'shelf-1').y0).toBe(box(initial, 'shelf-1').y0 + 50)
-    expect(moved.state.chat.at(-1)?.text).toBe('Cambié a mano: Mover entrepaño 1 50 mm.')
+    expect(moved.state.chat.at(-1)?.text).toBe('Cambié a mano: Mover repisa 1 50 mm.')
     const thinner = c.editPiece(moved.state, 'shelf-1', { kind: 'thickness', material: 'T15' })
     if (!thinner.ok) throw new Error(thinner.message)
     expect(box(thinner.state, 'shelf-1').y1 - box(thinner.state, 'shelf-1').y0).toBe(15)
@@ -1283,7 +1283,7 @@ describe('trust: nothing structural goes unasked, and any change can be undone i
     if (!restored.ok) throw new Error(restored.message)
     const d = currentDesign(restored.state)
     expect(d.pieces.find((p) => p.id === 'shelf-2')?.material).toBe('T18')
-    expect(restored.state.chat.at(-1)?.text).toBe('Regresé Entrepaño 2 como estaba antes de la v2.')
+    expect(restored.state.chat.at(-1)?.text).toBe('Regresé Repisa 2 como estaba antes de la v2.')
     const undone = c.undoChange(restored.state, restored.state.current)
     if (!undone.ok) throw new Error(undone.message)
     expect(currentDesign(undone.state).pieces.find((p) => p.id === 'shelf-2')?.material).toBe('T15')
@@ -1308,7 +1308,7 @@ describe('notices: one place for what waits for a decision', () => {
     const c = setup()
     const initial = c.fromExample(wide)
     const board = noticeBoard(initial, testCatalog)
-    const sag = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = board.pending.find((n) => n.title === 'Repisas que se pandean')!
     expect(sag).toBeTruthy()
     // Every finding notice is titled by its rule in the registry.
     for (const n of board.pending.filter((n) => n.kind === 'finding')) expect(n.title).toBe(ruleTitle(n.findings[0].code))
@@ -1322,14 +1322,14 @@ describe('notices: one place for what waits for a decision', () => {
     const resolved = c.applyFix(initial, fix)
     expect(resolved.chat.at(-1)?.text).toBe(`Resolví: ${fix.label}.`)
     const piece = currentDesign(initial).pieces.find((p) => p.id === sag.findings[0].pieces[0])!.name
-    expect(noticeBoard(resolved, testCatalog).resolved).toContain(`Entrepaños que se pandean: ${piece}`)
+    expect(noticeBoard(resolved, testCatalog).resolved).toContain(`Repisas que se pandean: ${piece}`)
   })
 
   it('several solutions go in as one version, and each notice they fix shows as resolved', () => {
     const c = setup()
     const initial = c.fromExample({ ...wide, wallAnchored: false })
     const pending = noticeBoard(initial, testCatalog).pending
-    const sag = pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = pending.find((n) => n.title === 'Repisas que se pandean')!
     const tipping = pending.find((n) => n.title === 'Riesgo de vuelco')!
     const design = currentDesign(initial)
     const fixes = [fixesFor(design, testCatalog, sag.findings[0]).find((f) => f.key === 'center-divider')!, fixesFor(design, testCatalog, tipping.findings[0]).find((f) => f.key === 'anchor-to-wall')!]
@@ -1346,7 +1346,7 @@ describe('notices: one place for what waits for a decision', () => {
   it('solutions that do not fit together are not applied, and the person is told why', () => {
     const c = setup()
     const initial = c.fromExample(wide)
-    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Repisas que se pandean')!
     const fix = fixesFor(currentDesign(initial), testCatalog, sag.findings[0]).find((f) => f.key === 'center-divider')!
 
     const r = c.applyFixes(initial, [fix, fix])
@@ -1399,7 +1399,7 @@ describe('notices: one place for what waits for a decision', () => {
   it('a recommendation accepted that becomes critical is pending again, says why, and leaves the purchase review', async () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 700 } })
-    const sag = noticeBoard(initial, testCatalog).recommendations.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = noticeBoard(initial, testCatalog).recommendations.find((n) => n.title === 'Repisas que se pandean')!
     expect(sag.severity).toBe('recommendation')
     const accepted = c.acceptNotice(initial, sag.findings, sag.title)
     expect(accepted.accepted.map((a) => a.severity)).toEqual(sag.findings.map(() => 'recommendation'))
@@ -1407,7 +1407,7 @@ describe('notices: one place for what waits for a decision', () => {
     const wider = c.resizeFurniture(accepted, 'x', 1000)
     if (!wider.ok) throw new Error(wider.message)
     const board = noticeBoard(wider.state, testCatalog)
-    const critical = board.pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const critical = board.pending.find((n) => n.title === 'Repisas que se pandean')!
     expect(critical.severity).toBe('critical')
     expect(critical.reopened).toBe('Lo habías aceptado como recomendación; ahora es crítico.')
     expect(board.accepted).toEqual([])
@@ -1417,18 +1417,18 @@ describe('notices: one place for what waits for a decision', () => {
     // Accepting it again, as critical, replaces the old acceptance.
     const again = c.acceptNotice(wider.state, critical.findings, critical.title)
     expect(again.accepted.map((a) => a.severity)).toEqual(critical.findings.map(() => 'critical'))
-    expect(noticeBoard(again, testCatalog).pending.some((n) => n.title === 'Entrepaños que se pandean')).toBe(false)
+    expect(noticeBoard(again, testCatalog).pending.some((n) => n.title === 'Repisas que se pandean')).toBe(false)
   })
 
   it('a critical accepted stays accepted while it is critical, and when it gets better', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 1000 } })
-    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = noticeBoard(initial, testCatalog).pending.find((n) => n.title === 'Repisas que se pandean')!
     expect(sag.severity).toBe('critical')
     const accepted = c.acceptNotice(initial, sag.findings, sag.title)
     const wider = c.resizeFurniture(accepted, 'x', 1100)
     if (!wider.ok) throw new Error(wider.message)
-    expect(noticeBoard(wider.state, testCatalog).accepted.map((n) => n.title)).toEqual(['Entrepaños que se pandean'])
+    expect(noticeBoard(wider.state, testCatalog).accepted.map((n) => n.title)).toEqual(['Repisas que se pandean'])
     const narrower = c.resizeFurniture(accepted, 'x', 700)
     if (!narrower.ok) throw new Error(narrower.message)
     expect(noticeBoard(narrower.state, testCatalog).accepted.map((n) => n.severity)).toEqual(['recommendation'])
@@ -1470,7 +1470,7 @@ describe('notices: one place for what waits for a decision', () => {
     const c = setup()
     const initial = c.fromExample({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 700 } })
     const board = noticeBoard(initial, testCatalog)
-    const sag = board.recommendations.find((n) => n.title === 'Entrepaños que se pandean')!
+    const sag = board.recommendations.find((n) => n.title === 'Repisas que se pandean')!
     expect(sag.severity).toBe('recommendation')
     expect(board.pending.some((n) => n.severity === 'recommendation' || n.severity === 'detail')).toBe(false)
     expect(board.recommendations.every((n) => n.kind === 'finding' && n.severity !== 'critical')).toBe(true)

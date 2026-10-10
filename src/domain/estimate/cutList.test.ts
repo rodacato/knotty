@@ -13,7 +13,7 @@ describe('cut list names', () => {
     ], testCatalog)
     if (!r.ok) throw new Error('no drawer')
     const names = cutList(r.value.design, analyze(r.value.design, testCatalog).geo!).map((row) => row.name)
-    expect(names).toEqual(expect.arrayContaining(['Entrepaño 1 a 4', 'Lateral izquierdo, Lateral derecho', 'Costado izquierdo de cajón 1, Costado derecho de cajón 1', 'Contrafrente de cajón 1, Trasera de cajón 1']))
+    expect(names).toEqual(expect.arrayContaining(['Repisa 1 a 4', 'Lateral izquierdo, Lateral derecho', 'Costado izquierdo de cajón 1, Costado derecho de cajón 1', 'Contrafrente de cajón 1, Trasera de cajón 1']))
   })
 
   it('never drops the column of a piece when a row holds the shelves of two columns', () => {

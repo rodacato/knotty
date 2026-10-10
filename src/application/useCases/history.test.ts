@@ -53,7 +53,7 @@ describe('undoChange', () => {
     if (!undone.ok) throw new Error(undone.message)
     expect(piece(undone.state, 'shelf-2')?.material).toBe('T18')
     expect(piece(undone.state, 'shelf-1')).toEqual(piece(thinnedThenMoved, 'shelf-1'))
-    expect(said(undone.state)).toBe('Regresé Entrepaño 2 como estaba antes de la v2.')
+    expect(said(undone.state)).toBe('Regresé Repisa 2 como estaba antes de la v2.')
   })
 })
 

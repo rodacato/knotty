@@ -56,7 +56,7 @@ export const TABLE_LABELS = {
     side: { option: 'Lateral', name: 'Mesa lateral' },
     desk: { option: 'Escritorio', name: 'Escritorio' },
     standing: { option: 'De pie', name: 'Mesa de trabajo' },
-    seat: { option: 'Asiento', name: 'Banco' },
+    seat: { option: 'Banca', name: 'Banca' },
   } satisfies Record<TablePlan['use'], { option: string; name: string }>,
   pedestal: {
     none: { option: 'Sin cajonera', phrase: 'sin cajonera' },
@@ -204,7 +204,7 @@ function pedestalBox(l: Layout, side: End): { pieces: Piece[]; drawers: AddDrawe
   const n = plan.pedestal.drawers
   const pieces = [
     panel({ id: 'ped-div', name: 'Costado interior de la cajonera', role: 'divider', normal: 'x', x: side === 'left' ? startAt(ref('side-left.x1', PEDESTAL - 2 * t)) : endAt(ref('side-right.x0', -(PEDESTAL - 2 * t))), y: endY, z: l.endsZ }),
-    panel({ id: 'ped-back', name: 'Fondo de la cajonera', role: 'back', normal: 'z', x: between, y: endY, z: startAt(ref(`${outer}.z0`)) }),
+    panel({ id: 'ped-back', name: 'Trasera de la cajonera', role: 'back', normal: 'z', x: between, y: endY, z: startAt(ref(`${outer}.z0`)) }),
     panel({ id: 'ped-kick', name: 'Zoclo de la cajonera', role: 'kick', normal: 'z', x: between, y: extent(ref('furniture.y0'), null, KICK_HEIGHT.pedestal), z: endAt(ref(`${outer}.z1`, -KICK_SETBACK)) }),
     panel({ id: 'ped-bottom', name: 'Piso de la cajonera', role: 'bottom', normal: 'y', x: between, y: startAt(ref('ped-kick.y1')), z: zBox, load: 'medium' }),
     ...Array.from({ length: n - 1 }, (_, i) => i + 1).map((k) =>
@@ -455,7 +455,7 @@ function benchTables(): [string, TablePlan][] {
     ['escritorio', table('desk', 'Escritorio', { width: 1200, height: 750, depth: 600 })],
     ['mesa de trabajo', table('standing', 'Mesa de trabajo', { width: 1500, height: 900, depth: 700 }, { overhang: 30, shelf: true })],
     ['escritorio de pie', table('standing', 'Escritorio de pie', { width: 1200, height: 1050, depth: 700 }, { overhang: 30 })],
-    ['banco', table('seat', 'Banco', { width: 1200, height: 450, depth: 350 }, { shelf: true })],
+    ['banco', table('seat', 'Banca', { width: 1200, height: 450, depth: 350 }, { shelf: true })],
     ['banco para uno', table('seat', 'Banco', { width: 400, height: 450, depth: 350 }, { overhang: 30 })],
     ...([1, 2, 3, 4] as const).flatMap((drawers) =>
       (['left', 'right'] as const).map((side): [string, TablePlan] => [`escritorio con ${drawers} cajones a la ${side === 'left' ? 'izquierda' : 'derecha'}`, table('desk', 'Escritorio con cajonera', { width: 1300, height: 750, depth: 600 }, { pedestal: { side, drawers } })]),

@@ -7,7 +7,7 @@ const THICKNESS = 18
 const shelves = Array.from({ length: SHELVES }, (_, i) =>
   makePiece({
     id: `shelf-${i + 1}`,
-    name: `Entrepaño ${i + 1}`,
+    name: `Repisa ${i + 1}`,
     role: 'shelf',
     material: 'T18',
     normal: 'y',

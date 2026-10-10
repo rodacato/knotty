@@ -18,12 +18,12 @@ const box = (d: Design, id: string) => {
 
 describe('repairDesign', () => {
   it('removes a piece that is a copy inside another one', () => {
-    const broken = { ...exampleBookcase, pieces: [...exampleBookcase.pieces, { ...shelf(exampleBookcase), id: 'shelf-extra', name: 'Entrepaño extra' }] }
+    const broken = { ...exampleBookcase, pieces: [...exampleBookcase.pieces, { ...shelf(exampleBookcase), id: 'shelf-extra', name: 'Repisa extra' }] }
     expect(valid(broken)).toBe(false)
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     expect(design.pieces.some((p) => p.id === 'shelf-extra')).toBe(false)
-    expect(repairs.map((r) => r.message)).toEqual(['Quité Entrepaño extra: estaba completa dentro de Entrepaño 1.'])
+    expect(repairs.map((r) => r.message)).toEqual(['Quité Repisa extra: estaba completa dentro de Repisa 1.'])
   })
 
   it('trims a shelf that runs into the side, up to the side', () => {
@@ -31,7 +31,7 @@ describe('repairDesign', () => {
     const { design, repairs } = repairDesign(broken, testCatalog)
     expect(valid(design)).toBe(true)
     expect(box(design, 'shelf-1').x1).toBe(box(exampleBookcase, 'side-right').x0)
-    expect(repairs[0].message).toBe('Recorté Entrepaño 1 hasta Lateral derecho: se encimaban 18 mm.')
+    expect(repairs[0].message).toBe('Recorté Repisa 1 hasta Lateral derecho: se encimaban 18 mm.')
   })
 
   it('moves a shelf that sinks into the bottom so it sits on it, keeping its thickness', () => {
@@ -41,7 +41,7 @@ describe('repairDesign', () => {
     const fixed = box(design, 'shelf-1')
     expect(fixed.y0).toBe(box(exampleBookcase, 'bottom').y1)
     expect(fixed.y1 - fixed.y0).toBe(18)
-    expect(repairs[0].message).toMatch(/^Moví Entrepaño 1 junto a Piso/)
+    expect(repairs[0].message).toMatch(/^Moví Repisa 1 junto a Piso/)
   })
 
   it('an overlay door sunk into the carcass with no room in front: the carcass steps back, the door keeps its size', () => {
@@ -63,7 +63,7 @@ describe('repairDesign', () => {
     expect(valid(design)).toBe(true)
     expect(box(design, 'door-left')).toEqual(door)
     expect(box(design, 'shelf').z1).toBe(door.z0)
-    expect(repairs.every((r) => r.message.startsWith('Recorté Entrepaño'))).toBe(true)
+    expect(repairs.every((r) => r.message.startsWith('Recorté Repisa'))).toBe(true)
   })
 
   it('drops a joint between pieces that do not touch', () => {
