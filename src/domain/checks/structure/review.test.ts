@@ -174,6 +174,18 @@ describe('R2 thickness per joint', () => {
     d.joints = d.joints.map((u) => (u.id === 'j-back-bottom' ? { ...u, type: 'butt-screw' } : u))
     expect(findings(d).some((h) => h.code === 'R2_JOINT_THICKNESS' && h.data.piece === 'back')).toBe(true)
   })
+
+  it('names a groove or a rabbet that goes too deep as the person reads it, never by its id', () => {
+    const deep = (type: 'dado' | 'rabbet') => {
+      const d = structuredClone(exampleNightstand)
+      d.joints = d.joints.map((u) => (u.id === 'j-back-bottom' ? { ...u, type, depth: 10 } : u))
+      return findings(d).find((h) => h.check === 'joint.groove-depth')!
+    }
+    expect(deep('rabbet').message).toMatch(/^El rebaje de 10 mm debilita /)
+    expect(deep('rabbet').alternatives[0].description).toBe('Hacer el rebaje de 6 mm')
+    expect(deep('dado').message).toMatch(/^El canal de 10 mm debilita /)
+    expect(deep('dado').alternatives[0].description).toBe('Hacer el canal de 6 mm')
+  })
 })
 
 describe('R5 racking', () => {

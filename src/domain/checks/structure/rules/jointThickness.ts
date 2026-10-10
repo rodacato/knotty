@@ -53,15 +53,16 @@ export const jointThicknessRule: Rule = ({ design, geo, catalog }) =>
     if ((u.type === 'dado' || u.type === 'rabbet') && u.depth !== null) {
       const fraction = u.depth / tb
       const severity: Severity | null = fraction > ASSUMPTIONS.penetration.critical ? 'critical' : fraction > ASSUMPTIONS.penetration.recommended ? 'recommendation' : null
+      const cut = JOINTS[u.type].label.singular
       if (severity)
         found.push({
           code: 'R2_JOINT_THICKNESS',
           severity,
           pieces: [u.a, u.b],
           check: 'joint.groove-depth',
-          message: `El ${u.type} de ${u.depth} mm debilita ${b.name} (${tb} mm); lo recomendable es hasta ${roundTo(tb * ASSUMPTIONS.penetration.recommended)} mm.`,
+          message: `El ${cut} de ${u.depth} mm debilita ${b.name} (${tb} mm); lo recomendable es hasta ${roundTo(tb * ASSUMPTIONS.penetration.recommended)} mm.`,
           data: { joint: u.id, type: u.type, piece: b.id, thickness: tb, penetration: u.depth },
-          alternatives: [{ key: 'shallower-groove', description: `Hacer el ${u.type} de ${roundTo(tb * ASSUMPTIONS.penetration.recommended, 0)} mm`, data: { penetration: roundTo(tb * ASSUMPTIONS.penetration.recommended, 0) } }],
+          alternatives: [{ key: 'shallower-groove', description: `Hacer el ${cut} de ${roundTo(tb * ASSUMPTIONS.penetration.recommended, 0)} mm`, data: { penetration: roundTo(tb * ASSUMPTIONS.penetration.recommended, 0) } }],
         })
     }
     return found
