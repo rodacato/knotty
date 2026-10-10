@@ -62,7 +62,7 @@ describe('changing the kind', () => {
 
   it('a bench has no module, and a table becomes one in place: its plan says the use', () => {
     expect(kindChange({ ...exampleBookcase, kind: 'diningTable' }, table, 'bench')).toBe('in-place')
-    expect(planForKind(table, 'bench')).toMatchObject({ use: 'seat', name: 'Banco' })
+    expect(planForKind(table, 'bench')).toMatchObject({ use: 'seat', name: 'Banca' })
     expect(kindChange({ ...exampleBookcase, kind: 'bench' }, planForKind(table, 'bench'), 'bench')).toBe('in-place')
     expect(kindChange({ ...exampleBookcase, kind: 'bench' }, planForKind(table, 'bench'), 'bookcase')).toBe('redo')
   })

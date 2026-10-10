@@ -57,7 +57,7 @@ export function tablePhases(plan: TablePlan, design: Design): GuidePhase[] {
       id: 'pedestal',
       title: 'La cajonera',
       pieces: ids('pedestal'),
-      steps: [step('Arma primero la cajonera, como un cuerpo chico: su piso y sus separadores entre el costado y el costado interior, con su fondo y su zoclo. El bastidor se une a ella.', tableSequence('Se arma como un cuerpo chico'))],
+      steps: [step('Arma primero la cajonera, como un cuerpo chico: su piso y sus separadores entre el costado y el costado interior, con su trasera y su zoclo. El bastidor se une a ella.', tableSequence('Se arma como un cuerpo chico'))],
     },
     {
       id: 'frame',

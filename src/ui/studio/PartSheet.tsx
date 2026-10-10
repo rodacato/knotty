@@ -52,7 +52,7 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
               <span className="text-sm text-graphite-2">Dedos por esquina</span>
               <Stepper label="dedos por esquina" value={plan.drawerFingers ?? DEFAULT_FINGERS} min={FINGERS_RANGE.min} max={FINGERS_RANGE.max} onChange={(drawerFingers) => editPlan({ ...plan, drawerFingers })} />
             </div>
-            <p className="text-xs text-graphite-2">Con dedos, las dos tablas llegan a la esquina y el techo va encima de los costados. Los cajones de dedos usan el mismo número.</p>
+            <p className="text-xs text-graphite-2">Con dedos, las dos tablas llegan a la esquina y el techo va encima de los laterales. Los cajones de dedos usan el mismo número.</p>
           </>
         )}
       </div>

@@ -13,7 +13,7 @@ import { typologyRule } from '../typology/typology'
 
 export interface RuleDefinition<C extends string = string> {
   code: C
-  /** What the notice is called, in Spanish ("Entrepaños que se pandean"). */
+  /** What the notice is called, in Spanish ("Repisas que se pandean"). */
   title: string
   /** The kinds of furniture it checks; 'all' for any. */
   appliesTo: readonly DesignKind[] | 'all'
@@ -25,7 +25,7 @@ export interface RuleDefinition<C extends string = string> {
 export const defineRule = <const C extends string>(rule: Omit<RuleDefinition<C>, 'appliesTo' | 'version'> & Partial<Pick<RuleDefinition<C>, 'appliesTo' | 'version'>>): RuleDefinition<C> => ({ appliesTo: 'all', version: 1, ...rule })
 
 export const RULES = [
-  defineRule({ code: 'R1_SAG', title: 'Entrepaños que se pandean', version: 5, check: deflectionRule }),
+  defineRule({ code: 'R1_SAG', title: 'Repisas que se pandean', version: 5, check: deflectionRule }),
   defineRule({ code: 'R2_JOINT_THICKNESS', title: 'Espesor para la unión', check: jointThicknessRule }),
   defineRule({ code: 'R3_SCREWS', title: 'Tornillos', check: screwRule }),
   defineRule({ code: 'R4_TIPPING', title: 'Riesgo de vuelco', version: 6, check: tippingRule }),

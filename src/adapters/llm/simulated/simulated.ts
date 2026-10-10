@@ -37,7 +37,7 @@ const adjustment = (partial: Partial<AdjustmentResponse> & Pick<AdjustmentRespon
 
 const WORDS: Record<string, number> = { un: 1, uno: 1, dos: 2, tres: 3, cuatro: 4 }
 
-/** "3 cajones", "dos entrepaños": the number said right before a word. */
+/** "3 cajones", "dos repisas": the number said right before a word. */
 function countBefore(text: string, word: string): number | null {
   const said = new RegExp(`(\\d|un|uno|dos|tres|cuatro)\\s+${word}`).exec(text)?.[1]
   return said ? (WORDS[said] ?? Number(said)) : null
@@ -210,15 +210,15 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null): 
 
   if (/divisor|apoyo/.test(text) && d.pieces.some((p) => p.id === 'side-left') && !d.pieces.some((p) => p.id === 'divider'))
     return adjustment({
-      explanation: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada entrepaño en dos; abajo agrego un apoyo central para el piso. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
+      explanation: 'Pongo un divisor vertical al centro, de piso a techo, y parto cada repisa en dos; abajo agrego un apoyo central para el piso. Así cada tramo queda con la mitad de claro y aguanta los libros sin pandearse.',
       summary: pendingItems ? 'Ensanchar con divisor al centro' : 'Agregar divisor al centro',
       operations: [...(pendingItems ?? []), ...dividerOps(d)],
-      decisions: [{ topic: 'divider', text: 'Divisor al centro para que los entrepaños no se pandeen con el ancho nuevo' }],
+      decisions: [{ topic: 'divider', text: 'Divisor al centro para que las repisas no se pandeen con el ancho nuevo' }],
     })
 
   if (/fondo|profund/.test(text) && measure && !/caj[oó]n/.test(text))
     return adjustment({
-      explanation: `Cambio el fondo a ${measure / 10} cm. Laterales, piso, techo y entrepaños se alargan hacia el frente.`,
+      explanation: `Cambio el fondo a ${measure / 10} cm. Laterales, piso, techo y repisas se alargan hacia el frente.`,
       summary: `Fondo de ${measure / 10} cm`,
       operations: [{ op: 'resizeFurniture', axis: 'z', value: measure, rule: 'stretch' }],
     })
@@ -230,7 +230,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null): 
     const top = gap[n]
     if (top)
       return adjustment({
-        explanation: `Pongo un cajón ${bottom === 'bottom' ? 'entre el piso y el primer entrepaño' : 'en el siguiente hueco entre entrepaños'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
+        explanation: `Pongo un cajón ${bottom === 'bottom' ? 'entre el piso y la primera repisa' : 'en el siguiente hueco entre repisas'}, con correderas telescópicas y frente embutido. La caja es de 15 mm atornillada, con fondo de 6 mm clavado; la corredera la elijo según el fondo del mueble.`,
         summary: `Agregar cajón ${n}`,
         operations: [
           {
@@ -253,7 +253,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null): 
 
   if (/ancho|anch|espacio/.test(text) && measure)
     return adjustment({
-      explanation: `Cambio el ancho total a ${measure / 10} cm. Los laterales se recorren y el piso, el techo y los entrepaños se estiran para llenar el espacio.`,
+      explanation: `Cambio el ancho total a ${measure / 10} cm. Los laterales se recorren y el piso, el techo y las repisas se estiran para llenar el espacio.`,
       summary: `Ensanchar a ${measure / 10} cm`,
       operations: [{ op: 'resizeFurniture', axis: 'x', value: measure, rule: 'stretch' }],
       requirements: { add: [{ id: 'space-width', text: `El espacio mide ${measure / 10} cm de ancho`, type: 'space', axis: 'x', min: null, max: measure }], remove: [] },
@@ -261,7 +261,7 @@ function propose(request: string, d: Design, pendingItems: Operation[] | null): 
 
   if (/libro|pesad/.test(text))
     return adjustment({
-      explanation: 'Marco los entrepaños y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
+      explanation: 'Marco las repisas y el piso para carga de libros. Con eso la revisión calcula cuánto se pandearían.',
       summary: 'Preparar para libros',
       operations: loadedHorizontals(d).map((p): Operation => ({ op: 'changeProperties', id: p.id, name: null, role: null, grain: null, load: 'heavy', support: null, edges: null, confidence: null })),
       requirements: { add: [{ id: 'book-load', text: 'Va a cargar libros', type: 'load', axis: null, min: null, max: null }], remove: [] },

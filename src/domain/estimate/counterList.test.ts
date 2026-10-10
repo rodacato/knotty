@@ -87,7 +87,7 @@ describe('the cut list for the lumberyard: the open bookcase (GN-LIB-01)', () =>
     const shelves = design.pieces.filter((p) => p.role === 'shelf').map((p) => p.name)
     expect(shelves).toHaveLength(10)
     expect(shelves).toContain('Repisa 2 de la columna 2 (hueco 1)')
-    expect(text).toContain('. Entrepaño fijo 1.1, Repisa 1 y 2 de la columna 1 y 2 (hueco 1 y 2), Entrepaño fijo 2.1 · 423 × 284 · 10 piezas · ')
+    expect(text).toContain('. Repisa fija 1.1, Repisa 1 y 2 de la columna 1 y 2 (hueco 1 y 2), Repisa fija 2.1 · 423 × 284 · 10 piezas · ')
   })
 })
 
@@ -118,15 +118,15 @@ describe('the cut list for the lumberyard: every ficha', () => {
 describe('the cut list for the lumberyard: length goes with the grain', () => {
   it('puts the shorter side first when the grain runs along it, and names the banded edge by that length', () => {
     const before = said(exampleBookcase)
-    expect(before).toContain('. Piso, Techo, Entrepaño 1 a 4 · 514 × 294 · 6 piezas · cubrecanto: un largo\n')
+    expect(before).toContain('. Piso, Techo, Repisa 1 a 4 · 514 × 294 · 6 piezas · cubrecanto: un largo\n')
     const after = said(changed(exampleBookcase, 'shelf-1', { grain: 'width' }))
-    expect(lineOf(after, 'Entrepaño 1')).toMatch(/^\d+\. Entrepaño 1 · 294 × 514 · 1 pieza · veta a lo largo \(294\) · cubrecanto: un ancho$/)
-    expect(after).toContain('. Piso, Techo, Entrepaño 2 a 4 · 514 × 294 · 5 piezas · cubrecanto: un largo\n')
+    expect(lineOf(after, 'Repisa 1')).toMatch(/^\d+\. Repisa 1 · 294 × 514 · 1 pieza · veta a lo largo \(294\) · cubrecanto: un ancho$/)
+    expect(after).toContain('. Piso, Techo, Repisa 2 a 4 · 514 × 294 · 5 piezas · cubrecanto: un largo\n')
   })
 
   it('says the grain is free on a board that can be turned, with its longer side first', () => {
     const text = said(changed(exampleBookcase, 'shelf-1', { grain: 'any' }))
-    expect(lineOf(text, 'Entrepaño 1')).toMatch(/· 514 × 294 · 1 pieza · veta libre · cubrecanto: un largo$/)
+    expect(lineOf(text, 'Repisa 1')).toMatch(/· 514 × 294 · 1 pieza · veta libre · cubrecanto: un largo$/)
     expect(numbered(text).filter((l) => l.line.includes('veta libre'))).toHaveLength(1)
   })
 
@@ -142,19 +142,19 @@ describe('the cut list for the lumberyard: length goes with the grain', () => {
 describe('the cut list for the lumberyard: what makes two boards one line', () => {
   it('keeps apart two boards of the same size banded on different edges', () => {
     const text = said(changed(exampleBookcase, 'shelf-1', { edges: ['front', 'back'] }))
-    expect(lineOf(text, 'Entrepaño 1')).toMatch(/· 514 × 294 · 1 pieza · cubrecanto: dos largos$/)
-    expect(text).toContain('. Piso, Techo, Entrepaño 2 a 4 · 514 × 294 · 5 piezas · cubrecanto: un largo\n')
+    expect(lineOf(text, 'Repisa 1')).toMatch(/· 514 × 294 · 1 pieza · cubrecanto: dos largos$/)
+    expect(text).toContain('. Piso, Techo, Repisa 2 a 4 · 514 × 294 · 5 piezas · cubrecanto: un largo\n')
   })
 
   it('counts the same edge once and ignores a face named as an edge', () => {
     const text = said(changed(exampleBookcase, 'shelf-1', { edges: ['front', 'front', 'top', 'bottom'] }))
-    expect(text).toContain('. Piso, Techo, Entrepaño 1 a 4 · 514 × 294 · 6 piezas · cubrecanto: un largo\n')
+    expect(text).toContain('. Piso, Techo, Repisa 1 a 4 · 514 × 294 · 6 piezas · cubrecanto: un largo\n')
   })
 
   it('names the four edges of a banded front, and both kinds when a long and a short edge are banded', () => {
     expect(lineOf(said(ficha('KC-BUR-01')), 'Frente de cajón 1')).toMatch(/· 1 pieza · cubrecanto: los cuatro cantos$/)
-    expect(lineOf(said(changed(exampleBookcase, 'shelf-1', { edges: ['front', 'left'] })), 'Entrepaño 1')).toMatch(/· cubrecanto: un largo y un ancho$/)
-    expect(lineOf(said(changed(exampleBookcase, 'shelf-1', { edges: [] })), 'Entrepaño 1')).toMatch(/· 514 × 294 · 1 pieza$/)
+    expect(lineOf(said(changed(exampleBookcase, 'shelf-1', { edges: ['front', 'left'] })), 'Repisa 1')).toMatch(/· cubrecanto: un largo y un ancho$/)
+    expect(lineOf(said(changed(exampleBookcase, 'shelf-1', { edges: [] })), 'Repisa 1')).toMatch(/· 514 × 294 · 1 pieza$/)
   })
 
   it('keeps apart two doors of the same size when only one gets a notch, where the list by role makes one row', () => {
@@ -176,7 +176,7 @@ describe('the cut list for the lumberyard: what makes two boards one line', () =
   })
 
   it('carries on each line what the message says of it: the grain, the banded edges and the boards that do not fit', () => {
-    const turned = lined(changed(exampleBookcase, 'shelf-1', { grain: 'width' })).flatMap((block) => block.lines).find((l) => l.names === 'Entrepaño 1')!
+    const turned = lined(changed(exampleBookcase, 'shelf-1', { grain: 'width' })).flatMap((block) => block.lines).find((l) => l.names === 'Repisa 1')!
     expect(turned).toMatchObject({ length: 294, width: 514, count: 1, rounded: false, grain: 'veta a lo largo (294)', banding: 'cubrecanto: un ancho', after: null, ids: ['shelf-1'] })
     const shortSheets = { ...testCatalog, materials: testCatalog.materials.map((m) => (m.id === 'TR6' ? { ...m, sheet: { length: 1500, width: 1220 } } : m)) }
     expect(lined(exampleBookcase, shortSheets).map((block) => [block.name, block.unplaced])).toEqual([['Triplay de pino 18 mm', []], ['Triplay de pino 6 mm (trasera)', ['Trasera']]])

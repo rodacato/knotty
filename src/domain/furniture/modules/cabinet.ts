@@ -631,7 +631,7 @@ function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): F
 /** What a chest has besides its fixed front: a lid hinged on the strip left of the shelf over it, resting on the front's top edge, and a floor at mid-height when the plan raises it. */
 function chestLid(l: Layout, cell: PlanCell, o: Opening, front: Extent): Pick<Filling, 'pieces' | 'joints'> {
   const floor = cell.shelves
-    ? [l.panel({ id: `${o.id}-floor`, name: `Fondo${o.label}`, role: 'shelf', normal: 'y', x: extent(ref(o.left), ref(o.right)), y: startAt(partway(o.bottom, o.top, 0.5, -l.half)), z: extent(ref(l.backFace), l.build.doors === 'overlay' ? o.front : shift(o.front, -l.t)), load: 'light', support: 'fixed' })]
+    ? [l.panel({ id: `${o.id}-floor`, name: `Piso${o.label}`, role: 'shelf', normal: 'y', x: extent(ref(o.left), ref(o.right)), y: startAt(partway(o.bottom, o.top, 0.5, -l.half)), z: extent(ref(l.backFace), l.build.doors === 'overlay' ? o.front : shift(o.front, -l.t)), load: 'light', support: 'fixed' })]
     : []
   // At the top of the furniture the lid is the carcass's, one over every column.
   const strip = pieceOf(o.top)
@@ -738,7 +738,7 @@ function fill(l: Layout, spec: ColumnSpec): Filling {
         ? { name: `Piso de la columna ${spec.name}`, role: 'bottom' as const, load: 'medium' as const }
         : range && j === range.hi
           ? { name: `Techo de la columna ${spec.name}`, role: 'top' as const }
-          : { name: `Entrepaño fijo ${l.n > 1 || nested ? `${spec.name}.` : ''}${j + 1}`, role: 'shelf' as const }
+          : { name: `Repisa fija ${l.n > 1 || nested ? `${spec.name}.` : ''}${j + 1}`, role: 'shelf' as const }
     // Over a chest only a strip at the back stays fixed: the rest of the shelf is the lid, hinged on it.
     const chest = cells[j].content === 'chest' && !cells[j].columns
     const board = chest ? { name: `Tira fija de la tapa ${l.n > 1 || nested ? `${spec.name}.` : ''}${j + 1}`, role: 'shelf' as const, edges: [] } : edge

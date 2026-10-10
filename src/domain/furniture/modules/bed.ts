@@ -122,7 +122,7 @@ export const BED_LABELS = {
   } satisfies Labels<BedPlan['drawers']['position']>,
   legs: {
     none: { option: 'Sin patas', phrase: 'sin patas' },
-    legs: { option: 'Cuatro patas', phrase: 'con patas' },
+    legs: { option: 'Patas', phrase: 'con patas' },
   } satisfies Labels<BedPlan['legs']>,
   headboard: {
     none: { option: 'Sin cabecera', phrase: 'sin cabecera' },

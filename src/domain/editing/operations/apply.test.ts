@@ -61,7 +61,7 @@ describe('applyOperations', () => {
       const id = `shelf-${i}`
       ops.push(
         { op: 'resize', id, axis: 'x', end: 'to', at: ref('divider.x0') },
-        { op: 'duplicatePiece', id, newId: `${id}-right`, name: `Entrepaño ${i} derecho`, axis: 'x', at: ref('divider.x1') },
+        { op: 'duplicatePiece', id, newId: `${id}-right`, name: `Repisa ${i} derecha`, axis: 'x', at: ref('divider.x1') },
         { op: 'resize', id: `${id}-right`, axis: 'x', end: 'to', at: ref('side-right.x0') },
         { op: 'removeJoint', id: `j-${id}-side-right` },
         { op: 'addJoint', joint: makeJoint(`j-${id}-div`, id, 'divider', 'shelf-pin') },
@@ -90,7 +90,7 @@ describe('applyOperations', () => {
 
   it('distributing spaces evenly', () => {
     const withFive = applied(exampleBookcase, [
-      { op: 'duplicatePiece', id: 'shelf-4', newId: 'shelf-5', name: 'Entrepaño 5', axis: 'y', at: mm(1700) },
+      { op: 'duplicatePiece', id: 'shelf-4', newId: 'shelf-5', name: 'Repisa 5', axis: 'y', at: mm(1700) },
       { op: 'distribute', ids: ['shelf-1', 'shelf-2', 'shelf-3', 'shelf-4', 'shelf-5'], axis: 'y', a: 'bottom.y1', b: 'top.y0' },
     ]).design
     const c = boxesOf(withFive)
@@ -147,7 +147,7 @@ describe('cutList', () => {
     const r = resolveGeometry(exampleBookcase, testCatalog)
     if (!r.ok) throw new Error()
     const list = cutList(exampleBookcase, r.value)
-    expect(list.find((l) => l.ids.includes('shelf-1'))).toMatchObject({ name: 'Entrepaño 1 a 4', count: 4, length: 514, width: 294, thickness: 18 })
+    expect(list.find((l) => l.ids.includes('shelf-1'))).toMatchObject({ name: 'Repisa 1 a 4', count: 4, length: 514, width: 294, thickness: 18 })
     expect(list.find((l) => l.ids.includes('side-left'))).toMatchObject({ count: 2, length: 1800, width: 294 })
   })
 })

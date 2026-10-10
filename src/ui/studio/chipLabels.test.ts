@@ -5,9 +5,9 @@ describe("resolvedChipLabel", () => {
   it("drops the piece list", () => {
     expect(
       resolvedChipLabel(
-        "Entrepaños que se pandean: Piso, Entrepaño 1, Entrepaño 2",
+        "Repisas que se pandean: Piso, Repisa 1, Repisa 2",
       ),
-    ).toBe("Resuelto: Entrepaños que se pandean");
+    ).toBe("Resuelto: Repisas que se pandean");
   });
   it("keeps an entry that has no pieces", () => {
     expect(resolvedChipLabel("Falta un apoyo")).toBe(
