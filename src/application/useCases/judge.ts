@@ -32,6 +32,8 @@ export interface Judging {
   extraRound: boolean
   /** The expert already had its extra round for new critical findings. */
   criticalsReviewed: boolean
+  /** Knotty read the request as a field of the plan: what that field takes away is what was asked («Con zoclo» removes the legs). */
+  readAsPlanField?: boolean
 }
 
 export type Verdict =
@@ -47,13 +49,13 @@ export type Verdict =
   | { kind: 'applied'; candidate: Accepted; unresolved: DesignError[] }
 
 /** What becomes of an expert's change: pure, so every way it can go is tested on its own. */
-export function judge({ design, before, candidate, response, changedRequirements = [], request, catalog, extraRound, criticalsReviewed }: Judging): Verdict {
+export function judge({ design, before, candidate, response, changedRequirements = [], request, catalog, extraRound, criticalsReviewed, readAsPlanField = false }: Judging): Verdict {
   if (!candidate) return { kind: 'answer' }
   if (!candidate.ok) return { kind: 'retry', reason: 'invalid', errors: candidate.errors }
   const { design: next, analysis } = candidate
   const unasked = describeChange(design, next, catalog).direct.filter((c) => c.kind === 'removed' && STRUCTURAL.has(design.pieces.find((p) => p.id === c.id)?.role ?? ''))
   const holds = [
-    ...(unasked.length && !ASKS_REMOVAL.test(request) ? [holdText.removesStructure(unasked.map((c) => c.name))] : []),
+    ...(unasked.length && !readAsPlanField && !ASKS_REMOVAL.test(request) ? [holdText.removesStructure(unasked.map((c) => c.name))] : []),
     ...(response.questions.length ? [holdText.askedQuestions] : []),
     ...(changedRequirements.length ? [holdText.changesRequirements(changedRequirements)] : []),
   ]

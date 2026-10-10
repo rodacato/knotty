@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { createAbsent, NO_EXPERT_MESSAGE } from '../adapters/llm/absent/absent'
 import { basesOf } from '../domain/furniture/examples'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
-import { testReferences } from '../domain/furniture/fixtures/references.test-util'
+import { exampleSideboard, testReferences } from '../domain/furniture/fixtures/references.test-util'
+import { currentDesign } from '../domain/session/state'
 import { buildPlan, MODULES, type FurniturePlan } from '../domain/furniture/modules/plan'
 import type { LLMProvider } from '../ports/LLMProvider'
 import { quickActions } from './quickActions'
@@ -54,7 +55,7 @@ describe('what Knotty offers to do by itself', () => {
         const after = await useCases.adjust(state, request, signal())
         const last = after.chat.at(-1)
         const solved = new Set(last?.solutions.map((s) => s.option))
-        if (last?.error || (after.current === state.current && !after.proposal) || last?.questions.some((q) => q.options?.some((o) => !solved.has(o)))) failed.push(`${base.name}: ${request}`)
+        if (last?.error || (after.current === state.current && !after.proposal) || after.proposal?.holds.length || last?.questions.some((q) => q.options?.some((o) => !solved.has(o)))) failed.push(`${base.name}: ${request}`)
       }
     }
     expect(failed).toEqual([])
@@ -64,6 +65,14 @@ describe('what Knotty offers to do by itself', () => {
     const alone = createUseCases({ llm: createAbsent, catalog: testCatalog, repository: { load: () => null, save: () => {}, clear: () => {} } })
     const after = await alone.adjust(opened(variant('cabinet', 'librero')), 'Hazlo con forma de barco', signal())
     expect(after.chat.at(-1)).toMatchObject({ text: NO_EXPERT_MESSAGE, alone: true, error: true, failure: 'rejection' })
+  })
+
+  it('what a request takes away is what was asked: «Con zoclo» removes the legs at once, with nothing held', async () => {
+    const onLegs = useCases.openExample(exampleSideboard)
+    const after = await useCases.adjust(onLegs, 'Con zoclo', signal())
+    expect(after.proposal).toBeNull()
+    expect(after.current).toBeGreaterThan(onLegs.current)
+    expect(currentDesign(after).pieces.some((p) => p.role === 'kick')).toBe(true)
   })
 
   it('what Knotty does not design is declined before anyone is asked, new or as a change', async () => {

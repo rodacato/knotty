@@ -175,7 +175,7 @@ export function createAdjust(kit: Kit) {
     const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
     const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
     // The plan path's policy: no extra round, so new criticals wait for the person with the rules' options.
-    const verdict = judge({ design, before, candidate, response: { questions: [], acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false })
+    const verdict = judge({ design, before, candidate, response: { questions: [], acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false, readAsPlanField: true })
     const changes = describePlanChanges(live, intent.plan)
     const said = changes.length ? changes : ['cambio en la ficha']
     const summary = `${said.join(', ').charAt(0).toUpperCase()}${said.join(', ').slice(1)}`.slice(0, 90)
