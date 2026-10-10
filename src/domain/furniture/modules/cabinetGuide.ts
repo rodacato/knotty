@@ -86,7 +86,7 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
         ...(at('back').length ? [step('Con el cuerpo a escuadra, pega y clava la trasera en todo el perímetro: al quedar fija, mantiene la escuadra.', sequence('Con el cuerpo a escuadra, pegar y clavar la trasera en todo el perímetro'))] : []),
       ],
     },
-    { id: 'base', title: 'La base', pieces: ids('base'), entersFrom: 'below', detail: { title: plan.base === 'kick' ? 'El zoclo, por partes' : 'La base, por partes', pieces: ids('base') }, steps: [step(plan.base === 'kick' ? 'Pon el zoclo, remetido al frente.' : 'Pon las patas, con sus faldones.', sequence('**Zoclo o patas**'))] },
+    { id: 'base', title: 'La base', pieces: ids('base'), entersFrom: 'below', ...(ids('base').length > 2 ? { detail: { title: 'La base, por partes', pieces: ids('base') } } : {}), steps: [step(plan.base === 'kick' ? 'Pon el zoclo, remetido al frente.' : 'Pon las patas, con sus faldones.', sequence('**Zoclo o patas**'))] },
     {
       id: 'drawers',
       title: 'Los cajones',

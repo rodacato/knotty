@@ -221,13 +221,15 @@ export function TakeAway({ state }: { state: DesignState }) {
                   ))}
                 </ul>
                 {phase.drawing && phase.seenFrom && <p className="text-sm">{VIEWS[phase.seenFrom].name}</p>}
-                {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble en la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" hidden={false} />}
-                {phase.detail && phase.detailDrawing && (
-                  <figure className="flex flex-col gap-1">
-                    <figcaption className="text-sm font-medium">{phase.detail.title}</figcaption>
-                    <Drawing diagram={phase.detailDrawing} label={phase.detail.title} className="max-h-[80mm] w-full" />
-                  </figure>
-                )}
+                <div className={phase.detailDrawing ? 'grid grid-cols-1 items-center gap-4 sm:grid-cols-2 print:grid-cols-2' : ''}>
+                  {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble en la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" hidden={false} />}
+                  {phase.detail && phase.detailDrawing && (
+                    <figure className="flex flex-col gap-1">
+                      <figcaption className="text-sm font-medium">{phase.detail.title}</figcaption>
+                      <Drawing diagram={phase.detailDrawing} label={phase.detail.title} className="max-h-[80mm] w-full" />
+                    </figure>
+                  )}
+                </div>
               </div>
             ))}
           </section>
