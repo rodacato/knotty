@@ -23,7 +23,7 @@ export function createUseCases(deps: Dependencies) {
   const { reconstruct, redoAs, fromExample, openExample, readPhoto } = createReconstruct(kit)
   const { adjust } = createAdjust(kit)
   const { applyProposal, proposalFix, applyProposalWithFix, answerWithFix, discardProposal } = createProposals(kit)
-  const { backToVersion, restoreFromVersion, undoChange } = createHistory(kit)
+  const { backToVersion, restoreFromVersion, undoChange, undo, redo } = createHistory(kit)
   const { confirmPiece, previewPlan, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
@@ -57,6 +57,8 @@ export function createUseCases(deps: Dependencies) {
     applyPlan,
     restoreFromVersion,
     undoChange,
+    undo,
+    redo,
     acceptNotice,
     reopenNotice,
     dismissQuestion,

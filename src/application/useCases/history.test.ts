@@ -57,6 +57,50 @@ describe('undoChange', () => {
   })
 })
 
+describe('undo and redo', () => {
+  const shown = (state: DesignState) => state.versions.findIndex((v) => JSON.stringify(v.design) === JSON.stringify(currentDesign(state))) + 1
+  const step = (state: DesignState, way: 'undo' | 'redo') => {
+    const r = c[way](state)
+    if (!r.ok) throw new Error(r.message)
+    return r.state
+  }
+
+  it('undo walks back one change at a time instead of going back and forth, and stops at the first', () => {
+    const once = step(thinnedThenMoved, 'undo')
+    const twice = step(once, 'undo')
+    expect([shown(once), shown(twice)]).toEqual([2, 1])
+    expect(c.undo(twice)).toEqual({ ok: false, message: 'Es la primera versión: no hay nada antes.' })
+  })
+
+  it('redo retraces each undo in turn, and has nothing to do before an undo or past the last change', () => {
+    expect(c.redo(thinnedThenMoved)).toEqual({ ok: false, message: 'No hay nada que rehacer.' })
+    const back = step(step(thinnedThenMoved, 'undo'), 'undo')
+    const forward = step(back, 'redo')
+    const again = step(forward, 'redo')
+    expect([shown(forward), shown(again)]).toEqual([2, 3])
+    expect(c.redo(again).ok).toBe(false)
+    expect(shown(step(again, 'undo'))).toBe(2)
+  })
+
+  it('a new change after going back leaves nothing to redo, and undo then returns to where it was made from', () => {
+    const branched = edited(step(thinnedThenMoved, 'undo'), 'shelf-1', { kind: 'move', axis: 'y', delta: -20 })
+    expect(c.redo(branched).ok).toBe(false)
+    expect(shown(step(branched, 'undo'))).toBe(2)
+  })
+
+  it('undo passes a change that no longer builds, and a design that does not build goes back to whatever came before', () => {
+    const broken = (state: DesignState, n: number): DesignState => ({ ...state, versions: state.versions.map((v) => (v.n === n ? { ...v, design: { ...v.design, pieces: v.design.pieces.map((p) => ({ ...p, material: 'no-such-board' })) } } : v)) })
+    expect(shown(step(broken(thinnedThenMoved, 2), 'undo'))).toBe(1)
+    const fromBroken = broken(broken(thinnedThenMoved, 3), 2)
+    expect(shown(step(fromBroken, 'undo'))).toBe(2)
+  })
+
+  it('going back to a version from the history is retraced by redo too', () => {
+    const jumped = c.backToVersion(thinnedThenMoved, 1)
+    expect(shown(step(jumped, 'redo'))).toBe(3)
+  })
+})
+
 describe('restoreFromVersion', () => {
   it('needs a version before and at least one piece', () => {
     const nothing = { ok: false, message: 'No hay una versión anterior de dónde regresar.' }

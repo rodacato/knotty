@@ -260,7 +260,7 @@ export function createReconstruct(kit: Kit) {
     return {
       format: 9,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
+      versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [], restores: null }],
       current: 1,
       requirements: r.requirements,
       decisions: [],
@@ -288,7 +288,7 @@ export function createReconstruct(kit: Kit) {
     return save({
       format: 9,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `${plan ? 'Base' : 'Ejemplo'}: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
+      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `${plan ? 'Base' : 'Ejemplo'}: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [], restores: null }],
       current: 1,
       requirements: [],
       decisions: [],

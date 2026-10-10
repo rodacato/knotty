@@ -26,6 +26,8 @@ export const Version = z.object({
   plan: FurniturePlan.nullable().default(null),
   /** Free-form changes made on top of the plan, replayed every time the plan is rebuilt. */
   extras: z.array(Operation).default([]),
+  /** The version this one brought back, when it is a way back and not a change: undo and redo walk the changes, not these. */
+  restores: z.number().int().positive().nullable().default(null),
 })
 export type Version = z.infer<typeof Version>
 
@@ -92,4 +94,35 @@ export function pruneVersions(versions: Version[]): Version[] {
 export function previousUsableVersion(versions: Version[], current: number, isUsable: (v: Version) => boolean): number | null {
   const before = versions.filter((v) => v.n < current).sort((a, b) => b.n - a.n)
   return before.find(isUsable)?.n ?? null
+}
+
+const inOrder = (versions: Version[]) => [...versions].sort((a, b) => a.n - b.n)
+
+/** The change a version carries: itself, or the one it brought back, as long as that one is still kept. */
+function changeOf(versions: Version[], n: number): number {
+  const restored = versions.find((v) => v.n === n)?.restores
+  return restored && versions.some((v) => v.n === restored) ? changeOf(versions, restored) : n
+}
+
+/** One step back: the change the current one was made from; null at the first. */
+export function undoTarget(versions: Version[], current: number): number | null {
+  const ordered = inOrder(versions)
+  const change = changeOf(versions, current)
+  const before = ordered[ordered.findIndex((v) => v.n === change) - 1]
+  return before ? changeOf(versions, before.n) : null
+}
+
+/** One step forward again: where the last way back not yet retraced came from; null once a new change was made, or with nothing to retrace. */
+export function redoTarget(versions: Version[], current: number): number | null {
+  const ordered = inOrder(versions).filter((v) => v.n <= current)
+  let start = ordered.length
+  while (start > 0 && ordered[start - 1].restores !== null) start--
+  if (start === ordered.length || start === 0) return null
+  const left: number[] = []
+  for (let i = start; i < ordered.length; i++) {
+    const at = changeOf(versions, ordered[i].n)
+    if (left.at(-1) === at) left.pop()
+    else left.push(changeOf(versions, ordered[i - 1].n))
+  }
+  return left.at(-1) ?? null
 }

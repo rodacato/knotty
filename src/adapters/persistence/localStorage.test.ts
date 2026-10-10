@@ -24,7 +24,7 @@ function storage(limit = Infinity): Storage {
 const state = (versions = 1): DesignState => ({
   format: 9,
   measures: exampleBookcase.dimensions,
-  versions: Array.from({ length: versions }, (_, i) => ({ n: i + 1, design: exampleBookcase, summary: `v${i + 1}`, reason: '', operations: [], date: '', origin: null, decisions: [], plan: null, extras: [] })),
+  versions: Array.from({ length: versions }, (_, i) => ({ n: i + 1, design: exampleBookcase, summary: `v${i + 1}`, reason: '', operations: [], date: '', origin: null, decisions: [], plan: null, extras: [], restores: null })),
   current: versions,
   requirements: [],
   decisions: [],

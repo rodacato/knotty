@@ -78,6 +78,9 @@ export interface SessionSlice {
   reopenQuestion(notice: Notice): void
   restoreFromVersion(n: number, ids: string[]): { ok: true } | { ok: false; message: string }
   undoChange(n: number): { ok: true } | { ok: false; message: string }
+  /** One change back, and forward again after going back. */
+  undo(): { ok: true } | { ok: false; message: string }
+  redo(): { ok: true } | { ok: false; message: string }
   /** A hand edit on one piece; when it cannot hold, the result says why and what could. */
   editPiece(id: string, edit: PieceEdit): PieceEditResult
   resizeFurniture(axis: Axis, value: number): PieceEditResult
@@ -216,6 +219,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   restoreFromVersion: (n, ids) => versioned(set, get, (services, state) => services.useCases.restoreFromVersion(state, n, ids)),
   undoChange: (n) => versioned(set, get, (services, state) => services.useCases.undoChange(state, n)),
+  undo: () => versioned(set, get, (services, state) => services.useCases.undo(state)),
+  redo: () => versioned(set, get, (services, state) => services.useCases.redo(state)),
   editPiece: (id, edit) => versioned(set, get, (services, state) => services.useCases.editPiece(state, id, edit), NO_EDIT),
   resizeFurniture: (axis, value) => versioned(set, get, (services, state) => services.useCases.resizeFurniture(state, axis, value), NO_EDIT),
   applyPlan: (plan) => versioned(set, get, (services, state) => services.useCases.applyPlan(state, plan)),

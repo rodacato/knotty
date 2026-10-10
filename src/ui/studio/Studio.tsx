@@ -13,6 +13,7 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button, IconButton } from '../system/components'
 import { Emblem } from '../system/Brand'
+import { HistoryKeys } from './HistoryKeys'
 import { useExpertStatus } from '../shell/expertStatus'
 import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
@@ -507,6 +508,7 @@ export function Studio({ state }: { state: DesignState }) {
 
   return (
     <div className="flex h-dvh flex-col">
+      <HistoryKeys />
       <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} />
       {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
