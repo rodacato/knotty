@@ -126,6 +126,13 @@ export function addColumn(plan: CabinetPlan, path: CellPath, side: 'left' | 'rig
   return { plan: next, path: [at, 0] }
 }
 
+/** The weight that gives a column or a cell `percent` of the whole, the others keeping theirs: widths and heights are weights, not shares. */
+export function weightForShare(percent: number, others: number[]): number {
+  const share = Math.min(99, Math.max(1, percent)) / 100
+  const rest = others.reduce((s, v) => s + v, 0)
+  return rest ? round3((share / (1 - share)) * rest) : 1
+}
+
 export const ONLY_COLUMN = 'Es la única columna del mueble.'
 
 /** The furniture without the whole column the cell at `path` sits in, and the first cell of a neighbour; `refused` when it is the only column or what is left breaks a rule of the cabinet. */

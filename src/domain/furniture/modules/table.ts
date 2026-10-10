@@ -103,6 +103,7 @@ const STRETCHER_RISE = 150
 const STRETCHER_MIN_HEIGHT = STRETCHER_RISE + 3 * APRON + DEFAULT_THICKNESS
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
+const MAX_OVERHANG = 100
 /** The radius a corner of the top is rounded to. */
 const TOP_ROUND = 40
 
@@ -119,6 +120,7 @@ export const TABLE_SOURCES: Record<string, Source> = {
   PEDESTAL: noReference('Construction choice: a 420 mm pedestal; available legroom is checked separately.'),
   STRETCHER_RISE: noReference('Construction choice: the reference asks a stool for stretchers and a footrest (muebles-y-medidas.md §1.3) and a workbench for low stretchers, and gives no height; 150 clears a broom and a shoe, the height Knotty gives legs under a box. Its section is the apron\'s.'),
   MAX_END_INSET: noReference('Module limit: supports are inset at most 50 mm from the ends.'),
+  MAX_OVERHANG: noReference('Form limit: the reference gives no most for a top past its supports; 100 mm is what the panel would leave unsupported in 18 mm, and no ficha passes 80. A saved plan with more still opens.'),
   TOP_ROUND: noReference('Construction choice: a radius the size of a jar lid, easy to mark and to saw; the reference only asks 3 mm or more on corners a child can reach.'),
 }
 
@@ -507,7 +509,7 @@ const tableFields: FieldSpec<TablePlan>[] = [
       number({ key: 'dimensions.width', label: 'Largo', ...PLAN_MEASURE, get: (p) => p.dimensions.width, set: (p, width) => withSize(p, { width }) }),
       number({ key: 'dimensions.depth', label: 'Fondo', ...PLAN_MEASURE, get: (p) => p.dimensions.depth, set: (p, depth) => withSize(p, { depth }) }),
     ]),
-    numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.max(0, overhang) }) })]),
+    numbers(2, [number({ key: 'overhang', label: 'La cubierta sobresale', min: 0, max: MAX_OVERHANG, get: (p) => p.overhang, set: (p, overhang) => ({ ...p, overhang: Math.min(MAX_OVERHANG, Math.max(0, overhang)) }) })]),
     choice({ key: 'corners', label: 'Esquinas de la cubierta', ...fromLabels(TABLE_LABELS.corners), get: (p) => p.corners ?? 'square', set: (p, corners) => ({ ...p, corners }) }),
     yesNo({ key: 'cable', label: 'Pasacables en la cubierta', visibleWhen: (p) => p.use === 'desk' || p.use === 'standing', get: (p) => !!p.cable, set: (p, cable) => ({ ...p, cable }) }),
     material({ key: 'material', label: 'Triplay', use: 'carcass', get: (p) => p.material, set: (p, material) => ({ ...p, material }) }),
@@ -548,7 +550,7 @@ const TABLE_PARTS: Parts<TablePlan> = {
     },
     woodPart(),
     assemblyPart(),
-    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners', 'cable'], joints: [], summary: (p) => (p.overhang ? `Sobresale ${p.overhang} mm` : 'Al ras de las patas') },
+    { id: 'top', name: 'Cubierta', side: 'outside', fields: ['overhang', 'corners', 'cable'], joints: [], summary: (p) => (!p.overhang ? 'Al ras de las patas' : p.overhang > MAX_END_INSET ? `Sobresale ${p.overhang} mm a los lados y ${MAX_END_INSET} al frente${p.use === 'desk' ? '' : ' y atrás'}` : `Sobresale ${p.overhang} mm`) },
     { id: 'legs', name: 'Patas', side: 'outside', fields: ['legs', 'legStyle', 'stretcher'], joints: ['body', 'base'], jointsTitle: 'Uniones de las patas y la cubierta', summary: (p) => (p.legs === 'legs' && (p.legStyle ?? 'straight') !== 'straight' ? `Con ${LEANING_LEG_STYLE_LABELS[p.legStyle!].phrase}` : TABLE_LABELS.legs[p.legs].option) },
     {
       id: 'under',

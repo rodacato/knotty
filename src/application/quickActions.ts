@@ -51,7 +51,8 @@ export function quickActions(state: DesignState, catalog: Catalog, limit = 6): s
     if (offered.length === limit) break
     const intent = parseIntent(request, plan, design, catalog)
     if (intent?.kind !== 'edit' || intent.plan === plan || fields.has(intent.field)) continue
-    if (!analyze(rebuildFromPlan(intent.plan, extras, catalog, state.requirements).design, catalog, state.requirements).valid) continue
+    const rebuilt = rebuildFromPlan(intent.plan, extras, catalog, state.requirements)
+    if (rebuilt.missing || !analyze(rebuilt.design, catalog, state.requirements).valid) continue
     fields.add(intent.field)
     offered.push(request)
   }

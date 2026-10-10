@@ -110,7 +110,7 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
       key: 'proposal',
       kind: 'proposal',
       severity: 'decision',
-      title: 'Propuesta del experto sin aplicar',
+      title: state.chat.some((m) => m.proposal === 'pending' && m.alone) ? 'Propuesta de Knotty sin aplicar' : 'Propuesta del experto sin aplicar',
       message: named(withCandidate(design, state.proposal.design), [...state.proposal.holds, ...groupedMessages(state.proposal.critical)].join(' ')) || state.proposal.summary,
       pieces: state.proposal.critical.flatMap((c) => c.pieces),
       findings: [],

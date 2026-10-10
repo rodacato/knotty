@@ -73,6 +73,8 @@ export function ReviewGate({ stale }: { stale: boolean }) {
 function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onRequest: (text: string) => void }) {
   const select = useStore((s) => s.select)
   const thinking = useStore((s) => s.thinking)
+  const openConnect = useStore((s) => s.openConnect)
+  const { available } = useExpertStatus()
   const piece = c.pieces.find((id) => design.pieces.some((p) => p.id === id))
   return (
     <li className="flex items-start gap-2 py-2 text-sm">
@@ -85,9 +87,14 @@ function CheckRow({ c, design, onRequest }: { c: Check; design: Design; onReques
             Ver en 3D
           </button>
         )}
-        {c.status !== 'ok' && c.request && (
+        {c.status !== 'ok' && c.request && available && (
           <Button variant="secondary" className="mt-1.5 text-xs" disabled={thinking} onClick={() => onRequest(c.request!)}>
             <Wrench /> {c.request}
+          </Button>
+        )}
+        {c.status !== 'ok' && c.request && !available && (
+          <Button variant="secondary" className="mt-1.5 text-xs" onClick={() => openConnect(true)}>
+            <Wrench /> Conectar experto para arreglarlo
           </Button>
         )}
       </span>

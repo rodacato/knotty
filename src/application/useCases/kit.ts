@@ -65,7 +65,7 @@ export function createKit(deps: Dependencies) {
     state: DesignState,
     design: Design,
     /** `asItWas`: the design is a version that already was, so nothing of the current one is carried into it. */
-    data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[]; asItWas?: boolean },
+    data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[]; asItWas?: boolean; restores?: number },
   ): DesignState {
     const n = Math.max(...state.versions.map((v) => v.n)) + 1
     const previous = currentDesign(state)
@@ -78,7 +78,7 @@ export function createKit(deps: Dependencies) {
     const kept = data.asItWas ? design : withKind(personal, settleKind(knownKind(previous), knownKind(design)))
     const versions = pruneVersions([
       ...state.versions,
-      { n, design: kept, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
+      { n, design: kept, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [], restores: data.restores ?? null },
     ])
     return { ...state, versions: versions, current: n, proposal: null, chat: state.chat.map((m) => (m.proposal === 'pending' ? { ...m, proposal: 'discarded' as const, answered: true } : m)) }
   }

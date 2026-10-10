@@ -33,7 +33,7 @@ describe('a plan the expert cannot write back', () => {
   it('tells apart, ficha by ficha, the plan that comes back whole from the one that comes back without something or not at all', () => {
     const backWhole = plans.filter(({ plan }) => isDeepStrictEqual(echoed(plan), FurniturePlan.parse(plan)))
     expect(backWhole.map(({ code }) => code)).toEqual(plans.filter(({ plan }) => expertCanWrite(plan)).map(({ code }) => code))
-    expect(backWhole).toHaveLength(39)
+    expect(backWhole).toHaveLength(40)
   })
 
   it('keeps GN-BAU-01 off the plan path, so its chest is not closed over', async () => {

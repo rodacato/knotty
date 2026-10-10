@@ -1,11 +1,14 @@
 import { analyze } from '../../domain/checks/analysis'
 import { describeChange, restorePieces } from '../../domain/editing/changes/changes'
 import type { Operation } from '../../domain/editing/operations/schema'
+import { redoTarget, undoTarget } from '../../domain/session/history/history'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { named } from '../named'
 import { knownErrors, newErrors } from './candidate'
 import { currentPlan, layered } from './currentPlan'
 import type { Kit } from './kit'
+
+const NOTHING_BEFORE = 'Es la primera versión: no hay nada antes.'
 
 type Outcome = { ok: true; state: DesignState } | { ok: false; message: string }
 
@@ -23,7 +26,7 @@ export function createHistory(kit: Kit) {
   function backToVersion(state: DesignState, n: number): DesignState {
     const target = state.versions.find((v) => v.n === n)
     if (!target || n === state.current) return state
-    const withChange = addVersion({ ...state, decisions: target.decisions }, target.design, { summary: `Volver a v${n}`, reason: `Volver a v${n}: ${target.summary}`, operations: [], origin: null, plan: target.plan, extras: target.extras, asItWas: true })
+    const withChange = addVersion({ ...state, decisions: target.decisions }, target.design, { summary: `Volver a v${n}`, reason: `Volver a v${n}: ${target.summary}`, operations: [], origin: null, plan: target.plan, extras: target.extras, asItWas: true, restores: n })
     return save(noted(withChange, 'expert', `Regresé al diseño de la v${n} (${target.summary}).`, { alone: true }))
   }
 
@@ -50,15 +53,30 @@ export function createHistory(kit: Kit) {
     return { ok: true, state: save(noted(withVersion, 'user', `Regresé ${names.join(', ')} ${asBefore}.`)) }
   }
 
+  /** One step back through the changes, past any that no longer builds; a design that does not build itself goes back to whatever came before. */
+  function undo(state: DesignState): Outcome {
+    const valid = (n: number) => analyze(state.versions.find((v) => v.n === n)!.design, catalog, state.requirements).valid
+    const strict = valid(state.current)
+    let target = undoTarget(state.versions, state.current)
+    while (target !== null && strict && !valid(target)) target = undoTarget(state.versions, target)
+    return target === null ? { ok: false, message: NOTHING_BEFORE } : { ok: true, state: backToVersion(state, target) }
+  }
+
+  /** One step forward again, after going back. */
+  function redo(state: DesignState): Outcome {
+    const target = redoTarget(state.versions, state.current)
+    return target === null ? { ok: false, message: 'No hay nada que rehacer.' } : { ok: true, state: backToVersion(state, target) }
+  }
+
   /** Undoes one change: the last one exactly; an older one by bringing back what it touched. */
   function undoChange(state: DesignState, n: number): Outcome {
     const before = previousOf(state, n)
-    if (!before) return { ok: false, message: 'Es la primera versión: no hay nada antes.' }
-    if (n === state.current) return { ok: true, state: backToVersion(state, before.n) }
+    if (!before) return { ok: false, message: NOTHING_BEFORE }
+    if (n === state.current) return undo(state)
     const version = state.versions.find((v) => v.n === n)!
     const ids = describeChange(before.design, version.design, catalog).direct.map((c) => c.id)
     return restoreFromVersion(state, n, ids)
   }
 
-  return { backToVersion, restoreFromVersion, undoChange }
+  return { backToVersion, restoreFromVersion, undoChange, undo, redo }
 }

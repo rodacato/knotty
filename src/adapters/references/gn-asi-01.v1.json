@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "code": "GN-ASI-01",
+  "id": "bench",
+  "home": { "order": 43 },
+  "rooms": ["entry","dining"],
+  "name": "Banca",
+  "kind": "bench",
+  "style": "basic",
+  "notes": "Banca larga sin respaldo, para la entrada o para un lado del comedor. El asiento queda a 450 mm sobre cuatro patas con faldón, y la repisa baja amarra las patas y recibe los zapatos.",
+  "plan": {
+    "kind": "table",
+    "use": "seat",
+    "name": "Banca",
+    "material": "T18",
+    "dimensions": { "width": 1200, "height": 450, "depth": 350 },
+    "overhang": 0,
+    "shelf": true,
+    "pedestal": { "side": "none", "drawers": 0 },
+    "legs": "legs"
+  },
+  "expect": {
+    "valid": true,
+    "pieces": 17,
+    "findings": [],
+    "sheets": { "T18": 1 },
+    "hardware": { "edge-banding-19": 6, "pocket-screw-1-1/4": 16, "screw-8x1-1/4": 12, "screw-8x2": 59, "white-glue": 2 }
+  }
+}

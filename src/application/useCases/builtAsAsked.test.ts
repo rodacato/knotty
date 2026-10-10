@@ -48,7 +48,7 @@ const split = (plan: FurniturePlan, path: CellPath) => splitCell(plan as Cabinet
 describe('a plan is built as asked', () => {
   it('holds for every shipped ficha and every bench variant, and not for one whose drawer no longer fits', () => {
     const plans = store.all().flatMap((r) => (r.plan ? [r.plan] : []))
-    expect(plans).toHaveLength(60)
+    expect(plans).toHaveLength(61)
     for (const plan of [...plans, ...Object.values(MODULES).flatMap((m) => m.benchVariants().map(([, p]) => p as FurniturePlan))]) expect(builtAsAsked(plan, buildPlan(plan, testCatalog).design)).toBeNull()
     const low = split(store.latest('GN-APA-01')!.plan!, [1, 1])
     expect(builtAsAsked(low, buildPlan(low, testCatalog).design)).toBe('Solo caben 0 de 2 cajones en esos huecos.')

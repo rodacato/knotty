@@ -4,6 +4,7 @@ import { normalize } from '../../domain/design/normalize'
 import { completeJoints } from '../../domain/design/joints'
 import type { Catalog } from '../../domain/materials/catalog'
 import { applyOperations } from '../../domain/editing/operations/apply'
+import { followChoice } from '../../domain/editing/joints/choice'
 import type { Operation } from '../../domain/editing/operations/schema'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import type { Requirement } from '../../domain/checks/requirements/requirements'
@@ -32,7 +33,7 @@ export function tryCandidate(
 ): Candidate {
   const applied = applyOperations(design, operations, catalog)
   if (!applied.ok) return { ok: false, errors: applied.errors, added: applied.errors, repairs: [] }
-  const joined = completeJoints(normalize(applied.value.design, catalog), catalog, design)
+  const joined = followChoice(completeJoints(normalize(applied.value.design, catalog), catalog, design), new Set(design.joints.map((u) => u.id)), catalog)
   const { design: next, repairs } = options.repair ? repairDesign(joined, catalog, requirements) : { design: joined, repairs: [] }
   const analysis = analyze(next, catalog, requirements)
   const added = newErrors(analysis, options.known ?? new Set())

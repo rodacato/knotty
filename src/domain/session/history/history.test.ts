@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
 import { updateDecisions, compactLog, pruneVersions, type Version } from './history'
 
-const version = (n: number): Version => ({ n, design: exampleBookcase, summary: `cambio ${n}`, reason: `pedido ${n}`, operations: ['x→900 estirar'], date: '2026-09-24', origin: null, decisions: [], plan: null, extras: [] })
+const version = (n: number): Version => ({ n, design: exampleBookcase, summary: `cambio ${n}`, reason: `pedido ${n}`, operations: ['x→900 estirar'], date: '2026-09-24', origin: null, decisions: [], plan: null, extras: [], restores: null })
 
 describe('history', () => {
   it('compacts the log: 8 in full, up to 30 summarized and the rest counted', () => {

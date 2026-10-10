@@ -9,7 +9,7 @@ import { spaceOverflow } from '../../domain/furniture/quick'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import { currentDesign, type DesignState, type Thumbnail } from '../../domain/session/state'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
-import { kindFromWords } from '../../domain/checks/typology/typology'
+import { declinedFor, kindFromWords } from '../../domain/checks/typology/typology'
 import { askedParts, describeMismatch, partsError, partsMismatch, type PartsMismatch } from '../../domain/furniture/intent/counts'
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { knownKind, planForKind, startingKind, withKind } from '../../domain/furniture/kind'
@@ -212,6 +212,8 @@ export function createReconstruct(kit: Kit) {
   }
 
   async function reconstruct(input: Input, signal: AbortSignal, onProgress: OnProgress = () => {}): Promise<DesignState> {
+    const declined = declinedFor(input.notes)
+    if (declined) throw new Error(declined)
     const trace: TraceEntry[] = []
     return save(initialState(input, await designIt(input, signal, onProgress, trace), trace))
   }
@@ -258,7 +260,7 @@ export function createReconstruct(kit: Kit) {
     return {
       format: 9,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [] }],
+      versions: [{ n: 1, design: design, summary: input.photos.length ? 'Reconstrucción desde fotos' : 'Diseño desde tu descripción', reason: input.notes || 'Fotos y medidas', operations: [], date: now(), origin: response.origin, decisions: [], plan, extras: [], restores: null }],
       current: 1,
       requirements: r.requirements,
       decisions: [],
@@ -286,7 +288,7 @@ export function createReconstruct(kit: Kit) {
     return save({
       format: 9,
       measures: design.dimensions,
-      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `${plan ? 'Base' : 'Ejemplo'}: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [] }],
+      versions: [{ n: 1, design: design.kind ? { ...design, kindSource: 'example' } : design, summary: `${plan ? 'Base' : 'Ejemplo'}: ${design.name}`, reason: 'Ejemplo', operations: [], date: now(), origin: null, decisions: [], plan, extras: [], restores: null }],
       current: 1,
       requirements: [],
       decisions: [],

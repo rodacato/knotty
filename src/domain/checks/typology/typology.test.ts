@@ -8,7 +8,7 @@ import { buildBed, type BedPlan } from '../../furniture/modules/bed'
 import { buildCabinet, DEFAULT_CONSTRUCTION, type CabinetPlan } from '../../furniture/modules/cabinet'
 import { buildTable, type TablePlan } from '../../furniture/modules/table'
 import type { Cell } from '../../furniture/reading/reading'
-import { detectKind } from './typology'
+import { detectKind, declinedFor } from './typology'
 
 const cell = (content: Cell['content'], extra: Partial<Cell> = {}): Cell => ({ height: 1, content, shelves: null, doors: null, ...extra })
 const cabinet = (p: Partial<CabinetPlan>) =>
@@ -147,5 +147,15 @@ describe('typologyRule', () => {
 
   it('a workbench by its name is not a bench, and a desk to stand at is not a desk', () => {
     expect(['Banco de trabajo', 'Mesa de trabajo', 'Mesón de taller', 'Escritorio de pie', 'Banca de entrada', 'Escritorio'].map((name) => detectKind({ name }))).toEqual(['workbench', 'workbench', 'workbench', 'workbench', 'bench', 'desk'])
+  })
+})
+
+describe('what Knotty does not design', () => {
+  it.each(['Una cuna para mi bebé', 'Litera para dos niños', 'quiero una cama alta con escritorio abajo', 'Cama tipo loft', 'Una silla para el comedor', 'hazme 4 sillas'])('declines «%s», with why', (words) => {
+    expect(declinedFor(words)).toMatch(/no la diseño/)
+  })
+
+  it.each(['Una cama', 'Una mesa', 'Cama baja para un niño de tres años', 'Comedor para 6 sillas', 'Escritorio donde quepa la silla', 'Un banco alto'])('does not decline «%s»', (words) => {
+    expect(declinedFor(words)).toBeNull()
   })
 })

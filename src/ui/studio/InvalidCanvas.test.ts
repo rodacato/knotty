@@ -28,7 +28,7 @@ describe('InvalidCanvas', () => {
 })
 
 describe('previousUsableVersion', () => {
-  const version = (n: number, design: Design): Version => ({ n, design, summary: '', reason: '', operations: [], date: '2026-10-01', origin: null, decisions: [], plan: null, extras: [] })
+  const version = (n: number, design: Design): Version => ({ n, design, summary: '', reason: '', operations: [], date: '2026-10-01', origin: null, decisions: [], plan: null, extras: [], restores: null })
   const broken: Design = { ...exampleBookcase, pieces: exampleBookcase.pieces.filter((p) => p.id !== 'side-left') }
   const usable = (v: Version) => analyze(v.design, testCatalog).valid
 

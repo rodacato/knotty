@@ -8,6 +8,7 @@ import { testReferences } from '../fixtures/references.test-util'
 import { gluedBlocks } from './assembly'
 import { buildTable, tableModule, TablePlan } from './table'
 import { FurniturePlan } from './plan'
+import { valueFields } from './fields'
 
 const table = (p: Partial<TablePlan> = {}): TablePlan => ({
   kind: 'table',
@@ -231,6 +232,23 @@ describe('buildTable', () => {
       const sheets = (b: typeof panels) => b.purchase.sheets.reduce((n, l) => n + l.sheets, 0)
       expect(sheets(legs)).toBeLessThanOrEqual(sheets(panels))
     })
+  })
+})
+
+describe('a top past its supports', () => {
+  const top = tableModule.parts.list.find((x) => x.id === 'top')!
+  const overhang = valueFields(tableModule.fields, table()).find((f) => f.key === 'overhang')!
+
+  it('takes at most 100 mm from the form, and a saved plan with more still opens', () => {
+    expect(overhang.type === 'number' && overhang.max).toBe(100)
+    expect(overhang.type === 'number' && overhang.set(table(), 180).overhang).toBe(100)
+    expect(FurniturePlan.safeParse(table({ overhang: 180 })).success).toBe(true)
+  })
+
+  it('is summed up as built: past 50 mm the front stays at 50', () => {
+    expect(top.summary(table({ overhang: 80 }), 'Barniz')).toBe('Sobresale 80 mm a los lados y 50 al frente y atrás')
+    expect(top.summary(table({ overhang: 30 }), 'Barniz')).toBe('Sobresale 30 mm')
+    expect(top.summary(table({ overhang: 0 }), 'Barniz')).toBe('Al ras de las patas')
   })
 })
 
