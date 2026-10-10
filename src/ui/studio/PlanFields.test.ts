@@ -6,7 +6,8 @@ import { valueFields, type FieldSpec } from '../../domain/furniture/modules/fiel
 import type { FurnitureModule } from '../../domain/furniture/modules/module'
 import { MODULES, type FurniturePlan } from '../../domain/furniture/modules/plan'
 import { ServicesContext, type Services } from '../services'
-import { OPTION_DIAGRAMS } from './OptionDiagrams'
+import { CABINET_LABELS } from '../../domain/furniture/modules/cabinet'
+import { CELL_DIAGRAMS, OPTION_DIAGRAMS } from './OptionDiagrams'
 import { outOfRange, PlanFields } from './PlanFields'
 
 describe('outOfRange', () => {
@@ -49,5 +50,10 @@ describe('the drawings of a choice', () => {
     expect(new Set(drawn.map((f) => f.key))).toEqual(new Set(Object.keys(OPTION_DIAGRAMS)))
     for (const f of drawn) expect(f.options.map(([value]) => value).filter((value) => !OPTION_DIAGRAMS[f.key][value])).toEqual([])
     for (const f of choices) expect(Object.keys(f.hints ?? {}).filter((value) => !f.options.some(([option]) => option === value))).toEqual([])
+  })
+
+  it('an opening has a drawing for everything it can hold', () => {
+    expect(Object.keys(CABINET_LABELS.cell).filter((content) => !(content in CELL_DIAGRAMS.content))).toEqual([])
+    expect(Object.keys(CABINET_LABELS.construction.drawerFronts.options).filter((mount) => !(mount in CELL_DIAGRAMS.drawerFronts))).toEqual([])
   })
 })

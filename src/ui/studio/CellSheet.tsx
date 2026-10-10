@@ -4,7 +4,8 @@ import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT
 import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
-import { Segmented, Stepper } from './PlanControls'
+import { CELL_DIAGRAMS } from './OptionDiagrams'
+import { OptionCards, Segmented, Stepper } from './PlanControls'
 
 // The chosen cell of the interior view takes the panel, like a chosen piece: what it holds, and how to cut or join it.
 
@@ -80,13 +81,13 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
 
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Qué lleva</span>
-          <Segmented label="Qué lleva" value={cell.content} options={contents} onChange={(v) => choose(v as PlanCell['content'])} />
+          <OptionCards label="Qué lleva" value={cell.content} options={contents} diagrams={CELL_DIAGRAMS.content} onChange={(v) => choose(v as PlanCell['content'])} />
           {!voidable && cell.content !== 'void' && <p className="text-xs text-graphite-2">«Vacío» va en el hueco de arriba o de abajo de una columna, para que esa columna no llegue al piso o al techo.</p>}
         </div>
         {(cell.content === 'open' || cell.content === 'door') && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Adentro</span>
-            <Segmented label="Qué lleva adentro" value={cell.rod ? 'rod' : 'shelves'} options={[['shelves', 'Repisas'], ['rod', 'Tubo para colgar']]} onChange={(v) => change(v === 'rod' ? { rod: true, shelves: 0 } : { rod: undefined })} />
+            <OptionCards label="Qué lleva adentro" value={cell.rod ? 'rod' : 'shelves'} options={[['shelves', 'Repisas'], ['rod', 'Tubo para colgar']]} diagrams={CELL_DIAGRAMS.inside} onChange={(v) => change(v === 'rod' ? { rod: true, shelves: 0 } : { rod: undefined })} />
             {cell.rod ? (
               <p className="text-xs text-graphite-2">Un tubo de costado a costado, bajo el techo del hueco, con una brida en cada lado. Se compra y se corta al ancho; no sale del triplay.</p>
             ) : (
@@ -114,7 +115,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         {cell.content === 'drawer' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Frente del cajón</span>
-            <Segmented label="Frentes de cajón" value={plan.construction.drawerFronts} options={Object.entries(drawerFronts.options)} onChange={(v) => build({ drawerFronts: v as CabinetPlan['construction']['drawerFronts'] })} />
+            <OptionCards label="Frentes de cajón" value={plan.construction.drawerFronts} options={Object.entries(drawerFronts.options)} diagrams={CELL_DIAGRAMS.drawerFronts} onChange={(v) => build({ drawerFronts: v as CabinetPlan['construction']['drawerFronts'] })} />
             <p className="text-xs text-graphite-2">Cambia los frentes de todos los cajones del mueble.</p>
           </div>
         )}
@@ -134,7 +135,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         {cell.content === 'door' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Hojas</span>
-            <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => change({ doors: Number(v) })} />
+            <OptionCards label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} diagrams={CELL_DIAGRAMS.leaves} onChange={(v) => change({ doors: Number(v) })} />
           </div>
         )}
         {cell.content !== 'void' && (
