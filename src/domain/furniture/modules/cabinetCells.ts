@@ -221,3 +221,23 @@ export function cellLayout(plan: CabinetPlan, boxes: Map<string, Box>): { cells:
   row(plan.columns, [], left.x1, right.x0, bottom.y1, top.y0)
   return { cells, lines }
 }
+
+/**
+ * A cell made as wide or as tall as asked, in mm, by moving the one line beside it: the far one first (right, or above), so the cell grows away from where it starts.
+ * Its neighbour across that line gives or takes the difference. Null when no line bounds it on that axis: it is as wide as the furniture, or as tall as its column.
+ */
+export function resizeCell(plan: CabinetPlan, boxes: Map<string, Box>, path: CellPath, side: 'width' | 'height', mm: number): CabinetPlan | null {
+  const layout = cellLayout(plan, boxes)
+  const rect = layout?.cells.find((c) => c.path.join('.') === path.join('.'))
+  const left = boxes.get('side-left')
+  if (!layout || !rect || !left) return null
+  const half = (left.x1 - left.x0) / 2
+  const [lo, hi, across0, across1] = side === 'width' ? [rect.x0, rect.x1, rect.y0, rect.y1] : [rect.y0, rect.y1, rect.x0, rect.x1]
+  const beside = (edge: number) => layout.lines.find((l) => (l.axis === 'columns') === (side === 'width') && Math.abs(l.position - edge) < 1.5 && l.from <= across0 + 1 && l.to >= across1 - 1)
+  const far = beside(hi + half)
+  const near = beside(lo - half)
+  const line = far ?? near
+  if (!line) return null
+  const middle = far ? lo + mm + half : hi - mm - half
+  return moveLine(plan, line, (middle - line.start) / (line.end - line.start))
+}

@@ -1,12 +1,13 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
 import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, withContent, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
-import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, resizeCell, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
+import { Input } from '../system/Field'
 import { useStore } from '../store'
 import { CELL_DIAGRAMS, OPTION_DIAGRAMS } from './OptionDiagrams'
 import { OptionCards, Stepper } from './PlanControls'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 // The chosen cell of the interior view takes the panel, like a chosen piece: what it holds, and how to cut or join it.
 
@@ -18,6 +19,28 @@ const canBeVoid = (plan: CabinetPlan, path: CellPath) => path.length === 2 && pl
 const BACKS = OPTION_DIAGRAMS['construction.back']
 /** What a cell takes from the furniture, drawn fainter than a choice of its own. */
 const inheritedDrawing = (drawing: ReactNode) => <span className="block opacity-60">{drawing}</span>
+
+/** One side of the cell in mm. It is typed whole and applied on leaving the field or Enter; with no line beside the cell on that side there is nothing to move, and it only reads. */
+function SizeField({ label, mm, resize, onResize }: { label: string; mm: number; resize: (mm: number) => CabinetPlan | null; onResize: (plan: CabinetPlan) => void }) {
+  const [typed, setTyped] = useState(String(mm))
+  const fixed = resize(mm) === null
+  const apply = () => {
+    const asked = Math.round(Number(typed))
+    const next = asked > 0 && asked !== mm ? resize(asked) : null
+    if (next) onResize(next)
+    else setTyped(String(mm))
+  }
+  return (
+    <label className="flex items-center gap-1.5 text-sm text-graphite-2">
+      {label}
+      {fixed ? (
+        <span className="numerals font-mono">{mm} mm</span>
+      ) : (
+        <Input size="sm" type="number" inputMode="numeric" unit="mm" value={typed} onChange={(e) => setTyped(e.target.value)} onBlur={apply} onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()} aria-label={`${label} del hueco en milímetros`} className="w-28 text-right" />
+      )}
+    </label>
+  )
+}
 
 export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPath; geo: Geometry }) {
   const editPlan = useStore((s) => s.editPlan)
@@ -84,9 +107,12 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           <div className="min-w-0 flex-1">
             <h2 className="font-display text-lg leading-tight font-semibold">Hueco elegido</h2>
             {rect && (
-              <p className="numerals font-mono text-sm text-graphite-2">
-                {Math.round(rect.x1 - rect.x0)} × {Math.round(rect.y1 - rect.y0)} mm
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                {(['width', 'height'] as const).map((side) => {
+                  const mm = Math.round(side === 'width' ? rect.x1 - rect.x0 : rect.y1 - rect.y0)
+                  return <SizeField key={`${side}-${mm}`} label={side === 'width' ? 'Ancho' : 'Alto'} mm={mm} resize={(asked) => resizeCell(plan, geo.boxes, path, side, asked)} onResize={editPlan} />
+                })}
+              </div>
             )}
           </div>
         </div>
