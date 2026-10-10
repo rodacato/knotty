@@ -57,8 +57,8 @@ describe('a plan is built as asked', () => {
   it.each(SPLIT)('the draft of %s refuses its drawer split in two, and says so', (code, path) => {
     const { useCases, initial, plan } = setup(code)
     expect(drawerFronts(currentDesign(initial))).toBe(1)
-    expect(useCases.previewPlan(initial, split(plan, path))).toEqual({ ok: false, message: 'Solo caben 0 de 2 cajones en esos huecos.' })
-    expect(useCases.applyPlan(initial, split(plan, path))).toEqual({ ok: false, message: 'Solo caben 0 de 2 cajones en esos huecos.' })
+    expect(useCases.previewPlan(initial, split(plan, path))).toEqual({ ok: false, message: expect.stringMatching(/^Solo caben 0 de 2 cajones en esos huecos\. No cup(o|ieron): /) })
+    expect(useCases.applyPlan(initial, split(plan, path))).toEqual({ ok: false, message: expect.stringMatching(/^Solo caben 0 de 2 cajones en esos huecos\. No cup(o|ieron): /) })
   })
 
   it('accepts a change that leaves every drawer in', () => {
@@ -72,10 +72,10 @@ describe('a plan is built as asked', () => {
     const { useCases, initial } = setup('GN-APA-01')
     const desk: TablePlan = { kind: 'table', use: 'desk', name: 'Escritorio', material: 'T18', dimensions: { width: 1300, height: 760, depth: 600 }, overhang: 0, shelf: false, pedestal: { side: 'left', drawers: 4 }, legs: 'panel' }
     expect(useCases.previewPlan(initial, desk).ok).toBe(true)
-    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, height: 500 } })).toEqual({ ok: false, message: 'Solo caben 0 de 4 cajones en esa cajonera.' })
+    expect(useCases.previewPlan(initial, { ...desk, dimensions: { ...desk.dimensions, height: 500 } })).toEqual({ ok: false, message: 'Solo caben 0 de 4 cajones en esa cajonera. No cupieron: Cajón 1, Cajón 2, Cajón 3, Cajón 4. El hueco de 384 × 89 mm es muy chico para un cajón.' })
     const bed = MODULES.bed.benchVariants().map(([, p]) => p).find((p) => p.drawers.side === 'left' && p.drawers.count === 3) as BedPlan
     expect(useCases.previewPlan(initial, bed).ok).toBe(true)
-    expect(useCases.previewPlan(initial, { ...bed, height: 150 })).toEqual({ ok: false, message: 'Solo caben 0 de 3 cajones bajo esa cama.' })
+    expect(useCases.previewPlan(initial, { ...bed, height: 150 })).toEqual({ ok: false, message: expect.stringMatching(/^Solo caben 0 de 3 cajones bajo esa cama\. No cup(o|ieron): /) })
   })
 
   it('still opens a saved plan that no longer builds as asked, and refuses the next change with the reason', () => {
@@ -84,7 +84,7 @@ describe('a plan is built as asked', () => {
     const opened = useCases.openExample({ name: 'Aparador', plan: low, notes: '' })
     expect(currentPlan(opened).plan).toEqual(low)
     expect(drawerFronts(currentDesign(opened))).toBe(0)
-    expect(useCases.previewPlan(opened, { ...low, dimensions: { ...low.dimensions, width: low.dimensions.width + 100 } })).toEqual({ ok: false, message: 'Solo caben 0 de 2 cajones en esos huecos.' })
+    expect(useCases.previewPlan(opened, { ...low, dimensions: { ...low.dimensions, width: low.dimensions.width + 100 } })).toEqual({ ok: false, message: expect.stringMatching(/^Solo caben 0 de 2 cajones en esos huecos\. No cup(o|ieron): /) })
   })
 
   it('sends the expert back a plan with a drawer that does not fit, saying which and why, and never applies it', async () => {
