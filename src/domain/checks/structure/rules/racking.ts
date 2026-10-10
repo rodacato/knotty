@@ -35,9 +35,14 @@ export function baysOf(design: Design): string[][] {
  * R5: a carcass with no rigid back and no rigid frame racks like a parallelogram when pushed sideways; judged box by box.
  * A shelf fixed in a glued groove stiffens it like an apron or a kick. Anchored to the wall through its top the box cannot rack in the plane of the wall, so it is only a recommendation: where the anchor goes.
  */
+const sidesOf = (design: Design) => design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
+
+/** Whether the rule judges this design: it reads a box between two sides, so furniture on legs alone is not judged. */
+export const judgesRacking = (design: Design) => sidesOf(design).length >= 2
+
 export const rackingRule: Rule = ({ design, geo, catalog }) => {
-  const sides = design.pieces.filter((p) => p.role === 'side').map((p) => p.id)
-  if (sides.length < 2) return []
+  const sides = sidesOf(design)
+  if (!judgesRacking(design)) return []
   const role = new Map(design.pieces.map((p) => [p.id, p.role]))
   const normalOf = new Map(design.pieces.map((p) => [p.id, p.normal]))
   const joinedTo = (id: string, filter: (type: JointType, glued: boolean) => boolean) =>

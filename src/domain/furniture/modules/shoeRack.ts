@@ -25,7 +25,7 @@ export const LEVEL_HEIGHT = { min: 150, usual: 170, max: 200 } as const
 /** Clear height of a level for boots, in mm. */
 export const BOOT_LEVEL_HEIGHT = 450
 /** How high a seat is comfortable to sit on, in mm: the same band the bench check uses. */
-export const SEAT_HEIGHT = { min: 420, max: 480 } as const
+export const SEAT_HEIGHT = { min: 400, max: 480 } as const
 /** A level of shoes, a few pairs of about a kilo each. */
 const SHELF_LOAD: Load = 'light'
 /** The most levels the form offers. */
