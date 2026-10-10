@@ -1465,3 +1465,12 @@ describe('a cell that changes content', () => {
     expect('back' in withContent(closet, 'void')).toBe(false)
   })
 })
+
+describe('a cabinet that does not arrive assembled', () => {
+  it('is told so when it is glued too, not only when it comes apart', () => {
+    const all = (fields: typeof cabinetModule.fields): typeof cabinetModule.fields => fields.flatMap((f) => (f.type === 'section' ? all(f.fields) : [f]))
+    const told = (p: CabinetPlan) => all(cabinetModule.fields).filter((f) => f.type === 'note' && f.text.includes('no llega armado') && isVisible(f, p)).map((f) => (f.type === 'note' ? f.text.slice(0, 6) : ''))
+    const tall = plan({ dimensions: { width: 900, height: 2400, depth: 600 } })
+    expect([told(tall), told({ ...tall, assembly: 'bolts' }), told(plan({}))]).toEqual([['Pegado'], ['Este m'], []])
+  })
+})

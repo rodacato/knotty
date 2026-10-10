@@ -1238,6 +1238,7 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     ...assemblyFields<CabinetPlan>(),
     note('Este mueble llega armado a su lugar: se pega entero y no lleva herraje.', (p) => !!p.assembly && p.assembly !== 'glued' && !needsKnockDown(p.dimensions), 'assembly'),
     note('Este mueble no llega armado a su lugar (no pasa la puerta, no se puede parar bajo el techo o no da vuelta en una escalera): se desarma tablero por tablero.', (p) => !!p.assembly && p.assembly !== 'glued' && needsKnockDown(p.dimensions), 'assembly'),
+    note('Pegado, este mueble no llega armado a su lugar (no pasa la puerta, no se puede parar bajo el techo o no da vuelta en una escalera): ármalo donde va a quedar, o hazlo desarmable.', (p) => (!p.assembly || p.assembly === 'glued') && needsKnockDown(p.dimensions), 'assembly'),
   ]),
 ]
 
