@@ -1,7 +1,7 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, withContent, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
-import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, resizeCell, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { addColumn, cellAt, cellLayout, chooseInCell, contentAt, refusalOf, refusedContents, joinCells, joinSides, removeColumn, resizeCell, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { Input } from '../system/Field'
 import { useStore } from '../store'
@@ -56,13 +56,8 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) => {
-    const next = structuredClone(plan)
-    const changed = withContent(cell, content)
-    if (!choicesFor(changed, plan.construction).length) delete changed.own
-    const target = cellAt(next, path)!
-    for (const key of Object.keys(target) as (keyof PlanCell)[]) delete target[key]
-    Object.assign(target, changed)
-    editPlan(next)
+    const next = contentAt(plan, path, content)
+    if (next) editPlan(next)
   }
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
@@ -83,6 +78,15 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     selectCell(r.path)
   }
   const removal = removeColumn(plan, path)
+  /** Why the rules refuse what a control would build; null when they take it, it builds nothing, or the plan is refused already and the control is not the cause. */
+  const refusedNow = refusalOf(plan) !== null
+  const why = (next: CabinetPlan | null | undefined) => (next && !refusedNow ? refusalOf(next) : null)
+  const reasons = (all: (string | null)[]) => [...new Set(all.filter((w) => w !== null))].map((w) => (
+    <p key={w} className="text-xs text-graphite-2">
+      {w}
+    </p>
+  ))
+  const cuts = ([['columns', 2, '2 columnas'], ['columns', 3, '3 columnas'], ['rows', 2, '2 filas'], ['rows', 3, '3 filas']] as const).map(([direction, n, label]) => ({ direction, n, label, refused: why(splitCell(plan, path, direction, n)) }))
   const narrow = () => {
     if (!removal || 'refused' in removal) return
     editPlan(removal.plan)
@@ -90,6 +94,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
   }
   const voidable = canBeVoid(plan, path)
   const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
+  const refused = refusedContents(plan, path, contents.map(([id]) => id))
   const own = (key: CellChoice, value: string) => {
     const next = chooseInCell(plan, path, key, value === 'inherit' ? undefined : (value as CabinetPlan['construction'][typeof key]))
     if (next) editPlan(next)
@@ -119,7 +124,12 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
 
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Qué lleva</span>
-          <OptionCards label="Qué lleva" value={cell.content} options={contents} diagrams={CELL_DIAGRAMS.content} onChange={(v) => choose(v as PlanCell['content'])} />
+          <OptionCards label="Qué lleva" value={cell.content} options={contents} diagrams={CELL_DIAGRAMS.content} refused={refused} onChange={(v) => choose(v as PlanCell['content'])} />
+          {[...new Set(Object.values(refused))].map((why) => (
+            <p key={why} className="text-xs text-graphite-2">
+              {why}
+            </p>
+          ))}
           {!voidable && cell.content !== 'void' && <p className="text-xs text-graphite-2">«Vacío» va en el hueco de arriba o de abajo de una columna, para que esa columna no llegue al piso o al techo.</p>}
         </div>
         {(cell.content === 'open' || cell.content === 'door') && (
@@ -200,19 +210,20 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Dividir</span>
           <div className="flex flex-wrap gap-2">
-            {([['columns', 2, '2 columnas'], ['columns', 3, '3 columnas'], ['rows', 2, '2 filas'], ['rows', 3, '3 filas']] as const).map(([direction, n, label]) => (
-              <Chip key={label} onClick={() => cut(direction, n)}>
+            {cuts.map(({ direction, n, label, refused }) => (
+              <Chip key={label} onClick={() => cut(direction, n)} disabled={!!refused}>
                 {label}
               </Chip>
             ))}
           </div>
+          {reasons(cuts.map((c) => c.refused))}
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Juntar</span>
           {sides.length ? (
             <div className="flex flex-wrap gap-2">
               {sides.map((side) => (
-                <Chip key={side} onClick={() => join(side)}>
+                <Chip key={side} onClick={() => join(side)} disabled={!!why(joinCells(plan, path, side)?.plan)}>
                   {JOIN_WORDS[side]}
                 </Chip>
               ))}
@@ -220,17 +231,23 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
           ) : (
             <p className="text-xs text-graphite-2">Nada que juntar: este hueco no salió de dividir uno junto a él.</p>
           )}
+          {reasons(sides.map((side) => why(joinCells(plan, path, side)?.plan)))}
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Columna entera del mueble</span>
           <div className="flex flex-wrap gap-2">
-            <Chip onClick={() => widen('left')}>Agregar a la izquierda</Chip>
-            <Chip onClick={() => widen('right')}>Agregar a la derecha</Chip>
+            <Chip onClick={() => widen('left')} disabled={!!why(addColumn(plan, path, 'left')?.plan)}>
+              Agregar a la izquierda
+            </Chip>
+            <Chip onClick={() => widen('right')} disabled={!!why(addColumn(plan, path, 'right')?.plan)}>
+              Agregar a la derecha
+            </Chip>
             <Chip onClick={narrow} disabled={!removal || 'refused' in removal}>
               Quitar esta columna
             </Chip>
           </div>
           {path.length > 2 && <p className="text-xs text-graphite-2">Este hueco está dentro de uno dividido: aquí se agrega o se quita la columna del mueble que lo contiene, de abajo hasta arriba.</p>}
+          {reasons((['left', 'right'] as const).map((side) => why(addColumn(plan, path, side)?.plan)))}
           {removal && 'refused' in removal && <p className="text-xs text-graphite-2">No se puede quitar: {removal.refused}</p>}
         </div>
       </div>

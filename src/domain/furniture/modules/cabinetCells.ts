@@ -1,5 +1,5 @@
 import type { Box } from '../../design/resolve'
-import { cabinetModule, pullsIn, type CabinetConstruction, type CabinetPlan, type CellChoice, type PlanCell, type PlanColumn } from './cabinet'
+import { cabinetModule, choicesFor, pullsIn, withContent, type CabinetConstruction, type CabinetPlan, type CellChoice, type PlanCell, type PlanColumn } from './cabinet'
 import { wholeNear } from './common'
 
 // Editing the inside of a cabinet by cutting and joining (UI-68): every operation returns a new plan, and each line it adds or removes is a board.
@@ -240,4 +240,32 @@ export function resizeCell(plan: CabinetPlan, boxes: Map<string, Box>, path: Cel
   if (!line) return null
   const middle = far ? lo + mm + half : hi - mm - half
   return moveLine(plan, line, (middle - line.start) / (line.end - line.start))
+}
+
+/** The plan with another content in a cell, keeping only what that content can have. */
+export function contentAt(plan: CabinetPlan, path: CellPath, content: PlanCell['content']): CabinetPlan | null {
+  const next = copy(plan)
+  const target = cellAt(next, path)
+  if (!target) return null
+  const changed = withContent(target, content)
+  if (!choicesFor(changed, plan.construction).length) delete changed.own
+  for (const key of Object.keys(target) as (keyof PlanCell)[]) delete target[key]
+  Object.assign(target, changed)
+  return next
+}
+
+/** Why the module's rules refuse a plan; null when they all hold. */
+export const refusalOf = (plan: CabinetPlan): string | null => cabinetModule.rules?.find((rule) => !rule.holds(plan))?.message ?? null
+
+/** The contents a cell cannot take, each with the rule that refuses it. None when the plan is already refused: then the cause is not the choice. */
+export function refusedContents(plan: CabinetPlan, path: CellPath, contents: PlanCell['content'][]): Partial<Record<PlanCell['content'], string>> {
+  const now = cellAt(plan, path)?.content
+  if (refusalOf(plan)) return {}
+  return Object.fromEntries(
+    contents.flatMap((content) => {
+      const next = content === now ? null : contentAt(plan, path, content)
+      const why = next && refusalOf(next)
+      return why ? [[content, why]] : []
+    }),
+  )
 }
