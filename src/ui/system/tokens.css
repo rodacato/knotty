@@ -25,8 +25,15 @@
   --color-pine: #d9b27c;
   --color-walnut: #6b4a2e;
 
+  /* Motion: what is seen many times a day enters fast and settles without bouncing; `base` is for a change of state worth noticing. */
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-settle);
+
   --animate-draw: draw 2.4s ease-in-out infinite;
-  --animate-appear: appear 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-appear: appear var(--duration-fast) var(--ease-settle) both;
 }
 
 :root {
