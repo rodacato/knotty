@@ -4,11 +4,12 @@ import type { ReactNode } from 'react'
 
 // The small controls of a plan: choices, counts, measures and the lock that keeps «Ahorrar material» off a field.
 
+/** Options that do not fit one row go on to the next whole: a name is never broken in two. */
 export function Segmented({ value, options, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; onChange: (v: string) => void; label: string }) {
   return (
-    <RadioGroup label={label} className="inline-flex rounded-full border border-line bg-bone p-0.5">
+    <RadioGroup label={label} className="inline-flex flex-wrap rounded-[1.1rem] border border-line bg-bone p-0.5">
       {options.map(([id, text]) => (
-        <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="px-2.5 py-1 text-xs before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-['']">
+        <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="px-2.5 py-1 text-xs whitespace-nowrap before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-['']">
           {text}
         </RadioCard>
       ))}
@@ -16,13 +17,13 @@ export function Segmented({ value, options, onChange, label }: { value: string; 
   )
 }
 
-/** A choice as cards, each with its drawing over its name; always three across, so a card is the same size in every choice. */
+/** A choice as cards, each with its drawing over its name; always three across, so a card is the same size in every choice. On a phone the drawing is smaller, so a sheet of choices is shorter. */
 export function OptionCards({ value, options, diagrams, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; diagrams: Record<string, ReactNode>; onChange: (v: string) => void; label: string }) {
   return (
     <RadioGroup label={label} className="grid grid-cols-3 gap-2">
       {options.map(([id, text]) => (
         <RadioCard key={id} checked={value === id} onChange={() => onChange(id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 pt-2 pb-1.5 text-center text-xs font-medium">
-          {diagrams[id]}
+          <span className="w-full max-sm:px-3">{diagrams[id]}</span>
           {text}
         </RadioCard>
       ))}
