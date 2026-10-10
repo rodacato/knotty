@@ -84,7 +84,7 @@ export function expandDrawer(c: DrawerRequest, geo: Geometry, catalog: Catalog):
       y: extent(ref(c.bottom, FRONT_GAP), ref(c.top, -FRONT_GAP)),
       z: backward ? startAt(ref(c.front)) : endAt(ref(c.front)),
       edges: ['front', 'left', 'right', 'top', 'bottom'],
-      cuts: [drawerNotch(width - 2 * FRONT_GAP, frontThickness)],
+      cuts: [drawerNotch(width - 2 * FRONT_GAP, frontThickness, backward)],
     }),
     makePiece({ ...shared, material: c.bottomMaterial, id: id('bottom'), name: `Fondo de ${c.name.toLowerCase()}`, role: 'drawer-bottom', normal: 'y', x: extent(ref(c.left, gap), ref(c.right, -gap)), y: startAt(ref(c.bottom, BOTTOM_GAP)), z: box(), grain: 'any' }),
     makePiece({ ...shared, id: id('side-left'), name: `Costado izquierdo de ${c.name.toLowerCase()}`, role: 'drawer-side', normal: 'x', x: startAt(ref(c.left, gap)), y: extent(ref(`${id('bottom')}.y1`), ref(c.top, -TOP_GAP)), z: box(), edges: ['top'] }),

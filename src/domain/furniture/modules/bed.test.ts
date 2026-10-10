@@ -44,6 +44,13 @@ describe('buildBed', () => {
     expect(fronts.filter((p) => geo.boxes.get(p.id)!.z1 === design.dimensions.depth)).toHaveLength(3)
   })
 
+  it('cuts the notch and the grooves into the face each front shows: the far one on the drawers that open backward', () => {
+    const { design } = buildBed(bed({ drawers: { side: 'both', count: 1, position: 'head', style: 'grooved', pulls: 'notch' } }), testCatalog)
+    const cutsFrom = (id: string) => design.pieces.find((p) => p.id === id)!.cuts!.map((c) => c.z.from)
+    expect(new Set(cutsFrom('drawer-left-1-front'))).toEqual(new Set(['end']))
+    expect(new Set(cutsFrom('drawer-right-1-front'))).toEqual(new Set(['start']))
+  })
+
   it('gathers fewer drawers toward the foot and closes the rest of the side, with cross members under the platform', () => {
     const { design } = buildBed(bed({ drawers: { side: 'left', count: 1, position: 'foot' } }), testCatalog)
     const geo = analyze(design, testCatalog).geo!

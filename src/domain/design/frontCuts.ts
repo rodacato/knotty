@@ -21,30 +21,34 @@ const GROOVE_PLAY = 1
 
 const isFront = (p: Piece) => p.role === 'door' || p.role === 'drawer-front'
 const span = (from: Span['from'], offset: number, length: number): Span => ({ from, offset, length })
-/** From the front face inward. */
-const deep = (depth: number) => span('end', -OUT, depth + OUT)
+/** From the face the front shows inward: the far one when it opens backward. */
+const deep = (depth: number, backward = false) => span(backward ? 'start' : 'end', -OUT, depth + OUT)
 
-function grooves(box: Box): Cut[] {
+function grooves(box: Box, backward: boolean): Cut[] {
   const width = box.x1 - box.x0
   const thickness = box.z1 - box.z0
   const count = Math.floor((width - 2 * GROOVE_BORDER + (GROOVE_PITCH - GROOVE_WIDTH)) / GROOVE_PITCH)
   if (count < 1) return []
   const first = (width - (count * GROOVE_PITCH - (GROOVE_PITCH - GROOVE_WIDTH))) / 2
-  return Array.from({ length: count }, (_, i) => ({ x: span('start', first + i * GROOVE_PITCH, GROOVE_WIDTH), y: span('start', -OUT, box.y1 - box.y0 + 2 * OUT), z: deep(thickness * GROOVE_DEPTH_SHARE) }))
+  return Array.from({ length: count }, (_, i) => ({ x: span('start', first + i * GROOVE_PITCH, GROOVE_WIDTH), y: span('start', -OUT, box.y1 - box.y0 + 2 * OUT), z: deep(thickness * GROOVE_DEPTH_SHARE, backward) }))
 }
 
 /** A lid's notch goes through its front edge, in the middle: a finger gets under it there. */
 const lidNotch = (box: Box): Cut => ({ x: span('center', 0, Math.min(NOTCH_LENGTH, box.x1 - box.x0 - 2 * GROOVE_BORDER)), y: span('start', -OUT, box.y1 - box.y0 + 2 * OUT), z: span('end', -OUT, NOTCH_HEIGHT + OUT) })
 
 /** The notch of a drawer front, by the width and the thickness of its board: on its top edge, in the middle. */
-export const drawerNotch = (width: number, thickness: number): Cut => ({ x: span('center', 0, Math.min(NOTCH_LENGTH, width - 2 * GROOVE_BORDER)), y: span('end', -OUT, NOTCH_HEIGHT + OUT), z: deep(thickness * NOTCH_DEPTH_SHARE) })
+export const drawerNotch = (width: number, thickness: number, backward = false): Cut => ({
+  x: span('center', 0, Math.min(NOTCH_LENGTH, width - 2 * GROOVE_BORDER)),
+  y: span('end', -OUT, NOTCH_HEIGHT + OUT),
+  z: deep(thickness * NOTCH_DEPTH_SHARE, backward),
+})
 
 /** A drawer front takes its own notch; a door's sits on the edge away from its hinge, halfway up. */
-function notch(piece: Piece, box: Box, hingeOnLeft: boolean): Cut {
+function notch(piece: Piece, box: Box, hingeOnLeft: boolean, backward: boolean): Cut {
   const width = box.x1 - box.x0
   const height = box.y1 - box.y0
   const depth = deep((box.z1 - box.z0) * NOTCH_DEPTH_SHARE)
-  if (piece.role === 'drawer-front') return drawerNotch(width, box.z1 - box.z0)
+  if (piece.role === 'drawer-front') return drawerNotch(width, box.z1 - box.z0, backward)
   const along = span('center', 0, Math.min(NOTCH_LENGTH, height - 2 * GROOVE_BORDER))
   return { x: hingeOnLeft ? span('end', -OUT, NOTCH_HEIGHT + OUT) : span('start', -OUT, NOTCH_HEIGHT + OUT), y: along, z: depth }
 }
@@ -60,6 +64,14 @@ function hingeSides(design: Design, boxes: Map<string, Box>): Map<string, boolea
   return sides
 }
 
+/** A drawer front shows its far face when its box is in front of it: the drawer opens backward, as on the far side of a bed. */
+function opensBackward(design: Design, boxes: Map<string, Box>, front: Piece): boolean {
+  const face = boxes.get(front.id)
+  const box = design.pieces.find((p) => p.role === 'drawer-bottom' && p.group === front.group)
+  const bottom = box && boxes.get(box.id)
+  return !!face && !!bottom && front.role === 'drawer-front' && (bottom.z0 + bottom.z1) / 2 > (face.z0 + face.z1) / 2
+}
+
 /** The design with the notches and the grooves its plan asks for, door by door and front by front. */
 export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (front: Piece) => { notch: boolean; grooved: boolean }): Design {
   const sides = hingeSides(design, boxes)
@@ -71,7 +83,8 @@ export function withFrontCuts(design: Design, boxes: Map<string, Box>, askOf: (f
       const ask = askOf(p)
       // A lid lies flat: its face is not a front to rib, and its notch is its own.
       const lid = lifts(design, p.id)
-      const cuts = [...(ask.grooved && !lid ? grooves(box) : []), ...(ask.notch ? [lid ? lidNotch(box) : notch(p, box, sides.get(p.id) ?? false)] : [])]
+      const backward = opensBackward(design, boxes, p)
+      const cuts = [...(ask.grooved && !lid ? grooves(box, backward) : []), ...(ask.notch ? [lid ? lidNotch(box) : notch(p, box, sides.get(p.id) ?? false, backward)] : [])]
       return cuts.length ? { ...p, cuts } : p
     }),
   }
