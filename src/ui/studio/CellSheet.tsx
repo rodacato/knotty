@@ -127,7 +127,8 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         {choicesFor(cell, plan.construction).map((key) => {
           const { label, options } = CABINET_LABELS.construction[key]
           const ofFurniture = key === 'pulls' ? pullsIn(plan.construction, cell) : plan.construction[key]
-          const drawn = OPTION_DIAGRAMS[`construction.${key}`]
+          // A single leaf is drawn as one: the furniture's drawing of hinges is of two doors.
+          const drawn: Record<string, ReactNode> = key === 'hinges' && (cell.doors ?? 1) === 1 ? { ...OPTION_DIAGRAMS['construction.hinges'], ...CELL_DIAGRAMS.hinges } : OPTION_DIAGRAMS[`construction.${key}`]
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>
