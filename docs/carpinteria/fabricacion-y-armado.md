@@ -213,6 +213,22 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 
 **Tiempos de pegamento.** El pegamento blanco que más se compra en México es el **Resistol 850**: según su ficha técnica, 15 min de tiempo abierto, 30–40 min en prensa, se puede manipular a las 4 h y aguanta carga a las 24 h; se aplica entre 10 y 40 °C (ver [uniones y herrajes](uniones-y-herrajes.md)). Seca transparente y **no es resistente al agua** [9]. Otras colas PVA dan tiempos parecidos pero no iguales: la Titebond Original da 4–6 min de tiempo abierto, 30–60 min en prensa y resistencia total a las 24 h [25]. Conviene seguir la ficha del pegamento que se use. ✅ [25][9]
 
+
+### 3.1 Mesas, escritorios y bancos
+
+Una mesa no tiene trasera que la escuadre: su marco es el **bastidor** (los faldones con las patas o los costados, [estructura](estructura.md) §2.1), y se arma y se escuadra antes de recibir la cubierta. Los pasos 0 a 3 de la tabla de arriba (preparar, perforar en plano, cubrecanto y lijado, presentar en seco) y el acabado en dos momentos valen igual. ❓ práctica de taller, sin fuente: criterio del panel (agregado el 2026-10-10).
+
+| # | Paso | Detalle | Conf. |
+|---|---|---|---|
+| 1 | **Patas de dos capas** | Unir las capas de cada pata, cara con cara y con los cantos alineados, antes que nada: la pata entra al bastidor ya como una sola pieza. | ❓ |
+| 2 | **Cajonera del escritorio** | Va antes que el bastidor, que se une a ella. Se arma como un cuerpo chico: su piso y sus separadores entre el costado y el costado interior, con su fondo y su zoclo. | ❓ |
+| 3 | **Bastidor** | Unir los faldones a las patas, a los costados o a la cajonera, sobre una superficie plana; después, los travesaños entre los faldones largos. | ❓ |
+| 4 | **Escuadrar el bastidor** | Medir las dos diagonales del bastidor, de esquina a esquina, e igualarlas con una prensa en la diagonal larga, antes de que pegue el pegamento. | ❓ |
+| 5 | **Travesaños bajos y repisa baja** | Con la mesa todavía sin cubierta, que es cuando mejor se alcanzan. | ❓ |
+| 6 | **Cubierta** | Asentarla sobre el bastidor ya escuadrado, centrarla midiendo lo que sobresale de cada lado y fijarla al bastidor. | ❓ |
+| 7 | **Cajones** | Como en un cuerpo (pasos 10 y 11 de la tabla de arriba). | ❓ |
+| 8 | **Revisar que no cojee** | Sobre un piso plano, antes del acabado, que es cuando todavía se puede corregir. | ❓ |
+
 ---
 
 ## 4. Plantillas y trucos
