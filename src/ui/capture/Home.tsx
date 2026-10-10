@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
 import type { Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
@@ -84,6 +84,18 @@ function useAddress(query: CatalogQuery) {
   }, [query])
 }
 
+/** Where the list was when a base was opened, so coming back lands on the same card. */
+let leftAt = 0
+
+function useReturnToPlace() {
+  useLayoutEffect(() => {
+    window.scrollTo(0, leftAt)
+    // Forgotten after this render settles: an effect that runs twice must find it both times.
+    const forget = setTimeout(() => (leftAt = 0))
+    return () => clearTimeout(forget)
+  }, [])
+}
+
 export function Home() {
   const startCapture = useStore((s) => s.startCapture)
   const adjustBase = useStore((s) => s.adjustBase)
@@ -96,6 +108,11 @@ export function Home() {
   const shown = cards.filter((c) => matches(c.base, query))
   const { mark, pinned } = usePinned()
   useAddress(query)
+  useReturnToPlace()
+  const open = (base: Base) => {
+    leftAt = window.scrollY
+    adjustBase(base)
+  }
   const { target: door, inView: doorInView } = useInView()
   return (
     <div className="flex min-h-full flex-col">
@@ -128,7 +145,7 @@ export function Home() {
               <p className="text-sm text-graphite-2">Ancho × fondo × alto.</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8 lg:grid-cols-4">
                 {shown.map((card) => (
-                  <BaseCard key={card.base.id} card={card} onOpen={adjustBase} />
+                  <BaseCard key={card.base.id} card={card} onOpen={open} />
                 ))}
               </div>
             </>
