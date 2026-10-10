@@ -136,6 +136,16 @@ const hinged = (left: 'l' | 'r', right: 'l' | 'r') =>
       ))}
     </>,
   )
+const leaf = (side: 'l' | 'r') =>
+  opening(
+    <>
+      <rect x="18" y="6" width="44" height="48" className={WOOD} />
+      {[14, 44].map((y) => (
+        <rect key={y} x={side === 'l' ? 18 : 59} y={y} width="3" height="5" className="fill-graphite" />
+      ))}
+      {knob(side === 'l' ? 56 : 24, 30)}
+    </>,
+  )
 /** The top corner of a cabinet from the front: where the top sits against the sides. */
 const topped = (top: ReactNode, sidesFrom: number) =>
   draw(
@@ -285,6 +295,8 @@ export const CELL_DIAGRAMS = {
     raised: opening(<rect x="18" y="30" width="44" height="4" className={WOOD} />),
     floor: opening(<rect x="18" y="50" width="44" height="4" className={WOOD} />),
   },
+  /** One leaf, hinged on its left or its right edge. */
+  hinges: { left: leaf('l'), right: leaf('r') },
   cable: { no: hollow(null), yes: hollow(<circle cx="40" cy="38" r="4" className="fill-graphite" />) },
 } satisfies Record<string, Record<string, ReactNode>>
 
