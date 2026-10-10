@@ -162,7 +162,7 @@ export function Home() {
       <Button
         variant="primary"
         inert={doorInView}
-        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full! px-6 text-lg! shadow-xl md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
+        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full px-6 text-lg shadow-xl md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
         onClick={startCapture}
       >
         <Plus weight="bold" /> Diseña el tuyo
