@@ -25,7 +25,7 @@ function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen:
         <span className="hidden md:inline" aria-hidden>
           ·
         </span>
-        <span className="numerals whitespace-nowrap" aria-label={size.spoken}>
+        <span className="numerals md:whitespace-nowrap" aria-label={size.spoken}>
           {size.text}
         </span>
       </span>

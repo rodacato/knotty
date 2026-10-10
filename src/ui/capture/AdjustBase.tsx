@@ -17,6 +17,7 @@ import { useStore } from '../store'
 import { FinishSelect } from '../system/FinishSelect'
 import { Button } from '../system/components'
 import { axisNote, blocking, chosenExample, COUNT_LABELS, isUnreadable, SPACE_AXES, spaceOf, summaryLines, type SpaceAxis } from './adjust'
+import { sizeLine } from './catalog'
 
 const NO_GHOSTS: string[] = []
 const TYPING_PAUSE = 350
@@ -94,7 +95,7 @@ export function AdjustBase({ base }: { base: Base }) {
     const note = axisNote(fit.axes[axis])
     return note ? [`${label}: ${note}`] : []
   })
-  const { height, width, depth } = fit.measures
+  const size = sizeLine(fit.measures)
   const open = () => fromExample(chosenExample(base, fit.plan, finish))
 
   return (
@@ -113,7 +114,7 @@ export function AdjustBase({ base }: { base: Base }) {
       <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(0,1fr)_420px]">
         <div className="relative h-[34dvh] shrink-0 bg-[var(--scene-bg)] md:h-auto md:min-h-0">
           {shown.geo ? (
-            <div className="h-full" role="img" aria-label={`${base.name} en 3D: ${Math.round(height)} × ${Math.round(width)} × ${Math.round(depth)} mm, ${shown.design.pieces.length} piezas.`}>
+            <div className="h-full" role="img" aria-label={`${base.name} en 3D: ${size.spoken}, ${shown.design.pieces.length} piezas.`}>
               <SceneBoundary>
                 <Scene design={shown.design} geo={shown.geo} catalog={catalog} ghosts={NO_GHOSTS} marked={NO_GHOSTS} />
               </SceneBoundary>
@@ -131,8 +132,8 @@ export function AdjustBase({ base }: { base: Base }) {
               <h1 id="adjust-title" className="font-display text-3xl leading-tight font-semibold tracking-tight md:text-4xl">
                 {base.name}
               </h1>
-              <p className="numerals text-sm text-graphite-2" aria-label={`${height} de alto, ${width} de ancho, ${depth} de fondo, en milímetros`}>
-                {Math.round(height)} × {Math.round(width)} × {Math.round(depth)} mm
+              <p className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
+                {size.text}
               </p>
             </div>
 
