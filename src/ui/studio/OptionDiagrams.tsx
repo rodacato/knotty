@@ -121,6 +121,100 @@ const bed = (head: ReactNode) =>
   )
 const GROOVES = [26, 34, 42, 50].map((x) => <line key={x} x1={x} y1="8" x2={x} y2="52" className={LINE} />)
 
+/** Two doors side by side, each hinged on its left or its right edge: the hinges are the marks, the knob is across. */
+const hinged = (left: 'l' | 'r', right: 'l' | 'r') =>
+  opening(
+    <>
+      {([[18, left], [40, right]] as const).map(([x, side]) => (
+        <g key={x}>
+          <rect x={x} y="6" width="22" height="48" className={WOOD} />
+          {[14, 44].map((y) => (
+            <rect key={y} x={side === 'l' ? x : x + 19} y={y} width="3" height="5" className="fill-graphite" />
+          ))}
+          {knob(side === 'l' ? x + 18 : x + 4, 30)}
+        </g>
+      ))}
+    </>,
+  )
+/** The top corner of a cabinet from the front: where the top sits against the sides. */
+const topped = (top: ReactNode, sidesFrom: number) =>
+  draw(
+    <>
+      <rect x="14" y={sidesFrom} width="6" height={56 - sidesFrom} className={WOOD} />
+      <rect x="60" y={sidesFrom} width="6" height={56 - sidesFrom} className={WOOD} />
+      {top}
+    </>,
+  )
+/** The corner of a drawer box from its side: the end of the board that meets it. */
+const corner = (end: ReactNode) =>
+  draw(
+    <>
+      <rect x="10" y="14" width="52" height="32" className={WOOD} />
+      {end}
+    </>,
+  )
+/** A board by its corner: the face, and the edge under it. */
+const edged = (edge: ReactNode) =>
+  draw(
+    <>
+      <rect x="12" y="10" width="56" height="26" className={WOOD} />
+      {edge}
+    </>,
+  )
+/** A bed from above, the head at the top, with the drawers that come out of its sides. */
+const bedAbove = (drawers: [side: 'l' | 'r', y: number][]) =>
+  draw(
+    <>
+      <rect x="22" y="8" width="36" height="46" className={HOLLOW} />
+      <rect x="22" y="8" width="36" height="5" className={WOOD} />
+      {drawers.map(([side, y]) => (
+        <rect key={`${side}-${y}`} x={side === 'l' ? 10 : 58} y={y} width="12" height="14" className={WOOD} />
+      ))}
+    </>,
+  )
+/** A desk from the front, with a pedestal of drawers at one end, or at none. */
+const desk = (pedestal: 'left' | 'right' | null) => {
+  const at = pedestal === 'left' ? 10 : 50
+  return draw(
+    <>
+      <rect x="8" y="14" width="64" height="6" className={WOOD} />
+      {pedestal !== 'left' && <rect x="10" y="20" width="4" height="34" className={WOOD} />}
+      {pedestal !== 'right' && <rect x="66" y="20" width="4" height="34" className={WOOD} />}
+      {pedestal && (
+        <>
+          <rect x={at} y="20" width="20" height="34" className={WOOD} />
+          <line x1={at} y1="31" x2={at + 20} y2="31" className={LINE} />
+          <line x1={at} y1="42" x2={at + 20} y2="42" className={LINE} />
+        </>
+      )}
+      {floor}
+    </>,
+  )
+}
+const PLIES = (
+  <>
+    <rect x="12" y="36" width="56" height="12" className="fill-bone stroke-graphite-2" />
+    {[39, 42, 45].map((y) => (
+      <line key={y} x1="12" y1={y} x2="68" y2={y} className="stroke-graphite" />
+    ))}
+  </>
+)
+const DRAWER_CORNERS = {
+  screwed: corner(
+    <>
+      <rect x="62" y="14" width="8" height="32" className={WOOD} />
+      {[22, 38].map((y) => (
+        <line key={y} x1="56" y1={y} x2="70" y2={y} className={METAL} strokeWidth="1.5" />
+      ))}
+    </>,
+  ),
+  fingers: corner(
+    [0, 1, 2, 3].map((i) => (
+      <rect key={i} x="62" y={14 + i * 8} width="8" height="8" className={i % 2 ? 'fill-graphite-2/40 stroke-graphite-2' : WOOD} />
+    )),
+  ),
+}
+
 const PULLS = {
   none: pulled(null),
   notch: pulled(<path d="M34 18 a6 6 0 0 0 12 0" className={HOLLOW} />),
@@ -302,6 +396,54 @@ export const OPTION_DIAGRAMS: Record<string, Record<string, ReactNode>> = {
       </>,
     ),
   },
+  'construction.hinges': { outside: hinged('l', 'r'), inside: hinged('r', 'l'), left: hinged('l', 'l'), right: hinged('r', 'r') },
+  'construction.top': {
+    between: topped(<rect x="20" y="8" width="40" height="6" className={WOOD} />, 8),
+    over: topped(<rect x="8" y="8" width="64" height="6" className={WOOD} />, 14),
+    fingers: topped(
+      <>
+        <rect x="14" y="8" width="52" height="6" className={WOOD} />
+        {[14, 60].flatMap((x) => [0, 2].map((i) => <rect key={`${x}-${i}`} x={x + i * 2} y="8" width="2" height="6" className="fill-graphite-2/40 stroke-graphite-2" />))}
+      </>,
+      14,
+    ),
+  },
+  'construction.back': {
+    nailed: hollow(null),
+    none: opening(<rect x="26" y="13" width="28" height="34" className="fill-none stroke-graphite-2" strokeDasharray="3 3" />),
+  },
+  'construction.drawerCorners': DRAWER_CORNERS,
+  'drawers.corners': DRAWER_CORNERS,
+  kick: {
+    low: cabinet(48, <rect x="20" y="48" width="40" height="6" className="fill-graphite-2/50 stroke-graphite-2" />),
+    kitchen: cabinet(40, <rect x="20" y="40" width="40" height="14" className="fill-graphite-2/50 stroke-graphite-2" />),
+  },
+  edges: {
+    banded: edged(<rect x="12" y="36" width="56" height="12" className={WOOD} />),
+    exposed: edged(PLIES),
+  },
+  'drawers.side': {
+    none: bedAbove([]),
+    left: bedAbove([['l', 18], ['l', 36]]),
+    right: bedAbove([['r', 18], ['r', 36]]),
+    both: bedAbove([['l', 18], ['l', 36], ['r', 18], ['r', 36]]),
+  },
+  'drawers.position': { head: bedAbove([['l', 15]]), center: bedAbove([['l', 25]]), foot: bedAbove([['l', 38]]) },
+  'headboard.arms': {
+    square: draw(
+      <>
+        <rect x="18" y="14" width="44" height="40" className={WOOD} />
+        {floor}
+      </>,
+    ),
+    sloped: draw(
+      <>
+        <polygon points="18,14 40,14 62,34 62,54 18,54" className={WOOD} />
+        {floor}
+      </>,
+    ),
+  },
+  'pedestal.side': { none: desk(null), left: desk('left'), right: desk('right') },
   'construction.doors': {
     overlay: front(false, 'door'),
     inset: front(true, 'door'),
