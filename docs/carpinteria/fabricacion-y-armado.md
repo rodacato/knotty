@@ -207,6 +207,10 @@ Para un cuerpo sin marco (europeo): laterales, piso, techo o cubierta, repisas, 
 
 **Control antes de encolar.** Si falta alguno, no se empieza a pegar: las piezas identificadas y con su orientación marcada; las uniones cierran en seco; las sobremedidas que dependían del montaje ya están resueltas; las ranuras y rebajes están hechos (lo que va dentro se mete antes de cerrar el cuerpo); hay prensas para cada unión que se pega junta; y la cola da el tiempo de trabajo que el armado necesita (ver abajo). ⚠️ práctica de taller (agregado el 2026-10-03)
 
+**Acabado en dos momentos.** Lo que se pega se acaba al final, con el cuerpo armado (paso 14): las puertas y los frentes se ajustan sobre el cuerpo, y donde va pegamento el tablero queda sin sellar. Un mueble desarmable (§8.4) se acaba por piezas, acostadas, antes del armado final: sus uniones van sin pegamento y cada tablero se alcanza completo. En los dos casos los interiores se lijan antes de armar (paso 2). ❓ criterio del panel, sin fuente (agregado el 2026-10-10)
+
+**Hojas corredizas.** Entran al final, con el cuerpo ya armado: cada hoja se levanta dentro de la ranura de arriba, que es la más honda, y se baja a la de abajo. ❓ práctica de taller (agregado el 2026-10-10)
+
 **Tiempos de pegamento.** El pegamento blanco que más se compra en México es el **Resistol 850**: según su ficha técnica, 15 min de tiempo abierto, 30–40 min en prensa, se puede manipular a las 4 h y aguanta carga a las 24 h; se aplica entre 10 y 40 °C (ver [uniones y herrajes](uniones-y-herrajes.md)). Seca transparente y **no es resistente al agua** [9]. Otras colas PVA dan tiempos parecidos pero no iguales: la Titebond Original da 4–6 min de tiempo abierto, 30–60 min en prensa y resistencia total a las 24 h [25]. Conviene seguir la ficha del pegamento que se use. ✅ [25][9]
 
 ---

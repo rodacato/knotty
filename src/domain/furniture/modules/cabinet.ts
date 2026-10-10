@@ -19,6 +19,7 @@ import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withE
 import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, MIN_COLUMN_CLEAR, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
+import { cabinetPhases } from './cabinetGuide'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
 import { counted, sizePart, woodPart, type Parts } from './parts'
 
@@ -1339,6 +1340,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
   expert: { what: 'a cabinet (a box with columns and openings)' },
   build: buildCabinet,
   builtAsAsked: cabinetBuiltAsAsked,
+  phases: cabinetPhases,
   describeChanges: describeCabinetChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),
   withMeasures: (plan, { width, height, depth }) => ({ ...plan, dimensions: { width, height, depth } }),
