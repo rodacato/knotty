@@ -5,7 +5,7 @@
   "home": { "order": 19 },
   "rooms": ["dining","kitchen"],
   "name": "Taburete alto",
-  "kind": "sideTable",
+  "kind": "bench",
   "finish": "danish-oil",
   "style": "workshop",
   "support": "adapted",

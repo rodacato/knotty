@@ -325,14 +325,18 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
   }),
 
   // Bench
-  measured({
+  checked({
     check: 'bench.height',
     appliesTo: ['bench'],
-    metric: 'surfaceHeight',
-    limits: { min: 400, max: 480 },
-    severity: 'recommendation',
+    // The bar band is the row under the cited one, «Banco de barra»: between the two a seat is for neither a table nor a bar.
+    limits: { min: 400, max: 480, barMin: 610, barMax: 800 },
     source: `${VALUES}#10-medidas-de-muebles-y-ergonomía «Banca»`,
-    message: (height, l) => `Un asiento cómodo va de ${l.min} a ${l.max} mm; este queda a ${roundTo(height, 0)} mm.`,
+    find: ({ surface }, l, report) => {
+      if (!surface) return []
+      const height = surface.box.y1
+      const fits = (height >= l.min && height <= l.max) || (height >= l.barMin && height <= l.barMax)
+      return fits ? [] : [report('recommendation', surface.ids, `Un asiento cómodo va de ${l.min} a ${l.max} mm, o de ${l.barMin} a ${l.barMax} si es para una barra; este queda a ${roundTo(height, 0)} mm.`)]
+    },
   }),
   checked({
     check: 'bench.load',
