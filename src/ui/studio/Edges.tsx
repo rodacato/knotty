@@ -164,6 +164,11 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               </Chip>
             ))}
           </div>
+          {neighbours.some((n) => n.against) && (
+            <p className="flex items-center gap-1.5 text-xs text-graphite-2">
+              <Warning size={14} weight="bold" className="shrink-0" /> Queda contra otra pieza: no se ve.
+            </p>
+          )}
           {hiddenChosen.length > 0 && (
             <p className="flex items-start gap-2 text-xs text-graphite">
               <Warning size={14} weight="bold" className="mt-0.5 shrink-0" />
