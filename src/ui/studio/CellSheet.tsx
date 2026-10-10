@@ -4,8 +4,9 @@ import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT
 import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
-import { CELL_DIAGRAMS } from './OptionDiagrams'
-import { OptionCards, Segmented, Stepper } from './PlanControls'
+import { CELL_DIAGRAMS, OPTION_DIAGRAMS } from './OptionDiagrams'
+import { OptionCards, Stepper } from './PlanControls'
+import type { ReactNode } from 'react'
 
 // The chosen cell of the interior view takes the panel, like a chosen piece: what it holds, and how to cut or join it.
 
@@ -13,6 +14,10 @@ const JOIN_WORDS: Record<JoinSide, string> = { up: 'Con el de arriba', down: 'Co
 
 /** A void goes only at an end of one of the furniture's own columns. */
 const canBeVoid = (plan: CabinetPlan, path: CellPath) => path.length === 2 && plan.columns[path[0]].cells.length > 1 && (path[1] === 0 || path[1] === plan.columns[path[0]].cells.length - 1)
+
+const BACKS = OPTION_DIAGRAMS['construction.back']
+/** What a cell takes from the furniture, drawn fainter than a choice of its own. */
+const inheritedDrawing = (drawing: ReactNode) => <span className="block opacity-60">{drawing}</span>
 
 export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPath; geo: Geometry }) {
   const editPlan = useStore((s) => s.editPlan)
@@ -101,14 +106,14 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         {(cell.content === 'open' || cell.content === 'door') && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Pasacables</span>
-            <Segmented label="Pasacables" value={cell.cable ? 'yes' : 'no'} options={[['no', 'Sin pasacables'], ['yes', 'Con pasacables']]} onChange={(v) => change({ cable: v === 'yes' ? true : undefined })} />
+            <OptionCards label="Pasacables" value={cell.cable ? 'yes' : 'no'} options={[['no', 'Sin pasacables'], ['yes', 'Con pasacables']]} diagrams={CELL_DIAGRAMS.cable} onChange={(v) => change({ cable: v === 'yes' ? true : undefined })} />
             {cell.cable && <p className="text-xs text-graphite-2">Un barreno en la trasera, al fondo del hueco, para sacar los cables de lo que va adentro. Donde no hay trasera no hace falta.</p>}
           </div>
         )}
         {cell.content === 'chest' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Fondo</span>
-            <Segmented label="Fondo del baúl" value={cell.shelves ? 'raised' : 'floor'} options={[['raised', 'A media altura'], ['floor', 'Hasta abajo']]} onChange={(v) => change({ shelves: v === 'raised' ? 1 : 0 })} />
+            <OptionCards label="Fondo del baúl" value={cell.shelves ? 'raised' : 'floor'} options={[['raised', 'A media altura'], ['floor', 'Hasta abajo']]} diagrams={CELL_DIAGRAMS.chestFloor} onChange={(v) => change({ shelves: v === 'raised' ? 1 : 0 })} />
             <p className="text-xs text-graphite-2">Abre por arriba, con bisagra de piano y compás: su tapa es el piso del hueco abierto de encima, o la cubierta si todas las columnas terminan en baúl.</p>
           </div>
         )}
@@ -121,11 +126,18 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         )}
         {choicesFor(cell, plan.construction).map((key) => {
           const { label, options } = CABINET_LABELS.construction[key]
-          const furniture = (options as Record<string, string>)[key === 'pulls' ? pullsIn(plan.construction, cell) : plan.construction[key]]
+          const ofFurniture = key === 'pulls' ? pullsIn(plan.construction, cell) : plan.construction[key]
+          const drawn = OPTION_DIAGRAMS[`construction.${key}`]
           return (
             <div key={key} className="flex flex-col gap-2">
               <span className="text-sm text-graphite-2">{label}</span>
-              <Segmented label={label} value={cell.own?.[key] ?? 'inherit'} options={[['inherit', `Como el mueble (${furniture.toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key, plan.construction).includes(id))]} onChange={(v) => own(key, v)} />
+              <OptionCards
+                label={label}
+                value={cell.own?.[key] ?? 'inherit'}
+                options={[['inherit', `Como el mueble (${(options as Record<string, string>)[ofFurniture].toLowerCase()})`], ...Object.entries(options).filter(([id]) => cellOptions(key, plan.construction).includes(id))]}
+                diagrams={{ ...drawn, inherit: inheritedDrawing(drawn[ofFurniture]) }}
+                onChange={(v) => own(key, v)}
+              />
               {key === 'doors' && <p className="text-xs text-graphite-2">Sobrepuestas o embutidas se elige para todo el mueble, en «Puertas».</p>}
               {key === 'doors' && doorsIn(plan.construction, cell) === 'sliding' && <p className="text-xs text-graphite-2">{SLIDING_HINT}</p>}
               {key === 'doors' && narrowToSlide && <p className="text-xs text-graphite-2">En un hueco de menos de {ASSUMPTIONS.sliding.narrowOpening / 10} cm, una corrediza deja poco paso: conviene una puerta abatible.</p>}
@@ -141,10 +153,11 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
         {cell.content !== 'void' && (
           <div className="flex flex-col gap-2">
             <span className="text-sm text-graphite-2">Trasera</span>
-            <Segmented
+<OptionCards
               label="Trasera"
               value={cell.back === undefined ? 'inherit' : String(cell.back)}
               options={[['inherit', `Como el mueble (${inherited})`], ['true', 'Con trasera'], ['false', 'Sin trasera']]}
+              diagrams={{ inherit: inheritedDrawing(BACKS[plan.construction.back]), true: BACKS.nailed, false: BACKS.none }}
               onChange={(v) => change({ back: v === 'inherit' ? undefined : v === 'true' })}
             />
           </div>
