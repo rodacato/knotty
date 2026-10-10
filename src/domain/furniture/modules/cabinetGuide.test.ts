@@ -51,6 +51,13 @@ describe('the build guide of a cabinet', () => {
     expect(details.some(({ phase }) => phase.id === 'drawers')).toBe(true)
   })
 
+  it('puts the body on in lots that are its pieces, each once: the floor and the sides first and the top last', () => {
+    const bodies = guides.flatMap(({ name, design, phases }) => phases.flatMap((phase) => (phase.lots ? [{ name, phase, lots: phase.lots, role: (id: string) => design.pieces.find((p) => p.id === id)!.role }] : [])))
+    expect(bodies.length).toBeGreaterThan(0)
+    expect(bodies.filter(({ phase, lots }) => lots.flatMap((l) => l.pieces).sort().join() !== [...phase.pieces].sort().join()).map((b) => b.name)).toEqual([])
+    expect(bodies.filter(({ lots, role }) => lots.slice(1).some((l) => l.pieces.some((id) => role(id) === 'side')) || lots.slice(0, -1).some((l) => l.pieces.some((id) => role(id) === 'top'))).map((b) => b.name)).toEqual([])
+  })
+
   it('goes in the order things depend on: the body, then what squares it, then what hangs from it', () => {
     const order = ['prepare', 'body', 'square', 'base', 'drawers', 'shelves', 'doors', 'finish', 'install']
     for (const { phases } of guides) expect(phases.map((p) => p.id)).toEqual(order.filter((id) => phases.some((p) => p.id === id)))

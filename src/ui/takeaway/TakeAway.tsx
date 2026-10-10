@@ -5,7 +5,7 @@ import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { outline } from '../../domain/design/slants'
 import { applySettings } from '../../domain/materials/catalog'
-import type { GuidePhase } from '../../domain/furniture/modules/guide'
+import type { Way } from '../../domain/furniture/modules/guide'
 import { moduleOf } from '../../domain/furniture/modules/plan'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { currentPlan } from '../../application/useCases'
@@ -27,7 +27,7 @@ const SMALLER: Angle[] = ['left', 'back', 'front', 'top']
 const DETAIL_SPREAD = 1.35
 /** How far from its place a piece on its way is drawn, against the longest side of the furniture. */
 const ON_ITS_WAY = 0.2
-const WAYS: Record<NonNullable<GuidePhase['entersFrom']>, Offset> = { back: [0, 0, -1], below: [0, -1, 0], front: [0, 0, 1] }
+const WAYS: Record<Way, Offset> = { back: [0, 0, -1], below: [0, -1, 0], front: [0, 0, 1], above: [0, 1, 0] }
 
 const apartLabel = (view: string) => `Las piezas separadas, ${view.toLowerCase()}, cada una con el número de su renglón`
 
@@ -88,12 +88,18 @@ export function TakeAway({ state }: { state: DesignState }) {
     }
     const numbered = (ids: string[]) => new Map(ids.flatMap((id) => (numbers.has(id) ? [[id, numbers.get(id)!] as const] : [])))
     const reach = Math.max(design.dimensions.width, design.dimensions.height, design.dimensions.depth) * ON_ITS_WAY
+    const onItsWay = (ids: string[], from?: Way) => new Map(from ? ids.map((id) => [id, WAYS[from].map((d) => d * reach) as Offset]) : [])
     const guide = phases.map((phase, i) => {
-      const way = phase.entersFrom ? (WAYS[phase.entersFrom].map((d) => d * reach) as Offset) : null
+      const before = phases.slice(0, i).flatMap((p) => p.pieces)
       const detail = phase.detail && only(phase.detail.pieces)
+      const lots = phase.lots ?? (phase.pieces.length ? [{ pieces: detail?.size === phase.pieces.length ? [] : phase.pieces, entersFrom: phase.entersFrom }] : [])
       return {
         ...phase,
-        drawing: phase.pieces.length ? drawDiagram(only(phases.slice(0, i + 1).flatMap((p) => p.pieces)), new Map(way ? phase.pieces.map((id) => [id, way]) : []), numbered(detail?.size === phase.pieces.length ? [] : phase.pieces), phase.seenFrom ?? 'right', { marked: new Set(phase.pieces), shapes }) : null,
+        // Each lot over the ones before it; a phase that is one lot marks all its pieces, numbered or not.
+        drawings: lots.map((lot, k) => {
+          const marked = phase.lots ? lot.pieces : phase.pieces
+          return drawDiagram(only([...before, ...(phase.lots ? lots.slice(0, k + 1).flatMap((l) => l.pieces) : phase.pieces)]), onItsWay(marked, lot.entersFrom), numbered(lot.pieces), phase.seenFrom ?? 'right', { marked: new Set(marked), shapes })
+        }),
         detailDrawing: detail?.size ? drawDiagram(detail, spreadApart(detail, DETAIL_SPREAD), numbered(phase.detail!.pieces), 'right', { shapes }) : null,
       }
     })
@@ -220,14 +226,24 @@ export function TakeAway({ state }: { state: DesignState }) {
                     <li key={s.text}>{s.text}</li>
                   ))}
                 </ul>
-                {phase.drawing && phase.seenFrom && <p className="text-sm">{VIEWS[phase.seenFrom].name}</p>}
-                {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble en la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" hidden={false} />}
-                {phase.detail && phase.detailDrawing && (
-                  <figure className="flex flex-col gap-1">
-                    <figcaption className="text-sm font-medium">{phase.detail.title}</figcaption>
-                    <Drawing diagram={phase.detailDrawing} label={phase.detail.title} className="max-h-[80mm] w-full" />
-                  </figure>
-                )}
+                {phase.drawings.length > 0 && phase.seenFrom && <p className="text-sm">{VIEWS[phase.seenFrom].name}</p>}
+                <div className={phase.drawings.length > 2 ? 'grid grid-cols-1 items-center gap-4 sm:grid-cols-3 print:grid-cols-3' : phase.detailDrawing || phase.drawings.length > 1 ? 'grid grid-cols-1 items-center gap-4 sm:grid-cols-2 print:grid-cols-2' : ''}>
+                  {phase.drawings.map((drawing, k) => (
+                    <Drawing
+                      key={k}
+                      diagram={drawing}
+                      label={`El mueble en la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.drawings.length > 1 ? `, paso ${k + 1} de ${phase.drawings.length}` : ''}${phase.seenFrom ? ', visto desde atrás' : ''}`}
+                      className="max-h-[90mm] w-full"
+                      hidden={false}
+                    />
+                  ))}
+                  {phase.detail && phase.detailDrawing && (
+                    <figure className="flex flex-col gap-1">
+                      <figcaption className="text-sm font-medium">{phase.detail.title}</figcaption>
+                      <Drawing diagram={phase.detailDrawing} label={phase.detail.title} className="max-h-[80mm] w-full" />
+                    </figure>
+                  )}
+                </div>
               </div>
             ))}
           </section>
