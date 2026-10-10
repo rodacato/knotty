@@ -36,6 +36,18 @@ describe('undoChange', () => {
     expect(said(undone.state)).toMatch(/^Regresé al diseño de la v2 /)
   })
 
+  it('undoes a finish, an edge profile or a kind the person chose, which a new design would keep', () => {
+    const profiled = c.chooseEdgeProfiles(initial, 'shelf-1', ['front'], 'chamfer')
+    const kind = c.chooseKind(initial, 'wardrobe')
+    if (!profiled.ok || !kind.ok) throw new Error('the choice was refused')
+    for (const chosen of [c.chooseFinish(initial, 'paint'), profiled.state, kind.state]) {
+      expect(currentDesign(chosen)).not.toEqual(currentDesign(initial))
+      const undone = c.undoChange(chosen, 2)
+      if (!undone.ok) throw new Error(undone.message)
+      expect(currentDesign(undone.state)).toEqual(currentDesign(initial))
+    }
+  })
+
   it('undoes an older change and keeps what came after it', () => {
     const undone = c.undoChange(thinnedThenMoved, 2)
     if (!undone.ok) throw new Error(undone.message)

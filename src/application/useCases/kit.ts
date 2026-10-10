@@ -64,7 +64,8 @@ export function createKit(deps: Dependencies) {
   function addVersion(
     state: DesignState,
     design: Design,
-    data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[] },
+    /** `asItWas`: the design is a version that already was, so nothing of the current one is carried into it. */
+    data: { summary: string; reason: string; operations: Operation[]; origin: Origin | null; plan?: FurniturePlan | null; extras?: Operation[]; asItWas?: boolean },
   ): DesignState {
     const n = Math.max(...state.versions.map((v) => v.n)) + 1
     const previous = currentDesign(state)
@@ -74,7 +75,7 @@ export function createKit(deps: Dependencies) {
     const edgeProfiles = design.edgeProfiles ?? previous.edgeProfiles?.filter((c) => design.pieces.some((p) => p.id === c.piece))
     const personal = { ...design, ...(finish && { finish }), ...(edgeProfiles?.length && { edgeProfiles }) }
     // So is the kind, unless the new design says it with at least as much trust: a cabinet rebuilt from its plan does not know it is a bookcase.
-    const kept = withKind(personal, settleKind(knownKind(previous), knownKind(design)))
+    const kept = data.asItWas ? design : withKind(personal, settleKind(knownKind(previous), knownKind(design)))
     const versions = pruneVersions([
       ...state.versions,
       { n, design: kept, summary: data.summary, reason: data.reason, operations: data.operations.map(abbreviate), date: now(), origin: data.origin, decisions: state.decisions, plan: data.plan ?? null, extras: data.plan ? (data.extras ?? []) : [] },
