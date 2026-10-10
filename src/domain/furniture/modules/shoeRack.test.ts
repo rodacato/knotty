@@ -31,6 +31,15 @@ describe('the shoe rack', () => {
     expect(findingsOf(design).map((f) => f.check)).toContain('shoe-rack.depth')
   })
 
+  it('is told when its levels are too low for a shoe, and not when they fit one', () => {
+    const levelFindings = (levels: number, height: number) => findingsOf(built(rack({ levels, dimensions: { width: 800, height, depth: 330 } })).design).filter((f) => f.check === 'shoe-rack.level')
+    expect(levelFindings(4, 900)).toEqual([])
+    const crowded = levelFindings(10, 400)
+    expect(crowded).toHaveLength(1)
+    expect(crowded[0]).toMatchObject({ severity: 'recommendation' })
+    expect(crowded[0].message).toMatch(/^Hay niveles de \d+ mm de alto libre; un zapato bajo necesita 150\./)
+  })
+
   it('has as many shoe levels as its plan, split by fixed shelves, each tall enough for a low shoe', () => {
     const { design, boxes: b } = boxes(rack({ dimensions: { width: 700, height: 900, depth: 330 } }))
     const shelves = design.pieces.filter((p) => p.role === 'shelf')

@@ -128,7 +128,7 @@ export function Home() {
       <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 py-4 md:px-8 md:py-6">
         <section className="flex flex-col gap-3" aria-labelledby="home-title">
           <div ref={mark} />
-          <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors duration-150 ease-out md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
+          <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
             <Field label="Buscar una base" hiddenLabel>
               <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto, estilo o modelo" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
             </Field>
@@ -162,7 +162,7 @@ export function Home() {
       <Button
         variant="primary"
         inert={doorInView}
-        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full! px-6 text-lg! shadow-xl duration-150 ease-out md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
+        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full! px-6 text-lg! shadow-xl md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
         onClick={startCapture}
       >
         <Plus weight="bold" /> Diseña el tuyo

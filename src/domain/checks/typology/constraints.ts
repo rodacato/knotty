@@ -323,6 +323,24 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     message: (depth, { usual }) => `Con ${depth} mm de fondo, los zapatos de adulto sobresalen; una zapatera lleva ${usual[0]}–${usual[1]} mm.`,
     data: (depth, { min }) => ({ depth, min }),
   }),
+  checked({
+    check: 'shoe-rack.level',
+    appliesTo: ['shoeRack'],
+    limits: { min: 150 },
+    source: `${FURNITURE}#26-zapateras «Alto entre repisas (zapato bajo)»`,
+    find: ({ design, geo }, { min }, report) => {
+      const boards = design.pieces.filter((p) => p.normal === 'y' && (p.role === 'shelf' || p.role === 'bottom' || p.role === 'top')).map((p) => ({ id: p.id, box: geo.boxes.get(p.id)! }))
+      // The clear height over each board: up to the nearest one above it that shares some of its width.
+      const levels = boards.flatMap((below) => {
+        const above = boards.filter((b) => b.box.y0 >= below.box.y1 && b.box.x0 < below.box.x1 && b.box.x1 > below.box.x0)
+        return above.length ? [{ id: below.id, clear: Math.min(...above.map((b) => b.box.y0)) - below.box.y1 }] : []
+      })
+      const low = levels.filter((l) => l.clear < min)
+      if (!low.length) return []
+      const lowest = roundTo(Math.min(...low.map((l) => l.clear)), 0)
+      return [report('recommendation', low.map((l) => l.id), `Hay niveles de ${lowest} mm de alto libre; un zapato bajo necesita ${min}. Quita niveles o hazla más alta.`)]
+    },
+  }),
 
   // Bench
   checked({

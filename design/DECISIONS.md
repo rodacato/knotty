@@ -169,10 +169,10 @@ All are kit that was never declared kit (five by 2026-10-01, up from two). `Trac
 
 ## Motion (decided last, with the app running)
 
-- There is no vocabulary: the only tokens are `appear` and `draw`; other timings are loose (300 ms, 900, 1800, `smoothTime` 0.35). The first decision is duration and easing tokens.
+- ~~There is no vocabulary: the only tokens are `appear` and `draw`; other timings are loose. The first decision is duration and easing tokens.~~ — set on 2026-10-10 in `src/ui/system/tokens.css`: `--duration-fast` (150 ms, the default of every `transition`), `--duration-base` (300 ms, a change of state worth noticing) and `--ease-settle` (no overshoot). `appear` runs on them, so it no longer bounces anywhere. The values were chosen from the card's own target, not by watching the app: revisit them with it running. Left as they are: the 3D's own timings (the glow of 1800 ms, the removed piece's 900, the camera's `smoothTime` 0.35), which are not CSS, and the 1500 ms a «copied» mark stays.
 - ~~The height transition on the 3D container resizes the canvas every frame~~ — landed in #162 (also hardware following its piece, the camera keeping its angle and reduced motion in the glow, the chat scroll and the startup pulse).
 - ~~The piece card enters with 350 ms and overshoot~~ — obsolete: K3 moved the piece into the panel and `Panels.tsx` no longer carries `appear`.
-- `Chip` carries `animate-appear` inside the component, so it animates on every mount.
+- ~~`Chip` carries `animate-appear` inside the component, so it animates on every mount.~~ — gone: `Chip` no longer carries it (checked 2026-10-09).
 
 ## Keep (authorship — leave alone)
 
