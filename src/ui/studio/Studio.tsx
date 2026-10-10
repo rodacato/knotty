@@ -243,7 +243,7 @@ function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: str
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <Button variant="ghost" className="px-2 sm:hidden" aria-label="Más opciones">
+        <Button variant="ghost" className="min-w-11 px-2! sm:hidden" aria-label="Más opciones">
           <DotsThree weight="bold" />
         </Button>
       </Dialog.Trigger>
@@ -290,47 +290,50 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   const openConnect = useStore((s) => s.openConnect)
   const label = available ? active : 'Sin experto'
   const toExpert = () => (available ? openSettings(true) : openConnect(true))
+  // With a larger font the buttons go under the title rather than squeeze it: the title's least width is in rem, so it grows with the font.
   return (
-    <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
+    <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur max-sm:flex-wrap sm:gap-3 sm:px-3 md:px-5">
       <ConfirmNew>
         <button type="button" className="shrink-0 rounded-lg" aria-label="Inicio: empezar un diseño nuevo" title="Inicio">
           <Emblem className="size-7 sm:size-8" />
         </button>
       </ConfirmNew>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 max-sm:min-w-32">
         <p className="font-display text-lg leading-tight font-semibold max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
           {summary}
           <FichaOrigin state={state} />
         </p>
       </div>
-      <CopyFichaLink state={state} />
-      <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
-        <MagnifyingGlass />
-      </Button>
-      <Button variant="ghost" className={`gap-1 px-2 text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
-        <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
-      </Button>
-      <Button variant="ghost" className={`relative px-2 disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
-        <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
-        {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
-      </Button>
-      {debugVisible ? (
-        <>
-          <ExportFicha />
-          <ModelSwitch />
-        </>
-      ) : (
-        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={toExpert} aria-label={`El experto: ${label}`}>
-          <GearSix /> {label}
+      <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
+        <CopyFichaLink state={state} />
+        <Button variant="ghost" className="min-w-11 px-2!" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
+          <MagnifyingGlass />
         </Button>
-      )}
-      <ConfirmNew>
-        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" aria-label="Nuevo diseño">
-          <Plus weight="bold" /> Nuevo diseño
+        <Button variant="ghost" className={`min-w-11 gap-1 px-2! text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
+          <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
         </Button>
-      </ConfirmNew>
-      <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : toExpert} />
+        <Button variant="ghost" className={`relative min-w-11 px-2! disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
+          <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
+          {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
+        </Button>
+        {debugVisible ? (
+          <>
+            <ExportFicha />
+            <ModelSwitch />
+          </>
+        ) : (
+          <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={toExpert} aria-label={`El experto: ${label}`}>
+            <GearSix /> {label}
+          </Button>
+        )}
+        <ConfirmNew>
+          <Button variant="ghost" className="px-3 text-xs max-sm:hidden" aria-label="Nuevo diseño">
+            <Plus weight="bold" /> Nuevo diseño
+          </Button>
+        </ConfirmNew>
+        <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : toExpert} />
+      </div>
     </header>
   )
 }
