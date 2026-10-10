@@ -1,6 +1,6 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, shelvesFor, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, withContent, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
 import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { useStore } from '../store'
@@ -32,8 +32,15 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     for (const key of ['back', 'own', 'rod', 'cable'] as const) if (key in patch && patch[key] === undefined) delete target[key]
     editPlan(next)
   }
-  const choose = (content: PlanCell['content']) =>
-    change({ content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null, ...(content === 'void' ? { back: undefined } : {}), ...(content === 'open' || content === 'door' ? {} : { rod: undefined, cable: undefined }), ...(choicesFor({ ...cell, content }, plan.construction).length ? {} : { own: undefined }) })
+  const choose = (content: PlanCell['content']) => {
+    const next = structuredClone(plan)
+    const changed = withContent(cell, content)
+    if (!choicesFor(changed, plan.construction).length) delete changed.own
+    const target = cellAt(next, path)!
+    for (const key of Object.keys(target) as (keyof PlanCell)[]) delete target[key]
+    Object.assign(target, changed)
+    editPlan(next)
+  }
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
     if (!next) return

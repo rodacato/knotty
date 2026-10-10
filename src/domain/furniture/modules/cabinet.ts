@@ -70,6 +70,18 @@ export const cellOptions = (key: CellChoice, construction: CabinetConstruction):
 
 /** What `shelves` says once a cell holds something else: the shelves it had behind a door or in the open, a chest's floor raised to mid-height, nothing otherwise. */
 export const shelvesFor = (cell: PlanCell, content: PlanCell['content']): PlanCell['shelves'] => (content === 'open' || content === 'door' ? (cell.content === 'chest' ? 0 : (cell.shelves ?? 0)) : content === 'chest' ? 1 : null)
+/** A cell with another content: it keeps only what the new content can have, so a drawer is not left with the rod of the open cell it was. */
+export function withContent(cell: PlanCell, content: PlanCell['content']): PlanCell {
+  const { back, rod, cable, ...rest } = cell
+  return {
+    ...rest,
+    ...(content === 'void' || back === undefined ? {} : { back }),
+    ...(content === 'open' || content === 'door' ? { ...(rod === undefined ? {} : { rod }), ...(cable === undefined ? {} : { cable }) } : {}),
+    content,
+    shelves: shelvesFor(cell, content),
+    doors: content === 'door' ? (cell.doors ?? 1) : null,
+  }
+}
 
 /** The one other way a cell's doors may close: a carcass is cut for overlay fronts or for inset ones, so a cell only trades swinging for sliding. Sliding leaves run inside the opening, as inset ones sit. */
 const mixesWith = (construction: CabinetConstruction) => (construction.doors === 'sliding' ? 'inset' : 'sliding')

@@ -3,7 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
-import { buildCabinet, cabinetModule, CabinetPlan, cellOptions, choicesFor, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
+import { buildCabinet, cabinetModule, CabinetPlan, cellOptions, choicesFor, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, withContent, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
 import { countLimits, quickCounts, setCount } from './cabinetCounts'
 import { explain } from '../explain'
 import { LEG_HEIGHT, LEG_HEIGHT_RANGE, MIN_CARCASS_HEIGHT } from './common'
@@ -1450,5 +1450,18 @@ describe('whole millimetres', () => {
       expect([left.x1 - left.x0, right.x1 - right.x0]).toEqual(Array(2).fill(Math.floor((width - (doors === 'inset' ? 2 * 18 : 0) - 3 * ASSUMPTIONS.drawers.frontClearance) / 2)))
       expect(right.x0 - left.x1).toBe(ASSUMPTIONS.drawers.frontClearance + (width % 2))
     }
+  })
+})
+
+describe('a cell that changes content', () => {
+  const closet: PlanCell = { height: 1, content: 'open', shelves: 2, doors: null, rod: true, cable: true, back: false }
+
+  it('keeps its rod and its cable hole behind doors, and loses them as a drawer, which cannot have them', () => {
+    expect(withContent(closet, 'door')).toMatchObject({ content: 'door', doors: 1, rod: true, cable: true, back: false })
+    expect(withContent(closet, 'drawer')).toEqual({ height: 1, content: 'drawer', shelves: withContent(closet, 'drawer').shelves, doors: null, back: false })
+  })
+
+  it('has no back of its own once nothing is built in it', () => {
+    expect('back' in withContent(closet, 'void')).toBe(false)
   })
 })
