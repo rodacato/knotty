@@ -12,7 +12,8 @@ import { Button } from '../system/components'
 import { useStore } from '../store'
 import { JointsSection } from './Joints'
 import { PlanFields } from './PlanFields'
-import { Segmented, Stepper } from './PlanControls'
+import { OPTION_DIAGRAMS } from './OptionDiagrams'
+import { OptionCards, Stepper } from './PlanControls'
 
 // A part of the furniture, opened from the list or by touching it (UI-39): its choices go to the plan's draft, its joints change at once.
 
@@ -35,15 +36,16 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
   const top = plan.construction.top
   const set = (value: CabinetPlan['construction']['top']) => editPlan({ ...plan, construction: { ...plan.construction, top: value } })
   const { options } = CABINET_LABELS.construction.top
+  const drawn = OPTION_DIAGRAMS['construction.top']
   return (
     <>
       <div className="flex flex-col gap-2">
         <span className="text-sm text-graphite-2">Techo</span>
-        <Segmented label="Techo" value={top === 'fingers' ? 'over' : top} options={[['between', options.between], ['over', options.over]]} onChange={(v) => set(v as 'between' | 'over')} />
+        <OptionCards label="Techo" value={top === 'fingers' ? 'over' : top} options={[['between', options.between], ['over', options.over]]} diagrams={drawn} onChange={(v) => set(v as 'between' | 'over')} />
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-sm text-graphite-2">Esquinas del techo</span>
-        <Segmented label="Esquinas del techo" value={top === 'fingers' ? 'fingers' : 'joint'} options={[['joint', 'Con la unión del casco'], ['fingers', 'De dedos']]} onChange={(v) => set(v === 'fingers' ? 'fingers' : 'over')} />
+        <OptionCards label="Esquinas del techo" value={top === 'fingers' ? 'fingers' : 'joint'} options={[['joint', 'Con la unión del casco'], ['fingers', 'De dedos']]} diagrams={{ joint: top === 'between' ? drawn.between : drawn.over, fingers: drawn.fingers }} onChange={(v) => set(v === 'fingers' ? 'fingers' : 'over')} />
         {top === 'fingers' && (
           <>
             <div className="flex items-center justify-between gap-3">
