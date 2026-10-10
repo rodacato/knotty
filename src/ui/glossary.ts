@@ -45,6 +45,12 @@ export const TERMS = {
     meaning: 'Corte plano e inclinado que sustituye la arista, casi siempre a 45°; con broca de chaflán con balero, cepillo o lija.',
     note: 'En triplay muestra franjas rectas de capas.',
   },
+  apron: { name: 'Faldón', meaning: 'Tablero vertical bajo la cubierta que une las patas (mesas, escritorios, bancos) y rigidiza.', note: 'No es el zoclo: el faldón va arriba, bajo la cubierta; el zoclo, abajo.' },
+  kick: { name: 'Zoclo', meaning: 'Tira al frente y abajo que levanta el cuerpo del suelo, protege de golpes y humedad y oculta patas. A menudo va remetido.' },
+  stretcher: { name: 'Travesaño', meaning: 'Tira horizontal angosta que une los laterales (arriba al frente, arriba atrás o abajo) en lugar de un techo o piso completo.' },
+  subfront: { name: 'Contrafrente', meaning: 'Tablero de la caja del cajón que queda detrás del frente visible; el frente se atornilla desde adentro a él.' },
+  banding: { name: 'Cubrecanto', meaning: 'Tira delgada que tapa el canto del tablero. En triplay, de chapa de madera.' },
+  camLock: { name: 'Minifix', meaning: 'Herraje de excéntrica y perno; une y se desarma.' },
 } as const satisfies Record<string, Term>
 
 export type TermKey = keyof typeof TERMS

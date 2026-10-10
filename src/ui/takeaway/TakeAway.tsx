@@ -14,6 +14,7 @@ import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
 import type { Offset } from '../scene/explode'
+import { wordsIn } from './words'
 import { drawDiagram, spreadApart, VIEWS, type Angle, type Diagram, type Shape } from './diagram'
 
 const INK = '#1d1b19'
@@ -120,7 +121,9 @@ export function TakeAway({ state }: { state: DesignState }) {
         detailDrawing: detail?.size ? drawDiagram(detail, spreadApart(detail, DETAIL_SPREAD), numbered(phase.detail!.pieces), 'right', { shapes }) : null,
       }
     })
-    return { guide, yard: atTheYard(design), tools: toolsFor(design), blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
+    const [yard, tools] = [atTheYard(design), toolsFor(design)]
+    const words = wordsIn([...blocks.flatMap((b) => b.lines.flatMap((l) => [l.names, l.banding ?? '', l.after ?? ''])), ...guide.flatMap((p) => [p.title, ...p.steps.map((s) => s.text)]), ...[...yard, ...tools].map((a) => a.text)])
+    return { guide, yard, tools, words, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
   }, [catalog, settings, design, state])
   const { height, width, depth } = design.dimensions
   const [today] = useState(() => new Date().toLocaleDateString('es-MX'))
@@ -270,6 +273,22 @@ export function TakeAway({ state }: { state: DesignState }) {
                 </div>
               </div>
             ))}
+          </section>
+        )}
+        {sheet && sheet.words.length > 0 && (
+          <section className="flex flex-col gap-2 [break-inside:avoid]">
+            <h2 className="font-display text-2xl font-semibold">Palabras de esta hoja</h2>
+            <dl className="flex flex-col gap-1 text-[15px] leading-snug">
+              {sheet.words.map((term) => (
+                <div key={term.name}>
+                  <dt className="inline font-semibold">{term.name}: </dt>
+                  <dd className="inline">
+                    {term.meaning}
+                    {term.note ? ` ${term.note}` : ''}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
         )}
       </main>
