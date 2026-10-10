@@ -281,6 +281,11 @@ export const CELL_DIAGRAMS = {
     ),
   },
   drawerFronts: MOUNT,
+  chestFloor: {
+    raised: opening(<rect x="18" y="30" width="44" height="4" className={WOOD} />),
+    floor: opening(<rect x="18" y="50" width="44" height="4" className={WOOD} />),
+  },
+  cable: { no: hollow(null), yes: hollow(<circle cx="40" cy="38" r="4" className="fill-graphite" />) },
 } satisfies Record<string, Record<string, ReactNode>>
 
 export const OPTION_DIAGRAMS: Record<string, Record<string, ReactNode>> = {
