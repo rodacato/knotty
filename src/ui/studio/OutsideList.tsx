@@ -35,7 +35,8 @@ function KindPicker({ state }: { state: DesignState }) {
   const [redo, setRedo] = useState<DesignKind | null>(null)
   const [error, setError] = useState<string | null>(null)
   const id = useId()
-  const design = currentDesign(state)
+  const draft = useStore(draftOf)
+  const design = draft?.design ?? currentDesign(state)
   const known = kindOf(design)
   const source = known.source ? SOURCE[known.source] : 'Knotty no sabe qué mueble es: elígelo para que revise lo que le toca.'
   // Only a bookcase's shelves are judged with a heavy load: the kind is how the person says what they carry.
@@ -55,8 +56,9 @@ function KindPicker({ state }: { state: DesignState }) {
       <label htmlFor={id} className="text-sm text-graphite-2">
         Tipo de mueble
       </label>
-      <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking} />
-      {!redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
+      <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking || !!draft} />
+      {draft && <p className="text-sm text-graphite-2">Aplica o descarta tu cambio para elegir el tipo.</p>}
+      {!draft && !redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
       {error && <p className="text-xs text-rust">{error}</p>}
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">

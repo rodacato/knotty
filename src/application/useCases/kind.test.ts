@@ -56,6 +56,13 @@ describe('changing what it is', () => {
     expect(kindOf(rebuilt.state)).toEqual({ kind: 'tvStand', source: 'person' })
   })
 
+  it('choosing the module’s own word over a use is kept: a bookcase becomes a cabinet', () => {
+    const c = setup()
+    const r = c.chooseKind(c.fromExample(exampleBookcase), 'cabinet')
+    if (!r.ok) throw new Error('expected in place')
+    expect(kindOf(r.state)).toEqual({ kind: 'cabinet', source: 'person' })
+  })
+
   it('a table’s use lives in its plan: choosing another rebuilds it', async () => {
     const c = setup()
     const r = c.chooseKind(await design(c, 'Escritorio sencillo'), 'diningTable')

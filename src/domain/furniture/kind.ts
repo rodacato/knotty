@@ -20,7 +20,8 @@ const isGeneric = (kind: DesignKind) => MODULE_OF_KIND[kind] === kind
 export function settleKind(current: KnownKind | null, candidate: KnownKind | null): KnownKind | null {
   if (!candidate) return current
   if (!current) return candidate
-  if (current.source === 'person' && candidate.source !== 'person') return current
+  if (candidate.source === 'person') return candidate
+  if (current.source === 'person') return current
   const module = MODULE_OF_KIND[current.kind]
   if (module && module === MODULE_OF_KIND[candidate.kind] && isGeneric(current.kind) !== isGeneric(candidate.kind)) return isGeneric(current.kind) ? candidate : current
   return RANK[candidate.source] <= RANK[current.source] ? candidate : current

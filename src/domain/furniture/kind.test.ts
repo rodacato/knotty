@@ -16,6 +16,12 @@ describe('which kind a design keeps', () => {
     expect(settleKind(k('bookcase', 'person'), k('wardrobe', 'person'))).toEqual(k('wardrobe', 'person'))
   })
 
+  it('the person may choose the module’s own word over a use', () => {
+    expect(settleKind(k('bookcase', 'example'), k('cabinet', 'person'))).toEqual(k('cabinet', 'person'))
+    expect(settleKind(k('desk', 'plan'), k('table', 'person'))).toEqual(k('table', 'person'))
+    expect(startingKind({ person: 'cabinet', built: k('cabinet', 'plan'), photo: null, words: 'Un librero' })).toEqual(k('cabinet', 'person'))
+  })
+
   it('an example or a plan beats the photo, and the photo beats the words', () => {
     expect(settleKind(k('bookcase', 'photo'), k('nightstand', 'example'))).toEqual(k('nightstand', 'example'))
     expect(settleKind(k('bookcase', 'words'), k('wardrobe', 'photo'))).toEqual(k('wardrobe', 'photo'))
