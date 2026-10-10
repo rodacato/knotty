@@ -13,7 +13,7 @@ import { Scene } from '../scene/Scene'
 import { useServices } from '../services'
 import { Button, IconButton } from '../system/components'
 import { Emblem } from '../system/Brand'
-import { HistoryKeys } from './HistoryKeys'
+import { HistoryButtons, HistoryKeys } from './HistoryKeys'
 import { useExpertStatus } from '../shell/expertStatus'
 import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
@@ -423,6 +423,11 @@ export function Studio({ state }: { state: DesignState }) {
         {geo && <EditBar inside={insideParts} />}
       </div>
       {editingSide && <LeaveEditing />}
+      {geo && (
+        <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-col items-start gap-2 md:bottom-4 md:left-4">
+          <HistoryButtons />
+        </div>
+      )}
       {geo && (
         <div className="pointer-events-none absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2 md:right-4 md:bottom-4">
           <PieceVisibility design={shown} hidden={view.hidden.length} />
