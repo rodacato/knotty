@@ -4,7 +4,9 @@ import { analyze } from '../../domain/checks/analysis'
 import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { applySettings } from '../../domain/materials/catalog'
+import { moduleOf } from '../../domain/furniture/modules/plan'
 import { currentDesign, type DesignState } from '../../domain/session/state'
+import { currentPlan } from '../../application/useCases'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
@@ -16,10 +18,12 @@ const SHADES = { side: '#d9d2c7', front: '#efebe4', up: '#ffffff' }
 const SPREAD = 1.6
 const SMALLER: Angle[] = ['left', 'back', 'front', 'top']
 
-function Drawing({ diagram, name, className }: { diagram: Diagram; name: string; className: string }) {
+const apartLabel = (view: string) => `Las piezas separadas, ${view.toLowerCase()}, cada una con el número de su renglón`
+
+function Drawing({ diagram, label, className }: { diagram: Diagram; label: string; className: string }) {
   const radius = Math.max(diagram.width, diagram.height) / 52
   return (
-    <svg viewBox={`0 0 ${diagram.width} ${diagram.height}`} className={className} role="img" aria-label={`Las piezas separadas, ${name.toLowerCase()}, cada una con el número de su renglón`}>
+    <svg viewBox={`0 0 ${diagram.width} ${diagram.height}`} className={className} role="img" aria-label={label}>
       {diagram.pieces.map((p) => (
         <g key={p.id}>
           {p.faces.map((face, i) => (
@@ -53,8 +57,16 @@ export function TakeAway({ state }: { state: DesignState }) {
     const numbers = new Map(blocks.flatMap((b) => b.lines.flatMap((l) => l.ids.map((id) => [id, l.number] as const))))
     const apart = spreadApart(analysis.geo.boxes, SPREAD)
     const { trim, kerf } = effective.layout
-    return { blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle) }
-  }, [catalog, settings, design])
+    // The guide is the module's, of the plan the design still is; a design with no plan, or one that left it behind, has none.
+    const { plan, diverged } = currentPlan(state)
+    const phases = (plan && !diverged ? moduleOf(plan).phases?.(plan, design) : null) ?? []
+    const guide = phases.map((phase, i) => {
+      const soFar = new Set(phases.slice(0, i + 1).flatMap((p) => p.pieces))
+      const boxes = new Map([...analysis.geo.boxes].filter(([id]) => soFar.has(id)))
+      return { ...phase, drawing: phase.pieces.length ? drawDiagram(boxes, new Map(), new Map(phase.pieces.flatMap((id) => (numbers.has(id) ? [[id, numbers.get(id)!] as const] : []))), phase.seenFrom ?? 'right') : null }
+    })
+    return { guide, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle) }
+  }, [catalog, settings, design, state])
   const { height, width, depth } = design.dimensions
   const [today] = useState(() => new Date().toLocaleDateString('es-MX'))
 
@@ -148,16 +160,38 @@ export function TakeAway({ state }: { state: DesignState }) {
             </div>
             <figure className="flex flex-col gap-1 [break-inside:avoid]">
               <figcaption className="text-sm font-medium">{VIEWS.right.name}</figcaption>
-              <Drawing diagram={sheet.drawn('right')} name={VIEWS.right.name} className="max-h-[205mm] w-full" />
+              <Drawing diagram={sheet.drawn('right')} label={apartLabel(VIEWS.right.name)} className="max-h-[205mm] w-full" />
             </figure>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
               {SMALLER.map((angle) => (
                 <figure key={angle} className="flex flex-col gap-1 [break-inside:avoid]">
                   <figcaption className="text-sm font-medium">{VIEWS[angle].name}</figcaption>
-                  <Drawing diagram={sheet.drawn(angle)} name={VIEWS[angle].name} className="max-h-[105mm] w-full" />
+                  <Drawing diagram={sheet.drawn(angle)} label={apartLabel(VIEWS[angle].name)} className="max-h-[105mm] w-full" />
                 </figure>
               ))}
             </div>
+          </section>
+        )}
+        {sheet && sheet.guide.length > 0 && (
+          <section className="flex flex-col gap-6 [print-color-adjust:exact] [break-before:page]">
+            <div>
+              <h2 className="font-display text-2xl font-semibold">Armado por fases</h2>
+              <p className="text-sm">El orden en que se arma. Cada dibujo muestra el mueble hasta esa fase; las piezas que entran en ella llevan su número de la lista.</p>
+            </div>
+            {sheet.guide.map((phase, i) => (
+              <div key={phase.id} className="flex flex-col gap-2 [break-inside:avoid]">
+                <h3 className="text-lg font-semibold">
+                  {i + 1}. {phase.title}
+                </h3>
+                <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] leading-snug">
+                  {phase.steps.map((s) => (
+                    <li key={s.text}>{s.text}</li>
+                  ))}
+                </ul>
+                {phase.drawing && phase.seenFrom && <p className="text-sm">{VIEWS[phase.seenFrom].name}</p>}
+                {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble al terminar la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" />}
+              </div>
+            ))}
           </section>
         )}
       </main>

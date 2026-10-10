@@ -2,6 +2,7 @@ import type { z } from 'zod'
 import type { Axis, Design, Dimensions } from '../../design/schema'
 import type { Catalog } from '../../materials/catalog'
 import type { FieldSpec } from './fields'
+import type { GuidePhase } from './guide'
 import type { Parts } from './parts'
 
 // What Knotty knows about one kind of furniture it builds by itself: adding a kind is writing one of these and listing it in MODULES.
@@ -58,6 +59,8 @@ export interface FurnitureModule<P extends { kind: string }> {
   measuresNote(plan: P, dimensions: Dimensions): string | null
   /** A few words for the trace: "Cama individual". */
   traceLabel(plan: P): string
+  /** The order it goes together in, for the page to take away; absent while its kind has no guide, and then the page shows none. */
+  phases?(plan: P, design: Design): GuidePhase[]
   /** Every variant the bench builds with no expert: any that comes out invalid or with findings is a bug in Knotty. */
   benchVariants(): [string, P][]
   /** Its plan's form, section by section: the studio draws it, so a new kind needs no form of its own. */
