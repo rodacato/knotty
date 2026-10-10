@@ -9,6 +9,8 @@ export interface GuideStep {
   source: Source
 }
 
+export type Way = 'back' | 'below' | 'front' | 'above'
+
 export interface GuidePhase {
   id: string
   title: string
@@ -18,7 +20,9 @@ export interface GuidePhase {
   /** Where its pieces are seen from when the front hides them. */
   seenFrom?: 'back'
   /** Which way its pieces come on, so the drawing shows them on their way there; none when they are drawn in place. */
-  entersFrom?: 'back' | 'below' | 'front'
+  entersFrom?: Way
+  /** Its pieces in the order they go on, when that order is the phase: each lot is drawn in turn, over the ones before. */
+  lots?: { pieces: string[]; entersFrom?: Way }[]
   /** Some of its pieces drawn by themselves and apart, when the furniture hides how they go together: one drawer, the base. */
   detail?: { title: string; pieces: string[] }
 }

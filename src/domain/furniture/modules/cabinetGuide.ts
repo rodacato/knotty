@@ -37,6 +37,12 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
   const lids = doors.filter((d) => lifts(design, d.id))
   const handles = [design.pulls, ...Object.values(design.pullsOf ?? {})].includes('handle')
   const body = at('body')
+  // The body goes on as its steps say: the floor between the sides, what stands inside, and the top last.
+  const lots: NonNullable<GuidePhase['lots']> = [
+    { pieces: body.filter((p) => p.role === 'bottom' || p.role === 'side').map((p) => p.id) },
+    { pieces: body.filter((p) => !['bottom', 'side', 'top'].includes(p.role)).map((p) => p.id) },
+    { pieces: body.filter((p) => p.role === 'top').map((p) => p.id), entersFrom: 'above' as const },
+  ].filter((lot) => lot.pieces.length)
   const drawers = at('drawers')
   const oneDrawer = drawers.filter((p) => p.group === drawers[0]?.group)
 
@@ -67,6 +73,7 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
       id: 'body',
       title: 'El cuerpo',
       pieces: ids('body'),
+      ...(lots.length > 1 ? { lots } : {}),
       steps: [
         apart
           ? step('Une las partes del cuerpo con su herraje, sin pegamento: así se arma y se desarma sin dañar el triplay.', knockDown('permite armar y desarmar sin dañar el triplay'))
