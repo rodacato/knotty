@@ -2,7 +2,7 @@ import { jointThicknessRule } from '../../checks/structure/rules/jointThickness'
 import type { Finding } from '../../checks/structure/finding'
 import { JOINTS } from '../../design/jointSpecs'
 import { hardwareFor } from '../../design/joints'
-import type { Geometry } from '../../design/resolve'
+import { resolveGeometry, type Geometry } from '../../design/resolve'
 import { isDrawerPart, type Design, type Joint, type JointType, type Piece } from '../../design/schema'
 import type { Catalog } from '../../materials/catalog'
 import type { Operation } from '../operations/schema'
@@ -88,4 +88,30 @@ export function chooseJoint(design: Design, geo: Geometry, group: JointGroupId, 
   const next: Design = { ...design, joints: design.joints.map((u) => changed.find((c) => c.id === u.id) ?? u) }
   const findings = jointThicknessRule({ design: next, geo, catalog, contacts: [] }).filter((f) => ids.has(String(f.data.joint)))
   return { operations: changed.map((joint) => ({ op: 'changeJoint', joint })), findings, kept: joints.filter((u) => CUT_JOINTS.includes(u.type)).length }
+}
+
+/** What Knotty infers for a new contact: a nailed back, a screwed corner anywhere else. */
+const inferred = (group: JointGroupId): JointType => (group === 'back' ? 'glue-nail' : 'butt-screw')
+
+/**
+ * A choice is of the group, not of the joints it had that day: the ones that came later, still as Knotty inferred them, take the type of the `settled` ones.
+ * Only when at least two settled joints agree on a type, and never where R2 finds it critical on that board.
+ */
+export function followChoice(design: Design, settled: Set<string>, catalog: Catalog): Design {
+  const resolved = resolveGeometry(design, catalog)
+  if (!resolved.ok) return design
+  const geo = resolved.value
+  const byId = new Map(design.pieces.map((p) => [p.id, p]))
+  const followed = jointGroups(design).flatMap((group) => {
+    const chosen = group.joints.filter((u) => settled.has(u.id) && !CUT_JOINTS.includes(u.type))
+    const type = chosen[0]?.type
+    if (chosen.length < 2 || !isChoosable(type) || type === inferred(group.id) || chosen.some((u) => u.type !== type)) return []
+    return group.joints
+      .filter((u) => !settled.has(u.id) && u.type === inferred(group.id))
+      .map((u): Joint => ({ ...u, type, glue: JOINTS[type].glue, depth: null, hardware: hardwareFor(catalog, type, byId.get(u.a)!, byId.get(u.b)!, geo.boxes, geo.thicknesses) }))
+  })
+  if (!followed.length) return design
+  const next: Design = { ...design, joints: design.joints.map((u) => followed.find((f) => f.id === u.id) ?? u) }
+  const refused = new Set(jointThicknessRule({ design: next, geo, catalog, contacts: [] }).filter((f) => f.severity === 'critical').map((f) => String(f.data.joint)))
+  return { ...design, joints: design.joints.map((u) => followed.find((f) => f.id === u.id && !refused.has(f.id)) ?? u) }
 }

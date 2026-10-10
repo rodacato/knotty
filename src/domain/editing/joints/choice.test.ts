@@ -4,7 +4,10 @@ import { testCatalog } from '../../furniture/fixtures/catalog.test-util'
 import { buildCabinet, CabinetPlan, DEFAULT_CONSTRUCTION } from '../../furniture/modules/cabinet'
 import { estimatePurchase } from '../../estimate/purchase'
 import { applyOperations } from '../operations/apply'
-import { chooseJoint, jointGroups } from './choice'
+import { completeJoints } from '../../design/joints'
+import { normalize } from '../../design/normalize'
+import { rebuildFromPlan } from '../../furniture/modules/rebuild'
+import { chooseJoint, followChoice, jointGroups } from './choice'
 
 const cabinet = (extra: Partial<CabinetPlan> = {}): CabinetPlan => ({
   kind: 'cabinet',
@@ -112,5 +115,41 @@ describe('choosing a joint', () => {
   it('asks for nothing when the group already has that joint', () => {
     const { design, geo } = built()
     expect(chooseJoint(design, geo, 'back', 'glue-nail', testCatalog).operations).toEqual([])
+  })
+})
+
+describe('a choice is of the group', () => {
+  const bookcase = (shelves: number) =>
+    cabinet({ dimensions: { width: 700, height: 1200, depth: 300 }, construction: { ...DEFAULT_CONSTRUCTION, shelves: 'fixed' }, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves, doors: null }] }] })
+  const dowelled = () => {
+    const { design, geo } = built(bookcase(1))
+    return { design, operations: chooseJoint(design, geo, 'body', 'dowel', testCatalog).operations }
+  }
+  const body = (design: Parameters<typeof jointGroups>[0]) => jointGroups(design).find((g) => g.id === 'body')!.joints.map((u) => u.type)
+
+  it('the shelves a ficha gains later are joined as the body was chosen, with their dowels', () => {
+    const { design } = rebuildFromPlan(bookcase(3), dowelled().operations, testCatalog)
+    expect(new Set(body(design))).toEqual(new Set(['dowel']))
+    expect(jointGroups(design).find((g) => g.id === 'body')!.joints.every((u) => u.hardware[0]?.hardwareId.startsWith('dowel'))).toBe(true)
+    expect(jointGroups(design).find((g) => g.id === 'back')!.current).toBe('glue-nail')
+  })
+
+  it('a piece added by hand is joined as its group was chosen', () => {
+    const { design, operations } = dowelled()
+    const chosen = applyOperations(design, operations, testCatalog)
+    if (!chosen.ok) throw new Error('not applied')
+    const shelf = chosen.value.design.pieces.find((p) => p.role === 'shelf')!
+    const lower = { ...shelf, id: 'shelf-x', y: { ...shelf.y, start: { type: 'ref' as const, ref: 'bottom.y1' as const, offset: 200 } } }
+    const added = applyOperations(chosen.value.design, [{ op: 'addPiece', piece: lower }], testCatalog)
+    if (!added.ok) throw new Error(JSON.stringify(added.errors))
+    const joined = completeJoints(normalize(added.value.design, testCatalog), testCatalog, chosen.value.design)
+    expect(body(joined)).toContain('butt-screw')
+    expect(new Set(body(followChoice(joined, new Set(chosen.value.design.joints.map((u) => u.id)), testCatalog)))).toEqual(new Set(['dowel']))
+  })
+
+  it('one joint changed alone is not a choice: the rest of its group stays as it was', () => {
+    const [one] = dowelled().operations
+    const { design } = rebuildFromPlan(bookcase(3), [one], testCatalog)
+    expect(body(design).filter((type) => type === 'dowel')).toHaveLength(1)
   })
 })
