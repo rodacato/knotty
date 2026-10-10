@@ -44,6 +44,13 @@ describe('the build guide of a cabinet', () => {
     expect(off).toEqual([])
   })
 
+  it('draws apart one whole drawer and the whole base, and only pieces of their own phase', () => {
+    const details = guides.flatMap(({ name, design, phases }) => phases.flatMap((phase) => (phase.detail ? [{ name, phase, drawn: design.pieces.filter((p) => phase.detail!.pieces.includes(p.id)) }] : [])))
+    expect(details.filter(({ phase, drawn }) => !drawn.length || drawn.some((p) => !phase.pieces.includes(p.id))).map((d) => d.name)).toEqual([])
+    expect(details.filter(({ phase, drawn }) => phase.id === 'drawers' && new Set(drawn.map((p) => p.group)).size !== 1).map((d) => d.name)).toEqual([])
+    expect(details.some(({ phase }) => phase.id === 'drawers')).toBe(true)
+  })
+
   it('goes in the order things depend on: the body, then what squares it, then what hangs from it', () => {
     const order = ['prepare', 'body', 'square', 'base', 'drawers', 'shelves', 'doors', 'finish', 'install']
     for (const { phases } of guides) expect(phases.map((p) => p.id)).toEqual(order.filter((id) => phases.some((p) => p.id === id)))

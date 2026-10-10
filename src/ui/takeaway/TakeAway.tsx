@@ -3,40 +3,58 @@ import { useMemo, useState } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
+import { outline } from '../../domain/design/slants'
 import { applySettings } from '../../domain/materials/catalog'
+import type { GuidePhase } from '../../domain/furniture/modules/guide'
 import { moduleOf } from '../../domain/furniture/modules/plan'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { currentPlan } from '../../application/useCases'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
-import { drawDiagram, spreadApart, VIEWS, type Angle, type Diagram } from './diagram'
+import type { Offset } from '../scene/explode'
+import { drawDiagram, spreadApart, VIEWS, type Angle, type Diagram, type Shape } from './diagram'
 
 const INK = '#1d1b19'
+/** What was already there when a phase begins. */
+const FAINT = '#a8a29a'
 const SHADES = { side: '#d9d2c7', front: '#efebe4', up: '#ffffff' }
+const FAINT_SHADES = { side: '#f1eee9', front: '#f9f8f5', up: '#ffffff' }
 /** How far from the middle each piece is drawn, against where it really goes. */
 const SPREAD = 1.6
 const SMALLER: Angle[] = ['left', 'back', 'front', 'top']
+/** How far the pieces of a detail are drawn from its middle. */
+const DETAIL_SPREAD = 1.35
+/** How far from its place a piece on its way is drawn, against the longest side of the furniture. */
+const ON_ITS_WAY = 0.2
+const WAYS: Record<NonNullable<GuidePhase['entersFrom']>, Offset> = { back: [0, 0, -1], below: [0, -1, 0], front: [0, 0, 1] }
 
 const apartLabel = (view: string) => `Las piezas separadas, ${view.toLowerCase()}, cada una con el número de su renglón`
 
-function Drawing({ diagram, label, className }: { diagram: Diagram; label: string; className: string }) {
-  const radius = Math.max(diagram.width, diagram.height) / 52
+/** `hidden` says whether a piece nothing shows still gets its number: the pieces apart do, a phase leaves it to its detail. */
+function Drawing({ diagram, label, className, hidden = true }: { diagram: Diagram; label: string; className: string; hidden?: boolean }) {
+  const radius = diagram.dot
+  const focused = diagram.pieces.some((p) => p.marked)
+  // Two layers of one leg carry the same number on the same spot: it is written once.
+  const numbers = diagram.pieces
+    .filter((p) => p.number !== null && (hidden || p.seen))
+    .filter((p, i, all) => !all.slice(0, i).some((q) => q.number === p.number && Math.hypot(q.badge[0] - p.badge[0], q.badge[1] - p.badge[1]) < 2 * radius))
   return (
     <svg viewBox={`0 0 ${diagram.width} ${diagram.height}`} className={className} role="img" aria-label={label}>
       {diagram.pieces.map((p) => (
         <g key={p.id}>
           {p.faces.map((face, i) => (
-            <polygon key={i} points={face.points} fill={SHADES[face.looks]} stroke={INK} strokeWidth={1} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            <polygon key={i} points={face.points} fill={(focused && !p.marked ? FAINT_SHADES : SHADES)[face.looks]} stroke={focused && !p.marked ? FAINT : INK} strokeWidth={focused && p.marked ? 1.75 : 1} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
           ))}
-          {p.number !== null && (
-            <>
-              <circle cx={p.badge[0]} cy={p.badge[1]} r={radius} fill={INK} />
-              <text x={p.badge[0]} y={p.badge[1]} fill="#ffffff" fontSize={radius * 1.15} fontWeight={600} textAnchor="middle" dominantBaseline="central">
-                {p.number}
-              </text>
-            </>
-          )}
+        </g>
+      ))}
+      {/* The numbers go over every board: one drawn with its piece is covered by the next piece. */}
+      {numbers.map((p) => (
+        <g key={p.id}>
+          <circle cx={p.badge[0]} cy={p.badge[1]} r={radius} fill={INK} />
+          <text x={p.badge[0]} y={p.badge[1]} fill="#ffffff" fontSize={radius * 1.15} fontWeight={600} textAnchor="middle" dominantBaseline="central">
+            {p.number}
+          </text>
         </g>
       ))}
     </svg>
@@ -60,12 +78,26 @@ export function TakeAway({ state }: { state: DesignState }) {
     // The guide is the module's, of the plan the design still is; a design with no plan, or one that left it behind, has none.
     const { plan, diverged } = currentPlan(state)
     const phases = (plan && !diverged ? moduleOf(plan).phases?.(plan, design) : null) ?? []
+    const shapes = new Map(design.pieces.flatMap((p): [string, Shape][] => {
+      const box = analysis.geo.boxes.get(p.id)
+      return box && (p.slants?.length || p.rounds?.length) ? [[p.id, { normal: p.normal, points: outline(box, p.normal, p.slants ?? [], p.rounds) }]] : []
+    }))
+    const only = (ids: Iterable<string>) => {
+      const wanted = new Set(ids)
+      return new Map([...analysis.geo.boxes].filter(([id]) => wanted.has(id)))
+    }
+    const numbered = (ids: string[]) => new Map(ids.flatMap((id) => (numbers.has(id) ? [[id, numbers.get(id)!] as const] : [])))
+    const reach = Math.max(design.dimensions.width, design.dimensions.height, design.dimensions.depth) * ON_ITS_WAY
     const guide = phases.map((phase, i) => {
-      const soFar = new Set(phases.slice(0, i + 1).flatMap((p) => p.pieces))
-      const boxes = new Map([...analysis.geo.boxes].filter(([id]) => soFar.has(id)))
-      return { ...phase, drawing: phase.pieces.length ? drawDiagram(boxes, new Map(), new Map(phase.pieces.flatMap((id) => (numbers.has(id) ? [[id, numbers.get(id)!] as const] : []))), phase.seenFrom ?? 'right') : null }
+      const way = phase.entersFrom ? (WAYS[phase.entersFrom].map((d) => d * reach) as Offset) : null
+      const detail = phase.detail && only(phase.detail.pieces)
+      return {
+        ...phase,
+        drawing: phase.pieces.length ? drawDiagram(only(phases.slice(0, i + 1).flatMap((p) => p.pieces)), new Map(way ? phase.pieces.map((id) => [id, way]) : []), numbered(detail?.size === phase.pieces.length ? [] : phase.pieces), phase.seenFrom ?? 'right', { marked: new Set(phase.pieces), shapes }) : null,
+        detailDrawing: detail?.size ? drawDiagram(detail, spreadApart(detail, DETAIL_SPREAD), numbered(phase.detail!.pieces), 'right', { shapes }) : null,
+      }
     })
-    return { guide, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle) }
+    return { guide, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
   }, [catalog, settings, design, state])
   const { height, width, depth } = design.dimensions
   const [today] = useState(() => new Date().toLocaleDateString('es-MX'))
@@ -156,7 +188,7 @@ export function TakeAway({ state }: { state: DesignState }) {
           <section className="flex flex-col gap-4 [print-color-adjust:exact] [break-before:page]">
             <div>
               <h2 className="font-display text-2xl font-semibold">Las piezas, separadas</h2>
-              <p className="text-sm">Cada pieza lleva el número de su renglón en la lista. Lo que una vista tapa se ve en otra. Una pieza inclinada o redondeada se dibuja como su rectángulo.</p>
+              <p className="text-sm">Cada pieza lleva el número de su renglón en la lista. Lo que una vista tapa se ve en otra.</p>
             </div>
             <figure className="flex flex-col gap-1 [break-inside:avoid]">
               <figcaption className="text-sm font-medium">{VIEWS.right.name}</figcaption>
@@ -176,7 +208,7 @@ export function TakeAway({ state }: { state: DesignState }) {
           <section className="flex flex-col gap-6 [print-color-adjust:exact] [break-before:page]">
             <div>
               <h2 className="font-display text-2xl font-semibold">Armado por fases</h2>
-              <p className="text-sm">El orden en que se arma. Cada dibujo muestra el mueble hasta esa fase; las piezas que entran en ella llevan su número de la lista.</p>
+              <p className="text-sm">El orden en que se arma. Cada dibujo muestra el mueble hasta esa fase, en claro, y las piezas que entran en ella, marcadas y con su número de la lista: las que llegan de atrás, de abajo o de frente van dibujadas en camino a su lugar.</p>
             </div>
             {sheet.guide.map((phase, i) => (
               <div key={phase.id} className="flex flex-col gap-2 [break-inside:avoid]">
@@ -189,7 +221,13 @@ export function TakeAway({ state }: { state: DesignState }) {
                   ))}
                 </ul>
                 {phase.drawing && phase.seenFrom && <p className="text-sm">{VIEWS[phase.seenFrom].name}</p>}
-                {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble al terminar la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" />}
+                {phase.drawing && <Drawing diagram={phase.drawing} label={`El mueble en la fase ${i + 1}, ${phase.title.toLowerCase()}${phase.seenFrom ? ', visto desde atrás' : ''}`} className="max-h-[90mm] w-full" hidden={false} />}
+                {phase.detail && phase.detailDrawing && (
+                  <figure className="flex flex-col gap-1">
+                    <figcaption className="text-sm font-medium">{phase.detail.title}</figcaption>
+                    <Drawing diagram={phase.detailDrawing} label={phase.detail.title} className="max-h-[80mm] w-full" />
+                  </figure>
+                )}
               </div>
             ))}
           </section>

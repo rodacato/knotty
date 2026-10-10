@@ -37,6 +37,8 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
   const lids = doors.filter((d) => lifts(design, d.id))
   const handles = [design.pulls, ...Object.values(design.pullsOf ?? {})].includes('handle')
   const body = at('body')
+  const drawers = at('drawers')
+  const oneDrawer = drawers.filter((p) => p.group === drawers[0]?.group)
 
   const flat = [
     ...(at('shelves').length ? ['los agujeros de los soportes de repisa'] : []),
@@ -78,22 +80,25 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
       title: at('back').length ? 'Escuadrar y poner la trasera' : 'Escuadrar',
       pieces: ids('back'),
       seenFrom: 'back',
+      entersFrom: 'back',
       steps: [
         step('Mide las dos diagonales del frente; si no son iguales, aprieta una prensa en la diagonal larga hasta igualarlas. Revisa también por atrás.', sequence('Medir las dos diagonales del frente')),
         ...(at('back').length ? [step('Con el cuerpo a escuadra, pega y clava la trasera en todo el perímetro: al quedar fija, mantiene la escuadra.', sequence('Con el cuerpo a escuadra, pegar y clavar la trasera en todo el perímetro'))] : []),
       ],
     },
-    { id: 'base', title: 'La base', pieces: ids('base'), steps: [step(plan.base === 'kick' ? 'Pon el zoclo, remetido al frente.' : 'Pon las patas, con sus faldones.', sequence('**Zoclo o patas**'))] },
+    { id: 'base', title: 'La base', pieces: ids('base'), entersFrom: 'below', detail: { title: plan.base === 'kick' ? 'El zoclo, por partes' : 'La base, por partes', pieces: ids('base') }, steps: [step(plan.base === 'kick' ? 'Pon el zoclo, remetido al frente.' : 'Pon las patas, con sus faldones.', sequence('**Zoclo o patas**'))] },
     {
       id: 'drawers',
       title: 'Los cajones',
       pieces: ids('drawers'),
+      entersFrom: 'front',
+      detail: { title: oneDrawer.length < drawers.length ? 'Un cajón, por partes: los demás se arman igual' : 'El cajón, por partes', pieces: oneDrawer.map((p) => p.id) },
       steps: [
         step('Fija las correderas en el cuerpo, con escuadra y a la altura marcada: la misma en los dos lados.', sequence('Con escuadra y a la altura marcada')),
         step('Arma la caja de cada cajón (costados, contrafrente y trasera), ponle el fondo y móntala en sus correderas. Al final, el frente, atornillado desde adentro.', sequence('Armar la caja (costados, contrafrente, trasera)')),
       ],
     },
-    { id: 'shelves', title: 'Las repisas', pieces: ids('shelves'), steps: [step('Pon los soportes en sus agujeros y asienta las repisas.', sequence('agujeros de soportes de repisa'))] },
+    { id: 'shelves', title: 'Las repisas', pieces: ids('shelves'), entersFrom: 'front', steps: [step('Pon los soportes en sus agujeros y asienta las repisas.', sequence('agujeros de soportes de repisa'))] },
     {
       id: 'doors',
       title: !lids.length ? 'Las puertas' : hinged.length || sliding.length ? 'Las puertas y las tapas' : 'Las tapas',

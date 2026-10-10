@@ -17,4 +17,8 @@ export interface GuidePhase {
   pieces: string[]
   /** Where its pieces are seen from when the front hides them. */
   seenFrom?: 'back'
+  /** Which way its pieces come on, so the drawing shows them on their way there; none when they are drawn in place. */
+  entersFrom?: 'back' | 'below' | 'front'
+  /** Some of its pieces drawn by themselves and apart, when the furniture hides how they go together: one drawer, the base. */
+  detail?: { title: string; pieces: string[] }
 }
