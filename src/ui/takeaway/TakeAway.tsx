@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { analyze } from '../../domain/checks/analysis'
 import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
+import { atTheYard, toolsFor, type Advice } from '../../domain/estimate/workshop'
 import { outline } from '../../domain/design/slants'
 import { applySettings } from '../../domain/materials/catalog'
 import type { Way } from '../../domain/furniture/modules/guide'
@@ -61,6 +62,22 @@ function Drawing({ diagram, label, className, hidden = true }: { diagram: Diagra
   )
 }
 
+function Checklist({ title, lines }: { title: string; lines: Advice[] }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="font-display text-2xl font-semibold [break-after:avoid]">{title}</h2>
+      <ul className="flex flex-col gap-1.5 text-[15px] leading-snug">
+        {lines.map((line) => (
+          <li key={line.text} className="flex gap-2 [break-inside:avoid]">
+            <span aria-hidden className="mt-0.5 size-4 shrink-0 rounded-sm border-2 border-[#1d1b19]" />
+            {line.text}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 /** The reviewed design on paper: what to check before cutting, the cut list with every piece by name, and the pieces apart with the number of their line. It only reads the design. */
 export function TakeAway({ state }: { state: DesignState }) {
   const { catalog } = useServices()
@@ -103,7 +120,7 @@ export function TakeAway({ state }: { state: DesignState }) {
         detailDrawing: detail?.size ? drawDiagram(detail, spreadApart(detail, DETAIL_SPREAD), numbered(phase.detail!.pieces), 'right', { shapes }) : null,
       }
     })
-    return { guide, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
+    return { guide, yard: atTheYard(design), tools: toolsFor(design), blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
   }, [catalog, settings, design, state])
   const { height, width, depth } = design.dimensions
   const [today] = useState(() => new Date().toLocaleDateString('es-MX'))
@@ -188,6 +205,13 @@ export function TakeAway({ state }: { state: DesignState }) {
               </div>
             ))}
           </section>
+        )}
+
+        {sheet && sheet.blocks.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
+            <Checklist title="Pídelo en la maderería" lines={sheet.yard} />
+            <Checklist title="Lo que vas a ocupar" lines={sheet.tools} />
+          </div>
         )}
 
         {sheet && sheet.blocks.length > 0 && (
