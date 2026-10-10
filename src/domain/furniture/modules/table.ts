@@ -18,6 +18,7 @@ import { notchNote, pullFor } from './fronts'
 import { choice, fromLabels, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import type { FurnitureModule, Labels } from './module'
 import { counted, woodPart, type Parts } from './parts'
+import { tablePhases } from './tableGuide'
 
 // A table or a desk from its ficha: a top on two panel ends or on four legs, tied by aprons, with cleats under the top and, on a desk, a drawer pedestal.
 
@@ -611,6 +612,7 @@ export const tableModule: FurnitureModule<TablePlan> = {
   label: 'una mesa',
   expert: { what: 'a table or a desk' },
   build: buildTable,
+  phases: tablePhases,
   builtAsAsked: (plan, design) => drawersShort(design, plan.use === 'desk' && plan.pedestal.side !== 'none' ? plan.pedestal.drawers : 0, 'en esa cajonera'),
   describeChanges: describeTableChanges,
   resize: (plan, axis, value) => ({ ok: true, plan: { ...plan, dimensions: { ...plan.dimensions, [DIMENSION_OF_AXIS[axis]]: value } } }),

@@ -81,7 +81,7 @@ describe('the build guide of a cabinet', () => {
     expect(said(apart, 'body')).toMatch(/sin pegamento/)
   })
 
-  it('only the cabinet has a guide so far: another kind declares none rather than an invented order', () => {
-    expect(Object.values(MODULES).filter((m) => m.phases).map((m) => m.kind)).toEqual(['cabinet'])
+  it('only the cabinet and the table have a guide so far: another kind declares none rather than an invented order', () => {
+    expect(Object.values(MODULES).filter((m) => m.phases).map((m) => m.kind).sort()).toEqual(['cabinet', 'table'])
   })
 })

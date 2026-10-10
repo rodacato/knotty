@@ -1,17 +1,11 @@
 import { lifts, slides } from '../../design/doors'
 import { isDrawerPart, type Design, type Piece } from '../../design/schema'
-import { cite } from '../../sources'
 import type { CabinetPlan } from './cabinet'
-import type { GuidePhase, GuideStep } from './guide'
+import { anchored, knockDown, levelled, sequence, step, type GuidePhase } from './guide'
 
 // The order a cabinet goes together in, phase by phase: the sequence of fabricacion-y-armado.md §3, with what this cabinet has and nothing it does not.
 // Loose shelves go in before the doors close over them.
 
-const FABRICATION = 'fabricacion-y-armado.md'
-const sequence = (row: string) => cite(FABRICATION, '3-secuencia-de-armado-típica-de-un-cuerpo', row)
-const knockDown = (row: string) => cite(FABRICATION, '84-muebles-desarmables', row)
-
-const step = (text: string, source: string): GuideStep => ({ text, source })
 const listed = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(', ')} y ${items.at(-1)}` : items[0])
 
 type Stage = 'body' | 'back' | 'base' | 'drawers' | 'doors' | 'shelves'
@@ -130,8 +124,8 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
       title: 'En su lugar',
       pieces: [],
       steps: [
-        step('Nivela el mueble donde va, en las dos direcciones, antes de ajustar las bisagras.', cite(FABRICATION, '91-nivelar', 'nivel de burbuja en dos direcciones')),
-        ...(design.wallAnchored ? [step('Ánclalo al muro, como dice su ficha.', cite(FABRICATION, '92-anclar-al-muro-antivuelco', 'evita lesiones y muertes por vuelco'))] : []),
+        step('Nivela el mueble donde va, en las dos direcciones, antes de ajustar las bisagras.', levelled),
+        ...(design.wallAnchored ? [step('Ánclalo al muro, como dice su ficha.', anchored)] : []),
       ],
     },
   ]
