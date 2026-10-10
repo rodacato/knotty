@@ -28,6 +28,16 @@ interface Sheet {
   placed: Placed[]
   /** The fraction of the whole sheet that goes to waste (trimming, cuts and offcuts included). */
   waste: number
+  /** The largest offcut worth taking home, long side first; the cuts are a guess at the counter's, so the real one is at least this. Null when every one is a strip. */
+  leftover: { length: number; width: number } | null
+}
+
+/** Under this an offcut is a strip, not a board to keep. */
+const MIN_LEFTOVER = 100
+
+function largestLeftover(free: Free[]): Sheet['leftover'] {
+  const [best] = free.filter((f) => Math.min(f.w, f.h) >= MIN_LEFTOVER).sort((a, b) => b.w * b.h - a.w * a.h)
+  return best ? { length: Math.floor(Math.max(best.w, best.h)), width: Math.floor(Math.min(best.w, best.h)) } : null
 }
 
 export interface MaterialLayout {
@@ -138,7 +148,7 @@ export function layOut(design: Design, geo: Geometry, catalog: Catalog): Materia
         material: id,
         sheet: material.sheet,
         usable,
-        sheets: best!.sheets.map((h) => ({ placed: h.placed, waste: 1 - h.placed.reduce((a, c) => a + c.w * c.h, 0) / sheetArea })),
+        sheets: best!.sheets.map((h) => ({ placed: h.placed, waste: 1 - h.placed.reduce((a, c) => a + c.w * c.h, 0) / sheetArea, leftover: largestLeftover(h.free) })),
         unplaced: best!.unplaced,
       },
     ]

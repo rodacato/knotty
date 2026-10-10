@@ -112,7 +112,10 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
         <span>
           Hoja {index + 1} de {total}
         </span>
-        <span className="numerals">desperdicio {percent(sheet.waste)}</span>
+        <span className="numerals text-right">
+          desperdicio {percent(sheet.waste)}
+          {sheet.leftover && ` · sobra al menos ${sheet.leftover.length} × ${sheet.leftover.width} mm`}
+        </span>
       </figcaption>
       <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="w-full rounded-md border border-line" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
         <defs>
