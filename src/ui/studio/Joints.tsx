@@ -2,12 +2,12 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowLeft, BookOpen, CaretDown, CaretRight, Check, Minus, Plus, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { analyze } from '../../domain/checks/analysis'
-import { GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit } from '../../domain/design/jointGuide'
+import { beyondLevel, GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit } from '../../domain/design/jointGuide'
 import { JOINTS } from '../../domain/design/jointSpecs'
 import type { Design } from '../../domain/design/schema'
 import { named } from '../../application/named'
 import { chooseJoint, isChoosable, jointGroups, type JointGroup } from '../../domain/editing/joints/choice'
-import { TOOL_LEVEL_LABELS } from '../../domain/materials/tools'
+import { TOOL_LEVEL_LABELS, type ToolLevel } from '../../domain/materials/tools'
 import { TERMS } from '../glossary'
 import { useServices } from '../services'
 import { useStore } from '../store'
@@ -269,6 +269,22 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
   )
 }
 
+/** What a group brings that the person's tools do not plainly make, tagged like the joints on offer: the row names only the joint most of the group has. */
+function BeyondLevel({ group, level }: { group: JointGroup; level: ToolLevel }) {
+  const beyond = beyondLevel(group.joints.map((u) => u.type), level)
+  if (!beyond.length) return null
+  return (
+    <span className="mt-1 flex flex-col gap-1 text-xs">
+      {beyond.map(({ joint, fit }) => (
+        <span key={joint} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          {joint === group.current ? `Pide ${JOINT_GUIDE[joint].tool}` : `Lleva también ${JOINT_GUIDE[joint].name.toLowerCase()}: pide ${JOINT_GUIDE[joint].tool}`}
+          <FitTag fit={fit} />
+        </span>
+      ))}
+    </span>
+  )
+}
+
 /** One row per group of joints the design has, with the joint it has now and the way to change it. */
 /** `only`: the groups of one part of the furniture, when the section sits inside that part. */
 export function JointsSection({ design, only, title = 'Uniones' }: { design: Design; only?: JointGroup['id'][]; title?: string }) {
@@ -276,6 +292,7 @@ export function JointsSection({ design, only, title = 'Uniones' }: { design: Des
   const [open, setOpen] = useState<JointGroup['id'] | null>(null)
   const [notes, setNotes] = useState<string[]>([])
   const group = groups.find((g) => g.id === open)
+  const level = useStore((s) => s.catalogSettings.toolLevel)
   if (!groups.length) return null
   return (
     <section className="flex flex-col gap-3">
@@ -287,6 +304,7 @@ export function JointsSection({ design, only, title = 'Uniones' }: { design: Des
             <span className="min-w-0 flex-1">
               <span className="block text-xs text-graphite-2">{g.label}</span>
               <span className="block font-medium">{g.current in JOINT_GUIDE ? JOINT_GUIDE[g.current as GuideJoint].name : JOINTS[g.current].label.singular}</span>
+              <BeyondLevel group={g} level={level} />
             </span>
             <Button
                 className="shrink-0 rounded-full"

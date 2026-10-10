@@ -191,6 +191,14 @@ export const GUIDE_JOINTS: GuideJoint[] = ['butt-screw', 'pocket-screw', 'dowel'
 /** How the person's level can make it; null when §1.3 does not say. */
 export const jointFit = (joint: GuideJoint, level: ToolLevel): JointFit | null => JOINT_GUIDE[joint].fit?.[level - 1] ?? null
 
+/** The joints among these the person's tools do not plainly make, each once and with how far they are from it: what a design brings and its level cannot do. */
+export function beyondLevel(types: JointType[], level: ToolLevel): { joint: GuideJoint; fit: JointFit }[] {
+  return [...new Set(types)].flatMap((type) => {
+    const fit = type in JOINT_GUIDE ? jointFit(type as GuideJoint, level) : null
+    return fit && fit !== 'yes' ? [{ joint: type as GuideJoint, fit }] : []
+  })
+}
+
 const LEVEL_WAY: Record<JointFit, string> = { yes: '', jig: ' con plantilla', careful: ' con cuidado', shop: ' si la maderería la hace', no: '' }
 
 /** Which levels make it, up to the first that makes it plainly: «Desde nivel 2», «Nivel 2 con plantilla · 3». */

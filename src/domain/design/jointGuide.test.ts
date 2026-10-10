@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit } from './jointGuide'
+import { GUIDE_JOINTS, JOINT_GUIDE, jointFit, levelsText, type GuideJoint, type JointFit, beyondLevel } from './jointGuide'
 
 // The level fit is read from the table of fabricacion-y-armado.md §1.3 itself, so the code cannot drift from the reference.
 
@@ -52,6 +52,12 @@ describe('joint guide', () => {
     expect(jointFit('confirmat', 3)).toBeNull()
     expect(levelsText('confirmat')).toBe('Nivel sin dato')
     expect(levelsText('connector-bolt')).toBe('Nivel sin dato')
+  })
+
+  it('names what a design brings beyond a level, each joint once, and nothing a level plainly makes', () => {
+    expect(beyondLevel(['butt-screw', 'pocket-screw', 'pocket-screw', 'dowel', 'cup-hinge'], 1)).toEqual([{ joint: 'pocket-screw', fit: 'no' }, { joint: 'dowel', fit: 'no' }])
+    expect(beyondLevel(['butt-screw', 'pocket-screw', 'dowel'], 2)).toEqual([{ joint: 'dowel', fit: 'jig' }])
+    expect(beyondLevel(['butt-screw', 'pocket-screw', 'dowel', 'connector-bolt'], 3)).toEqual([])
   })
 
   it('says which levels make it, up to the first that makes it plainly', () => {
