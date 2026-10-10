@@ -286,7 +286,10 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   const summary = plan && !diverged && shown === currentDesign(state) ? moduleOf(plan).summary(plan, shown.dimensions) : measuresSummary(shown.dimensions)
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- settingsOpen is the recompute trigger: preferences live in storage, outside React
   const active = useMemo(() => activeLabel(preferences.load()), [preferences, settingsOpen])
-  const label = useExpertStatus().available ? active : 'Sin experto'
+  const { available } = useExpertStatus()
+  const openConnect = useStore((s) => s.openConnect)
+  const label = available ? active : 'Sin experto'
+  const toExpert = () => (available ? openSettings(true) : openConnect(true))
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
       <ConfirmNew>
@@ -318,7 +321,7 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
           <ModelSwitch />
         </>
       ) : (
-        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
+        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={toExpert} aria-label={`El experto: ${label}`}>
           <GearSix /> {label}
         </Button>
       )}
@@ -327,7 +330,7 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
           <Plus weight="bold" /> Nuevo diseño
         </Button>
       </ConfirmNew>
-      <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : () => openSettings(true)} />
+      <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : toExpert} />
     </header>
   )
 }

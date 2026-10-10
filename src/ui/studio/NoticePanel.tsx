@@ -206,6 +206,8 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
   const acceptNotice = useStore((s) => s.acceptNotice)
   const toggleTray = useStore((s) => s.toggleTray)
   const sendTray = useStore((s) => s.sendTray)
+  const openConnect = useStore((s) => s.openConnect)
+  const { available } = useExpertStatus()
   const thinking = useStore((s) => s.thinking)
   const [error, setError] = useState<string | null>(null)
   // What is already in the tray for a notice starts out as its chosen way.
@@ -229,7 +231,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
       const way = ways[n.key]
       if (way.kind === 'expert' && !state.tray.some((t) => t.text === way.item.text)) toggleTray(way.item)
     }
-    if (toExpert || state.tray.length) consult()
+    if ((toExpert || state.tray.length) && available) consult()
   }
 
   const consult = () => {
@@ -310,13 +312,19 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
               )}
             </p>
           )}
-          <Button variant="primary" className="min-h-11 w-full" disabled={thinking} onClick={chosen.length ? resolve : consult}>
-            {chosen.length ? `Resolver ${chosen.length}` : (
-              <>
-                <ChatCircleText weight="fill" /> Consultar al experto
-              </>
-            )}
-          </Button>
+          {chosen.length || available ? (
+            <Button variant="primary" className="min-h-11 w-full" disabled={thinking} onClick={chosen.length ? resolve : consult}>
+              {chosen.length ? `Resolver ${chosen.length}` : (
+                <>
+                  <ChatCircleText weight="fill" /> Consultar al experto
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button variant="primary" className="min-h-11 w-full" onClick={() => openConnect(true)}>
+              Conectar experto
+            </Button>
+          )}
         </div>
       )}
     </div>
