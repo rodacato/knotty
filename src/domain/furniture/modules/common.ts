@@ -145,13 +145,23 @@ function unpulled(design: Design, front: string): Design {
   return { ...rest, ...(Object.keys(others).length ? { pullsOf: others } : {}), pieces: design.pieces.map((p) => (p.id === front ? bare(p) : p)) }
 }
 
+const LEFT_OPEN = ' Lo dejé como hueco abierto.'
+
+/** Which drawers `addDrawers` left out and why the first one did, from its notes: what a refusal says besides the count. */
+export function drawersLeftOut(notes: string[]): string | null {
+  const left = notes.filter((n) => n.endsWith(LEFT_OPEN)).map((n) => n.slice(0, -LEFT_OPEN.length))
+  if (!left.length) return null
+  const names = left.map((n) => n.slice(0, n.indexOf(': ')))
+  return `No ${names.length === 1 ? 'cupo' : 'cupieron'}: ${names.join(', ')}. ${left[0].slice(left[0].indexOf(': ') + 2)}`
+}
+
 /** Drawers go one by one: one that does not fit is left out and said instead of failing the whole piece. `placed` finishes one that went in. */
 export function addDrawers(design: Design, drawers: AddDrawer[], catalog: Catalog, placed: (design: Design, drawer: AddDrawer) => Design = (d) => d): { design: Design; notes: string[] } {
   const notes: string[] = []
   for (const drawer of drawers) {
     const result = applyOperations(design, [drawer], catalog)
     if (!result.ok) {
-      notes.push(`${drawer.name}: ${result.errors[0]?.message ?? 'no cupo'} Lo dejé como hueco abierto.`)
+      notes.push(`${drawer.name}: ${result.errors[0]?.message ?? 'no cupo'}${LEFT_OPEN}`)
       continue
     }
     design = placed(unpulled(result.value.design, `${drawer.group}-front`), drawer)

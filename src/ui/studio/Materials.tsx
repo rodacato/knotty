@@ -108,11 +108,16 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
   const pattern = `rayado-${a.material}-${index}`
   return (
     <figure className="flex flex-col gap-1.5">
-      <figcaption className="flex items-baseline justify-between text-xs text-graphite-2">
+      <figcaption className="flex flex-wrap items-baseline justify-between gap-x-3 text-xs text-graphite-2">
         <span>
           Hoja {index + 1} de {total}
         </span>
         <span className="numerals">desperdicio {percent(sheet.waste)}</span>
+        {sheet.leftover && (
+          <span className="numerals w-full">
+            Sobra al menos {sheet.leftover.length} × {sheet.leftover.width} mm
+          </span>
+        )}
       </figcaption>
       <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="w-full rounded-md border border-line" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
         <defs>

@@ -1,6 +1,7 @@
 import { ChatCircleText, Tray as TrayIcon, X } from '@phosphor-icons/react'
 import type { TrayItem } from '../../domain/session/tray/tray'
 import { Button } from '../system/components'
+import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 
 // What waits for the expert, next to the chat box: taken out one by one, sent all at once.
@@ -10,6 +11,8 @@ const KIND: Record<TrayItem['kind'], string> = { notice: 'Aviso', answer: 'Respu
 export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boolean; onSend: () => void }) {
   const toggleTray = useStore((s) => s.toggleTray)
   const thinking = useStore((s) => s.thinking)
+  const openConnect = useStore((s) => s.openConnect)
+  const { available } = useExpertStatus()
   if (!items.length) return null
   return (
     <div className="animate-appear mx-4 mb-2 flex flex-col gap-1.5" aria-label="Bandeja para el experto">
@@ -17,9 +20,15 @@ export function Tray({ items, typed, onSend }: { items: TrayItem[]; typed: boole
         <p className="flex items-center gap-1.5 text-sm font-medium">
           <TrayIcon weight="duotone" className="text-graphite" /> Bandeja · {items.length}
         </p>
-        <Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={onSend}>
-          <ChatCircleText weight="fill" /> Consultar al experto
-        </Button>
+        {available ? (
+          <Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={onSend}>
+            <ChatCircleText weight="fill" /> Consultar al experto
+          </Button>
+        ) : (
+          <Button variant="secondary" className="px-3 text-xs" onClick={() => openConnect(true)}>
+            Conectar experto
+          </Button>
+        )}
       </div>
       <ul className="-my-2 flex gap-1.5 overflow-x-auto py-2 [scrollbar-width:none]">
         {items.map((i) => (

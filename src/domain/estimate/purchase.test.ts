@@ -45,6 +45,19 @@ describe('sheet layout', () => {
     }
   })
 
+  it.each([exampleBookcase, exampleNightstand, exampleWallCabinet])('names the largest offcut of each sheet, never more than what the pieces leave, and no strip: $name', (d) => {
+    const layouts = layOut(d, geo(d), testCatalog)
+    expect(layouts.flatMap((m) => m.sheets).some((h) => h.leftover)).toBe(true)
+    for (const m of layouts)
+      for (const { placed, leftover } of m.sheets) {
+        if (!leftover) continue
+        expect(leftover.width).toBeGreaterThanOrEqual(100)
+        expect(leftover.length).toBeGreaterThanOrEqual(leftover.width)
+        expect(leftover.length).toBeLessThanOrEqual(m.usable.length)
+        expect(leftover.length * leftover.width).toBeLessThanOrEqual(m.usable.length * m.usable.width - placed.reduce((s, c) => s + c.w * c.h, 0))
+      }
+  })
+
   it('the 60 cm bookcase takes one 18 mm sheet and one back sheet', () => {
     const r = estimatePurchase(exampleBookcase, geo(exampleBookcase), testCatalog)
     expect(r.sheets.map((h) => [h.material.id, h.sheets])).toEqual([
