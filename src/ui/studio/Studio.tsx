@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { exampleDesign } from '../../domain/furniture/examples'
@@ -208,12 +208,13 @@ function FichaOrigin({ state }: { state: DesignState }) {
 }
 
 /** The link to the ficha the design comes from, with the options of the whole piece (finish, assembly, board) as the design has them. */
-function CopyFichaLink({ state, code }: { state: DesignState; code: string }) {
+function useFichaLink(state: DesignState): { copy: () => void; copied: boolean; label: string } | null {
   const { references, catalog } = useServices()
   const [copied, setCopied] = useState(false)
-  const base = references.home().find((b) => b.code === code)
+  const code = state.ficha?.code
+  const base = code ? references.home().find((b) => b.code === code) : undefined
   const { plan } = currentPlan(state)
-  if (!base || !plan) return null
+  if (!code || !base || !plan) return null
   const options = optionsOf(plan, currentDesign(state), exampleDesign(base, catalog) as { plan: FurniturePlan; design: Design })
   const said = Object.keys(options).length ? ', con su acabado, armado y material' : ''
   const copy = () =>
@@ -221,10 +222,54 @@ function CopyFichaLink({ state, code }: { state: DesignState; code: string }) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     })
+  return { copy, copied, label: `Copiar el enlace a la ficha ${code}${said}` }
+}
+
+function CopyFichaLink({ state }: { state: DesignState }) {
+  const link = useFichaLink(state)
+  if (!link) return null
   return (
-    <IconButton className="max-sm:hidden" onClick={copy} aria-label={copied ? 'Enlace copiado' : `Copiar el enlace a la ficha ${code}${said}`} title={`Copiar el enlace a la ficha ${code}${said}`}>
-      {copied ? <Check className="text-slate" /> : <LinkSimple />}
+    <IconButton className="max-sm:hidden" onClick={link.copy} aria-label={link.copied ? 'Enlace copiado' : link.label} title={link.label}>
+      {link.copied ? <Check className="text-slate" /> : <LinkSimple />}
     </IconButton>
+  )
+}
+
+/** On a phone the header has no room for everything: the link, the expert and a new design go in a sheet behind one button. */
+function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: string; onExpert: (() => void) | null }) {
+  const link = useFichaLink(state)
+  const row = 'min-h-11 justify-start gap-3 px-3 text-[15px]'
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
+        <Button variant="ghost" className="px-2 sm:hidden" aria-label="Más opciones">
+          <DotsThree weight="bold" />
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-1 rounded-3xl border border-line bg-bone p-3 shadow-2xl">
+          <Dialog.Title className="sr-only">Más opciones</Dialog.Title>
+          {link && (
+            <Button variant="ghost" className={row} onClick={link.copy}>
+              {link.copied ? <Check className="text-slate" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
+            </Button>
+          )}
+          {onExpert && (
+            <Dialog.Close asChild>
+              <Button variant="ghost" className={row} onClick={onExpert}>
+                <GearSix /> El experto: {expert}
+              </Button>
+            </Dialog.Close>
+          )}
+          <ConfirmNew>
+            <Button variant="ghost" className={row}>
+              <Plus weight="bold" /> Nuevo diseño
+            </Button>
+          </ConfirmNew>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
@@ -243,15 +288,19 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   const label = useExpertStatus().available ? active : 'Sin experto'
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur sm:gap-3 sm:px-3 md:px-5">
-      <Emblem className="size-7 shrink-0 sm:size-8" />
+      <ConfirmNew>
+        <button type="button" className="shrink-0 rounded-lg" aria-label="Inicio: empezar un diseño nuevo" title="Inicio">
+          <Emblem className="size-7 sm:size-8" />
+        </button>
+      </ConfirmNew>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-lg leading-tight font-semibold">{shown.name}</p>
+        <p className="font-display text-lg leading-tight font-semibold max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
           {summary}
           <FichaOrigin state={state} />
         </p>
       </div>
-      {state.ficha && <CopyFichaLink state={state} code={state.ficha.code} />}
+      <CopyFichaLink state={state} />
       <Button variant="ghost" className="px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
         <MagnifyingGlass />
       </Button>
@@ -268,15 +317,16 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
           <ModelSwitch />
         </>
       ) : (
-        <Button variant="ghost" className="px-2 text-xs sm:px-3" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
-          <GearSix /> <span className="hidden sm:inline">{label}</span>
+        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={() => openSettings(true)} aria-label={`El experto: ${label}`}>
+          <GearSix /> {label}
         </Button>
       )}
       <ConfirmNew>
-        <Button variant="ghost" className="px-2 text-xs sm:px-3" aria-label="Nuevo diseño">
-          <Plus weight="bold" /> <span className="hidden sm:inline">Nuevo diseño</span>
+        <Button variant="ghost" className="px-3 text-xs max-sm:hidden" aria-label="Nuevo diseño">
+          <Plus weight="bold" /> Nuevo diseño
         </Button>
       </ConfirmNew>
+      <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : () => openSettings(true)} />
     </header>
   )
 }
