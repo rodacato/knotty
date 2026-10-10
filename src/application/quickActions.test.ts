@@ -66,6 +66,12 @@ describe('what Knotty offers to do by itself', () => {
     expect(after.chat.at(-1)).toMatchObject({ text: NO_EXPERT_MESSAGE, alone: true, error: true, failure: 'rejection' })
   })
 
+  it('what Knotty does not design is declined before anyone is asked, new or as a change', async () => {
+    await expect(useCases.reconstruct({ measures: null, photos: [], thumbnails: [], notes: 'Una litera para mis hijos', kind: null }, signal())).rejects.toThrow(/no la diseño/)
+    const after = await useCases.adjust(opened(variant('bed', 'individual, sin cabecera, sin cajones')), 'Conviértela en litera', signal())
+    expect(after.chat.at(-1)).toMatchObject({ alone: true, error: false, text: expect.stringMatching(/no la diseño/) })
+  })
+
   it('offers what the piece does not have yet, and stops offering it once it does', async () => {
     const state = opened(variant('cabinet', 'librero'))
     expect(quickActions(state, testCatalog)).toContain('Ponle puertas')

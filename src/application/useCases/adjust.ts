@@ -1,5 +1,6 @@
 import { kindOf } from '../../domain/furniture/kind'
 import { byPerson, keepPersonKind } from '../../domain/furniture/kind'
+import { declinedFor } from '../../domain/checks/typology/typology'
 import { analyze } from '../../domain/checks/analysis'
 import type { Design } from '../../domain/design/schema'
 import { error } from '../../domain/design/validation/errors'
@@ -356,6 +357,8 @@ export function createAdjust(kit: Kit) {
     }
     save(withRequest)
     const round = roundFor(withRequest, request, signal, onProgress)
+    const declined = declinedFor(request)
+    if (declined) return round.reply(declined, { alone: true })
     try {
       return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {

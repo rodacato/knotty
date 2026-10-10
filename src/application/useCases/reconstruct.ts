@@ -9,7 +9,7 @@ import { spaceOverflow } from '../../domain/furniture/quick'
 import { repairDesign, type Repair } from '../../domain/editing/repair/repair'
 import { currentDesign, type DesignState, type Thumbnail } from '../../domain/session/state'
 import { appendTrace, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
-import { kindFromWords } from '../../domain/checks/typology/typology'
+import { declinedFor, kindFromWords } from '../../domain/checks/typology/typology'
 import { askedParts, describeMismatch, partsError, partsMismatch, type PartsMismatch } from '../../domain/furniture/intent/counts'
 import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { knownKind, planForKind, startingKind, withKind } from '../../domain/furniture/kind'
@@ -212,6 +212,8 @@ export function createReconstruct(kit: Kit) {
   }
 
   async function reconstruct(input: Input, signal: AbortSignal, onProgress: OnProgress = () => {}): Promise<DesignState> {
+    const declined = declinedFor(input.notes)
+    if (declined) throw new Error(declined)
     const trace: TraceEntry[] = []
     return save(initialState(input, await designIt(input, signal, onProgress, trace), trace))
   }
