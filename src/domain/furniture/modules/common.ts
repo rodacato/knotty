@@ -48,6 +48,8 @@ export const LEG_HEIGHT = 150
 /** What a person may choose for the legs' height, and the least that must stay for the box above them (the total height includes the legs). */
 export const LEG_HEIGHT_RANGE = { min: 100, max: 300 } as const
 export const MIN_CARCASS_HEIGHT = 200
+/** The least a column leaves clear between its two boards. */
+export const MIN_COLUMN_CLEAR = 100
 export const LEG_APRON = 80
 export const LEG_WIDTH = 72
 /** A tapered leg's depth at the floor. */
@@ -92,6 +94,7 @@ export const MODULE_SOURCES: Record<string, Source> = {
   LEG_HEIGHT: noReference('the reference gives no height for legs under a box; about 150 is what the reference sideboard KC-APA-01 (940 × 1600 × 400 on four splayed legs) shows'),
   PLAN_MEASURE: noReference('the reference gives typical measures, not hard limits: 100 is the least the chat already reads as a measure and the least height Capture takes, and 2400 is the most Capture takes, just under the usable sheet'),
   LEG_HEIGHT_RANGE: noReference('the reference gives no range for legs: under 100 the 80 mm apron nearly touches the floor, over 300 they need a thicker section and bracing'),
+  MIN_COLUMN_CLEAR: noReference('the reference gives no least width for an opening; under 100 mm clear a hand does not go in, and it is the least the plan takes as a measure. The narrowest column of a ficha is 131'),
   MIN_CARCASS_HEIGHT: noReference('the reference gives no least box height; under 200 a bottom, a top and a drawer or a shelf no longer fit between them'),
   LEG_APRON: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', 'de 80–120 mm de alto'),
   LEG_WIDTH: cite(STRUCTURE, '21-mesas-y-escritorios-patas-faldón-y-bamboleo', '2 × 18 = 36 × 72 mm'),

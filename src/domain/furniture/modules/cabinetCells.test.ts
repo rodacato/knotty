@@ -248,7 +248,7 @@ describe('a whole column of the furniture', () => {
     expect(addColumn(raised, [7, 0], 'left')).toBeNull()
   })
 
-  it('can be added beside every column of every shipped cabinet, but one whose top is the lid of its chest', () => {
+  it('can be added beside every column of every shipped cabinet, but one whose top is the lid of its chest and the two too narrow to take one more', () => {
     const refused: string[] = []
     for (const code of new Set(testReferences.all().map((r) => r.code))) {
       const plan = testReferences.latest(code)!.plan
@@ -263,7 +263,9 @@ describe('a whole column of the furniture', () => {
         }
       })
     }
-    expect(refused).toEqual(['left', 'right'].map((side) => expect.stringMatching(new RegExp(`^GN-BAU-01 0 ${side}: Un baúl va debajo de un hueco abierto`))))
+    const narrow = refused.filter((r) => /: No cupo: una columna quedaría con menos de 100 mm libres/.test(r))
+    expect(new Set(narrow.map((r) => r.split(' ')[0]))).toEqual(new Set(['GN-COC-07', 'KC-REP-03']))
+    expect(refused.filter((r) => !narrow.includes(r))).toEqual(['left', 'right'].map((side) => expect.stringMatching(new RegExp(`^GN-BAU-01 0 ${side}: Un baúl va debajo de un hueco abierto`))))
   })
 })
 

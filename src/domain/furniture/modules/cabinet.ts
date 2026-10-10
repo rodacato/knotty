@@ -16,7 +16,7 @@ import { Cell, Column } from '../reading/reading'
 import { describeLegStyle, LEANING_LEG_STYLE, LEANING_LEG_STYLE_LABELS, LeaningLegStyle, legStyleField, legStyleNote, splayed, styled, styledLegs } from './legs'
 import { Assembly, assemblyFields, assemblyPart, describeAssembly, knockDown, needsKnockDown } from './assembly'
 import { describeEdgeBanding, EDGE_BANDING, EdgeBanding, edgeBandingField, withEdges } from './edgeBanding'
-import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
+import { addDrawers, wholeMillimetres, DEFAULT_THICKNESS, HOW_TO_ANCHOR, KICK_HEIGHT, KICK_SETBACK, KITCHEN_KICK, LEG_APRON, LEG_HEIGHT, LEG_HEIGHT_RANGE, LEG_INSET, LEG_LEAN, LEG_WIDTH, legLayers, lower, measuresSummary, MIN_CARCASS_HEIGHT, MIN_COLUMN_CLEAR, panelOf, supportsAcross, TALL_DOOR, thicknessOf, type AddDrawer, outsideRules, PLAN_MEASURE, drawersShort } from './common'
 import { choice, fromLabels, custom, material, note, number, numbers, optionsOf, section, stepper, yesNo, type FieldSpec } from './fields'
 import { DEFAULT_FINGERS, FINGERS_RANGE, fingerDrawers, fingerDrawersNote, withFingerBoxes, withFingerCuts } from './fingerJoints'
 import type { FurnitureModule, Labels, QuickSpec } from './module'
@@ -149,6 +149,16 @@ const hasOverlays = (plan: CabinetPlan) =>
 /** The front and back legs of a corner, each set in from its edge, with a side apron between them. */
 const LEGS_DEPTH = 2 * (LEG_INSET + LEG_WIDTH)
 const legsFit = (plan: CabinetPlan) => plan.base !== 'legs' || plan.dimensions.depth - (hasOverlays(plan) ? DEFAULT_THICKNESS : 0) > LEGS_DEPTH
+/** Every column leaves `MIN_COLUMN_CLEAR` between its boards, those inside a split cell too: a divider takes half its thickness from the column on each side. Boards are taken as 18 mm, as the other rules of the plan do. */
+const columnsClear = (columns: PlanColumn[], inner: number): boolean => {
+  const edges = shares(columns.map((c) => c.width))
+  return columns.every((column, i) => {
+    const dividers = (i > 0 ? 0.5 : 0) + (i < columns.length - 1 ? 0.5 : 0)
+    const clear = (edges[i] - (edges[i - 1] ?? 0)) * inner - dividers * DEFAULT_THICKNESS
+    return clear >= MIN_COLUMN_CLEAR && column.cells.every((cell) => !cell.columns || columnsClear(cell.columns, clear))
+  })
+}
+const columnsFit = (plan: CabinetPlan) => columnsClear(plan.columns, plan.dimensions.width - 2 * DEFAULT_THICKNESS)
 /** The cells of a column that are built: from the first to the last that is not void. */
 const builtRange = (column: PlanColumn) => {
   const built = column.cells.flatMap((c, j) => (c.content === 'void' ? [] : [j]))
@@ -204,6 +214,7 @@ const RODS_MISPLACED = 'Un tubo para colgar va en un hueco abierto o detrás de 
 const DOORS_MIXED = 'Sobrepuestas o embutidas se elige para todo el mueble: un hueco solo cambia entre abatibles y corredizas.'
 const SLIDING_MISPLACED = 'Detrás de unas puertas corredizas solo van huecos abiertos, con sus repisas: ni cajones ni más puertas.'
 const SLIDING_STACKED = 'Dos huecos con puertas corredizas no van uno sobre otro: las ranuras de arriba y de abajo caen en el mismo tablero y casi lo atraviesan. Deja un hueco abierto entre los dos o cambia las puertas de uno.'
+const COLUMN_TOO_NARROW = `No cupo: una columna quedaría con menos de ${MIN_COLUMN_CLEAR} mm libres, y ahí no entra una mano. Quita una columna o haz el mueble más ancho.`
 const BACKS_MISPLACED = 'Solo un hueco con algo dice si lleva trasera: no uno vacío ni uno dividido en columnas, que lo dicen las suyas.'
 const NESTING_MISPLACED = 'Un hueco dividido en columnas lleva al menos dos y ninguna vacía; dentro de él no hay huecos vacíos.'
 const VOIDS_MISPLACED = 'Un hueco vacío va abajo o arriba de su columna, uno por extremo, y al menos una columna llega al piso y otra al techo.'
@@ -1312,6 +1323,7 @@ export const cabinetModule: FurnitureModule<CabinetPlan> = {
     ...outsideRules<CabinetPlan>(),
     { holds: carcassFits, message: CARCASS_TOO_LOW, path: ['legHeight'] },
     { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
+    { holds: columnsFit, message: COLUMN_TOO_NARROW, path: ['columns'] },
     { holds: voidsFit, message: VOIDS_MISPLACED, path: ['columns'] },
     { holds: nestingFits, message: NESTING_MISPLACED, path: ['columns'] },
     { holds: backsFit, message: BACKS_MISPLACED, path: ['columns'] },

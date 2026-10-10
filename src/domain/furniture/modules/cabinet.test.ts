@@ -505,6 +505,17 @@ describe('sliding doors', () => {
     expect(countLimits(inFront, testCatalog).door).toEqual({ min: 1, max: 1 })
   })
 
+  it('a column with less than 100 mm clear is rejected, inside a split cell too; the same columns in a wider piece are not', () => {
+    const [, bookcase] = cabinetModule.benchVariants().find(([name]) => name === 'librero')!
+    const [cell] = bookcase.columns[0].cells
+    const narrow = (width: number, columns: number) => FurniturePlan.safeParse({ ...bookcase, dimensions: { ...bookcase.dimensions, width }, columns: Array.from({ length: columns }, () => ({ width: 1, cells: [cell] })) })
+    expect(narrow(600, 14).error?.issues.map((i) => i.message)).toEqual([expect.stringMatching(/^No cupo: una columna quedaría con menos de 100 mm libres/)])
+    expect(narrow(600, 4).success).toBe(true)
+    expect(narrow(1800, 14).success).toBe(true)
+    const split = { ...cell, columns: Array.from({ length: 6 }, () => ({ width: 1, cells: [{ ...cell, shelves: 0 }] })) }
+    expect(FurniturePlan.safeParse({ ...bookcase, columns: [{ width: 1, cells: [split] }] }).error?.issues[0]?.message).toMatch(/^No cupo: una columna/)
+  })
+
   it('sliding doors over sliding doors are rejected: their grooves would meet in the board between them; side by side, or with an open cell between, they are not', () => {
     const variant = cabinetModule.benchVariants().find(([name]) => name === 'aparador con dos corredizas')![1]
     const [slid] = variant.columns[0].cells
