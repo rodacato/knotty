@@ -67,7 +67,7 @@ export function HistoryPanel({ state }: { state: DesignState }) {
         })}
       </ol>
       <details className="rounded-2xl border border-line bg-bone/60 p-3">
-        <summary className="relative cursor-pointer text-sm font-medium before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-['']">Bitácora: qué hizo el experto</summary>
+        <summary className="relative cursor-pointer text-sm font-medium before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-['']">Bitácora: qué se hizo</summary>
         <div className="mt-3">
           <TraceLog trace={state.trace} pieces={currentDesign(state).pieces} />
         </div>

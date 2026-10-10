@@ -17,7 +17,7 @@ import { currentDesign, markAnswered, type DesignState, type Message } from '../
 import type { Finding } from '../../domain/checks/structure/finding'
 import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry } from '../../domain/session/trace/trace'
 import { named, withCandidate } from '../named'
-import { expertCanWrite, expertPlans, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
+import { expertCanWrite, expertPlans, NO_EXPERT, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { knowledgeFor } from '../knowledge'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
@@ -88,18 +88,18 @@ function requirementsWith(current: Requirement[], changes: { add: Requirement[];
 const answerText = (explanation: string, touched: string[]) => (touched.length ? `${explanation}\n\n${requirementsKept(touched)}` : explanation)
 
 /** If the expert offered no options for a critical finding, the rules' alternatives are offered, those Knotty can build first. */
-function questionFromAlternatives(criticals: Finding[], design: Design, catalog: Catalog): Pick<Message, 'questions' | 'solutions'> {
+function questionFromAlternatives(criticals: Finding[], design: Design, catalog: Catalog, builtOnly: boolean): Pick<Message, 'questions' | 'solutions'> {
   const alternatives = criticals.flatMap((h) => h.alternatives)
   const built = [...new Set(alternatives.map((a) => a.key))].flatMap((key) => fixForAlternative(design, catalog, criticals, key) ?? [])
-  const options = [...new Set([...built.map((f) => f.label), ...alternatives.map((a) => a.description)])].slice(0, 3)
+  const options = [...new Set([...built.map((f) => f.label), ...(builtOnly ? [] : alternatives.map((a) => a.description))])].slice(0, 3)
   if (!options.length) return { questions: [], solutions: [] }
   const solutions = built.filter((f) => options.includes(f.label)).map((f) => ({ question: 0, option: f.label, alternative: f.key }))
   return { questions: [{ text: '¿Cómo lo resolvemos?', options }], solutions }
 }
 
-/** The questions a pending critical change asks: the expert's own, or the rules' alternatives. */
-const askAboutCriticals = (questions: Message['questions'], criticals: Finding[], design: Design, catalog: Catalog) =>
-  questions.length ? { questions } : questionFromAlternatives(criticals, design, catalog)
+/** The questions a pending critical change asks: the expert's own, or the rules' alternatives; with no expert to ask, only the ones Knotty builds. */
+const askAboutCriticals = (questions: Message['questions'], criticals: Finding[], design: Design, catalog: Catalog, builtOnly: boolean) =>
+  questions.length ? { questions } : questionFromAlternatives(criticals, design, catalog, builtOnly)
 
 /** A chat request to change the design: through the plan when there is one, else piece by piece, judged before it is applied. */
 export function createAdjust(kit: Kit) {
@@ -131,13 +131,13 @@ export function createAdjust(kit: Kit) {
 
   /** A change that waits for the person: held for what `holds` says, or asking how to resolve its critical findings. */
   function waitFor(
-    { withRequest, request, reply }: Round,
+    { withRequest, request, reply, llm }: Round,
     verdict: Pending,
     p: { operations: Operation[]; response: { explanation: string; summary: string; decisions: Decision[]; questions: Message['questions'] }; requirements: Requirement[]; origin: Origin | null; plan: { plan: FurniturePlan | null; extras: Operation[] }; suggestions: string[] },
   ): DesignState {
     const { design } = verdict.candidate
     const proposal = proposalFrom({ design, operations: p.operations, response: p.response, request, critical: verdict.critical, requirements: p.requirements, origin: p.origin, plan: p.plan, holds: verdict.holds })
-    const ask = verdict.holds.length ? { questions: p.response.questions, suggestions: p.suggestions } : askAboutCriticals(p.response.questions, verdict.critical, design, catalog)
+    const ask = verdict.holds.length ? { questions: p.response.questions, suggestions: p.suggestions } : askAboutCriticals(p.response.questions, verdict.critical, design, catalog, llm.id === NO_EXPERT)
     return reply(p.response.explanation, { ...ask, proposal: 'pending' }, { ...withRequest, proposal })
   }
 
@@ -360,6 +360,8 @@ export function createAdjust(kit: Kit) {
       return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {
       if (signal.aborted) return round.reply(CANCELLED, { error: true, failure: 'cancelled' })
+      // With no expert there is nobody to try again with: Knotty says it, and the request goes back to the box.
+      if (round.llm.id === NO_EXPERT && e instanceof Error) return round.reply(e.message, { error: true, failure: 'rejection', alone: true })
       return round.reply(e instanceof Error ? e.message : EXPERT_FAILED, { error: true, failure: 'connection' })
     }
   }
