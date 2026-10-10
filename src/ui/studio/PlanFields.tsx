@@ -11,7 +11,7 @@ import { LockToggle, OptionCards, Segmented, Stepper } from './PlanControls'
 // Any plan as a form, drawn from the fields its module lists: no kind of furniture has a form of its own.
 
 /** The components of the fields no generic control can draw. */
-const CUSTOM: { [K in keyof CustomValues]: ComponentType<{ label: string; value: CustomValues[K]; onChange: (value: CustomValues[K]) => void }> } = {
+const CUSTOM: { [K in keyof CustomValues]: ComponentType<{ label: string; value: CustomValues[K]; onChange: (value: CustomValues[K], typed?: string) => void }> } = {
   cabinetColumns: CabinetColumns,
 }
 
@@ -120,7 +120,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
       )
     case 'custom': {
       const Custom = CUSTOM[field.component]
-      return <Custom label={field.label} value={field.get(plan)} onChange={(v) => onChange(field.set(plan, v))} />
+      return <Custom label={field.label} value={field.get(plan)} onChange={(v, typed) => onChange(field.set(plan, v), typed)} />
     }
     default:
       return field satisfies never

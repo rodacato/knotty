@@ -1,5 +1,5 @@
 import { Plus, Trash } from '@phosphor-icons/react'
-import { CABINET_LABELS, shelvesFor, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
+import { CABINET_LABELS, withContent, type PlanCell, type PlanColumn } from '../../domain/furniture/modules/cabinet'
 import { weightForShare } from '../../domain/furniture/modules/cabinetCells'
 import { Button } from '../system/components'
 import { Input, Select } from '../system/Field'
@@ -12,7 +12,7 @@ const newCell = (): PlanCell => ({ height: 1, content: 'open', shelves: 0, doors
 const percent = (value: number, all: number[]) => Math.round((value / (all.reduce((s, v) => s + v, 0) || 1)) * 100)
 
 /** `canBeVoid`: only the cell at an end of its column can be left with nothing built. */
-function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell: PlanCell; heights: number[]; index: number; canBeVoid: boolean; onChange: (c: PlanCell) => void; onRemove: (() => void) | null }) {
+function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell: PlanCell; heights: number[]; index: number; canBeVoid: boolean; onChange: (c: PlanCell, typed?: string) => void; onRemove: (() => void) | null }) {
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-xl bg-kraft/60 px-2 py-1.5">
       {cell.columns ? (
@@ -24,10 +24,9 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
           aria-label={`Hueco ${index + 1}`}
           value={cell.content}
           onChange={(e) => {
-            const content = e.target.value as PlanCell['content']
-            // A void builds nothing, so it has no back of its own to keep.
-            const { back, ...rest } = cell
-            onChange({ ...(content === 'void' ? rest : { ...rest, back }), content, shelves: shelvesFor(cell, content), doors: content === 'door' ? (cell.doors ?? 1) : null })
+            // The furniture's own choices for the old content do not carry over.
+            const { own: _, ...changed } = withContent(cell, e.target.value as PlanCell['content'])
+            onChange(changed)
           }}
         >
           {CONTENTS.filter(([id]) => id !== 'void' || canBeVoid || cell.content === 'void').map(([id, text]) => (
@@ -45,7 +44,7 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
           min={1}
           max={100}
           value={percent(cell.height, heights)}
-          onChange={(e) => onChange({ ...cell, height: weightForShare(Number(e.target.value), heights.filter((_, k) => k !== index)) })}
+          onChange={(e) => onChange({ ...cell, height: weightForShare(Number(e.target.value), heights.filter((_, k) => k !== index)) }, `height.${index}`)}
           aria-label={`Alto del hueco ${index + 1} en porcentaje`}
           className="w-16 text-right"
         />
@@ -71,8 +70,8 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
 }
 
 /** Left to right, each column with its cells from top to bottom as the person sees them. */
-export function CabinetColumns({ label, value: columns, onChange }: { label: string; value: PlanColumn[]; onChange: (columns: PlanColumn[]) => void }) {
-  const setColumn = (i: number, column: PlanColumn) => onChange(columns.map((c, j) => (j === i ? column : c)))
+export function CabinetColumns({ label, value: columns, onChange }: { label: string; value: PlanColumn[]; onChange: (columns: PlanColumn[], typed?: string) => void }) {
+  const setColumn = (i: number, column: PlanColumn, typed?: string) => onChange(columns.map((c, j) => (j === i ? column : c)), typed && `columns.${i}.${typed}`)
   const widths = columns.map((c) => c.width)
   return (
     <section className="flex flex-col gap-2">
@@ -96,7 +95,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                   min={1}
                   max={100}
                   value={percent(column.width, widths)}
-                  onChange={(e) => setColumn(i, { ...column, width: weightForShare(Number(e.target.value), widths.filter((_, k) => k !== i)) })}
+                  onChange={(e) => setColumn(i, { ...column, width: weightForShare(Number(e.target.value), widths.filter((_, k) => k !== i)) }, 'width')}
                   aria-label={`Ancho de la columna ${i + 1} en porcentaje`}
                   className="w-16 text-right"
                 />
@@ -120,7 +119,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                     heights={heights}
                     index={j}
                     canBeVoid={column.cells.length > 1 && (j === 0 || j === column.cells.length - 1)}
-                    onChange={(c) => setColumn(i, { ...column, cells: column.cells.map((x, k) => (k === j ? c : x)) })}
+                    onChange={(c, typed) => setColumn(i, { ...column, cells: column.cells.map((x, k) => (k === j ? c : x)) }, typed)}
                     onRemove={column.cells.length > 1 ? () => setColumn(i, { ...column, cells: column.cells.filter((_, k) => k !== j) }) : null}
                   />
                 ))}

@@ -4,7 +4,7 @@ import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { testReferences } from '../fixtures/references.test-util'
 import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, pullsIn, type CabinetPlan, type PlanCell } from './cabinet'
-import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, splitCell, weightForShare } from './cabinetCells'
+import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, resizeCell, splitCell, weightForShare } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
 const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
@@ -314,5 +314,32 @@ describe('where the cells are', () => {
     const divider = box('c1-h2-div-1')
     expect(layout.lines.find((l) => l.axis === 'columns' && l.at.length === 2)!.position).toBeCloseTo((divider.x0 + divider.x1) / 2)
     expect(layout.cells).toHaveLength(leafCells(plan.columns).length)
+  })
+})
+
+describe('a cell typed to a size in millimetres', () => {
+  const sizeOf = (plan: CabinetPlan, path: number[], side: 'width' | 'height') => {
+    const rect = cellLayout(plan, built(plan).boxes)!.cells.find((c) => c.path.join('.') === path.join('.'))!
+    return side === 'width' ? rect.x1 - rect.x0 : rect.y1 - rect.y0
+  }
+
+  it.each([['the sideboard', sideboard], ['the sideboard of reference', shipped('KC-APA-01')]] as const)('ends that size, to the millimetre, in every cell of %s that a line bounds', (_, plan) => {
+    const off: string[] = []
+    let moved = 0
+    for (const { path } of cellLayout(plan, built(plan).boxes)!.cells)
+      for (const side of ['width', 'height'] as const) {
+        const asked = Math.round(sizeOf(plan, path, side)) + 30
+        const next = resizeCell(plan, built(plan).boxes, path, side, asked)
+        if (!next) continue
+        moved += 1
+        if (Math.abs(sizeOf(next, path, side) - asked) > 1) off.push(`${path.join('.')} ${side}: asked ${asked}, got ${sizeOf(next, path, side)}`)
+      }
+    expect(off).toEqual([])
+    expect(moved).toBeGreaterThan(2)
+  })
+
+  it('has nothing to move in a cabinet of one cell', () => {
+    const one: CabinetPlan = { ...sideboard, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 0, doors: null }] }] }
+    expect([resizeCell(one, built(one).boxes, [0, 0], 'width', 300), resizeCell(one, built(one).boxes, [0, 0], 'height', 300)]).toEqual([null, null])
   })
 })

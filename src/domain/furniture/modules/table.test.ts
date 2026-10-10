@@ -288,9 +288,9 @@ describe('a table to sit on', () => {
     expect(cleats(seat)).toBeGreaterThan(cleats({ ...seat, use: 'coffee' }))
   })
 
-  it('is judged as a seat: a stool at counter height is told so, and the same stool at 450 is not', () => {
+  it('is judged as a seat: a stool at a bench\'s height or at a bar\'s is fine, and one between the two is told so', () => {
     const stool = (height: number) => built({ ...seat, dimensions: { width: 340, height, depth: 290 } }).checks
-    expect([stool(650), stool(450)]).toEqual([['bench.height'], []])
+    expect([stool(450), stool(650), stool(550), stool(850)]).toEqual([[], [], ['bench.height'], ['bench.height']])
   })
 
   it('takes a low shelf, and neither a pedestal nor a cable pass', () => {
