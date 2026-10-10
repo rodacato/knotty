@@ -4,7 +4,7 @@ import { resolveGeometry } from '../../design/resolve'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { testReferences } from '../fixtures/references.test-util'
 import { buildCabinet, cabinetModule, DEFAULT_CONSTRUCTION, leafCells, pullsIn, type CabinetPlan, type PlanCell } from './cabinet'
-import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, resizeCell, splitCell, weightForShare } from './cabinetCells'
+import { addColumn, cellAt, cellLayout, cellPaths, chooseInCell, contentAt, refusedContents, joinCells, joinSides, lineShare, moveLine, ONLY_COLUMN, removeColumn, resizeCell, splitCell, weightForShare } from './cabinetCells'
 import { FurniturePlan } from './plan'
 
 const open = (height = 1, shelves = 0): PlanCell => ({ height, content: 'open', shelves, doors: null })
@@ -341,5 +341,33 @@ describe('a cell typed to a size in millimetres', () => {
   it('has nothing to move in a cabinet of one cell', () => {
     const one: CabinetPlan = { ...sideboard, columns: [{ width: 1, cells: [{ height: 1, content: 'open', shelves: 0, doors: null }] }] }
     expect([resizeCell(one, built(one).boxes, [0, 0], 'width', 300), resizeCell(one, built(one).boxes, [0, 0], 'height', 300)]).toEqual([null, null])
+  })
+})
+
+describe('the contents a cell cannot take', () => {
+  const CONTENTS: PlanCell['content'][] = ['open', 'drawer', 'door', 'closed', 'chest', 'void']
+  const cabinets = [...new Set(testReferences.all().map((r) => r.code))].flatMap((code) => {
+    const plan = testReferences.latest(code)?.plan
+    return plan?.kind === 'cabinet' ? [plan] : []
+  })
+
+  it('are the ones the rules refuse and no other, in every cell of every shipped cabinet, and never the one it has', () => {
+    const wrong: string[] = []
+    let refusedChests = 0
+    let allowedChests = 0
+    for (const plan of cabinets)
+      for (const path of cellPaths(plan)) {
+        const refused = refusedContents(plan, path, CONTENTS)
+        const now = cellAt(plan, path)!.content
+        if (now in refused) wrong.push(`${plan.name} ${path.join('.')}: refuses the ${now} it has`)
+        for (const content of CONTENTS.filter((c) => c !== now)) {
+          const builds = FurniturePlan.safeParse(contentAt(plan, path, content)).success
+          if (builds === content in refused) wrong.push(`${plan.name} ${path.join('.')} ${content}: ${builds ? 'refused but valid' : 'offered but refused'}`)
+        }
+        if (now !== 'chest' && 'chest' in refused) refusedChests += 1
+        if (now !== 'chest' && !('chest' in refused)) allowedChests += 1
+      }
+    expect(wrong).toEqual([])
+    expect(Math.min(refusedChests, allowedChests)).toBeGreaterThan(0)
   })
 })

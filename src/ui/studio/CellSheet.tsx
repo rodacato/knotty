@@ -1,7 +1,7 @@
 import { ASSUMPTIONS } from '../../domain/assumptions'
 import type { Geometry } from '../../domain/design/resolve'
-import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, withContent, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
-import { addColumn, cellAt, cellLayout, chooseInCell, joinCells, joinSides, removeColumn, resizeCell, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
+import { CABINET_LABELS, cellOptions, choicesFor, doorsIn, pullsIn, SLIDING_HINT, type CabinetPlan, type CellChoice, type PlanCell } from '../../domain/furniture/modules/cabinet'
+import { addColumn, cellAt, cellLayout, chooseInCell, contentAt, refusedContents, joinCells, joinSides, removeColumn, resizeCell, splitCell, type CellPath, type JoinSide } from '../../domain/furniture/modules/cabinetCells'
 import { Chip } from '../system/components'
 import { Input } from '../system/Field'
 import { useStore } from '../store'
@@ -56,13 +56,8 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
     editPlan(next)
   }
   const choose = (content: PlanCell['content']) => {
-    const next = structuredClone(plan)
-    const changed = withContent(cell, content)
-    if (!choicesFor(changed, plan.construction).length) delete changed.own
-    const target = cellAt(next, path)!
-    for (const key of Object.keys(target) as (keyof PlanCell)[]) delete target[key]
-    Object.assign(target, changed)
-    editPlan(next)
+    const next = contentAt(plan, path, content)
+    if (next) editPlan(next)
   }
   const cut = (direction: 'columns' | 'rows', n: number) => {
     const next = splitCell(plan, path, direction, n)
@@ -90,6 +85,7 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
   }
   const voidable = canBeVoid(plan, path)
   const contents = (Object.entries(CABINET_LABELS.cell) as [PlanCell['content'], string][]).filter(([id]) => id !== 'void' || voidable || cell.content === 'void')
+  const refused = refusedContents(plan, path, contents.map(([id]) => id))
   const own = (key: CellChoice, value: string) => {
     const next = chooseInCell(plan, path, key, value === 'inherit' ? undefined : (value as CabinetPlan['construction'][typeof key]))
     if (next) editPlan(next)
@@ -119,7 +115,12 @@ export function CellSheet({ plan, path, geo }: { plan: CabinetPlan; path: CellPa
 
         <div className="flex flex-col gap-2">
           <span className="text-sm text-graphite-2">Qué lleva</span>
-          <OptionCards label="Qué lleva" value={cell.content} options={contents} diagrams={CELL_DIAGRAMS.content} onChange={(v) => choose(v as PlanCell['content'])} />
+          <OptionCards label="Qué lleva" value={cell.content} options={contents} diagrams={CELL_DIAGRAMS.content} refused={refused} onChange={(v) => choose(v as PlanCell['content'])} />
+          {[...new Set(Object.values(refused))].map((why) => (
+            <p key={why} className="text-xs text-graphite-2">
+              {why}
+            </p>
+          ))}
           {!voidable && cell.content !== 'void' && <p className="text-xs text-graphite-2">«Vacío» va en el hueco de arriba o de abajo de una columna, para que esa columna no llegue al piso o al techo.</p>}
         </div>
         {(cell.content === 'open' || cell.content === 'door') && (
