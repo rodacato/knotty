@@ -89,7 +89,7 @@ describe('the shoe rack', () => {
 
   it('says when the seat is too high or too low to sit on, and nothing at a seat height', () => {
     const bench = (height: number) => built(rack({ dimensions: { width: 900, height, depth: 330 }, levels: 2, seat: true })).notes
-    expect(bench(600)).toEqual(['El asiento queda a 600 mm del piso; para sentarse a calzarse va de 420 a 480.'])
+    expect(bench(600)).toEqual(['El asiento queda a 600 mm del piso; para sentarse a calzarse va de 400 a 480.'])
     expect(bench(350).join(' ')).toMatch(/350 mm del piso/)
     expect(bench(450)).toEqual([])
     expect(built(rack({ dimensions: { width: 900, height: 600, depth: 330 }, levels: 2 })).notes).toEqual([])

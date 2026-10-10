@@ -3,6 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { isOptional, noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
+import { judgesRacking } from '../../domain/checks/structure/rules/racking'
 import { fixesForNotice, type Fix } from '../../domain/editing/fixes/fixes'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { answerItem, answerItemId, noticeItemId, type TrayItem } from '../../domain/session/tray/tray'
@@ -210,6 +211,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
   const { available } = useExpertStatus()
   const thinking = useStore((s) => s.thinking)
   const [error, setError] = useState<string | null>(null)
+  const racked = judgesRacking(currentDesign(state))
   // What is already in the tray for a notice starts out as its chosen way.
   const open = [...board.pending, ...board.recommendations]
   const [ways, setWays] = useState<Record<string, Way>>(() =>
@@ -255,7 +257,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         <div className="flex flex-col items-center gap-2 p-6 text-center text-graphite">
           <Wrench size={28} weight="duotone" className="text-graphite" />
           <p className="font-medium text-graphite">Nada pendiente</p>
-          <p className="text-sm">Revisé flecha de repisas, espesores por unión, tornillos, vuelco, escuadrado, puertas, base, veta, cajones y el uso del mueble.</p>
+          <p className="text-sm">Revisé flecha de repisas, espesores por unión, tornillos, vuelco, {racked ? 'escuadrado, ' : ''}puertas, base, veta, cajones y el uso del mueble.</p>
         </div>
       )}
       {board.pending.length === 0 && board.recommendations.length > 0 && (

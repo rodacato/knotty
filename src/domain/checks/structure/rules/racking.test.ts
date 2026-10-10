@@ -5,7 +5,7 @@ import { exampleBookcase } from '../../../furniture/fixtures/bookcase'
 import { exampleNightstand } from '../../../furniture/fixtures/nightstand'
 import { fixesFor } from '../../../editing/fixes/fixes'
 import { analyze } from '../../analysis'
-import { baysOf } from './racking'
+import { baysOf, judgesRacking } from './racking'
 import stand from './steppedStand.fixture.json'
 
 /** A stepped plant stand as a real expert drew it: three stools of 250, 500 and 750 mm, each a shelf butt-screwed on its own two sides. */
@@ -17,6 +17,11 @@ const racking = (design: Design) => {
 }
 
 describe('R5 judges each box the sides make', () => {
+  it('says it does not judge furniture with no box between two sides, so no screen claims it did', () => {
+    const onLegs = { ...exampleBookcase, pieces: exampleBookcase.pieces.filter((p) => p.role !== 'side') }
+    expect([judgesRacking(exampleBookcase), judgesRacking(onLegs)]).toEqual([true, false])
+  })
+
   it('a cabinet, and anything one piece joins whole, is one box as always', () => {
     expect(baysOf(exampleBookcase)).toEqual([exampleBookcase.pieces.filter((p) => p.role === 'side').map((p) => p.id)])
   })

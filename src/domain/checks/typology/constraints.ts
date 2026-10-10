@@ -329,8 +329,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     check: 'bench.height',
     appliesTo: ['bench'],
     metric: 'surfaceHeight',
-    // Reference: 450, from 400 to 480.
-    limits: { min: 420, max: 480 },
+    limits: { min: 400, max: 480 },
     severity: 'recommendation',
     source: `${VALUES}#10-medidas-de-muebles-y-ergonomía «Banca»`,
     message: (height, l) => `Un asiento cómodo va de ${l.min} a ${l.max} mm; este queda a ${roundTo(height, 0)} mm.`,
