@@ -131,6 +131,12 @@ export type EdgeProfileChoice = z.infer<typeof EdgeProfileChoice>
 export const Rod = z.object({ id: z.string().min(1), under: PieceId, from: PieceId })
 export type Rod = z.infer<typeof Rod>
 
+/** What the wall an anchored piece goes on is made of; `unknown` is not said. */
+export const WALLS = ['concrete', 'brick', 'block', 'drywall', 'unknown'] as const
+export const Wall = z.enum(WALLS)
+export type Wall = z.infer<typeof Wall>
+export const wallOf = (design: { wall?: Wall }): Wall => design.wall ?? 'unknown'
+
 export const Dimensions = z.object({ width: z.number().positive(), height: z.number().positive(), depth: z.number().positive() })
 export type Dimensions = z.infer<typeof Dimensions>
 
@@ -154,6 +160,8 @@ export const Design = z.object({
   mattress: MattressSize.optional(),
   /** The finish the person chose in Materiales; absent is none. The person's, not the expert's: its schemas leave it out. */
   finish: FinishId.optional(),
+  /** The wall the person said in Materiales it is anchored to; absent is not said. The person's, like the finish. */
+  wall: Wall.optional(),
   /** Edge profiles the person chose in the piece sheet; absent is none. The person's, like the finish. */
   edgeProfiles: z.array(EdgeProfileChoice).optional(),
   /** Rods to hang clothes from, from the plan; absent is none. */

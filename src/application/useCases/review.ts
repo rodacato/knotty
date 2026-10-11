@@ -23,7 +23,7 @@ function fingerprint(text: string) {
 
 /** The design as the review sees it: the finish and the edge profiles change no structure, so choosing them does not ask for a new review. */
 const reviewed = (design: Design) => {
-  const { finish: _, edgeProfiles: __, ...rest } = design
+  const { finish: _, edgeProfiles: __, wall: ___, ...rest } = design
   return rest
 }
 
