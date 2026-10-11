@@ -423,6 +423,28 @@
       "sideClearance": null,
       "sku": null,
       "price": 90
+    },
+    {
+      "id": "toggle-plug-1/4",
+      "role": "toggle-plug",
+      "name": "Taquete de mariposa de 6 mm (¼\") con su tornillo",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
+      "sku": null,
+      "price": null
+    },
+    {
+      "id": "wall-plug-5/16",
+      "role": "wall-plug",
+      "name": "Taquete de plástico de 8 mm (5/16\")",
+      "unit": "piece",
+      "perPack": null,
+      "length": null,
+      "sideClearance": null,
+      "sku": null,
+      "price": null
     }
   ],
   "finishes": [

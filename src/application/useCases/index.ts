@@ -1,6 +1,7 @@
 import { createAdjust } from './adjust'
 import { createEdits } from './edits'
 import { createFinish } from './finish'
+import { createWall } from './wall'
 import { createHistory } from './history'
 import { createKit, type Dependencies } from './kit'
 import { createProposals } from './proposals'
@@ -27,6 +28,7 @@ export function createUseCases(deps: Dependencies) {
   const { confirmPiece, previewPlan, applyPlan, chooseKind, editPiece, resizeFurniture, applyFix, applyFixes } = createEdits(kit)
   const { reviewPurchase, saveReview } = createReview(kit)
   const { chooseFinish } = createFinish(kit)
+  const { chooseWall } = createWall(kit)
   const { lockField, findSavings } = createSaving(kit)
   const { load, newDesign, keep, addRequirement, removeRequirement, removeDecision, acceptNotice, reopenNotice, dismissQuestion, reopenQuestion, toggleTray, sendTray, pendingQuestions } = createSession(kit, adjust)
   const { chooseJoint, chooseEdgeProfiles } = createWorkshop(kit)
@@ -70,6 +72,7 @@ export function createUseCases(deps: Dependencies) {
     editPiece,
     resizeFurniture,
     chooseFinish,
+    chooseWall,
     lockField,
     findSavings,
     chooseJoint,

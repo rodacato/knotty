@@ -4,6 +4,7 @@ import { hardwarePerJoint } from '../design/hardwareCount'
 import { rodHardware } from '../design/rods'
 import { layOut, type MaterialLayout } from './layout'
 import { pickHardware, type Catalog, type Hardware, type BoardMaterial } from '../materials/catalog'
+import { anchoringOf, type Anchoring } from './anchoring'
 import { bandedEdgeLengths, estimateFinish, type FinishPurchase } from './finishPurchase'
 
 // The shopping list: sheets by thickness, hardware, edge banding, glue and the finish, with an approximate cost.
@@ -34,6 +35,8 @@ export interface Purchase {
   edgeBanding: number
   /** Null when the design has no finish. */
   finish: FinishPurchase | null
+  /** Null when the piece is not anchored or its wall is not said. */
+  anchoring: Anchoring | null
   cost: { total: number; missingPrices: string[] }
 }
 
@@ -75,6 +78,8 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   // Anchored is what keeps it from tipping, so the kit that anchors it is bought; a wall cabinet hangs from its rail instead.
   const antiTip = pickHardware(catalog, 'anti-tip')
   if (antiTip && design.wallAnchored && design.kind !== 'wallCabinet') add(antiTip.id, 1)
+  const anchoring = anchoringOf(design, geo, catalog)
+  if (anchoring?.plug) add(anchoring.plug.id, anchoring.count)
   const glued = design.joints.filter((u) => u.glue).length
   const glue = pickHardware(catalog, 'glue')
   if (glued && glue) add(glue.id, Math.ceil(glued / JOINTS_PER_GLUE_BOTTLE))
@@ -99,5 +104,5 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   for (const c of containers) if (c.sku.price === null) missingPrices.push(c.sku.name)
 
   const total = [...sheets, ...hardware].reduce((s, r) => s + (r.cost ?? 0), 0) + containers.reduce((s, c) => s + (c.sku.price ?? 0) * c.count, 0)
-  return { layout, sheets, hardware, edgeBanding, finish, cost: { total: roundTo(total, 0), missingPrices } }
+  return { layout, sheets, hardware, edgeBanding, finish, anchoring, cost: { total: roundTo(total, 0), missingPrices } }
 }

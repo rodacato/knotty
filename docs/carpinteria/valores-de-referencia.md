@@ -184,11 +184,15 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 | Kit antivuelco | resiste 222 N (ASTM F3096) | — | N | Al poste o al muro sólido, **nunca a la trasera** delgada | ✅ | [glosario.md](glosario.md), [estructura.md](estructura.md), [fabricacion-y-armado.md](fabricacion-y-armado.md) |
 | Tablaroca de 12.7 mm, taquete de mariposa de 6 mm | **27** | — | kg de trabajo por taquete | Muro de tablaroca sin poste | ✅ [39][41] | [estructura.md](estructura.md) |
 | Block hueco, mariposa de 6 mm | **32** | — | kg a extracción | Block de concreto hueco | ✅ [39] | [estructura.md](estructura.md) |
-| Tabique rojo recocido, taquete de 8 × 40 | **30** | 61 en ladrillo macizo alemán | kg | Tabique rojo | ❓ [40][42] | [estructura.md](estructura.md) |
-| Concreto, taquete de 8 × 40 | **71** | — | kg | Muro o losa de concreto | ✅ [40] | [estructura.md](estructura.md) |
+| Tabique rojo recocido, taquete de 8 × 40 | **30** | 61 en ladrillo macizo alemán | kg | Tabique rojo; la capacidad es de un taquete de nylon | ❓ [40][42] | [estructura.md](estructura.md) |
+| Concreto, taquete de 8 × 40 | **71** | plástico común 5–25 [42] | kg | Muro o losa de concreto; la capacidad es de un taquete de nylon | ✅ [40] el de nylon, ❓ el de polietileno | [estructura.md](estructura.md) |
 | Mueble colgado | extracción = peso × brazo ÷ altura entre apoyos | listón de colgar de 18 × 80–100 o listón a 45° (*French cleat*) | — | Alacenas, repisas flotantes | ✅ principio [43] | [estructura.md](estructura.md) |
 
 **Por qué 686 mm.** Es el umbral de la norma estadounidense ASTM F2057-23, obligatoria allá desde 2023 [13][14]; en México no hay norma obligatoria de estabilidad, pero la física es la misma. Una cómoda de triplay de 90 cm se voltea sola con los cajones abiertos y llenos: el kit antivuelco no es opcional.
+
+**El taquete que se vende no es el de la tabla.** Los 71 y 30 kg son del taquete de nylon de 8 × 40 de fischer [40], que no se encontró a la venta común en México (2026-10-11). Lo común es el de polietileno de 8 × 45 (5/16") [47], sin capacidad publicada; Ferrepat da 5–25 kg para el plástico en concreto [42]. Knotty cuenta con los valores de la tabla y lo dice en pantalla: está sin validar. El de mariposa de 6 mm sí coincide con el que se vende (¼" × 3", con su tornillo) [48].
+
+**En tablaroca, el antivuelco va al poste.** Los 27 kg sirven para un mueble colgado, que carga sobre todo a cortante. El jalón de un antivuelco es perpendicular al muro y un taquete de tablaroca lo resiste mal [fabricacion-y-armado.md](fabricacion-y-armado.md): a un mueble de piso anclado en tablaroca no se le cuentan taquetes.
 
 **Por qué 30 kg en tabique.** fischer da 61 kg en ladrillo macizo alemán [40]; el tabique rojo recocido mexicano es más blando y disparejo, así que se toma la mitad hasta tener pruebas locales.
 
@@ -253,5 +257,7 @@ Todo va en milímetros; las pulgadas aparecen solo como designación comercial, 
 44. Comex, «Polyform Barniz 3000 Brillante», carta técnica, rev. 7 (2022). https://repositoriomdm.blob.core.windows.net/b2c/CartasTecnicas/Maderas/19A0260301.pdf
 45. Canplast, «Todo lo que debes saber del cubrecanto». https://canplast.com.mx/blogs/news/todo-lo-que-debes-saber-del-cubrecanto
 46. The Home Depot México, «Cubrecanto pre-engomado de madera 1500 × 1.6 cm» (Canplast, pino). https://www.homedepot.com.mx/p/canplast-cubrecanto-pre-engomado-de-madera-1500-x-16-cm-pino-838882
+47. Truper, ficha técnica 44200 (TAQ-5/16P), taquete de plástico Fiero de 5/16" × 45 mm. https://www.truper.com/ficha_tecnica_pdf/views/ficha-print.php?id=254588
+48. Truper, ficha técnica 46969 (SMA-1/4G), taquete mariposa de ¼" × 3" con tornillo. https://truper.com/ficha_merca/ficha-print.php?code=46969
 
 Los valores sin número de fuente vienen de práctica de taller o de cálculo; el razonamiento está en el documento de la columna «Ver».

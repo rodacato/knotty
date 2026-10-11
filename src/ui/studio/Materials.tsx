@@ -1,8 +1,9 @@
 import { ArrowCounterClockwise, Check, PencilSimple, Printer, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { isDrawerPart, type Design } from '../../domain/design/schema'
+import { isDrawerPart, wallOf, WALLS, type Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
 import type { MaterialLayout } from '../../domain/estimate/layout'
+import { anchoringAdvice, WALL_LABELS, type Anchoring } from '../../domain/estimate/anchoring'
 import { applySettings, type LayoutSettings, type Catalog } from '../../domain/materials/catalog'
 import { reviewSignature } from '../../application/useCases'
 import { heldByAnchor } from '../../domain/checks/structure/rules/usage'
@@ -236,6 +237,26 @@ function ProfiledEdges({ design, geo }: { design: Design; geo: Geometry }) {
   )
 }
 
+/** The wall an anchored piece goes on: it decides the plugs in the list, so it is asked where they are bought. */
+function WallQuestion({ design, anchoring }: { design: Design; anchoring: Anchoring | null }) {
+  const choose = useStore((s) => s.chooseWall)
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-line bg-paper p-3">
+      <p className="text-sm font-medium">¿De qué es el muro donde va?</p>
+      <RadioGroup label="Tipo de muro" className="flex flex-wrap gap-1.5">
+        {WALLS.map((wall) => (
+          <RadioCard key={wall} variant="pill" checked={wallOf(design) === wall} onChange={() => choose(wall)} className="px-3 py-1.5 text-xs">
+            {WALL_LABELS[wall]}
+          </RadioCard>
+        ))}
+      </RadioGroup>
+      <p role="note" className="text-[13px] leading-snug text-graphite">
+        {anchoringAdvice(anchoring)}
+      </p>
+    </div>
+  )
+}
+
 /** The finish the person picks and what it takes: litres, containers and sandpaper. */
 function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geometry; finish: FinishPurchase | null; base: (id: string) => number | null }) {
   const choose = useStore((s) => s.chooseFinish)
@@ -424,6 +445,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
 
       <section className="flex flex-col gap-3">
         <Title className="text-lg">Herrajes y consumibles</Title>
+        {design.wallAnchored && <WallQuestion design={design} anchoring={purchase.anchoring} />}
         <ul className="flex flex-col divide-y divide-line border-b border-line">
           {purchase.hardware.map((r) => (
             <li key={r.hardware.id} className="flex items-center gap-3 py-3">

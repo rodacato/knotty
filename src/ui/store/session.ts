@@ -6,7 +6,7 @@ import type { Base, Example } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
 import type { SavingSearch } from '../../domain/furniture/saving/saving'
 import { applySettings } from '../../domain/materials/catalog'
-import type { Axis } from '../../domain/design/schema'
+import type { Axis, Wall } from '../../domain/design/schema'
 import type { FinishId } from '../../domain/materials/finishes'
 import type { EdgeProfileId } from '../../domain/materials/edgeProfiles'
 import type { ChoosableJoint, JointGroupId } from '../../domain/editing/joints/choice'
@@ -86,6 +86,8 @@ export interface SessionSlice {
   resizeFurniture(axis: Axis, value: number): PieceEditResult
   /** The finish picked in Materiales, as a version of its own. */
   chooseFinish(finish: FinishId): void
+  /** The wall an anchored piece goes on, said in Materiales, as a version of its own. */
+  chooseWall(wall: Wall): void
   /** How a group of joints is made, as a version of its own; refused when the boards are too thin for it. */
   chooseJoint(group: JointGroupId, type: ChoosableJoint): WorkshopResult
   /** The profile of some edges of a piece; null leaves them straight. */
@@ -203,6 +205,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     }),
 
   confirmPiece: (id) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.confirmPiece(state, id))),
+  chooseWall: (wall) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseWall(state, wall))),
   chooseFinish: (finish) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.chooseFinish(state, finish))),
   chooseJoint: (group, type) => versioned(set, get, (services, state) => services.useCases.chooseJoint(state, group, type)),
   chooseEdgeProfiles: (pieceId, edges, profile) => versioned(set, get, (services, state) => services.useCases.chooseEdgeProfiles(state, pieceId, edges, profile)),

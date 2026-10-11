@@ -73,7 +73,9 @@ export function createKit(deps: Dependencies) {
     const finish = design.finish ?? previous.finish
     // So are the edge profiles, on the pieces that are still there.
     const edgeProfiles = design.edgeProfiles ?? previous.edgeProfiles?.filter((c) => design.pieces.some((p) => p.id === c.piece))
-    const personal = { ...design, ...(finish && { finish }), ...(edgeProfiles?.length && { edgeProfiles }) }
+    // And the wall it goes on, which no plan or expert knows.
+    const wall = design.wall ?? previous.wall
+    const personal = { ...design, ...(finish && { finish }), ...(wall && { wall }), ...(edgeProfiles?.length && { edgeProfiles }) }
     // So is the kind, unless the new design says it with at least as much trust: a cabinet rebuilt from its plan does not know it is a bookcase.
     const kept = data.asItWas ? design : withKind(personal, settleKind(knownKind(previous), knownKind(design)))
     const versions = pruneVersions([

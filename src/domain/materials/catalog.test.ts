@@ -36,7 +36,7 @@ describe('hardware roles', () => {
   })
 
   it('a name with inches says the millimetres first, the ones of its length, and keeps the inches as the trade size in parentheses', () => {
-    const INCHES: Record<string, number> = { '¾': 0.75, '1': 1, '1¼': 1.25, '1½': 1.5, '2': 2 }
+    const INCHES: Record<string, number> = { '¼': 0.25, '5/16': 0.3125, '¾': 0.75, '1': 1, '1¼': 1.25, '1½': 1.5, '2': 2 }
     const named = testCatalog.hardware.filter((h) => h.name.includes('"'))
     expect(named.map((h) => h.id)).toEqual(expect.arrayContaining([...hardwareByRole(testCatalog, 'screw'), ...hardwareByRole(testCatalog, 'pocket-screw')].map((h) => h.id)))
     const wrong = named.filter((h) => {

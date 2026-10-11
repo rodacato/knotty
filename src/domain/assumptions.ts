@@ -62,6 +62,14 @@ export const ASSUMPTIONS = {
     criticalRatio: 4,
     criticalHeight: 1200,
   },
+  anchoring: {
+    /** kg one plug holds in each wall: a 6 mm toggle in drywall and hollow block, an 8 × 40 plug in brick and concrete. */
+    capacity: { drywall: 27, block: 32, brick: 30, concrete: 71 },
+    /** The fewest fixings to the wall, whatever the weight. */
+    minAnchors: 2,
+    /** Mass of plywood in a hung piece, kg/m³: the heavy density, since a heavier piece is the worst case for its plugs. */
+    density: 540,
+  },
   /** Hinges by the height of the door (Blum's table, the rows past a sheet's length would never apply), and the widest single leaf. */
   doors: {
     hinges: [
@@ -171,6 +179,9 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'tipping.recommendedRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalRatio': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
   'tipping.criticalHeight': cite(VALUES, '12-vuelco-y-anclaje', 'Librero sin cajones'),
+  'anchoring.capacity': cite(VALUES, '12-vuelco-y-anclaje', 'Concreto, taquete de 8 × 40'),
+  'anchoring.minAnchors': cite(STRUCTURE, '6-vuelco-y-anclaje', 'al menos 2 anclajes'),
+  'anchoring.density': cite(VALUES, '1-material', 'Densidad para calcular peso'),
   'doors.hinges': cite(VALUES, '8-puertas', 'Bisagras por altura de puerta'),
   'doors.maxWidth': cite(VALUES, '8-puertas', 'Ancho máximo de una hoja'),
   'sliding.overlap': cite(STRUCTURE, '5-puertas', 'traslape entre hojas de 20–30 mm'),
