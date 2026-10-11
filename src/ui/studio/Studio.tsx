@@ -243,7 +243,7 @@ function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: str
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
-        <Button variant="ghost" className="min-w-11 px-2! sm:hidden" aria-label="Más opciones">
+        <Button variant="ghost" className="min-w-11 px-2 sm:hidden" aria-label="Más opciones">
           <DotsThree weight="bold" />
         </Button>
       </Dialog.Trigger>
@@ -307,13 +307,13 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
       </div>
       <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
         <CopyFichaLink state={state} />
-        <Button variant="ghost" className="min-w-11 px-2!" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
+        <Button variant="ghost" className="min-w-11 px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
           <MagnifyingGlass />
         </Button>
-        <Button variant="ghost" className={`min-w-11 gap-1 px-2! text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
+        <Button variant="ghost" className={`min-w-11 gap-1 px-2 text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
           <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
         </Button>
-        <Button variant="ghost" className={`relative min-w-11 px-2! disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
+        <Button variant="ghost" className={`relative min-w-11 px-2 disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
           <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
           {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
         </Button>
