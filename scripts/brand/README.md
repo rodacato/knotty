@@ -1,34 +1,19 @@
-# Brand
+# Brand exports
 
-The brand's source SVGs and the script that builds from them what the app serves in `public/`.
+The [canonical mark](../../src/ui/system/knot.svg) and [UI tokens](../../src/ui/system/tokens.css) generate the app icons and downloadable kit. Preview and hosting invariants: [docs/brand.md](../../docs/brand.md).
 
-## Use
+## Regenerate
+
+Use Node, `rsvg-convert` (on macOS, `brew install librsvg`) and Python 3.11 or later. Install the export dependency in an isolated environment:
 
 ```bash
-./scripts/brand/generate.sh
+python3 -m venv /tmp/knotty-brand-env
+/tmp/knotty-brand-env/bin/python -m pip install -r scripts/brand/requirements.txt
+BRAND_PYTHON=/tmp/knotty-brand-env/bin/python ./scripts/brand/generate.sh
 ```
 
-It needs `rsvg-convert` (`brew install librsvg`), `python3` and Google Chrome. Chrome is looked for at its macOS path; set `CHROME` to the binary anywhere else. Run it after changing an SVG or `share.html`, and commit what it leaves in `public/`.
+[generate.sh](generate.sh) exports the SVG variants and existing Fontsource files with their licenses, rasterizes regular and maskable icons, packs the favicon, and builds a reproducible downloadable ZIP. [ASSETS.md](ASSETS.md) supplies its usage instructions. Run after changing the mark, tokens or fonts, and commit generated assets with their sources.
 
-## What it writes
+[share.py](share.py) makes the social card from the same mark, tokens, Fraunces/Inter/JetBrains Mono outlines and an existing product capture. The temporary SVG is rasterized with librsvg. FontTools is used only for export; no frontend dependency or font service is added.
 
-| In `public/` | From |
-|---|---|
-| `favicon.svg`, `favicon.ico` | `knot-favicon.svg` |
-| `icon-192.png`, `icon-512.png` | `knot.svg` |
-| `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | `knot-maskable.svg` |
-| `share.png` | `share.html`, a screenshot taken with headless Chrome |
-
-## Files
-
-| File | What it is |
-|---|---|
-| `generate.sh` | The only entry point |
-| `ico.py` | Packs the favicon's PNGs into one `.ico`; `generate.sh` calls it |
-| `knot.svg` | The mark |
-| `knot-favicon.svg` | The mark drawn for small sizes |
-| `knot-maskable.svg` | The mark with the margin a maskable icon needs |
-| `share.html` | The page the share image is a screenshot of |
-| `stroke.svg` | The wood-grain strokes alone; nothing reads it |
-
-Nothing here is tested or run in CI: the result is checked by eye.
+Inspect the exported icon at small sizes and the social card by eye. Run the project checks and `node scripts/brand/verify.mjs` before publication.

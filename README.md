@@ -2,7 +2,7 @@
 
 <h1 align="center">Knotty</h1>
 
-<p align="center"><em>Naughty knots.</em> From a few photos to a piece of plywood furniture you adjust by talking with an expert carpenter (an LLM): 3D design, how it goes together and how many sheets to buy.</p>
+<p align="center">Choose a plywood furniture base, adjust it to your space and see how it goes together: 3D design, cut lists and estimated materials. Connect an expert (an LLM) when you want to request other changes.</p>
 
 <p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Open the app</strong></a></p>
 
@@ -40,8 +40,4 @@ Without an API key it works in **Simulado** mode, which understands a few reques
 
 ## Brand
 
-The brand's SVGs live in `scripts/brand/`. Regenerating the favicon, the PWA icons and the share image (`public/share.png`) needs `rsvg-convert` (`brew install librsvg`) and Google Chrome:
-
-```bash
-./scripts/brand/generate.sh
-```
+The [presentation page](presentacion/index.html) and [brand guide](marca/index.html) coexist with the app. Preview routes and maintenance are in [docs/brand.md](docs/brand.md). The [source mark](src/ui/system/knot.svg) generates the variants in `scripts/brand/`. Regenerating the downloadable kit, favicon, PWA icons and share image (`public/share.png`) uses Node, `rsvg-convert` and Python with the export dependencies. Setup and regeneration: [scripts/brand/README.md](scripts/brand/README.md).
