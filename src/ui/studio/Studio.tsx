@@ -122,9 +122,9 @@ function LeaveEditing() {
   const leave = useStore((s) => s.leave)
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center md:top-4 md:bottom-auto">
-      <Button variant="primary" className="pointer-events-auto min-h-11 gap-1.5 rounded-full px-4 shadow-sm" onClick={() => leave()} title="Salir (Esc)">
+      <button type="button" className={`${SCENE_TOOL} font-medium active:scale-[0.97]`} onClick={() => leave()} title="Salir (Esc)">
         <Check weight="bold" /> Terminar de editar
-      </Button>
+      </button>
     </div>
   )
 }
