@@ -5,7 +5,7 @@ const BASE = new URL('./', self.location).pathname
 const CACHE = `knotty-v4:${BASE}`
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalogo/`, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalog/`, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
   self.skipWaiting()
 })
 

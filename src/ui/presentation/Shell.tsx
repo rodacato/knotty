@@ -14,9 +14,9 @@ export function Shell({ page, children, root = '../' }: { page: 'presentation' |
         <a className="wordmark" href={root} aria-label="Knotty · Inicio"><Knot className="size-10" /><span>Knotty</span></a>
         <nav aria-label="Navegación principal">
           <a className="nav-link" href={page === 'brand' ? root : '#como-funciona'}>{page === 'brand' ? 'Conoce Knotty' : 'Cómo funciona'}</a>
-          {page === 'presentation' && <a className="nav-link" href="#catalogo">Muebles</a>}
+          {page === 'presentation' && <a className="nav-link" href="#catalog">Muebles</a>}
           <a className="nav-link" href={`${root}marca/`} aria-current={page === 'brand' ? 'page' : undefined}>Guía de marca</a>
-          <PageLink href={`${root}catalogo/#catalogo`}>Explorar el catálogo</PageLink>
+          <PageLink href={`${root}catalog/#catalog`}>Explorar el catálogo</PageLink>
         </nav>
       </header>
       <main id="content" tabIndex={-1}>{children}</main>

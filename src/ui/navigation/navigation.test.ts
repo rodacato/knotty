@@ -11,7 +11,7 @@ import { connectNavigation } from './navigation'
 
 // Only the browser history boundary is simulated; designs, plans, commands and persistence run for real.
 function browser(suffix = '', delayed = false) {
-  const entries = [{ url: new URL(`https://example.test/knotty/catalogo/${suffix}`), state: null as unknown }]
+  const entries = [{ url: new URL(`https://example.test/knotty/catalog/${suffix}`), state: null as unknown }]
   let position = 0
   const listeners = new Map<string, Set<() => void>>()
   const moves: (() => void)[] = []
@@ -69,13 +69,13 @@ describe('catalog and studio navigation', () => {
     const b = browser()
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState()).toMatchObject({ phase: 'home', state: saved })
-    expect(b.hash()).toBe('#catalogo')
+    expect(b.hash()).toBe('#catalog')
     useStore.getState().resumeDesign()
     await settle()
-    expect(b.hash()).toBe('#estudio')
+    expect(b.hash()).toBe('#studio')
     useStore.getState().setStudioTab('materials')
     await settle()
-    expect(b.hash()).toBe('#estudio/materiales')
+    expect(b.hash()).toBe('#studio/materials')
     b.back()
     await settle()
     expect(useStore.getState()).toMatchObject({ phase: 'studio', studioTab: 'chat' })
@@ -94,7 +94,7 @@ describe('catalog and studio navigation', () => {
     const saved = s.useCases.load()
     useStore.setState(initial, true)
     useStore.getState().start(s)
-    const b = browser('#estudio/historial')
+    const b = browser('#studio/history')
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState()).toMatchObject({ phase: 'studio', studioOverlay: 'history' })
     expect(useStore.getState().state).toBe(saved)
@@ -104,20 +104,20 @@ describe('catalog and studio navigation', () => {
   it('opens a catalog adjustment without replacing the design, and falls back for missing furniture', () => {
     useStore.getState().fromExample(base)
     const saved = useStore.getState().state
-    const b = browser(`#catalogo/ajustar/${base.code}`)
+    const b = browser(`#catalog/adjust/${base.code}`)
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState()).toMatchObject({ phase: 'home', adjusting: base })
     expect(useStore.getState().state).toBe(saved)
-    b.visit('#catalogo/ajustar/KC-NOPE-99')
+    b.visit('#catalog/adjust/KC-NOPE-99')
     expect(useStore.getState()).toMatchObject({ phase: 'home', adjusting: null })
-    expect(b.hash()).toBe('#catalogo')
+    expect(b.hash()).toBe('#catalog')
   })
 
   it('does not invent a studio design from a URL on a first visit', () => {
-    const b = browser('#estudio/materiales')
+    const b = browser('#studio/materials')
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState()).toMatchObject({ phase: 'home', state: null })
-    expect(b.hash()).toBe('#catalogo')
+    expect(b.hash()).toBe('#catalog')
   })
 
   it('leaves legacy ficha words for the existing link reader instead of overwriting them', () => {
@@ -129,7 +129,7 @@ describe('catalog and studio navigation', () => {
 
   it('keeps unapplied edits and asks through the existing editor before leaving via Back', async () => {
     useStore.getState().fromExample(base)
-    const b = browser('#estudio')
+    const b = browser('#studio')
     disconnect = connectNavigation(useStore, b.api)
     useStore.getState().edit('outside')
     await settle()
@@ -143,7 +143,7 @@ describe('catalog and studio navigation', () => {
     await settle()
     expect(useStore.getState()).toMatchObject({ phase: 'studio', editing: 'outside', leaving: true })
     expect(useStore.getState().planDraft).toBe(draft)
-    expect(b.hash()).toBe('#estudio/editar/exterior')
+    expect(b.hash()).toBe('#studio/edit/outside')
     expect(b.count()).toBe(count)
   })
 
@@ -155,30 +155,30 @@ describe('catalog and studio navigation', () => {
     b.back()
     await settle()
     expect(useStore.getState().phase).toBe('capture')
-    expect(b.hash()).toBe('#disenar')
+    expect(b.hash()).toBe('#design')
     useStore.setState({ phase: 'analyzing' })
-    b.visit('#catalogo')
+    b.visit('#catalog')
     await settle()
     expect(useStore.getState().phase).toBe('analyzing')
-    expect(b.hash()).toBe('#disenar')
+    expect(b.hash()).toBe('#design')
   })
 
   it('restores the same selected piece after StrictMode setup runs twice', async () => {
     useStore.getState().fromExample(base)
     const piece = useStore.getState().state!.versions[0].design.pieces[0].id
-    const b = browser(`#estudio/pieza/${encodeURIComponent(piece)}`)
+    const b = browser(`#studio/piece/${encodeURIComponent(piece)}`)
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState().selection).toBe(piece)
     disconnect()
     disconnect = connectNavigation(useStore, b.api)
     await settle()
     expect(useStore.getState().selection).toBe(piece)
-    expect(b.hash()).toBe(`#estudio/pieza/${encodeURIComponent(piece)}`)
+    expect(b.hash()).toBe(`#studio/piece/${encodeURIComponent(piece)}`)
     expect(b.count()).toBe(1)
   })
 
   it('restores historical catalog filters and keeps them when entering and returning from an adjustment', async () => {
-    const b = browser('?q=librero&cuarto=oficina#catalogo')
+    const b = browser('?q=librero&cuarto=oficina#catalog')
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState().browsing).toEqual({ text: 'librero', room: 'office' })
     useStore.getState().adjustBase(base)
@@ -209,24 +209,24 @@ describe('catalog and studio navigation', () => {
     s.editPlan({ ...plan, dimensions: { ...plan.dimensions, width: plan.dimensions.width + 100 } })
     const addresses = b.addresses()
     b.back(); await settle()
-    expect(b.hash()).toBe('#estudio/editar/exterior')
+    expect(b.hash()).toBe('#studio/edit/outside')
     expect(useStore.getState().leaving).toBe(true)
     const result = choice === 'apply' ? s.applyPlanDraft() : (s.discardPlanDraft(), { ok: true })
     expect(result.ok).toBe(true)
     s.edit(null)
     await settle()
     expect(b.addresses()).toEqual(addresses)
-    expect(b.hash()).toBe('#estudio/materiales')
+    expect(b.hash()).toBe('#studio/materials')
     expect(useStore.getState()).toMatchObject({ editing: null, studioTab: 'materials', planDraft: null })
     b.back(); await settle()
-    expect(b.hash()).toBe('#estudio')
+    expect(b.hash()).toBe('#studio')
     b.back(); await settle()
     expect(useStore.getState().phase).toBe('home')
   })
 
   it('keeps the original history and draft when pending navigation is canceled', async () => {
     useStore.getState().fromExample(base)
-    const b = browser('#estudio')
+    const b = browser('#studio')
     disconnect = connectNavigation(useStore, b.api)
     useStore.getState().edit('outside'); await settle()
     const s = useStore.getState()
@@ -238,7 +238,7 @@ describe('catalog and studio navigation', () => {
     b.back(); await settle()
     s.leave(false); await settle()
     expect(b.addresses()).toEqual(addresses)
-    expect(b.hash()).toBe('#estudio/editar/exterior')
+    expect(b.hash()).toBe('#studio/edit/outside')
     expect(useStore.getState()).toMatchObject({ leaving: false, planDraft: draft, editing: 'outside' })
     b.back(); await settle()
     expect(useStore.getState().leaving).toBe(true)
@@ -246,7 +246,7 @@ describe('catalog and studio navigation', () => {
 
   it('records one history transition when opening notices from a selected piece', async () => {
     useStore.getState().fromExample(base)
-    const b = browser('#estudio')
+    const b = browser('#studio')
     disconnect = connectNavigation(useStore, b.api)
     const piece = useStore.getState().state!.versions[0].design.pieces[0].id
     useStore.getState().select(piece); await settle()
@@ -255,7 +255,7 @@ describe('catalog and studio navigation', () => {
     useStore.getState().setStudioOverlay('notices')
     await settle()
     expect(b.count()).toBe(count + 1)
-    expect(b.hash()).toBe('#estudio/avisos')
+    expect(b.hash()).toBe('#studio/notices')
     b.back(); await settle()
     expect(useStore.getState().selection).toBe(piece)
   })
@@ -263,13 +263,13 @@ describe('catalog and studio navigation', () => {
   it('canonicalizes unavailable editing sides and pieces to an available view', () => {
     const table = testReferences.home().find((b) => b.plan.kind === 'table')!
     useStore.getState().fromExample(table)
-    const b = browser('#estudio/editar/interior')
+    const b = browser('#studio/edit/inside')
     disconnect = connectNavigation(useStore, b.api)
     expect(useStore.getState().editing).toBeNull()
-    expect(b.hash()).toBe('#estudio')
-    b.visit('#estudio/pieza/missing')
+    expect(b.hash()).toBe('#studio')
+    b.visit('#studio/piece/missing')
     expect(useStore.getState().selection).toBeNull()
-    expect(b.hash()).toBe('#estudio')
+    expect(b.hash()).toBe('#studio')
   })
 
 
@@ -283,12 +283,12 @@ describe('catalog and studio navigation', () => {
     await settle()
     b.completeMove(); await settle()
     expect(useStore.getState().phase).toBe('studio')
-    expect(b.hash()).toBe('#estudio')
+    expect(b.hash()).toBe('#studio')
   })
 
   it.each(['apply', 'discard', 'cancel'] as const)('completes %s while a draft-protected history return is still queued', async (choice) => {
     useStore.getState().fromExample(base)
-    const b = browser('#estudio', true)
+    const b = browser('#studio', true)
     disconnect = connectNavigation(useStore, b.api)
     useStore.getState().edit('outside'); await settle()
     const s = useStore.getState()
@@ -303,7 +303,7 @@ describe('catalog and studio navigation', () => {
     await settle()
     b.completeMove(); await settle()
     b.completeMove(); await settle()
-    expect(b.hash()).toBe(choice === 'cancel' ? '#estudio/editar/exterior' : '#estudio')
+    expect(b.hash()).toBe(choice === 'cancel' ? '#studio/edit/outside' : '#studio')
     expect(useStore.getState().leaving).toBe(false)
     expect(useStore.getState().editing).toBe(choice === 'cancel' ? 'outside' : null)
   })

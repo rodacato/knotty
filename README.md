@@ -4,7 +4,7 @@
 
 <p align="center">Choose a plywood furniture base, adjust it to your space and see how it goes together: 3D design, cut lists and estimated materials. Connect an expert (an LLM) when you want to request other changes.</p>
 
-<p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Meet Knotty</strong></a> · <a href="https://rodacato.github.io/knotty/catalogo/#catalogo"><strong>Explore the catalog</strong></a></p>
+<p align="center"><a href="https://rodacato.github.io/knotty/"><strong>Meet Knotty</strong></a> · <a href="https://rodacato.github.io/knotty/catalog/#catalog"><strong>Explore the catalog</strong></a></p>
 
 ![Knotty](public/share.png)
 
@@ -14,7 +14,7 @@ The proposal, the decisions and the state live in [docs/PROPUESTA.md](docs/PROPU
 
 ```bash
 npm install
-npm run dev        # landing at /; catalog and app at /catalogo/
+npm run dev        # landing at /; catalog and app at /catalog/
 npm test           # domain, use cases and adapters
 npm run typecheck
 npm run build      # dist/, ready for GitHub Pages
@@ -40,4 +40,4 @@ Without an API key it works in **Simulado** mode, which understands a few reques
 
 ## Brand
 
-The [root landing](index.html), [catalog and app](catalogo/index.html), [presentation alias](presentacion/index.html) and [brand guide](marca/index.html) share one identity. Preview routes, fragment navigation and PWA compatibility are in [docs/brand.md](docs/brand.md). The [source mark](src/ui/system/knot.svg) generates the variants in `scripts/brand/`. Regenerating the downloadable kit, favicon, PWA icons and share image (`public/share.png`) uses Node, `rsvg-convert` and Python with the export dependencies. Setup and regeneration: [scripts/brand/README.md](scripts/brand/README.md).
+The [root landing](index.html), [catalog and app](catalog/index.html), [legacy presentation redirect](presentacion/index.html) and [brand guide](marca/index.html) share one identity. Preview routes, fragment navigation and PWA compatibility are in [docs/brand.md](docs/brand.md). The [source mark](src/ui/system/knot.svg) generates the variants in `scripts/brand/`. Regenerating the downloadable kit, favicon, PWA icons and share image (`public/share.png`) uses Node, `rsvg-convert` and Python with the export dependencies. Setup and regeneration: [scripts/brand/README.md](scripts/brand/README.md).
