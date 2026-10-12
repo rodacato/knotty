@@ -22,7 +22,9 @@ import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
-import { ReviewGate, VerdictCard } from './Verdict'
+import { ReviewGate, VerdictCard, VerdictSummary } from './Verdict'
+import { MaterialsJourney } from './MaterialsJourney'
+import { purchaseReviewItems } from '../../domain/session/purchaseReview'
 import { BeforeLeaving, CopyList } from './CopyList'
 import { lineNumbers } from './copyListLabels'
 import { CutList } from './CutList'
@@ -383,13 +385,13 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const cost = (
     <section className="flex flex-col gap-1 border-b border-line pb-4">
       <p className="text-sm text-graphite-2">Costo aproximado</p>
-      <p className={`font-display font-semibold tracking-tight [font-variation-settings:'opsz'_96] ${verdict && verdict.verdict !== 'viable' ? 'text-2xl' : 'text-4xl'}`}>
+      <p className="font-display tabular-nums text-5xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>
       {verdict && <p className="text-sm text-graphite-2">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
       {unpriced && <p className="text-sm text-graphite">{unpriced}</p>}
-      <p className="text-sm text-graphite">Precios de referencia, no una cotización.</p>
+      <p className="text-xs leading-relaxed text-graphite-2">Precios de referencia en MXN, no una cotización.</p>
     </section>
   )
 
@@ -408,7 +410,8 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <div className="relative flex flex-col gap-4 p-4">
         {whose}
         {cost}
-        <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
+        <VerdictSummary verdict={verdict} />
+        <VerdictCard key={`${verdict.signature}:${verdict.date}`} verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-graphite">
           Con estos problemas, lo que compres probablemente no sirva.{' '}
           <button type="button" className="underline" onClick={() => setAnyway(verdict.signature)}>
@@ -425,26 +428,21 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       {cost}
       {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
       {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
-      <VerdictCard verdict={verdict} design={design} onRequest={onRequest}>
+      <VerdictSummary verdict={verdict} />
+      <MaterialsJourney
+        key={`${verdict.signature}:${verdict.date}`}
+        remaining={purchaseReviewItems(verdict).filter((item) => !verdict.choices?.some((choice) => choice.id === item.id)).length}
+        materialSummary={`${totalSheets} ${totalSheets === 1 ? 'hoja' : 'hojas'} · ${design.pieces.length} piezas · ${FINISHES[finishOf(design)].name}`}
+        review={<VerdictCard verdict={verdict} design={design} onRequest={onRequest} />}
+        materials={<>
+          <p className="text-sm leading-relaxed">Revisa lo que vas a comprar. El acomodo de cada hoja muestra las piezas y el sobrante disponible; una alternativa debe confirmarse con el experto antes de cambiar el material.</p>
         {design.wallAnchored && (wallOf(design) === 'unknown' ? <WallQuestion design={design} anchoring={purchase.anchoring} /> : (
           <details className="border-t border-line pt-2">
             <summary className="min-h-11 cursor-pointer text-sm font-medium">Muro: {WALL_LABELS[wallOf(design)]} · Cambiar</summary>
             <WallQuestion design={design} anchoring={purchase.anchoring} />
           </details>
         ))}
-        <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3" aria-label="Guía y lista para llevar">
-          {verdict.verdict === 'viable' && <p className="text-xs font-medium text-graphite-2">Siguiente paso</p>}
-          {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
-          <Button variant={verdict.verdict === 'viable' ? 'primary' : 'secondary'} className="self-start px-4" onClick={() => openTakeAway(true)}>
-            <Printer weight="bold" /> Ver guía para construir
-          </Button>
-          <p className="text-xs leading-relaxed text-graphite-2">Piezas numeradas, diagramas y recomendaciones. Desde la guía puedes imprimir o guardar como PDF.</p>
-          <CopyList text={message} />
-          <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
-        </section>
-      </VerdictCard>
-
-      <details className="border-t border-line pt-2">
+<details className="border-t border-line pt-2">
         <summary className="min-h-11 cursor-pointer text-sm font-medium">{sheetsHeading(onlyPlywood)} · {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'}</summary>
         <div className="flex flex-col gap-3 pt-2">
         <div className="flex flex-col divide-y divide-line border-b border-line">
@@ -515,7 +513,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
 
       <details className="border-t border-line pt-2">
         <summary className="min-h-11 cursor-pointer text-sm font-medium">Lista de corte · {design.pieces.length} piezas</summary>
-        <div className="-mx-4">
+        <div className="min-w-0">
           <CutList blocks={blocks} />
         </div>
       </details>
@@ -523,6 +521,21 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <summary className="min-h-11 cursor-pointer text-sm font-medium">Qué revisar al recoger tus cortes</summary>
         <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
       </details>
+        </>}
+        guide={<>
+        <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3" aria-label="Guía y lista para llevar">
+          <h3 className="font-display text-xl font-semibold">La guía de tu mueble</h3>
+          {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
+          <Button variant="primary" className="self-start px-4 text-sm" onClick={() => openTakeAway(true)}>
+            <Printer weight="bold" /> {verdict.verdict === 'viable' ? 'Ver guía para construir' : 'Ver guía con pendientes'}
+          </Button>
+          <p className="text-xs leading-relaxed text-graphite-2">Piezas numeradas, diagramas y recomendaciones. Desde la guía puedes imprimir o guardar como PDF.</p>
+          <CopyList text={message} />
+          <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
+        </section>
+
+        </>}
+      />
     </div>
   )
 }

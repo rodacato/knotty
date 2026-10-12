@@ -73,6 +73,7 @@ export interface SessionSlice {
   applyFixes(fixes: Fix[]): { ok: true } | { ok: false; message: string }
   /** Puts an item in the tray, replaces the one from the same origin, or takes it out. */
   toggleTray(item: TrayItem): void
+  choosePurchaseReview(id: string, choice: 'keep' | 'risk' | 'requested' | null): void
   acceptNotice(notice: Notice): void
   reopenNotice(notice: Notice): void
   /** Sets an expert's question aside, or brings it back; it is not answered either way. */
@@ -223,6 +224,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   removeDecision: (topic) => withSession(get, (services, state) => set({ state: services.useCases.removeDecision(state, topic) })),
   applyFix: (fix) => withSession(get, (services, state) => moveTo(set, services, state, services.useCases.applyFix(state, fix), { preview: null, viewedVersion: null })),
   applyFixes: (fixes) => versioned(set, get, (services, state) => services.useCases.applyFixes(state, fixes), CLOSED, { preview: null }),
+  choosePurchaseReview: (id, choice) => withSession(get, (services, state) => set({ state: services.useCases.choosePurchaseReview(state, applySettings(services.catalog, get().catalogSettings), id, choice) })),
   acceptNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.acceptNotice(state, notice.findings, notice.title) })),
   reopenNotice: (notice) => withSession(get, (services, state) => set({ state: services.useCases.reopenNotice(state, notice.findings) })),
   dismissQuestion: (notice) => withSession(get, (services, state) => notice.question && set({ state: services.useCases.dismissQuestion(state, notice.question.messageId, notice.question.index) })),
