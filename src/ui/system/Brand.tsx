@@ -10,5 +10,5 @@ export function Knot({ className = '' }: { className?: string }) {
 }
 
 export function Emblem({ className = '' }: { className?: string }) {
-  return <img src="./icon-192.png" alt="" className={`rounded-emblem ${className}`} />
+  return <img src="../icon-192.png" alt="" className={`rounded-emblem ${className}`} />
 }
