@@ -62,7 +62,7 @@ export function connectNavigation(store: StoreApi<Store>, browser: Browser): () 
     if (hasLinkedFicha(browser.location)) return
     const incoming = indexOf(browser) ?? activeIndex + 1
     const addressKey = `${incoming}:${browser.location.href}`
-    if (restoring && incoming === activeIndex) { restoring = false; lastRead = addressKey; return }
+    if (restoring && incoming === activeIndex) { restoring = false; lastRead = addressKey; changed(); return }
     if (!initial && addressKey === lastRead) return
     lastRead = addressKey
     if (pendingIndex !== null && incoming === activeIndex) return

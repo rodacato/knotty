@@ -10,10 +10,11 @@ import type { Services } from '../services'
 import { connectNavigation } from './navigation'
 
 // Only the browser history boundary is simulated; designs, plans, commands and persistence run for real.
-function browser(suffix = '') {
+function browser(suffix = '', delayed = false) {
   const entries = [{ url: new URL(`https://example.test/knotty/catalogo/${suffix}`), state: null as unknown }]
   let position = 0
   const listeners = new Map<string, Set<() => void>>()
+  const moves: (() => void)[] = []
   const notify = () => { listeners.get('popstate')?.forEach((f) => f()); listeners.get('hashchange')?.forEach((f) => f()) }
   const push = (address: string, state: unknown = null) => { const url = new URL(address, entries[position].url); entries.splice(++position); entries.push({ url, state }) }
   const b = {
@@ -22,7 +23,7 @@ function browser(suffix = '') {
       get state() { return entries[position].state },
       pushState: (state: unknown, _: string, address: string) => push(address, state),
       replaceState: (state: unknown, _: string, address: string) => { entries[position] = { url: new URL(address, entries[position].url), state } },
-      go: (delta: number) => { queueMicrotask(() => { const target = position + delta; if (target >= 0 && target < entries.length) { position = target; notify() } }) },
+      go: (delta: number) => { const move = () => { const target = position + delta; if (target >= 0 && target < entries.length) { position = target; notify() } }; if (delayed) moves.push(move); else queueMicrotask(move) },
     },
     addEventListener: (type: string, listener: () => void) => { const set = listeners.get(type) ?? new Set(); set.add(listener); listeners.set(type, set) },
     removeEventListener: (type: string, listener: () => void) => listeners.get(type)?.delete(listener),
@@ -37,6 +38,7 @@ function browser(suffix = '') {
     forward: () => { if (position + 1 < entries.length) { position++; notify() } },
     visit: (address: string) => { push(address); notify() },
     count: () => entries.length,
+    completeMove: () => moves.shift()?.(),
   }
 }
 
@@ -268,6 +270,42 @@ describe('catalog and studio navigation', () => {
     b.visit('#estudio/pieza/missing')
     expect(useStore.getState().selection).toBeNull()
     expect(b.hash()).toBe('#estudio')
+  })
+
+
+  it('synchronizes a completed request while the browser is still returning from a blocked Back', async () => {
+    const b = browser('', true)
+    disconnect = connectNavigation(useStore, b.api)
+    useStore.getState().startCapture(); await settle()
+    useStore.setState({ phase: 'analyzing' })
+    b.back()
+    useStore.getState().fromExample(base)
+    await settle()
+    b.completeMove(); await settle()
+    expect(useStore.getState().phase).toBe('studio')
+    expect(b.hash()).toBe('#estudio')
+  })
+
+  it.each(['apply', 'discard', 'cancel'] as const)('completes %s while a draft-protected history return is still queued', async (choice) => {
+    useStore.getState().fromExample(base)
+    const b = browser('#estudio', true)
+    disconnect = connectNavigation(useStore, b.api)
+    useStore.getState().edit('outside'); await settle()
+    const s = useStore.getState()
+    const plan = currentPlan(s.state!).plan!
+    if (plan.kind !== 'cabinet') throw new Error('The fixture must have a cabinet plan')
+    s.editPlan({ ...plan, dimensions: { ...plan.dimensions, width: plan.dimensions.width + 100 } })
+    b.back()
+    const result = choice === 'apply' ? s.applyPlanDraft() : { ok: true }
+    expect(result.ok).toBe(true)
+    if (choice === 'cancel') s.leave(false)
+    else { if (choice === 'discard') s.discardPlanDraft(); s.edit(null) }
+    await settle()
+    b.completeMove(); await settle()
+    b.completeMove(); await settle()
+    expect(b.hash()).toBe(choice === 'cancel' ? '#estudio/editar/exterior' : '#estudio')
+    expect(useStore.getState().leaving).toBe(false)
+    expect(useStore.getState().editing).toBe(choice === 'cancel' ? 'outside' : null)
   })
 
 })
