@@ -54,7 +54,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
   const bands: Record<Side, [number, number, number, number]> = { top: [x0, y0 - BAND, w, BAND], bottom: [x0, y0 + h, w, BAND], left: [x0 - BAND, y0, BAND, h], right: [x0 + w, y0, BAND, h] }
   const hatch = `hatch-${useId().replace(/:/g, '')}`
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`La cara de ${piece.name.toLowerCase()} con sus cuatro cantos`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="drawing-sheet w-full rounded-xl" role="img" aria-label={`La cara de ${piece.name.toLowerCase()} con sus cuatro cantos`}>
       <defs>
         <pattern id={hatch} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <line x1="0" y1="0" x2="0" y2="5" className="stroke-graphite-2/60" strokeWidth="1.5" />
@@ -74,7 +74,7 @@ function FaceDrawing({ piece, geo, chosen, against, name }: { piece: Piece; geo:
       {(Object.keys(sides) as Side[]).map((side) => {
         const edge = sides[side]
         const [x1, y1, x2, y2] = lines[side]
-        const style = chosen.has(edge) ? 'stroke-amber' : against.get(edge) ? 'stroke-graphite-2/40' : 'stroke-graphite-2'
+        const style = chosen.has(edge) ? 'stroke-graphite' : against.get(edge) ? 'stroke-graphite-2/40' : 'stroke-graphite-2'
         return (
           <g key={side}>
             <line x1={x1} y1={y1} x2={x2} y2={y2} className={style} strokeWidth={chosen.has(edge) ? 4 : 1.5} strokeLinecap="round" strokeDasharray={chosen.has(edge) && against.get(edge) ? '2 6' : undefined} />

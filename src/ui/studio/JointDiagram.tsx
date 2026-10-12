@@ -116,7 +116,7 @@ const DRAWINGS: Record<GuideJoint, ReactNode> = {
 /** Decorative: the joint's name and definition sit beside it. */
 export function JointDiagram({ joint, className = '' }: { joint: GuideJoint; className?: string }) {
   return (
-    <svg viewBox="0 0 80 60" aria-hidden className={className}>
+    <svg viewBox="0 0 80 60" aria-hidden className={`drawing-sheet rounded-lg ${className}`}>
       {DRAWINGS[joint]}
     </svg>
   )

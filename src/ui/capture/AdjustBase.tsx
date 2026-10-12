@@ -120,7 +120,7 @@ export function AdjustBase({ base }: { base: Base }) {
               </SceneBoundary>
             </div>
           ) : (
-            <div className="grid h-full place-items-center p-6 text-center text-sm text-rust">Este diseño tiene errores: {shown.error}</div>
+            <div className="drawing-sheet grid h-full place-items-center p-6 text-center text-sm">Este diseño tiene errores: {shown.error}</div>
           )}
         </div>
         <section aria-labelledby="adjust-title" className="flex min-h-0 flex-1 flex-col border-line md:border-l">

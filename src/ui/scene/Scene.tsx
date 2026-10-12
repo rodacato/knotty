@@ -23,7 +23,7 @@ import { Sawdust } from './Sawdust'
 import type { EdgeShape } from './edgeGeometry'
 import { PieceMesh } from './PieceMesh'
 import { RemovedGhost } from './RemovedGhost'
-import { useReducedMotion, useDark, useTouch } from './preferences'
+import { useReducedMotion, useTouch } from './preferences'
 
 const MM = 0.001
 const FOV = 35
@@ -156,7 +156,6 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
   const touch = useTouch()
   const reduced = useReducedMotion()
   const [quality, setQuality] = useState(!touch)
-  const dark = useDark()
 
   const explosion: Explosion & Partial<Pick<Opening, 'swings' | 'lifts'>> = useMemo(() => (mode === 'exploded' ? explode : mode === 'open' ? opening : assembled)(design, geo.boxes), [geo, design, mode])
   const swings = useMemo(() => turnsOf(explosion), [explosion])
@@ -197,8 +196,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
     <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: FOV, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
       <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
       <CameraRig frame={frame} focus={focus} focusId={focusId} reduced={reduced} />
-      <hemisphereLight args={[dark ? '#6b5f52' : '#fff6e8', dark ? '#1a1612' : '#b89a78', dark ? 0.5 : 0.8]} />
-      <directionalLight position={[2.5, 4.5, 3.2]} intensity={dark ? 1.6 : 2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
+      <hemisphereLight args={['#fff6e8', '#b89a78', 0.8]} />
+      <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color="#fff1dc" castShadow shadow-mapSize={touch ? [1024, 1024] : [2048, 2048]} shadow-bias={-0.0004}>
         <orthographicCamera attach="shadow-camera" args={[-2.5, 2.5, 2.5, -2.5, 0.1, 12]} />
       </directionalLight>
       <Environment resolution={256} frames={1}>
@@ -243,20 +242,20 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
             const [dx, dy, dz] = pushes.get(id) ?? [0, 0, 0]
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={dark} />}
-        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={dark} selected={selection} />}
+        {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={false} />}
+        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={false} selected={selection} />}
       </group>
 
-      <GroundShadow opacity={dark ? 0.6 : 0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
+      <GroundShadow opacity={0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
       <Grid
         position={[0, GRID_Y, 0]}
         args={[20, 20]}
         cellSize={0.1}
         cellThickness={0.6}
-        cellColor={dark ? '#3a332c' : '#d9ccb8'}
+        cellColor="#d9ccb8"
         sectionSize={0.5}
         sectionThickness={1}
-        sectionColor={dark ? '#4a4038' : '#c9b89e'}
+        sectionColor="#c9b89e"
         fadeDistance={9}
         fadeStrength={1.5}
         infiniteGrid

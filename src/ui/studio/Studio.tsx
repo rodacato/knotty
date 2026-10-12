@@ -140,7 +140,7 @@ function DimensionsToggle() {
       aria-pressed={dimensions}
       aria-label="Cotas"
       title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
-      className={`pointer-events-auto grid size-11 place-items-center rounded-full border shadow-sm backdrop-blur transition ${dimensions ? 'border-amber bg-amber-soft text-graphite' : 'border-line bg-bone/90 text-graphite-2 hover:bg-kraft'}`}
+      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft ${dimensions ? 'border-amber text-amber' : 'border-line text-graphite-2'}`}
     >
       <Ruler weight="bold" />
     </button>
