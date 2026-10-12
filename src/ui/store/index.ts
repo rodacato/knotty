@@ -4,6 +4,7 @@ import { createPlanDraft } from './planDraft'
 import { createScene } from './scene'
 import { createSession } from './session'
 import { createSettings } from './settings'
+import { createNavigation } from './navigation'
 import type { Store } from './types'
 
 // One store for the whole interface, composed from slices that each own one concern.
@@ -14,6 +15,7 @@ export const useStore = create<Store>()((...a) => ({
   ...createScene(...a),
   ...createPlanDraft(...a),
   ...createSettings(...a),
+  ...createNavigation(...a),
 }))
 
 export { hiddenIn, visibleDesign, type EditSide, type SceneMode, type View } from './scene'

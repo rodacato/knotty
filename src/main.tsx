@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { compose } from './composition'
 import { App } from './ui/App'
 import './ui/system/tokens.css'
+import { registerPwa } from './pwa'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -10,5 +11,4 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Production only: in development the cache would get in the way of hot reload.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) void navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {})
+registerPwa('../')

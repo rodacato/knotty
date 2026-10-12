@@ -43,6 +43,8 @@ export interface SessionSlice {
   openTakeAway(open: boolean): void
   /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
+  /** Returns from the catalog without opening another example or clearing the saved design. */
+  resumeDesign(): void
   /** The home with every piece of furniture, whatever it was filtered by. */
   browseAll(): void
   /** One of the home screen's examples, a ready design or a plan. */
@@ -123,7 +125,7 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
 }
 
 /** What the scene keeps about one design and must not carry into another. */
-const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null } satisfies Partial<Store>
+const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null, studioTab: 'chat', studioOverlay: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
@@ -158,6 +160,8 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
   goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
+
+  resumeDesign: () => { if (get().state) set({ phase: 'studio', adjusting: null, takeAway: false }) },
 
   browseAll() {
     get().goHome()

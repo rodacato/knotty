@@ -1,6 +1,7 @@
 import { named } from '../../application/named'
 import { ArrowLeft, ArrowRight, GearSix, Minus, Plus } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
+import { swapLoss } from '../spotlight/swap'
 import { resolveGeometry } from '../../domain/design/resolve'
 import { exampleDesign, type Base } from '../../domain/furniture/examples'
 import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
@@ -96,7 +97,12 @@ export function AdjustBase({ base }: { base: Base }) {
     return note ? [`${label}: ${note}`] : []
   })
   const size = sizeLine(fit.measures)
-  const open = () => fromExample(chosenExample(base, fit.plan, finish))
+  const openExample = (example: Parameters<typeof fromExample>[0]) => {
+    const s = useStore.getState()
+    if (swapLoss(s.phase, s.state)) s.openSpotlight(true, { name: example.name, code: base.code ?? null, example })
+    else fromExample(example)
+  }
+  const open = () => openExample(chosenExample(base, fit.plan, finish))
 
   return (
     <div className="flex h-dvh flex-col bg-bone">
@@ -105,7 +111,7 @@ export function AdjustBase({ base }: { base: Base }) {
       </div>
       <header className="flex items-center justify-between px-3 py-1 md:hidden">
         <button type="button" onClick={closeAdjust} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-base text-graphite-2">
-          <ArrowLeft className="size-5" /> Bases
+          <ArrowLeft className="size-5" /> Catálogo
         </button>
         <Button variant="ghost" className="min-h-11 px-3" aria-label="Ajustes" onClick={() => openSettings(true)}>
           <GearSix className="size-5" />
@@ -217,7 +223,7 @@ export function AdjustBase({ base }: { base: Base }) {
             <Button variant="primary" className="min-h-14 w-full rounded-2xl text-base" disabled={stopper !== null} onClick={open}>
               Abrir en el Studio <ArrowRight weight="bold" />
             </Button>
-            <Button variant="ghost" className="min-h-11 w-full text-base" onClick={() => fromExample(base)}>
+            <Button variant="ghost" className="min-h-11 w-full text-base" onClick={() => openExample(base)}>
               Saltar y usar la base tal cual
             </Button>
           </div>

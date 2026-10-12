@@ -4,9 +4,10 @@ import type { PlanDraftSlice } from './planDraft'
 import type { SceneSlice } from './scene'
 import type { SessionSlice } from './session'
 import type { SettingsSlice } from './settings'
+import type { NavigationSlice } from './navigation'
 
 /** The whole store: each slice owns its fields and actions, and reads the others through `get`. */
-export type Store = SessionSlice & ExpertSlice & SceneSlice & PlanDraftSlice & SettingsSlice
+export type Store = SessionSlice & ExpertSlice & SceneSlice & PlanDraftSlice & SettingsSlice & NavigationSlice
 
 export type Set = StoreApi<Store>['setState']
 export type Get = StoreApi<Store>['getState']

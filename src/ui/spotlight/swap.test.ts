@@ -60,6 +60,12 @@ describe('what swapping the furniture would lose', () => {
     expect(loss()).toBe('design')
   })
 
+  it('still protects a saved custom design while browsing the catalog', () => {
+    useStore.getState().fromExample({ name: exampleBookcase.name, design: exampleBookcase })
+    useStore.getState().goHome()
+    expect(loss()).toBe('design')
+  })
+
   it('is the capture while it is being written, and the expert\'s run while it designs', () => {
     useStore.getState().startCapture()
     expect(loss()).toBe('capture')
