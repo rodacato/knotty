@@ -1,5 +1,5 @@
 import { ArrowRight } from '@phosphor-icons/react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { Knot } from '../system/Brand'
 
 export function PageLink({ href, children, primary = false, download = false }: { href: string; children: ReactNode; primary?: boolean; download?: boolean }) {
@@ -7,6 +7,13 @@ export function PageLink({ href, children, primary = false, download = false }: 
 }
 
 export function Shell({ page, children, root = '../' }: { page: 'presentation' | 'brand'; children: ReactNode; root?: './' | '../' }) {
+  useEffect(() => {
+    if (!location.hash) return
+    let id: string
+    try { id = decodeURIComponent(location.hash.slice(1)) } catch { return }
+    // Sections appear after the asynchronous page entry has loaded.
+    document.getElementById(id)?.scrollIntoView({ behavior: 'instant' })
+  }, [])
   return (
     <div className="brand-page">
       <a className="skip-link" href="#content">Ir al contenido</a>
