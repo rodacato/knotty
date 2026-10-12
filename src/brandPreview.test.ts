@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, fstatSync, mkdtempSync, openSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -13,12 +13,16 @@ describe('standalone brand preview files', () => {
     try {
       expect(result.status).toBe(0)
       expect(target).toBeTruthy()
-      expect(statSync(target!).mode & 0o777).toBe(0o700)
       for (const name of ['presentacion', 'marca']) {
-        const file = join(target!, `${name}.html`)
-        expect(statSync(file).mode & 0o777).toBe(0o600)
-        expect(readFileSync(file, 'utf8')).toContain('lang="es-MX"')
+        const file = openSync(join(target!, `${name}.html`), constants.O_RDONLY | constants.O_NOFOLLOW)
+        try {
+          expect(readFileSync(file, 'utf8')).toContain('lang="es-MX"')
+          expect(fstatSync(file).mode & 0o777).toBe(0o600)
+        } finally {
+          closeSync(file)
+        }
       }
+      expect(statSync(target!).mode & 0o777).toBe(0o700)
     } finally {
       if (target) rmSync(target, { recursive: true })
     }
