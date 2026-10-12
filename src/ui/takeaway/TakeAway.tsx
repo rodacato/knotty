@@ -130,7 +130,7 @@ export function TakeAway({ state }: { state: DesignState }) {
 
   return (
     <div className="min-h-dvh bg-white text-[#1d1b19]">
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-white/90 px-4 py-2 backdrop-blur print:hidden">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bone/90 px-4 py-2 text-graphite backdrop-blur print:hidden">
         <Button variant="ghost" className="min-h-11 px-3" onClick={() => openTakeAway(false)}>
           <ArrowLeft weight="bold" /> Volver al Estudio
         </Button>

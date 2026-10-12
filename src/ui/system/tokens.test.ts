@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const css = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8')
-const light = declarations(/\n:root \{([^}]*)\}/.exec(css)![1])
-const dark = { ...light, ...declarations(/prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/.exec(css)![1]) }
+const dark = declarations(/\n:root \{([^}]*)\}/.exec(css)![1])
+const light = { ...dark, ...declarations(/:root\[data-theme='light'\] \{([^}]*)\}/.exec(css)![1]) }
 
 type Rgb = [number, number, number]
 
@@ -43,6 +43,12 @@ describe.each([
 
   it('keeps the on-rust label at 4.5:1 on rust', () => {
     expect(contrast(c('on-rust'), c('rust'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('keeps small labels readable on solid amber in both themes', () => {
+    const theme = declarations(/@theme \{([^}]*)\}/.exec(css)![1])
+    const label = theme['color-on-amber'].replace(/var\(--([^)]*)\)/, (_, name: string) => theme[name])
+    expect(contrast(rgb(label), c('amber'))).toBeGreaterThanOrEqual(4.5)
   })
 
   it('keeps rust text readable on paper, bone and its own 10% tint', () => {

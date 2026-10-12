@@ -1,7 +1,9 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/fraunces/full.css';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/jetbrains-mono';
+
+@custom-variant dark (&:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *));
 
 @theme {
   --font-display: 'Fraunces Variable', Georgia, serif;
@@ -24,6 +26,17 @@
   --color-birch: #e2c9a2;
   --color-pine: #d9b27c;
   --color-walnut: #6b4a2e;
+  --color-brand-ink: #2b2825;
+  --color-on-amber: var(--color-brand-ink);
+  --color-brand-paper: #f5f0e8;
+  --color-drawing-paper: #efe7da;
+  --color-drawing-grid: rgb(255 255 255 / 0.45);
+
+  --radius-emblem: 22%;
+  --radius-panel: 24px;
+  --spacing-page: clamp(20px, 4vw, 64px);
+  --spacing-section: clamp(64px, 8vw, 112px);
+  --text-brand-title: clamp(44px, 5.4vw, 80px);
 
   /* Motion: what is seen many times a day enters fast and settles without bouncing; `base` is for a change of state worth noticing. */
   --duration-fast: 150ms;
@@ -37,6 +50,31 @@
 }
 
 :root {
+  --bone: #1d1a17;
+  --kraft: #27231f;
+  --kraft-2: #332d27;
+  --graphite: #efe7da;
+  --graphite-2: #b3a896;
+  --line: rgb(239 231 218 / 0.12);
+  --amber: #d98a2b;
+  --amber-soft: rgb(217 138 43 / 0.2);
+  --rust: #e57d66;
+  --on-rust: #1d1a17;
+  --focus: #d98a2b;
+  --slate: #8aa0b3;
+  --scene-bg: #221e1a;
+  --paper: #2a2622;
+  color-scheme: dark;
+
+  /* The kraft of a base's card, leaning toward its style line; they follow the theme through the tokens they mix. */
+  --style-basic: var(--kraft);
+  --style-mid-century: color-mix(in srgb, var(--kraft) 90%, var(--rust));
+  --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
+  --style-low: color-mix(in srgb, var(--kraft) 92%, var(--slate));
+  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--amber));
+}
+
+:root[data-theme='light'] {
   --bone: #f5f0e8;
   --kraft: #ede3d3;
   --kraft-2: #e3d5bf;
@@ -59,26 +97,6 @@
   --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
   --style-low: color-mix(in srgb, var(--kraft) 86%, var(--slate));
   --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--amber));
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bone: #1d1a17;
-    --kraft: #27231f;
-    --kraft-2: #332d27;
-    --graphite: #efe7da;
-    --graphite-2: #b3a896;
-    --line: rgb(239 231 218 / 0.12);
-    --amber-soft: rgb(217 138 43 / 0.2);
-    --rust: #e57d66;
-    --on-rust: #1d1a17;
-    --focus: #d98a2b;
-    --slate: #8aa0b3;
-    --scene-bg: #221e1a;
-    --paper: #2a2622;
-    color-scheme: dark;
-    --style-low: color-mix(in srgb, var(--kraft) 92%, var(--slate));
-  }
 }
 
 /* What a caller may change about a Button: in the components layer, so a utility on the button (`px-2`, `rounded-full`, `text-base`) wins without `!`. Its 44 px of height stay on the button itself. */
@@ -115,6 +133,14 @@ body {
 .numerals {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* A warm drawing sheet inside the dark workshop. The grid is decorative, not a scale. */
+.drawing-surface {
+  background-color: var(--color-drawing-paper);
+  background-image: linear-gradient(30deg, transparent 48.5%, var(--color-drawing-grid) 49.5%, var(--color-drawing-grid) 50.5%, transparent 51.5%), linear-gradient(-30deg, transparent 48.5%, var(--color-drawing-grid) 49.5%, var(--color-drawing-grid) 50.5%, transparent 51.5%);
+  background-size: 48px 28px;
+  color: var(--color-walnut);
 }
 
 @keyframes draw {

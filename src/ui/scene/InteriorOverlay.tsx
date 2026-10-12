@@ -141,7 +141,7 @@ function CellActions({ plan, path, box, depth }: { plan: CabinetPlan; path: Cell
       </Html>
       {sides.map((side) => (
         <Html key={side} position={[at[side][0] * MM, at[side][1] * MM, z]} zIndexRange={[30, 20]} style={{ transform: SIDE_SHIFT[side] }}>
-          <button type="button" onClick={() => join(side)} aria-label={`Juntar con el hueco de ${SIDE_WORDS[side]}`} className="relative flex min-h-9 items-center gap-1 rounded-full bg-amber px-3 text-xs before:absolute before:-inset-1 before:content-[''] font-semibold whitespace-nowrap text-[#2b2825] shadow-md focus-visible:outline-2 focus-visible:outline-graphite">
+          <button type="button" onClick={() => join(side)} aria-label={`Juntar con el hueco de ${SIDE_WORDS[side]}`} className="relative flex min-h-9 items-center gap-1 rounded-full bg-amber px-3 text-xs before:absolute before:-inset-1 before:content-[''] font-semibold whitespace-nowrap text-on-amber shadow-md focus-visible:outline-2 focus-visible:outline-graphite">
             {SIDE_ARROW[side]} Juntar
           </button>
         </Html>

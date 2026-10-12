@@ -1,8 +1,8 @@
 // The app opens offline: HTML goes to the network first and hashed files are served from the cache.
 // Calls to other origins (LLM providers, SheLLM) are never cached.
 
-const CACHE = 'knotty-v2'
 const BASE = new URL('./', self.location).pathname
+const CACHE = `knotty-v3:${BASE}`
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
@@ -10,7 +10,7 @@ self.addEventListener('install', (e) => {
 })
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))))
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k === 'knotty-v1' || k === 'knotty-v2').map((k) => caches.delete(k)))))
   self.clients.claim()
 })
 
@@ -18,16 +18,25 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return
 
-  if (e.request.mode === 'navigate' || url.pathname.endsWith('catalog.json')) {
+  if (e.request.mode === 'navigate') {
+    const path = url.pathname === `${BASE}index.html` ? BASE : url.pathname
+    const document = `${url.origin}${path}`
     e.respondWith(
       fetch(e.request)
-        .then((r) => {
-          const copy = r.clone()
-          caches.open(CACHE).then((c) => c.put(e.request.mode === 'navigate' ? BASE : e.request, copy))
+        .then(async (r) => {
+          if (r.ok) await caches.open(CACHE).then((c) => c.put(document, r.clone()))
           return r
         })
-        .catch(() => caches.match(e.request.mode === 'navigate' ? BASE : e.request)),
+        .catch(async () => (await caches.match(document)) ?? new Response('Esta página todavía no está guardada para abrir sin conexión.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })),
     )
+    return
+  }
+
+  if (url.pathname.endsWith('catalog.json')) {
+    e.respondWith(fetch(e.request).then(async (r) => {
+      if (r.ok) await caches.open(CACHE).then((c) => c.put(e.request, r.clone()))
+      return r
+    }).catch(() => caches.match(e.request)))
     return
   }
 
@@ -35,10 +44,10 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then(
       (cached) =>
         cached ??
-        fetch(e.request).then((r) => {
+        fetch(e.request).then(async (r) => {
           if (r.ok) {
             const copy = r.clone()
-            caches.open(CACHE).then((c) => c.put(e.request, copy))
+            await caches.open(CACHE).then((c) => c.put(e.request, copy))
           }
           return r
         }),

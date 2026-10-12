@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -33,5 +34,6 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react(), tailwindcss(), contentSecurityPolicy()],
+  build: { rolldownOptions: { input: { app: resolve('index.html'), presentation: resolve('presentacion/index.html'), brand: resolve('marca/index.html') } } },
   server: { port: Number(process.env.PORT) || 5173 },
 }))
