@@ -4,7 +4,7 @@ import { Button } from '../system/components'
 
 type Step = 1 | 2 | 3
 
-export function MaterialsJourney({ remaining, review, materials, guide, materialSummary }: { remaining: number; review: ReactNode; materials: ReactNode; guide: ReactNode; materialSummary: string }) {
+export function MaterialsJourney({ remaining, review, materials, guide, materialSummary, guideSummary }: { remaining: number; review: ReactNode; materials: ReactNode; guide: ReactNode; materialSummary: string; guideSummary: string }) {
   const [active, setActive] = useState<Step | null>(remaining ? 1 : 2)
   const summaries = useRef(new Map<Step, HTMLElement>())
   const advance = (step: Step) => {
@@ -14,7 +14,7 @@ export function MaterialsJourney({ remaining, review, materials, guide, material
   const steps: { id: Step; title: string; summary: string; content: ReactNode; next?: string }[] = [
     { id: 1, title: 'Revisar pendientes', summary: remaining ? `${remaining} ${remaining === 1 ? 'decisión por tomar' : 'decisiones por tomar'}` : 'Sin decisiones por tomar', content: review, next: 'Continuar a materiales' },
     { id: 2, title: 'Confirmar materiales', summary: materialSummary, content: materials, next: 'Continuar a la guía' },
-    { id: 3, title: 'Obtener tu guía', summary: 'Guía para construir y cortes para la maderería', content: guide },
+    { id: 3, title: 'Obtener tu guía', summary: guideSummary, content: guide },
   ]
   return (
     <section aria-label="Pasos para preparar tu mueble" className="flex flex-col gap-3">

@@ -7,9 +7,8 @@ import { atTheYard, toolsFor, type Advice } from '../../domain/estimate/workshop
 import { outline } from '../../domain/design/slants'
 import { applySettings } from '../../domain/materials/catalog'
 import type { Way } from '../../domain/furniture/modules/guide'
-import { moduleOf } from '../../domain/furniture/modules/plan'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { currentPlan } from '../../application/useCases'
+import { assemblyPhases } from './assemblyPhases'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
@@ -98,9 +97,7 @@ export function TakeAway({ state }: { state: DesignState }) {
     const numbers = new Map(blocks.flatMap((b) => b.lines.flatMap((l) => l.ids.map((id) => [id, l.number] as const))))
     const apart = spreadApart(analysis.geo.boxes, SPREAD)
     const { trim, kerf } = effective.layout
-    // The guide is the module's, of the plan the design still is; a design with no plan, or one that left it behind, has none.
-    const { plan, diverged } = currentPlan(state)
-    const phases = (plan && !diverged ? moduleOf(plan).phases?.(plan, design) : null) ?? []
+    const phases = assemblyPhases(state)
     const shapes = new Map(design.pieces.flatMap((p): [string, Shape][] => {
       const box = analysis.geo.boxes.get(p.id)
       return box && (p.slants?.length || p.rounds?.length) ? [[p.id, { normal: p.normal, points: outline(box, p.normal, p.slants ?? [], p.rounds) }]] : []
