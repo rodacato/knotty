@@ -23,7 +23,7 @@ Check desktop and narrow screens, keyboard focus, reduced motion, direct loads, 
 node scripts/brand/verify.mjs --live
 ```
 
-For a server-free visual snapshot of the same page code, run `node scripts/brand/preview.mjs /tmp/knotty-brand-preview` and open the generated HTML. Fonts and images are embedded; downloads sit alongside it. App links point to the public app. This snapshot does not verify hosting or offline behavior.
+For a server-free visual snapshot of the same page code, run `node scripts/brand/preview.mjs` and open the generated HTML at the printed path. Each run creates a private temporary directory. An optional output directory must not already exist. Fonts and images are embedded; downloads sit alongside them. App links point to the public app. This snapshot does not verify hosting or offline behavior.
 
 ## Maintain
 
