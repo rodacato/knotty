@@ -16,6 +16,10 @@ import { Button } from '../system/components'
 import type { Offset } from '../scene/explode'
 import { wordsIn } from './words'
 import { drawDiagram, spreadApart, VIEWS, type Angle, type Diagram, type Shape } from './diagram'
+import { reviewNotes } from './reviewNotes'
+import { BeforeLeaving } from '../studio/CopyList'
+import { isDrawerPart } from '../../domain/design/schema'
+import { finishCare, finishOf } from '../../domain/materials/finishes'
 
 const INK = '#1d1b19'
 /** What was already there when a phase begins. */
@@ -85,6 +89,7 @@ export function TakeAway({ state }: { state: DesignState }) {
   const settings = useStore((s) => s.catalogSettings)
   const openTakeAway = useStore((s) => s.openTakeAway)
   const design = currentDesign(state)
+  const notes = reviewNotes(state, applySettings(catalog, settings))
   const sheet = useMemo(() => {
     const effective = applySettings(catalog, settings)
     const analysis = analyze(design, catalog)
@@ -123,18 +128,18 @@ export function TakeAway({ state }: { state: DesignState }) {
     })
     const [yard, tools] = [atTheYard(design), toolsFor(design)]
     const words = wordsIn([...blocks.flatMap((b) => b.lines.flatMap((l) => [l.names, l.banding ?? '', l.after ?? ''])), ...guide.flatMap((p) => [p.title, ...p.steps.map((s) => s.text)]), ...[...yard, ...tools].map((a) => a.text)])
-    return { guide, yard, tools, words, blocks, saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
+    return { guide, yard, tools, words, blocks, care: finishCare(finishOf(design)), saw: `${trim > 0 ? `Refilado de ${trim} mm por orilla` : 'Sin refilar'} · disco de ${kerf} mm`, drawn: (angle: Angle) => drawDiagram(analysis.geo.boxes, apart, numbers, angle, { shapes }) }
   }, [catalog, settings, design, state])
   const { height, width, depth } = design.dimensions
   const [today] = useState(() => new Date().toLocaleDateString('es-MX'))
 
   return (
     <div className="min-h-dvh bg-white text-[#1d1b19]">
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-bone/90 px-4 py-2 text-graphite backdrop-blur print:hidden">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-bone/90 px-4 py-2 text-graphite backdrop-blur print:hidden">
         <Button variant="ghost" className="min-h-11 px-3" onClick={() => openTakeAway(false)}>
           <ArrowLeft weight="bold" /> Volver al Estudio
         </Button>
-        <Button variant="primary" className="min-h-11 px-5" onClick={() => window.print()}>
+        <Button variant="primary" className="min-h-11 max-w-full px-5" onClick={() => window.print()}>
           <Printer weight="bold" /> Imprimir o guardar como PDF
         </Button>
       </div>
@@ -145,7 +150,24 @@ export function TakeAway({ state }: { state: DesignState }) {
           <p className="numerals text-sm">
             {height} × {width} × {depth} mm (alto, ancho, fondo) · Knotty · {today}
           </p>
+          <p className="text-sm">Diseño actual · versión {state.current}</p>
         </header>
+
+        {notes.length > 0 && (
+          <section role="note" className="flex flex-col gap-2 rounded-xl border-2 border-[#1d1b19] p-4 [break-inside:avoid]">
+            <h2 className="text-lg font-semibold">Pendientes de esta guía</h2>
+            <ul className="flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug">{notes.map((note) => <li key={note}>{note}</li>)}</ul>
+          </section>
+        )}
+        {sheet && sheet.guide.length === 0 && (
+          <p role="note" className="text-[15px] leading-snug">Este diseño no tiene instrucciones de armado por fases. La guía incluye la lista de corte y los diagramas de las piezas.</p>
+        )}
+        {sheet && sheet.care.length > 0 && (
+          <section role="note" className="flex flex-col gap-2 [break-inside:avoid]">
+            <h2 className="text-lg font-semibold">Cuidados del acabado</h2>
+            {sheet.care.map((line) => <p key={line.text} className="text-[15px] leading-snug">{line.text}</p>)}
+          </section>
+        )}
 
         <section role="note" className="flex gap-3 rounded-xl border-2 border-[#1d1b19] p-4 [break-inside:avoid]">
           <Warning size={24} weight="bold" className="mt-0.5 shrink-0" />
@@ -214,6 +236,7 @@ export function TakeAway({ state }: { state: DesignState }) {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 print:grid-cols-2">
             <Checklist title="Pídelo en la maderería" lines={sheet.yard} />
             <Checklist title="Lo que vas a ocupar" lines={sheet.tools} />
+            <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
           </div>
         )}
 

@@ -139,7 +139,7 @@ function rebuildError(error: RecordedError): Error {
 export function recordingProvider(inner: LLMProvider, sink: Recording, options: { catalogStamp: string }): LLMProvider {
   sink.catalogStamp = options.catalogStamp
   const wrap =
-    <R extends ExpertResponse<unknown>, A extends [unknown, AbortSignal]>(method: Method, call: (...args: A) => Promise<R>) =>
+    <R extends ExpertResponse<unknown>, A extends [unknown, AbortSignal, (() => void)?]>(method: Method, call: (...args: A) => Promise<R>) =>
     async (...args: A): Promise<R> => {
       const started = performance.now()
       const request = identity(args[0], options.catalogStamp)

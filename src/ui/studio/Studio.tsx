@@ -21,6 +21,7 @@ import type { Parts } from '../../domain/furniture/modules/parts'
 import { EditPanel } from './EditPanel'
 import { HistoryPanel } from './HistoryPanel'
 import { Materials } from './Materials'
+import { ReviewActivity } from './ReviewActivity'
 import { InvalidCanvas } from './InvalidCanvas'
 import { PieceSheet } from './PieceSheet'
 import { StatusChip } from './StatusChip'
@@ -523,10 +524,11 @@ export function Studio({ state }: { state: DesignState }) {
     <div className="flex h-dvh flex-col">
       <HistoryKeys />
       <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} />
+      {(tab !== 'materials' || editingSide || overlay || view.showsPiece) && <ReviewActivity compact />}
       {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {scene}
-          <aside className="min-h-0 border-l border-line">{panel}</aside>
+          <aside className="relative min-h-0 border-l border-line">{panel}</aside>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">

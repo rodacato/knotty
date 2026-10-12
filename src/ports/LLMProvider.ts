@@ -223,7 +223,7 @@ export interface LLMProvider {
   label: string
   reconstruct(request: ReconstructionRequest, signal: AbortSignal): Promise<ExpertResponse<ReconstructionResponse>>
   proposeAdjustment(request: AdjustmentRequest, signal: AbortSignal): Promise<ExpertResponse<AdjustmentResponse>>
-  reviewPurchase(request: ReviewRequest, signal: AbortSignal): Promise<ExpertResponse<ReviewResponse>>
+  reviewPurchase(request: ReviewRequest, signal: AbortSignal, onResponse?: () => void): Promise<ExpertResponse<ReviewResponse>>
   readPhoto(request: PhotoReadingRequest, signal: AbortSignal): Promise<ExpertResponse<PhotoReading>>
   /** Null when the provider has no skeleton step: the full design is asked for directly. */
   planDesign: ((request: ReconstructionRequest, signal: AbortSignal) => Promise<ExpertResponse<PlanResponse>>) | null

@@ -15,6 +15,26 @@ const fresh = () => createCompatible({ provider: 'shellm', host: `http://127.0.0
 afterEach(() => vi.unstubAllGlobals())
 
 describe('createCompatible', () => {
+  it('reports response activity only after review text arrives, once per stream', async () => {
+    let stream: ReadableStreamDefaultController<Uint8Array>
+    const body = new ReadableStream<Uint8Array>({ start: (controller) => void (stream = controller) })
+    vi.stubGlobal('fetch', async () => new Response(body, { headers: { 'content-type': 'text/event-stream' } }))
+    const onResponse = vi.fn<() => void>()
+    const opinion = { verdict: 'viable', summary: 'Las comprobaciones no detectaron pendientes.', problems: [], tips: [] }
+    const run = fresh().reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal, onResponse)
+    const send = (data: unknown) => stream.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`))
+    send({ choices: [{ delta: { role: 'assistant' } }] })
+    await new Promise<void>((resolve) => setImmediate(resolve))
+    expect(onResponse).not.toHaveBeenCalled()
+    const text = JSON.stringify(opinion)
+    send({ choices: [{ delta: { content: text.slice(0, 20) } }] })
+    send({ choices: [{ delta: { content: text.slice(20) }, finish_reason: 'stop' }] })
+    stream!.enqueue(new TextEncoder().encode('data: [DONE]\n\n'))
+    stream!.close()
+    expect((await run).value).toEqual(opinion)
+    expect(onResponse).toHaveBeenCalledTimes(1)
+  })
+
   it('if the host takes neither strict schemas nor images, it falls back to json_object without photos and remembers it', async () => {
     const bodies: { response_format: { type: string }; messages: { content: unknown }[] }[] = []
     const fetch = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async (_url, init) => {
