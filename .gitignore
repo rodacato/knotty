@@ -18,3 +18,8 @@ design/references/
 
 # Private evaluation data (the hard suite reads it at run time; never tracked)
 /private/
+
+# Local training datasets, run artifacts and model weights
+/training/data/
+/training/runs/
+/training/models/
