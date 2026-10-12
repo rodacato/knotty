@@ -32,7 +32,7 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  if (url.pathname.endsWith('catalog.json')) {
+  if (url.pathname.endsWith('catalog.json') || url.pathname.startsWith(`${BASE}brand/`)) {
     e.respondWith(fetch(e.request).then(async (r) => {
       if (r.ok) await caches.open(CACHE).then((c) => c.put(e.request, r.clone()))
       return r
