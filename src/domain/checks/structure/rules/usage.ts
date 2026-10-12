@@ -388,6 +388,8 @@ export const grainRule: Rule = ({ design, geo }) =>
   design.pieces.flatMap((p): Finding[] => {
     const box = geo.boxes.get(p.id)
     if (!box || p.grain !== 'width' || !GRAIN_SHOWS.has(p.role)) return []
+    // A deep shelf's short side runs between its supporting uprights: grain along it improves stiffness.
+    if (p.role === 'shelf' && p.normal === 'y' && box.x1 - box.x0 < box.z1 - box.z0) return []
     const [length, width] = faceSize(box, p.normal)
     if (length < width * ASSUMPTIONS.grainRatio) return []
     return [

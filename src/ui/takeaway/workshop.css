@@ -1,0 +1,73 @@
+.workshop-document { color-scheme: light; }
+.workshop-document h2, .workshop-document h3 { break-after: avoid; }
+.workshop-document p { orphans: 3; widows: 3; }
+.workshop-section { display: flex; flex-direction: column; gap: 0.75rem; }
+.workshop-section h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; }
+.workshop-section h3 { font-size: 1rem; font-weight: 600; }
+.workshop-section p { font-size: 0.875rem; line-height: 1.45; }
+.workshop-document table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.workshop-document th { text-align: left; border-bottom: 2px solid #1d1b19; padding: 0.4rem; }
+.workshop-document td { padding: 0.45rem; border-bottom: 1px solid #d9d2c7; vertical-align: top; }
+.workshop-document tr { break-inside: avoid; }
+.workshop-document thead { display: table-header-group; }
+.workshop-document svg { overflow: visible; }
+.workshop-document .piece-ids { font-size: 0.7rem; overflow-wrap: anywhere; }
+.export-kind { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; }
+.export-status { margin-top: 0.75rem; padding: 0.5rem 0; border-top: 2px solid; border-bottom: 1px solid; font-size: 0.9rem; font-weight: 700; }
+.export-filename { font-size: 0.7rem; overflow-wrap: anywhere; }
+.export-index { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding-block: 0.75rem; border-block: 1px solid #d9d2c7; font-size: 0.85rem; }
+.export-index a { display: inline-flex; align-items: center; min-height: 24px; text-decoration: underline; text-underline-offset: 0.2em; }
+.workshop-document a:focus-visible { outline: 2px solid #1d1b19; outline-offset: 4px; }
+.workshop-document [id] { scroll-margin-top: var(--export-scroll-margin, 6rem); }
+.sheet-layout, .machining-card { margin: 0.5rem 0; break-inside: avoid; }
+.sheet-layout svg { width: 100%; max-height: 55mm; }
+.sheet-layout figcaption { font-size: 0.8rem; margin-bottom: 0.4rem; }
+.machining-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 1rem; align-items: center; }
+.machining-grid svg { width: 100%; max-height: 70mm; }
+.machining-card { padding: 0.8rem 0; border-bottom: 1px solid #d9d2c7; }
+.machining-card p { margin-top: 0.4rem; }
+.joint-recipes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.joint-recipes article { break-inside: avoid; }
+.connection-pair + .connection-pair { margin-top: 0.4rem; }
+.joint-recipes svg { width: 110px; height: 83px; margin-block: 0.5rem; --kraft-2: #efebe4; --graphite: #1d1b19; --graphite-2: #1d1b19; }
+.sliding-section { width: 100%; max-height: 65mm; }
+.phase-check { padding: 0.6rem; background: #f5f3ef; font-size: 0.8rem; line-height: 1.4; }
+.export-footer { padding-top: 1rem; border-top: 1px solid #d9d2c7; font-size: 0.7rem; }
+.section-intro { break-inside: avoid; break-after: avoid; }
+.section-intro p { margin-top: 0.5rem; }
+@media (max-width: 560px) {
+  .export-index a { min-height: 44px; }
+  .machining-grid { grid-template-columns: 1fr; }
+  .joint-recipes { grid-template-columns: 1fr; }
+  .workshop-document table { font-size: 0.7rem; }
+  .workshop-document th, .workshop-document td { padding: 0.3rem; }
+  .workshop-document td { overflow-wrap: anywhere; }
+}
+@media print {
+  @page {
+    size: letter;
+    margin: 14mm 13mm 18mm;
+    @bottom-left { content: string(workshop-title); font-family: sans-serif; font-size: 8pt; }
+    @bottom-right { content: 'Knotty · ' counter(page) ' / ' counter(pages); font-family: sans-serif; font-size: 8pt; }
+  }
+  .workshop-document { background: white; color: #1d1b19; print-color-adjust: exact; }
+  .workshop-document h1 { string-set: workshop-title content(); }
+  .workshop-document main { gap: 6mm; }
+  .workshop-document table { font-size: 9pt; }
+  .workshop-section h2 { font-size: 17pt; }
+  .workshop-document .machining-grid { grid-template-columns: 1fr 1.25fr; }
+  .workshop-document .joint-recipes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workshop-document [role='note'] { break-inside: auto; }
+  .workshop-document a { color: #1d1b19; }
+  .export-index a { display: inline; min-height: 0; }
+  html, body, #root { background: white !important; color: #1d1b19 !important; color-scheme: only light !important; }
+  .workshop-document { min-height: auto; }
+  .workshop-document main { display: block; }
+  .workshop-document main > * + * { margin-top: 6mm; }
+  .workshop-document .workshop-section { display: block; }
+  .workshop-section > * + * { margin-top: 3mm; }
+  .workshop-section > div:first-child { break-after: avoid; }
+  #exploded, #assembly { break-before: page; }
+  .workshop-document p { break-inside: avoid; }
+  .workshop-document figure { margin-bottom: 4mm; }
+}

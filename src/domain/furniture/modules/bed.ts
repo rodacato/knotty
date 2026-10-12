@@ -1,3 +1,4 @@
+import { bedPhases } from './bedGuide'
 import { z } from 'zod'
 import { startAt, partway, endAt, ref, extent, makeJoint } from '../../design/builders'
 import { Pulls, type Extent, type FaceRef, type Design, type Joint, type Piece, type Position } from '../../design/schema'
@@ -927,6 +928,7 @@ export const bedModule: FurnitureModule<BedPlan> = {
   label: 'una cama',
   expert: { what: 'a bed (a base with or without drawers, and a headboard)' },
   build: buildBed,
+  phases: bedPhases,
   builtAsAsked: (plan, design) => drawersShort(design, plan.drawers.side === 'none' ? 0 : plan.drawers.count * (plan.drawers.side === 'both' ? 2 : 1), 'bajo esa cama'),
   describeChanges: describeBedChanges,
   // Its length and width come from the mattress; its height is the headboard's, or the base's without one.

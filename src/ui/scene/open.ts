@@ -84,7 +84,7 @@ export function opening(design: Design, boxes: Map<string, Box>): Opening {
   for (const { id, box } of sliding) {
     const out = center(box, 'z') >= center(all, 'z') ? 1 : -1
     if (sliding.some((other) => other.id !== id && overlap(other.box, box, 'x') > 0 && overlap(other.box, box, 'y') > 0 && out * (center(other.box, 'z') - center(box, 'z')) < 0)) continue
-    const beside = (edge: number, face: 'x0' | 'x1') => uprights.some((u) => Math.abs(u[face] - edge) <= CONTACT_TOLERANCE && overlap(u, box, 'y') > 0 && overlap(u, box, 'z') > 0)
+    const beside = (edge: number, face: 'x0' | 'x1') => uprights.some((u) => Math.abs(u[face] - edge) <= ASSUMPTIONS.sliding.sideClearance + CONTACT_TOLERANCE && overlap(u, box, 'y') > 0 && overlap(u, box, 'z') > 0)
     const direction = beside(box.x0, 'x1') ? 1 : beside(box.x1, 'x0') ? -1 : 0
     const distance = direction * (box.x1 - box.x0 - ASSUMPTIONS.sliding.overlap)
     offsets.set(id, [distance, 0, 0])

@@ -250,6 +250,9 @@ describe('R5 racking', () => {
       d.wallAnchored = false
       const shelfId = d.pieces.find((p) => p.role === 'shelf')!.id
       d.pieces.find((p) => p.id === shelfId)!.support = 'fixed'
+      const fixed = d.pieces.find((p) => p.id === shelfId)!
+      if (fixed.x.from?.type === 'ref') fixed.x.from.offset = 0
+      if (fixed.x.to?.type === 'ref') fixed.x.to.offset = 0
       refit(d, 'kick', 'butt-screw', true)
       for (const id of ['top', 'bottom']) refit(d, id, 'pocket-screw', false)
       refit(d, shelfId, shelf, glue)

@@ -1,8 +1,9 @@
+import { ASSUMPTIONS } from '../assumptions'
 import type { Box } from './resolve'
 import type { Cut, Design, FaceRef, Piece, Span } from './schema'
 import { lifts, slides } from './doors'
 
-// What is taken out of a board: a finger notch to open a front, grooves that make it ribbed, or the grooves sliding leaves run in. Only drawn: they change neither the size of a board nor the purchase.
+// What is taken out of a board: a finger notch, front ribs, or sliding tracks. The cuts describe machining and fit; they do not change the rectangular blank bought at the yard.
 
 /** A groove is at most a third of the board deep and never more than half of it (valores-de-referencia.md, «Profundidad de ranura»). */
 const GROOVE_DEPTH_SHARE = 1 / 3
@@ -17,7 +18,7 @@ const NOTCH_HEIGHT = 22
 /** A cut starts this far out of the board so it opens the edge instead of stopping a hair short of it. */
 const OUT = 1
 /** How much wider than its leaf a groove is cut, on each side, so the leaf runs free. */
-const GROOVE_PLAY = 1
+const GROOVE_PLAY = ASSUMPTIONS.sliding.groovePlay
 
 const isFront = (p: Piece) => p.role === 'door' || p.role === 'drawer-front'
 const span = (from: Span['from'], offset: number, length: number): Span => ({ from, offset, length })
@@ -116,7 +117,9 @@ export function withTrackGrooves(design: Design, boxes: Map<string, Box>, tracks
       const board = boxes.get(joint.b)
       if (!board) continue
       const under = (board.y0 + board.y1) / 2 < (leaf.y0 + leaf.y1) / 2
-      const y = under ? span('end', -OUT, board.y1 - leaf.y0 + OUT) : span('start', -OUT, 2 * (leaf.y1 - board.y0) + OUT)
+      // The upper track depth belongs to the joint, independent of the shortened leaf's engagement.
+      const depth = joint.depth ?? (under ? board.y1 - leaf.y0 : leaf.y1 - board.y0)
+      const y = under ? span('end', -OUT, depth + OUT) : span('start', -OUT, 2 * depth + OUT)
       cuts.set(joint.b, [...(cuts.get(joint.b) ?? []), { x: span('start', left - board.x0, right - left), y, z: span('start', leaf.z0 - board.z0 - GROOVE_PLAY, leaf.z1 - leaf.z0 + 2 * GROOVE_PLAY) }])
     }
   }

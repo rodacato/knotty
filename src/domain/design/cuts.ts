@@ -1,7 +1,7 @@
 import type { Box } from './resolve'
 import type { Cut, Span } from './schema'
 
-// Voids in a piece: boxes taken out of it. They are only drawn: the piece is still the whole board for the cut list, the purchase and the checks.
+// Machining voids in a piece. The rectangular blank remains whole for the cut list and sheet purchase.
 
 const AXES = ['x', 'y', 'z'] as const
 

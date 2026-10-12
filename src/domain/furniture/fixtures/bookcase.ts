@@ -11,7 +11,7 @@ const shelves = Array.from({ length: SHELVES }, (_, i) =>
     role: 'shelf',
     material: 'T18',
     normal: 'y',
-    x: extent(ref('side-left.x1'), ref('side-right.x0')),
+    x: extent(ref('side-left.x1', 2), ref('side-right.x0', -2)),
     y: startAt(partway('bottom.y1', 'top.y0', (i + 1) / (SHELVES + 1), (THICKNESS * (i - SHELVES)) / (SHELVES + 1))),
     z: extent(ref('back.z1'), ref('furniture.z1')),
     load: 'heavy',

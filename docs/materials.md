@@ -28,10 +28,20 @@ Progress stages are factual: local checks, waiting for the expert, then receivin
 
 ## Guide and verification
 
-The guide opens at `#takeaway`. Its existing `window.print()` action prints or saves as PDF. Numbered cuts, diagrams, lumberyard checks and available assembly phases remain connected; modules without assembly phases say so.
+The guide opens at `#takeaway`. Printing calls `window.print()`, allowing the browser to print or save as PDF. The suggested filename and document header include the saved ficha code/version, current design version, mode and date. An unknown origin stays unknown; a matching furniture name does not establish provenance.
+
+Three modes use the same resolved design: the complete guide, the lumberyard packet (cuts, purchase, sheet layout and machining), and assembly (piece identification, tools, machining, exploded views, connections, installation and phases). Cabinet, table and bed modules provide phases only while the design still matches its plan; modules without assembly phases say so. The numbered drawings show one visible example per cut-list group; individual piece IDs remain in the tables.
+
+Machining uses actual cuts, profiles and holes with local coordinates, thickness and depth. Hardware quantities and diagrams are not drilling templates: actual hardware specifications and test cuts are still required. Letter pages carry source/version/date and page numbers; internal links keep their PDF destinations without changing the application's hash route.
+
+Construction checks also run against saved geometry. Sliding leaves require extra mounting lift and wood between adjacent tracks; removable shelves keep side clearance while their pins remain connected for structure, purchasing and visualization. These nominal allowances live in `src/domain/assumptions.ts` and are explicitly marked as Knotty assumptions. A failing old design offers an explicit recalculation into a new version, preserving its origin. Diverged piece edits require manual correction.
+
+Installation distinguishes a wall cabinet hanging from the wall from furniture standing on legs or a kick with anti-tip restraint. The PDF does not infer wall material or validate a mounting system from an individual anchor's load rating.
 
 Run `npm test -- src/ui/store/review.test.ts src/ui/studio/Materials.test.ts` for lifecycle races, saved/reversible decisions, stale-review rejection, action order and preserved export warnings. Run `npm run build`, `npm run lint` and the full `npm test` suite before review.
 
 In the browser, use catalog bases or the existing furniture fixtures with an absent/synthetic provider and invented review opinions. Block non-GET requests and external connections for screenshot capture. Check one open stage/item, confirmation, undo, reload, requested-versus-applied status, material changes, final guide/copy actions, and document/panel bounds on desktop and at 320px. Advancing and undoing move focus to a visible summary.
+
+For workshop changes, run `npm test`, `npm run lint`, `npm run build` and `npm run probe -- --all`. Export all three cabinet modes and complete bed, bookcase and table guides; render every PDF page and inspect diagrams, tables, page breaks and margins in both application themes. Check mobile navigation, restoration of the document title, and recalculation of a saved zero-clearance sliding leaf. These checks validate the model and document; real material, joints and installation still need a dry assembly and physical validation.
 
 The clipboard live region needs a positioned containing block so it cannot enlarge the Studio document. Finish precautions and unknown-wall notices must survive collapsed options and exports.

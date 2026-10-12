@@ -34,7 +34,7 @@ describe('resolveGeometry', () => {
   it('carries a change of width to everything that refers to it', () => {
     const { boxes } = resolved({ ...exampleBookcase, dimensions: { ...exampleBookcase.dimensions, width: 900 } })
     expect(boxes.get('side-right')).toMatchObject({ x0: 882, x1: 900 })
-    expect(boxes.get('shelf-2')).toMatchObject({ x0: 18, x1: 882 })
+    expect(boxes.get('shelf-2')).toMatchObject({ x0: 20, x1: 880 })
   })
 
   it('takes the catalog thickness along the normal axis', () => {

@@ -1,3 +1,4 @@
+import { hangsFromWall } from '../../design/installation'
 import { roundTo, type Box } from '../../design/resolve'
 import { bounds, CONTACT_TOLERANCE, freeSpan } from '../../design/boxes'
 import type { Design } from '../../design/schema'
@@ -252,7 +253,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     limits: {},
     source: `${VALUES}#12-vuelco-y-anclaje «Mueble colgado»`,
     find: ({ design }, _, report) =>
-      design.wallAnchored ? [] : [report('critical', [], 'Una alacena de pared va colgada del muro: márcala como anclada para revisar cómo se sostiene.', {}, [{ key: 'anchor-to-wall', description: 'Colgarla del muro', data: {} }])],
+      (!hangsFromWall(design) || design.wallAnchored) ? [] : [report('critical', [], 'Una alacena de pared va colgada del muro: márcala como anclada para revisar cómo se sostiene.', {}, [{ key: 'anchor-to-wall', description: 'Colgarla del muro', data: {} }])],
   }),
   checked({
     check: 'wall-cabinet.hanging-rail',
@@ -260,7 +261,7 @@ export const CATEGORY_CONSTRAINTS: readonly CategoryConstraint[] = [
     limits: {},
     source: `${VALUES}#12-vuelco-y-anclaje «Mueble colgado»`,
     find: ({ design }, _, report) =>
-      design.pieces.some((p) => p.role === 'brace')
+      !hangsFromWall(design) || design.pieces.some((p) => p.role === 'brace')
         ? []
         : [report('recommendation', [], 'Para colgarla, conviene un listón de triplay arriba y atrás, por dentro: ahí van los tornillos al muro y no en la trasera delgada.', {}, [{ key: 'hanging-rail', description: 'Agregar un listón de colgar arriba, atrás', data: {} }])],
   }),

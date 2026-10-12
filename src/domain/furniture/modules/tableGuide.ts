@@ -107,7 +107,7 @@ export function tablePhases(plan: TablePlan, design: Design): GuidePhase[] {
       id: 'install',
       title: 'En su lugar',
       pieces: [],
-      steps: [step('Nivela el mueble donde va, en las dos direcciones.', levelled), ...(design.wallAnchored ? [step('Ánclalo al muro, como dice su ficha.', anchored)] : [])],
+      steps: [step('Nivela el mueble donde va, en las dos direcciones.', levelled), ...(design.wallAnchored ? [step('Fíjalo al muro según el sistema de instalación indicado en esta guía y la ficha del herraje.', anchored)] : [])],
     },
   ]
   const built = new Set(['prepare', 'finish', 'install'])
