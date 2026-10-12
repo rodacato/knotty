@@ -28,7 +28,7 @@ function providerFor(c: LLMConfiguration, simulatedChosen: boolean): LLMProvider
 }
 
 export async function compose(): Promise<Services> {
-  const materials = createJsonCatalog()
+  const materials = createJsonCatalog('../catalog/catalog.json')
   const catalog = await materials.load()
   const preferences = createPreferences()
   dropOldDebugLog()

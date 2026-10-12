@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process'
 const distFlag = process.argv.indexOf('--dist')
 assert(distFlag < 0 || process.argv[distFlag + 1], '--dist requires a build directory')
 const dist = resolve(distFlag < 0 ? 'dist' : process.argv[distFlag + 1])
-const pages = ['index.html', 'presentacion/index.html', 'marca/index.html']
+const pages = ['index.html', 'catalogo/index.html', 'presentacion/index.html', 'marca/index.html']
 const assets = new Set(['manifest.webmanifest', 'favicon.svg', 'sw.js', 'icon-192.png', 'icon-512.png', 'share.png'])
 const read = (file) => readFile(resolve(dist, file))
 
@@ -22,13 +22,16 @@ for (const page of pages) {
     await read(file)
     assets.add(file)
   }
-  if (page !== 'index.html') {
+  if (page !== 'index.html' && page !== 'catalogo/index.html') {
     assert(!html.includes('rel="manifest"'), `${page}: creates another install destination`)
   }
 }
 
 const manifest = JSON.parse(await read('manifest.webmanifest'))
-for (const field of ['id', 'start_url', 'scope']) assert.equal(manifest[field], './', `PWA ${field} changed`)
+for (const field of ['id', 'scope']) assert.equal(manifest[field], './', `PWA ${field} changed`)
+assert.equal(manifest.start_url, './catalogo/#estudio', 'PWA must reopen the saved studio, not the landing')
+const entryScript = (html) => /<script[^>]+src="([^"]+)"/.exec(html.toString())?.[1]
+assert.notEqual(entryScript(await read('index.html')), entryScript(await read('catalogo/index.html')), 'Landing and catalog must have separate boot entries')
 for (const icon of manifest.icons) { await read(icon.src); assets.add(icon.src) }
 
 const mark = await readFile('src/ui/system/knot.svg', 'utf8')
@@ -66,7 +69,7 @@ if (process.argv.includes('--live')) {
     assert.equal(response.status, 200, `${url}: unavailable`)
     assert(Buffer.from(await response.arrayBuffer()).equals(await read(file)), `${url}: does not match this build`)
   }
-  console.log('Published Pages verified: app, presentation, guide, PWA and downloadable assets match this build')
+  console.log('Published Pages verified: landing, catalog, presentation alias, guide, PWA and downloadable assets match this build')
 } else {
-  console.log('Brand build verified: three entries, PWA identity, canonical vectors, fonts and downloadable kit')
+  console.log('Brand build verified: four entries, PWA identity, canonical vectors, fonts and downloadable kit')
 }

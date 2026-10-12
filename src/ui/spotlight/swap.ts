@@ -18,7 +18,7 @@ const asOpened = (state: DesignState) =>
 export function swapLoss(phase: Phase, state: DesignState | null): SwapLoss | null {
   if (phase === 'analyzing') return 'analyzing'
   if (phase === 'capture') return 'capture'
-  if (phase !== 'studio' || !state) return null
+  if (!state) return null
   return asOpened(state) ? null : 'design'
 }
 

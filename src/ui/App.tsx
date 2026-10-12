@@ -11,11 +11,17 @@ import { Knot } from './system/Brand'
 import { DebugKeys } from './debug/DebugKeys'
 import { Spotlight } from './spotlight/Spotlight'
 import { useStore } from './store'
+import { connectNavigation } from './navigation/navigation'
 
 // The 3D is heavy: it loads once there is a piece of furniture to show.
 const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 const TakeAway = lazy(() => import('./takeaway/TakeAway').then((m) => ({ default: m.TakeAway })))
+
+function Navigation() {
+  useEffect(() => connectNavigation(useStore, window), [])
+  return null
+}
 
 const Loading = () => (
   <div className="grid h-full place-items-center">
@@ -72,6 +78,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
   if (!services) return <Loading />
   return (
     <ServicesContext.Provider value={services}>
+      <Navigation />
       <Screen />
       <DebugKeys />
       <Spotlight />

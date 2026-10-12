@@ -364,10 +364,12 @@ export function Studio({ state }: { state: DesignState }) {
   const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
   const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
   const [tallPanel, setTallPanel] = useState(false)
-  const [tab, setTab] = useState('chat')
+  const tab = useStore((s) => s.studioTab)
+  const setTab = useStore((s) => s.setStudioTab)
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
   // Notices, history and the selected piece take the place of the tabs, so the 3D stays in sight (D14).
-  const [overlay, setOverlay] = useState<Overlay | null>(null)
+  const overlay = useStore((s) => s.studioOverlay)
+  const setOverlay = useStore((s) => s.setStudioOverlay)
   const showOverlay = (o: Overlay | null) => {
     if (o && view.showsPiece) selectPiece(null)
     setOverlay(o)

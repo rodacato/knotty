@@ -2,10 +2,10 @@
 // Calls to other origins (LLM providers, SheLLM) are never cached.
 
 const BASE = new URL('./', self.location).pathname
-const CACHE = `knotty-v3:${BASE}`
+const CACHE = `knotty-v4:${BASE}`
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalogo/`, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
   self.skipWaiting()
 })
 
@@ -19,7 +19,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return
 
   if (e.request.mode === 'navigate') {
-    const path = url.pathname === `${BASE}index.html` ? BASE : url.pathname
+    const path = url.pathname.endsWith('/index.html') ? url.pathname.slice(0, -10) : url.pathname
     const document = `${url.origin}${path}`
     e.respondWith(
       fetch(e.request)
@@ -27,7 +27,7 @@ self.addEventListener('fetch', (e) => {
           if (r.ok) await caches.open(CACHE).then((c) => c.put(document, r.clone()))
           return r
         })
-        .catch(async () => (await caches.match(document)) ?? new Response('Esta página todavía no está guardada para abrir sin conexión.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })),
+        .catch(async () => (await caches.open(CACHE).then((c) => c.match(document))) ?? new Response('Esta página todavía no está guardada para abrir sin conexión.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })),
     )
     return
   }
@@ -36,12 +36,12 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(e.request).then(async (r) => {
       if (r.ok) await caches.open(CACHE).then((c) => c.put(e.request, r.clone()))
       return r
-    }).catch(() => caches.match(e.request)))
+    }).catch(async () => (await caches.open(CACHE).then((c) => c.match(e.request))) ?? caches.match(e.request)))
     return
   }
 
   e.respondWith(
-    caches.match(e.request).then(
+    caches.open(CACHE).then(async (c) => (await c.match(e.request)) ?? caches.match(e.request)).then(
       (cached) =>
         cached ??
         fetch(e.request).then(async (r) => {
