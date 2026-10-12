@@ -36,6 +36,8 @@ Without an API key it works in **Simulado** mode, which understands a few reques
 - `src/ui/`: React and the 3D scene.
 - `public/catalog/catalog.json`: materials, hardware and layout parameters; it is edited without touching code.
 
+The Materials review states, cancellation behavior and printable guide are documented in [docs/materials.md](docs/materials.md).
+
 `src/architecture.test.ts` checks that no layer imports what it must not.
 
 ## Brand

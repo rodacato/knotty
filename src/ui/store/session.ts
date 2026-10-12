@@ -125,7 +125,7 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
 }
 
 /** What the scene keeps about one design and must not carry into another. */
-const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null, studioTab: 'chat', studioOverlay: null } satisfies Partial<Store>
+const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null, studioTab: 'chat', studioOverlay: null, reviewing: null, reviewProgress: null, reviewNotice: null, verdictError: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
@@ -139,12 +139,14 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   takeAway: false,
 
   start(services) {
+    get().cancelReview()
     const state = services.useCases.load()
     set({ services, state, phase: state ? 'studio' : 'home', browsing: typeof location === 'undefined' ? ANY : browsingFrom(location.search), debugVisible: services.debug.visible(), reveal: state ? 1 : 0, vault: services.preferences.vaultState(), catalogSettings: services.materials.settings() })
   },
 
   newDesign() {
     get().controller?.abort()
+    get().cancelReview()
     get().services?.useCases.newDesign()
     set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
   },
@@ -170,6 +172,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   swapTo(example) {
     get().controller?.abort()
+    get().cancelReview()
     set({ mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
     get().fromExample(example)
   },
@@ -177,6 +180,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   fromExample(example) {
     const { services } = get()
     if (!services) return
+    get().cancelReview()
     set((s) => opened(s, services.useCases.openExample(example)))
   },
 

@@ -61,7 +61,7 @@ function postBlocked(c: Pick<CompatibleConnection, 'host'> & { provider?: Compat
   return `${name} responde, pero el navegador no pudo mandarle el pedido${kb ? ` (${kb} KB)` : ''}. Suele ser CORS del POST: que permita las cabeceras Content-Type y Authorization desde ${typeof location === 'undefined' ? 'este sitio' : location.origin}. Si hay un proxy o túnel enfrente, revisa también su límite de tamaño y de tiempo.`
 }
 
-async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider?: CompatibleConnection['provider'] }, route: string, init: RequestInit = {}) {
+async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider?: CompatibleConnection['provider'] }, route: string, init: RequestInit = {}, onResponse?: () => void) {
   let response: Response
   const limit = AbortSignal.timeout(LIMIT_MS)
   const start = Date.now()
@@ -85,7 +85,10 @@ async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider
   if (response.status === 404) throw new Error('El modelo o la ruta no existen en ese host.')
   if (!response.ok) throw new Refusal(response.status, await response.text())
   try {
-    return (response.headers.get('content-type') ?? '').includes('text/event-stream') ? await readStream(response) : await response.json()
+    if ((response.headers.get('content-type') ?? '').includes('text/event-stream')) return await readStream(response, onResponse)
+    const completed = await response.json()
+    onResponse?.()
+    return completed
   } catch (e) {
     // The connection can also drop mid-stream: it is explained as if it had not started.
     if (limit.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMIT_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
@@ -95,7 +98,7 @@ async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider
 }
 
 /** Puts the pieces of a chat/completions SSE stream together in the shape of a whole answer. */
-async function readStream(response: Response): Promise<Completed> {
+async function readStream(response: Response, onResponse?: () => void): Promise<Completed> {
   const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader()
   let pending = ''
   let content = ''
@@ -121,6 +124,7 @@ async function readStream(response: Response): Promise<Completed> {
         throw new Error(`El proveedor cortó la respuesta: ${detail}`)
       }
       const choice = event.choices?.[0]
+      if (!content && choice?.delta?.content) onResponse?.()
       content += choice?.delta?.content ?? ''
       refusal += choice?.delta?.refusal ?? ''
       end = choice?.finish_reason ?? end
@@ -213,7 +217,7 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
   const transport: Transport = {
     provider: c.provider,
     model: c.model,
-    async completeJSON(system, content, schema, name, signal) {
+    async completeJSON(system, content, schema, name, signal, onResponse) {
       for (;;) {
         const { schema: withSchema, images, stream, reasoning } = can()
         const photos = content.filter((x) => x.kind === 'image').length
@@ -240,7 +244,7 @@ export function createCompatible(c: CompatibleConnection): LLMProvider {
               // Filling in JSON with a schema needs little thinking: long reasoning is most of the time and the cost.
               ...(reasoning ? { reasoning_effort: 'low' } : {}),
             }),
-          })) as Completed
+          }, onResponse)) as Completed
           const choice = r.choices?.[0]
           if (choice?.message?.refusal) throw new Error(`El modelo se negó: ${choice.message.refusal}`)
           if (choice?.finish_reason === 'length') throw new Error('La respuesta se cortó por el límite de tokens.')

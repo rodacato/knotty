@@ -17,17 +17,17 @@ export function CopyList({ text, variant = 'secondary' }: { text: string; varian
     }
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="relative flex flex-col gap-2">
       <Button variant={variant} className="self-start" onClick={() => void copy()}>
         {state === 'copied' ? <Check weight="bold" /> : <Copy />} {copyLabel(state)}
       </Button>
       <span className="sr-only" aria-live="polite">
-        {state === 'copied' ? copyLabel(state) : ''}
+        {state === 'copied' ? copyLabel(state) : state === 'failed' ? 'No se pudo copiar automáticamente. La lista está disponible abajo para copiarla manualmente.' : ''}
       </span>
       {state === 'failed' && (
         <>
           <p className="text-sm text-graphite">Copia el texto y pégalo en WhatsApp.</p>
-          <TextArea readOnly rows={8} value={text} aria-label="Lista de corte" onFocus={(e) => e.target.select()} className="w-full" />
+          <TextArea autoFocus readOnly rows={8} value={text} aria-label="Lista para copiar manualmente" onFocus={(e) => e.target.select()} className="w-full" />
         </>
       )}
     </div>
@@ -38,7 +38,7 @@ export function BeforeLeaving({ hasDrawer }: { hasDrawer: boolean }) {
   return (
     <div className="flex flex-col gap-1 text-sm">
       <p className="font-medium">Antes de irte de la maderería</p>
-      <ol className="flex list-decimal flex-col gap-1 pl-5 text-graphite">
+      <ol className="flex list-decimal flex-col gap-1 pl-5">
         {beforeLeaving(hasDrawer).map((step) => (
           <li key={step}>{step}</li>
         ))}

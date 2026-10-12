@@ -32,7 +32,7 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
   const transport: Transport = {
     provider: 'anthropic',
     model: model,
-    async completeJSON(system, content, schema, _name, signal) {
+    async completeJSON(system, content, schema, _name, signal, onResponse) {
       try {
         const stream = (await client(apiKey)).beta.messages.stream(
           {
@@ -45,6 +45,7 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
           },
           { signal },
         )
+        if (onResponse) stream.once('text', onResponse)
         const final = await stream.finalMessage()
         if (final.stop_reason === 'refusal') throw new Error('El modelo se negó a responder esta petición.')
         if (final.stop_reason === 'max_tokens') throw new Error('La respuesta se cortó por el límite de tokens.')

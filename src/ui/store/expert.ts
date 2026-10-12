@@ -9,6 +9,7 @@ import { markAnswered, type DesignState, type Message, type Thumbnail } from '..
 import type { Photo } from '../../ports/LLMProvider'
 import { moveTo } from './scene'
 import type { Get, Set, Slice } from './types'
+import { reviewSignature, type ReviewStage } from '../../application/useCases/review'
 
 // Every call to the expert: what it is doing, how to cancel or retry it, and what failed.
 
@@ -38,6 +39,8 @@ export interface ExpertSlice {
   controller: AbortController | null
   /** The carpenter is reviewing the purchase; it runs apart from the chat so as not to block it. */
   reviewing: AbortController | null
+  reviewProgress: { stage: ReviewStage; startedAt: number; version: number; signature: string } | null
+  reviewNotice: string | null
   verdictError: string | null
 
   reconstruct(input: CaptureInput): Promise<void>
@@ -78,15 +81,18 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
   draft: null,
   controller: null,
   reviewing: null,
+  reviewProgress: null,
+  reviewNotice: null,
   verdictError: null,
 
   async reconstruct(input) {
     const { services } = get()
     if (!services) return
+    get().cancelReview()
     const controller = new AbortController()
     const first = { name: input.photos.length ? ('reading-photos' as const) : ('designing' as const), attempt: 0 }
     const startedAt = Date.now()
-    set({ phase: 'analyzing', controller, stage: first, stageLog: recordStage([], first, startedAt), waitStartedAt: startedAt, reconstructionError: null, draft: input })
+    set({ phase: 'analyzing', controller, stage: first, stageLog: recordStage([], first, startedAt), waitStartedAt: startedAt, reconstructionError: null, draft: input, reviewNotice: null, verdictError: null })
     // A retry orphans the previous request: whatever it answers no longer counts.
     const isCurrent = () => get().controller === controller
     try {
@@ -136,18 +142,32 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
 
   async review() {
     const { services, state, catalogSettings, reviewing } = get()
-    if (!services || !state || reviewing) return
+    if (!services || !state || reviewing || get().thinking) return
     const controller = new AbortController()
-    set({ reviewing: controller, verdictError: null })
+    const catalog = applySettings(services.catalog, catalogSettings)
+    const signature = reviewSignature(state, catalog)
+    const startedAt = Date.now()
+    const progress = { startedAt, version: state.current, signature }
+    const isCurrent = () => get().reviewing === controller && !controller.signal.aborted
+    set({ reviewing: controller, reviewProgress: { ...progress, stage: 'checking' }, reviewNotice: null, verdictError: null })
     try {
-      const verdict = await services.useCases.reviewPurchase(state, applySettings(services.catalog, catalogSettings), controller.signal)
-      // If the design changed meanwhile, its signature no longer matches and it shows as stale.
-      const isCurrent = get().state
-      set({ state: isCurrent ? services.useCases.saveReview(isCurrent, verdict) : null, reviewing: null })
+      const verdict = await services.useCases.reviewPurchase(state, catalog, controller.signal, (stage) => {
+        if (isCurrent()) set({ reviewProgress: { ...progress, stage } })
+      })
+      if (!isCurrent()) return
+      const current = get()
+      if (!current.state || signature !== reviewSignature(current.state, applySettings(services.catalog, current.catalogSettings))) return get().cancelReview()
+      set({ state: services.useCases.saveReview(current.state, verdict), reviewing: null, reviewProgress: null })
     } catch (e) {
-      set({ reviewing: null, verdictError: controller.signal.aborted ? null : e instanceof Error ? e.message : 'No se pudo revisar la compra.' })
+      if (!isCurrent()) return
+      set({ reviewing: null, reviewProgress: null, verdictError: e instanceof Error ? e.message : 'No se pudo revisar la compra.' })
     }
   },
 
-  cancelReview: () => get().reviewing?.abort(),
+  cancelReview() {
+    const controller = get().reviewing
+    if (!controller) return
+    set({ reviewing: null, reviewProgress: null, verdictError: null, reviewNotice: 'Cancelaste la revisión. Puedes iniciarla otra vez cuando quieras.' })
+    controller.abort()
+  },
 })

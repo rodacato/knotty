@@ -30,7 +30,7 @@ export type Content = { kind: 'text'; text: string } | { kind: 'image'; base64: 
 export interface Transport {
   provider: string
   model: string
-  completeJSON(system: string, content: Content[], schema: Record<string, unknown>, name: string, signal: AbortSignal): Promise<{ json: unknown; usage: Usage; warnings?: string[] }>
+  completeJSON(system: string, content: Content[], schema: Record<string, unknown>, name: string, signal: AbortSignal, onResponse?: () => void): Promise<{ json: unknown; usage: Usage; warnings?: string[] }>
 }
 
 const RECONSTRUCTION_SCHEMA = strictSchema(ReconstructionResponse)
@@ -144,9 +144,9 @@ export function createExpert(t: Transport, label: string): LLMProvider {
       const { json, usage, warnings } = await t.completeJSON(render(prompt, null), content, READING_SCHEMA, 'photo_reading', signal)
       return { value: validate(PhotoReading, json), origin: { promptId: prompt.id, provider: t.provider, model: t.model }, usage, warnings }
     },
-    async reviewPurchase(s: ReviewRequest, signal) {
+    async reviewPurchase(s: ReviewRequest, signal, onResponse) {
       const content: Content[] = [{ kind: 'text', text: `${s.context}\n\n${s.review}` }]
-      const { json, usage, warnings } = await t.completeJSON(systemFor(PURCHASE_REVIEW, s.catalog, s.knowledge), content, REVIEW_SCHEMA, 'purchase_review', signal)
+      const { json, usage, warnings } = await t.completeJSON(systemFor(PURCHASE_REVIEW, s.catalog, s.knowledge), content, REVIEW_SCHEMA, 'purchase_review', signal, onResponse)
       return { value: validate(ReviewResponse, json), origin: { promptId: promptIdOf(PURCHASE_REVIEW, s.knowledge), provider: t.provider, model: t.model }, usage, warnings }
     },
   }

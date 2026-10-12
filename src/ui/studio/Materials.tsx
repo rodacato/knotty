@@ -16,7 +16,7 @@ import type { DesignState } from '../../domain/session/state'
 import { EDGE_LABEL, profiledEdges } from '../../domain/design/edges'
 import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { hasRouter } from '../../domain/materials/tools'
-import { Button, Title } from '../system/components'
+import { Button } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
@@ -28,6 +28,7 @@ import { lineNumbers } from './copyListLabels'
 import { CutList } from './CutList'
 import { sheetLabels } from './sheetLabels'
 import { finishCounted, leftOut, sheetsHeading, totalCovers } from './totalSummary'
+import { reviewNotes } from '../takeaway/reviewNotes'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
@@ -120,7 +121,7 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
           </span>
         )}
       </figcaption>
-      <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="drawing-sheet w-full rounded-md border border-line" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
+      <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="drawing-sheet w-full rounded-md border border-line" role="group" aria-label={`Acomodo de la hoja ${index + 1}`}>
         <defs>
           <pattern id={pattern} width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="40" stroke="var(--graphite-2)" strokeOpacity="0.25" strokeWidth="6" />
@@ -138,9 +139,22 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
           const labels = { name: full.name ?? short, size: full.size }
           const cx = trim + c.x + c.w / 2
           return (
-            <g key={c.id} onClick={() => select(c.id)} className="cursor-pointer">
+            <g
+              key={c.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Ver ${named} en 3D · ${size} mm`}
+              aria-pressed={active}
+              onClick={() => select(c.id)}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return
+                event.preventDefault()
+                select(c.id)
+              }}
+              className="cursor-pointer focus-visible:outline-2 focus-visible:outline-focus"
+            >
               <title>{`${named} · ${size}`}</title>
-              <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity="0.6" strokeWidth="5" />
+              <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity={active ? 1 : 0.6} strokeWidth={active ? 12 : 5} />
               {(labels.name || labels.size) && (
                 <text x={cx} y={trim + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fill="#2b2825">
                   {labels.name && (
@@ -172,8 +186,9 @@ function CutSettings({ base }: { base: LayoutSettings }) {
   return (
     <details className="text-sm">
       <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg font-medium">
-        <Sliders /> Ajustes de corte
+        <Sliders /> Opciones de la maderería
       </summary>
+      <p className="mb-2 text-xs leading-relaxed text-graphite-2">Usa los valores del catálogo, salvo que tu maderería indique otros. Cambiarlos recalcula las hojas y requiere otra revisión.</p>
       <div className="mt-1 grid grid-cols-3 gap-2">
         {keys.map((key) => (
           <Field
@@ -242,6 +257,7 @@ function WallQuestion({ design, anchoring }: { design: Design; anchoring: Anchor
   const choose = useStore((s) => s.chooseWall)
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-line bg-paper p-3">
+      {wallOf(design) === 'unknown' && <p className="text-xs font-medium text-rust">Dato pendiente: anclajes al muro</p>}
       <p className="text-sm font-medium">¿De qué es el muro donde va?</p>
       <RadioGroup label="Tipo de muro" className="flex flex-wrap gap-1.5">
         {WALLS.map((wall) => (
@@ -253,6 +269,7 @@ function WallQuestion({ design, anchoring }: { design: Design; anchoring: Anchor
       <p role="note" className="text-[13px] leading-snug text-graphite">
         {anchoringAdvice(anchoring)}
       </p>
+      {wallOf(design) === 'unknown' && <p className="text-xs text-graphite-2">Si no lo sabes, puedes consultar la guía. La lista aún no incluye los taquetes para ese muro; confirma cuáles corresponden antes de comprarlos.</p>}
     </div>
   )
 }
@@ -264,80 +281,89 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   const chosen = FINISHES[finishOf(design)]
   const care = finishCare(finishOf(design))
   return (
-    <section className="flex flex-col gap-3">
-      <Title className="text-lg">Acabado</Title>
-      <RadioGroup label="Acabado" className="flex flex-wrap gap-1.5">
-        {FINISH_IDS.map((id) => (
-          <RadioCard key={id} variant="pill" checked={finishOf(design) === id} onChange={() => choose(id)} className="px-3 py-1.5 text-xs">
-            {FINISHES[id].name}
-          </RadioCard>
-        ))}
-      </RadioGroup>
-      <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
+    <>
+      <details className="border-t border-line pt-2">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium">Acabado: {chosen.name} · Cambiar y ver insumos</summary>
+        <div className="flex flex-col gap-3 pt-2">
+          <RadioGroup label="Acabado" className="flex flex-wrap gap-1.5">
+            {FINISH_IDS.map((id) => (
+              <RadioCard key={id} variant="pill" checked={finishOf(design) === id} onChange={() => choose(id)} className="px-3 py-1.5 text-xs">
+                {FINISHES[id].name}
+              </RadioCard>
+            ))}
+          </RadioGroup>
+          <p className="text-sm leading-relaxed text-graphite">{chosen.advice}</p>
+          <ProfiledEdges design={design} geo={geo} />
+          {finish && (
+            <ul className="flex flex-col divide-y divide-line border-b border-line">
+              <li className="py-3 text-xs leading-relaxed text-graphite">
+                <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no){design.pieces.some((p) => p.edges.length) ? ' y los cantos con cubrecanto' : ''}. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
+              </li>
+              {finish.lines.map((l) => {
+                const product = FINISH_PRODUCTS[l.product]
+                const { touch, recoat, use } = product.drying
+                const drying = [touch && `tacto ${touch}`, recoat && `entre manos ${recoat}`, use && `uso ${use}`].filter(Boolean).join(' · ')
+                return (
+                  <li key={l.product} className="flex flex-col gap-2 py-3">
+                    <div className="flex items-start gap-3">
+                      <span className="numerals min-w-12 shrink-0 text-sm font-medium">{l.litres === null ? '¿?' : `${decimal(l.litres)} L`}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm">
+                          {product.name} <span className="text-graphite-2">({product.example})</span>
+                        </span>
+                        <span className="block text-xs text-graphite-2">{coatsOf(FINISHES[finish.finish].layers.filter((x) => x.product === l.product))}</span>
+                        {drying && <span className="block text-xs text-graphite-2">Secado: {drying}</span>}
+                        {l.litres === null && <span className="block text-xs text-rust">La referencia no da su rendimiento en m² por litro: pregunta en la tienda cuánto llevar.</span>}
+                      </span>
+                    </div>
+                    {l.containers.map((c) => (
+                      <div key={c.sku.id} className="flex items-center gap-3 pl-15">
+                        <span className="min-w-0 flex-1 text-xs">
+                          {c.count} × {c.sku.name}
+                        </span>
+                        <span className="flex flex-col items-end">
+                          <span className="numerals text-sm">{c.sku.price === null ? '—' : `${c.sku.id in settings.prices ? '' : '~'}${weights.format(c.sku.price * c.count)}`}</span>
+                          <Price id={c.sku.id} value={c.sku.price} base={base(c.sku.id)} unit="c/u" />
+                        </span>
+                      </div>
+                    ))}
+                  </li>
+                )
+              })}
+              {finish.sandpaper.length > 0 && (
+                <li className="py-3 text-sm">
+                  Lija grano {finish.sandpaper.join(', ').replace(/, (\d+)$/, ' y $1')}
+                  <span className="block text-xs text-graphite">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
+                </li>
+              )}
+            </ul>
+          )}
+        </div>
+      </details>
       {care.length > 0 && (
-        <div role="note" aria-label="Cuidados" className="flex flex-col gap-1.5 rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
-          {care.map((line) => (
-            <p key={line.text}>{line.text}</p>
-          ))}
+        <div role="note" aria-label="Cuidados del acabado" className="flex flex-col gap-1.5 rounded-xl border border-line bg-paper p-3 text-[13px] leading-snug">
+          {care.map((line) => <p key={line.text}>{line.text}</p>)}
         </div>
       )}
-      <ProfiledEdges design={design} geo={geo} />
-      {finish && (
-        <ul className="flex flex-col divide-y divide-line border-b border-line">
-          <li className="py-3 text-xs leading-relaxed text-graphite">
-            <span className="numerals font-medium text-graphite">{decimal(finish.area)} m²</span> por acabar: las dos caras de cada pieza (la de la trasera que va al muro no){design.pieces.some((p) => p.edges.length) ? ' y los cantos con cubrecanto' : ''}. Litros = área × manos ÷ (rendimiento de la ficha × {COVERAGE_EFFICIENCY}).
-          </li>
-          {finish.lines.map((l) => {
-            const product = FINISH_PRODUCTS[l.product]
-            const { touch, recoat, use } = product.drying
-            const drying = [touch && `tacto ${touch}`, recoat && `entre manos ${recoat}`, use && `uso ${use}`].filter(Boolean).join(' · ')
-            return (
-              <li key={l.product} className="flex flex-col gap-2 py-3">
-                <div className="flex items-start gap-3">
-                  <span className="numerals min-w-12 shrink-0 text-sm font-medium">{l.litres === null ? '¿?' : `${decimal(l.litres)} L`}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm">
-                      {product.name} <span className="text-graphite-2">({product.example})</span>
-                    </span>
-                    <span className="block text-xs text-graphite-2">{coatsOf(FINISHES[finish.finish].layers.filter((x) => x.product === l.product))}</span>
-                    {drying && <span className="block text-xs text-graphite-2">Secado: {drying}</span>}
-                    {l.litres === null && <span className="block text-xs text-rust">La referencia no da su rendimiento en m² por litro: pregunta en la tienda cuánto llevar.</span>}
-                  </span>
-                </div>
-                {l.containers.map((c) => (
-                  <div key={c.sku.id} className="flex items-center gap-3 pl-15">
-                    <span className="min-w-0 flex-1 text-xs">
-                      {c.count} × {c.sku.name}
-                    </span>
-                    <span className="flex flex-col items-end">
-                      <span className="numerals text-sm">{c.sku.price === null ? '—' : `${c.sku.id in settings.prices ? '' : '~'}${weights.format(c.sku.price * c.count)}`}</span>
-                      <Price id={c.sku.id} value={c.sku.price} base={base(c.sku.id)} unit="c/u" />
-                    </span>
-                  </div>
-                ))}
-              </li>
-            )
-          })}
-          {finish.sandpaper.length > 0 && (
-            <li className="py-3 text-sm">
-              Lija grano {finish.sandpaper.join(', ').replace(/, (\d+)$/, ' y $1')}
-              <span className="block text-xs text-graphite">La referencia no dice cuántos pliegos por m²: calcula al comprar.</span>
-            </li>
-          )}
-        </ul>
-      )}
-    </section>
+    </>
   )
 }
 
 export function Materials({ state, design, geo, catalog, instead, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; instead: string | null; onRequest: (text: string) => void }) {
   const settings = useStore((s) => s.catalogSettings)
   const openTakeAway = useStore((s) => s.openTakeAway)
+  const reviewing = useStore((s) => s.reviewing)
+  const reviewNotice = useStore((s) => s.reviewNotice)
+  const verdictError = useStore((s) => s.verdictError)
   const effective = useMemo(() => applySettings(catalog, settings), [catalog, settings])
   const purchase = useMemo(() => estimatePurchase(design, geo, effective), [design, geo, effective])
   const blocks = useMemo(() => counterLines(design, geo, purchase), [design, geo, purchase])
   const numbers = useMemo(() => lineNumbers(blocks), [blocks])
-  const message = useMemo(() => counterList(design, geo, purchase, effective.layout), [design, geo, purchase, effective])
+  const message = useMemo(() => {
+    const notes = reviewNotes(state, effective)
+    const list = counterList(design, geo, purchase, effective.layout)
+    return notes.length ? `${notes.join('\n')}\n\n${list}` : list
+  }, [state, design, geo, purchase, effective])
   const anchor = useMemo(() => heldByAnchor(design, geo, catalog), [design, geo, catalog])
   const [anyway, setAnyway] = useState<string | null>(null)
   const base = (id: string) => [...catalog.materials, ...catalog.hardware, ...catalog.finishes].find((x) => x.id === id)?.price ?? null
@@ -357,7 +383,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const cost = (
     <section className="flex flex-col gap-1 border-b border-line pb-4">
       <p className="text-sm text-graphite-2">Costo aproximado</p>
-      <p className="font-display text-4xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
+      <p className={`font-display font-semibold tracking-tight [font-variation-settings:'opsz'_96] ${verdict && verdict.verdict !== 'viable' ? 'text-2xl' : 'text-4xl'}`}>
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>
@@ -368,9 +394,9 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   )
 
   // The total shows before the review (UI-16); the shopping list only after it, and if it is not viable it has to be asked for on purpose.
-  if (!verdict)
+  if (!verdict || reviewing)
     return (
-      <div className="flex flex-col gap-4 p-4">
+      <div className="relative flex flex-col gap-4 p-4">
         {whose}
         {cost}
         <ReviewGate stale={state.review !== null} />
@@ -379,7 +405,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     )
   if (verdict.verdict === 'not-viable' && anyway !== verdict.signature)
     return (
-      <div className="flex flex-col gap-4 p-4">
+      <div className="relative flex flex-col gap-4 p-4">
         {whose}
         {cost}
         <VerdictCard verdict={verdict} design={design} onRequest={onRequest} />
@@ -394,23 +420,33 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     )
 
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="relative flex flex-col gap-5 p-4">
       {whose}
       {cost}
+      {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
+      {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
       <VerdictCard verdict={verdict} design={design} onRequest={onRequest}>
-        <CopyList text={message} variant="primary" />
-        <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
+        {design.wallAnchored && (wallOf(design) === 'unknown' ? <WallQuestion design={design} anchoring={purchase.anchoring} /> : (
+          <details className="border-t border-line pt-2">
+            <summary className="min-h-11 cursor-pointer text-sm font-medium">Muro: {WALL_LABELS[wallOf(design)]} · Cambiar</summary>
+            <WallQuestion design={design} anchoring={purchase.anchoring} />
+          </details>
+        ))}
+        <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3" aria-label="Guía y lista para llevar">
+          {verdict.verdict === 'viable' && <p className="text-xs font-medium text-graphite-2">Siguiente paso</p>}
+          {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
+          <Button variant={verdict.verdict === 'viable' ? 'primary' : 'secondary'} className="self-start px-4" onClick={() => openTakeAway(true)}>
+            <Printer weight="bold" /> Ver guía para construir
+          </Button>
+          <p className="text-xs leading-relaxed text-graphite-2">Piezas numeradas, diagramas y recomendaciones. Desde la guía puedes imprimir o guardar como PDF.</p>
+          <CopyList text={message} />
+          <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
+        </section>
       </VerdictCard>
 
-      <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3">
-        <p className="text-sm">Antes de cortar, revisa la lista de corte con cada pieza por nombre y un diagrama numerado. Se imprime o se guarda como PDF, para ti o para enseñársela a un carpintero.</p>
-        <Button variant="secondary" className="min-h-11 self-start px-4" onClick={() => openTakeAway(true)}>
-          <Printer weight="bold" /> Hoja para llevar
-        </Button>
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <Title className="text-lg">{sheetsHeading(onlyPlywood)}</Title>
+      <details className="border-t border-line pt-2">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium">{sheetsHeading(onlyPlywood)} · {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'}</summary>
+        <div className="flex flex-col gap-3 pt-2">
         <div className="flex flex-col divide-y divide-line border-b border-line">
         {purchase.sheets.map((h) => {
           const a = purchase.layout.find((x) => x.material === h.material.id)!
@@ -441,11 +477,11 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
           {catalog.priceNote} Toca cualquier precio para poner el de tu tienda
           {own > 0 ? `; ya pusiste ${own === 1 ? 'uno' : own}.` : '.'} Las cantidades son para comprar, no un plano de corte.        </p>
         <CutSettings base={catalog.layout} />
-      </section>
+        </div>
+      </details>
 
-      <section className="flex flex-col gap-3">
-        <Title className="text-lg">Herrajes y consumibles</Title>
-        {design.wallAnchored && <WallQuestion design={design} anchoring={purchase.anchoring} />}
+      <details className="border-t border-line pt-2">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium">Herrajes y consumibles</summary>
         <ul className="flex flex-col divide-y divide-line border-b border-line">
           {purchase.hardware.map((r) => (
             <li key={r.hardware.id} className="flex items-center gap-3 py-3">
@@ -473,17 +509,20 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
             </li>
           ))}
         </ul>
-      </section>
+      </details>
 
       <FinishSection design={design} geo={geo} finish={purchase.finish} base={base} />
 
-      <section className="-mx-4 flex flex-col">
-        <div className="flex flex-col gap-3 px-4">
-          <Title className="text-lg">Lista de corte</Title>
-          <CopyList text={message} />
+      <details className="border-t border-line pt-2">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium">Lista de corte · {design.pieces.length} piezas</summary>
+        <div className="-mx-4">
+          <CutList blocks={blocks} />
         </div>
-        <CutList blocks={blocks} />
-      </section>
+      </details>
+      <details className="border-t border-line pt-2">
+        <summary className="min-h-11 cursor-pointer text-sm font-medium">Qué revisar al recoger tus cortes</summary>
+        <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
+      </details>
     </div>
   )
 }

@@ -14,6 +14,8 @@ import { ExpertError } from './expertCall'
 import { reviewText } from './forExpert'
 import type { Kit } from './kit'
 
+export type ReviewStage = 'checking' | 'waiting' | 'receiving'
+
 /** A short, stable fingerprint of a text (FNV-1a plus its length). */
 function fingerprint(text: string) {
   let hash = 0x811c9dc5
@@ -41,7 +43,9 @@ export function createReview(kit: Kit) {
   const { catalog, now, save } = kit
 
   /** The arithmetic first, then the carpenter; if it does not answer, the review stands on the arithmetic alone. */
-  async function reviewPurchase(state: DesignState, effectiveCatalog: Catalog, signal: AbortSignal): Promise<PurchaseReview> {
+  async function reviewPurchase(state: DesignState, effectiveCatalog: Catalog, signal: AbortSignal, onProgress?: (stage: ReviewStage) => void): Promise<PurchaseReview> {
+    signal.throwIfAborted()
+    onProgress?.('checking')
     const design = currentDesign(state)
     const analysis = analyze(design, catalog)
     if (!analysis.valid) throw new ExpertError(`El diseño tiene errores y no se puede revisar la compra: ${analysis.errors[0].message}`)
@@ -59,6 +63,7 @@ export function createReview(kit: Kit) {
     const base = { signature: reviewSignature(state, effectiveCatalog), checks: viability.checks, date: now() }
     if (kit.llm().id === NO_EXPERT) return { ...base, verdict: viability.verdict, carpenter: null, error: null }
     try {
+      onProgress?.('waiting')
       const r = await kit.llm().reviewPurchase(
         {
           context: buildContext(state, catalog),
@@ -69,7 +74,9 @@ export function createReview(kit: Kit) {
           knowledge: knowledgeFor(state, kit.toolLevel(), 'review'),
         },
         signal,
+        () => !signal.aborted && onProgress?.('receiving'),
       )
+      signal.throwIfAborted()
       return { ...base, verdict: worst(viability.verdict, r.value.verdict), carpenter: { ...r.value, origin: r.origin }, error: null }
     } catch (e) {
       if (signal.aborted) throw e
@@ -77,7 +84,7 @@ export function createReview(kit: Kit) {
     }
   }
 
-  /** Saved over the current state: the design may have changed while the carpenter was reviewing. */
+  /** The caller confirms the run and design still match before saving. */
   const saveReview = (state: DesignState, review: PurchaseReview) => save({ ...state, review: review })
 
   return { reviewPurchase, saveReview }
