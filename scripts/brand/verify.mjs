@@ -6,8 +6,8 @@ import { execFileSync } from 'node:child_process'
 const distFlag = process.argv.indexOf('--dist')
 assert(distFlag < 0 || process.argv[distFlag + 1], '--dist requires a build directory')
 const dist = resolve(distFlag < 0 ? 'dist' : process.argv[distFlag + 1])
-const pages = ['index.html', 'catalogo/index.html', 'presentacion/index.html', 'marca/index.html']
-const assets = new Set(['manifest.webmanifest', 'favicon.svg', 'sw.js', 'icon-192.png', 'icon-512.png', 'share.png'])
+const pages = ['index.html', 'catalog/index.html', 'presentacion/index.html', 'marca/index.html']
+const assets = new Set(['manifest.webmanifest', 'favicon.svg', 'sw.js', 'icon-192.png', 'icon-512.png', 'share.png', 'catalog/catalog.json'])
 const read = (file) => readFile(resolve(dist, file))
 
 for (const page of pages) {
@@ -17,21 +17,28 @@ for (const page of pages) {
   assert.match(html, /theme-color" content="#1D1A17"/, `${page}: stale theme`)
   for (const [, ref] of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
     if (/^https?:/.test(ref)) continue
-    const file = relative(dist, resolve(dist, dirname(page), ref))
+    const target = resolve(dist, dirname(page), ref)
+    const file = relative(dist, ref.endsWith('/') ? resolve(target, 'index.html') : target)
     assert(!file.startsWith('..'), `${page}: reference escapes hosting base`)
     await read(file)
     assets.add(file)
   }
-  if (page !== 'index.html' && page !== 'catalogo/index.html') {
+  if (page === 'presentacion/index.html') {
+    assert(html.includes('href="../"'), 'Legacy presentation must offer a root link')
+    assert(!html.includes('id="root"'), 'Legacy presentation must redirect rather than render a duplicate landing')
+  }
+  if (page !== 'index.html' && page !== 'catalog/index.html') {
     assert(!html.includes('rel="manifest"'), `${page}: creates another install destination`)
   }
 }
 
+assert.deepEqual(await read('catalog/catalog.json'), await readFile('public/catalog/catalog.json'), 'Catalog page must coexist with its material data')
+
 const manifest = JSON.parse(await read('manifest.webmanifest'))
 for (const field of ['id', 'scope']) assert.equal(manifest[field], './', `PWA ${field} changed`)
-assert.equal(manifest.start_url, './catalogo/#estudio', 'PWA must reopen the saved studio, not the landing')
+assert.equal(manifest.start_url, './catalog/#studio', 'PWA must reopen the saved studio, not the landing')
 const entryScript = (html) => /<script[^>]+src="([^"]+)"/.exec(html.toString())?.[1]
-assert.notEqual(entryScript(await read('index.html')), entryScript(await read('catalogo/index.html')), 'Landing and catalog must have separate boot entries')
+assert.notEqual(entryScript(await read('index.html')), entryScript(await read('catalog/index.html')), 'Landing and catalog must have separate boot entries')
 for (const icon of manifest.icons) { await read(icon.src); assets.add(icon.src) }
 
 const mark = await readFile('src/ui/system/knot.svg', 'utf8')
@@ -69,7 +76,7 @@ if (process.argv.includes('--live')) {
     assert.equal(response.status, 200, `${url}: unavailable`)
     assert(Buffer.from(await response.arrayBuffer()).equals(await read(file)), `${url}: does not match this build`)
   }
-  console.log('Published Pages verified: landing, catalog, presentation alias, guide, PWA and downloadable assets match this build')
+  console.log('Published Pages verified: landing, catalog, presentation redirect, guide, PWA and downloadable assets match this build')
 } else {
   console.log('Brand build verified: four entries, PWA identity, canonical vectors, fonts and downloadable kit')
 }

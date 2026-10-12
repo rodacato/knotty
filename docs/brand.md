@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-The presentation is the root landing; the catalog and studio live at `/catalogo/`, and the guide at `/marca/`. `/presentacion/` remains a compatible copy of the landing. Under GitHub Pages, these routes live below the repository path. The [presentation](../src/ui/presentation/Presentation.tsx) uses an existing aparador scene, a materials capture focused on the cut list, and actual catalog geometry. These are example furniture, not customers or testimonials.
+The presentation is the root landing; the catalog and studio live at `/catalog/`, and the guide at `/marca/`. `/presentacion/` only redirects to the root, retaining previous section links. Under GitHub Pages, these routes live below the repository path. The [presentation](../src/ui/presentation/Presentation.tsx) uses an existing aparador scene, a materials capture focused on the cut list, and actual catalog geometry. These are example furniture, not customers or testimonials.
 
 ```bash
 npm run lint && npm run typecheck && npm test && npm run build
@@ -43,6 +43,8 @@ For a server-free visual snapshot of the same page code, run `node scripts/brand
 The existing [Pages workflow](../.github/workflows/deploy.yml) builds all HTML entries. Relative asset paths preserve the repository base URL. The [manifest](../public/manifest.webmanifest) keeps its identity and scope at the root, and launches the saved studio inside the catalog. Root and catalog register the same worker. Existing stored designs and preferences keep their storage keys; opening the catalog provides a way to resume the saved design.
 
 The [service worker](../public/sw.js) caches navigation by document path, normalizing directory `index.html` requests. Landing and catalog cannot overwrite each other. Current documents take precedence over the old root-app cache; older hashed assets remain usable during an upgrade. Brand downloads refresh online and keep the last good export offline. Failed responses cannot replace a cached page or kit. [Regression tests](../src/pwa.test.ts) cover document isolation, upgrades and kit refresh. Visit the catalog online before testing its offline startup: opening the landing alone does not load the studio's lazy assets.
+
+New app paths and fragments use English, while product copy stays in es-MX. Existing published presentation/guide paths and ficha/filter query names stay compatible. Main views include `#catalog`, `#catalog/adjust/<code>`, `#studio`, `#studio/materials`, `#studio/edit/outside`, `#design` and `#takeaway`.
 
 The [fragment reader](../src/ui/navigation/routes.ts) names the active view, while [navigation](../src/ui/navigation/navigation.ts) restores it through the existing UI commands. Back and Forward change views, not design versions. A missing design falls back to the catalog; an unknown adjustment cannot create one. Leaving unapplied plan edits invokes the editor's existing decision, and a new capture asks before losing its text or photos. A running expert request stays on its current view. Fragments do not serialize the design or restore unsaved form values after a reload.
 

@@ -5,7 +5,7 @@
   "description": "Elige una base de triplay, ajústala a tus medidas y entiende cómo se arma.",
   "lang": "es-MX",
   "dir": "ltr",
-  "start_url": "./catalogo/#estudio",
+  "start_url": "./catalog/#studio",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

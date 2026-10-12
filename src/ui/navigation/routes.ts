@@ -11,38 +11,38 @@ export function routeFrom(hash: string): Route | null {
   let words: string[]
   try { words = hash.replace(/^#/, '').split('/').map(decodeURIComponent) } catch { return null }
   const [screen, view, detail, part, marker, piece] = words
-  if (screen === 'catalogo') {
+  if (screen === 'catalog') {
     if (words.length === 1) return { screen: 'catalog' }
-    return view === 'ajustar' && detail && words.length === 3 ? { screen: 'catalog', code: detail } : null
+    return view === 'adjust' && detail && words.length === 3 ? { screen: 'catalog', code: detail } : null
   }
-  if (screen === 'disenar' && words.length === 1) return { screen: 'capture' }
-  if (screen === 'para-llevar' && words.length === 1) return { screen: 'takeaway' }
-  if (screen !== 'estudio') return null
-  if (words.length === 1 || (view === 'conversacion' && words.length === 2)) return { screen: 'studio' }
-  const panel = { materiales: 'materials', avisos: 'notices', historial: 'history' } as const
+  if (screen === 'design' && words.length === 1) return { screen: 'capture' }
+  if (screen === 'takeaway' && words.length === 1) return { screen: 'takeaway' }
+  if (screen !== 'studio') return null
+  if (words.length === 1 || (view === 'conversation' && words.length === 2)) return { screen: 'studio' }
+  const panel = { materials: 'materials', notices: 'notices', history: 'history' } as const
   if (Object.hasOwn(panel, view) && words.length === 2) return { screen: 'studio', panel: panel[view as keyof typeof panel] }
-  if (view === 'pieza' && detail && words.length === 3) return { screen: 'studio', piece: detail }
-  if (view !== 'editar' || (detail !== 'exterior' && detail !== 'interior')) return null
-  const side = detail === 'exterior' ? 'outside' : 'inside'
+  if (view === 'piece' && detail && words.length === 3) return { screen: 'studio', piece: detail }
+  if (view !== 'edit' || (detail !== 'outside' && detail !== 'inside')) return null
+  const side = detail
   if (words.length === 3) return { screen: 'studio', side }
   if (part && words.length === 4) return { screen: 'studio', side, part }
-  if (part && marker === 'pieza' && piece && words.length === 6) return { screen: 'studio', side, part, piece }
+  if (part && marker === 'piece' && piece && words.length === 6) return { screen: 'studio', side, part, piece }
   return null
 }
 
 export function fragmentOf(s: Store): string {
-  if (s.phase === 'capture' || s.phase === 'analyzing') return '#disenar'
-  if (s.phase !== 'studio' || !s.state) return s.adjusting?.code ? `#catalogo/ajustar/${encodeURIComponent(s.adjusting.code)}` : '#catalogo'
-  if (s.takeAway) return '#para-llevar'
+  if (s.phase === 'capture' || s.phase === 'analyzing') return '#design'
+  if (s.phase !== 'studio' || !s.state) return s.adjusting?.code ? `#catalog/adjust/${encodeURIComponent(s.adjusting.code)}` : '#catalog'
+  if (s.takeAway) return '#takeaway'
   if (s.editing) {
-    const root = `#estudio/editar/${s.editing === 'outside' ? 'exterior' : 'interior'}`
+    const root = `#studio/edit/${s.editing}`
     const part = s.part ? `/${encodeURIComponent(s.part.id)}` : ''
-    const piece = s.part && s.selection ? `/pieza/${encodeURIComponent(s.selection)}` : ''
+    const piece = s.part && s.selection ? `/piece/${encodeURIComponent(s.selection)}` : ''
     return `${root}${part}${piece}`
   }
-  if (s.selection) return `#estudio/pieza/${encodeURIComponent(s.selection)}`
-  if (s.studioOverlay) return `#estudio/${s.studioOverlay === 'notices' ? 'avisos' : 'historial'}`
-  return s.studioTab === 'materials' ? '#estudio/materiales' : '#estudio'
+  if (s.selection) return `#studio/piece/${encodeURIComponent(s.selection)}`
+  if (s.studioOverlay) return `#studio/${s.studioOverlay}`
+  return s.studioTab === 'materials' ? '#studio/materials' : '#studio'
 }
 
 export const hasLinkedFicha = (at: Pick<Location, 'search' | 'hash'>) => new URLSearchParams(at.search).has('ficha') || new URLSearchParams(at.hash.slice(1)).has('ficha')
@@ -52,8 +52,8 @@ export function catalogDestination(at: Pick<Location, 'href' | 'search' | 'hash'
   const query = new URLSearchParams(at.search)
   const appFragment = routeFrom(at.hash)
   if (!standalone && !hasLinkedFicha(at) && !query.has('q') && !query.has('cuarto') && (!appFragment || (appFragment.screen === 'catalog' && !appFragment.code))) return null
-  const next = new URL('./catalogo/', at.href)
+  const next = new URL('./catalog/', at.href)
   next.search = at.search
-  next.hash = at.hash || (standalone ? '#estudio' : '#catalogo')
+  next.hash = at.hash || (standalone ? '#studio' : '#catalog')
   return next.href
 }

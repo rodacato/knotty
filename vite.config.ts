@@ -34,6 +34,6 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [react(), tailwindcss(), contentSecurityPolicy()],
-  build: { rolldownOptions: { input: { landing: resolve('index.html'), app: resolve('catalogo/index.html'), presentation: resolve('presentacion/index.html'), brand: resolve('marca/index.html') } } },
+  build: { rolldownOptions: { input: { landing: resolve('index.html'), app: resolve('catalog/index.html'), presentation: resolve('presentacion/index.html'), brand: resolve('marca/index.html') } } },
   server: { port: Number(process.env.PORT) || 5173 },
 }))
