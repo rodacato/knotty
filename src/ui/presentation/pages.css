@@ -123,8 +123,8 @@
 .download-verb { display: flex; gap: 16px; flex-shrink: 0; font-size: 14px; }
 @media (max-width: 800px) {
   .page-header { align-items: flex-start; gap: 12px; flex-wrap: wrap; padding-block: 16px; }
-  .page-header nav { gap: 8px 16px; flex-wrap: wrap; }
-  .page-header .page-link { padding-inline: 14px; }
+  .page-header nav { width: 100%; gap: 8px 16px; flex-wrap: wrap; }
+  .page-link { width: 100%; }
   .hero, .brand-intro { grid-template-columns: 1fr; gap: 40px; padding-block: 32px 48px; }
   .hero-copy { gap: 20px; }
   .hero-example img { aspect-ratio: 1.25; }
@@ -133,8 +133,9 @@
   .examples-grid { max-width: 540px; }
   .expert-section, .material-section, .logo-rules, .voice-grid, .system-example { grid-template-columns: 1fr; gap: 32px; }
   .heading-row, .closing-section { flex-direction: column; align-items: flex-start; gap: 24px; }
-  .page-footer { align-items: flex-start; gap: 16px; }
-  .page-footer > div { flex-wrap: wrap; gap: 24px; }
+  .page-footer { flex-direction: column; align-items: flex-start; gap: 0; padding-block: 24px 16px; }
+  .page-footer > div { flex-direction: column; align-items: stretch; gap: 0; width: 100%; margin-top: 16px; }
+  .page-footer > div .nav-link { justify-content: flex-start; border-top: 1px solid var(--line); }
   .brand-intro-mark { aspect-ratio: 1.4; }
   .brand-intro-mark svg { width: 40%; }
   .brand-intro-mark span { font-size: 48px; }
