@@ -42,7 +42,8 @@
 .steps-grid p { color: var(--graphite-2); }
 .example-section { background: var(--kraft); }
 .example-card a { display: flex; flex-direction: column; gap: 12px; border-radius: var(--radius-xl); height: 100%; }
-.example-drawing { aspect-ratio: 4 / 3; padding: 24px; border-radius: var(--radius-panel); transition: filter var(--duration-fast) var(--ease-settle); }
+.example-drawing { --drawing-inset: calc(var(--spacing) * 6); position: relative; flex: none; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius-panel); transition: filter var(--duration-fast) var(--ease-settle); }
+.example-drawing > svg { position: absolute; inset: var(--drawing-inset); width: calc(100% - 2 * var(--drawing-inset)); height: calc(100% - 2 * var(--drawing-inset)); }
 .example-card a:hover .example-drawing { filter: brightness(1.05); }
 .example-card h3 { font-family: var(--font-display); font-size: 25px; }
 .example-code { margin-top: 8px !important; }

@@ -11,7 +11,6 @@ function useMediaQuery(query: string) {
   return matches
 }
 
-export const useDark = () => getComputedStyle(document.documentElement).colorScheme === 'dark'
 export const useReducedMotion = () => useMediaQuery('(prefers-reduced-motion: reduce)')
 /** A touch screen without a mouse: almost always a phone, with less GPU and battery. */
 export const useTouch = () => useMediaQuery('(pointer: coarse)')

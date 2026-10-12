@@ -120,7 +120,7 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
           </span>
         )}
       </figcaption>
-      <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="w-full rounded-md border border-line" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
+      <svg viewBox={`0 0 ${a.sheet.length} ${a.sheet.width}`} className="drawing-sheet w-full rounded-md border border-line" role="img" aria-label={`Acomodo de la hoja ${index + 1}`}>
         <defs>
           <pattern id={pattern} width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="40" stroke="var(--graphite-2)" strokeOpacity="0.25" strokeWidth="6" />

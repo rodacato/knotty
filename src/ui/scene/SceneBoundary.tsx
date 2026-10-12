@@ -11,7 +11,7 @@ export class SceneBoundary extends Component<{ children: ReactNode }, { failed: 
   render() {
     if (!this.state.failed) return this.props.children
     return (
-      <div className="grid h-full place-items-center p-6 text-center">
+      <div className="drawing-sheet grid h-full place-items-center p-6 text-center">
         <div className="flex max-w-xs flex-col gap-2">
           <p className="font-medium">No se pudo dibujar el mueble en 3D</p>
           <p className="text-sm text-graphite">Tu navegador no tiene WebGL disponible. El experto, los materiales y la revisión funcionan igual.</p>

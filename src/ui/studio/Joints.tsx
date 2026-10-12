@@ -50,7 +50,7 @@ function PieceParts() {
       </button>
       {open && (
         <div className="flex flex-col gap-3 px-3 pb-3">
-          <svg viewBox="0 0 240 90" className="mx-auto w-full max-w-72" role="img" aria-label="Una pieza: la cara arriba, el canto con sus capas abajo y la arista entre los dos">
+          <svg viewBox="0 0 240 90" className="drawing-sheet mx-auto w-full max-w-72 rounded-xl" role="img" aria-label="Una pieza: la cara arriba, el canto con sus capas abajo y la arista entre los dos">
             <rect x="20" y="10" width="160" height="56" className="fill-kraft-2" />
             <text x="100" y="42" textAnchor="middle" className="fill-graphite text-[11px]">
               Cara
@@ -58,8 +58,8 @@ function PieceParts() {
             {[0, 1, 2, 3].map((i) => (
               <rect key={i} x="20" y={68 + i * 4} width="160" height="3" className={i % 2 ? 'fill-kraft-2' : 'fill-graphite-2/40'} />
             ))}
-            <line x1="20" x2="180" y1="67" y2="67" className="stroke-amber" strokeWidth="2" />
-            <text x="186" y="70" className="fill-amber text-[10px]">
+            <line x1="20" x2="180" y1="67" y2="67" className="stroke-graphite" strokeWidth="2" />
+            <text x="186" y="70" className="fill-graphite text-[10px]">
               Arista
             </text>
             <text x="186" y="84" className="fill-graphite text-[10px]">

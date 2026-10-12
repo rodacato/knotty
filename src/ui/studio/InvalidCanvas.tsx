@@ -2,9 +2,9 @@ import { Button } from '../system/components'
 
 export function InvalidCanvas({ detail, previous, onBack, onNotices }: { detail: string; previous: number | null; onBack: () => void; onNotices: () => void }) {
   return (
-    <div role="alert" className="grid h-full place-items-center p-6 text-center">
+    <div role="alert" className="drawing-sheet grid h-full place-items-center p-6 text-center">
       <div className="flex max-w-sm flex-col items-center gap-4">
-        <p className="text-base font-medium text-rust">Algo del diseño quedó roto y no se puede dibujar.</p>
+        <p className="text-base font-medium">Algo del diseño quedó roto y no se puede dibujar.</p>
         {detail && <p className="text-xs text-graphite-2">{detail}</p>}
         <div className="flex flex-wrap justify-center gap-2">
           {previous !== null && (

@@ -20,16 +20,18 @@ function worker() {
       match: async (r: Request | string) => stored.get(key(r))?.clone(),
     },
   })
+  const respond = async (path: string, body: string | undefined, status: number, navigate: boolean) => {
+    if (body !== undefined) network = new Response(body, { status })
+    const request = new Request(`${origin}${path}`)
+    if (navigate) Object.defineProperty(request, 'mode', { value: 'navigate' })
+    let response: Promise<Response> | undefined
+    events.fetch({ request, respondWith: (r) => { response = r } })
+    return (await response)!
+  }
   return {
     offline: () => { network = null },
-    navigate: async (path: string, body?: string, status = 200) => {
-      if (body !== undefined) network = new Response(body, { status })
-      const request = new Request(`${origin}${path}`)
-      Object.defineProperty(request, 'mode', { value: 'navigate' })
-      let response: Promise<Response> | undefined
-      events.fetch({ request, respondWith: (r) => { response = r } })
-      return (await response)!
-    },
+    navigate: (path: string, body?: string, status = 200) => respond(path, body, status, true),
+    asset: (path: string, body?: string, status = 200) => respond(path, body, status, false),
   }
 }
 
@@ -54,5 +56,15 @@ describe('offline page identity under the GitHub Pages base path', () => {
     w.offline()
     expect(await (await w.navigate('/knotty/')).text()).toBe('APP')
     expect((await w.navigate('/knotty/missing/')).status).toBe(503)
+  })
+
+  it('refreshes cached brand downloads online and preserves the last good export offline', async () => {
+    const w = worker()
+    const kit = '/knotty/brand/knotty-brand-kit.zip'
+    expect(await (await w.asset(kit, 'OLD KIT')).text()).toBe('OLD KIT')
+    expect(await (await w.asset(kit, 'CURRENT KIT')).text()).toBe('CURRENT KIT')
+    expect((await w.asset(kit, 'NOT FOUND', 404)).status).toBe(404)
+    w.offline()
+    expect(await (await w.asset(kit)).text()).toBe('CURRENT KIT')
   })
 })

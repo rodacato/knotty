@@ -67,6 +67,27 @@ describe('paper', () => {
   })
 })
 
+describe('drawing paper contrast', () => {
+  const theme = declarations(/@theme \{([^}]*)\}/.exec(css)![1])
+  const ink = rgb(theme['color-brand-ink'])
+  const pencil = rgb(theme['color-walnut'])
+  const paper = rgb(theme['color-drawing-paper'])
+  const selected = over(rgb(dark.amber), paper, 0.16)
+
+  it('keeps option labels and diagram lines readable on paper and selected paper', () => {
+    for (const surface of [paper, selected, rgb(theme['color-birch'])]) {
+      expect(contrast(ink, surface)).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(pencil, surface)).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
+  it('keeps the drawing focus ring distinguishable in every option state', () => {
+    for (const surface of [paper, selected, rgb(theme['color-brand-paper'])]) {
+      expect(contrast(pencil, surface)).toBeGreaterThanOrEqual(3)
+    }
+  })
+})
+
 describe('focus rule', () => {
   it('is global, sits in the base layer so utilities can override it, and uses the focus token', () => {
     expect(css).toMatch(/@layer base \{\s*\*:focus-visible \{\s*outline: 2px solid var\(--focus\);\s*outline-offset: 2px;/)

@@ -3,7 +3,9 @@ import { readFile, readdir } from 'node:fs/promises'
 import { dirname, resolve, relative } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
-const dist = resolve('dist')
+const distFlag = process.argv.indexOf('--dist')
+assert(distFlag < 0 || process.argv[distFlag + 1], '--dist requires a build directory')
+const dist = resolve(distFlag < 0 ? 'dist' : process.argv[distFlag + 1])
 const pages = ['index.html', 'presentacion/index.html', 'marca/index.html']
 const assets = new Set(['manifest.webmanifest', 'favicon.svg', 'sw.js', 'icon-192.png', 'icon-512.png', 'share.png'])
 const read = (file) => readFile(resolve(dist, file))
@@ -47,13 +49,14 @@ assert.deepEqual(await read('brand/knotty.tokens.css'), await readFile('src/ui/s
 for (const path of paths) assert((await read('favicon.svg')).toString().includes(`d="${path}"`), 'Favicon has stale mark')
 execFileSync('python3', ['-c', `
 import pathlib, zipfile
-folder = pathlib.Path('dist/brand')
+import sys
+folder = pathlib.Path(sys.argv[1])
 with zipfile.ZipFile(folder / 'knotty-brand-kit.zip') as archive:
     files = [p for p in folder.iterdir() if p.suffix != '.zip']
     assert set(archive.namelist()) == {'knotty-brand-kit/' + p.name for p in files}
     for p in files:
         assert archive.read('knotty-brand-kit/' + p.name) == p.read_bytes(), p.name
-`], { stdio: 'pipe' })
+`, resolve(dist, 'brand')], { stdio: 'pipe' })
 
 if (process.argv.includes('--live')) {
   const base = 'https://rodacato.github.io/knotty/'
@@ -61,7 +64,7 @@ if (process.argv.includes('--live')) {
     const url = new URL(file === 'index.html' ? './' : file, base)
     const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(20000) })
     assert.equal(response.status, 200, `${url}: unavailable`)
-    assert.deepEqual(Buffer.from(await response.arrayBuffer()), await read(file), `${url}: does not match this build`)
+    assert(Buffer.from(await response.arrayBuffer()).equals(await read(file)), `${url}: does not match this build`)
   }
   console.log('Published Pages verified: app, presentation, guide, PWA and downloadable assets match this build')
 } else {

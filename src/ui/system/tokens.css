@@ -62,7 +62,7 @@
   --on-rust: #1d1a17;
   --focus: #d98a2b;
   --slate: #8aa0b3;
-  --scene-bg: #221e1a;
+  --scene-bg: var(--color-drawing-paper);
   --paper: #2a2622;
   color-scheme: dark;
 
@@ -87,7 +87,7 @@
   --on-rust: #ffffff;
   --focus: #9a5a10;
   --slate: #56697a;
-  --scene-bg: #efe7da;
+  --scene-bg: var(--color-drawing-paper);
   --paper: #f4ede1;
   color-scheme: light;
 
@@ -136,11 +136,40 @@ body {
 }
 
 /* A warm drawing sheet inside the dark workshop. The grid is decorative, not a scale. */
+.drawing-sheet,
 .drawing-surface {
+  --bone: var(--color-drawing-paper);
+  --kraft: var(--color-brand-paper);
+  --kraft-2: var(--color-birch);
+  --graphite: var(--color-brand-ink);
+  --graphite-2: var(--color-walnut);
+  --line: color-mix(in srgb, var(--color-brand-ink) 18%, transparent);
+  --focus: var(--color-walnut);
+  /* Utilities use color aliases; canvas and SVG drawings also read the base roles. */
+  --color-bone: var(--bone);
+  --color-kraft: var(--kraft);
+  --color-kraft-2: var(--kraft-2);
+  --color-graphite: var(--graphite);
+  --color-graphite-2: var(--graphite-2);
+  --color-line: var(--line);
+  --color-focus: var(--focus);
   background-color: var(--color-drawing-paper);
+  color: var(--color-brand-ink);
+  color-scheme: light;
+}
+
+.drawing-sheet:has(> input):hover {
+  background-color: var(--color-brand-paper);
+}
+
+.drawing-sheet:has(> input:checked) {
+  background-color: color-mix(in srgb, var(--amber) 16%, var(--color-drawing-paper));
+  border-color: var(--color-walnut);
+}
+
+.drawing-surface {
   background-image: linear-gradient(30deg, transparent 48.5%, var(--color-drawing-grid) 49.5%, var(--color-drawing-grid) 50.5%, transparent 51.5%), linear-gradient(-30deg, transparent 48.5%, var(--color-drawing-grid) 49.5%, var(--color-drawing-grid) 50.5%, transparent 51.5%);
   background-size: 48px 28px;
-  color: var(--color-walnut);
 }
 
 @keyframes draw {
