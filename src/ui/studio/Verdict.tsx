@@ -1,5 +1,5 @@
 import { ArrowClockwise, ArrowCounterClockwise, CheckCircle, Hammer, Warning, WarningCircle, Wrench, XCircle } from '@phosphor-icons/react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import type { Design } from '../../domain/design/schema'
 import type { PurchaseReview } from '../../domain/session/state'
 import { purchaseReviewItems, type PurchaseReviewItem } from '../../domain/session/purchaseReview'
@@ -85,6 +85,8 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
   const choices = verdict.choices ?? []
   const undecided = items.filter((item) => !choices.some((choice) => choice.id === item.id))
   const [open, setOpen] = useState<string | null>(undecided[0]?.id ?? null)
+  const confirmation = useRef<HTMLDivElement>(null)
+  const confirmationId = useId()
   const summaries = useRef(new Map<string, HTMLElement>())
   const [confirm, setConfirm] = useState<string | null>(null)
   const decided = (item: PurchaseReviewItem, choice: 'keep' | 'risk' | 'requested') => {
@@ -122,10 +124,10 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
                 <PieceLink pieces={item.pieces} design={design} />
                 {!choice && confirm !== item.id && <div className="flex flex-wrap gap-3">
                   <Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={() => request(item)}><Wrench /> {available ? question ? 'Preguntar cómo resolverlo' : 'Pedir ajuste al experto' : question ? 'Conectar experto para consultar' : 'Conectar experto para pedir el ajuste'}</Button>
-                  <Button variant="ghost" className="px-2 text-xs" disabled={thinking} onClick={() => setConfirm(item.id)}>{item.optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'}</Button>
+                  <Button variant="ghost" className="px-2 text-xs" disabled={thinking} onClick={() => { setConfirm(item.id); requestAnimationFrame(() => confirmation.current?.focus()) }}>{item.optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'}</Button>
                 </div>}
-                {confirm === item.id && <div className="flex flex-col gap-3 rounded-lg bg-kraft p-3" role="group" aria-label="Confirmar decisión">
-                  <p className="text-sm leading-relaxed">{item.optional ? '¿Quieres mantener el diseño sin esta mejora? Puedes deshacer esta decisión.' : 'Este problema seguirá en el diseño, la guía y la lista. Aceptarlo no significa que sea seguro ni que esté corregido. ¿Quieres mantenerlo así, bajo tu riesgo?'}</p>
+                {confirm === item.id && <div ref={confirmation} tabIndex={-1} className="flex flex-col gap-3 rounded-lg bg-kraft p-3 focus-visible:outline-2 focus-visible:outline-focus" role="group" aria-label="Confirmar decisión" aria-describedby={confirmationId}>
+                  <p id={confirmationId} className="text-sm leading-relaxed">{item.optional ? '¿Quieres mantener el diseño sin esta mejora? Puedes deshacer esta decisión.' : 'Este problema seguirá en el diseño, la guía y la lista. Aceptarlo no significa que sea seguro ni que esté corregido. ¿Quieres mantenerlo así, bajo tu riesgo?'}</p>
                   <div className="flex flex-wrap gap-3"><Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={() => decided(item, item.optional ? 'keep' : 'risk')}>{item.optional ? 'Confirmar: dejarlo así' : 'Confirmar: aceptar bajo mi riesgo'}</Button><Button variant="ghost" className="px-2 text-xs" onClick={() => { setConfirm(null); summaries.current.get(item.id)?.focus() }}>Volver</Button></div>
                 </div>}
                 {choice && <p className="text-xs leading-relaxed">{choice === 'requested' ? 'Revisa la respuesta en Conversación. La solicitud no aplica cambios por sí sola.' : item.optional ? 'Conservas el diseño sin esta mejora.' : 'El pendiente sigue presente; resuélvelo antes de comprar o cortar.'}</p>}

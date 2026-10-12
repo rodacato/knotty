@@ -31,6 +31,7 @@ import { CutList } from './CutList'
 import { sheetLabels } from './sheetLabels'
 import { finishCounted, leftOut, sheetsHeading, totalCovers } from './totalSummary'
 import { reviewNotes } from '../takeaway/reviewNotes'
+import { assemblyPhases } from '../takeaway/assemblyPhases'
 
 const weights = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 })
 const percent = (f: number) => `${Math.round(f * 100)} %`
@@ -382,6 +383,9 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     </p>
   )
 
+  const phaseCount = assemblyPhases(state).length
+  const guideLabel = phaseCount ? 'Ver guía para construir' : 'Ver guía de cortes'
+
   const cost = (
     <section className="flex flex-col gap-1 border-b border-line pb-4">
       <p className="text-sm text-graphite-2">Costo aproximado</p>
@@ -432,6 +436,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <MaterialsJourney
         key={`${verdict.signature}:${verdict.date}`}
         remaining={purchaseReviewItems(verdict).filter((item) => !verdict.choices?.some((choice) => choice.id === item.id)).length}
+        guideSummary={phaseCount ? `${phaseCount} pasos de armado, cortes y diagramas` : 'Cortes y diagramas · Sin fases de armado'}
         materialSummary={`${totalSheets} ${totalSheets === 1 ? 'hoja' : 'hojas'} · ${design.pieces.length} piezas · ${FINISHES[finishOf(design)].name}`}
         review={<VerdictCard verdict={verdict} design={design} onRequest={onRequest} />}
         materials={<>
@@ -523,13 +528,12 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       </details>
         </>}
         guide={<>
-        <section className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3" aria-label="Guía y lista para llevar">
-          <h3 className="font-display text-xl font-semibold">La guía de tu mueble</h3>
-          {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
+        <section className="flex flex-col gap-3" aria-label="Guía y lista para llevar">
+            {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
           <Button variant="primary" className="self-start px-4 text-sm" onClick={() => openTakeAway(true)}>
-            <Printer weight="bold" /> {verdict.verdict === 'viable' ? 'Ver guía para construir' : 'Ver guía con pendientes'}
+            <Printer weight="bold" /> {verdict.verdict === 'viable' ? guideLabel : 'Ver guía con pendientes'}
           </Button>
-          <p className="text-xs leading-relaxed text-graphite-2">Piezas numeradas, diagramas y recomendaciones. Desde la guía puedes imprimir o guardar como PDF.</p>
+          <p className="text-xs leading-relaxed text-graphite-2">{phaseCount ? `Incluye ${phaseCount} pasos de armado, piezas numeradas y diagramas.` : 'Incluye cortes y diagramas de las piezas. Este diseño no tiene fases de armado.'} Imprime o guarda como PDF desde la guía.</p>
           <CopyList text={message} />
           <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
         </section>

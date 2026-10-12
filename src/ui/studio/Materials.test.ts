@@ -5,6 +5,7 @@ import { createAbsent } from '../../adapters/llm/absent/absent'
 import { analyze } from '../../domain/checks/analysis'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
+import { exampleSideboard } from '../../domain/furniture/fixtures/references.test-util'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { currentDesign, DesignState, type PurchaseReview } from '../../domain/session/state'
 import { ServicesContext } from '../services'
@@ -40,7 +41,7 @@ describe('Materials next step', () => {
     expect(markup).toContain('Costo aproximado')
     expect(primaryButtons(markup)).toHaveLength(1)
     expect(primaryButtons(markup)[0]).toContain('Revisar y ver materiales')
-    expect(markup).not.toContain('Ver guía para construir')
+    expect(markup).not.toContain('Ver guía de cortes')
     expect(markup).not.toContain('Copiar lista para la maderería')
     expect(markup).not.toContain('Lista de corte ·')
   })
@@ -50,7 +51,7 @@ describe('Materials next step', () => {
     expect(state.review.verdict).toBe('viable')
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
-    expect(primaryButtons(markup)[0]).toContain('Ver guía para construir')
+    expect(primaryButtons(markup)[0]).toContain('Ver guía de cortes')
     expect(buttons(markup).filter((button) => button.includes('Copiar lista para la maderería'))).toHaveLength(1)
     expect(markup).not.toContain('Hoja para llevar')
     for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado:', 'Lista de corte']) {
@@ -84,7 +85,7 @@ describe('Materials next step', () => {
     const state = await reviewed()
     const markup = renderMaterials({ ...state, review: { ...state.review, verdict: 'not-viable', checks: [{ ...state.review.checks[0], status: 'fail', detail: 'La pieza no cabe en una hoja.' }] } })
     expect(markup).toContain('Ver la lista de todos modos')
-    expect(markup).not.toContain('Ver guía para construir')
+    expect(markup).not.toContain('Ver guía de cortes')
     expect(markup).not.toContain('Copiar lista para la maderería')
   })
 
@@ -93,7 +94,7 @@ describe('Materials next step', () => {
     const edited = services.useCases.addRequirement(state, 'Necesito un cajón adicional')
     const markup = renderMaterials(edited)
     expect(markup).toContain('Revisar diseño actualizado')
-    expect(markup).not.toContain('Ver guía para construir')
+    expect(markup).not.toContain('Ver guía de cortes')
     expect(guide(edited)).toContain('no tiene una revisión vigente')
   })
 
@@ -107,7 +108,7 @@ describe('Materials next step', () => {
     const markup = renderMaterials(await reviewed())
     expect(markup.indexOf('1. Revisar pendientes')).toBeLessThan(markup.indexOf('2. Confirmar materiales'))
     expect(markup.indexOf('Herrajes y consumibles')).toBeLessThan(markup.indexOf('3. Obtener tu guía'))
-    expect(markup.indexOf('Lista de corte ·')).toBeLessThan(markup.indexOf('Ver guía para construir'))
+    expect(markup.indexOf('Lista de corte ·')).toBeLessThan(markup.indexOf('Ver guía de cortes'))
     expect(markup).toContain('Paso 2 de 3')
     expect(markup).toContain('Continuar a la guía')
   })
@@ -124,6 +125,7 @@ describe('Materials next step', () => {
     expect(renderMaterials(chosen)).toContain('Deshacer decisión')
     expect(guide(chosen)).toContain('El soporte necesita revisarse.')
     expect(guide(chosen)).toContain('Decidiste mantenerlo bajo tu riesgo')
+    expect(reviewNotes(chosen, testCatalog).filter((note) => note.startsWith('Soporte pendiente:'))).toHaveLength(1)
     expect(reviewNotes(chosen, testCatalog).join('\n')).toContain('el problema no está corregido')
     const undone = services.useCases.choosePurchaseReview(saved, testCatalog, 'expert:0', null)
     expect(undone.review?.choices).toEqual([])
@@ -151,6 +153,16 @@ describe('Materials next step', () => {
     expect(reviewNotes(requested, testCatalog).join('\n')).toContain('todavía no confirma una corrección')
     const fresh = await services.useCases.reviewPurchase(requested, testCatalog, new AbortController().signal)
     expect(services.useCases.saveReview(requested, fresh).review?.choices ?? []).toEqual([])
+  })
+
+  it('describes the same assembly capability that the printable guide actually has', async () => {
+    const withoutPlan = renderMaterials(await reviewed())
+    expect(withoutPlan).toContain('Cortes y diagramas · Sin fases de armado')
+    expect(withoutPlan).toContain('Este diseño no tiene fases de armado')
+    const state = services.useCases.openExample(exampleSideboard)
+    const withPlan = { ...state, review: await services.useCases.reviewPurchase(state, testCatalog, new AbortController().signal) }
+    expect(renderMaterials(withPlan)).toContain('pasos de armado, cortes y diagramas')
+    expect(guide(withPlan)).not.toContain('no tiene instrucciones de armado por fases')
   })
 
   it('keeps clipboard live feedback within a positioned container', () => {
