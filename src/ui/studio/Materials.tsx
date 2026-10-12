@@ -1,3 +1,5 @@
+import { manufacturingProblems } from '../../domain/design/manufacturing'
+import { RepairConstruction } from '../takeaway/RepairConstruction'
 import { ArrowCounterClockwise, Check, PencilSimple, Printer, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { isDrawerPart, wallOf, WALLS, type Design } from '../../domain/design/schema'
@@ -377,6 +379,15 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const unpriced = leftOut(purchase.cost.missingPrices)
   const verdict = state.review?.signature === reviewSignature(state, effective) ? state.review : null
 
+  const constructionProblems = manufacturingProblems(design, geo)
+  const construction = constructionProblems.length > 0 && (
+    <div role="note" className="rounded-xl border border-line bg-amber-soft p-3">
+      <p className="text-sm font-semibold">Corrige los ajustes antes de cortar</p>
+      {constructionProblems.map((p) => <p key={p.detail} className="text-sm">{p.detail}</p>)}
+      <RepairConstruction state={state} />
+    </div>
+  )
+
   const whose = instead && (
     <p role="note" className="rounded-xl border border-line bg-amber-soft p-3 text-[13px] leading-snug">
       En el 3D estás viendo {instead}. El costo, la revisión y la lista de aquí son de tu diseño actual.
@@ -405,6 +416,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <div className="relative flex flex-col gap-4 p-4">
         {whose}
         {cost}
+        {construction}
         <ReviewGate stale={state.review !== null} />
         <CutSettings base={catalog.layout} />
       </div>
@@ -414,6 +426,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       <div className="relative flex flex-col gap-4 p-4">
         {whose}
         {cost}
+        {construction}
         <VerdictSummary verdict={verdict} />
         <VerdictCard key={`${verdict.signature}:${verdict.date}`} verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-graphite">
@@ -430,6 +443,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     <div className="relative flex flex-col gap-5 p-4">
       {whose}
       {cost}
+      {construction}
       {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
       {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
       <VerdictSummary verdict={verdict} />

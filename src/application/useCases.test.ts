@@ -1207,11 +1207,11 @@ describe('editing a piece by hand, without the expert', () => {
   it('a shelf longer than its opening is refused, and widening the whole piece is offered', () => {
     const { c, initial } = start()
     const r = c.editPiece(initial, 'shelf-1', { kind: 'length', axis: 'x', value: 700 })
-    expect(r).toMatchObject({ ok: false, alternatives: [{ axis: 'x', value: 736, label: 'Cambiar el ancho del mueble en +186 mm' }] })
+    expect(r).toMatchObject({ ok: false, alternatives: [{ axis: 'x', value: 740, label: 'Cambiar el ancho del mueble en +190 mm' }] })
     if (r.ok) return
     const wider = c.resizeFurniture(initial, 'x', r.alternatives[0].value)
     if (!wider.ok) throw new Error(wider.message)
-    expect(currentDesign(wider.state).dimensions.width).toBe(736)
+    expect(currentDesign(wider.state).dimensions.width).toBe(740)
     expect(box(wider.state, 'shelf-1').x1 - box(wider.state, 'shelf-1').x0).toBe(700)
   })
 

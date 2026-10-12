@@ -1,8 +1,9 @@
+import { ASSUMPTIONS } from '../../assumptions'
 import { partway } from '../../design/builders'
 import { DIMENSION_OF_AXIS, AXES, type Position, type Design, type Axis, type Piece, type Extent } from '../../design/schema'
 import { parseFace, resolveGeometry, type Geometry } from '../../design/resolve'
 import { materialById, type Catalog } from '../../materials/catalog'
-import { contactBetween } from '../../design/validation/contact'
+import { contactBetween, gapBetween } from '../../design/validation/contact'
 import { error, success, failure, type DesignWarning, type DesignError, type Result } from '../../design/validation/errors'
 import { expandDrawer } from './drawer'
 import type { Operation } from './schema'
@@ -99,7 +100,10 @@ export function applyOperations(original: Design, operations: Operation[], catal
           ...copied.filter((u) => {
             if (!after.ok) return true
             const { boxes } = after.value
-            return !!boxes.get(u.a) && !!boxes.get(u.b) && !!contactBetween(u.a, boxes.get(u.a)!, u.b, boxes.get(u.b)!)
+            const [a, b] = [boxes.get(u.a), boxes.get(u.b)]
+            if (!a || !b) return false
+            const gap = u.type === 'shelf-pin' ? gapBetween(a, b) : null
+            return !!contactBetween(u.a, a, u.b, b) || (gap?.axis === 'x' && gap.distance <= ASSUMPTIONS.shelfPinReach)
           }),
         )
         return

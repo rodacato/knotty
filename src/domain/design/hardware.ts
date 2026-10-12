@@ -1,10 +1,10 @@
-import { hingesFor } from '../assumptions'
+import { ASSUMPTIONS, hingesFor } from '../assumptions'
 import type { Catalog } from '../materials/catalog'
 import { lidSwing } from './doors'
 import { rodRuns } from './rods'
 import type { Axis, Design } from './schema'
 import type { Box } from './resolve'
-import { contactBetween } from './validation/contact'
+import { contactBetween, gapBetween } from './validation/contact'
 import { dowelsAlong, END_MARGIN, hardwarePerJoint } from './hardwareCount'
 import { CONTACT_TOLERANCE, overlap } from './boxes'
 
@@ -59,8 +59,9 @@ export type HardwarePart =
   | { kind: 'screw'; owner: string; center: Point; axis: Axis; length: number; diameter: number; outward: 1 | -1 }
 
 /** Where a meets b: the axis their faces touch along, which way b lies, the plane between them and points spaced along the longer side of the contact. */
-function meeting(a: Box, b: Box) {
-  const face = contactBetween('a', a, 'b', b)?.axis
+function meeting(a: Box, b: Box, pin = false) {
+  const gap = pin ? gapBetween(a, b) : null
+  const face = contactBetween('a', a, 'b', b)?.axis ?? (gap?.axis === 'x' && gap.distance <= ASSUMPTIONS.shelfPinReach ? 'x' : null)
   if (!face) return null
   const toward: 1 | -1 = (low(b, face) + high(b, face)) / 2 >= (low(a, face) + high(a, face)) / 2 ? 1 : -1
   const around = AXES.filter((e) => e !== face).map((e) => ({ axis: e, lo: Math.max(low(a, e), low(b, e)), hi: Math.min(high(a, e), high(b, e)) }))
@@ -112,7 +113,7 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
       for (const center of m.points(dowelsAlong(m.length), outward === 1 ? high(a, m.face) : low(a, m.face))) parts.push({ kind: 'plug', owner: u.a, center, axis: m.face, outward, diameter: PLUG_DIAMETER })
     }
     if (u.type === 'dowel' || u.type === 'butt-screw' || u.type === 'connector-bolt' || u.type === 'cam-lock' || u.type === 'shelf-pin') {
-      const m = meeting(a, b)
+      const m = meeting(a, b, u.type === 'shelf-pin')
       if (!m) continue
       const { face, toward, plane } = m
       const back = toward === 1 ? -1 : 1
@@ -157,7 +158,7 @@ export function hardwareParts(design: Design, boxes: Map<string, Box>, catalog: 
       }
       // The shelf rests on its pins, so they sit just under it; only on an upright, where under is down.
       if (u.type === 'shelf-pin' && face === 'x') {
-        for (const center of m.points(count, plane + toward * (SHELF_PIN.length / 2 - SHELF_PIN.out))) {
+        for (const center of m.points(count, (toward === 1 ? b.x0 : b.x1) + toward * (SHELF_PIN.length / 2 - SHELF_PIN.out))) {
           center[1] = a.y0 - SHELF_PIN.diameter / 2
           parts.push({ kind: 'shelf-pin', owner: u.b, center, axis: face, length: SHELF_PIN.length, diameter: SHELF_PIN.diameter })
         }

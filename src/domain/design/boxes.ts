@@ -1,3 +1,4 @@
+import { ASSUMPTIONS } from '../assumptions'
 import type { Axis, Design } from './schema'
 import type { Box, Geometry } from './resolve'
 
@@ -35,14 +36,17 @@ export const isStrip = (box: Box) => box.z1 - box.z0 >= STRIP_RATIO * (box.x1 - 
 /** Where the longest free span of a horizontal piece lies, between upright supports: those touching its ends or holding it from below. Along the furniture's width, or front to back for a slat. */
 export function freeStretch(id: string, box: Box, ctx: SpanContext, axis: 'x' | 'z' = 'x'): [number, number] | null {
   const [lo, hi] = [`${axis}0`, `${axis}1`] as const
-  const supports = ctx.contacts
+  const pinSupports = ctx.design.joints.filter((u) => u.type === 'shelf-pin' && (u.a === id || u.b === id))
+  const supports = [...ctx.contacts, ...pinSupports]
     .filter((c) => c.a === id || c.b === id)
     .map((c) => (c.a === id ? c.b : c.a))
     .filter((other) => {
       const piece = ctx.design.pieces.find((p) => p.id === other)
       const o = ctx.geo.boxes.get(other)
       if (!piece || !o || piece.normal !== axis || piece.role === 'door') return false
-      return Math.abs(o[hi] - box[lo]) <= CONTACT_TOLERANCE || Math.abs(o[lo] - box[hi]) <= CONTACT_TOLERANCE || Math.abs(o.y1 - box.y0) <= CONTACT_TOLERANCE
+      const pin = pinSupports.some((u) => u.a === other || u.b === other)
+      const tolerance = pin ? ASSUMPTIONS.shelfPinReach : CONTACT_TOLERANCE
+      return Math.abs(o[hi] - box[lo]) <= tolerance || Math.abs(o[lo] - box[hi]) <= tolerance || Math.abs(o.y1 - box.y0) <= CONTACT_TOLERANCE
     })
     .map((other) => ctx.geo.boxes.get(other)!)
     .sort((a, b) => a[lo] - b[lo])

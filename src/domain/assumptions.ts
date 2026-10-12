@@ -87,12 +87,24 @@ export const ASSUMPTIONS = {
     /** The wood left in front of the first groove. */
     lip: 10,
     /** The gap between two leaves, so one passes the other. */
-    between: 3,
+    between: 8,
+    /** Width clearance on each groove wall; combined with between leaves this leaves a 6 mm web. */
+    groovePlay: 1,
+    /** Nominal minimum wood between adjacent grooves; test the actual material before machining. */
+    minWeb: 6,
+    /** Extra lift beyond clearing the lower groove, allowing installation after rounding. */
+    liftClearance: 2,
+    /** Side clearance of a closed leaf within its opening. */
+    sideClearance: 1,
     /** How far a leaf goes into each groove, as a share of the board; the groove above is cut twice as deep, so the leaf lifts in and out. */
     engagement: 1 / 4,
     /** Under this width of opening, sliding leaves leave little room to reach in: with two, less than half of it. */
     narrowOpening: 500,
   },
+  /** Clearance per side of a removable shelf; fixed shelves still meet their joints. */
+  shelfClearance: 2,
+  /** The greatest shelf-to-side gap a nominal pin connection may bridge; confirm its real projection. */
+  shelfPinReach: 3,
   /** A lid that lifts: the floor of an open cell, hinged at the back, over a chest. */
   lids: {
     /** The strip that stays fixed at the back, which the hinge is screwed to: wide enough for two screws at each end. */
@@ -186,7 +198,13 @@ export const ASSUMPTION_SOURCES: Record<string, Source> = {
   'doors.maxWidth': cite(VALUES, '8-puertas', 'Ancho máximo de una hoja'),
   'sliding.overlap': cite(STRUCTURE, '5-puertas', 'traslape entre hojas de 20–30 mm'),
   'sliding.lip': noReference('the wood Knotty leaves in front of the first groove so its wall does not break out; the reference gives none'),
-  'sliding.between': noReference('the same gap as between two fronts, so one leaf passes the other; the reference has no play for sliding doors'),
+  'sliding.groovePlay': noReference('Knotty’s nominal 1 mm groove play per side; verify with actual board thickness and a test cut'),
+  'sliding.minWeb': noReference('Knotty’s nominal 6 mm wood between tracks; verify the actual material with a test cut'),
+  'sliding.liftClearance': noReference('Knotty’s 2 mm additional lift for mounting; verify on a squared dry assembly'),
+  'sliding.sideClearance': noReference('Knotty’s 1 mm closed-leaf clearance per side'),
+  shelfClearance: noReference('Knotty’s 2 mm per side for removable shelves; verify support-pin projection'),
+  shelfPinReach: noReference('Knotty’s nominal 3 mm maximum pin connection gap; confirm actual support-pin projection'),
+  'sliding.between': noReference('Knotty’s 8 mm between leaves leaves 6 mm of wood between grooves with 1 mm play on each wall'),
   // A quarter below and so half above: the deeper groove stays at the most the reference lets a groove go.
   'sliding.narrowOpening': noReference('Knotty’s own: two leaves open half an opening less their overlap, and under about 230 mm a hand with a plate does not pass; the reference gives no least width for sliding doors'),
   'sliding.engagement': cite(VALUES, '6-uniones', 'Profundidad de ranura'),

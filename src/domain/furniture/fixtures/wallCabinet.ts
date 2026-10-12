@@ -33,7 +33,7 @@ export const exampleWallCabinet: Design = {
     makePiece({ id: 'side-right', name: 'Lateral derecho', role: 'side', material: 'T18', normal: 'x', x: endAt(ref('furniture.x1')), y: extent(ref('furniture.y0'), ref('furniture.y1')), z: extent(ref('back.z1'), ref('door-left.z0')), edges: ['front'] }),
     makePiece({ id: 'bottom', name: 'Piso', role: 'bottom', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(ref('furniture.y0')), z: extent(ref('back.z1'), ref('door-left.z0')), load: 'medium', edges: ['front'] }),
     makePiece({ id: 'top', name: 'Techo', role: 'top', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: endAt(ref('furniture.y1')), z: extent(ref('back.z1'), ref('door-left.z0')), edges: ['front'] }),
-    makePiece({ id: 'shelf', name: 'Repisa', role: 'shelf', material: 'T18', normal: 'y', x: extent(ref('side-left.x1'), ref('side-right.x0')), y: startAt(partway('bottom.y1', 'top.y0', 0.5, -9)), z: extent(ref('back.z1'), ref('door-left.z0', -5)), load: 'medium', support: 'movable', edges: ['front'] }),
+    makePiece({ id: 'shelf', name: 'Repisa', role: 'shelf', material: 'T18', normal: 'y', x: extent(ref('side-left.x1', 2), ref('side-right.x0', -2)), y: startAt(partway('bottom.y1', 'top.y0', 0.5, -9)), z: extent(ref('back.z1'), ref('door-left.z0', -5)), load: 'medium', support: 'movable', edges: ['front'] }),
     door('left'),
     door('right'),
   ],

@@ -1,3 +1,4 @@
+import { hangsFromWall } from '../design/installation'
 import { wallOf, type Design, type Wall } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { pickHardware, type Catalog, type Hardware } from '../materials/catalog'
@@ -52,7 +53,7 @@ export function anchoringOf(design: Design, geo: Geometry, catalog: Catalog): An
   if (!design.wallAnchored || wall === 'unknown') return null
   const { capacity, minAnchors } = ASSUMPTIONS.anchoring
   const plug = pickHardware(catalog, PLUG_ROLE[wall]) ?? null
-  if (design.kind !== 'wallCabinet') {
+  if (!hangsFromWall(design)) {
     // The strap of an anti-tip kit pulls straight out of the wall, which drywall alone does not take: it goes to a stud.
     return wall === 'drywall' ? { wall, hung: false, plug: null, count: 0 } : { wall, hung: false, plug, count: minAnchors }
   }
@@ -62,20 +63,12 @@ export function anchoringOf(design: Design, geo: Geometry, catalog: Catalog): An
   return { wall, hung: true, plug, count, weight: roundTo(weight, 0), pullOut: roundTo(pullOut, 0) }
 }
 
-/** The 8 × 40 capacities are a maker's, for a nylon plug; the common plastic one has none published. */
-const UNPROVEN: Partial<Record<KnownWall, string>> = {
-  brick: ' Es la capacidad de un taquete de nylon y el tabique rojo varía mucho de uno a otro: tómala como una estimación sin validar.',
-  concrete: ' Es la capacidad de un taquete de nylon: uno de plástico suave aguanta menos.',
-}
-
-/** What the person reads under the wall they chose. */
+/** Catalog capacities only produce a preliminary purchase count, never an installed load rating. */
 export function anchoringAdvice(anchoring: Anchoring | null): string {
-  if (!anchoring) return 'Dime de qué es el muro y pongo en la lista los taquetes que le tocan.'
+  if (!anchoring) return 'Identifica el muro y confirma el sistema de fijación antes de comprar o instalar.'
   const { wall, hung, count, weight } = anchoring
-  if (!hung) {
-    return wall === 'drywall'
-      ? 'En tablaroca un taquete solo no aguanta el jalón de un antivuelco: el ancla va atornillada a un poste del muro. Por eso no pongo taquetes en la lista.'
-      : `En ${WALL_PHRASE[wall]} van ${count} taquetes, uno por anclaje.`
-  }
-  return `Con las repisas cargadas pesa unos ${weight} kg, y todo cuelga del muro. En ${WALL_PHRASE[wall]} cada taquete aguanta ${ASSUMPTIONS.anchoring.capacity[wall]} kg: van ${count}.${UNPROVEN[wall] ?? ''}`
+  if (!hung) return wall === 'drywall'
+    ? 'El antivuelco va a un poste del muro o a un refuerzo aprobado por el fabricante. No se incluyen taquetes para la placa sola.'
+    : `Previsión: ${count} taquetes para ${WALL_PHRASE[wall]}, uno por anclaje. Confirma el modelo y la instalación con el fabricante del kit.`
+  return `Carga calculada aproximada: ${weight} kg, sostenida por el muro. Previsión de compra: ${count} fijaciones para ${WALL_PHRASE[wall]}. Confirma el sistema completo, el sustrato, las distancias y la carga admisible con el fabricante o instalador; sumar capacidades de taquetes no valida la instalación.`
 }

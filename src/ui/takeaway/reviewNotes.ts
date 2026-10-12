@@ -1,3 +1,5 @@
+import { analyze } from '../../domain/checks/analysis'
+import { manufacturingProblems } from '../../domain/design/manufacturing'
 import { reviewSignature } from '../../application/useCases/review'
 import { wallOf } from '../../domain/design/schema'
 import type { Catalog } from '../../domain/materials/catalog'
@@ -35,5 +37,7 @@ export function reviewNotes(state: DesignState, catalog: Catalog): string[] {
     if (review.error) notes.push('El experto no respondió. La revisión incluye solamente las comprobaciones de Knotty.')
   }
   if (design.wallAnchored && wallOf(design) === 'unknown') notes.push('Falta identificar el muro: la lista no incluye los taquetes que le corresponden. Confírmalos antes de comprar.')
-  return notes
+  const analysis = analyze(design, catalog)
+  if (analysis.valid) notes.push(...manufacturingProblems(design, analysis.geo).map((p) => p.detail))
+  return [...new Set(notes)]
 }

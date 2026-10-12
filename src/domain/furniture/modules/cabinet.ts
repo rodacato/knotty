@@ -599,7 +599,7 @@ function shelvesOf(l: Layout, cell: PlanCell, o: Opening): Piece[] {
       name: `Repisa ${k}${o.label}`,
       role: 'shelf',
       normal: 'y',
-      x: extent(ref(o.left), ref(o.right)),
+      x: extent(ref(o.left, l.build.shelves === 'movable' ? ASSUMPTIONS.shelfClearance : 0), ref(o.right, l.build.shelves === 'movable' ? -ASSUMPTIONS.shelfClearance : 0)),
       y: startAt(partway(o.bottom, o.top, k / (shelves + 1), -l.half)),
       // Behind a door the shelf stops short of it: an overlay door is in front of the carcass, an inset one inside it, sliding ones further in, on their tracks.
       z: extent(ref(l.backFace), behindDoor ? shift(o.front, -doorRoom(l, cell) - SHELF_SETBACK) : o.front),
@@ -617,12 +617,12 @@ const doorRoom = (l: Layout, cell: PlanCell) => (doorsIn(l.build, cell) === 'ins
 
 /** Sliding leaves, with the grooves they run in: two overlap where they meet, the left one behind; one covers half of the opening and slides over the other half. */
 function slidingDoors(l: Layout, o: Opening, leaves: number, front = l.front): Fronts {
-  const { overlap, engagement } = ASSUMPTIONS.sliding
+  const { overlap, engagement, liftClearance, sideClearance } = ASSUMPTIONS.sliding
   const into = l.t * engagement
   // A leaf rests on the bottom of the lower groove and stays whole: what is left of a millimetre stays out of the upper one.
-  const up = Math.floor(2 * into) - into
-  const toMiddle = extent(ref(o.left), partway(o.left, o.right, 0.5, overlap / 2))
-  const fromMiddle = extent(partway(o.left, o.right, 0.5, -overlap / 2), ref(o.right))
+  const up = Math.floor(2 * into) - into - liftClearance
+  const toMiddle = extent(ref(o.left, sideClearance), partway(o.left, o.right, 0.5, overlap / 2))
+  const fromMiddle = extent(partway(o.left, o.right, 0.5, -overlap / 2), ref(o.right, -sideClearance))
   const doors =
     leaves === 1
       ? [{ id: `${o.id}-door`, name: `Puerta corrediza${o.label}`, x: o.hangsLeft ? toMiddle : fromMiddle, track: 0 }]
@@ -938,7 +938,12 @@ function finished(l: Layout, built: Design, hung: Filling['hung'], choices: Map<
   if (fingeredTops) notes.push(`Cubierta con dedos en ${fingeredTops} ${fingeredTops === 1 ? 'esquina' : 'esquinas'}, ${fingers} por esquina: los costados suben hasta la cara de arriba. Se cortan con router en mesa o con sierra de mesa y plantilla, y se arman con pegamento. Quedan a la vista.`)
   const withFingers = fingerDrawers(design)
   if (withFingers) notes.push(fingerDrawersNote(withFingers, fingers))
-  return { design: completeJoints(withPulls, catalog), notes }
+  // Keep shelf grain across its supporting sides even when clearance makes depth the longer face dimension.
+  const withShelfGrain: Design = geometry.ok ? { ...withPulls, pieces: withPulls.pieces.map((p) => {
+    const box = geometry.value.boxes.get(p.id)
+    return p.role === 'shelf' && p.normal === 'y' && box ? { ...p, grain: box.x1 - box.x0 >= box.z1 - box.z0 ? 'length' : 'width' } : p
+  }) } : withPulls
+  return { design: completeJoints(withShelfGrain, catalog), notes }
 }
 
 /** The furniture's pulls, and the fronts whose cell says otherwise; none at all says nothing. */
@@ -1227,8 +1232,8 @@ const cabinetFields: FieldSpec<CabinetPlan>[] = [
     choice<CabinetPlan, NonNullable<CabinetPlan['kick']>>({ key: 'kick', label: 'Zoclo', ...fromLabels(CABINET_LABELS.kick), visibleWhen: (p) => p.base === 'kick', get: (p) => p.kick ?? 'low', set: (p, kick) => ({ ...p, kick }) }),
     numbers(2, [number({ key: 'legHeight', label: 'Alto de las patas', part: 'Patas', min: LEG_HEIGHT_RANGE.min, max: LEG_HEIGHT_RANGE.max, get: (p) => p.legHeight, set: (p, legHeight) => ({ ...p, legHeight }) })], (p) => p.base === 'legs'),
     legStyleField((p) => p.base === 'legs', LEANING_LEG_STYLE_LABELS),
-    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: `Va atornillado al muro: así no se vuelca ni se ladea. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
-    note('Con la base directa al piso lleva un listón de colgar bajo el techo: es el travesaño por donde se atornilla.', (p) => p.wallMounted && p.base === 'floor' && !leafCells(p.columns).some((c) => c.content === 'void'), 'wallMounted'),
+    yesNo({ key: 'wallMounted', label: 'Anclado al muro', lockedByDefault: true, hints: { yes: `Confirma si el muro evita el vuelco o sostiene el mueble colgado. Con patas o zoclo, el piso sostiene el peso. ${HOW_TO_ANCHOR}` }, get: (p) => p.wallMounted, set: (p, wallMounted) => ({ ...p, wallMounted }) }),
+    note('Lleva un listón bajo el techo para fijarse al muro. La guía indica si la instalación es colgada o antivuelco; confirma la fijación para esa función y para tu muro.', (p) => p.wallMounted && p.base === 'floor' && !leafCells(p.columns).some((c) => c.content === 'void'), 'wallMounted'),
     ...constructionFields,
     note(PULLS_UNSAID, (p) => p.construction.pulls === undefined && pullsShown(p) === 'notch', 'construction.pulls'),
     stepper({ key: 'drawerFingers', label: 'Dedos por esquina', ariaLabel: 'dedos por esquina del cajón', min: FINGERS_RANGE.min, max: FINGERS_RANGE.max, visibleWhen: (p) => p.construction.top === 'fingers' || (p.construction.drawerCorners === 'fingers' && hasCell(p, (x) => x.content === 'drawer')), get: (p) => p.drawerFingers ?? DEFAULT_FINGERS, set: (p, drawerFingers) => ({ ...p, drawerFingers }) }),

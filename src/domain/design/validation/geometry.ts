@@ -1,3 +1,4 @@
+import { ASSUMPTIONS } from '../../assumptions'
 import { DIMENSION_OF_AXIS, DIMENSION_LABEL, AXES, isDrawerPart, type Axis, type Design, type Piece } from '../schema'
 import { faceSize, roundTo, type Box, type Geometry } from '../resolve'
 import { usableSheet, materialById, type Catalog } from '../../materials/catalog'
@@ -107,6 +108,12 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
         errors.push(error('E_JOINT_WITHOUT_CONTACT', `La corredera "${u.id}" necesita a "${u.a}" y "${u.b}" uno frente al otro a lo ancho, a menos de ${RUNNER_GAP} mm.`, { joint: u.id, a: u.a, b: u.b }))
       continue
     }
+    if (u.type === 'shelf-pin' && !all.some((c) => samePair(c, u.a, u.b))) {
+      const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
+      if (!gap || gap.axis !== 'x' || gap.distance > ASSUMPTIONS.shelfPinReach)
+        errors.push(error('E_JOINT_WITHOUT_CONTACT', `El soporte de repisa "${u.id}" debe alcanzar la repisa: holgura lateral máxima de ${ASSUMPTIONS.shelfPinReach} mm.`, { joint: u.id, a: u.a, b: u.b }))
+      continue
+    }
     if (u.type === 'cup-hinge' && !all.some((c) => samePair(c, u.a, u.b))) {
       const gap = gapBetween(geo.boxes.get(u.a)!, geo.boxes.get(u.b)!)
       if (!gap || gap.distance > HINGE_GAP)
@@ -126,7 +133,7 @@ export function validateGeometry(design: Design, geo: Geometry, catalog: Catalog
   })
 
   // Runners and hinges hold pieces that do not touch; from the floor up, whatever is not reached floats.
-  const hanging = design.joints.filter((u) => (u.type === 'drawer-slide' || u.type === 'cup-hinge') && geo.boxes.has(u.a) && geo.boxes.has(u.b))
+  const hanging = design.joints.filter((u) => (u.type === 'drawer-slide' || u.type === 'cup-hinge' || u.type === 'shelf-pin') && geo.boxes.has(u.a) && geo.boxes.has(u.b))
   connections.push(...hanging.map((u) => ({ a: u.a, b: u.b, axis: 'x' as const, depth: 0 })))
   const reached = new Set([...geo.boxes].filter(([, c]) => c.y0 <= CONTACT_TOLERANCE).map(([id]) => id))
   for (let changed = true; changed; ) {

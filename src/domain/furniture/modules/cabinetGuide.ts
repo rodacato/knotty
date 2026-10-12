@@ -124,8 +124,8 @@ export function cabinetPhases(plan: CabinetPlan, design: Design): GuidePhase[] {
       title: 'En su lugar',
       pieces: [],
       steps: [
-        step('Nivela el mueble donde va, en las dos direcciones, antes de ajustar las bisagras.', levelled),
-        ...(design.wallAnchored ? [step('Ánclalo al muro, como dice su ficha.', anchored)] : []),
+        step(hinged.length ? 'Nivela el mueble donde va, en las dos direcciones, antes de ajustar las bisagras.' : 'Nivela el mueble donde va, en las dos direcciones.', levelled),
+        ...(design.wallAnchored ? [step('Fíjalo al muro según el sistema de instalación indicado en esta guía y la ficha del herraje.', anchored)] : []),
       ],
     },
   ]

@@ -1,7 +1,7 @@
 import { ASSUMPTIONS, pocketScrewId } from '../assumptions'
 import { hardwareByRole, hingeFor, pickHardware, slideForBox, type Catalog } from '../materials/catalog'
 import { doorMount } from './doors'
-import { contactBetween, contacts, type Contact } from './validation/contact'
+import { contactBetween, contacts, gapBetween, type Contact } from './validation/contact'
 import { makeJoint } from './builders'
 import { JOINTS } from './jointSpecs'
 import { isDrawerPart, type Design, type Piece, type Joint, type JointType } from './schema'
@@ -113,7 +113,11 @@ export function completeJoints(design: Design, catalog: Catalog, previous?: Desi
     added.push({ ...u, id })
   }
 
-  const touching = contacts(boxes).filter((c) => c.axis !== null && !joined.has(pairKey(c.a, c.b)) && !earlierContacts.has(pairKey(c.a, c.b)))
+  const pinGaps: Contact[] = design.pieces.filter((p) => p.role === 'shelf' && p.support === 'movable').flatMap((p) => design.pieces.filter((q) => q.normal === 'x' && q.id !== p.id).flatMap((q): Contact[] => {
+    const gap = gapBetween(boxes.get(p.id)!, boxes.get(q.id)!)
+    return gap?.axis === 'x' && gap.distance <= ASSUMPTIONS.shelfPinReach ? [{ a: p.id, b: q.id, axis: 'x', depth: 0 }] : []
+  }))
+  const touching = [...contacts(boxes), ...pinGaps].filter((c) => c.axis !== null && !joined.has(pairKey(c.a, c.b)) && !earlierContacts.has(pairKey(c.a, c.b)))
   for (const c of touching) {
     const p = byId.get(c.a)!
     const q = byId.get(c.b)!

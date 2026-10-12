@@ -143,13 +143,13 @@ describe('litres and containers', () => {
   })
 
   it('the bookcase: area of both faces, the back once, plus the banded edges; polyurethane with its sealer', () => {
-    // Sides 1800 × 294 × 2 faces × 2 = 2 116 800; kick 514 × 70 × 2 = 71 960; bottom, top and 4 shelves 514 × 294 × 2 × 6 = 1 813 392;
-    // back 550 × 1800 × 1 face = 990 000; front edges × 18: sides 1800 × 2, six boards 514 × 6 → 120 312. Total 5 112 464 mm² = 5.112 m².
+    // Sides 1800 × 294 × 2 faces × 2 = 2 116 800; kick 514 × 70 × 2 = 71 960; bottom and top 514 × 294 × 2 × 2 plus 4 shelves 510 × 294 × 2 × 4 = 1 803 984;
+    // back 550 × 1800 × 1 face = 990 000; front edges × 18: sides 1800 × 2, two boards 514 × 2 and four shelves 510 × 4 → 120 024. Total 5 102 768 mm² = 5.112 m².
     const g = geo(exampleBookcase)
-    expect(finishArea(exampleBookcase, g)).toBeCloseTo(5.112464, 5)
-    // 1 sealer + 3 coats: 5.112464 × 4 ÷ (8 × 0.8) = 3.1953 L → one 4 L container (four of 1 L are as much and more containers).
+    expect(finishArea(exampleBookcase, g)).toBeCloseTo(5.102768, 5)
+    // 1 sealer + 3 coats: 5.102768 × 4 ÷ (8 × 0.8) = 3.1953 L → one 4 L container (four of 1 L are as much and more containers).
     const f = estimateFinish({ ...exampleBookcase, finish: 'polyurethane' }, g, testCatalog)!
-    expect(f.lines).toMatchObject([{ product: 'polyurethane-1k', coats: 4, litres: 3.2 }])
+    expect(f.lines).toMatchObject([{ product: 'polyurethane-1k', coats: 4, litres: 3.19 }])
     expect(f.lines[0].containers.map((c) => [c.sku.litres, c.count])).toEqual([[4, 1]])
     expect(f.sandpaper).toEqual([120, 180, 220, 320])
   })

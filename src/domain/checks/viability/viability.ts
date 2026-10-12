@@ -1,3 +1,4 @@
+import { manufacturingProblems } from '../../design/manufacturing'
 import { z } from 'zod'
 import { DIMENSION_LABEL, DIMENSION_OF_AXIS, type Axis, type Design } from '../../design/schema'
 import { faceSize, roundTo, type Geometry } from '../../design/resolve'
@@ -229,7 +230,7 @@ function acceptedByPerson({ accepted = [] }: ViabilityInput): Check[] {
 export function reviewViability(input: ViabilityInput): Viability {
   const { analysis } = input
   const review: Review = { ...input, errors: analysis.valid ? [] : analysis.errors, findings: input.findings ?? (analysis.valid ? analysis.findings : []) }
-  const checks = [...[measures, sheet, structure, strips, confirmed, margin].map((f) => f(review)), ...acceptedByPerson(input)]
+  const checks = [...[measures, sheet, structure, strips, confirmed, margin].map((f) => f(review)), ...(input.analysis.valid ? manufacturingProblems(input.design, input.analysis.geo) : []).map((p, i) => check({ id: `manufacturing-${i}`, title: 'Ajuste de fabricación pendiente', status: 'fail', pieces: p.pieces, detail: p.detail })), ...acceptedByPerson(input)]
   return { verdict: verdictOf(checks), checks: checks }
 }
 

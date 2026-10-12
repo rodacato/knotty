@@ -466,32 +466,32 @@ describe('sliding doors', () => {
   it('they overlap where they meet by the 25 mm less what keeps both leaves whole, the left one behind the right one, both set back from the front edge', () => {
     const { box } = built(rack(2))
     const [left, right] = [box('c1-h1-door-left'), box('c1-h1-door-right')]
-    expect([left.x0, right.x1]).toEqual([box('side-left').x1, box('side-right').x0])
-    expect([left.x1 - left.x0, right.x1 - right.x0]).toEqual([594, 594])
+    expect([left.x0, right.x1]).toEqual([box('side-left').x1 + 1, box('side-right').x0 - 1])
+    expect([left.x1 - left.x0, right.x1 - right.x0]).toEqual([593, 593])
     expect(left.x1 - right.x0).toBe(24)
     expect(right.z1).toBe(400 - 10)
-    expect(left.z1).toBe(right.z0 - 3)
-    expect([left.y0, left.y1]).toEqual([box('bottom').y1 - 4.5, box('top').y0 + 4.5])
+    expect(left.z1).toBe(right.z0 - 8)
+    expect([left.y0, left.y1]).toEqual([box('bottom').y1 - 4.5, box('top').y0 + 2.5])
   })
 
   it('one leaf covers half of its opening and a little more, on the side the hinges would be', () => {
     const half = (hinges: CabinetConstruction['hinges']) => built(rack(1, {}, { construction: { ...sliding, hinges }, columns: [{ width: 1, cells: [{ height: 1, content: 'door', shelves: 0, doors: 1 }] }, { width: 1, cells: [open()] }] })).box('c1-h1-door')
     const outside = half('outside')
-    expect(outside.x0).toBe(18)
-    expect(outside.x1 - outside.x0).toBeCloseTo((1200 - 3 * 18) / 2 / 2 + 12.5)
-    expect(half('inside').x1).toBeCloseTo(18 + (1200 - 3 * 18) / 2)
+    expect(outside.x0).toBe(19)
+    expect(outside.x1 - outside.x0).toBeCloseTo((1200 - 3 * 18) / 2 / 2 + 11.5)
+    expect(half('inside').x1).toBeCloseTo(17 + (1200 - 3 * 18) / 2)
   })
 
   it('a shelf behind them stops short of the tracks, further in with two leaves than with one', () => {
     const shelf = (doors: number) => built(rack(doors, { shelves: 1 })).box('c1-h1-shelf-1').z1
     expect(shelf(1)).toBe(400 - 10 - 18 - 5)
-    expect(shelf(2)).toBe(400 - 10 - 18 - 3 - 18 - 5)
+    expect(shelf(2)).toBe(400 - 10 - 18 - 8 - 18 - 5)
   })
 
   it('run in front of a cell split into columns: its divider and shelves stay behind the tracks, and the doors close the whole cell', () => {
     const { box, has, design } = built(rack(1, { shelves: null, columns: [{ width: 1, cells: [open()] }, { width: 1, cells: [open(1)] }] }))
     expect(design.pieces.filter((x) => x.role === 'door').map((x) => x.id)).toEqual(['c1-h1-door'])
-    const behind = 400 - 10 - 18 - 3
+    const behind = 400 - 10 - 18 - 8
     expect([box('c1-h1-div-1').z1, box('c1-h1-c2-h1-shelf-1').z1]).toEqual([behind, behind])
     expect(box('c1-h1-door').x1).toBeGreaterThan(box('c1-h1-div-1').x1)
     expect(has('c1-h1-c1-h1-door')).toBe(false)

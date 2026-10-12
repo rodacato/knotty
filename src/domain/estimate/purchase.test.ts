@@ -167,7 +167,7 @@ describe('hardware and purchase', () => {
   })
 
   it('adds up edge banding for the marked edges, with waste', () => {
-    expect(edgeBandingMeters(exampleBookcase, geo(exampleBookcase))).toBeCloseTo(((1800 * 2 + 514 * 6) / 1000) * 1.1, 1)
+    expect(edgeBandingMeters(exampleBookcase, geo(exampleBookcase))).toBeCloseTo(((1800 * 2 + 514 * 2 + 510 * 4) / 1000) * 1.1, 1)
   })
 
   it('buys the edge banding by its role, not whatever else is sold by the metre', () => {

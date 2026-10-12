@@ -1,3 +1,4 @@
+import { hangsFromWall } from '../design/installation'
 import type { Design } from '../design/schema'
 import { roundTo, type Geometry } from '../design/resolve'
 import { hardwarePerJoint } from '../design/hardwareCount'
@@ -77,7 +78,7 @@ export function estimatePurchase(design: Design, geo: Geometry, catalog: Catalog
   for (const h of rodHardware(design, geo.boxes, catalog)) add(h.hardwareId, h.count)
   // Anchored is what keeps it from tipping, so the kit that anchors it is bought; a wall cabinet hangs from its rail instead.
   const antiTip = pickHardware(catalog, 'anti-tip')
-  if (antiTip && design.wallAnchored && design.kind !== 'wallCabinet') add(antiTip.id, 1)
+  if (antiTip && design.wallAnchored && !hangsFromWall(design)) add(antiTip.id, 1)
   const anchoring = anchoringOf(design, geo, catalog)
   if (anchoring?.plug) add(anchoring.plug.id, anchoring.count)
   const glued = design.joints.filter((u) => u.glue).length
