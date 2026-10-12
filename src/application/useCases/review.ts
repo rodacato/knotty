@@ -4,6 +4,7 @@ import type { Catalog } from '../../domain/materials/catalog'
 import { cutList } from '../../domain/estimate/cutList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
 import { checkRequirements } from '../../domain/checks/requirements/requirements'
+import { purchaseReviewItems } from '../../domain/session/purchaseReview'
 import { currentDesign, type DesignState, type PurchaseReview } from '../../domain/session/state'
 import { heldAcceptance, isAccepted } from '../../domain/checks/structure/accepted'
 import { reviewViability, worst } from '../../domain/checks/viability/viability'
@@ -87,5 +88,15 @@ export function createReview(kit: Kit) {
   /** The caller confirms the run and design still match before saving. */
   const saveReview = (state: DesignState, review: PurchaseReview) => save({ ...state, review: review })
 
-  return { reviewPurchase, saveReview }
+  function choosePurchaseReview(state: DesignState, effectiveCatalog: Catalog, id: string, choice: 'keep' | 'risk' | 'requested' | null): DesignState {
+    const review = state.review
+    if (!review || review.signature !== reviewSignature(state, effectiveCatalog)) return state
+    const item = purchaseReviewItems(review).find((item) => item.id === id)
+    if (!item || (choice === 'keep' && !item.optional) || (choice === 'risk' && item.optional)) return state
+    const choices = (review.choices ?? []).filter((entry) => entry.id !== id)
+    if (choice) choices.push({ id, choice })
+    return save({ ...state, review: { ...review, choices } })
+  }
+
+  return { reviewPurchase, saveReview, choosePurchaseReview }
 }

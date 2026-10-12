@@ -6,7 +6,7 @@ import { analyze } from '../../domain/checks/analysis'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { exampleWallCabinet } from '../../domain/furniture/fixtures/wallCabinet'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { currentDesign, type DesignState, type PurchaseReview } from '../../domain/session/state'
+import { currentDesign, DesignState, type PurchaseReview } from '../../domain/session/state'
 import { ServicesContext } from '../services'
 import { testServices } from '../store/services.test-util'
 import { TakeAway } from '../takeaway/TakeAway'
@@ -53,10 +53,10 @@ describe('Materials next step', () => {
     expect(primaryButtons(markup)[0]).toContain('Ver guía para construir')
     expect(buttons(markup).filter((button) => button.includes('Copiar lista para la maderería'))).toHaveLength(1)
     expect(markup).not.toContain('Hoja para llevar')
-    for (const heading of ['Detalles de la revisión', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado:', 'Lista de corte']) {
+    for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado:', 'Lista de corte']) {
       expect(markup).toMatch(new RegExp(`<details[^>]*><summary[^>]*>${heading}`))
     }
-    expect(markup).not.toMatch(/<details[^>]*\bopen(?:=|>)/)
+    expect(markup).toMatch(/<details[^>]*open=""[^>]*><summary[^>]*><span[^>]*>2\. Confirmar materiales/)
   })
 
   it('keeps necessary changes visible before export and preserves them in the guide and copied text', async () => {
@@ -69,10 +69,10 @@ describe('Materials next step', () => {
     const state = { ...original, review }
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
-    expect(primaryButtons(markup)[0]).toContain('Ver qué corregir')
+    expect(primaryButtons(markup)[0]).toContain('Ver guía con pendientes')
     expect(markup.indexOf('Falta soporte para colgar')).toBeLessThan(markup.indexOf('Guía y lista para llevar'))
-    expect(markup).toContain('Problema crítico')
-    expect(markup).toContain('Conecta un experto para solicitar este cambio.')
+    expect(markup).toContain('Necesario antes de construir')
+    expect(markup).toContain('Aceptar así, bajo mi riesgo')
     const requestButton = buttons(markup).find((button) => button.includes('Conectar experto para pedir el ajuste'))
     expect(requestButton).toBeDefined()
     expect(requestButton).not.toContain('Agregar un listón')
@@ -103,6 +103,56 @@ describe('Materials next step', () => {
     expect(guide(state)).toContain('la lista no incluye los taquetes')
   })
 
+  it('orders decisions and purchases before the final guide action', async () => {
+    const markup = renderMaterials(await reviewed())
+    expect(markup.indexOf('1. Revisar pendientes')).toBeLessThan(markup.indexOf('2. Confirmar materiales'))
+    expect(markup.indexOf('Herrajes y consumibles')).toBeLessThan(markup.indexOf('3. Obtener tu guía'))
+    expect(markup.indexOf('Lista de corte ·')).toBeLessThan(markup.indexOf('Ver guía para construir'))
+    expect(markup).toContain('Paso 2 de 3')
+    expect(markup).toContain('Continuar a la guía')
+  })
+
+  it('saves and undoes a review decision without changing the technical verdict or export warnings', async () => {
+    const original = await reviewed()
+    const state = { ...original, review: { ...original.review, verdict: 'needs-changes' as const, carpenter: { verdict: 'needs-changes' as const, summary: 'Hace falta revisar el soporte.', problems: [{ title: 'Soporte pendiente', detail: 'El soporte necesita revisarse.', severity: 'high' as const, pieces: [], request: 'Revisar soporte' }], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
+    const chosen = services.useCases.choosePurchaseReview(state, testCatalog, 'expert:0', 'risk')
+    const saved = DesignState.parse(services.useCases.load())
+    expect(saved.review?.choices).toEqual([{ id: 'expert:0', choice: 'risk' }])
+    expect(chosen.review?.verdict).toBe('needs-changes')
+    expect(chosen.review?.checks).toEqual(state.review.checks)
+    expect(renderMaterials(chosen)).toContain('Sin decisiones por tomar')
+    expect(renderMaterials(chosen)).toContain('Deshacer decisión')
+    expect(guide(chosen)).toContain('El soporte necesita revisarse.')
+    expect(guide(chosen)).toContain('Decidiste mantenerlo bajo tu riesgo')
+    expect(reviewNotes(chosen, testCatalog).join('\n')).toContain('el problema no está corregido')
+    const undone = services.useCases.choosePurchaseReview(saved, testCatalog, 'expert:0', null)
+    expect(undone.review?.choices).toEqual([])
+    expect(renderMaterials(undone)).toContain('1 decisión por tomar')
+    expect(reviewNotes(undone, testCatalog).join('\n')).not.toContain('Decidiste mantenerlo')
+  })
+
+  it('rejects stale or unknown decisions and cannot relabel a required change as optional', async () => {
+    const original = await reviewed(exampleWallCabinet)
+    const state = { ...original, review: { ...original.review, verdict: 'needs-changes' as const, carpenter: { verdict: 'needs-changes' as const, summary: 'Revisa el soporte.', problems: [{ title: 'Soporte pendiente', detail: 'No está corregido.', severity: 'medium' as const, pieces: [], request: 'Revisar soporte' }], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
+    expect(services.useCases.choosePurchaseReview(state, testCatalog, 'expert:0', 'keep')).toBe(state)
+    expect(services.useCases.choosePurchaseReview(state, testCatalog, 'unknown', 'risk')).toBe(state)
+    const stale = services.useCases.addRequirement(state, 'Necesito una puerta adicional')
+    expect(services.useCases.choosePurchaseReview(stale, testCatalog, 'expert:0', 'risk')).toBe(stale)
+    expect(reviewNotes(stale, testCatalog).join('\n')).toContain('no tiene una revisión vigente')
+  })
+
+  it('records a request without pretending it has applied a correction, and a new review clears prior choices', async () => {
+    const original = await reviewed()
+    const state = { ...original, review: { ...original.review, carpenter: { verdict: 'viable' as const, summary: 'Una mejora opcional.', problems: [{ title: 'Redondear esquinas', detail: 'Puedes conservar las esquinas rectas.', severity: 'low' as const, pieces: [], request: 'Redondear esquinas' }], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
+    const chosen = services.useCases.choosePurchaseReview(state, testCatalog, 'expert:0', 'keep')
+    expect(renderMaterials(chosen)).toContain('Decidiste dejarlo así')
+    const requested = services.useCases.choosePurchaseReview(state, testCatalog, 'expert:0', 'requested')
+    expect(renderMaterials(requested)).toContain('Solicitud enviada al experto')
+    expect(reviewNotes(requested, testCatalog).join('\n')).toContain('todavía no confirma una corrección')
+    const fresh = await services.useCases.reviewPurchase(requested, testCatalog, new AbortController().signal)
+    expect(services.useCases.saveReview(requested, fresh).review?.choices ?? []).toEqual([])
+  })
+
   it('keeps clipboard live feedback within a positioned container', () => {
     const markup = renderToStaticMarkup(h(CopyList, { text: 'Lista de prueba' }))
     expect(markup).toMatch(/^<div class="relative /)
@@ -121,7 +171,7 @@ describe('Materials next step', () => {
     const original = await reviewed()
     const state: DesignState = { ...original, review: { ...original.review, verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', summary: 'Hay que ajustar el soporte.', problems: [{ title: 'Soporte pendiente', detail: 'Solicita el ajuste del soporte.', severity: 'low', pieces: [], request: 'Ajustar el soporte' }], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
     const markup = renderMaterials(state)
-    expect(markup.indexOf('Soporte pendiente')).toBeLessThan(markup.indexOf('Detalles de la revisión'))
+    expect(markup.indexOf('Soporte pendiente')).toBeLessThan(markup.indexOf('Comprobaciones de Knotty'))
     expect(reviewNotes(state, testCatalog).join('\n')).toContain('Soporte pendiente')
   })
 
@@ -149,7 +199,8 @@ describe('Materials next step', () => {
     const state: DesignState = { ...original, review: { ...original.review, verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', summary: 'Revisa el soporte antes de comprar.', problems: [], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
-    expect(primaryButtons(markup)[0]).toContain('Conectar experto para consultar')
-    expect(markup).toContain('no detalla cómo hacerlos')
+    expect(primaryButtons(markup)[0]).toContain('Ver guía con pendientes')
+    expect(markup).toContain('Conectar experto para consultar')
+    expect(markup).toContain('Consultar los cambios necesarios')
   })
 })

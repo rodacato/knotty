@@ -1,37 +1,37 @@
 # Materials and the printable guide
 
-Materials keeps the estimated cost visible before a purchase review. Its next action depends on the current design:
+Materials keeps the estimated cost prominent, followed by a compact review notice. The existing dark shell, light drawing studio, fonts, tokens and guide remain the same.
 
-- No current review: review the design before showing the shopping list.
-- Review running: show the real stage, elapsed time and cancellation control.
-- Changes needed: expose pending checks and expert corrections before the export actions.
-- Viable review: make the existing printable guide the primary action; copying the lumberyard message is secondary.
-- Not viable: the list requires the existing explicit opt-in. Exporting never clears the pending warnings.
+A current review opens a three-stage accordion, with one stage open at a time:
+
+1. **Review decisions:** one expanded item, a remaining-decision count, source/priority explanations, and the existing expert request or consultation action. Arithmetic checks and workshop advice remain supporting details.
+2. **Confirm materials:** plywood and layouts, hardware, finish, wall choice, and numbered cuts. The layouts show existing offcuts; they do not guarantee that a leftover can replace a recommended part.
+3. **Get the guide:** the existing printable guide is the primary action; copying the lumberyard message is secondary. Pending designs explicitly open a guide with pending warnings.
+
+Advancing does not certify the design or require opening every disclosure. Unknown wall, missing prices and uncorrected problems remain visible in the exports.
+
+## Decisions and validity
+
+A purchase review optionally stores `choices`, scoped to that review. Old format-9 sessions load without this field. Optional improvements can be left unchanged; required changes require explicit risk confirmation. Both remain collapsed, reopenable and reversible. Neither changes the technical verdict or checks.
+
+An expert request is recorded before opening Conversation. It means a request was sent, not that a change was applied. Undoing that record does not cancel a sent request. A new review starts with no choices; stale reviews and unknown item ids reject choices. When expert problems exist, aggregated structural recommendations stay in the arithmetic details rather than becoming another decision card; failed checks remain decisions.
+
+The guide and copied message include the original warnings and recorded choices. Risk acknowledgement never turns an unsafe or impossible design into a viable one. Non-viable lists retain the existing explicit opt-in.
 
 ## Review lifecycle
 
-Each run captures the current version and `reviewSignature`. Only its own controller can update progress or save a result. Cancellation clears the UI immediately, aborts the transport and ignores late callbacks, failures and results.
+Each run captures the current version and `reviewSignature`. Only its controller can update progress or save a result. Cancellation clears the UI immediately, aborts the transport and ignores late responses. Relevant edits cancel the run with an explanation; no automatic retry spends another expert request.
 
-The store observes relevant design and catalog changes while a review is running. A changed signature cancels that run and explains why. No automatic retry sends another expert request. Opening another design cancels even when its contents match the previous one.
+The signature excludes finishes, wall choice, edge profiles, prices and purchase-review choices. Geometry, requirements, accepted structural findings, sheet dimensions and cutting settings invalidate it. Editing a draft does not replace the actual design until applied.
 
-The signature excludes finishes, wall choice, edge profiles and prices. Those choices can update the purchase while preserving the structural review. Geometry, requirements, accepted findings, sheet dimensions and cutting settings still invalidate it. A draft does not replace the actual design until applied.
+Progress stages are factual: local checks, waiting for the expert, then receiving its response. There is no estimated percentage or completion time.
 
-Stages are factual: local checks, waiting for the expert, then receiving its response. OpenAI-compatible SSE reports receiving only when text content arrives; JSON responses report it after the body is read. Anthropic reports the first text event. Providers without response callbacks remain in waiting until completion. There is no estimated percentage or completion time.
+## Guide and verification
 
-## Actions and export
+The guide opens at `#takeaway`. Its existing `window.print()` action prints or saves as PDF. Numbered cuts, diagrams, lumberyard checks and available assembly phases remain connected; modules without assembly phases say so.
 
-Expert corrections state the requested change beside a button that explicitly sends it to Conversation. Viewing a piece in 3D remains a separate action. Successful checks and optional advice are disclosed on demand; unresolved checks remain visible.
+Run `npm test -- src/ui/store/review.test.ts src/ui/studio/Materials.test.ts` for lifecycle races, saved/reversible decisions, stale-review rejection, action order and preserved export warnings. Run `npm run build`, `npm run lint` and the full `npm test` suite before review.
 
-The guide opens at `#takeaway`. Its existing print action calls `window.print()`, allowing the browser to print or save as PDF. It includes numbered cuts and diagrams; assembly phases remain available only for modules that already provide them.
+In the browser, use catalog bases or the existing furniture fixtures with an absent/synthetic provider and invented review opinions. Block non-GET requests and external connections for screenshot capture. Check one open stage/item, confirmation, undo, reload, requested-versus-applied status, material changes, final guide/copy actions, and document/panel bounds on desktop and at 320px. Advancing and undoing move focus to a visible summary.
 
-The guide and copied message carry stale-review, unresolved-review and unknown-wall notes. They do not certify real material, installation or site conditions. The existing pre-cut notice and lumberyard checklist remain available.
-
-An unknown wall remains a valid answer, with the anchor-selection gap explicit. Cutting settings are advanced lumberyard options: changes recalculate the layout and invalidate the review. Finish choices are summarized and expanded when needed.
-
-## Verification
-
-Run `npm test -- src/ui/store/review.test.ts src/ui/studio/Materials.test.ts src/adapters/llm/compatibleOpenAI.test.ts` for cancellation races, late responses, real stream activity, purchase gates and rendered action hierarchy.
-
-For browser checks, open a catalog base and enter Materials. Review locally without connecting an expert; confirm one primary guide action, one copy action, closed details and no document overflow while expanding the cut list. Open the guide and check its print action. With a controlled delayed provider, cancel, edit a dimension, change a cutting setting and replace the design while reviewing; late responses must not alter the active design.
-
-The clipboard live region needs a positioned containing block. Without it, its absolute static position can escape the Materials scroll panel and enlarge the document.
+The clipboard live region needs a positioned containing block so it cannot enlarge the Studio document. Finish precautions and unknown-wall notices must survive collapsed options and exports.

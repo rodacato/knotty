@@ -92,6 +92,7 @@ export const PurchaseReview = z.object({
   /** Why the carpenter did not answer, if it did not; null with no carpenter means nobody was asked. The arithmetic checks hold anyway. */
   error: z.string().nullable(),
   date: z.string(),
+  choices: z.array(z.object({ id: z.string(), choice: z.enum(['keep', 'risk', 'requested']) })).optional(),
 })
 export type PurchaseReview = z.infer<typeof PurchaseReview>
 
