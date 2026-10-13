@@ -13,6 +13,7 @@ interface RoomStore {
   returnFocus: HTMLElement | null
   launch(source: FurnitureSource, opener?: HTMLElement): void
   add(source: FurnitureSource): void
+  sync(source: FurnitureSource): void
   addBlock(name: string, size: { width: number; depth: number; height: number }): void
   select(id: string): void
   setView(view: RoomStore['view']): void
@@ -117,6 +118,11 @@ export const useRoom = create<RoomStore>((set, get) => {
       if (!layout) return
       const item = furniture(source)
       commit({
+    sync(source) {
+      const { layout, editingId } = get()
+      const item = layout?.items.find((i) => i.id === (editingId ?? layout.anchorId))
+      if (item?.kind === 'furniture' && item.source.identity === source.identity && item.source.design !== source.design) changeItem(item.id, (i) => ({ ...i, source }))
+    },
         ...layout,
         items: [...layout.items, { ...item, ...freePosition(layout, item) }],
       })

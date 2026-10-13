@@ -6,11 +6,14 @@ import { browsingFrom, searchWith } from '../capture/address'
 import { draftOf, type Store } from '../store'
 import { fragmentOf, hasLinkedFicha, routeFrom, type Route } from './routes'
 import { useRoom } from '../room/store'
+import { studioSource } from '../room/sources'
 
 export function showRoute(store: StoreApi<Store>, route: Route) {
   const s = store.getState()
   if (route.screen === 'room') {
-    s.setRoomOpen(!!useRoom.getState().layout)
+    const room = useRoom.getState()
+    if (room.layout && s.state && s.services) room.sync(studioSource(s.state, s.services.references.home()))
+    s.setRoomOpen(!!room.layout)
     return
   }
   s.setRoomOpen(false)
