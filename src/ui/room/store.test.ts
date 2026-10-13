@@ -103,6 +103,21 @@ describe('temporary room history and Studio handoff', () => {
     expect(issues(layout!)).toEqual([])
   })
 
+  it('undoes a run of arrow-key steps on one piece as a single change', () => {
+    useRoom.getState().launch(source('GN-CAM-01'))
+    const id = useRoom.getState().selected!,
+      before = useRoom.getState().layout!
+    for (let step = 0; step < 5; step++) useRoom.getState().nudge(id, 10, 0)
+    expect(useRoom.getState().layout!.items[0].x).toBe(before.items[0].x + 50)
+    useRoom.getState().turn(id)
+    useRoom.getState().nudge(id, 0, 10)
+    useRoom.getState().undo()
+    useRoom.getState().undo()
+    expect(useRoom.getState().layout!.items[0].x).toBe(before.items[0].x + 50)
+    useRoom.getState().undo()
+    expect(useRoom.getState().layout).toEqual(before)
+  })
+
   it('represents existing objects as blocks and restores a replaced ficha with its provenance', () => {
     useRoom.getState().launch(source('GN-BUR-01'))
     const id = useRoom.getState().selected!,

@@ -10,10 +10,11 @@ interface RoomStore {
   past: Layout[]
   future: Layout[]
   editingId: string | null
+  nudging: string | null
   returnFocus: HTMLElement | null
   launch(source: FurnitureSource, opener?: HTMLElement): void
-  add(source: FurnitureSource): void
   sync(source: FurnitureSource): void
+  add(source: FurnitureSource): void
   addBlock(name: string, size: { width: number; depth: number; height: number }): void
   select(id: string): void
   setView(view: RoomStore['view']): void
@@ -24,6 +25,7 @@ interface RoomStore {
   addOpening(kind: Opening['kind']): void
   move(id: string, changes: Partial<Pick<Item, 'x' | 'z' | 'elevation'>>, remember?: boolean): void
   beginMove(): void
+  nudge(id: string, dx: number, dz: number): void
   settle(id: string): void
   turn(id: string): void
   duplicate(id: string): void
@@ -51,6 +53,7 @@ export const useRoom = create<RoomStore>((set, get) => {
       layout,
       past: previous ? [...get().past.slice(-39), previous] : [],
       future: [],
+      nudging: null,
     })
   }
   const changeItem = (id: string, change: (item: Item) => Item) => {
@@ -66,6 +69,7 @@ export const useRoom = create<RoomStore>((set, get) => {
       layout,
       past,
       future,
+      nudging: null,
       selected: layout.items.some((i) => i.id === get().selected) ? get().selected : (layout.items.at(-1)?.id ?? null),
     })
   return {
@@ -76,6 +80,7 @@ export const useRoom = create<RoomStore>((set, get) => {
     past: [],
     future: [],
     editingId: null,
+    nudging: null,
     returnFocus: null,
     launch(source, opener) {
       const { layout, editingId } = get()
@@ -113,16 +118,16 @@ export const useRoom = create<RoomStore>((set, get) => {
         editingId: null,
       })
     },
-    add(source) {
-      const layout = get().layout
-      if (!layout) return
-      const item = furniture(source)
-      commit({
     sync(source) {
       const { layout, editingId } = get()
       const item = layout?.items.find((i) => i.id === (editingId ?? layout.anchorId))
       if (item?.kind === 'furniture' && item.source.identity === source.identity && item.source.design !== source.design) changeItem(item.id, (i) => ({ ...i, source }))
     },
+    add(source) {
+      const layout = get().layout
+      if (!layout) return
+      const item = furniture(source)
+      commit({
         ...layout,
         items: [...layout.items, { ...item, ...freePosition(layout, item) }],
       })
@@ -199,7 +204,14 @@ export const useRoom = create<RoomStore>((set, get) => {
     },
     beginMove() {
       const layout = get().layout
-      if (layout) set({ past: [...get().past.slice(-39), layout], future: [] })
+      if (layout) set({ past: [...get().past.slice(-39), layout], future: [], nudging: null })
+    },
+    nudge(id, dx, dz) {
+      const item = get().layout?.items.find((i) => i.id === id)
+      if (!item) return
+      if (get().nudging !== id) get().beginMove()
+      get().move(id, { x: item.x + dx, z: item.z + dz }, false)
+      set({ nudging: id })
     },
     settle(id) {
       const layout = get().layout,
