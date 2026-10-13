@@ -7,6 +7,7 @@ import type { Preferences } from '../ports/Preferences'
 import type { ReferenceStore } from '../ports/ReferenceStore'
 import type { ImageProcessor } from '../ports/ImageProcessor'
 import type { DesignFileCodec } from '../ports/DesignFileCodec'
+import type { DesignLibrary } from '../ports/DesignLibrary'
 
 export interface Services {
   useCases: UseCases
@@ -15,6 +16,8 @@ export interface Services {
   images: ImageProcessor
   /** The open design as a `.knotty` file, out and back in. */
   files: DesignFileCodec
+  /** «Mis muebles»: the places where the person keeps designs. */
+  library: DesignLibrary
   /** The furniture of reference: the home screen's starting points come from here. */
   references: ReferenceStore
   preferences: Preferences

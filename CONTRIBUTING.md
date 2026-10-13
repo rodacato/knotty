@@ -158,7 +158,7 @@ What to do and where each thing goes depending on what you want to achieve (have
 
 ### What is saved in the browser
 
-The person's designs live in the browser (IndexedDB, with `localStorage` as the fallback) and must keep opening after your change.
+The person's designs live in the browser (IndexedDB, with `localStorage` as the fallback) and in the `.knotty` files they downloaded; all of them must keep opening after your change.
 
 - The session has a format (`format` in `src/domain/session/state.ts`). If you change a field or a saved value, raise the format and add its migration in `src/domain/session/migrate.ts`, with a test. There is a real session from the first version in `state-v1.fixture.json` that is migrated in the tests.
 - Preferences and catalog settings read their previous shape in their adapter (`configuration.ts`, `catalog/json.ts`).

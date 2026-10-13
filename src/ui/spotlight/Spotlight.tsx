@@ -14,7 +14,7 @@ import { Button } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { verdictsOf, type Verdict } from '../lab/verdicts'
 import { linkedFicha } from './link'
-import { LOSS_NOTE, swapLoss, type Asking } from './swap'
+import { LOSS_NOTE, lossOf, type Asking } from './swap'
 import { DownloadFirst } from '../files/DownloadFirst'
 
 /** The thumbnails are built once: they only change with the app. */
@@ -72,7 +72,9 @@ function Finder({ onDone }: { onDone: () => void }) {
   const verdicts = useMemo(() => (debugVisible ? verdictsOf(references.home(), catalog) : null), [debugVisible, references, catalog])
   const shown = cards.filter((c) => found(c.base, text))
   const current = shown[active]
-  const loss = swapLoss(phase, state)
+  const services = useStore((s) => s.services)
+  useStore((s) => s.libraryChanges)
+  const loss = lossOf({ phase, state, services })
   const openCode = phase === 'studio' ? state?.ficha?.code : undefined
 
   useEffect(() => {
@@ -221,8 +223,8 @@ export function Spotlight() {
     history.replaceState(null, '', `${location.pathname}${linked.search}${linked.hash}`)
     const { example } = linked
     if (!example) return
-    const { phase, state, swapTo } = useStore.getState()
-    if (swapLoss(phase, state)) setOpen(true, { name: example.name, code: example.code ?? null, example })
+    const { swapTo } = useStore.getState()
+    if (lossOf(useStore.getState())) setOpen(true, { name: example.name, code: example.code ?? null, example })
     else swapTo(example)
   }, [references, catalog, setOpen])
 

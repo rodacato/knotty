@@ -1,7 +1,7 @@
 import { named } from '../../application/named'
 import { ArrowLeft, ArrowRight, GearSix, Minus, Plus } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
-import { swapLoss } from '../spotlight/swap'
+import { lossOf } from '../spotlight/swap'
 import { resolveGeometry } from '../../domain/design/resolve'
 import { exampleDesign, type Base } from '../../domain/furniture/examples'
 import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/plan'
@@ -101,7 +101,7 @@ export function AdjustBase({ base }: { base: Base }) {
   const size = sizeLine(fit.measures)
   const openExample = (example: Parameters<typeof fromExample>[0]) => {
     const s = useStore.getState()
-    if (swapLoss(s.phase, s.state)) s.openSpotlight(true, { name: example.name, code: base.code ?? null, example })
+    if (lossOf(s)) s.openSpotlight(true, { name: example.name, code: base.code ?? null, example })
     else fromExample(example)
   }
   const open = () => openExample(chosenExample(base, fit.plan, finish))

@@ -10,6 +10,7 @@ import { Pencil } from './system/components'
 import { Knot } from './system/Brand'
 import { DebugKeys } from './debug/DebugKeys'
 import { Spotlight } from './spotlight/Spotlight'
+import { MyFurniture } from './library/MyFurniture'
 import { useStore } from './store'
 import { connectNavigation } from './navigation/navigation'
 
@@ -100,6 +101,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
       <RoomLayer />
       <DebugKeys />
       <Spotlight />
+      <MyFurniture />
       <Settings />
       <ConnectExpert />
       <KeysGate />

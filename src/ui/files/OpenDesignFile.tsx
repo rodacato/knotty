@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { DESIGN_FILE_EXTENSION, type DesignFileRejection } from '../../domain/session/file'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { useServices } from '../services'
-import { LOSS_NOTE, swapLoss, type SwapLoss } from '../spotlight/swap'
+import { LOSS_NOTE, lossOf, type SwapLoss } from '../spotlight/swap'
 import { useStore } from '../store'
 import { Button } from '../system/components'
 import { DownloadFirst } from './DownloadFirst'
@@ -28,8 +28,7 @@ export function OpenDesignFile({ className = '' }: { className?: string }) {
     setRejection(null)
     const result = await files.decode(file)
     if (!result.ok) return setRejection(result.reason)
-    const { phase, state } = useStore.getState()
-    const loss = swapLoss(phase, state)
+    const loss = lossOf(useStore.getState())
     if (loss) setAsking({ state: result.state, loss })
     else openDesign(result.state)
   }

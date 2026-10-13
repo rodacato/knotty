@@ -9,6 +9,7 @@ import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { DesignState } from '../../domain/session/state'
 import { verdictsOf } from '../lab/verdicts'
 import type { Services } from '../services'
+import { noLibrary } from '../../adapters/persistence/library'
 import { useStore } from '../store'
 import { swapLoss } from './swap'
 
@@ -23,6 +24,7 @@ function services(): Services {
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
     files: {} as Services['files'],
+    library: noLibrary,
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} },
   }

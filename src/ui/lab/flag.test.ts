@@ -9,6 +9,7 @@ import { testReferences } from '../../domain/furniture/fixtures/references.test-
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
+import { noLibrary } from '../../adapters/persistence/library'
 import { useStore } from '../store'
 import { piecesNamedIn } from './pieces'
 
@@ -45,6 +46,7 @@ function services(): Services {
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
     files: {} as Services['files'],
+    library: noLibrary,
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
   }

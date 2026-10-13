@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, Cube, Plus } from '@phosphor-icons/react'
+import { ArrowRight, Cube, FloppyDisk, Plus } from '@phosphor-icons/react'
 import type { Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
 import { Button, Chip } from '../system/components'
@@ -94,7 +94,8 @@ export function Home() {
   const adjustBase = useStore((s) => s.adjustBase)
   const query = useStore((s) => s.browsing)
   const browse = useStore((s) => s.browse)
-  const { references, catalog } = useServices()
+  const { references, catalog, library } = useServices()
+  const openLibrary = useStore((s) => s.openLibrary)
   const { connected } = useExpertStatus()
   const cards = useMemo(() => cardsOf(references.home(), catalog), [references, catalog])
   const chips = useMemo(() => roomChips(cards.map((c) => c.base), query), [cards, query])
@@ -118,7 +119,12 @@ export function Home() {
           <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Elige una base de triplay y ajusta sus medidas, acabado y armado. Puedes empezar sin conectar un experto.</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {saved && <Button className="w-fit gap-2 px-5" onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
-            <OpenDesignFile className={saved ? 'px-4' : '-ml-3 px-3'} />
+            {library.available && (
+              <Button variant="ghost" className={`gap-2 ${saved ? 'px-4' : '-ml-3 px-3'}`} onClick={() => openLibrary(true)}>
+                <FloppyDisk aria-hidden /> Mis muebles
+              </Button>
+            )}
+            <OpenDesignFile className={saved || library.available ? 'px-4' : '-ml-3 px-3'} />
           </div>
         </div>
       </div>

@@ -15,6 +15,7 @@ import type { DesignKind } from '../../domain/design/kind'
 import { questionAnswerKey, type DesignState } from '../../domain/session/state'
 import { browsingFrom } from '../capture/address'
 import { ANY, type CatalogQuery } from '../capture/catalog'
+import type { DesignLibrary } from '../../ports/DesignLibrary'
 import type { Services } from '../services'
 import { moveTo, shownDesign, transition } from './scene'
 import type { Get, Set, Slice, Store } from './types'
@@ -53,6 +54,12 @@ export interface SessionSlice {
   swapTo(example: Example): void
   /** A design that is already whole takes the place of whatever is open, which is lost, and is saved as the open one; the caller asks first when that costs something. */
   openDesign(state: DesignState): void
+  /** Keeps the open design in one of the person's places, under a name. */
+  saveToPlace(place: number, name: string): Promise<boolean>
+  renamePlace(place: number, name: string): void
+  removePlace(place: number): void
+  /** A design the person kept takes the place of whatever is open; the caller asks first when that costs something. */
+  openPlace(place: number): Promise<void>
   applyProposal(): void
   /** The proposal with the solution Knotty builds for its critical findings, as one version; nothing when there is none. */
   applyProposalWithFix(): void
@@ -139,6 +146,13 @@ function stopExpert(get: Get) {
   get().cancelReview()
 }
 
+function inLibrary(set: Set, get: Get, change: (library: DesignLibrary) => void) {
+  const { services } = get()
+  if (!services) return
+  change(services.library)
+  set((s) => ({ libraryChanges: s.libraryChanges + 1 }))
+}
+
 export const createSession: Slice<SessionSlice> = (set, get) => ({
   services: null,
   state: null,
@@ -185,7 +199,26 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     if (!services) return
     stopExpert(get)
     services.useCases.keep(state)
+    services.library.detach()
     set((s) => opened(s, state))
+  },
+
+  async saveToPlace(place, name) {
+    const { services } = get()
+    if (!services) return false
+    const stored = await services.library.saveTo(place, name)
+    set((s) => ({ libraryChanges: s.libraryChanges + 1 }))
+    return stored
+  },
+  renamePlace: (place, name) => inLibrary(set, get, (library) => library.rename(place, name)),
+  removePlace: (place) => inLibrary(set, get, (library) => library.remove(place)),
+
+  async openPlace(place) {
+    const { services } = get()
+    if (!services) return
+    stopExpert(get)
+    const state = await services.library.open(place)
+    if (state) set((s) => ({ ...opened(s, state), libraryOpen: false, libraryChanges: s.libraryChanges + 1 }))
   },
 
   fromExample(example) {
@@ -193,6 +226,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     if (!services) return
     stopExpert(get)
     const state = services.useCases.openExample(example)
+    services.library.detach()
     set((s) => opened(s, state))
   },
 

@@ -11,7 +11,7 @@ import { useMediaQuery } from '../scene/preferences'
 import { cardsOf } from '../capture/cards'
 import { Thumbnail } from '../capture/Thumbnail'
 import { ANY, matches, ROOM_LABELS, sizeLine } from '../capture/catalog'
-import { LOSS_NOTE, swapLoss, type SwapLoss } from '../spotlight/swap'
+import { LOSS_NOTE, lossOf, type SwapLoss } from '../spotlight/swap'
 import { DownloadFirst } from '../files/DownloadFirst'
 import { issues, nameOf, openingProblem, sizeOf, type Item } from './layout'
 import { useRoom } from './store'
@@ -240,7 +240,7 @@ export function Room() {
   }
   const requestBuild = () => {
     const s = useStore.getState(),
-      loss = isCurrent ? null : swapLoss(s.phase, s.state)
+      loss = isCurrent ? null : lossOf(s)
     if (loss) setConfirming(loss)
     else build()
   }

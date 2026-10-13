@@ -5,7 +5,9 @@
 import { migrateState } from '../../domain/session/migrate'
 import { currentDesign, DesignState } from '../../domain/session/state'
 import type { DesignRepository } from '../../ports/DesignRepository'
+import { createIndexedLibrary, createPlaceStores, noLibrary, type IndexedLibrary } from './library'
 import { createLocalRepository, reduce } from './localStorage'
+import type { DesignLibrary } from '../../ports/DesignLibrary'
 
 export const DATABASE = 'knotty'
 export const DESIGNS = 'designs'
@@ -23,7 +25,7 @@ export interface StoredDesign {
 }
 
 /** `settled` resolves once nothing is waiting to be written; it is the adapter's own, the port does not know it. */
-export type IndexedRepository = DesignRepository & { settled(): Promise<void> }
+export type IndexedRepository = DesignRepository & { library: DesignLibrary; settled(): Promise<void> }
 
 export interface IndexedRepositoryOptions {
   /** null when the browser has no IndexedDB. */
@@ -60,10 +62,12 @@ function openWithDesign(factory: IDBFactory, limitMs: number): Promise<{ db: IDB
       reject(reason)
     }
     const limit = setTimeout(() => refuse(new Error('too slow')), limitMs)
-    const request = factory.open(DATABASE, 1)
+    const request = factory.open(DATABASE, 2)
     request.onupgradeneeded = () => {
-      request.result.createObjectStore(DESIGNS, { keyPath: 'id' })
-      request.result.createObjectStore(META)
+      const db = request.result
+      if (!db.objectStoreNames.contains(DESIGNS)) db.createObjectStore(DESIGNS, { keyPath: 'id' })
+      if (!db.objectStoreNames.contains(META)) db.createObjectStore(META)
+      createPlaceStores(db)
     }
     request.onerror = () => refuse(request.error)
     request.onblocked = () => refuse(new Error('blocked'))
@@ -130,7 +134,7 @@ const isQuota = (error: unknown) => isObject(error) && error.name === 'QuotaExce
 export async function createIndexedRepository(options: IndexedRepositoryOptions = {}): Promise<IndexedRepository> {
   const { factory = browserFactory(), storage = localStorage, now = () => new Date().toISOString(), newId = () => crypto.randomUUID(), openLimitMs = OPEN_LIMIT_MS, page = browserPage(), hidden = browserHidden } = options
   const local = createLocalRepository(storage)
-  const fallback: IndexedRepository = { ...local, settled: async () => {} }
+  const fallback: IndexedRepository = { ...local, library: noLibrary, settled: async () => {} }
   if (!factory) return fallback
 
   const opened = await openWithDesign(factory, openLimitMs).catch(() => null)
@@ -143,6 +147,7 @@ export async function createIndexedRepository(options: IndexedRepositoryOptions 
   let pending: { id: string; state: DesignState } | 'remove' | null = null
   let writing: Promise<void> | null = null
   let copyInStorage = false
+  let library: IndexedLibrary | null = null
 
   async function put(designId: string, state: DesignState) {
     const replaced = storedId !== designId ? storedId : null
@@ -205,6 +210,8 @@ export async function createIndexedRepository(options: IndexedRepositoryOptions 
       copyInStorage = false
     }
     writing ??= drain()
+    if (state) library?.changed(state)
+    else library?.closed()
   }
 
   function keepUncommitted() {
@@ -216,18 +223,23 @@ export async function createIndexedRepository(options: IndexedRepositoryOptions 
   page?.addEventListener('pagehide', keepUncommitted)
   page?.addEventListener('visibilitychange', () => hidden() && keepUncommitted())
 
+  library = await createIndexedLibrary(db, { state: () => memory, replace: write }, now).catch(() => null)
+
   const moved = local.load()
   if (moved) {
     copyInStorage = true
-    write(moved)
+    // The copy a hidden page left is often what was already stored: as the same object, its place still holds it.
+    write(memory && JSON.stringify(memory) === JSON.stringify(moved) ? memory : moved)
   }
 
   return {
     load: () => memory,
     save: (state) => write(state),
     clear: () => write(null),
+    library: library ?? noLibrary,
     settled: async () => {
       while (writing) await writing
+      await library?.settled()
     },
   }
 }
