@@ -37,7 +37,9 @@ import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
 import { fichaLink, optionsOf } from '../spotlight/link'
 import { shortcutLabel } from '../spotlight/shortcut'
-import { useDownloadDesign } from '../files/download'
+import { downloadDesign } from '../files/download'
+import { DownloadFirst } from '../files/DownloadFirst'
+import { LOSS_NOTE } from '../spotlight/swap'
 import { RoomLauncher } from '../room/RoomLauncher'
 import { studioSource } from '../room/sources'
 
@@ -184,11 +186,12 @@ function ConfirmNew({ children }: { children: ReactNode }) {
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
         <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <Dialog.Title className="font-display text-xl font-semibold">¿Empezar un diseño nuevo?</Dialog.Title>
-          <Dialog.Description className="text-sm text-graphite">Se borran este diseño, su historial y la conversación. No se puede deshacer.</Dialog.Description>
-          <div className="mt-2 flex justify-end gap-2">
+          <Dialog.Description className="text-sm text-graphite">{LOSS_NOTE.design}</Dialog.Description>
+          <div className="mt-2 flex flex-wrap justify-end gap-2">
             <Dialog.Close asChild>
               <Button variant="ghost">Conservar</Button>
             </Dialog.Close>
+            <DownloadFirst then={newDesign}>Descargar y empezar</DownloadFirst>
             <Button variant="danger" onClick={newDesign}>
               Empezar de cero
             </Button>
@@ -231,7 +234,8 @@ function useFichaLink(state: DesignState): { copy: () => void; copied: boolean; 
 }
 
 function DownloadDesign({ state }: { state: DesignState }) {
-  const download = useDownloadDesign(state)
+  const { files } = useServices()
+  const download = () => downloadDesign(files, state)
   return (
     <IconButton className="max-sm:hidden" onClick={() => void download()} aria-label="Descargar mi diseño" title="Descargar mi diseño (.knotty)">
       <DownloadSimple />
@@ -252,7 +256,8 @@ function CopyFichaLink({ state }: { state: DesignState }) {
 /** On a phone the header has no room for everything: the link, the expert and a new design go in a sheet behind one button. */
 function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: string; onExpert: (() => void) | null }) {
   const link = useFichaLink(state)
-  const download = useDownloadDesign(state)
+  const { files } = useServices()
+  const download = () => downloadDesign(files, state)
   const row = 'min-h-11 justify-start gap-3 px-3 text-[15px]'
   return (
     <Dialog.Root>

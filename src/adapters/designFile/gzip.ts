@@ -13,8 +13,8 @@ async function gzip(text: string): Promise<Uint8Array<ArrayBuffer>> {
 }
 
 /** Null when it grows past `limit`; a small file must not expand without bound. */
-async function gunzip(bytes: Uint8Array, limit: number): Promise<Uint8Array | null> {
-  const reader = new Blob([new Uint8Array(bytes)]).stream().pipeThrough(new DecompressionStream('gzip')).getReader()
+async function gunzip(bytes: Uint8Array<ArrayBuffer>, limit: number): Promise<Uint8Array | null> {
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader()
   const chunks: Uint8Array[] = []
   let size = 0
   for (;;) {
@@ -39,9 +39,10 @@ async function gunzip(bytes: Uint8Array, limit: number): Promise<Uint8Array | nu
 export function createGzipDesignFileCodec(app: string, now: () => Date = () => new Date(), limits = DESIGN_FILE_LIMITS): DesignFileCodec {
   return {
     encode: (state) => gzip(JSON.stringify(toDesignFile(state, app, now().toISOString()))),
-    async decode(bytes): Promise<DesignFileResult> {
-      if (bytes.length > limits.fileBytes) return { ok: false, reason: 'too-large' }
+    async decode(file): Promise<DesignFileResult> {
+      if (file.size > limits.fileBytes) return { ok: false, reason: 'too-large' }
       try {
+        const bytes = new Uint8Array(await file.arrayBuffer())
         const plain = isGzip(bytes) ? await gunzip(bytes, limits.inflatedBytes) : bytes
         if (!plain) return { ok: false, reason: 'too-large' }
         return readDesignFile(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(plain)))

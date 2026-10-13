@@ -11,6 +11,7 @@ import { cardsOf, type Card } from './cards'
 import { STYLE_LABELS, matches, noMatchNote, roomChips } from './catalog'
 import { useStore } from '../store'
 import { Thumbnail } from './Thumbnail'
+import { OpenDesignFile } from '../files/OpenDesignFile'
 
 function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
   return (
@@ -115,7 +116,10 @@ export function Home() {
             Encuentra tu próximo mueble.
           </h1>
           <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Elige una base de triplay y ajusta sus medidas, acabado y armado. Puedes empezar sin conectar un experto.</p>
-          {saved && <Button className="mt-2 w-fit gap-2 px-5" onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {saved && <Button className="w-fit gap-2 px-5" onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
+            <OpenDesignFile className={saved ? 'px-4' : '-ml-3 px-3'} />
+          </div>
         </div>
       </div>
       <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 py-4 md:px-8 md:py-6">

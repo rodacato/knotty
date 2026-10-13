@@ -12,6 +12,7 @@ import { cardsOf } from '../capture/cards'
 import { Thumbnail } from '../capture/Thumbnail'
 import { ANY, matches, ROOM_LABELS, sizeLine } from '../capture/catalog'
 import { LOSS_NOTE, swapLoss, type SwapLoss } from '../spotlight/swap'
+import { DownloadFirst } from '../files/DownloadFirst'
 import { issues, nameOf, openingProblem, sizeOf, type Item } from './layout'
 import { useRoom } from './store'
 import { baseSource, companions } from './sources'
@@ -447,12 +448,13 @@ export function Room() {
               <Dialog.Content className="fixed inset-x-4 top-1/2 z-50 mx-auto flex max-w-sm -translate-y-1/2 flex-col gap-4 rounded-3xl border border-line bg-bone p-5 text-graphite">
                 <Dialog.Title className="font-display text-xl font-semibold">¿Abrir este mueble en el Studio?</Dialog.Title>
                 <Dialog.Description className="text-sm">{confirming && LOSS_NOTE[confirming]}</Dialog.Description>
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Dialog.Close asChild>
                     <Button variant="ghost" className="min-h-11">
                       Conservar el actual
                     </Button>
                   </Dialog.Close>
+                  {confirming === 'design' && <DownloadFirst then={build}>Descargar y abrir</DownloadFirst>}
                   <Button variant="danger" className="min-h-11" onClick={build}>
                     Abrir este mueble
                   </Button>

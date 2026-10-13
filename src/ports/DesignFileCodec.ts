@@ -4,5 +4,5 @@ import type { DesignState } from '../domain/session/state'
 export interface DesignFileCodec {
   encode(state: DesignState): Promise<Uint8Array<ArrayBuffer>>
   /** Never throws: whatever cannot be read comes back as a rejection. */
-  decode(bytes: Uint8Array): Promise<DesignFileResult>
+  decode(file: Blob): Promise<DesignFileResult>
 }

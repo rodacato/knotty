@@ -15,6 +15,7 @@ import { Field, Input } from '../system/Field'
 import { verdictsOf, type Verdict } from '../lab/verdicts'
 import { linkedFicha } from './link'
 import { LOSS_NOTE, swapLoss, type Asking } from './swap'
+import { DownloadFirst } from '../files/DownloadFirst'
 
 /** The thumbnails are built once: they only change with the app. */
 let built: { references: ReferenceStore; catalog: Catalog; cards: Card[] } | null = null
@@ -36,16 +37,17 @@ function Mark({ verdict }: { verdict: Verdict }) {
   )
 }
 
-function Question({ name, again, note, onKeep, onSwap }: { name: string; again: boolean; note: string; onKeep: () => void; onSwap: () => void }) {
+function Question({ name, again, note, download, onKeep, onSwap }: { name: string; again: boolean; note: string; download: boolean; onKeep: () => void; onSwap: () => void }) {
   return (
     <>
       <Dialog.Title className="font-display text-xl font-semibold">{again ? `¿Empezar ${name} de nuevo?` : `¿Cambiar a ${name}?`}</Dialog.Title>
       <Dialog.Description className="text-sm text-graphite">{note}</Dialog.Description>
-      <div className="mt-2 flex justify-end gap-2">
+      <div className="mt-2 flex flex-wrap justify-end gap-2">
         {/* A held Enter must not answer the question it just opened. */}
         <Button variant="ghost" autoFocus onKeyDown={(e) => e.repeat && e.preventDefault()} onClick={onKeep}>
           Conservar
         </Button>
+        {download && <DownloadFirst then={onSwap}>{again ? 'Descargar y empezar' : 'Descargar y cambiar'}</DownloadFirst>}
         <Button variant="danger" onClick={onSwap}>
           {again ? 'Empezar de nuevo' : 'Cambiar'}
         </Button>
@@ -202,7 +204,7 @@ function Finder({ onDone }: { onDone: () => void }) {
         setAsking(null)
       }}
     >
-      {question ? <Question name={asking.name} again={asking.code === openCode} note={LOSS_NOTE[loss]} onKeep={() => setAsking(null)} onSwap={() => swap(asking.example)} /> : list()}
+      {question ? <Question name={asking.name} again={asking.code === openCode} note={LOSS_NOTE[loss]} download={loss === 'design'} onKeep={() => setAsking(null)} onSwap={() => swap(asking.example)} /> : list()}
     </Dialog.Content>
   )
 }
