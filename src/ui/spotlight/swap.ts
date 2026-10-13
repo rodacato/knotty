@@ -23,7 +23,7 @@ export function swapLoss(phase: Phase, state: DesignState | null): SwapLoss | nu
 }
 
 export const LOSS_NOTE: Record<SwapLoss, string> = {
-  design: 'Se borran este diseño, su historial y la conversación. No se puede deshacer.',
+  design: 'Se borran este diseño, su historial y la conversación. Descárgalo antes si lo quieres conservar.',
   capture: 'Se pierde lo que llevas escrito y las fotos que subiste.',
   analyzing: 'El experto está diseñando tu mueble: se cancela y se pierde.',
 }

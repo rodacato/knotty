@@ -1,6 +1,6 @@
 import { designFileName } from '../../domain/session/file'
 import { currentDesign, type DesignState } from '../../domain/session/state'
-import { useServices } from '../services'
+import type { DesignFileCodec } from '../../ports/DesignFileCodec'
 
 function saveAs(bytes: Uint8Array<ArrayBuffer>, name: string) {
   // A generic type: with a gzip one some browsers add `.gz` to the name.
@@ -12,8 +12,7 @@ function saveAs(bytes: Uint8Array<ArrayBuffer>, name: string) {
   URL.revokeObjectURL(url)
 }
 
-/** Hands the open design to the person as a `.knotty` file. */
-export function useDownloadDesign(state: DesignState): () => Promise<void> {
-  const { files } = useServices()
-  return async () => saveAs(await files.encode(state), designFileName(currentDesign(state).name))
+/** Hands a design to the person as a `.knotty` file. */
+export async function downloadDesign(files: DesignFileCodec, state: DesignState): Promise<void> {
+  saveAs(await files.encode(state), designFileName(currentDesign(state).name))
 }
