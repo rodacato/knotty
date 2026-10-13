@@ -18,6 +18,23 @@ const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ defa
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 const TakeAway = lazy(() => import('./takeaway/TakeAway').then((m) => ({ default: m.TakeAway })))
 
+const Room = lazy(() => import('./room/Room').then((m) => ({ default: m.Room })))
+
+function RoomLayer() {
+  const open = useStore((s) => s.roomOpen)
+  return open ? (
+    <Suspense
+      fallback={
+        <div className="fixed inset-0 z-40 bg-bone">
+          <Loading />
+        </div>
+      }
+    >
+      <Room />
+    </Suspense>
+  ) : null
+}
+
 function Navigation() {
   useEffect(() => connectNavigation(useStore, window), [])
   return null
@@ -80,6 +97,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
     <ServicesContext.Provider value={services}>
       <Navigation />
       <Screen />
+      <RoomLayer />
       <DebugKeys />
       <Spotlight />
       <Settings />

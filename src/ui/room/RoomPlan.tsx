@@ -1,0 +1,215 @@
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { nameOf, rectOf, type Layout, type Opening } from './layout'
+import { useRoom } from './store'
+
+const cm = (v: number) => (v / 10).toLocaleString('es-MX')
+export function wallPoint(layout: Layout, wall: Opening['wall'], along: number, inward: number): [number, number] {
+  const { room } = layout
+  if (wall === 'back') return [along, inward]
+  if (wall === 'front') return [along, room.depth - inward]
+  if (wall === 'left') return [inward, along]
+  return [room.width - inward, along]
+}
+
+function OpeningMark({ layout, opening: o }: { layout: Layout; opening: Opening }) {
+  const start = wallPoint(layout, o.wall, o.offset, 0),
+    end = wallPoint(layout, o.wall, o.offset + o.width, 0)
+  const hinge = o.hinge === 'start' ? o.offset : o.offset + o.width
+  const points = [
+    wallPoint(layout, o.wall, hinge, 0),
+    ...Array.from({ length: 17 }, (_, i) => {
+      const angle = (i * Math.PI) / 32
+      return wallPoint(layout, o.wall, hinge + (o.hinge === 'start' ? 1 : -1) * o.width * Math.cos(angle), o.width * Math.sin(angle))
+    }),
+  ]
+  const label = o.kind === 'window' ? 'Ventana' : o.swing === 'outside' ? 'Puerta: abre hacia afuera' : o.swing === 'sliding' ? 'Puerta corrediza' : 'Puerta: abre hacia adentro'
+  return (
+    <g>
+      <title>{label}</title>
+      {o.kind === 'door' && o.swing === 'inside' && (
+        <polygon points={points.map((p) => p.join(',')).join(' ')} fill="var(--amber)" fillOpacity="0.10" stroke="var(--amber)" strokeWidth="14" strokeDasharray="30 25" />
+      )}
+      <line x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} stroke="var(--bone)" strokeWidth="45" />
+      <line x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} stroke={o.kind === 'window' ? 'var(--slate)' : 'var(--amber)'} strokeWidth="22" />
+    </g>
+  )
+}
+
+export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) {
+  const selected = useRoom((s) => s.selected)
+  const svg = useRef<SVGSVGElement>(null)
+  const [{ hit, margin }, setSizing] = useState({ hit: 500, margin: 220 })
+  const drag = useRef<{
+    id: string
+    x: number
+    z: number
+    px: number
+    py: number
+    started: boolean
+  } | null>(null)
+  useEffect(() => {
+    const node = svg.current
+    if (!node) return
+    const resize = new ResizeObserver(() => {
+      const style = getComputedStyle(node)
+      const width = node.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+      const height = node.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      const roomScale = Math.min((width - 48) / layout.room.width, (height - 48) / layout.room.depth)
+      if (roomScale <= 0) return
+      const margin = Math.max(220, 24 / roomScale)
+      const scale = Math.min(width / (layout.room.width + margin * 2), height / (layout.room.depth + margin * 2))
+      setSizing({ hit: 44 / scale, margin })
+    })
+    resize.observe(node)
+    return () => resize.disconnect()
+  }, [layout.room.width, layout.room.depth])
+  const point = (e: ReactPointerEvent) => {
+    const matrix = svg.current?.getScreenCTM()
+    return matrix ? new DOMPoint(e.clientX, e.clientY).matrixTransform(matrix.inverse()) : null
+  }
+  const end = () => {
+    if (drag.current?.started) useRoom.getState().settle(drag.current.id)
+    drag.current = null
+  }
+  return (
+    <svg
+      ref={svg}
+      role="group"
+      aria-label="Plano del espacio. Arrastra un mueble o usa las flechas; Mayús mueve diez centímetros."
+      data-room-plan
+      viewBox={`${-margin} ${-margin} ${layout.room.width + margin * 2} ${layout.room.depth + margin * 2}`}
+      className="h-full w-full touch-none select-none px-4 pt-36 pb-24 md:pt-28 md:px-8"
+      onPointerMove={(e) => {
+        const at = point(e),
+          grabbed = drag.current
+        if (!at || !grabbed) return
+        if (!grabbed.started && Math.hypot(at.x - grabbed.px, at.y - grabbed.py) < 25) return
+        if (!grabbed.started) {
+          useRoom.getState().beginMove()
+          grabbed.started = true
+        }
+        useRoom.getState().move(
+          grabbed.id,
+          {
+            x: Math.round((grabbed.x + at.x - grabbed.px) / 10) * 10,
+            z: Math.round((grabbed.z + at.y - grabbed.py) / 10) * 10,
+          },
+          false,
+        )
+      }}
+      onPointerUp={end}
+      onPointerCancel={end}
+      onLostPointerCapture={end}
+    >
+      <defs>
+        <pattern id="room-grid" width="500" height="500" patternUnits="userSpaceOnUse">
+          <path d="M 500 0 H 0 V 500" fill="none" stroke="var(--line)" strokeWidth="7" />
+        </pattern>
+      </defs>
+      <rect width={layout.room.width} height={layout.room.depth} fill="var(--bone)" stroke="var(--graphite-2)" strokeWidth="20" />
+      <rect width={layout.room.width} height={layout.room.depth} fill="url(#room-grid)" />
+      <text x={layout.room.width / 2} y="-75" textAnchor="middle" fill="var(--graphite-2)" fontSize={Math.max(130, (hit * 12) / 44)} className="font-mono">
+        {cm(layout.room.width)} cm
+      </text>
+      <text
+        x="-85"
+        y={layout.room.depth / 2}
+        textAnchor="middle"
+        transform={`rotate(-90 -85 ${layout.room.depth / 2})`}
+        fill="var(--graphite-2)"
+        fontSize={Math.max(130, (hit * 12) / 44)}
+        className="font-mono"
+      >
+        {cm(layout.room.depth)} cm
+      </text>
+      {layout.openings.map((o) => (
+        <OpeningMark key={o.id} layout={layout} opening={o} />
+      ))}
+      {layout.items.map((item, index) => {
+        const r = rectOf(item),
+          chosen = selected === item.id
+        const w = r.x1 - r.x0,
+          d = r.z1 - r.z0
+        return (
+          <g
+            key={item.id}
+            role="button"
+            tabIndex={0}
+            aria-label={`${nameOf(item)}, ${cm(w)} por ${cm(d)} centímetros${chosen ? ', seleccionado' : ''}${bad.has(item.id) ? ', tiene algo por revisar' : ''}`}
+            aria-pressed={chosen}
+            className="group cursor-grab outline-none"
+            onClick={() => useRoom.getState().select(item.id)}
+            onPointerDown={(e) => {
+              if (e.button !== 0) return
+              const at = point(e)
+              if (!at) return
+              e.currentTarget.setPointerCapture(e.pointerId)
+              useRoom.getState().select(item.id)
+              drag.current = {
+                id: item.id,
+                x: item.x,
+                z: item.z,
+                px: at.x,
+                py: at.y,
+                started: false,
+              }
+            }}
+            onKeyDown={(e) => {
+              const step = e.shiftKey ? 100 : 10
+              const delta = {
+                ArrowLeft: [-step, 0],
+                ArrowRight: [step, 0],
+                ArrowUp: [0, -step],
+                ArrowDown: [0, step],
+              }[e.key]
+              if (delta) {
+                e.preventDefault()
+                useRoom.getState().select(item.id)
+                useRoom.getState().move(item.id, {
+                  x: item.x + delta[0],
+                  z: item.z + delta[1],
+                })
+              } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                useRoom.getState().select(item.id)
+              }
+            }}
+          >
+            <rect x={item.x - Math.max(w, hit) / 2} y={item.z - Math.max(d, hit) / 2} width={Math.max(w, hit)} height={Math.max(d, hit)} fill="transparent" />
+            <rect
+              className="pointer-events-none opacity-0 group-focus-visible:opacity-100"
+              x={r.x0 - (hit * 4) / 44}
+              y={r.z0 - (hit * 4) / 44}
+              width={w + (hit * 8) / 44}
+              height={d + (hit * 8) / 44}
+              rx="30"
+              fill="none"
+              stroke="var(--graphite)"
+              strokeWidth={(hit * 2) / 44}
+              strokeDasharray={`${(hit * 4) / 44} ${(hit * 3) / 44}`}
+            />
+            <rect
+              className="room-footprint"
+              x={r.x0}
+              y={r.z0}
+              width={w}
+              height={d}
+              rx="30"
+              fill={item.kind === 'block' ? 'var(--line)' : 'var(--kraft)'}
+              stroke={chosen ? 'var(--amber)' : 'var(--graphite-2)'}
+              strokeWidth={chosen ? 30 : 14}
+              strokeDasharray={item.elevation ? '45 30' : undefined}
+            />
+            {bad.has(item.id) && (
+              <rect x={r.x0 + 40} y={r.z0 + 40} width={Math.max(1, w - 80)} height={Math.max(1, d - 80)} fill="none" stroke="var(--rust)" strokeWidth="18" strokeDasharray="35 25" />
+            )}
+            <text x={item.x} y={item.z + 40} textAnchor="middle" fontSize={Math.max(145, (hit * 12) / 44)} fill="var(--graphite)" className="font-mono pointer-events-none">
+              {index + 1}
+              {bad.has(item.id) ? ' !' : ''}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}

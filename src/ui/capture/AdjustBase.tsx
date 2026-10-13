@@ -19,6 +19,8 @@ import { FinishSelect } from '../system/FinishSelect'
 import { Button } from '../system/components'
 import { axisNote, blocking, chosenExample, COUNT_LABELS, isUnreadable, SPACE_AXES, spaceOf, summaryLines, type SpaceAxis } from './adjust'
 import { sizeLine } from './catalog'
+import { RoomLauncher } from '../room/RoomLauncher'
+import { baseSource } from '../room/sources'
 
 const NO_GHOSTS: string[] = []
 const TYPING_PAUSE = 350
@@ -141,6 +143,11 @@ export function AdjustBase({ base }: { base: Base }) {
               <p className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
                 {size.text}
               </p>
+              <RoomLauncher
+                source={baseSource(base, catalog, chosenExample(base, fit.plan, finish))}
+                className="mt-2 min-h-11 w-fit border border-line text-sm"
+                disabled={!shown.geo}
+              />
             </div>
 
             {asksSpace && (

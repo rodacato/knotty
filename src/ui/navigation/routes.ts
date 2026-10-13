@@ -1,6 +1,7 @@
 import type { Store } from '../store'
 
 export type Route =
+  | { screen: 'room' }
   | { screen: 'catalog'; code?: string }
   | { screen: 'capture' }
   | { screen: 'takeaway' }
@@ -11,6 +12,7 @@ export function routeFrom(hash: string): Route | null {
   let words: string[]
   try { words = hash.replace(/^#/, '').split('/').map(decodeURIComponent) } catch { return null }
   const [screen, view, detail, part, marker, piece] = words
+  if (screen === 'space' && words.length === 1) return { screen: 'room' }
   if (screen === 'catalog') {
     if (words.length === 1) return { screen: 'catalog' }
     return view === 'adjust' && detail && words.length === 3 ? { screen: 'catalog', code: detail } : null
@@ -31,6 +33,7 @@ export function routeFrom(hash: string): Route | null {
 }
 
 export function fragmentOf(s: Store): string {
+  if (s.roomOpen) return '#space'
   if (s.phase === 'capture' || s.phase === 'analyzing') return '#design'
   if (s.phase !== 'studio' || !s.state) return s.adjusting?.code ? `#catalog/adjust/${encodeURIComponent(s.adjusting.code)}` : '#catalog'
   if (s.takeAway) return '#takeaway'
