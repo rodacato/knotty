@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blocksOpening, exampleLayout, facing, freePosition, issues, openingProblem, rectOf, validSpace, type Item, type Layout, type Opening } from './layout'
+import { blocksOpening, exampleLayout, facing, freePosition, issues, openingProblem, rectOf, slidOpening, validSpace, type Item, type Layout, type Opening } from './layout'
 
 const room = { width: 5000, depth: 5000, height: 2500 }
 const block = (changes: Partial<Item> = {}): Item =>
@@ -166,5 +166,14 @@ describe('room spatial checks', () => {
     expect(openingProblem(room, second, [door])).toContain('otra abertura')
     expect(openingProblem(room, { ...second, wall: 'left' }, [door])).toBeNull()
     expect(openingProblem(room, { ...second, kind: 'window', sill: 2200, height: 200 }, [door])).toBeNull()
+  })
+
+  it('slides a dragged opening along its wall, keeps it between the corners and moves it to the wall the pointer goes to', () => {
+    const door: Opening = { id: 'door', kind: 'door', wall: 'back', offset: 1000, width: 800, height: 2100, sill: 0, hinge: 'start', swing: 'inside' }
+    expect(slidOpening(room, door, 2304, 120, 300)).toMatchObject({ wall: 'back', offset: 2000 })
+    expect(slidOpening(room, door, 4950, 300, 300)).toMatchObject({ wall: 'back', offset: 4200 })
+    expect(slidOpening(room, door, -200, 0, 300)).toMatchObject({ wall: 'back', offset: 0 })
+    expect(slidOpening(room, door, 4900, 2500, 300)).toMatchObject({ wall: 'right', offset: 2100 })
+    expect(slidOpening({ ...room, depth: 700 }, door, 4900, 350, 300)).toMatchObject({ wall: 'back', offset: 4200 })
   })
 })

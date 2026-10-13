@@ -118,19 +118,8 @@ describe('temporary room history and Studio handoff', () => {
     expect(useRoom.getState().layout).toEqual(before)
   })
 
-  it('represents existing objects as blocks and restores a replaced ficha with its provenance', () => {
+  it('represents existing objects as blocks', () => {
     useRoom.getState().launch(source('GN-BUR-01'))
-    const id = useRoom.getState().selected!,
-      before = useRoom.getState().layout!.items[0]
-    useRoom.getState().replace(id, source('KC-BUR-03'))
-    expect(useRoom.getState().layout!.items[0]).toMatchObject({
-      id,
-      x: before.x,
-      z: before.z,
-      source: { code: 'KC-BUR-03' },
-    })
-    useRoom.getState().undo()
-    expect(useRoom.getState().layout!.items[0]).toEqual(before)
     useRoom.getState().addBlock('Refrigerador', { width: 700, depth: 650, height: 1700 })
     expect(useRoom.getState().layout!.items.at(-1)).toMatchObject({
       kind: 'block',
@@ -145,6 +134,16 @@ describe('temporary room history and Studio handoff', () => {
     const after = useRoom.getState().layout!
     for (const o of after.openings) expect(openingProblem(after.room, o, after.openings)).toBeNull()
     useRoom.getState().undo()
+    useRoom.getState().undo()
+    expect(useRoom.getState().layout).toBe(before)
+  })
+  it('undoes a whole drag of an opening as one change', () => {
+    useRoom.getState().launch(source('GN-CAM-01'))
+    const before = useRoom.getState().layout!,
+      door = before.openings[0]
+    useRoom.getState().beginMove()
+    for (const offset of [100, 200, 300]) useRoom.getState().setOpening({ ...door, offset }, false)
+    expect(useRoom.getState().layout!.openings[0].offset).toBe(300)
     useRoom.getState().undo()
     expect(useRoom.getState().layout).toBe(before)
   })

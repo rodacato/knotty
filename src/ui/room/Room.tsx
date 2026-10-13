@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowLeft, ArrowRight, ArrowCounterClockwise, ArrowClockwise, CaretDown, CaretUp, Check, Copy, Cube, House, Plus, SquaresFour, Trash, Warning, X } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, ArrowCounterClockwise, ArrowClockwise, ArrowsClockwise, CaretDown, CaretUp, Check, Copy, Cube, House, Plus, SquaresFour, Trash, Warning, X } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { currentDesign } from '../../domain/session/state'
 import { resolveGeometry } from '../../domain/design/resolve'
@@ -23,7 +23,7 @@ import { RoomScene } from './RoomScene'
 const tab = (active: boolean) =>
   `flex min-h-11 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-2 text-sm ${active ? 'bg-graphite text-bone' : 'text-graphite-2 hover:bg-kraft'}`
 
-function Combination({ onReplace, replacing }: { onReplace: () => void; replacing: string | null }) {
+function Combination() {
   const { references, catalog } = useServices()
   const layout = useRoom((s) => s.layout)!
   const [query, setQuery] = useState(''),
@@ -33,19 +33,17 @@ function Combination({ onReplace, replacing }: { onReplace: () => void; replacin
   const bases = useMemo(() => references.home(), [references])
   const anchor = layout.items.find((i) => i.id === layout.anchorId && i.kind === 'furniture') ?? layout.items.find((i) => i.kind === 'furniture')
   const candidates = useMemo(
-    () => (all || query || replacing ? bases.filter((b) => matches(b, { text: query, room })) : anchor?.kind === 'furniture' ? companions(bases, anchor.source).slice(0, 4) : bases.slice(0, 4)),
-    [all, query, replacing, bases, room, anchor],
+    () => (all || query ? bases.filter((b) => matches(b, { text: query, room })) : anchor?.kind === 'furniture' ? companions(bases, anchor.source).slice(0, 4) : bases.slice(0, 4)),
+    [all, query, bases, room, anchor],
   )
   const cards = useMemo(() => cardsOf(candidates.slice(0, limit), catalog), [candidates, limit, catalog])
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="font-display text-xl font-semibold">{replacing ? 'Prueba otra ficha aquí' : all || query ? 'Elige un compañero' : 'Combínalo con…'}</h2>
-        <p className="hidden text-sm text-graphite-2 md:block">
-          {replacing ? 'Conservamos el centro y el giro; revisa si sus nuevas medidas caben.' : 'Agrega una ficha y descubre cómo se ve junto a las demás.'}
-        </p>
+        <h2 className="font-display text-xl font-semibold">{all || query ? 'Elige un compañero' : 'Combínalo con…'}</h2>
+        <p className="hidden text-sm text-graphite-2 md:block">Agrega una ficha y descubre cómo se ve junto a las demás.</p>
       </div>
-      <label className={`${all || replacing || query ? 'flex' : 'hidden md:flex'} flex-col gap-1 text-xs text-graphite-2`}>
+      <label className={`${all || query ? 'flex' : 'hidden md:flex'} flex-col gap-1 text-xs text-graphite-2`}>
         Buscar fichas
         <input
           className="min-h-11 min-w-0 rounded-xl border border-line bg-bone px-3 text-base"
@@ -57,7 +55,7 @@ function Combination({ onReplace, replacing }: { onReplace: () => void; replacin
           }}
         />
       </label>
-      {(all || replacing) && (
+      {all && (
         <label className="flex flex-col gap-1 text-xs text-graphite-2">
           Cuarto
           <select
@@ -77,26 +75,14 @@ function Combination({ onReplace, replacing }: { onReplace: () => void; replacin
           </select>
         </label>
       )}
-      {replacing && (
-        <Button variant="ghost" className="min-h-11" onClick={onReplace}>
-          Cancelar cambio de ficha
-        </Button>
-      )}
       <div className="flex flex-col gap-2">
         {cards.map(({ base, size, boxes }) => (
           <button
             key={base.code}
             type="button"
             className="flex min-h-20 items-center gap-3 rounded-xl border border-line bg-bone p-3 text-left hover:bg-kraft"
-            aria-label={`${replacing ? 'Probar' : 'Agregar'} ${base.name}, ${base.code}`}
-            onClick={() => {
-              const source = baseSource(base, catalog)
-              if (replacing) {
-                useRoom.getState().replace(replacing, source)
-                onReplace()
-                useRoom.getState().setPanel('item')
-              } else useRoom.getState().add(source)
-            }}
+            aria-label={`Agregar ${base.name}, ${base.code}`}
+            onClick={() => useRoom.getState().add(baseSource(base, catalog))}
           >
             <span className="drawing-surface grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg p-1">{boxes ? <Thumbnail boxes={boxes} /> : <Cube />}</span>
             <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -115,7 +101,7 @@ function Combination({ onReplace, replacing }: { onReplace: () => void; replacin
           No encontramos fichas con esa búsqueda. Prueba otro nombre o elige otro cuarto.
         </p>
       )}
-      {!all && !replacing && (
+      {!all && (
         <Button variant="ghost" className="min-h-11 justify-center border border-line" onClick={() => setAll(true)}>
           Ver todas las fichas
         </Button>
@@ -129,7 +115,7 @@ function Combination({ onReplace, replacing }: { onReplace: () => void; replacin
   )
 }
 
-function ItemEditor({ item, onReplace }: { item: Item; onReplace: () => void }) {
+function ItemEditor({ item }: { item: Item }) {
   const { catalog } = useServices()
   const layout = useRoom((s) => s.layout)!
   const itemIssues = issues(layout).filter((i) => i.item === item.id)
@@ -143,17 +129,6 @@ function ItemEditor({ item, onReplace }: { item: Item; onReplace: () => void }) 
         <p className="font-mono text-xs text-graphite-2">
           {item.kind === 'furniture' ? (item.source.code ? `${item.source.code} v${item.source.version}` : 'Tu diseño del Studio') : 'Bloque de espacio ocupado'}
         </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" className="min-h-11 border border-line" onClick={() => useRoom.getState().turn(item.id)}>
-          <ArrowClockwise /> Girar 90°
-        </Button>
-        <Button variant="ghost" className="min-h-11 border border-line" onClick={() => useRoom.getState().duplicate(item.id)}>
-          <Copy /> Duplicar
-        </Button>
-        <Button variant="ghost" className="min-h-11 border border-line" onClick={() => useRoom.getState().remove(item.id)}>
-          <Trash /> Quitar
-        </Button>
       </div>
       {itemIssues.length > 0 && (
         <div role="status" className="flex flex-col gap-1 rounded-xl border border-rust/50 p-3 text-sm">
@@ -170,13 +145,26 @@ function ItemEditor({ item, onReplace }: { item: Item; onReplace: () => void }) 
           No se pudo dibujar esta ficha: {result.errors[0]?.message}. Su espacio sigue visible en el plano.
         </p>
       )}
-      <PlacementForm key={`${item.id}:${item.x}:${item.z}:${item.elevation}:${item.turn}`} item={item} />
-      {item.kind === 'furniture' && (
-        <Button variant="ghost" className="min-h-11 justify-center border border-line" onClick={onReplace}>
-          Probar otra ficha aquí
-        </Button>
-      )}
+      <PlacementForm key={item.id} item={item} />
       <p className="text-xs text-graphite-2">Las medidas y la construcción del mueble se ajustan en el Studio.</p>
+    </div>
+  )
+}
+
+/** What is done to the chosen piece, over the view it is chosen in, 3D or plan (UI-89). */
+function ItemTools({ item }: { item: Item }) {
+  const tool = 'min-h-11 rounded-full px-3 text-sm'
+  return (
+    <div className="flex w-fit max-w-full self-center rounded-full border border-line bg-bone/95 p-1" role="group" aria-label={`Qué hacer con ${nameOf(item)}`} data-room-tools>
+      <Button variant="ghost" className={tool} onClick={() => useRoom.getState().turn(item.id)}>
+        <ArrowsClockwise /> Girar
+      </Button>
+      <Button variant="ghost" className={tool} onClick={() => useRoom.getState().duplicate(item.id)}>
+        <Copy /> Duplicar
+      </Button>
+      <Button variant="ghost" className={tool} onClick={() => useRoom.getState().remove(item.id)} title="Quitar (Supr)">
+        <Trash /> Quitar
+      </Button>
     </div>
   )
 }
@@ -190,8 +178,7 @@ export function Room() {
   const [collapsed, setCollapsed] = useState(view === 'plan')
   const compact = narrow && collapsed
   const tight = narrow && !collapsed && view === 'plan'
-  const [replacing, setReplacing] = useState<string | null>(null),
-    [confirming, setConfirming] = useState<SwapLoss | null>(null)
+  const [confirming, setConfirming] = useState<SwapLoss | null>(null)
   const selectedItem = layout?.items.find((i) => i.id === selected)
   const found = useMemo(() => (layout ? issues(layout) : []), [layout])
   const bad = useMemo(() => new Set(found.map((i) => i.item)), [found])
@@ -205,7 +192,7 @@ export function Room() {
   const editedItem = panel === 'item' ? selected : null
   useEffect(() => {
     if (panelBody.current) panelBody.current.scrollTop = 0
-  }, [panel, editedItem, replacing])
+  }, [panel, editedItem])
   useEffect(() => {
     if (open && !layout) setOpen(false)
   }, [open, layout, setOpen])
@@ -223,6 +210,11 @@ export function Room() {
         e.stopImmediatePropagation()
         if (e.shiftKey) useRoom.getState().redo()
         else useRoom.getState().undo()
+      }
+      const chosen = useRoom.getState().selected
+      if (chosen && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault()
+        useRoom.getState().remove(chosen)
       }
     }
     window.addEventListener('keydown', keys, true)
@@ -281,7 +273,7 @@ export function Room() {
           <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(0,1fr)_360px]">
             <section className="relative min-h-0 flex-1 bg-kraft" aria-label="Vista del cuarto" data-room-canvas>
               {view === 'plan' ? (
-                <RoomPlan layout={layout} bad={bad} below={!tight ? 'chips' : bad.size || openingErrors.length ? 'warning' : 'nothing'} />
+                <RoomPlan layout={layout} bad={bad} below={!tight ? 'chips' : bad.size || openingErrors.length ? 'warning' : 'nothing'} tools={!!selectedItem} />
               ) : (
                 <SceneBoundary
                   fallback={
@@ -327,7 +319,7 @@ export function Room() {
                   <span className="numerals col-start-1 row-start-2 w-fit rounded-xl bg-bone/95 px-3 py-1 text-xs text-graphite-2">
                     {layout.room.width / 10} × {layout.room.depth / 10} cm<span className="sm:hidden"> · ejemplo</span>
                     <span className="hidden sm:inline"> · espacio de prueba</span>
-                    {view === 'plan' && <span className="block">Arrastra un mueble. La línea gruesa es su frente.</span>}
+                    {view === 'plan' && <span className="block">Arrastra un mueble, una puerta o una ventana. La línea gruesa es el frente del mueble.</span>}
                   </span>
                 </div>
                 <div className="col-start-2 row-start-2 flex rounded-full border border-line bg-bone/95 p-1">
@@ -353,6 +345,7 @@ export function Room() {
                     <Warning /> {bad.size + openingErrors.length} {bad.size + openingErrors.length === 1 ? 'elemento por revisar' : 'elementos por revisar'}
                   </button>
                 )}
+                {selectedItem && <ItemTools item={selectedItem} />}
                 <div className={`${tight ? 'hidden' : 'flex'} gap-2 overflow-x-auto pb-1`} aria-label="Tu combinación">
                   {layout.items.map((i, index) => (
                     <button
@@ -402,16 +395,10 @@ export function Room() {
                 ))}
               </nav>
               <div id="room-panel" ref={panelBody} hidden={compact} className="min-h-0 flex-1 overflow-y-auto p-4 md:p-5">
-                {panel === 'combine' && <Combination replacing={replacing} onReplace={() => setReplacing(null)} />}
+                {panel === 'combine' && <Combination />}
                 {panel === 'item' &&
                   (selectedItem ? (
-                    <ItemEditor
-                      item={selectedItem}
-                      onReplace={() => {
-                        setReplacing(selectedItem.id)
-                        useRoom.getState().setPanel('combine')
-                      }}
-                    />
+                    <ItemEditor item={selectedItem} />
                   ) : (
                     <p className="text-sm text-graphite-2">Elige un mueble en la vista o agrega una ficha para probarla.</p>
                   ))}

@@ -101,6 +101,18 @@ export function openingProblem(room: Space, o: Opening, openings: Opening[] = []
   return null
 }
 
+const WALL_PULL = 400
+/** Where a dragged opening goes: it slides along its wall, and takes the nearest one once the pointer leaves its own by more than `WALL_PULL`. `grip` is how far from its start it was grabbed. */
+export function slidOpening(room: Space, o: Opening, x: number, z: number, grip: number): Opening {
+  const away = { back: z, front: room.depth - z, left: x, right: room.width - x }
+  const nearest = WALLS.map(([wall]) => wall).reduce((a, b) => (away[b] < away[a] ? b : a))
+  const lengthOf = (wall: Wall) => (wall === 'back' || wall === 'front' ? room.width : room.depth)
+  const wall = away[o.wall] > WALL_PULL && o.width <= lengthOf(nearest) ? nearest : o.wall
+  const along = wall === 'back' || wall === 'front' ? x : z
+  const start = Math.round((along - (wall === o.wall ? grip : o.width / 2)) / 10) * 10
+  return { ...o, wall, offset: Math.max(0, Math.min(lengthOf(wall) - o.width, start)) }
+}
+
 /** Along the wall, then inward: the same coordinates serve all four walls. */
 export function atWall(room: Space, wall: Wall, r: Rect) {
   if (wall === 'back') return { a0: r.x0, a1: r.x1, b0: r.z0, b1: r.z1 }
