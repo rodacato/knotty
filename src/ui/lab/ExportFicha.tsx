@@ -1,6 +1,6 @@
 import { Copy, DownloadSimple } from '@phosphor-icons/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { fichaOrigin } from '../../application/useCases'
 import { useStore } from '../store'
 import { Button, IconButton } from '../system/components'
@@ -28,7 +28,7 @@ function Command({ text }: { text: string }) {
   )
 }
 
-export function ExportFicha() {
+export function ExportFicha({ children }: { children: ReactNode }) {
   const state = useStore((s) => s.state)
   const origin = { code: state ? (fichaOrigin(state)?.code ?? null) : null }
   const [open, setOpen] = useState(false)
@@ -46,11 +46,7 @@ export function ExportFicha() {
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Dialog.Trigger asChild>
-        <Button variant="ghost" className="gap-1 px-2 text-xs sm:px-3" aria-label="Exportar la ficha">
-          <DownloadSimple /> <span className="hidden sm:inline">Exportar ficha</span>
-        </Button>
-      </Dialog.Trigger>
+      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30" />
         <Dialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[480px] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-2xl border border-line bg-paper p-5 shadow-2xl">
