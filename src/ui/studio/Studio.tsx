@@ -339,6 +339,10 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   )
 }
 
+/** On a phone the panel opens collapsed to its tabs so the furniture takes the screen; it rises to half or almost all of it. */
+type Sheet = 'peek' | 'half' | 'full'
+const SCENE_HEIGHT = { half: '50%', full: '30%' } as const
+
 export function Studio({ state }: { state: DesignState }) {
   const { catalog } = useServices()
   const view = useStudioView(state)
@@ -364,7 +368,7 @@ export function Studio({ state }: { state: DesignState }) {
   const insideParts = !!parts?.list.some((p) => p.side === 'inside')
   const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
   const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
-  const [tallPanel, setTallPanel] = useState(false)
+  const [sheet, setSheet] = useState<Sheet>('peek')
   const tab = useStore((s) => s.studioTab)
   const setTab = useStore((s) => s.setStudioTab)
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -376,10 +380,15 @@ export function Studio({ state }: { state: DesignState }) {
     setOverlay(o)
   }
   const toggleOverlay = (o: Overlay) => showOverlay(overlayAfter(overlay, o, view.showsPiece))
+  const raise = () => setSheet((s) => (s === 'peek' ? 'half' : s))
   const toChat = () => {
     setOverlay(null)
     setTab('chat')
+    raise()
   }
+  // A piece, an edit, the notices or the history replace the tabs, so they never open collapsed.
+  const shownSheet: Sheet = sheet === 'peek' && (editingSide || view.showsPiece || overlay) ? 'half' : sheet
+  const collapsed = shownSheet === 'peek' ? 'hidden' : ''
   const request = (text: string) => {
     toChat()
     void adjust(text)
@@ -481,6 +490,7 @@ export function Studio({ state }: { state: DesignState }) {
               <Tabs.Trigger
                 key={t.id}
                 value={t.id}
+                onClick={raise}
                 className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-amber"
               >
                 <span className="hidden sm:inline-flex">{t.icon}</span>
@@ -490,15 +500,24 @@ export function Studio({ state }: { state: DesignState }) {
               </Tabs.Trigger>
             ))}
             {!desktop && (
-              <IconButton onClick={() => setTallPanel((v) => !v)} className="ml-auto" aria-label={tallPanel ? 'Agrandar el 3D' : 'Agrandar el panel'}>
-                {tallPanel ? <CaretDown /> : <CaretUp />}
-              </IconButton>
+              <div className="ml-auto flex">
+                {shownSheet !== 'peek' && (
+                  <IconButton onClick={() => setSheet(shownSheet === 'full' ? 'half' : 'peek')} aria-label="Bajar el panel">
+                    <CaretDown />
+                  </IconButton>
+                )}
+                {shownSheet !== 'full' && (
+                  <IconButton onClick={() => setSheet(shownSheet === 'peek' ? 'half' : 'full')} aria-label="Subir el panel">
+                    <CaretUp />
+                  </IconButton>
+                )}
+              </div>
             )}
           </Tabs.List>
-          <Tabs.Content value="chat" className="min-h-0 flex-1">
+          <Tabs.Content value="chat" className={`min-h-0 flex-1 ${collapsed}`}>
             <Chat state={state} />
           </Tabs.Content>
-          <Tabs.Content value="materials" className="min-h-0 flex-1 overflow-y-auto">
+          <Tabs.Content value="materials" className={`min-h-0 flex-1 overflow-y-auto ${collapsed}`}>
             {currentAnalysis.valid ? (
               <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} instead={view.instead} onRequest={request} />
             ) : (
@@ -511,7 +530,7 @@ export function Studio({ state }: { state: DesignState }) {
             )}
           </Tabs.Content>
           {debugVisible && (
-            <Tabs.Content value="findings" className="min-h-0 flex-1 overflow-y-auto">
+            <Tabs.Content value="findings" className={`min-h-0 flex-1 overflow-y-auto ${collapsed}`}>
               <Findings design={current} analysis={currentAnalysis} />
             </Tabs.Content>
           )}
@@ -532,10 +551,10 @@ export function Studio({ state }: { state: DesignState }) {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0" style={{ height: tallPanel ? '30%' : '52%' }}>
+          <div className={shownSheet === 'peek' ? 'min-h-0 flex-1' : 'min-h-0'} style={shownSheet === 'peek' ? undefined : { height: SCENE_HEIGHT[shownSheet] }}>
             {scene}
           </div>
-          <div className="min-h-0 flex-1 border-t border-line">{panel}</div>
+          <div className={`border-t border-line ${shownSheet === 'peek' ? 'shrink-0' : 'min-h-0 flex-1'}`}>{panel}</div>
         </div>
       )}
     </div>
