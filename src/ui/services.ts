@@ -6,12 +6,15 @@ import type { MaterialCatalog } from '../ports/MaterialCatalog'
 import type { Preferences } from '../ports/Preferences'
 import type { ReferenceStore } from '../ports/ReferenceStore'
 import type { ImageProcessor } from '../ports/ImageProcessor'
+import type { DesignFileCodec } from '../ports/DesignFileCodec'
 
 export interface Services {
   useCases: UseCases
   catalog: Catalog
   materials: MaterialCatalog
   images: ImageProcessor
+  /** The open design as a `.knotty` file, out and back in. */
+  files: DesignFileCodec
   /** The furniture of reference: the home screen's starting points come from here. */
   references: ReferenceStore
   preferences: Preferences

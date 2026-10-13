@@ -27,6 +27,7 @@ function services(): Services {
     materials: { load: async () => testCatalog, settings: () => NO_SETTINGS, saveSettings: () => {} },
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
+    files: {} as Services['files'],
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} } as unknown as Services['debug'],
   }

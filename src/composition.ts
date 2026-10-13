@@ -7,6 +7,7 @@ import { applySettings } from './domain/materials/catalog'
 import { createJsonCatalog } from './adapters/catalog/json'
 import { createLocalDebugAccess, dropOldDebugLog } from './adapters/debug/access'
 import { createCanvasProcessor } from './adapters/image/canvas'
+import { createGzipDesignFileCodec } from './adapters/designFile/gzip'
 import { createLocalRepository } from './adapters/persistence/localStorage'
 import { createBundledReferences } from './adapters/references/store'
 import { createUseCases } from './application/useCases'
@@ -33,5 +34,5 @@ export async function compose(): Promise<Services> {
   const preferences = createPreferences()
   dropOldDebugLog()
   const useCases = createUseCases({ llm: () => providerFor(preferences.load(), useStore.getState().simulatedChosen), catalog, promptCatalog: () => applySettings(catalog, materials.settings()), toolLevel: () => materials.settings().toolLevel, repository: createLocalRepository() })
-  return { useCases, catalog, materials, images: createCanvasProcessor(), references: createBundledReferences(), preferences, debug: createLocalDebugAccess() }
+  return { useCases, catalog, materials, images: createCanvasProcessor(), files: createGzipDesignFileCodec(__APP_VERSION__),references: createBundledReferences(), preferences, debug: createLocalDebugAccess() }
 }
