@@ -188,6 +188,7 @@ export function Room() {
   const narrow = useMediaQuery('(max-width: 767px)')
   const [collapsed, setCollapsed] = useState(view === 'plan')
   const compact = narrow && collapsed
+  const tight = narrow && !collapsed && view === 'plan'
   const [replacing, setReplacing] = useState<string | null>(null),
     [confirming, setConfirming] = useState<SwapLoss | null>(null)
   const selectedItem = layout?.items.find((i) => i.id === selected)
@@ -279,7 +280,7 @@ export function Room() {
           <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(0,1fr)_360px]">
             <section className="relative min-h-0 flex-1 bg-kraft" aria-label="Vista del cuarto" data-room-canvas>
               {view === 'plan' ? (
-                <RoomPlan layout={layout} bad={bad} />
+                <RoomPlan layout={layout} bad={bad} below={!tight ? 'chips' : bad.size || openingErrors.length ? 'warning' : 'nothing'} />
               ) : (
                 <SceneBoundary
                   fallback={
@@ -351,7 +352,7 @@ export function Room() {
                     <Warning /> {bad.size + openingErrors.length} {bad.size + openingErrors.length === 1 ? 'elemento por revisar' : 'elementos por revisar'}
                   </button>
                 )}
-                <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Tu combinación">
+                <div className={`${tight ? 'hidden' : 'flex'} gap-2 overflow-x-auto pb-1`} aria-label="Tu combinación">
                   {layout.items.map((i, index) => (
                     <button
                       key={i.id}
@@ -372,7 +373,7 @@ export function Room() {
                 </div>
               </div>
             </section>
-            <aside className={`flex ${compact ? '' : 'h-[38dvh]'} min-h-0 shrink-0 flex-col border-t border-line bg-bone md:h-auto md:border-t-0 md:border-l`} aria-label="Explorar muebles y espacio">
+            <aside className={`flex ${compact ? '' : tight ? 'h-[32dvh]' : 'h-[38dvh]'} min-h-0 shrink-0 flex-col border-t border-line bg-bone md:h-auto md:border-t-0 md:border-l`} aria-label="Explorar muebles y espacio">
               <nav className="flex shrink-0 gap-1 border-b border-line p-2" aria-label="Herramientas del espacio">
                 {(
                   [
@@ -393,7 +394,7 @@ export function Room() {
                       useRoom.getState().setPanel(id)
                     }}
                   >
-                    <Icon />
+                    <Icon className="max-[359px]:hidden" />
                     {label}
                     {narrow && panel === id && (compact ? <CaretUp aria-hidden /> : <CaretDown aria-hidden />)}
                   </button>

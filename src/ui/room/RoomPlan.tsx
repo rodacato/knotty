@@ -35,7 +35,9 @@ function OpeningMark({ layout, opening: o }: { layout: Layout; opening: Opening 
   )
 }
 
-export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) {
+const BELOW = { chips: 'pb-24', warning: 'pb-16', nothing: 'pb-4' }
+
+export function RoomPlan({ layout, bad, below }: { layout: Layout; bad: Set<string>; below: keyof typeof BELOW }) {
   const selected = useRoom((s) => s.selected)
   const svg = useRef<SVGSVGElement>(null)
   const [{ hit, margin }, setSizing] = useState({ hit: 500, margin: 220 })
@@ -78,7 +80,7 @@ export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) 
       aria-label="Plano del espacio. Arrastra un mueble o usa las flechas; Mayús mueve diez centímetros."
       data-room-plan
       viewBox={`${-margin} ${-margin} ${layout.room.width + margin * 2} ${layout.room.depth + margin * 2}`}
-      className="h-full w-full touch-none select-none px-4 pt-36 pb-24 md:pt-28 md:px-8"
+      className={`h-full w-full touch-none select-none px-4 pt-36 ${BELOW[below]} md:pt-28 md:px-8`}
       onPointerMove={(e) => {
         const at = point(e),
           grabbed = drag.current
