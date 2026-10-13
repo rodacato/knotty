@@ -3,7 +3,7 @@ import { createUseCases, currentPlan } from '../../application/useCases'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import type { DesignState } from '../../domain/session/state'
+import { currentDesign, type DesignState } from '../../domain/session/state'
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import { useStore } from '../store'
 import type { Services } from '../services'
@@ -84,6 +84,24 @@ describe('catalog and studio navigation', () => {
     expect(useStore.getState().roomOpen).toBe(true)
     expect(useRoom.getState().layout).toBe(layout)
     expect(useStore.getState().state).toBe(saved)
+  })
+
+  it('shows the Studio design as it is now when Forward reopens the room after a change', async () => {
+    useStore.getState().fromExample(base)
+    const b = browser('#studio')
+    disconnect = connectNavigation(useStore, b.api)
+    useRoom.getState().launch(studioSource(useStore.getState().state!, testReferences.home()))
+    useStore.getState().setRoomOpen(true)
+    await settle()
+    b.back()
+    await settle()
+    useStore.getState().chooseFinish('paint')
+    const changed = currentDesign(useStore.getState().state!)
+    expect(changed.finish).toBe('paint')
+    b.forward()
+    await settle()
+    expect(useRoom.getState().layout!.items).toHaveLength(1)
+    expect(useRoom.getState().layout!.items[0]).toMatchObject({ source: { design: changed } })
   })
 
   it('falls back from a reloaded room view to the saved Studio without inventing a room', () => {
