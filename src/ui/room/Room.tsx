@@ -325,7 +325,7 @@ export function Room() {
                   <span className="numerals col-start-1 row-start-2 w-fit rounded-xl bg-bone/95 px-3 py-1 text-xs text-graphite-2">
                     {layout.room.width / 10} × {layout.room.depth / 10} cm<span className="sm:hidden"> · ejemplo</span>
                     <span className="hidden sm:inline"> · espacio de prueba</span>
-                    {view === 'plan' && <span className="block">Arrastra un mueble.</span>}
+                    {view === 'plan' && <span className="block">Arrastra un mueble. La línea gruesa es su frente.</span>}
                   </span>
                 </div>
                 <div className="col-start-2 row-start-2 flex rounded-full border border-line bg-bone/95 p-1">
