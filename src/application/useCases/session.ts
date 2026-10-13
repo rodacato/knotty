@@ -17,7 +17,7 @@ export function createSession(kit: Kit, adjust: Adjust) {
     repository.clear()
   }
 
-  /** Saves the session that is open, or none, over what an answer for a design that is gone left saved. */
+  /** Saves the session that is open, or none: a design opened whole, or the open one over what an answer for a design that is gone left saved. */
   const keep = (state: DesignState | null) => (state ? repository.save(state) : repository.clear())
 
   function addRequirement(state: DesignState, text: string): DesignState {
