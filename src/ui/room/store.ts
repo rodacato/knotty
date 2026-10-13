@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { WALL_CABINET_MOUNT_HEIGHT } from '../../domain/checks/typology/constraints'
 import { exampleLayout, freePosition, nextTurn, openingProblem, WALLS, snapPosition, type FurnitureSource, type Item, type Layout, type Opening, type Space } from './layout'
 
 interface RoomStore {
@@ -39,7 +40,7 @@ const furniture = (source: FurnitureSource): Item => ({
   x: 0,
   z: 0,
   turn: 0,
-  elevation: source.design.kind === 'wallCabinet' ? 1450 : 0,
+  elevation: source.design.kind === 'wallCabinet' ? WALL_CABINET_MOUNT_HEIGHT : 0,
 })
 
 export const useRoom = create<RoomStore>((set, get) => {
@@ -225,7 +226,7 @@ export const useRoom = create<RoomStore>((set, get) => {
         x: i.x,
         z: i.z,
         turn: i.turn,
-        elevation: source.design.kind === 'wallCabinet' ? i.elevation || 1450 : 0,
+        elevation: source.design.kind === 'wallCabinet' ? i.elevation || WALL_CABINET_MOUNT_HEIGHT : 0,
       })),
     edit: (editingId) => set({ editingId }),
     undo() {
