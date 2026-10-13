@@ -42,8 +42,8 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
         const step = (e.shiftKey ? 100 : 10) * ({ [across ? 'ArrowLeft' : 'ArrowUp']: -1, [across ? 'ArrowRight' : 'ArrowDown']: 1 }[e.key] ?? 0)
         if (step) {
           e.preventDefault()
-          const moved = { ...o, offset: o.offset + step }
-          if (!openingProblem(layout.room, moved)) useRoom.getState().setOpening(moved)
+          const offset = Math.max(0, Math.min((across ? layout.room.width : layout.room.depth) - o.width, o.offset + step))
+          if (offset !== o.offset) useRoom.getState().setOpening({ ...o, offset })
         } else if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           useRoom.getState().chooseOpening(o.id)
@@ -53,7 +53,7 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
       <title>{label}</title>
       {o.kind === 'door' && o.swing === 'inside' && <polygon points={points.map((p) => p.join(',')).join(' ')} fill={color} fillOpacity="0.10" stroke={color} strokeWidth="14" strokeDasharray="30 25" />}
       <line {...span} stroke="transparent" strokeWidth={hit} />
-      <line {...span} className={chosen ? '' : 'opacity-0 group-focus-visible:opacity-100'} stroke="var(--graphite)" strokeWidth="80" />
+      <line {...span} className={chosen ? '' : 'opacity-0 group-focus-visible:opacity-100'} stroke="var(--graphite)" strokeWidth="110" />
       <line {...span} stroke="var(--bone)" strokeWidth="45" />
       <line {...span} stroke={color} strokeWidth="22" />
     </g>

@@ -212,7 +212,7 @@ export function Room() {
         else useRoom.getState().undo()
       }
       const chosen = useRoom.getState().selected
-      if (chosen && (e.key === 'Delete' || e.key === 'Backspace')) {
+      if (chosen && (e.key === 'Delete' || e.key === 'Backspace') && !(e.target as HTMLElement).closest('[data-room-opening]')) {
         e.preventDefault()
         useRoom.getState().remove(chosen)
       }
