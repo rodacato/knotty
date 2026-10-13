@@ -176,7 +176,7 @@ knotty/
    │  ├─ llm/                anthropic · compatibleOpenAI (OpenAI y SheLLM) · simulated/
    │  │  ├─ common/          expert (arma los pedidos) · prompts · configuration · vault · jsonSchema · errors
    │  │  └─ prompts/         un archivo por prompt (`nombre.vN.md`), más `modules/` y `kinds/`
-   │  ├─ persistence/        localStorage, con migración de formatos
+   │  ├─ persistence/        IndexedDB para el mueble abierto y localStorage de respaldo, con migración de formatos
    │  ├─ catalog/            catálogo JSON y ajustes de precio y corte de la persona
    │  ├─ image/              reducción de fotos y miniaturas
    │  ├─ debug/              el interruptor guardado del acceso de depuración
@@ -362,7 +362,7 @@ Solo se mandan en la reconstrucción. En los ajustes, lo visual vive en `notes`.
 
 ### Persistencia
 
-- Clave `knotty:design` → `DesignState` (`domain/session/state.ts`): `{ format, measures, versions[{ n, design, summary, reason, operations, date, origin, decisions, plan, extras }], current, requirements, decisions, chat, thumbnails, proposal, review, trace, accepted, tray }`.
+- El mueble abierto vive en IndexedDB (base `knotty`, `adapters/persistence/indexedDb.ts`): se lee una vez a memoria al arrancar y cada guardado se escribe en segundo plano; lo que no alcanzó a escribirse al ocultarse la página queda en localStorage (`knotty:design`) y se recoge al volver. Sin IndexedDB, o si no abre en 5 s, todo vive en esa clave como antes. Lo guardado es el `DesignState` (`domain/session/state.ts`): `{ format, measures, versions[{ n, design, summary, reason, operations, date, origin, decisions, plan, extras }], current, requirements, decisions, chat, thumbnails, proposal, review, trace, accepted, tray }`.
 - Snapshots completos (~10 KB). Tope de 40 versiones: se conserva la v1 y se podan las intermedias más viejas. Si no cabe, primero se sueltan las miniaturas.
 - **Formatos**: el vigente es el `format` de `domain/session/state.ts`. `domain/session/migrate.ts` lee cualquier formato anterior, uno a la vez. Cambiar un campo guardado pide subir el formato y agregar su migración con prueba.
 - Otras claves: `knotty:expert` (configuración sin llaves), `knotty:vault` (llaves cifradas), `knotty:tab-keys` (sessionStorage), `knotty:catalog-settings` (precios y corte). Lo guardado con las claves `despiece:v1:*` se mueve al leerlo (`adapters/storedKey.ts`).
