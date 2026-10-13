@@ -14,6 +14,7 @@ import { Button } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { verdictsOf, type Verdict } from '../lab/verdicts'
 import { linkedFicha } from './link'
+import { fragmentOf } from '../navigation/routes'
 import { LOSS_NOTE, lossOf, type Asking } from './swap'
 import { DownloadFirst } from '../files/DownloadFirst'
 
@@ -220,12 +221,15 @@ export function Spotlight() {
   useEffect(() => {
     const linked = linkedFicha(location, references.home(), (example) => analyze(exampleDesign(example, catalog).design, catalog).valid)
     if (!linked) return
-    history.replaceState(null, '', `${location.pathname}${linked.search}${linked.hash}`)
+    const strip = (hash: string) => history.replaceState(null, '', `${location.pathname}${linked.search}${hash}`)
+    strip(linked.hash)
     const { example } = linked
     if (!example) return
     const { swapTo } = useStore.getState()
-    if (lossOf(useStore.getState())) setOpen(true, { name: example.name, code: example.code ?? null, example })
-    else swapTo(example)
+    if (lossOf(useStore.getState())) return setOpen(true, { name: example.name, code: example.code ?? null, example })
+    swapTo(example)
+    // The address says where it landed: navigation that connects again (StrictMode does) must not read the home out of an empty fragment.
+    strip(fragmentOf(useStore.getState()))
   }, [references, catalog, setOpen])
 
   useEffect(() => {
