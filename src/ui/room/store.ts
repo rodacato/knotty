@@ -20,7 +20,9 @@ interface RoomStore {
   setView(view: RoomStore['view']): void
   setPanel(panel: RoomStore['panel']): void
   setRoom(room: Space): void
-  setOpening(opening: Opening): void
+  opening: string | null
+  chooseOpening(id: string | null): void
+  setOpening(opening: Opening, remember?: boolean): void
   removeOpening(id: string): void
   addOpening(kind: Opening['kind']): void
   move(id: string, changes: Partial<Pick<Item, 'x' | 'z' | 'elevation'>>, remember?: boolean): void
@@ -30,7 +32,6 @@ interface RoomStore {
   turn(id: string): void
   duplicate(id: string): void
   remove(id: string): void
-  replace(id: string, source: FurnitureSource): void
   edit(id: string): void
   undo(): void
   redo(): void
@@ -75,6 +76,7 @@ export const useRoom = create<RoomStore>((set, get) => {
   return {
     layout: null,
     selected: null,
+    opening: null,
     view: 'scene',
     panel: 'combine',
     past: [],
@@ -159,13 +161,13 @@ export const useRoom = create<RoomStore>((set, get) => {
       const layout = get().layout
       if (layout) commit({ ...layout, room })
     },
-    setOpening(opening) {
+    chooseOpening: (opening) => set({ opening, panel: 'space' }),
+    setOpening(opening, remember = true) {
       const layout = get().layout
-      if (layout)
-        commit({
-          ...layout,
-          openings: layout.openings.map((o) => (o.id === opening.id ? opening : o)),
-        })
+      if (!layout) return
+      const next = { ...layout, openings: layout.openings.map((o) => (o.id === opening.id ? opening : o)) }
+      if (remember) commit(next)
+      else set({ layout: next })
     },
     removeOpening(id) {
       const layout = get().layout
@@ -237,15 +239,6 @@ export const useRoom = create<RoomStore>((set, get) => {
         set({ selected: null })
       }
     },
-    replace: (id, source) =>
-      changeItem(id, (i) => ({
-        ...furniture(source),
-        id: i.id,
-        x: i.x,
-        z: i.z,
-        turn: i.turn,
-        elevation: source.design.kind === 'wallCabinet' ? i.elevation || WALL_CABINET_MOUNT_HEIGHT : 0,
-      })),
     edit: (editingId) => set({ editingId }),
     undo() {
       const { layout, past, future } = get()

@@ -9,22 +9,32 @@ const mm = (v: string) => (v.trim() ? Number(v.replace(',', '.')) * 10 : NaN)
 const cm = (v: number) => String(Math.round(v) / 10)
 const finite = (v: string) => Number.isFinite(mm(v))
 const positive = (v: string) => finite(v) && mm(v) > 0 && mm(v) <= 15000
-function Measure({ label, value, change, error }: { label: string; value: string; change: (v: string) => void; error?: string | null }) {
+function Measure({ label, value, change, error, commit }: { label: string; value: string; change: (v: string) => void; error?: string | null; commit?: () => void }) {
   return (
     <Field label={`${label} (cm)`} error={error} className="min-w-0">
-      <Input inputMode="decimal" value={value} invalid={!!error} onChange={(e) => change(e.target.value)} />
+      <Input inputMode="decimal" value={value} invalid={!!error} onChange={(e) => change(e.target.value)} onBlur={commit} />
     </Field>
   )
 }
 
+/** Where the chosen piece sits, applied on Enter or on leaving a field. The height is the one measure the plan cannot drag. */
 export function PlacementForm({ item }: { item: Item }) {
   const r = rectOf(item)
-  const [left, setLeft] = useState(cm(r.x0)),
-    [back, setBack] = useState(cm(r.z0)),
-    [up, setUp] = useState(cm(item.elevation))
+  const placed = [cm(r.x0), cm(r.z0), cm(item.elevation)]
+  const [seen, setSeen] = useState(placed.join())
+  const [left, setLeft] = useState(placed[0]),
+    [back, setBack] = useState(placed[1]),
+    [up, setUp] = useState(placed[2])
   const [error, setError] = useState<string | null>(null)
-  const apply = (e: FormEvent) => {
-    e.preventDefault()
+  if (seen !== placed.join()) {
+    setSeen(placed.join())
+    setLeft(placed[0])
+    setBack(placed[1])
+    setUp(placed[2])
+    setError(null)
+  }
+  const apply = () => {
+    if ([left, back, up].join() === placed.join()) return
     const values = [mm(left), mm(back), mm(up)]
     if (!values.every(Number.isFinite) || values[2] < 0) {
       setError('Escribe distancias numéricas y una altura de cero o más.')
@@ -37,17 +47,22 @@ export function PlacementForm({ item }: { item: Item }) {
     })
     setError(null)
   }
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    apply()
+  }
+  const wallError = (v: string) => (error && !finite(v) ? 'Escribe una distancia numérica.' : null)
   return (
-    <form onSubmit={apply} className="flex flex-col gap-3">
-      <p className="text-sm font-medium">Colocación exacta</p>
-      <div className="grid grid-cols-2 gap-3">
-        <Measure label="A la pared izquierda" value={left} change={setLeft} error={error && !finite(left) ? 'Escribe una distancia numérica.' : null} />
-        <Measure label="A la pared de arriba" value={back} change={setBack} error={error && !finite(back) ? 'Escribe una distancia numérica.' : null} />
-      </div>
-      <Measure label="Altura sobre el piso" value={up} change={setUp} error={error && (!finite(up) || mm(up) < 0) ? 'Escribe cero o más.' : null} />
-      <Button variant="ghost" type="submit" className="min-h-11 justify-center border border-line" data-apply-position>
-        Aplicar colocación
-      </Button>
+    <form onSubmit={submit} className="flex flex-col gap-3" data-placement>
+      <Measure label="Altura sobre el piso" value={up} change={setUp} commit={apply} error={error && (!finite(up) || mm(up) < 0) ? 'Escribe cero o más.' : null} />
+      <details className="rounded-xl border border-line p-3" open={!!(wallError(left) || wallError(back)) || undefined}>
+        <summary className="min-h-11 cursor-pointer content-center text-sm font-medium">Distancia exacta a las paredes</summary>
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <Measure label="A la pared izquierda" value={left} change={setLeft} commit={apply} error={wallError(left)} />
+          <Measure label="A la pared de arriba" value={back} change={setBack} commit={apply} error={wallError(back)} />
+        </div>
+      </details>
+      <button type="submit" hidden />
     </form>
   )
 }
@@ -215,6 +230,7 @@ export function BlockForm() {
 }
 
 export function SpaceEditor({ layout }: { layout: Layout }) {
+  const chosen = useRoom((s) => s.opening)
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm text-graphite-2">
@@ -232,7 +248,14 @@ export function SpaceEditor({ layout }: { layout: Layout }) {
         </Button>
       </div>
       {layout.openings.map((o, index) => (
-        <details key={o.id} className="rounded-xl border border-line p-3">
+        <details
+          key={o.id}
+          className="rounded-xl border border-line p-3"
+          open={chosen === o.id}
+          onToggle={(e) => {
+            if (e.currentTarget.open !== (chosen === o.id)) useRoom.getState().chooseOpening(e.currentTarget.open ? o.id : null)
+          }}
+        >
           <summary className="min-h-11 cursor-pointer content-center font-medium">
             {o.kind === 'door' ? 'Puerta' : 'Ventana'} {layout.openings.slice(0, index + 1).filter((other) => other.kind === o.kind).length}
             {openingProblem(layout.room, o, layout.openings) ? ' · revisar medidas' : ''}

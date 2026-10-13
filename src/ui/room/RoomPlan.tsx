@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { facing, nameOf, rectOf, WALLS, type Layout, type Opening } from './layout'
+import { facing, nameOf, openingProblem, rectOf, slidOpening, WALLS, type Layout, type Opening } from './layout'
 import { useRoom } from './store'
 
 const cm = (v: number) => (v / 10).toLocaleString('es-MX')
@@ -11,7 +11,9 @@ export function wallPoint(layout: Layout, wall: Opening['wall'], along: number, 
   return [room.width - inward, along]
 }
 
-function OpeningMark({ layout, opening: o }: { layout: Layout; opening: Opening }) {
+/** A door or a window on the plan: dragged along its wall or to another one, and chosen to edit its measures in «Mi espacio». */
+function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; opening: Opening; hit: number; onGrab: (e: ReactPointerEvent<SVGGElement>, o: Opening) => void }) {
+  const chosen = useRoom((s) => s.opening === o.id)
   const start = wallPoint(layout, o.wall, o.offset, 0),
     end = wallPoint(layout, o.wall, o.offset + o.width, 0)
   const hinge = o.hinge === 'start' ? o.offset : o.offset + o.width
@@ -23,21 +25,45 @@ function OpeningMark({ layout, opening: o }: { layout: Layout; opening: Opening 
     }),
   ]
   const label = o.kind === 'window' ? 'Ventana' : o.swing === 'outside' ? 'Puerta: abre hacia afuera' : o.swing === 'sliding' ? 'Puerta corrediza' : 'Puerta: abre hacia adentro'
+  const problem = openingProblem(layout.room, o, layout.openings)
+  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--slate)' : 'var(--amber)'
+  const across = o.wall === 'back' || o.wall === 'front'
+  const span = { x1: start[0], y1: start[1], x2: end[0], y2: end[1] }
   return (
-    <g>
+    <g
+      role="button"
+      tabIndex={0}
+      aria-label={`${label}, en la ${WALLS.find(([wall]) => wall === o.wall)![1].toLowerCase()}, a ${cm(o.offset)} centímetros de la esquina${problem ? `. ${problem}` : ''}`}
+      aria-pressed={chosen}
+      data-room-opening={o.kind}
+      className="group cursor-grab outline-none"
+      onPointerDown={(e) => onGrab(e, o)}
+      onKeyDown={(e) => {
+        const step = (e.shiftKey ? 100 : 10) * ({ [across ? 'ArrowLeft' : 'ArrowUp']: -1, [across ? 'ArrowRight' : 'ArrowDown']: 1 }[e.key] ?? 0)
+        if (step) {
+          e.preventDefault()
+          const moved = { ...o, offset: o.offset + step }
+          if (!openingProblem(layout.room, moved)) useRoom.getState().setOpening(moved)
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          useRoom.getState().chooseOpening(o.id)
+        }
+      }}
+    >
       <title>{label}</title>
-      {o.kind === 'door' && o.swing === 'inside' && (
-        <polygon points={points.map((p) => p.join(',')).join(' ')} fill="var(--amber)" fillOpacity="0.10" stroke="var(--amber)" strokeWidth="14" strokeDasharray="30 25" />
-      )}
-      <line x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} stroke="var(--bone)" strokeWidth="45" />
-      <line x1={start[0]} y1={start[1]} x2={end[0]} y2={end[1]} stroke={o.kind === 'window' ? 'var(--slate)' : 'var(--amber)'} strokeWidth="22" />
+      {o.kind === 'door' && o.swing === 'inside' && <polygon points={points.map((p) => p.join(',')).join(' ')} fill={color} fillOpacity="0.10" stroke={color} strokeWidth="14" strokeDasharray="30 25" />}
+      <line {...span} stroke="transparent" strokeWidth={hit} />
+      <line {...span} className={chosen ? '' : 'opacity-0 group-focus-visible:opacity-100'} stroke="var(--graphite)" strokeWidth="80" />
+      <line {...span} stroke="var(--bone)" strokeWidth="45" />
+      <line {...span} stroke={color} strokeWidth="22" />
     </g>
   )
 }
 
-const BELOW = { chips: 'pb-24', warning: 'pb-16', nothing: 'pb-4' }
+const BELOW = { chips: ['pb-24', 'pb-40'], warning: ['pb-16', 'pb-32'], nothing: ['pb-4', 'pb-20'] }
 
-export function RoomPlan({ layout, bad, below }: { layout: Layout; bad: Set<string>; below: keyof typeof BELOW }) {
+/** `tools`: the chosen piece's tools sit over the foot of the plan, so it leaves them room. */
+export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: Set<string>; below: keyof typeof BELOW; tools: boolean }) {
   const selected = useRoom((s) => s.selected)
   const svg = useRef<SVGSVGElement>(null)
   const [{ hit, margin }, setSizing] = useState({ hit: 500, margin: 220 })
@@ -69,21 +95,44 @@ export function RoomPlan({ layout, bad, below }: { layout: Layout; bad: Set<stri
     const matrix = svg.current?.getScreenCTM()
     return matrix ? new DOMPoint(e.clientX, e.clientY).matrixTransform(matrix.inverse()) : null
   }
+  const slide = useRef<{ id: string; grip: number; px: number; py: number; started: boolean } | null>(null)
   const end = () => {
     if (drag.current?.started) useRoom.getState().settle(drag.current.id)
     drag.current = null
+    slide.current = null
+  }
+  const grab = (e: ReactPointerEvent<SVGGElement>, o: Opening) => {
+    const at = point(e)
+    if (e.button !== 0 || !at) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    useRoom.getState().chooseOpening(o.id)
+    slide.current = { id: o.id, grip: (o.wall === 'back' || o.wall === 'front' ? at.x : at.y) - o.offset, px: at.x, py: at.y, started: false }
+  }
+  const slideTo = (at: DOMPoint) => {
+    const held = slide.current,
+      opening = layout.openings.find((o) => o.id === held?.id)
+    if (!held || !opening) return
+    if (!held.started && Math.hypot(at.x - held.px, at.y - held.py) < 25) return
+    if (!held.started) {
+      useRoom.getState().beginMove()
+      held.started = true
+    }
+    const moved = slidOpening(layout.room, opening, at.x, at.y, held.grip)
+    if (moved.wall !== opening.wall) held.grip = opening.width / 2
+    if (moved.wall !== opening.wall || moved.offset !== opening.offset) useRoom.getState().setOpening(moved, false)
   }
   return (
     <svg
       ref={svg}
       role="group"
-      aria-label="Plano del espacio. Arrastra un mueble o usa las flechas; Mayús mueve diez centímetros."
+      aria-label="Plano del espacio. Arrastra un mueble, una puerta o una ventana, o usa las flechas; Mayús mueve diez centímetros."
       data-room-plan
       viewBox={`${-margin} ${-margin} ${layout.room.width + margin * 2} ${layout.room.depth + margin * 2}`}
-      className={`h-full w-full touch-none select-none px-4 pt-36 ${BELOW[below]} md:pt-28 md:px-8`}
+      className={`h-full w-full touch-none select-none px-4 pt-36 ${BELOW[below][+tools]} md:pt-28 md:px-8`}
       onPointerMove={(e) => {
         const at = point(e),
           grabbed = drag.current
+        if (at && slide.current) slideTo(at)
         if (!at || !grabbed) return
         if (!grabbed.started && Math.hypot(at.x - grabbed.px, at.y - grabbed.py) < 25) return
         if (!grabbed.started) {
@@ -125,7 +174,7 @@ export function RoomPlan({ layout, bad, below }: { layout: Layout; bad: Set<stri
         {cm(layout.room.depth)} cm
       </text>
       {layout.openings.map((o) => (
-        <OpeningMark key={o.id} layout={layout} opening={o} />
+        <OpeningMark key={o.id} layout={layout} opening={o} hit={hit} onGrab={grab} />
       ))}
       {layout.items.map((item, index) => {
         const r = rectOf(item),
