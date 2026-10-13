@@ -5,9 +5,15 @@ import { moduleOf } from '../../domain/furniture/modules/plan'
 import { browsingFrom, searchWith } from '../capture/address'
 import { draftOf, type Store } from '../store'
 import { fragmentOf, hasLinkedFicha, routeFrom, type Route } from './routes'
+import { useRoom } from '../room/store'
 
 export function showRoute(store: StoreApi<Store>, route: Route) {
   const s = store.getState()
+  if (route.screen === 'room') {
+    s.setRoomOpen(!!useRoom.getState().layout)
+    return
+  }
+  s.setRoomOpen(false)
   if (route.screen === 'catalog') {
     s.goHome()
     const base = route.code && s.services?.references.home().find((b) => b.code === route.code)

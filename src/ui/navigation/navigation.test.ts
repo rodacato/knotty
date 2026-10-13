@@ -8,6 +8,8 @@ import { NO_SETTINGS } from '../../domain/materials/catalog'
 import { useStore } from '../store'
 import type { Services } from '../services'
 import { connectNavigation } from './navigation'
+import { useRoom } from '../room/store'
+import { studioSource } from '../room/sources'
 
 // Only the browser history boundary is simulated; designs, plans, commands and persistence run for real.
 function browser(suffix = '', delayed = false) {
@@ -59,10 +61,45 @@ function services(): Services {
 const initial = useStore.getState()
 const base = testReferences.home().find((b) => b.plan.kind === 'cabinet')!
 let disconnect: (() => void) | undefined
-beforeEach(() => { useStore.setState(initial, true); useStore.getState().start(services()) })
+beforeEach(() => { useRoom.setState(useRoom.getInitialState(), true); useStore.setState(initial, true); useStore.getState().start(services()) })
 afterEach(() => { disconnect?.(); disconnect = undefined })
 
 describe('catalog and studio navigation', () => {
+  it('keeps room layout in memory and the current design intact through Back and Forward', async () => {
+    useStore.getState().fromExample(base)
+    const saved = useStore.getState().state!
+    const b = browser('#studio')
+    disconnect = connectNavigation(useStore, b.api)
+    useRoom.getState().launch(studioSource(saved, testReferences.home()))
+    const layout = useRoom.getState().layout
+    useStore.getState().setRoomOpen(true)
+    await settle()
+    expect(b.hash()).toBe('#space')
+    expect(useStore.getState().services!.useCases.load()).toBe(saved)
+    b.back()
+    await settle()
+    expect(useStore.getState()).toMatchObject({ phase: 'studio', roomOpen: false, state: saved })
+    b.forward()
+    await settle()
+    expect(useStore.getState().roomOpen).toBe(true)
+    expect(useRoom.getState().layout).toBe(layout)
+    expect(useStore.getState().state).toBe(saved)
+  })
+
+  it('falls back from a reloaded room view to the saved Studio without inventing a room', () => {
+    useStore.getState().fromExample(base)
+    const s = useStore.getState().services!,
+      saved = s.useCases.load()
+    useStore.setState(initial, true)
+    useStore.getState().start(s)
+    const b = browser('#space')
+    disconnect = connectNavigation(useStore, b.api)
+    expect(b.hash()).toBe('#studio')
+    expect(useStore.getState()).toMatchObject({ roomOpen: false, state: saved, phase: 'studio' })
+    expect(useRoom.getState().layout).toBeNull()
+  })
+
+
   it('opens the catalog without clearing a saved design, and restores views with Back and Forward', async () => {
     useStore.getState().fromExample(base)
     const saved = useStore.getState().state!

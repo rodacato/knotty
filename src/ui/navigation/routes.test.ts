@@ -21,6 +21,7 @@ describe('public entry compatibility', () => {
 
 describe('view fragments', () => {
   it('reads catalog, adjustment, studio panels and editing views', () => {
+    expect(routeFrom('#space')).toEqual({ screen: 'room' })
     expect(routeFrom('#catalog/adjust/KC-ESC-07')).toEqual({ screen: 'catalog', code: 'KC-ESC-07' })
     expect(routeFrom('#studio/materials')).toEqual({ screen: 'studio', panel: 'materials' })
     expect(routeFrom('#studio/edit/outside/pedestal/piece/side-right')).toEqual({ screen: 'studio', side: 'outside', part: 'pedestal', piece: 'side-right' })
@@ -29,6 +30,6 @@ describe('view fragments', () => {
   })
 
   it('does not interpret malformed or unknown fragments as commands or a design', () => {
-    for (const hash of ['', '#ficha=KC-MES-03', '#studio/edit/otro', '#catalog/ajustar', '#studio/constructor', '#studio/%ZZ', '#studio/materials/extra']) expect(routeFrom(hash)).toBeNull()
+    for (const hash of ['', '#space/extra', '#ficha=KC-MES-03', '#studio/edit/otro', '#catalog/ajustar', '#studio/constructor', '#studio/%ZZ', '#studio/materials/extra']) expect(routeFrom(hash)).toBeNull()
   })
 })

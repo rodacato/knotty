@@ -37,6 +37,8 @@ import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
 import { fichaLink, optionsOf } from '../spotlight/link'
 import { shortcutLabel } from '../spotlight/shortcut'
+import { RoomLauncher } from '../room/RoomLauncher'
+import { studioSource } from '../room/sources'
 
 const VIEWS: { id: View; name: string }[] = [
   { id: 'front', name: 'Frente' },
@@ -344,7 +346,7 @@ type Sheet = 'peek' | 'half' | 'full'
 const SCENE_HEIGHT = { half: '50%', full: '30%' } as const
 
 export function Studio({ state }: { state: DesignState }) {
-  const { catalog } = useServices()
+  const { catalog, references } = useServices()
   const view = useStudioView(state)
   const { current, currentAnalysis, shown, geo, board, selection } = view
   const backToVersion = useStore((s) => s.backToVersion)
@@ -399,7 +401,7 @@ export function Studio({ state }: { state: DesignState }) {
 
   useEffect(() => {
     const onType = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') selectPiece(null)
+      if (e.key === 'Escape' && !useStore.getState().roomOpen) selectPiece(null)
     }
     window.addEventListener('keydown', onType)
     return () => window.removeEventListener('keydown', onType)
@@ -438,6 +440,11 @@ export function Studio({ state }: { state: DesignState }) {
         {geo && <EditBar inside={insideParts} />}
       </div>
       {editingSide && <LeaveEditing />}
+      {!editingSide && geo && (
+        <div className="pointer-events-none absolute inset-x-16 bottom-3 z-10 flex justify-center md:bottom-4">
+          <RoomLauncher source={studioSource(state, references.home())} className={`${SCENE_TOOL} max-w-full text-xs md:text-sm`} disabled={shown !== currentDesign(state)} />
+        </div>
+      )}
       {geo && (
         <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-col items-start gap-2 md:bottom-4 md:left-4">
           <HistoryButtons />

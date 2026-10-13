@@ -1,7 +1,7 @@
 import { Component, type ReactNode } from 'react'
 
 /** If the browser cannot draw the 3D (no WebGL, busy GPU), the rest of the studio keeps working. */
-export class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class SceneBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, { failed: boolean }> {
   state = { failed: false }
 
   static getDerivedStateFromError() {
@@ -10,6 +10,7 @@ export class SceneBoundary extends Component<{ children: ReactNode }, { failed: 
 
   render() {
     if (!this.state.failed) return this.props.children
+    if (this.props.fallback) return this.props.fallback
     return (
       <div className="drawing-sheet grid h-full place-items-center p-6 text-center">
         <div className="flex max-w-xs flex-col gap-2">
