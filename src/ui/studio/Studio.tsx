@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, DownloadSimple, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { exampleDesign } from '../../domain/furniture/examples'
@@ -37,6 +37,7 @@ import { Findings, findingsCount } from '../lab/Findings'
 import { ModelSwitch } from '../lab/ModelSwitch'
 import { fichaLink, optionsOf } from '../spotlight/link'
 import { shortcutLabel } from '../spotlight/shortcut'
+import { useDownloadDesign } from '../files/download'
 import { RoomLauncher } from '../room/RoomLauncher'
 import { studioSource } from '../room/sources'
 
@@ -229,6 +230,15 @@ function useFichaLink(state: DesignState): { copy: () => void; copied: boolean; 
   return { copy, copied, label: `Copiar el enlace a la ficha ${code}${said}` }
 }
 
+function DownloadDesign({ state }: { state: DesignState }) {
+  const download = useDownloadDesign(state)
+  return (
+    <IconButton className="max-sm:hidden" onClick={() => void download()} aria-label="Descargar mi diseño" title="Descargar mi diseño (.knotty)">
+      <DownloadSimple />
+    </IconButton>
+  )
+}
+
 function CopyFichaLink({ state }: { state: DesignState }) {
   const link = useFichaLink(state)
   if (!link) return null
@@ -242,6 +252,7 @@ function CopyFichaLink({ state }: { state: DesignState }) {
 /** On a phone the header has no room for everything: the link, the expert and a new design go in a sheet behind one button. */
 function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: string; onExpert: (() => void) | null }) {
   const link = useFichaLink(state)
+  const download = useDownloadDesign(state)
   const row = 'min-h-11 justify-start gap-3 px-3 text-[15px]'
   return (
     <Dialog.Root>
@@ -259,6 +270,11 @@ function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: str
               {link.copied ? <Check className="text-slate" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
             </Button>
           )}
+          <Dialog.Close asChild>
+            <Button variant="ghost" className={row} onClick={() => void download()}>
+              <DownloadSimple /> Descargar mi diseño
+            </Button>
+          </Dialog.Close>
           {onExpert && (
             <Dialog.Close asChild>
               <Button variant="ghost" className={row} onClick={onExpert}>
@@ -310,6 +326,7 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
       </div>
       <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
         <CopyFichaLink state={state} />
+        <DownloadDesign state={state} />
         <Button variant="ghost" className="min-w-11 px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
           <MagnifyingGlass />
         </Button>

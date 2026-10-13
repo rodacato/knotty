@@ -20,6 +20,7 @@ function services(saved: boolean) {
     materials: { load: async () => testCatalog, settings: () => NO_SETTINGS, saveSettings: () => {} },
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
+    files: {} as Services['files'],
     references: testReferences,
     debug: { visible: () => visible, setVisible: (v: boolean) => void ((visible = v), calls.push(v)) } as unknown as Services['debug'],
   }

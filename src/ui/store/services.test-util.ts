@@ -1,3 +1,4 @@
+import { createGzipDesignFileCodec } from '../../adapters/designFile/gzip'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { createUseCases } from '../../application/useCases'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
@@ -19,6 +20,7 @@ export function testServices(expert: LLMProvider = createSimulated(0)) {
       vaultState: () => 'none',
     } as Services['preferences'],
     images: {} as Services['images'],
+    files: createGzipDesignFileCodec('test'),
     references: testReferences,
     debug: { visible: () => false, setVisible: () => {} },
   }
