@@ -94,6 +94,15 @@ describe('temporary room history and Studio handoff', () => {
     for (const item of layout!.items) expect(rectOf(item).z0).toBe(0)
   })
 
+  it('keeps a piece that hugs a wall inside the room when it turns', () => {
+    useRoom.getState().launch(source('GN-COC-04'))
+    const id = useRoom.getState().selected!
+    useRoom.getState().turn(id)
+    const { layout } = useRoom.getState()
+    expect(rectOf(layout!.items[0]).z0).toBe(0)
+    expect(issues(layout!)).toEqual([])
+  })
+
   it('represents existing objects as blocks and restores a replaced ficha with its provenance', () => {
     useRoom.getState().launch(source('GN-BUR-01'))
     const id = useRoom.getState().selected!,

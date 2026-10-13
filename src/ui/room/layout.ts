@@ -74,6 +74,12 @@ export function rectOf(i: Item): Rect {
   const [w, d] = i.turn % 180 === 0 ? [s.width, s.depth] : [s.depth, s.width]
   return { x0: i.x - w / 2, x1: i.x + w / 2, z0: i.z - d / 2, z1: i.z + d / 2 }
 }
+/** Slides a piece back between the walls it fits between: a turn about its center can push a piece that hugs a wall through it. */
+export function keptInside(room: Space, item: Item): Item {
+  const r = rectOf(item)
+  const within = (center: number, low: number, high: number, length: number) => (high - low > length ? center : center + Math.max(0, -low) - Math.max(0, high - length))
+  return { ...item, x: within(item.x, r.x0, r.x1, room.width), z: within(item.z, r.z0, r.z1, room.depth) }
+}
 export const validSpace = (s: Space) => [s.width, s.depth, s.height].every((v) => Number.isFinite(v) && v >= 500 && v <= 15000)
 export function openingProblem(room: Space, o: Opening, openings: Opening[] = []): string | null {
   const length = o.wall === 'back' || o.wall === 'front' ? room.width : room.depth

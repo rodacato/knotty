@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { WALL_CABINET_MOUNT_HEIGHT } from '../../domain/checks/typology/constraints'
-import { exampleLayout, freePosition, nextTurn, openingProblem, WALLS, snapPosition, type FurnitureSource, type Item, type Layout, type Opening, type Space } from './layout'
+import { exampleLayout, freePosition, keptInside, nextTurn, openingProblem, WALLS, snapPosition, type FurnitureSource, type Item, type Layout, type Opening, type Space } from './layout'
 
 interface RoomStore {
   layout: Layout | null
@@ -200,7 +200,7 @@ export const useRoom = create<RoomStore>((set, get) => {
         item = layout?.items.find((i) => i.id === id)
       if (layout && item) get().move(id, snapPosition(layout, item), false)
     },
-    turn: (id) => changeItem(id, (i) => ({ ...i, turn: nextTurn(i.turn) })),
+    turn: (id) => changeItem(id, (i) => keptInside(get().layout!.room, { ...i, turn: nextTurn(i.turn) })),
     duplicate(id) {
       const layout = get().layout,
         original = layout?.items.find((i) => i.id === id)
