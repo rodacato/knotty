@@ -167,10 +167,7 @@ export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) 
               if (delta) {
                 e.preventDefault()
                 useRoom.getState().select(item.id)
-                useRoom.getState().move(item.id, {
-                  x: item.x + delta[0],
-                  z: item.z + delta[1],
-                })
+                useRoom.getState().nudge(item.id, delta[0], delta[1])
               } else if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
                 useRoom.getState().select(item.id)
