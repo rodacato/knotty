@@ -12,6 +12,8 @@ export const DESIGNS = 'designs'
 export const META = 'meta'
 /** In `meta`: the id of the record in `designs` that is the open design. */
 export const OPEN = 'open'
+/** How long the database may take to open and give the open design before localStorage is used instead. */
+export const OPEN_LIMIT_MS = 5000
 
 export interface StoredDesign {
   id: string
@@ -29,6 +31,10 @@ export interface IndexedRepositoryOptions {
   storage?: Storage
   now?: () => string
   newId?: () => string
+  openLimitMs?: number
+  /** Where `pagehide` and `visibilitychange` arrive; null when there is no page. */
+  page?: EventTarget | null
+  hidden?: () => boolean
 }
 
 function browserFactory(): IDBFactory | null {
@@ -39,13 +45,21 @@ function browserFactory(): IDBFactory | null {
   }
 }
 
-function open(factory: IDBFactory): Promise<IDBDatabase> {
+function browserPage(): EventTarget | null {
+  return typeof window === 'undefined' ? null : window
+}
+
+const browserHidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden'
+
+function openWithDesign(factory: IDBFactory, limitMs: number): Promise<{ db: IDBDatabase; record: unknown }> {
   return new Promise((resolve, reject) => {
     let refused = false
     const refuse = (reason: unknown) => {
       refused = true
+      clearTimeout(limit)
       reject(reason)
     }
+    const limit = setTimeout(() => refuse(new Error('too slow')), limitMs)
     const request = factory.open(DATABASE, 1)
     request.onupgradeneeded = () => {
       request.result.createObjectStore(DESIGNS, { keyPath: 'id' })
@@ -57,7 +71,17 @@ function open(factory: IDBFactory): Promise<IDBDatabase> {
       const db = request.result
       if (refused) return db.close()
       db.onversionchange = () => db.close()
-      resolve(db)
+      readOpen(db).then(
+        (record) => {
+          if (refused) return db.close()
+          clearTimeout(limit)
+          resolve({ db, record })
+        },
+        (reason) => {
+          db.close()
+          refuse(reason)
+        },
+      )
     }
   })
 }
@@ -104,19 +128,14 @@ function readState(record: unknown): DesignState | null {
 const isQuota = (error: unknown) => isObject(error) && error.name === 'QuotaExceededError'
 
 export async function createIndexedRepository(options: IndexedRepositoryOptions = {}): Promise<IndexedRepository> {
-  const { factory = browserFactory(), storage = localStorage, now = () => new Date().toISOString(), newId = () => crypto.randomUUID() } = options
+  const { factory = browserFactory(), storage = localStorage, now = () => new Date().toISOString(), newId = () => crypto.randomUUID(), openLimitMs = OPEN_LIMIT_MS, page = browserPage(), hidden = browserHidden } = options
   const local = createLocalRepository(storage)
   const fallback: IndexedRepository = { ...local, settled: async () => {} }
   if (!factory) return fallback
 
-  let db: IDBDatabase
-  let record: unknown
-  try {
-    db = await open(factory)
-    record = await readOpen(db)
-  } catch {
-    return fallback
-  }
+  const opened = await openWithDesign(factory, openLimitMs).catch(() => null)
+  if (!opened) return fallback
+  const { db, record } = opened
 
   let storedId = isObject(record) && typeof record.id === 'string' ? record.id : null
   let id = storedId
@@ -160,8 +179,10 @@ export async function createIndexedRepository(options: IndexedRepositoryOptions 
       try {
         if (next === 'remove') await remove()
         else await put(next.id, next.state)
-        if (copyInStorage) local.clear()
-        copyInStorage = false
+        if (copyInStorage && !pending) {
+          local.clear()
+          copyInStorage = false
+        }
       } catch {
         if (next !== 'remove') {
           local.save(next.state)
@@ -185,6 +206,15 @@ export async function createIndexedRepository(options: IndexedRepositoryOptions 
     }
     writing ??= drain()
   }
+
+  function keepUncommitted() {
+    if (!memory || !(pending || writing)) return
+    local.save(memory)
+    copyInStorage = true
+  }
+
+  page?.addEventListener('pagehide', keepUncommitted)
+  page?.addEventListener('visibilitychange', () => hidden() && keepUncommitted())
 
   const moved = local.load()
   if (moved) {

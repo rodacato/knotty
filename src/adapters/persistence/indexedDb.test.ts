@@ -62,6 +62,33 @@ function failDesignWrites(error: (record: StoredDesign) => DOMException | null) 
   })
 }
 
+const KEY = 'knotty:design'
+const inStorage = (local: Storage) => JSON.parse(local.getItem(KEY) ?? 'null') as unknown
+const later = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function openingLate(real: IDBFactory, ms: number) {
+  const opened: IDBDatabase[] = []
+  const factory = {
+    open(name: string, version?: number) {
+      const inner = real.open(name, version)
+      const outer = {
+        get result() {
+          return inner.result
+        },
+        onupgradeneeded: null as (() => void) | null,
+        onsuccess: null as (() => void) | null,
+      }
+      inner.onupgradeneeded = () => outer.onupgradeneeded?.()
+      inner.onsuccess = () => {
+        opened.push(inner.result)
+        setTimeout(() => outer.onsuccess?.(), ms)
+      }
+      return outer
+    },
+  } as unknown as IDBFactory
+  return { factory, opened }
+}
+
 const clock = () => {
   let tick = 0
   return () => new Date(Date.UTC(2026, 0, 1, 0, 0, tick++)).toISOString()
@@ -255,5 +282,130 @@ describe('IndexedDB repository', () => {
     const loaded = (await createIndexedRepository({ factory, storage: storage() })).load()!
     expect(loaded.thumbnails).toEqual([])
     expect(loaded.versions.map((v) => v.n)).toEqual([1, 3, 4, 5, 6])
+  })
+
+  describe('when the page is hidden or unloaded', () => {
+    it.each(['pagehide', 'visibilitychange'])('on %s a save not yet committed is in localStorage, and a new repository loads it from there', async (event) => {
+      const local = storage()
+      const page = new EventTarget()
+      const repo = await createIndexedRepository({ factory: new IDBFactory(), storage: local, page, hidden: () => true })
+      repo.save(state('unsaved'))
+      expect(local.length).toBe(0)
+      page.dispatchEvent(new Event(event))
+      expect(inStorage(local)).toEqual(state('unsaved'))
+
+      const leftBehind = storage()
+      leftBehind.setItem(KEY, local.getItem(KEY)!)
+      expect((await createIndexedRepository({ factory: new IDBFactory(), storage: leftBehind, page: null })).load()).toEqual(state('unsaved'))
+    })
+
+    it('the copy leaves localStorage once the save is committed', async () => {
+      const factory = new IDBFactory()
+      const local = storage()
+      const page = new EventTarget()
+      const repo = await createIndexedRepository({ factory, storage: local, page })
+      repo.save(state())
+      page.dispatchEvent(new Event('pagehide'))
+      await repo.settled()
+
+      expect(local.length).toBe(0)
+      expect((await createIndexedRepository({ factory, storage: storage(), page: null })).load()).toEqual(state())
+    })
+
+    it('the copy stays while a later save is still waiting behind the one being written', async () => {
+      const local = storage()
+      const page = new EventTarget()
+      const during: unknown[] = []
+      failDesignWrites((record) => {
+        if (record.state.versions[0].summary === 'second') during.push(inStorage(local))
+        return null
+      })
+      const repo = await createIndexedRepository({ factory: new IDBFactory(), storage: local, page })
+      repo.save(state('first'))
+      await Promise.resolve()
+      repo.save(state('second'))
+      page.dispatchEvent(new Event('pagehide'))
+      await repo.settled()
+
+      expect(during).toEqual([state('second')])
+      expect(local.length).toBe(0)
+    })
+
+    it('writes nothing to localStorage when every save is committed', async () => {
+      const local = storage()
+      const page = new EventTarget()
+      const repo = await createIndexedRepository({ factory: new IDBFactory(), storage: local, page, hidden: () => true })
+      repo.save(state())
+      await repo.settled()
+      page.dispatchEvent(new Event('pagehide'))
+      page.dispatchEvent(new Event('visibilitychange'))
+      expect(local.length).toBe(0)
+    })
+
+    it('writes nothing when the page becomes visible again', async () => {
+      const local = storage()
+      const page = new EventTarget()
+      const repo = await createIndexedRepository({ factory: new IDBFactory(), storage: local, page, hidden: () => false })
+      repo.save(state())
+      page.dispatchEvent(new Event('visibilitychange'))
+      expect(local.length).toBe(0)
+      await repo.settled()
+    })
+
+    it('does not bring back a design that was cleared', async () => {
+      const factory = new IDBFactory()
+      const local = storage()
+      const page = new EventTarget()
+      const repo = await createIndexedRepository({ factory, storage: local, page })
+      repo.save(state())
+      await Promise.resolve()
+      repo.clear()
+      page.dispatchEvent(new Event('pagehide'))
+      expect(local.length).toBe(0)
+      await repo.settled()
+
+      expect(local.length).toBe(0)
+      expect((await createIndexedRepository({ factory, storage: local, page: null })).load()).toBeNull()
+    })
+  })
+
+  describe('when the database is slow to open', () => {
+    it('a database that never answers leaves a repository that saves in localStorage', async () => {
+      const silent = { open: () => ({}) } as unknown as IDBFactory
+      const local = storage()
+      const started = Date.now()
+      const repo = await createIndexedRepository({ factory: silent, storage: local, openLimitMs: 20 })
+      expect(Date.now() - started).toBeLessThan(2000)
+
+      repo.save(state())
+      expect(inStorage(local)).toEqual(state())
+      expect((await createIndexedRepository({ factory: null, storage: local })).load()).toEqual(state())
+    })
+
+    it('a database that opens after the limit is closed and not written to', async () => {
+      const real = new IDBFactory()
+      const { factory, opened } = openingLate(real, 60)
+      const local = storage()
+      const repo = await createIndexedRepository({ factory, storage: local, openLimitMs: 20 })
+      repo.save(state())
+      await later(120)
+      await repo.settled()
+
+      expect(inStorage(local)).toEqual(state())
+      expect((await stored(real)).designs).toEqual([])
+      expect(() => opened[0].transaction(DESIGNS)).toThrow(expect.objectContaining({ name: 'InvalidStateError' }))
+    })
+
+    it('a database that opens within the limit is used', async () => {
+      const real = new IDBFactory()
+      const { factory } = openingLate(real, 5)
+      const local = storage()
+      const repo = await createIndexedRepository({ factory, storage: local, openLimitMs: 2000 })
+      repo.save(state())
+      await repo.settled()
+
+      expect(local.length).toBe(0)
+      expect((await stored(real)).designs.map((d) => d.id)).toHaveLength(1)
+    })
   })
 })
