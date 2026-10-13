@@ -20,12 +20,17 @@ export interface SettingsSlice {
   spotlightOpen: boolean
   /** What the spotlight opens asking about: a link that would cost something to open. */
   spotlightAsk: Asking | null
+  /** «Mis muebles», over any screen. */
+  libraryOpen: boolean
+  /** Counts what changed in the places, which live outside the store, so what shows them reads again. */
+  libraryChanges: number
   /** The debug tools are shown: the Konami code, Ctrl+Shift+D or the settings switch. */
   debugVisible: boolean
 
   setDebugVisible(visible: boolean): void
   openSettings(open: boolean): void
   openSpotlight(open: boolean, ask?: Asking): void
+  openLibrary(open: boolean): void
   openConnect(open: boolean): void
   unlock(passphrase: string): Promise<void>
   forgetKeys(): void
@@ -45,6 +50,8 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   catalogSettings: NO_SETTINGS,
   spotlightOpen: false,
   spotlightAsk: null,
+  libraryOpen: false,
+  libraryChanges: 0,
   debugVisible: false,
 
   setDebugVisible: (debugVisible) => {
@@ -53,6 +60,7 @@ export const createSettings: Slice<SettingsSlice> = (set, get) => ({
   },
   openSettings: (settingsOpen) => set({ settingsOpen }),
   openSpotlight: (spotlightOpen, ask) => set({ spotlightOpen, spotlightAsk: ask ?? null }),
+  openLibrary: (libraryOpen) => set({ libraryOpen }),
   openConnect: (connectOpen) => set({ connectOpen }),
 
   async unlock(passphrase) {

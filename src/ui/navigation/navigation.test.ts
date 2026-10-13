@@ -7,6 +7,7 @@ import { currentDesign, type DesignState } from '../../domain/session/state'
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import { useStore } from '../store'
 import type { Services } from '../services'
+import { noLibrary } from '../../adapters/persistence/library'
 import { connectNavigation } from './navigation'
 import { useRoom } from '../room/store'
 import { studioSource } from '../room/sources'
@@ -53,7 +54,7 @@ function services(): Services {
     catalog: testCatalog,
     materials: { load: async () => testCatalog, settings: () => NO_SETTINGS, saveSettings: () => {} },
     preferences: { vaultState: () => 'none' } as Services['preferences'],
-    images: {} as Services['images'], files: {} as Services['files'], references: testReferences,
+    images: {} as Services['images'], files: {} as Services['files'], library: noLibrary, references: testReferences,
     debug: { visible: () => false, setVisible: () => {} },
   }
 }

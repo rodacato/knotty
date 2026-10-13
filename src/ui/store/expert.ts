@@ -99,6 +99,7 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     try {
       const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set((s) => ({ stage: { name, attempt, progress }, stageLog: recordStage(s.stageLog, { name, attempt, progress }, Date.now()) })))
       if (!isCurrent()) return services.useCases.keep(get().state)
+      services.library.detach()
       set((s) => opened(s, state))
     } catch (e) {
       if (!isCurrent()) return

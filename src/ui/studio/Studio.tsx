@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
-import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, DownloadSimple, Eye, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
+import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, DownloadSimple, Eye, FloppyDisk, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { exampleDesign } from '../../domain/furniture/examples'
@@ -256,7 +256,8 @@ function CopyFichaLink({ state }: { state: DesignState }) {
 /** On a phone the header has no room for everything: the link, the expert and a new design go in a sheet behind one button. */
 function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: string; onExpert: (() => void) | null }) {
   const link = useFichaLink(state)
-  const { files } = useServices()
+  const { files, library } = useServices()
+  const openLibrary = useStore((s) => s.openLibrary)
   const download = () => downloadDesign(files, state)
   const row = 'min-h-11 justify-start gap-3 px-3 text-[15px]'
   return (
@@ -274,6 +275,13 @@ function MoreMenu({ state, expert, onExpert }: { state: DesignState; expert: str
             <Button variant="ghost" className={row} onClick={link.copy}>
               {link.copied ? <Check className="text-slate" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
             </Button>
+          )}
+          {library.available && (
+            <Dialog.Close asChild>
+              <Button variant="ghost" className={row} onClick={() => openLibrary(true)}>
+                <FloppyDisk /> Mis muebles: guardar o abrir
+              </Button>
+            </Dialog.Close>
           )}
           <Dialog.Close asChild>
             <Button variant="ghost" className={row} onClick={() => void download()}>
@@ -304,6 +312,9 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
   const openSpotlight = useStore((s) => s.openSpotlight)
+  const openLibrary = useStore((s) => s.openLibrary)
+  const goHome = useStore((s) => s.goHome)
+  const { library } = useServices()
   const settingsOpen = useStore((s) => s.settingsOpen)
   const { plan, diverged } = currentPlan(state)
   // The plan describes the current version; an older one or a proposal in view only has its measures.
@@ -317,11 +328,9 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   // With a larger font the buttons go under the title rather than squeeze it: the title's least width is in rem, so it grows with the font.
   return (
     <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur max-sm:flex-wrap sm:gap-3 sm:px-3 md:px-5">
-      <ConfirmNew>
-        <button type="button" className="shrink-0 rounded-lg" aria-label="Inicio: empezar un diseño nuevo" title="Inicio">
-          <Emblem className="size-7 sm:size-8" />
-        </button>
-      </ConfirmNew>
+      <button type="button" className="shrink-0 rounded-lg" onClick={goHome} aria-label="Inicio" title="Inicio: tu diseño se queda abierto">
+        <Emblem className="size-7 sm:size-8" />
+      </button>
       <div className="min-w-0 flex-1 max-sm:min-w-32">
         <p className="font-display text-lg leading-tight font-semibold max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
@@ -332,6 +341,11 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
       <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
         <CopyFichaLink state={state} />
         <DownloadDesign state={state} />
+        {library.available && (
+          <IconButton className="max-sm:hidden" onClick={() => openLibrary(true)} aria-label="Mis muebles: guardar o abrir" title="Mis muebles: guardar o abrir">
+            <FloppyDisk />
+          </IconButton>
+        )}
         <Button variant="ghost" className="min-w-11 px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
           <MagnifyingGlass />
         </Button>

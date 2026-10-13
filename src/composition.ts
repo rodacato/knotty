@@ -35,5 +35,5 @@ export async function compose(): Promise<Services> {
   dropOldDebugLog()
   const repository = await createIndexedRepository()
   const useCases = createUseCases({ llm: () => providerFor(preferences.load(), useStore.getState().simulatedChosen), catalog, promptCatalog: () => applySettings(catalog, materials.settings()), toolLevel: () => materials.settings().toolLevel, repository })
-  return { useCases, catalog, materials, images: createCanvasProcessor(), files: createGzipDesignFileCodec(__APP_VERSION__), references: createBundledReferences(), preferences, debug: createLocalDebugAccess() }
+  return { useCases, catalog, materials, images: createCanvasProcessor(), files: createGzipDesignFileCodec(__APP_VERSION__), library: repository.library, references: createBundledReferences(), preferences, debug: createLocalDebugAccess() }
 }

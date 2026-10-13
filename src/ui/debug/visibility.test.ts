@@ -6,6 +6,7 @@ import { testReferences } from '../../domain/furniture/fixtures/references.test-
 import { NO_SETTINGS } from '../../domain/materials/catalog'
 import type { DesignState } from '../../domain/session/state'
 import type { Services } from '../services'
+import { noLibrary } from '../../adapters/persistence/library'
 import { useStore } from '../store'
 
 // One value says whether the debug tools show; the settings switch, Ctrl+Shift+D and the Konami code all go through it.
@@ -21,6 +22,7 @@ function services(saved: boolean) {
     preferences: { vaultState: () => 'none' } as unknown as Services['preferences'],
     images: {} as Services['images'],
     files: {} as Services['files'],
+    library: noLibrary,
     references: testReferences,
     debug: { visible: () => visible, setVisible: (v: boolean) => void ((visible = v), calls.push(v)) } as unknown as Services['debug'],
   }
