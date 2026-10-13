@@ -68,6 +68,8 @@
 .closing-section { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding-block: 48px 64px; }
 .page-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; justify-content: space-between; border-top: 1px solid var(--line); padding-block: 24px; }
 .page-footer p { color: var(--graphite-2); font-size: 14px; }
+.page-footer .install-hint { flex-basis: 100%; text-align: end; }
+button.nav-link { cursor: pointer; }
 .skip-link { position: fixed; top: 12px; left: 12px; z-index: 20; padding: 12px 20px; background: var(--graphite); color: var(--bone); transform: translateY(-200%); }
 .skip-link:focus { transform: translateY(0); }
 .brand-intro { display: grid; grid-template-columns: 1.25fr .75fr; gap: 64px; align-items: center; padding-block: 48px 64px; }
@@ -136,6 +138,7 @@
   .page-footer { flex-direction: column; align-items: flex-start; gap: 0; padding-block: 24px 16px; }
   .page-footer > div { flex-direction: column; align-items: stretch; gap: 0; width: 100%; margin-top: 16px; }
   .page-footer > div .nav-link { justify-content: flex-start; border-top: 1px solid var(--line); }
+  .page-footer .install-hint { text-align: start; padding-top: 12px; }
   .brand-intro-mark { aspect-ratio: 1.4; }
   .brand-intro-mark svg { width: 40%; }
   .brand-intro-mark span { font-size: 48px; }

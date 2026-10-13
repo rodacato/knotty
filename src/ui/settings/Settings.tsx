@@ -10,6 +10,7 @@ import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { SheLLM } from '../system/SheLLM'
 import { useStore } from '../store'
+import { useInstall } from '../install/useInstall'
 import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
 
 const PROVIDERS: Provider[] = ['simulated', 'anthropic', 'openai', 'shellm']
@@ -40,6 +41,7 @@ export function Settings() {
   const catalogSettings = useStore((s) => s.catalogSettings)
   const saveCatalogSettings = useStore((s) => s.saveCatalogSettings)
   const [toolLevel, setToolLevel] = useState<ToolLevel>(catalogSettings.toolLevel)
+  const install = useInstall()
 
   useEffect(() => {
     if (!open) return
@@ -216,6 +218,15 @@ export function Settings() {
               ))}
             </RadioGroup>
           </section>
+
+          {install && (
+            <section className="flex flex-col items-start gap-2 border-t border-line pt-5">
+              <Title className="text-lg">En este dispositivo</Title>
+              <p className="text-xs text-graphite">Ábrelo como una app, también sin conexión.</p>
+              <Button onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</Button>
+              {install.hint && <p role="note" className="text-sm text-graphite">{install.hint}</p>}
+            </section>
+          )}
 
           <section className="flex flex-col gap-2 border-t border-line pt-5">
           <Title className="text-lg">Avanzado</Title>

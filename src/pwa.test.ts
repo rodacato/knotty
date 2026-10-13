@@ -8,12 +8,12 @@ type FetchEvent = { request: Request; respondWith: (response: Promise<Response>)
 
 function worker() {
   const cachesByName = new Map<string, Map<string, Response>>()
-  const events: Record<string, (event: FetchEvent) => void> = {}
+  const events: Record<string, (event: never) => void> = {}
   let network: Response | null = new Response('APP')
   const key = (r: Request | string) => new URL(typeof r === 'string' ? r : r.url, `${origin}/knotty/`).href
   runInNewContext(script, {
     URL, Response,
-    self: { location: new URL(`${origin}/knotty/sw.js`), addEventListener: (name: string, cb: (e: FetchEvent) => void) => { events[name] = cb } },
+    self: { location: new URL(`${origin}/knotty/sw.js`), clients: { claim: () => {} }, addEventListener: (name: string, cb: (e: never) => void) => { events[name] = cb } },
     fetch: async () => { if (!network) throw new Error('offline'); return network.clone() },
     caches: {
       open: async (name: string) => {
@@ -21,6 +21,8 @@ function worker() {
         const stored = cachesByName.get(name)!
         return { put: async (r: Request | string, response: Response) => { stored.set(key(r), response) }, match: async (r: Request | string) => stored.get(key(r))?.clone() }
       },
+      keys: async () => [...cachesByName.keys()],
+      delete: async (name: string) => cachesByName.delete(name),
       match: async (r: Request | string) => { for (const stored of cachesByName.values()) { const response = stored.get(key(r)); if (response) return response.clone() } },
     },
   })
@@ -29,13 +31,16 @@ function worker() {
     const request = new Request(`${origin}${path}`)
     if (navigate) Object.defineProperty(request, 'mode', { value: 'navigate' })
     let response: Promise<Response> | undefined
-    events.fetch({ request, respondWith: (r) => { response = r } })
+    ;(events.fetch as (e: FetchEvent) => void)({ request, respondWith: (r) => { response = r } })
     return (await response)!
   }
   return {
     offline: () => { network = null },
     navigate: (path: string, body?: string, status = 200) => respond(path, body, status, true),
     asset: (path: string, body?: string, status = 200) => respond(path, body, status, false),
+    caches: () => [...cachesByName.keys()].sort(),
+    keep: (name: string) => { cachesByName.set(name, new Map()) },
+    activate: async () => { let done: Promise<unknown> | undefined; (events.activate as (e: { waitUntil: (p: Promise<unknown>) => void }) => void)({ waitUntil: (p) => { done = p } }); await done },
     old: (path: string, body: string) => { if (!cachesByName.has('knotty-v3:/knotty/')) cachesByName.set('knotty-v3:/knotty/', new Map()); cachesByName.get('knotty-v3:/knotty/')!.set(key(path), new Response(body)) },
   }
 }
@@ -85,5 +90,14 @@ describe('offline page identity under the GitHub Pages base path', () => {
     expect((await w.asset(kit, 'NOT FOUND', 404)).status).toBe(404)
     w.offline()
     expect(await (await w.asset(kit)).text()).toBe('CURRENT KIT')
+  })
+
+  it('drops every older Knotty cache of this base when the new worker activates', async () => {
+    const w = worker()
+    await w.navigate('/knotty/', 'LANDING')
+    const [current] = w.caches()
+    for (const name of ['knotty-v1', 'knotty-v2', 'knotty-v3:/knotty/', 'knotty-0123456789ab:/knotty/', 'knotty-0123456789ab:/knotty/pr-7/', 'other-app']) w.keep(name)
+    await w.activate()
+    expect(w.caches()).toEqual([current, 'knotty-0123456789ab:/knotty/pr-7/', 'other-app'].sort())
   })
 })
