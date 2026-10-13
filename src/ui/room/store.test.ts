@@ -2,7 +2,7 @@ import { openingProblem } from './layout'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
 import { testReferences } from '../../domain/furniture/fixtures/references.test-util'
-import { issues, type FurnitureSource } from './layout'
+import { issues, rectOf, type FurnitureSource } from './layout'
 import { baseSource, companions, studioSource } from './sources'
 import { createUseCases } from '../../application/useCases'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
@@ -80,6 +80,18 @@ describe('temporary room history and Studio handoff', () => {
     expect(after.anchorId).toBe(duplicate)
     useRoom.getState().launch(adjusted)
     expect(useRoom.getState().layout!.items).toHaveLength(2)
+  })
+
+  it('returns to a ficha already placed as a companion instead of adding a copy, and starts it against the wall', () => {
+    useRoom.getState().launch(source('GN-CAM-01'))
+    useRoom.getState().add(source('GN-BUR-01'))
+    const companion = useRoom.getState().selected!
+    useRoom.getState().launch(source('GN-BUR-01'))
+    const { layout, selected } = useRoom.getState()
+    expect(layout!.items).toHaveLength(2)
+    expect(selected).toBe(companion)
+    expect(layout!.anchorId).toBe(companion)
+    for (const item of layout!.items) expect(rectOf(item).z0).toBe(0)
   })
 
   it('represents existing objects as blocks and restores a replaced ficha with its provenance', () => {
