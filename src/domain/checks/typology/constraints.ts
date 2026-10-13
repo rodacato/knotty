@@ -19,6 +19,8 @@ export const BOOKCASE_DEPTH: [number, number] = [230, 300]
 export const WARDROBE_DEPTH: [number, number] = [550, 600]
 /** Height of a kitchen base, in mm: from the lowest carcass that still takes a countertop of its own to the highest finished counter. */
 export const KITCHEN_BASE_HEIGHT: [number, number] = [800, 920]
+/** Where the underside of a wall cabinet hangs over the floor, in mm: the typical finished counter (900) plus the typical gap up to the cabinet (550). */
+export const WALL_CABINET_MOUNT_HEIGHT = 1450
 /** Depth of a kitchen base, in mm; below the first, a warning. */
 export const KITCHEN_BASE_DEPTH: [number, number] = [520, 600]
 /** Longest span of a bed's platform without support, in mm: the top of the reference's 600–700 (the bed module builds to the bottom, MAX_SPAN). */
