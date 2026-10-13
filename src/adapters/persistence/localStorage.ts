@@ -6,7 +6,7 @@ import { KEYS, readStored, removeStored } from '../storedKey'
 const [STORAGE_KEY, OLDER_KEY] = KEYS.design
 
 /** If saving exceeds the quota, thumbnails are dropped first, then the oldest in-between versions. */
-function reduce(state: DesignState): DesignState | null {
+export function reduce(state: DesignState): DesignState | null {
   if (state.thumbnails.length) return { ...state, thumbnails: [] }
   if (state.versions.length > 3) return { ...state, versions: [state.versions[0], ...state.versions.slice(2)] }
   return null
