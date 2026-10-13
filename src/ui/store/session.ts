@@ -51,6 +51,8 @@ export interface SessionSlice {
   fromExample(example: Example): void
   /** Another piece of furniture takes the place of whatever is open, which is lost: the spotlight asks first when that costs something. */
   swapTo(example: Example): void
+  /** A design that is already whole takes the place of whatever is open, which is lost, and is saved as the open one; the caller asks first when that costs something. */
+  openDesign(state: DesignState): void
   applyProposal(): void
   /** The proposal with the solution Knotty builds for its critical findings, as one version; nothing when there is none. */
   applyProposalWithFix(): void
@@ -125,11 +127,17 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
   )
 }
 
-/** What the scene keeps about one design and must not carry into another. */
-const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, editing: null, beforeEditing: null, studioTab: 'chat', studioOverlay: null, reviewing: null, reviewProgress: null, reviewNotice: null, verdictError: null } satisfies Partial<Store>
+/** What the Studio keeps about one design and must not carry into another: how it was seen and edited, its review and its call to the expert. */
+const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, focus: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, mode: 'closed', editing: null, beforeEditing: null, leaving: false, showProposal: true, studioTab: 'chat', studioOverlay: null, reviewing: null, reviewProgress: null, reviewNotice: null, verdictError: null, reconstructionError: null, draft: null, thinking: false, stage: null, controller: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
-const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
+export const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
+
+/** The expert stops working on the design that is leaving: its answer in progress and its review. */
+function stopExpert(get: Get) {
+  get().controller?.abort()
+  get().cancelReview()
+}
 
 export const createSession: Slice<SessionSlice> = (set, get) => ({
   services: null,
@@ -146,10 +154,9 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   },
 
   newDesign() {
-    get().controller?.abort()
-    get().cancelReview()
+    stopExpert(get)
     get().services?.useCases.newDesign()
-    set({ ...ANOTHER_DESIGN, state: null, phase: 'home', mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
+    set({ ...ANOTHER_DESIGN, state: null, phase: 'home' })
   },
 
   browse: (change) => set((s) => ({ browsing: { ...s.browsing, ...change } })),
@@ -171,18 +178,22 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
     set({ browsing: ANY })
   },
 
-  swapTo(example) {
-    get().controller?.abort()
-    get().cancelReview()
-    set({ mode: 'closed', reconstructionError: null, draft: null, thinking: false, stage: null, controller: null })
-    get().fromExample(example)
+  swapTo: (example) => get().fromExample(example),
+
+  openDesign(state) {
+    const { services } = get()
+    if (!services) return
+    stopExpert(get)
+    services.useCases.keep(state)
+    set((s) => opened(s, state))
   },
 
   fromExample(example) {
     const { services } = get()
     if (!services) return
-    get().cancelReview()
-    set((s) => opened(s, services.useCases.openExample(example)))
+    stopExpert(get)
+    const state = services.useCases.openExample(example)
+    set((s) => opened(s, state))
   },
 
   toggleTray: (item) => withSession(get, (services, state) => set({ state: services.useCases.toggleTray(state, item) })),

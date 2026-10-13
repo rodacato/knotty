@@ -8,6 +8,7 @@ import { KIND_NOUN, type DesignKind } from '../../domain/design/kind'
 import { markAnswered, type DesignState, type Message, type Thumbnail } from '../../domain/session/state'
 import type { Photo } from '../../ports/LLMProvider'
 import { moveTo } from './scene'
+import { opened } from './session'
 import type { Get, Set, Slice } from './types'
 import { reviewSignature, type ReviewStage } from '../../application/useCases/review'
 
@@ -98,7 +99,7 @@ export const createExpert: Slice<ExpertSlice> = (set, get) => ({
     try {
       const state = await services.useCases.reconstruct(input, controller.signal, (name, attempt, progress) => isCurrent() && set((s) => ({ stage: { name, attempt, progress }, stageLog: recordStage(s.stageLog, { name, attempt, progress }, Date.now()) })))
       if (!isCurrent()) return services.useCases.keep(get().state)
-      set((s) => ({ state, phase: 'studio', stage: null, controller: null, draft: null, selection: null, hidden: [], reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } }))
+      set((s) => opened(s, state))
     } catch (e) {
       if (!isCurrent()) return
       const cancelled = controller.signal.aborted
