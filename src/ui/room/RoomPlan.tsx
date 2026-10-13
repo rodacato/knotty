@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { nameOf, rectOf, type Layout, type Opening } from './layout'
+import { facing, nameOf, rectOf, WALLS, type Layout, type Opening } from './layout'
 import { useRoom } from './store'
 
 const cm = (v: number) => (v / 10).toLocaleString('es-MX')
@@ -130,12 +130,14 @@ export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) 
           chosen = selected === item.id
         const w = r.x1 - r.x0,
           d = r.z1 - r.z0
+        const front = item.kind === 'furniture' ? facing(item.turn) : null
+        const frontEdge = front && { back: [r.x0 + 30, r.z0, r.x1 - 30, r.z0], front: [r.x0 + 30, r.z1, r.x1 - 30, r.z1], left: [r.x0, r.z0 + 30, r.x0, r.z1 - 30], right: [r.x1, r.z0 + 30, r.x1, r.z1 - 30] }[front]
         return (
           <g
             key={item.id}
             role="button"
             tabIndex={0}
-            aria-label={`${nameOf(item)}, ${cm(w)} por ${cm(d)} centímetros${chosen ? ', seleccionado' : ''}${bad.has(item.id) ? ', tiene algo por revisar' : ''}`}
+            aria-label={`${nameOf(item)}, ${cm(w)} por ${cm(d)} centímetros${front ? `, con el frente hacia la ${WALLS.find(([wall]) => wall === front)![1].toLowerCase()}` : ''}${chosen ? ', seleccionado' : ''}${bad.has(item.id) ? ', tiene algo por revisar' : ''}`}
             aria-pressed={chosen}
             className="group cursor-grab outline-none"
             onClick={() => useRoom.getState().select(item.id)}
@@ -200,6 +202,7 @@ export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) 
               strokeWidth={chosen ? 30 : 14}
               strokeDasharray={item.elevation ? '45 30' : undefined}
             />
+            {frontEdge && <line className="pointer-events-none" x1={frontEdge[0]} y1={frontEdge[1]} x2={frontEdge[2]} y2={frontEdge[3]} stroke="var(--graphite)" strokeWidth="50" />}
             {bad.has(item.id) && (
               <rect x={r.x0 + 40} y={r.z0 + 40} width={Math.max(1, w - 80)} height={Math.max(1, d - 80)} fill="none" stroke="var(--rust)" strokeWidth="18" strokeDasharray="35 25" />
             )}

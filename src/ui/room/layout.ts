@@ -64,6 +64,8 @@ export const WALLS: [Wall, string][] = [
 export const sizeOf = (i: Item) => (i.kind === 'furniture' ? i.source.design.dimensions : i.size)
 export const nameOf = (i: Item) => (i.kind === 'furniture' ? i.source.name : i.name)
 export const nextTurn = (t: Turn): Turn => ((t + 90) % 360) as Turn
+/** The wall a piece of furniture faces: unturned, its front looks at the bottom wall of the plan. */
+export const facing = (t: Turn): Wall => (['front', 'left', 'back', 'right'] as const)[t / 90]
 const EPS = 0.01
 export const intersects = (a0: number, a1: number, b0: number, b1: number) => a0 < b1 - EPS && b0 < a1 - EPS
 export const overlaps = (a: Rect, b: Rect) => intersects(a.x0, a.x1, b.x0, b.x1) && intersects(a.z0, a.z1, b.z0, b.z1)

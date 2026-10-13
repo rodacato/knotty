@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blocksOpening, exampleLayout, freePosition, issues, openingProblem, rectOf, validSpace, type Item, type Layout, type Opening } from './layout'
+import { blocksOpening, exampleLayout, facing, freePosition, issues, openingProblem, rectOf, validSpace, type Item, type Layout, type Opening } from './layout'
 
 const room = { width: 5000, depth: 5000, height: 2500 }
 const block = (changes: Partial<Item> = {}): Item =>
@@ -47,6 +47,10 @@ describe('room spatial checks', () => {
       z1: 1800,
     })
     expect(issues(layout([{ ...item, turn: 90 }])).map((i) => i.kind)).toEqual(['height'])
+  })
+
+  it('faces the bottom wall unturned, and each quarter turn takes the front to the next wall clockwise', () => {
+    expect(([0, 90, 180, 270] as const).map(facing)).toEqual(['front', 'left', 'back', 'right'])
   })
 
   it('lets a wall cabinet occupy the same footprint as a lower cabinet without allowing a real overlap', () => {
