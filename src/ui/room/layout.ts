@@ -152,8 +152,8 @@ export function freePosition(layout: Layout, item: Item): { x: number; z: number
       { x: other.x0 - w / 2 - 80, z: other.z0 + d / 2 },
     ]
   })
-  candidates.push({ x: layout.room.width / 2, z: d / 2 + 80 })
-  for (let z = d / 2 + 50; z <= layout.room.depth - d / 2; z += 100) for (let x = w / 2 + 50; x <= layout.room.width - w / 2; x += 100) candidates.push({ x, z })
+  candidates.push({ x: layout.room.width / 2, z: d / 2 })
+  for (let z = d / 2; z <= layout.room.depth - d / 2; z += 100) for (let x = w / 2; x <= layout.room.width - w / 2; x += 100) candidates.push({ x, z })
   for (const position of candidates) {
     const candidate = { ...item, ...position }
     if (!issues({ ...layout, items: [...layout.items, candidate] }).some((issue) => issue.item === item.id)) return position

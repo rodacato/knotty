@@ -77,8 +77,9 @@ export const useRoom = create<RoomStore>((set, get) => {
     returnFocus: null,
     launch(source, opener) {
       const { layout, editingId } = get()
-      const anchor = layout?.items.find((i) => i.id === (editingId ?? layout.anchorId))
-      if (layout && anchor?.kind === 'furniture' && anchor.source.identity === source.identity) {
+      const placed = layout?.items.filter((i) => i.kind === 'furniture' && i.source.identity === source.identity) ?? []
+      const anchor = placed.find((i) => i.id === editingId) ?? placed.find((i) => i.id === layout?.anchorId) ?? placed[0]
+      if (layout && anchor?.kind === 'furniture') {
         if (anchor.source.design !== source.design || layout.anchorId !== anchor.id)
           commit({
             ...layout,
