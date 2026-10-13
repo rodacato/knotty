@@ -1,12 +1,14 @@
 import { ArrowRight } from '@phosphor-icons/react'
 import { useEffect, type ReactNode } from 'react'
 import { Knot } from '../system/Brand'
+import { useInstall } from '../install/useInstall'
 
 export function PageLink({ href, children, primary = false, download = false }: { href: string; children: ReactNode; primary?: boolean; download?: boolean }) {
   return <a className={`page-link ${primary ? 'page-link-primary' : ''}`} href={href} download={download || undefined}>{children}<ArrowRight size={18} aria-hidden /></a>
 }
 
 export function Shell({ page, children, root = '../' }: { page: 'presentation' | 'brand'; children: ReactNode; root?: './' | '../' }) {
+  const install = useInstall()
   useEffect(() => {
     if (!location.hash) return
     let id: string
@@ -30,7 +32,8 @@ export function Shell({ page, children, root = '../' }: { page: 'presentation' |
       <footer className="page-footer page-width">
         <a className="wordmark" href={root}><Knot className="size-8" /><span>Knotty</span></a>
         <p>De tu espacio al taller.</p>
-        <div>{page === 'presentation' && <a className="nav-link" href="#preguntas">Preguntas frecuentes</a>}<a className="nav-link" href={`${root}marca/`}>Guía de marca</a><a className="nav-link" href="https://github.com/rodacato/knotty">Ver el código</a></div>
+        <div>{page === 'presentation' && <a className="nav-link" href="#preguntas">Preguntas frecuentes</a>}<a className="nav-link" href={`${root}marca/`}>Guía de marca</a><a className="nav-link" href="https://github.com/rodacato/knotty">Ver el código</a>{install && <button type="button" className="nav-link" onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</button>}</div>
+        {install?.hint && <p role="note" className="install-hint">{install.hint}</p>}
       </footer>
     </div>
   )

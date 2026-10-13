@@ -47,5 +47,21 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/studio-wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Una alacena en el Studio de Knotty, en 3D y con sus medidas"
+    },
+    {
+      "src": "screenshots/studio-narrow.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "La misma alacena en el teléfono, con cambios que Knotty hace solo"
+    }
   ]
 }

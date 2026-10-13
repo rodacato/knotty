@@ -2,7 +2,8 @@
 // Calls to other origins (LLM providers, SheLLM) are never cached.
 
 const BASE = new URL('./', self.location).pathname
-const CACHE = `knotty-v4:${BASE}`
+// The build stamps a hash of its files over the placeholder, so every deploy gets a fresh cache.
+const CACHE = `knotty-__BUILD__:${BASE}`
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll([BASE, `${BASE}catalog/`, `${BASE}catalog/catalog.json`, `${BASE}favicon.svg`, `${BASE}icon-192.png`])))
@@ -10,7 +11,9 @@ self.addEventListener('install', (e) => {
 })
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k === 'knotty-v1' || k === 'knotty-v2').map((k) => caches.delete(k)))))
+  // Other base paths on the same origin keep their caches; v1 and v2 had no base in the name.
+  const stale = (k) => k !== CACHE && k.startsWith('knotty-') && (!k.includes(':') || k.endsWith(`:${BASE}`))
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter(stale).map((k) => caches.delete(k)))))
   self.clients.claim()
 })
 
