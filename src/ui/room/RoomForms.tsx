@@ -234,7 +234,7 @@ export function SpaceEditor({ layout }: { layout: Layout }) {
       {layout.openings.map((o, index) => (
         <details key={o.id} className="rounded-xl border border-line p-3">
           <summary className="min-h-11 cursor-pointer content-center font-medium">
-            {o.kind === 'door' ? 'Puerta' : 'Ventana'} {index + 1}
+            {o.kind === 'door' ? 'Puerta' : 'Ventana'} {layout.openings.slice(0, index + 1).filter((other) => other.kind === o.kind).length}
             {openingProblem(layout.room, o, layout.openings) ? ' · revisar medidas' : ''}
           </summary>
           <OpeningForm key={JSON.stringify(o)} layout={layout} opening={o} />
