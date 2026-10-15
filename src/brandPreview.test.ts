@@ -16,7 +16,9 @@ describe('standalone brand preview files', () => {
       for (const name of ['presentacion', 'marca']) {
         const file = openSync(join(target!, `${name}.html`), constants.O_RDONLY | constants.O_NOFOLLOW)
         try {
-          expect(readFileSync(file, 'utf8')).toContain('lang="es-MX"')
+          const html = readFileSync(file, 'utf8')
+          expect(html).toContain('lang="es-MX"')
+          expect(html).toContain(name === 'presentacion' ? 'Ese rincón ya tiene' : 'Madera, papel')
           expect(fstatSync(file).mode & 0o777).toBe(0o600)
         } finally {
           closeSync(file)

@@ -10,7 +10,7 @@ const target = process.argv[2] ? resolve(process.argv[2]) : mkdtempSync(join(tmp
 if (process.argv[2]) mkdirSync(target, { mode: 0o700 })
 cpSync('public/brand', `${target}/brand`, { recursive: true })
 
-for (const [name, entry] of [['presentacion', 'src/presentation-main.tsx'], ['marca', 'src/brand-main.tsx']]) {
+for (const [name, entry] of [['presentacion', 'scripts/brand/presentation-preview.ts'], ['marca', 'src/brand-main.tsx']]) {
   const result = await build({
     configFile: false,
     plugins: [react(), tailwindcss()],
@@ -38,7 +38,7 @@ for (const [name, entry] of [['presentacion', 'src/presentation-main.tsx'], ['ma
   });
   observer.observe(document.getElementById('root'), { childList: true, subtree: true });
   updateLinks();`
-  const title = /<title>(.*?)<\/title>/.exec(readFileSync(`${name}/index.html`, 'utf8'))[1]
+  const title = /<title>(.*?)<\/title>/.exec(readFileSync(name === 'presentacion' ? 'index.html' : 'marca/index.html', 'utf8'))[1]
   writeFileSync(`${target}/${name}.html`, `<!doctype html><html lang="es-MX"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>${css}</style><body><div id="root"></div><script>${js.replaceAll('</script', '<\\/script')}\n${redirect}</script></body></html>`, { flag: 'wx', mode: 0o600 })
 }
 console.log(`Standalone preview: ${target}/presentacion.html and ${target}/marca.html`)
