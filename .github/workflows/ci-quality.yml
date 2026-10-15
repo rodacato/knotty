@@ -53,3 +53,23 @@ jobs:
       - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run actionlint
+        # The image tag is the bare version, no "v": rhysd/actionlint:1.7.12
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # advanced-security: false fails the job on findings instead of uploading SARIF and passing,
+      # so a red check means "don't merge" like every other CI job, and no security-events: write.
+      - uses: zizmorcore/zizmor-action@v0.7.0
+        with:
+          advanced-security: false

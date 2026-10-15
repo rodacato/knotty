@@ -152,7 +152,7 @@ Todo lo que decide vive en `domain/` y es determinista. El LLM propone; el domin
 
 ```
 knotty/
-├─ .github/workflows/        ci.yml (typecheck, pruebas y build en cada PR) · ci-quality.yml (CodeQL, secretos y dependencias) · cd-deploy.yml (GitHub Pages)
+├─ .github/workflows/        ci.yml (typecheck, pruebas y build en cada PR) · ci-quality.yml (CodeQL, secretos, dependencias y lint de workflows) · cd-deploy.yml (GitHub Pages)
 ├─ docs/                     PROPUESTA.md (este documento) · carpinteria/ (referencia del dominio)
 ├─ public/catalog/           catalog.json: triplay, herrajes y acomodo; se edita sin tocar código
 ├─ scripts/brand/            SVG de la marca y generate.sh (íconos, favicon, imagen para compartir)
