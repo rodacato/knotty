@@ -33,7 +33,7 @@ For a server-free visual snapshot of the same page code, run `npm run brand:prev
 
 ## Hosting and PWA invariants
 
-The existing [Pages workflow](../.github/workflows/deploy.yml) builds all HTML entries. Relative asset paths preserve the repository base URL. The [manifest](../public/manifest.webmanifest) keeps its identity and scope at the root, and launches the saved studio inside the catalog. Root and catalog register the same worker. Existing stored designs and preferences keep their storage keys; opening the catalog provides a way to resume the saved design.
+The existing [Pages workflow](../.github/workflows/cd-deploy.yml) builds all HTML entries. Relative asset paths preserve the repository base URL. The [manifest](../public/manifest.webmanifest) keeps its identity and scope at the root, and launches the saved studio inside the catalog. Root and catalog register the same worker. Existing stored designs and preferences keep their storage keys; opening the catalog provides a way to resume the saved design.
 
 The [service worker](../public/sw.js) caches navigation by document path, normalizing directory `index.html` requests. Landing and catalog cannot overwrite each other. Current documents take precedence over the old root-app cache; older hashed assets remain usable during an upgrade. Brand downloads refresh online and keep the last good export offline. Failed responses cannot replace a cached page or kit. [Regression tests](../src/pwa.test.ts) cover document isolation, upgrades and kit refresh. Visit the catalog online before testing its offline startup: opening the landing alone does not load the studio's lazy assets.
 
