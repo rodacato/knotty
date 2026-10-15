@@ -23,6 +23,7 @@ Names follow the code: files, artboards, tokens and components are in English. U
 | `assets/` | Captures of the current app with example data: the 3D scenes the flows use, and the screens that stay as the app draws them — **committed**, retaken when their screen changes |
 | `exports/` | Canvas exports (JPEG) for PR review, one folder per flow — **committed** |
 | `references/` | Local device captures — **never committed** (may contain real photos) |
+| `brand/` | Brand source: identity, guidelines, marketing copy and the map of generated runtime copies (`public/brand/`, PWA icons) — start at `brand/README.md` |
 
 Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D1…D40`.
 

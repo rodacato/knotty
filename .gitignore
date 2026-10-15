@@ -10,6 +10,8 @@ scripts/compare/results/
 
 # Local device captures for design work (may contain real photos)
 design/references/
+# A portable brand kit generated on demand; the served kit is public/brand/
+design/brand/dist/
 
 # Devcontainer: written by initialize.sh and by you, never tracked
 /.devcontainer/local.env

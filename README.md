@@ -42,4 +42,6 @@ The Materials review states, cancellation behavior and printable guide are docum
 
 ## Brand
 
+The brand source lives in [design/brand/](design/brand/README.md): identity, [guidelines](design/brand/guidelines.md), [marketing copy](design/brand/marketing.md) and a map of every generated runtime copy. The downloadable kit (logo, fonts and licenses, tokens, guidelines, marketing copy, product examples and social card) is generated into `public/brand/` with `npm run brand:kit` and served at [/knotty/brand/knotty-brand-kit.zip](https://rodacato.github.io/knotty/brand/knotty-brand-kit.zip).
+
 The [root landing](index.html), [catalog and app](catalog/index.html), [legacy presentation redirect](presentacion/index.html) and [brand guide](marca/index.html) share one identity. Preview routes, fragment navigation and PWA compatibility are in [docs/brand.md](docs/brand.md). The [source mark](src/ui/system/knot.svg) generates the variants in `scripts/brand/`. Regenerating the downloadable kit, favicon, PWA icons and share image (`public/share.png`) uses Node, `rsvg-convert` and Python with the export dependencies. Setup and regeneration: [scripts/brand/README.md](scripts/brand/README.md).

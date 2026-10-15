@@ -1,6 +1,6 @@
-# Knotty brand and presentation
+# Brand pages: preview, verify and hosting
 
-The approved assembly mark uses two opposing pieces drawn in two strokes. It keeps the wood identity while making the symbol easy to remember. The default theme is a dark workshop, with warm paper for the 3D stage, catalog thumbnails, illustrated choices, joint and edge diagrams, and sheet layouts. Their grid is decorative, not a measurement scale. Fraunces, Inter and JetBrains Mono are the existing local variable fonts.
+How to preview and verify the landing, catalog and brand guide, and the hosting and PWA invariants they share. The brand itself (identity, guidelines, marketing copy, sources, asset map and kit regeneration) lives in [design/brand/](../design/brand/README.md).
 
 ## Preview and verify
 
@@ -29,14 +29,7 @@ node scripts/brand/verify.mjs --live --dist <build-dir>
 
 Use the CI artifact for byte comparison: macOS and Linux builds can produce different hashed chunk filenames. The verifier checks its exports against the checked-out canonical sources before comparing the published pages.
 
-For a server-free visual snapshot of the same page code, run `node scripts/brand/preview.mjs` and open the generated HTML at the printed path. Each run creates a private temporary directory. An optional output directory must not already exist. Fonts and images are embedded; downloads sit alongside them. App links point to the public app. This snapshot does not verify hosting or offline behavior.
-
-## Maintain
-
-- Edit [knot.svg](../src/ui/system/knot.svg) for the canonical drawing. [Brand.tsx](../src/ui/system/Brand.tsx) and [the vector exporter](../scripts/brand/export.mjs) share it. Preserve the two pieces, line weight, clear space and maskable safe area; inspect at small icon sizes.
-- Edit [tokens.css](../src/ui/system/tokens.css) for colors, fonts, spacing, shape and motion. The guide reads the actual CSS properties. `drawing-sheet` supplies the fixed paper palette; `drawing-surface` adds the decorative grid for app and presentation thumbnails. Scene lighting and labels stay light independently of the interface. The explicit light override remains available for future paper contexts; the interface does not follow the device theme.
-- Regenerate exports with [the brand script](../scripts/brand/README.md) after a mark, token, font or social-card change. Commit the public assets with their sources. The export uses existing font outlines and native SVG; it needs no browser. [ASSETS.md](../scripts/brand/ASSETS.md) becomes the kit's README.
-- Keep public product copy in es-MX. State outcomes before expert setup: catalog bases work without an LLM, Claude and OpenAI need a key, and SheLLM's key is optional. Prices are estimates; a generated design needs review before buying or cutting.
+For a server-free visual snapshot of the same page code, run `npm run brand:preview` and open the generated HTML at the printed path. Each run creates a private temporary directory. An optional output directory must not already exist. Fonts and images are embedded; downloads sit alongside them. App links point to the public app. This snapshot does not verify hosting or offline behavior.
 
 ## Hosting and PWA invariants
 

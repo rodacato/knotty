@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile, readdir } from 'node:fs/promises'
 import { dirname, resolve, relative } from 'node:path'
 import { execFileSync } from 'node:child_process'
+import './verify-kit.mjs'
 
 const distFlag = process.argv.indexOf('--dist')
 assert(distFlag < 0 || process.argv[distFlag + 1], '--dist requires a build directory')
