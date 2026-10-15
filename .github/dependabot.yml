@@ -5,11 +5,16 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # A week of cooldown gives a compromised release time to be caught; security updates skip it.
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: npm
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         update-types: [minor, patch]
