@@ -97,7 +97,8 @@ function noticesOf(state: DesignState, design: Design, catalog: Catalog, analysi
  */
 export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Analysis): NoticeBoard {
   const design = currentDesign(state)
-  const all = noticesOf(state, design, catalog, analysis).map((n): Notice => {
+  const checked = analysis ?? analyze(design, catalog)
+  const all = noticesOf(state, design, catalog, checked).map((n): Notice => {
     const reopened = n.findings.map((h) => reopenReason(h, state.accepted)).find((r) => r !== null)
     return reopened ? { ...n, reopened } : n
   })
@@ -127,7 +128,8 @@ export function noticeBoard(state: DesignState, catalog: Catalog, analysis?: Ana
   const ordered = [...state.versions].sort((a, b) => a.n - b.n)
   const before = ordered[ordered.findIndex((v) => v.n === state.current) - 1]
   const now = new Set(all.flatMap((n) => n.findings.map(findingKey)))
-  const resolved = before
+  // A design that does not build has no findings to compare: none of the earlier ones is gone.
+  const resolved = before && checked.valid
     ? noticesOf(state, before.design, catalog)
         .filter((n) => n.kind === 'finding')
         .flatMap((n) => {
