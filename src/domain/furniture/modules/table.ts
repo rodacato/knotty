@@ -102,6 +102,9 @@ const PEDESTAL = 420
 /** A low stretcher: how far its underside is from the floor, and the lowest table that keeps as much clear over it as the stretcher is tall. */
 const STRETCHER_RISE = 150
 const STRETCHER_MIN_HEIGHT = STRETCHER_RISE + 3 * APRON + DEFAULT_THICKNESS
+/** On a desk the clear is kept under the back apron, which runs lower. */
+const DESK_STRETCHER_MIN_HEIGHT = STRETCHER_RISE + 2 * APRON + MODESTY + DEFAULT_THICKNESS
+const stretcherMinHeight = (plan: TablePlan) => (plan.use === 'desk' ? DESK_STRETCHER_MIN_HEIGHT : STRETCHER_MIN_HEIGHT)
 /** Past this inset the ends would stand under the middle of the top, not at its sides. */
 const MAX_END_INSET = 50
 const MAX_OVERHANG = 100
@@ -318,7 +321,7 @@ function lowShelf(l: Layout, open: Open, middleLegs: number): { pieces: Piece[];
 /** The low stretchers a table is built with: none on panel ends, under a low shelf or where they do not fit under the apron; a desk takes no long one, it is where the feet go. */
 function stretcherOf(plan: TablePlan): NonNullable<TablePlan['stretcher']> {
   const asked = plan.legs === 'legs' ? (plan.stretcher ?? 'none') : 'none'
-  if (plan.shelf || plan.dimensions.height < STRETCHER_MIN_HEIGHT) return 'none'
+  if (plan.shelf || plan.dimensions.height < stretcherMinHeight(plan)) return 'none'
   return asked === 'h' && plan.use === 'desk' ? 'ends' : asked
 }
 
@@ -605,7 +608,8 @@ export const tableModule: FurnitureModule<TablePlan> = {
     { holds: (p) => p.use !== 'desk' || !p.shelf, message: 'Un escritorio no lleva repisa baja: estorba las piernas.', path: ['shelf'] },
     { holds: legsFit, message: LEGS_TOO_SHALLOW, path: ['dimensions', 'depth'] },
     { holds: (p) => !asksStretcher(p) || !p.shelf, message: 'La repisa baja ya ocupa el lugar del travesaño bajo: quita uno de los dos.', path: ['stretcher'] },
-    { holds: (p) => !asksStretcher(p) || p.dimensions.height >= STRETCHER_MIN_HEIGHT, message: `El travesaño bajo no cabe bajo el faldón en una mesa de menos de ${STRETCHER_MIN_HEIGHT} mm de alto.`, path: ['stretcher'] },
+    { holds: (p) => !asksStretcher(p) || p.use === 'desk' || p.dimensions.height >= STRETCHER_MIN_HEIGHT, message: `El travesaño bajo no cabe bajo el faldón en una mesa de menos de ${STRETCHER_MIN_HEIGHT} mm de alto.`, path: ['stretcher'] },
+    { holds: (p) => !asksStretcher(p) || p.use !== 'desk' || p.dimensions.height >= DESK_STRETCHER_MIN_HEIGHT, message: `El travesaño bajo no cabe bajo el faldón trasero en un escritorio de menos de ${DESK_STRETCHER_MIN_HEIGHT} mm de alto.`, path: ['stretcher'] },
     { holds: (p) => !asksStretcher(p) || p.stretcher !== 'h' || p.use !== 'desk', message: 'Un escritorio no lleva el larguero de la H: estorba los pies. Deja los travesaños solo en los extremos.', path: ['stretcher'] },
     { holds: (p) => !asksStretcher(p) || p.stretcher !== 'h' || p.dimensions.depth >= legsDepth(p) + 3 * DEFAULT_THICKNESS, message: 'El larguero de la H no cabe entre las patas del frente y las de atrás en ese fondo: deja los travesaños solo en los extremos.', path: ['stretcher'] },
   ],

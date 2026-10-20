@@ -519,6 +519,14 @@ describe('a low stretcher between the legs', () => {
     expect(built(desk).low.map((p) => p.id)).toEqual(['stretcher-left', 'stretcher-right'])
   })
 
+  it('on a desk keeps it clear of the deeper back apron: refused below that, and built from there', () => {
+    const desk = table({ use: 'desk', dimensions: { width: 1200, height: 600, depth: 600 }, overhang: 0, legs: 'legs', stretcher: 'ends' })
+    expect(refused(desk)).toEqual([expect.stringContaining('escritorio de menos de 628 mm')])
+    const lowest = { ...desk, dimensions: { ...desk.dimensions, height: 628 } }
+    expect(refused(lowest)).toEqual([])
+    expect(built(lowest).low.map((p) => p.id)).toEqual(['stretcher-left', 'stretcher-right'])
+  })
+
   it('on panel ends asks for nothing, as a leg style does', () => {
     const panels = table({ stretcher: 'h' })
     expect(refused(panels)).toEqual([])
