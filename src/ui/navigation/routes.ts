@@ -48,7 +48,8 @@ export function fragmentOf(s: Store): string {
   return s.studioTab === 'materials' ? '#studio/materials' : '#studio'
 }
 
-export const hasLinkedFicha = (at: Pick<Location, 'search' | 'hash'>) => new URLSearchParams(at.search).has('ficha') || new URLSearchParams(at.hash.slice(1)).has('ficha')
+const namesFicha = (words: string) => Boolean(new URLSearchParams(words).get('ficha')?.trim())
+export const hasLinkedFicha = (at: Pick<Location, 'search' | 'hash'>) => namesFicha(at.search) || namesFicha(at.hash.slice(1))
 
 /** Root links from before the catalog move still reach the app, including installed icons with the old start URL. */
 export function catalogDestination(at: Pick<Location, 'href' | 'search' | 'hash'>, standalone = false): string | null {
