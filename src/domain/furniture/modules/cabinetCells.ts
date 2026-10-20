@@ -163,7 +163,8 @@ export function moveLine(plan: CabinetPlan, line: Line, share: number, minShare 
   const total = sizes.reduce((s, v) => s + v, 0) || 1
   const before = sizes.slice(0, line.index).reduce((s, v) => s + v, 0)
   const pair = sizes[line.index] + sizes[line.index + 1]
-  const first = Math.max(minShare * total, Math.min(pair - minShare * total, share * total - before))
+  const least = Math.min(minShare * total, pair / 2)
+  const first = Math.max(least, Math.min(pair - least, share * total - before))
   items[line.index][key] = first
   items[line.index + 1][key] = pair - first
   return next
