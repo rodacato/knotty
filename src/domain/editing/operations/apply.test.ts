@@ -100,6 +100,17 @@ describe('applyOperations', () => {
     expect(withFive.joints.filter((u) => u.a === 'shelf-5')).toHaveLength(2)
   })
 
+  it('distributing boards of different thickness still leaves equal gaps', () => {
+    const { design } = applied(exampleBookcase, [
+      { op: 'changeMaterial', ids: ['shelf-1'], material: 'T15' },
+      { op: 'distribute', ids: ['shelf-1', 'shelf-2', 'shelf-3', 'shelf-4'], axis: 'y', a: 'bottom.y1', b: 'top.y0' },
+    ])
+    const c = boxesOf(design)
+    const ys = ['bottom', 'shelf-1', 'shelf-2', 'shelf-3', 'shelf-4', 'top'].map((id) => c.get(id)!)
+    const gaps = ys.slice(1).map((box, i) => box.y0 - ys[i].y1)
+    for (const h of gaps) expect(h).toBeCloseTo(gaps[0], 5)
+  })
+
   it('changing thickness carries to what refers to it', () => {
     const { design } = applied(exampleBookcase, [{ op: 'changeMaterial', ids: ['side-left', 'side-right'], material: 'T15' }])
     expect(boxesOf(design).get('bottom')).toMatchObject({ x0: 15, x1: 535 })
