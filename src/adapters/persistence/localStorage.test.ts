@@ -70,4 +70,13 @@ describe('localStorage repository', () => {
     expect(loaded.thumbnails).toEqual([])
     expect(loaded.versions.map((v) => v.n)).toEqual([1, 3, 4, 5, 6])
   })
+
+  it('the version the person went back to is never the one dropped', () => {
+    const undone = { ...state(6), current: 2 }
+    const repo = createLocalRepository(storage(JSON.stringify({ ...undone, thumbnails: [] }).length - 100))
+    repo.save(undone)
+    const loaded = repo.load()!
+    expect(loaded.current).toBe(2)
+    expect(loaded.versions.map((v) => v.n)).toEqual([1, 2, 4, 5, 6])
+  })
 })

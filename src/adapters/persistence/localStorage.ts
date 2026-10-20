@@ -5,11 +5,12 @@ import { KEYS, readStored, removeStored } from '../storedKey'
 
 const [STORAGE_KEY, OLDER_KEY] = KEYS.design
 
-/** If saving exceeds the quota, thumbnails are dropped first, then the oldest in-between versions. */
+/** If saving exceeds the quota, thumbnails are dropped first, then the oldest in-between versions, never the current one. */
 export function reduce(state: DesignState): DesignState | null {
   if (state.thumbnails.length) return { ...state, thumbnails: [] }
-  if (state.versions.length > 3) return { ...state, versions: [state.versions[0], ...state.versions.slice(2)] }
-  return null
+  if (state.versions.length <= 3) return null
+  const dropped = state.versions.findIndex((v, i) => i > 0 && v.n !== state.current)
+  return { ...state, versions: state.versions.filter((_, i) => i !== dropped) }
 }
 
 export function createLocalRepository(storage: Storage = localStorage): DesignRepository {
