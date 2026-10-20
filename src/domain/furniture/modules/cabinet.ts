@@ -1019,7 +1019,10 @@ export function buildCabinet(plan: CabinetPlan, catalog: Catalog): BuiltCabinet 
   const placed = addDrawers(design, drawers, catalog, withFronts)
   // A drawer that does not fit is left as an open cell; the carcass was set back for its front, so it is built again without it.
   const dropped = drawers.flatMap((d, k) => (placed.design.pieces.some((p) => p.id === `${d.group}-front`) ? [] : [asked[k].cell]))
-  if (dropped.length) return { design: buildCabinet(opened(plan, (_, path) => dropped.some((cell) => cell.join('.') === path.join('.'))), catalog).design, notes: placed.notes }
+  if (dropped.length) {
+    const rebuilt = buildCabinet(opened(plan, (_, path) => dropped.some((cell) => cell.join('.') === path.join('.'))), catalog)
+    return { design: rebuilt.design, notes: [...placed.notes, ...rebuilt.notes] }
+  }
 
   const boxed = build.drawerCorners === 'fingers' ? withFingerBoxes(placed.design, catalog) : placed.design
   const choices = new Map([...columns.flatMap((c) => c.choices), ...drawers.map((d, k): [string, CellChoices] => [`${d.group}-front`, asked[k].choices])])
