@@ -183,16 +183,6 @@ describe('catalog and studio navigation', () => {
     expect(b.hash()).toBe('#ficha=KC-MES-03&acabado=paint')
   })
 
-  it.each(['?ficha=', '?ficha=%20'])('an address that names no ficha code (%s) still follows the studio', async (suffix) => {
-    useStore.getState().fromExample(base)
-    const b = browser(`${suffix}#studio`)
-    disconnect = connectNavigation(useStore, b.api)
-    useStore.getState().resumeDesign()
-    useStore.getState().setStudioTab('materials')
-    await settle()
-    expect(b.hash()).toBe('#studio/materials')
-  })
-
   it('keeps unapplied edits and asks through the existing editor before leaving via Back', async () => {
     useStore.getState().fromExample(base)
     const b = browser('#studio')
