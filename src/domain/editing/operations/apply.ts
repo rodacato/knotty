@@ -130,12 +130,14 @@ export function applyOperations(original: Design, operations: Operation[], catal
         if (across) throw invalid('E_INVALID_OPERATION', `Solo se reparte en el eje del espesor; "${across.id}" lo tiene en ${across.normal}.`, { piece: across.id, axis: op.axis })
         const geo = geometry()
         const n = pieces.length
-        pieces
-          .sort((a, b) => geo.boxes.get(a.id)![`${op.axis}0`] - geo.boxes.get(b.id)![`${op.axis}0`])
-          .forEach((p, i) => {
-            const thickness = geo.thicknesses.get(p.id)!
-            p[op.axis] = { from: partway(op.a, op.b, (i + 1) / (n + 1), (thickness * (i - n)) / (n + 1)), to: null, length: null }
-          })
+        const sorted = pieces.sort((a, b) => geo.boxes.get(a.id)![`${op.axis}0`] - geo.boxes.get(b.id)![`${op.axis}0`])
+        const thicknesses = sorted.map((p) => geo.thicknesses.get(p.id)!)
+        const total = thicknesses.reduce((s, t) => s + t, 0)
+        let below = 0
+        sorted.forEach((p, i) => {
+          p[op.axis] = { from: partway(op.a, op.b, (i + 1) / (n + 1), below - (total * (i + 1)) / (n + 1)), to: null, length: null }
+          below += thicknesses[i]
+        })
         return
       }
       case 'changeMaterial': {
