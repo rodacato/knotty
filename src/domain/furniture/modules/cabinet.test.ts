@@ -195,6 +195,12 @@ describe('on legs', () => {
     expect(CabinetPlan.parse(PLANS.bookcase).base).toBe('kick')
     expect(CabinetPlan.parse(PLANS.sideboard).base).toBe('legs')
   })
+
+  it('a drawer that does not fit is said, and the box built again without it keeps what it says about its legs', () => {
+    const splayed = (cells: PlanCell[]) => plan({ dimensions: { width: 800, height: 700, depth: 400 }, base: 'legs', wallMounted: false, legStyle: 'splayed', columns: [{ width: 1, cells }] })
+    const { notes } = buildCabinet(splayed([cell('open', 0.9, { shelves: 0 }), cell('drawer', 0.1)]), testCatalog)
+    expect(notes.map((n) => n.split(':')[0])).toEqual(['Cajón 1', 'Patas abiertas en 4 patas'])
+  })
 })
 
 describe('overlay drawer fronts on a box that sits on the floor', () => {
