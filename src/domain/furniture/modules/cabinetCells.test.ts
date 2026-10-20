@@ -300,6 +300,12 @@ describe('moving a line', () => {
     expect(a).toBeCloseTo(1.8)
     expect(b).toBeCloseTo(0.2)
   })
+
+  it('between two parts that together are under twice the least share, neither goes below zero', () => {
+    const narrow = { ...sideboard, columns: [0.5, 0.5, 30].map((width) => ({ ...sideboard.columns[0], width })) }
+    const next = moveLine(narrow, { axis: 'columns', at: [], index: 0 }, 0.01)
+    expect(next.columns.map((c) => c.width)).toEqual([0.5, 0.5, 30])
+  })
 })
 
 describe('where the cells are', () => {
