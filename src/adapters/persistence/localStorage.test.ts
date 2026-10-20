@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import type { DesignState } from '../../domain/session/state'
 import saved from '../../domain/session/state-v1.fixture.json'
-import { createLocalRepository } from './localStorage'
+import { createLocalRepository, reduce } from './localStorage'
 
 function storage(limit = Infinity): Storage {
   const data = new Map<string, string>()
@@ -78,5 +78,11 @@ describe('localStorage repository', () => {
     const loaded = repo.load()!
     expect(loaded.current).toBe(2)
     expect(loaded.versions.map((v) => v.n)).toEqual([1, 2, 4, 5, 6])
+  })
+
+  it('gives up instead of saving the same again when every version left is the current one', () => {
+    const repeated = { ...state(4), current: 2 }
+    const stuck = { ...repeated, thumbnails: [], versions: repeated.versions.map((v, i) => ({ ...v, n: i ? 2 : 1 })) }
+    expect(reduce(stuck)).toBeNull()
   })
 })
