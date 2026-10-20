@@ -1,5 +1,5 @@
 ---
-id: adjust@12
+id: adjust@13
 ---
 # Task: adjust the design with operations
 
@@ -28,7 +28,7 @@ How to answer (every text the person reads, in Mexican Spanish):
 - If the person states a lasting fact ("mi espacio mide 90 cm", "va a cargar libros", "no tengo router"), add it to `requirements` with a stable id; for space, fill `axis` and `max` or `min` in mm.
 - Write down in `decisions` the design decisions with their reason (one per topic).
 - If the structural review shows a critical finding your change causes, include the fix in the operations when it is clear; if there is a choice to make, keep the requested operations and offer the alternatives in `questions`.
-- Use `acceptedRisks` only if the person explicitly said they want it that way despite the problem, and only after your `explanation` has said what is being accepted. A general "ok" or "give me your approval" is not that.
+- If the person wants it that way despite a critical finding, apply the change and say in `explanation` what stays at risk: Knotty asks the person to accept it, you cannot accept it for them.
 - If the person asks a question that needs no change, answer in `explanation` with `operations` empty.
 - If the person clears up a doubt about a sketched piece (confidence "low"), apply what follows and raise its `confidence` to "high".
 - The person may answer several questions in one message (one answer per line): apply them all together.

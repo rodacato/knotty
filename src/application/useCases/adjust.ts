@@ -175,7 +175,7 @@ export function createAdjust(kit: Kit) {
     const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
     const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
     // The plan path's policy: no extra round, so new criticals wait for the person with the rules' options.
-    const verdict = judge({ design, before, candidate, response: { questions: [], acceptedRisks: [] }, request, catalog, extraRound: false, criticalsReviewed: false, readAsPlanField: true })
+    const verdict = judge({ design, before, candidate, response: { questions: [] }, request, catalog, extraRound: false, criticalsReviewed: false, readAsPlanField: true })
     const changes = describePlanChanges(live, intent.plan)
     const said = changes.length ? changes : ['cambio en la ficha']
     const summary = `${said.join(', ').charAt(0).toUpperCase()}${said.join(', ').slice(1)}`.slice(0, 90)
@@ -266,8 +266,7 @@ export function createAdjust(kit: Kit) {
       onProgress('structure', attempt)
       const extras = current.extras.filter((e) => !rebuilt.dropped.includes(e))
       const candidate: Accepted = { ok: true, design: rebuilt.design, analysis, repairs: rebuilt.repairs, warnings: [] }
-      // The plan carries no accepted risks: a critical the person already accepted is in `before`, and is not new.
-      const verdict = judge({ design, before, candidate, response: { questions: r.questions, acceptedRisks: [] }, changedRequirements: touched, request, catalog, extraRound: false, criticalsReviewed: false })
+      const verdict = judge({ design, before, candidate, response: { questions: r.questions }, changedRequirements: touched, request, catalog, extraRound: false, criticalsReviewed: false })
       if (verdict.kind === 'pending') return waitFor(round, verdict, { operations: [], response: { ...r, decisions: updateDecisions(from.proposed, r.decisions) }, requirements, origin: response.origin, plan: { plan: next, extras }, suggestions })
       // A valid candidate with no extra round is either pending or applied.
       if (verdict.kind !== 'applied') return null

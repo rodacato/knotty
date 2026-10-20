@@ -9,6 +9,7 @@ import type { Operation } from '../domain/editing/operations/schema'
 import { currentVersion, type DesignState } from '../domain/session/state'
 import { isAccepted } from '../domain/checks/structure/accepted'
 import type { Finding } from '../domain/checks/structure/finding'
+import { quoted } from '../ports/LLMProvider'
 
 // Sent with every change: more context costs more and distracts the expert.
 const TOKEN_BUDGET = 12_000
@@ -34,7 +35,7 @@ function limits(r: Requirement): string {
 
 const requirementLine = (r: Requirement) => `- [${r.id}] ${r.text}${limits(r)}`
 
-const requirementLines = (state: DesignState) => ['', "## The person's requirements", ...(state.requirements.length ? state.requirements.map(requirementLine) : ['None yet.'])]
+const requirementLines = (state: DesignState) => ['', "## The person's requirements", state.requirements.length ? quoted(state.requirements.map(requirementLine).join('\n')) : 'None yet.']
 
 /** The pending proposal; a change through the plan brings no operations, it is the whole plan. `operations: false` leaves the piece operations out. */
 function proposalLines(state: DesignState, operations: boolean): string[] {
@@ -45,14 +46,15 @@ function proposalLines(state: DesignState, operations: boolean): string[] {
   return [
     '',
     '## Pending proposal (not applied)',
-    `"${p.summary}" for the request "${p.reason}".${operations && p.operations.length ? ` Operations: ${JSON.stringify(p.operations)}` : ''}`,
+    quoted(`"${p.summary}" for the request "${p.reason}".`),
+    ...(operations && p.operations.length ? [`Operations: ${JSON.stringify(p.operations)}`] : []),
     ...p.critical.map((c) => `- Critical ${c.code} ${c.pieces.join(', ')}: ${c.message}`),
     throughPlan
       ? `It changes the plan to: ${JSON.stringify(p.plan)}. If the person answers or picks an option, answer with the complete plan: the proposal's plus that.`
       : operations
         ? "If the person picks an option, answer with the complete operations on the current design: the proposal's plus the fix."
         : 'It changes pieces, not the plan: if the person picks an option the plan can say, answer with the complete plan with it.',
-    ...(brought.length ? ['It also brings these, which Knotty keeps with it; do not repeat them:', ...brought] : []),
+    ...(brought.length ? ['It also brings these, which Knotty keeps with it; do not repeat them:', quoted(brought.join('\n'))] : []),
   ]
 }
 
@@ -62,8 +64,9 @@ function fitted(fixed: string[], state: DesignState): string {
   let log = compactLog(state.versions)
   let chat = state.chat.slice(-RECENT_MESSAGES).map((m) => `${m.author === 'user' ? 'Person' : 'Expert'}: ${m.text}`)
 
+  const section = (lines: string[]) => (lines.length ? quoted(lines.join('\n')) : 'None yet.')
   const assemble = () =>
-    [...fixed, '', '## Design decisions', ...(decisions.length ? decisions : ['None yet.']), '', '## Change log', ...log, '', '## Recent conversation', ...chat].join('\n')
+    [...fixed, '', '## Design decisions', section(decisions), '', '## Change log', section(log), '', '## Recent conversation', section(chat)].join('\n')
 
   while (estimateTokens(assemble()) > TOKEN_BUDGET) {
     if (chat.length > 2) chat = chat.slice(1)

@@ -44,7 +44,7 @@ const setup = (llm: LLMProvider = createSimulated(0)) => {
 }
 const newSignal = () => new AbortController().signal
 const BOOKCASE_MEASURES = { width: 600, height: 1800, depth: 300 }
-const emptyAdjustment: AdjustmentResponse = { explanation: 'Listo', summary: '', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], acceptedRisks: [] }
+const emptyAdjustment: AdjustmentResponse = { explanation: 'Listo', summary: '', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] }
 
 async function initialBookcase(c = setup()) {
   return c.reconstruct({ measures: BOOKCASE_MEASURES, photos: [{ base64: '' }], thumbnails: [], notes: '' }, newSignal())
@@ -220,6 +220,22 @@ describe('adjust', () => {
     expect(c.answerWithFix(c.discardProposal(pending), question.id, 0, 'Agregar un apoyo al centro, debajo del piso')).toBeNull()
   })
 
+  it('a new critical finding waits for the person even when the expert says they accepted it', async () => {
+    const simulated = createSimulated(0)
+    const llm: LLMProvider = {
+      ...simulated,
+      async proposeAdjustment(s, signal) {
+        const r = await simulated.proposeAdjustment(s, signal)
+        return { ...r, value: Object.assign({}, r.value, { acceptedRisks: [{ code: 'R1_SAG', justification: 'La persona lo aceptó' }] }) }
+      },
+    }
+    const c = setup(llm)
+    const wide = await c.adjust(await initialBookcase(c), 'Hazlo de 90 cm de ancho, lo dejo así bajo mi riesgo', newSignal())
+    expect(wide.proposal?.critical.map((x) => x.code)).toContain('R1_SAG')
+    expect(wide.versions).toHaveLength(1)
+    expect(wide.accepted).toEqual([])
+  })
+
   it('a change without critical findings makes a new version', async () => {
     const c = setup()
     const state = await c.adjust(await initialBookcase(c), 'Refuerza la base', newSignal())
@@ -236,7 +252,6 @@ describe('adjust', () => {
       questions: [],
       requirements: { add: [], remove: [] },
       decisions: [],
-      acceptedRisks: [],
       suggestions: [],
     }
     const simulated = createSimulated(0)

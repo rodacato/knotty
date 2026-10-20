@@ -20,7 +20,7 @@ export function advisor(reply: (request: string, call: number) => string): { llm
     adjustPlan: null,
     proposeAdjustment: async (request) => {
       seen.push(request)
-      const value = { explanation: reply(request.request, seen.length), summary: 'Responder', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], acceptedRisks: [] }
+      const value = { explanation: reply(request.request, seen.length), summary: 'Responder', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] }
       return { value, origin: ORIGIN, usage: {} }
     },
   }

@@ -20,7 +20,6 @@ const response = (partial: Partial<AdjustmentResponse> = {}): AdjustmentResponse
   suggestions: [],
   requirements: { add: [], remove: [] },
   decisions: [],
-  acceptedRisks: [],
   ...partial,
 })
 

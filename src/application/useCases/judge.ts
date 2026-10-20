@@ -19,7 +19,7 @@ export interface Judging {
   before: Finding[]
   /** The expert's operations tried on `design`; null when it brought none. */
   candidate: Candidate | null
-  response: Pick<AdjustmentResponse, 'questions' | 'acceptedRisks'>
+  response: Pick<AdjustmentResponse, 'questions'>
   /** Requirements the person already had that the change drops or rewrites, by their text. */
   changedRequirements?: string[]
   request: string
@@ -60,8 +60,8 @@ export function judge({ design, before, candidate, response, changedRequirements
     ...(changedRequirements.length ? [holdText.changesRequirements(changedRequirements)] : []),
   ]
   if (holds.length) return { kind: 'pending', candidate, holds, critical: [] }
-  const accepted = new Set(response.acceptedRisks.map((a) => a.code))
-  const criticals = newCriticals(before, analysis.valid ? analysis.findings : []).filter((h) => !accepted.has(h.code))
+  // Only the person accepts a risk, from the notice: the expert's word is not their consent.
+  const criticals = newCriticals(before, analysis.valid ? analysis.findings : [])
   // Questions already held the change above, so here the expert has asked nothing.
   if (criticals.length && extraRound && !criticalsReviewed) return { kind: 'retry', reason: 'criticals', criticals }
   if (criticals.length) return { kind: 'pending', candidate, holds: [], critical: criticals }

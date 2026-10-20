@@ -29,7 +29,7 @@ const withFindings = (c: Accepted, extra: Finding[]): Accepted => (c.analysis.va
 const stillBroken = (c: Accepted): Candidate => ({ ...c, analysis: { valid: false, errors: [leftover] } })
 
 const question = { text: '¿Cuánto peso?', options: ['Poco', 'Mucho'] }
-const base: Judging = { design, before, candidate: null, response: { questions: [], acceptedRisks: [] }, request: 'Hazlo más ligero', catalog: testCatalog, extraRound: true, criticalsReviewed: false }
+const base: Judging = { design, before, candidate: null, response: { questions: [] }, request: 'Hazlo más ligero', catalog: testCatalog, extraRound: true, criticalsReviewed: false }
 /** The plan path: the same holds, but no extra round for new critical findings. */
 const plan: Partial<Judging> = { extraRound: false }
 
@@ -73,12 +73,12 @@ const CASES: { name: string; judging: Partial<Judging>; expected: ReturnType<typ
   { name: 'structure removed on request is applied', judging: { candidate: accepted(removeKick), request: 'Quita el zoclo' }, expected: { kind: 'applied', unresolved: [] } },
   {
     name: 'a change that comes with questions waits for the answers',
-    judging: { candidate: accepted(thinnerShelf), response: { questions: [question], acceptedRisks: [] } },
+    judging: { candidate: accepted(thinnerShelf), response: { questions: [question] } },
     expected: { kind: 'pending', holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [] },
   },
   {
     name: 'unasked removal and questions are both said',
-    judging: { candidate: accepted(removeKick), response: { questions: [question], acceptedRisks: [] } },
+    judging: { candidate: accepted(removeKick), response: { questions: [question] } },
     expected: { kind: 'pending', holds: ['Quiere quitar Zoclo, que sostienen el mueble y no pediste quitar.', 'Hizo preguntas: el cambio espera tus respuestas.'], critical: [] },
   },
   {
@@ -93,13 +93,8 @@ const CASES: { name: string; judging: Partial<Judging>; expected: ReturnType<typ
   },
   {
     name: 'questions hold the change before any critical finding is looked at',
-    judging: { candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [question], acceptedRisks: [] } },
+    judging: { candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [question] } },
     expected: { kind: 'pending', holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [] },
-  },
-  {
-    name: 'a critical finding the person accepted as a risk does not hold the change',
-    judging: { candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [], acceptedRisks: [{ code: 'R1_SAG', justification: 'Solo papeles' }] } },
-    expected: { kind: 'applied', unresolved: [] },
   },
   {
     name: 'a critical finding the design already had does not hold the change',
@@ -119,7 +114,7 @@ const CASES: { name: string; judging: Partial<Judging>; expected: ReturnType<typ
   },
   {
     name: 'plan: a change that comes with questions waits for the answers',
-    judging: { ...plan, candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [question], acceptedRisks: [] } },
+    judging: { ...plan, candidate: withFindings(accepted(thinnerShelf), [sag]), response: { questions: [question] } },
     expected: { kind: 'pending', holds: ['Hizo preguntas: el cambio espera tus respuestas.'], critical: [] },
   },
   {

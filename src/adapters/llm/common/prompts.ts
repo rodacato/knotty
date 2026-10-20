@@ -1,5 +1,5 @@
 import type { Catalog } from '../../../domain/materials/catalog'
-import adjust from '../prompts/adjust.v12.md?raw'
+import adjust from '../prompts/adjust.v13.md?raw'
 import planAdjust from '../prompts/plan-adjust.v13.md?raw'
 import review from '../prompts/review.v5.md?raw'
 import skeleton from '../prompts/skeleton.v16.md?raw'
