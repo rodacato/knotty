@@ -216,9 +216,10 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   async openPlace(place) {
     const { services } = get()
     if (!services) return
-    stopExpert(get)
     const state = await services.library.open(place)
-    if (state) set((s) => ({ ...opened(s, state), libraryOpen: false, libraryChanges: s.libraryChanges + 1 }))
+    if (!state) return
+    stopExpert(get)
+    set((s) => ({ ...opened(s, state), libraryOpen: false, libraryChanges: s.libraryChanges + 1 }))
   },
 
   fromExample(example) {
