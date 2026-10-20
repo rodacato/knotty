@@ -31,7 +31,6 @@ const adjustment = (partial: Partial<AdjustmentResponse> & Pick<AdjustmentRespon
   questions: [],
   requirements: { add: [], remove: [] },
   decisions: [],
-  acceptedRisks: [],
   ...partial,
 })
 

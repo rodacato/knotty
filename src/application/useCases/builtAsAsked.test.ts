@@ -30,7 +30,7 @@ function setup(code: string, answers: FurniturePlan[] = []) {
     },
     proposeAdjustment: async () => {
       calls.push('pieces')
-      return { value: { explanation: 'No propuse cambios en las piezas.', summary: '', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [], acceptedRisks: [] }, origin, usage: {} }
+      return { value: { explanation: 'No propuse cambios en las piezas.', summary: '', operations: [], questions: [], suggestions: [], requirements: { add: [], remove: [] }, decisions: [] }, origin, usage: {} }
     },
   }
   let id = 0

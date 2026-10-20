@@ -35,7 +35,6 @@ export const AdjustmentResponse = z.object({
   suggestions: z.array(z.string()).describe('2 to 4 next steps the person could ask for, in Spanish, written as they would ask'),
   requirements: z.object({ add: z.array(Requirement), remove: z.array(z.string()) }),
   decisions: z.array(Decision),
-  acceptedRisks: z.array(z.object({ code: z.string(), justification: z.string() })).describe('Only if the person chose to leave a critical finding at their own risk'),
 })
 export type AdjustmentResponse = z.infer<typeof AdjustmentResponse>
 
@@ -214,6 +213,9 @@ export interface ExpertResponse<T> {
   /** What the provider could not do and the person should know, for example that it did not see the photos. */
   warnings?: string[]
 }
+
+/** Fences what a person wrote or a saved design carries, so the expert reads it as data; a tag inside it is broken, so it cannot step out. */
+export const quoted = (text: string) => `<quoted>\n${text.replace(/<(\/?quoted)/gi, '‹$1')}\n</quoted>`
 
 /** The id of the provider that stands for no expert at all: what needs one says so instead of asking. */
 export const NO_EXPERT = 'none'
