@@ -1325,6 +1325,14 @@ describe('notices: one place for what waits for a decision', () => {
     expect(noticeBoard(resolved, testCatalog).resolved).toContain(`Repisas que se pandean: ${piece}`)
   })
 
+  it('a change that leaves the design unbuildable resolves nothing, though no finding can be checked on it', () => {
+    const initial = setup().fromExample(wide)
+    expect(noticeBoard(initial, testCatalog).pending.some((n) => n.kind === 'finding')).toBe(true)
+    const broken = { ...wide, pieces: wide.pieces.map((p, i) => (i === 0 ? { ...p, material: 'NOPE' } : p)) }
+    const after = { ...initial, versions: [...initial.versions, { ...initial.versions[0], n: 2, design: broken }], current: 2 }
+    expect(noticeBoard(after, testCatalog).resolved).toEqual([])
+  })
+
   it('several solutions go in as one version, and each notice they fix shows as resolved', () => {
     const c = setup()
     const initial = c.fromExample({ ...wide, wallAnchored: false })
