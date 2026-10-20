@@ -67,10 +67,10 @@ function without(part: string, lead: '?' | '#'): string {
 /** The ficha an address asks for with the options it gives, and the address without asking; null when it names no ficha. An option Knotty does not know, or that `fits` refuses, is left as the ficha has it. */
 export function linkedFicha(at: Pick<Location, 'search' | 'hash'>, bases: readonly Base[], fits: (example: Linked) => boolean = () => true): { example: Linked | null; search: string; hash: string } | null {
   const words = wordsOf(at)
-  const code = words.get(FICHA)?.trim().toUpperCase()
-  if (!code) return null
+  if (!words.has(FICHA)) return null
+  const code = words.get(FICHA)!.trim().toUpperCase()
   const rest = { search: without(at.search, '?'), hash: without(at.hash, '#') }
-  const base = bases.find((b) => b.code === code)
+  const base = code ? bases.find((b) => b.code === code) : undefined
   if (!base) return { example: null, ...rest }
   const example = LINK_OPTIONS.reduce<Linked>((so, option) => {
     const value = words.get(option.param)

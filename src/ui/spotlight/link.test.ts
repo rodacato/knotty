@@ -27,6 +27,12 @@ describe('the link to a ficha', () => {
     expect(linkedFicha({ search: '?q=mesa&acabado=paint', hash: '' }, bases)).toBeNull()
     expect(linkedFicha({ search: '?ficha=KC-NOPE-99', hash: '' }, bases)).toEqual({ example: null, search: '', hash: '' })
   })
+
+  it('takes the word out of an address that names no code, as from one no ficha has', () => {
+    expect(linkedFicha({ search: '?ficha=', hash: '#studio' }, bases)).toEqual({ example: null, search: '', hash: '#studio' })
+    expect(linkedFicha({ search: '?q=mesa&ficha=%20', hash: '' }, bases)).toEqual({ example: null, search: '?q=mesa', hash: '' })
+    expect(linkedFicha({ search: '?ficha=', hash: '#ficha=KC-MES-03' }, bases)?.example).toBeNull()
+  })
 })
 
 describe('the options of the whole piece in a link', () => {
