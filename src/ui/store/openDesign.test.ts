@@ -202,6 +202,21 @@ describe('an example opened over a design the expert is working on', () => {
     expect(repository.load()).toBe(example)
   })
 
+  it('keeps the answer in progress when the place asked for holds nothing to open', async () => {
+    const pending = lateExpert()
+    started(pending.expert)
+    useStore.getState().fromExample(bookcase)
+    const asking = useStore.getState().adjust('Hazlo de 90 cm de ancho')
+    const open = useStore.getState().state
+    const call = useStore.getState().controller!
+    await useStore.getState().openPlace(1)
+    expect(call.signal.aborted).toBe(false)
+    expect(useStore.getState().thinking).toBe(true)
+    expect(useStore.getState().state).toBe(open)
+    pending.release()
+    await asking
+  })
+
   it('stops the design in progress, which never opens over the example', async () => {
     const pending = lateExpert()
     const { repository } = started(pending.expert)
