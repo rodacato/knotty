@@ -10,7 +10,7 @@ export function reduce(state: DesignState): DesignState | null {
   if (state.thumbnails.length) return { ...state, thumbnails: [] }
   if (state.versions.length <= 3) return null
   const dropped = state.versions.findIndex((v, i) => i > 0 && v.n !== state.current)
-  return { ...state, versions: state.versions.filter((_, i) => i !== dropped) }
+  return dropped < 0 ? null : { ...state, versions: state.versions.filter((_, i) => i !== dropped) }
 }
 
 export function createLocalRepository(storage: Storage = localStorage): DesignRepository {
