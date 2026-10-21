@@ -110,6 +110,15 @@ describe('model preferences', () => {
     expect(other.open().load()).toMatchObject({ active: 'simulated', keyStorage: 'memory' })
   })
 
+  it.each([
+    ['cut short', '{"v":2,"iterations":10,"salt'],
+    ['with a salt that is not base64', JSON.stringify({ v: 2, iterations: 10, salt: '¡no!', iv: 'AAAA', data: 'AAAA' })],
+  ])('a stored vault that is damaged (%s) says so, in Spanish, and how to get out', async (_, damaged) => {
+    const storage = memoryStorage()
+    storage.setItem('knotty:vault', damaged)
+    await expect(createVault(storage, 10).open('frase larga y secreta')).rejects.toThrow('Las llaves guardadas están dañadas: olvídalas y vuelve a ponerlas.')
+  })
+
   it('opens a vault sealed by the version with Spanish fields', async () => {
     const n = browser()
     await n.open().save(withKey('encrypted'), 'frase larga y secreta')

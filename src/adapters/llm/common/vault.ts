@@ -28,6 +28,22 @@ const current = (s: Sealed | SealedV1): Sealed => (s.v === 1 ? { v: 2, iteration
 const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
 const unb64 = (text: string) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0))
 
+const DAMAGED = 'Las llaves guardadas están dañadas: olvídalas y vuelve a ponerlas.'
+function readSealed(raw: string | null): Sealed | SealedV1 | null {
+  try {
+    return JSON.parse(raw ?? 'null') as Sealed | SealedV1 | null
+  } catch {
+    throw new Error(DAMAGED)
+  }
+}
+function decoded(parts: string[]): Uint8Array<ArrayBuffer>[] {
+  try {
+    return parts.map(unb64)
+  } catch {
+    throw new Error(DAMAGED)
+  }
+}
+
 async function derive(passphrase: string, salt: Uint8Array<ArrayBuffer>, iterations: number) {
   const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveKey'])
   return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salt, iterations: iterations, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt'])
@@ -52,13 +68,14 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
     },
     /** Fails if the passphrase is not the right one. */
     async open(passphrase: string): Promise<Keyring> {
-      const saved = JSON.parse(readStored(storage, STORAGE_KEY, OLDER_KEY) ?? 'null') as Sealed | SealedV1 | null
+      const saved = readSealed(readStored(storage, STORAGE_KEY, OLDER_KEY))
       if (!saved) return {}
       if (saved.v !== 1 && saved.v !== 2) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
       const sealed = current(saved)
-      const key = await derive(passphrase, unb64(sealed.salt), sealed.iterations)
+      const [salt, iv, data] = decoded([sealed.salt, sealed.iv, sealed.data])
+      const key = await derive(passphrase, salt, sealed.iterations)
       try {
-        const flat = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(sealed.iv) }, key, unb64(sealed.data))
+        const flat = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data)
         return JSON.parse(new TextDecoder().decode(flat)) as Keyring
       } catch {
         throw new Error('La frase no es correcta.')
