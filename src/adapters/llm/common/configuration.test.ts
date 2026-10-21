@@ -113,10 +113,19 @@ describe('model preferences', () => {
   it.each([
     ['cut short', '{"v":2,"iterations":10,"salt'],
     ['with a salt that is not base64', JSON.stringify({ v: 2, iterations: 10, salt: '¡no!', iv: 'AAAA', data: 'AAAA' })],
+    ['without its iterations', JSON.stringify({ v: 2, salt: 'AAAA', iv: 'AAAAAAAAAAAAAAAA', data: 'AAAAAAAAAAAAAAAAAAAAAAAA' })],
+    ['with an empty iv', JSON.stringify({ v: 2, iterations: 10, salt: 'AAAA', iv: '', data: 'AAAAAAAAAAAAAAAAAAAAAAAA' })],
+    ['as a bare value', '0'],
   ])('a stored vault that is damaged (%s) says so, in Spanish, and how to get out', async (_, damaged) => {
     const storage = memoryStorage()
     storage.setItem('knotty:vault', damaged)
     await expect(createVault(storage, 10).open('frase larga y secreta')).rejects.toThrow('Las llaves guardadas están dañadas: olvídalas y vuelve a ponerlas.')
+  })
+
+  it('a vault from a later version is told apart from a damaged one', async () => {
+    const storage = memoryStorage()
+    storage.setItem('knotty:vault', JSON.stringify({ v: 3, iterations: 10, salt: 'AAAA', iv: 'AAAA', data: 'AAAA' }))
+    await expect(createVault(storage, 10).open('frase larga y secreta')).rejects.toThrow('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
   })
 
   it('opens a vault sealed by the version with Spanish fields', async () => {

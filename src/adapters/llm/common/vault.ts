@@ -28,19 +28,28 @@ const current = (s: Sealed | SealedV1): Sealed => (s.v === 1 ? { v: 2, iteration
 const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
 const unb64 = (text: string) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0))
 
-const DAMAGED = 'Las llaves guardadas están dañadas: olvídalas y vuelve a ponerlas.'
-function readSealed(raw: string | null): Sealed | SealedV1 | null {
+const AES_GCM_TAG = 16
+
+/** What is stored, read and decoded; anything that is not a whole vault is said as damaged, never as a wrong passphrase. */
+function unsealed(raw: string): { iterations: number; salt: Uint8Array<ArrayBuffer>; iv: Uint8Array<ArrayBuffer>; data: Uint8Array<ArrayBuffer> } {
+  const damaged = new Error('Las llaves guardadas están dañadas: olvídalas y vuelve a ponerlas.')
+  let saved: unknown
   try {
-    return JSON.parse(raw ?? 'null') as Sealed | SealedV1 | null
+    saved = JSON.parse(raw)
   } catch {
-    throw new Error(DAMAGED)
+    throw damaged
   }
-}
-function decoded(parts: string[]): Uint8Array<ArrayBuffer>[] {
+  const v = typeof saved === 'object' && saved !== null ? (saved as { v?: unknown }).v : undefined
+  if (typeof v === 'number' && v !== 1 && v !== 2) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
+  if (v !== 1 && v !== 2) throw damaged
+  const sealed = current(saved as Sealed | SealedV1)
+  if (!Number.isInteger(sealed.iterations) || sealed.iterations <= 0 || ![sealed.salt, sealed.iv, sealed.data].every((s) => typeof s === 'string')) throw damaged
   try {
-    return parts.map(unb64)
+    const [salt, iv, data] = [sealed.salt, sealed.iv, sealed.data].map(unb64)
+    if (!salt.length || !iv.length || data.length < AES_GCM_TAG) throw damaged
+    return { iterations: sealed.iterations, salt, iv, data }
   } catch {
-    throw new Error(DAMAGED)
+    throw damaged
   }
 }
 
@@ -68,12 +77,10 @@ export function createVault(storage: Storage = localStorage, iterations = ITERAT
     },
     /** Fails if the passphrase is not the right one. */
     async open(passphrase: string): Promise<Keyring> {
-      const saved = readSealed(readStored(storage, STORAGE_KEY, OLDER_KEY))
-      if (!saved) return {}
-      if (saved.v !== 1 && saved.v !== 2) throw new Error('Las llaves guardadas son de otra versión; olvídalas y vuelve a ponerlas.')
-      const sealed = current(saved)
-      const [salt, iv, data] = decoded([sealed.salt, sealed.iv, sealed.data])
-      const key = await derive(passphrase, salt, sealed.iterations)
+      const raw = readStored(storage, STORAGE_KEY, OLDER_KEY)
+      if (!raw) return {}
+      const { iterations, salt, iv, data } = unsealed(raw)
+      const key = await derive(passphrase, salt, iterations)
       try {
         const flat = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data)
         return JSON.parse(new TextDecoder().decode(flat)) as Keyring
