@@ -113,6 +113,14 @@ describe('createCompatible', () => {
     await expect(fresh().reconstruct(request([]), new AbortController().signal)).rejects.toThrow(/SheLLM cortó la petición a los \d+ s.*sube TIMEOUT_MS de SheLLM/)
   })
 
+  it.each([
+    ['a page', new Response('<html>Inicia sesión en la red</html>', { status: 200, headers: { 'content-type': 'text/html' } })],
+    ['a stream line', new Response('data: <html>\n\n', { status: 200, headers: { 'content-type': 'text/event-stream' } })],
+  ])('a 200 that is not JSON (%s, from a proxy or a sign-in portal) is said in Spanish, not as the parser error', async (_, response) => {
+    vi.stubGlobal('fetch', vi.fn(async () => response))
+    await expect(fresh().reconstruct(request([]), new AbortController().signal)).rejects.toThrow('El servidor respondió en un formato que no se puede leer. Revisa la dirección del proveedor.')
+  })
+
   it('asks for a stream and builds the answer from the SSE pieces, trailing comments included', async () => {
     const text = JSON.stringify(answer)
     const half = Math.floor(text.length / 2)
