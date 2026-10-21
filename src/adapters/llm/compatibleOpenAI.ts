@@ -93,6 +93,7 @@ async function ask(c: Pick<CompatibleConnection, 'host' | 'apiKey'> & { provider
     // The connection can also drop mid-stream: it is explained as if it had not started.
     if (limit.aborted && !init.signal?.aborted) throw new Error(`El experto tardó más de ${LIMIT_MS / 60_000} minutos en responder. Intenta de nuevo o con un modelo más rápido.`)
     if (e instanceof TypeError) throw new Error(timeoutCut(c, Math.round((Date.now() - start) / 1000)))
+    if (e instanceof SyntaxError) throw new Error('El servidor respondió en un formato que no se puede leer. Revisa la dirección del proveedor.')
     throw e
   }
 }
