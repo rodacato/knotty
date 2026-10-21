@@ -53,7 +53,8 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         return { json: parseJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
       } catch (e) {
         if (e instanceof InvalidResponse) throw e
-        throw new ProviderError(e)
+        // The SDK names its abort error 'Error'; the signal is what says the caller stopped it.
+        throw new ProviderError(signal?.aborted ? new DOMException('Request was aborted.', 'AbortError') : e)
       }
     },
   }
