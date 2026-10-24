@@ -3,6 +3,7 @@ import { analyze } from '../../checks/analysis'
 import { exampleBookcase } from '../fixtures/bookcase'
 import { testCatalog } from '../fixtures/catalog.test-util'
 import { MODULES, buildPlan, type FurniturePlan } from '../modules/plan'
+import type { CabinetPlan, PlanCell } from '../modules/cabinet'
 import { answerQuestion } from './answers'
 import { normalize, parseIntent, type Intent } from './intent'
 
@@ -393,6 +394,16 @@ describe('parseIntent', () => {
     expect(read('Repisas fijas', 'drawers')).toBeNull()
     expect(read('Puertas embutidas', 'drawers')).toBeNull()
     expect(read('Repisas fijas', 'wallCabinet')).toEqual(edit('construction.shelves', 'fixed'))
+  })
+
+  it('shelves or doors are not counted on a cabinet with a cell split into columns: which opening is meant goes to the expert', () => {
+    const niche: PlanCell = { height: 1, content: 'open', shelves: 0, doors: null }
+    const split: PlanCell = { height: 0.5, content: 'open', shelves: null, doors: null, columns: [{ width: 1, cells: [niche] }, { width: 1, cells: [niche] }] }
+    const plan: CabinetPlan = { ...(plans.bookcase as CabinetPlan), columns: [{ width: 1, cells: [{ height: 0.5, content: 'drawer', shelves: null, doors: null }, split] }] }
+    const design = buildPlan(plan, testCatalog).design
+    expect(fieldOf(parseIntent('ponle 2 repisas', plan, design, testCatalog))).toBeNull()
+    const doors = { ...plan, columns: [{ width: 1, cells: [{ ...split, content: 'door' as const, doors: 1 }] }] }
+    expect(fieldOf(parseIntent('pon 2 puertas', doors, buildPlan(doors, testCatalog).design, testCatalog))).toBeNull()
   })
 
   it('reads accents, capitals, "por favor" and a closing period the same', () => {

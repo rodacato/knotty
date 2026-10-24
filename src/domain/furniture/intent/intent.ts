@@ -240,13 +240,15 @@ function gridCounters(plan: Plan, field: CustomField<Plan>): Counter[] {
   const cells = columns.flatMap((c, i) => c.cells.map((cell, j) => ({ cell, i, j })))
   const withCell = (i: number, j: number, cell: PlanCell): PlanColumn[] => columns.map((c, ci) => (ci !== i ? c : { ...c, cells: c.cells.map((x, cj) => (cj === j ? cell : x)) }))
   const counters: Counter[] = []
+  // The openings inside a split cell are not cells here, so with one the count of shelves or doors no longer reads one way.
+  const split = cells.some(({ cell }) => cell.columns)
   const shelved = cells.filter(({ cell }) => cell.content === 'open' || cell.content === 'door')
-  if (shelved.length === 1) {
+  if (shelved.length === 1 && !split) {
     const { cell, i, j } = shelved[0]
     counters.push({ key: 'columns.shelves', ...nounsOf('repisas'), qualifier: null, get: () => cell.shelves ?? 0, set: (n) => field.set(plan, withCell(i, j, { ...cell, shelves: n })), min: 0, max: MAX_IN_OPENING.shelves })
   }
   const doors = cells.filter(({ cell }) => cell.content === 'door')
-  if (doors.length === 1) {
+  if (doors.length === 1 && !split) {
     const { cell, i, j } = doors[0]
     counters.push({ key: 'columns.doors', ...nounsOf('puertas'), qualifier: null, get: () => cell.doors ?? 1, set: (n) => field.set(plan, withCell(i, j, { ...cell, doors: n })), min: 1, max: MAX_IN_OPENING.doors })
   }
