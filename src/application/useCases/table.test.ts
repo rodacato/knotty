@@ -66,6 +66,17 @@ describe('table adjustments through the real use cases', () => {
     expect(currentDesign(state).pieces.filter((p) => p.role === 'drawer-front')).toHaveLength(3)
   })
 
+  it('keeps the notes the person changed while a proposal waited when it is applied', async () => {
+    const next: TablePlan = { ...desk, pedestal: { side: 'left', drawers: 3 } }
+    const { useCases, initial } = setup([response(next)])
+    const room = { id: 'room', text: 'El fondo disponible es 63 cm.', type: 'space' as const, axis: 'z' as const, min: null, max: 630 }
+    const pending = await useCases.adjust({ ...initial, requirements: [room] }, 'Me gustaría una cajonera para organizar los útiles.', signal())
+    expect(pending.proposal).toBeTruthy()
+    const noted = useCases.removeRequirement(useCases.addRequirement(pending, 'Lo voy a pintar de rojo'), 'room')
+    const state = useCases.applyProposal(noted)
+    expect(state.requirements.map((r) => r.text)).toEqual(['Lo voy a pintar de rojo'])
+  })
+
   it('corrects an impossible dining pedestal before applying a width change', async () => {
     const dining: TablePlan = { ...desk, use: 'dining', name: 'Mesa de prueba', dimensions: { width: 1370, height: 760, depth: 850 } }
     const wider = { ...dining, dimensions: { ...dining.dimensions, width: 1450 } }
