@@ -42,11 +42,13 @@
   --duration-fast: 150ms;
   --duration-base: 300ms;
   --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --default-transition-duration: var(--duration-fast);
   --default-transition-timing-function: var(--ease-settle);
 
   --animate-draw: draw 2.4s ease-in-out infinite;
   --animate-appear: appear var(--duration-fast) var(--ease-settle) both;
+  --animate-fade-in: fade-in var(--duration-fast) var(--ease-settle) both;
 }
 
 :root {
@@ -190,6 +192,81 @@ body {
     opacity: 0;
     transform: translateY(6px) scale(0.98);
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(var(--sheet-offset));
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(var(--sheet-offset));
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(12%);
+  }
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateX(12%);
+  }
+}
+
+/* A sheet comes from the edge it is anchored to and leaves the same way, faster; from `sm` it is a dialog that fades. */
+.sheet {
+  --sheet-offset: calc(100% + 0.75rem);
+  animation: sheet-in var(--duration-base) var(--ease-drawer) both;
+}
+.sheet-top {
+  --sheet-offset: calc(-100% - 0.75rem);
+}
+.sheet[data-state='closed'] {
+  animation: sheet-out var(--duration-fast) var(--ease-settle) both;
+}
+.scrim {
+  animation: var(--animate-fade-in);
+}
+.scrim[data-state='closed'] {
+  animation: fade-out var(--duration-fast) var(--ease-settle) both;
+}
+@media (min-width: 40rem) {
+  .sheet {
+    animation: var(--animate-appear);
+  }
+  .sheet[data-state='closed'] {
+    animation: fade-out var(--duration-fast) var(--ease-settle) both;
+  }
+}
+
+:root[data-page='forward']::view-transition-new(root) {
+  animation: page-in var(--duration-base) var(--ease-drawer) both;
+}
+:root[data-page='back']::view-transition-old(root) {
+  z-index: 1;
+  animation: page-out var(--duration-fast) var(--ease-settle) both;
+}
+:root[data-page='back']::view-transition-new(root) {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

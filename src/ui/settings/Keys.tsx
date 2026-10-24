@@ -70,8 +70,8 @@ export function KeysGate() {
   return (
     <Dialog.Root open={visible} onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-start gap-3">
             <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-graphite" />
             <div>

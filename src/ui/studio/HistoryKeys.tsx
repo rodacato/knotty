@@ -35,7 +35,7 @@ export function HistoryKeys() {
 
 const available = (s: Store, step: Step): boolean => !!s.state && !s.thinking && (step === 'undo' ? undoTarget : redoTarget)(s.state.versions, s.state.current) !== null
 
-const BUTTON = 'pointer-events-auto grid size-11 place-items-center rounded-full border border-line bg-bone/90 text-graphite shadow-sm backdrop-blur transition hover:bg-kraft disabled:text-graphite-2/40 disabled:hover:bg-bone/90'
+const BUTTON = 'pointer-events-auto grid size-11 place-items-center rounded-full border border-line bg-bone/90 text-graphite shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] disabled:text-graphite-2/40 disabled:hover:bg-bone/90'
 
 /** The same two steps for a hand: a phone has no Ctrl+Z. Each is off when there is nothing to go back or forward to, and says so when the checks refuse the design it would bring back. A draft has its own «Deshacer», so they step aside while one is open. */
 export function HistoryButtons() {

@@ -4,7 +4,7 @@ import type { Slice } from './types'
 export interface NavigationSlice {
   roomOpen: boolean
   setRoomOpen(open: boolean): void
-  studioTab: 'chat' | 'materials'
+  studioTab: 'chat' | 'findings'
   studioOverlay: 'notices' | 'history' | null
   setStudioTab(tab: string): void
   setStudioOverlay(overlay: NavigationSlice['studioOverlay']): void
@@ -15,6 +15,6 @@ export const createNavigation: Slice<NavigationSlice> = (set) => ({
   setRoomOpen: (roomOpen) => set({ roomOpen }),
   studioTab: 'chat',
   studioOverlay: null,
-  setStudioTab: (tab) => { if (tab === 'chat' || tab === 'materials') set({ studioTab: tab }) },
+  setStudioTab: (tab) => { if (tab === 'chat' || tab === 'findings') set({ studioTab: tab }) },
   setStudioOverlay: (studioOverlay) => set({ studioOverlay }),
 })

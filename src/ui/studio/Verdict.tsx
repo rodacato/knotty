@@ -7,6 +7,7 @@ import type { Check, Verdict } from '../../domain/checks/viability/viability'
 import { Button } from '../system/components'
 import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
+import { withPageTransition } from '../system/pageTransition'
 import { ReviewActivity } from './ReviewActivity'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: ReactNode }> = {
@@ -63,8 +64,13 @@ export function VerdictSummary({ verdict }: { verdict: PurchaseReview }) {
 
 function PieceLink({ pieces, design }: { pieces: string[]; design: Design }) {
   const select = useStore((s) => s.select)
+  const openCheckout = useStore((s) => s.openCheckout)
   const piece = pieces.find((id) => design.pieces.some((p) => p.id === id))
-  return piece ? <button type="button" className="flex min-h-11 items-center self-start text-xs text-graphite-2 underline" onClick={() => select(piece)}>Ver pieza en 3D</button> : null
+  const show = (id: string) => withPageTransition('back', () => {
+    openCheckout(false)
+    select(id)
+  })
+  return piece ? <button type="button" className="flex min-h-11 items-center self-start text-xs text-graphite-2 underline" onClick={() => show(piece)}>Ver pieza en 3D</button> : null
 }
 
 function purpose(item: PurchaseReviewItem) {

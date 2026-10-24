@@ -34,7 +34,7 @@ First the engine builds it; then the chat learns to ask for it.
 | What | Where | Detail |
 |---|---|---|
 | An option the plan could not say, or a cut | The module's schema and builder (`src/domain/furniture/modules/`), its variants and its tests | [Fichas, section 2](fichas.md#2-when-knotty-cannot-build-it-add-support) |
-| A material | The catalog (`public/catalog/catalog.json`) | Bench without the expert and the Materiales tab |
+| A material | The catalog (`public/catalog/catalog.json`) | Bench without the expert and the «Preparar materiales» page |
 | How it is asked for in the chat | Workflow 1 | |
 
 To choose what comes next, count in how many fichas the feature appears in `gaps`: what gets built is what changes the purchase or the safety, or what repeats.

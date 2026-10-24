@@ -30,7 +30,7 @@ const ICON_BUTTON_SIZES = {
 /** A round button that holds only an icon: 36 px with a 44 px hit area, or 44 px where a finger reaches it over the 3D or in a dialog. */
 export function IconButton({ size = 'md', className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { size?: keyof typeof ICON_BUTTON_SIZES }) {
   return (
-    <button type="button" className={`grid shrink-0 place-items-center rounded-full text-graphite-2 hover:bg-kraft ${ICON_BUTTON_SIZES[size]} ${className}`} {...props}>
+    <button type="button" className={`grid shrink-0 place-items-center rounded-full text-graphite-2 transition hover:bg-kraft active:scale-[0.97] ${ICON_BUTTON_SIZES[size]} ${className}`} {...props}>
       {children}
     </button>
   )
@@ -40,7 +40,7 @@ export function Chip({ active = false, className = '', children, ...props }: But
   return (
     <button
       type="button"
-      className={`animate-appear relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
+      className={`relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
         active ? 'border-amber bg-amber-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}

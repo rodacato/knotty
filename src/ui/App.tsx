@@ -18,6 +18,7 @@ import { connectNavigation } from './navigation/navigation'
 const AdjustBase = lazy(() => import('./capture/AdjustBase').then((m) => ({ default: m.AdjustBase })))
 const Studio = lazy(() => import('./studio/Studio').then((m) => ({ default: m.Studio })))
 const TakeAway = lazy(() => import('./takeaway/TakeAway').then((m) => ({ default: m.TakeAway })))
+const Checkout = lazy(() => import('./studio/Checkout').then((m) => ({ default: m.Checkout })))
 
 const Room = lazy(() => import('./room/Room').then((m) => ({ default: m.Room })))
 
@@ -55,10 +56,17 @@ function Screen() {
   const state = useStore((s) => s.state)
   const adjusting = useStore((s) => s.adjusting)
   const takeAway = useStore((s) => s.takeAway)
+  const checkout = useStore((s) => s.checkout)
   if (phase === 'studio' && state && takeAway)
     return (
       <Suspense fallback={<Loading />}>
         <TakeAway state={state} />
+      </Suspense>
+    )
+  if (phase === 'studio' && state && checkout)
+    return (
+      <Suspense fallback={<Loading />}>
+        <Checkout state={state} />
       </Suspense>
     )
   if (phase === 'studio' && state)

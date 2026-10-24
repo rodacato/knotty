@@ -143,10 +143,10 @@ describe('opening a design that is already whole', () => {
     s().flag([one])
     s().toggleProposal()
     s().openTakeAway(true)
-    s().setStudioTab('materials')
+    s().openCheckout(true)
     s().setStudioOverlay('history')
     const reviewing = s().review()
-    expect(s()).toMatchObject({ selection: one, focus: one, hidden: [two], flagged: [one], viewedVersion: 1, editing: 'outside', leaving: true, showProposal: false, takeAway: true })
+    expect(s()).toMatchObject({ selection: one, focus: one, hidden: [two], flagged: [one], viewedVersion: 1, editing: 'outside', leaving: true, showProposal: false, takeAway: true, checkout: true })
     expect(s().planDraft).not.toBeNull()
     expect(s().reviewing).not.toBeNull()
 
@@ -168,6 +168,7 @@ describe('opening a design that is already whole', () => {
       mode: 'closed',
       showProposal: true,
       takeAway: false,
+      checkout: false,
       studioTab: 'chat',
       studioOverlay: null,
       reviewing: null,
