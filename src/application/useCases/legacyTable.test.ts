@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createSimulated } from '../../adapters/llm/simulated/simulated'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { settlePlan } from '../../domain/furniture/modules/plan'
-import type { TablePlan } from '../../domain/furniture/modules/table'
+import { FurniturePlan, settlePlan } from '../../domain/furniture/modules/plan'
+import { tableForUse, type TablePlan } from '../../domain/furniture/modules/table'
 import { createUseCases, currentPlan } from './index'
 
 const dining: TablePlan = {
@@ -26,6 +26,13 @@ describe('a plan saved before the table rules', () => {
     expect(settlePlan({ ...dining, pedestal: { side: 'left', drawers: 2 } })).toEqual(dining)
     expect(settlePlan({ ...desk, shelf: true })).toEqual(desk)
     expect(settlePlan({ ...desk, pedestal: { side: 'left', drawers: 0 } })).toEqual(desk)
+  })
+
+  it('a table on legs with an H becomes a desk with only the end stretchers, the ones it was built with', () => {
+    const withH: TablePlan = { ...dining, legs: 'legs', stretcher: 'h' }
+    const asDesk = tableForUse(withH, 'desk')
+    expect(asDesk.stretcher).toBe('ends')
+    expect(FurniturePlan.safeParse(asDesk).success).toBe(true)
   })
 
   it('stays the same object when it has nothing to settle, and a desk keeps its pedestal', () => {
