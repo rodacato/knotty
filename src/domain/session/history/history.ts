@@ -98,10 +98,10 @@ export function previousUsableVersion(versions: Version[], current: number, isUs
 
 const inOrder = (versions: Version[]) => [...versions].sort((a, b) => a.n - b.n)
 
-/** The change a version carries: itself, or the one it brought back, as long as that one is still kept. */
+/** The change a version carries: itself, or the one it brought back, as long as that one is still kept. Only an earlier one counts, which a hand-made file may break. */
 function changeOf(versions: Version[], n: number): number {
   const restored = versions.find((v) => v.n === n)?.restores
-  return restored && versions.some((v) => v.n === restored) ? changeOf(versions, restored) : n
+  return restored && restored < n && versions.some((v) => v.n === restored) ? changeOf(versions, restored) : n
 }
 
 /** One step back: the change the current one was made from; null at the first. */
