@@ -84,6 +84,14 @@ describe('the shoe rack', () => {
     expect(built(rack({ levels: 4, bootLevel: true })).notes.join(' ')).toMatch(/botas/)
   })
 
+  it('a single level for boots has no shelf over it: its note gives the clear height between the bottom and the top', () => {
+    const short = rack({ levels: 1, bootLevel: true, dimensions: { width: 800, height: 500, depth: 330 } })
+    const { boxes: b } = boxes(short)
+    const clear = Math.round(b.get('top')!.y0 - b.get('bottom')!.y1)
+    expect(built(short).notes.join(' ')).toContain(`queda de ${clear} mm de alto libre`)
+    expect(built({ ...short, dimensions: { ...short.dimensions, height: 500 + BOOT_LEVEL_HEIGHT - clear } }).notes.join(' ')).not.toMatch(/botas/)
+  })
+
   it('a seat is marked to carry a person, and gets a divider so it holds one', () => {
     const { design } = built(rack({ seat: true, levels: 2, dimensions: { width: 900, height: 450, depth: 330 } }))
     expect(design.pieces.find((p) => p.id === 'top')).toMatchObject({ name: 'Asiento', load: 'heavy' })

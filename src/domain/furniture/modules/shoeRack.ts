@@ -93,7 +93,7 @@ function layoutOf(plan: ShoeRackPlan, catalog: Catalog) {
   const boot = !plan.bootLevel ? 0 : !lowLevels(plan) ? height : room >= LEVEL_HEIGHT.min ? room + t / 2 : 0
   const low = boot ? lowLevels(plan) : plan.levels
   const level = low ? (height - (plan.levels - 1) * t - (boot && boot - t / 2)) / low : 0
-  return { t, columns, low, pairs: columns * Math.floor(columnWidth / PAIR_WIDTH) * plan.levels, bootShare: boot / height, bootHeight: boot && boot - t / 2, level }
+  return { t, columns, low, pairs: columns * Math.floor(columnWidth / PAIR_WIDTH) * plan.levels, bootShare: boot / height, bootHeight: boot && (low ? boot - t / 2 : boot), level }
 }
 
 /** The same box as a cabinet: its columns side by side, each with the boot level under a fixed shelf and the low levels above. */
