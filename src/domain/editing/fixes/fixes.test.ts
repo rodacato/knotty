@@ -74,6 +74,13 @@ describe('fixesFor', () => {
     expect(findings(fix.design).some((h) => h.code === 'R10_USE')).toBe(false)
   })
 
+  it('the hanging rail spans the sides by where they stand, not by their order: a restored side goes last', () => {
+    const left = exampleWallCabinet.pieces.find((p) => p.id === 'side-left')!
+    const restored = { ...exampleWallCabinet, pieces: [...exampleWallCabinet.pieces.filter((p) => p !== left), left] }
+    const [fix] = fixesFor(restored, testCatalog, finding(restored, 'R10_USE'))
+    expect(fix?.key).toBe('hanging-rail')
+  })
+
   it('a box that can rack gets a rigid rail with pocket screws, and is square', () => {
     const racking = finding(exampleNightstand, 'R5_RACKING')
     const fix = fixesFor(exampleNightstand, testCatalog, racking).find((f) => f.key === 'rigid-apron')!
