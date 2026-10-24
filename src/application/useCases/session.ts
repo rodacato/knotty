@@ -1,4 +1,4 @@
-import { PERSON_NOTE_PREFIX } from '../../domain/checks/requirements/requirements'
+import { PERSON_NOTE_PREFIX, type Requirement } from '../../domain/checks/requirements/requirements'
 import { questionAnswerKey, type DesignState, type Question } from '../../domain/session/state'
 import { acceptFinding } from '../../domain/checks/structure/accepted'
 import { findingKey, type Finding } from '../../domain/checks/structure/finding'
@@ -20,14 +20,20 @@ export function createSession(kit: Kit, adjust: Adjust) {
   /** Saves the session that is open, or none: a design opened whole, or the open one over what an answer for a design that is gone left saved. */
   const keep = (state: DesignState | null) => (state ? repository.save(state) : repository.clear())
 
+  /** A note the person changes changes the pending proposal too, which replaces the list when it is applied. */
+  function withNotes(state: DesignState, change: (requirements: Requirement[]) => Requirement[]): DesignState {
+    const proposal = state.proposal && { ...state.proposal, requirements: change(state.proposal.requirements) }
+    return save({ ...state, requirements: change(state.requirements), proposal })
+  }
+
   function addRequirement(state: DesignState, text: string): DesignState {
     const clean = text.trim()
     if (!clean) return state
-    const id = `${PERSON_NOTE_PREFIX}${newId().slice(0, 8)}`
-    return save({ ...state, requirements: [...state.requirements, { id, text: clean, type: 'other', axis: null, min: null, max: null }] })
+    const note: Requirement = { id: `${PERSON_NOTE_PREFIX}${newId().slice(0, 8)}`, text: clean, type: 'other', axis: null, min: null, max: null }
+    return withNotes(state, (requirements) => [...requirements, note])
   }
 
-  const removeRequirement = (state: DesignState, id: string) => save({ ...state, requirements: state.requirements.filter((r) => r.id !== id) })
+  const removeRequirement = (state: DesignState, id: string) => withNotes(state, (requirements) => requirements.filter((r) => r.id !== id))
   const removeDecision = (state: DesignState, topic: string) => save({ ...state, decisions: state.decisions.filter((d) => d.topic !== topic) })
 
   /** The person leaves a finding as it is now: it stops counting as pending and the verdict mentions it. Accepting it again replaces what was accepted before. */
