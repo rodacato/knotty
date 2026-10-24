@@ -575,13 +575,15 @@ const TABLE_PARTS: Parts<TablePlan> = {
   },
 }
 
-/** A plan saved before its rules, as what was built from it: a pedestal that never got drawn, or a shelf a desk does not take, is not part of the furniture. */
+/** A plan saved before its rules, as what was built from it: a pedestal that never got drawn, a shelf or the long stretcher a desk does not take, is not part of the furniture. */
 export function settleTable(plan: TablePlan): TablePlan {
   const built = plan.use === 'desk' && plan.pedestal.side !== 'none' && plan.pedestal.drawers > 0
   const noPedestal = plan.pedestal.side === 'none' && plan.pedestal.drawers === 0
   const noShelf = plan.use !== 'desk' || !plan.shelf
-  if ((built || noPedestal) && noShelf) return plan
-  return { ...plan, pedestal: built ? plan.pedestal : { side: 'none', drawers: 0 }, shelf: plan.use === 'desk' ? false : plan.shelf }
+  const noLong = plan.use !== 'desk' || plan.stretcher !== 'h'
+  if ((built || noPedestal) && noShelf && noLong) return plan
+  const desk = plan.use === 'desk'
+  return { ...plan, pedestal: built ? plan.pedestal : { side: 'none', drawers: 0 }, shelf: desk ? false : plan.shelf, ...(noLong ? {} : { stretcher: 'ends' as const }) }
 }
 
 /** The same table for another use, without what that use does not take; its name follows only while it is the plain name of its use, so a name of its own stays. */
