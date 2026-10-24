@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyze } from '../../checks/analysis'
 import { testCatalog } from '../fixtures/catalog.test-util'
+import { testReferences } from '../fixtures/references.test-util'
 import type { Cell } from '../reading/reading'
 import { isVisible } from './fields'
 import { buildCabinet, cabinetModule, CabinetPlan, cellOptions, choicesFor, DEFAULT_CONSTRUCTION, ExpertColumns, leafCells, withContent, type CabinetConstruction, type PlanCell, type PlanColumn } from './cabinet'
@@ -509,6 +510,15 @@ describe('sliding doors', () => {
     expect(cabinetModule.parts.list.find((x) => x.id === 'doors')!.summary(inFront, 'Barniz')).toBe('1 puerta corrediza')
     expect(quickCounts(inFront)).toEqual({ drawer: 0, door: 1, open: 2 })
     expect(countLimits(inFront, testCatalog).door).toEqual({ min: 1, max: 1 })
+  })
+
+  it('one more door is not offered when it would stack two sliding-door cells, which the plan forbids', () => {
+    const plan = testReferences.latest('GN-COC-04')!.plan as CabinetPlan
+    const counts = quickCounts(plan)
+    const two = setCount(plan, 'door', counts.door + 1, testCatalog)
+    expect(two.ok).toBe(false)
+    expect(FurniturePlan.safeParse(two.plan).success).toBe(true)
+    expect(countLimits(plan, testCatalog).door.max).toBe(counts.door)
   })
 
   it('a column with less than 100 mm clear is rejected, inside a split cell too; the same columns in a wider piece are not', () => {
