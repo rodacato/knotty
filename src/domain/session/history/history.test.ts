@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { exampleBookcase } from '../../furniture/fixtures/bookcase'
-import { updateDecisions, compactLog, pruneVersions, type Version } from './history'
+import { updateDecisions, compactLog, pruneVersions, redoTarget, undoTarget, type Version } from './history'
 
 const version = (n: number): Version => ({ n, design: exampleBookcase, summary: `cambio ${n}`, reason: `pedido ${n}`, operations: ['x→900 estirar'], date: '2026-09-24', origin: null, decisions: [], plan: null, extras: [], restores: null })
 
@@ -24,5 +24,13 @@ describe('history', () => {
     expect(pruned).toHaveLength(40)
     expect(pruned[0].n).toBe(1)
     expect(pruned[1].n).toBe(12)
+  })
+
+  it('steps back from a file whose versions restore themselves or each other', () => {
+    const own = [version(1), version(2), { ...version(3), restores: 3 }]
+    expect(undoTarget(own, 3)).toBe(2)
+    expect(redoTarget(own, 3)).toBe(2)
+    const crossed = [version(1), { ...version(2), restores: 3 }, { ...version(3), restores: 2 }]
+    expect(undoTarget(crossed, 3)).toBe(1)
   })
 })
