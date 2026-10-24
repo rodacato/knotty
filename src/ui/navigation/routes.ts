@@ -37,6 +37,7 @@ export function fragmentOf(s: Store): string {
   if (s.phase === 'capture' || s.phase === 'analyzing') return '#design'
   if (s.phase !== 'studio' || !s.state) return s.adjusting?.code ? `#catalog/adjust/${encodeURIComponent(s.adjusting.code)}` : '#catalog'
   if (s.takeAway) return '#takeaway'
+  if (s.checkout) return '#studio/materials'
   if (s.editing) {
     const root = `#studio/edit/${s.editing}`
     const part = s.part ? `/${encodeURIComponent(s.part.id)}` : ''
@@ -45,7 +46,7 @@ export function fragmentOf(s: Store): string {
   }
   if (s.selection) return `#studio/piece/${encodeURIComponent(s.selection)}`
   if (s.studioOverlay) return `#studio/${s.studioOverlay}`
-  return s.studioTab === 'materials' ? '#studio/materials' : '#studio'
+  return '#studio'
 }
 
 export const hasLinkedFicha = (at: Pick<Location, 'search' | 'hash'>) => new URLSearchParams(at.search).has('ficha') || new URLSearchParams(at.hash.slice(1)).has('ficha')
