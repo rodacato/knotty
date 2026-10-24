@@ -148,7 +148,7 @@ npm run compare:resume -- --last  # and resumes them
 | Prompts, schemas the expert sees or the context sent to it | Bench with an expert (4), compared with the previous one |
 | The checks or the loader of the hard questions | Their tests (with invented questions) and, if you have the private folder, `compare:hard -- --list` (5) |
 | Something that is saved (session, preferences, keys, catalog settings) | See "What is saved in the browser" |
-| The catalog | Bench without an expert (3) and the Materiales tab (2) |
+| The catalog | Bench without an expert (3) and the «Preparar materiales» page (2) |
 | A reference ficha, or the engine that builds it | `npm run probe -- --all`: each ficha must remain as its `expect` says. If a difference is the expected one, `npm run probe -- --update <código>` rewrites the `expect` and the PR diff shows it; if not, it is a bug |
 | What the chat understands without an expert (`src/domain/furniture/intent/`) | `npm run autonomy`: no `misread` request, and the ones it used to read are still read. See [the guide](docs/autonomy.md) |
 

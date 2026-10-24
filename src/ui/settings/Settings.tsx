@@ -88,8 +88,8 @@ export function Settings() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-bone shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-bone shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <Dialog.Title asChild>
               <Title className="text-xl">Ajustes</Title>

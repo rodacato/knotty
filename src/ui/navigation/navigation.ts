@@ -33,7 +33,7 @@ export function showRoute(store: StoreApi<Store>, route: Route) {
   const side = route.side && parts?.list.some((p) => p.side === route.side) ? route.side : null
   s.edit(side)
   s.setStudioOverlay(route.panel === 'notices' || route.panel === 'history' ? route.panel : null)
-  s.setStudioTab(route.panel === 'materials' ? 'materials' : 'chat')
+  s.openCheckout(route.panel === 'materials')
   const part = side && route.part && parts?.list.find((p) => p.id === route.part && p.side === side)
   s.selectPart(part ? part.id : null)
   const piece = route.piece && currentDesign(s.state).pieces.find((p) => p.id === route.piece)

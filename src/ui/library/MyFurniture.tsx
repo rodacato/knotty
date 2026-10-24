@@ -121,8 +121,8 @@ export function MyFurniture() {
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-xl flex-col gap-4 overflow-y-auto rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-[8vh] sm:max-h-[84dvh]">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="sheet sheet-top fixed inset-x-3 top-3 z-50 mx-auto flex max-h-[calc(100dvh-1.5rem)] max-w-xl flex-col gap-4 overflow-y-auto rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-[8vh] sm:max-h-[84dvh]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
               <Dialog.Title className="font-display text-2xl font-semibold">Mis muebles</Dialog.Title>
