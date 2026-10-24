@@ -30,10 +30,12 @@ Hexagonal architecture; the full map is in section 2 of the proposal.
 
 ## Languages
 
-- **In English:** the code (names, files, folders, comments), the data that is saved, the ids and the prompts.
-- **In Mexican Spanish:** everything the person reads: the interface, the messages, the names of pieces and furniture, and what the expert writes (the prompts ask it to). Workshop vocabulary: «triplay», «entrepaño», «zoclo», «jaladera».
+The line is who reads it: the person who uses Knotty reads Mexican Spanish; whoever works on the repository reads English.
+
+- **In English:** the code (names, files, folders, comments), the data that is saved, the ids and the prompts; commits, branches, PRs, issues and labels; the README, the documentation and the repository's description; the release notes, which say what changed for the person, in English.
+- **In Mexican Spanish:** everything the person reads: the interface, the messages, the names of pieces and furniture, what the expert writes (the prompts ask it to) and the public site (the landing and the catalog). Workshop vocabulary: «triplay», «entrepaño», «zoclo», «jaladera». A text from the app quoted in an English document stays in Spanish, between «».
 - **Measures in millimeters**; they are also shown to the person in centimeters when it helps.
-- Commits, PRs and documentation, in English. `docs/PROPUESTA.md` and `docs/carpinteria/` are still in Spanish.
+- **Two exceptions, in Spanish on purpose:** `docs/PROPUESTA.md`, the author's record of decisions, and `docs/carpinteria/`, the workshop reference, whose words are the ones the person reads. They are not pending a translation; a new document goes in English.
 
 ## How to verify a change
 
