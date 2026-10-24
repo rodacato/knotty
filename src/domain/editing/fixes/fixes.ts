@@ -89,9 +89,10 @@ function centerSupports(design: Design, catalog: Catalog, target: Piece): Operat
 
 /** A rail across the back, just under the top: to hang the piece from the wall or to keep it square. */
 function backRail(design: Design, catalog: Catalog, role: 'brace' | 'apron', name: string): Operation[] {
-  const sides = design.pieces.filter((p) => p.role === 'side' && p.normal === 'x')
+  const geo = analyze(design, catalog).geo
+  const sides = design.pieces.filter((p) => p.role === 'side' && p.normal === 'x').sort((a, b) => (geo?.boxes.get(a.id)?.x0 ?? 0) - (geo?.boxes.get(b.id)?.x0 ?? 0))
   const top = design.pieces.find((p) => p.role === 'top')
-  if (sides.length < 2 || !top) return []
+  if (!geo || sides.length < 2 || !top) return []
   const [left, right] = [sides[0], sides[sides.length - 1]]
   const back = design.pieces.find((p) => p.role === 'back')
   const id = uniqueId(design, role === 'brace' ? 'hanging-rail' : 'back-apron')
