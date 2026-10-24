@@ -3,6 +3,7 @@ import { MIN_DRAWER_OPENING_HEIGHT } from '../../editing/operations/drawer'
 import type { Catalog } from '../../materials/catalog'
 import { checkBuilt } from '../quick'
 import { frontedCells, kickOf, leafCells, type CabinetPlan, type PlanCell, type PlanColumn } from './cabinet'
+import { refusalOf } from './cabinetCells'
 import { thicknessOf } from './common'
 import type { QuickCountKind } from './module'
 
@@ -73,12 +74,12 @@ function shrunk(plan: CabinetPlan, kind: QuickCountKind, catalog: Catalog): Cabi
 
 export type CountChange = { ok: true; plan: CabinetPlan; counts: QuickCounts } | { ok: false; plan: CabinetPlan; message: string; counts: QuickCounts }
 
-/** One step up or down, built; the reason when it does not hold. */
+/** One step up or down, within the plan's rules and built; the reason when it does not hold. */
 function step(plan: CabinetPlan, kind: QuickCountKind, up: boolean, catalog: Catalog): { plan: CabinetPlan } | { message: string } {
   const next = up ? grown(plan, kind, catalog) : shrunk(plan, kind, catalog)
   if (!next) return { message: up ? 'Ya no hay un hueco con altura para partirlo en dos.' : 'Tiene que quedar al menos un hueco.' }
-  const built = checkBuilt(next, catalog)
-  return built.problems.length ? { message: built.problems[0] } : { plan: next }
+  const problem = checkBuilt(next, catalog).problems[0] ?? refusalOf(next)
+  return problem ? { message: problem } : { plan: next }
 }
 
 /**
