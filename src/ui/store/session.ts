@@ -34,6 +34,8 @@ export interface SessionSlice {
   browsing: CatalogQuery
   /** The sheet to take away is shown in place of the Studio. */
   takeAway: boolean
+  /** The page to review and confirm what to buy is shown in place of the Studio (UI-90). */
+  checkout: boolean
 
   start(services: Services): void
   newDesign(): void
@@ -42,6 +44,7 @@ export interface SessionSlice {
   adjustBase(base: Base): void
   closeAdjust(): void
   openTakeAway(open: boolean): void
+  openCheckout(open: boolean): void
   /** Leaves the capture or a base being adjusted for the home with the bases. */
   goHome(): void
   /** Returns from the catalog without opening another example or clearing the saved design. */
@@ -135,7 +138,7 @@ function versioned<R extends { ok: true; state: DesignState } | { ok: false }, C
 }
 
 /** What the Studio keeps about one design and must not carry into another: how it was seen and edited, its review and its call to the expert. */
-const ANOTHER_DESIGN = { adjusting: null, takeAway: false, viewedVersion: null, selection: null, focus: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, mode: 'closed', editing: null, beforeEditing: null, leaving: false, showProposal: true, studioTab: 'chat', studioOverlay: null, reviewing: null, reviewProgress: null, reviewNotice: null, verdictError: null, reconstructionError: null, draft: null, thinking: false, stage: null, controller: null } satisfies Partial<Store>
+const ANOTHER_DESIGN = { adjusting: null, takeAway: false, checkout: false, viewedVersion: null, selection: null, focus: null, hidden: [], flagged: [], preview: null, planDraft: null, cell: null, part: null, mode: 'closed', editing: null, beforeEditing: null, leaving: false, showProposal: true, studioTab: 'chat', studioOverlay: null, reviewing: null, reviewProgress: null, reviewNotice: null, verdictError: null, reconstructionError: null, draft: null, thinking: false, stage: null, controller: null } satisfies Partial<Store>
 
 /** A design opens in the Studio: it appears from scratch, seen from the front three-quarter view. */
 export const opened = (s: Store, state: DesignState): Partial<Store> => ({ ...ANOTHER_DESIGN, state, phase: 'studio', reveal: s.reveal + 1, view: { name: 'three-quarter', nonce: s.view.nonce + 1 } })
@@ -160,6 +163,7 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
   adjusting: null,
   browsing: ANY,
   takeAway: false,
+  checkout: false,
 
   start(services) {
     get().cancelReview()
@@ -181,11 +185,13 @@ export const createSession: Slice<SessionSlice> = (set, get) => ({
 
   openTakeAway: (takeAway) => set({ takeAway }),
 
+  openCheckout: (checkout) => set({ checkout }),
+
   startCapture: () => set({ phase: 'capture', adjusting: null, reconstructionError: null, draft: null }),
 
   goHome: () => set({ phase: 'home', adjusting: null, reconstructionError: null, draft: null }),
 
-  resumeDesign: () => { if (get().state) set({ phase: 'studio', adjusting: null, takeAway: false }) },
+  resumeDesign: () => { if (get().state) set({ phase: 'studio', adjusting: null, takeAway: false, checkout: false }) },
 
   browseAll() {
     get().goHome()

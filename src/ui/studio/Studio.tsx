@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tabs from '@radix-ui/react-tabs'
 import { ArrowsOut, Bell, CaretDown, CaretUp, ChatCircleText, Check, ClockCounterClockwise, Cube, DoorOpen, DownloadSimple, Export, Eye, FloppyDisk, EyeSlash, GearSix, GridFour, LinkSimple, MagnifyingGlass, PencilSimple, Plus, Ruler, VideoCamera, Stack, Warning, X, type Icon, DotsThree } from '@phosphor-icons/react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { exampleDesign } from '../../domain/furniture/examples'
 import type { FurniturePlan } from '../../domain/furniture/modules/plan'
@@ -20,7 +20,6 @@ import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
 import type { Parts } from '../../domain/furniture/modules/parts'
 import { EditPanel } from './EditPanel'
 import { HistoryPanel } from './HistoryPanel'
-import { Materials } from './Materials'
 import { ReviewActivity } from './ReviewActivity'
 import { InvalidCanvas } from './InvalidCanvas'
 import { PieceSheet } from './PieceSheet'
@@ -41,6 +40,7 @@ import { downloadDesign } from '../files/download'
 import { DownloadFirst } from '../files/DownloadFirst'
 import { LOSS_NOTE } from '../spotlight/swap'
 import { RoomLauncher } from '../room/RoomLauncher'
+import { withPageTransition } from '../system/pageTransition'
 import { studioSource } from '../room/sources'
 
 const VIEWS: { id: View; name: string }[] = [
@@ -128,10 +128,20 @@ function LeaveEditing() {
   const leave = useStore((s) => s.leave)
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center md:top-4 md:bottom-auto">
-      <button type="button" className={`${SCENE_TOOL} font-medium active:scale-[0.97]`} onClick={() => leave()} title="Salir (Esc)">
+      <button type="button" className={`${SCENE_TOOL} font-medium`} onClick={() => leave()} title="Salir (Esc)">
         <Check weight="bold" /> Terminar de editar
       </button>
     </div>
+  )
+}
+
+/** The way from shaping the furniture to what it takes to build it (UI-90): the one filled action on the scene. */
+function PrepareMaterials() {
+  const openCheckout = useStore((s) => s.openCheckout)
+  return (
+    <button type="button" className="pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full bg-amber px-5 text-sm font-medium text-on-amber shadow-sm transition active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
+      <Stack weight="bold" /> Preparar materiales
+    </button>
   )
 }
 
@@ -146,14 +156,15 @@ function DimensionsToggle() {
       aria-pressed={dimensions}
       aria-label="Cotas"
       title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
-      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft ${dimensions ? 'border-amber text-amber' : 'border-line text-graphite-2'}`}
+      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] ${dimensions ? 'border-amber text-amber' : 'border-line text-graphite-2'}`}
     >
       <Ruler weight="bold" />
     </button>
   )
 }
 
-const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border border-line bg-bone/90 px-4 text-sm text-graphite shadow-sm backdrop-blur transition hover:bg-kraft'
+const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border border-line bg-bone/90 px-4 text-sm text-graphite shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97]'
+const SCENE_ROUND = 'pointer-events-auto grid size-11 place-items-center rounded-full border border-line bg-bone/90 text-graphite shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] disabled:text-graphite-2/40'
 
 /** Hiding the chosen piece, and the way back while any is hidden: over the measures switch, in sight whatever the panel shows. */
 function PieceVisibility({ design, hidden }: { design: Design; hidden: number }) {
@@ -183,8 +194,8 @@ function ConfirmNew({ children }: { children: ReactNode }) {
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-3 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <Dialog.Title className="font-display text-xl font-semibold">¿Empezar un diseño nuevo?</Dialog.Title>
           <Dialog.Description className="text-sm text-graphite">{LOSS_NOTE.design}</Dialog.Description>
           <div className="mt-2 flex flex-wrap justify-end gap-2">
@@ -233,7 +244,7 @@ function useFichaLink(state: DesignState): { copy: () => void; copied: boolean; 
   return { copy, copied, label: `Copiar el enlace a la ficha ${code}${said}` }
 }
 
-/** What is done with the open design now and then (UI-88): a sheet on a phone, a menu under its button on a wider screen. */
+/** What is done with the open design now and then (UI-88): a sheet on a phone, a menu under its button on a wider screen. «Nuevo diseño» goes first, away from the thumb (UI-90). */
 function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expert: string; onExpert: (() => void) | null; debug: boolean }) {
   const link = useFichaLink(state)
   const { files, library } = useServices()
@@ -248,9 +259,15 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-none" />
-        <Dialog.Content aria-describedby={undefined} className="animate-appear fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-1 rounded-3xl border border-line bg-bone p-3 shadow-2xl sm:inset-x-auto sm:top-16 sm:right-3 sm:bottom-auto sm:w-72 sm:rounded-2xl sm:p-2">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px] sm:bg-transparent sm:backdrop-blur-none" />
+        <Dialog.Content aria-describedby={undefined} className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-sm flex-col gap-1 rounded-3xl border border-line bg-bone p-3 shadow-2xl sm:inset-x-auto sm:top-16 sm:right-3 sm:bottom-auto sm:w-72 sm:rounded-2xl sm:p-2">
           <Dialog.Title className="sr-only">Más opciones</Dialog.Title>
+          <ConfirmNew>
+            <Button variant="ghost" className={row}>
+              <Plus weight="bold" /> Nuevo diseño
+            </Button>
+          </ConfirmNew>
+          <span className="mx-3 my-2 h-px bg-line" aria-hidden />
           {link && (
             <Button variant="ghost" className={row} onClick={link.copy}>
               {link.copied ? <Check className="text-slate" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
@@ -282,11 +299,6 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
               </Button>
             </ExportFicha>
           )}
-          <ConfirmNew>
-            <Button variant="ghost" className={row}>
-              <Plus weight="bold" /> Nuevo diseño
-            </Button>
-          </ConfirmNew>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -352,12 +364,32 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
 type Sheet = 'peek' | 'half' | 'full'
 const SCENE_HEIGHT = { half: '50%', full: '30%' } as const
 
+/** The panel slides to its new height instead of jumping there: only its transform moves, so the 3D canvas resizes once (#162). */
+function useSheetSlide(sheet: Sheet) {
+  const ref = useRef<HTMLDivElement>(null)
+  const lastTop = useRef<number | null>(null)
+  const lastSheet = useRef(sheet)
+  useLayoutEffect(() => {
+    const panel = ref.current
+    if (!panel) return
+    const from = lastTop.current
+    const changed = lastSheet.current !== sheet
+    lastSheet.current = sheet
+    if (changed) panel.getAnimations().forEach((a) => a.cancel())
+    const to = panel.getBoundingClientRect().top
+    lastTop.current = to
+    if (!changed || from === null || from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const tokens = getComputedStyle(document.documentElement)
+    panel.animate([{ transform: `translateY(${from - to}px)` }, { transform: 'none' }], { duration: parseFloat(tokens.getPropertyValue('--duration-base')), easing: tokens.getPropertyValue('--ease-drawer') })
+  })
+  return ref
+}
+
 export function Studio({ state }: { state: DesignState }) {
   const { catalog, references } = useServices()
   const view = useStudioView(state)
   const { current, currentAnalysis, shown, geo, board, selection } = view
   const backToVersion = useStore((s) => s.backToVersion)
-  const adjust = useStore((s) => s.adjust)
   const selectPiece = useStore((s) => s.select)
   const previewFix = useStore((s) => s.previewFix)
   const debugVisible = useStore((s) => s.debugVisible)
@@ -377,7 +409,8 @@ export function Studio({ state }: { state: DesignState }) {
   const insideParts = !!parts?.list.some((p) => p.side === 'inside')
   const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
   const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
-  const [sheet, setSheet] = useState<Sheet>('peek')
+  // A request sent from the checkout lands here with the expert answering: the panel opens so the answer is in sight.
+  const [sheet, setSheet] = useState<Sheet>(() => (useStore.getState().thinking ? 'half' : 'peek'))
   const tab = useStore((s) => s.studioTab)
   const setTab = useStore((s) => s.setStudioTab)
   const [dismissedResolved, setDismissedResolved] = useState<number | null>(null)
@@ -398,10 +431,7 @@ export function Studio({ state }: { state: DesignState }) {
   // A piece, an edit, the notices or the history replace the tabs, so they never open collapsed.
   const shownSheet: Sheet = sheet === 'peek' && (editingSide || view.showsPiece || overlay) ? 'half' : sheet
   const collapsed = shownSheet === 'peek' ? 'hidden' : ''
-  const request = (text: string) => {
-    toChat()
-    void adjust(text)
-  }
+  const sheetRef = useSheetSlide(shownSheet)
 
   // A preview belongs to the version it was built on and to the open notices: a new version or closing them clears it.
   useEffect(() => previewFix(null), [state.current, overlay, previewFix])
@@ -449,7 +479,7 @@ export function Studio({ state }: { state: DesignState }) {
       {editingSide && <LeaveEditing />}
       {!editingSide && geo && (
         <div className="pointer-events-none absolute inset-x-16 bottom-3 z-10 flex justify-center md:bottom-4">
-          <RoomLauncher source={studioSource(state, references.home())} className={`${SCENE_TOOL} max-w-full text-xs md:text-sm`} disabled={shown !== currentDesign(state)} />
+          <PrepareMaterials />
         </div>
       )}
       {geo && (
@@ -460,6 +490,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo && (
         <div className="pointer-events-none absolute right-3 bottom-3 z-10 flex flex-col items-end gap-2 md:right-4 md:bottom-4">
           <PieceVisibility design={shown} hidden={view.hidden.length} />
+          {!editingSide && <RoomLauncher round source={studioSource(state, references.home())} className={SCENE_ROUND} disabled={shown !== currentDesign(state)} />}
           <DimensionsToggle />
         </div>
       )}
@@ -467,7 +498,7 @@ export function Studio({ state }: { state: DesignState }) {
   )
 
   const overlayPanel = overlay && (
-    <section className="flex h-full min-h-0 flex-col bg-bone/60" aria-label={overlay === 'notices' ? 'Avisos' : 'Historial'}>
+    <section className="flex h-full min-h-0 animate-fade-in flex-col bg-bone/60" aria-label={overlay === 'notices' ? 'Avisos' : 'Historial'}>
       <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
         {overlay === 'notices' ? <Bell className="text-graphite" weight="duotone" /> : <ClockCounterClockwise className="text-graphite" />}
         <h2 className="flex-1 text-sm font-medium">{overlay === 'notices' ? `Avisos${board.pending.length ? ` · ${board.pending.length} por decidir` : ''}` : 'Historial'}</h2>
@@ -498,7 +529,6 @@ export function Studio({ state }: { state: DesignState }) {
           <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
             {[
               { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
-              { id: 'materials', name: 'Materiales', icon: <Stack /> },
               ...(debugVisible ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
             ].map((t) => (
               <Tabs.Trigger
@@ -531,18 +561,6 @@ export function Studio({ state }: { state: DesignState }) {
           <Tabs.Content value="chat" className={`min-h-0 flex-1 ${collapsed}`}>
             <Chat state={state} />
           </Tabs.Content>
-          <Tabs.Content value="materials" className={`min-h-0 flex-1 overflow-y-auto ${collapsed}`}>
-            {currentAnalysis.valid ? (
-              <Materials state={state} design={current} geo={currentAnalysis.geo} catalog={catalog} instead={view.instead} onRequest={request} />
-            ) : (
-              <div className="flex flex-col items-start gap-3 p-4">
-                <p className="text-sm text-graphite">Primero hay que resolver los problemas del diseño; están en los avisos, en la campana de arriba.</p>
-                <Button className="min-h-11" onClick={() => setOverlay('notices')}>
-                  Ver los avisos
-                </Button>
-              </div>
-            )}
-          </Tabs.Content>
           {debugVisible && (
             <Tabs.Content value="findings" className={`min-h-0 flex-1 overflow-y-auto ${collapsed}`}>
               <Findings design={current} analysis={currentAnalysis} />
@@ -557,18 +575,18 @@ export function Studio({ state }: { state: DesignState }) {
     <div className="flex h-dvh flex-col">
       <HistoryKeys />
       <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} />
-      {(tab !== 'materials' || editingSide || overlay || view.showsPiece) && <ReviewActivity compact />}
+      <ReviewActivity compact />
       {desktop ? (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
           {scene}
           <aside className="relative min-h-0 border-l border-line">{panel}</aside>
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className={shownSheet === 'peek' ? 'min-h-0 flex-1' : 'min-h-0'} style={shownSheet === 'peek' ? undefined : { height: SCENE_HEIGHT[shownSheet] }}>
             {scene}
           </div>
-          <div className={`border-t border-line ${shownSheet === 'peek' ? 'shrink-0' : 'min-h-0 flex-1'}`}>{panel}</div>
+          <div ref={sheetRef} className={`relative z-10 border-t border-line bg-bone ${shownSheet === 'peek' ? 'shrink-0' : 'min-h-0 flex-1'}`}>{panel}</div>
         </div>
       )}
     </div>

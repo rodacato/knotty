@@ -390,7 +390,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
 
   const whose = instead && (
     <p role="note" className="rounded-xl border border-line bg-amber-soft p-3 text-[13px] leading-snug">
-      En el 3D estás viendo {instead}. El costo, la revisión y la lista de aquí son de tu diseño actual.
+      En el Estudio estás viendo {instead}. El costo, la revisión y la lista de aquí son de tu diseño actual.
     </p>
   )
 
