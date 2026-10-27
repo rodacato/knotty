@@ -62,6 +62,9 @@ export function VerdictSummary({ verdict }: { verdict: PurchaseReview }) {
   )
 }
 
+/** Where the checkout's next step takes the person: one element per pending decision. */
+export const pendingId = (id: string) => `pending-${id}`
+
 function PieceLink({ pieces, design }: { pieces: string[]; design: Design }) {
   const select = useStore((s) => s.select)
   const openCheckout = useStore((s) => s.openCheckout)
@@ -81,7 +84,8 @@ function purpose(item: PurchaseReviewItem) {
   return { title: 'Detalle por revisar', detail: 'La revisión pide cambios; consulta si este detalle debe corregirse.' }
 }
 
-export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void }) {
+/** `wall`: the question about the wall, a decision like the review's own, so it is counted and listed with them. */
+export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void; wall?: ReactNode }) {
   const review = useStore((s) => s.review)
   const choose = useStore((s) => s.choosePurchaseReview)
   const thinking = useStore((s) => s.thinking)
@@ -107,19 +111,22 @@ export function VerdictCard({ verdict, design, onRequest }: { verdict: PurchaseR
     decided(item, 'requested')
     onRequest(item.request ?? `Explícame cómo resolver este pendiente: ${item.title}. ${item.detail}`)
   }
+  const total = items.length + (wall ? 1 : 0)
+  const pending = undecided.length + (wall ? 1 : 0)
   const notes = verdict.checks.filter((check) => check.status !== 'ok').length
   const passed = verdict.checks.filter((check) => check.status === 'ok').length
   return (
     <div className="flex flex-col gap-4">
-      <p role="status" className="text-sm leading-relaxed">{items.length ? `${undecided.length} ${undecided.length === 1 ? 'decisión por tomar' : 'decisiones por tomar'} de ${items.length}. Abre un pendiente para revisar el motivo y elegir qué hacer.` : 'No hay decisiones pendientes en esta revisión.'}</p>
+      <p role="status" className="text-sm leading-relaxed">{total ? `${pending} ${pending === 1 ? 'decisión por tomar' : 'decisiones por tomar'} de ${total}. Abre un pendiente para revisar el motivo y elegir qué hacer.` : 'No hay decisiones pendientes en esta revisión.'}</p>
       {choices.length > 0 && <p role="status" className="text-xs leading-relaxed text-graphite-2">Tus decisiones quedan registradas. Solo un cambio aplicado y revisado puede corregir los problemas.</p>}
       <div className="flex flex-col gap-3">
+        {wall && <div id={pendingId('wall')}>{wall}</div>}
         {items.map((item) => {
           const choice = choices.find((choice) => choice.id === item.id)?.choice
           const why = purpose(item)
           const question = !item.request || /^[¿?]/.test(item.request.trim())
           return (
-            <div key={item.id} className={`rounded-xl border bg-paper/60 ${item.priority === 'high' && !item.optional ? 'border-rust/40' : 'border-line'}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
+            <div key={item.id} id={pendingId(item.id)} className={`scroll-mt-4 rounded-xl border bg-paper/60 ${item.priority === 'high' && !item.optional ? 'border-rust/40' : 'border-line'}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
               <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer rounded-xl p-3 text-sm marker:text-graphite-2">
                 <span className="font-medium">{item.title}</span>
                 <span className="mt-1 block pl-4 text-xs text-graphite-2">{choice ? REVIEW_CHOICE[choice] : why.title}</span>

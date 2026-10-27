@@ -24,6 +24,14 @@ async function reviewed(design = exampleBookcase) {
   return { ...state, review }
 }
 
+/** A reviewed design with nothing left to decide: the wall, when it hangs, is already identified. */
+async function settled(design = exampleBookcase) {
+  const opened = services.useCases.fromExample(design)
+  const state = design.wallAnchored ? services.useCases.chooseWall(opened, 'concrete') : opened
+  const review = await services.useCases.reviewPurchase(state, testCatalog, new AbortController().signal)
+  return { ...state, review }
+}
+
 function renderMaterials(state: DesignState) {
   const design = currentDesign(state)
   const analysis = analyze(design, testCatalog)
@@ -47,7 +55,7 @@ describe('Materials next step', () => {
   })
 
   it('makes the guide primary with one copy action and collapsed purchasing details', async () => {
-    const state = await reviewed()
+    const state = await settled()
     expect(state.review.verdict).toBe('viable')
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
@@ -57,7 +65,7 @@ describe('Materials next step', () => {
     for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado:', 'Lista de corte']) {
       expect(markup).toMatch(new RegExp(`<details[^>]*><summary[^>]*>${heading}`))
     }
-    expect(markup).toMatch(/<details[^>]*open=""[^>]*><summary[^>]*><span[^>]*>2\. Confirmar materiales/)
+    expect(markup).not.toMatch(/<details[^>]*open=""[^>]*><summary[^>]*>(Hojas de triplay|Herrajes|Lista de corte)/)
   })
 
   it('keeps necessary changes visible before export and preserves them in the guide and copied text', async () => {
@@ -70,7 +78,8 @@ describe('Materials next step', () => {
     const state = { ...original, review }
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
-    expect(primaryButtons(markup)[0]).toContain('Ver guía con pendientes')
+    expect(primaryButtons(markup)[0]).toContain('Siguiente:')
+    expect(buttons(markup).filter((button) => button.includes('Ver guía con pendientes'))).toHaveLength(1)
     expect(markup.indexOf('Falta soporte para colgar')).toBeLessThan(markup.indexOf('Guía y lista para llevar'))
     expect(markup).toContain('Necesario antes de construir')
     expect(markup).toContain('Aceptar así, bajo mi riesgo')
@@ -105,23 +114,32 @@ describe('Materials next step', () => {
   })
 
   it('orders decisions and purchases before the final guide action', async () => {
-    const markup = renderMaterials(await reviewed())
-    expect(markup.indexOf('1. Revisar pendientes')).toBeLessThan(markup.indexOf('2. Confirmar materiales'))
-    expect(markup.indexOf('Herrajes y consumibles')).toBeLessThan(markup.indexOf('3. Obtener tu guía'))
-    expect(markup.indexOf('Lista de corte ·')).toBeLessThan(markup.indexOf('Ver guía de cortes'))
-    expect(markup).toContain('Paso 2 de 3')
-    expect(markup).toContain('Continuar a la guía')
+    const markup = renderMaterials(await settled())
+    const order = ['Comprobaciones de Knotty', 'Herrajes y consumibles', 'Lista de corte ·', 'Guía y lista para llevar', 'Ver guía de cortes'].map((text) => markup.indexOf(text))
+    expect(order.every((at) => at >= 0)).toBe(true)
+    expect(order).toEqual([...order].sort((a, b) => a - b))
+  })
+
+  it('counts an unknown wall as a decision and leads to it before the guide', async () => {
+    const markup = renderMaterials(await reviewed(exampleWallCabinet))
+    const identified = renderMaterials(await settled(exampleWallCabinet))
+    expect(markup).toContain('2 decisiones por tomar de 2')
+    expect(identified).toContain('1 decisión por tomar de 1')
+    expect(markup.indexOf('id="pending-wall"')).toBeLessThan(markup.indexOf('id="pending-check:'))
+    expect(primaryButtons(markup)).toHaveLength(1)
+    expect(primaryButtons(markup)[0]).toContain('Siguiente: Anclajes al muro')
+    expect(identified).not.toContain('id="pending-wall"')
   })
 
   it('saves and undoes a review decision without changing the technical verdict or export warnings', async () => {
-    const original = await reviewed()
+    const original = await settled()
     const state = { ...original, review: { ...original.review, verdict: 'needs-changes' as const, carpenter: { verdict: 'needs-changes' as const, summary: 'Hace falta revisar el soporte.', problems: [{ title: 'Soporte pendiente', detail: 'El soporte necesita revisarse.', severity: 'high' as const, pieces: [], request: 'Revisar soporte' }], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
     const chosen = services.useCases.choosePurchaseReview(state, testCatalog, 'expert:0', 'risk')
     const saved = DesignState.parse(services.useCases.load())
     expect(saved.review?.choices).toEqual([{ id: 'expert:0', choice: 'risk' }])
     expect(chosen.review?.verdict).toBe('needs-changes')
     expect(chosen.review?.checks).toEqual(state.review.checks)
-    expect(renderMaterials(chosen)).toContain('Sin decisiones por tomar')
+    expect(renderMaterials(chosen)).toContain('0 decisiones por tomar de 1')
     expect(renderMaterials(chosen)).toContain('Deshacer decisión')
     expect(guide(chosen)).toContain('El soporte necesita revisarse.')
     expect(guide(chosen)).toContain('Decidiste mantenerlo bajo tu riesgo')
@@ -157,11 +175,10 @@ describe('Materials next step', () => {
 
   it('describes the same assembly capability that the printable guide actually has', async () => {
     const withoutPlan = renderMaterials(await reviewed())
-    expect(withoutPlan).toContain('Cortes y diagramas · Sin fases de armado')
     expect(withoutPlan).toContain('Este diseño no tiene fases de armado')
     const state = services.useCases.openExample(exampleSideboard)
     const withPlan = { ...state, review: await services.useCases.reviewPurchase(state, testCatalog, new AbortController().signal) }
-    expect(renderMaterials(withPlan)).toContain('pasos de armado, cortes y diagramas')
+    expect(renderMaterials(withPlan)).toContain('pasos de armado, piezas numeradas y diagramas')
     expect(guide(withPlan)).not.toContain('no tiene instrucciones de armado por fases')
   })
 
@@ -207,11 +224,11 @@ describe('Materials next step', () => {
   })
 
   it('offers a consultation when the expert supplied no concrete correction', async () => {
-    const original = await reviewed()
+    const original = await settled()
     const state: DesignState = { ...original, review: { ...original.review, verdict: 'needs-changes', carpenter: { verdict: 'needs-changes', summary: 'Revisa el soporte antes de comprar.', problems: [], tips: [], origin: { promptId: 'test', provider: 'test', model: 'test' } } } }
     const markup = renderMaterials(state)
     expect(primaryButtons(markup)).toHaveLength(1)
-    expect(primaryButtons(markup)[0]).toContain('Ver guía con pendientes')
+    expect(primaryButtons(markup)[0]).toContain('Siguiente: Consultar los cambios necesarios')
     expect(markup).toContain('Conectar experto para consultar')
     expect(markup).toContain('Consultar los cambios necesarios')
   })
