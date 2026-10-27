@@ -1,6 +1,6 @@
 import { manufacturingProblems } from '../../domain/design/manufacturing'
 import { RepairConstruction } from '../takeaway/RepairConstruction'
-import { ArrowCounterClockwise, Check, PencilSimple, Printer, Sliders } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowDown, Check, PencilSimple, Printer, Sliders } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { isDrawerPart, wallOf, WALLS, type Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
@@ -24,8 +24,7 @@ import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
-import { ReviewGate, VerdictCard, VerdictSummary } from './Verdict'
-import { MaterialsJourney } from './MaterialsJourney'
+import { pendingId, ReviewGate, VerdictCard, VerdictSummary } from './Verdict'
 import { purchaseReviewItems } from '../../domain/session/purchaseReview'
 import { BeforeLeaving, CopyList } from './CopyList'
 import { lineNumbers } from './copyListLabels'
@@ -439,28 +438,35 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       </div>
     )
 
+  const wallPending = !!design.wallAnchored && wallOf(design) === 'unknown'
+  const pending = [
+    ...(wallPending ? [{ id: 'wall', title: 'Anclajes al muro' }] : []),
+    ...purchaseReviewItems(verdict).filter((item) => !verdict.choices?.some((choice) => choice.id === item.id)),
+  ]
+  const guide = verdict.verdict === 'viable' ? guideLabel : 'Ver guía con pendientes'
+
   return (
-    <div className="relative flex flex-col gap-5 p-4">
+    <div className="relative flex flex-col gap-5 px-4 pt-4">
       {whose}
       {cost}
       {construction}
       {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
       {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
       <VerdictSummary verdict={verdict} />
-      <MaterialsJourney
+      <VerdictCard
         key={`${verdict.signature}:${verdict.date}`}
-        remaining={purchaseReviewItems(verdict).filter((item) => !verdict.choices?.some((choice) => choice.id === item.id)).length}
-        guideSummary={phaseCount ? `${phaseCount} pasos de armado, cortes y diagramas` : 'Cortes y diagramas · Sin fases de armado'}
-        materialSummary={`${totalSheets} ${totalSheets === 1 ? 'hoja' : 'hojas'} · ${design.pieces.length} piezas · ${FINISHES[finishOf(design)].name}`}
-        review={<VerdictCard verdict={verdict} design={design} onRequest={onRequest} />}
-        materials={<>
-          <p className="text-sm leading-relaxed">Revisa lo que vas a comprar. El acomodo de cada hoja muestra las piezas y el sobrante disponible; una alternativa debe confirmarse con el experto antes de cambiar el material.</p>
-        {design.wallAnchored && (wallOf(design) === 'unknown' ? <WallQuestion design={design} anchoring={purchase.anchoring} /> : (
+        verdict={verdict}
+        design={design}
+        onRequest={onRequest}
+        wall={wallPending && <WallQuestion design={design} anchoring={purchase.anchoring} />}
+      />
+      <section className="flex flex-col" aria-label="Lo que vas a comprar">
+        {design.wallAnchored && !wallPending && (
           <details className="border-t border-line pt-2">
             <summary className="min-h-11 cursor-pointer text-sm font-medium">Muro: {WALL_LABELS[wallOf(design)]} · Cambiar</summary>
             <WallQuestion design={design} anchoring={purchase.anchoring} />
           </details>
-        ))}
+        )}
 <details className="border-t border-line pt-2">
         <summary className="min-h-11 cursor-pointer text-sm font-medium">{sheetsHeading(onlyPlywood)} · {totalSheets} {totalSheets === 1 ? 'hoja' : 'hojas'}</summary>
         <div className="flex flex-col gap-3 pt-2">
@@ -540,20 +546,40 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <summary className="min-h-11 cursor-pointer text-sm font-medium">Qué revisar al recoger tus cortes</summary>
         <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
       </details>
-        </>}
-        guide={<>
-        <section className="flex flex-col gap-3" aria-label="Guía y lista para llevar">
-            {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
-          <Button variant="primary" className="self-start px-4 text-sm" onClick={() => openTakeAway(true)}>
-            <Printer weight="bold" /> {verdict.verdict === 'viable' ? guideLabel : 'Ver guía con pendientes'}
+      </section>
+      <section className="flex flex-col gap-3 border-t border-line pt-4" aria-label="Guía y lista para llevar">
+        {verdict.verdict !== 'viable' && <p role="note" className="text-sm">La guía y la lista conservan los pendientes de este diseño. Resuélvelos antes de comprar o cortar.</p>}
+        {pending.length > 0 && (
+          <Button className="self-start px-4 text-sm" onClick={() => openTakeAway(true)}>
+            <Printer weight="bold" /> {guide}
           </Button>
-          <p className="text-xs leading-relaxed text-graphite-2">{phaseCount ? `Incluye ${phaseCount} pasos de armado, piezas numeradas y diagramas.` : 'Incluye cortes y diagramas de las piezas. Este diseño no tiene fases de armado.'} Imprime o guarda como PDF desde la guía.</p>
-          <CopyList text={message} />
-          <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
-        </section>
+        )}
+        <p className="text-xs leading-relaxed text-graphite-2">{phaseCount ? `Incluye ${phaseCount} pasos de armado, piezas numeradas y diagramas.` : 'Incluye cortes y diagramas de las piezas. Este diseño no tiene fases de armado.'} Imprime o guarda como PDF desde la guía.</p>
+        <CopyList text={message} />
+        <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
+      </section>
+      <NextStep pending={pending} guide={guide} onGuide={() => openTakeAway(true)} />
+    </div>
+  )
+}
 
-        </>}
-      />
+/** The checkout's one filled action (UI-91): the next pending decision while any is left, then the guide. */
+function NextStep({ pending, guide, onGuide }: { pending: { id: string; title: string }[]; guide: string; onGuide: () => void }) {
+  const next = pending[0]
+  const go = () => {
+    if (!next) return onGuide()
+    const target = document.getElementById(pendingId(next.id))
+    if (!target) return
+    const details = target.querySelector('details')
+    if (details && !details.open) details.open = true
+    target.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+    target.querySelector<HTMLElement>('summary, input')?.focus({ preventScroll: true })
+  }
+  return (
+    <div className="sticky bottom-0 -mx-4 border-t border-line bg-bone/90 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+      <Button variant="primary" className="w-full px-5" onClick={go}>
+        {next ? <><span className="min-w-0 truncate">Siguiente: {next.title}</span> <ArrowDown weight="bold" className="shrink-0" /></> : <><Printer weight="bold" /> {guide}</>}
+      </Button>
     </div>
   )
 }
