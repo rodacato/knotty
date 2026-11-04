@@ -11,7 +11,7 @@ export default defineConfig({
       provider: 'v8',
       // What makes decisions; the UI and the 3D are checked in the browser.
       include: ['src/domain/**', 'src/application/**'],
-      reporter: ['text-summary', 'text'],
+      reporter: ['text-summary', 'text', 'lcov'],
     },
   },
 })
