@@ -89,8 +89,8 @@ jobs:
           advanced-security: false
 
   sonar:
-    # Weekly and on demand, not per PR: each scan reruns the suite for coverage. Skipped without a server.
-    if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && vars.SONAR_HOST_URL != '' }}
+    # Manual, and skipped where no SonarQube server is configured (a fork, for one).
+    if: ${{ github.event_name == 'workflow_dispatch' && vars.SONAR_HOST_URL != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
