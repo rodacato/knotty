@@ -2,6 +2,8 @@
 
 What to do, in what order, and where each thing goes, by what you want to achieve. Each workflow points to the guide that has the detail; here there is only the route.
 
+How the work itself is delivered (the board, cards, issues, PRs and decisions) is in [Delivery](DELIVERY.md).
+
 ## Two modes
 
 | Mode | Command | When |

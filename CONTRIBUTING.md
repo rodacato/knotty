@@ -154,7 +154,7 @@ npm run compare:resume -- --last  # and resumes them
 | A reference ficha, or the engine that builds it | `npm run probe -- --all`: each ficha must remain as its `expect` says. If a difference is the expected one, `npm run probe -- --update <código>` rewrites the `expect` and the PR diff shows it; if not, it is a bug |
 | What the chat understands without an expert (`src/domain/furniture/intent/`) | `npm run autonomy`: no `misread` request, and the ones it used to read are still read. See [the guide](docs/autonomy.md) |
 
-What to do and where each thing goes depending on what you want to achieve (have the chat understand a request, a new option or piece of furniture, a ficha built with the expert, a new case) is in [Workflows](docs/workflows.md).
+What to do and where each thing goes depending on what you want to achieve (have the chat understand a request, a new option or piece of furniture, a ficha built with the expert, a new case) is in [Workflows](docs/workflows.md). How a change goes from a card on the board to a merged PR, and how a decision is recorded, is in [Delivery](docs/DELIVERY.md).
 
 ## Changes that need care
 
