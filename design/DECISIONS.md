@@ -1,6 +1,6 @@
 # Design decisions — findings (UI-1…UI-83)
 
-> The registry the `flows/*.pen` briefs and the `ui-kit.lib.pen` notes cite. A resolved entry is never deleted: record the outcome, because the reasoning is the useful part.
+> The per-screen layer under the brand and the [north star](north-star/README.md). A resolved entry is never deleted: record the outcome, because the reasoning is the useful part. Entries before UI-93 cite `.pen` flows, exports and captures retired on 2026-11-14; they are in the git history.
 
 **Status:** 83 findings (UI-1…UI-83) · 66 decided or landed · 13 partly decided or open · 3 pending (⏳) · 1 waiting for the Studio redesign (UI-61) · 7 consolidated items (K1…K7) · 🐞 3 app bugs (fixed on their own, they do not wait for the redesign). UI-40…UI-62 were approved as a list on 2026-10-01 and most landed in #160–#172; UI-55, UI-57, UI-61 and the container half of UI-50 wait for the redesign.
 

@@ -92,7 +92,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 
 ## 1. Experiencia y diseño visual
 
-Cómo es la app hoy, según `src/ui/`. El diseño que se busca vive en `design/flows/*.pen` (ver `design/README.md`); cuando no coinciden, la diferencia es trabajo pendiente, no esta sección.
+Cómo es la app hoy, según `src/ui/`. El diseño que se busca vive en `design/north-star/` (ver `design/README.md`); cuando no coinciden, la diferencia es trabajo pendiente, no esta sección.
 
 ### Flujo
 

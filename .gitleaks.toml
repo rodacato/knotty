@@ -2,7 +2,3 @@ title = "knotty gitleaks"
 
 [extend]
 useDefault = true
-
-[allowlist]
-description = "Pencil .pen files carry a per-file fileToken, not a credential; the same field is already public in other .pen repos"
-paths = ['''^design/.*\.pen$''']
