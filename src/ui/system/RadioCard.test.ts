@@ -38,14 +38,14 @@ describe('RadioCard', () => {
   it('marks the chosen card with a check, not only a tint', () => {
     const markup = render(group(2))
     expect(markup.match(/<svg/g)).toHaveLength(1)
-    expect(markup).toContain('border-graphite bg-amber-soft')
+    expect(markup).toContain('border-graphite bg-select-soft')
     expect(render(group(2, { mark: false }))).not.toContain('<svg')
   })
 
   it('leaves the look to the parent in the bare variant and draws no pill fill', () => {
     const markup = render(group(0, { variant: 'bare' }))
     expect(markup).not.toContain('<svg')
-    expect(markup).not.toContain('bg-amber-soft')
+    expect(markup).not.toContain('bg-select-soft')
     expect(render(group(0, { variant: 'pill' }))).toContain('bg-graphite text-bone')
   })
 

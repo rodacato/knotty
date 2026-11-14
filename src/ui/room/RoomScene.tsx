@@ -20,7 +20,7 @@ const MM = 0.001
 const NO_SHAPES: EdgeShape[] = []
 function readColors() {
   const style = getComputedStyle(document.documentElement)
-  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite-2', 'amber', 'rust', 'slate'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
+  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite-2', 'select', 'rust', 'slate'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
 }
 function useColors() {
   const [colors, setColors] = useState(readColors)
@@ -225,7 +225,7 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
                 )}
               </group>
               {(selected === item.id || bad.has(item.id)) && (
-                <Line points={footprint} color={selected === item.id ? colors.amber : colors.rust} lineWidth={selected === item.id ? 3 : 2} dashed={bad.has(item.id)} dashSize={0.04} gapSize={0.03} />
+                <Line points={footprint} color={selected === item.id ? colors.select : colors.rust} lineWidth={selected === item.id ? 3 : 2} dashed={bad.has(item.id)} dashSize={0.04} gapSize={0.03} />
               )}
             </group>
           )

@@ -68,7 +68,7 @@ export function ModelSwitch() {
             const selected = config.active === p
             const real = p !== 'simulated'
             return (
-              <div key={p} className={`flex flex-col gap-1 rounded-xl border p-3 ${selected ? 'border-amber bg-amber-soft' : 'border-line bg-bone'}`}>
+              <div key={p} className={`flex flex-col gap-1 rounded-xl border p-3 ${selected ? 'border-select bg-select-soft' : 'border-line bg-bone'}`}>
                 <button type="button" aria-pressed={selected} onClick={() => choose(p)} className="flex flex-col gap-1 text-left">
                   <span className="text-sm font-semibold">{PRESETS[p].label}</span>
                   <span className="text-xs leading-snug text-graphite-2">{PRESETS[p].description}</span>

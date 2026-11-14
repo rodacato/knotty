@@ -37,7 +37,7 @@ function Stroke() {
       <path pathLength={1} strokeDasharray="1" className={line} d="M30 20 h100 v170 h-100 z" />
       <path pathLength={1} strokeDasharray="1" className={`${line} [animation-delay:.3s]`} d="M30 70 h100 M30 120 h100" />
       <path pathLength={1} strokeDasharray="1" className={`${line} [animation-delay:.6s]`} d="M30 170 h100 M40 190 v-20 M120 190 v-20" />
-      <path pathLength={1} strokeDasharray="1" className={`${line} [animation-delay:.9s] stroke-amber`} d="M130 20 l18 -12 v170 l-18 12" />
+      <path pathLength={1} strokeDasharray="1" className={`${line} [animation-delay:.9s] stroke-select`} d="M130 20 l18 -12 v170 l-18 12" />
     </svg>
   )
 }
@@ -69,7 +69,7 @@ function History() {
               {current && (
                 <span className="flex shrink-0 items-center gap-3" aria-hidden>
                   <span className="numerals text-xs font-normal text-graphite-2">{clock(lineSeconds)}</span>
-                  <span className="size-2 rounded-full bg-amber motion-safe:animate-pulse" />
+                  <span className="size-2 rounded-full bg-select motion-safe:animate-pulse" />
                 </span>
               )}
             </li>
@@ -106,8 +106,8 @@ export function Analyzing() {
             const inProgress = current === i || (stage?.name === 'correcting' && e.id === 'checking')
             return (
               <li key={e.id} className={`flex items-center gap-3 transition ${taken || inProgress ? 'text-graphite' : 'text-graphite-2/50'}`}>
-                <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-amber' : 'border-line'}`}>
-                  {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 motion-safe:animate-pulse rounded-full bg-amber" /> : null}
+                <span className={`grid size-6 place-items-center rounded-full border ${taken ? 'border-graphite bg-graphite text-bone' : inProgress ? 'border-select' : 'border-line'}`}>
+                  {taken ? <Check size={12} weight="bold" /> : inProgress ? <span className="size-2 motion-safe:animate-pulse rounded-full bg-select" /> : null}
                 </span>
                 <span className={inProgress ? 'font-medium' : ''}>
                   {e.text}

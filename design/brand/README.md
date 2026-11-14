@@ -4,11 +4,11 @@ The brand source lives here. Start with this page, then read the [guidelines](gu
 
 ## Identity
 
-Knotty helps a person choose a plywood furniture base, adjust it to their space, understand its pieces in 3D and take a reviewed materials/cut list to the workshop. The identity ties that to wood, paper and a simple assembly: a **dark workshop** interface with **warm paper** for the 3D stage, catalog thumbnails, illustrated choices, joint and edge diagrams, and sheet layouts.
+Knotty helps a person choose a plywood furniture base, adjust it to their space, understand its pieces in 3D and take a reviewed materials/cut list to the workshop. The identity ties that to the paperwork of a Mexican lumber yard: a **cut ticket printed in two inks**, black press ink and one vermilion spot ink, on pale straw paper. Structure is drawn with rules like a printed form, and wood keeps its material color. The product layer that every screen follows is the [visual north star](../north-star/README.md).
 
-- **Logo:** the approved assembly mark is two opposing pieces drawn in two strokes; the wordmark is **Knotty** in Fraunces. Clear space, variants and minimum sizes: [guidelines › Mark and wordmark](guidelines.md#mark-and-wordmark).
-- **Color:** roles, not a hex table. The workshop is dark, the drawing stage is light, and wood keeps its material color, independent of the device theme. The paper grid is decorative, not a measurement scale. [Guidelines › Surfaces and color roles](guidelines.md#surfaces-and-color-roles).
-- **Type:** Fraunces for headings and the wordmark, Inter for reading and controls, JetBrains Mono for measures and codes, all existing local variable fonts. [Guidelines › Typography and layout](guidelines.md#typography-and-layout).
+- **Logo:** the approved assembly mark is two opposing pieces drawn in two strokes; the wordmark is **Knotty** in Oswald. Clear space, variants and minimum sizes: [guidelines › Mark and wordmark](guidelines.md#mark-and-wordmark).
+- **Color:** roles, not a hex table. One paper theme, independent of the device theme. Ink for text, rules and the selection; vermilion only for the screen's primary action. [Guidelines › Surfaces and color roles](guidelines.md#surfaces-and-color-roles).
+- **Type:** Oswald for titles, steps, buttons and the wordmark; Libre Franklin for reading, help and warnings; IBM Plex Mono for measures, prices and codes. All are local Fontsource fonts. [Guidelines › Typography and layout](guidelines.md#typography-and-layout).
 - **Voice:** Mexican Spanish, direct and concrete, workshop vocabulary, explicit units. Invitation: «Madera de verdad. Medidas claras. Un paso a la vez.» [Guidelines › Voice](guidelines.md#voice).
 - **Marketing:** audience and promise, the three-part explanation, product proof, actions and destinations, metadata, and the claims Knotty must not make. [marketing.md](marketing.md).
 
@@ -17,8 +17,9 @@ Knotty helps a person choose a plywood furniture base, adjust it to their space,
 | What | Source | Notes |
 |---|---|---|
 | Mark geometry | [`src/ui/system/knot.svg`](../../src/ui/system/knot.svg) | Shared by [`Brand.tsx`](../../src/ui/system/Brand.tsx) and [`export.mjs`](../../scripts/brand/export.mjs). Preserve the two pieces, line weight, clear space and maskable safe area; inspect at small icon sizes. |
-| Colors, fonts, spacing, shape, motion | [`src/ui/system/tokens.css`](../../src/ui/system/tokens.css) | The guide page reads the actual CSS properties. `drawing-sheet` supplies the fixed paper palette; `drawing-surface` adds the decorative grid. Scene lighting and labels stay light; the explicit light override remains for future paper contexts; the interface does not follow the device theme. |
-| Fonts | `@fontsource-variable/{fraunces,inter,jetbrains-mono}` | Exported as Latin WOFF2 subsets with their licenses. |
+| Colors, fonts, spacing, shape, motion | [`src/ui/system/tokens.css`](../../src/ui/system/tokens.css) | The guide page reads the actual CSS properties. `drawing-sheet` keeps a drawing's own inks inside any panel; `drawing-surface` adds a faint decorative grid. There is one theme; the interface does not follow the device theme. |
+| Fonts | `@fontsource-variable/{oswald,libre-franklin}`, `@fontsource/ibm-plex-mono` | Exported as Latin WOFF2 subsets with their licenses; the list lives in [`kit-files.mjs`](../../scripts/brand/kit-files.mjs). |
+| Visual north star | [`design/north-star/`](../north-star/README.md) | The reference images every screen is built against, and the [type specimen](../north-star/type.html). |
 | Social card | [`scripts/brand/share.py`](../../scripts/brand/share.py) | Built from the mark, tokens, font outlines and a product capture. |
 | Product examples | [`design/assets/studio/scene/desktop-aparador.jpg`](../assets/studio/scene/desktop-aparador.jpg), [`design/assets/studio/current/desktop-materials-list.jpg`](../assets/studio/current/desktop-materials-list.jpg) | Example furniture, not customers or testimonials. |
 | Guide and landing pages | `src/ui/presentation/BrandGuide.tsx`, `Presentation.tsx`, `pages.css` | Served at `/marca/` and `/`. |

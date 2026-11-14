@@ -28,7 +28,7 @@ export function ReviewActivity({ compact = false }: { compact?: boolean }) {
     <section aria-label="Revisión en curso" className={`flex flex-col gap-2 border-line bg-kraft/60 ${compact ? 'border-b px-4 py-2' : 'rounded-xl border p-3'}`}>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1">
         <div className="col-span-2 flex items-start gap-2">
-          <Pencil className="mt-1 h-5 w-9 shrink-0 text-amber" />
+          <Pencil className="mt-1 h-5 w-9 shrink-0 text-select" />
           <p role="status" className="min-w-0 text-sm font-medium">{LABELS[progress.stage]}</p>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">

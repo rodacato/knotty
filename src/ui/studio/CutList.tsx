@@ -26,7 +26,7 @@ export function CutList({ blocks }: { blocks: CounterBlock[] }) {
                 <button
                   type="button"
                   onClick={() => select(r.ids[0])}
-                  className={`flex min-h-11 w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'bg-amber-soft' : ''}`}
+                  className={`flex min-h-11 w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'bg-select-soft' : ''}`}
                 >
                   <span className="numerals w-6 shrink-0 pt-0.5 text-sm text-graphite-2">{r.number}.</span>
                   <span className="min-w-0 flex-1">

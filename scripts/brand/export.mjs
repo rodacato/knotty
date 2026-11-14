@@ -1,6 +1,7 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import { fontPackage, fonts } from './kit-files.mjs'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const publicDir = join(here, '../../public')
@@ -27,9 +28,9 @@ for (const [name, body] of Object.entries({ 'knotty-mark': svg(ink(walnut)), 'kn
   writeFileSync(join(publicDir, `brand/${name}.svg`), body)
 }
 writeFileSync(join(publicDir, 'brand/knotty.tokens.css'), css)
-for (const [family, file] of [['fraunces', 'fraunces-latin-full-normal.woff2'], ['inter', 'inter-latin-wght-normal.woff2'], ['jetbrains-mono', 'jetbrains-mono-latin-wght-normal.woff2']]) {
-  const source = join(here, '../../node_modules/@fontsource-variable', family)
-  copyFileSync(join(source, 'files', file), join(publicDir, 'brand', file))
+for (const { family, files } of fonts) {
+  const source = join(here, '../../node_modules', fontPackage(family))
+  for (const file of files) copyFileSync(join(source, 'files', file), join(publicDir, 'brand', file))
   copyFileSync(join(source, 'LICENSE'), join(publicDir, 'brand', `${family}.LICENSE`))
 }
 console.log('Brand vectors and canonical token source exported')

@@ -26,7 +26,7 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
   ]
   const label = o.kind === 'window' ? 'Ventana' : o.swing === 'outside' ? 'Puerta: abre hacia afuera' : o.swing === 'sliding' ? 'Puerta corrediza' : 'Puerta: abre hacia adentro'
   const problem = openingProblem(layout.room, o, layout.openings)
-  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--slate)' : 'var(--amber)'
+  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--slate)' : 'var(--select)'
   const across = o.wall === 'back' || o.wall === 'front'
   const span = { x1: start[0], y1: start[1], x2: end[0], y2: end[1] }
   return (
@@ -246,7 +246,7 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
               height={d}
               rx="30"
               fill={item.kind === 'block' ? 'var(--line)' : 'var(--kraft)'}
-              stroke={chosen ? 'var(--amber)' : 'var(--graphite-2)'}
+              stroke={chosen ? 'var(--select)' : 'var(--graphite-2)'}
               strokeWidth={chosen ? 30 : 14}
               strokeDasharray={item.elevation ? '45 30' : undefined}
             />

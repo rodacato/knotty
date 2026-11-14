@@ -139,7 +139,7 @@ function Finder({ onDone }: { onDone: () => void }) {
                 aria-selected={i === active}
                 onPointerMove={() => setActive(i)}
                 onClick={() => choose(card)}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-2 md:gap-4 ${i === active ? 'border-amber bg-amber-soft' : 'border-transparent'}`}
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-2 md:gap-4 ${i === active ? 'border-select bg-select-soft' : 'border-transparent'}`}
               >
                 <span className="drawing-surface flex aspect-[4/3] w-24 shrink-0 items-center justify-center rounded-xl border border-line p-2 md:w-32">{boxes ? <Thumbnail boxes={boxes} /> : <Cube className="text-graphite-2" />}</span>
                 <span className="flex min-w-0 flex-1 flex-col">

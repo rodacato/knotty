@@ -12,7 +12,7 @@ export function Label({ text, position, dark, height = 0.021, strong = false }: 
     const scale = 3
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
-    const font = `${strong ? 600 : 500} ${13 * scale}px "JetBrains Mono Variable", ui-monospace, monospace`
+    const font = `${strong ? 600 : 500} ${13 * scale}px "IBM Plex Mono", ui-monospace, monospace`
     ctx.font = font
     const width = ctx.measureText(text).width + 22 * scale
     const tall = 24 * scale

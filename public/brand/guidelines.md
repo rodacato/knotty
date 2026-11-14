@@ -1,10 +1,10 @@
 # Brand guidelines
 
-Knotty helps a person choose a plywood furniture base, adjust it to their space, understand its pieces in 3D and take a reviewed materials/cut list to the workshop. The identity connects the activity to wood, paper and a simple assembly.
+Knotty helps a person choose a plywood furniture base, adjust it to their space, understand its pieces in 3D and take a reviewed materials/cut list to the workshop. The identity connects the activity to the paperwork of a Mexican lumber yard: a cut ticket printed in two inks on pale straw paper, with the wood in its own color. The reference images every screen follows are in the [visual north star](https://github.com/rodacato/knotty/blob/main/design/north-star/README.md).
 
 ## Mark and wordmark
 
-The approved mark is two opposing pieces drawn in two strokes. It suggests an assembly without depicting a particular piece of furniture. The wordmark is **Knotty**, set in the existing Fraunces display face.
+The approved mark is two opposing pieces drawn in two strokes. It suggests an assembly without depicting a particular piece of furniture. The wordmark is **Knotty**, set in Oswald, the display face.
 
 - Keep the proportions, orientation and line weight of the SVGs.
 - Leave clear space at least as wide as one piece; do not cram the mark against text or a card edge.
@@ -16,14 +16,15 @@ The editable geometry lives in `src/ui/system/knot.svg`. `src/ui/system/Brand.ts
 
 ## Surfaces and color roles
 
-The **workshop is dark; the drawing stage is light**. Wood keeps its material color. These are intentional roles, independent of the device's light/dark preference.
+**Two inks on one paper.** Every screen is pale straw paper. Black press ink carries text, rules and whatever is selected; one vermilion spot ink carries the screen's primary action and nothing else. Wood keeps its material color. There is one theme, independent of the device's light/dark preference.
 
-| Context | Existing role |
+| Context | Role |
 |---|---|
-| Page background | `--bone` |
-| Grouped or raised content | `--kraft`, `--kraft-2` |
-| Main and secondary text | `--graphite`, `--graphite-2` |
-| Selection and accent | `--amber`, `--amber-soft` |
+| Page background (paper) | `--bone` |
+| Grouped or raised content | `--kraft`, `--kraft-2`, `--paper` |
+| Main and secondary text, rules | `--graphite`, `--graphite-2`, `--line` |
+| Selection: solid ink with light text, or a 10% ink tint | `--select`, `--select-soft`, `--color-on-select` |
+| The screen's one primary action | `--action`, `--color-on-action` |
 | Critical findings | `--rust`, with an icon and explicit wording |
 | Keyboard position | `--focus` |
 | Wood identity | `--color-pine`, `--color-walnut`, `--color-birch` |
@@ -31,14 +32,19 @@ The **workshop is dark; the drawing stage is light**. Wood keeps its material co
 
 Read actual values from [knotty.tokens.css](knotty.tokens.css) or the visual guide, which reads the running CSS properties. Do not maintain a second palette table of hex values.
 
-Use `.drawing-sheet` for illustrated choices, joints, edge diagrams and sheet layouts; `.drawing-surface` adds the decorative grid for thumbnails. The 3D scene uses the same light paper and its own lighting. Keep surrounding descriptions and actions on dark surfaces. A dark interface does not mean dark furniture previews. The grid is decorative, not a measurement scale.
+Use `.drawing-sheet` for illustrated choices, joints, edge diagrams and sheet layouts; `.drawing-surface` adds the decorative grid for thumbnails. The 3D scene uses the same paper and its own lighting. The grid is decorative, not a measurement scale.
+
+- **Selection is never color alone.** It is a solid ink fill, a check, an underline, or black hatching tied to its label by a leader line.
+- **Vermilion appears once per screen.** It never marks a selection, a warning or a decoration.
+- **A warning** carries a black warning mark and sentence-case text with a heavy left rule, so it cannot be mistaken for a selected item.
+- **Structure is drawn with rules before boxes.** Heavy rules separate regions; fine rules separate rows; space separates sections. Do not put boxes inside boxes.
 
 ## Typography and layout
 
-- **Fraunces:** headings, wordmark and the existing prominent estimate treatment.
-- **Inter:** paragraphs, instructions, actions and controls.
-- **JetBrains Mono:** measures, technical codes and tabular figures where alignment helps.
-- Use the local variable fonts and keep their corresponding licenses when redistributing them. The exported files are Latin subsets; check character coverage before using another writing system.
+- **Oswald:** the wordmark, titles, step names and buttons. Capitals only for step names, panel titles and buttons.
+- **Libre Franklin:** paragraphs, help, warnings and control labels, 15–18 px for reading.
+- **IBM Plex Mono:** measures, prices, technical codes and tabular figures.
+- Use the local Fontsource files and keep their corresponding licenses when redistributing them. The exported files are Latin subsets; check character coverage before using another writing system.
 - Use the spacing, radius and type tokens from the stylesheet. Give more space between ideas than within one idea. Do not add a parallel component library for marketing.
 - Preserve visible focus, readable contrast, existing 44 px control targets and reduced-motion behavior. Color alone must not carry a decision or warning.
 

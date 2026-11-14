@@ -1,14 +1,14 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/fraunces/full.css';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/jetbrains-mono';
-
-@custom-variant dark (&:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *));
+@import '@fontsource-variable/oswald';
+@import '@fontsource-variable/libre-franklin';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
 
 @theme {
-  --font-display: 'Fraunces Variable', Georgia, serif;
-  --font-sans: 'Inter Variable', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-display: 'Oswald Variable', 'Arial Narrow', sans-serif;
+  --font-sans: 'Libre Franklin Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --color-bone: var(--bone);
   --color-kraft: var(--kraft);
@@ -16,8 +16,9 @@
   --color-graphite: var(--graphite);
   --color-graphite-2: var(--graphite-2);
   --color-line: var(--line);
-  --color-amber: var(--amber);
-  --color-amber-soft: var(--amber-soft);
+  --color-select: var(--select);
+  --color-select-soft: var(--select-soft);
+  --color-action: var(--action);
   --color-rust: var(--rust);
   --color-on-rust: var(--on-rust);
   --color-focus: var(--focus);
@@ -26,11 +27,12 @@
   --color-birch: #e2c9a2;
   --color-pine: #d9b27c;
   --color-walnut: #6b4a2e;
-  --color-brand-ink: #2b2825;
-  --color-on-amber: var(--color-brand-ink);
-  --color-brand-paper: #f5f0e8;
-  --color-drawing-paper: #efe7da;
-  --color-drawing-grid: rgb(255 255 255 / 0.45);
+  --color-brand-ink: #161412;
+  --color-on-select: var(--bone);
+  --color-on-action: #fff8ec;
+  --color-brand-paper: #fbf6e8;
+  --color-drawing-paper: #f6efdc;
+  --color-drawing-grid: rgb(22 20 18 / 0.05);
 
   --radius-emblem: 22%;
   --radius-panel: 24px;
@@ -51,54 +53,31 @@
   --animate-fade-in: fade-in var(--duration-fast) var(--ease-settle) both;
 }
 
+/* Two inks on pale straw paper: black press ink for text, rules and the selection; one vermilion spot ink for the screen's primary action only. One theme: the interface does not follow the device theme. */
 :root {
-  --bone: #1d1a17;
-  --kraft: #27231f;
-  --kraft-2: #332d27;
-  --graphite: #efe7da;
-  --graphite-2: #b3a896;
-  --line: rgb(239 231 218 / 0.12);
-  --amber: #d98a2b;
-  --amber-soft: rgb(217 138 43 / 0.2);
-  --rust: #e57d66;
-  --on-rust: #1d1a17;
-  --focus: #d98a2b;
-  --slate: #8aa0b3;
-  --scene-bg: var(--color-drawing-paper);
-  --paper: #2a2622;
-  color-scheme: dark;
-
-  /* The kraft of a base's card, leaning toward its style line; they follow the theme through the tokens they mix. */
-  --style-basic: var(--kraft);
-  --style-mid-century: color-mix(in srgb, var(--kraft) 90%, var(--rust));
-  --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
-  --style-low: color-mix(in srgb, var(--kraft) 92%, var(--slate));
-  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--amber));
-}
-
-:root[data-theme='light'] {
-  --bone: #f5f0e8;
-  --kraft: #ede3d3;
-  --kraft-2: #e3d5bf;
-  --graphite: #2b2825;
-  --graphite-2: #6a6158;
-  --line: rgb(43 40 37 / 0.12);
-  --amber: #d98a2b;
-  --amber-soft: rgb(217 138 43 / 0.14);
-  --rust: #a63d29;
+  --bone: #f6efdc;
+  --kraft: #ece2c6;
+  --kraft-2: #e0d2ae;
+  --graphite: #161412;
+  --graphite-2: #4a443c;
+  --line: rgb(22 20 18 / 0.22);
+  --select: #161412;
+  --select-soft: rgb(22 20 18 / 0.1);
+  --action: #cc3517;
+  --rust: #9c3523;
   --on-rust: #ffffff;
-  --focus: #9a5a10;
+  --focus: #161412;
   --slate: #56697a;
   --scene-bg: var(--color-drawing-paper);
-  --paper: #f4ede1;
+  --paper: #fbf6e8;
   color-scheme: light;
 
-  /* The kraft of a base's card, leaning toward its style line; they follow the theme through the tokens they mix. */
+  /* The kraft of a base's card, leaning toward its style line. */
   --style-basic: var(--kraft);
   --style-mid-century: color-mix(in srgb, var(--kraft) 90%, var(--rust));
   --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
-  --style-low: color-mix(in srgb, var(--kraft) 86%, var(--slate));
-  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--amber));
+  --style-low: color-mix(in srgb, var(--kraft) 88%, var(--slate));
+  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--color-pine));
 }
 
 /* What a caller may change about a Button: in the components layer, so a utility on the button (`px-2`, `rounded-full`, `text-base`) wins without `!`. Its 44 px of height stay on the button itself. */
@@ -137,7 +116,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* A warm drawing sheet inside the dark workshop. The grid is decorative, not a scale. */
+/* A drawing sheet on the paper: it keeps its own inks so drawings read the same inside any panel. The grid is decorative, not a scale. */
 .drawing-sheet,
 .drawing-surface {
   --bone: var(--color-drawing-paper);
@@ -165,7 +144,7 @@ body {
 }
 
 .drawing-sheet:has(> input:checked) {
-  background-color: color-mix(in srgb, var(--amber) 16%, var(--color-drawing-paper));
+  background-color: color-mix(in srgb, var(--select) 10%, var(--color-drawing-paper));
   border-color: var(--color-walnut);
 }
 

@@ -186,7 +186,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               const disabled = !editable || !chosen.size
               return (
                 <div key={id} className="flex flex-col gap-2">
-                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-amber bg-amber-soft' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
+                  <label className={`flex items-start gap-3 rounded-2xl border p-3 text-sm transition ${profile === id && chosen.size ? 'border-select bg-select-soft' : 'border-line'} ${disabled ? 'opacity-60' : 'cursor-pointer hover:bg-kraft'}`}>
                     <input type="radio" name={`profile-${piece.id}`} checked={profile === id && chosen.size > 0} disabled={disabled} onChange={() => {
                       apply([...chosen], id)
                       setChanging(false)
