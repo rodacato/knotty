@@ -380,7 +380,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
 
   const constructionProblems = manufacturingProblems(design, geo)
   const construction = constructionProblems.length > 0 && (
-    <div role="note" className="rounded-xl border border-line bg-amber-soft p-3">
+    <div role="note" className="rounded-xl border border-line bg-select-soft p-3">
       <p className="text-sm font-semibold">Corrige los ajustes antes de cortar</p>
       {constructionProblems.map((p) => <p key={p.detail} className="text-sm">{p.detail}</p>)}
       <RepairConstruction state={state} />
@@ -388,7 +388,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   )
 
   const whose = instead && (
-    <p role="note" className="rounded-xl border border-line bg-amber-soft p-3 text-[13px] leading-snug">
+    <p role="note" className="rounded-xl border border-line bg-select-soft p-3 text-[13px] leading-snug">
       En el Estudio estás viendo {instead}. El costo, la revisión y la lista de aquí son de tu diseño actual.
     </p>
   )
@@ -399,7 +399,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const cost = (
     <section className="flex flex-col gap-1 border-b border-line pb-4">
       <p className="text-sm text-graphite-2">Costo aproximado</p>
-      <p className="font-display tabular-nums text-5xl font-semibold tracking-tight [font-variation-settings:'opsz'_96]">
+      <p className="font-display tabular-nums text-5xl font-semibold">
         <span className="text-graphite-2">~</span>
         {weights.format(purchase.cost.total)}
       </p>

@@ -37,7 +37,7 @@ const FIT_TAG: Record<JointFit, string> = { yes: 'Puedes', jig: 'Con plantilla',
 function FitTag({ fit }: { fit: JointFit | null }) {
   if (!fit) return null
   const can = fit === 'yes' || fit === 'jig' || fit === 'careful'
-  return <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${can ? 'bg-amber-soft text-graphite' : 'border border-line text-graphite'}`}>{FIT_TAG[fit]}</span>
+  return <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${can ? 'bg-select-soft text-graphite' : 'border border-line text-graphite'}`}>{FIT_TAG[fit]}</span>
 }
 
 /** A face, its edge showing the plies, and the arris between them. */
@@ -153,7 +153,7 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
             <tr
               key={o.joint}
               onClick={() => !o.blocked && onSelect(o.joint)}
-              className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-amber-soft' : ''}`}
+              className={`border-t border-line align-top ${o.blocked ? '' : 'cursor-pointer hover:bg-kraft'} ${selected === o.joint ? 'bg-select-soft' : ''}`}
             >
               <td className={`w-24 py-2 pl-3 ${selected === o.joint ? 'shadow-[inset_3px_0_0_0_var(--graphite)]' : ''}`}>
                 <JointDiagram joint={o.joint} className="w-20" />

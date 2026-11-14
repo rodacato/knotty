@@ -62,13 +62,13 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
         </>
       ),
     })),
-    ...when(thinking && !around.chatInSight, () => ({ key: 'thinking', icon: <Pencil className="h-3 w-8 text-amber" />, label: stage ? STAGES[stage.name] : 'Pensando…', actions: <Close label="Cancelar" onClick={cancel} /> })),
+    ...when(thinking && !around.chatInSight, () => ({ key: 'thinking', icon: <Pencil className="h-3 w-8 text-select" />, label: stage ? STAGES[stage.name] : 'Pensando…', actions: <Close label="Cancelar" onClick={cancel} /> })),
     ...when(focusedPiece, () => ({ key: 'focus', icon: <Crosshair />, label: `Enfocada: ${focusedPiece!.name}`, actions: action(unfocus, WIDE, <><ArrowsOut /> Ver todo el mueble</>) })),
     ...when(proposal, () => ({
       key: 'proposal',
       icon: <Eye weight="bold" />,
       label: preview ? ('draft' in preview ? preview.label : `Viendo la solución: ${preview.label}`) : 'Viendo la propuesta sin aplicar',
-      actions: preview ? undefined : action(around.onProposal, `${WIDE} focus-visible:outline-2 focus-visible:outline-amber`, 'Ver propuesta'),
+      actions: preview ? undefined : action(around.onProposal, `${WIDE} focus-visible:outline-2 focus-visible:outline-select`, 'Ver propuesta'),
     })),
     ...when(view.geo && problems.length > 0, () => ({ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: counted(problems.length, 'Un problema sin resolver', 'problemas sin resolver'), onClick: around.onNotices })),
     ...when(toConfirm.length > 0 && viewedVersion === null && !proposal, () => ({ key: 'confirm', icon: <PencilSimpleLine />, label: counted(toConfirm.length, `${toConfirm[0].name} por confirmar`, 'piezas por confirmar'), onClick: () => select(toConfirm[0].id) })),

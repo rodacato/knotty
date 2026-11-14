@@ -1,6 +1,6 @@
 # Knotty brand kit
 
-The approved **two-stroke assembly mark**, dark workshop and light drawing sheets, existing fonts, and shipped marketing in one portable folder. Start with [brand guidelines](guidelines.md) and [marketing copy and examples](marketing.md).
+The approved **two-stroke assembly mark**, the two-ink system (black and vermilion on straw paper), its fonts, and shipped marketing in one portable folder. Start with [brand guidelines](guidelines.md) and [marketing copy and examples](marketing.md).
 
 ## Download
 
@@ -32,15 +32,15 @@ Use SVG for editable or scalable artwork. Preserve its aspect ratio and clear sp
 
 ```css
 @font-face {
-  font-family: 'Inter Variable';
-  src: url('./inter-latin-wght-normal.woff2') format('woff2');
+  font-family: 'Libre Franklin Variable';
+  src: url('./libre-franklin-latin-wght-normal.woff2') format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 ```
 
-Use Fraunces for headings and the wordmark, Inter for reading and controls, and JetBrains Mono for measures and codes. Follow the app's existing price hierarchy rather than styling every number identically.
+Use Oswald for titles, steps, buttons and the wordmark, Libre Franklin for reading, help and warnings, and IBM Plex Mono (400, 500 and 600) for measures, prices and codes. Print in two inks on pale straw paper: black for text, rules and the selection, vermilion only for the primary action. Follow the app's existing price hierarchy rather than styling every number identically.
 
 ## Preview
 

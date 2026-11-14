@@ -12,7 +12,7 @@ export function AppHeader() {
     <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-3 max-sm:flex-wrap md:px-8 md:py-4">
       <a href="../" aria-label="Knotty: ir al inicio" className="flex min-h-11 items-center gap-3 rounded-xl">
         <Emblem className="size-9 shrink-0 md:size-10" />
-        <span className="font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48]">Knotty</span>
+        <span className="font-display text-2xl font-semibold">Knotty</span>
       </a>
       <div className="ml-auto flex items-center gap-3">
         <button

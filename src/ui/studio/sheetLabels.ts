@@ -1,4 +1,4 @@
-// Average glyph width as a fraction of the font size: Inter for the name, JetBrains Mono for the size.
+// Average glyph width as a fraction of the font size, with room to spare: Libre Franklin for the name (about 0.47), IBM Plex Mono for the size.
 const SANS_EM = 0.56
 const MONO_EM = 0.6
 const STROKE_ROOM = 24

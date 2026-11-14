@@ -21,7 +21,7 @@ export function PieceList({ design, geo }: { design: Design; geo: Geometry }) {
             <button
               type="button"
               onClick={() => select(r.ids[0])}
-              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'bg-amber-soft' : ''}`}
+              className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-kraft ${r.ids.includes(selection ?? '') ? 'bg-select-soft' : ''}`}
             >
               <span className="numerals grid size-8 shrink-0 place-items-center rounded-lg bg-kraft text-sm font-medium">{r.count}×</span>
               <span className="min-w-0 flex-1">

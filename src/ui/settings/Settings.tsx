@@ -178,8 +178,8 @@ export function Settings() {
                 ) : null}
                 <div className="grid gap-1.5">
                   {SAVED.map((g) => (
-                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-amber bg-amber-soft' : 'border-line hover:bg-kraft'}`}>
-                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-amber" />
+                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-select bg-select-soft' : 'border-line hover:bg-kraft'}`}>
+                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-select" />
                       <span>
                         {g.name}
                         <span className="block text-xs text-graphite">{g.detail}</span>
@@ -233,7 +233,7 @@ export function Settings() {
           <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
             <input
               type="checkbox"
-              className="mt-0.5 size-5 shrink-0 accent-amber"
+              className="mt-0.5 size-5 shrink-0 accent-select"
               checked={debugVisible}
               onChange={(e) => setDebugVisible(e.target.checked)}
             />

@@ -44,7 +44,7 @@ function Navigation() {
 
 const Loading = () => (
   <div className="grid h-full place-items-center">
-    <div className="flex flex-col items-center gap-3 text-amber">
+    <div className="flex flex-col items-center gap-3 text-select">
       <Knot className="size-12 motion-safe:animate-pulse" />
       <Pencil className="h-6 w-16" />
     </div>

@@ -139,7 +139,7 @@ function LeaveEditing() {
 function PrepareMaterials() {
   const openCheckout = useStore((s) => s.openCheckout)
   return (
-    <button type="button" className="pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full bg-amber px-5 text-sm font-medium text-on-amber shadow-sm transition active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
+    <button type="button" className="pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full bg-action px-5 text-sm font-medium text-on-action shadow-sm transition active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
       <Stack weight="bold" /> Preparar materiales
     </button>
   )
@@ -156,7 +156,7 @@ function DimensionsToggle() {
       aria-pressed={dimensions}
       aria-label="Cotas"
       title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
-      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] ${dimensions ? 'border-amber text-amber' : 'border-line text-graphite-2'}`}
+      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] ${dimensions ? 'border-select text-select' : 'border-line text-graphite-2'}`}
     >
       <Ruler weight="bold" />
     </button>
@@ -535,7 +535,7 @@ export function Studio({ state }: { state: DesignState }) {
                 key={t.id}
                 value={t.id}
                 onClick={raise}
-                className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-amber"
+                className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-select"
               >
                 <span className="hidden sm:inline-flex">{t.icon}</span>
                 {t.name}

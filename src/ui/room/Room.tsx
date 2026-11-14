@@ -351,7 +351,7 @@ export function Room() {
                     <button
                       key={i.id}
                       type="button"
-                      className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full border bg-bone/95 px-3 text-xs ${i.id === selected ? 'border-amber text-graphite' : 'border-line text-graphite-2'}`}
+                      className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full border bg-bone/95 px-3 text-xs ${i.id === selected ? 'border-select text-graphite' : 'border-line text-graphite-2'}`}
                       aria-pressed={i.id === selected}
                       onClick={() => {
                         useRoom.getState().select(i.id)

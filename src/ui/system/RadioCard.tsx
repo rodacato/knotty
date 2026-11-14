@@ -16,7 +16,7 @@ export function RadioGroup({ label, className = '', children }: { label?: string
 }
 
 const VARIANTS = {
-  card: { base: 'relative min-h-11 cursor-pointer border transition', on: 'border-graphite bg-amber-soft', off: 'border-line hover:bg-kraft' },
+  card: { base: 'relative min-h-11 cursor-pointer border transition', on: 'border-graphite bg-select-soft', off: 'border-line hover:bg-kraft' },
   pill: { base: 'relative cursor-pointer rounded-full border transition', on: 'border-graphite bg-graphite text-bone', off: 'border-line bg-bone text-graphite-2 hover:text-graphite' },
   segment: { base: 'relative cursor-pointer rounded-full transition', on: 'bg-graphite text-bone', off: 'text-graphite-2 hover:text-graphite' },
   bare: { base: 'cursor-pointer', on: '', off: '' },

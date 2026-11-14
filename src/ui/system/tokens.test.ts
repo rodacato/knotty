@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const css = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8')
-const dark = declarations(/\n:root \{([^}]*)\}/.exec(css)![1])
-const light = { ...dark, ...declarations(/:root\[data-theme='light'\] \{([^}]*)\}/.exec(css)![1]) }
+const root = declarations(/\n:root \{([^}]*)\}/.exec(css)![1])
+const theme = declarations(/@theme \{([^}]*)\}/.exec(css)![1])
+const resolve = (value: string) => value.replace(/var\(--([^)]*)\)/, (_, name: string) => theme[name] ?? root[name])
 
 type Rgb = [number, number, number]
 
@@ -31,11 +32,8 @@ const contrast = (a: Rgb, b: Rgb) => {
 
 const over = (fg: Rgb, bg: Rgb, alpha: number): Rgb => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha)) as Rgb
 
-describe.each([
-  ['light', light],
-  ['dark', dark],
-])('%s theme contrast', (_, t) => {
-  const c = (name: string) => rgb(t[name])
+describe('contrast', () => {
+  const c = (name: string) => rgb(root[name])
 
   it('draws the focus ring at 3:1 or more on every surface', () => {
     for (const surface of ['bone', 'kraft']) expect(contrast(c('focus'), c(surface))).toBeGreaterThanOrEqual(3)
@@ -45,10 +43,13 @@ describe.each([
     expect(contrast(c('on-rust'), c('rust'))).toBeGreaterThanOrEqual(4.5)
   })
 
-  it('keeps small labels readable on solid amber in both themes', () => {
-    const theme = declarations(/@theme \{([^}]*)\}/.exec(css)![1])
-    const label = theme['color-on-amber'].replace(/var\(--([^)]*)\)/, (_, name: string) => theme[name])
-    expect(contrast(rgb(label), c('amber'))).toBeGreaterThanOrEqual(4.5)
+  it('keeps small labels readable on solid selection and on the vermilion action', () => {
+    expect(contrast(rgb(resolve(theme['color-on-select'])), c('select'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(rgb(theme['color-on-action']), c('action'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('keeps text readable on the selection tint', () => {
+    expect(contrast(c('graphite'), over(c('select'), c('bone'), 0.1))).toBeGreaterThanOrEqual(4.5)
   })
 
   it('keeps rust text readable on paper, bone and its own 10% tint', () => {
@@ -62,17 +63,22 @@ describe.each([
 })
 
 describe('paper', () => {
-  it('is a slight elevation of bone in both themes, not a highlight', () => {
-    for (const t of [light, dark]) expect(contrast(rgb(t.paper), rgb(t.bone))).toBeLessThan(1.3)
+  it('is a slight elevation of bone, not a highlight', () => {
+    expect(contrast(rgb(root.paper), rgb(root.bone))).toBeLessThan(1.3)
+  })
+})
+
+describe('one theme', () => {
+  it('does not follow the device theme', () => {
+    expect(css).not.toMatch(/data-theme|prefers-color-scheme/)
   })
 })
 
 describe('drawing paper contrast', () => {
-  const theme = declarations(/@theme \{([^}]*)\}/.exec(css)![1])
   const ink = rgb(theme['color-brand-ink'])
   const pencil = rgb(theme['color-walnut'])
   const paper = rgb(theme['color-drawing-paper'])
-  const selected = over(rgb(dark.amber), paper, 0.16)
+  const selected = over(rgb(root.select), paper, 0.1)
 
   it('keeps option labels and diagram lines readable on paper and selected paper', () => {
     for (const surface of [paper, selected, rgb(theme['color-birch'])]) {

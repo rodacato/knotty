@@ -41,7 +41,7 @@ export function Chip({ active = false, className = '', children, ...props }: But
     <button
       type="button"
       className={`relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
-        active ? 'border-amber bg-amber-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
+        active ? 'border-select bg-select-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}
     >
@@ -60,7 +60,7 @@ const STAMP: Record<Severity, { text: string; className: string; tilt: string }>
 export function Stamp({ severity }: { severity: Severity }) {
   const s = STAMP[severity]
   return (
-    <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-xs font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply dark:mix-blend-screen ${s.className} ${s.tilt}`}>
+    <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-xs font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply ${s.className} ${s.tilt}`}>
       {s.text}
     </span>
   )
@@ -78,5 +78,5 @@ export function Pencil({ className = '' }: { className?: string }) {
 export { cm } from '../../domain/furniture/modules/common'
 
 export function Title({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <h2 className={`font-display text-2xl font-semibold tracking-tight [font-variation-settings:'opsz'_48] ${className}`}>{children}</h2>
+  return <h2 className={`font-display text-2xl font-semibold ${className}`}>{children}</h2>
 }

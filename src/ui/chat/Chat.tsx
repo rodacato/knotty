@@ -132,7 +132,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
                 onClick={() => viewVersion(viewedVersion === m.version ? null : m.version)}
                 title="Ver esta versión"
                 aria-label={`Ver la versión ${m.version}`}
-                className={`numerals relative rounded-full px-1.5 py-px text-xs underline before:absolute before:-inset-x-3 before:-inset-y-3.5 before:content-[''] decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-amber text-on-amber' : 'bg-kraft text-graphite hover:bg-amber-soft'}`}
+                className={`numerals relative rounded-full px-1.5 py-px text-xs underline before:absolute before:-inset-x-3 before:-inset-y-3.5 before:content-[''] decoration-dotted underline-offset-2 transition ${viewedVersion === m.version ? 'bg-select text-on-select' : 'bg-kraft text-graphite hover:bg-select-soft'}`}
               >
                 v{m.version}
               </button>
@@ -246,7 +246,7 @@ export function Chat({ state }: { state: DesignState }) {
         ))}
         {thinking && (
           <div className="flex items-center gap-2 self-start rounded-2xl border border-line bg-bone px-4 py-2.5 text-sm text-graphite-2" aria-live="polite">
-            <Pencil className="h-5 w-12 text-amber" /> {stage ? STAGES[stage.name] : 'Pensando…'}
+            <Pencil className="h-5 w-12 text-select" /> {stage ? STAGES[stage.name] : 'Pensando…'}
             {seconds >= 10 && <span className="numerals text-xs">· {seconds} s</span>}
           </div>
         )}

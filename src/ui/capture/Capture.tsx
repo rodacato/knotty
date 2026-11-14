@@ -51,7 +51,7 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
         <div className="absolute bottom-2 left-2">
           {photo.reading ? (
             <span className="flex min-h-8 items-center gap-1.5 rounded-full bg-bone/90 px-2.5 text-xs text-graphite">
-              <Pencil className="h-4 w-8 text-amber" /> Mirando la foto…
+              <Pencil className="h-4 w-8 text-select" /> Mirando la foto…
             </span>
           ) : (
             <Select
@@ -226,7 +226,7 @@ export function Capture() {
       <AppHeader />
       <main className="mx-auto flex w-full max-w-[1184px] flex-1 flex-col gap-7 px-5 py-6 md:px-8 md:py-10">
         <header className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight [font-variation-settings:'opsz'_48] md:text-4xl">¿Qué mueble quieres?</h1>
+          <h1 className="font-display text-3xl leading-tight font-semibold md:text-4xl">¿Qué mueble quieres?</h1>
           <p className="text-lg text-graphite-2 md:text-xl">Con fotos, con palabras o con las dos.</p>
         </header>
 
