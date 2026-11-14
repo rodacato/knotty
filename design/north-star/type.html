@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knotty · muestrario tipográfico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=League+Gothic&family=Oswald:wght@500;600;700&family=Libre+Franklin:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f6efdc;
+    --ink: #161412;
+    --ink-2: #4a443c;
+    --rule: #161412;
+    --verm: #e8401c;
+    --wood: #d9a35b;
+  }
+  /* A · as the image generator drew it */
+  body[data-combo="a"] { --display: "Barlow Condensed", sans-serif; --display-w: 700; --display-scale: 1; --display-track: 0;
+    --text: "IBM Plex Sans", sans-serif; --mono: "IBM Plex Mono", monospace; }
+  /* B · full period */
+  body[data-combo="b"] { --display: "League Gothic", sans-serif; --display-w: 400; --display-scale: 1.18; --display-track: .01em;
+    --text: "Libre Franklin", sans-serif; --mono: "Courier Prime", monospace; }
+  /* C · period display and text, modern mono */
+  body[data-combo="c"] { --display: "Oswald", sans-serif; --display-w: 600; --display-scale: .94; --display-track: 0;
+    --text: "Libre Franklin", sans-serif; --mono: "IBM Plex Mono", monospace; }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #8a847a; color: var(--ink); font-family: var(--text); }
+  .switch { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; align-items: center; padding: 10px 16px; background: #2a2622; color: #efe7da; font: 500 14px/1.3 system-ui, sans-serif; flex-wrap: wrap; }
+  .switch button { min-height: 44px; padding: 0 16px; border: 1px solid #efe7da; background: transparent; color: #efe7da; font: inherit; cursor: pointer; }
+  .switch button[aria-pressed="true"] { background: #efe7da; color: #161412; }
+  .switch .note { margin-left: auto; opacity: .75; }
+
+  .sheet { width: 1240px; margin: 20px auto 40px; background: var(--paper); border: 2px solid var(--rule); }
+  .disp { font-family: var(--display); font-weight: var(--display-w); letter-spacing: var(--display-track); text-transform: uppercase; line-height: .95; }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  header.band { display: flex; align-items: center; gap: 22px; background: var(--ink); color: var(--paper); padding: 14px 22px; }
+  .wordmark { font-family: var(--display); font-weight: var(--display-w); font-size: calc(54px * var(--display-scale)); line-height: 1; letter-spacing: var(--display-track); }
+  .band .divider { width: 2px; align-self: stretch; background: var(--paper); opacity: .8; }
+  .band .title { font-size: calc(40px * var(--display-scale)); }
+  .band .meta { font-size: 20px; margin-top: 6px; }
+  .band .actions { margin-left: auto; display: flex; gap: 0; align-items: center; }
+  .btn-primary { min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center; background: var(--verm); color: #fff8ec; border: 2px solid var(--ink); }
+  .btn-primary.disp { font-size: calc(26px * var(--display-scale)); }
+  .band .quiet { padding: 0 16px; min-height: 48px; display: inline-flex; align-items: center; border-left: 2px solid rgba(246,239,220,.7); font-size: calc(22px * var(--display-scale)); }
+
+  .strip { display: grid; grid-template-columns: 1fr 1.1fr 1.5fr .9fr 1.4fr 1.25fr 1.15fr 1.1fr; border-bottom: 2px solid var(--rule); }
+  .step { position: relative; padding: 10px 12px 12px; border-right: 1px solid var(--rule); min-height: 92px; }
+  .step:last-child { border-right: 0; }
+  .step h3 { margin: 0 0 6px; font-size: calc(22px * var(--display-scale)); }
+  .step p { margin: 0; font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+  .step.active { background: var(--ink); color: var(--paper); }
+  .step.active p { color: #e9e0cc; }
+  .step.active::after { content: ""; position: absolute; left: 50%; bottom: -12px; transform: translateX(-50%); border: 10px solid transparent; border-top-color: var(--ink); border-bottom: 0; }
+
+  .work { display: grid; grid-template-columns: 1fr 440px; }
+  .stage { position: relative; border-right: 2px solid var(--rule); min-height: 620px; overflow: hidden;
+    background-image: url("studio.png"); background-size: 1270px auto; background-position: -12px -250px; background-repeat: no-repeat; background-color: var(--paper); }
+  .panel { padding: 20px 22px 24px; }
+  .panel h2 { margin: 0 0 14px; font-size: calc(44px * var(--display-scale)); padding-bottom: 10px; border-bottom: 2px solid var(--rule); }
+  .field { margin: 16px 0 0; }
+  .label { display: block; font-weight: 700; font-size: 17px; margin-bottom: 8px; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--rule); }
+  .seg span { min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; border-right: 1px solid var(--rule); }
+  .seg span:last-child { border-right: 0; }
+  .seg span::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; }
+  .seg .on { background: var(--ink); color: var(--paper); font-weight: 600; }
+  .seg .on::before { background: radial-gradient(circle, currentColor 0 3px, transparent 4px); }
+  .select { min-height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border: 1px solid var(--rule); font-size: 18px; background: #fbf6e8; }
+  .check { min-height: 46px; display: flex; align-items: center; gap: 12px; padding: 0 14px; border: 1px solid var(--rule); background: #fbf6e8; font-size: 17px; }
+  .check i { width: 22px; height: 22px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-style: normal; font-size: 15px; font-weight: 700; }
+  .help { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  .warn { margin-top: 18px; display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 14px 14px 14px 12px; border: 2px solid var(--ink); border-left-width: 8px; background: #fffaf0; }
+  .warn svg { width: 30px; height: 30px; }
+  .warn p { margin: 0; font-size: 15.5px; line-height: 1.45; }
+  .warn strong { font-weight: 700; }
+
+  .hero { display: grid; grid-template-columns: 520px 1fr; border-top: 2px solid var(--rule); }
+  .hero .copy { padding: 26px 28px 30px; border-right: 1px solid var(--rule); }
+  .eyebrow { font-size: calc(22px * var(--display-scale)); text-transform: none; padding-bottom: 12px; border-bottom: 2px solid var(--rule); margin: 0 0 18px; }
+  .hero h1 { margin: 0 0 18px; font-size: calc(76px * var(--display-scale)); text-transform: none; line-height: .92; }
+  .lede { font-size: 18px; line-height: 1.5; margin: 0 0 22px; max-width: 30em; }
+  .hero .btn-primary { font-size: calc(30px * var(--display-scale)); min-height: 60px; }
+  .hero .note { margin: 14px 0 0; font-size: 15px; color: var(--ink-2); }
+  .hero-img { height: 420px; margin: -26px -28px 0; background: url("hero.png") no-repeat -380px -110px / 1100px auto; }
+  .hero .specs { padding: 26px 28px; display: flex; flex-direction: column; justify-content: flex-end; gap: 18px; }
+  .specs .row { display: flex; align-items: baseline; gap: 18px; border-top: 2px solid var(--rule); border-bottom: 2px solid var(--rule); padding: 12px 0; }
+  .specs .row .disp { font-size: calc(40px * var(--display-scale)); text-transform: none; }
+  .specs .row .mono { font-size: 17px; }
+  .specs .cotas { display: flex; gap: 28px; font-size: 22px; font-weight: 600; }
+  .specs .sheet-line { font-size: 17px; line-height: 1.6; }
+  .legend { font: 13px/1.4 var(--mono); color: var(--ink-2); padding: 10px 22px; border-top: 1px solid var(--rule); }
+</style>
+</head>
+<body data-combo="a">
+<div class="switch" role="group" aria-label="Combinación tipográfica">
+  <button type="button" data-c="a" aria-pressed="false">A · as generated (Barlow + Plex)</button>
+  <button type="button" data-c="b" aria-pressed="false">B · época completa (League Gothic + Franklin + Courier)</button>
+  <button type="button" data-c="c" aria-pressed="false">C · elegida: época + mono moderna (Oswald + Franklin + Plex Mono)</button>
+  <span class="note">Teclas 1 · 2 · 3 para alternar</span>
+</div>
+
+<main class="sheet">
+  <header class="band">
+    <div class="wordmark">Knotty</div>
+    <div class="divider"></div>
+    <div>
+      <div class="disp title">Aparador con patas</div>
+      <div class="mono meta">KC-APA-01 | 940 × 1600 × 400 mm</div>
+    </div>
+    <div class="actions">
+      <span class="btn-primary disp">Terminar de editar</span>
+      <span class="quiet disp">Simulado</span>
+      <span class="quiet disp">Nuevo diseño</span>
+    </div>
+  </header>
+
+  <nav class="strip" aria-label="Pasos">
+    <div class="step"><h3 class="disp">1. Tipo de mueble</h3><p class="mono">Aparador</p></div>
+    <div class="step"><h3 class="disp">2. Tamaño</h3><p class="mono">940 × 1600 × 400 mm</p></div>
+    <div class="step"><h3 class="disp">3. Madera y acabado</h3><p>Triplay de 18 mm · Barniz de poliuretano</p></div>
+    <div class="step"><h3 class="disp">4. Armado</h3><p>Fijo</p></div>
+    <div class="step active"><h3 class="disp">5. Base</h3><p>Con patas · <span class="mono">150 mm</span> · Rectas · Anclado al muro: Sí</p></div>
+    <div class="step"><h3 class="disp">6. Cuerpo</h3><p>Techo entre laterales, trasera clavada</p></div>
+    <div class="step"><h3 class="disp">7. Puertas</h3><p>3 puertas embutidas, ranuradas</p></div>
+    <div class="step"><h3 class="disp">8. Cajones</h3><p>3 cajones, frentes embutidos</p></div>
+  </nav>
+
+  <section class="work">
+    <div class="stage" role="img" aria-label="Aparador con patas, recorte de studio.png"></div>
+    <div class="panel">
+      <h2 class="disp">5. Base</h2>
+      <div class="seg"><span>Con zoclo</span><span>Directa</span><span class="on">Con patas</span></div>
+      <div class="field"><span class="label">Alto de las patas</span><div class="select mono"><span>150 mm</span><span aria-hidden="true">▼</span></div></div>
+      <div class="field"><span class="label">Forma de las patas</span><div class="seg"><span class="on">Rectas</span><span>Cónicas</span><span>Abiertas</span></div></div>
+      <div class="field"><span class="label">Anclado al muro</span><div class="check"><i aria-hidden="true">✓</i>Sí</div>
+        <p class="help">Confirma si el muro evita el vuelco o sostiene el mueble colgado. Con patas o zoclo, el piso sostiene el peso.</p></div>
+      <div class="warn" role="note">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><path d="M15 2 29 27H1Z" fill="#161412"/><path d="M15 11v8" stroke="#f6efdc" stroke-width="3"/><circle cx="15" cy="23" r="1.8" fill="#f6efdc"/></svg>
+        <p><strong>No cupo:</strong> las patas del frente y las de atrás no caben en ese fondo; hazla más honda, quítale vuelo a la cubierta o cámbiala a costados.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero" aria-label="Hero del sitio">
+    <div class="copy">
+      <p class="disp eyebrow">Muebles de triplay · Hechos por ti</p>
+      <h1 class="disp">Ese rincón ya tiene su próximo mueble.</h1>
+      <p class="lede">Elige una base, ajústala a tus medidas y entiende cómo se arma. Knotty te acompaña del diseño 3D a las piezas que llevas al taller.</p>
+      <span class="btn-primary disp">Elegir mi primer mueble</span>
+      <p class="note">Puedes empezar con las bases sin conectar un experto.</p>
+    </div>
+    <div class="specs">
+      <div class="hero-img" role="img" aria-label="Aparador con patas, recorte de hero.png"></div>
+      <div class="mono sheet-line">Triplay de pino 18 mm · 3 hojas · ~$3,150 · ~$1,050 por hoja ref.<br>Hoja 1 de 3 · desperdicio 10 % · Techo 1564 × 394 mm</div>
+      <div class="row"><span class="disp">Aparador con patas</span><span>Mueble de ejemplo</span><span class="mono" style="margin-left:auto">KC-APA-01</span></div>
+    </div>
+  </section>
+  <div class="legend" id="legend"></div>
+</main>
+
+<script>
+  const legends = {
+    a: 'A · Títulos: Barlow Condensed 700 · Lectura: IBM Plex Sans · Cifras: IBM Plex Mono (lo que dibujó el generador de imágenes)',
+    b: 'B · Títulos: League Gothic (Alternate Gothic, 1903) · Lectura: Libre Franklin (Franklin Gothic) · Cifras: Courier Prime (máquina de escribir)',
+    c: 'C · Títulos: Oswald 600 (Alternate Gothic) · Lectura: Libre Franklin · Cifras: IBM Plex Mono'
+  };
+  function set(c) {
+    document.body.dataset.combo = c;
+    document.querySelectorAll('.switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === c)));
+    document.getElementById('legend').textContent = legends[c] + ' · Igual en las tres: mayúsculas solo en títulos y pasos, reglas finas dentro del panel, aviso con barra y triángulo negros.';
+  }
+  document.querySelectorAll('.switch button').forEach(b => b.addEventListener('click', () => set(b.dataset.c)));
+  document.addEventListener('keydown', e => { const m = { '1': 'a', '2': 'b', '3': 'c' }[e.key]; if (m) set(m); });
+  set(legends[location.hash.slice(1)] ? location.hash.slice(1) : 'c');
+</script>
+</body>
+</html>
