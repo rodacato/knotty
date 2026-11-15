@@ -227,7 +227,7 @@ export function AdjustBase({ base }: { base: Base }) {
                 <p className="font-display text-2xl font-semibold md:text-3xl">{lines.cost}</p>
               </div>
             )}
-            <Button variant="primary" className="min-h-14 w-full rounded-2xl text-base" disabled={stopper !== null} onClick={open}>
+            <Button variant="primary" className="min-h-14 w-full text-lg" disabled={stopper !== null} onClick={open}>
               Abrir en el Studio <ArrowRight weight="bold" />
             </Button>
             <Button variant="ghost" className="min-h-11 w-full text-base" onClick={() => openExample(base)}>

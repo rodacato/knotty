@@ -6,8 +6,9 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'action'
 const VARIANTS: Record<Variant, string> = {
   // The screen's one vermilion action (UI-93): at most one per screen.
   action: 'bg-action text-on-action font-display text-lg font-semibold uppercase hover:brightness-110',
-  primary: 'bg-graphite text-bone hover:bg-graphite/90 shadow-[0_1px_0_rgba(255,255,255,.15)_inset,0_6px_16px_-8px_rgba(43,40,37,.6)]',
-  secondary: 'bg-kraft text-graphite border border-line hover:bg-kraft-2',
+  // Every button speaks in condensed capitals, as the brand guide rules (UI-93): ink filled, or outlined in ink.
+  primary: 'border-2 border-graphite bg-graphite font-display text-base font-semibold text-bone uppercase hover:bg-graphite/90',
+  secondary: 'border-2 border-graphite bg-bone font-display text-base font-semibold text-graphite uppercase hover:bg-kraft',
   ghost: 'text-graphite-2 hover:bg-kraft hover:text-graphite',
   danger: 'bg-rust text-on-rust hover:bg-rust/90',
 }
