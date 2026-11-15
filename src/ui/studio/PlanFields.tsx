@@ -33,10 +33,13 @@ export interface Locks {
 /** A change to the plan; `typed` is the key of the field when it was typed into, one character at a time. */
 export type PlanChange<P> = (plan: P, typed?: string) => void
 
+// A field's name heads its box, as on a printed form (UI-93): condensed capitals, ink.
+const HEAD = 'flex items-center gap-1 font-display text-xl leading-tight font-semibold uppercase text-graphite'
+
 function Row({ label, lock, children }: { label: string; lock: ReactNode; children: ReactNode }) {
   return (
     <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm">
-      <span className="flex items-center gap-1">
+      <span className={HEAD}>
         {lock}
         {label}
       </span>
@@ -57,12 +60,12 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
     case 'section':
       return (
         <section className="flex flex-col gap-2">
-          <h3 className="font-display text-base font-semibold">{typeof field.title === 'string' ? field.title : field.title(plan)}</h3>
+          <h3 className="border-b-2 border-graphite pb-1 font-display text-lg font-semibold uppercase">{typeof field.title === 'string' ? field.title : field.title(plan)}</h3>
           <Fields fields={field.fields} plan={plan} onChange={onChange} locks={locks} />
         </section>
       )
     case 'note':
-      return <p className="text-xs text-graphite">{field.text}</p>
+      return <p className="text-sm leading-snug text-graphite-2">{field.text}</p>
     case 'numbers':
       return (
         <div className={`grid ${field.columns === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
@@ -74,7 +77,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
         <Field
           error={outOfRange(field.get(plan), field.min, field.max)}
           label={
-            <span className="flex items-center gap-1">
+            <span className={HEAD}>
               {lock(field)}
               {field.label}
             </span>
@@ -91,7 +94,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
         <div className="flex flex-col gap-2">
           {diagrams ? (
             <>
-              <span className="flex items-center gap-1 text-sm">
+              <span className={HEAD}>
                 {lock(field)}
                 {field.label}
               </span>
@@ -102,7 +105,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
               <Segmented {...control} />
             </Row>
           )}
-          {hint && <p className="text-xs text-graphite">{hint}</p>}
+          {hint && <p className="text-sm leading-snug text-graphite-2">{hint}</p>}
         </div>
       )
     }

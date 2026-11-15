@@ -12,8 +12,9 @@ const OFFSET = 70 * MM
 /** Reference lines stop a little short of the piece and run a little past the dimension line. */
 const GAP = 6 * MM
 const OVERSHOOT = 14 * MM
-const TICK = 18 * MM
-const COLOR = '#8a7a66'
+const TICK = 32 * MM
+// Cotas are printed in ink, like the drawing on a cut ticket (UI-93).
+const COLOR = '#161412'
 /** Past this, the camera looks along the dimension and it reads as a dot with a label on top: hidden. */
 const EDGE_ON = 0.9
 
@@ -36,10 +37,10 @@ function Dimension({ from, to, out, value, dark }: { from: Point; to: Point; out
     <group ref={group}>
       <Line points={[add(from, out, GAP), add(from, out, OFFSET + OVERSHOOT)]} color={COLOR} lineWidth={0.75} dashed dashSize={0.012} gapSize={0.008} transparent opacity={0.7} />
       <Line points={[add(to, out, GAP), add(to, out, OFFSET + OVERSHOOT)]} color={COLOR} lineWidth={0.75} dashed dashSize={0.012} gapSize={0.008} transparent opacity={0.7} />
-      <Line points={[a, b]} color={COLOR} lineWidth={1.25} />
-      <Line points={[add(a, out, -TICK / 2), add(a, out, TICK / 2)]} color={COLOR} lineWidth={2} />
-      <Line points={[add(b, out, -TICK / 2), add(b, out, TICK / 2)]} color={COLOR} lineWidth={2} />
-      <Label text={text} position={middle} dark={dark} />
+      <Line points={[a, b]} color={COLOR} lineWidth={2.5} />
+      <Line points={[add(a, out, -TICK / 2), add(a, out, TICK / 2)]} color={COLOR} lineWidth={3.5} />
+      <Line points={[add(b, out, -TICK / 2), add(b, out, TICK / 2)]} color={COLOR} lineWidth={3.5} />
+      <Label text={text} position={middle} dark={dark} height={0.03} cota />
     </group>
   )
 }

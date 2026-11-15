@@ -7,9 +7,9 @@ import type { ReactNode } from 'react'
 /** Options that do not fit one row go on to the next whole: a name is never broken in two. */
 export function Segmented({ value, options, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; onChange: (v: string) => void; label: string }) {
   return (
-    <RadioGroup label={label} className="inline-flex flex-wrap rounded-[1.1rem] border border-line bg-bone p-0.5">
+    <RadioGroup label={label} className="inline-flex flex-wrap divide-x divide-graphite border border-graphite bg-bone">
       {options.map(([id, text]) => (
-        <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="px-2.5 py-1 text-xs whitespace-nowrap before:absolute before:-inset-x-0.5 before:-inset-y-2.5 before:content-['']">
+        <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="grid min-h-11 place-items-center px-3.5 text-sm whitespace-nowrap">
           {text}
         </RadioCard>
       ))}
@@ -23,7 +23,7 @@ export function OptionCards({ value, options, diagrams, onChange, label, refused
   return (
     <RadioGroup label={label} className="grid grid-cols-3 gap-2">
       {options.map(([id, text]) => (
-        <RadioCard key={id} checked={value === id} disabled={id in refused} onChange={() => onChange(id)} className="drawing-sheet flex flex-col items-center gap-1 rounded-2xl px-2 pt-2 pb-1.5 text-center text-xs font-medium">
+        <RadioCard key={id} checked={value === id} disabled={id in refused} onChange={() => onChange(id)} className="drawing-sheet flex flex-col items-center gap-1 px-2 pt-2 pb-1.5 text-center text-sm font-medium">
           <span className="w-full max-sm:px-3">{diagrams[id]}</span>
           {text}
         </RadioCard>

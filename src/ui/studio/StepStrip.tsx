@@ -40,7 +40,7 @@ export function StepStrip({ state, plan }: { state: DesignState; plan: Furniture
               <span className="font-display text-[15px] leading-tight font-semibold uppercase">
                 <span className="numerals">{step.number}.</span> {step.name}
               </span>
-              <span className={`line-clamp-3 text-[13px] leading-snug ${step.active ? 'text-bone/85' : 'text-graphite-2'}`}>{step.summary}</span>
+              <span className={`line-clamp-3 text-sm leading-snug ${step.active ? 'text-bone' : 'text-graphite'}`}>{step.summary}</span>
             </button>
             {step.active && <span aria-hidden className="absolute top-full left-1/2 -translate-x-1/2 border-x-[16px] border-t-[16px] border-x-transparent border-t-graphite" />}
           </li>
