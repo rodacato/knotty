@@ -40,7 +40,13 @@ function renderMaterials(state: DesignState) {
 }
 
 const buttons = (markup: string) => [...markup.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].map((match) => match[0])
-const primaryButtons = (markup: string) => buttons(markup).filter((button) => /class="[^"]*\bbg-graphite\b/.test(button))
+// The one filled action is the vermilion one (UI-91, UI-93).
+const primaryButtons = (markup: string) => buttons(markup).filter((button) => /class="[^"]*\bbg-action\b/.test(button))
+/** The `<details>` whose summary carries `heading`, with whether it renders open. */
+const section = (markup: string, heading: string) => {
+  const match = markup.match(new RegExp(`<details([^>]*)><summary[^>]*>(?:(?!</summary>)[\\s\\S])*?${heading}`))
+  return match && { open: /\bopen=""/.test(match[1]) }
+}
 const guide = (state: DesignState) => renderToStaticMarkup(h(ServicesContext.Provider, { value: services }, h(TakeAway, { state })))
 
 describe('Materials next step', () => {
@@ -51,10 +57,10 @@ describe('Materials next step', () => {
     expect(primaryButtons(markup)[0]).toContain('Revisar y ver materiales')
     expect(markup).not.toContain('Ver guía de cortes')
     expect(markup).not.toContain('Copiar lista para la maderería')
-    expect(markup).not.toContain('Lista de corte ·')
+    expect(section(markup, 'Lista de corte')).toBeNull()
   })
 
-  it('makes the guide primary with one copy action and collapsed purchasing details', async () => {
+  it('makes the guide primary with one copy action, the sheets open and the rest of the purchase folded', async () => {
     const state = await settled()
     expect(state.review.verdict).toBe('viable')
     const markup = renderMaterials(state)
@@ -62,10 +68,11 @@ describe('Materials next step', () => {
     expect(primaryButtons(markup)[0]).toContain('Ver guía de cortes')
     expect(buttons(markup).filter((button) => button.includes('Copiar lista para la maderería'))).toHaveLength(1)
     expect(markup).not.toContain('Hoja para llevar')
-    for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado:', 'Lista de corte']) {
-      expect(markup).toMatch(new RegExp(`<details[^>]*><summary[^>]*>${heading}`))
+    for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado', 'Lista de corte']) {
+      expect(section(markup, heading)).not.toBeNull()
     }
-    expect(markup).not.toMatch(/<details[^>]*open=""[^>]*><summary[^>]*>(Hojas de triplay|Herrajes|Lista de corte)/)
+    expect(section(markup, 'Hojas de triplay')?.open).toBe(true)
+    for (const heading of ['Herrajes y consumibles', 'Lista de corte']) expect(section(markup, heading)?.open).toBe(false)
   })
 
   it('keeps necessary changes visible before export and preserves them in the guide and copied text', async () => {
@@ -115,7 +122,7 @@ describe('Materials next step', () => {
 
   it('orders decisions and purchases before the final guide action', async () => {
     const markup = renderMaterials(await settled())
-    const order = ['Comprobaciones de Knotty', 'Herrajes y consumibles', 'Lista de corte ·', 'Guía y lista para llevar', 'Ver guía de cortes'].map((text) => markup.indexOf(text))
+    const order = ['Comprobaciones de Knotty', 'Herrajes y consumibles', 'Lista de corte<', 'Guía y lista para llevar', 'Ver guía de cortes'].map((text) => markup.indexOf(text))
     expect(order.every((at) => at >= 0)).toBe(true)
     expect(order).toEqual([...order].sort((a, b) => a - b))
   })
