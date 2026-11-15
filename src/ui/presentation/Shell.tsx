@@ -20,7 +20,6 @@ export function Shell({ page, children, root = '../' }: { page: 'presentation' |
     <>
       <a className="nav-link" href={page === 'brand' ? root : '#como-funciona'}>{page === 'brand' ? 'Conoce Knotty' : 'Cómo funciona'}</a>
       {page === 'presentation' && <a className="nav-link" href="#catalog">Muebles</a>}
-      <a className="nav-link" href={`${root}marca/`} aria-current={page === 'brand' ? 'page' : undefined}>Guía de marca</a>
       <a className="page-link page-link-band" href={`${root}catalog/#catalog`}>Explorar el catálogo</a>
     </>
   )
@@ -42,7 +41,7 @@ export function Shell({ page, children, root = '../' }: { page: 'presentation' |
       <footer className="page-footer page-width">
         <a className="wordmark" href={root}><Knot className="h-8 w-[74px]" /><span>Knotty</span></a>
         <p>De tu espacio al taller.</p>
-        <div>{page === 'presentation' && <a className="nav-link" href="#preguntas">Preguntas frecuentes</a>}<a className="nav-link" href={`${root}marca/`}>Guía de marca</a><a className="nav-link" href="https://github.com/rodacato/knotty">Ver el código</a>{install && <button type="button" className="nav-link" onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</button>}</div>
+        <div>{page === 'presentation' && <a className="nav-link" href="#preguntas">Preguntas frecuentes</a>}<a className="nav-link" href={`${root}marca/`} aria-current={page === 'brand' ? 'page' : undefined}>Guía de marca</a><a className="nav-link" href="https://github.com/rodacato/knotty">Ver el código</a>{install && <button type="button" className="nav-link" onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</button>}</div>
         {install?.hint && <p role="note" className="install-hint">{install.hint}</p>}
       </footer>
     </div>
