@@ -17,8 +17,9 @@ import { HistoryButtons, HistoryKeys } from './HistoryKeys'
 import { useExpertStatus } from '../shell/expertStatus'
 import { draftOf, useStore, type EditSide, type SceneMode, type View } from '../store'
 import type { CabinetPlan } from '../../domain/furniture/modules/cabinet'
-import type { Parts } from '../../domain/furniture/modules/parts'
+import { partName, type Parts, type PartSpec } from '../../domain/furniture/modules/parts'
 import { EditPanel } from './EditPanel'
+import { StepStrip } from './StepStrip'
 import { HistoryPanel } from './HistoryPanel'
 import { ReviewActivity } from './ReviewActivity'
 import { InvalidCanvas } from './InvalidCanvas'
@@ -305,8 +306,8 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
   )
 }
 
-/** `editing`: notices and history give way to the edit panel, so their buttons wait for it to end. */
-function Header({ state, shown, pending, overlay, editing, onOpen }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; editing: boolean; onOpen: (o: Overlay) => void }) {
+/** `editing`: notices and history give way to the edit panel, so their buttons wait for it to end. `onLeave`: on a wide screen the way out of editing is the header's one vermilion action (UI-93). */
+function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; editing: boolean; onOpen: (o: Overlay) => void; onLeave?: () => void }) {
   const debugVisible = useStore((s) => s.debugVisible)
   const { preferences } = useServices()
   const openSettings = useStore((s) => s.openSettings)
@@ -326,18 +327,23 @@ function Header({ state, shown, pending, overlay, editing, onOpen }: { state: De
   const toExpert = () => (available ? openSettings(true) : openConnect(true))
   // With a larger font the buttons go under the title rather than squeeze it: the title's least width is in rem, so it grows with the font.
   return (
-    <header className="flex items-center gap-1 border-b border-line bg-bone/80 px-2 py-2 backdrop-blur max-sm:flex-wrap sm:gap-3 sm:px-3 md:px-5">
+    <header className="ink-band flex items-center gap-1 px-2 py-2 max-sm:flex-wrap sm:gap-3 sm:px-3 md:px-5">
       <button type="button" className="shrink-0 rounded-lg" onClick={goHome} aria-label="Inicio" title="Inicio: tu diseño se queda abierto">
         <Emblem className="size-7 sm:size-8" />
       </button>
-      <div className="min-w-0 flex-1 max-sm:min-w-32">
-        <p className="font-display text-lg leading-tight font-semibold max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
+      <div className="min-w-0 flex-1 border-l border-line pl-3 max-sm:min-w-32">
+        <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2">
           {summary}
           <FichaOrigin state={state} />
         </p>
       </div>
       <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
+        {onLeave && (
+          <button type="button" onClick={onLeave} title="Salir (Esc)" className="inline-flex min-h-11 items-center gap-2 border-2 border-graphite bg-action px-4 font-display text-base font-semibold text-on-action uppercase transition active:scale-[0.97]">
+            Terminar de editar
+          </button>
+        )}
         {library.available && (
           <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={() => openLibrary(true)} title="Mis muebles: guardar o abrir">
             <FloppyDisk /> Mis muebles
@@ -409,6 +415,10 @@ export function Studio({ state }: { state: DesignState }) {
   const insideParts = !!parts?.list.some((p) => p.side === 'inside')
   const partOpen = editingSide && parts && chosenPart && !chosenCell ? chosenPart : null
   const partPieces = partOpen && parts ? shown.pieces.filter((p) => parts.ofPiece(p) === partOpen.id).map((p) => p.id) : []
+  const partSpec = partOpen && parts && editable ? (parts.list as PartSpec<FurniturePlan>[]).find((p) => p.id === partOpen.id) : undefined
+  // From outside on a wide screen the steps run across the top (UI-93); a phone keeps them as a list in the panel.
+  const stripPlan = desktop && editingSide === 'outside' ? editable : null
+  const leave = useStore((s) => s.leave)
   // A request sent from the checkout lands here with the expert answering: the panel opens so the answer is in sight.
   const [sheet, setSheet] = useState<Sheet>(() => (useStore.getState().thinking ? 'half' : 'peek'))
   const tab = useStore((s) => s.studioTab)
@@ -458,7 +468,7 @@ export function Studio({ state }: { state: DesignState }) {
       {geo ? (
         <div className="h-full" role="img" aria-label={`${shown.name} en 3D: ${shown.dimensions.height} × ${shown.dimensions.width} × ${shown.dimensions.depth} mm, ${shown.pieces.length} piezas. La lista completa está en Materiales.`}>
           <SceneBoundary>
-            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside && interiorPlan ? [] : partOpen ? partPieces : view.changes.changed} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
+            <Scene design={shown} geo={geo} catalog={catalog} ghosts={inside ? [] : view.changes.added} marked={inside && interiorPlan ? [] : partOpen ? partPieces : view.changes.changed} markedLabel={partSpec && editable ? partName(partSpec, editable) : null} problems={view.marked} cabinet={interiorPlan} parts={parts as Parts<never> | null} />
           </SceneBoundary>
         </div>
       ) : (
@@ -476,7 +486,7 @@ export function Studio({ state }: { state: DesignState }) {
         </div>
         {geo && <EditBar inside={insideParts} />}
       </div>
-      {editingSide && <LeaveEditing />}
+      {editingSide && !desktop && <LeaveEditing />}
       {!editingSide && geo && (
         <div className="pointer-events-none absolute inset-x-16 bottom-3 z-10 flex justify-center md:bottom-4">
           <PrepareMaterials />
@@ -520,6 +530,7 @@ export function Studio({ state }: { state: DesignState }) {
           applied={editable ? source.plan : null}
           geo={currentAnalysis.geo ?? null}
           pieceSheet={view.showsPiece && geo ? <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} closable={false} /> : null}
+          strip={!!stripPlan}
         />
       )}
       {!editingSide && view.showsPiece && geo && <PieceSheet key={selection} design={shown} geo={geo} catalog={catalog} editable={view.editable} />}
@@ -574,12 +585,17 @@ export function Studio({ state }: { state: DesignState }) {
   return (
     <div className="flex h-dvh flex-col">
       <HistoryKeys />
-      <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} />
+      <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} onLeave={desktop && editingSide ? () => leave() : undefined} />
       <ReviewActivity compact />
       {desktop ? (
-        <div className="grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,420px)]">
+        <div className={`grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,440px)] ${stripPlan ? 'grid-rows-[auto_minmax(0,1fr)]' : ''}`}>
+          {stripPlan && (
+            <div className="col-span-2">
+              <StepStrip state={state} plan={stripPlan} />
+            </div>
+          )}
           {scene}
-          <aside className="relative min-h-0 border-l border-line">{panel}</aside>
+          <aside className={`relative min-h-0 ${stripPlan ? 'border-l-4 border-graphite' : 'border-l border-line'}`}>{panel}</aside>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

@@ -15,7 +15,8 @@ const LIFT = 4
 /** A line moves in steps of this many mm, and leaves no part narrower than the least. */
 const STEP = 10
 const LEAST = 90
-const AMBER = '#d98a2b'
+// The chosen cell is printed in ink, like any selection (UI-93).
+const INK = '#161412'
 
 const samePath = (a: CellPath | null, b: CellPath) => !!a && a.join('.') === b.join('.')
 const SIDE_WORDS: Record<JoinSide, string> = { up: 'arriba', down: 'abajo', left: 'la izquierda', right: 'la derecha' }
@@ -178,8 +179,8 @@ export function InteriorOverlay({ plan, geo, width, depth }: { plan: CabinetPlan
             onPointerOut={() => setHover((h) => (h === key ? null : h))}
           >
             <planeGeometry args={[(c.x1 - c.x0) * MM, (c.y1 - c.y0) * MM]} />
-            <meshBasicMaterial color={AMBER} transparent opacity={on ? 0.22 : hover === key ? 0.12 : 0} depthWrite={false} />
-            {on && <Edges color={AMBER} lineWidth={2} />}
+            <meshBasicMaterial color={INK} transparent opacity={on ? 0.16 : hover === key ? 0.08 : 0} depthWrite={false} />
+            {on && <Edges color={INK} lineWidth={2.5} />}
           </mesh>
         )
       })}

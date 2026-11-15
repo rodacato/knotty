@@ -18,6 +18,7 @@ import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { assembled, explode, type Explosion } from './explode'
 import { opening, turnsOf, type Opening } from './open'
 import { Hardware } from './Hardware'
+import { PartTag } from './PartTag'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
 import type { EdgeShape } from './edgeGeometry'
@@ -35,10 +36,12 @@ interface SceneProps {
   design: Design
   geo: Geometry
   catalog: Catalog
-  /** New pieces from a proposal: amber ghost. */
+  /** New pieces from a proposal: a light ghost. */
   ghosts: string[]
-  /** Pieces a proposal changes: amber edges. */
+  /** Pieces a proposal changes, or the part being edited: ink edges. */
   marked: string[]
+  /** The name of the part being edited: a tag on a leader line points at its pieces (UI-93). */
+  markedLabel?: string | null
   /** Pieces with unresolved validation problems. */
   problems?: string[]
   /** The cabinet plan the person edits from the furniture: its cells in the interior view, its parts from outside. Without one, a touch chooses a piece. */
@@ -124,7 +127,7 @@ function CameraRig({ frame, focus, focusId, reduced }: { frame: Box; focus: Box 
 /** What closes a cell: the interior view leaves it out to show what is behind. */
 const isFront = (p: Design['pieces'][number]) => p.role === 'door' || p.role === 'drawer-front' || p.id.endsWith('-cover')
 
-export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cabinet = null, parts = null }: SceneProps) {
+export function Scene({ design, geo, catalog, ghosts, marked, markedLabel = null, problems = [], cabinet = null, parts = null }: SceneProps) {
   const selection = useStore((s) => s.selection)
   const focused = useStore((s) => s.focus)
   const mode = useStore((s) => s.mode)
@@ -243,6 +246,12 @@ export function Scene({ design, geo, catalog, ghosts, marked, problems = [], cab
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
         {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={false} />}
+        {markedLabel && (
+          <PartTag
+            name={markedLabel}
+            boxes={marked.filter((id) => geo.boxes.has(id) && shown.some((p) => p.id === id)).map((id) => ({ box: geo.boxes.get(id)!, push: pushes.get(id) ?? [0, 0, 0] }))}
+          />
+        )}
         {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={false} selected={selection} />}
       </group>
 

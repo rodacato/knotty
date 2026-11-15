@@ -10,7 +10,6 @@ import { draftOf, useStore, type EditSide } from '../store'
 import { CellSheet } from './CellSheet'
 import { DraftBar } from './DraftBar'
 import { OutsideList } from './OutsideList'
-import { PartSheet } from './PartSheet'
 import { PartsList } from './PartsList'
 
 // The panel while the furniture is edited from one side (UI-74): its parts, the chosen one, what is not applied yet, and the way out.
@@ -42,7 +41,8 @@ function Breadcrumbs({ steps }: { steps: { label: string; up?: () => void }[] })
   )
 }
 
-export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { state: DesignState; side: EditSide; plan: FurniturePlan | null; applied: FurniturePlan | null; geo: Geometry | null; pieceSheet: ReactNode }) {
+/** `strip`: the steps are on the strip above the stage (UI-93), so the panel shows only the open step, and the way out is in the header. */
+export function EditPanel({ state, side, plan, applied, geo, pieceSheet, strip = false }: { state: DesignState; side: EditSide; plan: FurniturePlan | null; applied: FurniturePlan | null; geo: Geometry | null; pieceSheet: ReactNode; strip?: boolean }) {
   const edit = useStore((s) => s.edit)
   const apply = useStore((s) => s.applyPlanDraft)
   const draft = useStore(draftOf)
@@ -82,20 +82,25 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet }: { sta
   const body = (() => {
     if (pieceSheet) return pieceSheet
     if (side === 'inside' && cell && plan?.kind === 'cabinet' && geo) return <CellSheet plan={plan as CabinetPlan} path={cell} geo={geo} />
-    if (part && plan) return <PartSheet key={part.id} state={state} plan={plan} design={currentDesign(state)} part={part} />
-    if (side === 'outside') return <OutsideList state={state} geo={geo} />
+    // An open part shows inside its step in the list (UI-92), so the list stays visible.
+    if (side === 'outside') return <OutsideList state={state} geo={geo} strip={strip} />
     return plan ? <PartsList state={state} plan={plan} side="inside" /> : null
   })()
 
   return (
     <section className="flex h-full min-h-0 flex-col bg-bone/60" aria-label={TITLE[side]}>
-      <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
-        <h2 className="sr-only">{TITLE[side]}</h2>
-        <Breadcrumbs steps={steps} />
-        <IconButton onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)">
-          <X />
-        </IconButton>
-      </div>
+      <h2 className="sr-only">{TITLE[side]}</h2>
+      {/* On the strip the open step is named in the panel and the way out is in the header; the trail only comes back for a piece. */}
+      {(!strip || piece) && (
+        <div className="flex min-h-11 items-center gap-2 border-b border-line px-4">
+          <Breadcrumbs steps={steps} />
+          {!strip && (
+            <IconButton onClick={() => leave()} aria-label="Salir de editar" title="Salir (Esc)">
+              <X />
+            </IconButton>
+          )}
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto">{body}</div>
       {asking ? (
         <div className="flex flex-col gap-3 border-t border-line bg-paper p-4" role="alertdialog" aria-label="Cambios sin aplicar">

@@ -139,6 +139,31 @@ body {
   color-scheme: light;
 }
 
+/* The black band of the cut ticket (header): its children print in paper on ink through the same roles, so a ghost button needs no special case. */
+.ink-band {
+  --bone: var(--color-brand-ink);
+  --kraft: #2c2824;
+  --kraft-2: #3a342e;
+  --graphite: var(--color-drawing-paper);
+  --graphite-2: rgb(246 239 220 / 0.74);
+  --line: rgb(246 239 220 / 0.28);
+  --focus: var(--color-drawing-paper);
+  --select: var(--color-drawing-paper);
+  --select-soft: rgb(246 239 220 / 0.14);
+  --color-bone: var(--bone);
+  --color-kraft: var(--kraft);
+  --color-kraft-2: var(--kraft-2);
+  --color-graphite: var(--graphite);
+  --color-graphite-2: var(--graphite-2);
+  --color-line: var(--line);
+  --color-focus: var(--focus);
+  --color-select: var(--select);
+  --color-select-soft: var(--select-soft);
+  background-color: var(--color-brand-ink);
+  color: var(--graphite);
+  color-scheme: dark;
+}
+
 .drawing-sheet:has(> input):hover {
   background-color: var(--color-brand-paper);
 }

@@ -180,15 +180,16 @@ export function PieceMesh({ piece, box, tone, plies, offset, swing, selected, di
           transparent
           opacity={0}
           depthWrite={finalOpacity > 0.5}
-          color={ghost ? '#f2b56b' : look.grain ? tint : look.color}
-          emissive="#d98a2b"
+          // A marked piece is printed in ink (UI-93): dark enough to read as chosen, with its grain still showing.
+          color={ghost ? '#f2b56b' : marked ? '#2a221c' : look.grain ? tint : look.color}
+          emissive="#f6efdc"
         />
       ))}
       <Edges
         key={voided?.uuid ?? slanted?.uuid ?? cut?.uuid ?? "box"}
         threshold={cut ? 30 : 15}
-        color={problem ? '#b4452f' : selected || ghost || marked ? '#d98a2b' : '#2b2825'}
-        lineWidth={selected ? 2.5 : problem ? 2.2 : marked || sketch ? 1.8 : 1}
+        color={problem ? '#b4452f' : selected || ghost || marked ? '#161412' : '#2b2825'}
+        lineWidth={selected || marked ? 3 : problem ? 2.2 : sketch ? 1.8 : 1}
         transparent
         opacity={dimmed ? 0.15 : selected || marked || problem || sketch ? 1 : 0.45}
       />

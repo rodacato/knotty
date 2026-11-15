@@ -48,7 +48,8 @@ export const sizePart = <P extends { dimensions: { width: number; height: number
   side: 'outside',
   fields: ['dimensions.height', 'dimensions.width', 'dimensions.depth'],
   joints: [],
-  summary: ({ dimensions: d }) => `${d.height} de alto × ${d.width} de ancho × ${d.depth} de fondo, en mm`,
+  // The order the header's measures use (alto × ancho × fondo), so the closed step fits on its line.
+  summary: ({ dimensions: d }) => `${d.height} × ${d.width} × ${d.depth} mm`,
 })
 
 export const counted = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`

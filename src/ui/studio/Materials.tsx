@@ -130,6 +130,11 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
           <pattern id={pattern} width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="40" stroke="var(--graphite-2)" strokeOpacity="0.25" strokeWidth="6" />
           </pattern>
+          {/* The chosen piece is hatched in ink, as the edited part is marked (UI-93). */}
+          <pattern id={`${pattern}-chosen`} width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="36" height="36" fill="#e2c9a2" />
+            <line x1="0" y1="0" x2="0" y2="36" stroke="#161412" strokeWidth="9" />
+          </pattern>
         </defs>
         <rect width={a.sheet.length} height={a.sheet.width} fill={`url(#${pattern})`} />
         <rect x={trim} y={trim} width={a.usable.length} height={a.usable.width} fill="var(--bone)" />
@@ -158,7 +163,7 @@ function SheetDiagram({ a, index, total, numbers }: { a: MaterialLayout; index: 
               className="cursor-pointer focus-visible:outline-2 focus-visible:outline-focus"
             >
               <title>{`${named} · ${size}`}</title>
-              <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? '#d98a2b' : '#e2c9a2'} stroke="#2b2825" strokeOpacity={active ? 1 : 0.6} strokeWidth={active ? 12 : 5} />
+              <rect x={trim + c.x} y={trim + c.y} width={c.w} height={c.h} fill={active ? `url(#${pattern}-chosen)` : '#e2c9a2'} stroke="#2b2825" strokeOpacity={active ? 1 : 0.6} strokeWidth={active ? 12 : 5} />
               {(labels.name || labels.size) && (
                 <text x={cx} y={trim + c.y + c.h / 2} textAnchor="middle" dominantBaseline="middle" fill="#2b2825">
                   {labels.name && (
