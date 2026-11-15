@@ -68,9 +68,12 @@ describe('Materials next step', () => {
     expect(primaryButtons(markup)[0]).toContain('Ver guía de cortes')
     expect(buttons(markup).filter((button) => button.includes('Copiar lista para la maderería'))).toHaveLength(1)
     expect(markup).not.toContain('Hoja para llevar')
-    for (const heading of ['Comprobaciones de Knotty', 'Hojas de triplay', 'Herrajes y consumibles', 'Acabado', 'Lista de corte']) {
+    for (const heading of ['Hojas de triplay', 'Herrajes y consumibles', 'Acabado', 'Lista de corte']) {
       expect(section(markup, heading)).not.toBeNull()
     }
+    // The checks are the verdict's evidence, a band always in view rather than a folded section (UI-93).
+    expect(section(markup, 'Comprobaciones de Knotty')).toBeNull()
+    expect(markup).toContain('<section aria-label="Comprobaciones de Knotty"')
     expect(section(markup, 'Hojas de triplay')?.open).toBe(true)
     for (const heading of ['Herrajes y consumibles', 'Lista de corte']) expect(section(markup, heading)?.open).toBe(false)
   })

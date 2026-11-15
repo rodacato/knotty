@@ -49,7 +49,7 @@ export function Checkout({ state }: { state: DesignState }) {
       </header>
       <main className="mx-auto flex max-w-[1440px] flex-col">
         {/* The band already names the furniture; the page's own name is a label, so nothing outweighs it (UI-93). */}
-        <h1 className="mx-4 pt-6 font-display text-2xl leading-none font-semibold tracking-wide uppercase md:mx-8 md:pt-8 md:text-3xl">Preparar materiales</h1>
+        <h1 className="mx-4 pt-6 font-display text-2xl leading-none font-semibold tracking-wide uppercase md:mx-8 md:pt-8 md:text-3xl lg:text-5xl">Preparar materiales</h1>
         {analysis.valid ? (
           <Materials state={state} design={design} geo={analysis.geo} catalog={catalog} instead={instead} onRequest={request} />
         ) : (
