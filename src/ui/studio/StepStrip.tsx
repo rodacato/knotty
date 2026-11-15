@@ -26,21 +26,21 @@ export function StepStrip({ state, plan }: { state: DesignState; plan: Furniture
   const finish = FINISHES[finishOf(currentDesign(state))].name
   const steps = outsideSteps(plan, finish, part?.id ?? null, known === 'unknown' ? 'Sin decidir' : kindLabel(known))
   return (
-    <nav aria-label="Pasos" className="relative z-20 border-b-2 border-graphite bg-bone">
+    <nav aria-label="Pasos" className="relative z-20 border-b-4 border-graphite bg-bone">
       <ol className="flex">
         {steps.map((step) => (
-          // A longer value gets a wider cell, so each step keeps its value whole.
-          <li key={step.id} className="relative min-w-0 border-r border-graphite last:border-r-0" style={{ flex: `${1 + step.summary.length / 28} 1 0` }}>
+          // A longer value or name gets a wider cell, so each step keeps its name on one line and its value whole.
+          <li key={step.id} className="relative min-w-0 border-r-2 border-graphite last:border-r-0" style={{ flex: `${1 + Math.max(step.summary.length, (`${step.number}. ${step.name}`.length) * 1.7) / 28} 1 0` }}>
             <button
               type="button"
               aria-current={step.active ? 'step' : undefined}
               onClick={() => !step.active && selectPart(step.id === KIND_STEP ? null : step.id)}
               className={`flex h-full min-h-11 w-full flex-col items-start gap-1 px-3 py-2.5 text-left transition focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-focus ${step.active ? 'bg-graphite text-bone' : 'hover:bg-kraft'}`}
             >
-              <span className="font-display text-[15px] leading-tight font-semibold uppercase">
-                <span className="numerals">{step.number}.</span> {step.name}
+              <span className="font-display text-[19px] leading-tight font-semibold uppercase">
+                {step.number}. {step.name}
               </span>
-              <span className={`line-clamp-3 text-sm leading-snug ${step.active ? 'text-bone' : 'text-graphite'}`}>{step.summary}</span>
+              <span className={`line-clamp-3 font-mono text-sm leading-snug ${step.active ? 'text-bone' : 'text-graphite'}`}>{step.summary}</span>
             </button>
             {step.active && <span aria-hidden className="absolute top-full left-1/2 -translate-x-1/2 border-x-[16px] border-t-[16px] border-x-transparent border-t-graphite" />}
           </li>

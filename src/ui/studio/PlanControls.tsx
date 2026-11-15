@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 /** Options that do not fit one row go on to the next whole: a name is never broken in two. */
 export function Segmented({ value, options, onChange, label }: { value: string; options: readonly (readonly [string, string])[]; onChange: (v: string) => void; label: string }) {
   return (
-    <RadioGroup label={label} className="inline-flex flex-wrap divide-x divide-graphite border border-graphite bg-bone">
+    <RadioGroup label={label} className="inline-flex flex-wrap divide-x-2 divide-graphite border-2 border-graphite bg-bone">
       {options.map(([id, text]) => (
         <RadioCard key={id} variant="segment" checked={value === id} onChange={() => onChange(id)} className="grid min-h-11 place-items-center px-3.5 text-sm whitespace-nowrap">
           {text}
