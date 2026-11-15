@@ -18,3 +18,10 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    # three 0.187 breaks postprocessing 6.39's render targets ("reading 'length'" in setupRenderTarget), so the 3D never draws.
+    # Lift this when a postprocessing release supports it, and check the Studio's 3D by eye: the test suite has no WebGL.
+    ignore:
+      - dependency-name: "three"
+        versions: [">=0.187.0"]
+      - dependency-name: "@types/three"
+        versions: [">=0.187.0"]
