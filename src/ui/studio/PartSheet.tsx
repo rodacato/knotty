@@ -14,6 +14,7 @@ import { JointsSection } from './Joints'
 import { PlanFields } from './PlanFields'
 import { OPTION_DIAGRAMS } from './OptionDiagrams'
 import { OptionCards, Stepper } from './PlanControls'
+import { StepTitle } from './StepStrip'
 
 // A part of the furniture, opened from the list or by touching it (UI-39): its choices go to the plan's draft, its joints change at once.
 
@@ -60,7 +61,8 @@ function TopChoices({ plan }: { plan: CabinetPlan }) {
   )
 }
 
-export function PartSheet({ state, plan, design, part }: { state: DesignState; plan: FurniturePlan; design: Design; part: { id: string; piece: string | null } }) {
+/** `number`: the sheet is the open step of the strip (UI-93), titled as the strip names it. */
+export function PartSheet({ state, plan, design, part, inline = false, number }: { state: DesignState; plan: FurniturePlan; design: Design; part: { id: string; piece: string | null }; inline?: boolean; number?: number }) {
   const editPlan = useStore((s) => s.editPlan)
   const select = useStore((s) => s.select)
   const module = moduleOf(plan)
@@ -75,11 +77,14 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
   const shared = flatFields(fields).filter((f) => sharedKeys.has(f.key)).map((f) => `«${f.label}»`)
   const piece = part.piece ? design.pieces.find((p) => p.id === part.piece) : undefined
   return (
-    <section className="flex h-full min-h-0 flex-col" aria-label={partName(spec, plan)}>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+    <section className={inline ? 'flex flex-col' : 'flex h-full min-h-0 flex-col'} aria-label={partName(spec, plan)}>
+      <div className={inline ? 'flex flex-col gap-5 p-4' : 'flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4'}>
+        {number !== undefined && <StepTitle number={number} name={partName(spec, plan)} />}
+        {/* Inside its step, the step's row already names the part. */}
+        {((!inline && number === undefined) || piece) && (
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg leading-tight font-semibold">{partName(spec, plan)}</h2>
+            {!inline && number === undefined && <h2 className="font-display text-lg leading-tight font-semibold">{partName(spec, plan)}</h2>}
             {piece && <p className="text-sm text-graphite-2">Tocaste {piece.name.toLowerCase()}</p>}
           </div>
           {piece && (
@@ -92,6 +97,7 @@ export function PartSheet({ state, plan, design, part }: { state: DesignState; p
             </Button>
           )}
         </div>
+        )}
         {cabinetTop && <TopChoices plan={plan as CabinetPlan} />}
         <PlanFields module={{ ...module, fields } as typeof module} plan={plan} onChange={editPlan} />
         {part.id === 'wood' && <FinishSection state={state} />}

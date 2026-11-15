@@ -6,13 +6,15 @@ import type { Geometry } from '../../domain/design/resolve'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
 import { KindSelect } from '../system/KindSelect'
-import { KIND_NOUN, type DesignKind, type KindSource } from '../../domain/design/kind'
+import { KIND_NOUN, kindLabel, type DesignKind, type KindSource } from '../../domain/design/kind'
 import { kindOf } from '../../domain/furniture/kind'
 import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { PieceList } from './Panels'
 import { PlanSheet } from './PlanSheet'
 import { PartsList } from './PartsList'
+import { StepRow } from './StepRow'
+import { StepTitle } from './StepStrip'
 import { draftOf } from '../store'
 
 // Editing the furniture from outside (UI-74): its kind, the parts of its plan when it has one, the photos and, without a plan, its pieces.
@@ -26,7 +28,8 @@ const SOURCE: Record<KindSource, string | null> = {
 }
 
 /** What the furniture is: it decides which checks by use apply and how the expert is asked. Another module's kind cannot come from this plan, so it is designed again. */
-function KindPicker({ state }: { state: DesignState }) {
+/** `panel`: the kind is the open step of the strip, so it is always open and titled as the strip names it. */
+function KindPicker({ state, open, onToggle, panel = false }: { state: DesignState; open: boolean; onToggle: () => void; panel?: boolean }) {
   const chooseKind = useStore((s) => s.chooseKind)
   const redoAs = useStore((s) => s.redoAs)
   const openConnect = useStore((s) => s.openConnect)
@@ -51,9 +54,14 @@ function KindPicker({ state }: { state: DesignState }) {
     if ('redo' in r) setRedo(kind)
     else setError(r.message)
   }
+  // A choice still waiting on the person keeps the step open.
+  const expanded = panel || open || !!redo || !!error
   return (
-    <section className="flex flex-col gap-2 px-4 pt-4">
-      <label htmlFor={id} className="text-sm text-graphite-2">
+    <section className={panel ? 'flex flex-col gap-3 p-4' : 'flex flex-col border-b border-line'}>
+      {panel ? <StepTitle number={1} name="Tipo de mueble" /> : <StepRow number={1} name="Tipo de mueble" summary={current ? kindLabel(current) : 'Sin decidir'} active={expanded} onToggle={onToggle} />}
+      {expanded && (
+      <div className={`flex flex-col gap-2 ${panel ? '' : 'p-4'}`}>
+      <label htmlFor={id} className="sr-only">
         Tipo de mueble
       </label>
       <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking || !!draft} />
@@ -88,6 +96,8 @@ function KindPicker({ state }: { state: DesignState }) {
           </div>
         </div>
       )}
+      </div>
+      )}
     </section>
   )
 }
@@ -111,17 +121,42 @@ function Photos({ state }: { state: DesignState }) {
   )
 }
 
-export function OutsideList({ state, geo }: { state: DesignState; geo: Geometry | null }) {
+/** `strip`: the steps are on the strip above (UI-93), so this shows only the open one. */
+export function OutsideList({ state, geo, strip = false }: { state: DesignState; geo: Geometry | null; strip?: boolean }) {
   const source = useMemo(() => currentPlan(state), [state])
   const hasPlan = !!source.plan
   const draft = useStore(draftOf)
   // A plan is edited by its parts (UI-39); one the expert left behind keeps its sheet, with what applying it would lose.
   const plan = !source.diverged ? (draft?.plan ?? source.plan) : null
+  // One step open at a time (UI-92): opening the kind closes the part, and opening a part closes the kind.
+  const part = useStore((s) => s.part)
+  const selectPart = useStore((s) => s.selectPart)
+  const [kindOpen, setKindOpen] = useState(false)
+  const toggleKind = () => {
+    if (kindOpen && !part) return setKindOpen(false)
+    selectPart(null)
+    setKindOpen(true)
+  }
+  if (strip && plan)
+    return (
+      <PartsList
+        state={state}
+        plan={plan}
+        side="outside"
+        first={2}
+        kindStep={
+          <>
+            <KindPicker state={state} open onToggle={() => {}} panel />
+            <Photos state={state} />
+          </>
+        }
+      />
+    )
   return (
     <div className="flex flex-col">
-      <KindPicker state={state} />
+      <KindPicker state={state} open={kindOpen && !part} onToggle={toggleKind} />
       {plan ? (
-        <PartsList state={state} plan={plan} side="outside" />
+        <PartsList state={state} plan={plan} side="outside" first={2} />
       ) : hasPlan ? (
         <PlanSheet state={state} />
       ) : (
