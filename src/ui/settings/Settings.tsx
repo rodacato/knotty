@@ -1,10 +1,10 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowCounterClockwise, LockKey, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Check, LockKey, X } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connection, type KeyStorage, type Provider } from '../../ports/Preferences'
 import { Unlock } from './Keys'
 import { useServices } from '../services'
-import { Button, IconButton, Title } from '../system/components'
+import { Button, Title } from '../system/components'
 import { Field, Input, Select } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
@@ -12,6 +12,11 @@ import { SheLLM } from '../system/SheLLM'
 import { useStore } from '../store'
 import { useInstall } from '../install/useInstall'
 import { TOOL_LEVEL_LABELS, TOOL_LEVELS, type ToolLevel } from '../../domain/materials/tools'
+
+const OPTION_GROUP = 'grid divide-y-2 divide-graphite border-2 border-graphite'
+const OPTION_ROW = 'flex min-h-11 flex-col justify-center gap-0.5 px-3 py-2 pr-11 text-left text-[15px] leading-snug'
+const SECTION_RULE = 'border-t-[3px] border-graphite pt-4'
+const SECTION_TITLE = 'text-xl leading-tight uppercase'
 
 const PROVIDERS: Provider[] = ['simulated', 'anthropic', 'openai', 'shellm']
 
@@ -88,172 +93,180 @@ export function Settings() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-lg flex-col overflow-hidden rounded-3xl border border-line bg-bone shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
-          <div className="flex items-center justify-between px-5 pt-5 pb-3">
-            <Dialog.Title asChild>
-              <Title className="text-xl">Ajustes</Title>
-            </Dialog.Title>
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-2xl flex-col overflow-hidden border-2 border-graphite bg-bone sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+          <header className="ink-band flex shrink-0 items-center justify-between gap-3 px-4 py-2 sm:px-6">
+            <Dialog.Title className="font-display text-3xl leading-none font-semibold sm:text-4xl">Ajustes</Dialog.Title>
             <Dialog.Close asChild>
-              <IconButton aria-label="Cerrar">
-                <X />
-              </IconButton>
+              <Button variant="ghost" className="size-11 shrink-0 px-0" aria-label="Cerrar">
+                <X weight="bold" className="size-5" />
+              </Button>
             </Dialog.Close>
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pb-5">
-          <section className="flex flex-col gap-4">
-          <Title className="text-lg">Experto</Title>
-          <Dialog.Description className="-mt-2 text-sm text-graphite">
-            Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
-          </Dialog.Description>
+          </header>
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+            <section className="flex flex-col gap-3">
+              <div className="space-y-1">
+                <Title className={SECTION_TITLE}>Experto</Title>
+                <Dialog.Description className="text-[15px] text-graphite">
+                  Usa tu propia API key. Se queda solo en este dispositivo y se envía directo al proveedor.
+                </Dialog.Description>
+              </div>
 
-          {locked && <Unlock />}
+              {locked && <Unlock />}
 
-          <RadioGroup className="grid gap-2">
-            {PROVIDERS.map((p) => (
-              <RadioCard
-                key={p}
-                checked={active === p}
-                label={PRESETS[p].label}
-                onChange={() => {
-                  if (p !== active) setModels({ kind: 'idle' })
-                  setDraft((b) => ({ ...b, active: p }))
-                }}
-                className="flex flex-col items-start rounded-2xl px-4 py-3 text-left"
-              >
-                <span className="font-medium">{PRESETS[p].label}</span>
-                <span className="text-xs text-graphite">{PRESETS[p].description}</span>
-              </RadioCard>
-            ))}
-          </RadioGroup>
+              <RadioGroup label="Experto" className={OPTION_GROUP}>
+                {PROVIDERS.map((p) => (
+                  <RadioCard
+                    key={p}
+                    variant="segment"
+                    mark
+                    checked={active === p}
+                    label={PRESETS[p].label}
+                    onChange={() => {
+                      if (p !== active) setModels({ kind: 'idle' })
+                      setDraft((b) => ({ ...b, active: p }))
+                    }}
+                    className={OPTION_ROW}
+                  >
+                    <span className="font-semibold">{PRESETS[p].label}</span>
+                    <span>{PRESETS[p].description}</span>
+                  </RadioCard>
+                ))}
+              </RadioGroup>
 
-          {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} origin={location.origin} learnUrl={SHELLM_URL} />}
+              {active === 'shellm' && connection && <SheLLM host={connection.host} onHost={(host) => change({ host: host.trim() })} origin={location.origin} learnUrl={SHELLM_URL} />}
 
-          {connection && active !== 'simulated' && (
-            <div className="flex flex-col gap-4">
-              <Field label={<>API key{!PRESETS[active].needsKey && ' (opcional)'}</>}>
-                <Input
-                  type={showKey ? 'text' : 'password'}
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={connection.apiKey}
-                  onChange={(e) => change({ apiKey: e.target.value.trim() })}
-                  placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
-                  className="numerals"
-                  end={
-                    <Reveal what="llave" shown={showKey} onToggle={() => setShowKey((v) => !v)} />
-                  }
-                />
-              </Field>
-              <Field
-                label={
-                  <span className="flex items-center justify-between">
-                    Modelo
-                    <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs text-graphite-2 underline disabled:opacity-40">
-                      <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
-                    </button>
-                  </span>
-                }
-                error={models.kind === 'error' && models.message}
-              >
-                {models.kind === 'ready' ? (
-                  <Select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="numerals">
-                    {!models.models.includes(connection.model) && <option value={connection.model}>{connection.model || 'Elige un modelo'}</option>}
-                    {models.models.map((m) => (
-                      <option key={m}>{m}</option>
-                    ))}
-                  </Select>
-                ) : (
-                  <Input value={connection.model} onChange={(e) => change({ model: e.target.value.trim() })} placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'} className="numerals" />
-                )}
-              </Field>
-              <fieldset className="flex flex-col gap-2" disabled={locked}>
-                <legend className="mb-1.5 text-sm font-medium">Dónde guardar las llaves</legend>
-                {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                  <p className="flex items-start gap-1.5 text-xs text-graphite">
-                    <LockKey className="mt-px shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
-                  </p>
-                ) : locked ? (
-                  <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
-                ) : null}
-                <div className="grid gap-1.5">
-                  {SAVED.map((g) => (
-                    <label key={g.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2 text-sm transition ${draft.keyStorage === g.id ? 'border-select bg-select-soft' : 'border-line hover:bg-kraft'}`}>
-                      <input type="radio" name="guardado" checked={draft.keyStorage === g.id} onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))} className="mt-1 accent-select" />
-                      <span>
-                        {g.name}
-                        <span className="block text-xs text-graphite">{g.detail}</span>
+              {connection && active !== 'simulated' && (
+                <div className="flex flex-col gap-4">
+                  <Field label={<>API key{!PRESETS[active].needsKey && ' (opcional)'}</>}>
+                    <Input
+                      type={showKey ? 'text' : 'password'}
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={connection.apiKey}
+                      onChange={(e) => change({ apiKey: e.target.value.trim() })}
+                      placeholder={active === 'anthropic' ? 'sk-ant-…' : active === 'shellm' ? 'Si tu SheLLM la pide' : 'sk-…'}
+                      className="numerals"
+                      end={
+                        <Reveal what="llave" shown={showKey} onToggle={() => setShowKey((v) => !v)} />
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label={
+                      <span className="flex items-center justify-between">
+                        Modelo
+                        <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs text-graphite-2 underline disabled:opacity-40">
+                          <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
+                        </button>
                       </span>
-                    </label>
-                  ))}
+                    }
+                    error={models.kind === 'error' && models.message}
+                  >
+                    {models.kind === 'ready' ? (
+                      <Select value={connection.model} onChange={(e) => change({ model: e.target.value })} className="numerals">
+                        {!models.models.includes(connection.model) && <option value={connection.model}>{connection.model || 'Elige un modelo'}</option>}
+                        {models.models.map((m) => (
+                          <option key={m}>{m}</option>
+                        ))}
+                      </Select>
+                    ) : (
+                      <Input value={connection.model} onChange={(e) => change({ model: e.target.value.trim() })} placeholder={PRESETS[active].suggestedModel || 'Carga la lista o escribe el id'} className="numerals" />
+                    )}
+                  </Field>
+                  <fieldset className="flex flex-col gap-2" disabled={locked}>
+                    <legend className="mb-2 font-display text-base font-semibold uppercase">Dónde guardar las llaves</legend>
+                    {vault === 'open' && draft.keyStorage === 'encrypted' ? (
+                      <p className="flex items-start gap-1.5 text-xs text-graphite">
+                        <LockKey className="mt-px shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
+                      </p>
+                    ) : locked ? (
+                      <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
+                    ) : null}
+                    <RadioGroup label="Dónde guardar las llaves" className={OPTION_GROUP}>
+                      {SAVED.map((g) => (
+                        <RadioCard
+                          key={g.id}
+                          variant="segment"
+                          mark
+                          checked={draft.keyStorage === g.id}
+                          onChange={() => setDraft((b) => ({ ...b, keyStorage: g.id }))}
+                          className={OPTION_ROW}
+                        >
+                          <span className="font-semibold">{g.name}</span>
+                          <span>{g.detail}</span>
+                        </RadioCard>
+                      ))}
+                    </RadioGroup>
+                    {asksPassphrase && (
+                      <Input
+                        type="password"
+                        value={passphrase}
+                        onChange={(e) => setPassphrase(e.target.value)}
+                        placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
+                        autoComplete="new-password"
+                        aria-label="Frase para cifrar las llaves"
+                      />
+                    )}
+                    <p className="text-xs text-graphite">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+                  </fieldset>
                 </div>
-                {asksPassphrase && (
-                  <Input
-                    type="password"
-                    value={passphrase}
-                    onChange={(e) => setPassphrase(e.target.value)}
-                    placeholder={`Frase secreta (${MIN_PASSPHRASE} caracteres o más); te la pediré al volver`}
-                    autoComplete="new-password"
-                    aria-label="Frase para cifrar las llaves"
-                  />
-                )}
-                <p className="text-xs text-graphite">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
-              </fieldset>
-            </div>
-          )}
-
-          </section>
-
-          <section className="flex flex-col gap-2 border-t border-line pt-5">
-            <Title className="text-lg">Tu herramienta</Title>
-            <p className="text-xs text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
-            <RadioGroup label="Tu herramienta" className="grid gap-1.5">
-              {TOOL_LEVELS.map((level) => (
-                <RadioCard key={level} checked={toolLevel === level} onChange={() => setToolLevel(level)} className="flex flex-col items-start rounded-xl px-3 py-2 text-left text-sm">
-                  <span className="font-medium">
-                    {TOOL_LEVEL_LABELS[level].name} <span className="font-normal text-graphite-2">· nivel {level}</span>
-                  </span>
-                  <span className="text-xs text-graphite">{TOOL_LEVEL_LABELS[level].tools}</span>
-                </RadioCard>
-              ))}
-            </RadioGroup>
-          </section>
-
-          {install && (
-            <section className="flex flex-col items-start gap-2 border-t border-line pt-5">
-              <Title className="text-lg">En este dispositivo</Title>
-              <p className="text-xs text-graphite">Ábrelo como una app, también sin conexión.</p>
-              <Button onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</Button>
-              {install.hint && <p role="note" className="text-sm text-graphite">{install.hint}</p>}
+              )}
             </section>
-          )}
 
-          <section className="flex flex-col gap-2 border-t border-line pt-5">
-          <Title className="text-lg">Avanzado</Title>
-          <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              className="mt-0.5 size-5 shrink-0 accent-select"
-              checked={debugVisible}
-              onChange={(e) => setDebugVisible(e.target.checked)}
-            />
-            <span>
-              Mostrar las herramientas de taller
-              <span className="block text-xs text-graphite">En el estudio: los hallazgos de Knotty, el cambio de modelo y «Exportar ficha».</span>
-            </span>
-          </label>
-          </section>
+            <section className={`flex flex-col gap-2 ${SECTION_RULE}`}>
+              <Title className={SECTION_TITLE}>Tu herramienta</Title>
+              <p className="text-[15px] text-graphite">Con esto te digo qué uniones y perfiles de canto puedes hacer tú y cuáles conviene pedir en la maderería.</p>
+              <RadioGroup label="Tu herramienta" className={OPTION_GROUP}>
+                {TOOL_LEVELS.map((level) => (
+                  <RadioCard key={level} variant="segment" mark checked={toolLevel === level} onChange={() => setToolLevel(level)} className={OPTION_ROW}>
+                    <span className="font-semibold">
+                      {TOOL_LEVEL_LABELS[level].name} <span className="numerals font-normal">· nivel {level}</span>
+                    </span>
+                    <span>{TOOL_LEVEL_LABELS[level].tools}</span>
+                  </RadioCard>
+                ))}
+              </RadioGroup>
+            </section>
+
+            {install && (
+              <section className={`flex flex-col items-start gap-2 ${SECTION_RULE}`}>
+                <Title className={SECTION_TITLE}>En este dispositivo</Title>
+                <p className="text-[15px] text-graphite">Ábrelo como una app, también sin conexión.</p>
+                <Button variant="ghost" className="border-2 border-graphite" onClick={install.onClick} aria-expanded={install.expanded}>{install.label}</Button>
+                {install.hint && <p role="note" className="text-sm text-graphite">{install.hint}</p>}
+              </section>
+            )}
+
+            <section className={`flex flex-col gap-2 ${SECTION_RULE}`}>
+              <Title className={SECTION_TITLE}>Avanzado</Title>
+              <label className="flex min-h-11 cursor-pointer items-start gap-3 text-[15px]">
+                <span className="relative mt-0.5 grid size-5 shrink-0 place-items-center">
+                  <input
+                    type="checkbox"
+                    className="peer size-5 appearance-none border-2 border-graphite bg-bone checked:bg-graphite"
+                    checked={debugVisible}
+                    onChange={(e) => setDebugVisible(e.target.checked)}
+                  />
+                  <Check aria-hidden weight="bold" className="pointer-events-none absolute size-3.5 text-bone opacity-0 peer-checked:opacity-100" />
+                </span>
+                <span>
+                  Mostrar las herramientas de taller
+                  <span className="block text-graphite">En el estudio: los hallazgos de Knotty, el cambio de modelo y «Exportar ficha».</span>
+                </span>
+              </label>
+            </section>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3">
-          {error && <p role="alert" className="mr-auto min-w-0 flex-1 basis-40 text-sm text-rust">{error}</p>}
+          <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t-[3px] border-graphite px-4 py-2 sm:px-6">
+            {error && <p role="alert" className="mr-auto min-w-0 flex-1 basis-40 text-sm text-rust">{error}</p>}
             <Dialog.Close asChild>
-              <Button variant="ghost">Cancelar</Button>
+              <Button variant="ghost" className="font-display text-base uppercase">Cancelar</Button>
             </Dialog.Close>
-            <Button variant="primary" onClick={() => void save()} disabled={saving || (asksPassphrase && passphrase.length < MIN_PASSPHRASE)}>
+            <Button variant="action" onClick={() => void save()} disabled={saving || (asksPassphrase && passphrase.length < MIN_PASSPHRASE)}>
               {saving ? 'Guardando…' : 'Guardar'}
             </Button>
-          </div>
+          </footer>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
