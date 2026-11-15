@@ -306,7 +306,7 @@ function WallQuestion({ design, anchoring }: { design: Design; anchoring: Anchor
       <p role="note" className="text-base leading-snug text-graphite md:text-lg">
         {anchoringAdvice(anchoring)}
       </p>
-      {wallOf(design) === 'unknown' && <p className="text-base text-graphite-2">Si no lo sabes, puedes consultar la guía. La lista aún no incluye los taquetes para ese muro; confirma cuáles corresponden antes de comprarlos.</p>}
+      {wallOf(design) === 'unknown' && <p className="text-base text-graphite">Si no lo sabes, puedes consultar la guía. La lista aún no incluye los taquetes para ese muro; confirma cuáles corresponden antes de comprarlos.</p>}
     </div>
   )
 }
@@ -445,7 +445,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         {result && <div className="basis-96">{result}</div>}
       </div>
       {unpriced && <p className="max-w-3xl text-base text-graphite md:text-lg">{unpriced}</p>}
-      <p className="text-base leading-relaxed text-graphite-2">Precios de referencia en MXN, no una cotización.</p>
+      <p className="text-base leading-relaxed text-graphite">Precios de referencia en MXN, no una cotización.</p>
     </section>
   )
 
