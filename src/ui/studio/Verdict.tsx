@@ -49,15 +49,16 @@ export function ReviewGate({ stale }: { stale: boolean }) {
   )
 }
 
-export function VerdictSummary({ verdict }: { verdict: PurchaseReview }) {
+/** `cell`: set inside a ruled row, whose rules already frame it, so it drops its own left bar. */
+export function VerdictSummary({ verdict, cell = false }: { verdict: PurchaseReview; cell?: boolean }) {
   const v = VERDICTS[verdict.verdict]
   return (
-    <aside role="note" aria-label="Resultado de la revisión" className={`flex max-w-3xl items-start gap-3 border-l-8 py-1 pl-4 ${v.className}`}>
+    <aside role="note" aria-label="Resultado de la revisión" className={cell ? 'flex items-start gap-3' : `flex max-w-3xl items-start gap-3 border-l-8 py-1 pl-4 ${v.className}`}>
       <span className="mt-0.5 shrink-0">{v.icon}</span>
       <div className="min-w-0 space-y-1">
-        <h2 className="font-display text-xl leading-tight font-semibold uppercase">{v.title}</h2>
-        <p className="text-[15px] leading-relaxed">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
-        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-sm leading-relaxed text-graphite-2">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
+        <h2 className="font-display text-xl leading-tight font-semibold uppercase md:text-2xl">{v.title}</h2>
+        <p className="text-base leading-relaxed md:text-lg">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
+        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-base leading-relaxed text-graphite-2">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
       </div>
     </aside>
   )
@@ -118,7 +119,11 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
   const passed = verdict.checks.filter((check) => check.status === 'ok').length
   return (
     <div className="flex flex-col gap-4">
-      <p role="status" className="text-sm leading-relaxed">{total ? `${pending} ${pending === 1 ? 'decisión por tomar' : 'decisiones por tomar'} de ${total}. Abre un pendiente para revisar el motivo y elegir qué hacer.` : 'No hay decisiones pendientes en esta revisión.'}</p>
+      {/* What the person has to do on this page, so it heads its block like a section of the ticket (UI-93). */}
+      <div role="status" className="flex flex-col gap-1 border-t-[3px] border-graphite pt-3">
+        <p className="font-display text-2xl leading-tight font-semibold uppercase md:text-3xl">{total ? `${pending} ${pending === 1 ? 'decisión por tomar' : 'decisiones por tomar'} de ${total}` : 'No hay decisiones pendientes en esta revisión'}</p>
+        {total > 0 && <p className="text-base leading-relaxed md:text-lg">Abre un pendiente para revisar el motivo y elegir qué hacer.</p>}
+      </div>
       {choices.length > 0 && <p role="status" className="text-xs leading-relaxed text-graphite-2">Tus decisiones quedan registradas. Solo un cambio aplicado y revisado puede corregir los problemas.</p>}
       <div className="flex flex-col gap-3">
         {wall && <div id={pendingId('wall')}>{wall}</div>}
@@ -128,13 +133,13 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
           const question = !item.request || /^[¿?]/.test(item.request.trim())
           return (
             <div key={item.id} id={pendingId(item.id)} className={`max-w-3xl scroll-mt-20 border-2 border-graphite ${item.priority === 'high' && !item.optional ? 'border-l-8' : ''}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
-              <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer p-3 text-[15px] marker:text-graphite">
+              <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer p-3 text-base marker:text-graphite md:text-lg">
                 <span className="font-medium">{item.title}</span>
                 <span className="mt-1 block pl-4 text-xs text-graphite-2">{choice ? REVIEW_CHOICE[choice] : why.title}</span>
               </summary>
               <div className="flex flex-col gap-3 px-3 pb-3">
                 <p className="text-xs leading-relaxed text-graphite-2">{why.detail}</p>
-                <p className="text-sm leading-relaxed">{item.detail}</p>
+                <p className="text-base leading-relaxed">{item.detail}</p>
                 <PieceLink pieces={item.pieces} design={design} />
                 {!choice && confirm !== item.id && <div className="flex flex-wrap gap-3">
                   <Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={() => request(item)}><Wrench /> {available ? question ? 'Preguntar cómo resolverlo' : 'Pedir ajuste al experto' : question ? 'Conectar experto para consultar' : 'Conectar experto para pedir el ajuste'}</Button>
@@ -152,13 +157,13 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
           )
         })}
       </div>
-      <Section title="Comprobaciones de Knotty" aside={notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}>
+      <Section minor title="Comprobaciones de Knotty" aside={notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}>
         <ul className="max-w-3xl divide-y divide-line border-y-2 border-graphite">
           {verdict.checks.map((check) => <li key={check.id} className="flex items-start gap-2 py-3 text-sm"><span className="mt-0.5 shrink-0">{CHECK_ICON[check.status]}</span><div className="min-w-0 space-y-1"><p className="font-medium">{check.title}</p><p className="text-xs leading-relaxed">{check.detail}</p></div></li>)}
         </ul>
         <Button variant="ghost" className="mt-2 px-2 text-xs" disabled={thinking} onClick={() => void review()}><ArrowClockwise /> Repetir revisión</Button>
       </Section>
-      {!!verdict.carpenter?.tips.length && <Section title="Consejos opcionales para el taller"><ul className="max-w-3xl list-disc space-y-2 py-2 pl-5 text-[15px] leading-relaxed">{verdict.carpenter.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></Section>}
+      {!!verdict.carpenter?.tips.length && <Section minor title="Consejos opcionales para el taller"><ul className="max-w-3xl list-disc space-y-2 py-2 pl-5 text-[15px] leading-relaxed">{verdict.carpenter.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></Section>}
     </div>
   )
 }

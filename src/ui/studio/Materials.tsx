@@ -1,7 +1,7 @@
 import { manufacturingProblems } from '../../domain/design/manufacturing'
 import { RepairConstruction } from '../takeaway/RepairConstruction'
 import { ArrowCounterClockwise, ArrowDown, Check, PencilSimple, Printer, Sliders, Warning } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { isDrawerPart, wallOf, WALLS, type Design } from '../../domain/design/schema'
 import type { Geometry } from '../../domain/design/resolve'
 import type { MaterialLayout } from '../../domain/estimate/layout'
@@ -291,22 +291,22 @@ function WallQuestion({ design, anchoring }: { design: Design; anchoring: Anchor
   return (
     <div className={`flex flex-col gap-2 py-2 pl-4 ${wallOf(design) === 'unknown' ? 'border-l-8 border-graphite' : ''}`}>
       {wallOf(design) === 'unknown' && (
-        <p className="flex items-center gap-1.5 text-sm font-semibold">
+        <p className="flex items-center gap-1.5 text-base font-semibold">
           <Warning weight="bold" aria-hidden /> Dato pendiente: anclajes al muro
         </p>
       )}
-      <p className="font-display text-lg font-semibold uppercase">¿De qué es el muro donde va?</p>
+      <p className="font-display text-xl font-semibold uppercase md:text-2xl">¿De qué es el muro donde va?</p>
       <RadioGroup label="Tipo de muro" className="flex flex-wrap gap-1.5">
         {WALLS.map((wall) => (
-          <RadioCard key={wall} variant="pill" checked={wallOf(design) === wall} onChange={() => choose(wall)} className="px-3 py-1.5 text-xs">
+          <RadioCard key={wall} variant="pill" checked={wallOf(design) === wall} onChange={() => choose(wall)} className="min-h-11 px-4 py-2 text-sm md:text-base">
             {WALL_LABELS[wall]}
           </RadioCard>
         ))}
       </RadioGroup>
-      <p role="note" className="text-[15px] leading-snug text-graphite">
+      <p role="note" className="text-base leading-snug text-graphite md:text-lg">
         {anchoringAdvice(anchoring)}
       </p>
-      {wallOf(design) === 'unknown' && <p className="text-sm text-graphite-2">Si no lo sabes, puedes consultar la guía. La lista aún no incluye los taquetes para ese muro; confirma cuáles corresponden antes de comprarlos.</p>}
+      {wallOf(design) === 'unknown' && <p className="text-base text-graphite-2">Si no lo sabes, puedes consultar la guía. La lista aún no incluye los taquetes para ese muro; confirma cuáles corresponden antes de comprarlos.</p>}
     </div>
   )
 }
@@ -319,7 +319,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   const care = finishCare(finishOf(design))
   return (
     <>
-      <Section title="Acabado" aside={`${chosen.name} · Cambiar y ver insumos`}>
+      <Section minor title="Acabado" aside={`${chosen.name} · Cambiar y ver insumos`}>
         <div className="flex flex-col gap-3">
           <RadioGroup label="Acabado" className="flex flex-wrap gap-1.5">
             {FINISH_IDS.map((id) => (
@@ -430,16 +430,22 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const phaseCount = assemblyPhases(state).length
   const guideLabel = phaseCount ? 'Ver guía para construir' : 'Ver guía de cortes'
 
-  const cost = (
-    <section className="flex flex-col gap-1.5">
-      <p className="font-display text-lg leading-none font-semibold uppercase">Costo aproximado</p>
-      <p className="numerals text-5xl leading-none font-semibold">
-        <span className="text-graphite-2">~</span>
-        {weights.format(purchase.cost.total)}
-      </p>
-      {verdict && <p className="text-[15px] text-graphite">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
-      {unpriced && <p className="max-w-2xl text-[15px] text-graphite">{unpriced}</p>}
-      <p className="text-sm leading-relaxed text-graphite-2">Precios de referencia en MXN, no una cotización.</p>
+  // The head of the ticket: the cost, what it covers and, once reviewed, the result, as one ruled row (UI-93).
+  const head = (result?: ReactNode) => (
+    <section className="flex flex-col gap-2" aria-label="Costo aproximado">
+      <div className="flex flex-wrap border-t-[3px] border-l-[3px] border-graphite *:flex *:grow *:flex-col *:justify-center *:gap-1 *:border-r-[3px] *:border-b-[3px] *:border-graphite *:px-4 *:py-3">
+        <div className="basis-56">
+          <p className="font-display text-lg leading-none font-semibold uppercase">Costo aproximado</p>
+          <p className="numerals text-5xl leading-none font-semibold">
+            <span className="text-graphite-2">~</span>
+            {weights.format(purchase.cost.total)}
+          </p>
+        </div>
+        {verdict && <p className="basis-56 text-lg text-graphite md:text-xl">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
+        {result && <div className="basis-96">{result}</div>}
+      </div>
+      {unpriced && <p className="max-w-3xl text-base text-graphite md:text-lg">{unpriced}</p>}
+      <p className="text-base leading-relaxed text-graphite-2">Precios de referencia en MXN, no una cotización.</p>
     </section>
   )
 
@@ -448,7 +454,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     return (
       <div className="relative flex flex-col gap-6 px-4 pt-6 pb-8 md:px-8">
         {whose}
-        {cost}
+        {head()}
         {construction}
         <ReviewGate stale={state.review !== null} />
         <CutSettings base={catalog.layout} />
@@ -458,9 +464,8 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     return (
       <div className="relative flex flex-col gap-6 px-4 pt-6 pb-8 md:px-8">
         {whose}
-        {cost}
+        {head(<VerdictSummary verdict={verdict} cell />)}
         {construction}
-        <VerdictSummary verdict={verdict} />
         <VerdictCard key={`${verdict.signature}:${verdict.date}`} verdict={verdict} design={design} onRequest={onRequest} />
         <p className="text-sm text-graphite">
           Con estos problemas, lo que compres probablemente no sirva.{' '}
@@ -482,11 +487,10 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   return (
     <div className="relative flex flex-col gap-6 px-4 pt-6 md:px-8">
       {whose}
-      {cost}
+      {head(<VerdictSummary verdict={verdict} cell />)}
       {construction}
       {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
       {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
-      <VerdictSummary verdict={verdict} />
       <VerdictCard
         key={`${verdict.signature}:${verdict.date}`}
         verdict={verdict}
@@ -496,7 +500,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
       />
       <section className="flex flex-col" aria-label="Lo que vas a comprar">
         {design.wallAnchored && !wallPending && (
-          <Section title="Muro" aside={`${WALL_LABELS[wallOf(design)]} · Cambiar`}>
+          <Section minor title="Muro" aside={`${WALL_LABELS[wallOf(design)]} · Cambiar`}>
             <WallQuestion design={design} anchoring={purchase.anchoring} />
           </Section>
         )}
@@ -531,7 +535,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         </div>
         </Section>
 
-      <Section title="Herrajes y consumibles">
+      <Section minor title="Herrajes y consumibles">
         <ul className="flex max-w-3xl flex-col divide-y divide-line border-y-2 border-graphite">
           {purchase.hardware.map((r) => (
             <li key={r.hardware.id} className="flex items-center gap-3 py-3">
@@ -568,7 +572,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
           <CutList blocks={blocks} />
         </div>
       </Section>
-      <Section title="Qué revisar al recoger tus cortes">
+      <Section minor title="Qué revisar al recoger tus cortes">
         <BeforeLeaving hasDrawer={design.pieces.some(isDrawerPart)} />
       </Section>
       </section>
