@@ -38,19 +38,19 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
   const name = photo.view ? viewLabel(photo.view) : `${index + 1}`
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="relative aspect-[8/7] overflow-hidden rounded-xl">
+      <div className="relative aspect-[8/7] overflow-hidden border-2 border-graphite">
         <img src={photo.thumbnail} alt={`Foto ${name}`} className="absolute inset-0 h-full w-full object-cover" />
         <button
           type="button"
           onClick={onRemove}
           aria-label={`Quitar foto ${name}`}
-          className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-bone/90 text-graphite shadow before:absolute before:-inset-1 before:content-['']"
+          className="absolute top-2 right-2 grid size-9 place-items-center border-2 border-graphite bg-bone text-graphite before:absolute before:-inset-1 before:content-['']"
         >
           <Trash />
         </button>
         <div className="absolute bottom-2 left-2">
           {photo.reading ? (
-            <span className="flex min-h-8 items-center gap-1.5 rounded-full bg-bone/90 px-2.5 text-xs text-graphite">
+            <span className="flex min-h-8 items-center gap-1.5 border-2 border-graphite bg-bone px-2.5 text-xs text-graphite">
               <Pencil className="h-4 w-8 text-select" /> Mirando la foto…
             </span>
           ) : (
@@ -83,7 +83,7 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
           className="resize-none"
         />
       ) : (
-        <button type="button" onClick={() => setWriting(true)} className="flex min-h-11 items-center gap-1.5 self-start rounded-lg px-1.5 text-sm text-graphite">
+        <button type="button" onClick={() => setWriting(true)} className="flex min-h-11 items-center gap-1.5 self-start px-1.5 text-sm text-graphite underline-offset-4 hover:underline">
           <NotePencil className="shrink-0" /> Agregar una nota
         </button>
       )}
@@ -91,7 +91,8 @@ function PhotoTile({ photo, index, onRemove, onNote, onView }: { photo: TakenPho
   )
 }
 
-const LABEL = 'text-base font-medium text-graphite'
+// Field and panel labels in condensed capitals, as the Studio and the adjust screen print them (UI-93).
+const LABEL = 'font-display text-base font-semibold text-graphite uppercase'
 
 function Block({
   label,
@@ -223,20 +224,16 @@ export function Capture() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <AppHeader />
+      <AppHeader title={{ name: '¿Qué mueble quieres?', line: 'Con fotos, con palabras o con las dos.' }} />
       <main className="mx-auto flex w-full max-w-[1184px] flex-1 flex-col gap-7 px-5 py-6 md:px-8 md:py-10">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl leading-tight font-semibold md:text-4xl">¿Qué mueble quieres?</h1>
-          <p className="text-lg text-graphite-2 md:text-xl">Con fotos, con palabras o con las dos.</p>
-        </header>
-
+        <p className="-mb-3 text-lg text-graphite-2 md:hidden">Con fotos, con palabras o con las dos.</p>
         {!usable && (
-          <div className="flex flex-col gap-3 rounded-3xl border-2 border-graphite bg-kraft-2 p-4 md:flex-row md:items-center md:gap-5 md:px-7 md:py-5" role="note">
-            <span className="grid size-12 shrink-0 place-items-center rounded-full bg-graphite text-bone">
+          <div className="flex flex-col gap-3 border-2 border-graphite p-4 md:flex-row md:items-center md:gap-5 md:px-7 md:py-5" role="note">
+            <span className="grid size-12 shrink-0 place-items-center bg-graphite text-bone">
               <PlugsConnected size={22} weight="bold" />
             </span>
             <div className="flex flex-1 flex-col gap-1">
-              <p className="text-lg font-medium">Conecta tu experto para diseñar tu mueble</p>
+              <p className="font-display text-xl font-semibold uppercase">Conecta tu experto para diseñar tu mueble</p>
               <p className="text-base text-graphite-2">{missingKey ?? 'Él lee tus fotos y tu descripción y arma el diseño. Las bases ya hechas no lo necesitan.'}</p>
             </div>
             <div className="flex flex-col gap-1 md:items-end">
@@ -274,7 +271,7 @@ export function Capture() {
               <h2 id="space-title" className={LABEL}>
                 Espacio disponible
               </h2>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {SPACE_SIDES.map((side) => {
                   const problem = spaceError(side.key, space[side.key])
                   return (
@@ -309,7 +306,7 @@ export function Capture() {
               )}
             </div>
             {withoutPhotos ? (
-              <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border-[1.5px] border-graphite-2 bg-kraft/60 p-6 text-center lg:min-h-[240px]">
+              <div className="flex min-h-40 flex-col items-center justify-center gap-3 border-2 border-dashed border-graphite p-6 text-center lg:min-h-[240px]">
                 <Image size={28} className="text-graphite" />
                 <Button variant="secondary" className="min-h-12 px-6 text-base" onClick={() => picker.current?.click()} disabled={processing}>
                   <Camera weight="bold" /> Agregar fotos
@@ -332,10 +329,10 @@ export function Capture() {
                     type="button"
                     onClick={() => picker.current?.click()}
                     disabled={processing}
-                    className="flex aspect-[8/7] flex-col items-center justify-center gap-1 rounded-xl border-[1.5px] border-graphite-2 text-graphite disabled:opacity-50"
+                    className="flex aspect-[8/7] flex-col items-center justify-center gap-1 border-2 border-dashed border-graphite text-graphite disabled:opacity-50"
                   >
-                    <Plus size={22} />
-                    <span className="text-sm font-medium">Agregar fotos</span>
+                    <Plus size={22} weight="bold" />
+                    <span className="font-display text-base font-semibold uppercase">Agregar fotos</span>
                     <span className="numerals text-xs text-graphite-2">
                       {photos.length} de {MAX_PHOTOS}
                     </span>
@@ -348,7 +345,7 @@ export function Capture() {
         </div>
 
         {error && (
-          <div className="mx-auto flex w-full max-w-[720px] flex-col gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust">
+          <div className="mx-auto flex w-full max-w-[720px] flex-col gap-2 border-2 border-rust bg-rust/10 p-3 text-sm text-rust">
             <div className="flex items-start gap-2">
               <Warning className="mt-0.5 shrink-0" weight="bold" />
               <span role="alert" className="flex-1">{error} Tus fotos y tu descripción siguen aquí.</span>
@@ -369,9 +366,9 @@ export function Capture() {
           </div>
         )}
 
-        <div className="-mx-5 flex flex-col items-center gap-3 border-t border-line px-5 pt-5 md:mx-0 md:border-t-0 md:px-0 md:pt-2">
+        <div className="-mx-5 flex flex-col items-center gap-3 border-t-[3px] border-graphite px-5 pt-5 md:mx-0 md:px-0 md:pt-6">
           {usable ? (
-            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg shadow-md" disabled={!canAnalyze} onClick={analyzeCapture}>
+            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg" disabled={!canAnalyze} onClick={analyzeCapture}>
               {blocker ?? (
                 <>
                   Diseñar mi mueble <ArrowRight weight="bold" />

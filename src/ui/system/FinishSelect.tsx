@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { FINISH_IDS, FINISH_LOOK, FINISHES, type FinishId } from '../../domain/materials/finishes'
 
 /** A finish is chosen by how it looks, so each option carries the colour it settles on. */
-const Dot = ({ finish }: { finish: FinishId }) => <span aria-hidden className="size-4 shrink-0 rounded-full border border-line" style={{ backgroundColor: FINISH_LOOK[finish].color }} />
+const Dot = ({ finish }: { finish: FinishId }) => <span aria-hidden className="size-4 shrink-0 border-2 border-graphite" style={{ backgroundColor: FINISH_LOOK[finish].color }} />
 
 export function FinishSelect({ value, onChange }: { value: FinishId; onChange: (finish: FinishId) => void }) {
   const [open, setOpen] = useState(false)
@@ -45,14 +45,14 @@ export function FinishSelect({ value, onChange }: { value: FinishId; onChange: (
         aria-controls={list}
         aria-activedescendant={open ? `${list}-${FINISH_IDS[active]}` : undefined}
         onClick={() => (setActive(FINISH_IDS.indexOf(value)), setOpen(!open))}
-        className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-line bg-bone px-3 text-left text-sm"
+        className="flex min-h-11 w-full items-center gap-2 border-2 border-graphite bg-bone px-3 text-left text-base"
       >
         <Dot finish={value} />
         <span className="flex-1">{FINISHES[value].name}</span>
         <CaretDown size={14} />
       </button>
       {open && (
-        <ul id={list} role="listbox" aria-label="Acabados" className="absolute z-20 mt-1 flex max-h-72 w-full flex-col overflow-auto rounded-xl border border-line bg-bone p-1 shadow-lg">
+        <ul id={list} role="listbox" aria-label="Acabados" className="absolute z-20 mt-1 flex max-h-72 w-full flex-col overflow-auto border-2 border-graphite bg-bone p-1">
           {FINISH_IDS.map((id, i) => (
             <li
               key={id}
@@ -61,7 +61,7 @@ export function FinishSelect({ value, onChange }: { value: FinishId; onChange: (
               aria-selected={id === value}
               onPointerEnter={() => setActive(i)}
               onClick={() => choose(id)}
-              className={`flex cursor-pointer items-center gap-2 min-h-11 rounded-lg px-2 text-sm ${i === active ? 'bg-kraft' : ''} ${id === value ? 'font-medium' : ''}`}
+              className={`flex cursor-pointer items-center gap-2 min-h-11 px-2 text-base ${i === active ? 'bg-kraft' : ''} ${id === value ? 'font-semibold' : ''}`}
             >
               <Dot finish={id} />
               {FINISHES[id].name}

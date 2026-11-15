@@ -34,23 +34,25 @@ function useDebounced<T>(value: T, ms: number): T {
   return settled
 }
 
-const heading = 'font-display text-xl font-semibold md:text-2xl'
+// Panel titles in condensed capitals over an ink rule, as the Studio's panel prints them (UI-93).
+const heading = 'border-b-2 border-graphite pb-1 font-display text-xl font-semibold uppercase md:text-2xl'
+const fieldLabel = 'font-display text-base font-semibold text-graphite uppercase'
 
 function Counter({ kind, value, min, max, onChange }: { kind: QuickCountKind; value: number; min: number; max: number; onChange: (next: number) => void }) {
   const { label, noun } = COUNT_LABELS[kind]
-  const round = 'grid size-11 place-items-center rounded-full border border-line bg-bone transition hover:bg-kraft active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35'
+  const step = 'grid size-11 place-items-center border-2 border-graphite bg-bone transition hover:bg-kraft active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35'
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-base">{label}</span>
+      <span className={fieldLabel}>{label}</span>
       <span className="flex items-center gap-4">
-        <button type="button" aria-label={`Menos ${noun}`} disabled={value <= min} onClick={() => onChange(value - 1)} className={round}>
-          <Minus className="size-4" />
+        <button type="button" aria-label={`Menos ${noun}`} disabled={value <= min} onClick={() => onChange(value - 1)} className={step}>
+          <Minus weight="bold" className="size-4" />
         </button>
-        <span className="numerals w-5 text-center text-base" aria-live="polite">
+        <span className="numerals w-6 text-center text-lg" aria-live="polite">
           {value}
         </span>
-        <button type="button" aria-label={`Más ${noun}`} disabled={value >= max} onClick={() => onChange(value + 1)} className={round}>
-          <Plus className="size-4" />
+        <button type="button" aria-label={`Más ${noun}`} disabled={value >= max} onClick={() => onChange(value + 1)} className={step}>
+          <Plus weight="bold" className="size-4" />
         </button>
       </span>
     </div>
@@ -112,8 +114,8 @@ export function AdjustBase({ base }: { base: Base }) {
         <AppHeader />
       </div>
       <header className="flex items-center justify-between px-3 py-1 md:hidden">
-        <button type="button" onClick={closeAdjust} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-base text-graphite-2">
-          <ArrowLeft className="size-5" /> Catálogo
+        <button type="button" onClick={closeAdjust} className="inline-flex min-h-11 items-center gap-2 px-2 font-display text-base font-semibold text-graphite uppercase">
+          <ArrowLeft weight="bold" className="size-5" /> Catálogo
         </button>
         <Button variant="ghost" className="min-h-11 px-3" aria-label="Ajustes" onClick={() => openSettings(true)}>
           <GearSix className="size-5" />
@@ -131,21 +133,21 @@ export function AdjustBase({ base }: { base: Base }) {
             <div className="drawing-sheet grid h-full place-items-center p-6 text-center text-sm">Este diseño tiene errores: {shown.error}</div>
           )}
         </div>
-        <section aria-labelledby="adjust-title" className="flex min-h-0 flex-1 flex-col border-line md:border-l">
+        <section aria-labelledby="adjust-title" className="flex min-h-0 flex-1 flex-col border-graphite md:border-l-[3px]">
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-5 pt-6 pb-4 md:px-9 md:pt-5">
-            <button type="button" onClick={closeAdjust} className="-ml-2 hidden min-h-11 w-fit items-center gap-2 rounded-xl px-2 text-base text-graphite-2 hover:text-graphite md:inline-flex">
-              <ArrowLeft className="size-4" /> Ver bases
+            <button type="button" onClick={closeAdjust} className="-ml-2 hidden min-h-11 w-fit items-center gap-2 px-2 font-display text-base font-semibold text-graphite uppercase hover:underline hover:decoration-2 hover:underline-offset-4 md:inline-flex">
+              <ArrowLeft weight="bold" className="size-4" /> Ver bases
             </button>
             <div className="flex flex-col gap-1">
-              <h1 id="adjust-title" className="font-display text-3xl leading-tight font-semibold tracking-tight md:text-4xl">
+              <h1 id="adjust-title" className="font-display text-3xl leading-tight font-semibold uppercase md:text-4xl">
                 {base.name}
               </h1>
-              <p className="numerals text-sm text-graphite-2" aria-label={size.spoken}>
+              <p className="numerals text-base" aria-label={size.spoken}>
                 {size.text}
               </p>
               <RoomLauncher
                 source={baseSource(base, catalog, chosenExample(base, fit.plan, finish))}
-                className="mt-2 min-h-11 w-fit border border-line text-sm"
+                className="mt-2 min-h-11 w-fit border-2! border-graphite! font-display text-base! font-semibold text-graphite! uppercase"
                 disabled={!shown.geo}
               />
             </div>
@@ -155,14 +157,14 @@ export function AdjustBase({ base }: { base: Base }) {
                 <h2 id="where-title" className={heading}>
                   ¿Dónde lo vas a poner?
                 </h2>
-                <p className="text-base text-graphite-2">Aproximado, en cm, está bien. Sin esto queda con las medidas de la base.</p>
+                <p className="text-base">Aproximado, en cm, está bien. Sin esto queda con las medidas de la base.</p>
                 <div className="grid grid-cols-3 gap-3">
                   {SPACE_AXES.map(([axis, label]) => {
                     const unreadable = isUnreadable(typed[axis])
                     return (
-                      <label key={axis} className="flex flex-col gap-1 text-base text-graphite-2">
+                      <label key={axis} className={`flex flex-col gap-1 ${fieldLabel}`}>
                         {label}
-                        <span className={`flex min-h-12 items-center gap-1 rounded-2xl border bg-bone px-3 focus-within:outline-2 focus-within:outline-focus ${unreadable ? 'border-rust' : 'border-line'}`}>
+                        <span className={`flex min-h-12 items-center gap-1 border-2 bg-bone px-3 font-sans font-normal normal-case focus-within:outline-2 focus-within:outline-focus ${unreadable ? 'border-rust' : 'border-graphite'}`}>
                           <input
                             inputMode="decimal"
                             value={typed[axis]}
@@ -214,9 +216,9 @@ export function AdjustBase({ base }: { base: Base }) {
             {fit.critical.length > 0 && !stopper && <p className="text-sm text-graphite-2">Con estas medidas la revisión marcaría: {fit.critical[0]}</p>}
           </div>
 
-          <div className="flex shrink-0 flex-col gap-2 border-t border-line px-5 pt-3 pb-3 md:gap-3 md:border-t-0 md:px-9 md:pb-6">
+          <div className="flex shrink-0 flex-col gap-2 border-t-2 border-graphite px-5 pt-3 pb-3 md:gap-3 md:border-t-0 md:px-9 md:pb-6">
             {lines && (
-              <div className="flex items-baseline justify-between gap-3 md:items-center md:rounded-2xl md:bg-kraft md:px-5 md:py-4" aria-live="polite">
+              <div className="flex items-baseline justify-between gap-3 md:items-center md:border-2 md:border-graphite md:px-5 md:py-4" aria-live="polite">
                 <p className="flex flex-col text-base md:text-lg">
                   <span>
                     {lines.sheets}
@@ -224,7 +226,7 @@ export function AdjustBase({ base }: { base: Base }) {
                   </span>
                   <span className="hidden text-sm text-graphite-2 md:inline">Aproximado</span>
                 </p>
-                <p className="font-display text-2xl font-semibold md:text-3xl">{lines.cost}</p>
+                <p className="numerals text-2xl font-semibold md:text-3xl">{lines.cost}</p>
               </div>
             )}
             <Button variant="primary" className="min-h-14 w-full text-lg" disabled={stopper !== null} onClick={open}>
