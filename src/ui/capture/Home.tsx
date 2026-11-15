@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Cube, FloppyDisk, Plus } from '@phosphor-icons/react'
 import type { Base } from '../../domain/furniture/examples'
 import { useServices } from '../services'
-import { Button, Chip } from '../system/components'
+import { Button } from '../system/components'
 import { Field, Input } from '../system/Field'
 import { AppFooter } from '../shell/AppFooter'
 import { AppHeader } from '../shell/AppHeader'
@@ -10,22 +10,34 @@ import { useExpertStatus } from '../shell/expertStatus'
 import { cardsOf, type Card } from './cards'
 import { STYLE_LABELS, matches, noMatchNote, roomChips } from './catalog'
 import { useStore } from '../store'
+import { packPlates, shapeOf, type Plate } from './plates'
+import { RoomStrip } from './RoomStrip'
+import { sketch } from './sketch'
 import { Thumbnail } from './Thumbnail'
 import { OpenDesignFile } from '../files/OpenDesignFile'
 
-function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen: (base: Base) => void }) {
+/** A numbered plate: the piece's drawing on plain paper and a ruled caption under it (UI-93). */
+function BasePlate({ card: { base, size, boxes }, plate, onOpen }: { card: Card; plate: Plate; onOpen: (base: Base) => void }) {
   return (
-    <button type="button" onClick={() => onOpen(base)} className="group flex flex-col gap-1.5 rounded-2xl text-left">
-      <span className="drawing-surface flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-2xl border border-line p-4 transition group-hover:brightness-105 group-active:scale-[0.98] md:p-6">
-        {boxes ? <Thumbnail boxes={boxes} /> : <Cube className="size-6" />}
+    <button
+      type="button"
+      onClick={() => onOpen(base)}
+      style={{ gridColumn: `${plate.column + 1} / span ${plate.columns}`, gridRow: `${plate.row + 1} / span ${plate.rows}` }}
+      className="group relative flex min-h-72 flex-col border-r-2 border-b-2 border-graphite p-4 text-left focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-focus md:p-5"
+    >
+      {/* The number sits in the drawing's field, as on a printed plate, so the drawing keeps the plate's height. */}
+      <span className="numerals absolute top-4 left-4 text-4xl leading-none font-bold md:top-5 md:left-5 md:text-5xl" aria-hidden>
+        {String(plate.number).padStart(2, '0')}
       </span>
-      <span className="text-base font-medium text-graphite md:text-lg">{base.name}</span>
-      <span className="flex flex-col text-sm text-graphite-2 md:flex-row md:flex-wrap md:gap-x-1.5">
-        <span>{STYLE_LABELS[base.style]}</span>
-        <span className="hidden md:inline" aria-hidden>
-          ·
+      <span className="flex min-h-0 flex-1 items-center justify-center px-2 pt-10 pb-2 transition group-hover:scale-[1.02] md:px-16 md:pt-4">{boxes ? <Thumbnail boxes={boxes} ink /> : <Cube className="size-6" />}</span>
+      {/* The name on its own line and its style and measures under it, so a long name never strands a separator. */}
+      <span className="block border-b-2 border-graphite pb-1.5 text-base md:text-lg">
+        <span className="block font-display text-xl leading-tight font-bold group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 md:text-2xl">{base.name}</span>
+        <span className="whitespace-nowrap">
+          {STYLE_LABELS[base.style]}
+          {' · '}
         </span>
-        <span className="numerals md:whitespace-nowrap" aria-label={size.spoken}>
+        <span className="numerals whitespace-nowrap" aria-label={size.spoken}>
           {size.text}
         </span>
       </span>
@@ -33,15 +45,31 @@ function BaseCard({ card: { base, size, boxes }, onOpen }: { card: Card; onOpen:
   )
 }
 
+const WIDE_SCREEN = '(min-width: 1024px)'
+const MID_SCREEN = '(min-width: 640px)'
+
+/** How many plate columns the screen holds: three on a laptop, two on a tablet, one on a phone. */
+function useColumns() {
+  const read = () => (typeof matchMedia === 'undefined' ? 3 : matchMedia(WIDE_SCREEN).matches ? 3 : matchMedia(MID_SCREEN).matches ? 2 : 1)
+  const [columns, setColumns] = useState(read)
+  useEffect(() => {
+    const queries = [matchMedia(WIDE_SCREEN), matchMedia(MID_SCREEN)]
+    const update = () => setColumns(read())
+    queries.forEach((q) => q.addEventListener('change', update))
+    return () => queries.forEach((q) => q.removeEventListener('change', update))
+  }, [])
+  return columns
+}
+
 function OwnDoor({ connected, onOpen }: { connected: boolean; onOpen: () => void }) {
   return (
-    <section className="flex flex-col gap-4 rounded-3xl border border-line bg-kraft p-6 md:flex-row md:items-center md:justify-between md:gap-8 md:p-8" aria-labelledby="own-title">
+    <section className="flex flex-col gap-4 border-t-[3px] border-graphite pt-6 md:flex-row md:items-center md:justify-between md:gap-8" aria-labelledby="own-title">
       <div className="flex flex-col gap-1">
         <h2 id="own-title" className="font-display text-2xl leading-tight font-semibold md:text-3xl">
           ¿Tienes otra idea?
         </h2>
-        <p className="text-base text-graphite-2 md:text-lg">Describe el mueble que necesitas, con fotos o texto.</p>
-        {!connected && <p className="text-sm text-graphite-2">Conecta un experto para crear un diseño nuevo.</p>}
+        <p className="text-base md:text-lg">Describe el mueble que necesitas, con fotos o texto.</p>
+        {!connected && <p className="text-base text-graphite-2">Conecta un experto para crear un diseño nuevo.</p>}
       </div>
       <Button variant="primary" className="min-h-12 shrink-0 px-6 text-base" onClick={onOpen}>
         Crear un diseño <ArrowRight weight="bold" />
@@ -107,53 +135,57 @@ export function Home() {
     adjustBase(base)
   }
   const { target: door, inView: doorInView } = useInView()
+  const columns = useColumns()
+  const shapes = useMemo(() => new Map(cards.map((c) => [c.base.id, c.boxes ? (({ width, height }) => shapeOf(width, height))(sketch(c.boxes)) : ('square' as const)])), [cards])
+  const plates = useMemo(() => packPlates(shown.map((c) => shapes.get(c.base.id) ?? 'square'), columns), [shown, shapes, columns])
+  // Outlined in ink like the site's buttons; `!` because the system button sets its own fill, border and size.
+  const outlined = 'min-h-12 gap-2 border-2! border-graphite! bg-bone! px-5! font-display text-lg! font-semibold text-graphite! hover:bg-kraft! max-md:flex-1 max-md:px-2!'
+  const actions = (
+    <>
+      {saved && <Button className={outlined} onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
+      {library.available && (
+        <Button className={outlined} onClick={() => openLibrary(true)}>
+          <FloppyDisk aria-hidden /> Mis muebles
+        </Button>
+      )}
+      <OpenDesignFile className={outlined} />
+    </>
+  )
   return (
     <div className="flex min-h-full flex-col">
-      <AppHeader />
-      <div className="bg-kraft">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-3 px-5 py-10 md:gap-4 md:px-8 md:py-16">
-          <p className="font-mono text-xs tracking-wider text-graphite-2">Catálogo de muebles</p>
-          <h1 id="home-title" className="font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance md:text-6xl md:leading-[1.05]">
-            Encuentra tu próximo mueble.
-          </h1>
-          <p className="max-w-3xl text-lg text-graphite-2 md:text-xl">Elige una base de triplay y ajusta sus medidas, acabado y armado. Puedes empezar sin conectar un experto.</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {saved && <Button className="w-fit gap-2 px-5" onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
-            {library.available && (
-              <Button variant="ghost" className={`gap-2 ${saved ? 'px-4' : '-ml-3 px-3'}`} onClick={() => openLibrary(true)}>
-                <FloppyDisk aria-hidden /> Mis muebles
-              </Button>
-            )}
-            <OpenDesignFile className={saved || library.available ? 'px-4' : '-ml-3 px-3'} />
+      <AppHeader action={{ label: 'Crear un diseño', onClick: startCapture }} />
+      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-10 px-5 pt-5 pb-24 md:px-8 md:pt-6 md:pb-8">
+        <section className="flex flex-col gap-4" aria-labelledby="home-title">
+          <div className="flex flex-col gap-1">
+            <p className="text-base md:text-lg">Catálogo de muebles</p>
+            <h1 id="home-title" className="font-display text-4xl leading-[1.05] font-bold text-balance md:text-6xl md:leading-[1.05]">
+              Encuentra tu próximo mueble.
+            </h1>
+            <p className="mt-1 text-lg md:text-xl">Elige una base de triplay y ajusta sus medidas, acabado y armado. Puedes empezar sin conectar un experto.</p>
           </div>
-        </div>
-      </div>
-      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 py-4 md:px-8 md:py-6">
-        <section className="flex flex-col gap-3" aria-labelledby="home-title">
+          {/* On a phone the actions stay above the search, so what pins to the top is only the search and the rooms. */}
+          <div className="flex gap-3 md:hidden">{actions}</div>
           <div ref={mark} />
-          <div className={`sticky top-0 z-10 -mx-5 flex flex-col gap-2 border-b px-5 py-3 transition-colors md:-mx-8 md:px-8 ${pinned ? 'border-line bg-bone' : 'border-transparent'}`}>
-            <Field label="Buscar en el catálogo" hiddenLabel>
-              <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto, estilo o código" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
-            </Field>
-            <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0" role="group" aria-label="Cuarto">
-              {chips.map(({ room, label, count }) => (
-                <Chip key={room} active={query.room === room} aria-pressed={query.room === room} className={`min-h-11 shrink-0 px-5 text-sm! ${query.room === room ? 'font-bold!' : ''}`} onClick={() => browse({ room })}>
-                  {label} <span className="numerals font-normal text-graphite-2">{count}</span>
-                </Chip>
-              ))}
+          <div className={`sticky top-0 z-10 -mx-5 -mt-4 flex flex-col gap-3 px-5 py-3 md:-mx-8 md:px-8 ${pinned ? 'border-b-2 border-graphite bg-bone' : ''}`}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+              <div className="flex gap-3 max-md:hidden">{actions}</div>
+              <Field label="Buscar en el catálogo" hiddenLabel className="md:flex-1">
+                <Input type="search" className="md:min-h-12 md:text-lg" placeholder="Nombre, cuarto, estilo o código" value={query.text} onChange={(e) => browse({ text: e.target.value })} />
+              </Field>
             </div>
+            <RoomStrip chips={chips} chosen={query.room} onChoose={(room) => browse({ room })} />
           </div>
           {shown.length ? (
             <>
-              <p className="text-sm text-graphite-2">{shown.length} {shown.length === 1 ? 'mueble' : 'muebles'} · Medidas: ancho × fondo × alto.</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8 lg:grid-cols-4">
-                {shown.map((card) => (
-                  <BaseCard key={card.base.id} card={card} onOpen={open} />
+              <p className="text-base md:text-lg">{shown.length} {shown.length === 1 ? 'mueble' : 'muebles'} · Medidas: ancho × fondo × alto.</p>
+              <div className="grid auto-rows-[minmax(18rem,auto)] border-t-[3px] border-l-2 border-graphite md:auto-rows-[18rem]" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+                {plates.map((plate) => (
+                  <BasePlate key={shown[plate.index].base.id} card={shown[plate.index]} plate={plate} onOpen={open} />
                 ))}
               </div>
             </>
           ) : (
-            <p className="py-4 text-base text-graphite-2" role="status">
+            <p className="py-4 text-base" role="status">
               {noMatchNote(query)}
             </p>
           )}
@@ -162,14 +194,15 @@ export function Home() {
           <OwnDoor connected={connected} onOpen={startCapture} />
         </div>
       </main>
-      <Button
-        variant="primary"
+      {/* On a phone the masthead has no room for the action, so it floats, printed square in ink. */}
+      <button
+        type="button"
         inert={doorInView}
-        className={`fixed right-4 bottom-4 z-20 min-h-14 rounded-full px-6 text-lg shadow-xl md:right-6 md:bottom-6 ${doorInView ? 'opacity-0' : ''}`}
+        className={`fixed right-4 bottom-4 z-20 inline-flex min-h-14 items-center gap-2 border-2 border-bone bg-graphite px-6 font-display text-lg font-semibold text-bone transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:hidden ${doorInView ? 'opacity-0' : ''}`}
         onClick={startCapture}
       >
-        <Plus weight="bold" /> Crear un diseño
-      </Button>
+        <Plus weight="bold" aria-hidden /> Crear un diseño
+      </button>
       <AppFooter />
     </div>
   )
