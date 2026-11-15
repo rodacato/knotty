@@ -15,7 +15,7 @@ for (const page of pages) {
   const html = (await read(page)).toString()
   assert.match(html, /lang="es-MX"/, `${page}: missing product language`)
   assert.match(html, /Content-Security-Policy/, `${page}: missing CSP`)
-  assert.match(html, /theme-color" content="#1D1A17"/, `${page}: stale theme`)
+  assert.match(html, /theme-color" content="#161412"/, `${page}: stale theme`)
   for (const [, ref] of html.matchAll(/(?:src|href)="([^"#]+)"/g)) {
     if (/^https?:/.test(ref)) continue
     const target = resolve(dist, dirname(page), ref)

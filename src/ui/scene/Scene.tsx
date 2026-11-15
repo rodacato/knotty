@@ -248,14 +248,14 @@ export function Scene({ design, geo, catalog, ghosts, marked, markedLabel = null
             const [dx, dy, dz] = pushes.get(id) ?? [0, 0, 0]
             return <Sawdust key={`${id}-${changes.nonce}`} en={[((c.x0 + c.x1) / 2) * MM + dx, c.y0 * MM + dy, ((c.z0 + c.z1) / 2) * MM + dz]} />
           })}
-        {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} dark={false} />}
+        {dimensions && !exploded && <DimensionLines dimensions={design.dimensions} />}
         {markedLabel && (
           <PartTag
             name={markedLabel}
             boxes={marked.filter((id) => geo.boxes.has(id) && shown.some((p) => p.id === id)).map((id) => ({ box: geo.boxes.get(id)!, push: pushes.get(id) ?? [0, 0, 0] }))}
           />
         )}
-        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} dark={false} selected={selection} />}
+        {dimensions && exploded && <PieceMeasures design={{ ...design, pieces: shown }} geo={geo} offsets={pushes} selected={selection} />}
       </group>
 
       <GroundShadow opacity={0.45} scale={6} blur={2.4} far={2.5} color="#3a2a1a" />
