@@ -1,34 +1,43 @@
 import { GearSix } from '@phosphor-icons/react'
-import { Emblem } from '../system/Brand'
-import { Button } from '../system/components'
+import type { ReactNode } from 'react'
+import { Knot } from '../system/Brand'
 import { useStore } from '../store'
 import { useExpertStatus } from './expertStatus'
 
-export function AppHeader() {
+/** The masthead the app shares with the site (UI-93): one black band, the brand at left, light links parted by fine rules. */
+export function AppHeader({ action }: { action?: { label: ReactNode; onClick: () => void } }) {
   const openSettings = useStore((s) => s.openSettings)
   const openConnect = useStore((s) => s.openConnect)
   const { connected } = useExpertStatus()
+  const link = 'inline-flex min-h-11 items-center gap-2 px-3 font-display text-lg font-medium hover:underline hover:decoration-2 hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-bone md:px-5'
   return (
-    <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-3 max-sm:flex-wrap md:px-8 md:py-4">
-      <a href="../" aria-label="Knotty: ir al inicio" className="flex min-h-11 items-center gap-3 rounded-xl">
-        <Emblem className="size-9 shrink-0 md:size-10" />
-        <span className="font-display text-2xl font-semibold">Knotty</span>
-      </a>
-      <div className="ml-auto flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => (connected ? openSettings(true) : openConnect(true))}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-bone px-4 text-sm font-medium transition hover:bg-kraft"
-        >
-          <span aria-hidden className={`size-2.5 rounded-full border-[1.5px] border-graphite ${connected ? 'bg-graphite' : ''}`} />
-          <span className="md:hidden">{connected ? 'Con experto' : 'Sin experto'}</span>
-          <span className="hidden md:inline">{connected ? 'Experto conectado' : 'Experto sin conectar'}</span>
-        </button>
-        <Button variant="ghost" className="min-h-11 px-3 text-sm" onClick={() => openSettings(true)} aria-label="Ajustes">
-          <GearSix className="size-5 md:size-4" />
-          <span className="hidden md:inline">Ajustes</span>
-        </Button>
-      </div>
-    </header>
+    <div className="bg-graphite text-bone">
+      <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-2.5 md:px-8">
+        <a href="../" aria-label="Knotty: ir al inicio" className="flex min-h-11 items-center gap-3 focus-visible:outline-2 focus-visible:outline-bone">
+          <Knot className="h-8 w-[74px] shrink-0 md:h-9 md:w-[82px]" />
+          <span className="font-display text-3xl font-bold">Knotty</span>
+        </a>
+        <div className="ml-auto flex items-center">
+          <button type="button" onClick={() => (connected ? openSettings(true) : openConnect(true))} className={link}>
+            <span aria-hidden className={`size-3.5 shrink-0 border-2 border-bone ${connected ? 'bg-bone' : ''}`} />
+            <span className="md:hidden">{connected ? 'Con experto' : 'Sin experto'}</span>
+            <span className="hidden md:inline">{connected ? 'Experto conectado' : 'Experto sin conectar'}</span>
+          </button>
+          <button type="button" onClick={() => openSettings(true)} aria-label="Ajustes" className={`${link} border-l-2 border-bone/60`}>
+            <GearSix className="size-5 md:hidden" aria-hidden />
+            <span className="hidden md:inline">Ajustes</span>
+          </button>
+          {action && (
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="ml-3 hidden min-h-11 items-center border-2 border-bone px-5 font-display text-xl font-semibold hover:bg-bone/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone md:ml-5 md:inline-flex"
+            >
+              {action.label}
+            </button>
+          )}
+        </div>
+      </header>
+    </div>
   )
 }
