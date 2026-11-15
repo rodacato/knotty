@@ -1,6 +1,6 @@
 import { GearSix } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
-import { Knot } from '../system/Brand'
+import { Emblem } from '../system/Brand'
 import { useStore } from '../store'
 import { useExpertStatus } from './expertStatus'
 
@@ -9,13 +9,13 @@ export function AppHeader({ action }: { action?: { label: ReactNode; onClick: ()
   const openSettings = useStore((s) => s.openSettings)
   const openConnect = useStore((s) => s.openConnect)
   const { connected } = useExpertStatus()
-  const link = 'inline-flex min-h-11 items-center gap-2 px-3 font-display text-lg font-medium hover:underline hover:decoration-2 hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-bone md:px-5'
+  const link = 'inline-flex min-h-11 items-center gap-2 px-3 font-display text-lg font-medium uppercase hover:underline hover:decoration-2 hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-bone md:px-5'
   return (
     <div className="bg-graphite text-bone">
       <header className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-5 py-2.5 md:px-8">
         <a href="../" aria-label="Knotty: ir al inicio" className="flex min-h-11 items-center gap-3 focus-visible:outline-2 focus-visible:outline-bone">
-          <Knot className="h-8 w-[74px] shrink-0 md:h-9 md:w-[82px]" />
-          <span className="font-display text-3xl font-bold">Knotty</span>
+          <Emblem className="size-8 shrink-0" />
+          <span className="font-display text-[34px] leading-none font-semibold">Knotty</span>
         </a>
         <div className="ml-auto flex items-center">
           <button type="button" onClick={() => (connected ? openSettings(true) : openConnect(true))} className={link}>
@@ -31,7 +31,7 @@ export function AppHeader({ action }: { action?: { label: ReactNode; onClick: ()
             <button
               type="button"
               onClick={action.onClick}
-              className="ml-3 hidden min-h-11 items-center border-2 border-bone px-5 font-display text-xl font-semibold hover:bg-bone/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone md:ml-5 md:inline-flex"
+              className="ml-3 hidden min-h-11 items-center border-2 border-bone px-5 font-display text-xl font-semibold uppercase hover:bg-bone/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone md:ml-5 md:inline-flex"
             >
               {action.label}
             </button>

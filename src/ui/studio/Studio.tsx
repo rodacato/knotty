@@ -142,7 +142,7 @@ function LeaveEditing() {
 function PrepareMaterials() {
   const openCheckout = useStore((s) => s.openCheckout)
   return (
-    <button type="button" className="pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full bg-action px-5 text-sm font-medium text-on-action shadow-sm transition active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
+    <button type="button" className="pointer-events-auto inline-flex min-h-12 items-center gap-2 bg-action px-6 font-display text-xl leading-none font-semibold text-on-action uppercase transition hover:brightness-110 active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
       <Stack weight="bold" /> Preparar materiales
     </button>
   )

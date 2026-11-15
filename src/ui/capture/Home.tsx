@@ -71,9 +71,9 @@ function OwnDoor({ connected, onOpen }: { connected: boolean; onOpen: () => void
         <p className="text-base md:text-lg">Describe el mueble que necesitas, con fotos o texto.</p>
         {!connected && <p className="text-base text-graphite-2">Conecta un experto para crear un diseño nuevo.</p>}
       </div>
-      <Button variant="primary" className="min-h-12 shrink-0 px-6 text-base" onClick={onOpen}>
-        Crear un diseño <ArrowRight weight="bold" />
-      </Button>
+      <button type="button" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 bg-graphite px-6 font-display text-xl font-semibold text-bone uppercase hover:bg-graphite/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus" onClick={onOpen}>
+        Crear un diseño <ArrowRight weight="bold" aria-hidden />
+      </button>
     </section>
   )
 }
@@ -139,7 +139,7 @@ export function Home() {
   const shapes = useMemo(() => new Map(cards.map((c) => [c.base.id, c.boxes ? (({ width, height }) => shapeOf(width, height))(sketch(c.boxes)) : ('square' as const)])), [cards])
   const plates = useMemo(() => packPlates(shown.map((c) => shapes.get(c.base.id) ?? 'square'), columns), [shown, shapes, columns])
   // Outlined in ink like the site's buttons; `!` because the system button sets its own fill, border and size.
-  const outlined = 'min-h-12 gap-2 border-2! border-graphite! bg-bone! px-5! font-display text-lg! font-semibold text-graphite! hover:bg-kraft! max-md:flex-1 max-md:px-2!'
+  const outlined = 'min-h-12 gap-2 border-2! border-graphite! bg-bone! px-5! font-display text-lg! font-semibold text-graphite! uppercase hover:bg-kraft! max-md:flex-1 max-md:px-2!'
   const actions = (
     <>
       {saved && <Button className={outlined} onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
@@ -157,7 +157,8 @@ export function Home() {
       <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-10 px-5 pt-5 pb-24 md:px-8 md:pt-6 md:pb-8">
         <section className="flex flex-col gap-4" aria-labelledby="home-title">
           <div className="flex flex-col gap-1">
-            <p className="text-base md:text-lg">Catálogo de muebles</p>
+            {/* The site's eyebrow: condensed, over a heavy rule. */}
+            <p className="mb-2 border-b-[3px] border-graphite pb-2 font-display text-lg font-semibold md:text-[21px]">Catálogo de muebles</p>
             <h1 id="home-title" className="font-display text-4xl leading-[1.05] font-bold text-balance md:text-6xl md:leading-[1.05]">
               Encuentra tu próximo mueble.
             </h1>
@@ -198,7 +199,7 @@ export function Home() {
       <button
         type="button"
         inert={doorInView}
-        className={`fixed right-4 bottom-4 z-20 inline-flex min-h-14 items-center gap-2 border-2 border-bone bg-graphite px-6 font-display text-lg font-semibold text-bone transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:hidden ${doorInView ? 'opacity-0' : ''}`}
+        className={`fixed right-4 bottom-4 z-20 inline-flex min-h-14 items-center gap-2 border-2 border-bone bg-graphite px-6 font-display text-lg font-semibold text-bone uppercase transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus md:hidden ${doorInView ? 'opacity-0' : ''}`}
         onClick={startCapture}
       >
         <Plus weight="bold" aria-hidden /> Crear un diseño

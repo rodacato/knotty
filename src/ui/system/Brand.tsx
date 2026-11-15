@@ -15,6 +15,7 @@ export function Knot({ className = '', plated = true }: { className?: string; pl
   )
 }
 
-export function Emblem({ className = '' }: { className?: string }) {
-  return <img src="../icon-192.png" alt="" className={`rounded-emblem ${className}`} />
+/** The app's emblem, the mark every masthead carries (app, Studio and site); `root` is where the site's page sits. */
+export function Emblem({ className = '', root = '../' }: { className?: string; root?: './' | '../' }) {
+  return <img src={`${root}icon-192.png`} alt="" className={`rounded-emblem ${className}`} />
 }

@@ -14,7 +14,7 @@
 .small { font-size: 16px; }
 .lede { font-size: 20px; color: var(--graphite); max-width: 60ch; }
 .eyebrow { font-family: var(--font-display); font-size: 21px; font-weight: 600; line-height: 1.2; color: var(--graphite); padding-bottom: 8px; border-bottom: var(--rule); }
-.wordmark { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--font-display); font-size: 32px; font-weight: 700; letter-spacing: 0; }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--font-display); font-size: 34px; font-weight: 600; line-height: 1; letter-spacing: 0; }
 .wordmark svg { flex-shrink: 0; }
 
 /* The masthead: one black band across the page, the brand and the links printed light on it. */
@@ -22,7 +22,8 @@
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 10px; }
 .page-nav { display: flex; align-items: center; gap: 0; }
 .page-nav .nav-link { padding-inline: 20px; border-right: var(--fine); border-color: color-mix(in srgb, var(--bone) 60%, transparent); }
-.page-header .nav-link { font-family: var(--font-display); font-size: 19px; font-weight: 500; }
+/* Oswald in capitals only for steps, panel titles and buttons, as the brand guide says and the Studio prints them. */
+.page-header .nav-link { font-family: var(--font-display); font-size: 19px; font-weight: 500; text-transform: uppercase; }
 .page-menu { display: none; position: relative; }
 .page-menu summary { display: grid; place-items: center; width: 48px; height: 48px; border: var(--fine); border-color: var(--bone); cursor: pointer; list-style: none; }
 .page-menu summary::-webkit-details-marker { display: none; }
@@ -34,7 +35,7 @@
 .nav-link[aria-current] { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
 
 /* Buttons are square and printed: ink by default, vermilion for the page's one primary action. */
-.page-link { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 12px; padding: 10px 22px; border: var(--fine); background: var(--graphite); color: var(--bone); font-family: var(--font-display); font-size: 21px; font-weight: 600; line-height: 1.1; transition: background-color var(--duration-fast) var(--ease-settle); }
+.page-link { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 12px; padding: 10px 22px; border: var(--fine); background: var(--graphite); color: var(--bone); font-family: var(--font-display); font-size: 21px; font-weight: 600; line-height: 1.1; text-transform: uppercase; transition: background-color var(--duration-fast) var(--ease-settle); }
 .page-link:hover { background: color-mix(in srgb, var(--graphite) 86%, var(--bone)); }
 .page-link-primary { background: var(--action); color: var(--color-on-action); border-color: var(--action); font-size: 25px; }
 .page-link-primary:hover { background: color-mix(in srgb, var(--action) 88%, var(--graphite)); }
@@ -68,7 +69,7 @@
 .index-drawing { display: block; aspect-ratio: 1; }
 .index-text { display: flex; flex-direction: column; gap: 2px; padding-left: 16px; border-left: var(--fine); }
 .index-code { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
-.index-name { font-size: 19px; line-height: 1.35; }
+.index-name { font-family: var(--font-display); font-size: 23px; font-weight: 700; line-height: 1.2; }
 .index-text .numerals { font-size: 17px; }
 .index-note { font-size: 17px; }
 
@@ -80,7 +81,7 @@
 .steps-strip li { display: flex; flex-direction: column; gap: 12px; padding: 20px 24px 24px; }
 .steps-strip li + li { border-left: var(--fine); }
 .steps-strip li:first-child { padding-left: 0; }
-.steps-strip h3 { display: flex; align-items: baseline; gap: 16px; font-size: 26px; }
+.steps-strip h3 { display: flex; align-items: baseline; gap: 16px; font-size: 26px; text-transform: uppercase; }
 .step-number { font-family: var(--font-mono); font-size: 26px; font-weight: 600; }
 .steps-strip p { font-size: 17px; }
 

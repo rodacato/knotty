@@ -15,11 +15,12 @@ export function RoomStrip({ chips, chosen, onChoose }: { chips: { room: Choice; 
               type="button"
               aria-pressed={active}
               onClick={() => onChoose(room)}
-              className={`flex min-h-12 flex-1 shrink-0 items-center justify-center gap-2 border-graphite px-4 text-base whitespace-nowrap not-first:border-l-2 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-focus md:text-lg ${
-                active ? 'bg-graphite font-semibold text-bone' : 'bg-bone text-graphite hover:bg-kraft'
+              className={`flex min-h-12 flex-1 shrink-0 items-baseline justify-center gap-2 border-graphite px-4 py-3 font-display text-lg font-semibold uppercase whitespace-nowrap not-first:border-l-2 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-focus md:text-lg ${
+                active ? 'bg-graphite text-bone' : 'bg-bone text-graphite hover:bg-kraft'
               }`}
             >
-              {label} <span className="numerals">{count}</span>
+              {/* Like the Studio's step tabs: the name in condensed capitals, the figure in mono. */}
+              {label} <span className="numerals text-base font-normal">{count}</span>
             </button>
           )
         })}

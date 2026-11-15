@@ -11,7 +11,7 @@ describe('the room strip', () => {
     const page = renderToStaticMarkup(h(RoomStrip, { chips, chosen: 'living', onChoose: () => {} }))
     const cells = page.match(/<button[^>]*>.*?<\/button>/g) ?? []
     expect(cells).toHaveLength(chips.length)
-    for (const { label, count } of chips) expect(page).toContain(`${label} <span class="numerals">${count}</span>`)
+    for (const { label, count } of chips) expect(page).toMatch(new RegExp(`${label} <span class="numerals[^"]*">${count}</span>`))
     const pressed = cells.filter((c) => c.includes('aria-pressed="true"'))
     expect(pressed).toHaveLength(1)
     expect(pressed[0]).toContain('Sala')
