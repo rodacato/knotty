@@ -82,15 +82,10 @@ button.nav-link { cursor: pointer; }
 .logo-uses { gap: 20px; }
 .logo-use { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .logo-tile { display: grid; place-items: center; width: 100%; padding: 32px 20px; background: var(--color-brand-paper); color: var(--color-brand-ink); border: 1px solid var(--line); border-radius: var(--radius-panel); }
-.logo-use svg, .logo-use img { width: 128px; height: 128px; }
+.logo-use svg, .logo-use img { width: 200px; height: 87px; }
 .logo-use span { font-size: 14px; }
 .logo-use-wood { background: var(--color-pine); color: var(--color-walnut); }
-.logo-use-inverse { background: var(--bone); color: var(--color-brand-paper); }
-.draw-steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; list-style: none; padding: 32px 0; margin: 0; }
-.draw-step { width: 80px; height: 80px; }
-.draw-step-1 g > :nth-child(n+2) { visibility: hidden; }
-.draw-steps p { font-size: 14px; }
-.draw-steps .numerals { margin-right: 8px; color: var(--graphite-2); }
+.logo-use-inverse { background: var(--color-brand-ink); color: var(--color-brand-paper); }
 .logo-rules { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
 .small-marks { display: flex; align-items: flex-end; gap: 24px; margin-top: 20px; }
 .small-marks span { display: flex; align-items: center; flex-direction: column; gap: 12px; }
@@ -146,10 +141,7 @@ button.nav-link { cursor: pointer; }
   .logo-uses { grid-template-columns: 1fr; gap: 16px; }
   .logo-use { flex-direction: row; justify-content: flex-start; }
   .logo-tile { flex-shrink: 0; width: 140px; padding: 20px; }
-  .logo-use svg, .logo-use img { width: 88px; height: 88px; }
-  .draw-steps { grid-template-columns: 1fr; gap: 12px; }
-  .draw-steps li { display: flex; align-items: center; gap: 16px; }
-  .draw-step { flex-shrink: 0; width: 64px; height: 64px; }
+  .logo-use svg, .logo-use img { width: 120px; height: 52px; }
   .color-grid { grid-template-columns: repeat(2, 1fr); gap: 32px 20px; }
   .type-samples article, .measure-list > div { grid-template-columns: 1fr; gap: 20px; }
   .system-example { padding: 24px; }
