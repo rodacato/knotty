@@ -23,7 +23,9 @@ import { Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
-import { pendingId, ReviewGate, VerdictCard, VerdictSummary } from './Verdict'
+import { pendingId, ReviewChecks, ReviewGate, VerdictCard, VerdictSummary } from './Verdict'
+import type { MaterialLayout } from '../../domain/estimate/layout'
+import { Thumbnail } from '../capture/Thumbnail'
 import { purchaseReviewItems } from '../../domain/session/purchaseReview'
 import { BeforeLeaving, CopyList } from './CopyList'
 import { lineNumbers } from './copyListLabels'
@@ -278,6 +280,28 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
   )
 }
 
+/**
+ * The furniture being bought for, beside its verdict on a desktop (UI-93). The piece chosen on a sheet is hatched here too,
+ * labelled as the sheet labels it; the phone has no room for it and keeps its column.
+ */
+function Furniture({ geo, layout, numbers, chosen, onChoose }: { geo: Geometry; layout: MaterialLayout[]; numbers: Map<string, number>; chosen: string | null; onChoose: (id: string) => void }) {
+  const cut = chosen ? layout.flatMap((a) => a.sheets.flatMap((s) => s.placed)).find((c) => c.id === chosen) : undefined
+  const number = cut && numbers.get(cut.id)
+  return (
+    <figure className="relative max-lg:hidden">
+      <div className="mx-auto aspect-[16/9] max-h-[340px] w-full px-6 pt-12">
+        <Thumbnail boxes={geo.boxes} ink chosen={cut ? cut.id : null} onChoose={onChoose} />
+      </div>
+      {cut && (
+        <figcaption className="absolute top-0 left-0 border-2 border-graphite bg-bone">
+          <span className="block bg-graphite px-3 py-1 font-display text-xl leading-tight font-semibold text-bone">{number ? `${number}. ${cut.name}` : cut.name}</span>
+          <span className="numerals block px-3 py-1 text-base">{Math.round(cut.rotated ? cut.h : cut.w)} × {Math.round(cut.rotated ? cut.w : cut.h)} mm</span>
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
 export function Materials({ state, design, geo, catalog, instead, onRequest }: { state: DesignState; design: Design; geo: Geometry; catalog: Catalog; instead: string | null; onRequest: (text: string) => void }) {
   const settings = useStore((s) => s.catalogSettings)
   const selection = useStore((s) => s.selection)
@@ -325,23 +349,38 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   const phaseCount = assemblyPhases(state).length
   const guideLabel = phaseCount ? 'Ver guía para construir' : 'Ver guía de cortes'
 
-  // The head of the ticket: the cost, what it covers and, once reviewed, the result, as one ruled row (UI-93).
-  const head = (result?: ReactNode) => (
+  // The head of the ticket: the cost and what it covers, as one ruled row (UI-93).
+  const head = (
     <section className="flex flex-col gap-2" aria-label="Costo aproximado">
-      <div className="flex flex-wrap border-t-[3px] border-l-[3px] border-graphite *:flex *:grow *:flex-col *:justify-center *:gap-1 *:border-r-[3px] *:border-b-[3px] *:border-graphite *:px-4 *:py-3">
-        <div className="basis-56">
+      {/* Only the figure is boxed, like the total on a ticket; what it covers reads beside it, past a rule. */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex flex-col gap-1 border-[3px] border-graphite px-4 py-3">
           <p className="font-display text-lg leading-none font-semibold uppercase">Costo aproximado</p>
           <p className="numerals text-5xl leading-none font-semibold">
             <span className="text-graphite-2">~</span>
             {weights.format(purchase.cost.total)}
           </p>
         </div>
-        {verdict && <p className="basis-56 text-lg text-graphite md:text-xl">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
-        {result && <div className="basis-96">{result}</div>}
+        {verdict && <p className="min-w-48 flex-1 border-l-[3px] border-graphite pl-6 text-lg text-graphite md:text-xl">{totalCovers({ sheets: totalSheets, onlyPlywood, withBanding: purchase.edgeBanding > 0, withFinish })}</p>}
       </div>
       {unpriced && <p className="max-w-3xl text-base text-graphite md:text-lg">{unpriced}</p>}
       <p className="text-base leading-relaxed text-graphite">Precios de referencia en MXN, no una cotización.</p>
     </section>
+  )
+
+  // On a desktop the page opens on two halves (UI-93): what is being built and what it costs, beside the verdict and what is left to decide. The phone stacks them.
+  // `tall`: the left half also runs beside the next step, which sits in the grid's second row.
+  const left = (tall: boolean) => (
+    <div className={`flex flex-col gap-4 lg:border-y-[3px] lg:border-r-[3px] lg:border-graphite lg:py-6 lg:pr-8 ${tall ? 'lg:row-span-2' : ''}`}>
+      <Furniture geo={geo} layout={purchase.layout} numbers={numbers} chosen={selection} onChoose={select} />
+      {head}
+    </div>
+  )
+  const band = (right: ReactNode) => (
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:gap-0">
+      {left(false)}
+      <div className="flex min-w-0 flex-col gap-6 lg:border-y-[3px] lg:border-graphite lg:py-6 lg:pl-8">{right}</div>
+    </div>
   )
 
   // The total shows before the review (UI-16); the shopping list only after it, and if it is not viable it has to be asked for on purpose.
@@ -349,9 +388,10 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     return (
       <div className="relative flex flex-col gap-6 px-4 pt-6 pb-8 md:px-8">
         {whose}
-        {head()}
-        {construction}
-        <ReviewGate stale={state.review !== null} />
+        {band(<>
+          {construction}
+          <ReviewGate stale={state.review !== null} />
+        </>)}
         <CutSettings base={catalog.layout} />
       </div>
     )
@@ -359,15 +399,18 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
     return (
       <div className="relative flex flex-col gap-6 px-4 pt-6 pb-8 md:px-8">
         {whose}
-        {head(<VerdictSummary verdict={verdict} cell />)}
-        {construction}
-        <VerdictCard key={`${verdict.signature}:${verdict.date}`} verdict={verdict} design={design} onRequest={onRequest} />
-        <p className="text-sm text-graphite">
-          Con estos problemas, lo que compres probablemente no sirva.{' '}
-          <button type="button" className="underline" onClick={() => setAnyway(verdict.signature)}>
-            Ver la lista de todos modos
-          </button>
-        </p>
+        {band(<>
+          <VerdictSummary verdict={verdict} />
+          {construction}
+          <VerdictCard key={`${verdict.signature}:${verdict.date}`} verdict={verdict} design={design} onRequest={onRequest} />
+          <p className="text-sm text-graphite">
+            Con estos problemas, lo que compres probablemente no sirva.{' '}
+            <button type="button" className="underline" onClick={() => setAnyway(verdict.signature)}>
+              Ver la lista de todos modos
+            </button>
+          </p>
+        </>)}
+        <ReviewChecks verdict={verdict} />
         <CutSettings base={catalog.layout} />
       </div>
     )
@@ -382,17 +425,24 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
   return (
     <div className="relative flex flex-col gap-6 px-4 pt-6 md:px-8">
       {whose}
-      {head(<VerdictSummary verdict={verdict} cell />)}
-      {construction}
-      {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
-      {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
-      <VerdictCard
-        key={`${verdict.signature}:${verdict.date}`}
-        verdict={verdict}
-        design={design}
-        onRequest={onRequest}
-        wall={wallPending && <WallQuestion design={design} anchoring={purchase.anchoring} />}
-      />
+      {/* One grid on a desktop, so the next step is a single element: under the decisions there, and at the foot of the phone's column. */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-0">
+      {left(true)}
+      <div className="flex min-w-0 flex-col gap-6 lg:border-t-[3px] lg:border-graphite lg:pt-6 lg:pb-6 lg:pl-8">
+        <VerdictSummary verdict={verdict} />
+        {construction}
+        {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
+        {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
+        <VerdictCard
+          key={`${verdict.signature}:${verdict.date}`}
+          verdict={verdict}
+          design={design}
+          onRequest={onRequest}
+          wall={wallPending && <WallQuestion design={design} anchoring={purchase.anchoring} />}
+        />
+      </div>
+      <div className="flex flex-col gap-6 lg:col-span-2 lg:pt-6">
+      <ReviewChecks verdict={verdict} />
       <section className="flex flex-col" aria-label="Lo que vas a comprar">
         {design.wallAnchored && !wallPending && (
           <Section minor title="Muro" aside={`${WALL_LABELS[wallOf(design)]} · Cambiar`}>
@@ -482,12 +532,17 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <CopyList text={message} />
         <p className="text-xs text-graphite-2">Copia la lista para pegarla en WhatsApp o enviarla a la maderería.</p>
       </section>
+      </div>
       <NextStep pending={pending} guide={guide} onGuide={() => openTakeAway(true)} />
+      </div>
     </div>
   )
 }
 
-/** The checkout's one filled action (UI-91): the next pending decision while any is left, then the guide. */
+/**
+ * The checkout's one filled action (UI-91): the next pending decision while any is left, then the guide.
+ * On a phone it sticks to the foot of the column; on a desktop the grid places it under the decisions, in the right half.
+ */
 function NextStep({ pending, guide, onGuide }: { pending: { id: string; title: string }[]; guide: string; onGuide: () => void }) {
   const next = pending[0]
   const go = () => {
@@ -500,8 +555,8 @@ function NextStep({ pending, guide, onGuide }: { pending: { id: string; title: s
     target.querySelector<HTMLElement>('summary, input')?.focus({ preventScroll: true })
   }
   return (
-    <div className="sticky bottom-0 -mx-4 border-t-[6px] border-graphite bg-bone px-4 md:-mx-8 md:px-8 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <Button variant="action" className="min-h-12 w-full px-5" onClick={go}>
+    <div className="sticky bottom-0 -mx-4 border-t-[6px] border-graphite bg-bone px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:-mx-8 md:px-8 lg:static lg:col-start-2 lg:row-start-2 lg:mx-0 lg:border-t-0 lg:border-b-[3px] lg:pt-0 lg:pr-0 lg:pb-6 lg:pl-8">
+      <Button variant="action" className="min-h-12 w-full px-5 lg:min-h-16 lg:text-2xl" onClick={go}>
         {next ? <><span className="min-w-0 truncate">Siguiente: {next.title}</span> <ArrowDown weight="bold" className="shrink-0" /></> : <><Printer weight="bold" /> {guide}</>}
       </Button>
     </div>

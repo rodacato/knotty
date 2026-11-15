@@ -11,10 +11,11 @@ import { withPageTransition } from '../system/pageTransition'
 import { ReviewActivity } from './ReviewActivity'
 import { Section } from './Section'
 
-const VERDICTS: Record<Verdict, { title: string; className: string; icon: ReactNode }> = {
-  viable: { title: 'Se puede hacer', className: 'border-graphite', icon: <CheckCircle className="text-graphite" weight="fill" /> },
-  'needs-changes': { title: 'Hay pendientes antes de comprar', className: 'border-graphite', icon: <WarningCircle /> },
-  'not-viable': { title: 'Así no se puede hacer', className: 'border-rust', icon: <XCircle className="text-rust" weight="fill" /> },
+// The verdict carries no left bar: that bar marks a warning (UI-93), and «Se puede hacer» is not one.
+const VERDICTS: Record<Verdict, { title: string; icon: ReactNode }> = {
+  viable: { title: 'Se puede hacer', icon: <CheckCircle className="text-graphite" weight="fill" /> },
+  'needs-changes': { title: 'Hay pendientes antes de comprar', icon: <WarningCircle /> },
+  'not-viable': { title: 'Así no se puede hacer', icon: <XCircle className="text-rust" weight="fill" /> },
 }
 const CHECK_ICON: Record<Check['status'], ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-graphite" />,
@@ -53,10 +54,10 @@ export function ReviewGate({ stale }: { stale: boolean }) {
 export function VerdictSummary({ verdict, cell = false }: { verdict: PurchaseReview; cell?: boolean }) {
   const v = VERDICTS[verdict.verdict]
   return (
-    <aside role="note" aria-label="Resultado de la revisión" className={cell ? 'flex items-start gap-3' : `flex max-w-3xl items-start gap-3 border-l-8 py-1 pl-4 ${v.className}`}>
-      <span className="mt-0.5 shrink-0">{v.icon}</span>
+    <aside role="note" aria-label="Resultado de la revisión" className={cell ? 'flex items-start gap-3' : 'flex max-w-3xl items-start gap-3'}>
+      <span className={`shrink-0 ${cell ? 'mt-0.5' : '[&>svg]:size-9 md:[&>svg]:size-11'}`}>{v.icon}</span>
       <div className="min-w-0 space-y-1">
-        <h2 className="font-display text-xl leading-tight font-semibold uppercase md:text-2xl">{v.title}</h2>
+        <h2 className={`font-display leading-tight font-semibold uppercase ${cell ? 'text-xl md:text-2xl' : 'text-3xl md:text-4xl'}`}>{v.title}</h2>
         <p className="text-base leading-relaxed md:text-lg">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
         {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-base leading-relaxed text-graphite">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
       </div>
@@ -88,7 +89,6 @@ function purpose(item: PurchaseReviewItem) {
 
 /** `wall`: the question about the wall, a decision like the review's own, so it is counted and listed with them. */
 export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdict: PurchaseReview; design: Design; onRequest: (text: string) => void; wall?: ReactNode }) {
-  const review = useStore((s) => s.review)
   const choose = useStore((s) => s.choosePurchaseReview)
   const thinking = useStore((s) => s.thinking)
   const openConnect = useStore((s) => s.openConnect)
@@ -115,8 +115,6 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
   }
   const total = items.length + (wall ? 1 : 0)
   const pending = undecided.length + (wall ? 1 : 0)
-  const notes = verdict.checks.filter((check) => check.status !== 'ok').length
-  const passed = verdict.checks.filter((check) => check.status === 'ok').length
   return (
     <div className="flex flex-col gap-4">
       {/* What the person has to do on this page, so it heads its block like a section of the ticket (UI-93). */}
@@ -157,13 +155,27 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
           )
         })}
       </div>
-      <Section minor title="Comprobaciones de Knotty" aside={notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}>
-        <ul className="max-w-3xl divide-y divide-line border-y-2 border-graphite">
-          {verdict.checks.map((check) => <li key={check.id} className="flex items-start gap-2 py-3 text-sm"><span className="mt-0.5 shrink-0">{CHECK_ICON[check.status]}</span><div className="min-w-0 space-y-1"><p className="font-medium">{check.title}</p><p className="text-xs leading-relaxed">{check.detail}</p></div></li>)}
-        </ul>
-        <Button variant="ghost" className="mt-2 px-2 text-xs" disabled={thinking} onClick={() => void review()}><ArrowClockwise /> Repetir revisión</Button>
-      </Section>
       {!!verdict.carpenter?.tips.length && <Section minor title="Consejos opcionales para el taller"><ul className="max-w-3xl list-disc space-y-2 py-2 pl-5 text-[15px] leading-relaxed">{verdict.carpenter.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></Section>}
     </div>
+  )
+}
+
+/** What Knotty itself checked, as one ruled band of cells: the evidence under the verdict, not a decision (UI-93). */
+export function ReviewChecks({ verdict }: { verdict: PurchaseReview }) {
+  const review = useStore((s) => s.review)
+  const thinking = useStore((s) => s.thinking)
+  const notes = verdict.checks.filter((check) => check.status !== 'ok').length
+  const passed = verdict.checks.filter((check) => check.status === 'ok').length
+  return (
+    <section aria-label="Comprobaciones de Knotty" className="flex flex-col gap-3 border-t-[3px] border-graphite pt-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="font-display text-2xl leading-none font-semibold uppercase md:text-3xl">Comprobaciones de Knotty</h2>
+        <span className="border-l-[3px] border-graphite pl-3 text-base text-graphite md:text-lg">{notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}</span>
+        <Button variant="secondary" className="min-h-11 px-4 md:ml-auto" disabled={thinking} onClick={() => void review()}><ArrowClockwise weight="bold" /> Repetir revisión</Button>
+      </div>
+      <ul className="grid border-t-2 border-l-2 border-graphite sm:grid-cols-2 lg:grid-cols-3">
+        {verdict.checks.map((check) => <li key={check.id} className="flex items-start gap-2 border-r-2 border-b-2 border-graphite p-3"><span className="mt-0.5 shrink-0">{CHECK_ICON[check.status]}</span><div className="min-w-0 space-y-1"><p className="text-base font-semibold">{check.title}</p><p className="text-sm leading-relaxed text-graphite">{check.detail}</p></div></li>)}
+      </ul>
+    </section>
   )
 }
