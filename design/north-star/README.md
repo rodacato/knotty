@@ -2,7 +2,9 @@
 
 Adrian picked the **two-ink cutting sheet**, an Overhaul of the Studio built on the world of a 1960s Mexican lumber-yard cut ticket: black press ink and one vermilion spot ink printed on pale straw paper. It replaced the dark-workshop system ([set aside](set-aside/preserve-2026-11/README.md)) after three rounds of generated images and two side-by-side reviews of both systems on the editor, Materials and the site hero. The type was chosen afterwards, in a browser, from real fonts ([type specimen](type.html), option C).
 
-[Studio](studio.png) · [Materials](materials.png) · [Site hero](hero.png) · [Prompts](prompts/)
+App: [Studio](studio.png) · [Materials](materials.png) · [Catalog](catalog.png) ([phone](catalog-phone.png))
+Site: [Landing](landing.png) ([phone](landing-phone.png)) · [Landing, materials section](landing-materials.png) · [Brand guide](brand-guide.png)
+[Prompts](prompts/)
 
 ## Visual decisions
 
@@ -23,6 +25,7 @@ Adrian picked the **two-ink cutting sheet**, an Overhaul of the Studio built on 
 | Carpenter's notebook (red pencil on cream) | Cream paper with red pencil marks | Red as the active colour reads as an error | Not planned |
 | Blueprint (green cutting mat) | A dark green technical grid with a yellow highlight | It read as CAD software and lost the warmth of wood | Not planned |
 | Two-ink sheet, first version: saturated yellow, vermilion selection, condensed capitals everywhere, mono body text | The same world at full strength | Glare over long use. Red on yellow selection read as a warning sign. Mono paragraphs were tiring. All of this is fixed in the chosen version. | — |
+| First two-ink site hero ([set aside](set-aside/two-ink-hero-2026-11/hero.png)) | The landing alone, headline stacked beside the sideboard | Extended to the catalog and the brand guide, it did not belong: no square before the wordmark, few rules, a headline twice the scale of any other screen. The shop-window landing replaced it. | — |
 | Type: League Gothic, Libre Franklin and Courier Prime (specimen B) | Full period type, typewriter figures | Courier is heavier to read across long lists of dimensions | Figures stay rare on a screen and the period feel matters more |
 
 Still open:
@@ -31,7 +34,19 @@ Still open:
 - Exact colour values. They belong to the brand guide and tokens, not to these images.
 - How much hatching and how many heavy rules a long session tolerates. The second review named fatigue as the main remaining risk.
 
-## Site
+- The Studio image puts vermilion on «Terminar de editar», which leaves the editor rather than doing the screen's work. Revisit when the Studio is built against this image.
 
-- The hero sells the result: the full sideboard on paper with its three dimension lines, the headline in Oswald, the reading text in Libre Franklin, and one vermilion button. No Studio interface appears in it.
-- In product imagery, vermilion appears only on the page's primary action. A selected part is shown with black hatching and a leader line, as in the Studio.
+## Site and catalog
+
+The public site is a late-1960s lumber-yard brochure in the same inks, paper and type: the brochure register shows, the ticket register is used. Every page shares one masthead: a black band with an empty square before «Knotty» (the knot mark goes there), ink links, and one outlined ink button at the right.
+
+- **Landing, the shop window.** An asymmetric spread: the hero and plate 01 (the sideboard with its three dimension lines and a ruled caption «Aparador con patas | Mueble de ejemplo | KC-APA-01») on the left, an index of three bases as numbered ruled rows on the right. Vermilion is only «Elegir mi primer mueble»; «Explorar el catálogo» is ink. On a phone it is one column, with plate 01 starting above the fold.
+- **Landing, materials section.** It shows the product's output at a readable size: a black leader line runs from the sideboard's top to the same piece, «Techo», on a cut sheet drawn top-down, with the waste hatched. «Ajustar el aparador» is ink, because it is not the page's primary action. The three steps above it are one ruled strip.
+- **Brand guide** (`/marca/`), the brochure's colophon: a ruled section nav, logo plates, swatches as ruled cells and the three type specimens. The plates were left empty on purpose; the logo is drawn from the vector.
+- **Catalog home, rooms as chapters.** One ruled row of room cells with counts, the selected room a solid ink cell; the count line follows it. Furniture are numbered plates of plywood line drawings with a ruled caption (name in condensed bold, style in the reading face, measures in mono). No hatching, because hatching means «the selected part»; no vermilion, because the screen's action is opening a plate.
+- Furniture is drawn two ways, and both are the app's own: the Studio's 3D render where the site sells one piece, the catalog's line drawings where it lists many.
+
+Known defects of the images, not to be built:
+- The landing's height line stops at the bottom of the body; it runs from the floor to the top (940 mm includes the legs).
+- The catalog's TV unit has angled 1960s legs. No piece in the catalog has them; draw each piece from its own model.
+- The cut sheet's proportions and its «desperdicio 9 %» are illustrative. The built section shows what the app computes for the sheet.
