@@ -2,7 +2,11 @@
 .workshop-document h2, .workshop-document h3 { break-after: avoid; }
 .workshop-document p { orphans: 3; widows: 3; }
 .workshop-section { display: flex; flex-direction: column; gap: 0.75rem; }
-.workshop-section h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; }
+.workshop-section h2 { font-family: var(--font-display); font-size: 1.875rem; line-height: 1.1; font-weight: 600; text-transform: uppercase; }
+/* The guide's two roles (UI-93): each section prints the role that does it, from the group's --role. */
+.role-group { display: flex; flex-direction: column; gap: 2rem; }
+.role-group > section { border-top: 3px solid var(--color-graphite); padding-top: 0.75rem; }
+.role-group > section::before { content: var(--role); align-self: flex-start; background: var(--color-graphite); color: var(--color-bone); font-family: var(--font-display); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding: 0.15rem 0.6rem; }
 .workshop-section h3 { font-size: 1rem; font-weight: 600; }
 .workshop-section p { font-size: 0.875rem; line-height: 1.45; }
 .workshop-document table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -12,11 +16,9 @@
 .workshop-document thead { display: table-header-group; }
 .workshop-document svg { overflow: visible; }
 .workshop-document .piece-ids { font-size: 0.7rem; overflow-wrap: anywhere; }
-.export-kind { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; }
-.export-status { margin-top: 0.75rem; padding: 0.5rem 0; border-top: 2px solid; border-bottom: 1px solid; font-size: 0.9rem; font-weight: 700; }
+/* The review's state is a warning, so it carries the heavy left bar (UI-93). */
+.export-status { padding: 0.25rem 0 0.25rem 1rem; border-left: 8px solid var(--color-graphite); font-family: var(--font-display); font-size: 1.5rem; line-height: 1.15; font-weight: 600; text-transform: uppercase; }
 .export-filename { font-size: 0.7rem; overflow-wrap: anywhere; }
-.export-index { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding-block: 0.75rem; border-block: 1px solid #d9d2c7; font-size: 0.85rem; }
-.export-index a { display: inline-flex; align-items: center; min-height: 24px; text-decoration: underline; text-underline-offset: 0.2em; }
 .workshop-document a:focus-visible { outline: 2px solid #1d1b19; outline-offset: 4px; }
 .workshop-document [id] { scroll-margin-top: var(--export-scroll-margin, 6rem); }
 .sheet-layout, .machining-card { margin: 0.5rem 0; break-inside: avoid; }
@@ -31,12 +33,11 @@
 .connection-pair + .connection-pair { margin-top: 0.4rem; }
 .joint-recipes svg { width: 110px; height: 83px; margin-block: 0.5rem; --kraft-2: #efebe4; --graphite: #1d1b19; --graphite-2: #1d1b19; }
 .sliding-section { width: 100%; max-height: 65mm; }
-.phase-check { padding: 0.6rem; background: #f5f3ef; font-size: 0.8rem; line-height: 1.4; }
+.phase-check { padding: 0.2rem 0 0.2rem 0.75rem; border-left: 4px solid var(--color-graphite); font-size: 0.875rem; line-height: 1.4; }
 .export-footer { padding-top: 1rem; border-top: 1px solid #d9d2c7; font-size: 0.7rem; }
 .section-intro { break-inside: avoid; break-after: avoid; }
 .section-intro p { margin-top: 0.5rem; }
 @media (max-width: 560px) {
-  .export-index a { min-height: 44px; }
   .machining-grid { grid-template-columns: 1fr; }
   .joint-recipes { grid-template-columns: 1fr; }
   .workshop-document table { font-size: 0.7rem; }
@@ -59,7 +60,6 @@
   .workshop-document .joint-recipes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .workshop-document [role='note'] { break-inside: auto; }
   .workshop-document a { color: #1d1b19; }
-  .export-index a { display: inline; min-height: 0; }
   html, body, #root { background: white !important; color: #1d1b19 !important; color-scheme: only light !important; }
   .workshop-document { min-height: auto; }
   .workshop-document main { display: block; }
@@ -67,7 +67,12 @@
   .workshop-document .workshop-section { display: block; }
   .workshop-section > * + * { margin-top: 3mm; }
   .workshop-section > div:first-child { break-after: avoid; }
-  #exploded, #assembly { break-before: page; }
+  /* The assembly's half starts on its own page, so the lumberyard's pages can travel without it. */
+  .role-group { display: block; }
+  .role-group > * + * { margin-top: 6mm; }
+  .role-group > section::before { display: inline-block; margin-bottom: 2mm; }
+  .role-group-assembly, #assembly { break-before: page; }
+  .guide-route a { color: inherit; }
   .workshop-document p { break-inside: avoid; }
   .workshop-document figure { margin-bottom: 4mm; }
 }
