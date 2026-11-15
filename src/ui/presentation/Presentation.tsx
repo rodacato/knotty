@@ -1,6 +1,8 @@
-import { ArrowRight } from '@phosphor-icons/react'
 import type { Card } from '../capture/cards'
 import { Thumbnail } from '../capture/Thumbnail'
+import { SheetDiagram } from '../studio/SheetDiagram'
+import type { ExampleSheet } from './exampleSheet'
+import { Leader } from './Leader'
 import { PageLink, Shell } from './Shell'
 
 const featured = ['KC-LIB-03', 'KC-BUR-02', 'KC-ESC-03']
@@ -17,44 +19,77 @@ const questions = [
   ['¿Cómo me llevo los cortes?', 'Puedes copiar la lista para la maderería o imprimir la hoja de armado. Desde la ventana de impresión también puedes guardarla como PDF. Los costos son estimados y puedes ajustar los precios a tu tienda.'],
 ]
 
-export function Presentation({ examples, scene, materials, root = '../' }: { examples: Card[]; scene: string; materials: string; root?: './' | '../' }) {
+/** Where the sideboard's top sits in the scene capture, as fractions of the image, for the leader line. */
+const TOP_IN_SCENE = { x: 0.53, y: 0.18 }
+
+export function Presentation({ examples, scene, sheet, root = '../' }: { examples: Card[]; scene: string; sheet: ExampleSheet | null; root?: './' | '../' }) {
   const shown = featured.map((code) => examples.find((c) => c.base.code === code)).filter((c): c is Card => Boolean(c))
   return (
     <Shell page="presentation" root={root}>
       <section className="hero page-width" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <p className="eyebrow">Muebles de triplay · Hechos por ti</p>
-          <h1 id="hero-title">Ese rincón ya tiene<br /><em>su próximo mueble.</em></h1>
-          <p className="lede">Elige una base, ajústala a tus medidas y entiende cómo se arma. Knotty te acompaña del diseño 3D a las piezas que llevas al taller.</p>
-          <PageLink href={`${root}catalog/#catalog`} primary>Elegir mi primer mueble</PageLink>
-          <p className="quiet hero-note">Puedes empezar con las bases sin conectar un experto.</p>
+        <div className="hero-main">
+          <div className="hero-copy">
+            <p className="eyebrow">Muebles de triplay · Hechos por ti</p>
+            <h1 id="hero-title">Ese rincón ya tiene su próximo mueble.</h1>
+            <p className="lede">Elige una base, ajústala a tus medidas y entiende cómo se arma. Knotty te acompaña del diseño 3D a las piezas que llevas al taller.</p>
+            <PageLink href={`${root}catalog/#catalog`} primary>Elegir mi primer mueble</PageLink>
+            <p className="hero-note">Puedes empezar con las bases sin conectar un experto.</p>
+          </div>
+          <figure className="plate">
+            <img src={scene} width="1690" height="1320" alt="Aparador de triplay en la vista 3D de Knotty, con puertas ranuradas, cajones y medidas de 160 × 40 × 94 cm." fetchPriority="high" />
+            <figcaption className="plate-caption">
+              <span className="plate-number">01</span>
+              <a className="plate-name" href={`${root}catalog/#catalog/adjust/KC-APA-01`}>Aparador con patas</a>
+              <span>Mueble de ejemplo</span>
+              <span className="plate-code">KC-APA-01</span>
+            </figcaption>
+          </figure>
         </div>
-        <figure className="hero-example">
-          <img src={scene} width="2040" height="1686" alt="Aparador de triplay en la vista 3D de Knotty, con puertas ranuradas, cajones y medidas de 160 × 40 × 94 cm." fetchPriority="high" />
-          <figcaption><span>Aparador con patas <small>Captura real de Knotty · Mueble de ejemplo</small></span><a className="nav-link" href={`${root}catalog/#catalog/adjust/KC-APA-01`} aria-label="Ajustar el aparador con patas en Knotty"><ArrowRight size={22} aria-hidden /></a></figcaption>
-        </figure>
-      </section>
-      <section id="como-funciona" className="page-width page-section" aria-labelledby="steps-title">
-        <div className="section-heading"><p className="eyebrow">Del espacio al taller</p><h2 id="steps-title">Antes de cortar,<br />entiende lo que vas a hacer.</h2></div>
-        <ol className="steps-grid">{steps.map(([title, copy], i) => <li key={title}><span className="step-number" aria-hidden>0{i + 1}</span><h3>{title}</h3><p>{copy}</p></li>)}</ol>
-      </section>
-      <section id="catalog" className="example-section" aria-labelledby="examples-title">
-        <div className="page-width page-section">
-          <div className="section-heading heading-row"><div><p className="eyebrow">Del catálogo, a tu medida</p><h2 id="examples-title">Encuentra una base<br />para tu espacio.</h2></div><a className="nav-link" href={`${root}catalog/#catalog`}>Explorar el catálogo <ArrowRight size={18} aria-hidden /></a></div>
-          <div className="examples-grid">{shown.map(({ base, boxes, size }) => <article key={base.code} className="example-card"><a href={`${root}catalog/#catalog/adjust/${base.code}`} aria-label={`Ajustar ${base.name} en Knotty`}><div className="example-drawing drawing-surface">{boxes && <Thumbnail boxes={boxes} />}</div><p className="eyebrow example-code">{base.code}</p><h3>{base.name}</h3><p className="numerals quiet" aria-label={size.spoken}>{size.text}</p><span className="example-action">Ajustar este mueble <ArrowRight size={18} aria-hidden /></span></a></article>)}</div>
-          <p className="quiet examples-note">Son bases del catálogo de Knotty, dibujadas con sus piezas reales. Las medidas se muestran como ancho × fondo × alto.</p>
+        <div id="catalog" className="hero-index">
+          <p className="eyebrow">Del catálogo, a tu medida</p>
+          <h2 id="examples-title">Encuentra una base para tu espacio.</h2>
+          <ol className="index-list">
+            {shown.map(({ base, boxes, size }, i) => (
+              <li key={base.code}>
+                <a href={`${root}catalog/#catalog/adjust/${base.code}`} aria-label={`Ajustar ${base.name} en Knotty`}>
+                  <span className="index-number" aria-hidden>0{i + 1}</span>
+                  <span className="index-drawing">{boxes && <Thumbnail boxes={boxes} />}</span>
+                  <span className="index-text">
+                    <span className="index-code">{base.code}</span>
+                    <span className="index-name">{base.name}</span>
+                    <span className="numerals" aria-label={size.spoken}>{size.text}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+          <p className="index-note">Son bases del catálogo de Knotty, dibujadas con sus piezas reales. Las medidas se muestran como ancho × fondo × alto.</p>
+          <a className="text-link" href={`${root}catalog/#catalog`}>Explorar el catálogo</a>
         </div>
+      </section>
+      <section id="como-funciona" className="page-width steps-section" aria-labelledby="steps-title">
+        <div className="section-band"><p className="eyebrow">Del espacio al taller</p><h2 id="steps-title">Antes de cortar, entiende lo que vas a hacer.</h2></div>
+        <ol className="steps-strip">{steps.map(([title, copy], i) => <li key={title}><h3><span className="step-number" aria-hidden>0{i + 1}</span>{title}</h3><p>{copy}</p></li>)}</ol>
       </section>
       <section id="materiales" className="page-width page-section material-section" aria-labelledby="materials-title">
-        <div className="material-copy"><p className="eyebrow">Del diseño a la maderería</p><h2 id="materials-title">Las piezas claras.<br />La lista a la mano.</h2><p className="lede">Mira qué lleva tu mueble antes de salir a comprar.</p><ul><li>Revisa piezas, cortes y herrajes.</li><li>Copia la lista o imprime la hoja de armado.</li><li>Ajusta los precios a los de tu tienda; el total es una estimación.</li></ul><PageLink href={`${root}catalog/#catalog/adjust/KC-APA-01`}>Ajustar el aparador</PageLink></div>
-        <figure className="material-proof"><div className="material-proof-window"><img src={materials} alt="Lista de corte de un aparador en Knotty: medidas de las piezas, hojas de triplay y opción de copiar para la maderería." loading="lazy" /></div><figcaption className="quiet">Lista de corte · Captura de referencia</figcaption></figure>
+        <div className="section-heading"><p className="eyebrow">Del diseño a la maderería</p><h2 id="materials-title">Las piezas claras. La lista a la mano.</h2><p className="lede">Mira qué lleva tu mueble antes de salir a comprar.</p></div>
+        {sheet && (
+          <Leader className="material-figure" label="Techo" from={TOP_IN_SCENE} to={sheet.chosen}>
+            <img className="material-piece" src={scene} width="1690" height="1320" alt="" loading="lazy" />
+            <div className="material-sheet"><SheetDiagram {...sheet} /></div>
+          </Leader>
+        )}
+        <div className="material-foot">
+          <ul><li>Revisa piezas, cortes y herrajes.</li><li>Copia la lista o imprime la hoja de armado.</li><li>Ajusta los precios a los de tu tienda; el total es una estimación.</li></ul>
+          <div><PageLink href={`${root}catalog/#catalog/adjust/KC-APA-01`}>Ajustar el aparador</PageLink></div>
+        </div>
       </section>
       <section id="experto" className="page-width page-section expert-section" aria-labelledby="expert-title">
-        <div><p className="eyebrow">Cuando quieres ir más allá</p><h2 id="expert-title">Platica los cambios.<br />Revisa lo que propone.</h2></div>
-        <div><p className="lede">Configura Claude, OpenAI o SheLLM para pedir ajustes o describir un mueble nuevo, con fotos o texto. Claude y OpenAI necesitan tu propia llave; en SheLLM es opcional.</p><p>El experto es un modelo de IA. Revisa sus propuestas y los avisos de Knotty antes de comprar o cortar; el diseño no sustituye la revisión de un carpintero.</p><p className="quiet">La app guarda tus diseños en este navegador y puede abrir sin conexión. El experto necesita internet. Los costos se estiman con precios que puedes ajustar a tu tienda.</p></div>
+        <div><p className="eyebrow">Cuando quieres ir más allá</p><h2 id="expert-title">Platica los cambios. Revisa lo que propone.</h2></div>
+        <div><p className="lede">Configura Claude, OpenAI o SheLLM para pedir ajustes o describir un mueble nuevo, con fotos o texto. Claude y OpenAI necesitan tu propia llave; en SheLLM es opcional.</p><p>El experto es un modelo de IA. Revisa sus propuestas y los avisos de Knotty antes de comprar o cortar; el diseño no sustituye la revisión de un carpintero.</p><p className="small">La app guarda tus diseños en este navegador y puede abrir sin conexión. El experto necesita internet. Los costos se estiman con precios que puedes ajustar a tu tienda.</p></div>
       </section>
       <section id="preguntas" className="page-width page-section faq-section" aria-labelledby="faq-title"><div className="section-heading"><p className="eyebrow">Antes de empezar</p><h2 id="faq-title">Dudas de taller.</h2></div><div className="faq-list">{questions.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</div></section>
-      <section id="empezar" className="page-width closing-section"><h2>Toma las medidas.<br />Dale forma a la idea.</h2><PageLink href={`${root}catalog/#catalog`} primary>Explorar el catálogo</PageLink></section>
+      <section id="empezar" className="page-width closing-section"><h2>Toma las medidas. Dale forma a la idea.</h2><PageLink href={`${root}catalog/#catalog`}>Explorar el catálogo</PageLink></section>
     </Shell>
   )
 }
