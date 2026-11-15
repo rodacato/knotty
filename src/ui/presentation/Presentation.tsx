@@ -53,7 +53,7 @@ export function Presentation({ examples, scene, sheet, root = '../' }: { example
               <li key={base.code}>
                 <a href={`${root}catalog/#catalog/adjust/${base.code}`} aria-label={`Ajustar ${base.name} en Knotty`}>
                   <span className="index-number" aria-hidden>0{i + 1}</span>
-                  <span className="index-drawing">{boxes && <Thumbnail boxes={boxes} />}</span>
+                  <span className="index-drawing">{boxes && <Thumbnail boxes={boxes} ink />}</span>
                   <span className="index-text">
                     <span className="index-code">{base.code}</span>
                     <span className="index-name">{base.name}</span>

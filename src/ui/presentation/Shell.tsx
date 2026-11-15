@@ -1,6 +1,6 @@
 import { List } from '@phosphor-icons/react'
 import { useEffect, type ReactNode } from 'react'
-import { Knot } from '../system/Brand'
+import { Emblem, Knot } from '../system/Brand'
 import { useInstall } from '../install/useInstall'
 
 export function PageLink({ href, children, primary = false, download = false }: { href: string; children: ReactNode; primary?: boolean; download?: boolean }) {
@@ -28,7 +28,7 @@ export function Shell({ page, children, root = '../' }: { page: 'presentation' |
       <a className="skip-link" href="#content">Ir al contenido</a>
       <div className="page-band">
         <header className="page-header page-width">
-          <a className="wordmark" href={root} aria-label="Knotty · Inicio"><Knot className="h-9 w-[82px]" /><span>Knotty</span></a>
+          <a className="wordmark" href={root} aria-label="Knotty · Inicio"><Emblem root={root} className="size-8" /><span>Knotty</span></a>
           <nav className="page-nav" aria-label="Navegación principal">{links}</nav>
           {/* On a phone the same links fold under one square control, so the band stays one line. */}
           <details className="page-menu">
