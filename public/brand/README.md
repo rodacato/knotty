@@ -1,6 +1,6 @@
 # Knotty brand kit
 
-The approved **two-stroke assembly mark**, the two-ink system (black and vermilion on straw paper), its fonts, and shipped marketing in one portable folder. Start with [brand guidelines](guidelines.md) and [marketing copy and examples](marketing.md).
+The approved **two-plank mark with its knot**, the two-ink system (black and vermilion on straw paper), its fonts, and shipped marketing in one portable folder. Start with [brand guidelines](guidelines.md) and [marketing copy and examples](marketing.md).
 
 ## Download
 
@@ -12,7 +12,7 @@ The approved **two-stroke assembly mark**, the two-ink system (black and vermili
 
 | Need | Use |
 |---|---|
-| Mark on light paper | [Walnut](knotty-mark.svg) or [monochrome](knotty-mono.svg) SVG |
+| Mark on light paper | [Two inks](knotty-mark.svg) or [one ink](knotty-mono.svg) SVG |
 | Mark on a dark background | [Inverse SVG](knotty-inverse.svg) |
 | App emblem | [Pine emblem SVG](knotty-emblem.svg) or [512 px PNG](knotty-icon.png) |
 | Maskable icon | [Safe-area SVG](knotty-maskable.svg) or `icon-maskable-*.png` |

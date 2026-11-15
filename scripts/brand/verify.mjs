@@ -43,8 +43,8 @@ assert.notEqual(entryScript(await read('index.html')), entryScript(await read('c
 for (const icon of manifest.icons) { await read(icon.src); assets.add(icon.src) }
 
 const mark = await readFile('src/ui/system/knot.svg', 'utf8')
-const paths = [...mark.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1])
-assert.equal(paths.length, 2, 'The approved assembly has two strokes')
+const paths = ['ink'].map((name) => new RegExp(`class="${name}"[^>]*\\sd="([^"]+)"`).exec(mark)?.[1])
+assert(paths[0] && /class="plate"/.test(mark), 'The approved mark has an ink plate and a vermilion plate')
 const kit = await readdir(resolve(dist, 'brand'))
 assert(kit.includes('knotty-brand-kit.zip'), 'Missing downloadable kit')
 for (const name of kit) {

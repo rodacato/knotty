@@ -4,15 +4,15 @@ Knotty helps a person choose a plywood furniture base, adjust it to their space,
 
 ## Mark and wordmark
 
-The approved mark is two opposing pieces drawn in two strokes. It suggests an assembly without depicting a particular piece of furniture. The wordmark is **Knotty**, set in Oswald, the display face.
+The approved mark is **two pine planks joined by a box joint**. The left plank carries the knot that names Knotty, with the grain running around it. It is printed in two inks: a black plate, with the paper showing through it for the grain, and a vermilion plate set slightly out of register. The wordmark is **Knotty**, set in Oswald, the display face.
 
-- Keep the proportions, orientation and line weight of the SVGs.
-- Leave clear space at least as wide as one piece; do not cram the mark against text or a card edge.
-- Use walnut or monochrome on light paper, inverse on dark surfaces, pine for the emblem.
-- Inspect at 16, 24 and 32 px when exporting icons. Use the maskable variant's safe area rather than cropping the regular emblem.
-- Do not stretch, rotate, add shadows to, or draw extra wood grain inside the mark.
+- Keep the proportions and orientation. Do not straighten the plank edges or clean up the grain: the hand-cut look is the mark.
+- Leave clear space at least one plank's height; do not cram the mark against text or a card edge.
+- Use the two-ink mark or the one-ink mark on paper, and the inverse on the black band. The vermilion plate is optional and never carries the mark alone.
+- Under 48 px use the emblem: a square of the knotted plank. Inspect it at 16, 24 and 32 px when exporting icons, and use the maskable variant's safe area rather than cropping the emblem.
+- Do not stretch, rotate, add shadows to, or register the vermilion plate exactly.
 
-The editable geometry lives in `src/ui/system/knot.svg`. `src/ui/system/Brand.tsx` and the export script reuse it; exported variants should never become a competing source.
+The editable geometry lives in `src/ui/system/knot.svg`: an `ink` path, a `plate` path and the emblem crop. `src/ui/system/Brand.tsx` and the export script reuse it; exported variants should never become a competing source.
 
 ## Surfaces and color roles
 
