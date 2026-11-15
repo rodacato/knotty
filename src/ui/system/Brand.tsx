@@ -1,11 +1,17 @@
 import mark from './knot.svg?raw'
 
-const drawing = /<g[\s\S]*<\/g>/.exec(mark)![0]
-const strokeWidth = Number(/stroke-width="([^"]+)"/.exec(mark)![1])
+const path = (name: string) => new RegExp(`class="${name}"[^>]*\\sd="([^"]+)"`).exec(mark)![1]
+const viewBox = /viewBox="([^"]+)"/.exec(mark)![1]
+const ink = path('ink')
+const plate = path('plate')
 
-export function Knot({ className = '' }: { className?: string }) {
+/** The two-ink mark: the ink plate takes `currentColor`, so on a dark band it prints in paper; the vermilion plate is optional. */
+export function Knot({ className = '', plated = true }: { className?: string; plated?: boolean }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" className={className} aria-hidden dangerouslySetInnerHTML={{ __html: drawing }} />
+    <svg viewBox={viewBox} className={className} aria-hidden>
+      {plated && <path d={plate} fill="var(--action)" fillRule="evenodd" />}
+      <path d={ink} fill="currentColor" fillRule="evenodd" />
+    </svg>
   )
 }
 

@@ -42,14 +42,13 @@ def text(value, face, size, x, y, fill):
 
 paper, ink, action, on_action = color('bone'), color('graphite'), color('action'), color('color-on-action')
 mark = (ROOT / 'src/ui/system/knot.svg').read_text()
-drawing = re.search(r'<g[\s\S]*</g>', mark).group(0)
-stroke = re.search(r'stroke-width="([^"]+)"', mark).group(1)
+plate, plank = (re.search(r'class="' + name + r'"[^>]*\sd="([^"]+)"', mark).group(1) for name in ('plate', 'ink'))
 image = base64.b64encode((ROOT / 'design/assets/studio/scene/desktop-aparador.jpg').read_bytes()).decode()
 # Two inks on straw paper, like the cut ticket: a black band, black type, one vermilion block.
 body = [f'<rect width="1200" height="630" fill="{paper}"/>',
         f'<rect width="1200" height="96" fill="{ink}"/>',
-        f'<g transform="translate(40 18) scale(.75)" fill="none" stroke="{paper}" stroke-width="{stroke}" stroke-linecap="round">{drawing}</g>',
-        text('Knotty', display, 58, 104, 70, paper),
+        f'<g transform="translate(36 18) scale(.2034)" fill-rule="evenodd"><path fill="{action}" d="{plate}"/><path fill="{paper}" d="{plank}"/></g>',
+        text('Knotty', display, 58, 192, 70, paper),
         '<defs><clipPath id="scene"><rect x="650" y="130" width="510" height="460"/></clipPath></defs>',
         f'<image href="data:image/jpeg;base64,{image}" x="650" y="130" width="510" height="460" preserveAspectRatio="xMidYMid slice" clip-path="url(#scene)"/>',
         f'<rect x="650" y="130" width="510" height="460" fill="none" stroke="{ink}" stroke-width="3"/>',

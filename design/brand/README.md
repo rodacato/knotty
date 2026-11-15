@@ -6,7 +6,7 @@ The brand source lives here. Start with this page, then read the [guidelines](gu
 
 Knotty helps a person choose a plywood furniture base, adjust it to their space, understand its pieces in 3D and take a reviewed materials/cut list to the workshop. The identity ties that to the paperwork of a Mexican lumber yard: a **cut ticket printed in two inks**, black press ink and one vermilion spot ink, on pale straw paper. Structure is drawn with rules like a printed form, and wood keeps its material color. The product layer that every screen follows is the [visual north star](../north-star/README.md).
 
-- **Logo:** the approved assembly mark is two opposing pieces drawn in two strokes; the wordmark is **Knotty** in Oswald. Clear space, variants and minimum sizes: [guidelines › Mark and wordmark](guidelines.md#mark-and-wordmark).
+- **Logo:** two pine planks joined by a box joint, the left one with its knot, printed in ink with a vermilion plate out of register; the wordmark is **Knotty** in Oswald. Clear space, variants and minimum sizes: [guidelines › Mark and wordmark](guidelines.md#mark-and-wordmark).
 - **Color:** roles, not a hex table. One paper theme, independent of the device theme. Ink for text, rules and the selection; vermilion only for the screen's primary action. [Guidelines › Surfaces and color roles](guidelines.md#surfaces-and-color-roles).
 - **Type:** Oswald for titles, steps, buttons and the wordmark; Libre Franklin for reading, help and warnings; IBM Plex Mono for measures, prices and codes. All are local Fontsource fonts. [Guidelines › Typography and layout](guidelines.md#typography-and-layout).
 - **Voice:** Mexican Spanish, direct and concrete, workshop vocabulary, explicit units. Invitation: «Madera de verdad. Medidas claras. Un paso a la vez.» [Guidelines › Voice](guidelines.md#voice).
@@ -16,7 +16,7 @@ Knotty helps a person choose a plywood furniture base, adjust it to their space,
 
 | What | Source | Notes |
 |---|---|---|
-| Mark geometry | [`src/ui/system/knot.svg`](../../src/ui/system/knot.svg) | Shared by [`Brand.tsx`](../../src/ui/system/Brand.tsx) and [`export.mjs`](../../scripts/brand/export.mjs). Preserve the two pieces, line weight, clear space and maskable safe area; inspect at small icon sizes. |
+| Mark geometry | [`src/ui/system/knot.svg`](../../src/ui/system/knot.svg) | Shared by [`Brand.tsx`](../../src/ui/system/Brand.tsx) and [`export.mjs`](../../scripts/brand/export.mjs). An `ink` path and a `plate` path, traced from the picked generated image, and the emblem crop in `data-emblem`. Preserve the hand-cut edges, the clear space and the maskable safe area; inspect at small icon sizes. |
 | Colors, fonts, spacing, shape, motion | [`src/ui/system/tokens.css`](../../src/ui/system/tokens.css) | The guide page reads the actual CSS properties. `drawing-sheet` keeps a drawing's own inks inside any panel; `drawing-surface` adds a faint decorative grid. There is one theme; the interface does not follow the device theme. |
 | Fonts | `@fontsource-variable/{oswald,libre-franklin}`, `@fontsource/ibm-plex-mono` | Exported as Latin WOFF2 subsets with their licenses; the list lives in [`kit-files.mjs`](../../scripts/brand/kit-files.mjs). |
 | Visual north star | [`design/north-star/`](../north-star/README.md) | The reference images every screen is built against, and the [type specimen](../north-star/type.html). |
