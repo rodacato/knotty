@@ -32,7 +32,7 @@ Este documento es la referencia viva del proyecto. Las decisiones tomadas se ano
 | D21 | Las decisiones de diseño se guardan con cada versión y se restauran al volver a ella; los requisitos no | Las decisiones describen el diseño; los requisitos, el mundo del usuario |
 | D22 | Precios del catálogo estimados (no consultados en tienda) y editables en la app; los cambios de precio y de parámetros de corte viven en el dispositivo | Hay costo desde el día uno sin fingir precisión; el usuario los corrige con su tienda |
 | D23 | Los cajones se piden con una operación compuesta (`addDrawer`): el LLM da el hueco y el dominio arma las seis piezas, las uniones y elige la corredera | Colocar seis piezas con holguras de corredera a mano es frágil para un LLM; así el cajón siempre sale correcto y paramétrico |
-| D24 | Marca Knotty: un nudo de madera como símbolo (pino con veta) y como la «o» del logotipo en Fraunces. La funcionalidad sigue llamándose despiece | Un símbolo de madera se entiende al instante y funciona desde el favicon de 16 px hasta el ícono de la app |
+| D24 | Marca Knotty: un nudo de madera como símbolo (pino con veta) y como la «o» del logotipo en Fraunces. La funcionalidad sigue llamándose despiece. Ajustada el 2026-11-14 (#431): el símbolo son dos tablas de pino con unión de dedos, la izquierda con su nudo, impresas a dos tintas (UI-93); el logotipo va en Oswald (`design/brand/`) | Un símbolo de madera se entiende al instante y funciona desde el favicon de 16 px hasta el ícono de la app |
 | D25 | También se puede diseñar sin fotos, con una descripción; el experto pregunta lo que falte y los cajones los ofrece como pregunta para armarlos con `addDrawer` | Sirve para diseñar un mueble que todavía no existe o probar sin tener el mueble enfrente |
 | D26 | Primer uso: las medidas son opcionales (el experto estima las típicas y lo dice), el pedido inicial queda en el chat, varias preguntas se contestan en un solo mensaje y el experto propone `sugerencias` de siguiente paso | Retroalimentación del primer uso: muchas preguntas una por una y medidas obligatorias frenaban el arranque |
 | D27 | Para diseñar se pide conectar un experto real; el simulado queda como «ejemplos» y dice que no sabe cuando le piden otro mueble | El simulado siempre armaba un librero, lo que parecía un error del experto |
@@ -121,21 +121,12 @@ Ajusta tu base o Estudio → «Ver en tu espacio» (D74) → Estudio, con el mue
 - **Avisos e historial** toman el lugar de las pestañas, no tapan el 3D. *Avisos* (`studio/NoticePanel.tsx`, D37): cada aviso con su sello de severidad y sus salidas, «Al instante» (con «Ver» para la vista previa en 3D), «A la bandeja, para el experto» o «Aceptar así, bajo mi riesgo»; abajo, «Resolver n» aplica lo elegido. *Historial* (`studio/HistoryPanel.tsx`): versiones de la más nueva a la más vieja, con lo que cambió; «Ver» la muestra en el 3D y «Volver a esta» crea una versión nueva igual.
 - **Pieza**: tocarla en el 3D o en una lista la abre en el panel (`studio/PieceSheet.tsx`): material, veta, largo, ancho y espesor en mm y cm, uniones con enlace a la otra pieza y «Editar a mano» (`PieceEditor`: largo, ancho, espesor y mover por pasos, al instante y revisado como cualquier cambio). Las demás piezas quedan tenues. `Escape` o tocar fuera la cierra. Una pieza que el experto no pudo confirmar ofrece «Está bien así».
 
-### Dirección visual: taller moderno
+### Dirección visual: la hoja de corte a dos tintas (UI-93)
 
-- **Paleta** (`src/ui/system/tokens.css`, con modo oscuro por `prefers-color-scheme`):
-
-| Uso | Color |
-|---|---|
-| Fondo | Hueso `#F5F0E8`, con una textura de papel apenas perceptible |
-| Superficies | Kraft `#EDE3D3` y `#E3D5BF` |
-| Texto | Grafito `#2B2825`; secundario `#6A6158` |
-| Maderas | Abedul `#E2C9A2`, pino `#D9B27C`, nogal `#6B4A2E` |
-| Selección y foco | Ámbar de lápiz de carpintero `#D98A2B` (K6): pestaña activa, pieza o versión seleccionada, foco de los controles. También el lápiz que traza mientras el experto trabaja y, en el 3D, lo que un cambio toca |
-| Crítico / Recomendación / Detalle | Óxido `#B4452F` / Grafito / Pizarra `#56697A` |
-
-- **Tipografía**: Fraunces (títulos), Inter (interfaz), JetBrains Mono con cifras tabulares (cotas y medidas, clase `numerals`).
-- **Componentes** (`src/ui/system/`): `Button` (primario grafito, secundario kraft, fantasma, peligro óxido), `Chip`, `Stamp` (severidad como sello de tinta ladeado), `Pencil` (el lápiz que traza mientras el experto piensa), `Title`, y `Field` con `Input`, `Select` y `TextArea`: etiqueta arriba, caja de 44 px, unidad dentro y 16 px de texto para que iOS no haga zoom. Los controles tocables miden al menos 44 px.
+- **Dos tintas sobre un papel**: papel paja, tinta negra para texto, reglas y lo seleccionado, y una sola tinta bermellón para la acción principal de cada pantalla. El óxido queda solo para lo que no se puede hacer, siempre con su ícono; un aviso común es un triángulo negro con la regla gruesa a la izquierda. Un solo tema: la interfaz no sigue el modo oscuro del equipo. Los roles están en `design/brand/guidelines.md` y los valores en `src/ui/system/tokens.css`; aquí no se copian.
+- **Tipografía**: Oswald (títulos, botones, pasos y pestañas en mayúsculas), Libre Franklin (interfaz) e IBM Plex Mono con cifras tabulares (cotas y medidas, clase `numerals`).
+- **Componentes** (`src/ui/system/`): cajas cuadradas con regla de tinta, como un formulario impreso. `Button` (primario y peligro en tinta, secundario, fantasma, y `action` en bermellón, uno por pantalla), `IconButton`, `Chip`, `Stamp`, `Pencil`, `Title`, y `Field` con `Input`, `Select` y `TextArea`: etiqueta arriba, caja de 44 px, unidad dentro y 16 px de texto para que iOS no haga zoom; un campo inválido gana la regla gruesa del aviso, nunca otro color. Los controles tocables miden al menos 44 px.
+- **Referencia**: `design/north-star/` (las imágenes fijadas y sus decisiones).
 
 ### Arte: "maqueta sobre el banco de trabajo"
 
@@ -183,7 +174,7 @@ knotty/
    │  ├─ image/              reducción de fotos y miniaturas
    │  ├─ debug/              el interruptor guardado del acceso de depuración
    │  └─ storedKey.ts        claves de localStorage (y mueve las de Despiece)
-   ├─ ui/                    system/ · capture/ · studio/ · scene/ · chat/ · settings/ · spotlight/ · lab/ · debug/ · store/ · services.ts
+   ├─ ui/                    system/ · shell/ · navigation/ · capture/ · studio/ · scene/ · chat/ · connect/ · settings/ · spotlight/ · library/ · files/ · room/ · takeaway/ · presentation/ · install/ · lab/ · debug/ · store/ · services.ts
    ├─ composition.ts         raíz de composición: instancia adapters e inyecta casos de uso
    ├─ main.tsx               arranque de React y del service worker
    └─ architecture.test.ts   fronteras entre capas

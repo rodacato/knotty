@@ -56,7 +56,7 @@ With `npm run dev` and the Simulado expert:
 3. **Tabs:** in Mueble the pieces appear with their measures; in Materiales, «Revisar y ver materiales» gives the verdict and the shopping list.
 4. **Reload:** the design is still there.
 
-If you touched the interface, also try it on a phone (the browser's responsive mode is enough) and in dark mode.
+If you touched the interface, also try it on a phone (the browser's responsive mode is enough). There is one theme, so dark mode needs no separate check.
 
 ### 3. The bench without an expert (free, seconds)
 

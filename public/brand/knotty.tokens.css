@@ -34,10 +34,8 @@
   --color-drawing-grid: rgb(22 20 18 / 0.05);
 
   --radius-emblem: 22%;
-  --radius-panel: 24px;
   --spacing-page: clamp(20px, 4vw, 64px);
   --spacing-section: clamp(64px, 8vw, 112px);
-  --text-brand-title: clamp(44px, 5.4vw, 80px);
 
   /* Motion: what is seen many times a day enters fast and settles without bouncing; `base` is for a change of state worth noticing. */
   --duration-fast: 150ms;

@@ -21,7 +21,7 @@ const EDGE_ON = 0.9
 type Point = [number, number, number]
 const add = (a: Point, b: Point, k = 1): Point => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k]
 
-function Dimension({ from, to, out, value, dark }: { from: Point; to: Point; out: Point; value: number; dark: boolean }) {
+function Dimension({ from, to, out, value }: { from: Point; to: Point; out: Point; value: number }) {
   const group = useRef<Group>(null)
   const axis = useRef(new Vector3(to[0] - from[0], to[1] - from[1], to[2] - from[2]).normalize())
   const view = useRef(new Vector3())
@@ -40,21 +40,21 @@ function Dimension({ from, to, out, value, dark }: { from: Point; to: Point; out
       <Line points={[a, b]} color={COLOR} lineWidth={2.5} />
       <Line points={[add(a, out, -TICK / 2), add(a, out, TICK / 2)]} color={COLOR} lineWidth={3.5} />
       <Line points={[add(b, out, -TICK / 2), add(b, out, TICK / 2)]} color={COLOR} lineWidth={3.5} />
-      <Label text={text} position={middle} dark={dark} height={0.03} cota />
+      <Label text={text} position={middle} height={0.03} cota />
     </group>
   )
 }
 
-export function DimensionLines({ dimensions, dark }: { dimensions: Dimensions; dark: boolean }) {
+export function DimensionLines({ dimensions }: { dimensions: Dimensions }) {
   const w = dimensions.width * MM
   const h = dimensions.height * MM
   const d = dimensions.depth * MM
   const y = 2 * MM
   return (
     <group>
-      <Dimension from={[0, y, d]} to={[w, y, d]} out={[0, 0, 1]} value={dimensions.width} dark={dark} />
-      <Dimension from={[0, 0, d]} to={[0, h, d]} out={[-1, 0, 0]} value={dimensions.height} dark={dark} />
-      <Dimension from={[w, y, 0]} to={[w, y, d]} out={[1, 0, 0]} value={dimensions.depth} dark={dark} />
+      <Dimension from={[0, y, d]} to={[w, y, d]} out={[0, 0, 1]} value={dimensions.width} />
+      <Dimension from={[0, 0, d]} to={[0, h, d]} out={[-1, 0, 0]} value={dimensions.height} />
+      <Dimension from={[w, y, 0]} to={[w, y, d]} out={[1, 0, 0]} value={dimensions.depth} />
     </group>
   )
 }

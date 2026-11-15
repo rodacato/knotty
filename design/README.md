@@ -26,7 +26,7 @@ The design is set in three layers, and a lower one never contradicts an upper on
 | `assets/` | Captures with example data that the code, the brand kit or a north-star prompt uses: the 3D scenes and the Materials screens. Retake a capture when its screen changes |
 | `references/` | Local device captures, **never committed** (they may contain real photos) |
 
-Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D1…D40`.
+Findings use `UI-<n>`, not `D<n>`, because `docs/PROPUESTA.md` already numbers its decisions `D<n>`.
 
 ## Canvas conventions
 

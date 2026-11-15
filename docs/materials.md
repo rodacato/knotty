@@ -1,12 +1,12 @@
 # Materials and the printable guide
 
-Materials keeps the estimated cost prominent, followed by a compact review notice. The existing dark shell, light drawing studio, fonts, tokens and guide remain the same.
+Materials is a page of its own (`studio/Checkout.tsx` with `studio/Materials.tsx`, UI-90), printed in the two-ink system of UI-93: the Studio's black band with the furniture's name, then the estimated cost, what it covers and the review result as the first ruled row.
 
-A current review opens a three-stage accordion, with one stage open at a time:
+Below it, in reading order:
 
-1. **Review decisions:** one expanded item, a remaining-decision count, source/priority explanations, and the existing expert request or consultation action. Arithmetic checks and workshop advice remain supporting details.
-2. **Confirm materials:** plywood and layouts, hardware, finish, wall choice, and numbered cuts. The layouts show existing offcuts; they do not guarantee that a leftover can replace a recommended part.
-3. **Get the guide:** the existing printable guide is the primary action; copying the lumberyard message is secondary. Pending designs explicitly open a guide with pending warnings.
+1. **Pending decision:** one expanded item, a remaining-decision count, source/priority explanations, and the expert request or consultation action. Arithmetic checks and workshop advice remain supporting details.
+2. **Materials:** the sheets and their layouts and the numbered cut list are major sections, open by default; checks, hardware, finish, wall choice and pickup are minor ones. The layouts show existing offcuts; they do not guarantee that a leftover can replace a recommended part.
+3. **Get the guide:** the one vermilion action is «Revisar y ver materiales» before the review and the sticky next step after it; copying the lumberyard message is secondary. Pending designs explicitly open a guide with pending warnings.
 
 Advancing does not certify the design or require opening every disclosure. Unknown wall, missing prices and uncorrected problems remain visible in the exports.
 
@@ -42,6 +42,6 @@ Run `npm test -- src/ui/store/review.test.ts src/ui/studio/Materials.test.ts` fo
 
 In the browser, use catalog bases or the existing furniture fixtures with an absent/synthetic provider and invented review opinions. Block non-GET requests and external connections for screenshot capture. Check one open stage/item, confirmation, undo, reload, requested-versus-applied status, material changes, final guide/copy actions, and document/panel bounds on desktop and at 320px. Advancing and undoing move focus to a visible summary.
 
-For workshop changes, run `npm test`, `npm run lint`, `npm run build` and `npm run probe -- --all`. Export all three cabinet modes and complete bed, bookcase and table guides; render every PDF page and inspect diagrams, tables, page breaks and margins in both application themes. Check mobile navigation, restoration of the document title, and recalculation of a saved zero-clearance sliding leaf. These checks validate the model and document; real material, joints and installation still need a dry assembly and physical validation.
+For workshop changes, run `npm test`, `npm run lint`, `npm run build` and `npm run probe -- --all`. Export all three cabinet modes and complete bed, bookcase and table guides; render every PDF page and inspect diagrams, tables, page breaks and margins. Check mobile navigation, restoration of the document title, and recalculation of a saved zero-clearance sliding leaf. These checks validate the model and document; real material, joints and installation still need a dry assembly and physical validation.
 
 The clipboard live region needs a positioned containing block so it cannot enlarge the Studio document. Finish precautions and unknown-wall notices must survive collapsed options and exports.

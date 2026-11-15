@@ -31,7 +31,7 @@ export function PartTag({ name, boxes }: { name: string; boxes: { box: Box; push
         <sphereGeometry args={[0.014, 12, 12]} />
         <meshBasicMaterial color={INK} depthTest={false} />
       </mesh>
-      <Label text={name} position={placed.tag} dark={false} height={0.032} tag />
+      <Label text={name} position={placed.tag} height={0.032} tag />
     </group>
   )
 }
