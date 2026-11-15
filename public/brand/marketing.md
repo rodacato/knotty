@@ -50,7 +50,7 @@ Section invitation:
 |---|---|---|
 | [aparador.jpg](aparador.jpg) | The existing aparador scene from the landing | Show it on the straw paper inside a heavy ink rule, next to the copy column. Label it as example furniture. |
 | [materials-cut-list.jpg](materials-cut-list.jpg) | The landing's cut-list reference capture | Explain the list, dimensions and materials; it is a reference capture, not a claim about the latest panel layout. |
-| [share.png](share.png) | The existing social card, with outlined local fonts | Use as a 1200 × 630 social preview, without stretching. |
+| [share.png](share.png) | The social card: a brochure plate in two inks, the headline beside the sideboard with its dimensions, outlined local fonts | Use as a 1200 × 630 social preview, without stretching. The 1280 × 640 GitHub version is the same plate. |
 | Live catalog geometry | Librero `KC-LIB-03`, buró `KC-BUR-02`, escritorio `KC-ESC-03` | Render existing `Thumbnail` geometry; do not invent testimonial or customer imagery. |
 
 Catalog section:

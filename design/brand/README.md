@@ -35,7 +35,8 @@ Runtime copies stay where the build serves them. All are generated; commit them 
 | Runtime copy | From | Made by |
 |---|---|---|
 | `public/favicon.svg`, `favicon.ico`, `icon-192.png`, `icon-512.png`, `icon-maskable-*.png`, `apple-touch-icon.png` | `scripts/brand/knot*.svg` (exported from `knot.svg` and tokens) | `generate.sh` |
-| `public/share.png` | `share.py` | `generate.sh` |
+| `public/share.png` (1200 × 630, Open Graph) | `share.py`, from `design/assets/studio/scene/share-aparador.jpg` | `generate.sh` |
+| `design/brand/github-social.png` (1280 × 640) | `share.py github` | `generate.sh`; upload it by hand in the repository's Settings → Social preview, since GitHub cannot read it from the repo |
 | `public/brand/knotty-{mark,mono,inverse,emblem,maskable}.svg`, `knotty.tokens.css`, fonts and `.LICENSE` files | `knot.svg`, `tokens.css`, Fontsource | `export.mjs` (run by `generate.sh`) |
 | `public/brand/` kit (icons, share card, examples, `README.md`, `guidelines.md`, `marketing.md`) and `public/brand/knotty-brand-kit.zip` | the files above and this folder | `npm run brand:kit` ([`kit.mjs`](../../scripts/brand/kit.mjs)); each entry's source is declared in [`kit-files.mjs`](../../scripts/brand/kit-files.mjs) |
 
