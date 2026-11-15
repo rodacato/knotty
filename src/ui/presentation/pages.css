@@ -133,7 +133,7 @@ button.nav-link { cursor: pointer; }
 .guide-nav { border-top: var(--fine); border-bottom: var(--rule); }
 .guide-nav ul { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .guide-nav li + li { border-left: var(--fine); }
-.guide-nav a { display: flex; align-items: center; justify-content: center; min-height: 52px; font-family: var(--font-display); font-size: 22px; font-weight: 600; }
+.guide-nav a { display: flex; align-items: center; justify-content: center; min-height: 52px; font-family: var(--font-display); font-size: 22px; font-weight: 600; text-transform: uppercase; }
 .brand-section { padding-block: 24px 40px; border-top: var(--rule); scroll-margin-top: 24px; }
 .guide-nav + .brand-section { border-top: 0; }
 .brand-section .section-heading { gap: 6px; margin-bottom: 20px; }
@@ -184,7 +184,7 @@ button.nav-link { cursor: pointer; }
 .download-list > a:hover strong { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
 .download-list strong { font-family: var(--font-display); font-size: 20px; font-weight: 600; }
 .download-list small { display: block; margin-top: 4px; font-family: var(--font-mono); font-size: 14px; }
-.download-verb { display: flex; gap: 12px; flex-shrink: 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.download-verb { display: flex; gap: 12px; flex-shrink: 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; text-transform: uppercase; }
 
 @media (max-width: 800px) {
   .page-nav { display: none; }

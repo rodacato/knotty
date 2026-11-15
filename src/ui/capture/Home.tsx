@@ -139,7 +139,7 @@ export function Home() {
   const shapes = useMemo(() => new Map(cards.map((c) => [c.base.id, c.boxes ? (({ width, height }) => shapeOf(width, height))(sketch(c.boxes)) : ('square' as const)])), [cards])
   const plates = useMemo(() => packPlates(shown.map((c) => shapes.get(c.base.id) ?? 'square'), columns), [shown, shapes, columns])
   // Outlined in ink like the site's buttons; `!` because the system button sets its own fill, border and size.
-  const outlined = 'min-h-12 gap-2 border-2! border-graphite! bg-bone! px-5! font-display text-lg! font-semibold text-graphite! uppercase hover:bg-kraft! max-md:flex-1 max-md:px-2!'
+  const outlined = 'min-h-12 gap-2 border-2! border-graphite! bg-bone! px-5! font-display text-lg! font-semibold text-graphite! uppercase hover:bg-kraft! whitespace-nowrap max-md:flex-1 max-md:px-2! max-md:text-base!'
   const actions = (
     <>
       {saved && <Button className={outlined} onClick={resumeDesign}>Continuar mi diseño <ArrowRight aria-hidden /></Button>}
