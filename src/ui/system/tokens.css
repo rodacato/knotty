@@ -82,8 +82,9 @@
 
 /* What a caller may change about a Button: in the components layer, so a utility on the button (`px-2`, `rounded-full`, `text-base`) wins without `!`. Its 44 px of height stay on the button itself. */
 @layer components {
+  /* Square, like every box of the printed form (UI-93). */
   .btn {
-    @apply gap-2 rounded-xl px-4 text-sm;
+    @apply gap-2 px-4 text-sm;
   }
 }
 

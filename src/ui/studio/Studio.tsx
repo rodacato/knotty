@@ -69,8 +69,9 @@ function useDesktop() {
   return matches
 }
 
-const pill = 'pointer-events-auto flex items-center rounded-full border border-line bg-bone/90 p-1 shadow-sm backdrop-blur'
-const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center rounded-full px-2.5 text-xs font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+// The stage's tools are ruled boxes in ink, like the panel's (UI-93).
+const pill = 'pointer-events-auto flex items-center divide-x divide-graphite border-2 border-graphite bg-bone'
+const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center px-3 text-sm font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
 
 /** Looking at the furniture (UI-75): the camera in one native menu, and how the furniture shows as icons; the states give way while editing, which decides it. */
 function LookBar() {
@@ -81,7 +82,7 @@ function LookBar() {
   const editing = useStore((s) => s.editing)
   return (
     <div className={pill}>
-      <label className="relative flex min-h-11 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-graphite hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
+      <label className="relative flex min-h-11 items-center gap-1.5 px-3 text-sm font-medium text-graphite hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
         <VideoCamera weight="bold" aria-hidden />
         <select value={view} onChange={(e) => viewFrom(e.target.value as View)} aria-label="Vista de la cámara" className="appearance-none bg-transparent pr-4 font-medium outline-none">
           {VIEWS.map((v) => (
@@ -157,15 +158,15 @@ function DimensionsToggle() {
       aria-pressed={dimensions}
       aria-label="Cotas"
       title={dimensions ? 'Ocultar las cotas' : 'Mostrar las cotas'}
-      className={`pointer-events-auto grid size-11 place-items-center rounded-full border bg-bone/90 shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] ${dimensions ? 'border-select text-select' : 'border-line text-graphite-2'}`}
+      className={`pointer-events-auto grid size-11 place-items-center border-2 border-graphite transition active:scale-[0.97] ${dimensions ? 'bg-graphite text-bone' : 'bg-bone text-graphite hover:bg-kraft'}`}
     >
       <Ruler weight="bold" />
     </button>
   )
 }
 
-const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 rounded-full border border-line bg-bone/90 px-4 text-sm text-graphite shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97]'
-const SCENE_ROUND = 'pointer-events-auto grid size-11 place-items-center rounded-full border border-line bg-bone/90 text-graphite shadow-sm backdrop-blur transition hover:bg-kraft active:scale-[0.97] disabled:text-graphite-2/40'
+const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 border-2 border-graphite bg-bone px-4 text-sm text-graphite transition hover:bg-kraft active:scale-[0.97]'
+const SCENE_ROUND = 'pointer-events-auto grid size-11 place-items-center border-2 border-graphite bg-bone text-graphite transition hover:bg-kraft active:scale-[0.97] disabled:text-graphite-2/40'
 
 /** Hiding the chosen piece, and the way back while any is hidden: over the measures switch, in sight whatever the panel shows. */
 function PieceVisibility({ design, hidden }: { design: Design; hidden: number }) {
@@ -332,8 +333,8 @@ function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { 
         <Emblem className="size-7 sm:size-8" />
       </button>
       <div className="min-w-0 flex-1 border-l border-line pl-3 max-sm:min-w-32">
-        <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate">{shown.name}</p>
-        <p className="numerals truncate text-xs text-graphite-2">
+        <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate md:text-[30px]">{shown.name}</p>
+        <p className="numerals truncate text-xs text-graphite-2 md:text-sm">
           {summary}
           <FichaOrigin state={state} />
         </p>

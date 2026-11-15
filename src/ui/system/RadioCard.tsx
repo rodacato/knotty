@@ -15,10 +15,11 @@ export function RadioGroup({ label, className = '', children }: { label?: string
   )
 }
 
+// Square and ruled, like the boxes of a printed form (UI-93): the chosen one is ink.
 const VARIANTS = {
-  card: { base: 'relative min-h-11 cursor-pointer border transition', on: 'border-graphite bg-select-soft', off: 'border-line hover:bg-kraft' },
-  pill: { base: 'relative cursor-pointer rounded-full border transition', on: 'border-graphite bg-graphite text-bone', off: 'border-line bg-bone text-graphite-2 hover:text-graphite' },
-  segment: { base: 'relative cursor-pointer rounded-full transition', on: 'bg-graphite text-bone', off: 'text-graphite-2 hover:text-graphite' },
+  card: { base: 'relative min-h-11 cursor-pointer border transition', on: 'border-graphite bg-select-soft outline-2 -outline-offset-2 outline-graphite', off: 'border-graphite hover:bg-kraft' },
+  pill: { base: 'relative cursor-pointer border transition', on: 'border-graphite bg-graphite text-bone', off: 'border-graphite bg-bone text-graphite hover:bg-kraft' },
+  segment: { base: 'relative cursor-pointer transition', on: 'bg-graphite text-bone', off: 'text-graphite hover:bg-kraft' },
   bare: { base: 'cursor-pointer', on: '', off: '' },
 }
 
@@ -51,7 +52,7 @@ export function RadioCard({
       <input type="radio" name={name} checked={checked} disabled={disabled} aria-label={label} onChange={onChange} className="sr-only" />
       {children}
       {mark && checked && (
-        <span aria-hidden className="pointer-events-none absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-graphite text-bone">
+        <span aria-hidden className="pointer-events-none absolute top-0 right-0 grid size-6 place-items-center bg-graphite text-bone">
           <Check weight="bold" size={12} />
         </span>
       )}

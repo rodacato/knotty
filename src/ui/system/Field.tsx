@@ -6,10 +6,11 @@ import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, Textare
 
 type Size = 'md' | 'sm'
 
-const FRAME = 'rounded-xl border bg-bone text-base text-graphite outline-none transition focus:border-focus focus-within:border-focus disabled:opacity-60 has-disabled:opacity-60'
+// A ruled box of a printed form (UI-93): square, ink edge.
+const FRAME = 'border bg-bone text-base text-graphite outline-none transition focus:border-focus focus-within:border-focus disabled:opacity-60 has-disabled:opacity-60'
 const PLACEHOLDER = 'placeholder:text-graphite-2'
 const HEIGHT: Record<Size, string> = { md: 'min-h-11 px-3', sm: 'min-h-8 px-2' }
-const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-line')
+const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-graphite')
 
 const FieldContext = createContext<{ id?: string; describedBy?: string; invalid: boolean }>({ invalid: false })
 
