@@ -20,8 +20,11 @@ trap 'rm -rf "$TMP"' EXIT
 for n in 16 32 48; do rsvg-convert -w $n -h $n knot-favicon.svg -o "$TMP/$n.png"; done
 "$BRAND_PYTHON" ico.py "$PUBLIC/favicon.ico" "$TMP/16.png" "$TMP/32.png" "$TMP/48.png"
 
-"$BRAND_PYTHON" share.py "$TMP/share.svg"
+"$BRAND_PYTHON" share.py "$TMP/share.svg" og
 rsvg-convert "$TMP/share.svg" -o "$PUBLIC/share.png"
+# GitHub's social preview is uploaded by hand in the repository settings; it is not served.
+"$BRAND_PYTHON" share.py "$TMP/share-github.svg" github
+rsvg-convert "$TMP/share-github.svg" -o "../../design/brand/github-social.png"
 
 # Assemble the served kit (public/brand/) and its ZIP from these exports and design/brand/.
 cd ../..
