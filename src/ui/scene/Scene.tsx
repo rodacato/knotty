@@ -22,6 +22,7 @@ import { PartTag } from './PartTag'
 import { PieceMeasures } from './PieceMeasures'
 import { Sawdust } from './Sawdust'
 import type { EdgeShape } from './edgeGeometry'
+import { FLOOR_LINES, PAPER } from './floor'
 import { PieceMesh } from './PieceMesh'
 import { RemovedGhost } from './RemovedGhost'
 import { useReducedMotion, useTouch } from './preferences'
@@ -197,6 +198,8 @@ export function Scene({ design, geo, catalog, ghosts, marked, markedLabel = null
 
   return (
     <Canvas frameloop="demand" shadows dpr={[1, touch ? 1.5 : quality ? 2 : 1.25]} camera={{ fov: FOV, near: 0.05, far: 60, position: [2.2, 1.8, 2.6] }} gl={{ antialias: true, alpha: true }} onPointerMissed={() => select(null)}>
+      {/* Opaque paper: over a transparent canvas the post-processing's colours reached the page unpremultiplied, and the floor's lines printed white. */}
+      <color attach="background" args={[PAPER]} />
       <PerformanceMonitor onDecline={() => setQuality(false)} onIncline={() => setQuality(true)} />
       <CameraRig frame={frame} focus={focus} focusId={focusId} reduced={reduced} />
       <hemisphereLight args={['#fff6e8', '#b89a78', 0.8]} />
@@ -261,10 +264,10 @@ export function Scene({ design, geo, catalog, ghosts, marked, markedLabel = null
         args={[20, 20]}
         cellSize={0.1}
         cellThickness={0.6}
-        cellColor="#d9ccb8"
+        cellColor={FLOOR_LINES.cell}
         sectionSize={0.5}
         sectionThickness={1}
-        sectionColor="#c9b89e"
+        sectionColor={FLOOR_LINES.section}
         fadeDistance={9}
         fadeStrength={1.5}
         infiniteGrid

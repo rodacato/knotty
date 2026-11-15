@@ -323,10 +323,10 @@ export function Room() {
                   </span>
                 </div>
                 <div className="col-start-2 row-start-2 flex rounded-full border border-line bg-bone/95 p-1">
-                  <Button variant="ghost" className="min-h-11 min-w-11 rounded-full px-2" disabled={!past.length} aria-label="Deshacer en el espacio" onClick={() => useRoom.getState().undo()}>
+                  <Button variant="ghost" className="min-h-11 min-w-11 px-2" disabled={!past.length} aria-label="Deshacer en el espacio" onClick={() => useRoom.getState().undo()}>
                     <ArrowCounterClockwise />
                   </Button>
-                  <Button variant="ghost" className="min-h-11 min-w-11 rounded-full px-2" disabled={!future.length} aria-label="Rehacer en el espacio" onClick={() => useRoom.getState().redo()}>
+                  <Button variant="ghost" className="min-h-11 min-w-11 px-2" disabled={!future.length} aria-label="Rehacer en el espacio" onClick={() => useRoom.getState().redo()}>
                     <ArrowClockwise />
                   </Button>
                 </div>

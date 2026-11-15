@@ -72,7 +72,7 @@ function useDesktop() {
 
 // The stage's tools are ruled boxes in ink, like the panel's (UI-93).
 const pill = 'pointer-events-auto flex items-center divide-x divide-graphite border-2 border-graphite bg-bone'
-const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center px-3 text-sm font-medium transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
+const segment = (active: boolean) => `grid min-h-11 min-w-11 place-items-center px-3 font-display text-base font-semibold uppercase transition ${active ? 'bg-graphite text-bone' : 'text-graphite hover:bg-kraft'}`
 
 /** Looking at the furniture (UI-75): the camera in one native menu, and how the furniture shows as icons; the states give way while editing, which decides it. */
 function LookBar() {
@@ -83,9 +83,9 @@ function LookBar() {
   const editing = useStore((s) => s.editing)
   return (
     <div className={pill}>
-      <label className="relative flex min-h-11 items-center gap-1.5 px-3 text-sm font-medium text-graphite hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
+      <label className="relative flex min-h-11 items-center gap-1.5 px-3 font-display text-base font-semibold text-graphite uppercase hover:bg-kraft focus-within:outline-2 focus-within:outline-focus">
         <VideoCamera weight="bold" aria-hidden />
-        <select value={view} onChange={(e) => viewFrom(e.target.value as View)} aria-label="Vista de la cámara" className="appearance-none bg-transparent pr-4 font-medium outline-none">
+        <select value={view} onChange={(e) => viewFrom(e.target.value as View)} aria-label="Vista de la cámara" className="appearance-none bg-transparent pr-4 uppercase outline-none">
           {VIEWS.map((v) => (
             <option key={v.id} value={v.id}>
               {v.name}
@@ -96,8 +96,7 @@ function LookBar() {
       </label>
       {!editing && (
         <>
-          <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-          <div className="flex items-center" role="group" aria-label="Cómo se ve el mueble">
+          <div className="flex items-center divide-x divide-graphite" role="group" aria-label="Cómo se ve el mueble">
             {MODES.map(({ id, name, Icon }) => (
               <button key={id} type="button" className={segment(mode === id)} onClick={() => setMode(id)} aria-pressed={mode === id} aria-label={name} title={name}>
                 <Icon weight="bold" />
@@ -131,7 +130,7 @@ function LeaveEditing() {
   const leave = useStore((s) => s.leave)
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center md:top-4 md:bottom-auto">
-      <button type="button" className={`${SCENE_TOOL} font-medium`} onClick={() => leave()} title="Salir (Esc)">
+      <button type="button" className={SCENE_TOOL} onClick={() => leave()} title="Salir (Esc)">
         <Check weight="bold" /> Terminar de editar
       </button>
     </div>
@@ -142,7 +141,7 @@ function LeaveEditing() {
 function PrepareMaterials() {
   const openCheckout = useStore((s) => s.openCheckout)
   return (
-    <button type="button" className="pointer-events-auto inline-flex min-h-12 items-center gap-2 bg-action px-6 font-display text-xl leading-none font-semibold text-on-action uppercase transition hover:brightness-110 active:scale-[0.97]" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
+    <button type="button" className="pointer-events-auto inline-flex min-h-12 items-center gap-2 bg-action px-4 font-display text-lg leading-none font-semibold whitespace-nowrap text-on-action uppercase transition hover:brightness-110 active:scale-[0.97] sm:px-6 sm:text-xl" onClick={() => withPageTransition('forward', () => openCheckout(true))}>
       <Stack weight="bold" /> Preparar materiales
     </button>
   )
@@ -166,7 +165,7 @@ function DimensionsToggle() {
   )
 }
 
-const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 border-2 border-graphite bg-bone px-4 text-sm text-graphite transition hover:bg-kraft active:scale-[0.97]'
+const SCENE_TOOL = 'pointer-events-auto inline-flex h-11 items-center gap-2 border-2 border-graphite bg-bone px-4 font-display text-base font-semibold text-graphite uppercase transition hover:bg-kraft active:scale-[0.97]'
 const SCENE_ROUND = 'pointer-events-auto grid size-11 place-items-center border-2 border-graphite bg-bone text-graphite transition hover:bg-kraft active:scale-[0.97] disabled:text-graphite-2/40'
 
 /** Hiding the chosen piece, and the way back while any is hidden: over the measures switch, in sight whatever the panel shows. */
@@ -530,7 +529,7 @@ export function Studio({ state }: { state: DesignState }) {
       <div className={`h-full min-h-0 ${editingSide || view.showsPiece ? 'hidden' : ''}`}>
         {overlayPanel}
         <Tabs.Root value={tab} onValueChange={setTab} className={`h-full min-h-0 flex-col bg-bone/60 ${overlay ? 'hidden' : 'flex'}`}>
-          <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b border-line px-2 [scrollbar-width:none] `} aria-label="Panel">
+          <Tabs.List className={`flex items-center gap-0.5 overflow-x-auto border-b-2 border-graphite px-2 [scrollbar-width:none] `} aria-label="Panel">
             {[
               { id: 'chat', name: 'Conversación', icon: <ChatCircleText /> },
               ...(debugVisible ? [{ id: 'findings', name: 'Hallazgos', icon: <Warning /> }] : []),
@@ -539,7 +538,7 @@ export function Studio({ state }: { state: DesignState }) {
                 key={t.id}
                 value={t.id}
                 onClick={raise}
-                className="relative flex min-h-11 items-center gap-1.5 px-2.5 text-sm text-graphite-2 transition data-[state=active]:font-medium data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-3 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-select"
+                className="relative flex min-h-11 items-center gap-1.5 px-2.5 font-display text-base font-semibold text-graphite-2 uppercase transition data-[state=active]:text-graphite data-[state=active]:after:absolute data-[state=active]:after:inset-x-2 data-[state=active]:after:-bottom-0.5 data-[state=active]:after:h-1 data-[state=active]:after:bg-graphite"
               >
                 <span className="hidden sm:inline-flex">{t.icon}</span>
                 {t.name}

@@ -284,11 +284,11 @@ export function Chat({ state }: { state: DesignState }) {
             className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
           />
           {thinking ? (
-            <Button variant="secondary" className="size-11 shrink-0 rounded-full p-0" onClick={cancel} aria-label="Cancelar">
+            <Button variant="secondary" className="size-11 shrink-0 p-0" onClick={cancel} aria-label="Cancelar">
               <Stop weight="fill" />
             </Button>
           ) : (
-            <Button type="submit" variant="primary" className="size-11 shrink-0 rounded-full p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
+            <Button type="submit" variant="primary" className="size-11 shrink-0 p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
               <PaperPlaneRight weight="fill" />
             </Button>
           )}
