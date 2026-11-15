@@ -17,6 +17,8 @@ const OPTION_GROUP = 'grid divide-y-2 divide-graphite border-2 border-graphite'
 const OPTION_ROW = 'flex min-h-11 flex-col justify-center gap-0.5 px-3 py-2 pr-11 text-left text-[15px] leading-snug'
 const SECTION_RULE = 'border-t-[3px] border-graphite pt-4'
 const SECTION_TITLE = 'text-xl leading-tight uppercase'
+// Field names in condensed capitals, as in the Studio's panel (UI-92); kept here so the shared Field stays as it is.
+const FIELD_NAME = 'font-display text-base font-semibold text-graphite uppercase'
 
 const PROVIDERS: Provider[] = ['simulated', 'anthropic', 'openai', 'shellm']
 
@@ -96,7 +98,7 @@ export function Settings() {
         <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
         <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-h-[90dvh] max-w-2xl flex-col overflow-hidden border-2 border-graphite bg-bone sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
           <header className="ink-band flex shrink-0 items-center justify-between gap-3 px-4 py-2 sm:px-6">
-            <Dialog.Title className="font-display text-3xl leading-none font-semibold sm:text-4xl">Ajustes</Dialog.Title>
+            <Dialog.Title className="font-display text-3xl leading-none font-semibold uppercase sm:text-4xl">Ajustes</Dialog.Title>
             <Dialog.Close asChild>
               <Button variant="ghost" className="size-11 shrink-0 px-0" aria-label="Cerrar">
                 <X weight="bold" className="size-5" />
@@ -138,7 +140,7 @@ export function Settings() {
 
               {connection && active !== 'simulated' && (
                 <div className="flex flex-col gap-4">
-                  <Field label={<>API key{!PRESETS[active].needsKey && ' (opcional)'}</>}>
+                  <Field label={<span className={FIELD_NAME}>API key{!PRESETS[active].needsKey && ' (opcional)'}</span>}>
                     <Input
                       type={showKey ? 'text' : 'password'}
                       autoComplete="off"
@@ -155,8 +157,8 @@ export function Settings() {
                   <Field
                     label={
                       <span className="flex items-center justify-between">
-                        Modelo
-                        <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="flex items-center gap-1 text-xs text-graphite-2 underline disabled:opacity-40">
+                        <span className={FIELD_NAME}>Modelo</span>
+                        <button type="button" onClick={() => void loadModels()} disabled={(PRESETS[active].needsKey && !connection.apiKey) || models.kind === 'loading'} className="relative flex items-center gap-1 text-sm text-graphite underline before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] disabled:opacity-40">
                           <ArrowCounterClockwise /> {models.kind === 'loading' ? 'Cargando…' : 'Cargar lista'}
                         </button>
                       </span>
@@ -175,13 +177,13 @@ export function Settings() {
                     )}
                   </Field>
                   <fieldset className="flex flex-col gap-2" disabled={locked}>
-                    <legend className="mb-2 font-display text-base font-semibold uppercase">Dónde guardar las llaves</legend>
+                    <legend className={`mb-2 ${FIELD_NAME}`}>Dónde guardar las llaves</legend>
                     {vault === 'open' && draft.keyStorage === 'encrypted' ? (
-                      <p className="flex items-start gap-1.5 text-xs text-graphite">
-                        <LockKey className="mt-px shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
+                      <p className="flex items-start gap-1.5 text-sm text-graphite">
+                        <LockKey className="mt-0.5 shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
                       </p>
                     ) : locked ? (
-                      <p className="text-xs text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
+                      <p className="text-sm font-medium text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
                     ) : null}
                     <RadioGroup label="Dónde guardar las llaves" className={OPTION_GROUP}>
                       {SAVED.map((g) => (
@@ -208,7 +210,7 @@ export function Settings() {
                         aria-label="Frase para cifrar las llaves"
                       />
                     )}
-                    <p className="text-xs text-graphite">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
+                    <p className="text-sm text-graphite">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
                   </fieldset>
                 </div>
               )}
