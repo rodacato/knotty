@@ -307,6 +307,9 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
   )
 }
 
+// The band's actions read as the cut ticket's printed headings: condensed capitals, no box, ruled apart.
+const BAND = 'font-display text-base uppercase disabled:bg-transparent disabled:shadow-none'
+
 /** `editing`: notices and history give way to the edit panel, so their buttons wait for it to end. `onLeave`: on a wide screen the way out of editing is the header's one vermilion action (UI-93). */
 function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { state: DesignState; shown: Design; pending: number; overlay: Overlay | null; editing: boolean; onOpen: (o: Overlay) => void; onLeave?: () => void }) {
   const debugVisible = useStore((s) => s.debugVisible)
@@ -329,34 +332,35 @@ function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { 
   // With a larger font the buttons go under the title rather than squeeze it: the title's least width is in rem, so it grows with the font.
   return (
     <header className="ink-band flex items-center gap-1 px-2 py-2 max-sm:flex-wrap sm:gap-3 sm:px-3 md:px-5">
-      <button type="button" className="shrink-0 rounded-lg" onClick={goHome} aria-label="Inicio" title="Inicio: tu diseño se queda abierto">
+      <button type="button" className="flex shrink-0 items-center gap-2.5" onClick={goHome} aria-label="Inicio" title="Inicio: tu diseño se queda abierto">
         <Emblem className="size-7 sm:size-8" />
+        <span aria-hidden className="hidden font-display text-[34px] leading-none font-semibold md:inline">Knotty</span>
       </button>
       <div className="min-w-0 flex-1 border-l border-line pl-3 max-sm:min-w-32">
-        <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate md:text-[30px]">{shown.name}</p>
+        <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate md:text-[38px] md:leading-none">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2 md:text-sm">
           {summary}
           <FichaOrigin state={state} />
         </p>
       </div>
-      <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3">
+      <div className="flex items-center gap-1 max-sm:ml-auto sm:gap-3 md:gap-0 md:divide-x md:divide-line">
         {onLeave && (
-          <button type="button" onClick={onLeave} title="Salir (Esc)" className="inline-flex min-h-11 items-center gap-2 border-2 border-graphite bg-action px-4 font-display text-base font-semibold text-on-action uppercase transition active:scale-[0.97]">
+          <button type="button" onClick={onLeave} title="Salir (Esc)" className="mr-2 inline-flex min-h-12 items-center bg-action px-6 font-display text-xl leading-none font-semibold text-on-action uppercase transition hover:brightness-110 active:scale-[0.97]">
             Terminar de editar
           </button>
         )}
         {library.available && (
-          <Button variant="ghost" className="px-3 text-xs max-sm:hidden" onClick={() => openLibrary(true)} title="Mis muebles: guardar o abrir">
+          <Button variant="ghost" className={`px-4 max-sm:hidden ${BAND}`} onClick={() => openLibrary(true)} title="Mis muebles: guardar o abrir">
             <FloppyDisk /> Mis muebles
           </Button>
         )}
-        <Button variant="ghost" className="min-w-11 px-2" onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
+        <Button variant="ghost" className={`min-w-11 px-3 ${BAND}`} onClick={() => openSpotlight(true)} aria-label="Cambiar de mueble" title={`Cambiar de mueble (${shortcutLabel()})`}>
           <MagnifyingGlass />
         </Button>
-        <Button variant="ghost" className={`min-w-11 gap-1 px-2 text-xs disabled:pointer-events-auto! ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
+        <Button variant="ghost" className={`min-w-11 gap-1 px-3 disabled:pointer-events-auto! ${BAND} ${overlay === 'history' ? 'bg-kraft' : ''}`} onClick={() => onOpen('history')} disabled={editing} aria-pressed={overlay === 'history'} aria-label={`Versión ${state.current}: ver el historial`} title={editing ? 'Termina de editar para ver el historial' : 'Historial'}>
           <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
         </Button>
-        <Button variant="ghost" className={`relative min-w-11 px-2 disabled:pointer-events-auto! ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
+        <Button variant="ghost" className={`relative min-w-11 px-3 disabled:pointer-events-auto! ${BAND} ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
           <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
           {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
         </Button>
@@ -589,7 +593,7 @@ export function Studio({ state }: { state: DesignState }) {
       <Header state={state} shown={shown} pending={board.pending.length} overlay={editingSide ? null : overlay} editing={!!editingSide} onOpen={toggleOverlay} onLeave={desktop && editingSide ? () => leave() : undefined} />
       <ReviewActivity compact />
       {desktop ? (
-        <div className={`grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,440px)] ${stripPlan ? 'grid-rows-[auto_minmax(0,1fr)]' : ''}`}>
+        <div className={`grid min-h-0 flex-1 grid-cols-[1fr_minmax(360px,440px)] ${stripPlan ? 'grid-rows-[auto_minmax(0,1fr)] border-x-4 border-b-4 border-graphite' : ''}`}>
           {stripPlan && (
             <div className="col-span-2">
               <StepStrip state={state} plan={stripPlan} />

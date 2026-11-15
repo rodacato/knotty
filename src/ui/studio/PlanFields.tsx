@@ -83,7 +83,7 @@ function Control<P>({ field, plan, onChange, locks }: { field: FieldSpec<P>; pla
             </span>
           }
         >
-          <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)), field.key)} />
+          <Input type="number" inputMode="numeric" min={field.min} max={field.max} unit={field.unit} value={numberText(field.get(plan), field.min)} onChange={(e) => onChange(field.set(plan, Number(e.target.value)), field.key)} className="w-full text-xl" />
         </Field>
       )
     case 'choice': {
