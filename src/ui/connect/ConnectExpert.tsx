@@ -8,7 +8,7 @@ import { SheLLM } from '../system/SheLLM'
 import { PassphraseField, UNLOCK_TEXT } from '../system/Unlock'
 import { useStore } from '../store'
 import { Button, IconButton, Title } from '../system/components'
-import { Field, Input } from '../system/Field'
+import { ErrorText, Field, Input } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { expertConnected } from '../shell/expertStatus'
@@ -282,14 +282,14 @@ function NewConnection({ onClose, savedKeysWaiting, onBack }: { onClose: () => v
 
         <p className="text-sm">Usa llaves dedicadas, con tope de gasto, y rótalas al terminar.</p>
         {savedKeysWaiting && (
-          <p className="text-sm text-rust">
+          <p className="border-l-8 border-graphite pl-3 text-sm font-medium text-graphite">
             Al conectar con una llave nueva se borran las guardadas.{' '}
             <button type="button" className="font-medium underline" onClick={onBack}>
               Volver a mis llaves
             </button>
           </p>
         )}
-        {error && <p className="text-sm text-rust">{error}</p>}
+        {error && <ErrorText>{error}</ErrorText>}
       </Shell>
     </form>
   )

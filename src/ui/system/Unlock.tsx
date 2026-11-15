@@ -57,12 +57,12 @@ export function ForgetKeysPrompt({ onForget }: { onForget: () => void }) {
       <button type="button" className={`font-medium underline ${FORGET_HIT_AREA}`} onClick={() => setAsking(false)}>
         No
       </button>
-      <button type="button" className={`font-medium text-rust underline ${FORGET_HIT_AREA}`} onClick={onForget}>
+      <button type="button" className={`font-semibold underline decoration-2 ${FORGET_HIT_AREA}`} onClick={onForget}>
         Sí, borrarlas
       </button>
     </p>
   ) : (
-    <button type="button" className={`self-start text-xs font-medium text-rust ${FORGET_HIT_AREA}`} onClick={() => setAsking(true)}>
+    <button type="button" className={`self-start text-xs font-medium underline ${FORGET_HIT_AREA}`} onClick={() => setAsking(true)}>
       Olvidé la frase: borrar las llaves guardadas
     </button>
   )

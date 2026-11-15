@@ -5,7 +5,7 @@ import { named } from '../../application/named'
 const STEP: Record<TraceEntry['step'], string> = { read: 'Lectura de foto', plan: 'Esqueleto', reconstruct: 'Diseño inicial', adjust: 'Cambio', verdict: 'Revisión antes de comprar' }
 
 const OUTCOME: Record<TraceEntry['outcome'], { label: string; icon: React.ReactNode }> = {
-  ok: { label: 'Listo', icon: <CheckCircle weight="fill" className="text-slate" /> },
+  ok: { label: 'Listo', icon: <CheckCircle weight="fill" className="text-graphite" /> },
   invalid: { label: 'No pasó la validación', icon: <WarningCircle weight="fill" className="text-graphite" /> },
   unreadable: { label: 'Respuesta ilegible', icon: <WarningCircle weight="fill" className="text-graphite" /> },
   failed: { label: 'Falló la conexión', icon: <XCircle weight="fill" className="text-rust" /> },
@@ -26,7 +26,7 @@ export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?:
         {calls} {calls === 1 ? 'llamada' : 'llamadas'}
         {alone ? ` · ${alone} sin experto` : ''} · {Math.round(total)} s{tokens ? ` · ${tokens.toLocaleString('es-MX')} tokens de salida` : ''}
       </p>
-      <ol className="flex flex-col divide-y divide-line rounded-xl border border-line bg-bone">
+      <ol className="flex flex-col divide-y divide-line border-y-2 border-graphite">
         {[...trace].reverse().map((t, i) => (
           <li key={`${t.at}-${i}`} className="flex flex-col gap-1 px-3 py-2 text-sm">
             <span className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export function TraceLog({ trace, pieces = [] }: { trace: TraceEntry[]; pieces?:
               <ul className="flex flex-col gap-0.5 text-xs">
                 {t.repairs.map((r, j) => (
                   <li key={j} className="flex items-start gap-1.5">
-                    <Wrench className="mt-0.5 shrink-0 text-slate" /> {r}
+                    <Wrench className="mt-0.5 shrink-0 text-graphite-2" /> {r}
                   </li>
                 ))}
               </ul>

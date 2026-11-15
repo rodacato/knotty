@@ -13,6 +13,7 @@ import { useServices } from '../services'
 import { useStore } from '../store'
 import { JointDiagram } from './JointDiagram'
 import { Button, IconButton, Title } from '../system/components'
+import { ErrorText } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 
 // Joints the person picks per group of pieces, against the tools they said they have (fabricacion-y-armado.md §1.3).
@@ -112,11 +113,11 @@ function JointCard({ option, selected, onSelect }: { option: Option; selected: b
       )}
       {g.disadvantage && (
         <span className="flex items-start gap-1.5 text-xs">
-          <Minus className="mt-0.5 shrink-0 text-rust" /> {g.disadvantage}
+          <Minus className="mt-0.5 shrink-0" /> {g.disadvantage}
         </span>
       )}
       {option.warnings.map((w) => (
-        <span key={w} className="block text-xs text-rust">
+        <span key={w} className="block text-xs font-medium text-graphite">
           {w}
         </span>
       ))}
@@ -171,7 +172,7 @@ function JointTable({ options, selected, onSelect }: { options: Option[]; select
                   <FitTag fit={o.fit} />
                 </span>
                 {o.warnings.map((w) => (
-                  <span key={w} className="mt-1 block text-rust">
+                  <span key={w} className="mt-1 block font-medium text-graphite">
                     {w}
                   </span>
                 ))}
@@ -252,7 +253,7 @@ function JointCatalog({ design, group, onClose, onDone }: { design: Design; grou
           </div>
           <div className="flex flex-col gap-2 border-t border-line px-4 py-3 lg:flex-row lg:items-center lg:px-5">
             <p className="flex-1 text-xs text-graphite-2">Las pruebas casi nunca son en triplay de pino: la resistencia se lee como orden, no como número.</p>
-            {error && <p className="text-xs text-rust">{error}</p>}
+            {error && <ErrorText>{error}</ErrorText>}
             {selected === group.current ? (
               <p className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-graphite">
                 <Check weight="bold" /> Ya la usas

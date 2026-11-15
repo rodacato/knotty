@@ -34,7 +34,7 @@ describe('UnlockForm', () => {
 describe('ForgetKeysPrompt', () => {
   it('starts as the idle link, not as the confirmation', () => {
     const markup = render(h(ForgetKeysPrompt, { onForget: noop }))
-    expect(markup).toContain('text-rust')
+    expect(markup).toContain('Olvidé la frase')
     expect(markup).not.toContain('Sí, borrarlas')
   })
 })

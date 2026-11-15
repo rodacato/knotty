@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise, ArrowRight, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Warning, Wrench, X } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowRight, CheckCircle, Eye, EyeSlash, Lightning, ChatCircleText, Tray, Wrench, X } from '@phosphor-icons/react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { isOptional, noticeItem, type Notice, type NoticeBoard } from '../../application/notices'
 import type { Design } from '../../domain/design/schema'
@@ -10,6 +10,7 @@ import { answerItem, answerItemId, noticeItemId, type TrayItem } from '../../dom
 import { useServices } from '../services'
 import { Button, Chip, Stamp } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
+import { ErrorText } from '../system/Field'
 import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { ProposalFixButton } from '../chat/ProposalFix'
@@ -247,7 +248,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
         <ul className="flex flex-col gap-1.5 border-b border-line px-4 py-3 text-sm">
           {board.resolved.map((r) => (
             <li key={r} className="flex items-start gap-2">
-              <CheckCircle className="mt-0.5 shrink-0 text-slate" weight="fill" /> Resuelto: {r}
+              <CheckCircle className="mt-0.5 shrink-0" weight="fill" /> Resuelto: {r}
             </li>
           ))}
         </ul>
@@ -295,11 +296,7 @@ export function NoticePanel({ state, board, onAnswer }: { state: DesignState; bo
 
       {(chosen.length > 0 || state.tray.length > 0) && (
         <div className="sticky bottom-0 mt-auto flex flex-col gap-2 border-t border-line bg-paper px-4 py-3">
-          {error && (
-            <p className="flex items-start gap-2 text-sm text-rust">
-              <Warning className="mt-0.5 shrink-0" weight="bold" /> {error}
-            </p>
-          )}
+          {error && <ErrorText>{error}</ErrorText>}
           {chosen.length > 0 && (instant > 0 || toExpert > 0) && (
             <p className="flex items-center gap-4 text-sm text-graphite-2">
               {instant > 0 && (

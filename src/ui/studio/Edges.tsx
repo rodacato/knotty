@@ -8,6 +8,7 @@ import { TERMS, type TermKey } from '../glossary'
 import { countEdges } from './edgeCounts'
 import { useStore } from '../store'
 import { Chip, Title } from '../system/components'
+import { ErrorText } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 
 // The edges of the selected piece and the profile the person gives them (acabados.md §11). Nothing is locked: what will not show, or the board or the tools do not allow, gets a warning that says why.
@@ -223,7 +224,7 @@ export function EdgesSection({ design, geo, piece, editable }: { design: Design;
               </span>
             </p>
           )}
-          {error && <p className="text-xs text-rust">{error}</p>}
+          {error && <ErrorText>{error}</ErrorText>}
         </div>
       )}
     </section>

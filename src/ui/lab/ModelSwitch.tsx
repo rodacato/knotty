@@ -91,7 +91,7 @@ export function ModelSwitch() {
             )
           })}
           {error && (
-            <p role="alert" className="text-xs text-rust">
+            <p role="alert" className="border-l-8 border-graphite pl-3 text-xs font-medium text-graphite">
               {error}
             </p>
           )}

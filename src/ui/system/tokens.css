@@ -22,7 +22,6 @@
   --color-rust: var(--rust);
   --color-on-rust: var(--on-rust);
   --color-focus: var(--focus);
-  --color-slate: var(--slate);
   --color-paper: var(--paper);
   --color-birch: #e2c9a2;
   --color-pine: #d9b27c;
@@ -67,17 +66,9 @@
   --rust: #9c3523;
   --on-rust: #ffffff;
   --focus: #161412;
-  --slate: #56697a;
   --scene-bg: var(--color-drawing-paper);
   --paper: #fbf6e8;
   color-scheme: light;
-
-  /* The kraft of a base's card, leaning toward its style line. */
-  --style-basic: var(--kraft);
-  --style-mid-century: color-mix(in srgb, var(--kraft) 90%, var(--rust));
-  --style-fluted: color-mix(in srgb, var(--kraft) 88%, var(--color-walnut));
-  --style-low: color-mix(in srgb, var(--kraft) 88%, var(--slate));
-  --style-workshop: color-mix(in srgb, var(--kraft) 86%, var(--color-pine));
 }
 
 /* What a caller may change about a Button: in the components layer, so a utility on the button (`px-2`, `rounded-full`, `text-base`) wins without `!`. Its 44 px of height stay on the button itself. */

@@ -53,7 +53,7 @@ export function OpenDesignFile({ className = '' }: { className?: string }) {
         }}
       />
       {rejection && (
-        <p role="alert" className="basis-full text-sm text-rust">
+        <p role="alert" className="basis-full border-l-8 border-graphite pl-3 text-sm font-medium text-graphite">
           {REJECTION[rejection]}
         </p>
       )}

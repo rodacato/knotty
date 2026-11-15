@@ -6,6 +6,7 @@ import { moduleOf, type FurniturePlan } from '../../domain/furniture/modules/pla
 import { partName } from '../../domain/furniture/modules/parts'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button, IconButton } from '../system/components'
+import { ErrorText } from '../system/Field'
 import { draftOf, useStore, type EditSide } from '../store'
 import { CellSheet } from './CellSheet'
 import { DraftBar } from './DraftBar'
@@ -105,7 +106,7 @@ export function EditPanel({ state, side, plan, applied, geo, pieceSheet, strip =
       {asking ? (
         <div className="flex flex-col gap-3 border-t border-line bg-paper p-4" role="alertdialog" aria-label="Cambios sin aplicar">
           <p className="text-sm font-medium">Tienes cambios sin aplicar</p>
-          {error && <p className="text-xs text-rust">{error}</p>}
+          {error && <ErrorText>{error}</ErrorText>}
           {draft?.notes.map((note) => (
             <p key={note} className="text-xs text-graphite-2">
               {note}

@@ -11,16 +11,6 @@ export const ROOM_LABELS: [Room, string][] = [
 ]
 
 export const STYLE_LABELS: Record<Style, string> = { 'mid-century': 'Patas abiertas', fluted: 'Ranurada', low: 'Baja', workshop: 'Triplay visto', basic: 'Básica' }
-
-/** The class that leans a sketch's kraft toward its style line: it sets `--tint`, which the sketch's frame paints with `bg-(--tint)`. */
-export const STYLE_TINT: Record<Style, string> = {
-  basic: '[--tint:var(--style-basic)]',
-  'mid-century': '[--tint:var(--style-mid-century)]',
-  fluted: '[--tint:var(--style-fluted)]',
-  low: '[--tint:var(--style-low)]',
-  workshop: '[--tint:var(--style-workshop)]',
-}
-
 export interface CatalogQuery {
   room: Room | 'all'
   /** Words of its name, of a room it goes in, of its style or of its model, in any case, with or without accents or dashes: «escritorio», «recamara», «ranurada», «KC-LIB-14», «lib14». */

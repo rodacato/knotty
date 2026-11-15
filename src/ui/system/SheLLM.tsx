@@ -24,7 +24,7 @@ export function SheLLM({ host, onHost, origin, learnUrl }: { host: string; onHos
       </Field>
       <div className="flex flex-col gap-1.5">
         <span>Para que esta página pueda hablarle, agrega su origen a la configuración de SheLLM:</span>
-        <span className="flex items-center gap-2 rounded-xl bg-kraft px-3 py-2">
+        <span className="flex items-center gap-2 border-2 border-graphite bg-kraft px-3 py-2">
           <code className="numerals flex-1 truncate text-xs">{line}</code>
           <button type="button" onClick={() => void copy()} aria-label="Copiar" className="text-graphite-2 hover:text-graphite">
             {copied ? <Check /> : <Copy />}

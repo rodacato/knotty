@@ -22,6 +22,8 @@ import { assemblyPhases } from './assemblyPhases'
 import { useServices } from '../services'
 import { useStore } from '../store'
 import { Button } from '../system/components'
+import { Emblem } from '../system/Brand'
+import { Select } from '../system/Field'
 import type { Offset } from '../scene/explode'
 import { wordsIn } from './words'
 import { drawDiagram, spreadApart, VIEWS, type Angle, type Diagram, type Shape } from './diagram'
@@ -207,14 +209,18 @@ export function TakeAway({ state }: { state: DesignState }) {
 
   return (
     <div className="workshop-document min-h-dvh bg-bone text-graphite print:bg-white">
-      <div ref={toolbarRef} className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b-2 border-graphite bg-bone px-4 py-2 text-graphite print:hidden">
-        <Button variant="ghost" className="min-h-11 px-3 font-display text-base uppercase" onClick={() => openTakeAway(false)}>
-          <ArrowLeft weight="bold" /> Volver al Estudio
-        </Button>
+      {/* On screen the guide sits under the app's black band, as every other screen does; the band never prints. */}
+      <div ref={toolbarRef} className="ink-band sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 bg-bone px-4 py-2 text-graphite print:hidden">
+        <span className="flex items-center gap-3">
+          <Emblem className="size-8 shrink-0" />
+          <Button variant="ghost" className="min-h-11 border-l-2 border-line px-3 font-display text-base uppercase" onClick={() => openTakeAway(false)}>
+            <ArrowLeft weight="bold" /> Volver al Estudio
+          </Button>
+        </span>
         <label className="flex items-center gap-2 font-display text-base font-semibold uppercase">Contenido
-          <select aria-label="Contenido del PDF" value={mode} onChange={(event) => setMode(event.target.value as ExportMode)} className="min-h-11 border-2 border-graphite bg-bone px-3 font-sans text-base font-normal normal-case text-graphite">
+          <Select aria-label="Contenido del PDF" value={mode} onChange={(event) => setMode(event.target.value as ExportMode)} className="font-sans font-normal normal-case">
             {(Object.entries(EXPORT_MODES) as [ExportMode, string][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
+          </Select>
         </label>
         {/* Printing is this screen's one action, so it carries the vermilion (UI-93); the paper never shows it. */}
         <Button variant="action" className="min-h-11 max-w-full px-5" onClick={() => window.print()}>
@@ -226,7 +232,7 @@ export function TakeAway({ state }: { state: DesignState }) {
       <main className="mx-auto flex max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-8 print:max-w-none print:p-0">
         <header id="origin" className="flex flex-col gap-3">
           {/* The document's masthead: the same black band as the app, the furniture's name leading (UI-93). */}
-          <div className="guide-band flex flex-wrap items-baseline gap-x-5 gap-y-1 bg-graphite px-5 py-4 text-bone">
+          <div className="guide-band flex flex-wrap items-baseline gap-x-5 gap-y-1 bg-graphite px-5 py-4 text-bone uppercase">
             <p className="font-display leading-none font-semibold"><span className="text-3xl md:text-5xl">Knotty</span> <span className="text-xl md:text-3xl">· {EXPORT_MODES[mode]}</span></p>
             <h1 className="border-bone/60 font-display text-3xl leading-none font-semibold md:border-l-2 md:pl-5 md:text-5xl">{design.name}</h1>
           </div>

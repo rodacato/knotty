@@ -20,7 +20,7 @@ const MM = 0.001
 const NO_SHAPES: EdgeShape[] = []
 function readColors() {
   const style = getComputedStyle(document.documentElement)
-  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite-2', 'select', 'rust', 'slate'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
+  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
 }
 function useColors() {
   const [colors, setColors] = useState(readColors)
@@ -183,7 +183,7 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
           <meshStandardMaterial color={colors['color-drawing-paper']} />
         </mesh>
         {(['back', 'left', 'front', 'right'] as Wall[]).map((wall) => (
-          <WallMesh key={wall} layout={layout} wall={wall} color={colors['color-brand-paper']} windowColor={colors.slate} />
+          <WallMesh key={wall} layout={layout} wall={wall} color={colors['color-brand-paper']} windowColor={colors['graphite-2']} />
         ))}
         {layout.openings
           .filter((o) => o.kind === 'door' && o.swing !== 'sliding' && !openingProblem(layout.room, o, layout.openings))

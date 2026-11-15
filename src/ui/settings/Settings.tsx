@@ -5,7 +5,7 @@ import { MIN_PASSPHRASE, PRESETS, SHELLM_URL, type LLMConfiguration, type Connec
 import { Unlock } from './Keys'
 import { useServices } from '../services'
 import { Button, Title } from '../system/components'
-import { Field, Input, Select } from '../system/Field'
+import { ErrorText, Field, Input, Select } from '../system/Field'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
 import { Reveal } from '../system/Reveal'
 import { SheLLM } from '../system/SheLLM'
@@ -183,7 +183,7 @@ export function Settings() {
                         <LockKey className="mt-0.5 shrink-0" /> Tus llaves están cifradas en este navegador; cada cambio se vuelve a cifrar al guardar.
                       </p>
                     ) : locked ? (
-                      <p className="text-sm font-medium text-rust">Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</p>
+                      <ErrorText live={false}>Desbloquea arriba tus llaves guardadas antes de cambiarlas, o se perderán.</ErrorText>
                     ) : null}
                     <RadioGroup label="Dónde guardar las llaves" className={OPTION_GROUP}>
                       {SAVED.map((g) => (
@@ -261,7 +261,7 @@ export function Settings() {
           </div>
 
           <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t-[3px] border-graphite px-4 py-2 sm:px-6">
-            {error && <p role="alert" className="mr-auto min-w-0 flex-1 basis-40 text-sm text-rust">{error}</p>}
+            {error && <ErrorText className="mr-auto min-w-0 flex-1 basis-40">{error}</ErrorText>}
             <Dialog.Close asChild>
               <Button variant="ghost" className="font-display text-base uppercase">Cancelar</Button>
             </Dialog.Close>

@@ -34,7 +34,7 @@ export function FittingsSection({ design: applied, apart }: { design: Design; ap
   const blocks = gluedBlocks(design)
   const row = (key: string, ids: string[], text: string, detail: string) => (
     <li key={key}>
-      <button type="button" aria-pressed={isMarked(ids)} onClick={() => flag(ids)} className={`flex min-h-11 w-full items-center gap-3 px-3 py-2 text-left text-sm ${isMarked(ids) ? 'bg-select-soft' : ''}`}>
+      <button type="button" aria-pressed={isMarked(ids)} onClick={() => flag(ids)} className={`flex min-h-11 w-full items-center gap-3 py-2 pr-3 text-left text-sm ${isMarked(ids) ? 'border-l-8 border-graphite bg-select-soft pl-1' : 'pl-3'}`}>
         <span className="min-w-0 flex-1">{text}</span>
         <span className="numerals shrink-0 font-mono text-xs text-graphite-2">{detail}</span>
       </button>

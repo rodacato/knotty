@@ -120,7 +120,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
   const pending = m.proposal === 'pending' && state.proposal
   return (
     <div className="animate-appear mr-6 flex flex-col gap-2.5 self-start">
-      <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-rust/30 bg-rust/5' : 'border-line bg-bone'}`}>
+      <div className={`rounded-2xl rounded-bl-md border px-4 py-3 text-[15px] leading-relaxed shadow-sm ${m.error ? 'border-l-8 border-graphite bg-bone' : 'border-line bg-bone'}`}>
         <div className="mb-1 flex items-center gap-2 text-xs text-graphite-2">
           <PencilSimple weight="duotone" className="text-graphite" /> {m.alone ? 'Knotty' : 'Experto'}
           {m.version &&
@@ -140,7 +140,7 @@ function Bubble({ m, state, recover }: { m: Message; state: DesignState; recover
           {m.proposal === 'applied' && <span className="text-xs">· aplicada</span>}
           {m.proposal === 'discarded' && <span className="text-xs">· sin aplicar</span>}
         </div>
-        {m.error && <Warning className="float-left mt-1 mr-2 text-rust" weight="bold" />}
+        {m.error && <Warning className="float-left mt-1 mr-2" weight="bold" />}
         {m.text.split('\n\n').map((p, i) => (
           <p key={i} className={i ? 'mt-2' : ''}>
             {p}

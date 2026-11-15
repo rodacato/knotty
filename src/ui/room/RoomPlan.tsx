@@ -26,7 +26,7 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
   ]
   const label = o.kind === 'window' ? 'Ventana' : o.swing === 'outside' ? 'Puerta: abre hacia afuera' : o.swing === 'sliding' ? 'Puerta corrediza' : 'Puerta: abre hacia adentro'
   const problem = openingProblem(layout.room, o, layout.openings)
-  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--slate)' : 'var(--select)'
+  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--graphite-2)' : 'var(--select)'
   const across = o.wall === 'back' || o.wall === 'front'
   const span = { x1: start[0], y1: start[1], x2: end[0], y2: end[1] }
   return (

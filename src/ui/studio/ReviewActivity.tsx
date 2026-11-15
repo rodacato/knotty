@@ -41,7 +41,7 @@ export function ReviewActivity({ compact = false }: { compact?: boolean }) {
       </div>
       {!compact && (
         <>
-          {progress.stage !== 'checking' && <p className="flex items-center gap-1.5 text-xs"><CheckCircle className="shrink-0 text-slate" /> Cuentas de Knotty completadas</p>}
+          {progress.stage !== 'checking' && <p className="flex items-center gap-1.5 text-xs"><CheckCircle className="shrink-0" /> Cuentas de Knotty completadas</p>}
           <p className="text-xs leading-relaxed text-graphite-2">Puedes seguir viendo el 3D. Si cambias las medidas, las piezas o los ajustes de corte, cancelamos esta revisión; podrás iniciar otra al terminar.</p>
           {progress.stage === 'waiting' && <p className="text-xs text-graphite-2">El proveedor aún no ha enviado una respuesta. El tiempo depende del modelo conectado.</p>}
         </>

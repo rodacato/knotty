@@ -259,7 +259,7 @@ function MoreMenu({ state, expert, onExpert, debug }: { state: DesignState; expe
           <span className="mx-3 my-2 h-px bg-line" aria-hidden />
           {link && (
             <Button variant="ghost" className={row} onClick={link.copy}>
-              {link.copied ? <Check className="text-slate" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
+              {link.copied ? <Check weight="bold" /> : <LinkSimple />} {link.copied ? 'Enlace copiado' : 'Copiar el enlace a la ficha'}
             </Button>
           )}
           {library.available && (
@@ -323,7 +323,7 @@ function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { 
         <Emblem className="size-7 sm:size-8" />
         <span aria-hidden className="hidden font-display text-[34px] leading-none font-semibold md:inline">Knotty</span>
       </button>
-      <div className="min-w-0 flex-1 border-l border-line pl-3 max-sm:min-w-32">
+      <div className="min-w-0 flex-1 border-l-2 border-line pl-3 max-sm:min-w-32">
         <p className="font-display text-xl leading-tight font-semibold uppercase max-sm:line-clamp-2 sm:truncate md:text-[38px] md:leading-none">{shown.name}</p>
         <p className="numerals truncate text-xs text-graphite-2 md:text-sm">
           {summary}
@@ -348,8 +348,8 @@ function Header({ state, shown, pending, overlay, editing, onOpen, onLeave }: { 
           <ClockCounterClockwise /> <span className="numerals">v{state.current}</span>
         </Button>
         <Button variant="ghost" className={`relative min-w-11 px-3 disabled:pointer-events-auto! ${BAND} ${overlay === 'notices' ? 'bg-kraft' : ''}`} onClick={() => onOpen('notices')} disabled={editing} aria-pressed={overlay === 'notices'} aria-label={pending ? `${pending} ${pending === 1 ? 'aviso' : 'avisos'} por decidir` : 'Avisos'} title={editing ? 'Termina de editar para ver los avisos' : 'Avisos'}>
-          <Bell weight={pending ? 'fill' : 'regular'} className={pending ? 'text-rust' : ''} />
-          {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rust px-1 text-xs text-on-rust">{pending}</span>}
+          <Bell weight={pending ? 'fill' : 'regular'} />
+          {pending > 0 && <span className="numerals absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center bg-graphite px-1 text-xs text-bone">{pending}</span>}
         </Button>
         {debugVisible && <ModelSwitch />}
         <MoreMenu state={state} expert={label} onExpert={debugVisible ? null : toExpert} debug={debugVisible} />
@@ -587,7 +587,7 @@ export function Studio({ state }: { state: DesignState }) {
             </div>
           )}
           {scene}
-          <aside className={`relative min-h-0 ${stripPlan ? 'border-l-4 border-graphite' : 'border-l border-line'}`}>{panel}</aside>
+          <aside className={`relative min-h-0 ${stripPlan ? 'border-l-4 border-graphite' : 'border-l-2 border-graphite'}`}>{panel}</aside>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
