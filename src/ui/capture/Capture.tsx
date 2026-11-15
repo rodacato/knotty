@@ -224,9 +224,14 @@ export function Capture() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <AppHeader title={{ name: '¿Qué mueble quieres?', line: 'Con fotos, con palabras o con las dos.' }} />
-      <main className="mx-auto flex w-full max-w-[1184px] flex-1 flex-col gap-7 px-5 py-6 md:px-8 md:py-10">
-        <p className="-mb-3 text-lg text-graphite-2 md:hidden">Con fotos, con palabras o con las dos.</p>
+      <AppHeader />
+      <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-8 px-5 pt-5 pb-10 md:px-8 md:pt-6">
+        {/* The catalog's head (UI-93): the eyebrow over a heavy rule, then the question at the page's own scale. */}
+        <header className="flex flex-col gap-1">
+          <p className="mb-2 border-b-[3px] border-graphite pb-2 font-display text-lg font-semibold md:text-[21px]">Crear un diseño</p>
+          <h1 className="font-display text-4xl leading-[1.05] font-bold text-balance md:text-6xl md:leading-[1.05]">¿Qué mueble quieres?</h1>
+          <p className="mt-1 text-lg md:text-xl">Con fotos, con palabras o con las dos.</p>
+        </header>
         {!usable && (
           <div className="flex flex-col gap-3 border-2 border-graphite p-4 md:flex-row md:items-center md:gap-5 md:px-7 md:py-5" role="note">
             <span className="grid size-12 shrink-0 place-items-center bg-graphite text-bone">
@@ -366,20 +371,15 @@ export function Capture() {
           </div>
         )}
 
-        <div className="-mx-5 flex flex-col items-center gap-3 border-t-[3px] border-graphite px-5 pt-5 md:mx-0 md:px-0 md:pt-6">
-          {usable ? (
-            <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg" disabled={!canAnalyze} onClick={analyzeCapture}>
-              {blocker ?? (
-                <>
-                  Diseñar mi mueble <ArrowRight weight="bold" />
-                </>
-              )}
-            </Button>
-          ) : (
-            <Button variant="secondary" className="min-h-14 w-full max-w-[720px] text-lg" onClick={() => openConnect(true)}>
-              {missingKey && <Key weight="bold" />} Conectar experto <ArrowRight weight="bold" />
-            </Button>
-          )}
+        {/* Without an expert the note at the top already offers connecting and the bases, so the foot does not repeat them. */}
+        {usable && <div className="-mx-5 flex flex-col items-center gap-3 border-t-[3px] border-graphite px-5 pt-5 md:mx-0 md:px-0 md:pt-6">
+          <Button variant="primary" className="min-h-14 w-full max-w-[720px] text-lg" disabled={!canAnalyze} onClick={analyzeCapture}>
+            {blocker ?? (
+              <>
+                Diseñar mi mueble <ArrowRight weight="bold" />
+              </>
+            )}
+          </Button>
           <p className="text-center text-base text-graphite-2">Suele tomar menos de un minuto; las fotos y el diseño usan tu llave.</p>
           <p className="flex flex-wrap items-center justify-center gap-x-2 text-base text-graphite-2">
             ¿Prefieres una base ya hecha?
@@ -387,7 +387,7 @@ export function Capture() {
               <ArrowLeft weight="bold" /> Ver bases
             </Button>
           </p>
-        </div>
+        </div>}
       </main>
       <AppFooter />
     </div>
