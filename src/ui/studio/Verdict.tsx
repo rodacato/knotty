@@ -12,12 +12,12 @@ import { ReviewActivity } from './ReviewActivity'
 import { Section } from './Section'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: ReactNode }> = {
-  viable: { title: 'Se puede hacer', className: 'border-graphite', icon: <CheckCircle className="text-slate" weight="fill" /> },
+  viable: { title: 'Se puede hacer', className: 'border-graphite', icon: <CheckCircle className="text-graphite" weight="fill" /> },
   'needs-changes': { title: 'Hay pendientes antes de comprar', className: 'border-graphite', icon: <WarningCircle /> },
   'not-viable': { title: 'Así no se puede hacer', className: 'border-rust', icon: <XCircle className="text-rust" weight="fill" /> },
 }
 const CHECK_ICON: Record<Check['status'], ReactNode> = {
-  ok: <CheckCircle weight="fill" className="text-slate" />,
+  ok: <CheckCircle weight="fill" className="text-graphite" />,
   warning: <WarningCircle weight="fill" className="text-graphite" />,
   fail: <XCircle weight="fill" className="text-rust" />,
 }
@@ -58,7 +58,7 @@ export function VerdictSummary({ verdict, cell = false }: { verdict: PurchaseRev
       <div className="min-w-0 space-y-1">
         <h2 className="font-display text-xl leading-tight font-semibold uppercase md:text-2xl">{v.title}</h2>
         <p className="text-base leading-relaxed md:text-lg">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
-        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-base leading-relaxed text-graphite-2">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
+        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-base leading-relaxed text-graphite">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
       </div>
     </aside>
   )
@@ -124,7 +124,7 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
         <p className="font-display text-2xl leading-tight font-semibold uppercase md:text-3xl">{total ? `${pending} ${pending === 1 ? 'decisión por tomar' : 'decisiones por tomar'} de ${total}` : 'No hay decisiones pendientes en esta revisión'}</p>
         {total > 0 && <p className="text-base leading-relaxed md:text-lg">Abre un pendiente para revisar el motivo y elegir qué hacer.</p>}
       </div>
-      {choices.length > 0 && <p role="status" className="text-xs leading-relaxed text-graphite-2">Tus decisiones quedan registradas. Solo un cambio aplicado y revisado puede corregir los problemas.</p>}
+      {choices.length > 0 && <p role="status" className="text-sm leading-relaxed text-graphite">Tus decisiones quedan registradas. Solo un cambio aplicado y revisado puede corregir los problemas.</p>}
       <div className="flex flex-col gap-3">
         {wall && <div id={pendingId('wall')}>{wall}</div>}
         {items.map((item) => {
@@ -135,10 +135,10 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
             <div key={item.id} id={pendingId(item.id)} className={`max-w-3xl scroll-mt-20 border-2 border-graphite ${item.priority === 'high' && !item.optional ? 'border-l-8' : ''}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
               <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer p-3 text-base marker:text-graphite md:text-lg">
                 <span className="font-medium">{item.title}</span>
-                <span className="mt-1 block pl-4 text-xs text-graphite-2">{choice ? REVIEW_CHOICE[choice] : why.title}</span>
+                <span className="mt-1 block pl-4 text-sm text-graphite">{choice ? REVIEW_CHOICE[choice] : why.title}</span>
               </summary>
               <div className="flex flex-col gap-3 px-3 pb-3">
-                <p className="text-xs leading-relaxed text-graphite-2">{why.detail}</p>
+                <p className="text-sm leading-relaxed text-graphite">{why.detail}</p>
                 <p className="text-base leading-relaxed">{item.detail}</p>
                 <PieceLink pieces={item.pieces} design={design} />
                 {!choice && confirm !== item.id && <div className="flex flex-wrap gap-3">
