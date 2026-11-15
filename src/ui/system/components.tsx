@@ -1,9 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import type { Severity } from '../../domain/checks/structure/finding'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'action'
 
 const VARIANTS: Record<Variant, string> = {
+  // The screen's one vermilion action (UI-93): at most one per screen.
+  action: 'bg-action text-on-action font-display text-lg font-semibold uppercase hover:brightness-110',
   primary: 'bg-graphite text-bone hover:bg-graphite/90 shadow-[0_1px_0_rgba(255,255,255,.15)_inset,0_6px_16px_-8px_rgba(43,40,37,.6)]',
   secondary: 'bg-kraft text-graphite border border-line hover:bg-kraft-2',
   ghost: 'text-graphite-2 hover:bg-kraft hover:text-graphite',

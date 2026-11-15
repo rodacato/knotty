@@ -9,11 +9,12 @@ import { useExpertStatus } from '../shell/expertStatus'
 import { useStore } from '../store'
 import { withPageTransition } from '../system/pageTransition'
 import { ReviewActivity } from './ReviewActivity'
+import { Section } from './Section'
 
 const VERDICTS: Record<Verdict, { title: string; className: string; icon: ReactNode }> = {
-  viable: { title: 'Se puede hacer', className: 'border-slate/40', icon: <CheckCircle className="text-slate" weight="fill" /> },
-  'needs-changes': { title: 'Hay pendientes antes de comprar', className: 'border-graphite/40', icon: <WarningCircle /> },
-  'not-viable': { title: 'Así no se puede hacer', className: 'border-rust/40', icon: <XCircle className="text-rust" weight="fill" /> },
+  viable: { title: 'Se puede hacer', className: 'border-graphite', icon: <CheckCircle className="text-slate" weight="fill" /> },
+  'needs-changes': { title: 'Hay pendientes antes de comprar', className: 'border-graphite', icon: <WarningCircle /> },
+  'not-viable': { title: 'Así no se puede hacer', className: 'border-rust', icon: <XCircle className="text-rust" weight="fill" /> },
 }
 const CHECK_ICON: Record<Check['status'], ReactNode> = {
   ok: <CheckCircle weight="fill" className="text-slate" />,
@@ -31,15 +32,15 @@ export function ReviewGate({ stale }: { stale: boolean }) {
   const { available } = useExpertStatus()
   return (
     <section className="flex flex-col gap-3" aria-label="Siguiente paso">
-      <p className="text-xs font-medium text-graphite-2">Siguiente paso</p>
-      <h2 className="flex items-start gap-2 font-medium"><Hammer weight="duotone" className="mt-1 shrink-0" /> {reviewing ? 'Revisión en curso' : stale ? 'Revisar el diseño actualizado' : 'Revisar antes de comprar'}</h2>
+      <p className="font-display text-lg leading-none font-semibold uppercase">Siguiente paso</p>
+      <h2 className="flex items-start gap-2 text-xl font-semibold"><Hammer weight="bold" className="mt-1 shrink-0" /> {reviewing ? 'Revisión en curso' : stale ? 'Revisar el diseño actualizado' : 'Revisar antes de comprar'}</h2>
       {notice && <p role="status" className="text-sm leading-relaxed">{notice}</p>}
       {reviewing ? <ReviewActivity /> : (
         <>
-          <p className="text-sm text-graphite">Knotty comprueba medidas, estructura y acomodo de las piezas en las hojas.{available ? ' Después pide una segunda opinión al experto conectado.' : ' Puedes hacerlo sin conectar un experto.'}</p>
-          {error && <p role="alert" className="flex items-start gap-2 rounded-xl border border-rust/30 bg-rust/10 p-3 text-sm text-rust"><Warning className="mt-0.5 shrink-0" /> {error}</p>}
+          <p className="max-w-2xl text-[15px] text-graphite">Knotty comprueba medidas, estructura y acomodo de las piezas en las hojas.{available ? ' Después pide una segunda opinión al experto conectado.' : ' Puedes hacerlo sin conectar un experto.'}</p>
+          {error && <p role="alert" className="flex items-start gap-2 border-l-8 border-rust py-1 pl-4 text-[15px] font-medium text-rust"><Warning className="mt-0.5 shrink-0" /> {error}</p>}
           {thinking && <p className="text-sm">Espera a que termine el ajuste del experto antes de revisar este diseño.</p>}
-          <Button variant="primary" className="self-start px-5" disabled={thinking} onClick={() => void review()}>
+          <Button variant="action" className="min-h-12 self-start px-6" disabled={thinking} onClick={() => void review()}>
             {error ? <ArrowClockwise weight="bold" /> : <Hammer weight="bold" />} {error ? 'Reintentar revisión' : stale ? 'Revisar diseño actualizado' : 'Revisar y ver materiales'}
           </Button>
         </>
@@ -51,12 +52,12 @@ export function ReviewGate({ stale }: { stale: boolean }) {
 export function VerdictSummary({ verdict }: { verdict: PurchaseReview }) {
   const v = VERDICTS[verdict.verdict]
   return (
-    <aside role="note" aria-label="Resultado de la revisión" className={`flex items-start gap-3 rounded-xl border bg-kraft p-3 ${v.className}`}>
+    <aside role="note" aria-label="Resultado de la revisión" className={`flex max-w-3xl items-start gap-3 border-l-8 py-1 pl-4 ${v.className}`}>
       <span className="mt-0.5 shrink-0">{v.icon}</span>
       <div className="min-w-0 space-y-1">
-        <h2 className="text-sm font-semibold">{v.title}</h2>
-        <p className="text-xs leading-relaxed">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
-        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-xs underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-xs leading-relaxed text-graphite-2">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
+        <h2 className="font-display text-xl leading-tight font-semibold uppercase">{v.title}</h2>
+        <p className="text-[15px] leading-relaxed">{verdict.verdict === 'viable' ? 'Confirma los materiales y consulta tu guía para construir.' : verdict.verdict === 'needs-changes' ? 'Decide cómo atenderlos. La guía conserva los problemas que aún no se han corregido.' : 'No compres ni cortes con este diseño. Consulta los cambios necesarios.'}</p>
+        {verdict.carpenter ? <details><summary className="flex min-h-11 cursor-pointer items-center text-sm underline">Leer la opinión del experto</summary><p className="pb-1 text-sm leading-relaxed">{verdict.carpenter.summary}</p></details> : <p className="text-sm leading-relaxed text-graphite-2">{verdict.error ? `El experto no respondió: ${verdict.error} Esta revisión incluye solamente las comprobaciones de Knotty.` : 'Revisión de Knotty: medidas, estructura y cortes calculados a partir del diseño.'}</p>}
       </div>
     </aside>
   )
@@ -126,8 +127,8 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
           const why = purpose(item)
           const question = !item.request || /^[¿?]/.test(item.request.trim())
           return (
-            <div key={item.id} id={pendingId(item.id)} className={`scroll-mt-4 rounded-xl border bg-paper/60 ${item.priority === 'high' && !item.optional ? 'border-rust/40' : 'border-line'}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
-              <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer rounded-xl p-3 text-sm marker:text-graphite-2">
+            <div key={item.id} id={pendingId(item.id)} className={`max-w-3xl scroll-mt-20 border-2 border-graphite ${item.priority === 'high' && !item.optional ? 'border-l-8' : ''}`}><details open={open === item.id} onToggle={(event) => { if (event.currentTarget.open) { setOpen(item.id); setConfirm(null) } else setOpen((current) => current === item.id ? null : current) }}>
+              <summary ref={(element) => { if (element) summaries.current.set(item.id, element); else summaries.current.delete(item.id) }} className="min-h-11 cursor-pointer p-3 text-[15px] marker:text-graphite">
                 <span className="font-medium">{item.title}</span>
                 <span className="mt-1 block pl-4 text-xs text-graphite-2">{choice ? REVIEW_CHOICE[choice] : why.title}</span>
               </summary>
@@ -139,7 +140,7 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
                   <Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={() => request(item)}><Wrench /> {available ? question ? 'Preguntar cómo resolverlo' : 'Pedir ajuste al experto' : question ? 'Conectar experto para consultar' : 'Conectar experto para pedir el ajuste'}</Button>
                   <Button variant="ghost" className="px-2 text-xs" disabled={thinking} onClick={() => { setConfirm(item.id); requestAnimationFrame(() => confirmation.current?.focus()) }}>{item.optional ? 'Dejarlo así' : 'Aceptar así, bajo mi riesgo'}</Button>
                 </div>}
-                {confirm === item.id && <div ref={confirmation} tabIndex={-1} className="flex flex-col gap-3 rounded-lg bg-kraft p-3 focus-visible:outline-2 focus-visible:outline-focus" role="group" aria-label="Confirmar decisión" aria-describedby={confirmationId}>
+                {confirm === item.id && <div ref={confirmation} tabIndex={-1} className="flex flex-col gap-3 border-l-4 border-graphite py-1 pl-3 focus-visible:outline-2 focus-visible:outline-focus" role="group" aria-label="Confirmar decisión" aria-describedby={confirmationId}>
                   <p id={confirmationId} className="text-sm leading-relaxed">{item.optional ? '¿Quieres mantener el diseño sin esta mejora? Puedes deshacer esta decisión.' : 'Este problema seguirá en el diseño, la guía y la lista. Aceptarlo no significa que sea seguro ni que esté corregido. ¿Quieres mantenerlo así, bajo tu riesgo?'}</p>
                   <div className="flex flex-wrap gap-3"><Button variant="secondary" className="px-3 text-xs" disabled={thinking} onClick={() => decided(item, item.optional ? 'keep' : 'risk')}>{item.optional ? 'Confirmar: dejarlo así' : 'Confirmar: aceptar bajo mi riesgo'}</Button><Button variant="ghost" className="px-2 text-xs" onClick={() => { setConfirm(null); summaries.current.get(item.id)?.focus() }}>Volver</Button></div>
                 </div>}
@@ -151,14 +152,13 @@ export function VerdictCard({ verdict, design, onRequest, wall = null }: { verdi
           )
         })}
       </div>
-      <details className="border-t border-line pt-2">
-        <summary className="min-h-11 cursor-pointer text-sm font-medium">Comprobaciones de Knotty · {notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}</summary>
-        <ul className="divide-y divide-line">
+      <Section title="Comprobaciones de Knotty" aside={notes ? `${notes} ${notes === 1 ? 'nota por revisar' : 'notas por revisar'}` : `${passed} sin pendientes`}>
+        <ul className="max-w-3xl divide-y divide-line border-y-2 border-graphite">
           {verdict.checks.map((check) => <li key={check.id} className="flex items-start gap-2 py-3 text-sm"><span className="mt-0.5 shrink-0">{CHECK_ICON[check.status]}</span><div className="min-w-0 space-y-1"><p className="font-medium">{check.title}</p><p className="text-xs leading-relaxed">{check.detail}</p></div></li>)}
         </ul>
         <Button variant="ghost" className="mt-2 px-2 text-xs" disabled={thinking} onClick={() => void review()}><ArrowClockwise /> Repetir revisión</Button>
-      </details>
-      {!!verdict.carpenter?.tips.length && <details className="border-t border-line pt-2"><summary className="min-h-11 cursor-pointer text-sm font-medium">Consejos opcionales para el taller</summary><ul className="list-disc space-y-2 py-2 pl-5 text-sm leading-relaxed">{verdict.carpenter.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></details>}
+      </Section>
+      {!!verdict.carpenter?.tips.length && <Section title="Consejos opcionales para el taller"><ul className="max-w-3xl list-disc space-y-2 py-2 pl-5 text-[15px] leading-relaxed">{verdict.carpenter.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul></Section>}
     </div>
   )
 }

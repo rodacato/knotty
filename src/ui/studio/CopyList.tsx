@@ -18,7 +18,7 @@ export function CopyList({ text, variant = 'secondary' }: { text: string; varian
   }
   return (
     <div className="relative flex flex-col gap-2">
-      <Button variant={variant} className="self-start" onClick={() => void copy()}>
+      <Button variant={variant} className={`self-start ${variant === 'secondary' ? 'border-2 border-graphite bg-transparent hover:bg-kraft' : ''}`} onClick={() => void copy()}>
         {state === 'copied' ? <Check weight="bold" /> : <Copy />} {copyLabel(state)}
       </Button>
       <span className="sr-only" aria-live="polite">

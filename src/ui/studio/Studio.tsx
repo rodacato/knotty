@@ -28,7 +28,8 @@ import { StatusChip } from './StatusChip'
 import { useStatuses } from './statuses'
 import { overlayAfter, useStudioView, type Overlay } from './view'
 import { named } from '../../application/named'
-import { currentPlan, fichaOrigin } from '../../application/useCases'
+import { currentPlan } from '../../application/useCases'
+import { FichaOrigin } from './FichaOrigin'
 import { measuresSummary } from '../../domain/furniture/modules/common'
 import { moduleOf } from '../../domain/furniture/modules/plan'
 import { NoticePanel } from './NoticePanel'
@@ -212,19 +213,6 @@ function ConfirmNew({ children }: { children: ReactNode }) {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
-}
-
-/** Where the design comes from, quietly: the ficha it was opened from and whether it changed, or that it is a design of its own. */
-function FichaOrigin({ state }: { state: DesignState }) {
-  const origin = fichaOrigin(state)
-  const text = origin ? `${origin.code} v${origin.version}${origin.changed ? ' · con cambios' : ''}` : 'Personalizado'
-  const title = origin ? `Sale de la ficha ${origin.code}, versión ${origin.version}${origin.changed ? ', y cambió desde entonces' : ''}` : 'No sale de ninguna ficha: lo diseñaste tú o el experto'
-  return (
-    <span title={title} className="font-mono text-[11px] text-graphite-2/80">
-      {' · '}
-      {text}
-    </span>
   )
 }
 
