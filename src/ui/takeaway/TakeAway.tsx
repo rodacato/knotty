@@ -8,7 +8,8 @@ import { FitDetails, JointDetails, MachiningDetails, SheetDetails, ShoppingDetai
 import { installationLabel } from '../../domain/design/installation'
 import { reviewSignature } from '../../application/useCases/review'
 import { ArrowLeft, Printer, Warning } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { route, type Role, type RouteRole } from './route'
 import { analyze } from '../../domain/checks/analysis'
 import { counterLines } from '../../domain/estimate/counterList'
 import { estimatePurchase } from '../../domain/estimate/purchase'
@@ -83,12 +84,47 @@ function Checklist({ title, lines }: { title: string; lines: Advice[] }) {
       <ul className="flex flex-col gap-1.5 text-[15px] leading-snug">
         {lines.map((line) => (
           <li key={line.text} className="flex gap-2 [break-inside:avoid]">
-            <span aria-hidden className="mt-0.5 size-4 shrink-0 rounded-sm border-2 border-[#1d1b19]" />
+            <span aria-hidden className="mt-0.5 size-4 shrink-0 border-2 border-graphite" />
             {line.text}
           </li>
         ))}
       </ul>
     </section>
+  )
+}
+
+/** The role a group of sections prints above each of them; the name comes from the export modes, so it is never written twice. */
+const roleTag = (role: Role) => ({ '--role': JSON.stringify(EXPORT_MODES[role]) }) as CSSProperties
+
+/** The guide's index as its route (UI-93): numbered cells under the role that does them, a heavier rule where the work changes hands. */
+function Route({ roles }: { roles: RouteRole[] }) {
+  return (
+    <nav
+      aria-label="Índice de la guía"
+      className="guide-route flex flex-col gap-3 md:flex-row md:gap-0"
+      onClick={(event) => {
+        const target = (event.target as HTMLElement).closest('a[href^="#"]')?.getAttribute('href')?.slice(1)
+        if (!target) return
+        event.preventDefault()
+        document.getElementById(target)?.scrollIntoView({ block: 'start' })
+      }}
+    >
+      {roles.map((r, i) => (
+        <div key={r.role} className={`flex min-w-0 flex-col ${i > 0 ? 'md:border-l-[6px] md:border-graphite' : ''}`} style={{ flexGrow: r.steps.length, flexBasis: 0 }}>
+          <p className="bg-graphite px-4 py-2 font-display text-xl leading-tight font-semibold text-bone uppercase">{r.name}</p>
+          <ol className="flex flex-1 flex-col border-l-2 border-graphite md:grid md:auto-cols-fr md:grid-flow-col">
+            {r.steps.map((s) => (
+              <li key={s.id} className="border-r-2 border-b-2 border-graphite">
+                <a href={`#${s.id}`} className="flex h-full min-h-14 items-center gap-3 px-3 py-2 no-underline hover:bg-kraft md:min-h-20">
+                  <span className="numerals text-2xl leading-none font-semibold md:text-4xl">{s.number}</span>
+                  <span className="border-l-2 border-graphite pl-3 font-display text-base leading-tight font-semibold uppercase md:text-lg">{s.label}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+    </nav>
   )
 }
 
@@ -170,52 +206,49 @@ export function TakeAway({ state }: { state: DesignState }) {
   }, [identity.file])
 
   return (
-    <div className="workshop-document min-h-dvh bg-white text-[#1d1b19]">
-      <div ref={toolbarRef} className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-bone/90 px-4 py-2 text-graphite backdrop-blur print:hidden">
-        <Button variant="ghost" className="min-h-11 px-3" onClick={() => openTakeAway(false)}>
+    <div className="workshop-document min-h-dvh bg-bone text-graphite print:bg-white">
+      <div ref={toolbarRef} className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b-2 border-graphite bg-bone px-4 py-2 text-graphite print:hidden">
+        <Button variant="ghost" className="min-h-11 px-3 font-display text-base uppercase" onClick={() => openTakeAway(false)}>
           <ArrowLeft weight="bold" /> Volver al Estudio
         </Button>
-        <label className="flex items-center gap-2 text-sm">Contenido
-          <select aria-label="Contenido del PDF" value={mode} onChange={(event) => setMode(event.target.value as ExportMode)} className="min-h-11 rounded-md border border-line bg-paper px-3 text-graphite">
+        <label className="flex items-center gap-2 font-display text-base font-semibold uppercase">Contenido
+          <select aria-label="Contenido del PDF" value={mode} onChange={(event) => setMode(event.target.value as ExportMode)} className="min-h-11 border-2 border-graphite bg-bone px-3 font-sans text-base font-normal normal-case text-graphite">
             {(Object.entries(EXPORT_MODES) as [ExportMode, string][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
-        <Button variant="primary" className="min-h-11 max-w-full px-5" onClick={() => window.print()}>
+        {/* Printing is this screen's one action, so it carries the vermilion (UI-93); the paper never shows it. */}
+        <Button variant="action" className="min-h-11 max-w-full px-5" onClick={() => window.print()}>
           <Printer weight="bold" /> Imprimir o guardar como PDF
         </Button>
       </div>
 
-      <main className="mx-auto flex max-w-[190mm] flex-col gap-8 px-4 py-8 print:max-w-none print:p-0">
-        <header id="origin" className="flex flex-col gap-1">
-          <p className="export-kind">Knotty · {EXPORT_MODES[mode]}</p>
-          <h1 className="font-display text-3xl leading-tight font-semibold">{design.name}</h1>
-          <p className="numerals text-sm">
-            {height} × {width} × {depth} mm (alto, ancho, fondo) · Knotty · {today}
-          </p>
-          <p className="text-sm">Diseño actual · versión {state.current} · {installationLabel(design)}</p>
-          <p className="export-status">{statusLabel}</p>
-          <h2 className="mt-3 font-semibold">Origen y versión</h2>
-          <p className="text-sm">{identity.origin}. Esta guía describe la versión actual, que puede incluir cambios respecto a la ficha de origen.</p>
+      {/* Wide on a screen, as the route reads across; the paper is still a letter page. */}
+      <main className="mx-auto flex max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-8 print:max-w-none print:p-0">
+        <header id="origin" className="flex flex-col gap-3">
+          {/* The document's masthead: the same black band as the app, the furniture's name leading (UI-93). */}
+          <div className="guide-band flex flex-wrap items-baseline gap-x-5 gap-y-1 bg-graphite px-5 py-4 text-bone">
+            <p className="font-display leading-none font-semibold"><span className="text-3xl md:text-5xl">Knotty</span> <span className="text-xl md:text-3xl">· {EXPORT_MODES[mode]}</span></p>
+            <h1 className="border-bone/60 font-display text-3xl leading-none font-semibold md:border-l-2 md:pl-5 md:text-5xl">{design.name}</h1>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <p className="numerals text-sm md:text-base">
+              {height} × {width} × {depth} mm (alto, ancho, fondo) · Knotty · {today}
+            </p>
+            <p className="text-sm md:text-base">Diseño actual · versión {state.current} · {installationLabel(design)}</p>
+          </div>
+          <p className="export-status flex items-center gap-2">{status === 'viable' && !constructionProblems.length ? null : <Warning weight="bold" className="size-6 shrink-0" aria-hidden />}{statusLabel}</p>
+          <div className="flex flex-col gap-1 border-b-2 border-graphite pb-3 sm:flex-row sm:gap-4">
+            <h2 className="shrink-0 font-display text-lg font-semibold sm:border-r-2 sm:border-graphite sm:pr-4">Origen y versión</h2>
+            <p className="text-sm">{identity.origin}. Esta guía describe la versión actual, que puede incluir cambios respecto a la ficha de origen.</p>
+          </div>
           <p className="export-filename">Nombre sugerido: {identity.file}.pdf</p>
         </header>
 
-        {sheet && <nav aria-label="Índice de la guía" className="export-index" onClick={(event) => {
-          const link = (event.target as HTMLElement).closest('a[href^="#"]')
-          const target = link?.getAttribute('href')?.slice(1)
-          if (!target) return
-          event.preventDefault()
-          document.getElementById(target)?.scrollIntoView({ block: 'start' })
-        }}>
-          <a href="#origin">Origen</a>
-          {forYard && <><a href="#cuts">Lista de corte</a><a href="#purchase">Compra</a><a href="#layout">Hojas</a></>}
-          {mode === 'assembly' && <a href="#cuts">Piezas</a>}
-          <a href="#machining">Mecanizado</a>
-          {forAssembly && <><a href="#exploded">Despiece</a><a href="#joints">Uniones</a><a href="#fit">Ajustes e instalación</a>{hasPhases && <a href="#assembly">Armado</a>}</>}
-        </nav>}
+        {sheet && <Route roles={route(mode, hasPhases)} />}
 
         {notes.length > 0 && (
-          <section role="note" className="flex flex-col gap-2 rounded-xl border-2 border-[#1d1b19] p-4 [break-inside:avoid]">
-            <h2 className="text-lg font-semibold">Pendientes de esta guía</h2>
+          <section role="note" className="flex flex-col gap-2 border-l-8 border-graphite py-1 pl-4 [break-inside:avoid]">
+            <h2 className="font-display text-xl font-semibold uppercase">Pendientes de esta guía</h2>
             <ul className="flex list-disc flex-col gap-2 pl-5 text-[15px] leading-snug">{notes.map((note) => <li key={note}>{note}</li>)}</ul>
           </section>
         )}
@@ -225,15 +258,15 @@ export function TakeAway({ state }: { state: DesignState }) {
         )}
         {sheet && sheet.care.length > 0 && (
           <section role="note" className="flex flex-col gap-2 [break-inside:avoid]">
-            <h2 className="text-lg font-semibold">Cuidados del acabado</h2>
+            <h2 className="font-display text-xl font-semibold uppercase">Cuidados del acabado</h2>
             {sheet.care.map((line) => <p key={line.text} className="text-[15px] leading-snug">{line.text}</p>)}
           </section>
         )}
 
-        <section role="note" className="flex gap-3 rounded-xl border-2 border-[#1d1b19] p-4 [break-inside:avoid]">
+        <section role="note" className="flex gap-3 border-l-8 border-graphite py-1 pl-4 [break-inside:avoid]">
           <Warning size={24} weight="bold" className="mt-0.5 shrink-0" />
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold">Revisa esta hoja antes de cortar</h2>
+            <h2 className="font-display text-xl font-semibold uppercase">Revisa esta hoja antes de cortar</h2>
             <p className="text-[15px] leading-snug">
               Knotty calculó estas medidas a partir de tu diseño, pero no ha visto tu material ni tu espacio. Antes de cortar o de pedir los cortes, compara cada pieza con el diagrama, mide tu material y confirma que el mueble cabe donde va. Si
               algo no cuadra, no cortes: corrige el diseño o enséñale esta hoja a un carpintero.
@@ -243,6 +276,8 @@ export function TakeAway({ state }: { state: DesignState }) {
 
         {!sheet && <p>Este diseño tiene errores y todavía no se puede sacar su lista de corte. Regresa al Estudio y resuelve los avisos.</p>}
 
+        {/* Every section carries its role (UI-93), so a page torn from the guide still says whose work it is. */}
+        <div className="role-group" style={roleTag(mode === 'assembly' ? 'assembly' : 'yard')}>
         {sheet && (
           <section id="cuts" className="flex flex-col gap-5 workshop-section">
             <div className="section-intro">
@@ -302,9 +337,13 @@ export function TakeAway({ state }: { state: DesignState }) {
           </div>
         )}
 
-        {sheet && forYard && <><ShoppingDetails purchase={sheet.purchase} /><SheetDetails purchase={sheet.purchase} numbers={sheet.numbers} trim={sheet.effective.layout.trim} /></>}
+        {sheet && forYard && <SheetDetails purchase={sheet.purchase} numbers={sheet.numbers} trim={sheet.effective.layout.trim} />}
         {sheet && <MachiningDetails design={design} geo={sheet.geo} numbers={sheet.numbers} />}
-        {sheet && forAssembly && sheet.blocks.length > 0 && (
+        </div>
+
+        {sheet && forAssembly && <div className="role-group role-group-assembly" style={roleTag('assembly')}>
+        <ShoppingDetails purchase={sheet.purchase} />
+        {sheet.blocks.length > 0 && (
           <section id="exploded" className="flex flex-col gap-4 workshop-section [print-color-adjust:exact]">
             <div className="section-intro">
               <h2 className="font-display text-2xl font-semibold">Las piezas, separadas</h2>
@@ -324,16 +363,17 @@ export function TakeAway({ state }: { state: DesignState }) {
             </div>
           </section>
         )}
-        {sheet && forAssembly && <><JointDetails design={design} geo={sheet.geo} catalog={sheet.effective} numbers={sheet.numbers} /><FitDetails design={design} geo={sheet.geo} purchase={sheet.purchase} /></>}
-        {sheet && forAssembly && sheet.guide.length > 0 && (
+        <JointDetails design={design} geo={sheet.geo} catalog={sheet.effective} numbers={sheet.numbers} />
+        {sheet.guide.length > 0 && (
           <section id="assembly" className="flex flex-col gap-6 workshop-section [print-color-adjust:exact]">
             <div className="section-intro">
               <h2 className="font-display text-2xl font-semibold">Armado por fases</h2>
               <p className="text-sm">El orden en que se arma. Cada dibujo muestra el mueble hasta esa fase, en claro, y las piezas que entran en ella, marcadas y con su número de la lista: las que llegan de atrás, de abajo o de frente van dibujadas en camino a su lugar.</p>
             </div>
             {sheet.guide.map((phase, i) => (
-              <div key={phase.id} className="flex flex-col gap-2 [break-inside:avoid]">
-                <h3 className="text-lg font-semibold">
+              // Each phase is a ruled row of the route, with room for its steps (UI-93).
+              <div key={phase.id} className="flex flex-col gap-2 border-t-2 border-graphite pt-3 [break-inside:avoid]">
+                <h3 className="font-display text-xl leading-tight font-semibold uppercase">
                   {i + 1}. {phase.title}
                 </h3>
                 <ul className="flex list-disc flex-col gap-1 pl-5 text-[15px] leading-snug">
@@ -363,6 +403,9 @@ export function TakeAway({ state }: { state: DesignState }) {
             ))}
           </section>
         )}
+        <FitDetails design={design} geo={sheet.geo} purchase={sheet.purchase} />
+        </div>}
+
         {sheet && sheet.words.length > 0 && (
           <section className="flex flex-col gap-2 [break-inside:avoid]">
             <h2 className="font-display text-2xl font-semibold">Palabras de esta hoja</h2>
