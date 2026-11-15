@@ -2,7 +2,7 @@
 
 Adrian picked the **two-ink cutting sheet**, an Overhaul of the Studio built on the world of a 1960s Mexican lumber-yard cut ticket: black press ink and one vermilion spot ink printed on pale straw paper. It replaced the dark-workshop system ([set aside](set-aside/preserve-2026-11/README.md)) after three rounds of generated images and two side-by-side reviews of both systems on the editor, Materials and the site hero. The type was chosen afterwards, in a browser, from real fonts ([type specimen](type.html), option C).
 
-App: [Studio](studio.png) · [Materials](materials.png) · [Catalog](catalog.png) ([phone](catalog-phone.png))
+App: [Studio](studio.png) · [Materials](materials.png) ([desktop](materials-desktop.png)) · [Take-away guide](takeaway.png) · [Catalog](catalog.png) ([phone](catalog-phone.png))
 Site: [Landing](landing.png) ([phone](landing-phone.png)) · [Landing, materials section](landing-materials.png) · [Brand guide](brand-guide.png)
 [Prompts](prompts/)
 
@@ -35,6 +35,28 @@ Still open:
 - How much hatching and how many heavy rules a long session tolerates. The second review named fatigue as the main remaining risk.
 
 - The Studio image puts vermilion on «Terminar de editar», which leaves the editor rather than doing the screen's work. Revisit when the Studio is built against this image.
+
+## Materials on desktop and the take-away guide
+
+Both extend the system above; neither adds a token, a face or a second vermilion.
+
+- **Materials on desktop, verdict first.** Under the furniture band and «Preparar materiales», one wide band in two halves: on the left the sideboard large, with the hatched «Techo» and its leader, and the cost under it as a secondary line with the price qualifier; on the right «Se puede hacer», then the pending decision with its heavy left bar and the wall options, and the one vermilion action directly under it. Below, a full-width ruled band with «Comprobaciones de Knotty», its six checks and «Repetir revisión» in ink. Then «Hojas de triplay»: the material strip and the sheets as evidence for the verdict above, at a smaller scale. The furniture stays on screen; the phone keeps today's one column.
+- **Take-away guide, a route of phases.** Under the document masthead and the pending-review notice, one ruled strip of five numbered cells under two black role headers: «Para la maderería» over 01 «Lista de corte» and 02 «Mecanizado y perfiles», «Para armar» over 03 «Compra de herrajes y consumibles», 04 «Armado por fases» and 05 «Ajustes e instalación». A heavier rule marks the handoff between 02 and 03. Each section below carries its role as a black tag at its left, so a printed page says whose it is without the strip. The vermilion print button is screen-only.
+
+Directions set aside:
+
+| Surface | Direction | Why it lost | What would bring it back |
+| --- | --- | --- | --- |
+| Materials | Sheets first, the summary in a right-hand sidebar like a receipt | The furniture came out small, and the sidebar repeats the narrow column the phone already has | A carpenter who opens Materials only to read the sheets |
+| Materials | Cost first, everything to buy in tables | Dense; the decision and the verdict shrank to one line | The shopping list becomes the main reason people open the screen |
+| Guide | Two booklets side by side | «Para armar» was a column of titles with nothing under them on the first page | Printing the two parts as separate documents |
+| Guide | Assembly first, the lumberyard as an annex | It takes the carpenter's part off the first page, which is the page taken to the shop | — |
+
+Known defects of these images, not to be built:
+- The guide pins the «Herramienta: …» lines to phases 1–3. In the guide they belong to the joints (pocket screw, screw, nail), not to a phase.
+- The guide squeezes phases 4–9 into narrow cells, and its sideboard overlaps the masthead band. Phases are rows with room for their steps.
+- On Materials' sheet 1, «1. Techo» is drawn over «1. Piso», and sheet 2 has no piece labels. The sheets are drawn by the app's own diagram, labels included.
+- «Sobra al menos 396 × 130 mm» floats beside sheet 2; it belongs to its sheet's caption, as the app prints it.
 
 ## Site and catalog
 
