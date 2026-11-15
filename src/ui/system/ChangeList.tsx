@@ -1,6 +1,7 @@
 import { ArrowCounterClockwise, CaretRight, Minus, Plus, Swap } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { describeChange } from '../../domain/editing/changes/changes'
+import { ErrorText } from './Field'
 
 // Under each change: what it did to the pieces, with a way back for each piece and for the whole change.
 
@@ -34,7 +35,7 @@ export function ChangeListView({
   return (
     <details className={`group text-sm ${inBubble ? 'mt-3 border-t border-line pt-1' : ''}`}>
       <summary
-        className={`flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-md text-xs text-graphite-2 hover:text-graphite [&::-webkit-details-marker]:hidden ${inBubble ? '-mb-2' : '-my-3 ml-auto w-fit'}`}
+        className={`flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-xs text-graphite-2 hover:text-graphite [&::-webkit-details-marker]:hidden ${inBubble ? '-mb-2' : '-my-3 ml-auto w-fit'}`}
       >
         <CaretRight className="shrink-0 transition group-open:rotate-90" />
         Qué cambió ({count}){change.followed.length ? ` · ${change.followed.length} ${change.followed.length === 1 ? 'pieza se ajustó sola' : 'piezas se ajustaron solas'}` : ''}
@@ -43,7 +44,7 @@ export function ChangeListView({
         {change.dimensions && <li className="text-xs">Medidas del mueble: {change.dimensions}</li>}
         {change.direct.map((c) => (
           <li key={c.id} className="flex items-center gap-2">
-            <span className={`grid size-5 shrink-0 place-items-center rounded-full ${c.kind === 'removed' ? 'bg-rust/15 text-rust' : c.kind === 'added' ? 'bg-slate/15 text-slate' : 'bg-graphite/10 text-graphite'}`}>{ICON[c.kind]}</span>
+            <span className={`grid size-5 shrink-0 place-items-center border-2 border-graphite ${c.kind === 'removed' ? 'bg-graphite text-bone' : 'text-graphite'}`}>{ICON[c.kind]}</span>
             <button type="button" className="min-w-0 flex-1 truncate text-left text-xs hover:underline" onClick={() => c.kind !== 'removed' && onSelect(c.id)} title={c.detail}>
               <span className="font-medium">{c.name}</span>
               {c.detail && <span className="text-graphite-2"> · {c.detail}</span>}
@@ -57,7 +58,7 @@ export function ChangeListView({
       <button type="button" disabled={thinking} onClick={() => run(onUndo())} className={`relative mt-2 flex items-center gap-1 text-xs font-medium before:absolute before:-inset-y-3.5 before:inset-x-0 before:content-[''] hover:underline disabled:opacity-40 ${inBubble ? '' : 'ml-4'}`}>
         <ArrowCounterClockwise /> Deshacer este cambio
       </button>
-      {error && <p className={`mt-1 text-xs text-rust ${inBubble ? '' : 'pl-4'}`}>{error}</p>}
+      {error && <ErrorText className={`mt-1 ${inBubble ? '' : 'ml-4'}`}>{error}</ErrorText>}
     </details>
   )
 }

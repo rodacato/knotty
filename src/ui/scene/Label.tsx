@@ -5,7 +5,7 @@ import { CanvasTexture, SRGBColorSpace } from 'three'
 
 type Point = [number, number, number]
 
-/** `tag`: a solid ink block in the display face, the name of the part being edited. `cota`: a dimension printed in ink on a paper patch, no pill (UI-93). */
+/** `tag`: a solid ink block in the display face, the name of the part being edited. `cota`: a dimension printed in ink on a paper patch, no pill, in mono like every measure (UI-93). */
 export function Label({ text, position, dark, height = 0.021, strong = false, tag = false, cota = false }: { text: string; position: Point; dark: boolean; height?: number; strong?: boolean; tag?: boolean; cota?: boolean }) {
   const [fontsReady, setFontsReady] = useState(false)
   useEffect(() => void document.fonts.ready.then(() => setFontsReady(true)), [])
@@ -13,7 +13,9 @@ export function Label({ text, position, dark, height = 0.021, strong = false, ta
     const scale = 3
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
-    const font = tag || cota ? `600 ${(tag ? 17 : 15) * scale}px "Oswald Variable", "Arial Narrow", sans-serif` : `${strong ? 600 : 500} ${13 * scale}px "IBM Plex Mono", ui-monospace, monospace`
+    const font = tag
+      ? `600 ${17 * scale}px "Oswald Variable", "Arial Narrow", sans-serif`
+      : `${strong || cota ? 600 : 500} ${(cota ? 12 : 13) * scale}px "IBM Plex Mono", ui-monospace, monospace`
     ctx.font = font
     const width = ctx.measureText(text).width + 22 * scale
     const tall = 24 * scale

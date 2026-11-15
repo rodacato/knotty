@@ -15,6 +15,7 @@ import { SceneBoundary } from '../scene/SceneBoundary'
 import { AppHeader } from '../shell/AppHeader'
 import { useServices } from '../services'
 import { useStore } from '../store'
+import { ErrorText } from '../system/Field'
 import { FinishSelect } from '../system/FinishSelect'
 import { Button } from '../system/components'
 import { axisNote, blocking, chosenExample, COUNT_LABELS, isUnreadable, SPACE_AXES, spaceOf, summaryLines, type SpaceAxis } from './adjust'
@@ -164,7 +165,7 @@ export function AdjustBase({ base }: { base: Base }) {
                     return (
                       <label key={axis} className={`flex flex-col gap-1 ${fieldLabel}`}>
                         {label}
-                        <span className={`flex min-h-12 items-center gap-1 border-2 bg-bone px-3 font-sans font-normal normal-case focus-within:outline-2 focus-within:outline-focus ${unreadable ? 'border-rust' : 'border-graphite'}`}>
+                        <span className={`flex min-h-12 items-center gap-1 border-2 bg-bone px-3 font-sans font-normal normal-case focus-within:outline-2 focus-within:outline-focus ${unreadable ? 'border-graphite border-l-8' : 'border-graphite'}`}>
                           <input
                             inputMode="decimal"
                             value={typed[axis]}
@@ -180,13 +181,13 @@ export function AdjustBase({ base }: { base: Base }) {
                   })}
                 </div>
                 <div aria-live="polite" className="flex flex-col gap-1 text-sm">
-                  {SPACE_AXES.some(([axis]) => isUnreadable(typed[axis])) && <p className="text-rust">Escribe solo números, por ejemplo 90 o 37.5.</p>}
+                  {SPACE_AXES.some(([axis]) => isUnreadable(typed[axis])) && <ErrorText>Escribe solo números, por ejemplo 90 o 37.5.</ErrorText>}
                   {notes.map((n) => (
                     <p key={n} className="text-graphite-2">
                       {n}
                     </p>
                   ))}
-                  {!fit.fitsSpace && <p className="font-medium text-rust">Con esas medidas no cabe en tu espacio.</p>}
+                  {!fit.fitsSpace && <ErrorText>Con esas medidas no cabe en tu espacio.</ErrorText>}
                 </div>
               </section>
             )}
@@ -212,24 +213,26 @@ export function AdjustBase({ base }: { base: Base }) {
               <FinishSelect value={finish} onChange={setFinish} />
             </section>
 
-            {stopper && <p className="text-sm text-rust">{stopper}</p>}
+            {stopper && <ErrorText>{stopper}</ErrorText>}
             {fit.critical.length > 0 && !stopper && <p className="text-sm text-graphite-2">Con estas medidas la revisión marcaría: {fit.critical[0]}</p>}
           </div>
 
           <div className="flex shrink-0 flex-col gap-2 border-t-2 border-graphite px-5 pt-3 pb-3 md:gap-3 md:border-t-0 md:px-9 md:pb-6">
             {lines && (
-              <div className="flex items-baseline justify-between gap-3 md:items-center md:border-2 md:border-graphite md:px-5 md:py-4" aria-live="polite">
-                <p className="flex flex-col text-base md:text-lg">
+              // The same ticket total as Materials: a heavy ruled box, its label in capitals, the figure in mono.
+              <div className="flex items-baseline justify-between gap-3 md:items-center md:border-[3px] md:border-graphite md:px-5 md:py-4" aria-live="polite">
+                <p className="flex flex-col text-base md:gap-1 md:text-lg">
+                  <span className="hidden font-display text-lg leading-none font-semibold uppercase md:inline">Costo aproximado</span>
                   <span>
                     {lines.sheets}
                     <span className="text-graphite-2 md:hidden"> · aproximado</span>
                   </span>
-                  <span className="hidden text-sm text-graphite-2 md:inline">Aproximado</span>
                 </p>
                 <p className="numerals text-2xl font-semibold md:text-3xl">{lines.cost}</p>
               </div>
             )}
-            <Button variant="primary" className="min-h-14 w-full text-lg" disabled={stopper !== null} onClick={open}>
+            {/* Opening the Studio is this screen's one action, so it carries the vermilion (UI-93). */}
+            <Button variant="action" className="min-h-14 w-full text-lg" disabled={stopper !== null} onClick={open}>
               Abrir en el Studio <ArrowRight weight="bold" />
             </Button>
             <Button variant="ghost" className="min-h-11 w-full text-base" onClick={() => openExample(base)}>

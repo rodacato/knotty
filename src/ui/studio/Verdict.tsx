@@ -39,7 +39,7 @@ export function ReviewGate({ stale }: { stale: boolean }) {
       {reviewing ? <ReviewActivity /> : (
         <>
           <p className="max-w-2xl text-[15px] text-graphite">Knotty comprueba medidas, estructura y acomodo de las piezas en las hojas.{available ? ' Después pide una segunda opinión al experto conectado.' : ' Puedes hacerlo sin conectar un experto.'}</p>
-          {error && <p role="alert" className="flex items-start gap-2 border-l-8 border-rust py-1 pl-4 text-[15px] font-medium text-rust"><Warning className="mt-0.5 shrink-0" /> {error}</p>}
+          {error && <p role="alert" className="flex items-start gap-2 border-l-8 border-graphite py-1 pl-4 text-[15px] font-medium text-graphite"><Warning className="mt-0.5 shrink-0" /> {error}</p>}
           {thinking && <p className="text-sm">Espera a que termine el ajuste del experto antes de revisar este diseño.</p>}
           <Button variant="action" className="min-h-12 self-start px-6" disabled={thinking} onClick={() => void review()}>
             {error ? <ArrowClockwise weight="bold" /> : <Hammer weight="bold" />} {error ? 'Reintentar revisión' : stale ? 'Revisar diseño actualizado' : 'Revisar y ver materiales'}

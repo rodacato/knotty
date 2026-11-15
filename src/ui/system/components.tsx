@@ -10,7 +10,8 @@ const VARIANTS: Record<Variant, string> = {
   primary: 'border-2 border-graphite bg-graphite font-display text-base font-semibold text-bone uppercase hover:bg-graphite/90',
   secondary: 'border-2 border-graphite bg-bone font-display text-base font-semibold text-graphite uppercase hover:bg-kraft',
   ghost: 'text-graphite-2 hover:bg-kraft hover:text-graphite',
-  danger: 'bg-rust text-on-rust hover:bg-rust/90',
+  // A loss is said in the button's words, in ink: rust is for what cannot be done, not for what the person may choose.
+  danger: 'border-2 border-graphite bg-graphite font-display text-base font-semibold text-bone uppercase hover:bg-graphite/90',
 }
 
 export function Button({ variant = 'secondary', className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
@@ -30,10 +31,10 @@ const ICON_BUTTON_SIZES = {
   lg: 'size-11',
 }
 
-/** A round button that holds only an icon: 36 px with a 44 px hit area, or 44 px where a finger reaches it over the 3D or in a dialog. */
+/** A square button that holds only an icon, in ink: 36 px with a 44 px hit area, or 44 px where a finger reaches it over the 3D or in a dialog. */
 export function IconButton({ size = 'md', className = '', children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { size?: keyof typeof ICON_BUTTON_SIZES }) {
   return (
-    <button type="button" className={`grid shrink-0 place-items-center rounded-full text-graphite-2 transition hover:bg-kraft active:scale-[0.97] ${ICON_BUTTON_SIZES[size]} ${className}`} {...props}>
+    <button type="button" className={`grid shrink-0 place-items-center text-graphite transition hover:bg-kraft active:scale-[0.97] disabled:opacity-40 ${ICON_BUTTON_SIZES[size]} ${className}`} {...props}>
       {children}
     </button>
   )
@@ -43,8 +44,8 @@ export function Chip({ active = false, className = '', children, ...props }: But
   return (
     <button
       type="button"
-      className={`relative inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
-        active ? 'border-select bg-select-soft font-semibold text-graphite' : 'border-line bg-bone font-medium text-graphite hover:bg-kraft'
+      className={`relative inline-flex min-h-9 items-center gap-1.5 border-2 border-graphite px-3.5 text-[13px] transition before:absolute before:-inset-y-[5px] before:-inset-x-px before:content-[''] active:scale-[0.96] disabled:opacity-40 ${
+        active ? 'bg-graphite font-semibold text-bone' : 'bg-bone font-medium text-graphite hover:bg-kraft'
       } ${className}`}
       {...props}
     >
@@ -56,14 +57,14 @@ export function Chip({ active = false, className = '', children, ...props }: But
 const STAMP: Record<Severity, { text: string; className: string; tilt: string }> = {
   critical: { text: 'Crítico', className: 'text-rust border-rust', tilt: '-rotate-3' },
   recommendation: { text: 'Recomendación', className: 'text-graphite border-graphite', tilt: 'rotate-2' },
-  detail: { text: 'Detalle', className: 'text-slate border-slate', tilt: '-rotate-1' },
+  detail: { text: 'Detalle', className: 'text-graphite-2 border-graphite-2', tilt: '-rotate-1' },
 }
 
 /** Severity as an ink stamp on a drawing. */
 export function Stamp({ severity }: { severity: Severity }) {
   const s = STAMP[severity]
   return (
-    <span className={`inline-block rounded-[4px] border-2 px-1.5 py-px font-mono text-xs font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply ${s.className} ${s.tilt}`}>
+    <span className={`inline-block border-2 px-1.5 py-px font-mono text-xs font-bold uppercase tracking-[0.12em] opacity-90 mix-blend-multiply ${s.className} ${s.tilt}`}>
       {s.text}
     </span>
   )

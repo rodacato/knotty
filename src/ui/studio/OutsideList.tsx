@@ -5,6 +5,7 @@ import { currentPlan } from '../../application/useCases'
 import type { Geometry } from '../../domain/design/resolve'
 import { currentDesign, type DesignState } from '../../domain/session/state'
 import { Button } from '../system/components'
+import { ErrorText } from '../system/Field'
 import { KindSelect } from '../system/KindSelect'
 import { KIND_NOUN, kindLabel, type DesignKind, type KindSource } from '../../domain/design/kind'
 import { kindOf } from '../../domain/furniture/kind'
@@ -67,7 +68,7 @@ function KindPicker({ state, open, onToggle, panel = false }: { state: DesignSta
       <KindSelect id={id} value={redo ?? current} onChange={choose} none="Sin decidir" disabled={thinking || !!draft} />
       {draft && <p className="text-sm text-graphite-2">Aplica o descarta tu cambio para elegir el tipo.</p>}
       {!draft && !redo && !error && said && <p className="text-sm text-graphite-2">{said}</p>}
-      {error && <p className="text-xs text-rust">{error}</p>}
+      {error && <ErrorText>{error}</ErrorText>}
       {redo && (
         <div className="flex flex-col gap-2 rounded-xl border border-line bg-kraft p-3 text-sm">
           <p>

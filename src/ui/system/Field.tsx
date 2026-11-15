@@ -1,4 +1,4 @@
-import { CaretDown } from '@phosphor-icons/react'
+import { CaretDown, Warning } from '@phosphor-icons/react'
 import { createContext, useContext, useId } from 'react'
 import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 
@@ -10,15 +10,20 @@ type Size = 'md' | 'sm'
 const FRAME = 'border-2 bg-bone text-base text-graphite outline-none transition focus:border-focus focus-within:border-focus disabled:opacity-60 has-disabled:opacity-60'
 const PLACEHOLDER = 'placeholder:text-graphite-2'
 const HEIGHT: Record<Size, string> = { md: 'min-h-11 px-3', sm: 'min-h-8 px-2' }
-const border = (invalid?: boolean) => (invalid ? 'border-rust' : 'border-graphite')
+// An invalid box keeps its ink and gains the heavy left bar of a warning (UI-93): never a second colour.
+const border = (invalid?: boolean) => (invalid ? 'border-graphite border-l-8' : 'border-graphite')
 
 const FieldContext = createContext<{ id?: string; describedBy?: string; invalid: boolean }>({ invalid: false })
 
-/** An error line announced as soon as it appears; `id` is what the control's `aria-describedby` points at. */
-export function ErrorText({ id, className = '', children }: { id?: string; className?: string; children: ReactNode }) {
+/**
+ * An error line announced as soon as it appears; `id` is what the control's `aria-describedby` points at.
+ * It is a warning as the brand draws one: a black triangle and the heavy left bar, in ink (the critical colour is for what cannot be done).
+ */
+export function ErrorText({ id, live = true, className = '', children }: { id?: string; live?: boolean; className?: string; children: ReactNode }) {
   return (
-    <p id={id} role="alert" className={`text-xs text-rust ${className}`}>
-      {children}
+    <p id={id} role={live ? 'alert' : undefined} className={`flex items-start gap-2 border-l-8 border-graphite pl-3 text-sm font-medium text-graphite ${className}`}>
+      <Warning weight="bold" className="mt-0.5 shrink-0" aria-hidden />
+      <span>{children}</span>
     </p>
   )
 }

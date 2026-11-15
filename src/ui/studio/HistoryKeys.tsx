@@ -46,7 +46,7 @@ export function HistoryButtons() {
   return (
     <>
       {refused && (
-        <p role="status" className="pointer-events-auto max-w-56 rounded-xl border border-line bg-bone/95 px-3 py-2 text-xs text-graphite shadow-sm">
+        <p role="status" className="pointer-events-auto max-w-56 border-2 border-graphite bg-bone px-3 py-2 text-xs text-graphite">
           {refused}
         </p>
       )}

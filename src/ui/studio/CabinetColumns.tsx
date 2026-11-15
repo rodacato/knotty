@@ -61,7 +61,7 @@ function CellRow({ cell, heights, index, canBeVoid, onChange, onRemove }: { cell
       )}
       {!cell.columns && cell.content === 'door' && <Segmented label="Hojas" value={String(cell.doors ?? 1)} options={[['1', '1 hoja'], ['2', '2 hojas']]} onChange={(v) => onChange({ ...cell, doors: Number(v) })} />}
       {onRemove && (
-        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-rust">
+        <button type="button" aria-label={`Quitar hueco ${index + 1}`} onClick={onRemove} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-graphite">
           <Trash size={14} />
         </button>
       )}
@@ -102,7 +102,7 @@ export function CabinetColumns({ label, value: columns, onChange }: { label: str
                 %
               </label>
               {columns.length > 1 && (
-                <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => onChange(columns.filter((_, j) => j !== i))} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-rust">
+                <button type="button" aria-label={`Quitar columna ${i + 1}`} onClick={() => onChange(columns.filter((_, j) => j !== i))} className="relative ml-auto text-graphite-2 before:absolute before:-inset-4 before:content-[''] hover:text-graphite">
                   <Trash size={14} />
                 </button>
               )}

@@ -37,7 +37,7 @@ export function HistoryPanel({ state }: { state: DesignState }) {
           const current = v.n === state.current
           const viewing = v.n === viewedVersion
           return (
-            <li key={v.n} className={`animate-appear group -mx-4 px-4 transition ${viewing ? 'bg-select-soft' : ''}`}>
+            <li key={v.n} className={`animate-appear group -mx-4 pr-4 transition ${viewing ? 'border-l-8 border-graphite bg-select-soft pl-2' : 'pl-4'}`}>
               <div className={`flex flex-col gap-1.5 border-b border-line py-4 ${viewing ? '' : 'group-first:pt-0'}`}>
                 <div className="flex items-baseline gap-2">
                   <span className="numerals text-xs text-graphite-2">v{v.n}</span>

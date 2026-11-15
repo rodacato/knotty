@@ -70,11 +70,11 @@ export function useStatuses(state: DesignState, view: StudioView, around: Around
       label: preview ? ('draft' in preview ? preview.label : `Viendo la solución: ${preview.label}`) : 'Viendo la propuesta sin aplicar',
       actions: preview ? undefined : action(around.onProposal, `${WIDE} focus-visible:outline-2 focus-visible:outline-select`, 'Ver propuesta'),
     })),
-    ...when(view.geo && problems.length > 0, () => ({ key: 'problems', icon: <Warning weight="bold" className="text-rust" />, label: counted(problems.length, 'Un problema sin resolver', 'problemas sin resolver'), onClick: around.onNotices })),
+    ...when(view.geo && problems.length > 0, () => ({ key: 'problems', icon: <Warning weight="bold" />, label: counted(problems.length, 'Un problema sin resolver', 'problemas sin resolver'), onClick: around.onNotices })),
     ...when(toConfirm.length > 0 && viewedVersion === null && !proposal, () => ({ key: 'confirm', icon: <PencilSimpleLine />, label: counted(toConfirm.length, `${toConfirm[0].name} por confirmar`, 'piezas por confirmar'), onClick: () => select(toConfirm[0].id) })),
     ...when(resolvedVisible(board.resolved, around.dismissedResolved, state.current) && !around.noticesOpen, () => ({
       key: 'resolved',
-      icon: <CheckCircle weight="fill" className="text-slate" />,
+      icon: <CheckCircle weight="fill" />,
       label: resolvedChipLabel(board.resolved[0]),
       actions: <Close label="Cerrar" onClick={around.onDismissResolved} />,
     })),

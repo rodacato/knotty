@@ -14,7 +14,7 @@ const colors = [
   ['color-pine', 'Pino', 'La madera del emblema.'],
   ['color-walnut', 'Nogal', 'La tinta del ensamble sobre madera.'],
   ['color-drawing-paper', 'Papel de dibujo', 'Donde se dibuja cada mueble.'],
-  ['rust', 'Óxido', 'Avisos críticos y acciones destructivas, siempre con su ícono.'],
+  ['rust', 'Óxido', 'Solo lo que no se puede hacer, siempre con su ícono. Un aviso común va en tinta, con barra a la izquierda.'],
   ['focus', 'Foco', 'Señala dónde estás al usar el teclado.'],
 ]
 const measures = [

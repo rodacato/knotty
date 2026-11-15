@@ -31,7 +31,8 @@ describe('PassphraseField', () => {
     const markup = render(field('Frase incorrecta.'))
     expect(markup).toContain('role="alert"')
     expect(markup).toContain('aria-invalid="true"')
-    expect(markup).toContain('border-rust')
+    // Invalid is marked in ink, with the warning's heavy left bar (UI-93), not in red.
+    expect(markup).toContain('border-l-8')
   })
 
   it('keeps the eye out of the label that names the input', () => {

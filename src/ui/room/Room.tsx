@@ -131,8 +131,8 @@ function ItemEditor({ item }: { item: Item }) {
         </p>
       </div>
       {itemIssues.length > 0 && (
-        <div role="status" className="flex flex-col gap-1 rounded-xl border border-rust/50 p-3 text-sm">
-          <p className="flex items-center gap-2 font-medium text-rust">
+        <div role="status" className="flex flex-col gap-1 border-l-8 border-graphite py-1 pl-3 text-sm">
+          <p className="flex items-center gap-2 font-medium text-graphite">
             <Warning /> Revisa su colocación
           </p>
           {itemIssues.map((i, n) => (
@@ -141,7 +141,7 @@ function ItemEditor({ item }: { item: Item }) {
         </div>
       )}
       {result && !result.ok && (
-        <p role="alert" className="text-sm text-rust">
+        <p role="alert" className="text-sm font-medium text-graphite">
           No se pudo dibujar esta ficha: {result.errors[0]?.message}. Su espacio sigue visible en el plano.
         </p>
       )}
@@ -336,7 +336,7 @@ export function Room() {
                   <button
                     type="button"
                     data-room-warning
-                    className="flex min-h-11 w-fit items-center gap-2 rounded-full border border-rust/50 bg-bone/95 px-3 text-sm text-rust"
+                    className="flex min-h-11 w-fit items-center gap-2 border-2 border-l-8 border-graphite bg-bone px-3 text-sm font-medium text-graphite"
                     onClick={() => {
                       if (found[0]) useRoom.getState().select(found[0].item)
                       else useRoom.getState().setPanel('space')
@@ -406,7 +406,7 @@ export function Room() {
                   <>
                     <SpaceEditor layout={layout} />
                     {openingErrors.length > 0 && (
-                      <div role="status" className="mt-4 text-sm text-rust">
+                      <div role="status" className="mt-4 border-l-8 border-graphite pl-3 text-sm font-medium text-graphite">
                         {openingErrors.map((e, i) => (
                           <p key={i}>{e}</p>
                         ))}

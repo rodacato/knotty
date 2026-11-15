@@ -25,7 +25,7 @@ The editable geometry lives in `src/ui/system/knot.svg`: an `ink` path, a `plate
 | Main and secondary text, rules | `--graphite`, `--graphite-2`, `--line` |
 | Selection: solid ink with light text, or a 10% ink tint | `--select`, `--select-soft`, `--color-on-select` |
 | The screen's one primary action | `--action`, `--color-on-action` |
-| Critical findings | `--rust`, with an icon and explicit wording |
+| Critical findings: only what cannot be done (a design that cannot be built, an invalid ficha, a failed connection) | `--rust`, with an icon and explicit wording. Validation errors, ordinary warnings and destructive buttons stay in ink |
 | Keyboard position | `--focus` |
 | Wood identity | `--color-pine`, `--color-walnut`, `--color-birch` |
 | Furniture drawings | `--color-drawing-paper`, `--color-drawing-grid` |

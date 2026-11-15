@@ -100,7 +100,7 @@ export function App({ compose }: { compose: () => Promise<Services> }) {
       .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo iniciar.'))
   }, [compose, start])
 
-  if (error) return <p role="alert" className="grid h-full place-items-center p-6 text-rust">{error}</p>
+  if (error) return <p role="alert" className="grid h-full place-items-center p-6 font-medium text-graphite">{error}</p>
   if (!services) return <Loading />
   return (
     <ServicesContext.Provider value={services}>

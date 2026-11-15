@@ -19,7 +19,7 @@ import { EDGE_PROFILES } from '../../domain/materials/edgeProfiles'
 import { hasRouter } from '../../domain/materials/tools'
 import { Button } from '../system/components'
 import { RadioCard, RadioGroup } from '../system/RadioCard'
-import { Field, Input } from '../system/Field'
+import { ErrorText, Field, Input } from '../system/Field'
 import { HelpButton, HelpPanel, useHelp } from '../system/Help'
 import { TERMS } from '../glossary'
 import { useStore } from '../store'
@@ -244,7 +244,7 @@ function FinishSection({ design, geo, finish, base }: { design: Design; geo: Geo
                         </span>
                         <span className="block text-xs text-graphite-2">{coatsOf(FINISHES[finish.finish].layers.filter((x) => x.product === l.product))}</span>
                         {drying && <span className="block text-xs text-graphite-2">Secado: {drying}</span>}
-                        {l.litres === null && <span className="block text-xs text-rust">La referencia no da su rendimiento en m² por litro: pregunta en la tienda cuánto llevar.</span>}
+                        {l.litres === null && <span className="block text-xs font-medium text-graphite">La referencia no da su rendimiento en m² por litro: pregunta en la tienda cuánto llevar.</span>}
                       </span>
                     </div>
                     {l.containers.map((c) => (
@@ -432,7 +432,7 @@ export function Materials({ state, design, geo, catalog, instead, onRequest }: {
         <VerdictSummary verdict={verdict} />
         {construction}
         {reviewNotice && <p role="status" className="text-sm">{reviewNotice}</p>}
-        {verdictError && <p role="alert" className="text-sm text-rust">{verdictError}</p>}
+        {verdictError && <ErrorText>{verdictError}</ErrorText>}
         <VerdictCard
           key={`${verdict.signature}:${verdict.date}`}
           verdict={verdict}
