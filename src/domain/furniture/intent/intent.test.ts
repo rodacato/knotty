@@ -197,6 +197,20 @@ describe('parseIntent', () => {
     ['cámbiale el zoclo por patas', 'drawers', edit('base', 'legs')],
     ['que quede a ras de piso', 'tv', edit('base', 'floor')],
     ['déjale las patas derechas', 'sideboard', edit('legStyle', 'straight')],
+    // The words a person uses for an option, not the form's.
+    ['que sea matrimonial', 'bed', edit('mattress', 'matrimonial')],
+    ['queen size', 'bed', edit('mattress', 'queen')],
+    ['cama king', 'bed', edit('mattress', 'king')],
+    ['cajones a la derecha', 'bed', edit('drawers.side', 'right')],
+    ['cajones de ambos lados', 'bed', edit('drawers.side', 'both')],
+    ['pon los cajones a la derecha', 'desk', edit('pedestal.side', 'right')],
+    ['cajones del lado derecho', 'desk', edit('pedestal.side', 'right')],
+    ['sin cajones', 'desk', edit('pedestal.side', 'none')],
+    ['con esquinas redondeadas', 'dining', edit('corners', 'rounded')],
+    ['ancla a la pared', 'sideboard', edit('wallMounted', 'yes')],
+    ['que tenga lugar para botas', 'shoeRack', edit('bootLevel', 'yes')],
+    ['que me pueda sentar', 'shoeRack', edit('seat', 'yes')],
+    ['sin puerta', 'wallCabinet', edit('columns', 'remove the doors')],
   ]
   it.each(understood)('«%s» on the %s', (request, name, expected) => expect(read(request, name)).toEqual(expected))
 
@@ -245,7 +259,6 @@ describe('parseIntent', () => {
     ['Súbela', 'dining'],
     ['Alárgalo 20 cm', 'bookcase'],
     ['Hazla de 120 cm', 'drawers'],
-    ['hazlo más angosto', 'bookcase'],
     ['Hazla de 3 metros', 'drawers'],
     ['600 de ancho', 'bookcase'],
     ['Agrega un cajón abajo', 'bookcase'],
@@ -387,6 +400,26 @@ describe('parseIntent', () => {
     const values = options.map((option) => read(option, name)).map((intent) => (intent?.kind === 'edit' ? intent.value : null))
     expect(values).not.toContain(null)
     expect(new Set(values).size).toBe(2)
+  })
+
+  const withoutAmount: [string, PlanName, string[]][] = [
+    ['hazlo más angosto', 'bookcase', ['Quítale 5 cm de ancho', 'Quítale 10 cm de ancho', 'Quítale 20 cm de ancho']],
+    ['un poco más alto', 'bookcase', ['Dale 5 cm más de alto', 'Dale 10 cm más de alto', 'Dale 20 cm más de alto']],
+    ['más bajito', 'nightstand', ['Quítale 5 cm de alto', 'Quítale 10 cm de alto', 'Quítale 20 cm de alto']],
+    ['más larga', 'dining', ['Dale 5 cm más de largo', 'Dale 10 cm más de largo', 'Dale 20 cm más de largo']],
+  ]
+  it.each(withoutAmount)('«%s» on the %s says which measure but not how much: it offers amounts, each read one way', (request, name, options) => {
+    expect(read(request, name)).toEqual({ kind: 'unclear', options })
+    const values = options.map((option) => read(option, name)).map((intent) => (intent?.kind === 'edit' ? intent.value : null))
+    expect(values).not.toContain(null)
+    expect(new Set(values).size).toBe(options.length)
+  })
+
+  it('a measure without an amount that the form does not have, or past its range on every step, goes to the expert', () => {
+    expect(read('más ancha', 'dining')).toBeNull()
+    expect(read('más ancho', 'bed')).toBeNull()
+    const tiny = { ...plans.nightstand, dimensions: { ...(plans.nightstand as CabinetPlan).dimensions, height: 110 } } as FurniturePlan
+    expect(parseIntent('más bajo', tiny, buildPlan(plans.nightstand, testCatalog).design, testCatalog)).toBeNull()
   })
 
   it('a choice about a part the piece does not have is not read: no doors to slide, no shelves to fix', () => {
