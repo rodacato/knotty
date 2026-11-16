@@ -7,9 +7,12 @@ import { fixesFor } from '../../../editing/fixes/fixes'
 import { analyze } from '../../analysis'
 import { baysOf, judgesRacking } from './racking'
 import stand from './steppedStand.fixture.json'
+import backedStand from './steppedStandBacked.fixture.json'
 
 /** A stepped plant stand as a real expert drew it: three stools of 250, 500 and 750 mm, each a shelf butt-screwed on its own two sides. */
 const steppedStand = Design.parse(stand)
+/** Another real one: the same three stools, with a 6 mm back nailed to the tall step's sides and to the shelf resting on them. */
+const steppedStandBacked = Design.parse(backedStand)
 const racking = (design: Design) => {
   const a = analyze(design, testCatalog)
   if (!a.valid) throw new Error(a.errors.map((e) => e.message).join(' '))
@@ -49,6 +52,20 @@ describe('R5 judges each box the sides make', () => {
     ])
     expect(fix.design.joints.filter((u) => u.type === 'pocket-screw').map((u) => [u.a, u.b].sort().join(' '))).toHaveLength(4)
     expect(racking(fix.design).map((h) => h.pieces.join(' '))).toEqual(['side-left-2 side-right-2', 'side-left-1 side-right-1'])
+  })
+
+  it('the shelf that closes a step from above is its top: a back nailed to it and to both sides squares that step', () => {
+    expect(racking(steppedStandBacked).map((h) => [h.pieces.join(' '), h.severity])).toEqual([
+      ['side-left-2 side-right-2', 'recommendation'],
+      ['side-left-3 side-right-3', 'recommendation'],
+    ])
+  })
+
+  it('a shelf inside the box is still a shelf: a back nailed to it and to both sides does not square the box', () => {
+    const bookcase = { ...exampleBookcase, wallAnchored: false, joints: exampleBookcase.joints.filter((u) => !(u.a === 'back' && ['bottom', 'top'].includes(u.b))) }
+    const withShelf = { ...bookcase, joints: [...bookcase.joints, { ...bookcase.joints.find((u) => u.a === 'back')!, id: 'j-back-shelf-2', b: 'shelf-2' }] }
+    expect(racking(bookcase).map((h) => h.severity)).toEqual(['critical'])
+    expect(racking(withShelf).map((h) => h.severity)).toEqual(['critical'])
   })
 
   it('a box that already has a rigid rail gets only the one at the back, as before', () => {
