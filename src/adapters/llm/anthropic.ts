@@ -35,7 +35,11 @@ const stalledError = () => Object.assign(new Error('The stream went quiet.'), { 
 /** How hard a model that thinks by default works on each answer; `off` turns its thinking off. Unset, the model's own default. */
 export type Effort = 'low' | 'medium' | 'high' | 'off'
 
-export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_MS, effort }: { idleMs?: number; effort?: Effort } = {}): LLMProvider {
+// Measured with `npm run compare`: Haiku 5.5 at low designs as well as at its default medium, in a quarter less time.
+const EFFORT_OF: [prefix: string, effort: Effort][] = [['claude-haiku-5-5', 'low']]
+
+export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_MS, effort: chosen }: { idleMs?: number; effort?: Effort } = {}): LLMProvider {
+  const effort = chosen ?? EFFORT_OF.find(([prefix]) => model.startsWith(prefix))?.[1]
   const outputConfig = (schema: Record<string, unknown>, strict: boolean) => {
     const config = { ...(strict ? { format: { type: 'json_schema' as const, schema: schema } } : {}), ...(effort && effort !== 'off' ? { effort } : {}) }
     return Object.keys(config).length ? { output_config: config } : {}
