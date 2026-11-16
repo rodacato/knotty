@@ -14,12 +14,23 @@ async function client(apiKey: string) {
 
 /** The model's text as JSON; text that does not parse goes back to the model to be corrected, like a schema mismatch. */
 export function parseJSON(text: string): unknown {
+  const bare = text
+    .trim()
+    .replace(/^```(?:json)?\s*\n/, '')
+    .replace(/\n```$/, '')
   try {
-    return JSON.parse(text)
+    return JSON.parse(bare)
   } catch {
     throw invalidJSON(text)
   }
 }
+
+// Schemas the API refused to compile into a grammar: from then on they travel in the prompt, and Zod still validates the answer.
+const tooLarge = new WeakSet<object>()
+const GRAMMAR_TOO_LARGE = /compiled grammar is too large/i
+
+const formatInPrompt = (schema: Record<string, unknown>) =>
+  `\n\n# Output format\nAnswer only with a JSON object that follows this JSON Schema, with no text around it:\n${JSON.stringify(schema)}`
 
 const block = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
   c.kind === 'text' ? { type: 'text', text: c.text } : { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: c.base64 } }
@@ -32,15 +43,16 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
   const transport: Transport = {
     provider: 'anthropic',
     model: model,
-    async completeJSON(system, content, schema, _name, signal, onResponse) {
+    async completeJSON(system, content, schema, name, signal, onResponse) {
+      const strict = !tooLarge.has(schema)
       try {
         const stream = (await client(apiKey)).beta.messages.stream(
           {
             model: model,
             max_tokens: 32000,
-            system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+            system: [{ type: 'text', text: strict ? system : system + formatInPrompt(schema), cache_control: { type: 'ephemeral' } }],
             messages: [{ role: 'user', content: content.map(block) }],
-            output_config: { format: { type: 'json_schema', schema: schema } },
+            ...(strict ? { output_config: { format: { type: 'json_schema' as const, schema: schema } } } : {}),
             ...(WITH_FALLBACK.includes(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
           },
           { signal },
@@ -53,6 +65,10 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         return { json: parseJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
       } catch (e) {
         if (e instanceof InvalidResponse) throw e
+        if (strict && !signal?.aborted && (e as { status?: number }).status === 400 && GRAMMAR_TOO_LARGE.test(String((e as Error).message))) {
+          tooLarge.add(schema)
+          return transport.completeJSON(system, content, schema, name, signal, onResponse)
+        }
         // The SDK names its abort error 'Error'; the signal is what says the caller stopped it.
         throw new ProviderError(signal?.aborted ? new DOMException('Request was aborted.', 'AbortError') : e)
       }
