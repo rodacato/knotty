@@ -147,7 +147,7 @@ npm run compare:resume -- --last  # and resumes them
 |---|---|
 | The interface or the 3D scene | Browser walkthrough (2) |
 | Rules, modules (fichas), joints, geometry or repairs | Bench without an expert (3) and walkthrough (2). If a variant changes shape, `fingerprints.test.ts` fails saying which ones; if it was on purpose, `UPDATE_FINGERPRINTS=1 npx vitest run src/application/bench/fingerprints.test.ts` rewrites `fingerprints.json` and the PR diff shows what moved |
-| Prompts, schemas the expert sees or the context sent to it | Bench with an expert (4), compared with the previous one |
+| Prompts, schemas the expert sees or the context sent to it | Bench with an expert (4), compared with the previous one, with the run ids in the PR description (CI checks it for `src/adapters/llm/prompts/`) |
 | The checks or the loader of the hard questions | Their tests (with invented questions) and, if you have the private folder, `compare:hard -- --list` (5) |
 | Something that is saved (session, preferences, keys, catalog settings) | See "What is saved in the browser" |
 | The catalog | Bench without an expert (3) and the «Preparar materiales» page (2) |
