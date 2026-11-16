@@ -192,6 +192,7 @@ async function adjustAll(p: {
   first: StepResult
   calls: Call[]
   signal: AbortSignal
+  catalog: Catalog
   grade: (index: number, before: DesignState, after: DesignState, outcome: StepResult['outcome'], previous: StepResult) => StepResult
 }) {
   const adjustments: Adjustment[] = []
@@ -200,9 +201,16 @@ async function adjustAll(p: {
   for (const [i, spec] of p.scenario.steps.slice(1).entries()) {
     const before = state
     const made = p.calls.length
-    state = await p.useCases.adjust(state, spec.request!, p.signal)
-    const outcome = outcomeOf(before, state)
-    adjustments.push({ request: spec.request!, by: p.calls.length - made ? 'expert' : 'knotty', calls: p.calls.length - made, outcome: LEGACY_OUTCOME[outcome] })
+    let outcome: StepResult['outcome']
+    if (spec.review) {
+      const review = await p.useCases.reviewPurchase(state, p.catalog, p.signal)
+      state = p.useCases.saveReview(state, review)
+      outcome = review.carpenter && !review.error ? 'answer' : 'error'
+    } else {
+      state = await p.useCases.adjust(state, spec.request!, p.signal)
+      outcome = outcomeOf(before, state)
+    }
+    adjustments.push({ request: spec.request ?? spec.label, by: p.calls.length - made ? 'expert' : 'knotty', calls: p.calls.length - made, outcome: LEGACY_OUTCOME[outcome] })
     steps.push(p.grade(i + 1, before, state, outcome, steps.at(-1)!))
   }
   return { adjustments, steps, state }
@@ -246,7 +254,7 @@ export function createBench(deps: { llm: () => LLMProvider; catalog: Catalog; no
         corrections: [...new Set(calls.flatMap((l) => l.corrects))],
         repairs: initial.trace.reduce((n, t) => n + t.repairs.length, 0),
       }
-      const adjusted = await adjustAll({ useCases, state: initial, scenario, first, calls, signal, grade })
+      const adjusted = await adjustAll({ useCases, state: initial, scenario, first, calls, signal, catalog, grade })
       const last = adjusted.steps.at(-1)!
       const finalVersion = currentVersion(adjusted.state)
       return {

@@ -3,7 +3,7 @@ import { emptyRecording, canonicalJson, recordingProvider } from '../../../src/a
 import { standingAgainst } from '../../../src/application/bench/against'
 import { createBench } from '../../../src/application/bench/bench'
 import type { BenchCase } from '../../../src/application/bench/cases'
-import { classifyTrial, type TrialRecord } from '../../../src/application/bench/classify'
+import { classifyTrial, stepErrorsOf, type TrialRecord } from '../../../src/application/bench/classify'
 import { GRADER_VERSION } from '../../../src/application/bench/grading'
 import { entropyOf, newRunId } from '../../../src/application/bench/ids'
 import { KNOWN_FAILURES } from '../../../src/application/bench/knownFailures'
@@ -160,7 +160,7 @@ async function execute(o: Execution): Promise<CompareOutcome> {
     if (signal?.aborted) throw abortError()
 
     const row: ReportRow = { ...result, model: spec, prompt: state?.versions[0].origin?.promptId ?? null }
-    const stepErrors = (state?.chat ?? []).filter((m) => m.error && m.failure !== 'rejection').map((m) => m.text)
+    const stepErrors = stepErrorsOf(state)
     const classification = classifyTrial(result, { known: KNOWN_FAILURES, stepErrors })
     const requests = await telemetry.take(job.jobId)
     const stateHash = state ? sha256(canonicalJson(state)) : null

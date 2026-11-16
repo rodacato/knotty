@@ -62,6 +62,8 @@ export interface BenchCase {
   expect?: Expect[]
   /** What each request in `adjust` may do and must keep, by its text. */
   afterRequest?: Record<string, AfterRequest>
+  /** Ends with the review before buying: the carpenter must answer it. */
+  review?: boolean
 }
 
 export type Part = 'doors' | 'drawers' | 'open'
@@ -234,6 +236,8 @@ export const BENCH_CASES: BenchCase[] = [
     measures: null,
     expected: { width: [1500, 1700], height: [350, 650], depth: [300, 500] },
     parts: { doors: 2, open: 1 },
+    // The one case that asks the carpenter to review the purchase (review).
+    review: true,
     expect: [{ kind: 'declared', what: 'doors at the sides and the open opening in the middle', unsupported: 'the order of the openings across the columns depends on how the expert shapes the plan; only their counts are checked' }],
   },
   {
