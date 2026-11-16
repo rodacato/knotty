@@ -70,7 +70,7 @@ export const TABLE_REACTIONS: Reaction[] = [
   },
   {
     id: 'widens-past-the-space-and-drops-it',
-    request: 'Hazla un poco más larga.',
+    request: 'Hazla más larga para que quepa la impresora.',
     before: { plan: desk, requirements: [widthLimit] },
     response: reply(withWidth(desk, 1500), { requirements: { add: [], remove: ['space-width'] } }),
     allowed: ['plan.dimensions.width'],

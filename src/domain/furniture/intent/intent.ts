@@ -130,6 +130,18 @@ function byAdjective(plan: Plan, adjective: string, mm: number | null): Intent |
   return setMeasure(plan, word, mm === null ? null : sign * mm, true)
 }
 
+/** What "más alto" without an amount is offered as, in cm: a guess would be wrong more often than asking. */
+const STEPS_CM = [5, 10, 20]
+
+/** "Más alto" says which measure and which way, not how much: it asks, offering the steps that leave a measure in range. */
+function withoutAmount(plan: Plan, [word, sign]: [string, 1 | -1]): Intent | null {
+  const field = measureField(plan, word)
+  if (!field) return null
+  const said = normalize(field.label)
+  const options = STEPS_CM.filter((cm) => setMeasure(plan, word, sign * cm * 10, true)).map((cm) => (sign > 0 ? `Dale ${cm} cm más de ${said}` : `Quítale ${cm} cm de ${said}`))
+  return options.length ? { kind: 'unclear', options } : null
+}
+
 /** The measure set to an amount, only if that moves it the way the words say. */
 function towards(plan: Plan, [word, sign]: [string, 1 | -1], number: string, unit: string | undefined): Intent | null {
   const intent = toMeasure(plan, word, number, unit)
@@ -182,6 +194,9 @@ function measureIntent(text: string, plan: Plan): Intent | null | undefined {
   if (m) return toMeasure(plan, m[3], m[1], m[2], true)
   m = new RegExp(`^${LEAD}(?:de )?(?:el |la )?(${MEASURE_WORDS}) (?:sea )?(?:de |a |en )?${AMOUNT}$`).exec(text)
   if (m) return toMeasure(plan, m[1], m[2], m[3])
+  m = new RegExp(String.raw`^${LEAD}(?:un poco |un poquito )?mas (\w+)$`).exec(text)
+  const adjective = m && adjectiveOf(m[1])
+  if (adjective) return withoutAmount(plan, adjective)
   m = new RegExp(`^${LEAD}(?:un poco )?mas (${ADJECTIVE_WORDS}) (?:por )?${AMOUNT}$`).exec(text)
   if (m) return byAdjective(plan, m[1], toMm(m[2], m[3], true))
   m = new RegExp(`^${LEAD}${AMOUNT} mas (${ADJECTIVE_WORDS})$`).exec(text)
@@ -347,9 +362,11 @@ const same = (text: string) => SAME.reduce((t, [said, word]) => t.replace(said, 
 /** What a phrase is found by: the forms' words, without gender or articles. */
 const keyOf = (phrase: string) => genderless(same(phrase).replace(/\b(?:el|la|los|las|un|una) /g, ''))
 
-/** Ways of asking that share no word with a form, as the phrase a form has; one that no form of the plan has is not read. */
+const SIDE_DRAWERS = (side: 'derecho' | 'izquierdo') => [`cajones del lado ${side}`, `cajonera a la ${side.replace(/o$/, 'a')}`]
+
+/** Ways of asking that share no word with a form, as the phrase a form has, or one of several on different furniture; one that no form of the plan has is not read. */
 const IDIOMS = new Map(
-  Object.entries({
+  Object.entries<string | string[]>({
     'fijo al muro': 'anclado al muro',
     'fijalo al muro': 'anclado al muro',
     'con muesca': 'muesca para abrir',
@@ -380,7 +397,35 @@ const IDIOMS = new Map(
     'con pernos': 'desarmable con pernos',
     'con minifix': 'desarmable con minifix',
     'con tornillos minifix': 'desarmable con minifix',
-  }).map(([said, phrase]) => [keyOf(said), keyOf(phrase)]),
+    'ancla al muro': 'anclado al muro',
+    'atornillalo al muro': 'anclado al muro',
+    ...Object.fromEntries(
+      ['individual', 'matrimonial', 'queen', 'king'].flatMap((size) => [size, `cama ${size}`, `tamano ${size}`, `${size} size`, `cama ${size} size`].map((said) => [said, `colchon ${size}`])),
+    ),
+    'cajones a la derecha': SIDE_DRAWERS('derecho'),
+    'cajones a la izquierda': SIDE_DRAWERS('izquierdo'),
+    'cajones del lado derecho': SIDE_DRAWERS('derecho'),
+    'cajones del lado izquierdo': SIDE_DRAWERS('izquierdo'),
+    'cajonera del lado derecho': SIDE_DRAWERS('derecho'),
+    'cajonera del lado izquierdo': SIDE_DRAWERS('izquierdo'),
+    'sin cajones': 'sin cajonera',
+    'cajones de ambos lados': 'cajones de los dos lados',
+    'cajones en los dos lados': 'cajones de los dos lados',
+    'esquinas redondeadas': 'cubierta de esquinas redondeadas',
+    'con esquinas redondeadas': 'cubierta de esquinas redondeadas',
+    'esquinas rectas': 'cubierta de esquinas rectas',
+    'con esquinas rectas': 'cubierta de esquinas rectas',
+    'lugar para botas': 'con nivel para botas abajo',
+    'con lugar para botas': 'con nivel para botas abajo',
+    'espacio para botas': 'con nivel para botas abajo',
+    'con espacio para botas': 'con nivel para botas abajo',
+    'para botas': 'con nivel para botas abajo',
+    'con asiento': 'con asiento arriba',
+    'sin asiento': 'sin asiento arriba',
+    'para sentarse': 'con asiento arriba',
+    'que me pueda sentar': 'con asiento arriba',
+    'que sirva de banca': 'con asiento arriba',
+  }).map(([said, phrases]) => [keyOf(said), (typeof phrases === 'string' ? [phrases] : phrases).map(keyOf)]),
 )
 
 /** Every way the chat names a value of a choice, from the module's own labels: its phrase, or the field's label and the option's. */
@@ -421,7 +466,7 @@ function choicePhrases(field: ChoiceField<Plan>): [value: string, phrase: string
 const WIDEST_LEAF = 600
 
 const PUT_DOORS = new RegExp(`^${OPENING}(?:ponle|pon|agregale|agrega|cierralo con|cierrala con|que tenga|que lleve|con) puertas( (?:a|en) (?:todos )?los huecos(?: abiertos)?)?$`)
-const NO_DOORS = new RegExp(`^${OPENING}(?:(?:quitale|quita|sacale|saca) las puertas|sin puertas)$`)
+const NO_DOORS = new RegExp(`^${OPENING}(?:(?:quitale|quita|sacale|saca) (?:las puertas|la puerta)|sin puertas?)$`)
 const IN_TWO = new RegExp(`^${OPENING}(?:(?:dividel[oa]|partel[oa]|separal[oa]) en (?:dos|2)(?: columnas| partes)?(?: con una (?:tabla|division) vertical)?|(?:ponle|pon|agregale|agrega|con) (?:una |un )?(?:division|divisor|tabla) vertical|(?:de|en|con) (?:dos|2) columnas)(?: (?:en|al) (?:medio|centro)| a la mitad)?$`)
 
 /** What a cabinet's openings take without saying where: doors on every open one, no doors, or two columns out of its one. A split cell, a chest or a void says more than these words do. */
@@ -471,7 +516,8 @@ function choiceIntent(text: string, plan: Plan): Intent | null | undefined {
     stripped.replace(/^(?:ponle|pon|agregale|agrega|con) /, ''),
     text.replace(new RegExp(String.raw`^${OPENING}que (?:el |la |los |las )?(\w+) (?:sea|sean|quede|queden|vaya|vayan) `), '$1 '),
   ]
-  const lookUp = (key: string | undefined): { field: ChoiceField<Plan>; value: string }[] | undefined => (key === undefined ? undefined : (byPhrase.get(key) ?? lookUp(IDIOMS.get(key))))
+  const lookUp = (key: string, seen = new Set<string>()): { field: ChoiceField<Plan>; value: string }[] | undefined =>
+    byPhrase.get(key) ?? (seen.has(key) ? undefined : IDIOMS.get(key)?.map((next) => lookUp(next, seen.add(key))).find(Boolean))
   const hit = forms.map((form) => ({ form, found: lookUp(keyOf(form)) })).find((h) => h.found)
   if (!hit?.found) return undefined
   if (new Set(hit.found.map((f) => `${f.field.key}=${f.value}`)).size !== 1) return null
