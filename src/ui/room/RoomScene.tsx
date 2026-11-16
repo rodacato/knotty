@@ -1,4 +1,4 @@
-import { CameraControls, Environment, Lightformer, Line } from '@react-three/drei'
+import { CameraControls, Environment, Html, Lightformer, Line } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Group } from 'three'
@@ -17,10 +17,12 @@ import { wallPoint } from './RoomPlan'
 import { useRoom } from './store'
 
 const MM = 0.001
+/** How far above a piece its number sits, tied to it by a leader. */
+const LEADER = 0.3
 const NO_SHAPES: EdgeShape[] = []
 function readColors() {
   const style = getComputedStyle(document.documentElement)
-  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
+  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
 }
 function useColors() {
   const [colors, setColors] = useState(readColors)
@@ -164,6 +166,12 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
   const controls = useRef<CameraControls>(null)
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height))
   const colors = useColors()
+  // An Html label mounted with the canvas's first render never reaches the page, so the numbers wait one frame.
+  const [labelled, setLabelled] = useState(false)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setLabelled(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
   useEffect(() => {
     const span = Math.hypot(layout.room.width, layout.room.depth) * MM
     const distance = Math.max(4, span * Math.max(1.3, 1 / aspect))
@@ -196,7 +204,7 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
               </mesh>
             )
           })}
-        {layout.items.map((item) => {
+        {layout.items.map((item, index) => {
           const s = sizeOf(item),
             r = rectOf(item)
           const footprint: [number, number, number][] = [
@@ -224,6 +232,24 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
                   </mesh>
                 )}
               </group>
+              <Line
+                points={[
+                  [item.x * MM, (item.elevation + s.height) * MM, item.z * MM],
+                  [item.x * MM, (item.elevation + s.height) * MM + LEADER, item.z * MM],
+                ]}
+                color={colors.graphite}
+                lineWidth={1.5}
+                dashed
+                dashSize={0.02}
+                gapSize={0.02}
+              />
+              {labelled && (
+                <Html position={[item.x * MM, (item.elevation + s.height) * MM + LEADER, item.z * MM]} center zIndexRange={[20, 10]} className="pointer-events-none">
+                  <span aria-hidden className={`numerals grid size-9 place-items-center border-2 border-graphite font-mono text-lg font-semibold ${selected === item.id ? 'bg-graphite text-bone' : 'bg-bone text-graphite'}`}>
+                    {index + 1}
+                  </span>
+                </Html>
+              )}
               {(selected === item.id || bad.has(item.id)) && (
                 <Line points={footprint} color={selected === item.id ? colors.select : colors.rust} lineWidth={selected === item.id ? 3 : 2} dashed={bad.has(item.id)} dashSize={0.04} gapSize={0.03} />
               )}
