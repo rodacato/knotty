@@ -281,7 +281,8 @@ export const BENCH_CASES: BenchCase[] = [
     // Seat 400–480 and seat depth 300–400, from docs/carpinteria/muebles-y-medidas.md. No module builds a bench.
     expected: { height: [400, 480], width: [950, 1050], depth: [300, 400] },
     path: 'pieces',
-    expect: [{ kind: 'pieces', roles: ['shelf'], count: 1 }],
+    // «Un entrepaño»: one board, or two halves when a centre divider holds the seat up.
+    expect: [{ kind: 'pieces', roles: ['shelf'], count: [1, 2] }],
   },
   {
     id: 'dining-bench',
