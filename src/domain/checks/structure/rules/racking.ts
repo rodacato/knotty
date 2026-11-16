@@ -3,6 +3,7 @@ import { ASSUMPTIONS } from '../../../assumptions'
 import { JOINTS } from '../../../design/jointSpecs'
 import type { Design, JointType } from '../../../design/schema'
 import { backBoard } from '../../../materials/catalog'
+import { CONTACT_TOLERANCE } from '../../../design/boxes'
 import { antiTipData } from './usage'
 
 const PERIMETER = new Set(['side', 'bottom', 'top'])
@@ -50,13 +51,21 @@ export const rackingRule: Rule = ({ design, geo, catalog }) => {
   const bays = baysOf(design)
 
   return bays.flatMap((bay) => {
+    // What racks is the box its sides make: in a cabinet the whole height, under a bed's headboard only the base, in a stepped stand each step.
+    const height = Math.max(...bay.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
+    // A fixed shelf at the sides' top edge closes the box from above, as a top does: a step's tread, on its sides or between them.
+    const closesTop = (id: string) => {
+      const box = geo.boxes.get(id)
+      const piece = design.pieces.find((p) => p.id === id)
+      return !!box && piece?.role === 'shelf' && piece.support === 'fixed' && box.y0 - CONTACT_TOLERANCE <= height && height <= box.y1 + CONTACT_TOLERANCE
+    }
+    const onPerimeter = (ids: Set<string>) => [...ids].filter((id) => PERIMETER.has(role.get(id) ?? 'other') || closesTop(id)).length
     // A full board in the back plane braces like a back: the spine of a bed base, screwed to both ends and the platform.
     // In a box of two sides, any upright board across them that is joined to one does: a back, a spine, the side of another step.
     const across = (p: Design['pieces'][number]) => p.normal !== 'y' && !bay.includes(p.id) && bay.every((side) => normalOf.get(side) !== p.normal) && bay.some((side) => joinedTo(p.id, () => true).has(side))
     const backs = design.pieces.filter((p) => (bay.length === sides.length ? p.role === 'back' || (p.role === 'divider' && p.normal === 'z') : ['back', 'divider', 'side'].includes(p.role) && across(p)))
     const rigidBack = backs.some((b) => {
       const thickness = geo.thicknesses.get(b.id) ?? 0
-      const onPerimeter = (ids: Set<string>) => [...ids].filter((id) => PERIMETER.has(role.get(id) ?? 'other')).length
       const { nailedBackThickness, backJoins } = ASSUMPTIONS.racking
       if (thickness >= nailedBackThickness) return onPerimeter(joinedTo(b.id, () => true)) >= backJoins
       return onPerimeter(joinedTo(b.id, (type, glued) => (type === 'rabbet' || type === 'dado') && glued)) >= backJoins
@@ -67,8 +76,6 @@ export const rackingRule: Rule = ({ design, geo, catalog }) => {
     const rigidFrame = rails.length >= ASSUMPTIONS.racking.rigidRails && rails.some((p) => p.role === 'apron' || p.role === 'kick' || gluedInGroove(p))
 
     if (rigidBack || rigidFrame) return []
-    // What racks is the box its sides make: in a cabinet the whole height, under a bed's headboard only the base, in a stepped stand each step.
-    const height = Math.max(...bay.map((id) => geo.boxes.get(id)?.y1 ?? 0)) || design.dimensions.height
     const back = backBoard(catalog)
     // The piece the anchor goes through: the top (or an apron) fixed to every side of the box, never the thin back.
     const anchorsOn = design.pieces.some((p) => (p.role === 'top' || p.role === 'apron') && p.support === 'fixed' && bay.every((side) => joinedTo(p.id, () => true).has(side)))

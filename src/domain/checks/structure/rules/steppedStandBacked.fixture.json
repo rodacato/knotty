@@ -1,0 +1,635 @@
+{
+ "schema": 1,
+ "name": "Exhibidor escalonado para plantas",
+ "dimensions": {
+  "width": 800,
+  "height": 750,
+  "depth": 750
+ },
+ "wallAnchored": false,
+ "pieces": [
+  {
+   "id": "back",
+   "name": "Respaldo de triplay",
+   "role": "back",
+   "material": "TR6",
+   "normal": "z",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.y1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.z0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-left-1",
+   "name": "Lateral izquierdo, escalón 1 (atrás)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-1.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "back.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-left-2",
+   "name": "Lateral izquierdo, escalón 2 (medio)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-2.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "side-right-1.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-left-3.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-left-3",
+   "name": "Lateral izquierdo, escalón 3 (frente)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": null,
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-3.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "side-right-2.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-1",
+   "name": "Lateral derecho, escalón 1 (atrás)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-1.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "back.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-right-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-2",
+   "name": "Lateral derecho, escalón 2 (medio)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-2.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "tread-1.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "side-right-3.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "side-right-3",
+   "name": "Lateral derecho, escalón 3 (frente)",
+   "role": "side",
+   "material": "T18",
+   "normal": "x",
+   "x": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.y0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-3.y0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "tread-2.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "none",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "medium"
+  },
+  {
+   "id": "tread-1",
+   "name": "Escalón 1 (atrás, 75 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": null,
+    "to": {
+     "type": "ref",
+     "ref": "furniture.y1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "ref",
+     "ref": "back.z1",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-2.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "medium",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "high"
+  },
+  {
+   "id": "tread-2",
+   "name": "Escalón 2 (medio, 50 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "mm",
+     "mm": 482
+    },
+    "to": null,
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "mm",
+     "mm": 250
+    },
+    "to": {
+     "type": "ref",
+     "ref": "tread-3.z0",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "medium",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "high"
+  },
+  {
+   "id": "tread-3",
+   "name": "Escalón 3 (frente, 25 cm)",
+   "role": "shelf",
+   "material": "T18",
+   "normal": "y",
+   "x": {
+    "from": {
+     "type": "ref",
+     "ref": "furniture.x0",
+     "offset": 0
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.x1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "y": {
+    "from": {
+     "type": "mm",
+     "mm": 232
+    },
+    "to": null,
+    "length": null
+   },
+   "z": {
+    "from": {
+     "type": "mm",
+     "mm": 500
+    },
+    "to": {
+     "type": "ref",
+     "ref": "furniture.z1",
+     "offset": 0
+    },
+    "length": null
+   },
+   "grain": "length",
+   "load": "medium",
+   "support": "fixed",
+   "edges": [
+    "front"
+   ],
+   "group": null,
+   "confidence": "high"
+  }
+ ],
+ "joints": [
+  {
+   "id": "j-back-side-left-1",
+   "a": "back",
+   "b": "side-left-1",
+   "type": "glue-nail",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "brad-nail-1",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-back-side-right-1",
+   "a": "back",
+   "b": "side-right-1",
+   "type": "glue-nail",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "brad-nail-1",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-back-tread-1",
+   "a": "back",
+   "b": "tread-1",
+   "type": "glue-nail",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "brad-nail-1",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-1-side-left-1",
+   "a": "tread-1",
+   "b": "side-left-1",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-2-side-left-2",
+   "a": "tread-2",
+   "b": "side-left-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-3-side-left-3",
+   "a": "tread-3",
+   "b": "side-left-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-1-side-right-1",
+   "a": "tread-1",
+   "b": "side-right-1",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-2-side-right-2",
+   "a": "tread-2",
+   "b": "side-right-2",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  },
+  {
+   "id": "j-tread-3-side-right-3",
+   "a": "tread-3",
+   "b": "side-right-3",
+   "type": "butt-screw",
+   "glue": true,
+   "depth": null,
+   "hardware": [
+    {
+     "hardwareId": "screw-8x2",
+     "count": null
+    }
+   ]
+  }
+ ],
+ "notes": "Medidas propuestas por mí: 800 × 750 × 750 mm; la altura de cada escalón (75, 50 y 25 cm) sale de «cada uno 25 cm más bajo». Los laterales están en tres piezas por lado, una por escalón, y cada escalón descansa sobre los canto superiores de sus laterales. El respaldo de triplay de 6 mm da rigidez al conjunto. Sin acabado definido; las plantas con riego necesitan un acabado que resista humedad."
+}
