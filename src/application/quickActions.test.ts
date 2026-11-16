@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createAbsent, NO_EXPERT_MESSAGE } from '../adapters/llm/absent/absent'
+import { createAbsent } from '../adapters/llm/absent/absent'
 import { basesOf } from '../domain/furniture/examples'
 import { testCatalog } from '../domain/furniture/fixtures/catalog.test-util'
 import { exampleSideboard, testReferences } from '../domain/furniture/fixtures/references.test-util'
@@ -8,6 +8,7 @@ import { buildPlan, MODULES, type FurniturePlan } from '../domain/furniture/modu
 import type { LLMProvider } from '../ports/LLMProvider'
 import { quickActions } from './quickActions'
 import { createUseCases } from './useCases'
+import { localText } from './useCases/copy'
 
 /** No expert at all: any call to it fails the test. */
 const noExpert = new Proxy({ id: 'none', label: 'Nadie' } as LLMProvider, {
@@ -61,10 +62,13 @@ describe('what Knotty offers to do by itself', () => {
     expect(failed).toEqual([])
   })
 
-  it('with no expert, a request nobody can carry out is refused by Knotty, with nothing to try again', async () => {
+  it('with no expert, a request Knotty does not read is refused by Knotty, offering what it does read, with nothing to try again', async () => {
     const alone = createUseCases({ llm: createAbsent, catalog: testCatalog, repository: { load: () => null, save: () => {}, clear: () => {} } })
-    const after = await alone.adjust(opened(variant('cabinet', 'librero')), 'Hazlo con forma de barco', signal())
-    expect(after.chat.at(-1)).toMatchObject({ text: NO_EXPERT_MESSAGE, alone: true, error: true, failure: 'rejection' })
+    const before = opened(variant('cabinet', 'librero'))
+    const after = await alone.adjust(before, 'Hazlo con forma de barco', signal())
+    expect(after.chat.at(-1)).toMatchObject({ text: localText.notRead(true), alone: true, error: true, failure: 'rejection', suggestions: quickActions(before, testCatalog) })
+    expect(after.chat.at(-1)?.suggestions.length).toBeGreaterThan(0)
+    expect(after.versions).toHaveLength(before.versions.length)
   })
 
   it('what a request takes away is what was asked: «Con zoclo» removes the legs at once, with nothing held', async () => {

@@ -20,6 +20,7 @@ import { appendTrace, BY_KNOTTY, describeProblems, traceErrors, type TraceEntry 
 import { named, withCandidate } from '../named'
 import { expertCanWrite, expertPlans, NO_EXPERT, PlanAdjustment, type PlanAdjustRequest } from '../../ports/LLMProvider'
 import { knowledgeFor } from '../knowledge'
+import { quickActions } from '../quickActions'
 import { buildContext, buildPlanContext } from '../context'
 import { knownErrors, tryCandidate, type Accepted, type Candidate } from './candidate'
 import { adjustFailed, alsoRepaired, CANCELLED, EXPERT_FAILED, localText, requirementsKept, stillPending } from './copy'
@@ -359,11 +360,16 @@ export function createAdjust(kit: Kit) {
     const declined = declinedFor(request)
     if (declined) return round.reply(declined, { alone: true })
     try {
-      return locally(round, answering) ?? (await throughPlan(round)) ?? (await pieceByPiece(round))
+      const alone = locally(round, answering)
+      if (alone) return alone
+      // With no expert, what Knotty does not read is answered by Knotty, pointing at what it does read.
+      if (round.llm.id === NO_EXPERT) {
+        const offered = quickActions(withRequest, catalog)
+        return round.reply(localText.notRead(offered.length > 0), { error: true, failure: 'rejection', alone: true, suggestions: offered })
+      }
+      return (await throughPlan(round)) ?? (await pieceByPiece(round))
     } catch (e) {
       if (signal.aborted) return round.reply(CANCELLED, { error: true, failure: 'cancelled' })
-      // With no expert there is nobody to try again with: Knotty says it, and the request goes back to the box.
-      if (round.llm.id === NO_EXPERT && e instanceof Error) return round.reply(e.message, { error: true, failure: 'rejection', alone: true })
       return round.reply(e instanceof Error ? e.message : EXPERT_FAILED, { error: true, failure: 'connection' })
     }
   }

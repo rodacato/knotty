@@ -223,9 +223,11 @@ export function Chat({ state }: { state: DesignState }) {
   const previous = state.chat.at(-2)
   const kind = recovery(last, previous)
   const recover = kind && previous ? { kind, run: kind === 'retry' ? () => void adjust(previous.text) : () => setText(previous.text) } : null
-  const suggestions = suggestionsFor(state, thinking, kindOf(currentDesign(state)).kind)
   const { catalog } = useServices()
   const alone = useMemo(() => (canAsk || thinking ? [] : quickActions(state, catalog)), [canAsk, thinking, state, catalog])
+  // Without an expert, Knotty's own last options (how much, which order, what it reads) come before what it can do by itself.
+  const offered = last?.author === 'expert' && last.alone && last.suggestions.length > 0 && !state.proposal ? last.suggestions : alone
+  const suggestions = canAsk ? suggestionsFor(state, thinking, kindOf(currentDesign(state)).kind) : thinking ? [] : offered
 
   useEffect(() => {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: reduced ? 'auto' : 'smooth' })
@@ -251,8 +253,8 @@ export function Chat({ state }: { state: DesignState }) {
           </div>
         )}
       </div>
-      {canAsk && suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-2 px-4 pb-2" aria-label="Sugerencias">
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-4 pb-2" aria-label={canAsk ? 'Sugerencias' : 'Cambios sin experto'}>
           {suggestions.map((s) => (
             <Chip key={s} className="max-w-full py-1.5 text-left" onClick={() => void adjust(s)}>
               {s}
@@ -261,61 +263,45 @@ export function Chat({ state }: { state: DesignState }) {
         </div>
       )}
       <Tray items={state.tray} typed={!!text.trim()} onSend={send} />
-      {canAsk ? (
-        <form
-          className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
-          onSubmit={(e) => {
-            e.preventDefault()
-            send()
-          }}
-        >
-          <TextArea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                send()
-              }
-            }}
-            rows={1}
-            placeholder="Pide un cambio: «refuerza la base»…"
-            aria-label="Mensaje para el experto"
-            className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
-          />
-          {thinking ? (
-            <Button variant="secondary" className="size-11 shrink-0 p-0" onClick={cancel} aria-label="Cancelar">
-              <Stop weight="fill" />
-            </Button>
-          ) : (
-            <Button type="submit" variant="primary" className="size-11 shrink-0 p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
-              <PaperPlaneRight weight="fill" />
-            </Button>
-          )}
-        </form>
-      ) : (
-        <div className="flex flex-col gap-3 border-t border-line bg-kraft p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" role="note">
-          {alone.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-base font-medium">Knotty puede hacer esto solo</p>
-              <div className="flex flex-wrap gap-2" aria-label="Cambios sin experto">
-                {alone.map((request) => (
-                  <Chip key={request} className="max-w-full py-1.5 text-left" onClick={() => void adjust(request)}>
-                    {request}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="flex flex-col gap-1">
-            <p className={alone.length ? 'text-sm font-medium' : 'text-base font-medium'}>{alone.length ? 'Para pedir otra cosa, conecta tu experto' : 'Conecta tu experto para pedirle cambios'}</p>
-            <p className="text-sm text-graphite-2">Sin él, cambia las medidas y las opciones con «Editar», arriba del mueble.</p>
-          </div>
-          <Button variant={alone.length ? 'secondary' : 'primary'} className="min-h-11 self-start px-5" onClick={() => openConnect(true)}>
+      {!canAsk && (
+        <div className="flex flex-wrap items-center justify-between gap-x-3 border-t border-line bg-kraft px-4 py-1" role="note">
+          <p className="text-sm text-graphite-2">Sin experto, Knotty entiende medidas, cantidades y opciones. Lo demás, en «Editar».</p>
+          <Button variant="ghost" className="min-h-11 px-2 text-sm" onClick={() => openConnect(true)}>
             Conectar experto <ArrowRight weight="bold" />
           </Button>
         </div>
       )}
+      <form
+        className="flex items-end gap-2 border-t border-line bg-bone/80 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur"
+        onSubmit={(e) => {
+          e.preventDefault()
+          send()
+        }}
+      >
+        <TextArea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              send()
+            }
+          }}
+          rows={1}
+          placeholder={canAsk ? 'Pide un cambio: «refuerza la base»…' : 'Pide un cambio: «90 cm de ancho»…'}
+          aria-label={canAsk ? 'Mensaje para el experto' : 'Mensaje para Knotty'}
+          className="max-h-32 min-h-11 flex-1 resize-none [field-sizing:content]"
+        />
+        {thinking ? (
+          <Button variant="secondary" className="size-11 shrink-0 p-0" onClick={cancel} aria-label="Cancelar">
+            <Stop weight="fill" />
+          </Button>
+        ) : (
+          <Button type="submit" variant="primary" className="size-11 shrink-0 p-0" disabled={!text.trim() && !state.tray.length} aria-label={state.tray.length ? 'Consultar al experto' : 'Enviar'}>
+            <PaperPlaneRight weight="fill" />
+          </Button>
+        )}
+      </form>
     </div>
   )
 }

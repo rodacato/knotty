@@ -61,6 +61,8 @@ export const localText = {
   already: 'Ya está así en la ficha; no cambié nada.',
   unclear: 'Eso lo puedo leer de dos formas. ¿Cuál es?',
   howMuch: '¿Cuánto? Elige uno, o pídelo con la medida.',
+  notRead: (offered: boolean) =>
+    `Eso no lo sé hacer sola. Entiendo medidas, cantidades y opciones de la ficha${offered ? ', como estas' : ''}; para lo demás, conecta a tu experto.`,
   pending: (changes: string[], criticals: string[], holds: boolean) =>
     `Preparé el cambio en la ficha (${changes.join(', ')}), pero ${holds ? 'quita piezas que sostienen el mueble' : criticals.length === 1 ? `deja un punto crítico: ${criticals[0]}` : `deja ${criticals.length} puntos críticos`}. Queda como propuesta para que lo decidas.`,
 }
