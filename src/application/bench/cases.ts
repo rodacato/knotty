@@ -311,6 +311,24 @@ export const BENCH_CASES: BenchCase[] = [
     },
   },
   {
+    id: 'entry-bench-vague',
+    notes: 'Una banca para la entrada, para sentarme a ponerme los zapatos, de 1 m de largo, con un entrepaño abajo para dejar los zapatos',
+    measures: null,
+    expected: { height: [400, 480], width: [950, 1050], depth: [300, 400] },
+    path: 'pieces',
+    expect: [{ kind: 'pieces', roles: ['shelf'], count: [1, 2] }],
+    // The same bench asked for a backrest without its height: the expert should propose a typical one and ask, not ask instead of designing.
+    adjust: ['Ponle un respaldo para recargarme'],
+    afterRequest: {
+      'Ponle un respaldo para recargarme': {
+        outcomes: ['applied', 'pending'],
+        changes: ['height', 'depth'],
+        // The seat's 400–480 plus a backrest of 300–400: wide on purpose, it measures that the bench grows, not one figure.
+        expect: [{ kind: 'noNewCritical' }, { kind: 'dimensions', ranges: { height: [700, 900], width: [950, 1050], depth: [300, 450] } }],
+      },
+    },
+  },
+  {
     id: 'dining-bench',
     notes: 'Una banca de comedor de 1.20 m para dos personas, de triplay de 18',
     measures: null,
