@@ -1,6 +1,8 @@
 node_modules/
 dist/
 coverage/
+e2e/report/
+e2e/results/
 .DS_Store
 *.local
 .env

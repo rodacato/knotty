@@ -58,6 +58,15 @@ With `npm run dev` and the Simulado expert:
 
 If you touched the interface, also try it on a phone (the browser's responsive mode is enough). There is one theme, so dark mode needs no separate check.
 
+The main flows also run by themselves in a real browser, with the Simulado expert and at no cost: opening a ficha in the Studio, a change left as a proposal, the review before buying, a reload and the spotlight's loss notice.
+
+```bash
+npx playwright install chromium   # once
+npm run test:e2e                  # builds the app, serves it and runs e2e/ (about 40 s)
+```
+
+They run on demand, not in CI. They check the screen (roles and texts in Spanish), never the 3D canvas, so a text that changes on purpose fails the flow that reads it. A failure leaves a trace in `e2e/results/` (`npx playwright show-trace <trace.zip>`). The helpers in `e2e/helpers.ts` are the steps a person takes; a new flow reuses them.
+
 ### 3. The bench without an expert (free, seconds)
 
 `npx vitest run src/application/bench/bench.test.ts` builds every variant of each module (bed, table, shoe rack, cabinet; about 180) and checks them with the rules: a variant that is invalid or has findings is a Knotty error. To look at a ficha, open it from the spotlight (`Ctrl+K`); with the debug access (the Konami code, `Ctrl+Shift+D` or the switch in settings) it marks the ones with findings and the Studio lists them in «Hallazgos».
@@ -145,7 +154,7 @@ npm run compare:resume -- --last  # and resumes them
 
 | If you touched… | In addition to the usual |
 |---|---|
-| The interface or the 3D scene | Browser walkthrough (2) |
+| The interface or the 3D scene | Browser walkthrough and `npm run test:e2e` (2) |
 | Rules, modules (fichas), joints, geometry or repairs | Bench without an expert (3) and walkthrough (2). If a variant changes shape, `fingerprints.test.ts` fails saying which ones; if it was on purpose, `UPDATE_FINGERPRINTS=1 npx vitest run src/application/bench/fingerprints.test.ts` rewrites `fingerprints.json` and the PR diff shows what moved |
 | Prompts, schemas the expert sees or the context sent to it | Bench with an expert (4), compared with the previous one, with the run ids in the PR description (CI checks it for `src/adapters/llm/prompts/`) |
 | The checks or the loader of the hard questions | Their tests (with invented questions) and, if you have the private folder, `compare:hard -- --list` (5) |
