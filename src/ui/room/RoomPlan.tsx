@@ -26,7 +26,8 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
   ]
   const label = o.kind === 'window' ? 'Ventana' : o.swing === 'outside' ? 'Puerta: abre hacia afuera' : o.swing === 'sliding' ? 'Puerta corrediza' : 'Puerta: abre hacia adentro'
   const problem = openingProblem(layout.room, o, layout.openings)
-  const color = problem ? 'var(--rust)' : o.kind === 'window' ? 'var(--graphite-2)' : 'var(--select)'
+  const color = problem ? 'var(--rust)' : 'var(--graphite)'
+  const px = hit / 44
   const across = o.wall === 'back' || o.wall === 'front'
   const span = { x1: start[0], y1: start[1], x2: end[0], y2: end[1] }
   return (
@@ -51,22 +52,61 @@ function OpeningMark({ layout, opening: o, hit, onGrab }: { layout: Layout; open
       }}
     >
       <title>{label}</title>
-      {o.kind === 'door' && o.swing === 'inside' && <polygon points={points.map((p) => p.join(',')).join(' ')} fill={color} fillOpacity="0.10" stroke={color} strokeWidth="14" strokeDasharray="30 25" />}
+      {o.kind === 'door' && o.swing === 'inside' && (
+        <>
+          <polyline points={points.slice(1).map((p) => p.join(',')).join(' ')} fill="none" stroke={color} strokeWidth={1.5 * px} />
+          <line x1={points[0][0]} y1={points[0][1]} x2={points[17][0]} y2={points[17][1]} stroke={color} strokeWidth={3 * px} />
+        </>
+      )}
       <line {...span} stroke="transparent" strokeWidth={hit} />
-      <line {...span} className={chosen ? '' : 'opacity-0 group-focus-visible:opacity-100'} stroke="var(--graphite)" strokeWidth="110" />
-      <line {...span} stroke="var(--bone)" strokeWidth="45" />
-      <line {...span} stroke={color} strokeWidth="22" />
+      <line {...span} className={chosen ? '' : 'opacity-0 group-focus-visible:opacity-100'} stroke="var(--graphite)" strokeWidth={16 * px} />
+      <line {...span} stroke="var(--bone)" strokeWidth={10 * px} />
+      {o.kind === 'window' ? (
+        <>
+          <line {...span} stroke={color} strokeWidth={8 * px} />
+          <line {...span} stroke="var(--bone)" strokeWidth={5 * px} />
+          <line {...span} stroke={color} strokeWidth={1.5 * px} />
+        </>
+      ) : (
+        <line {...span} stroke={color} strokeWidth={3 * px} />
+      )}
     </g>
   )
 }
 
-const BELOW = { chips: ['pb-24', 'pb-40'], warning: ['pb-16', 'pb-32'], nothing: ['pb-4', 'pb-20'] }
+/** A dimension line with arrowheads, extension lines from the wall and its figure, drawn `px` screen pixels at a time. */
+function Dimension({ length, along, px, label }: { length: number; along: 'x' | 'y'; px: number; label: string }) {
+  const off = -32 * px,
+    tick = 6 * px,
+    head = 9 * px
+  const at = (u: number, v: number): [number, number] => (along === 'x' ? [u, v] : [v, u])
+  const line = (a: [number, number], b: [number, number]) => <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="var(--graphite)" strokeWidth={1.5 * px} />
+  const arrow = (tip: number, dir: 1 | -1) => (
+    <polygon
+      points={[at(tip, off), at(tip + dir * head, off - head / 3), at(tip + dir * head, off + head / 3)].map((p) => p.join(',')).join(' ')}
+      fill="var(--graphite)"
+    />
+  )
+  const [tx, ty] = at(length / 2, off - 8 * px)
+  return (
+    <g aria-hidden className="pointer-events-none">
+      {line(at(0, -tick), at(0, off - tick))}
+      {line(at(length, -tick), at(length, off - tick))}
+      {line(at(0, off), at(length, off))}
+      {arrow(0, 1)}
+      {arrow(length, -1)}
+      <text x={tx} y={ty} textAnchor="middle" transform={along === 'y' ? `rotate(-90 ${tx} ${ty})` : undefined} fontSize={18 * px} fontWeight="600" fill="var(--graphite)" className="numerals font-mono">
+        {label}
+      </text>
+    </g>
+  )
+}
 
-/** `tools`: the chosen piece's tools sit over the foot of the plan, so it leaves them room. */
-export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: Set<string>; below: keyof typeof BELOW; tools: boolean }) {
+export function RoomPlan({ layout, bad }: { layout: Layout; bad: Set<string> }) {
   const selected = useRoom((s) => s.selected)
   const svg = useRef<SVGSVGElement>(null)
-  const [{ hit, margin }, setSizing] = useState({ hit: 500, margin: 220 })
+  const [{ hit, margin }, setSizing] = useState({ hit: 500, margin: 600 })
+  const px = hit / 44
   const drag = useRef<{
     id: string
     x: number
@@ -84,7 +124,7 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
       const height = node.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
       const roomScale = Math.min((width - 48) / layout.room.width, (height - 48) / layout.room.depth)
       if (roomScale <= 0) return
-      const margin = Math.max(220, 24 / roomScale)
+      const margin = Math.max(220, 64 / roomScale)
       const scale = Math.min(width / (layout.room.width + margin * 2), height / (layout.room.depth + margin * 2))
       setSizing({ hit: 44 / scale, margin })
     })
@@ -128,7 +168,7 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
       aria-label="Plano del espacio. Arrastra un mueble, una puerta o una ventana, o usa las flechas; Mayús mueve diez centímetros."
       data-room-plan
       viewBox={`${-margin} ${-margin} ${layout.room.width + margin * 2} ${layout.room.depth + margin * 2}`}
-      className={`h-full w-full touch-none select-none px-4 pt-36 ${BELOW[below][+tools]} md:pt-28 md:px-8`}
+      className="h-full w-full touch-none select-none p-1"
       onPointerMove={(e) => {
         const at = point(e),
           grabbed = drag.current
@@ -157,22 +197,11 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
           <path d="M 500 0 H 0 V 500" fill="none" stroke="var(--line)" strokeWidth="7" />
         </pattern>
       </defs>
-      <rect width={layout.room.width} height={layout.room.depth} fill="var(--bone)" stroke="var(--graphite-2)" strokeWidth="20" />
+      <rect width={layout.room.width} height={layout.room.depth} fill="var(--bone)" />
       <rect width={layout.room.width} height={layout.room.depth} fill="url(#room-grid)" />
-      <text x={layout.room.width / 2} y="-75" textAnchor="middle" fill="var(--graphite-2)" fontSize={Math.max(130, (hit * 12) / 44)} className="font-mono">
-        {cm(layout.room.width)} cm
-      </text>
-      <text
-        x="-85"
-        y={layout.room.depth / 2}
-        textAnchor="middle"
-        transform={`rotate(-90 -85 ${layout.room.depth / 2})`}
-        fill="var(--graphite-2)"
-        fontSize={Math.max(130, (hit * 12) / 44)}
-        className="font-mono"
-      >
-        {cm(layout.room.depth)} cm
-      </text>
+      <rect width={layout.room.width} height={layout.room.depth} fill="none" stroke="var(--graphite)" strokeWidth={6 * px} className="pointer-events-none" />
+      <Dimension length={layout.room.width} along="x" px={px} label={`${cm(layout.room.width)} cm`} />
+      <Dimension length={layout.room.depth} along="y" px={px} label={`${cm(layout.room.depth)} cm`} />
       {layout.openings.map((o) => (
         <OpeningMark key={o.id} layout={layout} opening={o} hit={hit} onGrab={grab} />
       ))}
@@ -232,11 +261,10 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
               y={r.z0 - (hit * 4) / 44}
               width={w + (hit * 8) / 44}
               height={d + (hit * 8) / 44}
-              rx="30"
               fill="none"
               stroke="var(--graphite)"
-              strokeWidth={(hit * 2) / 44}
-              strokeDasharray={`${(hit * 4) / 44} ${(hit * 3) / 44}`}
+              strokeWidth={2 * px}
+              strokeDasharray={`${4 * px} ${3 * px}`}
             />
             <rect
               className="room-footprint"
@@ -244,18 +272,38 @@ export function RoomPlan({ layout, bad, below, tools }: { layout: Layout; bad: S
               y={r.z0}
               width={w}
               height={d}
-              rx="30"
-              fill={item.kind === 'block' ? 'var(--line)' : 'var(--kraft)'}
-              stroke={chosen ? 'var(--select)' : 'var(--graphite-2)'}
-              strokeWidth={chosen ? 30 : 14}
-              strokeDasharray={item.elevation ? '45 30' : undefined}
+              fill={chosen ? 'var(--graphite)' : item.kind === 'block' ? 'var(--kraft-2)' : 'var(--bone)'}
+              stroke="var(--graphite)"
+              strokeWidth={2 * px}
+              strokeDasharray={item.elevation ? `${6 * px} ${4 * px}` : undefined}
             />
-            {frontEdge && <line className="pointer-events-none" x1={frontEdge[0]} y1={frontEdge[1]} x2={frontEdge[2]} y2={frontEdge[3]} stroke="var(--graphite)" strokeWidth="50" />}
-            {bad.has(item.id) && (
-              <rect x={r.x0 + 40} y={r.z0 + 40} width={Math.max(1, w - 80)} height={Math.max(1, d - 80)} fill="none" stroke="var(--rust)" strokeWidth="18" strokeDasharray="35 25" />
+            {frontEdge && (
+              <line className="pointer-events-none" x1={frontEdge[0]} y1={frontEdge[1]} x2={frontEdge[2]} y2={frontEdge[3]} stroke={chosen ? 'var(--bone)' : 'var(--graphite)'} strokeWidth={6 * px} />
             )}
-            <text x={item.x} y={item.z + 40} textAnchor="middle" fontSize={Math.max(145, (hit * 12) / 44)} fill="var(--graphite)" className="font-mono pointer-events-none">
+            {bad.has(item.id) && (
+              <rect
+                x={r.x0 + 6 * px}
+                y={r.z0 + 6 * px}
+                width={Math.max(1, w - 12 * px)}
+                height={Math.max(1, d - 12 * px)}
+                fill="none"
+                stroke={chosen ? 'var(--bone)' : 'var(--graphite)'}
+                strokeWidth={1.5 * px}
+                strokeDasharray={`${5 * px} ${4 * px}`}
+              />
+            )}
+            <text
+              x={item.x}
+              y={item.z}
+              dominantBaseline="central"
+              textAnchor="middle"
+              fontSize={Math.max(145, 18 * px)}
+              fontWeight="600"
+              fill={chosen ? 'var(--bone)' : 'var(--graphite)'}
+              className="numerals pointer-events-none font-mono"
+            >
               {index + 1}
+              {chosen ? ' ✓' : ''}
               {bad.has(item.id) ? ' !' : ''}
             </text>
           </g>

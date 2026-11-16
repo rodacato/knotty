@@ -5,6 +5,10 @@ import { Field, Input, Select } from '../system/Field'
 import { openingProblem, rectOf, validSpace, WALLS, type Item, type Layout, type Opening } from './layout'
 import { useRoom } from './store'
 
+/** A ruled fold of «Mi espacio» or «Mueble»: square, with its name in condensed capitals. */
+const FOLD = 'border-2 border-graphite px-3'
+const FOLD_NAME = 'min-h-11 cursor-pointer content-center font-display text-lg font-semibold uppercase'
+const GROUP_NAME = 'font-display text-xl font-semibold uppercase'
 const mm = (v: string) => (v.trim() ? Number(v.replace(',', '.')) * 10 : NaN)
 const cm = (v: number) => String(Math.round(v) / 10)
 const finite = (v: string) => Number.isFinite(mm(v))
@@ -55,9 +59,9 @@ export function PlacementForm({ item }: { item: Item }) {
   return (
     <form onSubmit={submit} className="flex flex-col gap-3" data-placement>
       <Measure label="Altura sobre el piso" value={up} change={setUp} commit={apply} error={error && (!finite(up) || mm(up) < 0) ? 'Escribe cero o más.' : null} />
-      <details className="rounded-xl border border-line p-3" open={!!(wallError(left) || wallError(back)) || undefined}>
-        <summary className="min-h-11 cursor-pointer content-center text-sm font-medium">Distancia exacta a las paredes</summary>
-        <div className="grid grid-cols-2 gap-3 pt-2">
+      <details className={FOLD} open={!!(wallError(left) || wallError(back)) || undefined}>
+        <summary className={FOLD_NAME}>Distancia exacta a las paredes</summary>
+        <div className="grid grid-cols-2 gap-3 pt-2 pb-3">
           <Measure label="A la pared izquierda" value={left} change={setLeft} commit={apply} error={wallError(left)} />
           <Measure label="A la pared de arriba" value={back} change={setBack} commit={apply} error={wallError(back)} />
         </div>
@@ -86,13 +90,13 @@ function SpaceForm({ layout }: { layout: Layout }) {
         setError(null)
       }}
     >
-      <p className="font-medium">Medidas interiores</p>
+      <p className={GROUP_NAME}>Medidas interiores</p>
       <div className="grid grid-cols-3 gap-2">
         <Measure label="Ancho" value={width} change={setWidth} error={error && (!finite(width) || mm(width) < 500 || mm(width) > 15000) ? error : null} />
         <Measure label="Fondo" value={depth} change={setDepth} error={error && (!finite(depth) || mm(depth) < 500 || mm(depth) > 15000) ? error : null} />
         <Measure label="Alto" value={height} change={setHeight} error={error && (!finite(height) || mm(height) < 500 || mm(height) > 15000) ? error : null} />
       </div>
-      <Button variant="ghost" type="submit" className="min-h-11 justify-center border border-line">
+      <Button variant="secondary" type="submit">
         Aplicar medidas
       </Button>
     </form>
@@ -118,7 +122,7 @@ function OpeningForm({ layout, opening: o }: { layout: Layout; opening: Opening 
   const sillError = error && (!finite(sill) || mm(sill) < 0 || tooHigh) ? 'El inicio debe ser cero o más y dejar espacio hasta el techo.' : null
   return (
     <form
-      className="flex flex-col gap-3 pt-3"
+      className="flex flex-col gap-3 pt-2 pb-3"
       onSubmit={(e) => {
         e.preventDefault()
         const updated: Opening = {
@@ -176,11 +180,11 @@ function OpeningForm({ layout, opening: o }: { layout: Layout; opening: Opening 
         </>
       )}
       <div className="flex gap-2">
-        <Button variant="ghost" type="submit" className="min-h-11 flex-1 justify-center border border-line">
+        <Button variant="secondary" type="submit" className="flex-1">
           Aplicar abertura
         </Button>
-        <Button variant="ghost" aria-label={`Quitar ${o.kind === 'door' ? 'puerta' : 'ventana'}`} onClick={() => useRoom.getState().removeOpening(o.id)}>
-          <Trash />
+        <Button variant="secondary" className="min-w-11 px-0" aria-label={`Quitar ${o.kind === 'door' ? 'puerta' : 'ventana'}`} onClick={() => useRoom.getState().removeOpening(o.id)}>
+          <Trash weight="bold" />
         </Button>
       </div>
     </form>
@@ -194,10 +198,10 @@ export function BlockForm() {
     [height, setHeight] = useState('100')
   const [error, setError] = useState<string | null>(null)
   return (
-    <details className="rounded-xl border border-line p-3">
-      <summary className="min-h-11 cursor-pointer content-center font-medium">Representar un espacio ocupado</summary>
+    <details className={FOLD}>
+      <summary className={FOLD_NAME}>Representar un espacio ocupado</summary>
       <form
-        className="flex flex-col gap-3 pt-2"
+        className="flex flex-col gap-3 pt-2 pb-3"
         onSubmit={(e) => {
           e.preventDefault()
           const size = {
@@ -212,7 +216,7 @@ export function BlockForm() {
           useRoom.getState().addBlock(name.trim(), size)
         }}
       >
-        <p className="text-sm text-graphite-2">Una cama que ya tienes, un refrigerador o una columna: se representa con un bloque.</p>
+        <p className="text-base text-graphite-2">Una cama que ya tienes, un refrigerador o una columna: se representa con un bloque.</p>
         <Field label="Nombre" error={error && !name.trim() ? 'Pon un nombre para reconocerlo.' : null}>
           <Input invalid={!!error && !name.trim()} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
         </Field>
@@ -221,8 +225,8 @@ export function BlockForm() {
           <Measure label="Fondo" value={depth} change={setDepth} error={error && !positive(depth) ? 'Escribe una medida positiva de hasta 1,500 cm.' : null} />
           <Measure label="Alto" value={height} change={setHeight} error={error && !positive(height) ? 'Escribe una medida positiva de hasta 1,500 cm.' : null} />
         </div>
-        <Button variant="ghost" type="submit" className="min-h-11 justify-center border border-line">
-          <Plus /> Agregar bloque
+        <Button variant="secondary" type="submit">
+          <Plus weight="bold" /> Agregar bloque
         </Button>
       </form>
     </details>
@@ -232,31 +236,27 @@ export function BlockForm() {
 export function SpaceEditor({ layout }: { layout: Layout }) {
   const chosen = useRoom((s) => s.opening)
   return (
-    <div className="flex flex-col gap-5">
-      <p className="text-sm text-graphite-2">
-        Comparamos las medidas exteriores de los muebles cerrados; los huecos internos no se descuentan. Las ventanas se comprueban en su pared y a su altura; falta revisar cómo abren y el espacio
-        para usar cajones y pasos. El armado se revisa en el Studio.
-      </p>
-      <p className="text-sm text-graphite-2">Empezamos con un cuarto de ejemplo, una puerta y una ventana. Puedes acercarlo a tu espacio.</p>
+    <div className="flex flex-col gap-4">
+      <p className="text-base text-graphite">Empezamos con un cuarto de ejemplo, una puerta y una ventana. Puedes acercarlo a tu espacio.</p>
       <SpaceForm key={`${layout.room.width}:${layout.room.depth}:${layout.room.height}`} layout={layout} />
-      <div className="flex flex-wrap gap-2">
-        <Button variant="ghost" className="min-h-11 border border-line" onClick={() => useRoom.getState().addOpening('door')}>
-          <Plus /> Puerta
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="secondary" onClick={() => useRoom.getState().addOpening('door')}>
+          <Plus weight="bold" /> Puerta
         </Button>
-        <Button variant="ghost" className="min-h-11 border border-line" onClick={() => useRoom.getState().addOpening('window')}>
-          <Plus /> Ventana
+        <Button variant="secondary" onClick={() => useRoom.getState().addOpening('window')}>
+          <Plus weight="bold" /> Ventana
         </Button>
       </div>
       {layout.openings.map((o, index) => (
         <details
           key={o.id}
-          className="rounded-xl border border-line p-3"
+          className={FOLD}
           open={chosen === o.id}
           onToggle={(e) => {
             if (e.currentTarget.open !== (chosen === o.id)) useRoom.getState().chooseOpening(e.currentTarget.open ? o.id : null)
           }}
         >
-          <summary className="min-h-11 cursor-pointer content-center font-medium">
+          <summary className={FOLD_NAME}>
             {o.kind === 'door' ? 'Puerta' : 'Ventana'} {layout.openings.slice(0, index + 1).filter((other) => other.kind === o.kind).length}
             {openingProblem(layout.room, o, layout.openings) ? ' · revisar medidas' : ''}
           </summary>
@@ -264,6 +264,10 @@ export function SpaceEditor({ layout }: { layout: Layout }) {
         </details>
       ))}
       <BlockForm />
+      <p className="border-t-2 border-graphite pt-3 text-base text-graphite-2">
+        Comparamos las medidas exteriores de los muebles cerrados; los huecos internos no se descuentan. Las ventanas se comprueban en su pared y a su altura; falta revisar cómo abren y el espacio
+        para usar cajones y pasos. El armado se revisa en el Studio.
+      </p>
     </div>
   )
 }
