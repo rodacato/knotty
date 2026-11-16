@@ -1,7 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import { InvalidResponse, type LLMProvider } from '../../ports/LLMProvider'
-import { createExpert, invalidJSON, type Content, type Transport } from './common/expert'
+import { createExpert, type Content, type Transport } from './common/expert'
 import { ProviderError } from './common/errors'
+import { extractJSON } from './common/json'
 
 // Models that sometimes refuse because of safety classifiers: the API retries on another model by itself.
 const WITH_FALLBACK = ['claude-opus-5', 'claude-fable-5-1']
@@ -10,19 +11,6 @@ const WITH_FALLBACK = ['claude-opus-5', 'claude-fable-5-1']
 async function client(apiKey: string) {
   const { default: Anthropic } = await import('@anthropic-ai/sdk')
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 300_000 })
-}
-
-/** The model's text as JSON; text that does not parse goes back to the model to be corrected, like a schema mismatch. */
-export function parseJSON(text: string): unknown {
-  const bare = text
-    .trim()
-    .replace(/^```(?:json)?\s*\n/, '')
-    .replace(/\n```$/, '')
-  try {
-    return JSON.parse(bare)
-  } catch {
-    throw invalidJSON(text)
-  }
 }
 
 // Schemas the API refused to compile into a grammar: from then on they travel in the prompt, and Zod still validates the answer.
@@ -62,7 +50,7 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         if (final.stop_reason === 'refusal') throw new Error('El modelo se negó a responder esta petición.')
         if (final.stop_reason === 'max_tokens') throw new Error('La respuesta se cortó por el límite de tokens.')
         const text = final.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('')
-        return { json: parseJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
+        return { json: extractJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
       } catch (e) {
         if (e instanceof InvalidResponse) throw e
         if (strict && !signal?.aborted && (e as { status?: number }).status === 400 && GRAMMAR_TOO_LARGE.test(String((e as Error).message))) {

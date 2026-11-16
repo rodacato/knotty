@@ -1,33 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { exampleBookcase } from '../../domain/furniture/fixtures/bookcase'
 import { testCatalog } from '../../domain/furniture/fixtures/catalog.test-util'
-import { InvalidResponse } from '../../ports/LLMProvider'
-import { createAnthropic, parseJSON, readTokens } from './anthropic'
+import { createAnthropic, readTokens } from './anthropic'
 
 afterEach(() => vi.unstubAllGlobals())
-
-describe('parseJSON', () => {
-  it('reads valid JSON', () => {
-    expect(parseJSON('{"explanation": "Veo un buró"}')).toEqual({ explanation: 'Veo un buró' })
-  })
-
-  it('reads JSON inside a code fence, which a model writes when the schema travels in the prompt', () => {
-    expect(parseJSON('```json\n{"explanation": "Veo un buró"}\n```')).toEqual({ explanation: 'Veo un buró' })
-  })
-
-  it('invalid JSON is an InvalidResponse, so the use cases send it back to be corrected', () => {
-    const text = '{"explanation": "Veo un buró", "design": {"pieces": ['
-    const error = (() => {
-      try {
-        parseJSON(text)
-      } catch (e) {
-        return e
-      }
-    })()
-    expect(error).toBeInstanceOf(InvalidResponse)
-    expect(error).toMatchObject({ response: text, problems: expect.stringMatching(/not valid JSON \(\d+ characters, ends in «.*pieces": \[»\)/) })
-  })
-})
 
 describe('input tokens', () => {
   it('count what came from the cache and what went into it: the system prompt is cached', () => {
