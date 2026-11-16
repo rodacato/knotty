@@ -22,7 +22,7 @@ const LEADER = 0.3
 const NO_SHAPES: EdgeShape[] = []
 function readColors() {
   const style = getComputedStyle(document.documentElement)
-  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'graphite', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
+  return Object.fromEntries(['color-brand-paper', 'color-drawing-paper', 'color-pine', 'kraft', 'graphite', 'graphite-2', 'select', 'rust'].map((key) => [key, style.getPropertyValue(`--${key}`).trim()]))
 }
 function useColors() {
   const [colors, setColors] = useState(readColors)
@@ -181,6 +181,8 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
     <>
       <CameraControls ref={controls} makeDefault minDistance={1} maxDistance={35} maxPolarAngle={Math.PI / 2 - 0.02} smoothTime={reduced ? 0.01 : 0.15} />
       <hemisphereLight args={['#fff6e8', '#b89a78', 1]} />
+      {/* Walls in shade read grey on paper; a warm fill keeps them in the sheet's straw. */}
+      <ambientLight intensity={0.9} color="#f4e2bd" />
       <directionalLight position={[2.5, 4.5, 3.2]} intensity={2.1} color="#fff1dc" />
       <Environment resolution={128} frames={1}>
         <Lightformer form="rect" intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} color="#fff4e2" />
@@ -191,7 +193,7 @@ function Contents({ layout, bad }: { layout: Layout; bad: Set<string> }) {
           <meshStandardMaterial color={colors['color-drawing-paper']} />
         </mesh>
         {(['back', 'left', 'front', 'right'] as Wall[]).map((wall) => (
-          <WallMesh key={wall} layout={layout} wall={wall} color={colors['color-brand-paper']} windowColor={colors['graphite-2']} />
+          <WallMesh key={wall} layout={layout} wall={wall} color={colors['kraft']} windowColor={colors['graphite-2']} />
         ))}
         {layout.openings
           .filter((o) => o.kind === 'door' && o.swing !== 'sliding' && !openingProblem(layout.room, o, layout.openings))

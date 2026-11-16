@@ -177,7 +177,7 @@ function ItemTools({ item }: { item: Item }) {
 /** The pieces in the room as a cut ticket: one ruled row each; choosing a row chooses the piece. Their numbers are the ones in the view. */
 function Ticket({ items, selected, bad, onChoose }: { items: Item[]; selected: string | null; bad: Set<string>; onChoose: (id: string) => void }) {
   return (
-    <section aria-label="Tu combinación" className="max-h-[8.5rem] shrink-0 overflow-y-auto border-2 border-graphite md:max-h-[9.5rem]">
+    <section aria-label="Tu combinación" className="max-h-[8.5rem] shrink-0 overflow-y-auto border-b-2 border-graphite md:max-h-[9.5rem]">
       <ul className="divide-y-2 divide-graphite">
         {items.map((i, index) => {
           const chosen = i.id === selected
@@ -300,22 +300,18 @@ export function Room() {
           className="fixed inset-0 z-40 flex h-dvh min-h-0 flex-col bg-bone text-graphite outline-none"
           data-room
         >
-          <header className="ink-band flex shrink-0 items-stretch gap-2 px-1 py-1 md:gap-5 md:px-4 md:py-2">
+          {/* The same band as «Preparar materiales»: back with its arrow, a rule, and the title at its size (UI-93). */}
+          <header className="ink-band flex shrink-0 items-center gap-2 px-2 py-2 sm:gap-3 sm:px-3 md:px-6 md:py-4">
             <Dialog.Close asChild>
-              <button
-                type="button"
-                className="grid min-h-11 min-w-11 place-items-center border-2 border-graphite font-display text-lg font-semibold text-graphite uppercase hover:bg-kraft md:border-y-0 md:border-l-0 md:border-line md:pr-5 md:pl-2"
-                aria-label="Volver al mueble"
-              >
-                <ArrowLeft weight="bold" className="md:hidden" />
-                <span className="max-md:hidden">Volver al mueble</span>
-              </button>
+              <Button variant="ghost" className="min-h-11 shrink-0 px-3 font-display text-base uppercase" aria-label="Volver al mueble">
+                <ArrowLeft weight="bold" /> <span className="max-sm:hidden">Volver al mueble</span>
+              </Button>
             </Dialog.Close>
-            <div className="flex min-w-0 flex-1 flex-col justify-center max-md:items-center">
-              <Dialog.Title className="font-display text-2xl leading-none font-semibold uppercase md:text-4xl">
+            <div className="min-w-0 flex-1 border-l-2 border-line pl-3">
+              <Dialog.Title className="font-display text-xl leading-tight font-semibold uppercase sm:truncate md:text-[56px] md:leading-none">
                 Tu espacio<span className="hidden min-[380px]:inline"> con Knotty</span>
               </Dialog.Title>
-              <Dialog.Description id="room-description" className="text-base text-graphite-2 max-md:sr-only">
+              <Dialog.Description id="room-description" className="text-base text-graphite max-md:sr-only md:mt-1 md:text-lg">
                 Prueba combinaciones antes de construir. Este espacio dura hasta recargar la página.
               </Dialog.Description>
             </div>
@@ -327,10 +323,11 @@ export function Room() {
             </Dialog.Close>
           </header>
           {/* On a phone the room is one column that scrolls, with the Studio button held at its foot; on a desktop each region keeps its own height. */}
-          <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto p-1.5 max-md:pb-0 md:gap-3 md:overflow-hidden md:p-3">
+          {/* One sheet ruled edge to edge, as the Studio and Materials are: no gaps between the ticket, the view and the panel. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:overflow-hidden">
             {!tight && <Ticket items={layout.items} selected={selected} bad={bad} onChoose={choose} />}
-            <div className="flex flex-col border-2 border-graphite md:grid md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,1fr)_400px]">
-              <section className="flex flex-col gap-2 p-1.5 md:min-h-0 md:border-r-2 md:border-graphite md:p-4" aria-label="Vista del cuarto" data-room-canvas>
+            <div className="flex flex-col md:grid md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,1fr)_400px]">
+              <section className="flex flex-col gap-2 p-3 md:min-h-0 md:border-r-2 md:border-graphite md:p-4" aria-label="Vista del cuarto" data-room-canvas>
                 <div className="flex shrink-0 items-start justify-between gap-2">
                   <div className={`${strip} w-full max-w-sm`} role="group" aria-label="Vista del espacio">
                     <button
