@@ -70,27 +70,27 @@ export function KeysGate() {
   return (
     <Dialog.Root open={visible} onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/30 backdrop-blur-[2px]" />
-        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 rounded-3xl border border-line bg-bone p-5 shadow-2xl sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
-          <div className="flex items-start gap-3">
-            <LockKey size={28} weight="duotone" className="mt-1 shrink-0 text-graphite" />
-            <div>
-              <Dialog.Title asChild>
-                <Title className="text-xl">{locked ? 'Tus llaves están guardadas' : `Falta tu llave de ${name}`}</Title>
-              </Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-graphite">
-                {locked
-                  ? 'Están cifradas en este navegador; sin tu frase nadie puede leerlas, ni esta página.'
-                  : 'Una llave que no guardas vive solo en la pestaña y se pierde al recargar. Sin ella, el experto no puede responder.'}
-              </Dialog.Description>
-            </div>
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-graphite/50" />
+        <Dialog.Content className="sheet fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-lg flex-col gap-4 border-2 border-graphite bg-bone sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2">
+          <header className="ink-band flex items-center gap-3 px-5 py-3">
+            <LockKey size={28} weight="bold" className="shrink-0" />
+            <Dialog.Title asChild>
+              <Title className="text-2xl leading-tight uppercase">{locked ? 'Tus llaves están guardadas' : `Falta tu llave de ${name}`}</Title>
+            </Dialog.Title>
+          </header>
+          <Dialog.Description className="px-5 text-base text-graphite">
+            {locked
+              ? 'Están cifradas en este navegador; sin tu frase nadie puede leerlas, ni esta página.'
+              : 'Una llave que no guardas vive solo en la pestaña y se pierde al recargar. Sin ella, el experto no puede responder.'}
+          </Dialog.Description>
+          <div className="px-5">
+            {locked ? (
+              <Unlock onOpen={close} autoFocus />
+            ) : (
+              <p className="text-base text-graphite">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
+            )}
           </div>
-          {locked ? (
-            <Unlock onOpen={close} autoFocus />
-          ) : (
-            <p className="text-sm text-graphite">Ponla de nuevo en los ajustes del experto y elige guardarla cifrada para que no vuelva a pasar.</p>
-          )}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-graphite px-5 py-3">
             <Button variant="ghost" onClick={close}>
               Ahora no
             </Button>
