@@ -32,7 +32,7 @@ describe('a schema the API cannot compile', () => {
     expect(bodies[0].output_config).toBeDefined()
     expect(system(bodies[0])).not.toContain('# Output format')
     for (const later of bodies.slice(1)) {
-      expect(later.output_config).toBeUndefined()
+      expect((later.output_config as { format?: unknown } | undefined)?.format).toBeUndefined()
       expect(system(later)).toContain('# Output format')
       expect(system(later)).toContain(JSON.stringify((bodies[0].output_config as { format: { schema: unknown } }).format.schema))
     }
@@ -40,18 +40,23 @@ describe('a schema the API cannot compile', () => {
 })
 
 describe('the effort', () => {
-  const sent = async (effort?: Effort) => {
+  const sent = async (effort?: Effort, model = 'claude-sonnet-5-5') => {
     let body: Record<string, unknown> = {}
     vi.stubGlobal('fetch', async (_: unknown, init?: RequestInit) => {
       body = JSON.parse(String(init?.body))
       return new Response(JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'stop here' } }), { status: 400, headers: { 'content-type': 'application/json' } })
     })
-    await createAnthropic('sk-test', 'claude-haiku-5-5', { effort }).reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal).catch(() => null)
+    await createAnthropic('sk-test', model, { effort }).reviewPurchase({ context: '', review: '', design: exampleBookcase, checks: [], catalog: testCatalog }, new AbortController().signal).catch(() => null)
     return { effort: (body.output_config as { effort?: string } | undefined)?.effort, thinking: body.thinking }
   }
 
   it('is the model default when none is given: the request names neither effort nor thinking', async () => {
     expect(await sent()).toEqual({ effort: undefined, thinking: undefined })
+  })
+
+  it('is low for Haiku 5.5 unless one is chosen: it designs as well as at medium, faster', async () => {
+    expect(await sent(undefined, 'claude-haiku-5-5')).toEqual({ effort: 'low', thinking: undefined })
+    expect(await sent('medium', 'claude-haiku-5-5')).toEqual({ effort: 'medium', thinking: undefined })
   })
 
   it('goes in the output config', async () => {

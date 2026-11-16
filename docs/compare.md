@@ -37,7 +37,7 @@ The live run **is not deterministic**. SheLLM's Claude adapter ignores temperatu
 
 18 fixed cases in `src/application/bench/cases.ts` (the bookcase and three variants —heavy books, only drill and jigsaw, widening it—, bed, bed with drawers, nightstand, wall cabinet, desk, shoe rack, TV stand, sideboard, coffee table, planter and two benches; the list lives in the file). Each case is a scenario: a request and, sometimes, adjustments in later turns, graded step by step on the real state it left behind. `KNOTTY_REPEAT` sets the attempts per case; the job is case × attempt.
 
-An Anthropic model can carry its effort after `@` (`low`, `medium`, `high`, or `off` to turn its thinking off): `KNOTTY_MODELS=anthropic:claude-haiku-5-5@medium,anthropic:claude-haiku-5-5@low` measures both side by side. Without it, the model's own default. Models from Claude 5.5 on think by default, and the thinking is billed as output though the answer leaves it out.
+An Anthropic model can carry its effort after `@` (`low`, `medium`, `high`, or `off` to turn its thinking off): `KNOTTY_MODELS=anthropic:claude-haiku-5-5@medium,anthropic:claude-haiku-5-5@low` measures both side by side. Without it, what the app sends: `low` for Haiku 5.5 (it designed as well as at `medium`, a quarter faster), the model's own default for the rest. Models from Claude 5.5 on think by default, and the thinking is billed as output though the answer leaves it out.
 
 ### The hard suite (`npm run compare:hard`)
 
