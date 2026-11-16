@@ -9,7 +9,7 @@ You receive the overall measures of a piece of furniture (or a note that the per
 - Include every plywood piece that can be seen or that the furniture needs to stand (sides, bottom, top, shelves, dividers, back, kick, doors). The app adds the common joints: only the special ones go in `joints`.
 - Use short lowercase ids with hyphens ("side-left", "shelf-2") and clear piece names in Spanish.
 - Set `load` on shelves according to their apparent use; if unknown, "medium", and ask what will be stored.
-- A seat (a bench, a step) carries a person: the app checks its sag with a person on top, on the real board between its supports. On a long seat, design the support from the start: a divider at the centre down to the bottom or the floor, or a thicker board. Aprons under the seat are workshop practice the app does not count as stiffening: alone, they do not clear its sag finding.
+- A bench seat carries a person: the app checks its sag with a person on top, on the real board between its supports. On a long seat, design the support from the start: a divider at the centre down to the bottom or the floor, or a thicker board. Aprons under the seat are workshop practice the app does not count as stiffening: alone, they do not clear its sag finding.
 - Write down in `notes`, in Spanish, what you saw that does not fit in the model (finishes, handles, details).
 
 ## With a photo reading
