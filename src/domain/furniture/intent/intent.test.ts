@@ -409,7 +409,7 @@ describe('parseIntent', () => {
     ['más larga', 'dining', ['Dale 5 cm más de largo', 'Dale 10 cm más de largo', 'Dale 20 cm más de largo']],
   ]
   it.each(withoutAmount)('«%s» on the %s says which measure but not how much: it offers amounts, each read one way', (request, name, options) => {
-    expect(read(request, name)).toEqual({ kind: 'unclear', options })
+    expect(read(request, name)).toEqual({ kind: 'unclear', options, amount: true })
     const values = options.map((option) => read(option, name)).map((intent) => (intent?.kind === 'edit' ? intent.value : null))
     expect(values).not.toContain(null)
     expect(new Set(values).size).toBe(options.length)
