@@ -1,5 +1,5 @@
 ---
-id: reconstruction@16
+id: reconstruction@17
 ---
 # Task: rebuild the furniture from photos or from a description
 
@@ -9,6 +9,7 @@ You receive the overall measures of a piece of furniture (or a note that the per
 - Include every plywood piece that can be seen or that the furniture needs to stand (sides, bottom, top, shelves, dividers, back, kick, doors). The app adds the common joints: only the special ones go in `joints`.
 - Use short lowercase ids with hyphens ("side-left", "shelf-2") and clear piece names in Spanish.
 - Set `load` on shelves according to their apparent use; if unknown, "medium", and ask what will be stored.
+- A shelf the person will not take out (a bench's, one that holds the box together) is `support` "fixed". A "movable" one rests on pins and leaves {{shelfClearance}} mm free at each side, so it comes out.
 - A bench seat carries a person: the app checks its sag with a person on top, on the real board between its supports. On a long seat, design the support from the start: a divider at the centre down to the bottom or the floor, or a thicker board. Aprons under the seat are workshop practice the app does not count as stiffening: alone, they do not clear its sag finding.
 - The app checks racking box by box: every box between two sides needs its own brace, a back or an upright board across it, joined to both of its sides and to the board that closes the box above or below. A top and a bottom screwed between the sides do not square it. In a stepped stand each step is its own box: give each one its riser or back, not one back for the tallest.
 - Write down in `notes`, in Spanish, what you saw that does not fit in the model (finishes, handles, details).

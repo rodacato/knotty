@@ -52,6 +52,7 @@ const DOMAIN = {
   storageAnchorHeight: value(`${ASSUMPTIONS.tipping.storageHeight} mm`, `${ASSUMPTIONS.tipping.storageHeight / 10} cm`),
   tallFurnitureHeight: value(`${ASSUMPTIONS.tipping.criticalHeight / 1000} m`, `${ASSUMPTIONS.tipping.criticalHeight} mm`),
   screwPenetration: measure(ASSUMPTIONS.screws.minPenetration),
+  shelfClearance: measure(ASSUMPTIONS.shelfClearance),
   // A whole inch (1") also closes every JSON string in the examples: only the fractional sizes guard.
   realThicknessAllowance: measure(ASSUMPTIONS.realThicknessAllowance),
   tipRatio: phrased(ASSUMPTIONS.tipping.recommendedRatio, `${ASSUMPTIONS.tipping.recommendedRatio} times`, 'three times'),
