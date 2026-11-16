@@ -2,7 +2,7 @@
 
 Adrian picked the **two-ink cutting sheet**, an Overhaul of the Studio built on the world of a 1960s Mexican lumber-yard cut ticket: black press ink and one vermilion spot ink printed on pale straw paper. It replaced the dark-workshop system ([set aside](set-aside/preserve-2026-11/README.md)) after three rounds of generated images and two side-by-side reviews of both systems on the editor, Materials and the site hero. The type was chosen afterwards, in a browser, from real fonts ([type specimen](type.html), option C).
 
-App: [Studio](studio.png) · [Materials](materials.png) ([desktop](materials-desktop.png)) · [Take-away guide](takeaway.png) · [Catalog](catalog.png) ([phone](catalog-phone.png))
+App: [Studio](studio.png) · [Materials](materials.png) ([desktop](materials-desktop.png)) · [Take-away guide](takeaway.png) · [Catalog](catalog.png) ([phone](catalog-phone.png)) · [Room](room.png) ([plan](room-plan.png), [phone](room-phone.png))
 Site: [Landing](landing.png) ([phone](landing-phone.png)) · [Landing, materials section](landing-materials.png) · [Brand guide](brand-guide.png)
 [Prompts](prompts/)
 
@@ -57,6 +57,31 @@ Known defects of these images, not to be built:
 - The guide squeezes phases 4–9 into narrow cells, and its sideboard overlaps the masthead band. Phases are rows with room for their steps.
 - On Materials' sheet 1, «1. Techo» is drawn over «1. Piso», and sheet 2 has no piece labels. The sheets are drawn by the app's own diagram, labels included.
 - «Sobra al menos 396 × 130 mm» floats beside sheet 2; it belongs to its sheet's caption, as the app prints it.
+
+## The room, «Ver en tu espacio»
+
+An Extension of the system above, for the room where a piece is combined with other fichas before building (D74, UI-86, UI-89). Its behaviour did not change: the example room lives in memory, the person arrives from one placed piece, «Ver en 3D» and «Acomodar» show one room, the tools sit at the foot of the view, the panel has «Combinar», «Mueble» and «Mi espacio», and one piece at a time goes to the Studio. Adrian picked «the combination first» from three directions (2026-11-16).
+
+- **The pieces in the room are a cut ticket.** Under the black band, one ruled row per piece: its number, name, measures and code, in the ticket's columns. The chosen piece is its row in solid ink with a check, and choosing a row chooses the piece. The same numbers tie each piece to its leader in the 3D and to its outline on the plan; they are the only numbers on the screen.
+- **The view is one ruled bay** with «Ver en 3D» / «Acomodar» as two square cells and undo and redo as two icon cells, all above the drawing; nothing floats over the room. «Girar», «Duplicar» and «Quitar» are three cells in one ruled band at its foot.
+- **The plan is a measured drawing**: heavy walls, dimension lines with their figures, the door's swing, the window on its wall, each piece as a numbered outline whose heavy edge is its front, and the chosen one in solid ink.
+- **«Combinar» is the tab open on arrival**, because discovering fichas is what the room is for. Its entries are ruled rows (a small drawing, the name, measures and code in mono, an outlined «Agregar»), unnumbered so they never read as pieces in the room.
+- **No vermilion.** «Ajustar este mueble en el Studio» leaves the room, so it is an ink button; «Aplicar medidas» is an outlined ink button, because it is one tab's form.
+- **On a phone** the order is the band, the ticket, the view with its controls, the 3D (at least a third of the screen, never covered), the tools, the tabs and the panel, with the Studio button at the foot.
+
+Directions set aside:
+
+| Direction | What it tested | Why it lost | What would bring it back |
+| --- | --- | --- | --- |
+| The room first: the 3D fills the sheet, the fichas to add beside it as numbered plates | Combining by looking | Its numbered fichas clashed with the numbered pieces, the signature was weak, and the phone set text under 16 px | Discovery alone matters and the pieces stop being a list |
+| The plan first: «Acomodar» as the default, the 3D as the check | Arranging by measure | The 3D became secondary and with it the discovery D74 is for; it put vermilion on «Aplicar medidas». Its plan drawing is the one kept for «Acomodar» | People bring their real room's measures first, and fit matters more than the look |
+
+Known defects of these images, not to be built:
+- The 3D draws the window on the back wall and the plan on the left one. The app draws both views from the same room.
+- The phone leaves out «Agrega una ficha y descubre cómo se ve junto a las demás.» and «Muebles cerrados · Detalles en Mi espacio.», and sets the ticket's measures under 16 px. The screen keeps both texts and its type floors.
+- «Mi espacio» shortens the app's note on what is compared; the screen keeps its full text.
+
+Still open: the plan on a phone, how the ticket holds five or more pieces, and an opening that does not fit (rust, with its icon) drawn beside the chosen state.
 
 ## Site and catalog
 
