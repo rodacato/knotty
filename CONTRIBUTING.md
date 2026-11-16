@@ -11,7 +11,7 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-Without an API key the app uses the **Simulado** expert, which understands a few requests and builds three examples (librero, buró, alacena). For a real expert, open the gear icon and choose Claude, OpenAI or SheLLM; the key stays in the browser.
+Without an API key the Studio's chat uses the **Simulado** expert, which understands measures, quantities and options on a ficha opened from the catalog. Designing a new piece from photos or a description («Crear un diseño») needs a real expert: «Conectar experto» in the header, then Claude, OpenAI or SheLLM; the key stays in the browser.
 
 For `npm run compare` (the bench against real experts), copy `.env.example` to `.env` and fill in whatever you are going to use. `.env` is not committed to git.
 
@@ -51,9 +51,9 @@ npm run lint && npm run typecheck && npm test && npm run build
 
 With `npm run dev` and the Simulado expert:
 
-1. **Design:** «Nuevo diseño», type «Un librero con repisas para libros» and design it. The piece of furniture appears in 3D with pine grain.
-2. **Adjust:** in the chat, «Hazlo de 90 cm de ancho». A proposal comes out with a critical finding: «Ver propuesta» / «Ver el actual» toggles the 3D, and in the findings (the bell) each solution has «Ver» and «Aplicar».
-3. **Tabs:** in Mueble the pieces appear with their measures; in Materiales, «Revisar y ver materiales» gives the verdict and the shopping list.
+1. **Open a ficha:** in the catalog, «Librero abierto», then «Abrir en el Studio». The piece of furniture appears in 3D with pine grain.
+2. **Adjust:** in the chat, «Hazlo de 200 cm de ancho». A proposal comes out with a critical finding: «Ver propuesta» / «Ver el actual» toggles the 3D, and in «Avisos» (the bell) each solution has «Ver» and «Aplicar».
+3. **Materials:** «Preparar materiales», then «Revisar y ver materiales», gives the verdict and the shopping list.
 4. **Reload:** the design is still there.
 
 If you touched the interface, also try it on a phone (the browser's responsive mode is enough). There is one theme, so dark mode needs no separate check.
