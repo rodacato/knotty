@@ -27,12 +27,19 @@ const block = (c: Content): Anthropic.Beta.BetaContentBlockParam =>
 export const readTokens = (u: { input_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null }) =>
   u.input_tokens + (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0)
 
-export function createAnthropic(apiKey: string, model: string): LLMProvider {
+// The SDK's timeout stops counting once the headers arrive: a stream that goes quiet after that is cut here.
+const IDLE_MS = 120_000
+
+const stalledError = () => Object.assign(new Error('The stream went quiet.'), { name: 'APIConnectionTimeoutError' })
+
+export function createAnthropic(apiKey: string, model: string, { idleMs = IDLE_MS } = {}): LLMProvider {
   const transport: Transport = {
     provider: 'anthropic',
     model: model,
     async completeJSON(system, content, schema, name, signal, onResponse) {
       const strict = !tooLarge.has(schema)
+      let stalled = false
+      let idle: ReturnType<typeof setTimeout> | undefined
       try {
         const stream = (await client(apiKey)).beta.messages.stream(
           {
@@ -46,6 +53,15 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
           { signal },
         )
         if (onResponse) stream.once('text', onResponse)
+        const watch = () => {
+          clearTimeout(idle)
+          idle = setTimeout(() => {
+            stalled = true
+            stream.abort()
+          }, idleMs)
+        }
+        stream.on('connect', watch)
+        stream.on('streamEvent', watch)
         const final = await stream.finalMessage()
         if (final.stop_reason === 'refusal') throw new Error('El modelo se negó a responder esta petición.')
         if (final.stop_reason === 'max_tokens') throw new Error('La respuesta se cortó por el límite de tokens.')
@@ -53,12 +69,15 @@ export function createAnthropic(apiKey: string, model: string): LLMProvider {
         return { json: extractJSON(text), usage: { inputTokens: readTokens(final.usage), outputTokens: final.usage.output_tokens } }
       } catch (e) {
         if (e instanceof InvalidResponse) throw e
+        if (stalled && !signal?.aborted) throw new ProviderError(stalledError())
         if (strict && !signal?.aborted && (e as { status?: number }).status === 400 && GRAMMAR_TOO_LARGE.test(String((e as Error).message))) {
           tooLarge.add(schema)
           return transport.completeJSON(system, content, schema, name, signal, onResponse)
         }
         // The SDK names its abort error 'Error'; the signal is what says the caller stopped it.
         throw new ProviderError(signal?.aborted ? new DOMException('Request was aborted.', 'AbortError') : e)
+      } finally {
+        clearTimeout(idle)
       }
     },
   }
