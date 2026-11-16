@@ -1161,6 +1161,13 @@ describe('what Knotty reads alone goes through the plan with no expert call', ()
     expect(chosen.versions).toHaveLength(2)
   })
 
+  it('a measure without an amount asks how much, with one request for each step', async () => {
+    const { c, calls, initial } = await shoeRack()
+    const asked = await c.adjust(initial, 'más alta', newSignal())
+    expect(calls).toEqual([])
+    expect(asked.chat.at(-1)).toMatchObject({ text: '¿Cuánto? Elige uno, o pídelo con la medida.', suggestions: ['Dale 5 cm más de alto', 'Dale 10 cm más de alto', 'Dale 20 cm más de alto'] })
+  })
+
   it('a change with a new critical finding waits for the person with the rules options, as through the expert\'s plan', async () => {
     const { llm, calls } = counting({ ...createSimulated(0), planDesign: async () => ({ value: { explanation: 'Cajonera.', ...answerWith(null), cabinet: { name: 'Cajonera', dimensions: { width: 500, height: 900, depth: 450 }, material: 'T18', base: 'kick', legHeight: 150, wallMounted: true, construction: DEFAULT_CONSTRUCTION, columns: [{ width: 1, cells: [0, 1, 2].map(() => ({ height: 1, content: 'drawer' as const, shelves: null, doors: null })) }] }, questions: [], requestedPhotos: [], requirements: [], suggestions: [] }, origin: { promptId: 'x', provider: 'x', model: 'm' }, usage: {} }) })
     const c = setup(llm)

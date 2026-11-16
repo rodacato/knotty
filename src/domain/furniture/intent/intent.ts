@@ -16,8 +16,8 @@ export type Intent =
   | { kind: 'edit'; field: string; value: string | number; plan: FurniturePlan }
   /** Several changes in one request, each to a field of its own; `plan` is the plan with all of them. */
   | { kind: 'several'; edits: { field: string; value: string | number }[]; plan: FurniturePlan }
-  /** A request that reads two ways; `options` are requests, in Spanish, that each read one way. */
-  | { kind: 'unclear'; options: string[] }
+  /** A request that reads more than one way; `options` are requests, in Spanish, that each read one way. `amount` when only how much is missing. */
+  | { kind: 'unclear'; options: string[]; amount?: true }
 
 type Plan = FurniturePlan
 
@@ -139,7 +139,7 @@ function withoutAmount(plan: Plan, [word, sign]: [string, 1 | -1]): Intent | nul
   if (!field) return null
   const said = normalize(field.label)
   const options = STEPS_CM.filter((cm) => setMeasure(plan, word, sign * cm * 10, true)).map((cm) => (sign > 0 ? `Dale ${cm} cm más de ${said}` : `Quítale ${cm} cm de ${said}`))
-  return options.length ? { kind: 'unclear', options } : null
+  return options.length ? { kind: 'unclear', options, amount: true } : null
 }
 
 /** The measure set to an amount, only if that moves it the way the words say. */

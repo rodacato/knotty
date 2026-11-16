@@ -160,7 +160,7 @@ export function createAdjust(kit: Kit) {
     if (!live || answering || withRequest.proposal) return null
     if (intent.kind === 'unclear') {
       note('ok')
-      return reply(localText.unclear, { suggestions: intent.options })
+      return reply(intent.amount ? localText.howMuch : localText.unclear, { suggestions: intent.options })
     }
     if (intent.plan === live) {
       note('ok')
